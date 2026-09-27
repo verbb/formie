@@ -27,7 +27,10 @@ it('refuses to delete finalized tracked uploads anonymously', function (): void 
     Formie::$plugin->getFileUploads()->trackSubmissionAsset($asset, (int)$form->id, (int)$submission->id, 'field-finalized');
     $submission->setFieldValue('documents', [$asset->id]);
     Craft::$app->getElements()->saveElement($submission, false);
-    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, ['state' => 'bound'], ['assetId' => $asset->id])->execute();
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
+        'state' => 'bound',
+        'promotionState' => 'moved',
+    ], ['assetId' => $asset->id])->execute();
     Formie::$plugin->getFileUploads()->finalizeSubmissionUploads((int)$submission->id);
 
     $removed = Formie::$plugin->getFileUploads()->removeUploadByAssetId((int)$asset->id);

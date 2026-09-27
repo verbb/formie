@@ -7,12 +7,17 @@
 {# Create a base hidden input to ensure that even when no files are uploaded it's still included in POST data #}
 <input type="hidden" name="{{ field.getHtmlName() }}" value="" data-formie-file-upload-anchor="true">
 
-{# Output any existing element IDs for already-uploaded assets, which can be overidden #}
-{# when uploading new files. Include an upload capability token so hydrate/delete are not ID-only. #}
+{# Persisted assets are retained by relationship. Newly staged assets carry their attach capability #}
+{# all the way to the submission boundary; their Craft asset ID is UI metadata only. #}
 {% if value %}
     {% for element in value.all() %}
-        {% set uploadToken = field.getUploadCapabilityToken(element) %}
-        <input type="hidden" name="{{ field.getHtmlName('[]') }}" value="{{ element.id }}" data-formie-file-upload-asset-id="true"{% if uploadToken %} data-formie-file-upload-token="{{ uploadToken }}"{% endif %}>
+        {% set reference = field.getSubmissionUploadReference(element, submission) %}
+        {% if reference.uploadUid and reference.attachToken %}
+            <input type="hidden" name="{{ field.getHtmlName('[' ~ loop.index0 ~ '][uploadUid]') }}" value="{{ reference.uploadUid }}" data-formie-file-upload-entry="true" data-formie-file-upload-asset-id="{{ element.id }}"{% if reference.viewToken %} data-formie-file-upload-token="{{ reference.viewToken }}"{% endif %}>
+            <input type="hidden" name="{{ field.getHtmlName('[' ~ loop.index0 ~ '][attachToken]') }}" value="{{ reference.attachToken }}" data-formie-file-upload-entry="true">
+        {% else %}
+            <input type="hidden" name="{{ field.getHtmlName('[' ~ loop.index0 ~ '][assetId]') }}" value="{{ element.id }}" data-formie-file-upload-entry="true" data-formie-file-upload-asset-id="{{ element.id }}"{% if reference.viewToken %} data-formie-file-upload-token="{{ reference.viewToken }}"{% endif %}>
+        {% endif %}
     {% endfor %}
 {% endif %}
 

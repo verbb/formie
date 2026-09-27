@@ -26,6 +26,7 @@ use verbb\formie\models\SubmissionExecutionResult;
 use verbb\formie\models\SubmissionOutcome;
 use verbb\formie\models\SubmissionProgress as ProgressState;
 use verbb\formie\models\SubmissionResponse;
+use verbb\formie\models\SubmissionUploadClaims;
 
 use Craft;
 use craft\helpers\UrlHelper;
@@ -103,6 +104,7 @@ class SubmissionProcessor extends Component
             },
             $input->pageId ?? $progress?->currentPageId, $input->targetPageId,
             $policy, true,
+            $authorityType === SubmissionAuthorityType::VISITOR && ($input->uploadPayloadVersion ?? 0) < 4,
         );
     }
 
@@ -382,7 +384,7 @@ class SubmissionProcessor extends Component
         Form $form, Submission $submission, SubmissionOperation $operation, NavigationIntent $navigation,
         SubmissionAuthorityType $authorityType, ?int $expectedVersion, ?string $operationId, ?string $requestToken,
         array $payload, callable $populate, ?int $pageId = null, ?int $targetPageId = null,
-        SubmissionPolicy $policy = SubmissionPolicy::STANDARD, bool $browser = false,
+        SubmissionPolicy $policy = SubmissionPolicy::STANDARD, bool $browser = false, bool $allowLegacyUploadIds = false,
     ): SubmissionExecutionResult {
         $scope = match ($authorityType) {
             SubmissionAuthorityType::VISITOR => 'session:' . $this->_sessionScope(),
@@ -393,6 +395,8 @@ class SubmissionProcessor extends Component
         };
         $authority = new SubmissionAuthority($authorityType, (int)$form->id, $submission->id ? (int)$submission->id : null, $scope);
         $operations = Formie::$plugin->getSubmissionOperations();
+        $uploadClaims = new SubmissionUploadClaims();
+        $submission->getContentState()->uploadClaims = $uploadClaims;
         $command = new SubmissionCommand(
             $operation, $navigation, $authority, $form, $submission, $expectedVersion, $operationId,
             $operations->fingerprint(['payload' => $payload, 'site' => $form->siteId, 'operation' => $operation->value, 'navigation' => $navigation->value, 'version' => $operation === SubmissionOperation::PAYMENT_REPLAY ? null : $expectedVersion]),
@@ -401,6 +405,8 @@ class SubmissionProcessor extends Component
             $policy, $requestToken,
             $authorityType === SubmissionAuthorityType::CONTROL_PANEL && StringHelper::toBoolean((string)Craft::$app->getRequest()->getBodyParam('sendNotifications')),
             $authorityType === SubmissionAuthorityType::CONTROL_PANEL && StringHelper::toBoolean((string)Craft::$app->getRequest()->getBodyParam('triggerIntegrations')),
+            $uploadClaims,
+            $allowLegacyUploadIds,
         );
         $guardReason = Formie::$plugin->getSubmissionGuards()->validateRequest($command, $browser);
         $outcome = $operations->execute($command, function () use ($command, $populate, $guardReason): SubmissionOutcome {

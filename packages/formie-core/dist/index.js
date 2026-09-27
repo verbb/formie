@@ -4055,7 +4055,7 @@ async function Ue(e, t, n, r) {
 			if (He.set(n, o), o.has(i)) return o.get(i);
 			let s = (async () => {
 				let i = new FormData();
-				i.set("file", n, n instanceof File ? n.name : "upload"), i.set("handle", e.handle), e.siteId && i.set("siteId", String(e.siteId)), i.set("fieldHandle", a.replace(/\.\d+$/, "")), i.set("renderId", t.tokens.render ?? ""), i.set("draftContext", String(t.continuation?.draftContext ?? "")), i.set("draftContextToken", String(t.continuation?.draftContextToken ?? "")), t.tokens.csrf && i.set(t.tokens.csrf.name, t.tokens.csrf.value);
+				i.set("file", n, n instanceof File ? n.name : "upload"), i.set("handle", e.handle), e.siteId && i.set("siteId", String(e.siteId)), i.set("fieldHandle", a.replace(/\.\d+$/, "")), i.set("renderId", t.tokens.render ?? ""), i.set("draftContext", String(t.continuation?.draftContext ?? "")), i.set("draftContextToken", String(t.continuation?.draftContextToken ?? "")), i.set("uploadCreateToken", t.tokens.uploadCreate ?? ""), t.continuation?.submissionId && i.set("submissionId", String(t.continuation.submissionId)), t.tokens.csrf && i.set(t.tokens.csrf.name, t.tokens.csrf.value);
 				let o = e.submission.uploadEndpoint;
 				if (!o) throw Error("The form bootstrap does not provide a staged upload endpoint.");
 				let s = await $(o, {

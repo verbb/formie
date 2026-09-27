@@ -27,7 +27,7 @@ class PersistSubmissionTask implements TaskInterface
         }
 
         $uploads = Formie::$plugin->getFileUploads();
-        if (!$uploads->stageAccepted($submission)) {
+        if (!$uploads->stageAccepted($context->command)) {
             return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
         }
         return $uploads->withUploadLocks($submission, function () use ($uploads, $submission, $context): TaskResult {

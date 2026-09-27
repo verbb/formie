@@ -12,7 +12,18 @@ it('stages nested files with scoped multipart context and carries public session
     vi.stubGlobal('fetch', fetch);
     await browserRequest('https://upload.test/bootstrap', {}, { profile: 'cross-origin-public' });
     const definition = { handle: 'contact', siteId: 2, pages: [{ rows: [{ fields: [{ id: 'items-id', handle: 'items', input: {}, client: { children: { mode: 'rows' } } }] }] }], submission: { uploadEndpoint: 'https://upload.test/upload' } } as unknown as ClientFormDefinition;
-    const session = { tokens: { render: 'render-id', csrf: { name: 'csrf', value: 'csrf-value' } }, continuation: { draftContext: 'draft', draftContextToken: 'draft-token' } } as unknown as ClientFormSession;
+    const session = {
+        tokens: {
+            render: 'render-id',
+            uploadCreate: 'upload-create-capability',
+            csrf: { name: 'csrf', value: 'csrf-value' },
+        },
+        continuation: {
+            submissionId: 42,
+            draftContext: 'draft',
+            draftContextToken: 'draft-token',
+        },
+    } as unknown as ClientFormSession;
     const file = new File(['hello'], 'hello.txt', { type: 'text/plain' });
     const result = await stageTransportFiles(definition, session, { 'items-id': [{ document: [file] }] }, { profile: 'cross-origin-public' });
     expect(result).toEqual({ 'items-id': [{ document: [{ uploadUid: 'pending-uid', attachToken: 'attachment-capability' }] }] });
@@ -25,6 +36,8 @@ it('stages nested files with scoped multipart context and carries public session
     expect(init.body.get('fieldHandle')).toBe('items.0.document');
     expect(init.body.get('renderId')).toBe('render-id');
     expect(init.body.get('draftContextToken')).toBe('draft-token');
+    expect(init.body.get('submissionId')).toBe('42');
+    expect(init.body.get('uploadCreateToken')).toBe('upload-create-capability');
     expect(await init.body.get('file').text()).toBe('hello');
 });
 

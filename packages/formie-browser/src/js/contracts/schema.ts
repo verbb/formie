@@ -9,6 +9,7 @@ export type FormRefreshTokensPayload = {
     };
     requestToken?: string;
     renderId?: string;
+    uploadCreateToken?: string;
     captchas?: Record<string, { sessionKey: string; value?: string }>;
     meta?: Record<string, unknown>;
 };

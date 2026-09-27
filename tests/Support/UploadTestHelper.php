@@ -78,6 +78,28 @@ final class UploadTestHelper
         return $asset;
     }
 
+    public static function seedStagedAsset(\verbb\formie\elements\Form $form, string $fieldUid, string $contentKey, string $filename, string $contents, ?int $submissionId = null): Asset
+    {
+        $uploads = Formie::$plugin->getFileUploads();
+        $folder = $uploads->getStagingFolder();
+        $tempPath = Assets::tempFilePath($filename);
+        file_put_contents($tempPath, $contents);
+
+        $asset = new Asset();
+        $asset->tempFilePath = $tempPath;
+        $asset->filename = $filename;
+        $asset->newFolderId = $folder->id;
+        $asset->setVolumeId($folder->volumeId);
+        $asset->avoidFilenameConflicts = true;
+        $asset->setScenario(Asset::SCENARIO_CREATE);
+
+        if (!$uploads->saveStagedAsset($asset, $form, $submissionId, $fieldUid, $contentKey)) {
+            throw new RuntimeException("Unable to create staged test asset `{$filename}`: " . json_encode($asset->getErrors()));
+        }
+
+        return $asset;
+    }
+
     private static function ensureLocalFilesystem(string $handle = 'formieTestUploadsFs', string $name = 'Formie Test Uploads FS'): Local
     {
         $fsService = Craft::$app->getFs();

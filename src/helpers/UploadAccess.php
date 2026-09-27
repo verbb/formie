@@ -2,6 +2,8 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
+use verbb\formie\enums\SubmissionUploadStatus;
 
 use Craft;
 use craft\db\Query;
@@ -11,12 +13,46 @@ use craft\helpers\UrlHelper;
 /** Durable, purpose-bound upload capabilities. Tokens are returned once; only hashes persist. */
 final class UploadAccess
 {
+    // Constants
+    // =========================================================================
+
+    private const CREATE_TOKEN_TTL = 7200;
+
+
     // Static Methods
     // =========================================================================
 
     public static function viewUrl(?string $token): ?string
     {
         return $token ? UrlHelper::actionUrl('formie/file-upload/view', ['token' => $token]) : null;
+    }
+
+    public static function issueCreateToken(Form $form): string
+    {
+        return Craft::$app->getSecurity()->hashData(Json::encode([
+            'version' => 1,
+            'purpose' => 'upload.create',
+            'formUid' => $form->uid,
+            'siteId' => (int)$form->siteId,
+            'browserHash' => Formie::$plugin->getSubmissionGrants()->browserHash($form),
+            'issuedAt' => time(),
+            'nonce' => Craft::$app->getSecurity()->generateRandomString(),
+        ]));
+    }
+
+    public static function validateCreateToken(Form $form, ?string $token): bool
+    {
+        $payload = Craft::$app->getSecurity()->validateData(trim((string)$token));
+        $data = $payload === false ? null : Json::decodeIfJson($payload);
+
+        return is_array($data)
+            && (int)($data['version'] ?? 0) === 1
+            && ($data['purpose'] ?? null) === 'upload.create'
+            && hash_equals((string)$form->uid, (string)($data['formUid'] ?? ''))
+            && (int)($data['siteId'] ?? 0) === (int)$form->siteId
+            && hash_equals(Formie::$plugin->getSubmissionGrants()->browserHash($form), (string)($data['browserHash'] ?? ''))
+            && (int)($data['issuedAt'] ?? 0) <= time()
+            && (int)($data['issuedAt'] ?? 0) > time() - self::CREATE_TOKEN_TTL;
     }
 
     public static function issueToken(int $assetId, int $formId, string $fieldUid, string $purpose = 'view'): ?string
@@ -28,7 +64,7 @@ final class UploadAccess
         }
         try {
             $row = Formie::$plugin->getFileUploads()->getTrackedUploadByAssetId($assetId, $formId, $fieldUid);
-            if (!$row || !in_array($purpose, ['view', 'attach', 'delete'], true) || (int)$row['expiresAt'] <= time() || in_array($row['state'], ['expired', 'rejected'], true)) {
+            if (!$row || !in_array($purpose, ['view', 'attach', 'delete'], true) || (int)$row['expiresAt'] <= time() || in_array($row['state'], [SubmissionUploadStatus::EXPIRED->value, SubmissionUploadStatus::REJECTED->value], true)) {
                 return null;
             }
             $token = Craft::$app->getSecurity()->generateRandomString(64);
@@ -49,7 +85,7 @@ final class UploadAccess
         }
         [$uid, $secret] = explode('.', $token, 2);
         $row = (new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where(['uid' => $uid])->one();
-        if (!$row || (int)$row['expiresAt'] <= time() || in_array($row['state'], ['expired', 'rejected'], true)) {
+        if (!$row || (int)$row['expiresAt'] <= time() || in_array($row['state'], [SubmissionUploadStatus::EXPIRED->value, SubmissionUploadStatus::REJECTED->value], true)) {
             return null;
         }
         $hashes = Json::decodeIfJson($row['capabilities']) ?: [];

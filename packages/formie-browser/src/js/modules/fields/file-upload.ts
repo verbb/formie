@@ -13,6 +13,7 @@ const FILE_UPLOAD_KEY_ATTR = 'data-formie-file-upload-key';
 const HYDRATE_ENDPOINT_ATTR = 'data-formie-file-upload-hydrate-endpoint';
 const HIDDEN_INPUT_ANCHOR_ATTR = 'data-formie-file-upload-anchor';
 const HIDDEN_INPUT_VALUE_ATTR = 'data-formie-file-upload-asset-id';
+const HIDDEN_INPUT_ENTRY_ATTR = 'data-formie-file-upload-entry';
 const FILE_VALIDATORS = [
     'fileLimit',
     'fileSizeMinLimit',
@@ -93,7 +94,8 @@ function getUploadedAssetInputs(field: HTMLElement, input: HTMLInputElement): HT
     const assetInputName = getUploadedAssetInputName(input);
 
     return getHiddenInputs(field).filter((hiddenInput) => {
-        return hiddenInput.name === assetInputName && hiddenInput.value.trim() !== '';
+        return hiddenInput.hasAttribute(HIDDEN_INPUT_VALUE_ATTR)
+            || (hiddenInput.name === assetInputName && hiddenInput.value.trim() !== '');
     });
 }
 
@@ -186,7 +188,7 @@ function readSummaryItems(summaryRoot: HTMLElement | null): UploadedAsset[] {
 function readUploadedAssetsFromHiddenInputs(field: HTMLElement, input: HTMLInputElement): UploadedAsset[] {
     return getUploadedAssetInputs(field, input).map((hiddenInput) => {
         return {
-            assetId: toPositiveInt(hiddenInput.value),
+            assetId: toPositiveInt(hiddenInput.getAttribute(HIDDEN_INPUT_VALUE_ATTR)) ?? toPositiveInt(hiddenInput.value),
             filename: '',
         };
     }).filter((asset) => {
@@ -349,21 +351,25 @@ function updateUploadedAssetInputs(field: HTMLElement, input: HTMLInputElement, 
     let insertionPoint: HTMLInputElement = anchor;
     // The upload event returns persisted asset ids; convert those back into the
     // hidden-input shape the backend expects on subsequent submit/save actions.
-    const anchorName = getUploadedAssetInputName(input);
-    getUploadedAssetInputs(field, input).forEach((hiddenInput) => {
+    const baseName = getFileValueName(input);
+    getHiddenInputs(field).filter((hiddenInput) => {
+        return hiddenInput.hasAttribute(HIDDEN_INPUT_ENTRY_ATTR)
+            || (hiddenInput.name === `${baseName}[]` && hiddenInput.value.trim() !== '');
+    }).forEach((hiddenInput) => {
         hiddenInput.remove();
     });
 
-    uploadedAssets.forEach((asset) => {
+    uploadedAssets.forEach((asset, index) => {
         if (!asset.assetId) {
             return;
         }
 
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
-        hiddenInput.name = anchorName;
+        hiddenInput.name = `${baseName}[${index}][assetId]`;
         hiddenInput.value = String(asset.assetId);
-        hiddenInput.setAttribute(HIDDEN_INPUT_VALUE_ATTR, 'true');
+        hiddenInput.setAttribute(HIDDEN_INPUT_ENTRY_ATTR, 'true');
+        hiddenInput.setAttribute(HIDDEN_INPUT_VALUE_ATTR, String(asset.assetId));
         insertionPoint.insertAdjacentElement('afterend', hiddenInput);
         insertionPoint = hiddenInput;
     });

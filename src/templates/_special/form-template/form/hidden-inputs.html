@@ -12,6 +12,8 @@
 {{ hiddenInput('renderId', form.getRenderId()) }}
 {{ hiddenInput('requestToken', form.getRequestToken()) }}
 {{ hiddenInput('expectedVersion', form.getCurrentSubmission() ? form.getCurrentSubmission().stateVersion : 0) }}
+{{ hiddenInput('formieUploadPayloadVersion', 4) }}
+{{ hiddenInput('uploadCreateToken', uploadCreateToken) }}
 {{ hiddenInput('formStartedAt', '') }}
 
 {% if form.getRelations() %}

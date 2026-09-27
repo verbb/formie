@@ -2,7 +2,6 @@
 namespace verbb\formie\gql\types\input;
 
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\UploadAccess;
 use verbb\formie\helpers\UploadLimits;
 
 use Craft;
@@ -50,7 +49,7 @@ class FileUploadInputType extends InputObjectType
                 'assetId' => [
                     'name' => 'assetId',
                     'type' => Type::int(),
-                    'description' => 'The ID of an already-uploaded asset.',
+                    'description' => 'The ID of an existing related asset to retain while editing.',
                 ],
             ],
             'normalizeValue' => [self::class, 'normalizeValue'],
@@ -62,17 +61,32 @@ class FileUploadInputType extends InputObjectType
     public static function normalizeValue($values): array
     {
         $assetIds = [];
+        $assetPositions = [];
+        $uploadReferences = [];
         $newValues = [];
         $maxBytes = UploadLimits::maxFileBytes();
         $maxEncodedBytes = 4 * (int)ceil($maxBytes / 3);
 
         foreach ($values as $key => $value) {
-            if (!empty($value['uploadUid'])) {
-                $upload = UploadAccess::resolveToken($value['attachToken'] ?? null, 'attach');
-                if (!$upload || !hash_equals($upload['uid'], $value['uploadUid'])) {
+            $position = is_int($key) ? $key : count($assetIds) + count($uploadReferences) + count($newValues);
+
+            if (!empty($value['uploadUid']) || !empty($value['attachToken'])) {
+                $uploadUid = trim((string)($value['uploadUid'] ?? ''));
+                $attachToken = trim((string)($value['attachToken'] ?? ''));
+
+                if ($uploadUid === '' || $attachToken === '' || !empty($value['assetId']) || !empty($value['fileData'])) {
                     throw new UserError('Invalid upload capability.');
                 }
-                $value['assetId'] = (int)$upload['assetId'];
+
+                // Exact form/field/submission authorization happens where the field and
+                // SubmissionCommand are available. Keep the capability intact until then.
+                $uploadReferences[] = [
+                    'uploadUid' => $uploadUid,
+                    'attachToken' => $attachToken,
+                    'position' => $position,
+                ];
+
+                continue;
             }
             // Translate `fileData` to `data` which the Craft Assets field natively supports. Also handle filename.
             if (!empty($value['fileData'])) {
@@ -126,17 +140,31 @@ class FileUploadInputType extends InputObjectType
                 }
             }
 
-            if (!empty($value['assetId'])) {
-                $assetIds[] = $value['assetId'];
+            if (!empty($value['assetId']) && is_numeric($value['assetId'])) {
+                $assetIds[] = (int)$value['assetId'];
+                $assetPositions[] = $position;
             }
         }
 
-        // Keep the ID-only contract, but retain new data alongside IDs for mixed edits.
-        if ($assetIds && !$newValues) {
+        if ($assetIds && !$newValues && !$uploadReferences) {
             return $assetIds;
         }
 
-        // Save under `mutationData` so we can handle normalization easier for GQL-specific stuff
-        return $assetIds + ['mutationData' => $newValues];
+        $normalized = [];
+
+        foreach ($assetIds as $index => $assetId) {
+            $normalized[$uploadReferences ? $assetPositions[$index] : $index] = $assetId;
+        }
+
+        if ($uploadReferences) {
+            $normalized['uploadReferences'] = $uploadReferences;
+        }
+
+        if ($newValues) {
+            // Save under `mutationData` so fields can stage bytes after validation.
+            $normalized['mutationData'] = $newValues;
+        }
+
+        return $normalized;
     }
 }

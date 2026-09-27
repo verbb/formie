@@ -2085,61 +2085,64 @@ var Ge = {
 		}
 		this.uppy.removeUploader(this.#o);
 	}
-}, qe = "@layer formie-theme{.formie-upload-manager{gap:var(--formie-gap-field);flex-direction:column;display:flex}.formie-upload-manager-dropzone{justify-content:center;align-items:center;gap:var(--formie-space-2);padding:var(--formie-space-4);min-height:calc(var(--formie-control-height) * 3);border:var(--formie-border-width) dashed var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface-subtle);color:var(--formie-color-text);text-align:center;cursor:pointer;flex-direction:column;transition:border-color .15s,background-color .15s,box-shadow .15s;display:flex}.formie-upload-manager-dropzone:hover,.formie-upload-manager-dropzone.formie-upload-manager-dropzone-active{border-color:var(--formie-color-focus-ring);background:var(--formie-color-surface-muted)}.formie-upload-manager-dropzone:focus{outline:0}.formie-upload-manager-dropzone:focus-visible{box-shadow:0 0 0 var(--formie-focus-ring-width) var(--formie-color-focus-ring)}.formie-field-has-error .formie-upload-manager-dropzone{border-color:var(--formie-color-danger)}.formie-upload-manager-prompt{font-size:var(--formie-font-size-sm);color:var(--formie-color-text-muted);margin:0}.formie-upload-manager-list{gap:var(--formie-space-2);flex-direction:column;margin:0;padding:0;list-style:none;display:flex}.formie-upload-manager-item{align-items:center;gap:var(--formie-space-2);padding:var(--formie-space-2) var(--formie-space-3);border:var(--formie-border-width) solid var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface);grid-template-columns:minmax(0,1fr) minmax(6.5rem,8rem) auto;display:grid}.formie-upload-manager-item.is-error{border-color:var(--formie-color-danger)}.formie-upload-manager-item.is-complete .formie-upload-manager-progress{opacity:0;visibility:hidden;pointer-events:none}.formie-upload-manager-filename{text-overflow:ellipsis;white-space:nowrap;font-size:var(--formie-font-size-sm);overflow:hidden}.formie-upload-manager-progress{justify-content:center;gap:var(--formie-space-1);min-height:var(--formie-button-icon-button-size);opacity:1;visibility:visible;flex-direction:column;align-self:center;transition:opacity .2s,visibility .2s;display:flex}.formie-upload-manager-progress-track{border-radius:var(--formie-radius-full);background:var(--formie-color-surface-muted);height:.375rem;position:relative;overflow:hidden}.formie-upload-manager-progress-bar{border-radius:inherit;background:var(--formie-color-primary);width:0;height:100%;transition:width .18s ease-out,background-color .2s}.formie-upload-manager-item.is-upload-complete .formie-upload-manager-progress-bar{background:var(--formie-color-success,var(--formie-color-primary));width:100%!important}.formie-upload-manager-item.is-uploading:not(.is-upload-complete) .formie-upload-manager-progress-track[data-indeterminate=true] .formie-upload-manager-progress-bar,.formie-upload-manager-item.is-preparing .formie-upload-manager-progress-bar,.formie-upload-manager-item.is-processing .formie-upload-manager-progress-bar{width:35%;animation:1.1s ease-in-out infinite formie-upload-manager-progress-indeterminate}.formie-upload-manager-item.is-processing .formie-upload-manager-progress-bar{opacity:.85}.formie-upload-manager-item.is-processing .formie-upload-manager-progress-label{color:var(--formie-color-text)}@keyframes formie-upload-manager-progress-indeterminate{0%{transform:translate(-120%)}to{transform:translate(320%)}}.formie-upload-manager-progress-label{font-size:var(--formie-font-size-xs);color:var(--formie-color-text-muted);text-align:center;white-space:nowrap;line-height:1.2}.formie-upload-manager-item.is-upload-complete .formie-upload-manager-progress-label{color:var(--formie-color-success-dark,var(--formie-color-primary));font-weight:var(--formie-font-weight-medium)}.formie-upload-manager-error{font-size:var(--formie-font-size-xs);color:var(--formie-color-danger);grid-column:1/-1}.formie-upload-manager-browse-button{margin-top:var(--formie-space-1)}.formie-upload-manager-actions{align-items:center;gap:var(--formie-space-2);flex-shrink:0;align-self:center;display:flex}.formie-upload-manager-sort-controls{border-radius:var(--formie-radius-sm);background:0 0;flex-direction:row;align-items:center;gap:.0625rem;padding:0;display:inline-flex}.formie-upload-manager-sort-controls[hidden]{display:none}.formie-upload-manager-sort-button,.formie-upload-manager-action-button{border-radius:var(--formie-radius-sm);width:1.375rem;height:1.375rem;color:var(--formie-color-text-muted);cursor:pointer;text-indent:-9999px;white-space:nowrap;background:0 0;border:0;justify-content:center;align-items:center;padding:0;font-size:0;line-height:0;transition:background-color .15s,color .15s,opacity .15s;display:inline-flex;position:relative;overflow:hidden}.formie-upload-manager-sort-button{width:1.375rem;height:1.375rem}.formie-upload-manager-sort-button:hover:not(:disabled),.formie-upload-manager-action-button:hover{background:var(--formie-color-surface-muted);color:var(--formie-color-text)}.formie-upload-manager-sort-button:focus-visible,.formie-upload-manager-action-button:focus-visible{box-shadow:0 0 0 var(--formie-focus-ring-width) var(--formie-color-focus-ring);outline:0}.formie-upload-manager-sort-button:disabled{opacity:.28;cursor:not-allowed}.formie-upload-manager-sort-button:after,.formie-upload-manager-action-button:after{content:\"\";background-color:currentColor;display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);-webkit-mask-position:50%;mask-position:50%;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}.formie-upload-manager-sort-button[data-formie-icon=arrow-up]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-arrow-up)}.formie-upload-manager-sort-button[data-formie-icon=arrow-down]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-arrow-down)}.formie-upload-manager-action-button[data-formie-icon=close]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-close)}.formie-upload-manager-sort-button:after{width:.75rem;height:.75rem;-webkit-mask-image:var(--formie-upload-manager-icon-mask);-webkit-mask-image:var(--formie-upload-manager-icon-mask);mask-image:var(--formie-upload-manager-icon-mask)}.formie-upload-manager-action-button:after{width:.825rem;height:.825rem;-webkit-mask-image:var(--formie-upload-manager-icon-mask);-webkit-mask-image:var(--formie-upload-manager-icon-mask);mask-image:var(--formie-upload-manager-icon-mask)}.formie-upload-manager-remove-button{flex-shrink:0}}", z = "[data-formie-upload-manager-root]", B = "[data-formie-upload-manager]", Je = "[data-formie-upload-manager-browse]", Ye = "[data-formie-upload-manager-input]", V = "[data-formie-upload-manager-status]", Xe = "[data-formie-upload-manager-list]", Ze = "[data-formie-upload-manager-sort-controls]", Qe = "[data-formie-upload-manager-sort=\"up\"]", $e = "[data-formie-upload-manager-sort=\"down\"]", H = "data-formie-file-upload-anchor", et = "data-formie-file-upload-asset-id", tt = "data-formie-file-upload-token", nt = r("reset"), rt = i("repeater", "init-row"), it = "upload-manager", at = "upload-manager", ot = ["uploadManagerRequired", "uploadManagerFileLimit"], st = 900, ct = 95, lt = 12e4, U = a("fields", "upload-manager");
-d(it, [qe]);
-function ut(e) {
+}, qe = "@layer formie-theme{.formie-upload-manager{gap:var(--formie-gap-field);flex-direction:column;display:flex}.formie-upload-manager-dropzone{justify-content:center;align-items:center;gap:var(--formie-space-2);padding:var(--formie-space-4);min-height:calc(var(--formie-control-height) * 3);border:var(--formie-border-width) dashed var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface-subtle);color:var(--formie-color-text);text-align:center;cursor:pointer;flex-direction:column;transition:border-color .15s,background-color .15s,box-shadow .15s;display:flex}.formie-upload-manager-dropzone:hover,.formie-upload-manager-dropzone.formie-upload-manager-dropzone-active{border-color:var(--formie-color-focus-ring);background:var(--formie-color-surface-muted)}.formie-upload-manager-dropzone:focus{outline:0}.formie-upload-manager-dropzone:focus-visible{box-shadow:0 0 0 var(--formie-focus-ring-width) var(--formie-color-focus-ring)}.formie-field-has-error .formie-upload-manager-dropzone{border-color:var(--formie-color-danger)}.formie-upload-manager-prompt{font-size:var(--formie-font-size-sm);color:var(--formie-color-text-muted);margin:0}.formie-upload-manager-list{gap:var(--formie-space-2);flex-direction:column;margin:0;padding:0;list-style:none;display:flex}.formie-upload-manager-item{align-items:center;gap:var(--formie-space-2);padding:var(--formie-space-2) var(--formie-space-3);border:var(--formie-border-width) solid var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface);grid-template-columns:minmax(0,1fr) minmax(6.5rem,8rem) auto;display:grid}.formie-upload-manager-item.is-error{border-color:var(--formie-color-danger)}.formie-upload-manager-item.is-complete .formie-upload-manager-progress{opacity:0;visibility:hidden;pointer-events:none}.formie-upload-manager-filename{text-overflow:ellipsis;white-space:nowrap;font-size:var(--formie-font-size-sm);overflow:hidden}.formie-upload-manager-progress{justify-content:center;gap:var(--formie-space-1);min-height:var(--formie-button-icon-button-size);opacity:1;visibility:visible;flex-direction:column;align-self:center;transition:opacity .2s,visibility .2s;display:flex}.formie-upload-manager-progress-track{border-radius:var(--formie-radius-full);background:var(--formie-color-surface-muted);height:.375rem;position:relative;overflow:hidden}.formie-upload-manager-progress-bar{border-radius:inherit;background:var(--formie-color-primary);width:0;height:100%;transition:width .18s ease-out,background-color .2s}.formie-upload-manager-item.is-upload-complete .formie-upload-manager-progress-bar{background:var(--formie-color-success,var(--formie-color-primary));width:100%!important}.formie-upload-manager-item.is-uploading:not(.is-upload-complete) .formie-upload-manager-progress-track[data-indeterminate=true] .formie-upload-manager-progress-bar,.formie-upload-manager-item.is-preparing .formie-upload-manager-progress-bar,.formie-upload-manager-item.is-processing .formie-upload-manager-progress-bar{width:35%;animation:1.1s ease-in-out infinite formie-upload-manager-progress-indeterminate}.formie-upload-manager-item.is-processing .formie-upload-manager-progress-bar{opacity:.85}.formie-upload-manager-item.is-processing .formie-upload-manager-progress-label{color:var(--formie-color-text)}@keyframes formie-upload-manager-progress-indeterminate{0%{transform:translate(-120%)}to{transform:translate(320%)}}.formie-upload-manager-progress-label{font-size:var(--formie-font-size-xs);color:var(--formie-color-text-muted);text-align:center;white-space:nowrap;line-height:1.2}.formie-upload-manager-item.is-upload-complete .formie-upload-manager-progress-label{color:var(--formie-color-success-dark,var(--formie-color-primary));font-weight:var(--formie-font-weight-medium)}.formie-upload-manager-error{font-size:var(--formie-font-size-xs);color:var(--formie-color-danger);grid-column:1/-1}.formie-upload-manager-browse-button{margin-top:var(--formie-space-1)}.formie-upload-manager-actions{align-items:center;gap:var(--formie-space-2);flex-shrink:0;align-self:center;display:flex}.formie-upload-manager-sort-controls{border-radius:var(--formie-radius-sm);background:0 0;flex-direction:row;align-items:center;gap:.0625rem;padding:0;display:inline-flex}.formie-upload-manager-sort-controls[hidden]{display:none}.formie-upload-manager-sort-button,.formie-upload-manager-action-button{border-radius:var(--formie-radius-sm);width:1.375rem;height:1.375rem;color:var(--formie-color-text-muted);cursor:pointer;text-indent:-9999px;white-space:nowrap;background:0 0;border:0;justify-content:center;align-items:center;padding:0;font-size:0;line-height:0;transition:background-color .15s,color .15s,opacity .15s;display:inline-flex;position:relative;overflow:hidden}.formie-upload-manager-sort-button{width:1.375rem;height:1.375rem}.formie-upload-manager-sort-button:hover:not(:disabled),.formie-upload-manager-action-button:hover{background:var(--formie-color-surface-muted);color:var(--formie-color-text)}.formie-upload-manager-sort-button:focus-visible,.formie-upload-manager-action-button:focus-visible{box-shadow:0 0 0 var(--formie-focus-ring-width) var(--formie-color-focus-ring);outline:0}.formie-upload-manager-sort-button:disabled{opacity:.28;cursor:not-allowed}.formie-upload-manager-sort-button:after,.formie-upload-manager-action-button:after{content:\"\";background-color:currentColor;display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);-webkit-mask-position:50%;mask-position:50%;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}.formie-upload-manager-sort-button[data-formie-icon=arrow-up]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-arrow-up)}.formie-upload-manager-sort-button[data-formie-icon=arrow-down]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-arrow-down)}.formie-upload-manager-action-button[data-formie-icon=close]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-close)}.formie-upload-manager-sort-button:after{width:.75rem;height:.75rem;-webkit-mask-image:var(--formie-upload-manager-icon-mask);-webkit-mask-image:var(--formie-upload-manager-icon-mask);mask-image:var(--formie-upload-manager-icon-mask)}.formie-upload-manager-action-button:after{width:.825rem;height:.825rem;-webkit-mask-image:var(--formie-upload-manager-icon-mask);-webkit-mask-image:var(--formie-upload-manager-icon-mask);mask-image:var(--formie-upload-manager-icon-mask)}.formie-upload-manager-remove-button{flex-shrink:0}}", z = "[data-formie-upload-manager-root]", B = "[data-formie-upload-manager]", Je = "[data-formie-upload-manager-browse]", Ye = "[data-formie-upload-manager-input]", V = "[data-formie-upload-manager-status]", Xe = "[data-formie-upload-manager-list]", Ze = "[data-formie-upload-manager-sort-controls]", Qe = "[data-formie-upload-manager-sort=\"up\"]", $e = "[data-formie-upload-manager-sort=\"down\"]", H = "data-formie-file-upload-anchor", U = "data-formie-file-upload-asset-id", et = "data-formie-file-upload-token", W = "data-formie-file-upload-entry", tt = r("reset"), nt = i("repeater", "init-row"), rt = "upload-manager", it = "upload-manager", at = ["uploadManagerRequired", "uploadManagerFileLimit"], ot = 900, st = 95, ct = 12e4, G = a("fields", "upload-manager");
+d(rt, [qe]);
+function lt(e) {
 	return !!e && typeof e == "object" && !Array.isArray(e);
 }
-function W(e) {
+function K(e) {
 	let t = Number(e);
 	return Number.isInteger(t) && t > 0 ? t : null;
 }
-function G(e) {
+function q(e) {
 	return typeof e == "string" ? e.trim() : "";
 }
-function dt(e) {
+function J(e) {
 	return e.getAttribute("data-formie-field-handle")?.trim() || "";
 }
-function ft(e) {
+function ut(e) {
 	if (!e) return "";
 	let t = e.querySelector("input[name=\"handle\"]");
 	return t instanceof HTMLInputElement && t.value.trim() ? t.value.trim() : e.getAttribute("data-formie-handle")?.trim() || "";
 }
-function K(e) {
+function Y(e) {
 	return Array.from(e.querySelectorAll("input[type=\"hidden\"]")).filter((e) => e instanceof HTMLInputElement);
 }
-function pt(e, t) {
-	let n = K(e).find((e) => e.hasAttribute(H) || e.name === t.replace("[]", "") && e.value === "");
+function dt(e, t) {
+	let n = Y(e).find((e) => e.hasAttribute(H) || e.name === t.replace("[]", "") && e.value === "");
 	if (n) return n.setAttribute(H, "true"), n;
 	let r = document.createElement("input");
 	return r.type = "hidden", r.name = t.replace("[]", ""), r.value = "", r.setAttribute(H, "true"), e.prepend(r), r;
 }
-function q(e, t) {
-	return K(e).filter((e) => e.name === t && e.value.trim() !== "");
+function ft(e, t) {
+	return Y(e).filter((e) => e.hasAttribute(U) || e.name === t && e.value.trim() !== "");
 }
-function J(e, t) {
-	return q(e, t).map((e) => W(e.value)).filter((e) => e !== null);
+function X(e, t) {
+	return ft(e, t).map((e) => K(e.getAttribute(U)) ?? K(e.value)).filter((e) => e !== null);
 }
-function mt(e, t) {
+function pt(e, t) {
 	let n = {};
-	return q(e, t).forEach((e) => {
-		let t = W(e.value), r = e.getAttribute(tt)?.trim() || "";
+	return ft(e, t).forEach((e) => {
+		let t = K(e.getAttribute(U)) ?? K(e.value), r = e.getAttribute(et)?.trim() || "";
 		t && r && (n[t] = r);
 	}), n;
 }
-function ht(e, t, n, r) {
-	let i = t;
-	q(e, n).forEach((e) => {
+function mt(e, t, n, r) {
+	let i = t, a = n.endsWith("[]") ? n.slice(0, -2) : n;
+	Y(e).filter((e) => e.hasAttribute(W) || e.name === n && e.value.trim() !== "").forEach((e) => {
 		e.remove();
-	}), r.forEach(({ assetId: e, uploadToken: t }) => {
-		let r = document.createElement("input");
-		r.type = "hidden", r.name = n, r.value = String(e), r.setAttribute(et, "true"), t && r.setAttribute(tt, t), i.insertAdjacentElement("afterend", r), i = r;
+	}), r.forEach(({ assetId: e, uploadToken: t, uploadUid: n, attachToken: r }, o) => {
+		let s = document.createElement("input");
+		if (s.type = "hidden", s.setAttribute(W, "true"), s.setAttribute(U, String(e)), n && r ? (s.name = `${a}[${o}][uploadUid]`, s.value = n) : (s.name = `${a}[${o}][assetId]`, s.value = String(e)), t && s.setAttribute(et, t), i.insertAdjacentElement("afterend", s), i = s, n && r) {
+			let e = document.createElement("input");
+			e.type = "hidden", e.name = `${a}[${o}][attachToken]`, e.value = r, e.setAttribute(W, "true"), i.insertAdjacentElement("afterend", e), i = e;
+		}
 	});
 }
-function gt(e, t, n) {
+function ht(e, t, n) {
 	let r = n.getAttribute("data-formie-upload-key")?.trim() || n.getAttribute("data-formie-input-id")?.trim() || "", i = {
-		handle: ft(e),
-		fieldHandle: dt(t),
+		handle: ut(e),
+		fieldHandle: J(t),
 		inputKey: r
 	};
 	return e ? ([
@@ -2150,14 +2153,15 @@ function gt(e, t, n) {
 		"siteId",
 		"submissionEditToken",
 		"resumeToken",
-		"submissionUid"
+		"submissionUid",
+		"uploadCreateToken"
 	].forEach((t) => {
 		let n = e.querySelector(`input[name="${t}"]`);
 		n instanceof HTMLInputElement && n.value.trim() && (i[t] = n.value.trim());
 	}), o(i, e), i) : i;
 }
-function _t(e, t, n, r = {}) {
-	let i = new FormData(), a = ft(e), o = dt(t);
+function gt(e, t, n, r = {}) {
+	let i = new FormData(), a = ut(e), o = J(t);
 	return a && i.append("handle", a), o && i.append("fieldHandle", o), [
 		"submissionUid",
 		"resumeToken",
@@ -2175,15 +2179,15 @@ function _t(e, t, n, r = {}) {
 		t && i.append(`uploadTokens[${e}]`, t);
 	}), c(i, e), i;
 }
-function vt(e) {
+function _t(e) {
 	if (!e) return null;
 	let t = e.split(",").map((e) => e.trim()).filter(Boolean);
 	return t.length ? t : null;
 }
-function Y(e, t, n, r) {
+function Z(e, t, n, r) {
 	return t?.trim() || e.getAttribute(n)?.trim() || r;
 }
-function X(e) {
+function vt(e) {
 	let t = e.querySelector("[data-formie-upload-manager-progress]");
 	if (!(t instanceof HTMLElement)) return {
 		track: null,
@@ -2197,25 +2201,25 @@ function X(e) {
 		label: i instanceof HTMLElement ? i : null
 	};
 }
-function Z(e, t, n = "uploading") {
-	let { track: r, bar: i, label: a } = X(e);
+function Q(e, t, n = "uploading") {
+	let { track: r, bar: i, label: a } = vt(e);
 	e.classList.add("is-uploading"), e.classList.remove("is-upload-complete", "is-complete", "is-processing", "is-preparing"), n === "processing" ? e.classList.add("is-processing") : n === "preparing" && e.classList.add("is-preparing"), r && r.setAttribute("data-indeterminate", "true"), i && (i.style.removeProperty("width"), i.setAttribute("data-progress", n)), a && (a.textContent = t);
 }
 function yt(e, t, n) {
-	let { track: r, bar: i, label: a } = X(e), o = Math.max(0, Math.min(ct, Math.round(t)));
+	let { track: r, bar: i, label: a } = vt(e), o = Math.max(0, Math.min(st, Math.round(t)));
 	e.classList.add("is-uploading"), e.classList.remove("is-upload-complete", "is-complete", "is-processing", "is-preparing"), r && r.setAttribute("data-indeterminate", "false"), i && (i.style.width = `${o}%`, i.setAttribute("data-progress", String(o))), a && (a.textContent = n || (o > 0 ? `Uploading… ${o}%` : "Uploading…"));
 }
 function bt(e, t, n = {}) {
 	let { loaded: r = 0, total: i = 0 } = n;
 	if ((i > 0 ? r >= i : t >= 100) || t >= 100) {
-		Z(e, "Processing…", "processing");
+		Q(e, "Processing…", "processing");
 		return;
 	}
 	if (t <= 0 && r <= 0) {
-		Z(e, "Uploading…", "uploading");
+		Q(e, "Uploading…", "uploading");
 		return;
 	}
-	let a = Math.min(ct, Math.max(1, Math.round(t)));
+	let a = Math.min(st, Math.max(1, Math.round(t)));
 	yt(e, a, `Uploading… ${a}%`);
 }
 function xt(e, t) {
@@ -2233,10 +2237,10 @@ function St(e) {
 	return e.status === 0 || e.status >= 500;
 }
 function Ct(e) {
-	let { track: t, bar: n, label: r } = X(e);
+	let { track: t, bar: n, label: r } = vt(e);
 	e.classList.add("is-uploading", "is-upload-complete"), e.classList.remove("is-complete", "is-processing", "is-preparing"), t && t.setAttribute("data-indeterminate", "false"), n && (n.style.width = "100%", n.setAttribute("data-progress", "100")), r && (r.textContent = "Complete"), window.setTimeout(() => {
 		e.classList.add("is-complete"), e.classList.remove("is-uploading", "is-upload-complete");
-	}, st);
+	}, ot);
 }
 function wt(e) {
 	let t = e === "up" ? "Move file up" : "Move file down", n = document.createElement("button");
@@ -2264,7 +2268,7 @@ function Tt(e, t) {
 	let f = document.createElement("button");
 	f.type = "button", f.className = "formie-upload-manager-action-button formie-upload-manager-remove-button", f.setAttribute("data-formie-upload-manager-remove", "true"), f.setAttribute("aria-label", "Remove file"), f.setAttribute("title", "Remove file"), f.setAttribute("data-formie-icon", "close"), f.textContent = "Remove", d.append(c, f);
 	let p = document.createElement("span");
-	return p.className = "formie-upload-manager-error", p.setAttribute("data-formie-upload-manager-error", "true"), p.hidden = !0, n.append(r, i, d, p), Z(n, "Preparing…", "preparing"), {
+	return p.className = "formie-upload-manager-error", p.setAttribute("data-formie-upload-manager-error", "true"), p.hidden = !0, n.append(r, i, d, p), Q(n, "Preparing…", "preparing"), {
 		listItem: n,
 		filenameEl: r,
 		errorEl: p,
@@ -2273,34 +2277,34 @@ function Tt(e, t) {
 		sortDownButton: u
 	};
 }
-function Q(e) {
-	let t = K(e).find((e) => e.hasAttribute(et));
-	if (t?.name) return t.name;
-	let n = K(e).find((e) => e.hasAttribute(H));
-	if (n?.name) return n.name.endsWith("[]") ? n.name : `${n.name}[]`;
-	let r = dt(e), i = r ? u(r) : "";
-	return i ? `${i}[]` : "fields[fileUpload][]";
-}
 function Et(e) {
+	let t = Y(e).find((e) => e.hasAttribute(H));
+	if (t?.name) return t.name.endsWith("[]") ? t.name : `${t.name}[]`;
+	let n = J(e), r = n ? u(n) : "";
+	return r ? `${r}[]` : "fields[fileUpload][]";
+}
+function Dt(e) {
 	return e.files.filter((e) => e.assetId !== null).length;
 }
 function $(e) {
 	let t = e.files.filter((e) => e.assetId !== null).map((e) => ({
 		assetId: e.assetId,
 		uploadToken: e.uploadToken,
+		uploadUid: e.uploadUid,
+		attachToken: e.attachToken,
 		filename: e.filename
 	}));
-	ht(e.field, e.anchorInput, e.assetInputName, t), e.statusInput && (e.statusInput.value = t.length ? "uploaded" : ""), m(e.field, "file-upload", "uploaded-assets-sync", { assets: t.map(({ assetId: e, filename: t }) => ({
+	mt(e.field, e.anchorInput, e.assetInputName, t), e.statusInput && (e.statusInput.value = t.length ? "uploaded" : ""), m(e.field, "file-upload", "uploaded-assets-sync", { assets: t.map(({ assetId: e, filename: t }) => ({
 		assetId: e,
 		filename: t
 	})) });
 }
-function Dt(e) {
-	p(e, at, (e) => {
+function Ot(e) {
+	p(e, it, (e) => {
 		e.addValidator("uploadManagerRequired", ({ input: e }) => {
 			if (!e.matches(V)) return !0;
 			let t = e.closest("[data-formie-field-handle]");
-			return !(t instanceof HTMLElement) || e.getAttribute("data-formie-validation-required") !== "true" || J(t, Q(t)).length > 0;
+			return !(t instanceof HTMLElement) || e.getAttribute("data-formie-validation-required") !== "true" || X(t, Et(t)).length > 0;
 		}, ({ input: e, label: t, t: n }) => e.getAttribute("data-formie-required-message") ?? n("{label} cannot be blank.", { label: t })), e.addValidator("uploadManagerFileLimit", ({ input: e }) => {
 			if (!e.matches(V)) return !0;
 			let t = e.closest("[data-formie-field-handle]");
@@ -2308,29 +2312,29 @@ function Dt(e) {
 			let n = t.querySelector(B);
 			if (!(n instanceof HTMLElement)) return !0;
 			let r = parseInt(n.getAttribute("data-formie-file-limit") || "", 10);
-			return !r || J(t, Q(t)).length <= r;
+			return !r || X(t, Et(t)).length <= r;
 		}, ({ input: e, t }) => {
 			let n = e.closest("[data-formie-field-handle]")?.querySelector(B);
 			return n?.getAttribute("data-formie-validation-max-files-message") ?? t("Choose up to {files} files.", { files: n?.getAttribute("data-formie-file-limit") || "" });
 		});
 	});
 }
-function Ot(e) {
-	f(e, at, ot);
+function kt(e) {
+	f(e, it, at);
 }
-function kt(e, t) {
+function At(e, t) {
 	if (e instanceof HTMLFormElement) return e;
 	let n = t.closest("form");
 	return n instanceof HTMLFormElement ? n : null;
 }
-function At(e, t, r) {
+function jt(e, t, r) {
 	let i = e.querySelector(z);
 	if (!(i instanceof HTMLElement)) return () => {};
 	let a = i.querySelector(B);
 	if (!(a instanceof HTMLElement)) return () => {};
 	let o = i.querySelector(Ye), c = i.querySelector(Je), u = i.querySelector(Xe), d = i.querySelector(V);
 	if (!(o instanceof HTMLInputElement) || !(u instanceof HTMLElement)) return () => {};
-	let f = kt(t, e), p = d instanceof HTMLInputElement ? d : null, h = Q(e), g = pt(e, h), _ = Y(a, r.uploadEndpoint, "data-formie-file-upload-upload-endpoint", "/actions/formie/file-upload/upload"), v = Y(a, r.deleteEndpoint, "data-formie-file-upload-delete-endpoint", "/actions/formie/file-upload/delete"), y = Y(a, r.hydrateEndpoint, "data-formie-file-upload-hydrate-endpoint", "/actions/formie/file-upload/hydrate"), b = r.limitFiles ?? W(a.getAttribute("data-formie-file-limit")), x = r.sizeLimit ?? parseFloat(a.getAttribute("data-formie-size-max-limit") || ""), S = r.sizeMinLimit ?? parseFloat(a.getAttribute("data-formie-size-min-limit") || ""), C = vt(r.accept ?? a.getAttribute("accept") ?? o.accept), w = {};
+	let f = At(t, e), p = d instanceof HTMLInputElement ? d : null, h = Et(e), g = dt(e, h), _ = Z(a, r.uploadEndpoint, "data-formie-file-upload-upload-endpoint", "/actions/formie/file-upload/upload"), v = Z(a, r.deleteEndpoint, "data-formie-file-upload-delete-endpoint", "/actions/formie/file-upload/delete"), y = Z(a, r.hydrateEndpoint, "data-formie-file-upload-hydrate-endpoint", "/actions/formie/file-upload/hydrate"), b = r.limitFiles ?? K(a.getAttribute("data-formie-file-limit")), x = r.sizeLimit ?? parseFloat(a.getAttribute("data-formie-size-max-limit") || ""), S = r.sizeMinLimit ?? parseFloat(a.getAttribute("data-formie-size-min-limit") || ""), C = _t(r.accept ?? a.getAttribute("accept") ?? o.accept), w = {};
 	b && (w.maxNumberOfFiles = b), x && (w.maxFileSize = x * 1e3 * 1e3), S && (w.minFileSize = S * 1e3 * 1e3), C && (w.allowedFileTypes = C);
 	let T = new Be({
 		autoProceed: !0,
@@ -2341,7 +2345,7 @@ function At(e, t, r) {
 		fieldName: "file",
 		formData: !0,
 		withCredentials: f?.dataset.formieRequestProfile !== "cross-origin-public",
-		timeout: lt,
+		timeout: ct,
 		shouldRetry: St,
 		headers: { Accept: "application/json" },
 		allowedMetaFields: [
@@ -2355,6 +2359,7 @@ function At(e, t, r) {
 			"siteId",
 			"submissionEditToken",
 			"resumeToken",
+			"uploadCreateToken",
 			...E ? [E.name] : []
 		],
 		getResponseData(e) {
@@ -2390,7 +2395,7 @@ function At(e, t, r) {
 		assetInputName: h,
 		uppy: T,
 		files: []
-	}, ee = () => b ? Math.max(0, b - Et(D)) : null, O = (e) => {
+	}, ee = () => b ? Math.max(0, b - Dt(D)) : null, O = (e) => {
 		a.classList.toggle("formie-upload-manager-dropzone-active", e);
 	}, te = (e) => e.assetId !== null && !e.listItem.classList.contains("is-error"), k = () => {
 		let e = D.files.length >= 2;
@@ -2418,7 +2423,7 @@ function At(e, t, r) {
 		});
 	}, ne = async (t) => {
 		if (t.uppyFileId && T.removeFile(t.uppyFileId), t.assetId) {
-			let n = new FormData(), r = gt(f, e, a);
+			let n = new FormData(), r = ht(f, e, a);
 			Object.entries(r).forEach(([e, t]) => {
 				n.append(e, t);
 			}), n.append("assetId", String(t.assetId)), t.uploadToken && n.append("uploadToken", t.deleteToken || "");
@@ -2429,42 +2434,44 @@ function At(e, t, r) {
 					body: n
 				});
 			} catch (e) {
-				U.warn("Failed to delete uploaded asset.", {
+				G.warn("Failed to delete uploaded asset.", {
 					assetId: t.assetId,
 					error: e
 				});
 			}
 		}
 		t.listItem.remove(), D.files = D.files.filter((e) => e !== t), $(D), k();
-	}, re = (t, n, r = null, i = null) => {
-		let { listItem: a, removeButton: o, sortUpButton: s, sortDownButton: c } = Tt(e, n);
-		a.classList.add("is-complete"), u.append(a);
-		let l = {
+	}, re = (t, n, r = null, i = null, a = null, o = null) => {
+		let { listItem: s, removeButton: c, sortUpButton: l, sortDownButton: d } = Tt(e, n);
+		s.classList.add("is-complete"), u.append(s);
+		let f = {
 			assetId: t,
 			uploadToken: r,
 			deleteToken: i,
+			uploadUid: a,
+			attachToken: o,
 			filename: n,
 			uppyFileId: null,
-			listItem: a
+			listItem: s
 		};
-		j(l, o, s, c), D.files.push(l), k();
+		j(f, c, l, d), D.files.push(f), k();
 	}, ie = async () => {
-		let t = J(e, h);
+		let t = X(e, h);
 		if (!t.length) return;
-		let n = mt(e, h);
+		let n = pt(e, h);
 		try {
 			let r = (await l(y, {
 				profile: f?.dataset.formieRequestProfile,
 				method: "POST",
-				body: _t(f, e, t, n)
-			})).assets || [], i = new Map(r.map((e) => [W(e.assetId), e]).filter(([e]) => e !== null));
+				body: gt(f, e, t, n)
+			})).assets || [], i = new Map(r.map((e) => [K(e.assetId), e]).filter(([e]) => e !== null));
 			t.forEach((e) => {
 				if (D.files.some((t) => t.assetId === e)) return;
 				let t = i.get(e);
-				t && re(e, t.filename || `Asset #${e}`, G(t.uploadToken) || n[e] || null, G(t.deleteToken) || null);
+				t && re(e, t.filename || `Asset #${e}`, q(t.uploadToken) || n[e] || null, q(t.deleteToken) || null, q(t.uploadUid) || null, q(t.attachToken) || null);
 			}), $(D), k();
 		} catch (e) {
-			U.warn("Failed to hydrate uploaded assets.", { error: e });
+			G.warn("Failed to hydrate uploaded assets.", { error: e });
 		}
 	}, M = (e) => e && D.files.find((t) => t.uppyFileId === e) || null;
 	T.on("upload-progress", (e, t) => {
@@ -2477,11 +2484,11 @@ function At(e, t, r) {
 		});
 	}), T.on("upload-retry", (e) => {
 		let t = M(e?.id);
-		t && Z(t.listItem, "Retrying…", "retrying");
+		t && Q(t.listItem, "Retrying…", "retrying");
 	}), T.on("upload-success", (e, t) => {
 		let n = M(e?.id);
 		if (!n) return;
-		let r = n.listItem.querySelector("[data-formie-upload-manager-error]"), i = ut(t?.body) ? t.body : {}, a = W(i.assetId);
+		let r = n.listItem.querySelector("[data-formie-upload-manager-error]"), i = lt(t?.body) ? t.body : {}, a = K(i.assetId);
 		if (!i.success || !a) {
 			if (n.listItem.classList.add("is-error"), n.listItem.classList.remove("is-uploading", "is-upload-complete", "is-processing", "is-preparing"), r instanceof HTMLElement) {
 				r.hidden = !1, r.textContent = xt(null, { message: "Upload failed." });
@@ -2490,7 +2497,7 @@ function At(e, t, r) {
 			}
 			return;
 		}
-		n.assetId = a, n.uploadToken = G(i.uploadToken) || null, n.deleteToken = G(i.deleteToken) || null, n.filename = i.filename || n.filename, Ct(n.listItem), $(D), k();
+		n.assetId = a, n.uploadToken = q(i.uploadToken) || null, n.deleteToken = q(i.deleteToken) || null, n.uploadUid = q(i.uploadUid) || null, n.attachToken = q(i.attachToken) || null, n.filename = i.filename || n.filename, Ct(n.listItem), $(D), k();
 	}), T.on("upload-error", (e, t, n) => {
 		let r = M(e?.id);
 		if (!r) return;
@@ -2502,12 +2509,14 @@ function At(e, t, r) {
 			T.removeFile(t.id), T.info("File limit reached.", "error", 3e3);
 			return;
 		}
-		T.setFileMeta(t.id, gt(f, e, a));
+		T.setFileMeta(t.id, ht(f, e, a));
 		let { listItem: r, removeButton: i, sortUpButton: o, sortDownButton: s } = Tt(e, t.name || "Upload");
 		u.append(r);
 		let c = {
 			assetId: null,
 			uploadToken: null,
+			uploadUid: null,
+			attachToken: null,
 			filename: t.name || "Upload",
 			uppyFileId: t.id,
 			listItem: r
@@ -2561,14 +2570,14 @@ function At(e, t, r) {
 	let P = () => {
 		D.files.forEach((e) => {
 			e.listItem.remove();
-		}), D.files = [], T.cancelAll(), ht(e, g, h, []);
+		}), D.files = [], T.cancelAll(), mt(e, g, h, []);
 	};
-	return f?.addEventListener(nt, P), ie(), () => {
-		f?.removeEventListener(nt, P), T.destroy(), D.files = [];
+	return f?.addEventListener(tt, P), ie(), () => {
+		f?.removeEventListener(tt, P), T.destroy(), D.files = [];
 	};
 }
-var jt = {
-	moduleId: `formie:${it}`,
+var Mt = {
+	moduleId: `formie:${rt}`,
 	version: 1,
 	surfaces: [
 		"server-rendered",
@@ -2579,7 +2588,7 @@ var jt = {
 	match: (e) => !!e.target.querySelector(z),
 	setup: async (e) => {
 		let t = e.options || {}, n = e.form, r = /* @__PURE__ */ new WeakSet(), i = [];
-		Dt(n);
+		Ot(n);
 		let a = (e) => {
 			let a = /* @__PURE__ */ new Set();
 			e instanceof HTMLElement && e.hasAttribute("data-formie-field-handle") && a.add(e), e instanceof Element && (e.querySelectorAll("[data-formie-field-handle]").forEach((e) => {
@@ -2588,22 +2597,22 @@ var jt = {
 				let t = e.closest("[data-formie-field-handle]");
 				t instanceof HTMLElement && a.add(t);
 			})), a.forEach((e) => {
-				!r.has(e) && e.querySelector(z) && (r.add(e), i.push(At(e, n, t)));
+				!r.has(e) && e.querySelector(z) && (r.add(e), i.push(jt(e, n, t)));
 			});
 		};
 		a(e.target);
 		let o = (e) => {
 			let t = e.detail;
-			if (!ut(t)) return;
+			if (!lt(t)) return;
 			let n = t.row;
 			n instanceof HTMLElement && a(n);
 		};
-		return n?.addEventListener(rt, o), U.log("Module setup.", { count: i.length }), await e.emit("formie:module:upload-manager:init", { count: i.length }), { destroy: () => {
-			n?.removeEventListener(rt, o), i.forEach((e) => {
+		return n?.addEventListener(nt, o), G.log("Module setup.", { count: i.length }), await e.emit("formie:module:upload-manager:init", { count: i.length }), { destroy: () => {
+			n?.removeEventListener(nt, o), i.forEach((e) => {
 				e();
-			}), Ot(n), U.log("Module destroy."), e.emit("formie:module:upload-manager:destroy", {});
+			}), kt(n), G.log("Module destroy."), e.emit("formie:module:upload-manager:destroy", {});
 		} };
 	}
 };
 //#endregion
-export { jt as uploadManagerModule };
+export { Mt as uploadManagerModule };

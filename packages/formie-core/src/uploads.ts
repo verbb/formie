@@ -21,6 +21,8 @@ export async function stageTransportFiles(definition: ClientFormDefinition, sess
                 data.set('renderId', session.tokens.render ?? '');
                 data.set('draftContext', String(session.continuation?.draftContext ?? ''));
                 data.set('draftContextToken', String(session.continuation?.draftContextToken ?? ''));
+                data.set('uploadCreateToken', session.tokens.uploadCreate ?? '');
+                if (session.continuation?.submissionId) data.set('submissionId', String(session.continuation.submissionId));
                 if (session.tokens.csrf) data.set(session.tokens.csrf.name, session.tokens.csrf.value);
                 const endpoint = definition.submission.uploadEndpoint;
                 if (!endpoint) throw new Error('The form bootstrap does not provide a staged upload endpoint.');

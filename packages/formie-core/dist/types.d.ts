@@ -136,6 +136,7 @@ export type ClientFormSession = {
         };
         request?: string;
         render?: string;
+        uploadCreate?: string;
         captchas?: Record<string, unknown>;
     };
     continuation?: {

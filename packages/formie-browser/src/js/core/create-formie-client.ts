@@ -449,6 +449,19 @@ function applyRefreshTokensToForm(form: HTMLFormElement, refreshTokens: FormEndp
         }
     }
 
+    if (refreshTokens.uploadCreateToken) {
+        let uploadCreateInput = form.querySelector('input[name="uploadCreateToken"]') as HTMLInputElement | null;
+
+        if (!uploadCreateInput) {
+            uploadCreateInput = document.createElement('input');
+            uploadCreateInput.type = 'hidden';
+            uploadCreateInput.name = 'uploadCreateToken';
+            form.append(uploadCreateInput);
+        }
+
+        uploadCreateInput.value = refreshTokens.uploadCreateToken;
+    }
+
     if (refreshTokens.captchas && typeof refreshTokens.captchas === 'object') {
         Object.values(refreshTokens.captchas).forEach((captchaEntry) => {
             if (!captchaEntry || typeof captchaEntry !== 'object') {

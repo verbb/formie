@@ -2,11 +2,12 @@
 namespace verbb\formie\client;
 
 use verbb\formie\Formie;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
 use verbb\formie\client\models\FormSession;
 use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\client\models\SessionRefreshRequest;
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
+use verbb\formie\helpers\UploadAccess;
 
 use Craft;
 
@@ -100,6 +101,7 @@ class ClientSessionService extends Component
             ] : null,
             'requestToken' => $form->getRequestToken(),
             'renderId' => $form->getRenderId(),
+            'uploadCreateToken' => UploadAccess::issueCreateToken($form),
         ], static function($value) {
             return $value !== null && $value !== '';
         });
@@ -137,6 +139,7 @@ class ClientSessionService extends Component
                 ] : null,
                 'request' => $tokens['requestToken'] ?? null,
                 'render' => $tokens['renderId'] ?? null,
+                'uploadCreate' => $tokens['uploadCreateToken'],
                 'captchas' => $tokens['captchas'] ?? [],
             ],
             'continuation' => $this->_buildContinuation($form, $includeProgressContinuation),

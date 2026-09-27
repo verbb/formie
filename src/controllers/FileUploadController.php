@@ -4,6 +4,7 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionUploadStatus;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\helpers\FileUploadRetentionHelper;
 use verbb\formie\helpers\UploadAccess;
@@ -38,6 +39,8 @@ class FileUploadController extends Controller
         'hydrate' => self::ALLOW_ANONYMOUS_LIVE,
         'view' => self::ALLOW_ANONYMOUS_LIVE,
     ];
+
+    private string $_requestProfile = \verbb\formie\helpers\BrowserRequestProfile::SAME_ORIGIN;
     
 
     // Public Methods
@@ -52,6 +55,7 @@ class FileUploadController extends Controller
         }
 
         $profile = \verbb\formie\helpers\BrowserRequestProfile::enter();
+        $this->_requestProfile = $profile;
         if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         }
@@ -77,6 +81,7 @@ class FileUploadController extends Controller
         $draftContext = trim((string)$this->request->getBodyParam('draftContext', ''));
         $submissionId = $this->request->getBodyParam('submissionId');
         $submissionId = is_numeric($submissionId) ? (int)$submissionId : null;
+        $submissionUid = trim((string)$this->request->getBodyParam('submissionUid', ''));
 
         if ($formHandle === '' || $fieldHandle === '') {
             throw new BadRequestHttpException('Missing handle or fieldHandle.');
@@ -102,7 +107,13 @@ class FileUploadController extends Controller
             $form->setDraftContext($draftContext);
         }
 
-        $submissionId = $this->_resolveSubmissionId($form, $submissionId);
+        if ($this->_requestProfile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN
+            && !UploadAccess::validateCreateToken($form, $this->request->getBodyParam('uploadCreateToken'))
+        ) {
+            throw new BadRequestHttpException('Invalid upload creation capability.');
+        }
+
+        $submissionId = $this->_resolveSubmissionId($form, $submissionId, $submissionUid);
         // Upload Manager posts data-formie-field-handle (valueKey), including nested
         // Group/Repeater paths like `group.documents` or `repeater.0.documents`.
         $field = FileUploadRetentionHelper::resolveFileUploadFieldForContentKey($form, $fieldHandle);
@@ -255,15 +266,17 @@ class FileUploadController extends Controller
             }
 
             $tracked = Formie::$plugin->getFileUploads()->getTrackedUploadByAssetId($assetId, $formId, $fieldUid);
-            $mayDelete = $tracked && $tracked['state'] === 'staged'
+            $mayDelete = $tracked && $tracked['state'] === SubmissionUploadStatus::STAGED->value
                 && (int)$tracked['siteId'] === (int)$form->siteId
                 && hash_equals((string)$tracked['browserHash'], Formie::$plugin->getSubmissionGrants()->browserHash($form));
             $assetMap[$assetId] = [
                 'assetId' => $assetId,
                 'filename' => (string)$asset->filename,
-                'url' => UploadAccess::viewUrl($token) ?? (($tracked['state'] ?? null) !== 'staged' ? $asset->url : null),
+                'url' => UploadAccess::viewUrl($token) ?? (($tracked['state'] ?? null) !== SubmissionUploadStatus::STAGED->value ? $asset->url : null),
                 'uploadToken' => $token,
                 'deleteToken' => $mayDelete ? UploadAccess::issueToken($assetId, $formId, $fieldUid, purpose: 'delete') : null,
+                'uploadUid' => $mayDelete ? (string)$tracked['uid'] : null,
+                'attachToken' => $mayDelete ? UploadAccess::issueToken($assetId, $formId, $fieldUid, purpose: 'attach') : null,
             ];
         }
 
@@ -401,19 +414,22 @@ class FileUploadController extends Controller
         return [$form, $field];
     }
 
-    private function _resolveSubmissionId(Form $form, ?int $submissionId): ?int
+    private function _resolveSubmissionId(Form $form, ?int $submissionId, ?string $submissionUid = null): ?int
     {
-        if (!$submissionId) {
+        $submissionUid = trim((string)$submissionUid);
+
+        if (!$submissionId && $submissionUid === '') {
             return null;
         }
 
-        $submission = Submission::find()
-            ->id($submissionId)
+        $query = Submission::find()
             ->formId((int)$form->id)
             ->isIncomplete(null)
             ->siteId((int)$form->siteId)
             ->isSpam(null)
-            ->one();
+            ->status(null);
+
+        $submission = $submissionId ? $query->id($submissionId)->one() : $query->uid($submissionUid)->one();
 
         if (!$submission || !$this->_canAccessSubmissionUploads($form, $submission, true)) {
             throw new BadRequestHttpException('Invalid upload submission.');

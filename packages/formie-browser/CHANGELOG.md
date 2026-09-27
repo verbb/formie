@@ -15,7 +15,7 @@
 - Resolve trusted versioned browser modules, reconcile occurrence lifecycles and failures, and restrict full form mounts to server-rendered HTML.
 - Share reference parsing with the Variable Picker and diagnose unavailable browser references.
 - Initialize Opayo through its CSRF-protected payment-session endpoint and display unknown payment outcomes as awaiting reconciliation.
-- Use separate view and delete capabilities for Upload Manager assets.
+- Use browser-bound creation plus separate view, delete and attach capabilities for Upload Manager assets, and submit staged files as structured upload references instead of authoritative asset IDs.
 - Carry expected submission versions and signed request tokens through submit and page-state requests.
 
 ### Fixed

@@ -28,4 +28,5 @@ class ManagedSubmissionRequest extends Model
     public ?int $targetPageId = null;
     public string $fieldParamNamespace = 'fields';
     public ?int $userId = null;
+    public ?int $uploadPayloadVersion = null;
 }

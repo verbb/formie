@@ -204,6 +204,164 @@ it('rejects arbitrary final asset IDs through every submission adapter', functio
     }, ['method' => 'POST', 'headers' => ['Accept' => $transport === 'html' ? 'text/html' : 'application/json']]);
 })->with(['html', 'ajax', 'rest', 'graphql']);
 
+it('accepts the same structured staged-upload reference through every submission adapter', function (string $transport) {
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($transport) {
+        $volume = UploadTestHelper::ensureUploadVolume();
+        $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false])->settings(['disableCaptchas' => true])->create();
+        $field = $form->getFieldByHandle('document');
+        $uploads = Formie::$plugin->getFileUploads();
+        $asset = UploadTestHelper::seedStagedAsset($form, $field->uid, 'document', 'structured-' . $transport . '-' . uniqid() . '.txt', 'structured');
+        $tracked = $uploads->getTrackedUploadByAssetId((int)$asset->id);
+        $reference = [[
+            'uploadUid' => $tracked['uid'],
+            'attachToken' => UploadAccess::issueToken((int)$asset->id, (int)$form->id, $field->uid, purpose: 'attach'),
+        ]];
+        $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive();
+
+        if (in_array($transport, ['html', 'ajax'], true)) {
+            $request->setBodyParams([
+                'formieHoneypot' => '',
+                'formStartedAt' => (string)((int)(microtime(true) * 1000) - 60000),
+                'formieUploadPayloadVersion' => 4,
+                'handle' => $form->handle,
+                'requestToken' => $session['tokens']['request'],
+                'expectedVersion' => 0,
+                'fields' => ['document' => $reference],
+            ]);
+            $execution = Formie::$plugin->getSubmissionProcessor()->executeManaged(new \verbb\formie\models\ManagedSubmissionRequest([
+                'handle' => $form->handle,
+                'requestToken' => $session['tokens']['request'],
+                'expectedVersion' => 0,
+                'uploadPayloadVersion' => 4,
+            ]), \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
+            $success = $execution->response->success;
+        } else {
+            $input = [
+                'handle' => $form->handle,
+                'session' => $session,
+                'values' => ['document' => $reference],
+            ];
+
+            if ($transport === 'graphql') {
+                $gql = Craft::$app->getGql();
+                try { $previous = $gql->getActiveSchema(); } catch (\craft\errors\GqlException) { $previous = null; }
+                $gql->setActiveSchema(new \craft\models\GqlSchema(['name' => 'Structured upload parity', 'scope' => ['formieForms.' . $form->uid . ':read', 'formieSubmissions.' . $form->uid . ':create']]));
+                try {
+                    $result = \verbb\formie\gql\resolvers\ClientFormResolver::submitForm(null, ['input' => $input]);
+                } finally { $gql->setActiveSchema($previous); }
+            } else {
+                $result = runClientSubmission(new \verbb\formie\client\models\SubmitRequest($input))->toArrayRecursive();
+            }
+            $success = $result['success'];
+        }
+
+        $saved = Submission::find()->formId($form->id)->isIncomplete(false)->isSpam(false)->status(null)->one();
+        expect($success)->toBeTrue()
+            ->and($saved)->not->toBeNull()
+            ->and($saved->getFieldValue('document')->ids())->toBe([(int)$asset->id])
+            ->and($uploads->getTrackedUploadByAssetId((int)$asset->id)['state'])->toBe('finalized');
+    }, ['method' => 'POST', 'headers' => ['Accept' => $transport === 'html' ? 'text/html' : 'application/json']]);
+})->with(['html', 'ajax', 'rest', 'graphql']);
+
+it('binds upload capabilities to their purpose and exact field context', function (string $attack) {
+    WebRequestTestHelper::withWebRequestContext(function () use ($attack) {
+        $volume = UploadTestHelper::ensureUploadVolume();
+        $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false])->fileUploadField('other', ['restrictFiles' => false])->create();
+        $field = $form->getFieldByHandle('document');
+        $asset = UploadTestHelper::seedAsset('scoped-' . $attack . '-' . uniqid() . '.txt', 'scoped', $volume);
+        $uploads = Formie::$plugin->getFileUploads();
+        $owner = $attack === 'submission' ? formie()->submission($form)->save() : null;
+        $uploads->trackSubmissionAsset($asset, (int)$form->id, $owner?->id, $field->uid, $form, 'document');
+        $tracked = $uploads->getTrackedUploadByAssetId((int)$asset->id);
+        $token = UploadAccess::issueToken((int)$asset->id, (int)$form->id, $field->uid, purpose: $attack === 'purpose' ? 'view' : 'attach');
+
+        if ($attack === 'browser') {
+            Craft::$app->getSession()->set('formie:authority', 'different-upload-browser');
+        }
+
+        $submission = new Submission();
+        $submission->setForm($form);
+        $submission->getContentState()->uploadClaims = new \verbb\formie\models\SubmissionUploadClaims();
+        $target = $attack === 'field' ? $form->getFieldByHandle('other') : $field;
+
+        expect(fn() => $target->normalizeValueFromRequest([[
+            'uploadUid' => $tracked['uid'],
+            'attachToken' => $token,
+        ]], $submission))->toThrow(\yii\web\ForbiddenHttpException::class);
+    });
+})->with(['purpose', 'field', 'submission', 'browser']);
+
+it('requires the client bootstrap capability before accepting a cross-origin upload body', function (bool $validToken) {
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($validToken) {
+        UploadTestHelper::ensureUploadVolume();
+        $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false])->create();
+        $request->setBodyParams([
+            'handle' => $form->handle,
+            'fieldHandle' => 'document',
+            'uploadCreateToken' => $validToken ? UploadAccess::issueCreateToken($form) : 'invalid',
+        ]);
+        $controller = new \verbb\formie\controllers\FileUploadController('file-upload', Formie::$plugin);
+        $property = new ReflectionProperty($controller, '_requestProfile');
+        $property->setValue($controller, \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN);
+
+        expect(fn() => $controller->actionUpload())->toThrow(
+            \yii\web\BadRequestHttpException::class,
+            $validToken ? 'No file was uploaded.' : 'Invalid upload creation capability.',
+        );
+    }, ['method' => 'POST', 'headers' => ['Accept' => 'application/json']]);
+})->with([false, true]);
+
+it('preserves submitted file order when staged references and retained ids are mixed', function () {
+    WebRequestTestHelper::withWebRequestContext(function () {
+        $volume = UploadTestHelper::ensureUploadVolume();
+        $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false])->create();
+        $field = $form->getFieldByHandle('document');
+        $retained = UploadTestHelper::seedAsset('ordered-retained-' . uniqid() . '.txt', 'retained', $volume);
+        $uploads = Formie::$plugin->getFileUploads();
+        $staged = UploadTestHelper::seedStagedAsset($form, $field->uid, 'document', 'ordered-staged-' . uniqid() . '.txt', 'staged');
+        $tracked = $uploads->getTrackedUploadByAssetId((int)$staged->id);
+        $submission = new Submission();
+        $submission->setForm($form);
+        $submission->getContentState()->uploadClaims = new \verbb\formie\models\SubmissionUploadClaims();
+
+        $value = $field->normalizeValueFromRequest([
+            [
+                'uploadUid' => $tracked['uid'],
+                'attachToken' => UploadAccess::issueToken((int)$staged->id, (int)$form->id, $field->uid, purpose: 'attach'),
+            ],
+            ['assetId' => (int)$retained->id],
+        ], $submission);
+
+        expect($value->ids())->toBe([(int)$staged->id, (int)$retained->id]);
+    });
+});
+
+it('does not let payment replay introduce a staged upload', function () {
+    WebRequestTestHelper::withWebRequestContext(function () {
+        UploadTestHelper::ensureUploadVolume();
+        $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false])->create();
+        $field = $form->getFieldByHandle('document');
+        $submission = new Submission(['isIncomplete' => true]);
+        $submission->setForm($form);
+        expect(Craft::$app->getElements()->saveElement($submission, false))->toBeTrue();
+        $asset = UploadTestHelper::seedStagedAsset(
+            $form,
+            $field->uid,
+            'document',
+            'payment-replay-' . uniqid() . '.txt',
+            'payment replay',
+            (int)$submission->id,
+        );
+        $submission->setFieldValue('document', [$asset->id]);
+
+        expect(fn() => Formie::$plugin->getFileUploads()->bindAccepted(submissionCommand([
+            'form' => $form,
+            'submission' => $submission,
+            'operation' => SubmissionOperation::PAYMENT_REPLAY,
+        ])))->toThrow(\yii\web\ForbiddenHttpException::class, 'Payment replay cannot introduce an upload.');
+    });
+});
+
 it('does not exchange a view capability for delete authority in another browser', function () {
     WebRequestTestHelper::withWebRequestContext(function ($request) {
         $volume = UploadTestHelper::ensureUploadVolume();

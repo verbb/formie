@@ -107,6 +107,7 @@ class SubmissionsController extends Controller
                 'submitAction' => $this->_nullableStringParam('submitAction'),
                 'pageId' => $this->_nullableIntParam('pageId'),
                 'targetPageId' => $this->_nullableIntParam('targetPageId'),
+                'uploadPayloadVersion' => $this->_nullableIntParam('formieUploadPayloadVersion'),
             ]), SubmissionAuthorityType::VISITOR);
         } catch (SubmissionUnavailableException $exception) {
             return $this->_staleSubmissionStateResponse($exception->form, $exception->source, $exception->value);

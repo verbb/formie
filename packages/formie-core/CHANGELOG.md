@@ -11,7 +11,7 @@
 - Consume the shared completion outcome and preserve the server-owned configuration and query-prefill boundary.
 - Version the client-rendered bootstrap and module contract, enforce explicit request profiles, stage selected files and expose shared browser-module host seams.
 - Describe normalized field values with explicit runtime type metadata and keep browser-input defaults separate from public data projections.
-- Support browser-bound progress, purpose-bound grant exchange, revision sessions and portable Save & Continue responses across REST and GraphQL. Clear exchanged tokens from browser history and preserve scoped upload attachment values.
+- Support browser-bound progress, purpose-bound grant exchange, revision sessions and portable Save & Continue responses across REST and GraphQL. Clear exchanged tokens from browser history, issue browser-bound upload-creation capabilities and preserve structured upload attachment references.
 - Carry submission versions and typed outcomes through REST and GraphQL; return expected rejection and conflict payloads to renderers.
 
 ### Fixed

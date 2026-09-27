@@ -9,6 +9,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionUploadStatus;
 use verbb\formie\fields\Repeater;
 use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
@@ -65,6 +66,7 @@ use GraphQL\Type\Definition\Type;
 
 use yii\base\Event;
 use yii\base\InvalidConfigException;
+use yii\web\ForbiddenHttpException;
 
 use Twig\Error\Error as TwigError;
 
@@ -197,6 +199,42 @@ class FileUpload extends ElementField
         return UploadAccess::issueToken($assetId, $formId, $fieldUid);
     }
 
+    public function getSubmissionUploadReference(Asset|int $asset, ?Submission $submission = null): array
+    {
+        $assetId = $asset instanceof Asset ? (int)$asset->id : (int)$asset;
+        $form = $this->getForm();
+        $formId = (int)($form->id ?? 0);
+        $fieldUid = trim((string)($this->uid ?? ''));
+        $viewToken = $this->getUploadCapabilityToken($assetId);
+        $reference = [
+            'assetId' => $assetId,
+            'uploadUid' => null,
+            'attachToken' => null,
+            'viewToken' => $viewToken,
+        ];
+
+        if (!$form || !$submission || $assetId <= 0 || $formId <= 0 || $fieldUid === '') {
+            return $reference;
+        }
+
+        $upload = Formie::$plugin->getFileUploads()->getTrackedUploadByAssetId($assetId, $formId, $fieldUid);
+        $contentKey = $this->_submissionContentKey($submission);
+        $submissionId = $submission->id ? (int)$submission->id : null;
+
+        if ($upload
+            && $upload['state'] === SubmissionUploadStatus::STAGED->value
+            && (int)$upload['siteId'] === (int)$form->siteId
+            && $upload['contentKey'] === $contentKey
+            && ($upload['submissionId'] === null ? null : (int)$upload['submissionId']) === $submissionId
+            && hash_equals((string)$upload['browserHash'], Formie::$plugin->getSubmissionGrants()->browserHash($form))
+        ) {
+            $reference['uploadUid'] = (string)$upload['uid'];
+            $reference['attachToken'] = UploadAccess::issueToken($assetId, $formId, $fieldUid, purpose: 'attach');
+        }
+
+        return $reference;
+    }
+
     public function getUploadFolderForSubmission(Submission $submission): VolumeFolder
     {
         return $this->_uploadFolder($submission);
@@ -255,7 +293,7 @@ class FileUpload extends ElementField
 
         if (is_array($value) && !isset($value['mutationData']) && array_is_list($value)) {
             foreach ($value as $item) {
-                if (is_array($item) && (isset($item['assetId']) || isset($item['fileData']) || isset($item['uploadUid']))) {
+                if (is_array($item) && (isset($item['assetId']) || isset($item['fileData']) || isset($item['uploadUid']) || isset($item['attachToken']))) {
                     // Client envelopes and GraphQL share one decoder and retained-ID contract.
                     $value = FileUploadInputType::normalizeValue(array_map(
                         fn($entry) => is_numeric($entry) ? ['assetId' => (int)$entry] : $entry,
@@ -264,6 +302,38 @@ class FileUpload extends ElementField
                     break;
                 }
             }
+        }
+
+        if (is_array($value) && isset($value['uploadReferences'])) {
+            $references = is_array($value['uploadReferences']) ? $value['uploadReferences'] : [];
+            unset($value['uploadReferences']);
+
+            if (!$element instanceof Submission) {
+                throw new InvalidConfigException('Staged upload references require a submission context.');
+            }
+
+            $contentKey = $this->_submissionContentKey($element);
+            $assetIds = Formie::$plugin->getFileUploads()->authorizeSubmissionUploadReferences($element, $this, $contentKey, $references);
+            $orderedValues = [];
+
+            foreach ($value as $key => $assetId) {
+                if (is_int($key) && is_numeric($assetId)) {
+                    $orderedValues[$key] = (int)$assetId;
+                }
+            }
+
+            foreach ($references as $index => $reference) {
+                $position = is_array($reference) && is_int($reference['position'] ?? null) ? $reference['position'] : count($orderedValues);
+
+                if (isset($orderedValues[$position]) || !isset($assetIds[$index])) {
+                    throw new ForbiddenHttpException('Invalid staged upload ordering.');
+                }
+
+                $orderedValues[$position] = $assetIds[$index];
+            }
+
+            ksort($orderedValues, SORT_NUMERIC);
+            $value = array_merge(array_values($orderedValues), array_intersect_key($value, array_flip(['mutationData'])));
         }
 
         // For GQL mutations, we need a little extra handling here, because the Assets field doesn't support multiple data-encoded items
@@ -1649,6 +1719,18 @@ class FileUpload extends ElementField
         }
 
         return $mimeType;
+    }
+
+    private function _submissionContentKey(Submission $submission): string
+    {
+        $paramName = (string)$this->requestParamName($submission);
+        $namespace = trim($submission->getFieldParamNamespace(), '.');
+
+        if ($namespace !== '' && str_starts_with($paramName, $namespace . '.')) {
+            return substr($paramName, strlen($namespace) + 1);
+        }
+
+        return $paramName;
     }
 
     private function _defineUploadManagerFieldSlotTag(

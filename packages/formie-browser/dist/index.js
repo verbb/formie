@@ -1072,8 +1072,8 @@ var Rt = class {
 	"custom-link": () => import("./chunks/custom-link-D39CIxKN.js").then((e) => e.customLinkModule),
 	"custom-maps": () => import("./chunks/custom-maps-BBpPi__M.js").then((e) => e.customMapsModule),
 	"date-picker": () => import("./chunks/date-picker-BZ0_fkoD.js").then((e) => e.datePickerModule),
-	"file-upload": () => import("./chunks/file-upload-CKSNLOY_.js").then((e) => e.fileUploadModule),
-	"upload-manager": () => import("./chunks/upload-manager-nmQBIPPt.js").then((e) => e.uploadManagerModule),
+	"file-upload": () => import("./chunks/file-upload-fsiDpR04.js").then((e) => e.fileUploadModule),
+	"upload-manager": () => import("./chunks/upload-manager-Bw6GjBku.js").then((e) => e.uploadManagerModule),
 	hidden: () => import("./chunks/hidden-C28bjH9X.js").then((e) => e.hiddenModule),
 	"phone-country": () => import("./chunks/phone-country-Bb7DFp0E.js").then((e) => e.phoneCountryModule),
 	"password-validation": () => import("./chunks/password-validation-Daw0U-4h.js").then((e) => e.passwordValidationModule),
@@ -1898,6 +1898,10 @@ function Xn(e, t) {
 		if (t.renderId) {
 			let n = e.querySelector("input[name=\"renderId\"]");
 			n && (n.value = t.renderId);
+		}
+		if (t.uploadCreateToken) {
+			let n = e.querySelector("input[name=\"uploadCreateToken\"]");
+			n || (n = document.createElement("input"), n.type = "hidden", n.name = "uploadCreateToken", e.append(n)), n.value = t.uploadCreateToken;
 		}
 		t.captchas && typeof t.captchas == "object" && Object.values(t.captchas).forEach((t) => {
 			if (!t || typeof t != "object") return;

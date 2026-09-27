@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\content;
 
+use verbb\formie\models\SubmissionUploadClaims;
+
 class SubmissionContentState
 {
     // Properties
@@ -13,6 +15,7 @@ class SubmissionContentState
     public array $currentPageFieldHandleMapsByPageId = [];
     public array $uploadedDataFiles = [];
     public bool $isMergingPartialPayload = false;
+    public ?SubmissionUploadClaims $uploadClaims = null;
 
 
     // Public Methods

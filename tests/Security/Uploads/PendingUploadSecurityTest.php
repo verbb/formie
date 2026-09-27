@@ -50,7 +50,10 @@ it('purges only stale non-finalized pending uploads', function (): void {
     Formie::$plugin->getFileUploads()->trackSubmissionAsset($finalizedAsset, (int)$form->id, (int)$submission->id, 'finalized-field');
     $submission->setFieldValue('documents', [$finalizedAsset->id]);
     Craft::$app->getElements()->saveElement($submission, false);
-    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, ['state' => 'bound'], ['assetId' => $finalizedAsset->id])->execute();
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
+        'state' => 'bound',
+        'promotionState' => 'moved',
+    ], ['assetId' => $finalizedAsset->id])->execute();
     Formie::$plugin->getFileUploads()->finalizeSubmissionUploads((int)$submission->id);
 
     $oldDate = '2000-01-01 00:00:00';

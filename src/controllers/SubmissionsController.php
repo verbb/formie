@@ -639,6 +639,7 @@ class SubmissionsController extends Controller
                 'targetPageId' => $this->_parseTypedParam('targetPageId', TypeHelper::TYPE_ID),
                 'fieldParamNamespace' => $this->_namespace,
                 'userId' => $cpUserId,
+                'uploadPayloadVersion' => $this->_parseTypedParam('formieUploadPayloadVersion', TypeHelper::TYPE_INT, null, false),
             ]), $authorityType);
         } catch (SubmissionUnavailableException $exception) {
             return $this->_handleStaleSubmissionState($exception->form, $exception->source, $exception->value);

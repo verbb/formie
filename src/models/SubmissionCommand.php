@@ -16,6 +16,12 @@ use InvalidArgumentException;
  */
 final class SubmissionCommand
 {
+    // Properties
+    // =========================================================================
+
+    public readonly SubmissionUploadClaims $uploadClaims;
+
+
     // Public Methods
     // =========================================================================
 
@@ -35,7 +41,12 @@ final class SubmissionCommand
         public readonly ?string $requestToken = null,
         public readonly bool $sendNotificationsOnSpamUnmark = false,
         public readonly bool $triggerIntegrationsOnSpamUnmark = false,
+        ?SubmissionUploadClaims $uploadClaims = null,
+        public readonly bool $allowLegacyUploadIds = false,
     ) {
+        $this->uploadClaims = $uploadClaims ?? $submission->getContentState()->uploadClaims ?? new SubmissionUploadClaims();
+        $submission->getContentState()->uploadClaims = $this->uploadClaims;
+
         if ($policy === SubmissionPolicy::ADMINISTRATIVE_CREATE && ($operation !== SubmissionOperation::SUBMIT || $submission->id || !in_array($authority->type, [SubmissionAuthorityType::CONTROL_PANEL, SubmissionAuthorityType::GRAPHQL_ADMIN, SubmissionAuthorityType::TRUSTED_INTERNAL], true))) {
             throw new InvalidArgumentException('Administrative creation requires a new, administratively authorized Submit.');
         }

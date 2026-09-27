@@ -10,12 +10,13 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFormRenderOptionsEvent;
 use verbb\formie\events\ModifyFrontendJsTranslationsEvent;
 use verbb\formie\events\ModifyRenderEvent;
+use verbb\formie\helpers\UploadAccess;
+use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
 use verbb\formie\models\RenderFrame;
 use verbb\formie\models\ResolvedTheme;
-use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\compatibility\messages\ValidationMessageCompatibility;
 use verbb\formie\web\FieldRenderCallContext;
 
@@ -107,6 +108,7 @@ class Rendering extends Component
                 'submission' => $submission,
                 'customInputs' => $renderOptions['customInputs'] ?? [],
                 'csrfInputOptions' => $this->_resolveCsrfInputOptions($renderOptions),
+                'uploadCreateToken' => UploadAccess::issueCreateToken($form),
             ]);
 
             // Fire a 'modifyRenderForm' event

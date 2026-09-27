@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use Tests\Support\WebRequestTestHelper;
+use Tests\Support\UploadTestHelper;
 use verbb\formie\Formie;
 use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\client\models\SessionRefreshRequest;
+use verbb\formie\helpers\UploadAccess;
 
 use yii\web\BadRequestHttpException;
 
@@ -30,8 +32,26 @@ it('builds draft-aware frontend sessions', function(): void {
     expect($session['currentPageId'])->toBe((string)$form->getPages()[0]->id)
         ->and($session['tokens']['request'] ?? null)->not->toBeEmpty()
         ->and($session['tokens']['render'] ?? null)->not->toBeEmpty()
+        ->and($session['tokens']['uploadCreate'] ?? null)->not->toBeEmpty()
         ->and($session['continuation']['draftContext'] ?? null)->toBe('custom:frontend-session')
         ->and($session['continuation']['draftContextToken'] ?? null)->not->toBeEmpty();
+});
+
+it('binds upload creation capabilities to the exact form and browser session', function(): void {
+    UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form(['title' => 'Upload Creation Session'])->fileUploadField('document')->create();
+    $other = formie()->form(['title' => 'Other Upload Creation Session'])->fileUploadField('document')->create();
+
+    $checks = WebRequestTestHelper::withWebRequestContext(function ($request, $response, $session) use ($form, $other): array {
+        $token = Formie::$plugin->getClientSessionService()->issueInitialSession($form)->tokens['uploadCreate'];
+        $valid = UploadAccess::validateCreateToken($form, $token);
+        $wrongForm = UploadAccess::validateCreateToken($other, $token);
+        $session->set('formie:authority', 'different-upload-creation-browser');
+
+        return [$valid, $wrongForm, UploadAccess::validateCreateToken($form, $token)];
+    }, ['method' => 'POST']);
+
+    expect($checks)->toBe([true, false, false]);
 });
 
 it('persists frontend page navigation through the session service', function(): void {

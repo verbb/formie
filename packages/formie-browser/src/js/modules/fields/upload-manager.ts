@@ -24,6 +24,7 @@ const SORT_DOWN_SELECTOR = '[data-formie-upload-manager-sort="down"]';
 const HIDDEN_INPUT_ANCHOR_ATTR = 'data-formie-file-upload-anchor';
 const HIDDEN_INPUT_VALUE_ATTR = 'data-formie-file-upload-asset-id';
 const HIDDEN_INPUT_TOKEN_ATTR = 'data-formie-file-upload-token';
+const HIDDEN_INPUT_ENTRY_ATTR = 'data-formie-file-upload-entry';
 const FORM_RESET_EVENT = getFormStateEventName('reset');
 const REPEATER_INIT_ROW_EVENT = getFieldModuleEventName('repeater', 'init-row');
 const MODULE_ID = 'upload-manager';
@@ -55,6 +56,8 @@ type UploadResponse = {
     url?: string | null;
     uploadToken?: string | null;
     deleteToken?: string | null;
+    uploadUid?: string | null;
+    attachToken?: string | null;
     errors?: Record<string, string[]>;
 };
 
@@ -69,7 +72,9 @@ type HydrateResponse = {
         filename?: string;
         url?: string | null;
         uploadToken?: string | null;
-    deleteToken?: string | null;
+        deleteToken?: string | null;
+        uploadUid?: string | null;
+        attachToken?: string | null;
     }>;
 };
 
@@ -77,6 +82,8 @@ type ManagedFile = {
     assetId: number | null;
     uploadToken: string | null;
     deleteToken?: string | null;
+    uploadUid: string | null;
+    attachToken: string | null;
     filename: string;
     uppyFileId: string | null;
     listItem: HTMLElement;
@@ -154,13 +161,14 @@ function getAnchorInput(field: HTMLElement, assetInputName: string): HTMLInputEl
 
 function getUploadedAssetInputs(field: HTMLElement, assetInputName: string): HTMLInputElement[] {
     return getHiddenInputs(field).filter((hiddenInput) => {
-        return hiddenInput.name === assetInputName && hiddenInput.value.trim() !== '';
+        return hiddenInput.hasAttribute(HIDDEN_INPUT_VALUE_ATTR)
+            || (hiddenInput.name === assetInputName && hiddenInput.value.trim() !== '');
     });
 }
 
 function readAssetIdsFromDom(field: HTMLElement, assetInputName: string): number[] {
     return getUploadedAssetInputs(field, assetInputName).map((input) => {
-        return toPositiveInt(input.value);
+        return toPositiveInt(input.getAttribute(HIDDEN_INPUT_VALUE_ATTR)) ?? toPositiveInt(input.value);
     }).filter((assetId): assetId is number => {
         return assetId !== null;
     });
@@ -170,7 +178,7 @@ function readUploadTokensFromDom(field: HTMLElement, assetInputName: string): Re
     const tokens: Record<number, string> = {};
 
     getUploadedAssetInputs(field, assetInputName).forEach((input) => {
-        const assetId = toPositiveInt(input.value);
+        const assetId = toPositiveInt(input.getAttribute(HIDDEN_INPUT_VALUE_ATTR)) ?? toPositiveInt(input.value);
         const token = input.getAttribute(HIDDEN_INPUT_TOKEN_ATTR)?.trim() || '';
 
         if (assetId && token) {
@@ -185,27 +193,53 @@ function syncHiddenAssetInputs(
     field: HTMLElement,
     anchorInput: HTMLInputElement,
     assetInputName: string,
-    assets: Array<{ assetId: number; uploadToken: string | null }>,
+    assets: Array<{
+        assetId: number;
+        uploadToken: string | null;
+        uploadUid: string | null;
+        attachToken: string | null;
+    }>,
 ): void {
     let insertionPoint: HTMLInputElement = anchorInput;
+    const baseName = assetInputName.endsWith('[]') ? assetInputName.slice(0, -2) : assetInputName;
 
-    getUploadedAssetInputs(field, assetInputName).forEach((hiddenInput) => {
+    getHiddenInputs(field).filter((hiddenInput) => {
+        return hiddenInput.hasAttribute(HIDDEN_INPUT_ENTRY_ATTR)
+            || (hiddenInput.name === assetInputName && hiddenInput.value.trim() !== '');
+    }).forEach((hiddenInput) => {
         hiddenInput.remove();
     });
 
-    assets.forEach(({ assetId, uploadToken }) => {
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = assetInputName;
-        hiddenInput.value = String(assetId);
-        hiddenInput.setAttribute(HIDDEN_INPUT_VALUE_ATTR, 'true');
+    assets.forEach(({ assetId, uploadToken, uploadUid, attachToken }, index) => {
+        const primaryInput = document.createElement('input');
+        primaryInput.type = 'hidden';
+        primaryInput.setAttribute(HIDDEN_INPUT_ENTRY_ATTR, 'true');
+        primaryInput.setAttribute(HIDDEN_INPUT_VALUE_ATTR, String(assetId));
 
-        if (uploadToken) {
-            hiddenInput.setAttribute(HIDDEN_INPUT_TOKEN_ATTR, uploadToken);
+        if (uploadUid && attachToken) {
+            primaryInput.name = `${baseName}[${index}][uploadUid]`;
+            primaryInput.value = uploadUid;
+        } else {
+            primaryInput.name = `${baseName}[${index}][assetId]`;
+            primaryInput.value = String(assetId);
         }
 
-        insertionPoint.insertAdjacentElement('afterend', hiddenInput);
-        insertionPoint = hiddenInput;
+        if (uploadToken) {
+            primaryInput.setAttribute(HIDDEN_INPUT_TOKEN_ATTR, uploadToken);
+        }
+
+        insertionPoint.insertAdjacentElement('afterend', primaryInput);
+        insertionPoint = primaryInput;
+
+        if (uploadUid && attachToken) {
+            const capabilityInput = document.createElement('input');
+            capabilityInput.type = 'hidden';
+            capabilityInput.name = `${baseName}[${index}][attachToken]`;
+            capabilityInput.value = attachToken;
+            capabilityInput.setAttribute(HIDDEN_INPUT_ENTRY_ATTR, 'true');
+            insertionPoint.insertAdjacentElement('afterend', capabilityInput);
+            insertionPoint = capabilityInput;
+        }
     });
 }
 
@@ -224,7 +258,7 @@ function getUploadContext(form: HTMLFormElement | null, field: HTMLElement, drop
         return context;
     }
 
-    const passthroughNames = ['renderId', 'draftContextToken', 'draftContext', 'submissionId', 'siteId', 'submissionEditToken', 'resumeToken', 'submissionUid'] as const;
+    const passthroughNames = ['renderId', 'draftContextToken', 'draftContext', 'submissionId', 'siteId', 'submissionEditToken', 'resumeToken', 'submissionUid', 'uploadCreateToken'] as const;
 
     passthroughNames.forEach((name) => {
         const input = form.querySelector(`input[name="${name}"]`);
@@ -573,14 +607,6 @@ function createListItem(field: HTMLElement, filename: string): {
 }
 
 function getAssetInputName(field: HTMLElement): string {
-    const existingAssetInput = getHiddenInputs(field).find((input) => {
-        return input.hasAttribute(HIDDEN_INPUT_VALUE_ATTR);
-    });
-
-    if (existingAssetInput?.name) {
-        return existingAssetInput.name;
-    }
-
     // Prefer the template anchor name — nested Group/Repeater fields use
     // `fields[group][upload][]`, not a dotted `fields[group.upload][]`.
     const anchorInput = getHiddenInputs(field).find((input) => {
@@ -612,6 +638,8 @@ function syncUploadedAssetsEvent(state: UploadManagerState): void {
             return {
                 assetId: file.assetId,
                 uploadToken: file.uploadToken,
+                uploadUid: file.uploadUid,
+                attachToken: file.attachToken,
                 filename: file.filename,
             };
         });
@@ -794,6 +822,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
             'siteId',
             'submissionEditToken',
             'resumeToken',
+            'uploadCreateToken',
             ...(initialCsrf ? [initialCsrf.name] : []),
         ],
         getResponseData(xhr) {
@@ -988,7 +1017,14 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         syncSortControls();
     };
 
-    const addManagedFileFromAsset = (assetId: number, filename: string, uploadToken: string | null = null, deleteToken: string | null = null) => {
+    const addManagedFileFromAsset = (
+        assetId: number,
+        filename: string,
+        uploadToken: string | null = null,
+        deleteToken: string | null = null,
+        uploadUid: string | null = null,
+        attachToken: string | null = null,
+    ) => {
         const { listItem, removeButton, sortUpButton, sortDownButton } = createListItem(field, filename);
         listItem.classList.add('is-complete');
         fileList.append(listItem);
@@ -997,6 +1033,8 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
             assetId,
             uploadToken,
             deleteToken,
+            uploadUid,
+            attachToken,
             filename,
             uppyFileId: null,
             listItem,
@@ -1048,6 +1086,8 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
                     asset.filename || `Asset #${assetId}`,
                     toTrimmedString(asset.uploadToken) || uploadTokens[assetId] || null,
                     toTrimmedString(asset.deleteToken) || null,
+                    toTrimmedString(asset.uploadUid) || null,
+                    toTrimmedString(asset.attachToken) || null,
                 );
             });
 
@@ -1128,6 +1168,8 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         managedFile.assetId = assetId;
         managedFile.uploadToken = toTrimmedString(body.uploadToken) || null;
         managedFile.deleteToken = toTrimmedString(body.deleteToken) || null;
+        managedFile.uploadUid = toTrimmedString(body.uploadUid) || null;
+        managedFile.attachToken = toTrimmedString(body.attachToken) || null;
         managedFile.filename = body.filename || managedFile.filename;
         markUploadComplete(managedFile.listItem);
         syncUploadedAssetsEvent(state);
@@ -1168,6 +1210,8 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         const managedFile: ManagedFile = {
             assetId: null,
             uploadToken: null,
+            uploadUid: null,
+            attachToken: null,
             filename: file.name || 'Upload',
             uppyFileId: file.id,
             listItem,

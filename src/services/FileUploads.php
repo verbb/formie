@@ -4,12 +4,17 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionAuthorityType;
+use verbb\formie\enums\SubmissionOperation;
+use verbb\formie\enums\SubmissionUploadStatus;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\helpers\DataRetentionHelper;
 use verbb\formie\helpers\FileUploadRetentionHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\UploadAccess;
 use verbb\formie\helpers\UploadLimits;
 use verbb\formie\models\SubmissionCommand;
+use verbb\formie\models\SubmissionUploadClaim;
 use verbb\formie\records\Submission as SubmissionRecord;
 
 use Craft;
@@ -25,6 +30,7 @@ use Throwable;
 
 use yii\base\Component;
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\TooManyRequestsHttpException;
 
 class FileUploads extends Component
@@ -68,7 +74,7 @@ class FileUploads extends Component
             ])->from(['uploads' => Table::FORMIE_PENDING_UPLOADS])
                 ->innerJoin(['assets' => '{{%assets}}'], '[[assets.id]] = [[uploads.assetId]]')
                 ->where(['uploads.formId' => (int)$form->id, 'uploads.siteId' => (int)$form->siteId, 'uploads.browserHash' => $browserHash])
-                ->andWhere(['not', ['uploads.state' => 'finalized']])->one();
+                ->andWhere(['not', ['uploads.state' => SubmissionUploadStatus::FINALIZED->value]])->one();
             $settings = Formie::$plugin->getSettings();
             if ((int)$usage['files'] + 1 > max(1, $settings->maxStagedUploadFiles)
                 || (int)$usage['bytes'] + $bytes > max(1, $settings->maxStagedUploadBytes)) {
@@ -98,16 +104,18 @@ class FileUploads extends Component
             ->where(['assetId' => (int)$asset->id])
             ->scalar();
 
+        $progress = Formie::$plugin->getSubmissionProgress()->getProgressState($form);
         $values = [
             'assetId' => (int)$asset->id,
             'formId' => $formId > 0 ? $formId : null,
             'submissionId' => $submissionId > 0 ? $submissionId : null,
             'fieldUid' => $fieldUid,
             'isFinalized' => false,
-            'state' => 'staged',
+            'state' => SubmissionUploadStatus::STAGED->value,
             'siteId' => (int)$form->siteId,
             'browserHash' => Formie::$plugin->getSubmissionGrants()->browserHash($form),
             'contentKey' => $contentKey,
+            'progressId' => $progress?->id,
             'expiresAt' => $this->_uploadExpiry(),
             'dateUpdated' => $now,
         ];
@@ -120,6 +128,39 @@ class FileUploads extends Component
         $values['uid'] = Craft::$app->getSecurity()->generateRandomString(36);
 
         Craft::$app->getDb()->createCommand()->insert(Table::FORMIE_PENDING_UPLOADS, $values)->execute();
+    }
+
+    /**
+     * Resolve submitted attachment capabilities into ordinary asset IDs while preserving
+     * request-local authorization evidence for the later persistence boundary.
+     */
+    public function authorizeSubmissionUploadReferences(Submission $submission, FileUpload $field, string $contentKey, array $references): array
+    {
+        $form = $submission->getForm();
+        $claims = $submission->getContentState()->uploadClaims;
+
+        if (!$form || !$claims) {
+            throw new ForbiddenHttpException('Upload authorization context is unavailable.');
+        }
+
+        $assetIds = [];
+
+        foreach ($references as $reference) {
+            $uploadUid = is_array($reference) ? trim((string)($reference['uploadUid'] ?? '')) : '';
+            $attachToken = is_array($reference) ? trim((string)($reference['attachToken'] ?? '')) : '';
+            $upload = UploadAccess::resolveToken($attachToken, 'attach');
+
+            if ($uploadUid === '' || $attachToken === '' || !$upload || !hash_equals((string)$upload['uid'], $uploadUid)) {
+                throw new ForbiddenHttpException('Invalid upload attachment capability.');
+            }
+
+            $this->_assertAttachableUpload($upload, $submission, $field, $contentKey);
+            $claim = $this->_claimFromRow($upload);
+            $claims->add($claim);
+            $assetIds[] = $claim->assetId;
+        }
+
+        return $assetIds;
     }
 
     public function trackFromFieldAsset(Asset $asset, FileUpload $field, mixed $element): void
@@ -153,13 +194,13 @@ class FileUploads extends Component
             $accepted = array_merge($accepted, $this->_extractAssetIds($value));
         }
         if ((new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where([
-            'submissionId' => $submissionId, 'assetId' => $accepted, 'state' => 'bound',
+            'submissionId' => $submissionId, 'assetId' => $accepted, 'state' => SubmissionUploadStatus::BOUND->value,
         ])->andWhere(['or', ['promotionState' => null], ['not', ['promotionState' => 'moved']]])->exists()) {
             throw new \RuntimeException('Accepted uploads must finish promotion before finalization.');
         }
         Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
-            'state' => 'finalized', 'isFinalized' => true, 'dateUpdated' => gmdate('Y-m-d H:i:s'),
-        ], ['submissionId' => $submissionId, 'assetId' => $accepted, 'state' => 'bound', 'promotionState' => 'moved'])->execute();
+            'state' => SubmissionUploadStatus::FINALIZED->value, 'isFinalized' => true, 'dateUpdated' => gmdate('Y-m-d H:i:s'),
+        ], ['submissionId' => $submissionId, 'assetId' => $accepted, 'state' => SubmissionUploadStatus::BOUND->value, 'promotionState' => 'moved'])->execute();
     }
 
     public function hasAcceptedUploads(Submission $submission): bool
@@ -187,11 +228,11 @@ class FileUploads extends Component
 
         try {
             $upload = $this->getTrackedUploadByAssetId($assetId, $formId, $fieldUid);
-            if (!$upload || $upload['state'] !== 'staged' || $this->isReferenced($assetId)) {
+            if (!$upload || $upload['state'] !== SubmissionUploadStatus::STAGED->value || $this->isReferenced($assetId)) {
                 return false;
             }
 
-            if (Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, ['state' => 'rejected', 'expiresAt' => time()], ['id' => $upload['id'], 'state' => 'staged'])->execute() !== 1) {
+            if (Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, ['state' => SubmissionUploadStatus::REJECTED->value, 'expiresAt' => time()], ['id' => $upload['id'], 'state' => SubmissionUploadStatus::STAGED->value])->execute() !== 1) {
                 return false;
             }
 
@@ -233,7 +274,7 @@ class FileUploads extends Component
         $rows = (new Query())
             ->select('*')
             ->from(Table::FORMIE_PENDING_UPLOADS)
-            ->where(['state' => ['staged', 'bound', 'expired', 'rejected']])
+            ->where(['state' => [SubmissionUploadStatus::STAGED->value, SubmissionUploadStatus::BOUND->value, SubmissionUploadStatus::EXPIRED->value, SubmissionUploadStatus::REJECTED->value]])
             ->andWhere($promotion)
             ->andWhere($expiry)
             ->all();
@@ -253,12 +294,12 @@ class FileUploads extends Component
                     continue;
                 }
 
-                $eligible = ['and', ['id' => $row['id'], 'state' => ['staged', 'bound', 'expired', 'rejected']], $promotion, $expiry];
+                $eligible = ['and', ['id' => $row['id'], 'state' => [SubmissionUploadStatus::STAGED->value, SubmissionUploadStatus::BOUND->value, SubmissionUploadStatus::EXPIRED->value, SubmissionUploadStatus::REJECTED->value]], $promotion, $expiry];
                 if (!(new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where($eligible)->exists()) {
                     continue;
                 }
                 // The asset lock protects eligibility; already-expired retries may update zero rows.
-                Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, ['state' => 'expired'], $eligible)->execute();
+                Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, ['state' => SubmissionUploadStatus::EXPIRED->value], $eligible)->execute();
                 if ($this->_deleteTrackedAsset($row)) {
                     $count++;
                 }
@@ -313,7 +354,7 @@ class FileUploads extends Component
             if (!$this->getTrackedUploadByAssetId($assetId) && Asset::find()->id($assetId)->status(null)->trashed(null)->exists()) {
                 unset($upload['id']);
                 $upload['submissionId'] = null;
-                $upload['state'] = 'expired';
+                $upload['state'] = SubmissionUploadStatus::EXPIRED->value;
                 $upload['expiresAt'] = time();
                 $upload['isFinalized'] = false;
                 $upload['capabilities'] = null;
@@ -369,13 +410,16 @@ class FileUploads extends Component
         }
     }
 
-    public function stageAccepted(Submission $submission): bool
+    public function stageAccepted(SubmissionCommand $command): bool
     {
+        $submission = $command->submission;
         $fields = [];
+        $before = [];
         foreach ($submission->getFieldValuesForField(FileUpload::class) as $key => $value) {
             $field = FileUploadRetentionHelper::resolveFileUploadFieldForContentKey($submission->getForm(), $key);
             if ($field) {
                 $fields[] = $field;
+                $before[$key] = $this->_extractAssetIds($value);
                 if (!$field->beforeElementSave($submission, !$submission->id)) {
                     return false;
                 }
@@ -384,6 +428,21 @@ class FileUploads extends Component
         foreach ($fields as $field) {
             $field->stageUploads($submission);
         }
+
+        // Multipart/Base64 files are created by this trusted request rather than a prior
+        // browser upload. Give them the same explicit claim consumed by final binding.
+        foreach ($submission->getFieldValuesForField(FileUpload::class) as $contentKey => $value) {
+            $field = FileUploadRetentionHelper::resolveFileUploadFieldForContentKey($submission->getForm(), $contentKey);
+            foreach (array_diff($this->_extractAssetIds($value), $before[$contentKey] ?? []) as $assetId) {
+                $upload = $field ? $this->getTrackedUploadByAssetId((int)$assetId, (int)$command->form->id, $field->uid) : null;
+                if (!$field || !$upload) {
+                    throw new ForbiddenHttpException('Staged upload authorization could not be established.');
+                }
+                $this->_assertAttachableUpload($upload, $submission, $field, $contentKey);
+                $command->uploadClaims->add($this->_claimFromRow($upload));
+            }
+        }
+
         return !$submission->hasErrors();
     }
 
@@ -393,6 +452,11 @@ class FileUploads extends Component
         $form = $command->form;
         $existing = $submission->id ? Submission::find()->id($submission->id)->siteId((int)$form->siteId)->isIncomplete(null)->isSpam(null)->status(null)->one() : null;
         $toBind = [];
+        $canAttachOwnedUpload = in_array($command->authority->type, [
+            SubmissionAuthorityType::CONTROL_PANEL,
+            SubmissionAuthorityType::GRAPHQL_ADMIN,
+            SubmissionAuthorityType::TRUSTED_INTERNAL,
+        ], true);
         foreach ($submission->getFieldValuesForField(FileUpload::class) as $contentKey => $value) {
             $field = FileUploadRetentionHelper::resolveFileUploadFieldForContentKey($form, $contentKey);
             if (!$field) {
@@ -409,28 +473,55 @@ class FileUploads extends Component
                 $owned = $upload && (int)$upload['siteId'] === (int)$form->siteId
                     && $upload['contentKey'] === $contentKey
                     && hash_equals((string)$upload['browserHash'], Formie::$plugin->getSubmissionGrants()->browserHash($form))
-                    && (int)$upload['expiresAt'] > time() && $upload['state'] === 'staged'
+                    && (int)$upload['expiresAt'] > time() && $upload['state'] === SubmissionUploadStatus::STAGED->value
                     && (!$upload['submissionId'] || (int)$upload['submissionId'] === (int)$submission->id);
-                if (!in_array($id, $retained, true) && !$owned) {
-                    throw new \yii\web\ForbiddenHttpException('Invalid upload ownership.');
+                $retainedAsset = in_array($id, $retained, true);
+                $claim = $command->uploadClaims->get($contentKey, $id);
+                $legacyOwned = $command->allowLegacyUploadIds && $owned;
+
+                if ($command->operation === SubmissionOperation::PAYMENT_REPLAY && !$retainedAsset) {
+                    throw new ForbiddenHttpException('Payment replay cannot introduce an upload.');
+                }
+                if (!$retainedAsset && !$claim && !$legacyOwned && !$canAttachOwnedUpload) {
+                    throw new ForbiddenHttpException('A valid upload attachment capability is required.');
+                }
+                if ($claim && (!$upload || $claim->uploadId !== (int)$upload['id'] || !$owned)) {
+                    throw new ForbiddenHttpException('Upload authorization no longer matches the staged asset.');
+                }
+                // Trusted workflows may omit a browser capability, but they never bypass
+                // Formie ownership, field scope, expiry, or staged-state checks.
+                if (!$retainedAsset && !$owned) {
+                    throw new ForbiddenHttpException('Invalid upload ownership.');
                 }
                 $asset = Asset::find()->id($id)->status(null)->one();
                 if (!$asset || $field->exceedsMaxUploadSize((int)$asset->size) || ($field->sizeMinLimit && $asset->size < $field->sizeMinLimit * 1000000) || $field->getUploadTypeValidationErrors($asset->filename, $asset->getCopyOfFile())) {
-                    throw new \yii\web\ForbiddenHttpException('Upload policy rejected the file.');
+                    throw new ForbiddenHttpException('Upload policy rejected the file.');
                 }
-                if ($owned) {
-                    $toBind[] = $id;
+                if ($owned && !$retainedAsset) {
+                    $toBind[$id] = $claim ?? $this->_claimFromRow($upload);
                 }
             }
         }
         $transaction = Craft::$app->getDb()->beginTransaction();
         try {
-            foreach ($toBind as $id) {
+            foreach ($toBind as $id => $claim) {
                 $updated = Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
-                    'state' => 'bound', 'submissionId' => $submission->id,
-                ], ['and', ['assetId' => $id, 'state' => 'staged'], ['>', 'expiresAt', time()]])->execute();
+                    'state' => SubmissionUploadStatus::BOUND->value, 'submissionId' => $submission->id,
+                ], ['and', [
+                    'id' => $claim->uploadId,
+                    'uid' => $claim->uploadUid,
+                    'assetId' => $claim->assetId,
+                    'formId' => $claim->formId,
+                    'siteId' => $claim->siteId,
+                    'fieldUid' => $claim->fieldUid,
+                    'contentKey' => $claim->contentKey,
+                    'browserHash' => $claim->browserHash,
+                    'submissionId' => $claim->submissionId,
+                    'progressId' => $claim->progressId,
+                    'state' => SubmissionUploadStatus::STAGED->value,
+                ], ['>', 'expiresAt', time()]])->execute();
                 if ($updated !== 1) {
-                    throw new \yii\web\ForbiddenHttpException('Upload is no longer available.');
+                    throw new ForbiddenHttpException('Upload is no longer available.');
                 }
             }
             $transaction->commit();
@@ -438,7 +529,7 @@ class FileUploads extends Component
             $transaction->rollBack();
             throw $e;
         }
-        return $toBind;
+        return array_map('intval', array_keys($toBind));
     }
 
     public function releaseUnpersistedBindings(array $assetIds): void
@@ -446,8 +537,8 @@ class FileUploads extends Component
         foreach ($assetIds as $assetId) {
             if (!$this->isReferenced((int)$assetId)) {
                 Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
-                    'state' => 'staged', 'submissionId' => null,
-                ], ['assetId' => (int)$assetId, 'state' => 'bound'])->execute();
+                    'state' => SubmissionUploadStatus::STAGED->value, 'submissionId' => null,
+                ], ['assetId' => (int)$assetId, 'state' => SubmissionUploadStatus::BOUND->value])->execute();
             }
         }
     }
@@ -457,19 +548,19 @@ class FileUploads extends Component
         foreach ($submission->getFieldValuesForField(FileUpload::class) as $contentKey => $value) {
             foreach ($this->_extractAssetIds($value) as $id) {
                 Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
-                    'submissionId' => (int)$submission->id, 'state' => 'bound',
-                ], ['assetId' => $id, 'formId' => (int)$submission->formId, 'contentKey' => $contentKey, 'state' => ['staged', 'bound']])->execute();
+                    'submissionId' => (int)$submission->id, 'state' => SubmissionUploadStatus::BOUND->value,
+                ], ['assetId' => $id, 'formId' => (int)$submission->formId, 'contentKey' => $contentKey, 'state' => [SubmissionUploadStatus::STAGED->value, SubmissionUploadStatus::BOUND->value]])->execute();
             }
         }
     }
 
     public function releaseRemoved(Submission $submission): void
     {
-        $rows = (new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where(['submissionId' => $submission->id, 'state' => ['bound', 'finalized']])->all();
+        $rows = (new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where(['submissionId' => $submission->id, 'state' => [SubmissionUploadStatus::BOUND->value, SubmissionUploadStatus::FINALIZED->value]])->all();
         foreach ($rows as $row) {
             if (!$this->isReferenced((int)$row['assetId'])) {
                 Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
-                    'state' => 'staged', 'submissionId' => null, 'promotionState' => $row['promotionState'] === 'moving' ? 'moving' : null,
+                    'state' => SubmissionUploadStatus::STAGED->value, 'submissionId' => null, 'promotionState' => $row['promotionState'] === 'moving' ? 'moving' : null,
                     'isFinalized' => false, 'expiresAt' => time(), 'capabilities' => null,
                 ], ['id' => $row['id']])->execute();
             }
@@ -498,7 +589,7 @@ class FileUploads extends Component
                     Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
                         'formId' => (int)$form->id, 'siteId' => (int)$form->siteId,
                         'submissionId' => (int)$submission->id, 'fieldUid' => $field->uid,
-                        'contentKey' => $contentKey, 'state' => 'bound',
+                        'contentKey' => $contentKey, 'state' => SubmissionUploadStatus::BOUND->value,
                         'browserHash' => Formie::$plugin->getSubmissionGrants()->browserHash($form),
                         'expiresAt' => $this->_uploadExpiry(),
                         'capabilities' => null,
@@ -517,7 +608,7 @@ class FileUploads extends Component
     {
         // Recovery completes durable intents only. It never dispatches notifications or retries payments.
         $rows = (new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where([
-            'submissionId' => $submissionId, 'promotionState' => 'moving', 'state' => 'bound',
+            'submissionId' => $submissionId, 'promotionState' => 'moving', 'state' => SubmissionUploadStatus::BOUND->value,
         ])->all();
         foreach ($rows as $row) {
             $asset = Asset::find()->id((int)$row['assetId'])->status(null)->one();
@@ -629,6 +720,51 @@ class FileUploads extends Component
     // Private Methods
     // =========================================================================
 
+    private function _assertAttachableUpload(array $upload, Submission $submission, FileUpload $field, string $contentKey): void
+    {
+        $form = $submission->getForm();
+        if (!$form) {
+            throw new ForbiddenHttpException('Upload submission form is unavailable.');
+        }
+        $submissionId = $submission->id ? (int)$submission->id : null;
+        $uploadSubmissionId = $upload['submissionId'] === null ? null : (int)$upload['submissionId'];
+        $progressId = $upload['progressId'] === null ? null : (int)$upload['progressId'];
+        $progress = $progressId ? Formie::$plugin->getSubmissionProgress()->getProgressState($form) : null;
+
+        $matches = (int)$upload['formId'] === (int)$form->id
+            && (int)$upload['siteId'] === (int)$form->siteId
+            && hash_equals((string)$upload['fieldUid'], (string)$field->uid)
+            && hash_equals((string)$upload['contentKey'], $contentKey)
+            && hash_equals((string)$upload['browserHash'], Formie::$plugin->getSubmissionGrants()->browserHash($form))
+            && $uploadSubmissionId === $submissionId
+            && (int)$upload['expiresAt'] > time()
+            && $upload['state'] === SubmissionUploadStatus::STAGED->value
+            && (!$progressId || ($progress && (int)$progress->id === $progressId && $progress->submissionId === $submissionId));
+
+        $asset = $matches ? Asset::find()->id((int)$upload['assetId'])->status(null)->one() : null;
+        $stagingFolder = $asset ? $this->getStagingFolder() : null;
+
+        if (!$asset || !$stagingFolder || (int)$asset->folderId !== (int)$stagingFolder->id || (int)$asset->volumeId !== (int)$stagingFolder->volumeId) {
+            throw new ForbiddenHttpException('Upload is not available for this submission field.');
+        }
+    }
+
+    private function _claimFromRow(array $upload): SubmissionUploadClaim
+    {
+        return new SubmissionUploadClaim(
+            (int)$upload['id'],
+            (string)$upload['uid'],
+            (int)$upload['assetId'],
+            (int)$upload['formId'],
+            (int)$upload['siteId'],
+            (string)$upload['fieldUid'],
+            (string)$upload['contentKey'],
+            (string)$upload['browserHash'],
+            $upload['submissionId'] === null ? null : (int)$upload['submissionId'],
+            $upload['progressId'] === null ? null : (int)$upload['progressId'],
+        );
+    }
+
     private function _uploadExpiry(): int
     {
         $days = Formie::$plugin->getSettings()->maxIncompleteSubmissionAge;
@@ -639,7 +775,7 @@ class FileUploads extends Component
     private function _promote(Asset $asset, \craft\models\VolumeFolder $folder, ?string $filename = null): void
     {
         $row = $this->getTrackedUploadByAssetId((int)$asset->id);
-        if (!$row || !in_array($row['state'], ['bound', 'finalized'], true)) {
+        if (!$row || !in_array($row['state'], [SubmissionUploadStatus::BOUND->value, SubmissionUploadStatus::FINALIZED->value], true)) {
             throw new \RuntimeException('Upload must be bound before promotion.');
         }
         $db = Craft::$app->getDb();
