@@ -122,7 +122,7 @@ class Radio extends OptionsField implements SortableFieldInterface
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::prePopulate(),
+            SchemaHelper::prefillQueryParam(),
             ...$this->defineOtherOptionSettingsSchema(),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::emailFieldSummaryValue([

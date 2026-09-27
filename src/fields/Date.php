@@ -1268,7 +1268,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::prePopulate(),
+            SchemaHelper::prefillQueryParam(),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Min Date'),

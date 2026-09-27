@@ -14,6 +14,7 @@ class ApplySubmissionDefaultsTask implements TaskInterface
     {
         $form = $context->command->form;
         $submission = $context->command->submission;
+        (new \verbb\formie\services\RuntimeConfiguration())->applyValues($submission);
         $isRevision = $context->command->operation === \verbb\formie\enums\SubmissionOperation::REVISE;
 
         // Revision edits keep an explicit operator/posted status; only fill when missing

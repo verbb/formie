@@ -247,6 +247,7 @@ function _e(e) {
 	return (e.dataset.formieSubmitAction || "").trim();
 }
 function P(e, t) {
+	if (t.completion) return String(t.completion.behavior);
 	let n = t.meta?.effectiveSubmitAction;
 	return typeof n == "string" && n.trim() !== "" ? n.trim() : _e(e);
 }
@@ -408,7 +409,7 @@ function Ee(e, t, n) {
 		k.log("Applying redirect fallback for failed result.", {
 			url: t.redirect.url,
 			target: t.redirect.target
-		}), L(e), t.redirect.target === "new-tab" ? window.open(t.redirect.url, "_blank") : (j(e, "redirect"), window.location.href = t.redirect.url);
+		}), L(e), t.redirect.target === "new-tab" ? window.open(t.redirect.url, "_blank", "noopener,noreferrer") : (j(e, "redirect"), window.location.href = t.redirect.url);
 		return;
 	}
 	if (H(e, t), !t.ok) {
@@ -423,7 +424,7 @@ function Ee(e, t, n) {
 		L(e), Ce(e, t), k.log("Applied save/resume token state.");
 		return;
 	}
-	if (n === "submit" && !t.redirect?.url) {
+	if (t.completion && n === "submit" && !t.redirect?.url) {
 		let n = P(e, t), r = n === "message" && F(e);
 		if (n === "reload") {
 			L(e), j(e, "reload"), window.location.reload();

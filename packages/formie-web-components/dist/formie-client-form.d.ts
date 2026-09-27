@@ -8,6 +8,7 @@ export declare class FormieClientFormElement extends LitElement {
     siteId?: number;
     transport: 'rest' | 'graphql';
     fetchCredentials: RequestCredentials;
+    query: Record<string, string | string[]>;
     formClass: string;
     loadingMessage: string;
     /** Per-instance UI registry (defaults to {@link getFormieRegistry}). */

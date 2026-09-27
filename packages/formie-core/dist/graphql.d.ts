@@ -8,6 +8,7 @@ export type GraphqlClientTransportOptions = BrowserRequestOptions & {
     grantToken?: string;
     grantPurpose?: 'continue-incomplete' | 'revise-complete';
     draftContext?: string;
+    query?: Record<string, string | string[]>;
 };
 export declare function loadGraphqlClientFormBootstrap(options: GraphqlClientTransportOptions): Promise<ClientFormBootstrap>;
 export declare function createGraphqlClientTransport(options: GraphqlClientTransportOptions): ClientTransport;

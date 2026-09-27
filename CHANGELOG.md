@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- Add typed After Completion outcomes shared by HTML, Ajax, REST and GraphQL, with validated redirect overrides and captured query allowlists.
+- Add isolated render-instance configuration and versioned durable submission settings while preserving the trusted Twig APIs.
 - Add one versioned browser-module manifest with trusted executable IDs, repeated occurrence keys, dynamic target reconciliation and required/optional failure diagnostics.
 - Add durable integration and notification delivery history, safe per-operation retries, explicit reconciliation and a Plugin Kit diagnostics modal in Craft’s queue and submission views.
 - Add one typed reference runtime and Variable Picker catalogue, with native exact values, explicit row scopes and context-safe text output.
@@ -10,6 +12,7 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Preserve explicit empty values, enforce server-populated values across resume, capture query prefill once, and evaluate Hidden value sources without changing reusable field definitions.
 - Standardise server-rendered and client-rendered products, separate CP edit configuration, and enforce the client-rendered contract across React, Vue and Web Components.
 - Require Formie origin allowlisting and explicit cross-origin public session credentials; share staged uploads and backend submission results across rendering products.
 - Separate global integration connections, annotated form bindings and non-secret builder metadata; isolate runtime instances and return explicit integration and batch results.

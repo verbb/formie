@@ -361,3 +361,9 @@ Event::on(SubmissionStatuses::class, SubmissionStatuses::EVENT_AFTER_DELETE_STAT
     // ...
 });
 ```
+
+## Override the completion redirect
+
+The stable `SubmissionsController::EVENT_AFTER_SUBMISSION_REQUEST` PHP event runs at completed submissions across the supported transports. Its `SubmissionEvent` exposes `form`, `submission` and `redirectUrl`. Setting `redirectUrl` feeds the shared completion resolver; the final origin, scheme and control-character policy still applies. Page advance, page back, draft saves and payment continuation do not run this event.
+
+New code may use `CompletionResolver::EVENT_RESOLVE_COMPLETION` with the same event payload. See [Completion and Redirects](/templates/completion-and-redirects) for allowed origins and campaign parameters.

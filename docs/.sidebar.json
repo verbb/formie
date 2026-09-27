@@ -100,6 +100,7 @@
             "templates/rendering-fields",
             "templates/render-options",
             "templates/overriding-settings",
+            "templates/completion-and-redirects",
             "templates/assets",
             "templates/populating-forms",
             "templates/editing-submissions",

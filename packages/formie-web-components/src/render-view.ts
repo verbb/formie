@@ -696,7 +696,7 @@ export function renderFormView(ctx: RenderViewContext): TemplateResult {
         ${shouldStandaloneErr
             ? html`<div class="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">${errorMessage}</div>`
             : nothing}
-        ${renderFormPage(ctx, page)}
+        ${ctx.state.lastSubmitResult?.completion?.behavior === 'message' && ctx.state.lastSubmitResult.completion.hideForm ? nothing : renderFormPage(ctx, page)}
     `;
 
     const renderId = ctx.state.session.tokens.render ?? '';

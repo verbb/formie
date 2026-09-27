@@ -120,3 +120,21 @@ Craft::$app->getQueue()->run();
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/delivery-browser.json', json_encode(['uid' => $deliveryUid, 'jobId' => $deliveryJobId, 'submissionUrl' => $deliverySubmission->getCpEditUrl(), 'submissionId' => $deliverySubmission->id]));
 
 require __DIR__ . '/browser-graphql-fixture.php';
+
+foreach (['message', 'redirect', 'reload', 'reset'] as $behavior) {
+    \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Completion ' . $behavior, 'handle' => 'completion' . ucfirst($behavior)])
+        ->settings(['disableCaptchas' => true, 'completionBehavior' => $behavior, 'submitActionUrl' => '/browser-completion-done?utm_medium=explicit', 'submitMethod' => 'ajax', 'submitActionFormHide' => $behavior === 'message'])
+        ->singleLineTextField('visitorName', ['label' => 'Visitor name', 'required' => true])
+        ->singleLineTextField('note', ['label' => 'Note', 'prefillQueryParam' => 'note', 'defaultValue' => 'saved default'])
+        ->hiddenField('serverDate', ['valueSource' => 'dateInt'])->create();
+}
+
+$completionPayments = [];
+foreach (['message', 'redirect', 'reload', 'reset'] as $behavior) {
+    $form = \verbb\formie\elements\Form::find()->handle('completion' . ucfirst($behavior))->one();
+    $submission = \verbb\formie\Formie::$plugin->getFactories()->submission($form)->with(['visitorName' => 'Payment ' . $behavior])->save();
+    $payment = new \verbb\formie\models\Payment(['integrationId' => $paymentIntegration->id, 'submissionId' => $submission->id, 'amount' => '1.00', 'currency' => 'USD', 'status' => 'success', 'redirectUrl' => '/browser-fixture?adapter=react&form=completionMessage']);
+    if (!\verbb\formie\Formie::$plugin->getPayments()->savePayment($payment)) throw new RuntimeException('Cannot save completion payment fixture.');
+    $completionPayments[$behavior] = \verbb\formie\helpers\PaymentAccess::issueStatusToken($payment);
+}
+file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/completion-payments.json', json_encode($completionPayments));

@@ -33,6 +33,7 @@ class SubmissionGuards extends Component
             'site' => $form->siteId,
             'issued' => time(),
             'nonce' => Craft::$app->getSecurity()->generateRandomString(),
+            'config' => (new RuntimeConfiguration())->persistInstance($form),
         ]));
     }
 

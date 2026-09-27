@@ -184,13 +184,15 @@ query FormieHtmlForm($handle: String!, $input: ServerRenderPayloadInput) {
     return payload;
 }
 
-export async function requestRefreshTokens(endpoint: string, handle: string, renderId?: string, requestOptions: BrowserRequestOptions = {}): Promise<FormEndpointPayload['refreshTokens']> {
+export async function requestRefreshTokens(endpoint: string, handle: string, renderId?: string, requestOptions: BrowserRequestOptions = {}, requestToken?: string): Promise<FormEndpointPayload['refreshTokens']> {
     const url = new URL(endpoint, window.location.origin);
     url.searchParams.set('handle', handle);
 
     if (renderId) {
         url.searchParams.set('renderId', renderId);
     }
+
+    if (requestToken) url.searchParams.set('requestToken', requestToken);
 
     debug.log('requestRefreshTokens start.', {
         endpoint: url.toString(),

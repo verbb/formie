@@ -22,7 +22,6 @@ use verbb\formie\events\SubmissionRulesEvent;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Payment;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\FieldAttributesHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
@@ -855,6 +854,9 @@ class Submission extends Element
                 self::$_formByIdCache[$cacheKey] = $this->_form;
             }
 
+            if ($this->_form) {
+                $this->_form = clone $this->_form;
+            }
             $this->_applySnapshotSettingsIfNeeded();
         }
 
@@ -873,29 +875,10 @@ class Submission extends Element
 
     public function setFieldSettings(string $handle, array $settings): void
     {
-        $field = null;
-        
-        // Check for nested fields so we can use `group.dropdown` or `dropdown`.
-        $handles = explode('.', $handle);
-
-        if (count($handles) > 1) {
-            $parentField = $this->getFieldByHandle($handles[0]);
-
-            if ($parentField) {
-                $field = $parentField->getFieldByHandle($handles[1]);
-            }
-        } else {
-            $field = $this->getFieldByHandle($handles[0]);
-        }
-
-        if ($field) {
-            $settings = FieldAttributesHelper::applyToFieldSettings(
-                $settings,
-                $field->containerAttributes,
-                $field->inputAttributes,
-            );
-            $field->setAttributes($settings, false);
-        }
+        $form = $this->getForm();
+        $form->setFieldSettings($handle, $settings);
+        $this->snapshot = \verbb\formie\models\SubmissionConfig::capture($form->getInstanceConfig());
+        $this->setForm($form);
     }
 
     public function getFormName(): ?string
@@ -1684,33 +1667,23 @@ class Submission extends Element
             return;
         }
 
-        // When setting the form on a front-end request, merge in-session snapshot data
-        // before applying settings. Saved submission snapshots are already on the element.
-        if (Craft::$app->getRequest()->getIsSiteRequest() && !$this->snapshot) {
-            if ($snapshotData = $this->_form->getSnapshotData()) {
-                $this->snapshot = $snapshotData;
-            }
-        }
-
-        $fields = $this->snapshot['fields'] ?? [];
-        $formSettings = $this->snapshot['form'] ?? null;
-
-        if ($fields === [] && $formSettings === null) {
-            $this->_snapshotSettingsApplied = true;
-
-            return;
-        }
-
-        foreach ($fields as $handle => $settings) {
-            $this->setFieldSettings($handle, $settings);
-        }
-
-        if ($formSettings) {
-            $this->_form->settings->setAttributes($formSettings, false);
-        }
-
-        $this->getContentState()->normalizedValuesByUid = [];
-
         $this->_snapshotSettingsApplied = true;
+        $config = $this->snapshot ? \verbb\formie\models\SubmissionConfig::decode($this->snapshot, $this->_form) : $this->_form->getInstanceConfig();
+        if (!$this->snapshot) {
+            $completion = array_intersect_key($this->_form->settings->toArray(), array_flip(\verbb\formie\services\RuntimeConfiguration::DURABLE_FORM_SETTINGS));
+            // Provider connections remain globally owned; only explicit runtime
+            // integration overrides belong to the durable instance config.
+            unset($completion['integrations']);
+            if ($this->_form->settings->completionRedirectSource === 'entry' && $this->_form->getRedirectEntry()) {
+                $completion['submitActionUrl'] = $this->_form->getRedirectEntry()->url;
+                $completion['completionRedirectSource'] = 'url';
+            }
+            $config = new \verbb\formie\models\FormInstanceConfig(...array_replace(get_object_vars($config), [
+                'form' => \verbb\formie\models\FormInstanceConfig::merge($completion, $config->form),
+            ]));
+        }
+        $this->_form->markInstanceEstablished();
+        $this->_form->replaceInstanceConfig($config);
+        $this->snapshot = \verbb\formie\models\SubmissionConfig::capture($config);
     }
 }

@@ -222,7 +222,7 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::prePopulate(),
+            SchemaHelper::prefillQueryParam(),
             $this->defineAutocompleteSettingSchema([
                 'if' => '!useRichText',
             ]),

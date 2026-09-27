@@ -45,6 +45,11 @@ class References
 
     public static function parseUrl(string $template, Submission $submission): string
     {
+        return StringHelper::sanitizeRedirectUrl(self::resolveUrl($template, $submission));
+    }
+
+    public static function resolveUrl(string $template, Submission $submission): string
+    {
         $context = ReferenceContext::forSubmission($submission);
         // Stable URL settings allowed a whole exact reference. This bounded legacy
         // slot adapter preserves that meaning; embedded values are URL components.
@@ -57,7 +62,7 @@ class References
         } else {
             $value = self::interpolateText($template, $context, ReferenceOutputContext::UrlComponent);
         }
-        return StringHelper::sanitizeRedirectUrl($value);
+        return $value;
     }
 
     public static function parseListContent(string $content, Submission $submission, array $options = []): string

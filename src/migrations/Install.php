@@ -600,6 +600,7 @@ class Install extends Migration
 
 
         (new m260927_000000_delivery_attempts())->safeUp();
+        (new m260927_010000_instance_configuration())->safeUp();
 
     }
 
@@ -728,6 +729,7 @@ class Install extends Migration
             'formie_webhookreceipts',
             'formie_paymentcapabilities',
             'formie_delivery_diagnostics',
+            'formie_instance_configs',
             'formie_delivery_attempts',
             'formie_emailtemplates',
             'formie_fieldlayout_pages',
@@ -866,6 +868,7 @@ class Install extends Migration
     {
         $tables = [
             'formie_delivery_diagnostics',
+            'formie_instance_configs',
             'formie_delivery_attempts',
             'formie_emailtemplates',
             'formie_fieldlayout_pages',

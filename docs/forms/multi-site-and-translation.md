@@ -221,7 +221,7 @@ That keeps delivery logic explicit and avoids surprises in queued or CLI sends. 
 
 ## Twig Template Overrides
 
-Twig `setFieldSettings()` overrides in templates apply only for that render. They do not persist in the database.
+Twig `setFieldSettings()` overrides apply to one form occurrence. Allowed submission-relevant settings are retained in its durable configuration for later pages and resume; the saved form definition stays unchanged.
 
 For permanent per-site wording, use control panel site overrides so content editors can manage copy without deploys.
 

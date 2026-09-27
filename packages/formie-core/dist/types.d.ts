@@ -161,7 +161,13 @@ export type ClientSubmitResult = {
         error?: string | null;
     };
     session?: ClientFormSession | null;
-    completion?: Record<string, unknown> | null;
+    completion?: {
+        behavior: 'message' | 'redirect' | 'reload' | 'reset';
+        url: string | null;
+        target: 'same-tab' | 'new-tab';
+        message: string | null;
+        hideForm: boolean;
+    } | null;
     redirect?: {
         url: string;
         target?: string;

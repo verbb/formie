@@ -61,6 +61,11 @@ class FormsController extends Controller
             throw new NotFoundHttpException('Form not found');
         }
 
+        $requestToken = (string)$this->request->getQueryParam('requestToken', '');
+        if ($requestToken !== '') {
+            (new \verbb\formie\services\RuntimeConfiguration())->restoreToken($form, $requestToken);
+        }
+
         $renderId = trim((string)$this->request->getParam('renderId', ''));
 
         if ($renderId !== '') {

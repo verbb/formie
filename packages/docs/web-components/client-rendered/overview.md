@@ -143,3 +143,9 @@ When you use `<formie-client-form transport="graphql">`, the built-in transport 
 ## Preloaded Envelope
 
 `<formie-client-form>` always loads the envelope from the network using `endpoint`, `form-handle`, and `transport`. To hydrate from a payload you already have, instantiate the form engine with `@verbb/formie-core` in your own module instead of this element, or keep using [server-rendered forms](/web-components/server-rendered/overview) with a preloaded `payload` on `<formie-form>` where that fits.
+
+## Completion and query prefill
+
+A successful final submission returns `completion` with `behavior` (`message`, `redirect`, `reload` or `reset`), `url`, `target`, `message` and `hideForm`. The standard adapter applies it. Page navigation and save-for-later results have no completion action. Payment continuation remains a separate result. Custom renderers should use this result rather than infer completion from an absent next page.
+
+REST and GraphQL source options accept `query`, a map of host-page parameters deliberately selected by your application. Formie captures field query prefills and allowlisted campaign values at bootstrap. Later submissions cannot replace those captured values. These are untrusted field values; source options never accept trusted form settings, integration credentials or forced server values.

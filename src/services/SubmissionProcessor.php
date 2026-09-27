@@ -239,7 +239,7 @@ class SubmissionProcessor extends Component
             throw new BadRequestHttpException('Form not found');
         }
 
-        return $form;
+        return clone $form;
     }
 
     public function resolveProgressState(Form $form): ?ProgressState
@@ -259,6 +259,7 @@ class SubmissionProcessor extends Component
 
         if (is_string($requestToken) && trim($requestToken) !== '') {
             $form->setRequestToken(trim($requestToken));
+            (new RuntimeConfiguration())->restoreToken($form, trim($requestToken));
         }
     }
 
@@ -410,6 +411,7 @@ class SubmissionProcessor extends Component
                 }
             }
             $populate();
+            (new RuntimeConfiguration())->applyValues($command->submission);
             return Formie::$plugin->getSubmissionWorkflow()->process($command);
         });
         // A lost-response retry may resolve a new in-memory element. Restore the durable identity for adapters.
@@ -638,11 +640,7 @@ class SubmissionProcessor extends Component
         $notice = null;
         $error = null;
 
-        if ($response->success && $nextPageId === null) {
-            $notice = $form->settings->submitAction === 'message'
-                ? StringHelper::sanitizeMessageHtml($form->settings->getSubmitActionMessage($submission))
-                : StringHelper::sanitizeMessageHtml(Craft::t('formie', 'Form submitted successfully.'));
-        }
+        $notice = $response->outcome->data['completion']['message'] ?? null;
 
         if ($submitAction === 'save' && $response->success) {
             $notice = StringHelper::sanitizeMessageHtml($form->settings->getSubmitActionMessage($submission));

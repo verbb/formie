@@ -52,6 +52,7 @@ export type FormieDefinitionSource =
         profile?: 'same-origin-browser' | 'cross-origin-public';
         formHandle: string;
         siteId?: number;
+        query?: Record<string, string | string[]>;
     }
     | {
         transport: 'graphql';
@@ -59,6 +60,7 @@ export type FormieDefinitionSource =
         profile?: 'same-origin-browser' | 'cross-origin-public';
         formHandle: string;
         siteId?: number;
+        query?: Record<string, string | string[]>;
     }
     | {
         definition: ClientFormBootstrap;
@@ -68,6 +70,7 @@ export type FormieDefinitionSource =
         profile?: 'same-origin-browser' | 'cross-origin-public';
             formHandle: string;
             siteId?: number;
+        query?: Record<string, string | string[]>;
         };
     }
     | {
@@ -78,6 +81,7 @@ export type FormieDefinitionSource =
         profile?: 'same-origin-browser' | 'cross-origin-public';
             formHandle: string;
             siteId?: number;
+        query?: Record<string, string | string[]>;
         };
     };
 
@@ -208,6 +212,7 @@ async function resolveDefinitionEnvelope(source: FormieDefinitionSource): Promis
         profile: source.profile,
             formHandle: source.formHandle,
             siteId: source.siteId,
+        query: source.query,
         });
     }
 
@@ -216,6 +221,7 @@ async function resolveDefinitionEnvelope(source: FormieDefinitionSource): Promis
         profile: source.profile,
         formHandle: source.formHandle,
         siteId: source.siteId,
+        query: source.query,
     });
 }
 
@@ -228,6 +234,7 @@ function resolveDefinitionTransport(source: FormieDefinitionSource) {
         profile: source.profile,
             formHandle: source.formHandle,
             siteId: source.siteId,
+        query: source.query,
         };
 
     if (transportSource.type === 'graphql') {
@@ -1311,7 +1318,7 @@ const ConfigRenderer = defineComponent({
                         key: 'error',
                         class: 'formie-vue-error',
                     }, errorMessage) : null,
-                    h(PageComponent, {
+                    !(state.lastSubmitResult?.completion?.behavior === 'message' && state.lastSubmitResult.completion.hideForm) ? h(PageComponent, {
                         key: page.id,
                         page,
                         state,
@@ -1326,7 +1333,7 @@ const ConfigRenderer = defineComponent({
                                 key: 'actions',
                             }),
                         ],
-                    }),
+                    }) : null,
                 ],
             });
         };

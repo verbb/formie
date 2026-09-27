@@ -212,7 +212,7 @@ it('prepares select field defaults from class defaults for checkboxes hidden and
     $service = Formie::$plugin->getFormDefaults();
 
     expect($service->prepareFieldTypeDefaultsForEditor(Checkboxes::class)['layout'] ?? null)->toBe('vertical')
-        ->and($service->prepareFieldTypeDefaultsForEditor(Hidden::class)['defaultOption'] ?? null)->toBe('custom');
+        ->and($service->prepareFieldTypeDefaultsForEditor(Hidden::class)['valueSource'] ?? null)->toBe('custom');
 
     expect(!Formie::$plugin->getFields()->getRegisteredFieldByType(Users::class, false))->toBeFalse();
 

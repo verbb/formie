@@ -15,7 +15,7 @@ it('resolves cp submission field condition settings from form and plugin default
     expect($form->getCpSubmissionFieldConditions())->toBe(CpSubmissionFieldConditions::MUTED);
 
     $form->settings->cpSubmissionFieldConditions = CpSubmissionFieldConditions::SHOW_ALL;
-    $form->setSettings($form->settings->getAttributes());
+    $form->settings->setAttributes($form->settings->getAttributes());
 
     expect($form->getCpSubmissionFieldConditions())->toBe(CpSubmissionFieldConditions::SHOW_ALL)
         ->and($form->cpSubmissionFollowsFieldConditions())->toBeFalse();
@@ -45,7 +45,7 @@ it('marks conditionally hidden cp submission fields for follow and muted modes',
             ->toContain('class="field formie-conditionally-hidden"');
 
         $form->settings->cpSubmissionFieldConditions = CpSubmissionFieldConditions::MUTED;
-        $form->setSettings($form->settings->getAttributes());
+        $form->settings->setAttributes($form->settings->getAttributes());
 
         $mutedHtml = (string)$hiddenField?->getSubmissionHtml($submission->getFieldValue('otherReason'), $submission);
 

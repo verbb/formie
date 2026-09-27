@@ -814,12 +814,18 @@ class SchemaHelper
         ], $config));
     }
 
+    /** @deprecated Use prefillQueryParam(). */
     public static function prePopulate(array $config = []): array
+    {
+        return self::prefillQueryParam($config);
+    }
+
+    public static function prefillQueryParam(array $config = []): array
     {
         return self::textField(array_merge([
             'label' => Craft::t('formie', 'Prefill Query Parameter'),
             'instructions' => Craft::t('formie', 'Specify the query parameter name used to prefill this field’s initial value.'),
-            'name' => 'prePopulate',
+            'name' => 'prefillQueryParam',
 
             // Disable pre-population in fields nested in Repeater
             // 'if' => '$isInRepeater === false',

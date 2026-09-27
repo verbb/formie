@@ -165,3 +165,21 @@ For element fields, pass the selected element ID or IDs:
 
 > [!NOTE]
 > You can also alter this behaviour using [Field Events](/developers/events/field-events) if your URL parameters have more specific needs. For example, you might want to support a URL parameter such as `entries=2242,1101` for multiple items.
+
+## Value Precedence
+
+Formie distinguishes an absent value from an explicitly empty value. The first applicable source wins:
+
+| Priority | Source |
+| --- | --- |
+| 1 | A forced server value supplied with `populateFormValues(form, values, true)` |
+| 2 | Existing posted or persisted content, including an empty string, null or empty selection |
+| 3 | An editable initial value supplied with `populateFormValues(form, values)` |
+| 4 | Query prefill captured when the instance is established |
+| 5 | The saved field default |
+
+Forced values are retained with the submission configuration and reapplied before the existing condition-clearing step. A visitor cannot replace them by editing HTML or sending a different REST/GraphQL value. With `force=false`, the visitor can edit the initial value, and a saved blank stays blank on resume. `setFieldValues()` remains the underlying Craft element method; use the established `craft.formie.populateFormValues()` call in templates.
+
+The field setting is `prefillQueryParam`. It reads query data when the form instance starts, never submission body data. Later pages, resume and payment returns cannot replace the captured query input. Query values remain untrusted field input and never execute Twig or reference expressions. Client-rendered REST and GraphQL bootstrap callers explicitly supply the host-page parameters through their `query` option; no arbitrary host query string is forwarded automatically.
+
+Hidden fields use `valueSource`. Custom, URL, referrer, cookie and query values remain editable/untrusted input. Template, current-user, date and server IP sources are authoritative and evaluated on the server. Their reusable field definition is never changed to hold the request’s value. Condition clearing still runs after server value application.

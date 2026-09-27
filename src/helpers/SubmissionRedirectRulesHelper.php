@@ -40,24 +40,14 @@ class SubmissionRedirectRulesHelper
 
     public static function getEffectiveSubmitAction(Form $form, ?Submission $submission = null): string
     {
-        $settings = $form->getSettings();
-
-        if (!$settings instanceof FormSettings) {
-            return 'message';
-        }
-
         $submission ??= $form->getCurrentSubmission();
-
-        if ($submission instanceof Submission) {
-            $matchedRule = self::getMatchedRule($form, $submission);
-            $redirectType = (string)($matchedRule['redirectType'] ?? '');
-
-            if ($matchedRule && in_array($redirectType, ['url', 'entry'], true)) {
-                return $redirectType;
-            }
+        if (!$submission) {
+            $submission = new Submission();
+            $submission->setForm(clone $form);
         }
-
-        return (string)$settings->submitAction;
+        $completion = (new \verbb\formie\services\CompletionResolver())->resolve($form, $submission, false);
+        return $completion->behavior === \verbb\formie\enums\CompletionBehavior::Redirect
+            ? (self::getMatchedRule($form, $submission)['redirectType'] ?? $form->settings->completionRedirectSource) : $completion->behavior->value;
     }
 
     public static function resolveMatchedRuleUrl(Form $form, Submission $submission, bool $includeQueryString = true): ?string
@@ -74,7 +64,7 @@ class SubmissionRedirectRulesHelper
             return null;
         }
 
-        return self::_finalizeRedirectUrl($url, $includeQueryString);
+        return CompletionRedirectPolicy::validate($includeQueryString ? UrlHelper::appendQueryParams($url, $form->getInstanceConfig()->query) : $url);
     }
 
     public static function resolveRuleUrl(array $rule, Form $form, Submission $submission): string
@@ -90,7 +80,7 @@ class SubmissionRedirectRulesHelper
         $url = (string)($rule['submitActionUrl'] ?? '');
 
         if ($url !== '') {
-            $url = References::parseUrl($url, $submission);
+            $url = References::resolveUrl($url, $submission);
         }
 
         return is_string($url) ? $url : '';
@@ -99,19 +89,6 @@ class SubmissionRedirectRulesHelper
 
     // Private Methods
     // =========================================================================
-
-    private static function _finalizeRedirectUrl(string $url, bool $includeQueryString): string
-    {
-        // Append after References::parseContent so request query values stay literal
-        // (braces encoded) rather than merging into a later template pass.
-        if ($url && $includeQueryString) {
-            $url = \verbb\formie\helpers\UrlHelper::appendRequestQueryString($url);
-        }
-
-        $url = mb_convert_encoding($url, 'UTF-8', 'ISO-8859-1');
-
-        return StringHelper::sanitizeRedirectUrl($url);
-    }
 
     private static function _getRuleEntry(array $rule): ?Entry
     {

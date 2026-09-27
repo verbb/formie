@@ -124,19 +124,9 @@ class PaymentStatusController extends Controller
             }
             $url = '';
 
-            // Handle heading back to the form and either redirecting to the form's redirect or show a message
-            if ($form->settings->submitAction == 'message' || $form->settings->submitAction == 'reload') {
-                // When reloading the page, provide a `submission` variable to pick up on the finalise submission
-                Craft::$app->getUrlManager()->setRouteParams([
-                    'submission' => $submission,
-                ]);
-
-                $url = $payment->redirectUrl;
-            } else {
-                $url = $form->getRedirectUrl(false, false);
-            }
-
-            $url = Formie::$plugin->getPayments()->resolvePaymentSuccessRedirectUrl($payment, $submission, $form, $url);
+            $completion = (new \verbb\formie\services\CompletionResolver())->resolve($form, $submission);
+            $url = $completion->url;
+            $returnUrl = \verbb\formie\helpers\CompletionRedirectPolicy::validate((string)$payment->redirectUrl);
 
             Formie::info('Payment poll: finalising paymentUid {paymentUid}, submissionId {submissionId}, formId {formId}', [
                 'paymentUid' => $paymentUid,
@@ -146,6 +136,8 @@ class PaymentStatusController extends Controller
 
             return $this->asJson([
                 'status' => 'success',
+                'completion' => $completion->toArray(),
+                'returnUrl' => $returnUrl,
                 'redirectUrl' => $url,
             ]);
         }
@@ -187,7 +179,7 @@ class PaymentStatusController extends Controller
         return $this->renderTemplate('formie/integrations/payments/status', [
             'payment' => $payment,
             'statusToken' => (string)$this->request->getRequiredParam('statusToken'),
-        ]);
+        ], \craft\web\View::TEMPLATE_MODE_CP);
     }
 
 

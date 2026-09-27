@@ -305,7 +305,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::prePopulate([
+            SchemaHelper::prefillQueryParam([
                 'if' => 'useMultipleFields != true',
             ]),
             SchemaHelper::includeInEmailFieldSummariesField(),

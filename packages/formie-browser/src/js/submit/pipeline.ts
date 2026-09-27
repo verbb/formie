@@ -312,7 +312,7 @@ export async function runSubmitPipeline(
             // rest of the browser client can react to one result shape first.
             if (dispatchResult.ok && dispatchResult.redirect?.url) {
                 if (dispatchResult.redirect.target === 'new-tab') {
-                    window.open(dispatchResult.redirect.url, '_blank');
+                    window.open(dispatchResult.redirect.url, '_blank', 'noopener,noreferrer');
                 } else {
                     window.location.href = dispatchResult.redirect.url;
                 }

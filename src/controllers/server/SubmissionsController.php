@@ -271,18 +271,13 @@ class SubmissionsController extends Controller
             $payload['isFinalPage'] = $nextPageId === null;
         }
 
-        if ($nextPageId === null) {
-            $effectiveSubmitAction = $form->settings->getEffectiveSubmitAction($submission);
-            $payload['effectiveSubmitAction'] = $effectiveSubmitAction;
-
-            if (in_array($effectiveSubmitAction, ['entry', 'url'], true)) {
-                $payload['redirectUrl'] = $form->getRedirectUrl();
-                $payload['submitActionTab'] = $form->settings->submitActionTab;
-            }
-
-            if ($effectiveSubmitAction === 'message') {
-                $payload['submitActionMessage'] = StringHelper::sanitizeMessageHtml($form->settings->getSubmitActionMessage($submission));
-            }
+        $payload['completion'] = $response->outcome->data['completion'] ?? null;
+        $payload['redirect'] = $response->outcome->data['redirect'] ?? null;
+        if ($completion = $payload['completion']) {
+            $payload['effectiveSubmitAction'] = $completion['behavior'];
+            $payload['redirectUrl'] = $completion['url'];
+            $payload['submitActionTab'] = $completion['target'];
+            $payload['submitActionMessage'] = $completion['message'];
         }
 
         if ($response->quizResult) {

@@ -54,7 +54,7 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
 
     public const DEFAULT_OPTION_TEMPLATE = 'template';
 
-    public ?string $defaultOption = 'custom';
+    public ?string $valueSource = 'custom';
     public ?string $defaultTemplate = null;
     public ?string $queryParameter = null;
     public ?string $cookieName = null;
@@ -70,6 +70,10 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
 
     public function __construct(array $config = [])
     {
+        if (array_key_exists('defaultOption', $config)) {
+            $config['valueSource'] = $config['valueSource'] ?? $config['defaultOption'];
+            unset($config['defaultOption']);
+        }
         // Remove unused settings
         unset($config['columnType']);
 
@@ -84,40 +88,24 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
         return self::KIND_HIDDEN;
     }
 
-    public function init(): void
+    public function getDefaultOption(): ?string
     {
-        parent::init();
+        return $this->valueSource;
+    }
 
-        $currentUser = Craft::$app->getUser()->getIdentity();
-        $request = Craft::$app->getRequest();
+    public function setDefaultOption(?string $source): void
+    {
+        $this->valueSource = $source;
+    }
 
-        if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
-            if ($this->defaultOption === 'dateUs') {
-                $this->defaultValue = DateTimeHelper::toDateTime(new DateTime())->format('m/d/Y');
-            } else if ($this->defaultOption === 'dateInt') {
-                $this->defaultValue = DateTimeHelper::toDateTime(new DateTime())->format('d/m/Y');
-            } else if ($this->defaultOption === 'userAgent') {
-                $this->defaultValue = $request->getUserAgent();
-            } else if ($this->defaultOption === 'referUrl') {
-                $this->defaultValue = $request->getReferrer();
-            } else if ($this->defaultOption === 'currentUrl') {
-                $this->defaultValue = $request->getAbsoluteUrl();
-            } else if ($this->defaultOption === 'currentUrlNoQueryString') {
-                $this->defaultValue = UrlHelper::stripQueryString($request->getAbsoluteUrl());
-            } else if ($this->defaultOption === 'userId') {
-                $this->defaultValue = $currentUser->id ?? null;
-            } else if ($this->defaultOption === 'username') {
-                $this->defaultValue = $currentUser->username ?? null;
-            } else if ($this->defaultOption === 'userEmail') {
-                $this->defaultValue = $currentUser->email ?? null;
-            } else if ($this->defaultOption === 'userIp') {
-                $this->defaultValue = $request->getUserIP();
-            } else if ($this->defaultOption === 'query' && $this->queryParameter) {
-                $this->defaultValue = $request->getParam($this->queryParameter);
-            } else if ($this->defaultOption === 'cookie' && $this->cookieName) {
-                $this->defaultValue = $_COOKIE[$this->cookieName] ?? '';
-            }
-        }
+    public function isAuthoritativeSource(): bool
+    {
+        return in_array($this->valueSource, ['template', 'dateUs', 'dateInt', 'userId', 'username', 'userEmail', 'userIp'], true);
+    }
+
+    public function runtimeOverridableSettings(): array
+    {
+        return [...parent::runtimeOverridableSettings(), 'valueSource', 'defaultTemplate', 'queryParameter', 'cookieName'];
     }
 
     public function getIsHidden(): bool
@@ -127,13 +115,30 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
 
     public function usesTemplateDefault(): bool
     {
-        return $this->defaultOption === self::DEFAULT_OPTION_TEMPLATE;
+        return $this->valueSource === self::DEFAULT_OPTION_TEMPLATE;
     }
 
     public function getDefaultValue(): mixed
     {
         if (!$this->usesTemplateDefault()) {
-            return parent::getDefaultValue();
+            $request = Craft::$app->getRequest();
+            $user = Craft::$app->getUser()->getIdentity();
+            $web = !$request->getIsConsoleRequest();
+            return match ($this->valueSource) {
+                'dateUs' => (new DateTime())->format('m/d/Y'),
+                'dateInt' => (new DateTime())->format('d/m/Y'),
+                'userId' => $user?->id === null ? null : (string)$user->id,
+                'username' => $user?->username,
+                'userEmail' => $user?->email,
+                'userIp' => $web ? $request->getUserIP() : null,
+                'userAgent' => $web ? $request->getUserAgent() : null,
+                'referUrl' => $web ? $request->getReferrer() : null,
+                'currentUrl' => $web ? $request->getAbsoluteUrl() : null,
+                'currentUrlNoQueryString' => $web ? UrlHelper::stripQueryString($request->getAbsoluteUrl()) : null,
+                'query' => $web && $this->queryParameter ? $request->getQueryParam($this->queryParameter) : null,
+                'cookie' => $web && $this->cookieName ? $request->getCookies()->getValue($this->cookieName) : null,
+                default => parent::getDefaultValue(),
+            };
         }
 
         $form = $this->getForm();
@@ -158,13 +163,17 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
             );
         }
 
-        return parent::getDefaultValue();
+        $value = $this->getDefaultValue();
+        if ($this->valueSource === 'custom' && $element instanceof Submission && is_string($value)) {
+            return References::parseContent($value, $element);
+        }
+        return $value;
     }
 
     public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
     {
-        if ($this->usesTemplateDefault()) {
-            $value = HiddenDefaultTemplateResolver::resolve($this, $element);
+        if ($this->isAuthoritativeSource()) {
+            $value = $this->getDefaultValue();
         }
 
         return parent::normalizeValueFromRequest($value, $element);
@@ -202,8 +211,8 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
-            'defaultOption' => [
-                'name' => 'defaultOption',
+            'valueSource' => [
+                'name' => 'valueSource',
                 'type' => Type::string(),
             ],
             'queryParameter' => [
@@ -231,7 +240,7 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Default Value'),
                 'instructions' => Craft::t('formie', 'Select an option for the default value.'),
-                'name' => 'defaultOption',
+                'name' => 'valueSource',
                 'options' => [
                     ['label' => Craft::t('formie', 'Date (mm/dd/yyyy)'), 'value' => 'dateUs'],
                     ['label' => Craft::t('formie', 'Date (dd/mm/yyyy)'), 'value' => 'dateInt'],
@@ -253,7 +262,7 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
                 'label' => Craft::t('formie', 'Default Template'),
                 'instructions' => Craft::t('formie', 'Set a server-resolved default using Craft object template syntax. Submitted values are ignored for this field. See [object templates](https://craftcms.com/docs/5.x/system/object-templates.html). Available: `{form.handle}`, `{form.title}`, `{currentUser.email}`, `{site.handle}`, `{request.param.myParam}`, `{submission.id}`.'),
                 'name' => 'defaultTemplate',
-                'if' => 'defaultOption == "template"',
+                'if' => 'valueSource == "template"',
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Default Value'),
@@ -268,19 +277,19 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
                         Variables::STATIC_SITE,
                     ],
                 ],
-                'if' => 'defaultOption == "custom"',
+                'if' => 'valueSource == "custom"',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Query Parameter'),
                 'instructions' => Craft::t('formie', 'Entering the query parameter to populate the value of the field when it loads.'),
                 'name' => 'queryParameter',
-                'if' => 'defaultOption == "query"',
+                'if' => 'valueSource == "query"',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Cookie Name'),
                 'instructions' => Craft::t('formie', 'Enter the name of the cookie to use as the value of this field.'),
                 'name' => 'cookieName',
-                'if' => 'defaultOption == "cookie"',
+                'if' => 'valueSource == "cookie"',
             ]),
         ];
     }
@@ -306,51 +315,14 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
     // Protected Methods
     // =========================================================================
 
-    protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
+    protected function defineRules(): array
     {
-        if ($this->usesTemplateDefault()) {
-            $value = HiddenDefaultTemplateResolver::resolve($this, $element);
-            $element?->setFieldValue($this->handle, $value);
-
-            return parent::defineValueForDb($value, $element);
-        }
-
-        // Handle variables use in custom fields
-        if ($this->defaultOption === 'custom') {
-            // Only field-authored defaults may resolve references. Non-empty submitted
-            // Hidden values are attacker-controlled and must remain literal.
-            if ($value === '' && $element instanceof Submission) {
-                $value = References::parseContent((string)$this->defaultValue, $element);
-            }
-
-            // Immediately update the value for the element, so integrations use the up-to-date value
-            $element?->setFieldValue($this->handle, $value);
-        }
-
-        return parent::defineValueForDb($value, $element);
+        return [...parent::defineRules(), [['valueSource'], 'in', 'range' => ['custom', 'template', 'dateUs', 'dateInt', 'userId', 'username', 'userEmail', 'userIp', 'userAgent', 'referUrl', 'currentUrl', 'currentUrlNoQueryString', 'query', 'cookie']]];
     }
 
     protected function supportedDefaults(): array
     {
-        return ['defaultOption', 'defaultTemplate'];
-    }
-
-    private function _finalizeTemplateDefaultValue(mixed $value): mixed
-    {
-        $value = $this->normalizeValue($value, null);
-
-        $event = new ModifyFieldValueEvent([
-            'value' => $value,
-            'field' => $this,
-        ]);
-
-        $this->trigger(static::EVENT_MODIFY_DEFAULT_VALUE, $event);
-
-        if (is_string($event->value)) {
-            $event->value = trim($event->value);
-        }
-
-        return $event->value;
+        return ['valueSource', 'defaultTemplate'];
     }
 
     protected function defineValueForCondition(mixed $value, Submission $submission): mixed
@@ -410,7 +382,7 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
     protected function defineClientRenderedInput(): array
     {
         return array_merge(parent::defineClientRenderedInput(), [
-            'defaultOption' => $this->defaultOption,
+            'valueSource' => $this->valueSource,
             'queryParameter' => $this->queryParameter,
             'cookieName' => $this->cookieName,
             'inputType' => 'hidden',
@@ -421,7 +393,7 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
     {
         $modules = parent::defineBrowserModules();
 
-        if ($this->defaultOption === 'cookie' && $this->cookieName) {
+        if ($this->valueSource === 'cookie' && $this->cookieName) {
             $modules[] = new BrowserModuleEntry([
                 'moduleId' => 'formie:hidden',
                 'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
@@ -435,4 +407,24 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
     }
 
 
+    // Private Methods
+    // =========================================================================
+
+    private function _finalizeTemplateDefaultValue(mixed $value): mixed
+    {
+        $value = $this->normalizeValue($value, null);
+
+        $event = new ModifyFieldValueEvent([
+            'value' => $value,
+            'field' => $this,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_DEFAULT_VALUE, $event);
+
+        if (is_string($event->value)) {
+            $event->value = trim($event->value);
+        }
+
+        return $event->value;
+    }
 }

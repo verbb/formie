@@ -432,7 +432,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::prePopulate(),
+            SchemaHelper::prefillQueryParam(),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::emailFieldSummaryValue([
                 'options' => [

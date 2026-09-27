@@ -9,6 +9,8 @@ use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 
+beforeEach(function () { \verbb\formie\Formie::$plugin->getSettings()->completionRedirectAllowedOrigins = ['https://example.test', 'http://formie-react-tests.ddev.site']; });
+
 it('overrides the default submit action when a redirect rule matches', function (): void {
     $form = formie()
         ->form(['title' => 'Redirect Rule Match'])

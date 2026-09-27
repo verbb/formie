@@ -51,6 +51,17 @@ export async function mountClientRenderedModules(root: Element, instance: Client
     instance.setBrowserModulePreparation(host.prepare);
     const unsubscribe = instance.on('formie:submit:result', (payload) => {
         const result = payload as import('@verbb/formie-core').ClientSubmitResult;
+        const completion = result.completion;
+        if (result.success && completion) {
+            if (completion.behavior === 'redirect' && typeof completion.url === 'string') {
+                if (completion.target === 'new-tab') window.open(completion.url, '_blank', 'noopener,noreferrer');
+                else window.location.assign(completion.url);
+            } else if (completion.behavior === 'reload') {
+                window.location.reload();
+            } else if (completion.behavior === 'reset') {
+                instance.reset();
+            }
+        }
         void host.result({ ok: result.success, outcome: result.outcome, version: result.version, submissionUid: result.submissionUid, errors: result.errors, session: result.session, completion: result.completion, meta: result as unknown as Record<string, unknown> });
     });
     return { ...host, destroy: async() => { unsubscribe(); unsubscribeRequest(); await host.destroy(); } };

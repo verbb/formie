@@ -219,7 +219,7 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::prePopulate(),
+            SchemaHelper::prefillQueryParam(),
             SchemaHelper::includeInEmailFieldSummariesField(),
         ];
     }

@@ -32,12 +32,14 @@ async function k(e) {
 		endpoint: e.endpoint,
 		profile: e.profile,
 		formHandle: e.formHandle,
-		siteId: e.siteId
+		siteId: e.siteId,
+		query: e.query
 	}) : S({
 		endpoint: e.endpoint,
 		profile: e.profile,
 		formHandle: e.formHandle,
-		siteId: e.siteId
+		siteId: e.siteId,
+		query: e.query
 	});
 }
 function A(e) {
@@ -46,7 +48,8 @@ function A(e) {
 		endpoint: e.endpoint,
 		profile: e.profile,
 		formHandle: e.formHandle,
-		siteId: e.siteId
+		siteId: e.siteId,
+		query: e.query
 	};
 	return t.type === "graphql" ? p(t) : h(t);
 }
@@ -536,7 +539,7 @@ function ee({ className: e }) {
 				key: "error",
 				className: "formie-react-error"
 			}, l) : null,
-			i(o, {
+			n.lastSubmitResult?.completion?.behavior === "message" && n.lastSubmitResult.completion.hideForm ? null : i(o, {
 				key: c.id,
 				page: c,
 				state: n,

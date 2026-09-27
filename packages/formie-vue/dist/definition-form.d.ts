@@ -6,12 +6,14 @@ export type FormieDefinitionSource = {
     profile?: 'same-origin-browser' | 'cross-origin-public';
     formHandle: string;
     siteId?: number;
+    query?: Record<string, string | string[]>;
 } | {
     transport: 'graphql';
     endpoint: string;
     profile?: 'same-origin-browser' | 'cross-origin-public';
     formHandle: string;
     siteId?: number;
+    query?: Record<string, string | string[]>;
 } | {
     definition: ClientFormBootstrap;
     transport: {
@@ -20,6 +22,7 @@ export type FormieDefinitionSource = {
         profile?: 'same-origin-browser' | 'cross-origin-public';
         formHandle: string;
         siteId?: number;
+        query?: Record<string, string | string[]>;
     };
 } | {
     definition: ClientFormBootstrap;
@@ -29,6 +32,7 @@ export type FormieDefinitionSource = {
         profile?: 'same-origin-browser' | 'cross-origin-public';
         formHandle: string;
         siteId?: number;
+        query?: Record<string, string | string[]>;
     };
 };
 export type FormieVueEvent = {

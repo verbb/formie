@@ -107,7 +107,7 @@ class FormSlotRegistry extends Component
                 'data-formie-handle' => $form?->handle,
                 'data-formie-static-cache' => $hasStaticCache ? true : false,
                 'data-formie-submit-method' => $form?->settings->submitMethod,
-                'data-formie-submit-action' => $form?->settings->submitAction,
+                'data-formie-submit-action' => $form?->settings->completionBehavior,
                 'data-formie-submit-action-form-hide' => $form?->settings->submitActionFormHide ? true : false,
                 'data-formie-automatic-submission-state' => $form?->settings->automaticSubmissionState ? true : false,
                 'data-formie-submit-action-message-timeout' => $form?->settings->submitActionMessageTimeout,

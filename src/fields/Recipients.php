@@ -633,7 +633,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::prePopulate(),
+            SchemaHelper::prefillQueryParam(),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::emailFieldSummaryValue([
                 'if' => 'displayType != "hidden"',

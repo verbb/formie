@@ -131,13 +131,14 @@ class MigrateFreeform5 extends BasePluginMigrator
 
             if ($behaviorSettings->successBehavior === 'reload') {
                 $form->settings->submitActionMessage = RichText::fromHtml('<p>' . $behaviorSettings->successMessage . '</p>');
-                $form->settings->submitAction = 'message';
+                $form->settings->completionBehavior = 'message';
             } else if ($behaviorSettings->successBehavior === 'redirect-return-url') {
                 $form->settings->submitActionUrl = $behaviorSettings->returnUrl;
-                $form->settings->submitAction = 'url';
+                $form->settings->completionBehavior = 'redirect';
+            $form->settings->completionRedirectSource = 'url';
             } else if ($behaviorSettings->successBehavior === 'load-success-template') {
                 $form->settings->submitActionMessage = RichText::fromHtml('<p>' . $behaviorSettings->successMessage . '</p>');
-                $form->settings->submitAction = 'message';
+                $form->settings->completionBehavior = 'message';
             }
 
             // Set default template

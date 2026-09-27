@@ -25,9 +25,11 @@ trait FieldValueTrait
     public function getElementValue(?ElementInterface $element = null): mixed
     {
         if ($element instanceof Submission) {
+            $element->getContentManager();
+            $state = $element->getContentState();
+            $present = array_key_exists($this->uid, $state->rawValuesByUid) || array_key_exists($this->uid, $state->normalizedValuesByUid);
             $value = $element->getFieldValue($this->valueKey());
-
-            if ($value !== null) {
+            if ($value !== null || $present) {
                 return $value;
             }
         }

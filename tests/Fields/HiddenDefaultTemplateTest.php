@@ -60,7 +60,7 @@ it('keeps custom hidden defaults post-wins behaviour', function (): void {
     expect($submission->getFieldValue('trackingToken'))->toBe($payload);
 })->group('security');
 
-it('still resolves admin-authored custom hidden defaults when no value is submitted', function (): void {
+it('preserves explicit empty values instead of resurrecting a hidden default', function (): void {
     $form = formie()
         ->form(['title' => 'Hidden Default Reference Security'])
         ->hiddenField('trackingToken', [
@@ -73,7 +73,7 @@ it('still resolves admin-authored custom hidden defaults when no value is submit
         'trackingToken' => '',
     ])->save();
 
-    expect($submission->getFieldValue('trackingToken'))->toBe('fallback-' . $form->handle);
+    expect($submission->getFieldValue('trackingToken'))->toBe('');
 })->group('security');
 
 it('does not execute twig probes in template hidden initial values', function (): void {

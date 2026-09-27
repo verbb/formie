@@ -70,6 +70,8 @@ export class FormieClientFormElement extends LitElement {
     })
     fetchCredentials: RequestCredentials = 'same-origin';
 
+    @property({ attribute: false }) query: Record<string, string | string[]> = {};
+
     @property({ type: String, attribute: 'form-class' }) formClass = '';
 
     @property({ type: String, attribute: 'loading-message' }) loadingMessage = 'Loading form…';
@@ -111,7 +113,7 @@ export class FormieClientFormElement extends LitElement {
             return;
         }
 
-        const keys: PropertyKey[] = ['endpoint', 'formHandle', 'siteId', 'transport', 'profile', 'fetchCredentials'];
+        const keys: PropertyKey[] = ['endpoint', 'formHandle', 'siteId', 'transport', 'profile', 'fetchCredentials', 'query'];
 
         if (keys.some((k) => changed.has(k))) {
             void this.bootstrap(true);
@@ -179,6 +181,7 @@ export class FormieClientFormElement extends LitElement {
                 formHandle: handle,
                 ...(siteId !== undefined ? { siteId } : {}),
                 credentials: creds,
+                query: this.query,
             };
 
             const envelope =

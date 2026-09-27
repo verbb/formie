@@ -404,6 +404,8 @@ class Form extends Element implements FormInterface
     public ?int $pageCount = null;
     public ?LayoutSaveContext $layoutSaveContext = null;
 
+    private ?\verbb\formie\models\FormInstanceConfig $_instanceConfig = null;
+    private bool $_instanceEstablished = false;
     private ?FieldLayout $_fieldLayout = null;
     private ?FormLayout $_formLayout = null;
     private ?FormTemplate $_template = null;
@@ -417,11 +419,7 @@ class Form extends Element implements FormInterface
     private ?Submission $_editingSubmission = null;
     private ?string $_formId = null;
     private ?int $_renderSequence = null;
-    private bool $_appliedFieldSettings = false;
-    private bool $_appliedFormSettings = false;
     private array $_relations = [];
-    private array $_populatedFieldValues = [];
-    private ?string $_redirectUrl = null;
     private ?string $_actionUrl = null;
     private ?string $_draftContext = null;
     private ?string $_requestToken = null;
@@ -1247,17 +1245,6 @@ class Form extends Element implements FormInterface
 
     public function getCurrentSubmission(): ?Submission
     {
-        // Check to see if we have any field settings applied. Because field settings are applied before
-        // render, we don't have an easy way to check when we _don't_ set field settings. This function is
-        // called most commonly for rendering a form without relying on `formie.renderForm()`.
-        //
-        // `setFieldSettings()` sets session variables for fields before render. So these variables don't
-        // "bleed" between rendering the same form we need to remove them when necessary. This will check
-        // when we _haven't_ set settings via `setFieldSettings()` and reset the session.
-        if (!$this->_appliedFieldSettings && !$this->_appliedFormSettings) {
-            $this->resetSnapshotData();
-        }
-
         $this->_hydrateCurrentSubmissionFromRouteContext();
         $this->_hydrateCurrentSubmissionFromStorage();
 
@@ -1505,27 +1492,6 @@ class Form extends Element implements FormInterface
         return Json::decode(StringHelper::decdec($value));
     }
 
-    public function getPopulatedFieldValues(): string
-    {
-        if ($values = $this->_populatedFieldValues) {
-            return StringHelper::encenc(Json::encode($values));
-        }
-
-        return '';
-    }
-
-    public function setPopulatedFieldValues(array $values): void
-    {
-        $this->_populatedFieldValues = $values;
-    }
-
-    public function getPopulatedFieldValuesFromRequest()
-    {
-        $value = (string)Craft::$app->getRequest()->getBodyParam('extraFields', '');
-
-        return Json::decode(StringHelper::decdec($value));
-    }
-
     public function getNotifications(): ?array
     {
         if ($this->_notifications === null) {
@@ -1558,58 +1524,22 @@ class Form extends Element implements FormInterface
 
     public function setRedirectUrl(string $value): void
     {
-        $this->_redirectUrl = StringHelper::sanitizeRedirectUrl($value);
+        $this->setSettings(['redirectUrl' => $value]);
+    }
+
+    public function getCompletionRedirectOverride(): ?string
+    {
+        return $this->settings->redirectUrl;
     }
 
     public function getRedirectUrl(bool $checkLastPage = true, bool $includeQueryString = true): string
     {
-        $url = '';
         $submission = $this->getCurrentSubmission();
-        $matchedRedirectRule = null;
-
-        // We don't want to show the redirect URL on unfinished multi-page forms, so check first
-        if ($this->settings->submitMethod == 'page-reload') {
-            if ($checkLastPage && !$this->isLastPage(null, $submission)) {
-                return $url;
-            }
+        if (!$submission) {
+            $submission = new Submission();
+            $submission->setForm(clone $this);
         }
-
-        // Allow specific override of redirect URL, likely from templates
-        if ($this->_redirectUrl) {
-            return $this->_redirectUrl;
-        }
-
-        // Allow settings to statically set the redirect URL (from templates)
-        if ($this->settings->redirectUrl) {
-            $url = $this->settings->redirectUrl;
-        } else {
-            if ($this->settings->enableRedirectRules && $submission instanceof Submission) {
-                $matchedRedirectRule = SubmissionRedirectRulesHelper::getMatchedRule($this, $submission);
-                $url = SubmissionRedirectRulesHelper::resolveMatchedRuleUrl($this, $submission, $includeQueryString) ?? '';
-            }
-
-            if (!$url && $this->settings->submitAction == 'entry' && $this->getRedirectEntry()) {
-                $url = $this->getRedirectEntry()->url;
-            } else if (!$url && $this->settings->submitAction == 'url' && $this->settings->submitActionUrl) {
-                $url = $this->settings->submitActionUrl;
-
-                if ($submission instanceof Submission && is_string($url)) {
-                    $url = References::parseUrl($url, $submission);
-                }
-            }
-        }
-
-        // Append request query params as literals after References parsing (utm, etc.).
-        // Encode braces so request values cannot be re-interpreted as reference tokens later.
-        if ($url && !$matchedRedirectRule && $includeQueryString) {
-            $url = \verbb\formie\helpers\UrlHelper::appendRequestQueryString($url);
-        }
-
-        // Handle any UTF characters defined in the URL and encode them properly
-        $url = mb_convert_encoding($url, 'UTF-8', 'ISO-8859-1');
-        $url = StringHelper::sanitizeRedirectUrl($url);
-
-        return $url;
+        return (new \verbb\formie\services\CompletionResolver())->resolve($this, $submission, false)->url ?? '';
     }
 
     public function getRedirectEntry(): ?Entry
@@ -1812,130 +1742,101 @@ class Form extends Element implements FormInterface
         $this->_sessionKey = $value;
     }
 
-    public function setSettings(array $settings, bool $updateSnapshot = true): void
+    public function __clone()
     {
-        $this->settings->setAttributes($settings, false);
+        parent::__clone();
+        $this->_requestToken = null;
+        (new \verbb\formie\services\RuntimeConfiguration())->isolate($this);
+    }
 
-        // Set snapshot data to ensure it's persisted
-        if ($updateSnapshot) {
-            $this->setSnapshotData('form', $settings);
+    public function getInstanceConfig(): \verbb\formie\models\FormInstanceConfig
+    {
+        return $this->_instanceConfig ??= new \verbb\formie\models\FormInstanceConfig();
+    }
 
-            // Save this, so we know when we're applying form settings later
-            $this->_appliedFormSettings = true;
+    public function isInstanceEstablished(): bool
+    {
+        return $this->_instanceEstablished;
+    }
+
+    public function markInstanceEstablished(): void
+    {
+        $this->_instanceEstablished = true;
+    }
+
+    public function replaceInstanceConfig(\verbb\formie\models\FormInstanceConfig $config): void
+    {
+        $this->_requestToken = null;
+        $this->_instanceConfig = $config;
+        (new \verbb\formie\services\RuntimeConfiguration())->apply($this, $config);
+    }
+
+    public function setSettings(array $settings): void
+    {
+        $runtime = new \verbb\formie\services\RuntimeConfiguration();
+        $settings = $runtime->validateSettings($this->settings, $settings, $runtime::FORM_SETTINGS, 'form');
+        if (isset($settings['completionBehavior'])) {
+            \verbb\formie\enums\CompletionBehavior::from($settings['completionBehavior']);
         }
+        if (isset($settings['integrations'])) {
+            $filtered = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings($settings['integrations'], false);
+            foreach ($settings['integrations'] as $handle => $values) {
+                if (!isset($filtered[$handle]) || array_diff_key($values, $filtered[$handle])) {
+                    throw new \Twig\Error\RuntimeError('Unknown integration or forbidden runtime settings: ' . $handle);
+                }
+            }
+            foreach ($filtered as $handle => $values) {
+                $filtered[$handle] = $runtime->validateIntegrationSettings($handle, $values);
+            }
+            $settings['integrations'] = $filtered;
+        }
+        $this->replaceInstanceConfig($this->getInstanceConfig()->with('form', $settings));
     }
 
     public function setPageSettings(int|string $handleOrIndex, array $settings): void
     {
-        $pages = $this->pages;
-
-        if (is_string($handleOrIndex)) {
-            $pages = ArrayHelper::index($this->pages, 'handle');
-        }
-
-        // Get the page settings so we only override what we want
-        $pageSettings = $pages[$handleOrIndex]->pageSettings ?? null;
-
-        if ($pageSettings) {
-            $pageSettings->setAttributes($settings, false);
-        }
-    }
-
-    public function setFieldSettings(string $handle, array $settings, bool $updateSnapshot = true): void
-    {
-        $field = null;
-        
-        // Check for nested fields so we can use `group.dropdown` or `dropdown`.
-        $handles = explode('.', $handle);
-
-        if (count($handles) > 1) {
-            $parentField = $this->getFieldByHandle($handles[0]);
-
-            if ($parentField) {
-                $field = $parentField->getFieldByHandle($handles[1]);
-            }
-        } else {
-            $field = $this->getFieldByHandle($handles[0]);
-        }
-
-        if ($field) {
-            $settings = FieldAttributesHelper::applyToFieldSettings(
-                $settings,
-                $field->containerAttributes,
-                $field->inputAttributes,
-            );
-            $field->setAttributes($settings, false);
-
-            // Update our snapshot data with these settings
-            if ($updateSnapshot) {
-                if ($field instanceof OptionsField) {
-                    $settings = OptionsField::normalizeSnapshotFieldSettings($settings);
-                } elseif ($field instanceof OptionSourceFieldInterface && OptionsMode::normalize($settings['optionsMode'] ?? null) !== OptionsMode::STATIC) {
-                    unset($settings['options']);
-                }
-
-                $this->setSnapshotData('fields', [$handle => $settings]);
+        $target = null;
+        foreach ($this->getPages() as $index => $page) {
+            if ($index === $handleOrIndex || $page->handle === $handleOrIndex || $page->uid === $handleOrIndex) {
+                $target = $page;
+                break;
             }
         }
-
-        // Save this, so we know when we're applying field settings later
-        $this->_appliedFieldSettings = true;
+        if (!$target) {
+            throw new \Twig\Error\RuntimeError('Unknown runtime page target: ' . $handleOrIndex);
+        }
+        $runtime = new \verbb\formie\services\RuntimeConfiguration();
+        $settings = $runtime->validateSettings($target->getPageSettings(), $settings, $runtime::PAGE_SETTINGS, 'page ' . $handleOrIndex);
+        $this->replaceInstanceConfig($this->getInstanceConfig()->with('pages', [$target->uid => $settings]));
     }
 
-    public function setIntegrationSettings(string $handle, array $settings, bool $updateSnapshot = true): void
+    public function setFieldSettings(string $handle, array $settings): void
     {
-        $filtered = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings([
-            $handle => $settings,
-        ], true);
-        $settings = $filtered[$handle] ?? [];
-
-        // Get the integration settings so we only override what we want
-        $integrationSettings = $this->settings->integrations[$handle] ?? [];
-        
-        // Update the integration settings
-        $this->settings->integrations[$handle] = array_merge($integrationSettings, $settings);
-
-        // Save just the integrations (all integrations)
-        $this->settings->setAttributes(['integrations' => $this->settings->integrations], false);
-
-        // Set snapshot data to ensure it's persisted
-        if ($updateSnapshot) {
-            // We have to save _all_ integration settings due to how it's applied later by `setAttributes()`
-            $this->setSnapshotData('form', ['integrations' => $this->settings->integrations]);
-
-            // Save this, so we know when we're applying form settings later
-            $this->_appliedFormSettings = true;
+        $runtime = new \verbb\formie\services\RuntimeConfiguration();
+        $field = $runtime->findField($this, $handle);
+        $settings = \verbb\formie\helpers\RuntimeConfigurationMigration::migrate($settings, get_class($field));
+        $settings = FieldAttributesHelper::applyToFieldSettings($settings, $field->containerAttributes, $field->inputAttributes);
+        $settings = $runtime->validateSettings($field, $settings, $field->runtimeOverridableSettings(), 'field ' . $handle);
+        if ($field instanceof OptionsField) {
+            $settings = OptionsField::normalizeSnapshotFieldSettings($settings);
         }
+        $this->replaceInstanceConfig($this->getInstanceConfig()->with('fields', [$field->uid => $settings]));
     }
 
-    public function getSnapshotData(string $key = null)
+    public function setIntegrationSettings(string $handle, array $settings): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
-            return [];
+        $filtered = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings([$handle => $settings], false);
+        if (!isset($filtered[$handle]) || array_diff_key($settings, $filtered[$handle])) {
+            throw new \Twig\Error\RuntimeError('Unknown integration or forbidden runtime settings: ' . $handle);
         }
-
-        $snapshotData = Session::get($this->_getSessionKey('snapshot'));
-
-        if ($key) {
-            return $snapshotData[$key] ?? [];
-        }
-
-        return $snapshotData ?? [];
+        $filtered[$handle] = (new \verbb\formie\services\RuntimeConfiguration())->validateIntegrationSettings($handle, $filtered[$handle]);
+        $this->replaceInstanceConfig($this->getInstanceConfig()->with('form', ['integrations' => $filtered]));
     }
 
-    public function setSnapshotData(string $key, mixed $data): void
+    public function getSnapshotData(?string $key = null): array
     {
-        // The lack of `Session::exists()` is deliberate, as we want to set snapshot data before the session might be ready
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
-            return;
-        }
-
-        // Get any existing snapshot data and merge, in case we set multiple times
-        $snapshotData = $this->getSnapshotData();
-        $currentData = $snapshotData[$key] ?? [];
-        $snapshotData[$key] = array_merge($currentData, $data);
-
-        Session::set($this->_getSessionKey('snapshot'), $snapshotData);
+        $data = \verbb\formie\models\SubmissionConfig::capture($this->getInstanceConfig());
+        return $key === null ? $data : ($data[$key] ?? []);
     }
 
     public function setSubmissionMetadata(array $data): void
@@ -1957,11 +1858,7 @@ class Form extends Element implements FormInterface
 
     public function resetSnapshotData(): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
-            return;
-        }
-
-        Session::remove($this->_getSessionKey('snapshot'));
+        // Compatibility accessor: instance configuration never lives in PHP session.
     }
 
     public function getRequestToken(): string
@@ -2577,38 +2474,41 @@ class Form extends Element implements FormInterface
             ]),
             [
                 '$el' => 'h3',
-                'children' => Craft::t('formie', 'After Submit'),
+                'children' => Craft::t('formie', 'After Completion'),
                 'attrs' => [
                     'class' => 'form-builder-h3',
                 ],
             ],
             SchemaHelper::selectField([
-                'name' => 'settings.submitAction',
-                'label' => Craft::t('formie', 'Action on Submit'),
-                'instructions' => Craft::t('formie', 'When a user submits this form, I want to:'),
+                'name' => 'settings.completionBehavior',
+                'label' => Craft::t('formie', 'Completion Behaviour'),
+                'instructions' => Craft::t('formie', 'When this form is completed, I want to:'),
                 'options' => [
                     [
                         'label' => Craft::t('formie', 'Display a message'),
                         'value' => 'message',
                     ],
                     [
-                        'label' => Craft::t('formie', 'Redirect to an entry'),
-                        'value' => 'entry',
-                    ],
-                    [
-                        'label' => Craft::t('formie', 'Redirect to a URL'),
-                        'value' => 'url',
+                        'label' => Craft::t('formie', 'Redirect'),
+                        'value' => 'redirect',
                     ],
                     [
                         'label' => Craft::t('formie', 'Reload the page'),
                         'value' => 'reload',
-                        'if' => 'settings.submitMethod == "page-reload"',
                     ],
                     [
                         'label' => Craft::t('formie', 'Reset form values'),
                         'value' => 'reset',
-                        'if' => 'settings.submitMethod == "ajax"',
                     ],
+                ],
+            ]),
+            SchemaHelper::selectField([
+                'name' => 'settings.completionRedirectSource',
+                'label' => Craft::t('formie', 'Redirect Source'),
+                'if' => 'settings.completionBehavior == "redirect"',
+                'options' => [
+                    ['label' => Craft::t('formie', 'URL'), 'value' => 'url'],
+                    ['label' => Craft::t('formie', 'Entry'), 'value' => 'entry'],
                 ],
             ]),
             [
@@ -2616,7 +2516,7 @@ class Form extends Element implements FormInterface
                 'attrs' => [
                     'class' => 'form-builder-group',
                 ],
-                'if' => 'settings.submitAction == "message"',
+                'if' => 'settings.completionBehavior == "message"',
                 'children' => [
                     SchemaHelper::lightswitchField([
                         'label' => Craft::t('formie', 'Hide Form'),
@@ -2650,7 +2550,7 @@ class Form extends Element implements FormInterface
                 'attrs' => [
                     'class' => 'form-builder-group',
                 ],
-                'if' => 'settings.submitAction == "entry"',
+                'if' => 'settings.completionBehavior == "redirect" && settings.completionRedirectSource == "entry"',
                 'children' => [
                     SchemaHelper::elementSelectField([
                         'label' => Craft::t('formie', 'Redirect Entry'),
@@ -2676,7 +2576,7 @@ class Form extends Element implements FormInterface
                 'attrs' => [
                     'class' => 'form-builder-group',
                 ],
-                'if' => 'settings.submitAction == "url"',
+                'if' => 'settings.completionBehavior == "redirect" && settings.completionRedirectSource == "url"',
                 'children' => [
                     SchemaHelper::textField([
                         'label' => Craft::t('formie', 'Redirect URL'),
@@ -2699,7 +2599,7 @@ class Form extends Element implements FormInterface
                 'attrs' => [
                     'class' => 'form-builder-group',
                 ],
-                'if' => 'settings.submitAction == "reload"',
+                'if' => 'settings.completionBehavior == "reload"',
                 'children' => Craft::t('formie', 'This will reload the page, clearing the form of values, and showing no success message.'),
             ],
             [
@@ -2707,7 +2607,7 @@ class Form extends Element implements FormInterface
                 'attrs' => [
                     'class' => 'form-builder-group',
                 ],
-                'if' => 'settings.submitAction == "reset"',
+                'if' => 'settings.completionBehavior == "reset"',
                 'children' => Craft::t('formie', 'This will clear the form of values, and showing no success message.'),
             ],
             SchemaHelper::lightswitchField([
@@ -2731,7 +2631,7 @@ class Form extends Element implements FormInterface
                 'label' => Craft::t('formie', 'Redirect Option'),
                 'instructions' => Craft::t('formie', 'How to redirect the user when a redirect rule matches, whether in the same tab, or a new tab.'),
                 'name' => 'settings.submitActionTab',
-                'if' => 'settings.enableRedirectRules && settings.submitAction != "url" && settings.submitAction != "entry"',
+                'if' => 'settings.enableRedirectRules && settings.completionBehavior != "redirect"',
                 'options' => [
                     ['label' => Craft::t('formie', 'Redirect on the same tab'), 'value' => 'same-tab'],
                     ['label' => Craft::t('formie', 'Redirect on a new tab'), 'value' => 'new-tab'],

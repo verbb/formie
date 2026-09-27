@@ -22,6 +22,8 @@ class FormDocumentSchema
         'defaultErrorMessagePosition',
         'requiredIndicator',
         'submitMethod',
+        'completionBehavior',
+        'completionRedirectSource',
         'submitAction',
         'submitActionTab',
         'submitActionUrl',

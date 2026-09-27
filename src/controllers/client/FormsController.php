@@ -68,6 +68,7 @@ class FormsController extends Controller
             'handle' => (string)$this->request->getParam('handle', ''),
             'siteId' => SiteHelper::resolveSiteIdFromRequest(),
             'locale' => $this->request->getParam('locale') ?: null,
+            'query' => (array)$this->request->getBodyParam('query', []),
             'grantToken' => $this->request->getParam('grantToken'),
             'grantPurpose' => (string)$this->request->getParam('grantPurpose', 'continue-incomplete'),
             'draftContext' => $this->request->getParam('draftContext'),

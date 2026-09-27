@@ -14,6 +14,7 @@ export type RestClientTransportOptions = BrowserRequestOptions & {
     grantToken?: string;
     grantPurpose?: 'continue-incomplete' | 'revise-complete';
     draftContext?: string;
+    query?: Record<string, string | string[]>;
 };
 /**
  * Join an install/web base with a root-relative Craft action path.

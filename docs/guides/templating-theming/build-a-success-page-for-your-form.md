@@ -38,11 +38,7 @@ Replace `templates/contact.twig` with:
     {% exit 404 %}
 {% endif %}
 
-{% do form.setSettings({
-    collectUser: true,
-    submitAction: 'url',
-    submitActionUrl: '/thanks?submissionUid={submission:uid}',
-}) %}
+{% do form.setRedirectUrl('/thanks?submissionUid={submission:uid}') %}
 
 {{ craft.formie.renderForm(form) }}
 ```

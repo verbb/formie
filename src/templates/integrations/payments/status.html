@@ -43,12 +43,11 @@
     const interval = setInterval(async () => {
         pollCount++;
 
-        const params = new URLSearchParams({
-            statusToken: '{{ statusToken }}',
-        });
+        const pollUrl = new URL(pollStatusUrl, window.location.href);
+        pollUrl.searchParams.set('statusToken', '{{ statusToken | e('js') }}');
 
         try {
-            const res = await fetch(pollStatusUrl + '?' + params.toString(), {
+            const res = await fetch(pollUrl.toString(), {
                 headers: {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
@@ -72,13 +71,25 @@
             }
 
             if (json.status === 'success') {
-                if (!json.redirectUrl) {
-                    showError('{{ 'We could not confirm your payment in time. Please contact support.' | t('formie') }}');
-                    clearInterval(interval);
-                    return;
-                }
-                window.location.href = json.redirectUrl;
                 clearInterval(interval);
+                const completion = json.completion;
+                if (completion?.behavior === 'redirect' && completion.url) {
+                    if (completion.target === 'new-tab') {
+                        const link = document.createElement('a');
+                        link.href = completion.url;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.textContent = '{{ 'Continue' | t('formie') | e('js') }}';
+                        document.querySelector('body > div').replaceChildren(link);
+                    } else window.location.assign(completion.url);
+                } else if (['reload', 'reset'].includes(completion?.behavior) && json.returnUrl) {
+                    window.location.assign(json.returnUrl);
+                } else {
+                    const message = document.createElement('div');
+                    message.setAttribute('role', 'status');
+                    message.innerHTML = completion?.message || '{{ 'Submission saved.' | t('formie') | e('js') }}';
+                    document.querySelector('body > div').replaceChildren(message);
+                }
             } else if (json.status === 'failed' || json.status === 'cancelled') {
                 if (json.redirectUrl) {
                     window.location.href = json.redirectUrl;

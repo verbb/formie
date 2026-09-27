@@ -3860,7 +3860,8 @@ async function Be(e) {
 		siteId: e.siteId,
 		grantToken: e.grantToken,
 		grantPurpose: e.grantPurpose,
-		draftContext: e.draftContext
+		draftContext: e.draftContext,
+		query: e.query
 	}), r = await Re(t, {
 		method: "POST",
 		credentials: e.credentials ?? "same-origin",
@@ -3978,8 +3979,8 @@ async function We(e, t, n) {
 }
 async function Ge(e) {
 	let t = await We(e, `
-            query ClientForm($handle: String!, $siteId: Int, $grantToken: String, $grantPurpose: String, $draftContext: String) {
-                formieClientForm(handle: $handle, siteId: $siteId, grantToken: $grantToken, grantPurpose: $grantPurpose, draftContext: $draftContext) {
+            query ClientForm($handle: String!, $siteId: Int, $grantToken: String, $grantPurpose: String, $draftContext: String, $query: Json) {
+                formieClientForm(handle: $handle, siteId: $siteId, grantToken: $grantToken, grantPurpose: $grantPurpose, draftContext: $draftContext, query: $query) {
                     contractVersion
                     definition
                     session {
@@ -3992,7 +3993,8 @@ async function Ge(e) {
 		siteId: e.siteId,
 		grantToken: e.grantToken,
 		grantPurpose: e.grantPurpose,
-		draftContext: e.draftContext
+		draftContext: e.draftContext,
+		query: e.query
 	});
 	if (!t.formieClientForm) throw Error("No client form definition was returned.");
 	return f(t.formieClientForm), Z(e.grantToken), t.formieClientForm;

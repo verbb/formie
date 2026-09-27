@@ -421,7 +421,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public ?string $matchField = null;
     public ?string $placeholder = null;
     public mixed $defaultValue = null;
-    public ?string $prePopulate = null;
+    public ?string $prefillQueryParam = null;
     public ?string $errorMessage = null;
     public array $validationMessages = [];
     public ?string $labelPosition = null;
@@ -450,8 +450,6 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     private ?bool $_isFresh = null;
     private array $_valueSql = [];
     private array $_valueColumnType = [];
-    private bool $_hasPopulatedValue = false;
-    private mixed $_populatedValue = null;
 
 
     // Public Methods
@@ -483,6 +481,10 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function __construct(array $config = [])
     {
+        if (array_key_exists('prePopulate', $config)) {
+            $config['prefillQueryParam'] = $config['prefillQueryParam'] ?? $config['prePopulate'];
+            unset($config['prePopulate']);
+        }
         // Config normalization
         self::normalizeConfig($config);
 
@@ -539,7 +541,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         $names[] = 'matchField';
         $names[] = 'placeholder';
         $names[] = 'defaultValue';
-        $names[] = 'prePopulate';
+        $names[] = 'prefillQueryParam';
         $names[] = 'errorMessage';
         $names[] = 'validationMessages';
         $names[] = 'labelPosition';
@@ -805,10 +807,23 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         ];
     }
 
+    public function runtimeOverridableSettings(): array
+    {
+        return ['label', 'instructions', 'required', 'visibility', 'defaultValue', 'prefillQueryParam',
+            'placeholder', 'cssClasses', 'containerAttributes', 'inputAttributes', 'options', 'optionsMode'];
+    }
+
+    public function setInstanceForm(Form $form): void
+    {
+        $this->_form = $form;
+    }
+
     public function populateValue(mixed $value, ?Submission $submission): void
     {
-        $this->_populatedValue = $this->normalizeValue($value, $submission);
-        $this->_hasPopulatedValue = true;
+        $form = $submission?->getForm() ?? $this->getForm();
+        if ($form) {
+            $form->replaceInstanceConfig($form->getInstanceConfig()->with('initial', [$this->uid => (new \verbb\formie\services\RuntimeConfiguration())->populationValue($this, $value, $submission)]));
+        }
     }
 
     public function getMatchField(): ?string
@@ -994,32 +1009,38 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         return $event->value;
     }
 
+    /** @deprecated Use prefillQueryParam. */
+    public function getPrePopulate(): ?string
+    {
+        return $this->prefillQueryParam;
+    }
+
+    /** @deprecated Use prefillQueryParam. */
+    public function setPrePopulate(?string $value): void
+    {
+        $this->prefillQueryParam = $value;
+    }
+
     public function getPrefillValue(?ElementInterface $element = null, ?bool &$found = null): mixed
     {
-        if ($this->_hasPopulatedValue) {
-            $found = true;
-
-            return $this->_populatedValue;
-        }
-
-        if ($this->prePopulate) {
-            $queryParam = Craft::$app->getRequest()->getParam($this->prePopulate);
-
-            if ($queryParam !== null) {
-                $found = true;
-
-                $prefillValue = $this->normalizeValue($this->setPrePopulatedValue($queryParam), $element);
-
-                if (is_string($prefillValue)) {
-                    $prefillValue = trim($prefillValue);
+        $form = $element instanceof Form ? $element : ($element instanceof Submission ? $element->getForm() : $this->getForm());
+        $found = false;
+        if ($form) {
+            if (!$element instanceof Submission) {
+                (new \verbb\formie\services\RuntimeConfiguration())->establish($form);
+            }
+            $config = $form->getInstanceConfig();
+            foreach ([$config->forced, $config->initial] as $values) {
+                if (array_key_exists($this->uid, $values)) {
+                    $found = true;
+                    return $this->normalizeValue($values[$this->uid], $element);
                 }
-
-                return $prefillValue;
+            }
+            if (array_key_exists($this->uid, $config->prefill)) {
+                $found = true;
+                return $this->normalizeValueFromRequest($config->prefill[$this->uid], $element);
             }
         }
-
-        $found = false;
-
         return null;
     }
 

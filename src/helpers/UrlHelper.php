@@ -61,6 +61,11 @@ class UrlHelper extends CraftUrlHelper
             return $url;
         }
 
+        return static::appendQueryParams($url, $queryParams);
+    }
+
+    public static function appendQueryParams(string $url, array $queryParams): string
+    {
         $fragment = null;
 
         if (($hashPos = strrpos($url, '#')) !== false) {
@@ -78,7 +83,6 @@ class UrlHelper extends CraftUrlHelper
 
         // Request params first; params already on the redirect URL take precedence.
         $mergedParams = array_merge($queryParams, $existingParams);
-        $mergedParams = array_filter($mergedParams, static fn($value) => $value !== null && $value !== '');
 
         if ($mergedParams === []) {
             return $baseUrl . ($fragment !== null ? '#' . $fragment : '');
@@ -102,23 +106,22 @@ class UrlHelper extends CraftUrlHelper
     public static function getRedirectQueryParams(): array
     {
         $request = Craft::$app->getRequest();
-        $params = $request->getQueryParams();
-        $generalConfig = Craft::$app->getConfig()->getGeneral();
-
-        $exclude = array_filter([
-            'action',
-            $generalConfig->pathParam,
-            $generalConfig->tokenParam,
-            $request->csrfParam,
-            'x-craft-preview',
-            'x-craft-live-preview',
-        ]);
-
-        foreach ($exclude as $key) {
-            unset($params[$key]);
-        }
-
-        return $params;
+        return static::filterRedirectQueryParams($request->getIsConsoleRequest() ? [] : $request->getQueryParams());
     }
 
+    public static function filterRedirectQueryParams(array $params): array
+    {
+        $allowed = Formie::$plugin->getSettings()->completionQueryAllowlist;
+        $result = [];
+        foreach ($allowed as $key) {
+            // Even explicitly added keys cannot smuggle credentials or nested input.
+            if (!is_string($key) || preg_match('/token|csrf|formie|craft|password|authorization|^action$|^redirect$/i', $key)) {
+                continue;
+            }
+            if (array_key_exists($key, $params) && is_scalar($params[$key]) && !preg_match('/[\x00-\x1f\x7f]/', (string)$params[$key])) {
+                $result[$key] = (string)$params[$key];
+            }
+        }
+        return $result;
+    }
 }

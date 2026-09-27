@@ -113,6 +113,7 @@ class SubmissionProgress extends Component
 
     public function pruneProgress(): int
     {
+        Craft::$app->getDb()->createCommand()->delete('{{%formie_instance_configs}}', ['<=', 'expiresAt', time()])->execute();
         return Craft::$app->getDb()->createCommand()->delete(Table::FORMIE_SUBMISSION_PROGRESS, ['<=', 'expiresAt', time()])->execute();
     }
 

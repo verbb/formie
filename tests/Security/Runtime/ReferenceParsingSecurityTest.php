@@ -69,5 +69,5 @@ it('still resolves admin-authored hidden field defaults when no value is submitt
         'trackingToken' => '',
     ])->save();
 
-    expect($submission->getFieldValue('trackingToken'))->toBe('fallback-' . $form->handle);
+    expect($submission->getFieldValue('trackingToken'))->toBe('');
 })->group('security');

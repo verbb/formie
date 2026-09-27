@@ -48,6 +48,8 @@ class SubmissionsController extends Controller
     // Constants
     // =========================================================================
 
+    public const EVENT_AFTER_SUBMISSION_REQUEST = 'afterSubmissionRequest';
+
     private const STALE_SUBMISSION_STATE_CODE = 'STALE_SUBMISSION_STATE';
     private const STALE_SUBMISSION_STATE_QUERY_PARAMS = ['pageId', 'resumeToken', 'submissionId'];
     
@@ -724,17 +726,19 @@ class SubmissionsController extends Controller
             return $this->_redirectToPostedCpSubmissionUrl($submission);
         }
 
-        if ($form->settings->submitAction === 'message' || $form->settings->submitAction === 'reload') {
-            if ($form->settings->submitAction === 'message') {
-                Formie::$plugin->getService()->setNotice($form->getFlashNamespace(), $form->settings->getSubmitActionMessage($submission));
-            }
-
-            Craft::$app->getUrlManager()->setRouteParams(['submission' => $submission]);
-
-            return $this->redirect($this->_currentUrlWithoutParams(self::STALE_SUBMISSION_STATE_QUERY_PARAMS));
+        $completion = $response->outcome->data['completion'] ?? null;
+        if (($completion['behavior'] ?? null) === 'message') {
+            Formie::$plugin->getService()->setNotice($form->getFlashNamespace(), $completion['message']);
         }
-
-        return $this->_redirectToFrontEndPostedUrl($form, $submission);
+        if (($completion['behavior'] ?? null) === 'redirect' && $completion['url']) {
+            if ($completion['target'] === 'new-tab') {
+                $this->response->format = Response::FORMAT_HTML;
+                $this->response->data = Html::tag('p', Html::a(Craft::t('formie', 'Continue'), $completion['url'], ['target' => '_blank', 'rel' => 'noopener noreferrer']));
+                return $this->response;
+            }
+            return $this->redirect($completion['url']);
+        }
+        return $this->redirect($this->_currentUrlWithoutParams(self::STALE_SUBMISSION_STATE_QUERY_PARAMS));
     }
 
     public function setAllowTestOverrides(bool $allow): void
@@ -745,28 +749,6 @@ class SubmissionsController extends Controller
 
     // Private Methods
     // =========================================================================
-
-    /**
-     * Front-end completion redirects must never use Craft's `redirectToPostedUrl()`.
-     *
-     * That helper renders the HMAC-signed `redirect` body param with the *unsandboxed*
-     * object-template Twig view. Formie may sign attacker-influenced URLs (e.g. returnUrl
-     * derived from the request), so resolve through References + sanitize instead.
-     */
-    private function _redirectToFrontEndPostedUrl(Form $form, Submission $submission): Response
-    {
-        $redirect = $this->request->getValidatedBodyParam('redirect');
-
-        if (is_string($redirect) && $redirect !== '') {
-            $url = References::parseUrl($redirect, $submission);
-            $url = StringHelper::sanitizeRedirectUrl($url);
-            $url = FormieUrlHelper::appendRequestQueryString($url);
-
-            return $this->redirect($url);
-        }
-
-        return $this->redirect($form->getRedirectUrl());
-    }
 
     /**
      * Sending notifications / re-running integrations distribute submission content, so view-only
@@ -851,18 +833,13 @@ class SubmissionsController extends Controller
             $payload['submitActionMessage'] = StringHelper::sanitizeMessageHtml($form->settings->getSubmitActionMessage($submission));
         }
 
-        if ($nextPageId === null) {
-            $effectiveSubmitAction = $form->settings->getEffectiveSubmitAction($submission);
-            $payload['effectiveSubmitAction'] = $effectiveSubmitAction;
-
-            if (in_array($effectiveSubmitAction, ['entry', 'url'], true)) {
-                $payload['redirectUrl'] = $form->getRedirectUrl();
-                $payload['submitActionTab'] = $form->settings->submitActionTab;
-            }
-
-            if ($effectiveSubmitAction === 'message') {
-                $payload['submitActionMessage'] = StringHelper::sanitizeMessageHtml($form->settings->getSubmitActionMessage($submission));
-            }
+        $payload['completion'] = $response->outcome->data['completion'] ?? null;
+        $payload['redirect'] = $response->outcome->data['redirect'] ?? null;
+        if ($completion = $payload['completion']) {
+            $payload['effectiveSubmitAction'] = $completion['behavior'];
+            $payload['redirectUrl'] = $completion['url'];
+            $payload['submitActionTab'] = $completion['target'];
+            $payload['submitActionMessage'] = $completion['message'];
         }
 
         if ($response->quizResult) {

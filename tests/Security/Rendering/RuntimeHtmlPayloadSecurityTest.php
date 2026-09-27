@@ -25,8 +25,8 @@ it('keeps populated hidden field values literal after runtime prefill normalizat
     expect($value)
         ->toContain('TWIG_SENTINEL')
         ->toContain('CONTROL_SENTINEL')
-        ->not->toContain('{{')
-        ->not->toContain('}}')
-        ->not->toContain('{%')
-        ->not->toContain('%}');
+        ->toContain('{{')
+        ->toContain('}}')
+        ->toContain('{%')
+        ->toContain('%}');
 })->group('security');

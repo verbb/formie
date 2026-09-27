@@ -33,6 +33,7 @@ class ClientFormResolver
             'handle' => (string)($arguments['handle'] ?? ''),
             'siteId' => isset($arguments['siteId']) ? (int)$arguments['siteId'] : null,
             'locale' => $arguments['locale'] ?? null,
+            'query' => (array)($arguments['query'] ?? []),
             'grantToken' => ($arguments['grantToken'] ?? null),
             'grantPurpose' => (string)($arguments['grantPurpose'] ?? 'continue-incomplete'),
             'draftContext' => ($arguments['draftContext'] ?? null),

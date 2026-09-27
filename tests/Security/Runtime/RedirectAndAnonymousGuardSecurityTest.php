@@ -9,6 +9,8 @@ use verbb\formie\helpers\References;
 use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
 use yii\web\ForbiddenHttpException;
 
+beforeEach(function () { \verbb\formie\Formie::$plugin->getSettings()->completionRedirectAllowedOrigins = ['https://example.test']; });
+
 it('forbids guest control-panel variants of anonymous legacy submission actions', function (): void {
     WebRequestTestHelper::withWebRequestContext(function ($request): void {
         $request->setIsCpRequest(true);
@@ -39,7 +41,7 @@ it('forbids guest control-panel variants of anonymous server submission actions'
     ]);
 })->group('security');
 
-it('appends request query params as literals after reference parsing', function (): void {
+it('does not substitute the completion request query for journey-start capture', function (): void {
     $form = formie()
         ->form(['title' => 'Redirect Query Literal'])
         ->singleLineTextField('fullName')
@@ -67,10 +69,10 @@ it('appends request query params as literals after reference parsing', function 
 
         expect($url)->toContain('example.test/thanks')
             ->and($url)->toContain('name=Ada')
-            ->and($url)->toContain('utm_source=newsletter')
+            ->and($url)->not->toContain('utm_source=newsletter')
             // Brace-bearing request values must not remain raw for later template passes.
-            ->and($url)->toContain(rawurlencode('{{7*7}}'))
-            ->and($url)->toContain(rawurlencode('{submission:id}'))
+            ->and($url)->not->toContain(rawurlencode('{{7*7}}'))
+            ->and($url)->not->toContain(rawurlencode('{submission:id}'))
             ->and($url)->not->toContain('{{7*7}}')
             ->and($url)->not->toMatch('/\{submission:id\}/');
     }, [
@@ -92,7 +94,7 @@ it('only swaps siteActionUrl host when it exactly matches the CP host', function
         ))->toBe('https://my-project.staging.example.com/actions/formie/x');
 })->group('security');
 
-it('encodes braces when appending request query strings', function (): void {
+it('does not forward unallowlisted brace-bearing query values', function (): void {
     WebRequestTestHelper::withWebRequestContext(function ($request): void {
         $request->setIsCpRequest(false);
         $request->setQueryParams([
@@ -103,8 +105,8 @@ it('encodes braces when appending request query strings', function (): void {
         $url = FormieUrlHelper::appendRequestQueryString('https://example.test/path?keep=1');
 
         expect($url)->toContain('keep=1')
-            ->and($url)->toContain(rawurlencode('{craft.app}'))
-            ->and($url)->toContain(rawurlencode('{{7*7}}'))
+            ->and($url)->not->toContain(rawurlencode('{craft.app}'))
+            ->and($url)->not->toContain(rawurlencode('{{7*7}}'))
             ->and($url)->not->toContain('{craft.app}')
             ->and($url)->not->toContain('{{7*7}}');
     }, [

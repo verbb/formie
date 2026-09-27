@@ -96,7 +96,8 @@ class MigrateSproutForms extends BasePluginMigrator
             $form->settings->displayPageTabs = $sproutFormsForm->displaySectionTitles;
             $form->settings->submitMethod = $sproutFormsForm->submissionMethod == 'sync' ? 'page-reload' : 'ajax';
             $form->settings->submitActionUrl = $sproutFormsForm->redirectUri;
-            $form->settings->submitAction = 'url';
+            $form->settings->completionBehavior = 'redirect';
+            $form->settings->completionRedirectSource = 'url';
             $form->settings->submitActionMessage = $this->toRichText($sproutFormsForm->successMessage);
             $form->settings->storeData = $sproutFormsForm->saveData ?? true;
 

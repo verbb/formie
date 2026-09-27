@@ -8,6 +8,7 @@ class LoadContext extends BaseClientModel
     // Properties
     // =========================================================================
 
+    public ?array $query = null;
     public string $handle = '';
     public ?int $siteId = null;
     public ?string $locale = null;

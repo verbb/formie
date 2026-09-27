@@ -208,6 +208,9 @@ class SubmissionQuery extends ElementQuery
 
     public function createElement(array $row): ElementInterface
     {
+        if (isset($row['metadata']) && is_string($row['metadata'])) {
+            $row['metadata'] = Json::decode($row['metadata']);
+        }
         if (isset($row['integrationDispatchContext'])) {
             // Earlier context saves encoded JSON before passing it to a JSON column.
             $row['integrationDispatchContext'] = \verbb\formie\models\IntegrationDispatchContext::fromSubmission(

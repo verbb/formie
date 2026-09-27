@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Changed
+- Consume the shared completion outcome and preserve the server-owned configuration and query-prefill boundary.
 - Consume the canonical versioned client-rendered bootstrap and shared browser-module host with explicit request profiles and staged uploads.
 
 ### Fixed

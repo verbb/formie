@@ -228,7 +228,7 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
                 'instructions' => Craft::t('formie', 'Set the number of decimal points to format the field value.'),
                 'name' => 'decimals',
             ]),
-            SchemaHelper::prePopulate(),
+            SchemaHelper::prefillQueryParam(),
             SchemaHelper::includeInEmailFieldSummariesField(),
         ];
     }

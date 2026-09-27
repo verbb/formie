@@ -16,7 +16,7 @@ class FormBootstrapBuilder extends Component
     public function build(Form $form, LoadContext $context): FormBootstrap
     {
         $form = Formie::$plugin->getFormSiteOverrides()->applyToForm(
-            $form,
+            clone $form,
             $context->siteId,
             true,
         );
@@ -27,6 +27,8 @@ class FormBootstrapBuilder extends Component
         if ($context->grantToken) {
             Formie::$plugin->getSubmissionProcessor()->exchangeGrant($form, $context->grantToken, $context->grantPurpose);
         }
+
+        (new \verbb\formie\services\RuntimeConfiguration())->establish($form, $context->query);
 
         $definition = Formie::$plugin->getClientFormDefinitionBuilder()->build($form, $context);
         $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form, null, true);

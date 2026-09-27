@@ -177,7 +177,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::prePopulate(),
+            SchemaHelper::prefillQueryParam(),
             $this->defineSearchableDropdownSettingSchema(),
             $this->defineAutocompleteSettingSchema(),
             SchemaHelper::includeInEmailFieldSummariesField(),

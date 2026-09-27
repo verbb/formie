@@ -68,6 +68,8 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
     // Behaviour
     public ?string $submitMethod = 'page-reload';
+    public string $completionBehavior = 'message';
+    public string $completionRedirectSource = 'url';
     public ?string $submitAction = 'message';
     public ?string $submitActionTab = 'same-tab';
     public ?string $submitActionUrl = null;
@@ -154,6 +156,13 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
     public function __construct($config = [])
     {
+        // Decode saved Formie 3/beta settings without maintaining a second resolver.
+        if (!array_key_exists('completionBehavior', $config)) {
+            $action = $config['submitAction'] ?? 'message';
+            $config['completionBehavior'] = in_array($action, ['entry', 'url'], true) ? 'redirect' : $action;
+            $config['completionRedirectSource'] = $action === 'entry' ? 'entry' : 'url';
+        }
+        \verbb\formie\enums\CompletionBehavior::from($config['completionBehavior']);
         // Config normalization
         if (array_key_exists('customAttributes', $config)) {
             if (is_string($config['customAttributes'])) {
@@ -234,6 +243,11 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
     public function setAttributes($values, $safeOnly = true): void
     {
+        if (is_array($values) && array_key_exists('submitAction', $values) && !array_key_exists('completionBehavior', $values)) {
+            $action = $values['submitAction'];
+            $values['completionBehavior'] = in_array($action, ['entry', 'url'], true) ? 'redirect' : $action;
+            $values['completionRedirectSource'] = $action === 'entry' ? 'entry' : 'url';
+        }
         if (is_array($values)) {
             $values = $this->_normalizeRichTextAttributes($values);
             $values = $this->_normalizeScheduleDateTimeAttributes($values);
@@ -413,7 +427,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         $form = $this->getForm();
 
         if (!$form) {
-            return (string)$this->submitAction;
+            return $this->completionBehavior === 'redirect' ? $this->completionRedirectSource : $this->completionBehavior;
         }
 
         return SubmissionRedirectRulesHelper::getEffectiveSubmitAction($form, $submission);
@@ -462,6 +476,8 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
         $rules[] = [['integrations'], 'validateIntegrations'];
         $rules[] = [['submitMethod'], 'validateSubmitMethod'];
+        $rules[] = [['completionBehavior'], 'in', 'range' => ['message', 'redirect', 'reload', 'reset']];
+        $rules[] = [['completionRedirectSource'], 'in', 'range' => ['url', 'entry']];
         $rules[] = [['progressCalculation'], 'in', 'range' => ['completion', 'page-position']];
         $rules[] = [['cpSubmissionFieldConditions'], 'in', 'range' => array_merge([''], CpSubmissionFieldConditions::values())];
         $rules[] = [['quizPassPercentage'], 'number', 'min' => 0, 'max' => 100];

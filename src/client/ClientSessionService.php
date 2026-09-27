@@ -38,7 +38,8 @@ class ClientSessionService extends Component
     public function refreshSession(SessionRefreshRequest $request, bool $enforceAbuseLimit = false): FormSession
     {
         $form = Formie::$plugin->getSubmissionProcessor()->requireFormByHandle($request->handle, $request->siteId);
-        Formie::$plugin->getSubmissionProcessor()->applyFormRequestContext($form, null, $request->session['continuation']['draftContext'] ?? null);
+        Formie::$plugin->getSubmissionProcessor()->applyFormRequestContext($form, null, $request->session['continuation']['draftContext'] ?? null, $request->session['tokens']['request'] ?? null);
+        $form->resetRequestToken();
         if (($request->session['continuation']['purpose'] ?? null) === \verbb\formie\services\SubmissionGrants::REVISE) {
             $grant = Formie::$plugin->getSubmissionGrants()->bound($form, \verbb\formie\services\SubmissionGrants::REVISE, (int)($request->session['continuation']['submissionId'] ?? 0));
             if (!$grant) {

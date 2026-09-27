@@ -283,7 +283,9 @@ Input attributes.
 :::
 
 ::: reference
-### `prePopulate()`
+### `prefillQueryParam()`
+
+`prePopulate()` remains a Formie 3 compatibility alias.
 
 **Use:** Prefill query parameter setting.
 

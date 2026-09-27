@@ -27,6 +27,7 @@ class ClientFormQuery extends Query
                     'handle' => Type::nonNull(Type::string()),
                     'siteId' => Type::int(),
                     'locale' => Type::string(),
+                    'query' => \verbb\formie\gql\types\Json::getType(),
                     'grantToken' => Type::string(),
                     'grantPurpose' => Type::string(),
                     'draftContext' => Type::string(),

@@ -25,6 +25,7 @@ export type RestClientTransportOptions = BrowserRequestOptions & {
     grantToken?: string;
     grantPurpose?: 'continue-incomplete' | 'revise-complete';
     draftContext?: string;
+    query?: Record<string, string | string[]>;
 };
 
 /**
@@ -86,6 +87,7 @@ export async function loadClientFormBootstrap(options: RestClientTransportOption
         grantToken: options.grantToken,
         grantPurpose: options.grantPurpose,
         draftContext: options.draftContext,
+        query: options.query,
     });
 
     const envelope = await requestJson<ClientFormBootstrap>(url, {

@@ -43,6 +43,7 @@ export type FormieDefinitionSource =
         profile?: 'same-origin-browser' | 'cross-origin-public';
         formHandle: string;
         siteId?: number;
+        query?: Record<string, string | string[]>;
     }
     | {
         transport: 'graphql';
@@ -50,6 +51,7 @@ export type FormieDefinitionSource =
         profile?: 'same-origin-browser' | 'cross-origin-public';
         formHandle: string;
         siteId?: number;
+        query?: Record<string, string | string[]>;
     }
     | {
         definition: ClientFormBootstrap;
@@ -59,6 +61,7 @@ export type FormieDefinitionSource =
         profile?: 'same-origin-browser' | 'cross-origin-public';
             formHandle: string;
             siteId?: number;
+        query?: Record<string, string | string[]>;
         };
     }
     | {
@@ -69,6 +72,7 @@ export type FormieDefinitionSource =
         profile?: 'same-origin-browser' | 'cross-origin-public';
             formHandle: string;
             siteId?: number;
+        query?: Record<string, string | string[]>;
         };
     };
 
@@ -154,6 +158,7 @@ async function resolveDefinitionEnvelope(source: FormieDefinitionSource): Promis
         profile: source.profile,
             formHandle: source.formHandle,
             siteId: source.siteId,
+        query: source.query,
         });
     }
 
@@ -162,6 +167,7 @@ async function resolveDefinitionEnvelope(source: FormieDefinitionSource): Promis
         profile: source.profile,
         formHandle: source.formHandle,
         siteId: source.siteId,
+        query: source.query,
     });
 }
 
@@ -174,6 +180,7 @@ function resolveDefinitionTransport(source: FormieDefinitionSource) {
         profile: source.profile,
             formHandle: source.formHandle,
             siteId: source.siteId,
+        query: source.query,
         };
 
     if (transportSource.type === 'graphql') {
@@ -1072,7 +1079,7 @@ function ConfigRenderer({ className }: { className?: string }) {
                 key: 'error',
                 className: 'formie-react-error',
             }, errorMessage) : null,
-            createElement(PageComponent, {
+            !(state.lastSubmitResult?.completion?.behavior === 'message' && state.lastSubmitResult.completion.hideForm) ? createElement(PageComponent, {
                 key: page.id,
                 page,
                 state,
@@ -1086,7 +1093,7 @@ function ConfigRenderer({ className }: { className?: string }) {
                     }),
                     createElement(ConfigPageActions, { key: 'actions' }),
                 ],
-            }),
+            }) : null,
         ],
     });
 }

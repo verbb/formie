@@ -259,7 +259,7 @@ class Payments extends Component
         $url = (string)($url ?? '');
 
         if ($url !== '') {
-            $url = References::parseUrl($url, $submission);
+            $url = References::resolveUrl($url, $submission);
         }
 
         $event = new PaymentSuccessRedirectEvent([
@@ -271,7 +271,7 @@ class Payments extends Component
 
         $this->trigger(self::EVENT_DEFINE_PAYMENT_SUCCESS_REDIRECT_URL, $event);
 
-        return StringHelper::sanitizeRedirectUrl($event->redirectUrl);
+        return \verbb\formie\helpers\CompletionRedirectPolicy::validate($event->redirectUrl);
     }
 
     public function resolvePaymentFailureRedirectUrl(Payment $payment, Submission $submission, Form $form): string

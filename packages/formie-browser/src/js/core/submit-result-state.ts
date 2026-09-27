@@ -104,6 +104,7 @@ function getConfiguredSubmitAction(form: HTMLFormElement): string {
 }
 
 function getResolvedSubmitAction(form: HTMLFormElement, result: FormSubmitResult): string {
+    if (result.completion) return String(result.completion.behavior);
     const fromResponse = result.meta?.effectiveSubmitAction;
 
     if (typeof fromResponse === 'string' && fromResponse.trim() !== '') {
@@ -570,7 +571,7 @@ export function applySubmitResultState(form: HTMLFormElement, result: FormSubmit
         });
         clearPendingFinalSubmitReset(form);
         if (result.redirect.target === 'new-tab') {
-            window.open(result.redirect.url, '_blank');
+            window.open(result.redirect.url, '_blank', 'noopener,noreferrer');
         } else {
             markInternalNavigation(form, 'redirect');
             window.location.href = result.redirect.url;
@@ -615,7 +616,7 @@ export function applySubmitResultState(form: HTMLFormElement, result: FormSubmit
         return;
     }
 
-    if (action === 'submit' && !result.redirect?.url) {
+    if (result.completion && action === 'submit' && !result.redirect?.url) {
         const configuredSubmitAction = getResolvedSubmitAction(form, result);
         const preserveHiddenState = configuredSubmitAction === 'message' && shouldHideFormOnSuccess(form);
 

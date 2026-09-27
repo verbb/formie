@@ -1710,3 +1710,22 @@ Existing queued integration and notification locators are read without restoring
 Formie 4 distinguishes server-rendered HTML from client-rendered definitions. Browser modules apply to either product; CP edit configuration uses `getCpEditConfig()`. Public field definitions use `getClientRenderedDefinition()` and `getClientRenderedInput()`. Custom module declarations use `BrowserModuleEntry`, with a namespaced `moduleId`, unique occurrence key, explicit surfaces and form-field UID targets. The versioned manifest contains no executable `src` URLs.
 
 Stable `getFrontEndJsModules()` declarations are adapted with a deprecation warning. Register third-party JavaScript in your trusted application bundle under `legacy:<kebab-name>`; old source URLs are ignored. Repeated declarations remain distinct. Formie 4 beta `ClientModule` shapes and `frontend`/`src` module properties are replaced directly. The npm bootstrap now requires `contractVersion: 1`, and the client-rendered web component is `<formie-client-form>`.
+
+## Completion and Runtime Configuration
+
+| Previous Contract | Current Contract |
+| --- | --- |
+| `form.setRedirectUrl(url)` | Preserved; final destination policy applies after all overrides |
+| `SubmissionsController::EVENT_AFTER_SUBMISSION_REQUEST` redirect override | Preserved at actual completion for all submission transports |
+| `craft.formie.populateFormValues(form, values, force = false)` | Preserved; `true` enforces values across pages and resume |
+| `prePopulate` | `prefillQueryParam`; stable PHP alias and stored-configuration migration |
+| Hidden `defaultOption` | `valueSource`; hydration alias and migration |
+| Beta `submitAction` values `entry` / `url` | `completionBehavior: redirect`, with `completionRedirectSource: entry` / `url` |
+| Beta runtime settings `$updateSnapshot` argument | Removed; configuration lifetime is managed internally |
+| Session-backed mutable snapshots | Versioned UID-keyed durable submission configuration |
+
+Schema 4.0.69 adds encrypted instance configuration storage. Back up the database before upgrading. Existing beta submission snapshots are decoded through the allowlist and their field handles resolved to stable UIDs when loaded; no submission is resaved or integration dispatched by the migration. Legacy browser pages should be refreshed to establish a current instance token. Retain Craft’s security key for the lifetime of encrypted instance records.
+
+Review external completion destinations and add their exact origins to `completionRedirectAllowedOrigins`. Query forwarding now defaults to five UTM parameters; add required campaign keys to `completionQueryAllowlist`. An empty allowlist disables forwarding. Explicitly empty posted values remain empty, including Hidden fields. Query input is captured only when a new form instance starts.
+
+Runtime overrides are deliberately allowlisted. Remove attempts to override identities, provider credentials or global integration settings. Custom fields opt their supported settings in through `runtimeOverridableSettings()`. See [Overriding Settings](/templates/overriding-settings) and [Completion and Redirects](/templates/completion-and-redirects).

@@ -1,7 +1,7 @@
 import { n as e } from "./chunks/request-profile-DhwkeCpS.js";
 import { f as t, s as n } from "./chunks/dist-DsjQF4UQ.js";
 import { c as r, d as i, l as a, o, r as s, t as c, u as l } from "./chunks/event-names-BCI2FLD8.js";
-import { a as u, c as d, d as f, f as p, i as m, l as h, n as g, o as _, p as v, r as y, s as b, t as x, u as S } from "./chunks/api-DkQbASV8.js";
+import { a as u, c as d, d as f, f as p, i as m, l as h, n as g, o as _, p as v, r as y, s as b, t as x, u as S } from "./chunks/api-JXcZlBs7.js";
 import { a as C, i as ee, n as te, r as ne, t as w } from "./chunks/debug-BV0DvdHx.js";
 import { n as re, r as T, t as E } from "./chunks/theme-classes-Tv7q7ToE.js";
 import { i as D, t as O } from "./chunks/csrf-DxHg_ZYt.js";
@@ -391,15 +391,15 @@ async function We(e, t, n = {}, r = {}) {
 	let o = a.data.formieHtmlForm;
 	return F.log("requestGraphqlRender complete.", { hasHtml: !!o.html }), o;
 }
-async function Ge(e, t, n, r = {}) {
-	let i = new URL(e, window.location.origin);
-	i.searchParams.set("handle", t), n && i.searchParams.set("renderId", n), F.log("requestRefreshTokens start.", {
-		endpoint: i.toString(),
+async function Ge(e, t, n, r = {}, i) {
+	let a = new URL(e, window.location.origin);
+	a.searchParams.set("handle", t), n && a.searchParams.set("renderId", n), i && a.searchParams.set("requestToken", i), F.log("requestRefreshTokens start.", {
+		endpoint: a.toString(),
 		handle: t,
 		hasRenderId: !!n
 	});
-	let a = await k(i.toString(), r);
-	return F.log("requestRefreshTokens complete.", { hasRefreshTokens: !!a.refreshTokens }), a.refreshTokens || a;
+	let o = await k(a.toString(), r);
+	return F.log("requestRefreshTokens complete.", { hasRefreshTokens: !!o.refreshTokens }), o.refreshTokens || o;
 }
 async function Ke(e, t, n) {
 	let r = new URL(e, window.location.origin), i = new FormData();
@@ -628,7 +628,7 @@ async function ot(e, t, n, r = {}) {
 			let t = await Je(e.form, e.formData);
 			return o = t, t;
 		},
-		result: async (e) => (o && o.ok && o.redirect?.url && (o.redirect.target === "new-tab" ? window.open(o.redirect.url, "_blank") : window.location.href = o.redirect.url), null)
+		result: async (e) => (o && o.ok && o.redirect?.url && (o.redirect.target === "new-tab" ? window.open(o.redirect.url, "_blank", "noopener,noreferrer") : window.location.href = o.redirect.url), null)
 	};
 	{
 		let e = await n.emitSafe("formie:submit:before", c);
@@ -1096,17 +1096,17 @@ var It = class {
 	table: () => import("./chunks/table-BN6TdE1D.js").then((e) => e.tableModule),
 	"text-limit": () => import("./chunks/text-limit-DFDdmpW4.js").then((e) => e.textLimitModule)
 }, Vt = {
-	bpoint: () => import("./chunks/bpoint-BoqS75QN.js").then((e) => e.bpointModule),
-	eway: () => import("./chunks/eway-FJ1-foil.js").then((e) => e.ewayModule),
-	"go-cardless": () => import("./chunks/go-cardless-DpcgpKXp.js").then((e) => e.goCardlessModule),
-	mollie: () => import("./chunks/mollie-BzaVoVOs.js").then((e) => e.mollieModule),
-	moneris: () => import("./chunks/moneris-Ccnvi6Zs.js").then((e) => e.monerisModule),
-	opayo: () => import("./chunks/opayo-ePHTjSSy.js").then((e) => e.opayoModule),
-	paddle: () => import("./chunks/paddle-6nr16zt-.js").then((e) => e.paddleModule),
-	paypal: () => import("./chunks/paypal-CoL-7bGW.js").then((e) => e.paypalModule),
-	payway: () => import("./chunks/payway-CuKh4roO.js").then((e) => e.paywayModule),
-	square: () => import("./chunks/square-bOWZvoNE.js").then((e) => e.squareModule),
-	stripe: () => import("./chunks/stripe-CG7oJd2V.js").then((e) => e.stripeModule)
+	bpoint: () => import("./chunks/bpoint-B6oThOrT.js").then((e) => e.bpointModule),
+	eway: () => import("./chunks/eway-tPYhyOe-.js").then((e) => e.ewayModule),
+	"go-cardless": () => import("./chunks/go-cardless-BCyT7T1P.js").then((e) => e.goCardlessModule),
+	mollie: () => import("./chunks/mollie-DPllETSi.js").then((e) => e.mollieModule),
+	moneris: () => import("./chunks/moneris-BjRCimbQ.js").then((e) => e.monerisModule),
+	opayo: () => import("./chunks/opayo-B_zsm46C.js").then((e) => e.opayoModule),
+	paddle: () => import("./chunks/paddle-JggaFNop.js").then((e) => e.paddleModule),
+	paypal: () => import("./chunks/paypal-Dvokb-rf.js").then((e) => e.paypalModule),
+	payway: () => import("./chunks/payway-DihbUPwB.js").then((e) => e.paywayModule),
+	square: () => import("./chunks/square-DRwmwHxv.js").then((e) => e.squareModule),
+	stripe: () => import("./chunks/stripe-CaBoWTM3.js").then((e) => e.stripeModule)
 }, Ht = {
 	...Bt,
 	...Rt,
@@ -1940,7 +1940,7 @@ async function Zn(e, t, n) {
 	if (t.refreshTokens === !1) return;
 	let r = t.formHandle || e.dataset.formieHandle;
 	if (!r) return;
-	let i = await Ge(kn(t, e), r, n.querySelector("input[name=\"renderId\"]")?.value || void 0, t);
+	let i = await Ge(kn(t, e), r, n.querySelector("input[name=\"renderId\"]")?.value || void 0, t, n?.querySelector("input[name=\"requestToken\"]")?.value);
 	Yn(n, i), v(e, "formie:refresh-tokens:refreshed", i);
 }
 function Qn(e, t, n, r, i, a) {
@@ -2090,7 +2090,7 @@ async function $n(e, t, n) {
 	if (t.refreshTokens === !1 || !t.staticCache) return;
 	let r = t.formHandle || e.dataset.formieHandle, i = kn(t, e), a = n?.querySelector("input[name=\"renderId\"]")?.value || void 0;
 	if (!r) return;
-	let o = await Ge(i, r, a, t);
+	let o = await Ge(i, r, a, t, n?.querySelector("input[name=\"requestToken\"]")?.value);
 	o && n && (Yn(n, o), v(e, "formie:refresh-tokens:after", o));
 }
 function er() {
@@ -2381,7 +2381,7 @@ function er() {
 				q.warn("refreshForCache found no form handle for target.", { target: Q(t) });
 				return;
 			}
-			let l = await Ge(s, o, c, a);
+			let l = await Ge(s, o, c, a, i?.querySelector("input[name=\"requestToken\"]")?.value);
 			l && (Yn(i, l), v(t, "formie:refresh-tokens:after", l));
 		},
 		registerModule: (e, t) => r.register(e, t),
@@ -2689,8 +2689,8 @@ async function hr(t, n, r = Lt) {
 	});
 	n.setBrowserModuleGuard(s.assertReady), n.setBrowserModulePreparation(s.prepare);
 	let c = n.on("formie:submit:result", (e) => {
-		let t = e;
-		s.result({
+		let t = e, r = t.completion;
+		t.success && r && (r.behavior === "redirect" && typeof r.url == "string" ? r.target === "new-tab" ? window.open(r.url, "_blank", "noopener,noreferrer") : window.location.assign(r.url) : r.behavior === "reload" ? window.location.reload() : r.behavior === "reset" && n.reset()), s.result({
 			ok: t.success,
 			outcome: t.outcome,
 			version: t.version,

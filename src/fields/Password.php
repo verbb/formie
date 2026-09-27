@@ -205,7 +205,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::prePopulate(),
+            SchemaHelper::prefillQueryParam(),
             SchemaHelper::includeInEmailFieldSummariesField(),
         ];
     }

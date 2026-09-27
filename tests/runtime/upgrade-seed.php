@@ -9,21 +9,26 @@ use verbb\formie\fields\{SingleLineText, Group};
 if (Formie::$plugin->version !== '3.1.39') { throw new RuntimeException('The fixture must start on the pinned Formie 3 release.'); }
 $form = new Form(['title' => 'Upgrade contract', 'handle' => 'upgradeContract']);
 $form->setFormLayout(new FieldLayout(['pages' => [['label' => 'Details', 'rows' => [['fields' => [
-    ['type' => SingleLineText::class, 'label' => 'Full name', 'handle' => 'fullName', 'required' => true],
+    ['type' => SingleLineText::class, 'label' => 'Full name', 'handle' => 'fullName', 'required' => true, 'prePopulate' => 'legacyName'],
+    ['type' => \verbb\formie\fields\Hidden::class, 'label' => 'Legacy date', 'handle' => 'legacyDate', 'defaultOption' => 'dateInt'],
     ['type' => \verbb\formie\fields\Payment::class, 'label' => 'Payment', 'handle' => 'payment'],
     ['type' => Group::class, 'label' => 'Company', 'handle' => 'company', 'rows' => [['fields' => [
         ['type' => SingleLineText::class, 'label' => 'Company name', 'handle' => 'companyName'],
     ]]]],
 ]]]]]]));
+$form->settings->submitAction = 'url';
+$form->settings->submitActionUrl = '/upgraded-completion';
 $form->settings->integrations = ['upgradeWebhook' => ['enabled' => true, 'httpAuth' => ['password' => 'upgrade-literal-password']]];
 $form->setNotifications([new Notification(['name' => 'Receipt', 'handle' => 'receipt', 'enabled' => false, 'subject' => 'Hello {field:fullName}',
     'to' => 'fixture@example.test', 'content' => '<p>Saved {field:fullName}</p>'])]);
 if (!$app->getElements()->saveElement($form)) { throw new RuntimeException(json_encode($form->getErrors())); }
 $shared = new Form(['title' => 'Shared upgrade contract', 'handle' => 'sharedUpgradeContract']);
 $shared->setFormLayout(new FieldLayout(['pages' => [['label' => 'Details', 'rows' => [['fields' => [
-    ['type' => SingleLineText::class, 'label' => 'Full name', 'handle' => 'fullName', 'required' => true, 'syncId' => $form->getFieldByHandle('fullName')->id],
+    ['type' => SingleLineText::class, 'label' => 'Full name', 'handle' => 'fullName', 'required' => true, 'prePopulate' => 'legacyName', 'syncId' => $form->getFieldByHandle('fullName')->id],
 ]]]]]]));
 if (!$app->getElements()->saveElement($shared)) { throw new RuntimeException(json_encode($shared->getErrors())); }
+$persistedField = Form::find()->id($form->id)->status(null)->one()->getFieldByHandle('fullName');
+if ($persistedField->prePopulate !== 'legacyName') { throw new RuntimeException('Legacy shared-field seed lost its query prefill before upgrade.'); }
 $submission = new Submission();
 $submission->setForm($form);
 $submission->setFieldValues(['fullName' => 'Synthetic Ada', 'company' => ['companyName' => 'Synthetic Company']]);

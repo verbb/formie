@@ -21,6 +21,23 @@ For project config, environment variables, and control panel settings across sta
 ## Configuration Options
 
 ::: reference
+### `completionRedirectAllowedOrigins`
+
+**Type:** `array` · **Default:** `[]`
+
+Adds exact external origins permitted for completion redirects, for example `['https://partner.example.com']`. Configured Craft site origins and safe relative paths are already allowed. Scheme, host and port must match. See [Completion and Redirects](/templates/completion-and-redirects).
+:::
+
+::: reference
+### `completionQueryAllowlist`
+
+**Type:** `array` · **Default:** `['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']`
+
+Lists scalar query parameters captured at journey start and forwarded to the final redirect. Explicit destination parameters win. Set an empty array to disable forwarding. Security tokens and nested data are excluded.
+:::
+
+
+::: reference
 ### `referenceEnvironmentAllowlist`
 
 **Type:** `array` · **Default:** `[]`

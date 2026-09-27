@@ -176,7 +176,9 @@ class FieldInterface extends BaseInterfaceType
                 'deprecationReason' => 'Use `emailFieldSummaryValue` instead.',
                 'resolve' => static fn($field): ?string => $field->emailFieldSummaryValue,
             ],
+            'prefillQueryParam' => ['name' => 'prefillQueryParam', 'type' => Type::string()],
             'prePopulate' => [
+                'deprecationReason' => 'Use prefillQueryParam.',
                 'name' => 'prePopulate',
                 'type' => Type::string(),
                 'description' => 'The query-string parameter name used to prefill the field’s initial value.',

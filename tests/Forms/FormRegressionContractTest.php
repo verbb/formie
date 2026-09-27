@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use verbb\formie\elements\Form;
 
+beforeEach(function () { \verbb\formie\Formie::$plugin->getSettings()->completionRedirectAllowedOrigins = ['https://example.test']; });
+
 it('keeps key form builder contract keys stable across save and reload cycles', function (): void {
     $form = formie()
         ->form(['title' => 'Regression Contract'])

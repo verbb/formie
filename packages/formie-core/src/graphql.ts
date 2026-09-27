@@ -19,6 +19,7 @@ export type GraphqlClientTransportOptions = BrowserRequestOptions & {
     grantToken?: string;
     grantPurpose?: 'continue-incomplete' | 'revise-complete';
     draftContext?: string;
+    query?: Record<string, string | string[]>;
 };
 
 type GraphqlResponse<T> = {
@@ -115,8 +116,8 @@ export async function loadGraphqlClientFormBootstrap(options: GraphqlClientTrans
     }>(
         options,
         `
-            query ClientForm($handle: String!, $siteId: Int, $grantToken: String, $grantPurpose: String, $draftContext: String) {
-                formieClientForm(handle: $handle, siteId: $siteId, grantToken: $grantToken, grantPurpose: $grantPurpose, draftContext: $draftContext) {
+            query ClientForm($handle: String!, $siteId: Int, $grantToken: String, $grantPurpose: String, $draftContext: String, $query: Json) {
+                formieClientForm(handle: $handle, siteId: $siteId, grantToken: $grantToken, grantPurpose: $grantPurpose, draftContext: $draftContext, query: $query) {
                     contractVersion
                     definition
                     session {
@@ -131,6 +132,7 @@ export async function loadGraphqlClientFormBootstrap(options: GraphqlClientTrans
             grantToken: options.grantToken,
             grantPurpose: options.grantPurpose,
             draftContext: options.draftContext,
+            query: options.query,
         },
     );
 

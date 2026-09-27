@@ -74,12 +74,14 @@ async function ne(e) {
 		endpoint: e.endpoint,
 		profile: e.profile,
 		formHandle: e.formHandle,
-		siteId: e.siteId
+		siteId: e.siteId,
+		query: e.query
 	}) : T({
 		endpoint: e.endpoint,
 		profile: e.profile,
 		formHandle: e.formHandle,
-		siteId: e.siteId
+		siteId: e.siteId,
+		query: e.query
 	});
 }
 function re(e) {
@@ -88,7 +90,8 @@ function re(e) {
 		endpoint: e.endpoint,
 		profile: e.profile,
 		formHandle: e.formHandle,
-		siteId: e.siteId
+		siteId: e.siteId,
+		query: e.query
 	};
 	return t.type === "graphql" ? g(t) : v(t);
 }
@@ -730,7 +733,7 @@ var J = i({
 					key: "error",
 					class: "formie-vue-error"
 				}, l) : null,
-				a(o, {
+				r.lastSubmitResult?.completion?.behavior === "message" && r.lastSubmitResult.completion.hideForm ? null : a(o, {
 					key: c.id,
 					page: c,
 					state: r

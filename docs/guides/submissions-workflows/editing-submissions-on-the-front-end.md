@@ -83,4 +83,4 @@ Save-and-continue behaviour on edit forms follows the same draft rules as new su
 
 ## Styling and Success Behaviour
 
-After a successful edit, configure redirect URL or message under form **Settings → Submit Action** the same as for new submissions. Use conditions if edit success should differ from first-time submit.
+Editing an already completed submission returns a revision result. It does not rerun **After Completion**. Handle revision feedback in your template or client adapter; configure new-submission completion under **Settings → After Completion**.

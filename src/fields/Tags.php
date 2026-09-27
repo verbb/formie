@@ -356,7 +356,7 @@ class Tags extends ElementField
         $labelSourceOptions = $this->getLabelSourceOptions();
 
         return [
-            SchemaHelper::prePopulate(),
+            SchemaHelper::prefillQueryParam(),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::emailFieldSummaryValue(),
             SchemaHelper::numberField([

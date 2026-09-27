@@ -304,7 +304,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::prePopulate(),
+            SchemaHelper::prefillQueryParam(),
             SchemaHelper::includeInEmailFieldSummariesField(),
         ];
     }

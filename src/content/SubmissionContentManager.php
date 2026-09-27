@@ -319,12 +319,8 @@ class SubmissionContentManager
 
     public function setFieldValuesFromRequest(Submission $submission, string $paramNamespace = ''): void
     {
-        // Request normalization is intentionally a two-step process: first pull
-        // through values that browsers omit entirely for non-posting fields, then
-        // normalize the posted payload using the field collection.
-        $this->_applyNonPostingRequestValues($submission);
-
         $this->normalizeFromRequest($submission, $paramNamespace);
+        (new \verbb\formie\services\RuntimeConfiguration())->applyValues($submission);
 
         // Exclude conditionally hidden field content for incomplete submissions only.
         if ($submission->isIncomplete) {
@@ -336,10 +332,7 @@ class SubmissionContentManager
                 }
             }
 
-            return;
         }
-
-        $this->_applyInitialValuesForNonPostingFields($submission);
     }
 
     public function setFieldValueFromRequest(Submission $submission, string $fieldHandle, mixed $value): void
@@ -398,45 +391,6 @@ class SubmissionContentManager
 
     // Private Methods
     // =========================================================================
-
-    private function _applyNonPostingRequestValues(Submission $submission): void
-    {
-        $form = $submission->getForm();
-
-        if (!$form) {
-            return;
-        }
-
-        // Visibly disabled fields do not post through normal browser form payloads,
-        // so we restore their raw request values from the dedicated side-channel.
-        $disabledValues = $form->getPopulatedFieldValuesFromRequest();
-
-        if (!is_array($disabledValues) || !$disabledValues) {
-            return;
-        }
-
-        foreach ($disabledValues as $key => $value) {
-            try {
-                $submission->setFieldValue($key, $value);
-            } catch (Throwable) {
-                continue;
-            }
-        }
-    }
-
-    private function _applyInitialValuesForNonPostingFields(Submission $submission): void
-    {
-        // Final submissions should still receive initial values for non-posting fields
-        // whose browser payload is absent, as long as the submission does not already
-        // carry a concrete value.
-        foreach ($this->getFieldCollection($submission)->disabled() as $field) {
-            $value = $this->getFieldValue($submission, $field->handle);
-
-            if ($field->isValueEmpty($value, $submission)) {
-                $submission->setFieldValue($field->handle, $field->getInitialValue($submission));
-            }
-        }
-    }
 
     private function _currentPageFieldHandles(Submission $submission): array
     {

@@ -224,7 +224,8 @@ it('migrates a large freeform v5 fixture with exact layout settings notification
     expect($migratedSubmissions)->toHaveCount(2);
     expect(array_map(fn($page) => $page->label, $migratedForm->getPages()))->toBe(['Primary Page', 'Secondary Page'])
         ->and($migratedForm->settings->submitMethod)->toBe('ajax')
-        ->and($migratedForm->settings->submitAction)->toBe('url')
+        ->and($migratedForm->settings->completionBehavior)->toBe('redirect')
+        ->and($migratedForm->settings->completionRedirectSource)->toBe('url')
         ->and($migratedForm->settings->submitActionUrl)->toBe('https://example.test/thanks');
     $pages = $migratedForm->getPages();
     expect(array_map(fn($field) => $field->handle, $pages[0]->getRows()[0]->getFields()))->toBe(['fullName', 'contactEmail', 'alternateName'])

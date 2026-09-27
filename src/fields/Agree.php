@@ -81,6 +81,11 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
     // Public Methods
     // =========================================================================
 
+    public function runtimeOverridableSettings(): array
+    {
+        return array_merge(parent::runtimeOverridableSettings(), ['description', 'descriptionHtml', 'checkedValue', 'uncheckedValue']);
+    }
+
     public function valueType(): FieldValueType
     {
         return FieldValueType::boolean();
@@ -245,7 +250,7 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::prePopulate(),
+            SchemaHelper::prefillQueryParam(),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Checked Value'),

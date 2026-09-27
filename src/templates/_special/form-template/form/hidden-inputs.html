@@ -18,9 +18,7 @@
     {{ hiddenInput('relations', form.getRelations()) }}
 {% endif %}
 
-{% if form.getPopulatedFieldValues() %}
-    {{ hiddenInput('extraFields', form.getPopulatedFieldValues()) }}
-{% endif %}
+
 
 {% if submission and submission.uid %}
     {{ hiddenInput('submissionUid', submission.uid) }}

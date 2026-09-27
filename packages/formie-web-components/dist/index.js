@@ -1132,7 +1132,7 @@ function jt(e) {
                   ${e.state.lastSubmitResult.messages.notice}
               </div>` : N}
         ${i ? j`<div class="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">${r}</div>` : N}
-        ${Mt(e, t)}
+        ${e.state.lastSubmitResult?.completion?.behavior === "message" && e.state.lastSubmitResult.completion.hideForm ? N : Mt(e, t)}
     `, o = e.state.session.tokens.render ?? "";
 	return j`
         <form
@@ -1187,7 +1187,7 @@ function Ft(e) {
 }
 var Z = class extends z {
 	constructor(...e) {
-		super(...e), this.endpoint = "", this.profile = "same-origin-browser", this.formHandle = "", this.transport = "rest", this.fetchCredentials = "same-origin", this.formClass = "", this.loadingMessage = "Loading form…", this.loadError = null, this.booting = !1, this.snapshot = null, this.instance = null, this.unsubscribers = [], this.loadGeneration = 0;
+		super(...e), this.endpoint = "", this.profile = "same-origin-browser", this.formHandle = "", this.transport = "rest", this.fetchCredentials = "same-origin", this.query = {}, this.formClass = "", this.loadingMessage = "Loading form…", this.loadError = null, this.booting = !1, this.snapshot = null, this.instance = null, this.unsubscribers = [], this.loadGeneration = 0;
 	}
 	createRenderRoot() {
 		return this;
@@ -1205,7 +1205,8 @@ var Z = class extends z {
 			"siteId",
 			"transport",
 			"profile",
-			"fetchCredentials"
+			"fetchCredentials",
+			"query"
 		].some((t) => e.has(t)) && this.bootstrap(!0);
 	}
 	getFormieInstance() {
@@ -1238,7 +1239,8 @@ var Z = class extends z {
 				profile: this.profile,
 				formHandle: n,
 				...u === void 0 ? {} : { siteId: u },
-				credentials: c
+				credentials: c,
+				query: this.query
 			}, d = this.transport === "graphql" ? await ee(e) : await g(e);
 			if (t !== this.loadGeneration) return;
 			let f = this.transport === "graphql" ? s(e) : l(e), p = o({
@@ -1319,7 +1321,7 @@ X([V({ type: String })], Z.prototype, "endpoint", void 0), X([V({
 	converter: { fromAttribute(e) {
 		return e === "omit" || e === "same-origin" || e === "include" ? e : "same-origin";
 	} }
-})], Z.prototype, "fetchCredentials", void 0), X([V({
+})], Z.prototype, "fetchCredentials", void 0), X([V({ attribute: !1 })], Z.prototype, "query", void 0), X([V({
 	type: String,
 	attribute: "form-class"
 })], Z.prototype, "formClass", void 0), X([V({

@@ -534,7 +534,7 @@ async function refreshTokensAfterSubmitIfNeeded(target: Element, options: FormMo
     const endpoint = resolveRefreshTokensEndpoint(options, target);
     const renderIdInput = form.querySelector('input[name="renderId"]') as HTMLInputElement | null;
     const renderId = renderIdInput?.value || undefined;
-    const refreshTokens = await requestRefreshTokens(endpoint, formHandle, renderId, options);
+    const refreshTokens = await requestRefreshTokens(endpoint, formHandle, renderId, options, form?.querySelector<HTMLInputElement>('input[name="requestToken"]')?.value);
     applyRefreshTokensToForm(form, refreshTokens);
     dispatchFormieDomEvent(target, 'formie:refresh-tokens:refreshed', refreshTokens);
 }
@@ -857,7 +857,7 @@ async function refreshTokensIfNeeded(target: Element, options: FormMountOptions,
 
     // Refresh-tokens-before-ready is the cache-safe path: forms can render from SSR/cache
     // and still receive fresh transport tokens before the user submits anything.
-    const refreshTokens = await requestRefreshTokens(endpoint, formHandle, renderId, options);
+    const refreshTokens = await requestRefreshTokens(endpoint, formHandle, renderId, options, form?.querySelector<HTMLInputElement>('input[name="requestToken"]')?.value);
 
     if (!refreshTokens || !form) {
         return;
@@ -1451,7 +1451,7 @@ export function createFormieClient(): FormieClient {
             return;
         }
 
-        const refreshTokens = await requestRefreshTokens(endpoint, formHandle, renderId, options);
+        const refreshTokens = await requestRefreshTokens(endpoint, formHandle, renderId, options, form?.querySelector<HTMLInputElement>('input[name="requestToken"]')?.value);
 
         if (!refreshTokens) {
             return;

@@ -7,6 +7,8 @@ use craft\elements\Entry;
 
 dataset('redirect_tabs', ['same-tab', 'new-tab']);
 
+beforeEach(function () { \verbb\formie\Formie::$plugin->getSettings()->completionRedirectAllowedOrigins = ['https://example.test', 'http://formie-react-tests.ddev.site']; });
+
 it('resolves url redirect targets and tab behavior contract from form settings', function (string $tab): void {
     $form = formie()
         ->form(['title' => 'URL Redirect Contract ' . $tab])
@@ -44,7 +46,7 @@ it('does not execute Twig in submit action URLs', function (): void {
 
     expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
 
-    expect($form->getRedirectUrl())->toContain('redirect-{{7*7}}')
+    expect($form->getRedirectUrl())->toBe('')
         ->and($form->getRedirectUrl())->not->toContain('redirect-49');
 });
 

@@ -20,6 +20,9 @@ use yii\validators\EmailValidator;
 
 class Settings extends Model
 {
+    public array $completionRedirectAllowedOrigins = [];
+    public array $completionQueryAllowlist = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+
     // Constants
     // =========================================================================
 

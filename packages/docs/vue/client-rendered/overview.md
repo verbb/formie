@@ -240,3 +240,9 @@ onMounted(() => {
   />
 </template>
 ```
+
+## Completion and query prefill
+
+A successful final submission returns `completion` with `behavior` (`message`, `redirect`, `reload` or `reset`), `url`, `target`, `message` and `hideForm`. The standard adapter applies it. Page navigation and save-for-later results have no completion action. Payment continuation remains a separate result. Custom renderers should use this result rather than infer completion from an absent next page.
+
+REST and GraphQL source options accept `query`, a map of host-page parameters deliberately selected by your application. Formie captures field query prefills and allowlisted campaign values at bootstrap. Later submissions cannot replace those captured values. These are untrusted field values; source options never accept trusted form settings, integration credentials or forced server values.

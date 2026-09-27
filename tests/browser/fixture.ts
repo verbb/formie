@@ -12,6 +12,8 @@ const serverRendered = query.get('product') === 'server';
 const profile = query.get('profile') === 'cross-origin-public' ? 'cross-origin-public' : 'same-origin-browser';
 const endpoint = query.get('endpoint') ?? location.origin;
 const source = { profile, transport, endpoint: transport === 'graphql' ? `${endpoint}/actions/graphql/api` : endpoint, formHandle: new URLSearchParams(location.search).get('form') ?? 'browserContract' };
+const hostQuery = Object.fromEntries(['note', 'utm_source'].flatMap(key => query.has(key) ? [[key, query.get(key)!]] : []));
+Object.assign(source, { query: hostQuery });
 const observations: unknown[] = [];
 for (const name of ['formie:browser:module:mount', 'formie:browser:module:error', 'formie:browser:module:delegated']) document.addEventListener(name, (event) => observations.push({ name, ...(event as CustomEvent).detail, target: undefined }));
 (globalThis as any).moduleObservations = observations;
@@ -35,6 +37,7 @@ function mount() {
         element.setAttribute('transport', transport);
         element.setAttribute('request-profile', profile);
         element.setAttribute('form-handle', source.formHandle);
+        if (!serverRendered) (element as any).query = hostQuery;
         host.append(element);
         teardown = () => element.remove();
     }

@@ -434,49 +434,17 @@ class Rendering extends Component
             }
         }
 
-        $disabledValues = [];
-
-        // Try to populate fields with their initial render value
-        foreach ($values as $key => $value) {
-            try {
-                $field = $form->getFieldByHandle($key);
-
-                // Prevent users using long-hand Twig `{{` to prevent injection execution. Only an issue for some fields like Hidden fields.
-                if (is_string($value)) {
-                    $value = str_replace(['{{', '}}', '{%', '%}'], ['{', '}', '', ''], $value);
-                }
-
-                if ($field) {
-                    // Store the explicit prefill on the field so render-time consumers can treat it
-                    // separately from the field-owned default definition.
-                    $field->populateValue($value, $submission);
-                    $initialValue = $field->getInitialValue($submission ?: $form);
-
-                    // Store any visibly disabled fields against the form to apply later
-                    if ($field->visibility === 'disabled') {
-                        $disabledValues[$key] = $value;
-                    }
-
-                    // If forcing, set the value every time this is called
-                    if ($force && $submission) {
-                        $submission->setFieldValue($field->handle, $initialValue);
-                    }
-                }
-            } catch (Throwable $e) {
-                Formie::error('Error populating form values for “{key}”. Template error: “{message}” {file}:{line}', [
-                    'key' => $key,
-                    'message' => $e->getMessage(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                ]);
-
-                continue;
-            }
+        $runtime = new \verbb\formie\services\RuntimeConfiguration();
+        $mapped = [];
+        foreach ($values as $path => $value) {
+            $field = $runtime->findField($form, (string)$path);
+            $mapped[$field->uid] = $runtime->populationValue($field, $value, $submission);
         }
-
-        if ($disabledValues) {
-            // Apply any disabled field values via session cache, to keep out of requests
-            $form->setPopulatedFieldValues($disabledValues);
+        $form->replaceInstanceConfig($form->getInstanceConfig()->with($force ? 'forced' : 'initial', $mapped));
+        if ($submission) {
+            $submission->snapshot = \verbb\formie\models\SubmissionConfig::capture($form->getInstanceConfig());
+            $submission->setForm($form);
+            $runtime->applyValues($submission);
         }
     }
 
@@ -801,7 +769,7 @@ class Rendering extends Component
         
         if ($form && is_string($form)) {
             if ($form = Formie::$plugin->getForms()->getFormByHandle($form)) {
-                return $form;
+                return clone $form;
             }
         }
 
@@ -810,6 +778,7 @@ class Rendering extends Component
 
     private function _prepareFormForRender(Form $form, array $renderOptions = []): void
     {
+        (new RuntimeConfiguration())->establish($form);
         $sessionKey = $renderOptions['sessionKey'] ?? null;
         $form->setSessionKey(base64_encode((string)$sessionKey));
         $form->setThemeConfig((array)($renderOptions['themeConfig'] ?? []));

@@ -25,7 +25,7 @@ test('opens Formie diagnostics from a failed real Craft job and exports a redact
     await expect(dialog.locator('pre')).toContainText('Gateway response lost');
     await expect(dialog.locator('pre')).not.toContainText('browser-never-display-secret');
     expect(await page.evaluate(() => (window as any).deliveryInjection)).toBeUndefined();
-    await page.screenshot({ path: '../context/tasks/08-validation/delivery-modal.png', fullPage: true });
+    await page.screenshot({ path: '../context/tasks/09-validation/delivery-modal.png', fullPage: true });
     const download = page.waitForEvent('download');
     await dialog.getByRole('button', { name: 'Download support bundle', exact: true }).click();
     expect((await download).suggestedFilename()).toBe(`formie-delivery-${data.uid}.json`);

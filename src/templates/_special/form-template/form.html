@@ -9,7 +9,7 @@
 
     {{ formieInclude('form/message-unavailable') }}
 
-    {% if submitted and form.settings.submitAction == 'message' and form.settings.submitActionFormHide %}
+    {% if submitted and form.settings.completionBehavior == 'message' and form.settings.submitActionFormHide %}
         {% set showForm = false %}
     {% endif %}
 
@@ -27,10 +27,8 @@
         {% endformtag %}
     {% endif %}
 
-    {# When the position of success message is set to bottom, but the form is hidden... #}
-    {% if submission is defined and form.settings.submitAction == 'message' and form.settings.submitActionFormHide %}
-        {% if flashNotice and form.settings.submitActionMessagePosition == 'bottom-form' %}
-            {{ formieInclude('form/message-success') }}
-        {% endif %}
+    {# A hidden form still displays its completion notice at either supported position. #}
+    {% if submitted and not showForm and flashNotice and form.settings.submitActionMessagePosition in ['top-form', 'bottom-form'] %}
+        {{ formieInclude('form/message-success') }}
     {% endif %}
 {% endapply %}
