@@ -38,7 +38,7 @@
 - Retain coherent subscription and recurring-payment history; scope cancellation, provider return, status and session authority.
 - Persist encrypted, idempotent webhook receipts with redacted diagnostics and reject unauthenticated provider events.
 - Store canonical journey progress in the database and use independent purpose-bound, expiring grants for Save & Continue and authorised editing across browsers.
-- Bind accepted uploads to their form, field and owner before dispatch, with durable promotion recovery and scoped upload capabilities.
+- Require structured, purpose-bound staged-upload references across server-rendered, client-rendered, REST and GraphQL submissions; bind accepted uploads to their exact form, field, owner and browser context before dispatch, with durable promotion recovery.
 - Remove beta draft-storage APIs, etags and `maxSavedDraftsPerSession`; existing beta resume links must be reissued after upgrading.
 - Replace beta submission workflow APIs with explicit operations, authorised commands, typed outcomes and six fixed stages with operation-scoped custom tasks.
 - Resolve progression and page transitions at the public Preflight anchors after hidden-value clearing, with validation consuming the selected transition.
@@ -48,6 +48,7 @@
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
 
 ### Fixed
+- Fixed authorization for connecting OAuth integrations and revalidated access when callbacks return.
 - Fixed OAuth callback transaction validation.
 - Keep valid Save & Continue links usable when optional page-progress state expires or is removed.
 - Build the current database schema directly during fresh installs instead of replaying upgrade migrations.
