@@ -91,7 +91,7 @@ final class SubmissionErrors
         return $result;
     }
 
-    public function toLegacy(): array
+    public function toValuePathMap(): array
     {
         $result = [];
         foreach ($this->_items as $item) {
@@ -102,7 +102,7 @@ final class SubmissionErrors
 
     public function forValuePath(string $path): array
     {
-        return $this->toLegacy()[$path] ?? [];
+        return $this->toValuePathMap()[$path] ?? [];
     }
 
     public function firstPageId(): ?int

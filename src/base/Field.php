@@ -2,6 +2,7 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\compatibility\fields\FieldRuntimeCompatibility;
 use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\deprecations\FieldDeprecations;
 use verbb\formie\elements\Form;
@@ -141,7 +142,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     use FieldDeprecations;
     use FieldDefinitionTrait;
-    use FieldCompatibilityTrait;
+    use FieldRuntimeCompatibility;
     use FieldBrowserValidationTrait;
     use FieldBrowserConditionTrait;
     use FieldClientRenderedDefinitionTrait;

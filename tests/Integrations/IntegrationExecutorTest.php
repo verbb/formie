@@ -59,7 +59,7 @@ function withExecutorTestIntegrations(object $form, array $integrations, callabl
     }
 }
 
-it('resolves legacy integration handles for payload integrations', function (): void {
+it('resolves enabled integration handles for payload integrations', function (): void {
     $form = formie()->form()->singleLineTextField('name')->create();
 
     $executor = new IntegrationRunner();
@@ -68,7 +68,7 @@ it('resolves legacy integration handles for payload integrations', function (): 
         executorTestIntegration('first'),
         executorTestIntegration('second'),
     ], function () use ($executor, $form): void {
-        expect($executor->resolveLegacyHandles($form))->toBe(['first', 'second']);
+        expect($executor->resolveEnabledHandles($form))->toBe(['first', 'second']);
     });
 });
 

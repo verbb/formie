@@ -4,6 +4,7 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
+use verbb\formie\compatibility\integrations\IntegrationResultCompatibility;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
@@ -932,7 +933,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $errorResult = $value === false || $errorResult?->requiresReconciliation() ? $errorResult : null;
         $result = $errorResult ?? (!empty($this->context['deliverySkipped']) && empty($this->context['deliveryWriteAccepted'])
             ? IntegrationResult::skipped('event_or_opt_in')
-            : IntegrationResult::fromLegacy($value,
+            : IntegrationResultCompatibility::normalize($value,
                 !empty($this->context['deliveryUncertain']) || ($value === false && !empty($this->context['deliveryWriteAccepted'])),
             ));
         if ($this->_directDelivery) {

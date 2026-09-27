@@ -1,9 +1,9 @@
 <?php
-namespace verbb\formie\base;
+namespace verbb\formie\compatibility\fields;
 
 use verbb\formie\fields\definitions\FieldValueType;
 
-trait FieldCompatibilityTrait
+trait FieldRuntimeCompatibility
 {
     // Static Methods
     // =========================================================================

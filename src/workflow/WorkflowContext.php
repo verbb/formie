@@ -86,7 +86,7 @@ class WorkflowContext
             $submission->uid ?: null,
             $submission->id ? $submission->stateVersion : null,
             $this->nextPage?->id,
-            \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toLegacy(),
+            \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toValuePathMap(),
             array_merge(['payment' => $this->paymentDecision?->toArray()], $data),
         );
     }

@@ -3,6 +3,7 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormInterface;
+use verbb\formie\compatibility\delivery\LegacyDeliveryAttempts;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\IntegrationStatus;
@@ -1104,10 +1105,14 @@ class Notifications extends Component
             return $send();
         }
         $deliveryKey ??= DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
-        $attempts = Formie::$plugin->getDeliveryAttempts();
-        $legacy = (new DeliveryAttempt((int)$submission->id, 'notification-send:' . ($notification->uid ?: $notification->id), $deliveryKey))->getMetadata();
-        if (!$attempts->hasReconciliation($queueJob->deliveryAttemptUid) && in_array($legacy['state'] ?? '', ['completed', 'sending', 'unknown'], true)) {
-            return ['success' => $legacy['state'] === 'completed', 'deliveryOutcomeUnknown' => $legacy['state'] !== 'completed'];
+        $legacyResponse = LegacyDeliveryAttempts::notificationResponse(
+            $submission,
+            $notification,
+            $deliveryKey,
+            $queueJob->deliveryAttemptUid,
+        );
+        if ($legacyResponse) {
+            return $legacyResponse;
         }
         return $send();
     }

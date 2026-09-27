@@ -4,7 +4,7 @@ $app = require CRAFT_VENDOR_PATH . '/craftcms/cms/bootstrap/console.php';
 use verbb\formie\Formie;
 use verbb\formie\elements\{Form, Submission};
 use verbb\formie\models\{FieldLayout, Notification};
-use verbb\formie\fields\{SingleLineText, Group};
+use verbb\formie\fields\{Group, Signature, SingleLineText};
 
 if (Formie::$plugin->version !== '3.1.39') { throw new RuntimeException('The fixture must start on the pinned Formie 3 release.'); }
 $form = new Form(['title' => 'Upgrade contract', 'handle' => 'upgradeContract']);
@@ -12,6 +12,7 @@ $form->setFormLayout(new FieldLayout(['pages' => [['label' => 'Details', 'rows' 
     ['type' => SingleLineText::class, 'label' => 'Full name', 'handle' => 'fullName', 'required' => true, 'prePopulate' => 'legacyName'],
     ['type' => \verbb\formie\fields\Hidden::class, 'label' => 'Legacy date', 'handle' => 'legacyDate', 'defaultOption' => 'dateInt'],
     ['type' => \verbb\formie\fields\Payment::class, 'label' => 'Payment', 'handle' => 'payment'],
+    ['type' => Signature::class, 'label' => 'Signature', 'handle' => 'signature'],
     ['type' => Group::class, 'label' => 'Company', 'handle' => 'company', 'enableConditions' => true, 'conditions' => ['conditionRule' => 'all', 'showRule' => 'show', 'conditions' => [['field' => 'fullName', 'condition' => '=', 'value' => 'Synthetic Ada']]], 'rows' => [['fields' => [
         ['type' => SingleLineText::class, 'label' => 'Company name', 'handle' => 'companyName'],
     ]]]],
@@ -31,7 +32,8 @@ $persistedField = Form::find()->id($form->id)->status(null)->one()->getFieldByHa
 if ($persistedField->prePopulate !== 'legacyName') { throw new RuntimeException('Legacy shared-field seed lost its query prefill before upgrade.'); }
 $submission = new Submission();
 $submission->setForm($form);
-$submission->setFieldValues(['fullName' => 'Synthetic Ada', 'company' => ['companyName' => 'Synthetic Company']]);
+$signatureValue = 'data:image/png;base64,' . base64_encode('Legacy Formie 3 signature');
+$submission->setFieldValues(['fullName' => 'Synthetic Ada', 'signature' => $signatureValue, 'company' => ['companyName' => 'Synthetic Company']]);
 if (!$app->getElements()->saveElement($submission, false)) { throw new RuntimeException(json_encode($submission->getErrors())); }
 $saved = Submission::find()->id($submission->id)->status(null)->one();
 if ((string)$saved->getFieldValue('fullName') !== 'Synthetic Ada') { throw new RuntimeException('Legacy fixture did not persist its control value.'); }
@@ -59,6 +61,7 @@ foreach (['success', 'pending'] as $status) {
 }
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/upgrade-fixture.json', json_encode([
     'subscriptionIds' => $subscriptionIds, 'paymentIds' => $paymentIds, 'from' => Formie::$plugin->version, 'formId' => $form->id, 'sharedFormId' => $shared->id, 'submissionId' => $submission->id,
-    'fieldUid' => $form->getFieldByHandle('fullName')->uid,
+    'fieldUid' => $form->getFieldByHandle('fullName')->uid, 'signatureFieldId' => $form->getFieldByHandle('signature')->id,
+    'submissionUid' => $submission->uid, 'signatureValue' => $signatureValue,
 ], JSON_PRETTY_PRINT));
 echo "Persisted Formie 3 forms, shared field, nested content and notification.\n";

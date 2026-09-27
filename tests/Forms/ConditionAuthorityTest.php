@@ -62,7 +62,7 @@ it('preserves instance roots nested paths page summaries and safe text from all 
     $submission->addError('form', '<a href="https://example.test">Retry.</a>');
     $errors = SubmissionErrors::fromSubmission($submission);
     expect($errors->toClient())->toBe(['form' => ['Retry.'], 'fields' => [$root->id . '.0.email' => ['Invalid email.'], $root->id . '.1.email' => ['Second error.']]])
-        ->and($errors->toLegacy())->toBe(['people.0.email' => ['Invalid email.'], 'people.1.email' => ['Second error.'], 'form' => ['Retry.']])
+        ->and($errors->toValuePathMap())->toBe(['people.0.email' => ['Invalid email.'], 'people.1.email' => ['Second error.'], 'form' => ['Retry.']])
         ->and($errors->firstPageId())->toBe($form->getPages()[0]->id)
         ->and($errors->forPage($form->getPages()[0]->id))->toHaveCount(2);
 });

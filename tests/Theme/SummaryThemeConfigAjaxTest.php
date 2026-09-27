@@ -6,6 +6,7 @@ use Tests\Support\WebRequestTestHelper;
 use verbb\formie\controllers\FieldsController;
 use verbb\formie\Formie;
 use verbb\formie\helpers\FieldAccess;
+use verbb\formie\helpers\SignatureAccess;
 use verbb\formie\theme\context\RenderContext;
 
 use craft\helpers\Json;
@@ -180,15 +181,14 @@ it('keeps Signature image links independent of retained Summary theme state', fu
     $png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4////fwAJ+wP9KobjigAAAABJRU5ErkJggg==';
     $submission = formie()->submission($form)->with(['signature' => 'data:image/png;base64,' . $png])->save();
     $before = (new \craft\db\Query())->from('{{%formie_instance_configs}}')->count();
-    $rendering = Formie::$plugin->getRendering();
-    $rendering->pushRenderFrame($form, ['themeConfig' => ['fieldSummaryLabel' => ['class' => 'unused-theme']]]);
-    try {
-        $token = FieldAccess::issueAccessToken($submission, $form->getFieldByHandle('signature')->id);
-    } finally {
-        $rendering->popRenderFrame();
-    }
-    $payload = Json::decode(Craft::$app->getSecurity()->decryptByKey(base64_decode($token), Formie::$plugin->getSettings()->getSecurityKey()));
+    $field = $form->getFieldByHandle('signature');
+    $token = SignatureAccess::issueAccessToken($submission, $field->id, $field->valueKey(), $submission->getFieldValue('signature'));
+    [$encodedPayload] = explode('.', $token, 2);
+    $encodedPayload .= str_repeat('=', (4 - strlen($encodedPayload) % 4) % 4);
+    $payload = Json::decode(base64_decode(strtr($encodedPayload, '-_', '+/'), true));
     expect($payload)->not->toHaveKey('expiresAt')->not->toHaveKey('theme')
+        ->and($payload['purpose'])->toBe('signature-image')
+        ->and(FieldAccess::issueAccessToken($submission, $field->id))->toBeNull()
         ->and((new \craft\db\Query())->from('{{%formie_instance_configs}}')->count())->toBe($before);
     $image = WebRequestTestHelper::withWebRequestContext(function () use ($token) {
         return (new FieldsController('formie-fields-signature-theme', Craft::$app))->actionGetSignatureImage()?->data;

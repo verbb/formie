@@ -3,6 +3,7 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
+use verbb\formie\compatibility\delivery\LegacyDeliveryAttempts;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\IntegrationStatus;
@@ -43,7 +44,7 @@ class IntegrationRunner extends Component
     // Public Methods
     // =========================================================================
 
-    public function resolveLegacyHandles(Form $form): array
+    public function resolveEnabledHandles(Form $form): array
     {
         return array_values(array_map(fn($integration) => $integration->handle, array_filter(
             Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form),
@@ -241,13 +242,12 @@ class IntegrationRunner extends Component
         }
         $attempts = Formie::$plugin->getDeliveryAttempts();
         $uid = $attempts->prepare($context, 'integration', ['settings' => array_intersect_key(['enabled' => $integration->getEnabled()] + $integration->getAttributes(), array_fill_keys($integration->getFormSettingAttributes(), true))]);
-        $legacy = (new DeliveryAttempt((int)$submission->id, 'integration:' . $integration->handle, $executionKey))->getMetadata();
-        if (!$attempts->hasReconciliation($uid) && in_array($legacy['state'] ?? '', ['completed', 'sending', 'unknown'], true)) {
-            $result = ($legacy['state'] === 'completed') ? IntegrationResult::succeeded() : IntegrationResult::unknown('legacy_delivery_unresolved');
+        $legacyResult = LegacyDeliveryAttempts::integrationResult($submission, $integration, $executionKey, $uid);
+        if ($legacyResult) {
             $uid = $attempts->prepare($context, 'integration');
-            $attempts->execute($uid, fn() => $result);
-            $this->_saveProjection($integration, $submission, $result, $executionKey);
-            return $result;
+            $attempts->execute($uid, fn() => $legacyResult);
+            $this->_saveProjection($integration, $submission, $legacyResult, $executionKey);
+            return $legacyResult;
         }
         if ((new Query())->from(DeliveryAttempts::TABLE)->where(['submissionId' => $submission->id, 'binding' => $integration->handle, 'step' => 'integration', 'status' => ['unknown', 'sending']])->exists()) {
             $result = IntegrationResult::unknown('previous_delivery_unresolved');

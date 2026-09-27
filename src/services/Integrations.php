@@ -7,6 +7,7 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\cache\IntegrationLookupCache;
+use verbb\formie\compatibility\integrations\IntegrationResultCompatibility;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\IntegrationStatus;
@@ -383,7 +384,7 @@ class Integrations extends Component
         }
 
         $executor = Formie::$plugin->getIntegrationRunner();
-        $handles = $executor->resolveLegacyHandles($form);
+        $handles = $executor->resolveEnabledHandles($form);
 
         if (!$handles) {
             return;
@@ -416,7 +417,7 @@ class Integrations extends Component
             $response = $integration->sendPayload($event->submission);
             $errorResult = $integration->context['deliveryErrorResult'] ?? null;
             $errorResult = $response === false || $errorResult?->requiresReconciliation() ? $errorResult : null;
-            $result = $errorResult ?? IntegrationResult::fromLegacy($response,
+            $result = $errorResult ?? IntegrationResultCompatibility::normalize($response,
                 !empty($integration->context['deliveryUncertain'])
                 || ($response === false && !empty($integration->context['deliveryWriteAccepted'])),
             );

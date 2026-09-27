@@ -177,7 +177,7 @@ class SubmissionsController extends Controller
         return $this->asJson([
             'success' => $result->success,
             'pageId' => $result->currentPageId,
-            'errors' => \verbb\formie\models\SubmissionErrors::fromClient($result->errors, Formie::$plugin->getForms()->getFormByHandle($handle))->toLegacy(),
+            'errors' => \verbb\formie\models\SubmissionErrors::fromClient($result->errors, Formie::$plugin->getForms()->getFormByHandle($handle))->toValuePathMap(),
             'session' => $result->session?->toArrayRecursive(),
         ]);
     }
@@ -246,7 +246,7 @@ class SubmissionsController extends Controller
         }
 
         if (!$response->success) {
-            $payload['errors'] = \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toLegacy();
+            $payload['errors'] = \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toValuePathMap();
             $payload['keepSubmitLoading'] = in_array($response->paymentStatus, [
                 PaymentDecision::STATUS_ACTION_REQUIRED->value,
                 PaymentDecision::STATUS_UNKNOWN->value,

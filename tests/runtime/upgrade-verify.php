@@ -22,6 +22,11 @@ $check($app->getDb()->tableExists(\verbb\formie\helpers\Table::FORMIE_SUBMISSION
 $check(!$app->getDb()->tableExists(\verbb\formie\helpers\Table::FORMIE_SUBMISSION_RESUME_TOKENS), 'upgrade removes plaintext beta resume storage');
 $check($app->getDb()->columnExists(\verbb\formie\helpers\Table::FORMIE_PENDING_UPLOADS, 'contentHash'), 'upgrade creates recoverable upload promotion storage');
 $check((string)$submission->getFieldValue('fullName') === 'Synthetic Ada', 'original text content survived');
+$signatureAccess = (new \craft\db\Query())->select(['signatureAccessKey', 'legacySignatureAccess'])
+    ->from(\verbb\formie\helpers\Table::FORMIE_SUBMISSIONS)->where(['id' => $submission->id])->one();
+$legacySignature = \verbb\formie\helpers\SignatureAccess::resolveLegacyAccess($fixture['submissionUid'], (int)$fixture['signatureFieldId']);
+$check($signatureAccess && $signatureAccess['signatureAccessKey'] === null && (bool)$signatureAccess['legacySignatureAccess'], 'Formie 3 submissions retain explicit legacy Signature access');
+$check(($legacySignature['value'] ?? null) === $fixture['signatureValue'], 'unsigned Formie 3 Signature email URLs remain resolvable after upgrade');
 $values = $submission->getValuesAsData();
 $check(($values['company']['companyName'] ?? null) === 'Synthetic Company', 'nested group content survived');
 $field = $form->getFieldByHandle('fullName');
@@ -71,5 +76,5 @@ $check(($companyConditions['version'] ?? null) === 1 && ($companyConditions['con
 $check(\verbb\formie\helpers\ConditionsHelper::evaluate($companyConditions, $submission)->value === true, 'upgraded field conditions evaluate original normalized content');
 $check(($notification->conditions['version'] ?? null) === 1 && \verbb\formie\helpers\ConditionsHelper::evaluate($notification->conditions, $submission, 'notification')->value === true, 'upgraded notification conditions use the same canonical evaluator');
 $submission->addError('field:company.companyName', '<b>Example error.</b>');
-$check($submission->getSubmissionErrors()->toLegacy() === ['company.companyName' => ['Example error.']], 'legacy nested errors preserve complete value paths as safe text');
+$check($submission->getSubmissionErrors()->toValuePathMap() === ['company.companyName' => ['Example error.']], 'legacy nested errors preserve complete value paths as safe text');
 $check(isset($submission->getSubmissionErrors()->toClient()['fields'][$form->getFieldByHandle('company')->id . '.companyName']), 'upgraded nested client errors use the form-field instance identity');

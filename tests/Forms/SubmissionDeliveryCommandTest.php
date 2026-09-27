@@ -69,7 +69,7 @@ it('reports integration delivery outcomes without announcing failed work', funct
         public function dispatchManualIntegration(Integration $integration, Submission $submission): \verbb\formie\models\IntegrationResult {
             $this->attempts[] = $submission->id;
             $result = array_shift($this->results);
-            return \verbb\formie\models\IntegrationResult::fromLegacy(is_array($result) ? new IntegrationResponse($result['success']) : $result);
+            return \verbb\formie\compatibility\integrations\IntegrationResultCompatibility::normalize(is_array($result) ? new IntegrationResponse($result['success']) : $result);
         }
     };
     $triggers->results = $results;

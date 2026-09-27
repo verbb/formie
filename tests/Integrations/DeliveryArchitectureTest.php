@@ -1,6 +1,7 @@
 <?php
 
 use verbb\formie\Formie;
+use verbb\formie\compatibility\integrations\IntegrationResultCompatibility;
 use verbb\formie\enums\IntegrationStatus;
 use verbb\formie\errors\IntegrationStepException;
 use verbb\formie\helpers\DeliveryDiagnostics;
@@ -13,10 +14,10 @@ use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\services\DeliveryAttempts;
 
 it('normalizes all result states without truthy remote responses', function () {
-    expect(IntegrationResult::fromLegacy(true)->status)->toBe(IntegrationStatus::Succeeded);
-    expect(IntegrationResult::fromLegacy(false)->status)->toBe(IntegrationStatus::Failed);
-    expect(IntegrationResult::fromLegacy(new IntegrationResponse(false))->status)->toBe(IntegrationStatus::Failed);
-    expect(IntegrationResult::fromLegacy(['success' => true])->status)->toBe(IntegrationStatus::Unknown);
+    expect(IntegrationResultCompatibility::normalize(true)->status)->toBe(IntegrationStatus::Succeeded);
+    expect(IntegrationResultCompatibility::normalize(false)->status)->toBe(IntegrationStatus::Failed);
+    expect(IntegrationResultCompatibility::normalize(new IntegrationResponse(false))->status)->toBe(IntegrationStatus::Failed);
+    expect(IntegrationResultCompatibility::normalize(['success' => true])->status)->toBe(IntegrationStatus::Unknown);
     expect(IntegrationResult::skipped()->status)->toBe(IntegrationStatus::Skipped);
     expect(IntegrationResult::rejected()->status)->toBe(IntegrationStatus::Rejected);
     expect((new IntegrationResult(IntegrationStatus::Unknown, retryable: true))->retryable)->toBeFalse();

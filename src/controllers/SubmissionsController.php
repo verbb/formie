@@ -589,7 +589,7 @@ class SubmissionsController extends Controller
             return $this->asJson([
                 'success' => $result->success,
                 'pageId' => $result->currentPageId,
-                'errors' => \verbb\formie\models\SubmissionErrors::fromClient($result->errors, $form)->toLegacy(),
+                'errors' => \verbb\formie\models\SubmissionErrors::fromClient($result->errors, $form)->toValuePathMap(),
                 'session' => $result->session?->toArrayRecursive(),
             ]);
         }
@@ -671,7 +671,7 @@ class SubmissionsController extends Controller
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $response->form,
                 'submission' => $responseSubmission,
-                'errors' => $responseSubmission->getSubmissionErrors()->toLegacy(),
+                'errors' => $responseSubmission->getSubmissionErrors()->toValuePathMap(),
             ]);
 
             return null;
@@ -807,7 +807,7 @@ class SubmissionsController extends Controller
         }
 
         if (!$response->success) {
-            $payload['errors'] = \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toLegacy();
+            $payload['errors'] = \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toValuePathMap();
             $payload['keepSubmitLoading'] = in_array($response->paymentStatus, [
                 PaymentDecision::STATUS_ACTION_REQUIRED->value,
                 PaymentDecision::STATUS_UNKNOWN->value,

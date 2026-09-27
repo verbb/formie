@@ -438,12 +438,14 @@ class FieldsController extends Controller
                 return null;
             }
 
-            $context = SignatureAccess::resolveAccessToken($accessToken, [
-                'submissionUid' => $this->request->getParam('submissionUid'),
-                'siteId' => $this->request->getParam('siteId'),
-                'fieldId' => $this->request->getParam('fieldId'),
-                'fieldKey' => $this->request->getParam('fieldKey'),
-            ]);
+            $context = preg_match('/^[a-f0-9]{64}$/D', $accessToken)
+                ? SignatureAccess::resolveLegacySignedToken($accessToken, [
+                    'submissionUid' => $this->request->getParam('submissionUid'),
+                    'siteId' => $this->request->getParam('siteId'),
+                    'fieldId' => $this->request->getParam('fieldId'),
+                    'fieldKey' => $this->request->getParam('fieldKey'),
+                ])
+                : SignatureAccess::resolveAccessToken($accessToken);
         } else {
             $submissionUid = $this->request->getParam('submissionUid');
             $context = is_string($submissionUid) ? SignatureAccess::resolveLegacyAccess(

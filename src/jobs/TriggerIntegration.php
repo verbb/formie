@@ -2,6 +2,7 @@
 namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
+use verbb\formie\compatibility\delivery\LegacyDeliveryJobTrait;
 use verbb\formie\enums\IntegrationStatus;
 
 use Craft;

@@ -93,7 +93,7 @@ class Signature extends Field implements PreviewableFieldInterface
             ]);
         }
 
-        if ($submission->usesLegacySignatureAccess() && Formie::$plugin->getSettings()->allowLegacySignatureImageUrls) {
+        if (SignatureAccess::usesLegacyAccess($submission) && Formie::$plugin->getSettings()->allowLegacySignatureImageUrls) {
             return UrlHelper::actionUrl('formie/fields/get-signature-image', [
                 'submissionUid' => $submission->uid,
                 'fieldId' => $this->id,
@@ -114,7 +114,7 @@ class Signature extends Field implements PreviewableFieldInterface
             ]));
         }
 
-        if ($submission->usesLegacySignatureAccess() && Formie::$plugin->getSettings()->allowLegacySignatureImageUrls) {
+        if (SignatureAccess::usesLegacyAccess($submission) && Formie::$plugin->getSettings()->allowLegacySignatureImageUrls) {
             return StringHelper::sanitizeUrlAttribute(UrlHelper::actionUrl('formie/fields/get-signature-image', [
                 'submissionUid' => $submission->uid,
                 'fieldId' => $this->id,

@@ -39,26 +39,6 @@ final class IntegrationResult
         return new self(IntegrationStatus::Unknown, code: $code);
     }
 
-    public static function fromLegacy(mixed $value, bool $uncertain = false): self
-    {
-        if ($value instanceof self) {
-            return $value;
-        }
-        if ($uncertain) {
-            return self::unknown();
-        }
-        if ($value instanceof IntegrationResponse) {
-            $value = $value->success;
-        }
-        // Only documented stable returns have meaning. Objects, null and arbitrary
-        // response arrays cannot become success through PHP truthiness.
-        return match ($value) {
-            true => self::succeeded(),
-            false => self::failed('legacy_failure'),
-            default => self::unknown('invalid_provider_result'),
-        };
-    }
-
     public static function fromException(Throwable $error): self
     {
         do {
