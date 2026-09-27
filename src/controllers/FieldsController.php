@@ -123,13 +123,13 @@ class FieldsController extends Controller
                 $signatureValue = null;
 
                 foreach ($form->getCustomFields() as $field) {
-                    if ((int)$field->id === $fieldId) {
+                    if ((int)$field->id === $fieldId && $field instanceof Signature) {
                         $signatureValue = $submission->getFieldValue($field->handle);
                     }
 
                     if ($field instanceof NestedFieldInterface) {
                         foreach ($field->getCustomFields() as $nestedField) {
-                            if ((int)$nestedField->id === $fieldId) {
+                            if ((int)$nestedField->id === $fieldId && $nestedField instanceof Signature) {
                                 $row = $submission->getFieldValue($field->handle)->one();
 
                                 if ($row) {
