@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\errors\IntegrationException;
 
 use Craft;
+use craft\elements\User;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
@@ -195,6 +196,8 @@ class IntegrationsController extends Controller
 
     public function actionConnect(): ?Response
     {
+        $this->requirePostRequest();
+
         $integrationHandle = $this->request->getRequiredParam('integration');
 
         try {
@@ -231,7 +234,7 @@ class IntegrationsController extends Controller
             return $response;
         }
 
-        $oauth->claimCallback('formie');
+        $oauth->claimAuthorizedCallback('formie', fn(User $user): bool => $user->can('formie-accessSettings'));
         
         // Get both the origin (failure) and redirect (success) URLs
         $origin = Session::get('origin');
@@ -287,6 +290,8 @@ class IntegrationsController extends Controller
 
     public function actionDisconnect(): ?Response
     {
+        $this->requirePostRequest();
+
         $integrationHandle = $this->request->getRequiredParam('integration');
 
         if (!($integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($integrationHandle))) {

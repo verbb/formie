@@ -10,6 +10,7 @@
 
 ### Fixed
 - Fixed OAuth callback transaction validation.
+- Fixed authorization for connecting and disconnecting OAuth integrations.
 - Fixed a moderate-severity information disclosure vulnerability. (GHSA-rh4q-6j5r-8jqf)
 - Fixed a moderate-severity authorization vulnerability. (GHSA-p696-447f-9258)
 - Fixed a moderate-severity authorization vulnerability. (GHSA-qg3f-hm4x-h5h8)
