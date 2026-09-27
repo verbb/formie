@@ -283,10 +283,9 @@ class IntegrationsController extends Controller
                 return $this->asFailure(Craft::t('formie', 'Unable to find integration “{integration}”.', ['integration' => $integrationHandle]));
             }
 
-            // Keep track of which integration instance is for, so we can fetch it in the callback
-            Session::set('integrationHandle', $integrationHandle);
-
-            return Auth::getInstance()->getOAuth()->connect('formie', $integration);
+            return Auth::getInstance()->getOAuth()->connect('formie', $integration, $integration->id, [
+                'integrationHandle' => $integrationHandle,
+            ]);
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Unable to authorize connect “{integration}”: “{message}” {file}:{line}', [
                 'integration' => $integrationHandle,
@@ -307,8 +306,13 @@ class IntegrationsController extends Controller
 
     public function actionCallback(): ?Response
     {
-        // Restore the session data that we saved before authorization redirection from the cache back to session
-        Session::restoreSession($this->request->getParam('state'));
+        $oauth = Auth::getInstance()->getOAuth();
+
+        if ($response = $oauth->prepareCallback('formie')) {
+            return $response;
+        }
+
+        $oauth->claimCallback('formie');
         
         // Get both the origin (failure) and redirect (success) URLs
         $origin = Session::get('origin');
@@ -329,7 +333,7 @@ class IntegrationsController extends Controller
 
         try {
             // Fetch the access token from the integration and create a Token for us to use
-            $token = Auth::getInstance()->getOAuth()->callback('formie', $integration);
+            $token = $oauth->callback('formie', $integration, $integration->id);
 
             if (!$token) {
                 Session::setError('formie', Craft::t('formie', 'Unable to fetch token.'), true);

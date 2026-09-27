@@ -48,6 +48,7 @@
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
 
 ### Fixed
+- Fixed OAuth callback transaction validation.
 - Keep valid Save & Continue links usable when optional page-progress state expires or is removed.
 - Build the current database schema directly during fresh installs instead of replaying upgrade migrations.
 - Treat notification timing as order rather than implicit integration success, while leaving unknown outcomes unresolved and preserving explicit notification conditions.

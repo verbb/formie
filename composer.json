@@ -39,7 +39,7 @@
         "openspout/openspout": "^4.28.5",
         "stripe/stripe-php": "^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0 || ^12.0 || ^13.0 || ^14.0 || ^15.0 || ^16.0",
         "symfony/expression-language": "^5.0 || ^6.0 || ^7.0",
-        "verbb/auth": "^2.0.44",
+        "verbb/auth": "^2.0.48",
         "verbb/base": "^3.0.17",
         "verbb/tiptap": "^1.0.1"
     },
