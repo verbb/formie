@@ -4,6 +4,7 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Signature;
+use verbb\formie\fields\Summary;
 
 use Craft;
 use craft\helpers\Db;
@@ -87,7 +88,10 @@ class FieldsController extends Controller
             $submission = Submission::find()->uid($submissionUid)->isIncomplete(null)->one();
 
             if ($submission && $form = $submission->getForm()) {
-                if ($field = $form->getFieldById($fieldId)) {
+                // This endpoint is anonymous for Ajax forms, so never render arbitrary field values.
+                $field = $form->getFieldById($fieldId);
+
+                if ($field instanceof Summary) {
                     $value = $submission->getFieldValue($field->fieldKey);
 
                     return $field->getFrontEndInputHtml($form, $value);
