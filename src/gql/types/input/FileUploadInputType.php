@@ -9,6 +9,7 @@ use craft\base\Field as CraftField;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\types\QueryArgument;
 use craft\helpers\Assets as AssetsHelper;
+use craft\helpers\ConfigHelper;
 use craft\helpers\FileHelper;
 
 use yii\base\InvalidArgumentException;
@@ -62,6 +63,9 @@ class FileUploadInputType extends InputObjectType
     {
         $assetIds = [];
         $newValues = [];
+        $maxBytes = ConfigHelper::sizeInBytes(Craft::$app->getConfig()->getGeneral()->maxUploadFileSize);
+        $maxBytes = $maxBytes > 0 ? $maxBytes : 16777216;
+        $maxEncodedBytes = 4 * (int)ceil($maxBytes / 3);
 
         foreach ($values as $key => $value) {
             if (!empty($value['uploadUid'])) {
@@ -74,13 +78,25 @@ class FileUploadInputType extends InputObjectType
             // Translate `fileData` to `data` which the Craft Assets field natively supports. Also handle filename.
             if (!empty($value['fileData'])) {
                 $dataString = ArrayHelper::remove($value, 'fileData');
+                // Bound the input before regex captures or decoded copies are allocated.
+                if (!is_string($dataString) || strlen($dataString) > $maxEncodedBytes + 256) {
+                    throw new UserError('Uploaded file exceeds the maximum allowed size.');
+                }
                 // Each file must decode independently; a malformed later item must never
                 // inherit the previous file's bytes. Strict decoding rejects corrupt data.
                 $fileData = false;
 
                 if (preg_match('/\Adata:((?<type>[a-z0-9]+\/[a-z0-9\+\.\-]+);)?base64,(?<data>.+)\z/is', $dataString, $matches)) {
-                    // Decode the file
+                    $encoded = $matches['data'];
+                    $padding = str_ends_with($encoded, '==') ? 2 : (str_ends_with($encoded, '=') ? 1 : 0);
+                    $decodedBytes = intdiv(strlen($encoded) * 3, 4) - $padding;
+                    if (strlen($encoded) > $maxEncodedBytes || $decodedBytes > $maxBytes) {
+                        throw new UserError('Uploaded file exceeds the maximum allowed size.');
+                    }
                     $fileData = base64_decode($matches['data'], true);
+                    if ($fileData !== false && strlen($fileData) > $maxBytes) {
+                        throw new UserError('Uploaded file exceeds the maximum allowed size.');
+                    }
                 }
 
                 if ($fileData !== false && $fileData !== '') {
