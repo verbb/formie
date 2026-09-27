@@ -80,3 +80,30 @@ it('rotates a portable grant and invalidates its exchanged children without remo
         expect(Formie::$plugin->getSubmissionProgress()->getProgressState($form)->id)->toBe($progress->id);
     });
 });
+
+it('issues continue authority without manufacturing progress', function () {
+    \Tests\Support\WebRequestTestHelper::withWebRequestContext(function () {
+        [$form, $submission] = continuitySubmission();
+        $grants = Formie::$plugin->getSubmissionGrants();
+        $issued = $grants->issue($submission, SubmissionGrants::CONTINUE);
+
+        expect($issued->progressId)->toBeNull()
+            ->and($grants->verify($issued->token, SubmissionGrants::CONTINUE, $form)?->submissionId)->toBe($submission->id)
+            ->and((new Query())->from(Table::FORMIE_SUBMISSION_PROGRESS)->where(['submissionId' => $submission->id])->exists())->toBeFalse();
+    });
+});
+
+it('removes browser-only authority with its progress', function () {
+    \Tests\Support\WebRequestTestHelper::withWebRequestContext(function () {
+        [$form] = continuitySubmission();
+        $progress = Formie::$plugin->getSubmissionProgress()->upsertPageState($form);
+        $grants = Formie::$plugin->getSubmissionGrants();
+
+        expect($grants->bound($form, SubmissionGrants::CONTINUE)?->progressId)->toBe($progress->id);
+
+        Formie::$plugin->getSubmissionProgress()->deleteProgress($progress->id);
+
+        expect($grants->bound($form, SubmissionGrants::CONTINUE))->toBeNull()
+            ->and((new Query())->from(Table::FORMIE_SUBMISSION_GRANTS)->where(['progressId' => $progress->id])->exists())->toBeFalse();
+    });
+});

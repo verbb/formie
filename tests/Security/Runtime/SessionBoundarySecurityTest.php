@@ -42,13 +42,16 @@ it('enforces grant purpose and revocation without escalation', function (): void
     expect($grants->verify($grant->token, \verbb\formie\services\SubmissionGrants::CONTINUE, $form))->toBeNull();
 })->group('security');
 
-it('invalidates grants when their canonical progress is deleted', function (): void {
+it('keeps submission grants valid when optional progress is deleted', function (): void {
     [$form, $submission] = continuitySubmission();
     $progress = Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission);
     $grants = Formie::$plugin->getSubmissionGrants();
     $grant = $grants->issue($submission, \verbb\formie\services\SubmissionGrants::CONTINUE, $progress->id);
     Formie::$plugin->getSubmissionProgress()->deleteProgress($progress->id);
-    expect($grants->verify($grant->token, \verbb\formie\services\SubmissionGrants::CONTINUE, $form))->toBeNull();
+    $verified = $grants->verify($grant->token, \verbb\formie\services\SubmissionGrants::CONTINUE, $form);
+    expect($verified)->not->toBeNull()
+        ->and($verified->submissionId)->toBe($submission->id)
+        ->and($verified->progressId)->toBeNull();
 })->group('security');
 
 it('reissues refresh-session tokens instead of trusting attacker supplied token blobs', function (): void {

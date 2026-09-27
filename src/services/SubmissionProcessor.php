@@ -172,7 +172,7 @@ class SubmissionProcessor extends Component
             $form->setSubmission($submission);
         } else {
             $form->setCurrentSubmission($submission);
-            $progress = $grant->progressId ? Formie::$plugin->getSubmissionProgress()->loadProgress($grant->progressId) : null;
+            $progress = Formie::$plugin->getSubmissionGrants()->resolveProgress($grant);
             if ($progress?->currentPageId) {
                 $form->setCurrentPage($this->_resolvePageById($form, $progress->currentPageId));
             }

@@ -910,7 +910,7 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_SUBMISSION_PROGRESS, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSION_PROGRESS, ['siteId'], '{{%sites}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, ['parentId'], Table::FORMIE_SUBMISSION_GRANTS, ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, ['progressId'], Table::FORMIE_SUBMISSION_PROGRESS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, ['progressId'], Table::FORMIE_SUBMISSION_PROGRESS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, ['siteId'], '{{%sites}}', ['id'], 'CASCADE', null);

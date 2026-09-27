@@ -51,16 +51,11 @@ class SubmissionGrants extends Component
             $expiresAt = min($expiresAt, $submission->dateUpdated->getTimestamp() + $settings->maxIncompleteSubmissionAge * 86400);
         }
         $expiresAt = min($expiresAt, $this->_targetDeadline($submission));
-        if ($purpose === self::CONTINUE && $progressId === null) {
-            $existingId = (new Query())->select('id')->from(Table::FORMIE_SUBMISSION_PROGRESS)->where(['submissionId' => $submission->id])->andWhere(['>', 'expiresAt', time()])->scalar();
-            $progressId = $existingId ? (int)$existingId : Formie::$plugin->getSubmissionProgress()->upsertProgressState($submission->getForm(), $submission)?->id;
-        }
         if ($progressId !== null) {
             $progress = Formie::$plugin->getSubmissionProgress()->loadProgress($progressId);
             if (!$progress || $progress->submissionId !== (int)$submission->id || $progress->formId !== (int)$submission->formId || $progress->siteId !== (int)$submission->siteId) {
                 throw new InvalidArgumentException('Progress does not match the grant target.');
             }
-            $expiresAt = min($expiresAt, $progress->expiresAt);
         }
         $token = Craft::$app->getSecurity()->generateRandomString(64);
         $row = [
@@ -135,6 +130,22 @@ class SubmissionGrants extends Component
             }
         }
         return null;
+    }
+
+    /** Progress restores navigation only; grant validity never depends on it. */
+    public function resolveProgress(SubmissionGrant $grant): ?ProgressState
+    {
+        if (!$grant->progressId) {
+            return null;
+        }
+
+        $progress = Formie::$plugin->getSubmissionProgress()->loadProgress($grant->progressId);
+
+        if (!$progress || $progress->formId !== $grant->formId || $progress->siteId !== $grant->siteId || $progress->submissionId !== $grant->submissionId) {
+            return null;
+        }
+
+        return $progress;
     }
 
     public function revoke(int $id): void
@@ -222,14 +233,10 @@ class SubmissionGrants extends Component
                 return false;
             }
         }
-        if ($row['progressId']) {
-            $progress = Formie::$plugin->getSubmissionProgress()->loadProgress((int)$row['progressId']);
-            if (!$progress || $progress->formId !== (int)$row['formId'] || $progress->siteId !== (int)$row['siteId'] || $progress->submissionId !== ($row['submissionId'] === null ? null : (int)$row['submissionId'])) {
-                return false;
-            }
-        }
         if (!$row['submissionId']) {
-            return $purpose === self::CONTINUE && $row['progressId'] !== null;
+            // Browser-only bindings have no durable submission authority. Their
+            // progress row is their target, so they end when that row disappears.
+            return $purpose === self::CONTINUE && $this->resolveProgress($this->_model($row)) !== null;
         }
         $submission = Submission::find()->id((int)$row['submissionId'])->siteId((int)$row['siteId'])->isIncomplete(null)->isSpam(null)->status(null)->one();
         if ($submission && $submission->isIncomplete) {

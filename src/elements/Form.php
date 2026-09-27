@@ -3721,7 +3721,7 @@ class Form extends Element implements FormInterface
         if (!$submission) {
             return;
         }
-        $progress = $grant->progressId ? Formie::$plugin->getSubmissionProgress()->loadProgress($grant->progressId) : null;
+        $progress = Formie::$plugin->getSubmissionGrants()->resolveProgress($grant);
         if ($progress?->currentPageId) {
             foreach ($this->getPages() as $page) {
                 if ((int)$page->id === $progress->currentPageId) {

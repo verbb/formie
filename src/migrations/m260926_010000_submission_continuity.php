@@ -49,7 +49,7 @@ class m260926_010000_submission_continuity extends Migration
             $this->createIndex(null, Table::FORMIE_SUBMISSION_GRANTS, ['formId', 'siteId', 'bindingHash']);
             $this->createIndex(null, Table::FORMIE_SUBMISSION_GRANTS, 'expiresAt');
             $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, 'parentId', Table::FORMIE_SUBMISSION_GRANTS, 'id', 'CASCADE');
-            $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, 'progressId', Table::FORMIE_SUBMISSION_PROGRESS, 'id', 'CASCADE');
+            $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, 'progressId', Table::FORMIE_SUBMISSION_PROGRESS, 'id', 'SET NULL');
             $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, 'submissionId', Table::FORMIE_SUBMISSIONS, 'id', 'CASCADE');
             $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, 'formId', Table::FORMIE_FORMS, 'id', 'CASCADE');
             $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, 'siteId', '{{%sites}}', 'id', 'CASCADE');

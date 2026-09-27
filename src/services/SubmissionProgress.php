@@ -21,9 +21,11 @@ class SubmissionProgress extends Component
 
     public function getProgressState(Form $form): ?ProgressState
     {
-        // Only a live browser binding resolves progress. The progress ID is never authority.
+        // Only a live browser binding resolves progress. Submission authority can
+        // survive this optional navigation state, but browser-only bindings cannot.
         $grant = Formie::$plugin->getSubmissionGrants()->bound($form, SubmissionGrants::CONTINUE);
-        return $grant?->progressId ? $this->loadProgress($grant->progressId) : null;
+
+        return $grant ? Formie::$plugin->getSubmissionGrants()->resolveProgress($grant) : null;
     }
 
     public function loadProgress(int $id): ?ProgressState
@@ -108,13 +110,37 @@ class SubmissionProgress extends Component
 
     public function deleteProgress(int $id): void
     {
-        Craft::$app->getDb()->createCommand()->delete(Table::FORMIE_SUBMISSION_PROGRESS, ['id' => $id])->execute();
+        $db = Craft::$app->getDb();
+
+        // A browser-only binding has no submission to authorize after its progress
+        // disappears. Submission grants remain and lose only their navigation hint.
+        $db->createCommand()->delete(Table::FORMIE_SUBMISSION_GRANTS, [
+            'progressId' => $id,
+            'submissionId' => null,
+        ])->execute();
+        $db->createCommand()->delete(Table::FORMIE_SUBMISSION_PROGRESS, ['id' => $id])->execute();
     }
 
     public function pruneProgress(): int
     {
-        Craft::$app->getDb()->createCommand()->delete('{{%formie_instance_configs}}', ['<=', 'expiresAt', time()])->execute();
-        return Craft::$app->getDb()->createCommand()->delete(Table::FORMIE_SUBMISSION_PROGRESS, ['<=', 'expiresAt', time()])->execute();
+        $db = Craft::$app->getDb();
+        $now = time();
+        $expiredIds = (new Query())
+            ->select('id')
+            ->from(Table::FORMIE_SUBMISSION_PROGRESS)
+            ->where(['<=', 'expiresAt', $now])
+            ->column();
+
+        $db->createCommand()->delete('{{%formie_instance_configs}}', ['<=', 'expiresAt', $now])->execute();
+
+        if ($expiredIds) {
+            $db->createCommand()->delete(Table::FORMIE_SUBMISSION_GRANTS, [
+                'progressId' => $expiredIds,
+                'submissionId' => null,
+            ])->execute();
+        }
+
+        return $db->createCommand()->delete(Table::FORMIE_SUBMISSION_PROGRESS, ['id' => $expiredIds])->execute();
     }
 
 
