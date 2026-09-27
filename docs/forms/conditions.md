@@ -48,8 +48,8 @@ When editing a submission in the control panel, Formie can apply the same field 
 
 ## Choosing Sources and Comparisons
 
-New field rules use earlier fields or preceding siblings. Page visibility uses previous pages; page-button rules can use the whole current page. The comparison menu follows the selected field's value type. Text comparisons are case-sensitive and text ordering is alphabetical; Number fields compare numeric values. Options match their complete stored values.
+Field conditions can use answers from earlier fields, including earlier fields in the same Group or Repeater. Page conditions can use answers from previous pages; button conditions can use any field on the current page. The comparison menu shows the options available for the selected field. Text comparisons are case-sensitive, Number fields compare numbers, and option fields match their stored option values.
 
-Formie clears hidden and disabled answers before validating or saving, including values inside Groups and Repeaters. Changing an answer can therefore remove content that is no longer relevant. An invalid show rule keeps its field hidden, while an invalid hide rule keeps it visible. Invalid navigation, notification and integration rules block that operation and record a diagnostic. Correct missing references or dependency cycles in the builder before publishing the form.
+Formie clears answers when their fields become hidden or disabled, including fields inside Groups and Repeaters. For example, changing “Delivery” to “Collection” can clear an address that is no longer needed. Test both paths before publishing, and fix any condition errors shown in the builder.
 
-Visitors cannot bypass page requirements by changing a posted page target. A blocked Next action stays on the current page and shows an error; Back and Save Draft do not validate the page. Validation messages point to the exact control, including the affected repeater row.
+If a visitor cannot continue, the form stays on the current page and shows an error. Going back or saving a draft does not require the page to be valid.

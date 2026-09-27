@@ -51,7 +51,7 @@ Use `rows` when you need the form’s layout structure. Use `formFields` when yo
 }
 ```
 
-Older examples may refer to fields such as `templateHtml`, `csrfToken`, `captchas`, `submissionMutationName` or `submissionEndpoint` on `formieForm`. Those values now live in the dedicated rendering and front-end payload queries covered in [Rendering Forms](/graphql/rendering-forms).
+Use `formieHtmlForm` for server-rendered HTML or `formieClientForm` for a client-rendered definition and session. [Rendering Forms](/graphql/rendering-forms) explains how to load the markup, tokens and submission details for each approach.
 
 ## Form Settings
 

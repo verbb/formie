@@ -76,7 +76,7 @@ Spam keywords are stored in the spam settings store (with optional project-confi
 
 This is commonly done with a Global Set. For example, if you had a Global Set called `Forms` and a field called `Spam Keywords`, you could reference it in the Formie spam keywords setting with `{forms.spamKeywords}`.
 
-Spam keyword and IP rules are evaluated by `SpamHelper` during the `screen.evaluateSpam` workflow task. That includes `[match:]` logical rules, `[ip:]` ranges and CIDR notation, and field/global references in keyword lines.
+Keyword rules can include `[match:]` comparisons, `[ip:]` ranges and CIDR notation, and field or global references.
 
 ### Email Rules
 
@@ -97,7 +97,7 @@ Configure these under **Formie → Settings → Spam Protection → Content Rule
 - **Suspicious text detection** — flags keyboard spam, random character strings, and other low-quality filler text in submission fields. Add **Allowed terms** (one per line) for abbreviations or product codes that should not be flagged.
 - **Maximum links** — marks submissions as spam when the total number of links across all fields exceeds the configured limit.
 
-Both rules run during the **`screen.evaluateSpam`** workflow task, after email rules and before spam keywords.
+Formie checks these rules after email rules and before spam keywords.
 
 ## Submission Throttling
 
@@ -110,7 +110,7 @@ For contest, registration, or quota-style caps, use per-form **[Submission limit
 | **Global submission throttling** | Caps the total number of submissions allowed across **all forms** within a time window. Intended for emergency abuse protection during spam floods, not fine-tuning individual forms. |
 | **IP submission throttling** | Requires a minimum **wait time** between submissions from the same IP address on the **same form**. This is not the same as a per-IP **count** limit on the form — see [Submission limits](/forms/submission-limits#ip-wait-time-vs-ip-count-limits). |
 
-Throttling runs at the submission boundary before honeypot and content screening. Structured HTTP transports return 429 when a rate limit is exceeded. Drafts and page-state writes receive these checks too.
+Throttling blocks requests that exceed the configured limits, including draft saves and page changes. It runs before the other spam checks.
 
 Use conservative values for global throttling. For example, `1 per minute` across the entire site would block all users after the first submission.
 
@@ -133,9 +133,9 @@ Honeypot, minimum submit time, and replay protection are enabled by default. For
 
 Guards are not captcha integrations. They do not appear in the form builder’s captcha picker, and they do not use provider credentials.
 
-Formie applies these safeguards at the explicit outer boundary. Browser honeypot and expiration checks protect writes; minimum submit time applies to forward submission. Signed request-token integrity, ownership, rate and replay safeguards also apply to interactive REST and GraphQL. They are not skipped because the visitor is logged in.
+Formie checks these safeguards before processing the form, including for logged-in visitors. Visitors can correct validation errors and submit again. If a connection fails after a successful submission, retrying the same request recovers its result rather than creating a duplicate.
 
-Client REST and interactive GraphQL send the signed token in `session.tokens.request`, as issued by bootstrap or session refresh. Successful operations keep a seven-day durable receipt for lost-response recovery. Validation failures leave the token available for corrected input. Receipt replay and expected-version checks remain mandatory parts of the operation boundary.
+Custom REST and GraphQL clients must send the session tokens returned when they load the form. See [Rendering Forms](/graphql/rendering-forms) for client setup.
 
 The honeypot field and `formStartedAt` timestamp are rendered automatically for browser forms. You do not need to add them manually in templates.
 

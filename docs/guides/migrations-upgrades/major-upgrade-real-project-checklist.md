@@ -42,7 +42,7 @@ return [
 - Reconnect OAuth integrations (Stripe, Mailchimp, and so on)
 - Confirm form groups, stencils, and reports if used
 - Verify submission export via **Formie → Reports** (the **Export** button no longer appears on the submissions index — see [Reports and submission export](/get-started/upgrading-from-v3#reports-and-submission-export))
-- Grant **Access reports** and **Export submissions** (or **Manage reports**) to user groups that exported from the submissions index in Formie 3
+- Grant **Access reports** and **Export submissions** (or **Manage reports**) to user groups responsible for submission exports
 
 ## Phase 4 — Template and Front-End
 

@@ -39,7 +39,7 @@ export function ContactForm({ payload }: { payload: FormEndpointPayload }) {
 }
 ```
 
-Client-rendered forms can read and submit through the canonical client-rendered contract:
+Client-rendered forms can load their definition and submit through REST or GraphQL:
 
 ```tsx
 import { FormieClientForm } from '@verbb/formie-react';

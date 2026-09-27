@@ -2,7 +2,7 @@
 
 Override settings in a template when the saved form should stay the same, but one render needs slightly different behaviour.
 
-Load a form occurrence, apply the trusted settings APIs, then render it. Formie isolates its field, page and form settings from the saved definition. It can be useful for template-specific redirects, field labels, placeholders, visibility, or dynamic option lists.
+Load the form, change its settings using the methods below, then render it. This is useful for template-specific redirects, field labels, placeholders, visibility, or dynamic option lists.
 
 ::: warning
 These overrides rely on the Twig template being evaluated before the form is rendered. On a statically cached page, the cached HTML will keep the settings from the render that created the cache. Formie's cached-form support can refresh request tokens for the cached form, but it does not re-run template overrides or rebuild the field markup on each cached page load. See [Cached Forms](/frontend/cached-forms) for how static-cache support works.
@@ -134,11 +134,13 @@ Passing an invalid attribute format throws an exception instead of being silentl
 
 ## Configuration Lifetime
 
-`setSettings()`, `setPageSettings()`, `setFieldSettings()`, `setIntegrationSettings()` and `setRedirectUrl()` are trusted PHP/Twig authoring APIs. Browser submissions, REST and GraphQL accept field values; they cannot supply these settings. Unknown targets and forbidden properties raise a template error. Custom fields extend `runtimeOverridableSettings()` to opt additional properties into the trusted boundary.
+Apply overrides in PHP or Twig before rendering. Visitors cannot change these settings through submitted values. An unknown field or page, or a setting that does not support overrides, causes a template error. Custom field developers can declare additional supported settings with `runtimeOverridableSettings()`.
 
-The saved form is the base. A `FormInstanceConfig` describes one embedded occurrence. Formie stores an encrypted database record only when that occurrence has configuration or captured query values to retain before submission; its signed request token contains an opaque reference. The submission’s versioned `SubmissionConfig`, exposed through its `snapshot` property, retains allowed settings for later pages, resume, notifications, integrations and completion. Instance records expire after seven days. Re-render statically cached pages within that period so they can establish a new configuration reference. Cosmetic field attributes remain render-scoped. Provider credentials and global integration settings cannot be overridden through this API.
+Overrides leave the saved form unchanged. Formie keeps settings needed for later pages, resumed submissions, notifications, integrations and completion. Cosmetic field attributes apply only to the rendered form. Provider credentials and global integration settings cannot be overridden this way.
 
-Nested field handles such as `contact.address.city` resolve to stable field UIDs. Pages accept their handle, index or UID. Repeated calls merge associative maps recursively; lists replace lists, and explicit null or empty arrays replace existing values. A missing key leaves the previous value alone.
+Configuration attached to an unsubmitted form expires after seven days. Refresh statically cached pages within that period so visitors receive a working form.
+
+Use dot-separated handles such as `contact.address.city` for nested fields. Pages accept their handle, index or UID. Repeated calls merge named settings, but replace lists. Passing `null` or an empty array clears the previous value; omitting a setting leaves it unchanged.
 
 ```twig
 {% do form.setPageSettings(0, { submitButtonLabel: 'Continue' }) %}

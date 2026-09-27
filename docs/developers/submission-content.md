@@ -212,4 +212,4 @@ $integrationValue = $submission->getFieldValueForIntegration('billingAddress', $
 
 Use **reference** when you need the singular, string-like field value. Use **reference block** when you need the richer block value used by notification field rendering.
 
-`getFieldValue()` accepts only the field key and returns the normalised runtime value. Use these explicit projection helpers for each consumer. The Formie 3 `getFieldValueAsJson()` helper is deprecated and delegates to `getFieldValueAsData()`.
+`getFieldValue()` returns the field’s PHP value. Use the helpers above when you need display text, JSON-safe data, exports or integration values.

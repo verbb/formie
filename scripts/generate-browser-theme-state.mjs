@@ -14,7 +14,7 @@ const typescript = `// Generated from src/config/browser-theme-state.json. Do no
 const rows = Object.entries(manifest).map(([key, value]) => {
     return `| \`${key}\` | ${value.classes.map((className) => `\`${className}\``).join(', ') || 'None'} | ${value.description} |`;
 }).join('\n');
-const docs = `# Browser Theme State\n\n<!-- Generated from src/config/browser-theme-state.json. Do not edit by hand. -->\n\nThese semantic keys are the shared contract used by PHP-rendered markup and browser-created state. Configure the keys at the root of \`themeConfig\`; the resolved map is emitted as \`data-formie-theme-classes\`.\n\n| Key | Default classes | Purpose |\n| --- | --- | --- |\n${rows}\n`;
+const docs = `# Browser Theme State\n\n<!-- Generated from src/config/browser-theme-state.json. Do not edit by hand. -->\n\nUse these keys to customise classes for loading, validation errors and other states that change in the browser. Add them at the root of \`themeConfig\`; Formie outputs the classes in \`data-formie-theme-classes\`.\n\n| Key | Default classes | Purpose |\n| --- | --- | --- |\n${rows}\n`;
 
 await Promise.all([
     fs.writeFile(typescriptPath, typescript),

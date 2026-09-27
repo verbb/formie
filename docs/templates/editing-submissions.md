@@ -52,12 +52,12 @@ The token works as bearer access for that rendered edit form. This means unauthe
 
 ## Submission Version
 
-Include this alongside the edit grant and request token in a custom edit form:
+Include this alongside the edit and request tokens in a custom edit form:
 
 ```twig
 {{ hiddenInput('expectedVersion', submission.stateVersion) }}
 ```
 
-The version identifies the state the visitor edited. A stale version is rejected before posted values are applied; reload the record and review the changes before trying again. A submission ID or UID alone does not authorise editing.
+This prevents an older edit form from overwriting changes saved by someone else. If the submission has changed, reload it and review those changes before trying again.
 
-Edit grants are hashed, expiring and revocable. A completed submission uses a Revise grant; an incomplete submission uses Continue and the Submit operation. Re-render the authorised edit form if a grant expires.
+Edit tokens can expire or be revoked. Render the authorised edit form again to obtain a fresh token if it expires.

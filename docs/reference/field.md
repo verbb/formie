@@ -127,9 +127,7 @@ The field settings.
 
 ## Methods
 
-`valueType()` declares the post-normalisation runtime type. `normalizeFieldValue()` asserts it. All fields accept null input; each field defines its normalised empty value.
-
-`serializeValueForDb()` calls the owning field's protected `defineValueForDb()` and applies whole-value encryption. `serializeValueForClientInput()` supplies browser inputs. These are separate from public data and condition projections; never pass request input to `normalizeValueFromStorage()`.
+The methods below help you render fields and read their values. For implementing storage and value handling in your own field type, see [Custom Field](/developers/custom-field#normalised-values-and-projections).
 
 
 ::: reference

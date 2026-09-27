@@ -62,7 +62,7 @@ Do **not** put form builder content in `formie.php` or `site.php`:
 - Success, error, limit, or scheduling messages
 - Notification subject or body edited in the form builder
 
-Field labels and form messages belong in the form builder (or [site overrides](/forms/multi-site-and-translation#content-translation) on multi-site projects), not in translation files. If your project still has entries like `'Your name' => 'Votre nom'` in `formie.php`, move that wording into the builder — see [Upgrading From v3 → Form content translations](/get-started/upgrading-from-v3#form-content-translations).
+Field labels and form messages belong in the form builder (or [site overrides](/forms/multi-site-and-translation#content-translation) on multi-site projects), not in translation files. For projects that have entries like `'Your name' => 'Votre nom'` in `formie.php`, follow the [form content translation upgrade guidance](/get-started/upgrading-from-v3#form-content-translations).
 
 ## Multi-Site vs Static Files
 
@@ -102,4 +102,3 @@ Add overrides to `translations/{locale}/formie.php` for the English source keys 
 **Two English sites need different labels**
 
 Use CP site overrides. A single `translations/en/formie.php` file cannot distinguish between Craft sites.
-

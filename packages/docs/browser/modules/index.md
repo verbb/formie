@@ -1,6 +1,6 @@
 # Browser Modules
 
-Browser modules add behaviour to server-rendered HTML and client-rendered forms. PHP discovers the declarations once, and every supported consumer receives the same versioned collection. The consumer chooses applicable entries from their declared surfaces; it does not construct a second list of modules.
+Browser modules add features such as date pickers, CAPTCHA widgets and file uploads. Formie includes the modules each form needs. Use this reference when declaring modules for a custom field or building a custom client.
 
 A `BrowserModuleDefinition` describes trusted executable code registered in your JavaScript bundle. Its namespaced `moduleId`, such as `formie:date-picker` or `acme:rating`, identifies that code. A `BrowserModuleEntry` configures one occurrence. A `BrowserModuleInstance` holds one mounted occurrence and its cleanup. `BrowserModuleManifest` names the complete wire collection.
 

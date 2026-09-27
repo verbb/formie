@@ -2,7 +2,7 @@
 
 <!-- Generated from src/config/browser-theme-state.json. Do not edit by hand. -->
 
-These semantic keys are the shared contract used by PHP-rendered markup and browser-created state. Configure the keys at the root of `themeConfig`; the resolved map is emitted as `data-formie-theme-classes`.
+Use these keys to customise classes for loading, validation errors and other states that change in the browser. Add them at the root of `themeConfig`; Formie outputs the classes in `data-formie-theme-classes`.
 
 | Key | Default classes | Purpose |
 | --- | --- | --- |

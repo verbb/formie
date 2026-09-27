@@ -152,4 +152,4 @@ If Formie is still outputting its browser script for you and you only need to ta
 
 ## Rendering contracts
 
-See [Rendering products and request profiles](/browser/rendering-contract) for the versioned client-rendered bootstrap, module lifecycle, transport boundaries and Formie 4 beta migration.
+See [Rendering Products and Request Profiles](/browser/rendering-contract) to choose how forms load and submit, including when your application and Craft use different domains.

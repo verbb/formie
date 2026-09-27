@@ -191,7 +191,7 @@ Available condition context includes `form`, `field`, `page`, `currentPage`, `ro
 
 Some UI states change in the browser without a server re-render — tab changes, hidden pages, loading buttons, validation errors. Twig conditionals in `themeConfig` will not re-evaluate for those updates.
 
-Define **root-level semantic class keys** at the top level of `themeConfig` (not inside a slot). Formie embeds resolved classes on `data-formie-theme-classes` and the browser package toggles them. See the generated [Browser Theme State reference](/reference/browser-theme-state) for every canonical key:
+Define **state class keys** at the top level of `themeConfig` (not inside a slot). Formie embeds resolved classes on `data-formie-theme-classes` and the browser package toggles them. See [Browser Theme State](/reference/browser-theme-state) for the available keys:
 
 | Key | When applied |
 | --- | --- |

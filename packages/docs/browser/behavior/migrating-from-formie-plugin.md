@@ -1,8 +1,8 @@
 # Migrating from Formie Plugin
 
-This page is for projects moving from the JavaScript bundled with older Formie plugin releases to `@verbb/formie-browser`. The package is new for Formie 4, but it still includes a compatibility bridge so older browser integrations can move over in stages instead of rewriting every listener at once.
+Use the compatibility bridge to move existing browser integrations to `@verbb/formie-browser` one listener at a time. It forwards supported DOM and validator events while you update your handlers.
 
-Use the bridge only as a migration step. The long-term target is Formie 4's canonical `formie:*` event surface.
+Use the bridge only as a migration step, then register all listeners with the `formie:*` event names.
 
 ## What Changed
 

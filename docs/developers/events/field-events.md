@@ -278,28 +278,8 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_STRING, f
 });
 ```
 
-### The `modifyValueAsJson` Event
-Deprecated Formie 3 constant: `EVENT_MODIFY_VALUE_AS_JSON` aliases `EVENT_MODIFY_VALUE_AS_DATA`. Register with the data constant for new code; only one event is dispatched per data projection. You can use this on any class that extends the `verbb\formie\base\Field` class.
-
-Modify the `value` event property to set the value used.
-
-```php
-use verbb\formie\fields\SingleLineText;
-use verbb\formie\events\ModifyFieldValueEvent;
-use yii\base\Event;
-
-Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_JSON, function(ModifyFieldValueEvent $event) {
-    $field = $event->field;
-    $value = $event->value;
-    $submission = $event->submission;
-
-    // Overwrite the value
-    $event->value = 'My Custom Value';
-});
-```
-
 ### The `modifyValueAsData` Event
-Triggered when projecting natural JSON-safe data, which may be a scalar, null or structured array. This event does not run during database or browser-input serialization. You can use this on any class that extends the `verbb\formie\base\Field` class.
+The event that is triggered when a field's value is prepared as JSON-safe data. The value can be a scalar, null or structured array. This event does not run when preparing database storage or browser inputs. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
 
@@ -314,7 +294,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_DATA, fun
     $submission = $event->submission;
 
     // Overwrite the value
-    $event->value = ['My Custom Value'];
+    $event->value = 'My Custom Value';
 });
 ```
 
@@ -426,7 +406,7 @@ use verbb\formie\fields\Address;
 use yii\base\Event;
 
 Event::on(Address::class, Address::EVENT_MODIFY_NESTED_FIELD_LAYOUT, function(ModifyNestedFieldLayoutEvent $event) {
-    // Lookup the last name sub-field. We can no longer rely on a static order
+    // Look up the sub-field by handle; its position in the layout can change.
     $address1 = $event->fieldLayout->getFieldByHandle('address1');
 
     // Modify the `address1` field - a `SingleLineText` field.
@@ -511,7 +491,7 @@ use verbb\formie\fields\Date;
 use yii\base\Event;
 
 Event::on(Date::class, Date::EVENT_MODIFY_NESTED_FIELD_LAYOUT, function(ModifyNestedFieldLayoutEvent $event) {
-    // Lookup the last name sub-field. We can no longer rely on a static order
+    // Look up the sub-field by handle; its position in the layout can change.
     $year = ArrayHelper::firstWhere($event->fields, 'handle', 'year');
 
     $yearOptions = [];
@@ -641,7 +621,7 @@ use verbb\formie\fields\Name;
 use yii\base\Event;
 
 Event::on(Name::class, Name::EVENT_MODIFY_NESTED_FIELD_LAYOUT, function(ModifyNestedFieldLayoutEvent $event) {
-    // Lookup the last name sub-field. We can no longer rely on a static order
+    // Look up the sub-field by handle; its position in the layout can change.
     $lastName = $event->fieldLayout->getFieldByHandle('lastName');
 
     // Modify the `lastName` field - a `SingleLineText` field.

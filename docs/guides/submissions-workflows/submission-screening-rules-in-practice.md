@@ -1,6 +1,6 @@
 # Submission Screening Rules in Practice
 
-Submission screening is Formie's unified layer for deciding whether a submission is legitimate before it is saved and dispatched. This guide shows how guards, captchas, and content rules work together in practice — and how to tune them without blocking real users.
+Use Formie's spam settings to block automated submissions while allowing legitimate visitors to finish their forms. This guide combines built-in safeguards, CAPTCHA providers and content rules for a public contact form.
 
 ## Prerequisites
 
@@ -9,9 +9,9 @@ Submission screening is Formie's unified layer for deciding whether a submission
 
 ## Where Screening Runs
 
-A valid final Submit reaches Screen after field validation. Formie evaluates local content-spam rules first, then checks CAPTCHA unless the spam policy already determines the result. Request integrity, ownership, rate limits and browser bot safeguards run at the submission boundary before these tasks.
+Formie checks completed forms for spam after field validation. It checks content rules first, then CAPTCHA unless a rule has already identified the submission as spam. Built-in request safeguards, such as throttling and honeypots, run before these checks.
 
-SaveDraft and Revise skip content screening. Draft and page-state writes still encounter their applicable cheap safeguards. Invalid field values stop before any content spam check or external CAPTCHA call.
+Draft saves and edits to existing submissions skip content screening. Draft saves and page changes still have request safeguards. Visitors with invalid field values can correct them before a CAPTCHA check is used.
 
 ## Layer 1: Submission Guards
 
@@ -24,11 +24,7 @@ Guards are global passive checks under **Formie → Settings → Spam Protection
 | Form submit expiration | Off | Rejects stale sessions left open too long |
 | Replay protection | On | Prevents duplicate POST with same token |
 
-**Universal guards** (global throttling, IP throttling, replay protection, required request token) apply to browser, client REST, and GraphQL submissions.
-
-**Browser-only guards** (honeypot, minimum submit time, form submit expiration) run only for traditional form posts with `handle` and `submitAction` in the body.
-
-Client REST and GraphQL must include a `requestToken` from `formieClientForm` or `refreshFormieClientSession`.
+Formie’s standard form rendering includes the fields and tokens these safeguards need. For a custom REST or GraphQL client, use the session returned when you [load the form](/graphql/rendering-forms).
 
 ### Practical Tuning
 
@@ -43,7 +39,7 @@ Enable captchas per form when guards and keywords are not enough:
 1. Configure provider credentials under **Settings → Spam Protection → Captchas**.
 2. Enable providers on the form in the form builder.
 
-Third-party scoring services (Akismet, CleanTalk, OOPSpam) classify content without showing a puzzle — they still run in `screen.verifyCaptcha`.
+Services such as Akismet, CleanTalk and OOPSpam check content without showing visitors a puzzle. Configure them in the same Captchas area.
 
 See [Captchas](/integrations/captchas/) for provider setup.
 
@@ -57,7 +53,7 @@ Under **Content Rules → Email Rules**:
 - **Blocked domains** — one domain per line
 - **Block free email providers** — rejects disposable/free addresses
 
-These run during `screen.evaluateSpam` and mark submissions as spam — not field validation errors. Per-field email settings still run separately during validation.
+These rules mark a submission as spam. Email validation configured on an individual field instead shows a field error that the visitor can correct.
 
 ### Text Rules
 
@@ -84,7 +80,7 @@ See [Spam keywords in detail](/guides/configuration/spam-keywords-in-detail) for
 
 ## Submission Throttling vs Submission Limits
 
-**Throttling** (under Spam Protection) is abuse protection — caps rapid repeat submits and marks excess as spam.
+**Throttling** (under Spam Protection) blocks requests that exceed the configured rate, helping protect the site from floods of submissions.
 
 **Submission limits** (per form in the builder) are business rules — registration caps, contest entry limits, closing the form when full.
 
@@ -109,21 +105,8 @@ Under **Spam Protection → Spam handling**, choose:
 | Keywords | `[match: viagra OR cialis]` plus project-specific terms |
 | Throttling | IP wait time 30s on the contact form via submission limits; global throttling off unless under attack |
 
-## Extending Screening
+## Test Your Form
 
-Insert custom tasks relative to built-in names:
+Submit a realistic enquiry and check that it reaches the expected success page and notification recipient. Then try a keyword that your rules block and confirm the configured spam response. Review saved spam for false positives before tightening the rules.
 
-```php
-use verbb\formie\enums\workflow\Task;
-use verbb\formie\events\RegisterStageTasksEvent;
-use verbb\formie\services\SubmissionWorkflow;
-use yii\base\Event;
-
-Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_STAGE_TASKS, function(RegisterStageTasksEvent $event) {
-    if ($event->stage !== 'screen') {
-        return;
-    }
-
-    $event->insertTaskAfter(Task::SCREEN_RUN_SUBMISSION_GUARDS->value, new MyFraudScoreTask());
-});
-```
+If a project needs a custom spam check, a developer can add a [workflow task](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch). The [workflow reference](/developers/submission-workflow#stages-and-public-anchors) lists where it can run.

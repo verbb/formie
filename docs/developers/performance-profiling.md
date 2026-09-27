@@ -1,6 +1,6 @@
 # Performance Profiling
 
-Formie includes a repeatable profiler for builder, rendering, browser bootstrap and submission journeys. Run it only against the dedicated test environment:
+When contributing performance changes to Formie, use the repository’s DDEV test environment to compare builder, rendering and submission timings. This command requires that test environment; it is not a command for an installed production site:
 
 ```bash
 ddev test --task=profile run all --profile=medium --iterations=10 --format=ndjson
@@ -19,10 +19,10 @@ Keep the raw before/after output with the change. Any claimed optimisation shoul
 - a functional regression test for the removed work;
 - repeated-render and invalidation coverage where a cache is involved.
 
-Do not weaken functional assertions to satisfy a budget. Investigate regressions relative to the established programme baseline.
+Check that the same forms still behave correctly after the change, including repeated renders and edits to cached settings.
 
 ## Cache Policy
 
 Prefer request- or instance-scoped memoisation with an explicit invalidation point. Broad persistent caching of layouts or rendered HTML is not a default optimisation: it risks stale builder, project-config and portability behaviour.
 
-Form getters must not mutate layout structure during export or render. Formie deliberately keeps the page/row/field hierarchy and the Workstream 04 serializer/remapper as the authoritative portability path.
+Reading or rendering a form must leave its layout unchanged. Use the existing import/export services when copying forms so field references stay consistent.

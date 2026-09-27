@@ -33,7 +33,7 @@ Adds exact external origins permitted for completion redirects, for example `['h
 
 **Type:** `array` · **Default:** `['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']`
 
-Lists scalar query parameters captured at journey start and forwarded to the final redirect. Explicit destination parameters win. Set an empty array to disable forwarding. Security tokens and nested data are excluded.
+Lists URL query parameters to copy from the page where the form first loads to the completion redirect. Parameters already in the destination URL take priority. Set `[]` to disable forwarding. Only simple values are copied; nested data and security tokens are excluded.
 :::
 
 
@@ -42,7 +42,7 @@ Lists scalar query parameters captured at journey start and forwarded to the fin
 
 **Type:** `array` · **Default:** `[]`
 
-Lists the environment variable names that authored references may resolve, for example `['PUBLIC_CONTACT_EMAIL']`. Only allowlist values safe for the intended output. Names appear in the Variable Picker; values are evaluated on the server and never included in picker metadata. This also applies to authored `$NAME` notification settings. Submitted `$NAME` text stays literal. See [Reference Tokens](/developers/reference-tokens).
+Lists environment variables that editors may use in reference tokens and `$NAME` notification settings, for example `['PUBLIC_CONTACT_EMAIL']`. Only include variables whose values are safe to display in the intended output. The Variable Picker shows their names, not their values. Visitors cannot read environment variables by submitting `$NAME` as an answer. See [Reference Tokens](/developers/reference-tokens).
 :::
 
 
@@ -431,7 +431,7 @@ Sets how long incomplete submission state can be kept for save-and-resume and fr
 
 **Type:** `int` · **Default:** `14`
 
-Sets how long a portable Save & Continue grant remains valid. Its expiry cannot exceed the incomplete submission’s retention deadline.
+Sets how many days a Save & Continue link remains valid. The link also stops working if the incomplete submission is removed by its retention settings.
 :::
 
 

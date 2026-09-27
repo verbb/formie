@@ -70,7 +70,7 @@ Method | Use
 `#[FormIntegrationSetting]` | Annotates existing properties that Formie may hydrate for each form.
 `sendPayload()` | Sends or saves data after a submission has completed.
 
-`getSettingsHtml()` still exists for plugin-level integration settings in Formie’s settings area. Form-specific integration settings are now defined with `defineFormSettingsSchema()`, not a Twig template.
+`getSettingsHtml()` renders plugin-level integration settings in Formie’s settings area. Use `defineFormSettingsSchema()` for the settings shown on each form.
 
 ## Form Settings Schema
 Integrations use schema for the form builder UI. Start with `parent::defineFormSettingsSchema($form)` so the standard `enabled` setting is included, then append your own fields.
@@ -308,12 +308,12 @@ The integration type pages cover the details that differ between base classes:
 
 ## Results and Safe Retries
 
-Return `IntegrationResult` from new providers. `succeeded()` confirms completion; `skipped()` records ineligibility or cancellation; `rejected()` means validation or the provider refused the operation; `failed($code, true)` permits retry only when the operation is known not to have occurred; `unknown()` requires reconciliation. An `IntegrationBatchResult` retains every step result. Returning an arbitrary array or truthy object does not establish success.
+Return `IntegrationResult` from providers. `succeeded()` confirms completion; `skipped()` records ineligibility or cancellation; `rejected()` means validation or the provider refused the operation; `failed($code, true)` permits retry only when the operation is known not to have occurred; `unknown()` requires reconciliation. An `IntegrationBatchResult` retains every step result. Returning an arbitrary array or truthy object does not establish success.
 
 Formie records a durable root attempt before executing a provider and a child attempt before each write made through `request()`, `requestPublicEndpoint()` or `requestWithProviderClient()`. Confirmed child responses are encrypted and replayed to dependent steps; their payload hashes must match. Succeeded writes are never repeated, and unknown writes block further runs until an authorized operator confirms the outcome. HTTP errors retain their response contract so providers can handle documented duplicate-record responses. Additional HTTP clients must use `requestWithProviderClient()` with their fixed configured origin. For an API that writes using GET, explicitly wrap the call with `executeDeliveryWrite($method, $url, $options, $send, true)`.
 
-Custom SDKs that bypass these helpers receive the coarse root guard only. Before publishing a Formie 4 provider, wrap each SDK side effect in a named child operation using `DeliveryAttempts::write()` and the runner's execution context and root attempt. Never mark an uncertain transport error as retryable. A confirmed response that has expired cannot be used to resume dependent operations automatically.
+Custom SDKs that bypass these helpers receive the coarse root guard only. Before publishing a provider, wrap each SDK side effect in a named child operation using `DeliveryAttempts::write()` and the runner's execution context and root attempt. Never mark an uncertain transport error as retryable. A confirmed response that has expired cannot be used to resume dependent operations automatically.
 
-Stable Formie 3 providers returning `bool` or `IntegrationResponse` remain callable through the coarse result adapter. Legacy `false` is a non-retryable failure unless the provider supplies more precise evidence through the guarded request path. `IntegrationResponse` remains deprecated because it shipped in Formie 3. New providers should return explicit results and annotate all per-form properties. Payment providers retain `base\Payment` and their separate payment state machine.
+Payment providers extend `base\Payment` and use their separate payment state machine.
 
 Queue jobs contain an attempt UID only. Do not attach submission objects, credentials, payloads or debug data to jobs. Append bounded checkpoints through `DeliveryAttempts::checkpoint()` instead. See [Integration Dispatch and Policies](/guides/integrations/integration-dispatch-and-policies) for operator recovery and [Integration Events](/developers/events/integration-events) for semantic extension events.

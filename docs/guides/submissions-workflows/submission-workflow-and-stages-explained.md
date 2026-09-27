@@ -2,7 +2,7 @@
 
 A visitor clicking Next, saving a draft and completing a form need different processing. Formie describes the requested operation explicitly, then runs the applicable tasks in a fixed sequence. This explains why invalid input doesn't spend a CAPTCHA token, why drafts don't send confirmation emails and why a pending payment keeps a submission incomplete.
 
-Before processing starts, the submission boundary resolves the form and optional saved record, checks the caller's authority and applies request integrity and rate safeguards. It locks the operation and submission resource, then checks the caller's expected version before applying submitted values. A stale page cannot silently overwrite a newer submission.
+Before changing a submission, Formie checks that the visitor can access it and that it has not been updated since the form was loaded. This prevents an older browser tab from overwriting newer answers.
 
 ## Follow a Submission Through the Stages
 
@@ -13,24 +13,24 @@ Before processing starts, the submission boundary resolves the form and optional
 | Screen | Evaluate content spam, then verify CAPTCHA when the spam decision is not already known. |
 | Persist | Save the record, process applicable payments and recalculate questionnaire results. |
 | Dispatch | Start applicable notifications and integration work. |
-| Finalize | Apply outward spam policy, progression, upload bookkeeping and the terminal outcome. |
+| Finalize | Finish page and upload tracking, apply the configured spam response and return the result. |
 
-The HTML, AJAX, REST or GraphQL adapter then maps that outcome to its response. A payment requiring another action or waiting on a provider is an expected outcome. The first persisted payment submission is incomplete; it becomes complete only after the required payment succeeds.
+Formie then returns the result to the page or application. If payment is required, the saved submission stays incomplete until payment succeeds. It may ask the visitor to complete another payment step or wait for the provider.
 
 ## Understand the Operations
 
-Submit accepts the current page or attempts final completion. Continuing an incomplete submission remains Submit. Back and Target describe navigation separately from the operation; a target cannot skip an intervening page that still needs validation.
+**Submit** handles a visitor moving forward through the form or completing the final page. It also handles a resumed form. Visitors can go back without validating the current page, but cannot jump over pages that still need answers.
 
-SaveDraft persists progress without field validation, content spam checks, CAPTCHA or dispatch. It still requires valid request integrity, ownership and rate safeguards. [Save and continue later](/guides/submissions-workflows/save-and-continue-later) explains the visitor-facing flow.
+**SaveDraft** saves progress without requiring valid answers, checking content for spam, running CAPTCHA or sending notifications and integrations. Access and rate-limit checks still apply. See [Save and Continue Later](/guides/submissions-workflows/save-and-continue-later) for setup.
 
-Revise edits an existing record without visitor progression. It validates the record, recalculates questionnaire results and applies configured edit integration and status-change notification policies. Control panel creation uses an explicit administrative Submit policy: whole-record validation and the chosen status, without visitor screening, payments or automatic completion dispatch.
+**Revise** updates an existing submission. It validates the answers and runs integrations or status-change notifications configured for edits. Creating a submission in the control panel validates the whole record but does not charge payments or automatically send completion notifications.
 
-PaymentReplay reads a saved submission and payment after a verified provider/domain callback. It does not repopulate fields from browser input, repeat validation or spend CAPTCHA. If payment permits completion, dispatch can continue.
+**PaymentReplay** continues a saved submission after the payment provider confirms its result. It uses the accepted answers without asking the visitor to validate or complete CAPTCHA again. A successful payment allows completion notifications and integrations to proceed.
 
 ## Choose an Extension Point
 
-For code that reacts to an accepted page or a completed submission, use the [semantic page and completion events](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit). For an audit trail around a named phase, use [workflow observation events](/guides/submissions-workflows/using-submission-workflow-events).
+For code that reacts to an accepted page or a completed submission, use the [page and completion events](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit). For an audit trail around a named phase, use [workflow observation events](/guides/submissions-workflows/using-submission-workflow-events).
 
 For an ordered check that can stop processing, register a [custom task](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch) inside a fixed stage. Registration must declare its applicable operations. Stages cannot be added or reordered.
 
-Direct Craft element persistence remains available for imports and administrative code. It raises element events but does not run this workflow or automatically send notifications and integrations. Use an explicit operation when you need those lifecycle policies, and check its typed result before deciding what to show the caller.
+Saving a submission directly through Craft’s element service does not run this workflow or automatically send notifications and integrations. If custom code needs that processing, use the [submission workflow API](/developers/submission-workflow).

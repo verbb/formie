@@ -173,13 +173,13 @@ Formie distinguishes an absent value from an explicitly empty value. The first a
 | Priority | Source |
 | --- | --- |
 | 1 | A forced server value supplied with `populateFormValues(form, values, true)` |
-| 2 | Existing posted or persisted content, including an empty string, null or empty selection |
+| 2 | Submitted or saved answers, including an empty string, null or empty selection |
 | 3 | An editable initial value supplied with `populateFormValues(form, values)` |
-| 4 | Query prefill captured when the instance is established |
+| 4 | URL query parameters captured when the form first loads |
 | 5 | The saved field default |
 
-Forced values are retained with the submission configuration and reapplied before the existing condition-clearing step. A visitor cannot replace them by editing HTML or sending a different REST/GraphQL value. With `force=false`, the visitor can edit the initial value, and a saved blank stays blank on resume. `setFieldValues()` remains the underlying Craft element method; use the established `craft.formie.populateFormValues()` call in templates.
+With `force=true`, visitors cannot replace the supplied values, even after resuming the form. Conditions can still clear a forced value when its field becomes hidden or disabled. With `force=false`, visitors can edit the initial value, and a saved blank stays blank when they resume.
 
-The field setting is `prefillQueryParam`. It reads query data when the form instance starts, never submission body data. Later pages, resume and payment returns cannot replace the captured query input. Query values remain untrusted field input and never execute Twig or reference expressions. Client-rendered REST and GraphQL bootstrap callers explicitly supply the host-page parameters through their `query` option; no arbitrary host query string is forwarded automatically.
+The `prefillQueryParam` setting reads a URL query parameter when the form first loads. Changing the URL later does not replace that value on another page, resume or payment return. These values are treated as visitor input and still need validation. Client-rendered forms must pass the desired URL parameters through the loader's `query` option.
 
-Hidden fields use `valueSource`. Custom, URL, referrer, cookie and query values remain editable/untrusted input. Template, current-user, date and server IP sources are authoritative and evaluated on the server. Their reusable field definition is never changed to hold the request’s value. Condition clearing still runs after server value application.
+For Hidden fields, `valueSource` chooses where the value comes from. Values from a URL, referrer, cookie, query parameter or custom input can be changed by the visitor. Template, current-user, date and server IP sources are set by the server. Conditions can clear either kind when the field is hidden or disabled.

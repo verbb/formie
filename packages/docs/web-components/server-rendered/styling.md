@@ -48,7 +48,7 @@ Scope those tokens on a wrapper around the custom element:
 
 There is no `theme-config` **attribute** on `<formie-form>` (objects do not map cleanly to attributes). Set the **`themeConfig` property** in JavaScript, or use `createFormieClient()` and pass `themeConfig` in the mount options.
 
-Config passed by a browser client is bounded declarative data. It can add safe classes, attributes and CSS custom properties, but it cannot supply raw HTML, change tags or add event-handler attributes. Use trusted server-side config or template partial overrides for structural markup.
+Browser-supplied theme config can set classes, supported attributes and CSS custom properties. To change tags, add HTML or attach event handlers, use server-side configuration or template overrides.
 
 ### On `<formie-form>` (Property)
 

@@ -33,7 +33,7 @@ Formie runs every submission through a staged pipeline. This guide explains what
 
 ## [Using Submission Workflow Events](/guides/submissions-workflows/using-submission-workflow-events)
 
-Observe validation and integration dispatch from a Craft module. Execution-controlling checks use registered tasks and typed outcomes.
+Observe validation and integration dispatch from a Craft module. Use a registered task when a check needs to stop processing.
 
 ## [Adding a Custom Workflow Task from Scratch](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch)
 

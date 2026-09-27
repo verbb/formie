@@ -47,7 +47,7 @@ Scope those tokens on a wrapper around the form:
 
 If tokens are not enough, `themeConfig` lets you inject classes, attributes, and reset behaviour into the shipped server-rendered theme.
 
-Config passed by a browser client is bounded declarative data. It can add safe classes, attributes and CSS custom properties, but it cannot supply raw HTML, change tags or add event-handler attributes. Use trusted server-side config or template partial overrides for structural markup.
+Browser-supplied theme config can set classes, supported attributes and CSS custom properties. To change tags, add HTML or attach event handlers, use server-side configuration or template overrides.
 
 ### Add Classes and Attributes
 

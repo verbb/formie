@@ -1,68 +1,74 @@
 # Integration Dispatch and Policies
 
-Use **Forms → your form → Integrations → Settings** to control integration order, notification timing and re-run policies. Global connections and credentials remain under **Formie → Integrations**. Each form owns its enabled bindings, conditions and annotated mapping settings.
+Use **Forms → your form → Integrations → Settings** to choose when integrations run and when notification emails are sent. For example, a registration form might create a Craft user before showing its success page, then send the contact to a mailing service in the background. Global connections and credentials are configured under **Formie → Integrations**.
 
 ## Execution Order
 
-Dispatch settings are available with one integration. Enable dispatch and assign each integration to a lane:
+Enable dispatch to arrange integrations into two groups, called lanes:
 
-| Lane | Behavior |
+| Lane | Behaviour |
 | --- | --- |
-| Synchronous | Runs during the submission request, top to bottom. Use for User or Entry integrations whose result is needed by the success page. |
-| Queued | Runs after the synchronous lane, in the configured order within one durable dispatch job. Enqueued does not mean remotely delivered. |
+| Synchronous | Runs before the visitor receives the submission result. Use this for a User or Entry integration whose result is needed on the success page. |
+| Queued | Runs in the background, in the order you choose, after synchronous integrations finish. |
 
-Move steps within a lane or change their execution setting. Formie always finishes synchronous steps before enqueueing the queued lane; a mixed list cannot interleave request execution with remote queue completion. If global queue use is disabled, queued-lane steps run after synchronous steps in the same request.
+Move integrations within each lane to set their order. Synchronous integrations always run first. If queue use is disabled globally, queued integrations run afterward in the same submission request. When dispatch is disabled, the global `useQueueForIntegrations` setting decides whether integrations use the queue.
 
-**Continue** runs later integrations after a failure. **Stop** records remaining steps as skipped. When dispatch is disabled, the global `useQueueForIntegrations` setting applies.
+Choose **Continue** to run later integrations after one fails, or **Stop** to skip the remaining steps.
 
 ## Notification Timing
 
-A form sets the default timing. Each notification can override it in Advanced settings.
+Set a default timing for the form, then override it in an individual notification's Advanced settings when needed.
 
 | Timing | Sends when |
 | --- | --- |
-| Before integrations | The submission has been saved and notification conditions pass. |
-| After synchronous integrations | All configured synchronous integrations meet the completion policy. Queued deliveries may still be pending. |
-| After finalized delivery attempts | Every configured integration meets the completion policy for the same execution identity. |
+| Before integrations | The submission is saved and the notification's conditions pass. |
+| After synchronous integrations | The synchronous integrations finish and meet the completion policy. Queued integrations may still be waiting. |
+| After finalized delivery attempts | All integrations in that run finish and meet the completion policy. |
 
-The **Delivery Completion Policy** defaults to requiring **succeeded or skipped** results. Choose **Also allow failed or rejected** for notifications that should send after unsuccessful but known outcomes. An **unknown** outcome blocks after-delivery notifications under either policy until it is reconciled. Pending and running deliveries also block them. Skipped includes disabled integrations, unmet conditions, missing opt-in and steps stopped by an earlier failure.
+The **Delivery Completion Policy** decides which results allow a notification to send. The default requires each integration to have **succeeded or skipped**. Choose **Also allow failed or rejected** if the email should also send after a known failure. A skipped integration might have an unmet condition or missing opt-in.
 
-The recommended User and Entry setup runs element integrations synchronously, sends default notifications after that lane, and enables the selected element integrations to re-run on edit. It does not wait for queued marketing integrations.
+An **unknown** result means the service may have received the request, but Formie could not confirm it. Notifications that wait for integrations remain blocked until that result is resolved. Pending or running integrations also keep those notifications waiting.
+
+For the registration example, put the User integration in the synchronous lane and send the confirmation email after synchronous integrations. The email can then use the created user without waiting for the mailing service. Enable re-running the User integration on edit if it should update that user later.
 
 ## Results and Recovery
 
-| Result | Meaning | Recovery |
+Open **Submission Delivery History** on the submission to see what ran and whether it finished.
+
+| Result | Meaning | What to Do |
 | --- | --- | --- |
-| Succeeded | The operation completed. | Formie reuses the recorded result. |
-| Skipped | The operation was ineligible or deliberately not run. | Review conditions, opt-in and the plan. |
-| Rejected | Local validation or the provider refused the operation. | Correct the configuration before starting a new intended run. |
-| Failed | The operation failed; its result states whether retry is safe. | Retry only when the recorded result permits it. |
-| Unknown | The remote service may have accepted the operation. | Confirm the outcome with the provider before reconciliation. |
+| Succeeded | The operation completed. | No retry is needed. |
+| Skipped | The integration did not need to run, or an earlier failure stopped it. | Check conditions, opt-in and execution order if this was unexpected. |
+| Rejected | Validation or the provider refused the operation. | Correct the reported problem before running it again. |
+| Failed | The operation failed. | Use the available retry action when Formie confirms retrying is safe. |
+| Unknown | The service may have accepted the request. | Check the service before confirming the result in Formie. |
 
-Every integration and notification has a durable attempt. Providers using Formie's request helpers also have child attempts for individual writes. A safe retry retains the execution identity, reuses successful child responses and retries only definitely failed steps. Changed operation parameters cannot reuse an existing child identity. Transport uncertainty stops automatic replay, including when Craft retries a failed queue job.
+Formie remembers completed steps so a retry does not repeat them. For example, if a CRM contact was created but adding it to a list failed, a safe retry can continue with the list step.
 
-Open **Submission Delivery History**, select an attempt and inspect its result and operation history. Editors with reconciliation permission can record **Confirm delivered** or **Confirm not delivered**, with an audit reason. Reconcile uncertain children before their parent. Confirming delivery does not invent a missing provider response: if subsequent operations require response data that was never recorded, automatic continuation remains blocked. Confirmed non-delivery permits a safe retry of the original parent identity. Notifications also block a new send identity while an earlier delivery remains unresolved. Element integrations retain their created element identity when later operations fail. A new manual run is a separate intended execution and should not be used to work around an unresolved attempt.
+For an unknown result, first check the remote account. A user with reconciliation permission can then select **Confirm delivered** or **Confirm not delivered** and enter a reason. Resolve any unknown individual operations before the overall attempt. Confirming non-delivery allows the original attempt to be retried safely.
+
+If later steps need a provider response that Formie never received, confirming delivery alone cannot supply that missing data. Further support may be needed to continue. Do not start a separate manual run to get around an unresolved result: it could duplicate something the service already received.
 
 ## Manual and Force Runs
 
-Manual runs bypass the automatic trigger schedule but still check integration conditions and opt-in. Re-run policies choose which automatic events are eligible: initial submission, front-end editing, control panel saving and unmarking spam.
+Manual runs still check integration conditions and opt-in. Automatic re-run settings separately control whether integrations run on initial submission, front-end editing, control panel saving or unmarking spam.
 
-A force run uses the separately permissioned `IntegrationTriggers::forceIntegration()` path and requires permission to save submissions for the form and a reason. It records ordinary eligibility and the conditions/opt-in overrides in immutable execution context. Force does not bypass an unknown prior delivery or destination security checks.
+A force run can override conditions and opt-in. It requires additional permission, permission to save the form's submissions, and a recorded reason. It cannot bypass an unresolved earlier delivery or send to a blocked destination. Developers can initiate it through the integration services described in [Custom Integrations](/developers/custom-integration/overview).
 
 ## Queue Diagnostics
 
-For an identifiable Formie job, Craft's queue detail screen includes **Formie delivery diagnostics**. This opens a Formie-owned Plugin Kit modal. If Craft changes its queue markup or a legacy job has no attempt locator, use **Submission Delivery History** as the stable fallback.
+Craft's queue detail screen includes **Formie delivery diagnostics** for supported Formie jobs. It shows the mapped values, provider errors and delivery results. If the link is unavailable, open **Submission Delivery History** instead.
 
-The modal shows mapping inputs, safe submission projections, operation results, provider errors and retry/reconciliation checkpoints. Copy or download the support bundle for troubleshooting. Values are escaped, credential keys and known secrets are redacted, bodies and checkpoint counts are bounded, and both diagnostics permission and the form's submission-view permission are required. Sensitive response export additionally requires its own permission and explicit acknowledgement; exports are audited.
+Copy or download the support bundle when you need help investigating a failure. Viewing diagnostics requires access to both diagnostics and the form's submissions. Exporting sensitive responses requires a separate permission and confirmation; treat those downloads as private customer data.
 
-Operational settings and exact responses are encrypted. Completed evidence is purged after 30 days; unresolved attempts retain the data required for reconciliation. Operation identities and result, retry, reconciliation and export audit checkpoints remain so evidence expiry cannot enable a duplicate write. A response that has expired cannot be replayed to a dependent step. Keep the security key with database backups. Queue jobs themselves contain only stable locators and are never rewritten to add diagnostics.
+Detailed evidence for completed attempts is removed after 30 days. Unresolved attempts keep the data needed for investigation, and delivery history remains after detailed evidence expires. Expired responses cannot be used to resume steps that depend on their contents. Keep the Formie security key with database backups so encrypted records can be restored.
 
 ## Network and Credential Settings
 
-Prefer environment references such as `$CRM_API_KEY` for managed credentials. Literal connection settings and permitted per-form secrets are encrypted at rest. Web Request headers and HTTP authentication may resolve `$ENV` references only when the variable name is included in `referenceEnvironmentAllowlist`; this prevents a form editor from forwarding unrelated server secrets. Environment-owned connections remain project-config owned; per-form settings cannot overwrite unannotated credentials or API domains.
+Prefer environment references such as `$CRM_API_KEY` for credentials managed by your developer. Web Request headers and HTTP authentication can use an environment variable only when its name is included in `referenceEnvironmentAllowlist` in `config/formie.php`.
 
-Web Request and other form-configured public destinations must use HTTP or HTTPS on ports 80 or 443. Formie rejects loopback, private, link-local, metadata, reserved and transition addresses, checks DNS results, pins the validated address using cURL and disables redirects and proxies. Public destinations use a clean client rather than inheriting another provider's credentials. Authenticated provider calls must remain on their configured provider origin. Maximizer API discovery must resolve to that same origin.
+Web Request destinations must be publicly reachable HTTP or HTTPS URLs on ports 80 or 443. Private network addresses and redirects are blocked, so enter the final destination URL. Per-form settings cannot override a connection's protected credentials or API address.
 
 ## Workflow and Extension Points
 
-Delivery follows successful submission persistence in the dispatch stage. Queueing records scheduling intent; it does not finalize remote delivery. Avoid invoking integrations from an element after-save hook, which bypasses workflow eligibility and identity. Use the runner and semantic [Integration Events](/developers/events/integration-events). New providers should follow the [custom integration contracts](/developers/custom-integration/overview).
+For custom integration code, use Formie's [integration services](/developers/custom-integration/overview) and [Integration Events](/developers/events/integration-events). Calling a provider directly from a submission save event skips the checks and retry handling described here.

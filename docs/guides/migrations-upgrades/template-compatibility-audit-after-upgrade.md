@@ -30,10 +30,8 @@ The sections below are a reference for the most common template and front-end ch
 | Previous | Current |
 | --- | --- |
 | `craft.formie.renderFormAssets(form)` | `craft.formie.formAssets(form)` |
-| `craft.formie.registerFormAssets(form)` | `craft.formie.formAssets(form)` |
 | `craft.formie.renderFormCss(form)` | `craft.formie.formAssets(form, { includeJs: false })` |
 | `craft.formie.renderFormJs(form)` | `craft.formie.formAssets(form, { includeCss: false })` |
-| `craft.formie.renderRuntimeAssets()` | `craft.formie.frontendAssets()` |
 
 ### Render Options on renderForm
 

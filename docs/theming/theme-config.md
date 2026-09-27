@@ -289,7 +289,7 @@ We can append attributes to an element, ensuring that existing ones are kept in-
 ```
 
 ### Resetting Classes
-If you do not want to retain Formie's default classes on a tag, use `resetClass`. The Formie 3 `reset` spelling remains supported for compatibility, and top-level `resetClasses` can reset multiple slots.
+If you do not want to retain Formie's default classes on a tag, use `resetClass`. Top-level `resetClasses` can reset multiple slots.
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
@@ -370,7 +370,7 @@ You can also use more explicit comparisons:
 }
 ```
 
-The available condition context comes from an allowlisted view of the current render state, including `form`, `field`, `page`, `currentPage`, `row`, and `submission`. This small `if` / `then` / `else` language is separate from form `ConditionSet` rules. Arbitrary Twig expressions and method calls are rejected.
+Conditions can read supported properties of `form`, `field`, `page`, `currentPage`, `row`, and `submission`. Use the `if` / `then` / `else` syntax shown above; Twig expressions and method calls are not supported.
 
 ### Prepend and Append
 
@@ -382,19 +382,19 @@ Use `prepend` and `append` for icons, short labels and other small decorative ad
 ],
 ```
 
-Trusted server-side PHP or Twig render options may use `html` when raw markup is genuinely required. Never place untrusted content in `html`. Browser-transported config cannot use raw HTML, change tags or declare `on*` event-handler attributes. For structural markup, prefer [Template Overrides](/theming/template-overrides).
+In PHP or Twig render options, use `html` when you need markup rather than text. Never put visitor-supplied content in `html`. Config passed from a browser cannot include raw HTML, tag changes or event-handler attributes. For larger markup changes, use [Template Overrides](/theming/template-overrides).
 
 ### Attribute Authority
 
-Formie's tag definition is the source of functional and accessibility markup. Theme and per-instance attributes merge first; required core attributes merge last. This means theme config cannot remove submit names, runtime hooks, field identity or required ARIA state. The final `EVENT_MODIFY_SLOT_TAG` PHP event remains the expert escape hatch and can deliberately override or remove core attributes in trusted server code.
+Theme config preserves the attributes Formie needs for submission, JavaScript behaviour and accessibility. PHP developers needing to override those attributes can use `EVENT_MODIFY_SLOT_TAG`; see [Theme and Rendering Architecture](/developers/theme-rendering-architecture#attribute-merge-order) for the event order.
 
-Class values are normalised to tokens, `false` and `null` remove optional values, flat attribute shorthand remains supported, and `cssVars` accepts only custom properties beginning with `--`.
+Use `false` or `null` to remove optional attributes. CSS custom property names in `cssVars` must begin with `--`.
 
 ## Ajax / Client State Classes
 
 Some UI states change in the browser without a full server re-render — multipage tab changes, hidden pages, loading buttons, and validation errors on Ajax forms. Twig conditionals in `themeConfig` will not re-evaluate for those updates.
 
-Formie handles this with **root-level semantic class keys**. Define them at the top level of `themeConfig` (not inside a slot such as `pageTabLink`). Formie embeds the resolved classes on `data-formie-theme-classes`, and the browser package toggles them as state changes. The generated [Browser Theme State reference](/reference/browser-theme-state) is the shared PHP, TypeScript and documentation contract.
+Formie handles this with **state class keys**. Define them at the top level of `themeConfig` (not inside a slot such as `pageTabLink`). Formie embeds the resolved classes on `data-formie-theme-classes`, and the browser package toggles them as state changes. The [Browser Theme State reference](/reference/browser-theme-state) lists the available keys and default classes.
 
 | Key | Applied to | When |
 | --- | --- | --- |
@@ -437,15 +437,6 @@ Use `pageTabLink` for **shared** tab link classes. Use `tabLinkCurrent` / `tabLi
 
 > [!NOTE]
 > Tailwind JIT only emits utilities it can see at build time. Safelist classes used in PHP `themeConfig`, or prefer Twig `renderForm()` theme config when possible. You can also style stable `.formie-*` hooks with `@apply` instead of injecting utilities.
-
-## Ready-Made Configs
-We have also put together a few full-featured theme config examples you can use as a starting point. Each one removes Formie's default classes and replaces them with framework-specific ones.
-
-- [Tailwind](https://github.com/verbb/formie-theme-configs/blob/formie-3/tailwind/index.html)
-- [Bootstrap](https://github.com/verbb/formie-theme-configs/blob/formie-3/bootstrap/index.html)
-
-> [!TIP]
-> If you build a useful theme config for your project, it can be a good starting point for future forms and future projects too.
 
 ## Config Definitions
 There are 3 methods for how you define a theme config, which are shown below in order of priority (with the first being the lowest priority).

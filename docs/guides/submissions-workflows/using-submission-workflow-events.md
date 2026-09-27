@@ -51,4 +51,4 @@ Neither listener can set `isValid` to cancel a stage or task. To reject an order
 
 Submit an invalid required field and inspect Craft's logs for the validation record. There should be no integration dispatch record for that attempt. Correct the field and complete the form; dispatch should then be recorded when applicable. Save a draft and confirm that neither listener runs.
 
-When you need a page-accepted or form-completed hook, use the [semantic lifecycle events](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit) instead of deriving completion from a task name. The [event reference](/developers/events/submission-events) lists the available payloads.
+When you need a page-accepted or form-completed hook, use the [page and completion events](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit) instead of deriving completion from a task name. The [event reference](/developers/events/submission-events) lists the available payloads.
