@@ -64,7 +64,7 @@ Run the full [template compatibility audit](/guides/migrations-upgrades/template
 - Notification events on `Notifications` service; integration events on `Integrations`
 - Dispatch via `IntegrationTriggers` / `Notifications` services, not `Submissions` helpers
 - Submission status classes: `SubmissionStatuses`, `SubmissionStatus`
-- Theme config: `defineFieldSlotTag()` / `SlotTag` instead of `defineHtmlTag()` / `HtmlTag`
+- Theme config: `defineSlotTag()` / `SlotTag` instead of `defineHtmlTag()` / `HtmlTag`
 
 ## Phase 6 — Spam and Screening
 

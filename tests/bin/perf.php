@@ -2,12 +2,21 @@
 
 declare(strict_types=1);
 
+ob_start();
+
 use craft\errors\GqlException;
 use craft\models\GqlSchema;
 use Tests\Support\ResetTestDatabase;
+use Tests\Support\WebRequestTestHelper;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\Formie;
+use verbb\formie\client\models\LoadContext;
+use verbb\formie\client\models\SubmitRequest;
+use verbb\formie\controllers\FieldsController;
+use verbb\formie\fields\Address;
+use verbb\formie\fields\Name;
+use verbb\formie\helpers\FieldAccess;
 use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\gql\queries\FormQuery;
 use verbb\formie\gql\queries\SubmissionQuery;
@@ -15,6 +24,7 @@ use verbb\formie\gql\types\generators\FormGenerator;
 use verbb\formie\gql\types\generators\SubmissionGenerator;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\services\SubmissionGrants;
 use yii\console\ExitCode;
 
 $pluginRoot = dirname(__DIR__, 2);
@@ -22,8 +32,9 @@ $pluginRoot = dirname(__DIR__, 2);
 require $pluginRoot . '/tests/bootstrap.php';
 require_once $pluginRoot . '/tests/Support/Factories/functions.php';
 require_once $pluginRoot . '/tests/Support/ResetTestDatabase.php';
+require_once $pluginRoot . '/tests/Support/submission-workflow.php';
 
-class FormiePerfCommand extends yii\db\Command
+class FormiePerfCommand extends craft\db\Command
 {
     private static bool $recording = false;
     private static array $queries = [];
@@ -149,6 +160,10 @@ try {
     }
 
     if ($options['format'] !== 'ndjson') {
+        if ($options['format'] === 'summary') {
+            $results = array_map('summarizePerfResult', $results);
+        }
+
         writePerfOutput($scenarioName === 'all' ? $results : $results[0], (string)$options['format']);
     }
 } catch (Throwable $e) {
@@ -194,7 +209,7 @@ function parsePerfOptions(array $argv): array
     }
 
     $options['iterations'] = max(1, (int)$options['iterations']);
-    $options['format'] = in_array($options['format'], ['json', 'pretty', 'ndjson'], true) ? $options['format'] : 'ndjson';
+    $options['format'] = in_array($options['format'], ['json', 'pretty', 'ndjson', 'summary'], true) ? $options['format'] : 'ndjson';
 
     return $options;
 }
@@ -208,6 +223,8 @@ function perfProfiles(): array
             'fieldsPerForm' => 8,
             'submissions' => 30,
             'nestedFieldSets' => 1,
+            'pages' => 1,
+            'advancedFields' => false,
         ],
         'medium' => [
             'name' => 'medium',
@@ -215,6 +232,8 @@ function perfProfiles(): array
             'fieldsPerForm' => 15,
             'submissions' => 100,
             'nestedFieldSets' => 2,
+            'pages' => 3,
+            'advancedFields' => true,
         ],
         'large' => [
             'name' => 'large',
@@ -222,6 +241,8 @@ function perfProfiles(): array
             'fieldsPerForm' => 25,
             'submissions' => 250,
             'nestedFieldSets' => 3,
+            'pages' => 5,
+            'advancedFields' => true,
         ],
     ];
 }
@@ -250,6 +271,15 @@ function perfScenarios(): array
         'submissions:project' => 'runSubmissionsProjectPerfScenario',
         'graphql:schema' => 'runGraphqlSchemaPerfScenario',
         'client:manifest' => 'runClientManifestPerfScenario',
+        'builder:load' => 'runBuilderLoadPerfScenario',
+        'builder:edit-save' => 'runBuilderEditSavePerfScenario',
+        'render:form' => 'runFormRenderPerfScenario',
+        'render:assets' => 'runFormAssetsPerfScenario',
+        'render:summary-fragment' => 'runSummaryFragmentPerfScenario',
+        'client:bootstrap' => 'runClientBootstrapPerfScenario',
+        'submit:complete' => 'runCompleteSubmitPerfScenario',
+        'resume:load' => 'runResumeLoadPerfScenario',
+        'revise:submit' => 'runReviseSubmitPerfScenario',
     ];
 }
 
@@ -297,7 +327,7 @@ function seedPerfForms(array $profile): void
         $builder = formie()->form([
             'title' => "Perf Harness {$profile['name']} {$formIndex}",
             'handle' => perfHandle($profile, (string)$formIndex),
-        ])->multiPage(2);
+        ])->multiPage($profile['pages']);
 
         $builder
             ->onPage(1)
@@ -306,7 +336,21 @@ function seedPerfForms(array $profile): void
             ->numberField('score');
 
         for ($fieldIndex = 1; $fieldIndex <= $profile['fieldsPerForm']; $fieldIndex++) {
+            $builder->onPage(($fieldIndex % $profile['pages']) + 1);
             $builder->singleLineTextField("text{$formIndex}_{$fieldIndex}");
+        }
+
+        if ($profile['advancedFields']) {
+            $builder
+                ->onPage(min(2, $profile['pages']))
+                ->nameField('person', [
+                    'useMultipleFields' => true,
+                    'rows' => (new Name(['useMultipleFields' => true]))->getSubFields(),
+                ])
+                ->addressField('address', [
+                    'rows' => (new Address())->getSubFields(),
+                ])
+                ->entriesField('relatedEntries');
         }
 
         $nestedRows = [[
@@ -317,13 +361,15 @@ function seedPerfForms(array $profile): void
             ]],
         ]];
 
-        $builder->onPage(2);
+        $builder->onPage($profile['pages']);
 
         for ($nestedIndex = 1; $nestedIndex <= $profile['nestedFieldSets']; $nestedIndex++) {
             $builder
                 ->groupField("group{$nestedIndex}", ['rows' => $nestedRows])
                 ->repeaterField("lineItems{$nestedIndex}", ['rows' => $nestedRows]);
         }
+
+        $builder->summaryField('summary');
 
         $builder->create();
     }
@@ -586,6 +632,265 @@ function runClientManifestPerfScenario(array $profile, int $iterations): array
     return ['moduleCounts' => summarizePerfValues($moduleCounts)];
 }
 
+function runBuilderLoadPerfScenario(array $profile, int $iterations): array
+{
+    $pageCounts = [];
+    $fieldCounts = [];
+
+    for ($i = 0; $i < $iterations; $i++) {
+        resetPerfRuntimeCaches();
+        $form = requirePerfMainForm($profile);
+        $config = $form->getFormBuilderConfig();
+        $pageCounts[] = count($config['pages'] ?? []);
+        $fieldCounts[] = count($form->getFieldsRecursively());
+    }
+
+    return [
+        'pageCounts' => summarizePerfValues($pageCounts),
+        'fieldCounts' => summarizePerfValues($fieldCounts),
+    ];
+}
+
+function runBuilderEditSavePerfScenario(array $profile, int $iterations): array
+{
+    $saved = 0;
+
+    for ($i = 0; $i < $iterations; $i++) {
+        resetPerfRuntimeCaches();
+        $form = requirePerfMainForm($profile);
+        $form->getFormBuilderConfig();
+        $form->settings->displayFormTitle = !$form->settings->displayFormTitle;
+
+        if (!Craft::$app->getElements()->saveElement($form)) {
+            throw new RuntimeException('Unable to save builder performance fixture: ' . json_encode($form->getErrors()));
+        }
+
+        $saved++;
+    }
+
+    return ['saved' => $saved];
+}
+
+function runFormRenderPerfScenario(array $profile, int $iterations): array
+{
+    $lengths = [];
+
+    for ($i = 0; $i < $iterations; $i++) {
+        $form = clone requirePerfMainForm($profile);
+        $lengths[] = WebRequestTestHelper::withWebRequestContext(static fn(): int => strlen((string)Formie::$plugin->getRendering()->renderForm($form, [
+                'includeCss' => false,
+                'includeJs' => false,
+                'theme' => 'formie',
+            ])));
+    }
+
+    return ['htmlBytes' => summarizePerfValues($lengths)];
+}
+
+function runFormAssetsPerfScenario(array $profile, int $iterations): array
+{
+    $lengths = [];
+
+    for ($i = 0; $i < $iterations; $i++) {
+        $form = clone requirePerfMainForm($profile);
+        $lengths[] = WebRequestTestHelper::withWebRequestContext(static fn(): int => strlen((string)Formie::$plugin->getRendering()->formAssets($form, [
+                'includeCss' => true,
+                'includeJs' => false,
+                'theme' => 'formie',
+            ])));
+    }
+
+    return ['assetHtmlBytes' => summarizePerfValues($lengths)];
+}
+
+function runSummaryFragmentPerfScenario(array $profile, int $iterations): array
+{
+    $form = requirePerfMainForm($profile);
+    $submission = Submission::find()->formId((int)$form->id)->anyStatus()->one();
+    $summary = $form->getFieldByHandle('summary');
+
+    if (!$submission || !$summary) {
+        throw new RuntimeException('Summary performance fixture is incomplete.');
+    }
+
+    $lengths = [];
+
+    for ($i = 0; $i < $iterations; $i++) {
+        $lengths[] = WebRequestTestHelper::withWebRequestContext(function () use ($submission, $summary): int {
+            $token = FieldAccess::issueAccessToken($submission, (int)$summary->id);
+            Craft::$app->getRequest()->setBodyParams(['accessToken' => $token]);
+
+            return strlen((new FieldsController('perf-summary', Craft::$app))->actionGetSummaryHtml());
+        }, ['method' => 'POST']);
+    }
+
+    return ['htmlBytes' => summarizePerfValues($lengths)];
+}
+
+function runClientBootstrapPerfScenario(array $profile, int $iterations): array
+{
+    $definitionFieldCounts = [];
+
+    for ($i = 0; $i < $iterations; $i++) {
+        $form = clone requirePerfMainForm($profile);
+        $bootstrap = WebRequestTestHelper::withWebRequestContext(static fn() => Formie::$plugin->getClientFormBootstrapBuilder()->build($form, new LoadContext([
+                'handle' => $form->handle,
+                'siteId' => $form->siteId,
+                'query' => [],
+            ])));
+        $definition = $bootstrap->definition->toArrayRecursive();
+        $count = 0;
+
+        foreach ($definition['pages'] ?? [] as $page) {
+            foreach ($page['rows'] ?? [] as $row) {
+                $count += count($row['fields'] ?? []);
+            }
+        }
+
+        $definitionFieldCounts[] = $count;
+    }
+
+    return ['definitionFieldCounts' => summarizePerfValues($definitionFieldCounts)];
+}
+
+function runCompleteSubmitPerfScenario(array $profile, int $iterations): array
+{
+    $outcomes = [];
+    $lastErrors = [];
+
+    for ($i = 0; $i < $iterations; $i++) {
+        $result = WebRequestTestHelper::withWebRequestContext(function () use ($profile, $i) {
+            $form = requirePerfMainForm($profile);
+            $bootstrap = Formie::$plugin->getClientFormBootstrapBuilder()->build($form, new LoadContext(['handle' => $form->handle]));
+            $session = $bootstrap->session->toArrayRecursive();
+            $result = null;
+
+            foreach (array_values($form->getPages()) as $pageIndex => $page) {
+                $result = runClientSubmission(new SubmitRequest([
+                    'handle' => $form->handle,
+                    'operationId' => "perf-submit-{$profile['name']}-{$i}-{$pageIndex}",
+                    'action' => 'submit',
+                    'session' => $session,
+                    'values' => perfSubmissionValues($profile, $i + 1000000),
+                ]));
+
+                if ($result->session) {
+                    $session = $result->session->toArrayRecursive();
+                }
+
+                if (!$result->success) {
+                    break;
+                }
+            }
+
+            return $result;
+        }, ['method' => 'POST']);
+        $outcomes[] = $result->outcome;
+        $lastErrors = $result->errors;
+    }
+
+    return ['outcomes' => array_count_values($outcomes), 'lastErrors' => $lastErrors];
+}
+
+function runResumeLoadPerfScenario(array $profile, int $iterations): array
+{
+    $versions = [];
+
+    for ($i = 0; $i < $iterations; $i++) {
+        $versions[] = WebRequestTestHelper::withWebRequestContext(function () use ($profile, $i): int {
+            $form = requirePerfMainForm($profile);
+            $bootstrap = Formie::$plugin->getClientFormBootstrapBuilder()->build($form, new LoadContext(['handle' => $form->handle]));
+            $saved = runClientSubmission(new SubmitRequest([
+                'handle' => $form->handle,
+                'operationId' => "perf-resume-save-{$profile['name']}-{$i}",
+                'action' => 'save',
+                'session' => $bootstrap->session->toArrayRecursive(),
+                'values' => perfSubmissionValues($profile, $i + 2000000),
+            ]));
+            $resumed = Formie::$plugin->getClientFormBootstrapBuilder()->build($form, new LoadContext([
+                'handle' => $form->handle,
+                'grantToken' => $saved->resumeToken,
+            ]));
+
+            return (int)$resumed->session->version;
+        }, ['method' => 'POST']);
+    }
+
+    return ['versions' => summarizePerfValues($versions)];
+}
+
+function runReviseSubmitPerfScenario(array $profile, int $iterations): array
+{
+    $form = requirePerfMainForm($profile);
+    $submission = Submission::find()->formId((int)$form->id)->isIncomplete(false)->one()
+        ?? Submission::find()->formId((int)$form->id)->anyStatus()->one();
+
+    if (!$submission) {
+        throw new RuntimeException('Revision performance fixture has no submission.');
+    }
+
+    $outcomes = [];
+
+    for ($i = 0; $i < $iterations; $i++) {
+        $outcomes[] = WebRequestTestHelper::withWebRequestContext(function () use ($form, &$submission, $profile, $i): string {
+            $grant = Formie::$plugin->getSubmissionGrants()->issue($submission, SubmissionGrants::REVISE);
+            $bootstrap = Formie::$plugin->getClientFormBootstrapBuilder()->build($form, new LoadContext([
+                'handle' => $form->handle,
+                'grantToken' => $grant->token,
+                'grantPurpose' => SubmissionGrants::REVISE,
+            ]));
+            $result = runClientSubmission(new SubmitRequest([
+                'handle' => $form->handle,
+                'operationId' => "perf-revise-{$profile['name']}-{$i}",
+                'action' => 'submit',
+                'session' => $bootstrap->session->toArrayRecursive(),
+                'values' => perfSubmissionValues($profile, $i + 3000000),
+            ]));
+            $submission = Submission::find()->id($submission->id)->status(null)->one();
+
+            return $result->outcome;
+        }, ['method' => 'POST']);
+    }
+
+    return ['outcomes' => array_count_values($outcomes)];
+}
+
+function perfSubmissionValues(array $profile, int $index): array
+{
+    $values = [
+        'fullName' => "Perf workflow {$index}",
+        'email' => "workflow{$index}@example.test",
+        'score' => (string)$index,
+    ];
+
+    if ($profile['advancedFields']) {
+        $values['person'] = [
+            'firstName' => 'Performance',
+            'lastName' => (string)$index,
+        ];
+        $values['address'] = [
+            'address1' => "{$index} Profile Street",
+            'city' => 'Melbourne',
+            'state' => 'VIC',
+            'zip' => '3000',
+            'country' => 'AU',
+        ];
+    }
+
+    for ($fieldIndex = 1; $fieldIndex <= $profile['fieldsPerForm']; $fieldIndex++) {
+        $values["text1_{$fieldIndex}"] = "workflow-{$index}-{$fieldIndex}";
+    }
+
+    for ($nestedIndex = 1; $nestedIndex <= $profile['nestedFieldSets']; $nestedIndex++) {
+        $values["group{$nestedIndex}"] = ['innerText' => "group-{$index}-{$nestedIndex}"];
+        $values["lineItems{$nestedIndex}"] = [[
+            'innerText' => "line-{$index}-{$nestedIndex}",
+        ]];
+    }
+
+    return $values;
+}
+
 function summarizePerfQueries(array $queries): array
 {
     $normalized = array_column($queries, 'normalizedSql');
@@ -742,4 +1047,18 @@ function writePerfOutput(mixed $payload, string $format): void
     }
 
     fwrite(STDOUT, json_encode($payload, $flags) . PHP_EOL);
+}
+
+function summarizePerfResult(array $result): array
+{
+    return [
+        'scenario' => $result['scenario'],
+        'profile' => $result['profile'],
+        'iterations' => $result['iterations'],
+        'elapsedMs' => $result['elapsedMs'],
+        'memoryPeakBytes' => $result['memoryPeakBytes'],
+        'queryCount' => $result['queries']['count'],
+        'duplicateQueryCount' => $result['queries']['duplicateCount'],
+        'result' => $result['result'],
+    ];
 }

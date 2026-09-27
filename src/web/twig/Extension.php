@@ -124,7 +124,7 @@ class Extension extends AbstractExtension
             $htmlTag = $form->renderSlotTag($key, self::createRenderContext($context));
 
             if ($htmlTag) {
-                $attributes = self::mergeTagAttributes($htmlTag->attributes, $options);
+                $attributes = $htmlTag->attributesForRender($options);
                 $attributes = self::applyContextTagDefaults($key, $htmlTag->tag, $attributes, $context);
 
                 // Grab a `text` attribute to use
@@ -162,7 +162,7 @@ class Extension extends AbstractExtension
      */
     public static function formatSlotTagHtml(string $key, SlotTag $htmlTag, array $twigContext, array $options = []): string
     {
-        $attributes = self::mergeTagAttributes($htmlTag->attributes, $options);
+        $attributes = $htmlTag->attributesForRender($options);
         $attributes = self::applyContextTagDefaults($key, $htmlTag->tag, $attributes, $twigContext);
 
         $text = ArrayHelper::remove($attributes, 'text');

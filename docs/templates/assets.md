@@ -4,6 +4,8 @@ Most of the time, `renderForm()` handles assets for you.
 
 You only need to think about assets directly when you are rendering pages or fields manually, or when you are working with Formie's browser layer more explicitly.
 
+Formie's CSS has two layers. `formie-base.css` contains required functional and accessibility behaviour; `formie-theme.css` contains the default visual treatment. The stable `formie.css` entry combines both for existing integrations. A `none` theme still loads base CSS and browser JavaScript, but omits visual theme CSS.
+
 ## `craft.formie.formAssets(form)`
 
 Use `formAssets()` when you are rendering a specific form manually and still want Formie's browser assets resolved in the right way for that form.
@@ -67,3 +69,5 @@ When Formie outputs the browser JavaScript for you, it also outputs:
 `useObserver` is the page-level browser-script toggle. You can pass it through whichever render path is outputting the JavaScript for the page, such as `renderForm()`, `formAssets()`, or `frontendAssets()`.
 
 If you are rendering one form manually, reach for `formAssets(form)`. If you are wiring up Formie's front-end assets yourself, reach for `frontendAssets()`.
+
+Resolving assets does not render the form a second time. This matters for expensive forms and for render events with side effects.

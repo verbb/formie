@@ -357,7 +357,8 @@ function getEmbeddedPayload(target: Element, form: HTMLFormElement | null): Form
     // Server-rendered forms carry the same minimal payload shape that endpoint-
     // rendered forms receive, which keeps mount behavior identical in both flows.
     const modules = parseJsonAttribute<FormEndpointPayload['modules']>(payloadRoot, 'data-formie-modules');
-    const theme = parseJsonAttribute<FormEndpointPayload['theme']>(payloadRoot, 'data-formie-theme');
+    const theme = parseJsonAttribute<FormEndpointPayload['theme']>(payloadRoot, 'data-formie-theme-classes')
+        || parseJsonAttribute<FormEndpointPayload['theme']>(payloadRoot, 'data-formie-theme');
 
     if (!modules && !theme) {
         return null;
@@ -1051,9 +1052,6 @@ export function createFormieClient(): FormieClient {
         if (form) {
             ensureFormStartedAt(form);
 
-            if (normalizedOptions.themeConfig && typeof normalizedOptions.themeConfig === 'object') {
-                form.setAttribute('data-formie-theme-config', JSON.stringify(normalizedOptions.themeConfig));
-            }
 
             if (normalizedOptions.theme && normalizedOptions.theme !== 'formie') {
                 form.setAttribute('data-formie-frontend-theme', normalizedOptions.theme);

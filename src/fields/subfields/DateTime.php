@@ -42,9 +42,9 @@ class DateTime extends SingleLineText implements ChildFieldInterface
     // Protected Methods
     // =========================================================================
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        $tag = parent::defineFieldSlotTag($key, $context);
+        $tag = parent::defineSlotTag($key, $context);
 
         if ($key === 'fieldInput' && $this->getParentField()?->getDisplayType() === 'datePicker') {
             $attributes = array_filter(

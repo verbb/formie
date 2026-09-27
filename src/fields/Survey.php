@@ -913,13 +913,13 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         return $modules;
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         if ($tag = $this->_presentationFieldSlotTag($key, $context)) {
             return $tag;
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
 

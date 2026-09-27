@@ -212,7 +212,7 @@ class Content extends CosmeticField
     // Protected Methods
     // =========================================================================
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         if ($key === 'fieldLabel') {
             $labelPosition = $context->get('labelPosition');
@@ -236,7 +236,7 @@ class Content extends CosmeticField
                 ]);
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string

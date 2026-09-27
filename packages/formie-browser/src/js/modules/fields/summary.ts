@@ -11,8 +11,6 @@ import { requestText } from '#utils/http';
 const BLOCKS_SELECTOR = '[data-formie-summary-blocks]';
 const CONTAINER_SELECTOR = '[data-formie-summary-container]';
 const SUMMARY_ACTION = 'formie/fields/get-summary-html';
-const THEME_CONFIG_ATTR = 'data-formie-theme-config';
-const FRONTEND_THEME_ATTR = 'data-formie-frontend-theme';
 const MODULE_ID = 'summary';
 const debug = createDebug('fields', 'summary');
 
@@ -20,8 +18,6 @@ ensureModuleStyles(MODULE_ID, [summaryCss]);
 
 type SummaryRequestState = {
     accessToken: string | null;
-    themeConfig: string | null;
-    frontendTheme: string | null;
 };
 
 function getSummaryRequestUrl(): string {
@@ -31,14 +27,12 @@ function getSummaryRequestUrl(): string {
     return url.toString();
 }
 
-function getSummaryRequestState(field: HTMLElement, form: HTMLFormElement): SummaryRequestState {
+function getSummaryRequestState(field: HTMLElement): SummaryRequestState {
     const summaryTokenInput = field.querySelector('[data-formie-summary-token]') as HTMLInputElement | null;
     const accessToken = summaryTokenInput?.value?.trim() || null;
 
     return {
         accessToken,
-        themeConfig: form.getAttribute(THEME_CONFIG_ATTR)?.trim() || null,
-        frontendTheme: form.getAttribute(FRONTEND_THEME_ATTR)?.trim() || null,
     };
 }
 
@@ -52,14 +46,6 @@ async function requestSummaryHtml(form: HTMLFormElement, state: SummaryRequestSt
     const formData = new FormData(form);
     formData.set('action', SUMMARY_ACTION);
     formData.set('accessToken', state.accessToken);
-
-    if (state.themeConfig) {
-        formData.set('themeConfig', state.themeConfig);
-    }
-
-    if (state.frontendTheme) {
-        formData.set('frontendTheme', state.frontendTheme);
-    }
 
     return requestText(getSummaryRequestUrl(), {
         method: 'POST',
@@ -115,7 +101,7 @@ function initSummaryField(field: HTMLElement, root: Element): () => void {
         toggleThemeClasses(blocks, form, 'loading', false);
     };
 
-    const initialState = getSummaryRequestState(field, form);
+    const initialState = getSummaryRequestState(field);
     setLoadingState(!!initialState.accessToken);
 
     const queueFetch = (): void => {
@@ -128,7 +114,7 @@ function initSummaryField(field: HTMLElement, root: Element): () => void {
     };
 
     const fetchSummary = debounce(async() => {
-        const state = getSummaryRequestState(field, form);
+        const state = getSummaryRequestState(field);
 
         if (!getBlocks() || !state.accessToken) {
             debug.warn('Missing state for fetch.', state);

@@ -4,6 +4,7 @@ import type { BrowserModuleDefinition } from '#contracts/modules';
 import { ADDRESS_SELECTORS } from '#modules/address/constants';
 import { initFormieCombobox } from '#modules/fields/combobox';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
+import { getThemeClasses, toggleThemeClasses } from '#theme/theme-classes';
 import { createDebug } from '#utils/debug';
 
 const STATE_DYNAMIC_SELECTOR = '[data-formie-address-state-dynamic]';
@@ -345,9 +346,11 @@ function applyTextThemeClasses(template: AddressStateControl, input: HTMLInputEl
 function applySelectThemeClasses(template: AddressStateControl, select: HTMLSelectElement): void {
     const classes: string[] = [...SELECT_THEME_CLASSES];
 
-    if (template.classList.contains('formie-input-error')) {
-        classes.push('formie-input-error');
-    }
+    getThemeClasses(template, 'fieldControlError').forEach((className) => {
+        if (template.classList.contains(className)) {
+            classes.push(className);
+        }
+    });
 
     select.className = classes.join(' ');
 }
@@ -457,7 +460,7 @@ function syncDatalist(
 function setFieldVisibility(fieldState: FieldState, visible: boolean): void {
     const { stateField, stateControl, required } = fieldState;
 
-    stateField.classList.toggle('formie-conditionally-hidden', !visible);
+    toggleThemeClasses(stateField, stateField, 'conditionalHidden', !visible);
     stateField.toggleAttribute('data-formie-conditionally-hidden', !visible);
 
     if (!visible) {
@@ -505,7 +508,7 @@ function showFetchingUI(fieldState: FieldState): void {
     fieldState.stateControl.setAttribute('aria-hidden', 'true');
     fieldState.stateControl.setAttribute('tabindex', '-1');
 
-    fieldState.stateField.classList.remove('formie-conditionally-hidden');
+    toggleThemeClasses(fieldState.stateField, fieldState.stateField, 'conditionalHidden', false);
     fieldState.stateField.removeAttribute('data-formie-conditionally-hidden');
     fieldState.stateField.setAttribute('data-formie-address-state-skeleton-active', 'true');
 

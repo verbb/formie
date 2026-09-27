@@ -35,6 +35,8 @@ class FrontendAssets extends Component
             // css URL left forms completely unstyled.
             return $this->_browserAssetUrls = [
                 'css' => $published['css'],
+                'baseStyles' => $published['baseStyles'],
+                'themeStyles' => $published['themeStyles'],
                 'js' => "{$publicUrl}src/js/formie.ts",
                 'viteClient' => "{$publicUrl}@vite/client",
             ];
@@ -48,7 +50,11 @@ class FrontendAssets extends Component
         $assetBundle = Craft::$app->getAssetManager()->getBundle(FrontendAsset::class);
 
         return [
+            // Keep the stable combined stylesheet URL for extensions that consume
+            // this service directly. Core rendering uses the split assets below.
             'css' => $assetBundle ? rtrim($assetBundle->baseUrl, '/') . '/css/formie.css' : null,
+            'baseStyles' => $assetBundle ? rtrim($assetBundle->baseUrl, '/') . '/css/formie-base.css' : null,
+            'themeStyles' => $assetBundle ? rtrim($assetBundle->baseUrl, '/') . '/css/formie-theme.css' : null,
             'js' => $assetBundle ? rtrim($assetBundle->baseUrl, '/') . '/js/formie.js' : null,
             'viteClient' => null,
         ];
@@ -68,15 +74,25 @@ class FrontendAssets extends Component
 
     public function getPublishedThemeCssContents(): string
     {
-        $path = Craft::getAlias('@verbb/formie/web/assets/frontend/dist/css/formie.css');
+        $paths = [
+            Craft::getAlias('@verbb/formie/web/assets/frontend/dist/css/formie-base.css'),
+            Craft::getAlias('@verbb/formie/web/assets/frontend/dist/css/formie-theme.css'),
+        ];
+        $contents = [];
 
-        if (!is_string($path) || !is_file($path)) {
-            return '';
+        foreach ($paths as $path) {
+            if (!is_string($path) || !is_file($path)) {
+                continue;
+            }
+
+            $css = file_get_contents($path);
+
+            if (is_string($css)) {
+                $contents[] = $css;
+            }
         }
 
-        $css = file_get_contents($path);
-
-        return is_string($css) ? $css : '';
+        return implode(PHP_EOL, $contents);
     }
 
 

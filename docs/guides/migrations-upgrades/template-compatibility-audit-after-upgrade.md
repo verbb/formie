@@ -167,7 +167,7 @@ Headless apps should bootstrap via `formieClientForm` and submit via `submitForm
 
 Default theme prefix is `formie`, not `fui`. Deprecation logging will not catch stale CSS selectors — review custom stylesheets for `.fui-` rules and update to `.formie-` or CSS variables on `.formie-form`.
 
-Custom fields using Theme Config should use `defineFieldSlotTag()`.
+Custom fields using Theme Config should use `defineSlotTag()`.
 
 ## Step 10 — Manual Page Verification
 

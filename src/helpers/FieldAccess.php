@@ -18,10 +18,17 @@ final class FieldAccess
             return null;
         }
 
+        $form = $submission->getForm();
+        $frame = Formie::$plugin->getRendering()->getActiveRenderFrame();
+        $resolvedTheme = ($form && $frame && (int)$frame->getForm()->id === $formId)
+            ? $frame->getResolvedTheme()
+            : ($form ? Formie::$plugin->getThemeConfigService()->resolve($form) : null);
+
         $payload = Json::encode([
             'submissionUid' => $submissionUid,
             'formId' => $formId,
             'fieldId' => $fieldId,
+            'theme' => $resolvedTheme?->toFragmentState(),
         ]);
 
         $key = Formie::$plugin->getSettings()->getSecurityKey();
@@ -71,6 +78,7 @@ final class FieldAccess
             'submissionUid' => $submissionUid,
             'formId' => $formId,
             'fieldId' => $fieldId,
+            'theme' => isset($payload['theme']) && is_array($payload['theme']) ? $payload['theme'] : null,
         ];
     }
 }

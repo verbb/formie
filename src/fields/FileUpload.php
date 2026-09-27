@@ -877,7 +877,7 @@ class FileUpload extends ElementField
     // Protected Methods
     // =========================================================================
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
         $errors = $context->errors;
@@ -969,7 +969,7 @@ class FileUpload extends ElementField
                 ]);
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function cpInputTemplateVariables(array|ElementQueryInterface $value = null, ?ElementInterface $element = null): array

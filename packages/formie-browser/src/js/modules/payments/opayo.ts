@@ -4,6 +4,7 @@ import opayoCss from '#theme-css/integrations/_opayo.css?inline';
 
 import { definePaymentModule } from '#modules/payments/api';
 import { ensureModuleStyles } from '#modules/styles';
+import { toggleThemeClasses } from '#theme/theme-classes';
 import { createDebug } from '#utils/debug';
 import { appendFormCsrfToFormData } from '#utils/csrf';
 import { getPaymentProviderActionEventName } from '#utils/event-names';
@@ -389,10 +390,14 @@ export const opayoModule = definePaymentModule<OpayoProviderOptions, null, Opayo
             dialog.innerHTML = `
                 <div class="formie-modal-backdrop" data-dialog-close></div>
                 <div class="formie-modal-content">
-                    <div class="formie-loading formie-loading-large" style="--formie-loading-width: 3rem; --formie-loading-height: 3rem; top: 50%; margin-top: -1.5rem;"></div>
+                    <div data-formie-opayo-loading style="--formie-loading-width: 3rem; --formie-loading-height: 3rem; top: 50%; margin-top: -1.5rem;"></div>
                     <iframe width="100%" height="100%" style="width: 100%; height: 100%; position: relative; z-index: 1;"></iframe>
                 </div>
             `;
+            const loading = dialog.querySelector<HTMLElement>('[data-formie-opayo-loading]');
+            if (loading) {
+                toggleThemeClasses(loading, form, 'loading', true);
+            }
             const iframe = dialog.querySelector('iframe');
             const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
             const callbackUrl = data.returnUrl || data.redirectUrl || '';

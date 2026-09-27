@@ -301,7 +301,7 @@ class Repeater extends RepeatableParentField
     // Protected Methods
     // =========================================================================
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
         $id = $this->getHtmlId($form);
@@ -431,7 +431,7 @@ class Repeater extends RepeatableParentField
                 ]);
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineRules(): array

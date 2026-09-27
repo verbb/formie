@@ -51,6 +51,9 @@ export default defineConfig(({ mode, command }) => {
             rollupOptions: {
                 input: {
                     formie: resolve(__dirname, 'src/js/formie.ts'),
+                    'formie-styles': resolve(__dirname, 'src/css/formie.css'),
+                    'formie-base': resolve(__dirname, 'src/css/formie-base.css'),
+                    'formie-theme': resolve(__dirname, 'src/css/formie-theme.css'),
                 },
                 output: {
                     entryFileNames: 'js/[name].js',
@@ -58,8 +61,12 @@ export default defineConfig(({ mode, command }) => {
                     assetFileNames: (assetInfo) => {
                         const assetName = assetInfo.names?.[0] || assetInfo.name || '';
 
-                        if (assetName === 'formie.css') {
+                        if (assetName === 'formie-styles.css') {
                             return 'css/formie.css';
+                        }
+
+                        if (assetName === 'formie-base.css' || assetName === 'formie-theme.css') {
+                            return 'css/[name][extname]';
                         }
 
                         if (assetName.endsWith('.css')) {

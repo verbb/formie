@@ -48,7 +48,7 @@ class FieldCompatibility
             return null;
         }
 
-        Craft::$app->getDeprecator()->log(get_class($field) . '::defineHtmlTag', 'Field `defineHtmlTag()` has been deprecated. Use `defineFieldSlotTag()` instead.');
+        Craft::$app->getDeprecator()->log(get_class($field) . '::defineHtmlTag', 'Field `defineHtmlTag()` has been deprecated. Use `defineSlotTag()` instead.');
 
         /** @var HtmlTag|null $legacyTag */
         $legacyTag = $field->defineHtmlTag($key, $context->toArray());

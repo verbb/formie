@@ -929,7 +929,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         ];
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
 
@@ -974,7 +974,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
             }
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineClientRenderedInput(): array

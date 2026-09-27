@@ -1,0 +1,22 @@
+{
+  "errors": { "classes": ["formie-errors"], "description": "Form-level error collection" },
+  "successes": { "classes": ["formie-successes"], "description": "Form-level success collection" },
+  "message": { "classes": ["formie-message"], "description": "Shared message container" },
+  "messageError": { "classes": ["formie-message-error"], "description": "Error message state" },
+  "messageSuccess": { "classes": ["formie-message-success"], "description": "Success message state" },
+  "tabError": { "classes": ["formie-tab-error"], "description": "Page tab with an error" },
+  "tabCurrent": { "classes": ["formie-tab-current"], "description": "Current page tab" },
+  "tabComplete": { "classes": ["formie-tab-complete"], "description": "Completed page tab" },
+  "tabLinkCurrent": { "classes": [], "description": "Current page-tab link" },
+  "tabLinkInactive": { "classes": [], "description": "Inactive page-tab link" },
+  "pageHidden": { "classes": ["formie-page-hidden"], "description": "Hidden page" },
+  "conditionalHidden": { "classes": ["formie-conditionally-hidden"], "description": "Conditionally hidden field" },
+  "rowHidden": { "classes": ["formie-row-hidden"], "description": "Layout row with no visible fields" },
+  "loading": { "classes": ["formie-loading"], "description": "Loading state" },
+  "success": { "classes": ["formie-success"], "description": "Individual success item" },
+  "error": { "classes": ["formie-error"], "description": "Individual error item" },
+  "fieldLayoutError": { "classes": ["formie-field-has-error"], "description": "Field layout with an error" },
+  "fieldControlError": { "classes": ["formie-input-error"], "description": "Invalid field control" },
+  "fieldErrors": { "classes": ["formie-field-errors"], "description": "Field error collection" },
+  "fieldError": { "classes": ["formie-field-error"], "description": "Individual field error" }
+}

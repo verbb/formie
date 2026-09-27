@@ -717,7 +717,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         return parent::defineValueForDb($value, $element);
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
         $id = $this->getHtmlId($form);
@@ -766,7 +766,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
             }
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string

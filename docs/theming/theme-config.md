@@ -70,7 +70,7 @@ Here is a more involved example:
 {{ craft.formie.renderForm('contactForm', {
     themeConfig: {
         form: {
-            reset: true,
+            resetClass: true,
             attributes: {
                 id: 'my-form',
             },
@@ -289,13 +289,13 @@ We can append attributes to an element, ensuring that existing ones are kept in-
 ```
 
 ### Resetting Classes
-If you do not want to retain Formie's default classes on a tag, use `reset`.
+If you do not want to retain Formie's default classes on a tag, use `resetClass`. The Formie 3 `reset` spelling remains supported for compatibility, and top-level `resetClasses` can reset multiple slots.
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
     themeConfig: {
         field: {
-            reset: true,
+            resetClass: true,
             attributes: {
                 class: 'my-field',
             },
@@ -370,13 +370,31 @@ You can also use more explicit comparisons:
 }
 ```
 
-The available condition context comes from the current render state, including `form`, `field`, `page`, `currentPage`, `row`, and `submission`.
+The available condition context comes from an allowlisted view of the current render state, including `form`, `field`, `page`, `currentPage`, `row`, and `submission`. This small `if` / `then` / `else` language is separate from form `ConditionSet` rules. Arbitrary Twig expressions and method calls are rejected.
+
+### Prepend and Append
+
+Use `prepend` and `append` for icons, short labels and other small decorative additions. Text is HTML-escaped by default:
+
+```php
+'fieldLabel' => [
+    'prepend' => ['tag' => 'span', 'text' => '<Required>'],
+],
+```
+
+Trusted server-side PHP or Twig render options may use `html` when raw markup is genuinely required. Never place untrusted content in `html`. Browser-transported config cannot use raw HTML, change tags or declare `on*` event-handler attributes. For structural markup, prefer [Template Overrides](/theming/template-overrides).
+
+### Attribute Authority
+
+Formie's tag definition is the source of functional and accessibility markup. Theme and per-instance attributes merge first; required core attributes merge last. This means theme config cannot remove submit names, runtime hooks, field identity or required ARIA state. The final `EVENT_MODIFY_SLOT_TAG` PHP event remains the expert escape hatch and can deliberately override or remove core attributes in trusted server code.
+
+Class values are normalised to tokens, `false` and `null` remove optional values, flat attribute shorthand remains supported, and `cssVars` accepts only custom properties beginning with `--`.
 
 ## Ajax / Client State Classes
 
 Some UI states change in the browser without a full server re-render — multipage tab changes, hidden pages, loading buttons, and validation errors on Ajax forms. Twig conditionals in `themeConfig` will not re-evaluate for those updates.
 
-Formie handles this with **root-level semantic class keys**. Define them at the top level of `themeConfig` (not inside a slot such as `pageTabLink`). Formie embeds the resolved classes on `data-formie-theme`, and the browser package toggles them as state changes.
+Formie handles this with **root-level semantic class keys**. Define them at the top level of `themeConfig` (not inside a slot such as `pageTabLink`). Formie embeds the resolved classes on `data-formie-theme-classes`, and the browser package toggles them as state changes. The generated [Browser Theme State reference](/reference/browser-theme-state) is the shared PHP, TypeScript and documentation contract.
 
 | Key | Applied to | When |
 | --- | --- | --- |
@@ -456,7 +474,7 @@ Used with `craft.formie.renderForm()` through [Render Options](/templates/render
         },
         fieldInput: {
             tag: 'div',
-            reset: true,
+            resetClass: true,
             attributes: {
                 class: 'border border-blue-500',
             },
@@ -540,7 +558,7 @@ return [
     'themeConfig' => [
         // For the field `<form>` element, change the tag and add attributes
         'form' => [
-            'reset' => true,
+            'resetClass' => true,
             'tag' => 'div',
             'attributes' => [
                 'class' => 'p-4 w-full mb-4',

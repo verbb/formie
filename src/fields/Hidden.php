@@ -331,7 +331,7 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
         return $this->getValueAsString($value, $submission);
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
 
@@ -362,7 +362,7 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
                 ->instanceAttributes($this->getInputAttributes());
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string

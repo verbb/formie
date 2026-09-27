@@ -152,7 +152,7 @@ class Workstream04CountingField extends SingleLineText
     public function init(): void { parent::init(); self::$created++; }
 }
 
-it('hydrates only the requested layout and keeps getAllFields as full instance objects', function () {
+it('prevents the Formie 3 #2637 all-fields regression by hydrating only the requested layout', function () {
     $service = Formie::$plugin->getFields();
     $listener = function ($event) { $event->fields[] = Workstream04CountingField::class; };
     Event::on(Fields::class, Fields::EVENT_REGISTER_FIELDS, $listener);

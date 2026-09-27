@@ -51,6 +51,10 @@ This is useful when a form should inherit different presentation in different te
 
 For the full structure and available options, see [Theme Config](/theming/theme-config).
 
+`themeConfig` is render-scoped and is never saved on the form. Formie resolves the selected theme and config into an immutable frame for that render, so rendering the same form concurrently with different themes cannot leak state between requests or nested renders.
+
+Config supplied by trusted PHP/Twig may use the documented structural escape hatches. Config transported from a browser is validated as declarative data: it has size, depth and schema bounds, cannot contain raw HTML or tag changes, and cannot add event-handler attributes, Twig or method expressions. Summary and fragment requests reuse the theme state bound into their issued access token instead of accepting changed executable config from the request.
+
 ### `customInputs`
 
 `customInputs` adds hidden inputs to the rendered form output.

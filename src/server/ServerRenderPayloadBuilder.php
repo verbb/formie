@@ -14,6 +14,7 @@ class ServerRenderPayloadBuilder extends Component
     public function buildServerRenderPayload(Form $form, array $renderOptions = [], array $populateFormValues = []): array
     {
         $form->setActionUrl('formie/server/submissions/submit');
+        $renderOptions['_transportedThemeConfig'] = true;
 
         if ($populateFormValues) {
             Formie::$plugin->getRendering()->populateFormValues($form, $populateFormValues);

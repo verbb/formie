@@ -1247,7 +1247,7 @@ class Stripe extends Payment
         return $defaults;
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         if ($key === 'fieldControl') {
             return SlotTag::make('div')

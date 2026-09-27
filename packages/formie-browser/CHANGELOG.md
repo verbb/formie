@@ -3,9 +3,12 @@
 ## Unreleased
 
 ### Added
+- Add one generated browser-theme state manifest and canonical state classes for browser-created controls.
 - Add `data-formie-validation-skip` so helper controls (such as the Upload Manager browse input) can opt out of client-side validation.
 
 ### Changed
+- Read the bounded `data-formie-theme-classes` contract, stop posting executable theme config during Summary refreshes, and keep client-rendered forms responsible for their own markup.
+- Split required `formie-base.css` behaviour from optional `formie-theme.css` visuals while retaining combined `formie.css`.
 - Share versioned tri-state conditions and plain-text validation rules across PHP and browser consumers; enforce recursive hidden-value clearing and server-authoritative navigation.
 - Preserve exact nested submission error paths, return typed page-transition results, and distinguish skipped side effects from invalid condition configuration.
 - Consume the shared completion outcome and preserve the server-owned configuration and query-prefill boundary.

@@ -114,6 +114,38 @@ if ($path === '/browser-rendered' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $app->getResponse()->send();
     exit;
 }
+if ($path === '/browser-theme' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $fixture = json_decode(file_get_contents($runtime . '/browser-enabled.json'), true);
+    $form = \verbb\formie\elements\Form::find()->id($fixture['renderedId'])->one();
+    $none = ($_GET['theme'] ?? '') === 'none';
+    $view = $app->getView();
+    $view->setTemplateMode(\craft\web\View::TEMPLATE_MODE_SITE);
+    $options = [
+        'theme' => $none ? 'none' : 'formie',
+        'themeConfig' => [
+            'form' => ['attributes' => ['class' => ['browser-theme-config']]],
+            'fieldLabel' => ['append' => ['tag' => 'span', 'text' => ' <Theme>']],
+            'fieldControlError' => ['attributes' => ['class' => ['browser-input-error']]],
+        ],
+    ];
+    $html = \verbb\formie\Formie::$plugin->getFrontendAssets()->withPublishedBrowserAssets(function () use ($view, $form, $options) {
+        ob_start();
+        $view->beginPage();
+        echo '<!doctype html><html lang="en"><head><title>Theme contract</title>';
+        $view->head();
+        echo '</head><body>';
+        $view->beginBody();
+        echo $view->renderString('{{ craft.formie.renderForm(form, options) }}', ['form' => $form, 'options' => $options]);
+        $view->endBody();
+        echo '</body></html>';
+        $view->endPage();
+
+        return ob_get_clean();
+    });
+    $app->getResponse()->content = $html;
+    $app->getResponse()->send();
+    exit;
+}
 if ($path === '/browser-rendered-saved') {
     $fixture = json_decode(file_get_contents($runtime . '/browser-enabled.json'), true);
     $rows = \verbb\formie\elements\Submission::find()->formId([$fixture['renderedId'], $fixture['renderedNativeId']])->status(null)->isIncomplete(false)->isSpam(false)->all();

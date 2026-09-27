@@ -93,24 +93,30 @@ it('applies radio other option theme config tags', function (): void {
     $field = $form->getFieldByHandle('priority');
     $page = $form->getPages()[0];
 
-    $form->setThemeConfig([
-        'radioButtons' => [
-            'fieldOtherOptionText' => [
-                'attributes' => [
-                    'class' => 'theme-other-text',
-                    'placeholder' => 'Custom other text',
+    \verbb\formie\Formie::$plugin->getRendering()->pushRenderFrame($form, [
+        'themeConfig' => [
+            'radioButtons' => [
+                'fieldOtherOptionText' => [
+                    'attributes' => [
+                        'class' => 'theme-other-text',
+                        'placeholder' => 'Custom other text',
+                    ],
                 ],
             ],
         ],
     ]);
 
-    $tag = $field->renderSlotTag('fieldOtherOptionText', RenderContext::from([
-        'form' => $form,
-        'field' => $field,
-        'page' => $page,
-        'currentPage' => $page,
-        'value' => '',
-    ]));
+    try {
+        $tag = $field->renderSlotTag('fieldOtherOptionText', RenderContext::from([
+            'form' => $form,
+            'field' => $field,
+            'page' => $page,
+            'currentPage' => $page,
+            'value' => '',
+        ]));
+    } finally {
+        \verbb\formie\Formie::$plugin->getRendering()->popRenderFrame();
+    }
 
     expect($tag?->attributes['class'] ?? [])->toContain('formie-other-option-text')
         ->and($tag?->attributes['class'] ?? [])->toContain('theme-other-text')

@@ -355,7 +355,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
         return ['countryEnabled', 'countryDefaultValue'];
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
         $errors = $context->errors;
@@ -410,7 +410,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                 ->instanceAttributes($this->getInputAttributes());
         }
         
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string

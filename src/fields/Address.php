@@ -351,7 +351,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
         return $value?->toValueArray();
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
 
@@ -392,7 +392,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                 ]);
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineSubFields(): array

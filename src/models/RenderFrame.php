@@ -48,6 +48,8 @@ class RenderFrame
             'previewMode',
             'templateVars',
             'errors',
+            '_transportedThemeConfig',
+            '_resolvedTheme',
             'submission',
             'field',
             'inputName',
@@ -64,6 +66,7 @@ class RenderFrame
     public function __construct(
         private readonly Form $form,
         private readonly array $renderOptions,
+        private readonly ResolvedTheme $resolvedTheme,
     ) {
     }
 
@@ -75,6 +78,11 @@ class RenderFrame
     public function getRenderOptions(): array
     {
         return $this->renderOptions;
+    }
+
+    public function getResolvedTheme(): ResolvedTheme
+    {
+        return $this->resolvedTheme;
     }
 
     public function includeScriptsInline(): bool

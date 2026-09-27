@@ -443,7 +443,6 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     private ?FieldLayout $_layout = null;
     private ?FieldLayoutPage $_page = null;
     private ?FieldLayoutRow $_row = null;
-    private array $_themeConfig = [];
     private ?FieldInterface $_parentField = null;
     private string $_namespace = 'fields';
     private ?FieldPath $_fieldPath = null;

@@ -14,6 +14,8 @@ Using a Form Template or render options, you can change where those assets are o
 
 Leaving out Formie's assets entirely is usually a bad idea unless you are deliberately replacing that setup with your own browser-side integration. Without them, a form can lose the behaviour it relies on in the browser.
 
+The shipped stylesheet is split into required `formie-base.css` and visual `formie-theme.css` layers. `formie.css` remains the combined compatibility entry. The `none` theme removes the visual layer only; functional hiding, accessibility behaviour and browser hooks remain available.
+
 If you need to control asset output yourself, see:
 
 - [Render Options](/templates/render-options)
@@ -110,6 +112,8 @@ These packages generally give you two approaches:
 
 - server-rendered forms, where Formie still owns the rendered HTML and browser behaviour
 - client-rendered forms, where your framework takes over the rendered UI while Formie still provides the form definition and submission flow
+
+Client-rendered forms own their markup. They do not receive server-rendered HTML unless they explicitly select the server-rendered product. Browser-provided theme config is declarative and bounded; executable HTML, tag names and event-handler attributes remain server-trusted concerns.
 
 ### React
 The `@verbb/formie-react` package gives you a more natural React developer experience, whether you want a quick HTML-based setup or a more component-driven approach.

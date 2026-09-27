@@ -1563,7 +1563,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return $this->normalizeValue($value, $element)?->toValueArray();
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
         $errors = $context->errors;
@@ -1663,7 +1663,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 ->instanceAttributes($this->getInputAttributes());
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function supportedDefaults(): array

@@ -4,6 +4,7 @@ import type { BrowserModuleDefinition } from '#contracts/modules';
 import comboboxThemeCss from '#theme-css/fields/_combobox.css?inline';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
+import { getThemeClasses } from '#theme/theme-classes';
 import { createDebug } from '#utils/debug';
 
 const SELECT_SELECTOR = 'select[data-formie-combobox-input]';
@@ -15,7 +16,6 @@ ensureModuleStyles(MODULE_ID, [comboboxThemeCss]);
 const NATIVE_THEME_CLASSES = [
     'formie-select',
     'formie-dropdown-input',
-    'formie-input-error',
 ] as const;
 
 export type FormieComboboxOptions = {
@@ -35,7 +35,7 @@ type SelectElement = HTMLSelectElement & {
 function stripNativeThemeClasses(select: HTMLSelectElement): string[] {
     const removed: string[] = [];
 
-    NATIVE_THEME_CLASSES.forEach((className) => {
+    [...NATIVE_THEME_CLASSES, ...getThemeClasses(select, 'fieldControlError')].forEach((className) => {
         if (select.classList.contains(className)) {
             select.classList.remove(className);
             removed.push(className);
@@ -51,8 +51,8 @@ function restoreNativeThemeClasses(select: HTMLSelectElement, classNames: string
     });
 }
 
-function cleanLeakedThemeClasses(element: HTMLElement): void {
-    NATIVE_THEME_CLASSES.forEach((className) => {
+function cleanLeakedThemeClasses(element: HTMLElement, source: HTMLSelectElement): void {
+    [...NATIVE_THEME_CLASSES, ...getThemeClasses(source, 'fieldControlError')].forEach((className) => {
         element.classList.remove(className);
     });
 }
@@ -115,10 +115,10 @@ export function initFormieCombobox(select: SelectElement, options: FormieCombobo
 
     const instance = new TomSelect(select, mergedOptions) as TomSelectInstance;
     removeEmptyOptionFromCombobox(instance);
-    cleanLeakedThemeClasses(instance.wrapper);
+    cleanLeakedThemeClasses(instance.wrapper, select);
 
     if (instance.dropdown) {
-        cleanLeakedThemeClasses(instance.dropdown);
+        cleanLeakedThemeClasses(instance.dropdown, select);
     }
 
     // Tom Select keeps the native select as a preceding sibling; ensure it never

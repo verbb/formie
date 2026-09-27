@@ -635,14 +635,18 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function renderSlotTag(string $key, RenderContext $context): ?SlotTag
     {
+        $tag = $this->defineSlotTag($key, $context);
+        $beforeAttributes = $tag?->attributes ?? [];
         $event = new ModifyIntegrationSlotTagEvent([
             'integration' => $this,
-            'tag' => $this->defineFieldSlotTag($key, $context),
+            'tag' => $tag,
             'key' => $key,
             'context' => $context->toArray(),
         ]);
 
         $this->trigger(static::EVENT_MODIFY_SLOT_TAG, $event);
+
+        $event->tag?->captureTrustedEventResult($beforeAttributes);
 
         return $event->tag;
     }
@@ -1742,7 +1746,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ];
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         return null;
     }

@@ -23,7 +23,7 @@ export type { LegacyBridgeDisposition, LegacyCompatibilityOptions, LegacyDomEven
 export type { FormAction, FormMode, FormTransport, SubmitStage } from '#contracts/common';
 export type { BrowserModuleDefinition, BrowserModuleInstance, ModuleHookContext, ModuleMatchContext, ModuleRegistrationOptions, ModuleSetupContext, SubmitHookContext, } from '#contracts/modules';
 export type { FormRefreshTokensPayload, FormEndpointPayload, BrowserModuleEntry, FormModuleTarget, FormModuleTargetType, FormRedirect, FormSubmitResult, } from '#contracts/schema';
-export type { ThemeClassMap } from '#contracts/theme';
+export type { BrowserThemeClassMap, ThemeClassMap } from '#contracts/theme';
 export type { ValidationConfig, ValidationContext, ValidationError, ValidationInput, ValidationRuleDefinition, ValidationRules, ValidationRuleValue, } from '#validation/types';
 export type { TranslationReplacements } from '#utils/i18n';
 export type { FieldReferenceTransform, FieldValueRegistry, FieldValueRegistryEntry, ParsedFieldReference, ResolveFieldValueResult, } from '#utils/field-references';

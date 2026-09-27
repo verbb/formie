@@ -1,43 +1,102 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\theme\context\RenderContext;
 use verbb\formie\helpers\Html;
+use verbb\formie\models\ResolvedTheme;
 use verbb\formie\models\SlotTag;
 
+use Craft;
+use craft\helpers\Json;
 use yii\base\Component;
+use yii\base\InvalidArgumentException;
 
 class ThemeConfig extends Component
 {
     // Constants
     // =========================================================================
 
-    private const FRONTEND_CLASS_DEFAULTS = [
-        'errors' => ['formie-errors'],
-        'successes' => ['formie-successes'],
-        'message' => ['formie-message'],
-        'messageError' => ['formie-message-error'],
-        'messageSuccess' => ['formie-message-success'],
-        'tabError' => ['formie-tab-error'],
-        'tabCurrent' => ['formie-tab-current'],
-        'tabComplete' => ['formie-tab-complete'],
-        'tabLinkCurrent' => [],
-        'tabLinkInactive' => [],
-        'pageHidden' => ['formie-page-hidden'],
-        'loading' => ['formie-loading'],
-        'success' => ['formie-success'],
-        'error' => ['formie-error'],
-        'fieldLayoutError' => ['formie-field-has-error'],
-        'fieldControlError' => ['formie-input-error'],
-        'fieldErrors' => ['formie-field-errors'],
-        'fieldError' => ['formie-field-error'],
-    ];
+    public const MAX_CONFIG_BYTES = 65536;
+    public const MAX_CONFIG_DEPTH = 12;
+    public const MAX_CONFIG_NODES = 2000;
 
+    private const CONDITION_PATHS = [
+        'form.id', 'form.uid', 'form.handle', 'form.hasMultiplePages',
+        'field.id', 'field.uid', 'field.handle', 'field.type', 'field.displayType', 'field.layout', 'field.hasErrors', 'field.isHidden', 'field.isRequired',
+        'page.id', 'page.index', 'page.isActive', 'page.hasErrors', 'page.isComplete', 'page.buttonsPosition', 'page.saveButtonStyle',
+        'currentPage.id', 'currentPage.index', 'row.isHidden',
+        'submission.id', 'submission.uid', 'submission.hasErrors',
+    ];
 
     // Public Methods
     // =========================================================================
+
+    public function resolve(Form $form, array $renderOptions = [], bool $transported = false): ResolvedTheme
+    {
+        $mode = trim((string)($renderOptions['theme'] ?? '')) ?: 'formie';
+
+        if (!in_array($mode, ['formie', 'none'], true)) {
+            throw new InvalidArgumentException('Theme must be either `formie` or `none`.');
+        }
+
+        $providedConfig = $renderOptions['themeConfig'] ?? [];
+
+        if ($providedConfig === null) {
+            $providedConfig = [];
+        }
+
+        if (!is_array($providedConfig)) {
+            throw new InvalidArgumentException('Theme config must be an object/map.');
+        }
+
+        // Global settings and ordinary Twig/PHP render options are developer-owned.
+        // Only the request-transported layer receives the stricter executable-content
+        // policy; validating after the merge would incorrectly demote trusted settings.
+        $settingsConfig = $this->_validateAndNormalizeConfig(Formie::$plugin->getSettings()->themeConfig, false);
+        $providedConfig = $this->_validateAndNormalizeConfig($providedConfig, $transported);
+        $config = $this->_validateAndNormalizeConfig($this->mergeConfigLayers($settingsConfig, $providedConfig), false);
+        $digest = hash('sha256', Json::encode($this->_canonicalize([
+            'mode' => $mode,
+            'config' => $config,
+        ])));
+        $resolved = new ResolvedTheme($mode, $config, [], $digest, true);
+
+        return new ResolvedTheme(
+            $mode,
+            $config,
+            $this->_buildBrowserClassMap($form, $resolved),
+            $digest,
+            true,
+        );
+    }
+
+    public function restoreFragmentState(Form $form, array $state): ResolvedTheme
+    {
+        $mode = isset($state['mode']) && is_string($state['mode']) ? $state['mode'] : 'formie';
+        $config = isset($state['config']) && is_array($state['config']) ? $state['config'] : [];
+        $allowsRawHtml = (bool)($state['allowsRawHtml'] ?? false);
+
+        if (!in_array($mode, ['formie', 'none'], true)) {
+            throw new InvalidArgumentException('Invalid theme fragment mode.');
+        }
+
+        $config = $this->_validateAndNormalizeConfig($config, !$allowsRawHtml);
+        $digest = hash('sha256', Json::encode($this->_canonicalize([
+            'mode' => $mode,
+            'config' => $config,
+        ])));
+
+        if (!hash_equals((string)($state['digest'] ?? ''), $digest)) {
+            throw new InvalidArgumentException('Theme fragment state digest mismatch.');
+        }
+
+        $resolved = new ResolvedTheme($mode, $config, [], $digest, $allowsRawHtml);
+
+        return new ResolvedTheme($mode, $config, $this->_buildBrowserClassMap($form, $resolved), $digest, $allowsRawHtml);
+    }
 
     public function applyFormTagConfig(Form $form, string $key, ?SlotTag $tag, RenderContext $context): ?SlotTag
     {
@@ -45,10 +104,11 @@ class ThemeConfig extends Component
             return null;
         }
 
-        $config = $this->_normalizePublicSlotConfig($form->getThemeConfigItem($key));
-        $unstyled = $this->_isUnstyledTheme($form);
+        $theme = $this->_resolvedTheme($form);
+        $config = $this->_normalizePublicSlotConfig($theme->getConfigItem($key));
+        $unstyled = $theme->isNone() || (bool)($theme->config['resetClasses'] ?? false);
 
-        return $this->_applyConfigToTag($tag, $config, $context, $unstyled);
+        return $this->_applyConfigToTag($tag, $config, $context, $unstyled, $theme->allowsRawHtml);
     }
 
     public function applyFieldTagConfig(FieldInterface $field, Form $form, string $key, ?SlotTag $tag, RenderContext $context): ?SlotTag
@@ -57,15 +117,28 @@ class ThemeConfig extends Component
             return null;
         }
 
-        $templateConfig = $this->_normalizePublicSlotConfig($form->getThemeConfigItem($key));
-        $fieldTypeConfig = $this->_normalizePublicSlotConfig($form->getThemeConfigItem($field->themeConfigKey() . '.' . $key));
+        $theme = $this->_resolvedTheme($form);
+        $templateConfig = $this->_normalizePublicSlotConfig($theme->getConfigItem($key));
+        $fieldTypeConfig = $this->_normalizePublicSlotConfig($theme->getConfigItem($field->themeConfigKey() . '.' . $key));
         $config = $this->mergeSlotConfig($templateConfig, $fieldTypeConfig);
-        $unstyled = $this->_isUnstyledTheme($form);
+        $unstyled = $theme->isNone() || (bool)($theme->config['resetClasses'] ?? false);
 
-        return $this->_applyConfigToTag($tag, $config, $context, $unstyled);
+        return $this->_applyConfigToTag($tag, $config, $context, $unstyled, $theme->allowsRawHtml);
+    }
+
+    public function buildBrowserClassMap(Form $form): array
+    {
+        return $this->_resolvedTheme($form)->browserClassMap;
     }
 
     public function buildFrontendClassMap(Form $form): array
+    {
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Use `buildBrowserClassMap()` instead.');
+
+        return $this->buildBrowserClassMap($form);
+    }
+
+    private function _buildBrowserClassMap(Form $form, ResolvedTheme $theme): array
     {
         $context = RenderContext::from([
             'form' => $form,
@@ -75,10 +148,10 @@ class ThemeConfig extends Component
         $evaluationContext = $this->_buildEvaluationContext($context);
         $themeClasses = [];
 
-        foreach (self::FRONTEND_CLASS_DEFAULTS as $key => $fallbackClasses) {
-            $config = $this->_normalizePublicSlotConfig($form->getThemeConfigItem($key));
+        foreach ($this->_browserClassDefaults() as $key => $fallbackClasses) {
+            $config = $this->_normalizePublicSlotConfig($theme->getConfigItem($key));
 
-            if ($this->_isUnstyledTheme($form)) {
+            if ($theme->isNone()) {
                 $fallbackClasses = [];
             }
 
@@ -139,14 +212,14 @@ class ThemeConfig extends Component
 
         $baseAttributes = $baseConfig['attributes'] ?? [];
         $overrideAttributes = $overrideConfig['attributes'] ?? [];
-        $baseClasses = $this->_normalizeClassList($baseAttributes['class'] ?? []);
-        $overrideClasses = $this->_normalizeClassList($overrideAttributes['class'] ?? []);
+        $baseClasses = $this->_normalizeClassExpressions($baseAttributes['class'] ?? []);
+        $overrideClasses = $this->_normalizeClassExpressions($overrideAttributes['class'] ?? []);
 
         unset($baseAttributes['class'], $overrideAttributes['class']);
 
         $merged = [
             'tag' => $overrideConfig['tag'] ?? $baseConfig['tag'] ?? null,
-            'reset' => $overrideConfig['reset'] ?? $baseConfig['reset'] ?? false,
+            'resetClass' => $overrideConfig['resetClass'] ?? $overrideConfig['reset'] ?? $baseConfig['resetClass'] ?? $baseConfig['reset'] ?? false,
             'attributes' => $this->_mergeAttributeMaps($baseAttributes, $overrideAttributes),
             'cssVars' => $this->_mergeAttributeMaps($baseConfig['cssVars'] ?? [], $overrideConfig['cssVars'] ?? []),
             'prepend' => array_values(array_merge(
@@ -159,7 +232,7 @@ class ThemeConfig extends Component
             )),
         ];
 
-        if (($overrideConfig['reset'] ?? false) === true) {
+        if (($overrideConfig['resetClass'] ?? $overrideConfig['reset'] ?? false) === true) {
             $classes = $overrideClasses;
         } else {
             $classes = array_values(array_filter(array_merge($baseClasses, $overrideClasses), static function($value) {
@@ -184,7 +257,7 @@ class ThemeConfig extends Component
     // Private Methods
     // =========================================================================
 
-    private function _applyConfigToTag(SlotTag $tag, array|bool|null $config, RenderContext $context, bool $unstyled = false): ?SlotTag
+    private function _applyConfigToTag(SlotTag $tag, array|bool|null $config, RenderContext $context, bool $unstyled = false, bool $allowsRawHtml = false): ?SlotTag
     {
         if ($config === false || $config === null) {
             return null;
@@ -198,7 +271,7 @@ class ThemeConfig extends Component
             return $tag;
         }
 
-        $normalizedConfig = $this->_normalizeSlotConfig($config, $context);
+        $normalizedConfig = $this->_normalizeSlotConfig($config, $context, $allowsRawHtml);
 
         if ($normalizedConfig === false || $normalizedConfig === null) {
             return null;
@@ -215,7 +288,7 @@ class ThemeConfig extends Component
         return $tag;
     }
 
-    private function _normalizeSlotConfig(array $config, RenderContext $context): array|bool|null
+    private function _normalizeSlotConfig(array $config, RenderContext $context, bool $allowsRawHtml): array|bool|null
     {
         $config = $this->_normalizePublicSlotConfig($config);
 
@@ -231,9 +304,9 @@ class ThemeConfig extends Component
         $attributes = $this->_resolveAttributeMap($attributeConfig, $evaluationContext);
         $resolvedTag = $this->_resolveThemeValue($config['tag'] ?? null, $evaluationContext);
         $resolvedCssVars = $this->_resolveAttributeMap($config['cssVars'] ?? [], $evaluationContext);
-        $resolvedReset = (bool)$this->_resolveThemeValue($config['reset'] ?? false, $evaluationContext);
-        $resolvedPrepend = $this->_resolveInjectedContent($config['prepend'] ?? [], $evaluationContext);
-        $resolvedAppend = $this->_resolveInjectedContent($config['append'] ?? [], $evaluationContext);
+        $resolvedReset = (bool)$this->_resolveThemeValue($config['resetClass'] ?? $config['reset'] ?? false, $evaluationContext);
+        $resolvedPrepend = $this->_resolveInjectedContent($config['prepend'] ?? [], $evaluationContext, $allowsRawHtml);
+        $resolvedAppend = $this->_resolveInjectedContent($config['append'] ?? [], $evaluationContext, $allowsRawHtml);
 
         if ($resolvedClasses) {
             $attributes['class'] = $resolvedClasses;
@@ -348,13 +421,13 @@ class ThemeConfig extends Component
                 $classes[] = $item;
             }
 
-            return $classes;
+            return $this->_normalizeClassList($classes);
         }
 
-        return $resolved;
+        return $this->_normalizeClassList($resolved);
     }
 
-    private function _resolveInjectedContent(mixed $content, array $context): array
+    private function _resolveInjectedContent(mixed $content, array $context, bool $allowsRawHtml): array
     {
         $resolved = $this->_resolveThemeValue($content, $context);
 
@@ -363,7 +436,7 @@ class ThemeConfig extends Component
         }
 
         if ($this->_isInjectedContentNode($resolved)) {
-            $renderedNode = $this->_renderInjectedContentNode($resolved, $context);
+            $renderedNode = $this->_renderInjectedContentNode($resolved, $context, $allowsRawHtml);
 
             return $renderedNode ? [$renderedNode] : [];
         }
@@ -375,7 +448,7 @@ class ThemeConfig extends Component
         $nodes = [];
 
         foreach ($resolved as $item) {
-            foreach ($this->_resolveInjectedContent($item, $context) as $renderedNode) {
+            foreach ($this->_resolveInjectedContent($item, $context, $allowsRawHtml) as $renderedNode) {
                 $nodes[] = $renderedNode;
             }
         }
@@ -417,7 +490,7 @@ class ThemeConfig extends Component
         return $value;
     }
 
-    private function _renderInjectedContentNode(array $node, array $context): ?string
+    private function _renderInjectedContentNode(array $node, array $context, bool $allowsRawHtml): ?string
     {
         $tag = $this->_resolveThemeValue($node['tag'] ?? 'span', $context);
 
@@ -442,7 +515,7 @@ class ThemeConfig extends Component
             $attributes['style'] = array_merge($attributes['style'] ?? [], $cssVars);
         }
 
-        $content = $html ?? $text ?? '';
+        $content = ($allowsRawHtml ? $html : null) ?? ($text !== null ? Html::encode((string)$text) : '');
 
         return Html::tag($tag, (string)$content, $attributes);
     }
@@ -579,25 +652,201 @@ class ThemeConfig extends Component
         return $merged;
     }
 
-    private function _normalizePublicSlotConfig(array|bool|null $config): array|bool|null
+    private function _validateAndNormalizeConfig(array $config, bool $transported): array
     {
-        if (!is_array($config) || !$config || $this->_isSlotConfig($config) || !$this->_isPublicFlatSlotConfig($config)) {
-            return $config;
+        $encoded = Json::encode($config);
+
+        if (strlen($encoded) > self::MAX_CONFIG_BYTES) {
+            throw new InvalidArgumentException('Theme config exceeds the 64 KiB transport limit.');
+        }
+
+        $nodes = 0;
+        $normalized = $this->_validateConfigNode($config, '$', 0, $nodes, $transported);
+
+        if (!is_array($normalized)) {
+            throw new InvalidArgumentException('Theme config must resolve to an object/map.');
+        }
+
+        return $normalized;
+    }
+
+    private function _validateConfigNode(mixed $value, string $path, int $depth, int &$nodes, bool $transported): mixed
+    {
+        $nodes++;
+
+        if ($depth > self::MAX_CONFIG_DEPTH) {
+            throw new InvalidArgumentException("Theme config exceeds the maximum depth at `{$path}`.");
+        }
+
+        if ($nodes > self::MAX_CONFIG_NODES) {
+            throw new InvalidArgumentException('Theme config exceeds the maximum node count.');
+        }
+
+        if (is_string($value)) {
+            if (
+                str_contains($value, '{{') ||
+                str_contains($value, '{%') ||
+                preg_match('/\b(?:attribute|constant|source|include)\s*\(/i', $value) ||
+                preg_match('/(?:^|[^a-z0-9_-])(?:[a-z_][a-z0-9_]*\.)+[a-z_][a-z0-9_]*\s*\(/i', $value)
+            ) {
+                Craft::warning("Rejected executable theme expression at {$path}.", 'formie');
+                throw new InvalidArgumentException("Executable Twig or method expressions are not supported at `{$path}`.");
+            }
+
+            return $value;
+        }
+
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        if ($this->_isConditionalValue($value)) {
+            $unknownKeys = array_diff(array_keys($value), ['if', 'then', 'else']);
+
+            if ($unknownKeys !== []) {
+                $unknownKey = reset($unknownKeys);
+                throw new InvalidArgumentException("Unknown conditional theme property `{$unknownKey}` at `{$path}`.");
+            }
+
+            $this->_validateConditionGrammar($value['if'] ?? true, $path . '.if');
         }
 
         $normalized = [];
-        $attributes = [];
+
+        foreach ($value as $key => $item) {
+            $key = is_int($key) ? $key : trim((string)$key);
+            $itemPath = $path . '.' . $key;
+
+            if (is_string($key) && $key === '') {
+                throw new InvalidArgumentException("Theme config contains an empty property at `{$path}`.");
+            }
+
+            if (is_string($key) && preg_match('/^on[a-z]/i', $key)) {
+                throw new InvalidArgumentException("Declarative event-handler attribute `{$key}` is not allowed at `{$path}`.");
+            }
+
+            if ($path !== '$' && str_ends_with($path, '.cssVars') && is_string($key) && !str_starts_with($key, '--')) {
+                throw new InvalidArgumentException("CSS variable `{$key}` at `{$path}` must begin with `--`.");
+            }
+
+            if ($key === 'tag') {
+                if (!is_string($item) || !preg_match('/^[a-z][a-z0-9-]*$/', $item)) {
+                    throw new InvalidArgumentException("Invalid theme tag at `{$itemPath}`.");
+                }
+
+                if ($transported) {
+                    throw new InvalidArgumentException("Theme tags are not accepted from transported theme config at `{$itemPath}`.");
+                }
+            }
+
+            if (in_array($key, ['attributes', 'cssVars'], true) && !is_array($item)) {
+                throw new InvalidArgumentException("Theme property `{$itemPath}` must be an object/map.");
+            }
+
+            if ($key === 'html' && $transported) {
+                throw new InvalidArgumentException("Raw HTML is not accepted from transported theme config at `{$itemPath}`.");
+            }
+
+            if (in_array($key, ['context', 'key', 'path', 'equalsPath'], true) && is_string($item) && !in_array($item, self::CONDITION_PATHS, true)) {
+                throw new InvalidArgumentException("Unknown theme condition path `{$item}` at `{$itemPath}`.");
+            }
+
+            if ($key === 'class') {
+                $resolved = $this->_validateConfigNode($item, $itemPath, $depth + 1, $nodes, $transported);
+                $normalized[$key] = is_string($resolved) ? $this->_normalizeClassList($resolved) : $resolved;
+                continue;
+            }
+
+            $normalized[$key] = $this->_validateConfigNode($item, $itemPath, $depth + 1, $nodes, $transported);
+        }
+
+        return $normalized;
+    }
+
+    private function _validateConditionGrammar(mixed $condition, string $path): void
+    {
+        if (is_bool($condition) || is_string($condition)) {
+            if (is_string($condition) && !in_array($condition, self::CONDITION_PATHS, true)) {
+                throw new InvalidArgumentException("Unknown theme condition path `{$condition}` at `{$path}`.");
+            }
+
+            return;
+        }
+
+        if (!is_array($condition) || array_is_list($condition)) {
+            throw new InvalidArgumentException("Theme condition at `{$path}` must be a boolean, context path or condition object.");
+        }
+
+        $allowedKeys = ['and', 'or', 'context', 'key', 'path', 'equalsPath', 'equals', 'notEquals', 'in', 'truthy'];
+        $unknownKeys = array_diff(array_keys($condition), $allowedKeys);
+
+        if ($unknownKeys !== []) {
+            $unknownKey = reset($unknownKeys);
+            throw new InvalidArgumentException("Unknown theme condition property `{$unknownKey}` at `{$path}`.");
+        }
+
+        foreach (['and', 'or'] as $operator) {
+            if (!array_key_exists($operator, $condition)) {
+                continue;
+            }
+
+            if (!is_array($condition[$operator]) || !array_is_list($condition[$operator])) {
+                throw new InvalidArgumentException("Theme condition operator `{$operator}` at `{$path}` must be a list.");
+            }
+
+            foreach ($condition[$operator] as $index => $nestedCondition) {
+                $this->_validateConditionGrammar($nestedCondition, "{$path}.{$operator}.{$index}");
+            }
+        }
+
+        if (array_key_exists('in', $condition) && !is_array($condition['in'])) {
+            throw new InvalidArgumentException("Theme condition `in` value at `{$path}` must be a list.");
+        }
+    }
+
+    private function _canonicalize(mixed $value): mixed
+    {
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        if (!array_is_list($value)) {
+            ksort($value, SORT_STRING);
+        }
+
+        foreach ($value as $key => $item) {
+            $value[$key] = $this->_canonicalize($item);
+        }
+
+        return $value;
+    }
+
+    private function _normalizePublicSlotConfig(array|bool|null $config): array|bool|null
+    {
+        if (!is_array($config) || !$config || !$this->_isPublicFlatSlotConfig($config)) {
+            return $config;
+        }
+
+        $normalized = array_intersect_key($config, array_flip([
+            'tag',
+            'cssVars',
+            'reset',
+            'resetClass',
+            'prepend',
+            'append',
+        ]));
+        $attributes = is_array($config['attributes'] ?? null) ? $config['attributes'] : [];
 
         if (($config['class'] ?? null) !== null) {
             $attributes['class'] = $config['class'];
         }
 
-        if (($config['reset'] ?? false) === true) {
-            $normalized['reset'] = true;
+        if (($config['resetClass'] ?? $config['reset'] ?? false) === true) {
+            $normalized['resetClass'] = true;
         }
 
         foreach ($config as $key => $value) {
-            if (in_array($key, ['class', 'reset'], true)) {
+            if (in_array($key, ['tag', 'class', 'attributes', 'cssVars', 'reset', 'resetClass', 'prepend', 'append'], true)) {
                 continue;
             }
 
@@ -613,7 +862,7 @@ class ThemeConfig extends Component
 
     private function _isSlotConfig(array $value): bool
     {
-        return (bool)array_intersect(array_keys($value), ['tag', 'attributes', 'cssVars', 'reset', 'prepend', 'append']);
+        return (bool)array_intersect(array_keys($value), ['tag', 'class', 'attributes', 'cssVars', 'reset', 'resetClass', 'prepend', 'append']);
     }
 
     private function _isPublicFlatSlotConfig(array $value): bool
@@ -622,7 +871,7 @@ class ThemeConfig extends Component
             return false;
         }
 
-        if (array_key_exists('reset', $value) || array_key_exists('class', $value)) {
+        if (array_key_exists('reset', $value) || array_key_exists('resetClass', $value) || array_key_exists('class', $value)) {
             return true;
         }
 
@@ -642,16 +891,53 @@ class ThemeConfig extends Component
         }
 
         if (is_string($classes)) {
-            return [$classes];
+            return preg_split('/\s+/', trim($classes), -1, PREG_SPLIT_NO_EMPTY) ?: [];
         }
 
         if (!is_array($classes)) {
             return [(string)$classes];
         }
 
-        return array_values(array_filter($classes, static function($value) {
-            return $value !== null && $value !== false && $value !== '';
-        }));
+        $normalized = [];
+
+        foreach ($classes as $value) {
+            if ($value === null || $value === false || $value === '') {
+                continue;
+            }
+
+            if (is_string($value)) {
+                array_push($normalized, ...(preg_split('/\s+/', trim($value), -1, PREG_SPLIT_NO_EMPTY) ?: []));
+            } else {
+                $normalized[] = (string)$value;
+            }
+        }
+
+        return array_values(array_unique($normalized));
+    }
+
+    private function _normalizeClassExpressions(mixed $classes): array
+    {
+        if ($classes === null || $classes === false || $classes === '') {
+            return [];
+        }
+
+        $classes = is_array($classes) ? $classes : [$classes];
+        $normalized = [];
+
+        foreach ($classes as $value) {
+            if ($value === null || $value === false || $value === '') {
+                continue;
+            }
+
+            if (is_array($value)) {
+                $normalized[] = $value;
+                continue;
+            }
+
+            array_push($normalized, ...$this->_normalizeClassList($value));
+        }
+
+        return $normalized;
     }
 
     private function _resolveFrontendThemeClasses(mixed $config, array $fallbackClasses, array $context): array
@@ -673,9 +959,36 @@ class ThemeConfig extends Component
         return $classes ?: $fallbackClasses;
     }
 
-    private function _isUnstyledTheme(Form $form): bool
+    private function _resolvedTheme(Form $form): ResolvedTheme
     {
-        return $form->getFrontendTheme() === 'none';
+        $frame = Formie::$plugin->getRendering()->getActiveRenderFrame();
+
+        if ($frame && $frame->getForm() === $form) {
+            return $frame->getResolvedTheme();
+        }
+
+        return $this->resolve($form);
+    }
+
+    private function _browserClassDefaults(): array
+    {
+        static $defaults = null;
+
+        if ($defaults !== null) {
+            return $defaults;
+        }
+
+        $path = dirname(__DIR__) . '/config/browser-theme-state.json';
+        $manifest = is_file($path) ? Json::decode((string)file_get_contents($path)) : [];
+        $defaults = [];
+
+        foreach (is_array($manifest) ? $manifest : [] as $key => $definition) {
+            if (is_string($key) && is_array($definition)) {
+                $defaults[$key] = $this->_normalizeClassList($definition['classes'] ?? []);
+            }
+        }
+
+        return $defaults;
     }
 
 }

@@ -1,4 +1,4 @@
-import type { ThemeClassMap } from '#contracts/theme';
+import type { BrowserThemeClassMap } from '#contracts/theme';
 
 type NormalizedThemeClassMap = Record<string, string[]>;
 
@@ -46,7 +46,7 @@ function resolveThemeClassMap(source: Element | null): NormalizedThemeClassMap {
     return themeRegistry.get(root) || {};
 }
 
-export function normalizeThemeClassMap(theme?: ThemeClassMap | null): NormalizedThemeClassMap {
+export function normalizeThemeClassMap(theme?: BrowserThemeClassMap | null): NormalizedThemeClassMap {
     const normalized: NormalizedThemeClassMap = {};
 
     Object.entries(theme || {}).forEach(([key, value]) => {
@@ -60,7 +60,7 @@ export function normalizeThemeClassMap(theme?: ThemeClassMap | null): Normalized
     return normalized;
 }
 
-export function registerThemeClassMap(target: Element, theme?: ThemeClassMap | null, form?: HTMLFormElement | null): NormalizedThemeClassMap {
+export function registerThemeClassMap(target: Element, theme?: BrowserThemeClassMap | null, form?: HTMLFormElement | null): NormalizedThemeClassMap {
     const normalized = normalizeThemeClassMap(theme);
     const resolvedForm = form || (target instanceof HTMLFormElement ? target : target.querySelector('form'));
 

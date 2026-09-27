@@ -146,9 +146,9 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
         return $this->_getValueLabel($value);
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        $tag = parent::defineFieldSlotTag($key, $context);
+        $tag = parent::defineSlotTag($key, $context);
 
         if ($tag && $key === 'fieldInput') {
             $tag->mergeCoreAttributes([

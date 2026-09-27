@@ -301,7 +301,7 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
         return ['autocomplete'];
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
         $errors = $context->errors;
@@ -350,7 +350,7 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
                 ]);
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineRules(): array

@@ -402,10 +402,16 @@ class FieldsController extends Controller
         }
 
         $context['form']->setCurrentSubmission($context['submission']);
-        $this->_applySummaryRenderContext($context['form']);
-        $value = $context['submission']->getFieldValue($context['field']->valueKey());
-        $html = (string)$context['field']->renderInput($context['form'], $value);
-        $accessToken = FieldAccess::issueAccessToken($context['submission'], (int)$context['field']->id);
+        $resolvedTheme = Formie::$plugin->getThemeConfigService()->restoreFragmentState($context['form'], $context['theme']);
+        Formie::$plugin->getRendering()->pushRenderFrame($context['form'], ['_resolvedTheme' => $resolvedTheme], $resolvedTheme);
+
+        try {
+            $value = $context['submission']->getFieldValue($context['field']->valueKey());
+            $html = (string)$context['field']->renderInput($context['form'], $value);
+            $accessToken = FieldAccess::issueAccessToken($context['submission'], (int)$context['field']->id);
+        } finally {
+            Formie::$plugin->getRendering()->popRenderFrame();
+        }
 
         if ($accessToken && !str_contains($html, 'data-formie-summary-token')) {
             $escapedToken = htmlspecialchars($accessToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -475,40 +481,6 @@ class FieldsController extends Controller
         return $field;
     }
 
-    private function _applySummaryRenderContext(Form $form): void
-    {
-        $themeConfig = $this->_decodeThemeConfigParam();
-
-        if ($themeConfig !== null) {
-            $form->setThemeConfig($themeConfig);
-        }
-
-        $frontendTheme = trim((string)$this->request->getBodyParam('frontendTheme', $this->request->getParam('frontendTheme', '')));
-
-        if ($frontendTheme !== '') {
-            $form->setFrontendTheme($frontendTheme);
-        }
-    }
-
-    private function _decodeThemeConfigParam(): ?array
-    {
-        $raw = $this->request->getBodyParam('themeConfig', $this->request->getParam('themeConfig'));
-
-        if ($raw === null || $raw === '') {
-            return null;
-        }
-
-        if (is_string($raw)) {
-            try {
-                $raw = Json::decode($raw);
-            } catch (\Throwable) {
-                return null;
-            }
-        }
-
-        return is_array($raw) ? $raw : null;
-    }
-
     private function _resolveFieldAccessContext(?string $accessToken): ?array
     {
         $payload = FieldAccess::resolveAccessToken($accessToken);
@@ -543,6 +515,9 @@ class FieldsController extends Controller
             'submission' => $submission,
             'form' => $form,
             'field' => $field,
+            'theme' => is_array($payload['theme'] ?? null)
+                ? $payload['theme']
+                : Formie::$plugin->getThemeConfigService()->resolve($form)->toFragmentState(),
         ];
     }
 

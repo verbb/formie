@@ -3,7 +3,19 @@
 declare(strict_types=1);
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\theme\context\RenderContext;
+
+function withBrowserThemeFrame(Form $form, array $themeConfig, callable $callback): mixed
+{
+    Formie::$plugin->getRendering()->pushRenderFrame($form, ['themeConfig' => $themeConfig]);
+
+    try {
+        return $callback();
+    } finally {
+        Formie::$plugin->getRendering()->popRenderFrame();
+    }
+}
 
 it('includes tab link state classes in the frontend theme class map', function (): void {
     $form = formie()
@@ -13,7 +25,7 @@ it('includes tab link state classes in the frontend theme class map', function (
         ->onPage(2)->singleLineTextField('pageTwo')
         ->create();
 
-    $form->setThemeConfig([
+    $map = withBrowserThemeFrame($form, [
         'tabLinkCurrent' => [
             'attributes' => [
                 'class' => ['tab-link-active'],
@@ -24,9 +36,7 @@ it('includes tab link state classes in the frontend theme class map', function (
                 'class' => ['tab-link-inactive'],
             ],
         ],
-    ]);
-
-    $map = Formie::$plugin->getThemeConfigService()->buildFrontendClassMap($form);
+    ], fn(): array => Formie::$plugin->getThemeConfigService()->buildBrowserClassMap($form));
 
     expect($map['tabLinkCurrent'] ?? [])->toContain('tab-link-active')
         ->and($map['tabLinkInactive'] ?? [])->toContain('tab-link-inactive');
@@ -40,15 +50,13 @@ it('resolves pageTabLinkActive as an alias for tabLinkCurrent', function (): voi
         ->onPage(2)->singleLineTextField('pageTwo')
         ->create();
 
-    $form->setThemeConfig([
+    $map = withBrowserThemeFrame($form, [
         'pageTabLinkActive' => [
             'attributes' => [
                 'class' => ['alias-tab-link-active'],
             ],
         ],
-    ]);
-
-    $map = Formie::$plugin->getThemeConfigService()->buildFrontendClassMap($form);
+    ], fn(): array => Formie::$plugin->getThemeConfigService()->buildBrowserClassMap($form));
 
     expect($map['tabLinkCurrent'] ?? [])->toContain('alias-tab-link-active');
 });
@@ -61,7 +69,7 @@ it('applies tab link state classes during server render', function (): void {
         ->onPage(2)->singleLineTextField('pageTwo')
         ->create();
 
-    $form->setThemeConfig([
+    $themeConfig = [
         'tabLinkCurrent' => [
             'attributes' => [
                 'class' => ['tab-link-active'],
@@ -72,23 +80,26 @@ it('applies tab link state classes during server render', function (): void {
                 'class' => ['tab-link-inactive'],
             ],
         ],
-    ]);
+    ];
 
     $pages = $form->getPages();
     $currentPage = $pages[0];
     $otherPage = $pages[1];
 
-    $currentTag = Formie::$plugin->getFormSlotRegistry()->resolve('pageTabLink', RenderContext::from([
-        'form' => $form,
-        'targetPage' => $currentPage,
-        'currentPage' => $currentPage,
-    ]));
-
-    $inactiveTag = Formie::$plugin->getFormSlotRegistry()->resolve('pageTabLink', RenderContext::from([
-        'form' => $form,
-        'targetPage' => $otherPage,
-        'currentPage' => $currentPage,
-    ]));
+    [$currentTag, $inactiveTag] = withBrowserThemeFrame($form, $themeConfig, function() use ($form, $currentPage, $otherPage): array {
+        return [
+            Formie::$plugin->getFormSlotRegistry()->resolve('pageTabLink', RenderContext::from([
+                'form' => $form,
+                'targetPage' => $currentPage,
+                'currentPage' => $currentPage,
+            ])),
+            Formie::$plugin->getFormSlotRegistry()->resolve('pageTabLink', RenderContext::from([
+                'form' => $form,
+                'targetPage' => $otherPage,
+                'currentPage' => $currentPage,
+            ])),
+        ];
+    });
 
     expect($currentTag?->attributes['class'] ?? [])->toContain('tab-link-active')
         ->and($currentTag?->attributes['class'] ?? [])->not->toContain('tab-link-inactive')
@@ -96,7 +107,7 @@ it('applies tab link state classes during server render', function (): void {
         ->and($inactiveTag?->attributes['class'] ?? [])->not->toContain('tab-link-active');
 });
 
-it('embeds tab link state classes on data-formie-theme', function (): void {
+it('embeds tab link state classes on data-formie-theme-classes', function (): void {
     $form = formie()
         ->form(['title' => 'Tab Link Theme Embed'])
         ->multiPage(2)
@@ -104,19 +115,17 @@ it('embeds tab link state classes on data-formie-theme', function (): void {
         ->onPage(2)->singleLineTextField('pageTwo')
         ->create();
 
-    $form->setThemeConfig([
+    $tag = withBrowserThemeFrame($form, [
         'tabLinkCurrent' => [
             'attributes' => [
                 'class' => ['tab-link-active'],
             ],
         ],
-    ]);
+    ], fn() => \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => Formie::$plugin->getFormSlotRegistry()->resolve('form', RenderContext::from([
+            'form' => $form,
+        ]))));
 
-    $tag = \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => Formie::$plugin->getFormSlotRegistry()->resolve('form', RenderContext::from([
-        'form' => $form,
-    ])));
-
-    $encodedTheme = $tag?->coreAttributes['data']['formie-theme'] ?? null;
+    $encodedTheme = $tag?->coreAttributes['data']['formie-theme-classes'] ?? null;
 
     expect($encodedTheme)
         ->toBeString()

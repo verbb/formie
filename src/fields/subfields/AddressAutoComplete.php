@@ -115,7 +115,7 @@ class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
     // Protected Methods
     // =========================================================================
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         if ($key === 'locationLink') {
             $parent = $this->getParentField();
@@ -127,7 +127,7 @@ class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
             return null;
         }
 
-        $tag = parent::defineFieldSlotTag($key, $context);
+        $tag = parent::defineSlotTag($key, $context);
 
         if ($tag && $key === 'fieldInput') {
             $tag->mergeCoreAttributes([

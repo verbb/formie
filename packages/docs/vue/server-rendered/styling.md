@@ -51,6 +51,8 @@ When you use `useFormieHtml()`, wrap the element bound to `rootRef` the same way
 
 If tokens are not enough, `themeConfig` lets you inject classes, attributes, and reset behaviour into the shipped server-rendered theme.
 
+Config passed by a browser client is bounded declarative data. It can add safe classes, attributes and CSS custom properties, but it cannot supply raw HTML, change tags or add event-handler attributes. Use trusted server-side config or template partial overrides for structural markup.
+
 ### Add Classes and Attributes
 
 Use this when you want to keep Formie's HTML structure but attach app-owned classes or data attributes at known theme hooks:
@@ -105,13 +107,13 @@ import { FormieForm } from '@verbb/formie-vue';
     theme="formie"
     :theme-config="{
       field: {
-        reset: true,
+        resetClass: true,
         attributes: {
           class: ['rounded-2xl', 'border', 'p-4'],
         },
       },
       fieldLabel: {
-        reset: true,
+        resetClass: true,
         attributes: {
           class: ['text-xs', 'font-semibold', 'uppercase'],
         },

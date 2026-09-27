@@ -97,7 +97,7 @@ function renderPlaceholderLoading(placeholder: HTMLElement | null, themeSource: 
     placeholder.removeAttribute('hidden');
     placeholder.innerHTML = '';
     const spinner = document.createElement('div');
-    spinner.className = 'formie-loading';
+    addThemeClasses(spinner, themeSource, 'loading');
     const text = document.createElement('div');
     text.textContent = message;
     placeholder.append(spinner, text);

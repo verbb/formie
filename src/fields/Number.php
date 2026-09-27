@@ -398,7 +398,7 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
         return ['decimals'];
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
         $errors = $context->errors;
@@ -438,7 +438,7 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
                 ->instanceAttributes($this->getInputAttributes());
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineRules(): array

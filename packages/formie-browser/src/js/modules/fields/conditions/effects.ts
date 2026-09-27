@@ -1,14 +1,13 @@
+import { getThemeClasses } from '#theme/theme-classes';
+
 const CONDITION_DISABLED_ATTR = 'data-formie-conditions-disabled';
 const PRESERVED_DISABLED_ATTR = 'data-formie-preserve-disabled';
 const CONDITIONAL_HIDDEN_ATTR = 'data-formie-conditionally-hidden';
 const PAGE_HIDDEN_ATTR = 'data-formie-page-hidden';
-const CONDITIONAL_HIDDEN_CLASS = 'formie-conditionally-hidden';
 const CP_MUTED_CLASS = 'fui-cp-muted-conditional-field';
 const CP_MUTED_EXPANDED_CLASS = 'fui-cp-muted-conditional-field--expanded';
 const CP_MUTED_ATTR = 'data-formie-cp-muted';
-const PAGE_HIDDEN_CLASS = 'formie-page-hidden';
 const ROW_HIDDEN_ATTR = 'data-formie-row-hidden';
-const ROW_HIDDEN_CLASS = 'formie-row-hidden';
 const FIELD_COUNT_ATTR = 'data-formie-field-count';
 const ROW_SELECTOR = '[data-formie-row], [data-formie-subfield-row], [data-formie-nested-field-row]';
 const FIELD_SELECTOR = ':scope > [data-formie-field]';
@@ -48,7 +47,7 @@ function clearConditionNodeValues(node: Element): void {
 function setVisibilityState(node: Element, hidden: boolean): boolean {
     const isPage = node.hasAttribute('data-formie-page');
     const hiddenAttr = isPage ? PAGE_HIDDEN_ATTR : CONDITIONAL_HIDDEN_ATTR;
-    const hiddenClass = isPage ? PAGE_HIDDEN_CLASS : CONDITIONAL_HIDDEN_CLASS;
+    const hiddenClasses = getThemeClasses(node, isPage ? 'pageHidden' : 'conditionalHidden');
     const wasHidden = node.hasAttribute(hiddenAttr);
 
     if (hidden) {
@@ -56,17 +55,13 @@ function setVisibilityState(node: Element, hidden: boolean): boolean {
             node.setAttribute(hiddenAttr, 'true');
         }
 
-        if (!node.classList.contains(hiddenClass)) {
-            node.classList.add(hiddenClass);
-        }
+        node.classList.add(...hiddenClasses);
     } else {
         if (wasHidden) {
             node.removeAttribute(hiddenAttr);
         }
 
-        if (node.classList.contains(hiddenClass)) {
-            node.classList.remove(hiddenClass);
-        }
+        node.classList.remove(...hiddenClasses);
     }
 
     return wasHidden !== hidden;
@@ -152,6 +147,7 @@ function isFieldVisible(field: Element): boolean {
 }
 
 function syncRowState(row: Element): void {
+    const hiddenClasses = getThemeClasses(row, 'rowHidden');
     const directFields = Array.from(row.querySelectorAll(FIELD_SELECTOR));
     const visibleFieldCount = directFields.filter((field) => {
         return isFieldVisible(field);
@@ -168,9 +164,7 @@ function syncRowState(row: Element): void {
             row.removeAttribute(ROW_HIDDEN_ATTR);
         }
 
-        if (row.classList.contains(ROW_HIDDEN_CLASS)) {
-            row.classList.remove(ROW_HIDDEN_CLASS);
-        }
+        row.classList.remove(...hiddenClasses);
 
         return;
     }
@@ -183,9 +177,7 @@ function syncRowState(row: Element): void {
         row.setAttribute(ROW_HIDDEN_ATTR, 'true');
     }
 
-    if (!row.classList.contains(ROW_HIDDEN_CLASS)) {
-        row.classList.add(ROW_HIDDEN_CLASS);
-    }
+    row.classList.add(...hiddenClasses);
 }
 
 function clearCpMutedState(node: Element): void {
@@ -197,8 +189,8 @@ function clearCpMutedState(node: Element): void {
 function clearHideState(node: Element): void {
     node.removeAttribute(CONDITIONAL_HIDDEN_ATTR);
     node.removeAttribute(PAGE_HIDDEN_ATTR);
-    node.classList.remove(CONDITIONAL_HIDDEN_CLASS);
-    node.classList.remove(PAGE_HIDDEN_CLASS);
+    node.classList.remove(...getThemeClasses(node, 'conditionalHidden'));
+    node.classList.remove(...getThemeClasses(node, 'pageHidden'));
 }
 
 function syncAncestorRows(node: Element): void {
@@ -253,9 +245,7 @@ function applyMutedConditionVisibility(node: Element, hidden: boolean): boolean 
 
     if (hidden) {
         if (node.hasAttribute(CONDITIONAL_HIDDEN_ATTR)
-            || node.hasAttribute(PAGE_HIDDEN_ATTR)
-            || node.classList.contains(CONDITIONAL_HIDDEN_CLASS)
-            || node.classList.contains(PAGE_HIDDEN_CLASS)) {
+            || node.hasAttribute(PAGE_HIDDEN_ATTR)) {
             clearHideState(node);
             stateChanged = true;
         }
@@ -278,9 +268,7 @@ function applyMutedConditionVisibility(node: Element, hidden: boolean): boolean 
         }
 
         if (node.hasAttribute(CONDITIONAL_HIDDEN_ATTR)
-            || node.hasAttribute(PAGE_HIDDEN_ATTR)
-            || node.classList.contains(CONDITIONAL_HIDDEN_CLASS)
-            || node.classList.contains(PAGE_HIDDEN_CLASS)) {
+            || node.hasAttribute(PAGE_HIDDEN_ATTR)) {
             clearHideState(node);
             stateChanged = true;
         }

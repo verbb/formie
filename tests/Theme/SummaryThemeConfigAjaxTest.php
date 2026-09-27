@@ -2,104 +2,92 @@
 
 declare(strict_types=1);
 
-use Craft;
-use ReflectionMethod;
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\controllers\FieldsController;
 use verbb\formie\Formie;
+use verbb\formie\helpers\FieldAccess;
 use verbb\formie\theme\context\RenderContext;
 
 use craft\helpers\Json;
 
-it('embeds render themeConfig on the form element when a render frame is active', function (): void {
-    $form = formie()
-        ->form(['title' => 'Summary Theme Embed'])
-        ->singleLineTextField('fullName')
-        ->create();
-
+it('embeds browser classes but never executable theme config on the form element', function (): void {
+    $form = formie()->form(['title' => 'Summary Theme Embed'])->singleLineTextField('fullName')->create();
     Formie::$plugin->getRendering()->pushRenderFrame($form, [
-        'themeConfig' => [
-            'fieldSummaryLabel' => [
-                'attributes' => [
-                    'class' => ['embedded-summary-label'],
-                ],
-            ],
-        ],
+        'themeConfig' => ['fieldSummaryLabel' => ['class' => 'embedded-summary-label']],
     ]);
 
     try {
-        $tag = \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => Formie::$plugin->getFormSlotRegistry()->resolve('form', RenderContext::from([
+        $tag = WebRequestTestHelper::withWebRequestContext(fn() => Formie::$plugin->getFormSlotRegistry()->resolve('form', RenderContext::from([
             'form' => $form,
         ])));
 
-        $encodedThemeConfig = $tag?->coreAttributes['data']['formie-theme-config'] ?? null;
-
-        expect($encodedThemeConfig)
-            ->toBeString()
-            ->and($encodedThemeConfig)->toContain('fieldSummaryLabel');
+        expect($tag?->coreAttributes['data']['formie-theme-config'] ?? null)->toBeNull()
+            ->and($tag?->coreAttributes['data']['formie-frontend-theme'] ?? null)->toBeNull()
+            ->and($tag?->coreAttributes['data']['formie-theme-classes'] ?? null)->toBeString();
     } finally {
         Formie::$plugin->getRendering()->popRenderFrame();
     }
 });
 
-it('applies posted themeConfig to the form during summary ajax refresh', function (): void {
+it('binds Summary fragments to the issued immutable theme and ignores posted executable config', function (): void {
     $form = formie()
         ->form(['title' => 'Summary Theme Ajax'])
         ->singleLineTextField('fullName')
         ->summaryField('summary')
         ->create();
-
+    $submission = formie()->submission($form)->with(['fullName' => 'Theme owner'])->save();
     $summaryField = $form->getFieldByHandle('summary');
-    $themeConfig = [
-        'fieldSummaryLabel' => [
-            'attributes' => [
-                'class' => ['custom-ajax-summary-label'],
+
+    Formie::$plugin->getRendering()->pushRenderFrame($form, [
+        'themeConfig' => [
+            'fieldSummaryLabel' => [
+                'class' => 'issued-summary-label',
+                'append' => ['tag' => 'span', 'text' => '<safe-text>'],
             ],
         ],
-    ];
+    ]);
 
-    WebRequestTestHelper::withWebRequestContext(function () use ($form, $summaryField, $themeConfig): void {
+    try {
+        $accessToken = FieldAccess::issueAccessToken($submission, (int)$summaryField->id);
+    } finally {
+        Formie::$plugin->getRendering()->popRenderFrame();
+    }
+
+    $html = WebRequestTestHelper::withWebRequestContext(function () use ($accessToken): string {
         Craft::$app->getRequest()->setBodyParams([
-            'themeConfig' => Json::encode($themeConfig),
+            'accessToken' => $accessToken,
+            'frontendTheme' => 'none',
+            'themeConfig' => Json::encode([
+                'fieldSummaryLabel' => [
+                    'tag' => 'script',
+                    'attributes' => ['onclick' => 'alert(1)', 'class' => 'posted-summary-label'],
+                    'append' => ['html' => '<img src=x onerror=alert(1)>'],
+                ],
+            ]),
         ]);
 
-        $controller = new FieldsController('formie-fields-summary-theme', Craft::$app);
-        $method = new ReflectionMethod($controller, '_applySummaryRenderContext');
-        $method->setAccessible(true);
-        $method->invoke($controller, $form);
-
-        $context = RenderContext::from([
-            'form' => $form,
-            'field' => $summaryField,
-        ]);
-
-        $tag = $summaryField->renderSlotTag('fieldSummaryLabel', $context);
-
-        expect($tag?->attributes['class'] ?? [])->toContain('custom-ajax-summary-label');
+        return (new FieldsController('formie-fields-summary-theme', Craft::$app))->actionGetSummaryHtml();
     }, [
         'method' => 'POST',
     ]);
+
+    expect($html)->toContain('issued-summary-label', '&lt;safe-text&gt;')
+        ->and($html)->not->toContain('posted-summary-label', '<script', 'onclick=', 'onerror=');
 });
 
-it('applies posted frontendTheme to the form during summary ajax refresh', function (): void {
+it('rejects a tampered encrypted Summary theme snapshot', function (): void {
     $form = formie()
-        ->form(['title' => 'Summary Frontend Theme Ajax'])
+        ->form(['title' => 'Summary Theme Token'])
         ->singleLineTextField('fullName')
         ->summaryField('summary')
         ->create();
+    $submission = formie()->submission($form)->with(['fullName' => 'Token owner'])->save();
+    $summaryField = $form->getFieldByHandle('summary');
+    $token = FieldAccess::issueAccessToken($submission, (int)$summaryField->id);
 
-    WebRequestTestHelper::withWebRequestContext(function () use ($form): void {
-        Craft::$app->getRequest()->setBodyParams([
-            'frontendTheme' => 'tailwind',
-        ]);
+    $offset = intdiv(strlen((string)$token), 2);
+    $replacement = $token[$offset] === 'A' ? 'B' : 'A';
+    $tampered = substr_replace((string)$token, $replacement, $offset, 1);
 
-        $controller = new FieldsController('formie-fields-summary-theme', Craft::$app);
-        $method = new ReflectionMethod($controller, '_applySummaryRenderContext');
-        $method->setAccessible(true);
-        $method->invoke($controller, $form);
-
-        expect($form->getFrontendTheme())->toBe('tailwind');
-    }, [
-        'method' => 'POST',
-    ]);
+    expect(FieldAccess::resolveAccessToken($tampered))->toBeNull();
 });

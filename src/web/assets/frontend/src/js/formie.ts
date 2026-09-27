@@ -1,5 +1,3 @@
-import '../css/formie.css';
-
 import { createDebug, formie, setFormieDebugEnabled } from '@verbb/formie-browser';
 import type { FormieApp } from '@verbb/formie-browser';
 

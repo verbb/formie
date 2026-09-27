@@ -195,10 +195,10 @@ class UrlField extends Field
         ]);
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         if ($key !== 'fieldInput') {
-            return parent::defineFieldSlotTag($key, $context);
+            return parent::defineSlotTag($key, $context);
         }
 
         $form = $context->form;
@@ -243,7 +243,7 @@ The preview palette uses `defineFormBuilderPreviewSchema()` with helpers like `p
 
 Point `getInputTemplatePath()` at a lean Twig partial that calls `fieldtag()`. Formie handles labels, errors, and instructions around your input.
 
-For Theme Config overrides, implement `defineFieldSlotTag()` and return a `SlotTag` for `fieldInput` — that is how design systems attach classes without forking templates.
+For Theme Config overrides, implement `defineSlotTag()` and return a `SlotTag` for `fieldInput` — that is how design systems attach classes without forking templates.
 
 ### Validation
 

@@ -14,6 +14,7 @@ use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
 use verbb\formie\models\RenderFrame;
+use verbb\formie\models\ResolvedTheme;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\compatibility\messages\ValidationMessageCompatibility;
 use verbb\formie\web\FieldRenderCallContext;
@@ -292,9 +293,19 @@ class Rendering extends Component
         return TemplateHelper::raw($event->html);
     }
 
-    public function pushRenderFrame(Form $form, array $renderOptions): void
+    public function pushRenderFrame(Form $form, array $renderOptions, ?ResolvedTheme $resolvedTheme = null): void
     {
-        $this->_renderFrames[] = new RenderFrame($form, $renderOptions);
+        $resolvedTheme ??= $renderOptions['_resolvedTheme'] ?? null;
+
+        if (!$resolvedTheme instanceof ResolvedTheme) {
+            $resolvedTheme = Formie::$plugin->getThemeConfigService()->resolve(
+                $form,
+                $renderOptions,
+                (bool)($renderOptions['_transportedThemeConfig'] ?? false),
+            );
+        }
+
+        $this->_renderFrames[] = new RenderFrame($form, $renderOptions, $resolvedTheme);
     }
 
     public function popRenderFrame(): void
@@ -319,23 +330,19 @@ class Rendering extends Component
         }
 
         $renderOptions = $this->_normalizeRenderOptions($renderOptions);
-        $buffers = $this->_captureFormAssetBuffers($form, $renderOptions);
+        $this->pushRenderFrame($form, $renderOptions);
         $output = [];
 
-        if ($renderOptions['includeCss'] ?? true) {
-            $output[] = $this->_renderResolvedFormAssets($form, self::RENDER_TYPE_CSS, true, $renderOptions);
-
-            foreach ($buffers['css'] as $cssFile) {
-                $output[] = $cssFile;
+        try {
+            if ($renderOptions['includeCss'] ?? true) {
+                $output[] = $this->_renderResolvedFormAssets($form, self::RENDER_TYPE_CSS, true, $renderOptions);
             }
-        }
 
-        if ($renderOptions['includeJs'] ?? true) {
-            $output[] = $this->_renderResolvedFormAssets($form, self::RENDER_TYPE_JS, true, $renderOptions);
-
-            foreach ($this->_flattenBufferedAssets($buffers['js']) as $jsFile) {
-                $output[] = $jsFile;
+            if ($renderOptions['includeJs'] ?? true) {
+                $output[] = $this->_renderResolvedFormAssets($form, self::RENDER_TYPE_JS, true, $renderOptions);
             }
+        } finally {
+            $this->popRenderFrame();
         }
 
         $output = array_filter($output, static fn($value) => $value !== null && $value !== '');
@@ -578,36 +585,6 @@ class Rendering extends Component
         ];
     }
 
-    private function _captureFormAssetBuffers(Form $form, array $renderOptions): array
-    {
-        $view = Craft::$app->getView();
-
-        $captureOptions = array_merge($renderOptions, [
-            'includeCss' => false,
-            'includeJs' => false,
-        ]);
-
-        $this->startFileBuffer('cssFiles', $view);
-        $view->startCssBuffer();
-
-        $this->startFileBuffer('jsFiles', $view);
-        $view->startJsBuffer();
-
-        try {
-            $this->renderForm($form, $captureOptions, false);
-        } finally {
-            $cssFiles = $this->clearFileBuffer('cssFiles', $view) ?: [];
-            $jsFiles = $this->clearFileBuffer('jsFiles', $view) ?: [];
-            $cssFiles = array_merge($cssFiles, [$view->clearCssBuffer()]);
-            $jsFiles = array_merge($jsFiles, [$view->clearJsBuffer()]);
-        }
-
-        return [
-            'css' => array_values(array_filter($cssFiles)),
-            'js' => array_values(array_filter($jsFiles)),
-        ];
-    }
-
     private function _renderResolvedFormAssets(Form $form, ?string $type, bool $forceInline, array $renderOptions = []): Markup
     {
         $view = Craft::$app->getView();
@@ -615,15 +592,21 @@ class Rendering extends Component
         $assetSettings = $this->_resolveFormAssetSettings($form, $renderOptions);
 
         if ($type !== self::RENDER_TYPE_JS && ($renderOptions['includeCss'] ?? true)) {
-            $cssFile = Formie::$plugin->getFrontendAssets()->getBrowserAssetUrls()['css'] ?? null;
+            $assetUrls = Formie::$plugin->getFrontendAssets()->getBrowserAssetUrls();
+            $cssFiles = array_filter([
+                $assetUrls['baseStyles'] ?? null,
+                $form->getFrontendTheme() === 'none' ? null : ($assetUrls['themeStyles'] ?? null),
+            ]);
             $cssAttributes = $renderOptions['cssAttributes'] ?? [];
             $outputCssLocation = $assetSettings['outputCssLocation'];
 
-            if ($assetSettings['outputCss'] && $cssFile) {
-                if ($outputCssLocation === FormTemplate::PAGE_HEADER && !$forceInline) {
-                    $view->registerCssFile($cssFile, $cssAttributes);
-                } else {
-                    $output[] = Html::cssFile($cssFile, $cssAttributes);
+            if ($assetSettings['outputCss']) {
+                foreach ($cssFiles as $cssFile) {
+                    if ($outputCssLocation === FormTemplate::PAGE_HEADER && !$forceInline) {
+                        $view->registerCssFile($cssFile, $cssAttributes);
+                    } else {
+                        $output[] = Html::cssFile($cssFile, $cssAttributes);
+                    }
                 }
             }
         }
@@ -647,37 +630,27 @@ class Rendering extends Component
         return TemplateHelper::raw(implode(PHP_EOL, $output));
     }
 
-    private function _flattenBufferedAssets(array $assets): array
-    {
-        $flattened = [];
-
-        foreach ($assets as $asset) {
-            if (is_array($asset)) {
-                $flattened = array_merge($flattened, $asset);
-            } else {
-                $flattened[] = $asset;
-            }
-        }
-
-        return $flattened;
-    }
-
     private function _renderFrontendCss(bool $inline, array $renderOptions = []): Markup
     {
         $view = Craft::$app->getView();
         $assetUrls = Formie::$plugin->getFrontendAssets()->getBrowserAssetUrls();
-        $cssFile = $assetUrls['css'];
+        $cssFiles = array_filter([
+            $assetUrls['baseStyles'] ?? null,
+            ($renderOptions['theme'] ?? 'formie') === 'none' ? null : ($assetUrls['themeStyles'] ?? null),
+        ]);
         $output = [];
         $cssAttributes = $renderOptions['cssAttributes'] ?? [];
 
-        if (!$cssFile) {
+        if (!$cssFiles) {
             return TemplateHelper::raw('');
         }
 
-        if ($inline) {
-            $output[] = Html::cssFile($cssFile, $cssAttributes);
-        } else {
-            $view->registerCssFile($cssFile, $cssAttributes);
+        foreach ($cssFiles as $cssFile) {
+            if ($inline) {
+                $output[] = Html::cssFile($cssFile, $cssAttributes);
+            } else {
+                $view->registerCssFile($cssFile, $cssAttributes);
+            }
         }
 
         return TemplateHelper::raw(implode(PHP_EOL, $output));
@@ -781,8 +754,6 @@ class Rendering extends Component
         (new RuntimeConfiguration())->establish($form);
         $sessionKey = $renderOptions['sessionKey'] ?? null;
         $form->setSessionKey(base64_encode((string)$sessionKey));
-        $form->setThemeConfig((array)($renderOptions['themeConfig'] ?? []));
-        $form->setFrontendTheme((string)($renderOptions['theme'] ?? 'formie'));
     }
 
     private function _getJsAttributes(array $renderOptions = []): array

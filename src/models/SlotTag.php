@@ -31,6 +31,8 @@ class SlotTag extends Model
     public array $overrideAttributes = [];
     public array $prependContent = [];
     public array $appendContent = [];
+    private array $_trustedAttributeOverrides = [];
+    private array $_trustedAttributeRemovals = [];
 
 
     // Public Methods
@@ -95,6 +97,48 @@ class SlotTag extends Model
         return implode('', $segments);
     }
 
+    public function attributesForRender(array $instanceAttributes = []): array
+    {
+        $resetClass = (bool)ArrayHelper::remove($instanceAttributes, 'reset', false);
+        $themeAttributes = $this->themeAttributes;
+
+        if ($resetClass) {
+            unset($themeAttributes['class']);
+        }
+
+        $attributes = Html::mergeAttributes($themeAttributes, $this->instanceAttributes);
+        $attributes = Html::mergeAttributes($attributes, ArrayHelper::filterEmptyFalse($instanceAttributes));
+        $attributes = Html::mergeAttributes($attributes, $this->coreAttributes);
+        $attributes = Html::mergeAttributes($attributes, $this->overrideAttributes);
+        $attributes = Html::mergeAttributes($attributes, $this->_trustedAttributeOverrides);
+
+        foreach ($this->_trustedAttributeRemovals as $name) {
+            unset($attributes[$name]);
+        }
+
+        return ArrayHelper::filterEmptyFalse($attributes);
+    }
+
+    public function captureTrustedEventResult(array $beforeAttributes): void
+    {
+        $this->_trustedAttributeOverrides = [];
+        $this->_trustedAttributeRemovals = [];
+
+        foreach ($this->attributes as $name => $value) {
+            if (!array_key_exists($name, $beforeAttributes) || $beforeAttributes[$name] !== $value) {
+                $this->_trustedAttributeOverrides[$name] = $value;
+            }
+        }
+
+        foreach (array_keys($beforeAttributes) as $name) {
+            if (!array_key_exists($name, $this->attributes)) {
+                $this->_trustedAttributeRemovals[] = $name;
+            }
+        }
+
+        $this->attributes = $this->attributesForRender();
+    }
+
     public function mergeCoreAttributes(array $attributes): self
     {
         $this->coreAttributes = Html::mergeAttributes($this->coreAttributes, ArrayHelper::filterEmptyFalse($attributes));
@@ -139,7 +183,7 @@ class SlotTag extends Model
             $this->themeAttributes['class'] = [];
         }
 
-        $this->overrideAttributes = Html::mergeAttributes($this->overrideAttributes, $attributes);
+        $this->themeAttributes = Html::mergeAttributes($this->themeAttributes, $attributes);
         $this->_syncAttributes();
     }
 
@@ -153,8 +197,8 @@ class SlotTag extends Model
 
     private function _syncAttributes(): void
     {
-        $attributes = Html::mergeAttributes($this->coreAttributes, $this->themeAttributes);
-        $attributes = Html::mergeAttributes($attributes, $this->instanceAttributes);
+        $attributes = Html::mergeAttributes($this->themeAttributes, $this->instanceAttributes);
+        $attributes = Html::mergeAttributes($attributes, $this->coreAttributes);
         $attributes = Html::mergeAttributes($attributes, $this->overrideAttributes);
 
         $this->attributes = ArrayHelper::filterEmptyFalse($attributes);

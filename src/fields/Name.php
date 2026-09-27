@@ -387,7 +387,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
         return $this->useMultipleFields ? parent::defineValueForDb($value, $element) : (string)$value;
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
         $errors = $context->errors;
@@ -459,7 +459,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
                 ->instanceAttributes($this->getInputAttributes());
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineSubFields(): array

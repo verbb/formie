@@ -15,7 +15,7 @@ it('resolves form theme config conditions using the context key alias', function
     $page = $form->getPages()[0];
     $page->getPageSettings()->buttonsPosition = 'right-save-left';
 
-    $form->setThemeConfig([
+    Formie::$plugin->getRendering()->pushRenderFrame($form, ['themeConfig' => [
         'buttonWrapper' => [
             'attributes' => [
                 'class' => [
@@ -27,21 +27,24 @@ it('resolves form theme config conditions using the context key alias', function
                 ],
             ],
         ],
-    ]);
+    ]]);
 
-    $tag = Formie::$plugin->getThemeConfigService()->applyFormTagConfig(
-        $form,
-        'buttonWrapper',
-        SlotTag::make('div'),
-        RenderContext::from([
-            'form' => $form,
-            'page' => $page,
-            'currentPage' => $page,
-        ]),
-    );
+    try {
+        $tag = Formie::$plugin->getThemeConfigService()->applyFormTagConfig(
+            $form,
+            'buttonWrapper',
+            SlotTag::make('div'),
+            RenderContext::from([
+                'form' => $form,
+                'page' => $page,
+                'currentPage' => $page,
+            ]),
+        );
+    } finally {
+        Formie::$plugin->getRendering()->popRenderFrame();
+    }
 
-    expect($tag?->attributes['class'] ?? [])->toContain('flex -mx-2')
-        ->and($tag?->attributes['class'] ?? [])->toContain('justify-start flex-row-reverse');
+    expect($tag?->attributes['class'] ?? [])->toContain('flex', '-mx-2', 'justify-start', 'flex-row-reverse');
 });
 
 it('resolves field theme config conditions using field layout in context', function (): void {
@@ -59,7 +62,7 @@ it('resolves field theme config conditions using field layout in context', funct
     $field = $form->getFieldByHandle('choices');
     $page = $form->getPages()[0];
 
-    $form->setThemeConfig([
+    Formie::$plugin->getRendering()->pushRenderFrame($form, ['themeConfig' => [
         'checkboxes' => [
             'fieldOption' => [
                 'attributes' => [
@@ -73,21 +76,25 @@ it('resolves field theme config conditions using field layout in context', funct
                 ],
             ],
         ],
-    ]);
+    ]]);
 
-    $tag = Formie::$plugin->getThemeConfigService()->applyFieldTagConfig(
-        $field,
-        $form,
-        'fieldOption',
-        SlotTag::make('div'),
-        RenderContext::from([
-            'form' => $form,
-            'field' => $field,
-            'page' => $page,
-            'currentPage' => $page,
-        ]),
-    );
+    try {
+        $tag = Formie::$plugin->getThemeConfigService()->applyFieldTagConfig(
+            $field,
+            $form,
+            'fieldOption',
+            SlotTag::make('div'),
+            RenderContext::from([
+                'form' => $form,
+                'field' => $field,
+                'page' => $page,
+                'currentPage' => $page,
+            ]),
+        );
+    } finally {
+        Formie::$plugin->getRendering()->popRenderFrame();
+    }
 
-    expect($tag?->attributes['class'] ?? [])->toContain('inline-block mr-4')
-        ->and($tag?->attributes['class'] ?? [])->not->toContain('flex items-start mb-2');
+    expect($tag?->attributes['class'] ?? [])->toContain('inline-block', 'mr-4')
+        ->and($tag?->attributes['class'] ?? [])->not->toContain('items-start', 'mb-2');
 });

@@ -227,7 +227,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
         return $rules;
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
         $errors = $context->errors;
@@ -268,7 +268,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
             return $textLimitTag;
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineValueForCondition(mixed $value, Submission $submission): mixed

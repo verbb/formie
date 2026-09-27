@@ -57,6 +57,7 @@
     "access": "public"
   },
   "scripts": {
+    "prebuild": "node ../../scripts/generate-browser-theme-state.mjs",
     "dev": "vite build --watch",
     "build": "vite build && tsc -p tsconfig.json"
   },

@@ -64,7 +64,7 @@ trait FieldServerRenderTrait
 
     public function renderSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        $tag = $this->defineFieldSlotTag($key, $context);
+        $tag = $this->defineSlotTag($key, $context);
 
         if (!$tag) {
             $tag = FieldCompatibility::renderLegacyHtmlTag($this, $key, $context);
@@ -72,6 +72,7 @@ trait FieldServerRenderTrait
 
         $form = $context->form ?? $this->getForm();
         $tag = Formie::$plugin->getThemeConfigService()->applyFieldTagConfig($this, $form, $key, $tag, $context);
+        $beforeAttributes = $tag?->attributes ?? [];
 
         $event = new ModifyFieldSlotTagEvent([
             'field' => $this,
@@ -82,6 +83,8 @@ trait FieldServerRenderTrait
 
         $this->trigger(static::EVENT_MODIFY_SLOT_TAG, $event);
         $this->triggerDeprecatedHtmlTagEvent($event);
+
+        $event->tag?->captureTrustedEventResult($beforeAttributes);
 
         return $event->tag;
     }
@@ -130,7 +133,7 @@ trait FieldServerRenderTrait
     // Protected Methods
     // =========================================================================
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         return Formie::$plugin->getFieldSlotRegistry()->resolve($key, $context);
     }

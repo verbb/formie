@@ -538,7 +538,7 @@ class Opayo extends Payment
         return $subFields;
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         if ($key === 'opayoDropIn' && $this->isDropInCheckoutMode()) {
             return SlotTag::make('div')

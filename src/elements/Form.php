@@ -14,7 +14,6 @@ use verbb\formie\base\QuestionnaireFieldInterface;
 use verbb\formie\client\bootstrap\models\FormDefinition;
 use verbb\formie\client\models\LoadContext;
 use verbb\formie\deprecations\FormDeprecations;
-use verbb\formie\deprecations\ThemeConfigLegacyKeys;
 use verbb\formie\elements\actions\DuplicateForm;
 use verbb\formie\elements\actions\MoveFormToGroup;
 use verbb\formie\elements\actions\SetFormStatus;
@@ -51,7 +50,7 @@ use verbb\formie\models\FormStatus;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\LayoutSaveContext;
 use verbb\formie\models\Notification;
-use verbb\formie\models\Settings;
+use verbb\formie\models\ResolvedTheme;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\StencilData;
 use verbb\formie\models\SubmissionStatus;
@@ -426,14 +425,13 @@ class Form extends Element implements FormInterface
     private ?string $_submissionEditToken = null;
     private bool $_resumeTokenHydrated = false;
     private bool $_routeContextHydrated = false;
+    private bool $_submissionStorageHydrated = false;
     private array $_submitData = [];
     private array $_pendingSubmissionMetadata = [];
     private array $_previousGroupFieldUids = [];
     private array $_pendingStencilTranslations = [];
     private array $_submissionsToDelete = [];
 
-    private array $_themeConfig = [];
-    private string $_frontendTheme = 'formie';
     private ?string $_sessionKey = null;
     private static array $_renderSequenceCounters = [];
 
@@ -1275,6 +1273,7 @@ class Form extends Element implements FormInterface
     public function setCurrentSubmission(?Submission $submission): void
     {
         $this->_currentSubmission = $submission;
+        $this->_submissionStorageHydrated = $submission !== null;
     }
 
     public function setDraftContext(mixed $context): void
@@ -1419,6 +1418,7 @@ class Form extends Element implements FormInterface
         $this->resetCurrentPage();
 
         $this->_currentSubmission = null;
+        $this->_submissionStorageHydrated = false;
     }
 
     public function setSubmission(?Submission $submission): void
@@ -1654,8 +1654,9 @@ class Form extends Element implements FormInterface
 
     public function renderSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        $tag = $this->defineFieldSlotTag($key, $context);
+        $tag = $this->defineSlotTag($key, $context);
         $tag = Formie::$plugin->getThemeConfigService()->applyFormTagConfig($this, $key, $tag, $context);
+        $beforeAttributes = $tag?->attributes ?? [];
 
         $event = new ModifyFormSlotTagEvent([
             'form' => $this,
@@ -1667,45 +1668,43 @@ class Form extends Element implements FormInterface
         $this->trigger(static::EVENT_MODIFY_SLOT_TAG, $event);
         $this->triggerDeprecatedHtmlTagEvent($event);
 
+        $event->tag?->captureTrustedEventResult($beforeAttributes);
+
         return $event->tag;
     }
 
     public function getFrontendTheme(): string
     {
-        return $this->_frontendTheme;
-    }
-
-    public function setFrontendTheme(string $value): void
-    {
-        $this->_frontendTheme = $value;
+        return $this->_getResolvedTheme()->mode;
     }
 
     public function getThemeConfig(): array
     {
-        return $this->_themeConfig;
-    }
-
-    public function setThemeConfig(array $value): void
-    {
-        /* @var Settings $pluginSettings */
-        $pluginSettings = Formie::$plugin->getSettings();
-
-        $this->_themeConfig = Formie::$plugin->getThemeConfigService()->mergeConfigLayers($pluginSettings->themeConfig, $value);
+        return $this->_getResolvedTheme()->config;
     }
 
     public function getThemeConfigItem(string $key): array|bool|null
     {
-        return ThemeConfigLegacyKeys::getMergedThemeConfigItem($this->_themeConfig, __METHOD__, $key);
+        return $this->_getResolvedTheme()->getConfigItem($key);
     }
 
     public function getFrontendThemeClasses(): array
     {
-        return Formie::$plugin->getThemeConfigService()->buildFrontendClassMap($this);
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Use `getBrowserThemeClassMap()` instead.');
+
+        return $this->getBrowserThemeClassMap();
     }
 
     public function getFrontendThemeClassMap(): array
     {
-        return $this->getFrontendThemeClasses();
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Use `getBrowserThemeClassMap()` instead.');
+
+        return $this->getBrowserThemeClassMap();
+    }
+
+    public function getBrowserThemeClassMap(): array
+    {
+        return $this->_getResolvedTheme()->browserClassMap;
     }
 
     public function getFrontendTemplateOption(string $option): bool
@@ -1744,6 +1743,10 @@ class Form extends Element implements FormInterface
 
     public function setSessionKey(?string $value): void
     {
+        if ($this->_sessionKey !== $value) {
+            $this->_submissionStorageHydrated = false;
+        }
+
         $this->_sessionKey = $value;
     }
 
@@ -3437,7 +3440,7 @@ class Form extends Element implements FormInterface
     // Protected Methods
     // =========================================================================
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         return Formie::$plugin->getFormSlotRegistry()->resolve($key, $context);
     }
@@ -3559,9 +3562,11 @@ class Form extends Element implements FormInterface
 
     private function _hydrateCurrentSubmissionFromStorage(): void
     {
-        if ($this->_currentSubmission) {
+        if ($this->_currentSubmission || $this->_submissionStorageHydrated) {
             return;
         }
+
+        $this->_submissionStorageHydrated = true;
 
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
             return;
@@ -3787,6 +3792,17 @@ class Form extends Element implements FormInterface
             : Craft::t('formie', 'form');
 
         return $titleCase ? ucfirst($label) : $label;
+    }
+
+    private function _getResolvedTheme(): ResolvedTheme
+    {
+        $frame = Formie::$plugin->getRendering()->getActiveRenderFrame();
+
+        if ($frame && $frame->getForm() === $this) {
+            return $frame->getResolvedTheme();
+        }
+
+        return Formie::$plugin->getThemeConfigService()->resolve($this);
     }
 
     private function _formStatusSelectSchemaField(): ?array

@@ -164,7 +164,7 @@ class Group extends ContainerParentField implements ContainerParentFieldInterfac
     // Protected Methods
     // =========================================================================
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
 
@@ -219,7 +219,7 @@ class Group extends ContainerParentField implements ContainerParentFieldInterfac
                 ]);
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string

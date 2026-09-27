@@ -74,11 +74,7 @@ class FormSlotRegistry extends Component
     {
         $form = $context->form;
         $moduleManifest = $form ? Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED) : [];
-        $themeClassMap = $form ? $form->getFrontendThemeClassMap() : [];
-        $renderFrame = Formie::$plugin->getRendering()->getActiveRenderFrame();
-        $renderOptions = $renderFrame?->getRenderOptions() ?? [];
-        $renderThemeConfig = $renderOptions['themeConfig'] ?? null;
-        $renderTheme = $renderOptions['theme'] ?? null;
+        $themeClassMap = $form ? $form->getBrowserThemeClassMap() : [];
         $settings = Formie::$plugin->getSettings();
         $hasStaticCache = $settings->hasStaticCache();
         $errorAriaLive = $settings->errorAriaLive;
@@ -125,9 +121,7 @@ class FormSlotRegistry extends Component
                 'data-formie-scroll-to-top' => $form?->settings->scrollToTop ? true : false,
                 'data-formie-clear-submission-endpoint' => UrlHelper::actionUrl('formie/server/submissions/clear-submission'),
                 'data-formie-modules' => $moduleManifest ? Json::encode($moduleManifest) : false,
-                'data-formie-theme' => $themeClassMap ? Json::encode($themeClassMap) : false,
-                'data-formie-theme-config' => (is_array($renderThemeConfig) && $renderThemeConfig !== []) ? Json::encode($renderThemeConfig) : false,
-                'data-formie-frontend-theme' => (is_string($renderTheme) && $renderTheme !== '' && $renderTheme !== 'formie') ? $renderTheme : false,
+                'data-formie-theme-classes' => $themeClassMap ? Json::encode($themeClassMap) : false,
                 'data-formie-pending-client-events' => $pendingClientEvents,
                 // Lets `{submission:*}` page/field conditions evaluate in the browser.
                 'data-formie-submission' => $submissionContext ? Json::encode($submissionContext) : false,
@@ -391,7 +385,7 @@ class FormSlotRegistry extends Component
         $linkClasses = ['formie-tab-link'];
 
         if ($form) {
-            $themeClassMap = $form->getFrontendThemeClassMap();
+            $themeClassMap = $form->getBrowserThemeClassMap();
             $isCurrent = $context->pageIsCurrent();
 
             if ($isCurrent && !empty($themeClassMap['tabLinkCurrent'])) {

@@ -561,7 +561,7 @@ abstract class Payment extends Integration
         return PaymentDecision::notRequired();
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         return null;
     }

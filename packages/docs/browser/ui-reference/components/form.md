@@ -25,6 +25,6 @@ If you replace the default `<form>` tag or its immediate browser-facing data, ke
 | `data-formie-scroll-to-top` | Page-navigation scroll behaviour | Preserve when present |
 | `data-formie-clear-submission-endpoint` | Clear-submission follow-up endpoint | Preserve when present |
 | `data-formie-modules` | Browser module manifest payload | Required when modules exist |
-| `data-formie-theme` | Browser theme-class map | Required when theme classes are applied |
+| `data-formie-theme-classes` | Browser theme-state class map | Required when theme classes are applied |
 
 Formie already renders this for you. These attributes matter most when you fully replace the form wrapper in a custom theme.

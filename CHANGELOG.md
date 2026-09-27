@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- Add immutable render-scoped theme frames, a generated PHP/TypeScript browser-theme state manifest, split functional/visual CSS assets and bounded theme-config validation.
+- Add end-to-end portability and repeatable builder/render/bootstrap/submit/resume/revise performance fixtures.
 - Add typed After Completion outcomes shared by HTML, Ajax, REST and GraphQL, with validated redirect overrides and captured query allowlists.
 - Add isolated render-instance configuration and versioned durable submission settings while preserving the trusted Twig APIs.
 - Add one versioned browser-module manifest with trusted executable IDs, repeated occurrence keys, dynamic target reconciliation and required/optional failure diagnostics.
@@ -12,6 +14,9 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Keep required behavioural and accessibility attributes authoritative, retain the final trusted PHP slot event escape hatch, and bind Summary/fragment theme state to issued access tokens.
+- Keep Formie 3 theme grammar compatibility while renaming the beta `defineFieldSlotTag()` method to `defineSlotTag()` and removing mutable render state from shared Form elements.
+- Split `formie.css` into functional `formie-base.css` and visual `formie-theme.css` layers; the `none` theme now omits only visual styling.
 - Share versioned tri-state conditions and plain-text validation rules across PHP and browser consumers; enforce recursive hidden-value clearing and server-authoritative navigation.
 - Preserve exact nested submission error paths, return typed page-transition results, and distinguish skipped side effects from invalid condition configuration.
 - Preserve explicit empty values, enforce server-populated values across resume, capture query prefill once, and evaluate Hidden value sources without changing reusable field definitions.
@@ -40,6 +45,7 @@
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
 
 ### Fixed
+- Stop manual asset resolution from rendering the full form a second time, and memoise missing browser submission progress per Form instance to prevent all-field render query amplification. ([#2637](https://github.com/verbb/formie/issues/2637))
 - Enforce field ownership and allowed field types at builder and save boundaries, preserve nested references and refresh layout lookups after descendant changes.
 - Stop invalid submissions before spam screening and CAPTCHA, and keep pending payment submissions incomplete until payment succeeds.
 - Fixed a moderate-severity information disclosure vulnerability. (GHSA-963f-vfpf-f85p)

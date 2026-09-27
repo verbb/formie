@@ -196,7 +196,7 @@ Returns normalised field-condition metadata for browser-managed flows.
 :::
 
 ::: reference
-### `defineFieldSlotTag()`
+### `defineSlotTag()`
 
 Defines the HTML tag and attributes used by `fieldtag()` slots in the field’s Twig template.
 :::
@@ -574,7 +574,7 @@ Where you could define your attributes and tag in your field class:
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
-protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
 {
     $form = $context->form;
     $errors = $context->errors;
@@ -609,7 +609,7 @@ protected function defineFieldSlotTag(string $key, RenderContext $context): ?Slo
             ->instanceAttributes($this->getInputAttributes());
     }
 
-    return parent::defineFieldSlotTag($key, $context);
+    return parent::defineSlotTag($key, $context);
 }
 ```
 

@@ -2,6 +2,8 @@
 
 Formie supports two markup products. In **server-rendered** forms, Formie/Craft produces the HTML; `@verbb/formie-browser` enhances it. In **client-rendered** forms, your framework produces markup from Formie’s structured definition; `@verbb/formie-core` owns values, validation, conditions, navigation and submission state. Browser modules can participate in either product. CP edit is the separate control-panel submission editing surface.
 
+Client-rendered forms do not silently fall back to server-rendered markup. A caller must explicitly choose the server-rendered product when it wants Craft-produced HTML.
+
 Use `<FormieForm>` for server-rendered React/Vue forms and `<FormieClientForm>` for client-rendered forms. Web Components use `<formie-form>` and `<formie-client-form>`. The browser package accepts only `mode: 'server-rendered'` and rejects the old client-rendered mount mode.
 
 ## HTML sources and submission transports

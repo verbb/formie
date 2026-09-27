@@ -40,12 +40,12 @@ class FieldTagNode extends Node
         // `reset: true` strips the default theme layer while preserving core browser and instance attrs.
         if ($this->hasNode('options')) {
             $compiler
-                ->write("{$attributesVar} = " . Extension::class . "::mergeTagAttributes({$htmlTagVar}->attributes, ")
+                ->write("{$attributesVar} = {$htmlTagVar}->attributesForRender(")
                 ->subcompile($this->getNode('options'))
                 ->write(");\n");
         } else {
             $compiler
-                ->write("{$attributesVar} = {$htmlTagVar}->attributes;\n");
+                ->write("{$attributesVar} = {$htmlTagVar}->attributesForRender();\n");
         }
 
         $compiler

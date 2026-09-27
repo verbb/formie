@@ -102,7 +102,7 @@ export type {
     FormRedirect,
     FormSubmitResult,
 } from '#contracts/schema';
-export type { ThemeClassMap } from '#contracts/theme';
+export type { BrowserThemeClassMap, ThemeClassMap } from '#contracts/theme';
 export type {
     ValidationConfig,
     ValidationContext,

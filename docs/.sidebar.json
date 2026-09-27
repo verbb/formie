@@ -337,6 +337,8 @@
             },
             "developers/submission-workflow",
             "developers/conditions-and-validation",
+            "developers/theme-rendering-architecture",
+            "developers/performance-profiling",
             "developers/submission-content",
             "developers/schema",
             "developers/custom-field",
@@ -390,7 +392,8 @@
             "reference/submission",
             "reference/notification",
             "reference/graphql-form-reference",
-            "reference/theme-tag-reference"
+            "reference/theme-tag-reference",
+            "reference/browser-theme-state"
         ]
     },
     {

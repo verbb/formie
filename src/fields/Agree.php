@@ -311,7 +311,7 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
         return ['defaultValue'];
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
         $id = $this->getHtmlId($form);
@@ -426,7 +426,7 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
                 ]);
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string

@@ -1188,7 +1188,7 @@ $errors = $submission->getErrors($field->errorKey());
 > [!IMPORTANT]
 > Compatibility mode will handle these changes automatically.
 
-If your custom field supports Theme Config, update `defineHtmlTag()` usage to `defineFieldSlotTag()`, and return a `SlotTag`.
+If your custom field supports Theme Config, update `defineHtmlTag()` usage to `defineSlotTag()`, and return a `SlotTag`.
 
 ::: code-group
 ```php [Formie 3]
@@ -1208,7 +1208,7 @@ protected function defineHtmlTag(string $key, array $context = []): ?HtmlTag
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
-protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
 {
     if ($key === 'fieldInput') {
         return SlotTag::make('input')
@@ -1222,12 +1222,16 @@ protected function defineFieldSlotTag(string $key, RenderContext $context): ?Slo
             ]);
     }
 
-    return parent::defineFieldSlotTag($key, $context);
+    return parent::defineSlotTag($key, $context);
 }
 ```
 :::
 
 The PHP bridge does not update your custom CSS selectors. Review [Default Theme Classes](#default-theme-classes) before deployment.
+
+The stable Formie 3 theme grammar remains supported, including flat attribute shorthand, false/null removal, `reset`, `resetClass`, top-level `resetClasses`, `prepend` and `append`. New code should prefer `resetClass`. Theme and instance attributes now merge before required core attributes, so declarative config cannot remove functional or accessibility markup. Trusted `EVENT_MODIFY_SLOT_TAG` listeners still run last when an expert override is required.
+
+Field implementations should use `defineSlotTag()`. The earlier Formie 4 beta name `defineFieldSlotTag()` is not retained.
 
 See [Custom Field](/developers/custom-field) for the current custom field guide.
 

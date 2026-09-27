@@ -233,7 +233,7 @@ class Checkboxes extends OptionsField
         return ['layout'];
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
         $id = $this->getHtmlId($form);
@@ -243,7 +243,7 @@ class Checkboxes extends OptionsField
         $isHiddenLabel = $context->get('labelPosition') instanceof HiddenPosition || $resolvedLabelPosition === 'hidden';
 
         if ($key === 'field') {
-            $tag = parent::defineFieldSlotTag($key, $context);
+            $tag = parent::defineSlotTag($key, $context);
 
             if ($tag) {
                 return $this->applyOptionsLimitFieldAttributes($tag);
@@ -360,7 +360,7 @@ class Checkboxes extends OptionsField
                 ]);
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineRules(): array

@@ -327,13 +327,13 @@ class Payment extends Field
         return $value->getAttributes();
     }
 
-    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         if ($integration = $this->getPaymentIntegration()) {
-            return $integration->renderSlotTag($key, $context) ?? parent::defineFieldSlotTag($key, $context);
+            return $integration->renderSlotTag($key, $context) ?? parent::defineSlotTag($key, $context);
         }
 
-        return parent::defineFieldSlotTag($key, $context);
+        return parent::defineSlotTag($key, $context);
     }
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
