@@ -43,33 +43,15 @@ class ProcessPaymentTask implements TaskInterface
 
         if ($requiresPayment || $context->command->operation === SubmissionOperation::PAYMENT_REPLAY) {
             $completed = in_array($decision->status, [PaymentDecision::STATUS_SUCCEEDED, PaymentDecision::STATUS_NOT_REQUIRED], true);
-            $context->becameComplete = $completed && $submission->isIncomplete;
-            $submission->isIncomplete = !$completed;
-
-            $transaction = Craft::$app->getDb()->beginTransaction();
-            try {
-                // Commit the durable provider result and completion decision together.
-                // Provider requests and evidence recording have already finished outside this transaction.
-                foreach (Formie::$plugin->getPayments()->getSubmissionPayments($submission) as $payment) {
-                    if ($payment->scope['initial'] ?? false) {
-                        if (($payment->scope['providerOutcome']['status'] ?? null) === PaymentModel::STATUS_SUCCESS) {
-                            $payment->status = PaymentModel::STATUS_SUCCESS;
-                        }
-                        $payment->scope['submissionTransition'] = ['complete' => $completed, 'decision' => $decision->status->value,
-                            'operationId' => $context->command->operationId, 'expectedVersion' => $context->command->expectedVersion];
-                        if (!Formie::$plugin->getPayments()->commitTransition($payment)) {
-                            throw new RuntimeException('Unable to persist the payment transition.');
-                        }
-                    }
+            $uploads = Formie::$plugin->getFileUploads();
+            $uploads->withUploadLocks($submission, function () use ($context, $completed, $uploads): void {
+                // PaymentReplay skips the content-persistence task, so it must also
+                // finish any durable promotion intent before permitting completion.
+                if ($completed) {
+                    $uploads->promoteAccepted($context->command->submission);
                 }
-                if (!Craft::$app->getElements()->saveElement($submission, false)) {
-                    throw new RuntimeException('Unable to persist payment/submission state.');
-                }
-                $transaction->commit();
-            } catch (Throwable $e) {
-                $transaction->rollBack();
-                throw $e;
-            }
+                $this->_persistDecision($context, $completed);
+            });
             $context->processingSuccess = true;
             $context->taskState['save.success'] = true;
         }
@@ -94,6 +76,44 @@ class ProcessPaymentTask implements TaskInterface
 
     // Private Methods
     // =========================================================================
+
+    private function _persistDecision(WorkflowContext $context, bool $completed): void
+    {
+        $submission = $context->command->submission;
+        $wasIncomplete = $submission->isIncomplete;
+        $context->becameComplete = $completed && $wasIncomplete;
+        $submission->isIncomplete = !$completed;
+
+        $transaction = Craft::$app->getDb()->beginTransaction();
+        try {
+            // Provider requests and evidence recording have finished outside this transaction.
+            // Commit payment state, submission completion and upload finalization together.
+            foreach (Formie::$plugin->getPayments()->getSubmissionPayments($submission) as $payment) {
+                if ($payment->scope['initial'] ?? false) {
+                    if (($payment->scope['providerOutcome']['status'] ?? null) === PaymentModel::STATUS_SUCCESS) {
+                        $payment->status = PaymentModel::STATUS_SUCCESS;
+                    }
+                    $payment->scope['submissionTransition'] = ['complete' => $completed, 'decision' => $context->paymentDecision->status->value,
+                        'operationId' => $context->command->operationId, 'expectedVersion' => $context->command->expectedVersion];
+                    if (!Formie::$plugin->getPayments()->commitTransition($payment)) {
+                        throw new RuntimeException('Unable to persist the payment transition.');
+                    }
+                }
+            }
+            if (!Craft::$app->getElements()->saveElement($submission, false)) {
+                throw new RuntimeException('Unable to persist payment/submission state.');
+            }
+            if ($completed) {
+                Formie::$plugin->getFileUploads()->finalizeSubmissionUploads((int)$submission->id);
+            }
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            $submission->isIncomplete = $wasIncomplete;
+            $context->becameComplete = false;
+            throw $e;
+        }
+    }
 
     private function _processPayments(WorkflowContext $context): PaymentDecision
     {

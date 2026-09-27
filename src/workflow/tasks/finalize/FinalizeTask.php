@@ -55,7 +55,6 @@ class FinalizeTask implements TaskInterface
 
         if (!$submission->isIncomplete && $submission->id) {
             Formie::$plugin->getSubmissionProgress()->complete((int)$submission->id);
-            Formie::$plugin->getFileUploads()->finalizeSubmissionUploads((int)$submission->id);
         }
 
         if ($type !== SubmissionOutcomeType::PAYMENT_FAILED && $command->requestToken) {

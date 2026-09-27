@@ -38,6 +38,13 @@ class PersistSubmissionTask implements TaskInterface
                 return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
             }
 
+            $completeAfterPromotion = !$submission->isIncomplete
+                && ($context->becameComplete || !$submission->id)
+                && $uploads->hasAcceptedUploads($submission);
+            if ($completeAfterPromotion) {
+                $submission->isIncomplete = true;
+            }
+
             // Validate owns content validation; field persistence also enforces mandatory upload policy.
             try {
                 if (!Craft::$app->getElements()->saveElement($submission, false)) {
@@ -55,6 +62,29 @@ class PersistSubmissionTask implements TaskInterface
             Formie::$plugin->getSubmissionOperations()->bindSubmission($context->command, (int)$submission->id);
             $uploads->bindPersisted($submission);
             $uploads->promoteAccepted($submission);
+
+            // Filesystem work is complete. Commit completion and finalization together,
+            // leaving the earlier incomplete save recoverable if this commit fails.
+            $transaction = Craft::$app->getDb()->beginTransaction();
+            try {
+                if ($completeAfterPromotion) {
+                    $submission->isIncomplete = false;
+                    if (!Craft::$app->getElements()->saveElement($submission, false)) {
+                        throw new RuntimeException('Unable to persist upload-backed completion.');
+                    }
+                }
+                if (!$submission->isIncomplete) {
+                    $uploads->finalizeSubmissionUploads((int)$submission->id);
+                }
+                $transaction->commit();
+            } catch (\Throwable $e) {
+                $transaction->rollBack();
+                if ($completeAfterPromotion) {
+                    $submission->isIncomplete = true;
+                }
+                throw $e;
+            }
+
             $uploads->releaseRemoved($submission);
             $context->processingSuccess = true;
             $context->taskState['save.success'] = true;

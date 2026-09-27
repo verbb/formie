@@ -94,16 +94,32 @@ class FileUploads extends Component
         }
 
         $submission = Submission::find()->id($submissionId)->isIncomplete(null)->isSpam(null)->status(null)->one();
-        if (!$submission) {
+        if (!$submission || $submission->isIncomplete) {
             return;
         }
         $accepted = [];
         foreach ($submission->getFieldValuesForField(FileUpload::class) as $value) {
             $accepted = array_merge($accepted, $this->_extractAssetIds($value));
         }
+        if ((new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where([
+            'submissionId' => $submissionId, 'assetId' => $accepted, 'state' => 'bound',
+        ])->andWhere(['or', ['promotionState' => null], ['not', ['promotionState' => 'moved']]])->exists()) {
+            throw new \RuntimeException('Accepted uploads must finish promotion before finalization.');
+        }
         Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
             'state' => 'finalized', 'isFinalized' => true, 'dateUpdated' => gmdate('Y-m-d H:i:s'),
-        ], ['submissionId' => $submissionId, 'assetId' => $accepted, 'state' => 'bound'])->execute();
+        ], ['submissionId' => $submissionId, 'assetId' => $accepted, 'state' => 'bound', 'promotionState' => 'moved'])->execute();
+    }
+
+    public function hasAcceptedUploads(Submission $submission): bool
+    {
+        foreach ($submission->getFieldValuesForField(FileUpload::class) as $value) {
+            if ($this->_extractAssetIds($value)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function removeUploadByAssetId(int $assetId, ?int $formId = null, ?string $fieldUid = null): bool

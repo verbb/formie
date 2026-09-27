@@ -28,6 +28,7 @@ use verbb\formie\models\SlotTag;
 use verbb\formie\records\Submission as SubmissionRecord;
 use verbb\formie\references\ReferenceException;
 use verbb\formie\theme\context\RenderContext;
+use verbb\formie\workflow\WorkflowContext;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -110,6 +111,13 @@ class FileUpload extends ElementField
     public static function gqlContentMutationArgumentTypeFromConfig(array $config): Type|array
     {
         return FileUploadInputType::getType(null);
+    }
+
+    public static function clearStagedUploads(ElementInterface $element): void
+    {
+        if (isset(self::$_stagedElements[$element])) {
+            unset(self::$_stagedElements[$element]);
+        }
     }
 
 
@@ -804,7 +812,9 @@ class FileUpload extends ElementField
         $this->_processAssets($element);
 
         parent::afterElementSave($element, $isNew);
-        if (isset(self::$_stagedElements[$element])) {
+        // A workflow may save again after promotion or payment. Native uploaded
+        // files belong to that command, not to each individual element save.
+        if (!WorkflowContext::current() && isset(self::$_stagedElements[$element])) {
             $keys = self::$_stagedElements[$element];
             unset($keys[$this->valueKey()]);
             self::$_stagedElements[$element] = $keys;

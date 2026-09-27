@@ -46,6 +46,7 @@
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
 
 ### Fixed
+- Complete required upload promotion before marking submissions complete, and finalize accepted uploads before completion events and delivery, including payment replay.
 - Retain upload cleanup records after permanent submission deletion and failed file deletion, preserve retryable field references, and leave shared or unowned files intact.
 - Preserve accepted field values during payment replay, including condition-cleared forced values and previously evaluated Hidden sources.
 - Stop manual asset resolution from rendering the full form a second time, and memoise missing browser submission progress per Form instance to prevent all-field render query amplification. ([#2637](https://github.com/verbb/formie/issues/2637))

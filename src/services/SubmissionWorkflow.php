@@ -9,6 +9,7 @@ use verbb\formie\events\SubmissionCompleteEvent;
 use verbb\formie\events\SubmissionPageAdvanceEvent;
 use verbb\formie\events\SubmissionWorkflowStageEvent;
 use verbb\formie\events\SubmissionWorkflowTaskEvent;
+use verbb\formie\fields\FileUpload;
 use verbb\formie\models\SubmissionCommand;
 use verbb\formie\models\SubmissionOutcome;
 use verbb\formie\workflow\tasks\dispatch\DispatchState;
@@ -127,6 +128,7 @@ class SubmissionWorkflow extends Component
 
             return $context->outcome ?? throw new LogicException('The submission workflow did not produce an outcome.');
         } finally {
+            FileUpload::clearStagedUploads($command->submission);
             WorkflowContext::pop();
         }
     }
