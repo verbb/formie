@@ -3,13 +3,13 @@ namespace verbb\formie\gql\types\input;
 
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\UploadAccess;
+use verbb\formie\helpers\UploadLimits;
 
 use Craft;
 use craft\base\Field as CraftField;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\types\QueryArgument;
 use craft\helpers\Assets as AssetsHelper;
-use craft\helpers\ConfigHelper;
 use craft\helpers\FileHelper;
 
 use yii\base\InvalidArgumentException;
@@ -63,8 +63,7 @@ class FileUploadInputType extends InputObjectType
     {
         $assetIds = [];
         $newValues = [];
-        $maxBytes = ConfigHelper::sizeInBytes(Craft::$app->getConfig()->getGeneral()->maxUploadFileSize);
-        $maxBytes = $maxBytes > 0 ? $maxBytes : 16777216;
+        $maxBytes = UploadLimits::maxFileBytes();
         $maxEncodedBytes = 4 * (int)ceil($maxBytes / 3);
 
         foreach ($values as $key => $value) {

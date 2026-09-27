@@ -8,6 +8,7 @@ use verbb\formie\fields\FileUpload;
 use verbb\formie\helpers\DataRetentionHelper;
 use verbb\formie\helpers\FileUploadRetentionHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\UploadLimits;
 use verbb\formie\models\SubmissionCommand;
 use verbb\formie\records\Submission as SubmissionRecord;
 
@@ -23,6 +24,8 @@ use DateTime;
 use Throwable;
 
 use yii\base\Component;
+use yii\web\BadRequestHttpException;
+use yii\web\TooManyRequestsHttpException;
 
 class FileUploads extends Component
 {
@@ -43,6 +46,43 @@ class FileUploads extends Component
         }
 
         return $assets->getUserTemporaryUploadFolder();
+    }
+
+    public function saveStagedAsset(Asset $asset, Form $form, ?int $submissionId, string $fieldUid, string $contentKey): bool
+    {
+        $bytes = $asset->tempFilePath && is_file($asset->tempFilePath) ? filesize($asset->tempFilePath) : false;
+        if ($bytes === false || $bytes > UploadLimits::maxFileBytes()) {
+            throw new BadRequestHttpException('Uploaded file exceeds the maximum allowed size or is unavailable.');
+        }
+
+        $browserHash = Formie::$plugin->getSubmissionGrants()->browserHash($form);
+        $mutex = Craft::$app->getMutex();
+        $key = 'formie.upload-budget.' . $browserHash;
+        if (!$mutex->acquire($key, 5)) {
+            throw new TooManyRequestsHttpException('Another upload is being saved. Please retry.');
+        }
+        try {
+            // Count abandoned/expired files until physical cleanup, not only live capabilities.
+            $usage = (new Query())->select([
+                'files' => 'COUNT(*)', 'bytes' => 'COALESCE(SUM([[assets.size]]), 0)',
+            ])->from(['uploads' => Table::FORMIE_PENDING_UPLOADS])
+                ->innerJoin(['assets' => '{{%assets}}'], '[[assets.id]] = [[uploads.assetId]]')
+                ->where(['uploads.formId' => (int)$form->id, 'uploads.siteId' => (int)$form->siteId, 'uploads.browserHash' => $browserHash])
+                ->andWhere(['not', ['uploads.state' => 'finalized']])->one();
+            $settings = Formie::$plugin->getSettings();
+            if ((int)$usage['files'] + 1 > max(1, $settings->maxStagedUploadFiles)
+                || (int)$usage['bytes'] + $bytes > max(1, $settings->maxStagedUploadBytes)) {
+                throw new BadRequestHttpException('The staged upload budget has been reached. Remove unused files before uploading more.');
+            }
+            if (!Craft::$app->getElements()->saveElement($asset)) {
+                return false;
+            }
+            $this->trackSubmissionAsset($asset, (int)$form->id, $submissionId, $fieldUid, $form, $contentKey);
+
+            return true;
+        } finally {
+            $mutex->release($key);
+        }
     }
 
     public function trackSubmissionAsset(Asset $asset, int $formId, ?int $submissionId, ?string $fieldUid = null, ?Form $form = null, ?string $contentKey = null): void
@@ -68,7 +108,7 @@ class FileUploads extends Component
             'siteId' => (int)$form->siteId,
             'browserHash' => Formie::$plugin->getSubmissionGrants()->browserHash($form),
             'contentKey' => $contentKey,
-            'expiresAt' => time() + 86400 * ((int)Formie::$plugin->getSettings()->maxIncompleteSubmissionAge ?: 30),
+            'expiresAt' => $this->_uploadExpiry(),
             'dateUpdated' => $now,
         ];
 
@@ -185,6 +225,7 @@ class FileUploads extends Component
 
     public function purgeStalePendingUploads(?int $olderThanTimestamp = null): int
     {
+        $promotion = ['or', ['promotionState' => null], ['submissionId' => null, 'promotionState' => 'moving']];
         $expiry = ['<=', 'expiresAt', time()];
         if ($olderThanTimestamp !== null) {
             $expiry = ['or', $expiry, ['<', 'dateUpdated', gmdate('Y-m-d H:i:s', $olderThanTimestamp)]];
@@ -193,7 +234,7 @@ class FileUploads extends Component
             ->select('*')
             ->from(Table::FORMIE_PENDING_UPLOADS)
             ->where(['state' => ['staged', 'bound', 'expired', 'rejected']])
-            ->andWhere(['promotionState' => null])
+            ->andWhere($promotion)
             ->andWhere($expiry)
             ->all();
 
@@ -212,7 +253,7 @@ class FileUploads extends Component
                     continue;
                 }
 
-                $eligible = ['and', ['id' => $row['id'], 'state' => ['staged', 'bound', 'expired', 'rejected'], 'promotionState' => null], $expiry];
+                $eligible = ['and', ['id' => $row['id'], 'state' => ['staged', 'bound', 'expired', 'rejected']], $promotion, $expiry];
                 if (!(new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where($eligible)->exists()) {
                     continue;
                 }
@@ -275,7 +316,7 @@ class FileUploads extends Component
             }
             try {
                 $tracked = $this->getTrackedUploadByAssetId($assetId);
-                if (!$tracked || $tracked['uid'] !== $upload['uid'] || $tracked['promotionState'] === 'moving' || $this->isReferenced($assetId)) {
+                if (!$tracked || $tracked['uid'] !== $upload['uid'] || $this->isReferenced($assetId)) {
                     continue;
                 }
                 $this->_deleteTrackedAsset($tracked);
@@ -412,7 +453,7 @@ class FileUploads extends Component
         foreach ($rows as $row) {
             if (!$this->isReferenced((int)$row['assetId'])) {
                 Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
-                    'state' => 'staged', 'submissionId' => null, 'promotionState' => null,
+                    'state' => 'staged', 'submissionId' => null, 'promotionState' => $row['promotionState'] === 'moving' ? 'moving' : null,
                     'isFinalized' => false, 'expiresAt' => time(), 'capabilities' => null,
                 ], ['id' => $row['id']])->execute();
             }
@@ -443,7 +484,7 @@ class FileUploads extends Component
                         'submissionId' => (int)$submission->id, 'fieldUid' => $field->uid,
                         'contentKey' => $contentKey, 'state' => 'bound',
                         'browserHash' => Formie::$plugin->getSubmissionGrants()->browserHash($form),
-                        'expiresAt' => time() + 86400 * ((int)Formie::$plugin->getSettings()->maxIncompleteSubmissionAge ?: 30),
+                        'expiresAt' => $this->_uploadExpiry(),
                         'capabilities' => null,
                     ], ['id' => $tracked['id']])->execute();
                 }
@@ -572,6 +613,13 @@ class FileUploads extends Component
     // Private Methods
     // =========================================================================
 
+    private function _uploadExpiry(): int
+    {
+        $days = Formie::$plugin->getSettings()->maxIncompleteSubmissionAge;
+
+        return time() + 86400 * min(30, $days > 0 ? $days : 30);
+    }
+
     private function _promote(Asset $asset, \craft\models\VolumeFolder $folder, ?string $filename = null): void
     {
         $row = $this->getTrackedUploadByAssetId((int)$asset->id);
@@ -616,13 +664,17 @@ class FileUploads extends Component
                     }
                     $sourceVolume = $asset->getVolume();
                     $sourcePath = $asset->getPath();
-                    // The intent owns this exact asset and destination. Repair only its metadata.
+                    if (($sourceVolume->id !== $targetVolume->id || $sourcePath !== $targetPath) && $sourceVolume->fileExists($sourcePath)) {
+                        $sourceVolume->deleteFile($sourcePath);
+                        if ($sourceVolume->fileExists($sourcePath)) {
+                            throw new \RuntimeException('Upload source cleanup did not complete.');
+                        }
+                    }
+                    // Keep the old filename in durable asset metadata until source cleanup
+                    // finishes, so an interrupted recovery does not lose that exact path.
                     $db->createCommand()->update('{{%assets}}', [
                         'folderId' => $folder->id, 'volumeId' => $folder->volumeId, 'filename' => $filename,
                     ], ['id' => $asset->id])->execute();
-                    if (($sourceVolume->id !== $targetVolume->id || $sourcePath !== $targetPath) && $sourceVolume->fileExists($sourcePath)) {
-                        $sourceVolume->deleteFile($sourcePath);
-                    }
                     $asset->folderId = $folder->id;
                     $asset->folderPath = $folder->path;
                     $asset->setVolumeId($folder->volumeId);
@@ -726,7 +778,14 @@ class FileUploads extends Component
             if ($asset) {
                 $volume = $asset->getVolume();
                 $path = $asset->getPath();
-                if (!Craft::$app->getElements()->deleteElement($asset, true) || $volume->fileExists($path)) {
+                if (!$volume->fileExists($path)) {
+                    $asset->keepFileOnDelete = true;
+                }
+                if (!Craft::$app->getElements()->deleteElement($asset, true)) {
+                    throw new \RuntimeException('Asset deletion did not complete.');
+                }
+                $this->_deletePromotionDestination($upload, $asset);
+                if ($volume->fileExists($path)) {
                     throw new \RuntimeException('Asset deletion did not complete.');
                 }
             }
@@ -745,6 +804,39 @@ class FileUploads extends Component
         }
 
         return true;
+    }
+
+    private function _deletePromotionDestination(array $upload, Asset $asset): void
+    {
+        if ($upload['promotionState'] !== 'moving') {
+            return;
+        }
+        $folder = Craft::$app->getAssets()->getFolderById((int)$upload['promotionFolderId']);
+        if (!$folder || !$upload['promotionFilename'] || !$upload['contentHash']) {
+            throw new \RuntimeException('Upload promotion requires reconciliation.');
+        }
+        $volume = $folder->getVolume();
+        $path = ($folder->path ? rtrim($folder->path, '/') . '/' : '') . $upload['promotionFilename'];
+        if (!$volume->fileExists($path)) {
+            return;
+        }
+        $stream = $volume->getFileStream($path);
+        try {
+            $hash = hash_init('sha256');
+            hash_update_stream($hash, $stream);
+            if (!hash_equals((string)$upload['contentHash'], hash_final($hash))) {
+                throw new \RuntimeException('Upload destination requires reconciliation.');
+            }
+        } finally {
+            fclose($stream);
+        }
+        if ($volume->id === $asset->getVolume()->id && $path === $asset->getPath()) {
+            return;
+        }
+        $volume->deleteFile($path);
+        if ($volume->fileExists($path)) {
+            throw new \RuntimeException('Upload destination deletion did not complete.');
+        }
     }
 
     private function _persistSubmissionContent(Submission $submission): void

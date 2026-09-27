@@ -1216,9 +1216,15 @@ class FileUpload extends ElementField
                 $asset->avoidFilenameConflicts = true;
                 $asset->setScenario(Asset::SCENARIO_CREATE);
 
-                if (Craft::$app->getElements()->saveElement($asset)) {
+                $saved = $staging
+                    ? Formie::$plugin->getFileUploads()->saveStagedAsset($asset, $element->getForm(), $element->id ? (int)$element->id : null, $this->uid, $this->valueKey())
+                    : Craft::$app->getElements()->saveElement($asset);
+
+                if ($saved) {
                     $assetIds[] = $asset->id;
-                    Formie::$plugin->getFileUploads()->trackFromFieldAsset($asset, $this, $element);
+                    if (!$staging) {
+                        Formie::$plugin->getFileUploads()->trackFromFieldAsset($asset, $this, $element);
+                    }
                 } else {
                     Formie::info('Couldn’t save uploaded asset due to validation errors: ' . implode(', ', $asset->getFirstErrors()));
 

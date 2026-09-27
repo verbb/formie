@@ -94,6 +94,8 @@ class Settings extends Model
 
     // Submissions
     public int $maxIncompleteSubmissionAge = 30;
+    public int $maxStagedUploadFiles = 50;
+    public int $maxStagedUploadBytes = 67108864;
     public bool $enableCsrfValidationForGuests = true;
     public array $allowedOrigins = [];
     public bool $useQueueForNotifications = true;
@@ -449,6 +451,7 @@ class Settings extends Model
         $rules[] = [['pluginName'], 'string', 'max' => 52];
         $rules[] = [['maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'number', 'integerOnly' => true];
         $rules[] = [['reportTablePageSize'], 'number', 'integerOnly' => true, 'min' => 1, 'max' => 100];
+        $rules[] = [['maxStagedUploadFiles', 'maxStagedUploadBytes'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['reportAsyncExportRowThreshold'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['reportInteractiveExportExpiryHours', 'reportScheduledExportExpiryHours'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['reportExportSingleUseDownload'], 'boolean'];

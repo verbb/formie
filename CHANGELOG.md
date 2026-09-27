@@ -47,6 +47,7 @@
 
 ### Fixed
 - Serve staged upload previews through expiring view capabilities and require private temporary upload storage.
+- Enforce aggregate staged-upload file and byte budgets across fields and cap staged expiry independently of incomplete-submission retention.
 - Bound Base64 upload input and decoded sizes before allocating file contents, using Craft’s maximum upload size.
 - Complete required upload promotion before marking submissions complete, and finalize accepted uploads before completion events and delivery, including payment replay.
 - Retain upload cleanup records after permanent submission deletion and failed file deletion, preserve retryable field references, and leave shared or unowned files intact.

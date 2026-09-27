@@ -133,21 +133,12 @@ class FileUploadController extends Controller
         $asset->avoidFilenameConflicts = true;
         $asset->setScenario(Asset::SCENARIO_CREATE);
 
-        if (!Craft::$app->getElements()->saveElement($asset)) {
+        if (!Formie::$plugin->getFileUploads()->saveStagedAsset($asset, $form, $submissionId, $field->uid, $fieldHandle)) {
             return $this->asJson([
                 'success' => false,
                 'errors' => $asset->getErrors(),
             ]);
         }
-
-        Formie::$plugin->getFileUploads()->trackSubmissionAsset(
-            $asset,
-            (int)$form->id,
-            $submissionId,
-            $field->uid,
-            $form,
-            $fieldHandle
-        );
 
         $uploadToken = UploadAccess::issueToken((int)$asset->id, (int)$form->id, (string)$field->uid);
 

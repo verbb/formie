@@ -334,6 +334,24 @@ Controls how plain-text input values are handled when HTML is submitted. Use `pr
 :::
 
 
+### File Uploads
+
+::: reference
+#### `maxStagedUploadFiles`
+
+**Type:** `int` · **Default:** `50`
+
+Limits the number of files awaiting completion for one browser/form instance across all its upload fields. Bound files on incomplete submissions and expired files still waiting for physical cleanup count towards the limit. Successfully finalized uploads no longer count. Use a positive value; increase it for forms that legitimately collect many files.
+:::
+
+::: reference
+#### `maxStagedUploadBytes`
+
+**Type:** `int` · **Default:** `67108864` (64 MiB)
+
+Limits the combined bytes awaiting completion within the same browser/form instance. This applies alongside the file-count limit, Craft's maximum per-file size and each field's own limits. Removing unused files or completing the submission releases the corresponding budget. Expiry alone does not release storage until cleanup succeeds. Staged capabilities expire within 30 days, or the shorter positive `maxIncompleteSubmissionAge`, even when incomplete-submission retention is unlimited. This is a per-instance budget, not a server-wide storage quota.
+:::
+
 ### Submissions
 
 ::: reference

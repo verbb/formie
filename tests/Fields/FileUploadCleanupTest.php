@@ -158,3 +158,54 @@ it('retains shared owned files after deletion until the final reference is remov
     expect(Asset::find()->id($asset->id)->one())->toBeNull()
         ->and($uploads->getTrackedUploadByAssetId((int)$asset->id))->toBeNull();
 });
+
+it('reconciles interrupted upload destinations during detached cleanup', function (bool $moved): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form(['fileUploadsAction' => 'delete'])->fileUploadField('document', ['restrictFiles' => false])->create();
+    $asset = UploadTestHelper::seedAsset('detached-source-' . uniqid() . '.txt', 'owned destination', $volume);
+    $submission = formie()->submission($form)->with(['document' => [$asset->id]])->save();
+    $uploads = Formie::$plugin->getFileUploads();
+    $uploads->trackSubmissionAsset($asset, (int)$form->id, (int)$submission->id, $form->getFieldByHandle('document')->uid, $form, 'document');
+    $uploads->bindPersisted($submission);
+    $assets = Craft::$app->getAssets();
+    $folder = $assets->ensureFolderByFullPathAndVolume('detached-' . uniqid(), $volume);
+    $failing = new class extends \craft\services\Assets {
+        public bool $moveBeforeFailure = false;
+        public function moveAsset(Asset $asset, \craft\models\VolumeFolder $folder, string $filename = ''): bool
+        {
+            if ($this->moveBeforeFailure) {
+                $asset->getVolume()->renameFile($asset->getPath(), $folder->path . $filename);
+            }
+            throw new RuntimeException('Controlled interrupted promotion.');
+        }
+    };
+    $failing->moveBeforeFailure = $moved;
+    Craft::$app->set('assets', $failing);
+    try {
+        expect(fn() => $uploads->promote($asset, $folder, 'destination.txt'))->toThrow(RuntimeException::class);
+    } finally {
+        Craft::$app->set('assets', $assets);
+    }
+    $destination = $folder->path . 'destination.txt';
+    if (!$moved) {
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, 'unrelated destination bytes');
+        rewind($stream);
+        $volume->writeFileFromStream($destination, $stream);
+        fclose($stream);
+    }
+    expect(Craft::$app->getElements()->deleteElement($submission, true))->toBeTrue();
+    if (!$moved) {
+        expect($uploads->getTrackedUploadByAssetId((int)$asset->id)['failureCode'])->toBe('deletionFailed')
+            ->and($volume->fileExists($destination))->toBeTrue();
+        $uploads->purgeStalePendingUploads();
+        expect($uploads->getTrackedUploadByAssetId((int)$asset->id))->not->toBeNull()
+            ->and($volume->fileExists($destination))->toBeTrue();
+        // Remove only the unrelated fixture file, then allow the retained cleanup to retry.
+        $volume->deleteFile($destination);
+        $uploads->purgeStalePendingUploads();
+    }
+    expect($uploads->getTrackedUploadByAssetId((int)$asset->id))->toBeNull()
+        ->and(Asset::find()->id($asset->id)->status(null)->trashed(null)->one())->toBeNull()
+        ->and($volume->fileExists($destination))->toBeFalse();
+})->with([true, false]);
