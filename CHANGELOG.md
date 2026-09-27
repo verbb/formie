@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Add the `allowLegacySignatureImageUrls` config setting to disable unsigned Signature image URLs for existing submissions.
+
 ### Fixed
 - Fixed a moderate-severity information disclosure vulnerability. (GHSA-rh4q-6j5r-8jqf)
 - Fixed a moderate-severity authorization vulnerability. (GHSA-p696-447f-9258)

@@ -36,6 +36,7 @@ return [
         'useQueueForIntegrations' => true,
         'queuePriority' => null,
         'redirectUri' => null,
+        'allowLegacySignatureImageUrls' => true,
 
         // Sent Notifications
         'sentNotifications' => true,
@@ -92,6 +93,7 @@ return [
 - `useQueueForIntegrations` - Whether to use Craft‘s queue system to trigger integrations. This is highly, **highly** recommended, to prevent slow submissions for your users. This may be useful to disable for local development.
 - `queuePriority` - Set the queue job priority, to determine if it should run with a different priority compared to other jobs. Default to the [Craft default](https://craftcms.com/docs/4.x/extend/queue-jobs.html#specifying-priority) of `1024`.
 - `redirectUri` - Overrides the OAuth redirect URI for integration connections. When omitted, Formie uses a site URL (`formie/integrations/callback`), or an action URL when Craft’s `headlessMode` is enabled. Environment variables are supported.
+- `allowLegacySignatureImageUrls` - Whether unsigned Signature image URLs remain available for submissions created before field-scoped access tokens were introduced. Disable only if images in previously sent email notifications no longer need to load.
 
 ### Sent Notifications
 - `sentNotifications` - Whether to enable Sent Notifications functionality.
