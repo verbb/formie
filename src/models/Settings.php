@@ -72,6 +72,7 @@ class Settings extends Model
     public bool $setOnlyCurrentPagePayload = false;
     public string|array $submissionsBehaviour = 'all';
     public string $submissionSidebarFormOrder = self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC;
+    public bool $allowLegacySignatureImageUrls = true;
 
     // Sent Notifications
     public bool $sentNotifications = true;

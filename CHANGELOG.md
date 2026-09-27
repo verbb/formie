@@ -5,6 +5,9 @@
 ### Added
 - Add the `allowLegacySignatureImageUrls` config setting to disable unsigned Signature image URLs for existing submissions.
 
+### Changed
+- Protect Signature image URLs for new submissions with field-scoped access tokens while preserving URLs in previously sent email notifications.
+
 ### Fixed
 - Fixed a moderate-severity information disclosure vulnerability. (GHSA-rh4q-6j5r-8jqf)
 - Fixed a moderate-severity authorization vulnerability. (GHSA-p696-447f-9258)

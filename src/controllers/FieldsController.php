@@ -2,9 +2,12 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FieldInterface;
+use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Signature;
 use verbb\formie\fields\Summary;
+use verbb\formie\helpers\SignatureAccess;
 
 use Craft;
 use craft\helpers\Db;
@@ -106,19 +109,51 @@ class FieldsController extends Controller
     {
         $fieldId = (int)$this->request->getParam('fieldId');
         $submissionUid = $this->request->getParam('submissionUid');
+        $accessToken = $this->request->getParam('accessToken');
+        $fieldKey = $this->request->getParam('fieldKey');
+        $siteId = (int)$this->request->getParam('siteId');
         
         // Ensure things are properly escaped
         $submissionUid = Db::escapeParam($submissionUid);
 
         // Use UID to prevent easy-guessing of submission to scrape data
         if ($submissionUid && $fieldId) {
-            $submission = Submission::find()->uid($submissionUid)->one();
+            $submissionQuery = Submission::find()->uid($submissionUid);
+
+            if (is_string($accessToken) && $accessToken !== '') {
+                if ($siteId <= 0 || !is_string($fieldKey) || $fieldKey === '') {
+                    return null;
+                }
+
+                $submissionQuery->siteId($siteId);
+            }
+
+            $submission = $submissionQuery->one();
 
             if ($submission && $form = $submission->getForm()) {
-                $field = $form->getFieldById($fieldId);
+                if (is_string($accessToken) && $accessToken !== '') {
+                    if (!SignatureAccess::validateAccessToken($submission, $fieldId, $fieldKey, $accessToken)) {
+                        return null;
+                    }
+
+                    $field = $this->_findFieldById($form->getFields(), $fieldId);
+                    $valueKey = $fieldKey;
+                } else {
+                    if (SignatureAccess::requiresAccessToken($submission) || !Formie::$plugin->getSettings()->allowLegacySignatureImageUrls) {
+                        return null;
+                    }
+
+                    $field = $form->getFieldById($fieldId);
+                    $valueKey = $field?->fieldKey;
+                }
 
                 if ($field instanceof Signature) {
-                    $value = $submission->getFieldValue($field->fieldKey);
+                    $value = (string)$submission->getFieldValue($valueKey);
+
+                    if ($value === '') {
+                        return null;
+                    }
+
                     $base64 = explode('base64,', $value);
                     $image = base64_decode(end($base64));
 
@@ -127,6 +162,29 @@ class FieldsController extends Controller
                     $response->getHeaders()->set('Content-Type', 'image/png');
                     
                     return $this->asRaw($image);
+                }
+            }
+        }
+
+        return null;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _findFieldById(array $fields, int $fieldId): ?FieldInterface
+    {
+        foreach ($fields as $field) {
+            if ((int)$field->id === $fieldId) {
+                return $field;
+            }
+
+            if ($field instanceof NestedFieldInterface) {
+                $nestedField = $this->_findFieldById($field->getFields(), $fieldId);
+
+                if ($nestedField) {
+                    return $nestedField;
                 }
             }
         }

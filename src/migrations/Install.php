@@ -374,6 +374,7 @@ class Install extends Migration
             'spamClass' => $this->string(),
             'snapshot' => $this->text(),
             'ipAddress' => $this->string(),
+            'signatureAccessKey' => $this->string(64),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),

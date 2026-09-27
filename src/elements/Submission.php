@@ -1259,6 +1259,12 @@ class Submission extends CustomElement
         $record->spamClass = $this->spamClass;
         $record->snapshot = $this->snapshot;
         $record->ipAddress = $this->ipAddress;
+
+        // Existing submissions deliberately keep a null key so URLs already embedded in emails remain valid.
+        if ($isNew && $record->hasAttribute('signatureAccessKey')) {
+            $record->signatureAccessKey = Craft::$app->getSecurity()->generateRandomString(64);
+        }
+
         $record->dateCreated = $this->dateCreated;
         $record->dateUpdated = $this->dateUpdated;
 

@@ -6,6 +6,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\SignatureAccess;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
@@ -80,11 +81,22 @@ class Signature extends Field implements PreviewableFieldInterface
             return $value;
         }
 
-        // On non-dev sites, use a proxy to serve the "image" so web-based clients work
-        return UrlHelper::actionUrl('formie/fields/get-signature-image', [
+        $params = [
             'submissionUid' => $submission->uid,
             'fieldId' => $this->id,
-        ]);
+        ];
+
+        // Existing submissions retain their original URL so images in sent emails continue to work.
+        $accessToken = SignatureAccess::issueAccessToken($submission, (int)$this->id, $this->fieldKey);
+
+        if ($accessToken) {
+            $params['siteId'] = $submission->siteId;
+            $params['fieldKey'] = $this->fieldKey;
+            $params['accessToken'] = $accessToken;
+        }
+
+        // On non-dev sites, use a proxy to serve the "image" so web-based clients work
+        return UrlHelper::actionUrl('formie/fields/get-signature-image', $params);
     }
 
     public function getSettingGqlTypes(): array
