@@ -15,7 +15,6 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\helpers\PaymentAmountHelper;
-use verbb\formie\helpers\PaymentWebhookReceipt;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -30,6 +29,9 @@ use verbb\formie\models\Plan;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\Subscription;
 use verbb\formie\models\payments\PaymentWebhookCommand;
+use verbb\formie\models\payments\PaymentWebhookReceipt;
+use verbb\formie\models\payments\VerifiedWebhook;
+use verbb\formie\models\payments\VerifiedWebhookBatch;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\theme\context\RenderContext;
 
@@ -38,11 +40,11 @@ use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
-use craft\web\Response;
-
 use yii\base\Event;
+use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 
+use DateTimeImmutable;
 use Exception;
 use InvalidArgumentException;
 use NumberFormatter;
@@ -221,7 +223,7 @@ class Stripe extends Payment
     {
         $url = 'formie/payment-return/index';
         $payment = Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
-        $params = ['statusToken' => PaymentAccess::issueStatusToken($payment, mode: PaymentResumeMode::RECONCILE)];
+        $params = ['returnToken' => PaymentAccess::issueReturnToken($payment)];
 
         if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
             return UrlHelper::actionUrl($url, $params);
@@ -345,19 +347,25 @@ class Stripe extends Payment
                 PaymentModel::STATUS_SUCCESS => PaymentDecision::succeeded($this->handle, $latestPayment->reference),
                 PaymentModel::STATUS_REDIRECT => PaymentDecision::requiresAction(
                     $latestPayment->reference,
-                    PaymentAction::redirectEvent('formie:payment:stripe:confirm')
-                        ->forProvider($this->handle)
-                        ->withMessage($latestPayment->message ?: Craft::t('formie', 'Additional payment confirmation is required to continue.'))
-                        ->resumeMode(PaymentAction::RESUME_MODE_CALLBACK, $this->getReturnUrl($submission))
+                    PaymentAction::redirect(
+                        provider: $this->handle,
+                        event: 'formie:payment:stripe:confirm',
+                        message: $latestPayment->message ?: Craft::t('formie', 'Additional payment confirmation is required to continue.'),
+                        resumeMode: PaymentResumeMode::RETURN,
+                        resumeUrl: $this->getReturnUrl($submission),
+                    )
                 ),
                 PaymentModel::STATUS_PROCESSING => PaymentDecision::pending($latestPayment->message, $this->handle, $latestPayment->reference),
                 PaymentModel::STATUS_CANCELLED => PaymentDecision::cancelled($latestPayment->message, $this->handle, $latestPayment->reference),
                 PaymentModel::STATUS_PENDING => PaymentDecision::requiresAction(
                     $latestPayment->reference,
-                    PaymentAction::confirmEvent('formie:payment:stripe:confirm')
-                        ->forProvider($this->handle)
-                        ->withMessage($latestPayment->message ?: Craft::t('formie', 'Additional payment confirmation is required to continue.'))
-                        ->resumeMode(PaymentAction::RESUME_MODE_CALLBACK, $this->getReturnUrl($submission))
+                    PaymentAction::confirm(
+                        provider: $this->handle,
+                        event: 'formie:payment:stripe:confirm',
+                        message: $latestPayment->message ?: Craft::t('formie', 'Additional payment confirmation is required to continue.'),
+                        resumeMode: PaymentResumeMode::RETURN,
+                        resumeUrl: $this->getReturnUrl($submission),
+                    )
                 ),
                 PaymentModel::STATUS_FAILED => PaymentDecision::failed($latestPayment->message, $this->handle, $latestPayment->reference),
                 default => PaymentDecision::unknown(null, $this->handle, $latestPayment->reference),
@@ -785,87 +793,76 @@ class Stripe extends Payment
         Formie::$plugin->getPayments()->savePayment($payment);
     }
 
-    public function processWebhook(?PaymentWebhookCommand $command = null): Response
+    public function verifyWebhook(PaymentWebhookCommand $request): VerifiedWebhookBatch
     {
-        $command ??= PaymentWebhookCommand::fromRequest((int)$this->id);
-        $rawData = $command->body;
-        $response = Craft::$app->getResponse();
-        $response->format = Response::FORMAT_RAW;
-
+        $rawData = $request->body;
         $secret = App::parseEnv($this->webhookSecretKey);
-        $stripeSignature = $command->header('Stripe-Signature');
+        $stripeSignature = $request->header('Stripe-Signature');
 
         if (!$secret || !$stripeSignature) {
-            Integration::error($this, 'Webhook not signed or signing secret not set.');
-            $response->setStatusCode(400);
-            $response->data = 'error';
-
-            return $response;
+            throw new BadRequestHttpException('Webhook not signed or signing secret not set.');
         }
 
         try {
-            // Check the payload and signature
             StripeWebhook::constructEvent($rawData, $stripeSignature, $secret);
         } catch (Throwable $e) {
-            Integration::error($this, 'Webhook signature check failed: ' . Integration::getExceptionLogMessage($e));
-            $response->setStatusCode(400);
-            $response->data = 'error';
-
-            return $response;
+            throw new BadRequestHttpException('Webhook signature check failed.', 0, $e);
         }
 
         $data = Json::decodeIfJson($rawData);
 
-        if ($data) {
-            try {
-                PaymentWebhookReceipt::process($this, !empty($data['livemode']) ? 'live' : 'test', (string)($data['id'] ?? ''), $rawData, ['Stripe-Signature' => $stripeSignature], function () use ($data): void {
-                if ($data['type'] === StripeEvent::CUSTOMER_SUBSCRIPTION_CREATED) {
-                    $this->handleSubscriptionCreated($data);
-                } else if ($data['type'] === StripeEvent::CUSTOMER_SUBSCRIPTION_DELETED) {
-                    $this->handleSubscriptionExpired($data);
-                } else if ($data['type'] === StripeEvent::CUSTOMER_SUBSCRIPTION_UPDATED) {
-                    $this->handleSubscriptionUpdated($data);
-                } else if ($data['type'] === StripeEvent::INVOICE_CREATED) {
-                    $this->handleInvoiceCreated($data);
-                } else if ($data['type'] === StripeEvent::INVOICE_PAYMENT_FAILED) {
-                    $this->handleInvoiceFailed($data);
-                } else if ($data['type'] === StripeEvent::INVOICE_PAYMENT_SUCCEEDED) {
-                    $this->handleInvoiceSucceeded($data);
-                } else if ($data['type'] === StripeEvent::PLAN_DELETED) {
-                    $this->handlePlanDeleted($data);
-                } else if ($data['type'] === StripeEvent::PLAN_UPDATED) {
-                    $this->handlePlanUpdated($data);
-                } else if ($data['type'] === StripeEvent::PAYMENT_INTENT_CANCELED) {
-                    $this->handlePaymentIntent($data);
-                } else if ($data['type'] === StripeEvent::PAYMENT_INTENT_PAYMENT_FAILED) {
-                    $this->handlePaymentIntent($data);
-                } else if ($data['type'] === self::STRIPE_EVENT_PAYMENT_INTENT_PROCESSING) {
-                    $this->handlePaymentIntent($data);
-                } else if ($data['type'] === StripeEvent::PAYMENT_INTENT_SUCCEEDED) {
-                    $this->handlePaymentIntent($data);
-                }
-            if ($this->hasEventHandlers(self::EVENT_RECEIVE_WEBHOOK)) {
-                $this->trigger(self::EVENT_RECEIVE_WEBHOOK, new PaymentReceiveWebhookEvent([
-                    'webhookData' => $data,
-                ]));
-            }
-                });
-            } catch (Throwable $e) {
-                Integration::apiError($this, $e, false);
-                $response->setStatusCode(500);
-                $response->data = 'error';
-
-                return $response;
-            }
-
-
-        } else {
-            Integration::error($this, 'Could not decode JSON payload.');
+        if (!is_array($data) || empty($data['id']) || empty($data['type'])) {
+            throw new BadRequestHttpException('Could not decode Stripe webhook payload.');
         }
 
-        $response->data = 'ok';
+        $environment = !empty($data['livemode']) ? 'live' : 'test';
+        $resource = $data['data']['object'] ?? [];
+        $accountIdentity = isset($data['account'])
+            ? (string)$data['account']
+            : hash('sha256', (string)App::parseEnv($this->secretKey));
 
-        return $response;
+        return new VerifiedWebhookBatch(
+            $this->getWebhookAccountFingerprint($environment, $accountIdentity),
+            $environment,
+            [new VerifiedWebhook(
+                (string)$data['id'],
+                (string)$data['type'],
+                isset($resource['object']) ? (string)$resource['object'] : null,
+                isset($resource['id']) ? (string)$resource['id'] : null,
+                isset($data['created']) ? (new DateTimeImmutable())->setTimestamp((int)$data['created']) : null,
+                $data,
+            )],
+            ['Stripe-Signature' => $stripeSignature],
+        );
+    }
+
+    public function handleWebhook(PaymentWebhookReceipt $receipt): void
+    {
+        $data = $receipt->payload;
+
+        if ($data['type'] === StripeEvent::CUSTOMER_SUBSCRIPTION_CREATED) {
+            $this->handleSubscriptionCreated($data);
+        } else if ($data['type'] === StripeEvent::CUSTOMER_SUBSCRIPTION_DELETED) {
+            $this->handleSubscriptionExpired($data);
+        } else if ($data['type'] === StripeEvent::CUSTOMER_SUBSCRIPTION_UPDATED) {
+            $this->handleSubscriptionUpdated($data);
+        } else if ($data['type'] === StripeEvent::INVOICE_CREATED) {
+            $this->handleInvoiceCreated($data);
+        } else if ($data['type'] === StripeEvent::INVOICE_PAYMENT_FAILED) {
+            $this->handleInvoiceFailed($data);
+        } else if ($data['type'] === StripeEvent::INVOICE_PAYMENT_SUCCEEDED) {
+            $this->handleInvoiceSucceeded($data);
+        } else if ($data['type'] === StripeEvent::PLAN_DELETED) {
+            $this->handlePlanDeleted($data);
+        } else if ($data['type'] === StripeEvent::PLAN_UPDATED) {
+            $this->handlePlanUpdated($data);
+        } else if (in_array($data['type'], [StripeEvent::PAYMENT_INTENT_CANCELED, StripeEvent::PAYMENT_INTENT_PAYMENT_FAILED, self::STRIPE_EVENT_PAYMENT_INTENT_PROCESSING, StripeEvent::PAYMENT_INTENT_SUCCEEDED], true)) {
+            $this->handlePaymentIntent($data);
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_RECEIVE_WEBHOOK)) {
+            $this->trigger(self::EVENT_RECEIVE_WEBHOOK, new PaymentReceiveWebhookEvent(['webhookData' => $data]));
+        }
     }
 
     public function cancelSubscription($reference, $params = []): ?array
@@ -1206,11 +1203,6 @@ class Stripe extends Payment
     }
 
     public function supportsWebhooks(): bool
-    {
-        return true;
-    }
-
-    public function supportsCallbacks(): bool
     {
         return true;
     }

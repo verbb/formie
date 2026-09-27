@@ -77,6 +77,8 @@ class CronController extends Controller
         if (in_array('deliveries', $groups, true)) {
             $count = Formie::$plugin->getSubmissionDispatches()->recover();
             $this->stdout("Scheduled {$count} interrupted submission dispatches.\n", Console::FG_GREEN);
+            $webhookCount = Formie::$plugin->getPaymentWebhooks()->recover();
+            $this->stdout("Scheduled {$webhookCount} verified payment webhook receipts.\n", Console::FG_GREEN);
         }
 
         if (in_array('gc', $groups, true)) {

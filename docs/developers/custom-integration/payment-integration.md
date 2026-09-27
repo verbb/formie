@@ -119,7 +119,7 @@ The example uses a provider without documented idempotent retries: `PaymentAttem
 
 `Payment.amount` is a decimal string. `PaymentMoney::fromDecimal('25.01', 'USD')` exposes `minor === '2501'`, currency and `decimal()`. `fromMinor()` reverses the conversion. Excess nonzero fractional digits, scientific notation and invalid currencies are rejected. Integer-only provider APIs must use `integer()`, which checks overflow. Legacy numeric settings are normalized on entry; extension code should pass decimal strings and avoid float arithmetic. Browser amount previews do not authorize the server amount.
 
-`PaymentDecision.status` is a `PaymentDecisionStatus` enum; `toArray()` serializes its string value. Use `succeeded()`, `requiresAction()` with a typed `PaymentAction`, `pending()`, `failed()`, `cancelled()` or `unknown()`. A redirect is an action-required decision with a redirect action. Unknown outcomes stay incomplete and map to the submission's payment-pending outcome; cancellation maps to payment-failed while retaining `paymentStatus: cancelled`. Do not turn a timeout into a decline.
+`PaymentDecision.status` is a `PaymentDecisionStatus` enum; `toArray()` serializes its string value. Use `succeeded()`, `requiresAction()` with an immutable `PaymentAction`, `pending()`, `failed()`, `cancelled()` or `unknown()`. Construct the complete action in one call with `PaymentAction::redirect()`, `confirm()`, `challenge()` or `initialize()`. Its `PaymentResumeMode` states what the browser does next: `RESUBMIT` sends the form again after an in-page provider action, `RETURN` sends the customer through a server-verified return URL, and `POLL` reads the stored payment status. A redirect is an action-required decision with a redirect action. Unknown outcomes stay incomplete and map to the submission's payment-pending outcome; cancellation maps to payment-failed while retaining `paymentStatus: cancelled`. Do not turn a timeout into a decline.
 
 ## Transactions And Replay
 
@@ -131,18 +131,22 @@ Replay uses the existing `PAYMENT_REPLAY` submission command, authority, version
 
 | Endpoint | Authority and behavior |
 | --- | --- |
-| `payment-webhooks/process-webhook` | Adapter-authenticated `PaymentWebhookCommand`; CSRF exempt; raw bytes captured before parsing; durable receipt before handling or acknowledgment. |
-| `payment-return/index` | `PaymentReturnCommand` correlates a scoped token and redirects to status. Browser parameters cannot confirm payment. |
-| `payment-status/status`, `payment-status/poll-status` | `PaymentStatusCommand`; read capability by default. Only server-issued `PaymentResumeMode::RECONCILE` permits provider lookup and replay. Both are rate limited. `checkGateway` has no effect. |
+| `payment-webhooks/process-webhook` | Stable integration UID plus adapter-authenticated `PaymentWebhookCommand`; CSRF exempt; request body limited to 1 MiB; durable receipt before asynchronous handling or acknowledgement. |
+| `payment-return/index` | `payment.return` capability resolved by `PaymentReturnCommand`; reconciles when due and redirects to the status page. Browser parameters cannot confirm payment. |
+| `payment-status/status`, `payment-status/poll-status` | Read-only `payment.status` capability. Polling reconciles only when the stored cadence is due; the browser cannot force a provider request. Both endpoints are rate limited. |
 | `payment-sessions/initialize` | `PaymentSessionCommand`; POST with CSRF and an expiring form/site/field/integration session capability. Currently used by Opayo. |
 | `payment-challenges/complete` | Opayo's cross-origin POST; challenge-only payment capability. A sent challenge is not posted again after an uncertain response. |
 | `payment-subscriptions/cancel` | `CancelSubscriptionCommand`; cancellation-only capability, GET confirmation, CSRF-protected POST and authority rechecked under the cancellation lock. |
 
 ## Webhook Evidence
 
-After verifying authenticity against the exact bytes, call `PaymentWebhookReceipt::process()` with provider environment/account, event identity, raw body, required headers and the domain handler. Return `false` for an ignored event. Invalid signatures return non-2xx without a verified receipt. Processing failures return a retryable non-2xx response and retain reconciliation state. Duplicate terminal receipts do not rerun the handler. Payment success and terminal subscription states cannot regress; provider subscription updates read current provider state rather than applying old snapshots.
+Payment adapters authenticate and normalize provider input; Formie owns receipt storage, deduplication, locking, retries and diagnostics. Implement `verifyWebhook(PaymentWebhookCommand $request): VerifiedWebhookBatch` to verify the exact request bytes before returning one or more normalized `VerifiedWebhook` events. Give every event the provider's stable event ID. Use `getWebhookAccountFingerprint()` with the provider environment and account ID where one is available. Otherwise pass a one-way fingerprint derived from the account credential, never the raw secret, so reconnecting the integration to another account creates a separate event namespace. Include only headers needed as verification evidence.
 
-Canonical bodies and required headers are encrypted with the Formie security key. Keep that key and database backups together. The default support projection contains only bounded event identifiers/type/timing and escaped redaction. Financial history and webhook receipts are retained indefinitely; normal cleanup does not remove them. Receipt histories retain the latest 100 transitions. Raw evidence is available only to a trusted console operator or a user with integration-management permission; it is excluded from the ordinary console receipt listing. See [Console Commands](../console-commands).
+Implement `handleWebhook(PaymentWebhookReceipt $receipt): void` for domain handling. It receives the stored normalized payload, not the public request. Confirm the provider resource belongs to the saved integration and financial record before updating it. Use Formie's payment and subscription services so ownership locks, immutable amount snapshots and monotonic terminal states remain enforced.
+
+Invalid authentication or malformed payloads return non-2xx without a verified receipt. Once the complete verified batch is durable, Formie acknowledges the provider and processes each receipt through the queue. Duplicate receipts are acknowledged without rerunning completed side effects. A later handling failure remains internally owned: Formie schedules bounded delayed retries and records a safe diagnostic rather than asking the provider to repair an internal queue failure. Payment success and terminal subscription states cannot regress; provider subscription updates read current provider state rather than applying old snapshots.
+
+Canonical bodies, normalized payloads and required headers are encrypted with the Formie security key. Keep that key and database backups together. The default support projection contains only bounded event identifiers and resource references plus an escaped redaction marker. Financial history and webhook receipts are retained indefinitely; normal cleanup does not remove them. Receipt histories retain the latest 100 transitions. Raw evidence is available only to a trusted console operator or a user with integration-management permission; it is excluded from the ordinary console receipt listing. See [Console Commands](../console-commands).
 
 GoCardless deduplicates per event even when a retry batches it with other events; the first authenticated complete request body is retained as canonical evidence. Mollie uses a payment-specific secret plus an authenticated server lookup, and records each provider status observation. Keep provider secrets and capability URLs out of public logs.
 
@@ -293,6 +297,8 @@ Method | Use
 `getPaymentFieldPayload()` | Reads provider-specific hidden input values from the submitted Payment field.
 `addFieldError()` | Adds an error to the Payment field when processing fails.
 `supportsWebhooks()` | Whether the provider can send webhook updates.
+`verifyWebhook()` | Authenticates exact request evidence and returns normalized provider events without changing payment state.
+`handleWebhook()` | Applies one durable normalized receipt under Formie's processing lock.
 `getTransaction()` | Authenticated provider reconciliation; never trusts browser return fields.
 `requiresAjaxSubmission()` | Whether forms using this provider must submit with Ajax.
-`getRedirectUri()` | Returns the webhook URL Formie exposes for the payment provider.
+`getWebhookUrl()` | Returns the stable integration-UID webhook URL Formie exposes for the payment provider.

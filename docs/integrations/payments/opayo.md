@@ -34,6 +34,6 @@ The Opayo payment integration supports only once-off payments.
 
 Save the form, open it on your site and submit recognisable test values. Complete a test payment and inspect both the saved submission and the provider’s transaction record. Confirm the amount, currency and final payment state before enabling live payments.
 
-If a 3D Secure callback cannot confirm payment, Formie leaves the payment pending. Check its transaction in Opayo before asking the visitor to pay again. An “operation not allowed” response can have more than one cause and does not by itself confirm a successful payment.
+If a 3D Secure challenge return cannot confirm payment, Formie leaves the payment pending. Check its transaction in Opayo before asking the visitor to pay again. An “operation not allowed” response can have more than one cause and does not by itself confirm a successful payment.
 
 If nothing arrives, check whether integration conditions matched, whether the submission was complete and non-spam, and whether Craft’s queue has processed the job. A successful connection check verifies credentials; it does not prove that field mapping and delivery work. See [Connect and Test an Integration](/integrations/connect-and-test-an-integration) for a complete mapping and verification workflow.

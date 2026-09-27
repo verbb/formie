@@ -3,6 +3,7 @@
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\PaymentCapabilityPurpose;
 use verbb\formie\helpers\PaymentCapabilities;
 use verbb\formie\models\{PaymentFieldPayload, Subscription};
 use verbb\formie\models\payments\CancelSubscriptionCommand;
@@ -31,9 +32,9 @@ it('checks cancellation capability at the mutation boundary and never repeats an
     $subscriptions->saveSubscription($one);
     $subscriptions->saveSubscription($two);
     $scope = ['subscriptionUid' => $one->uid, 'integrationId' => $one->integrationId, 'submissionId' => $one->submissionId];
-    $token = PaymentCapabilities::issue('cancel', $one->id, $scope, 1800);
-    $expired = PaymentCapabilities::issue('cancel', $one->id, $scope, -1);
-    $broad = PaymentCapabilities::issue('status', $one->id, $scope, 1800);
+    $token = PaymentCapabilities::issue(PaymentCapabilityPurpose::CANCEL, $one->id, $scope, 1800);
+    $expired = PaymentCapabilities::issue(PaymentCapabilityPurpose::CANCEL, $one->id, $scope, -1);
+    $broad = PaymentCapabilities::issue(PaymentCapabilityPurpose::STATUS, $one->id, $scope, 1800);
     BoundaryCancellationStripe::$cancellations = 0;
     BoundaryCancellationStripe::$loseResponse = $loseResponse;
     foreach ([[$two, $token], [$one, $expired], [$one, $broad]] as [$target, $credential]) {

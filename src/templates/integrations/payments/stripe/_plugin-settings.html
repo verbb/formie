@@ -5,12 +5,14 @@
 
 {% block content %}
 
-{{ macros.proxyField(fieldVariables, 'textField', {
-    readonly: true,
-    label: 'Redirect URI' | t('formie'),
-    instructions: 'Use this URI when setting up your {name} app.' | t('formie'),
-    value: integration.getRedirectUri(),
-}) }}
+{% if integration.uid %}
+    {{ macros.proxyField(fieldVariables, 'textField', {
+        readonly: true,
+        label: 'Webhook URL' | t('formie'),
+        instructions: 'Use this URL when setting up webhooks for your {name} account.' | t('formie'),
+        value: integration.getWebhookUrl(),
+    }) }}
+{% endif %}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Publishable Key' | t('formie'),

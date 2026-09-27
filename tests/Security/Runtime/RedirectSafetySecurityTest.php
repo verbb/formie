@@ -98,10 +98,10 @@ it('ignores untrusted origins on the provider return endpoint', function (string
     Formie::$plugin->getIntegrations()->saveIntegration($integration, false);
     $payment = new \verbb\formie\models\Payment(['integrationId' => $integration->id, 'amount' => '1.00', 'currency' => 'USD', 'status' => 'pending']);
     Formie::$plugin->getPayments()->savePayment($payment);
-    $token = \verbb\formie\helpers\PaymentAccess::issueStatusToken($payment);
+    $token = \verbb\formie\helpers\PaymentAccess::issueReturnToken($payment);
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration, $target, $token): void {
         $request->setQueryParams([
-            'origin' => $target, 'statusToken' => $token,
+            'origin' => $target, 'returnToken' => $token,
         ]);
 
         $response = (new \verbb\formie\controllers\PaymentReturnController('payment-return', Craft::$app))->actionIndex();

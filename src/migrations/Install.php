@@ -342,6 +342,9 @@ class Install extends Migration
             'history' => $this->mediumText(),
             'scope' => $this->text(),
             'idempotencyKey' => $this->string(80),
+            'lastReconciledAt' => $this->bigInteger(),
+            'nextReconcileAt' => $this->bigInteger(),
+            'reconciliationAttempts' => $this->integer()->notNull()->defaultValue(0),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -395,18 +398,29 @@ class Install extends Migration
             'id' => $this->primaryKey(),
             'identity' => $this->char(64)->notNull(),
             'integrationId' => $this->integer()->notNull(),
+            'integrationUid' => $this->uid()->notNull(),
+            'accountFingerprint' => $this->char(64)->notNull(),
             'environment' => $this->string(80)->notNull(),
             'eventId' => $this->string(255)->notNull(),
+            'eventType' => $this->string(255)->notNull(),
+            'resourceType' => $this->string(255),
+            'resourceReference' => $this->string(255),
+            'providerCreatedAt' => $this->bigInteger(),
             'bodyHash' => $this->char(64)->notNull(),
             'eventHash' => $this->char(64)->notNull(),
             'history' => $this->mediumText()->notNull(),
             'body' => $this->mediumText()->notNull(),
             'headers' => $this->text()->notNull(),
+            'payload' => $this->mediumText()->notNull(),
             'display' => $this->mediumText()->notNull(),
             'status' => $this->string(32)->notNull(),
             'attempts' => $this->integer()->notNull()->defaultValue(0),
             'error' => $this->text(),
             'receivedAt' => $this->dateTime()->notNull(),
+            'verifiedAt' => $this->dateTime()->notNull(),
+            'scheduledAt' => $this->dateTime(),
+            'startedAt' => $this->dateTime(),
+            'nextAttemptAt' => $this->dateTime(),
             'processedAt' => $this->dateTime(),
         ]);
 
@@ -813,6 +827,8 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'dateExpired', false);
         $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'idempotencyKey', true);
         $this->createIndex(null, Table::FORMIE_WEBHOOK_RECEIPTS, 'identity', true);
+        $this->createIndex(null, Table::FORMIE_WEBHOOK_RECEIPTS, ['status', 'nextAttemptAt'], false);
+        $this->createIndex(null, Table::FORMIE_WEBHOOK_RECEIPTS, ['integrationUid', 'eventId'], false);
         $this->createIndex(null, Table::FORMIE_PAYMENT_CAPABILITIES, 'tokenHash', true);
         $this->createIndex(null, Table::FORMIE_RELATIONS, ['sourceId', 'sourceSiteId', 'targetId'], true);
         $this->createIndex(null, Table::FORMIE_RELATIONS, ['sourceId'], false);

@@ -42,7 +42,7 @@ it('accepts a signed Stripe event once and ignores a tampered event without chan
             $time = time();
             $_SERVER['HTTP_STRIPE_SIGNATURE'] = 't=' . $time . ',v1=' . hash_hmac('sha256', $time . '.' . $body, 'whsec_local_contract');
             $request->setRawBody($tampered ? $body . ' ' : $body);
-            $response = $integration->processWebhook();
+            $response = $integration->processWebhooks();
             expect($response->data)->toBe($tampered ? 'error' : 'ok');
             expect($response->statusCode)->toBe($tampered ? 400 : 200);
         }, ['method' => 'POST']);

@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\models\payments;
 
+use verbb\formie\enums\PaymentCapabilityPurpose;
 use verbb\formie\helpers\PaymentCapabilities;
 use verbb\formie\models\Subscription;
 
@@ -17,7 +18,7 @@ final class CancelSubscriptionCommand
 
     public function authorize(Subscription $subscription): void
     {
-        $capability = PaymentCapabilities::resolve($this->token, 'cancel');
+        $capability = PaymentCapabilities::resolve($this->token, PaymentCapabilityPurpose::CANCEL);
         if ($this->subscriptionId !== $subscription->id || !$capability
             || (int)$capability['resourceId'] !== $subscription->id
             || ($capability['scope']['subscriptionUid'] ?? null) !== $subscription->uid

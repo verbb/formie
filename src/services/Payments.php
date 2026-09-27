@@ -5,7 +5,6 @@ use verbb\formie\Formie;
 use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\enums\PaymentResumeMode;
 use verbb\formie\events\PaymentEvent;
 use verbb\formie\events\PaymentSuccessRedirectEvent;
 use verbb\formie\helpers\ArrayHelper;
@@ -189,21 +188,54 @@ class Payments extends Component
     public function resolveStatus(PaymentStatusCommand $command): Payment
     {
         $scope = $command->resolve();
-        if ($command->mode() === PaymentResumeMode::STATUS) {
-            return $this->getPaymentById($scope['paymentId']);
+        return $this->refreshIfDue($this->getPaymentById($scope['paymentId']));
+    }
+
+    public function refreshIfDue(?Payment $payment, bool $force = false): Payment
+    {
+        if (!$payment) {
+            throw new RuntimeException('Payment not found.');
         }
-        $lock = 'formie.payment-reconciliation.' . $scope['paymentId'];
+
+        $now = time();
+        if (!$force && $payment->nextReconcileAt !== null && $payment->nextReconcileAt > $now) {
+            return $payment;
+        }
+        if (in_array($payment->status, [Payment::STATUS_SUCCESS, Payment::STATUS_FAILED, Payment::STATUS_CANCELLED], true)) {
+            return $payment;
+        }
+
+        $lock = 'formie.payment-reconciliation.' . $payment->id;
         $mutex = Craft::$app->getMutex();
         if (!$mutex->acquire($lock, 5)) { throw new RuntimeException('Payment reconciliation is busy.'); }
         try {
-            $scope = $command->resolve();
-            $payment = $this->getPaymentById($scope['paymentId']);
+            $payment = $this->getPaymentById((int)$payment->id);
+            if (!$force && $payment->nextReconcileAt !== null && $payment->nextReconcileAt > time()) {
+                return $payment;
+            }
+            $integration = $payment->getIntegration();
+            if (!$integration instanceof PaymentIntegration) {
+                throw new RuntimeException('Payment integration not found.');
+            }
             if (!in_array($payment->status, [Payment::STATUS_SUCCESS, Payment::STATUS_CANCELLED], true) && ($payment->scope['providerOutcome']['status'] ?? null) !== Payment::STATUS_SUCCESS) {
-                $this->observeProvider(fn() => $payment->getIntegration()?->getTransaction($payment));
+                $this->observeProvider(fn() => $integration->getTransaction($payment));
             }
             $payment = $this->getPaymentById($payment->id);
+            Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PAYMENTS, [
+                'lastReconciledAt' => time(),
+                'nextReconcileAt' => time() + max(5, $integration->getReconciliationInterval($payment)),
+                'reconciliationAttempts' => 0,
+            ], ['id' => $payment->id])->execute();
             Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
             return $this->getPaymentById($payment->id);
+        } catch (Throwable $e) {
+            $attempts = $payment->reconciliationAttempts + 1;
+            Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PAYMENTS, [
+                'lastReconciledAt' => time(),
+                'nextReconcileAt' => time() + min(300, 5 * (2 ** min($attempts, 6))),
+                'reconciliationAttempts' => $attempts,
+            ], ['id' => $payment->id])->execute();
+            throw $e;
         } finally {
             $mutex->release($lock);
         }
@@ -464,6 +496,7 @@ class Payments extends Component
     {
         $select = [
             'id', 'version', 'history', 'scope', 'idempotencyKey',
+            'lastReconciledAt', 'nextReconcileAt', 'reconciliationAttempts',
             'integrationId',
             'submissionId',
             'fieldId',
@@ -482,7 +515,7 @@ class Payments extends Component
         ];
 
         if (DbSchema::columnExists(Table::FORMIE_PAYMENTS, 'redirectUrl')) {
-            array_splice($select, 11, 0, ['redirectUrl']);
+            array_splice($select, 18, 0, ['redirectUrl']);
         }
 
         return (new Query())

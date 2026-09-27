@@ -6,6 +6,7 @@ enum PaymentResumeMode: string
     // Cases
     // =========================================================================
 
-    case STATUS = 'status';
-    case RECONCILE = 'reconcile';
+    case RESUBMIT = 'resubmit';
+    case RETURN = 'return';
+    case POLL = 'poll';
 }

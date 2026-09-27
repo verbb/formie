@@ -272,13 +272,13 @@ it('recovers a lost Mollie creation response only with its signed URL and authen
         $fake = new class extends \verbb\formie\services\SubmissionProcessor { public function replayPaymentIfSuccessful(Payment $payment): ?\verbb\formie\models\SubmissionExecutionResult { return null; } };
         Formie::$plugin->set('submissionProcessor', $fake);
         try {
-            expect($integration->processWebhook()->data)->toBe($variant === 'valid' ? 'success' : 'error');
+            expect($integration->processWebhooks()->data)->toBe($variant === 'valid' ? 'success' : 'error');
             $saved = Formie::$plugin->getPayments()->getPaymentById($payment->id);
             if ($variant === 'valid') {
                 expect($saved->status)->toBe(Payment::STATUS_PROCESSING)->and($saved->scope['providerOutcome']['status'])->toBe(Payment::STATUS_SUCCESS)->and($saved->reference)->toBe($id);
                 expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
                 Craft::$app->getRequest()->setQueryParams([]);
-                expect($integration->processWebhook()->data)->toBe('error');
+                expect($integration->processWebhooks()->data)->toBe('error');
                 expect(array_column($integration->requests, 0))->toBe(['POST', 'GET']);
             } else {
                 expect($saved->status)->toBe(Payment::STATUS_UNKNOWN)->and($saved->reference)->toBeNull();

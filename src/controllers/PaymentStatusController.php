@@ -2,20 +2,14 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Payment;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\enums\PaymentResumeMode;
 use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\models\Payment as PaymentModel;
-use verbb\formie\models\payments\PaymentStatusCommand;
 
 use Craft;
-use craft\helpers\App;
-use craft\helpers\UrlHelper;
 use craft\web\Controller;
 
-use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\web\TooManyRequestsHttpException;
@@ -28,7 +22,6 @@ class PaymentStatusController extends Controller
     // =========================================================================
 
     private const STATUS_POLL_RATE_LIMIT = 120;
-    private const STATUS_GATEWAY_CHECK_RATE_LIMIT = 20;
     private const STATUS_RATE_WINDOW_SECONDS = 60;
 
 
@@ -63,37 +56,21 @@ class PaymentStatusController extends Controller
 
         // Status token is the capability; do not require a client-supplied paymentUid.
         $paymentUid = (string)$payment->uid;
-        $command = new PaymentStatusCommand((string)$this->request->getRequiredParam('statusToken'));
-        $shouldCheckGateway = $command->mode() === PaymentResumeMode::RECONCILE;
-
         if (!$integration = $payment->getIntegration()) {
             throw new NotFoundHttpException('Integration not found');
         }
 
         $integrationHandle = $integration->handle;
-        $calledGateway = $shouldCheckGateway;
+        try {
+            $payment = Formie::$plugin->getPayments()->refreshIfDue($payment);
+        } catch (Throwable $e) {
+            Formie::error('Payment poll: gateway verification failed for paymentUid {paymentUid} ({integration}): {message}', [
+                'paymentUid' => $paymentUid,
+                'integration' => $integrationHandle,
+                'message' => $e->getMessage(),
+            ]);
 
-        // Only a reconciliation capability permits a provider read.
-        if ($calledGateway) {
-            try {
-                $payment = Formie::$plugin->getPayments()->resolveStatus($command);
-            } catch (Throwable $e) {
-                Formie::error('Payment poll: gateway verification failed for paymentUid {paymentUid} ({integration}): {message}', [
-                    'paymentUid' => $paymentUid,
-                    'integration' => $integrationHandle,
-                    'message' => $e->getMessage(),
-                ]);
-
-                return $this->asJson(['status' => 'unknown', 'message' => Craft::t('formie', 'Payment verification is pending. Please check again shortly.')]);
-            }
-
-            if ($shouldCheckGateway) {
-                Formie::info('Payment poll: gateway check for paymentUid {paymentUid} ({integration}), status is now {status}', [
-                    'paymentUid' => $paymentUid,
-                    'integration' => $integrationHandle,
-                    'status' => $payment->status,
-                ]);
-            }
+            return $this->asJson(['status' => 'unknown', 'message' => Craft::t('formie', 'Payment verification is pending. Please check again shortly.')]);
         }
 
         if ($payment->status === PaymentModel::STATUS_SUCCESS) {
@@ -154,19 +131,12 @@ class PaymentStatusController extends Controller
             ));
         }
 
-        if ($shouldCheckGateway) {
-            Formie::info('Payment poll: still pending after gateway check (paymentUid {paymentUid}, {integration})', [
-                'paymentUid' => $paymentUid,
-                'integration' => $integrationHandle,
-            ]);
-        }
-
         return $this->asJson(['status' => in_array($payment->status, [PaymentModel::STATUS_UNKNOWN, PaymentModel::STATUS_CANCELLED], true) ? $payment->status : 'pending']);
     }
 
     public function actionStatus(): Response
     {
-        $payment = $this->_requirePaymentFromStatusToken(true);
+        $payment = $this->_requirePaymentFromStatusToken();
 
         if (!$integration = $payment->getIntegration()) {
             throw new NotFoundHttpException('Integration not found');
@@ -186,7 +156,7 @@ class PaymentStatusController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function _requirePaymentFromStatusToken(bool $gatewayCheck = false): PaymentModel
+    private function _requirePaymentFromStatusToken(): PaymentModel
     {
         $statusToken = (string)$this->request->getRequiredParam('statusToken');
         $payload = PaymentAccess::resolveStatusToken($statusToken);
@@ -195,7 +165,7 @@ class PaymentStatusController extends Controller
             throw new NotFoundHttpException('Payment not found');
         }
 
-        $this->_enforceStatusTokenRateLimit($statusToken, $payload['purpose'] === 'reconcile');
+        $this->_enforceStatusTokenRateLimit($statusToken);
 
         $payment = Formie::$plugin->getPayments()->getPaymentByUid($payload['paymentUid']);
 
@@ -237,13 +207,13 @@ class PaymentStatusController extends Controller
         return $response;
     }
 
-    private function _enforceStatusTokenRateLimit(string $statusToken, bool $gatewayCheck): void
+    private function _enforceStatusTokenRateLimit(string $statusToken): void
     {
-        $limit = $gatewayCheck ? self::STATUS_GATEWAY_CHECK_RATE_LIMIT : self::STATUS_POLL_RATE_LIMIT;
+        $limit = self::STATUS_POLL_RATE_LIMIT;
         $window = self::STATUS_RATE_WINDOW_SECONDS;
         $ipAddress = Craft::$app->getRequest()->getUserIP();
-        $cacheKey = 'formie.payment-status-rate.' . md5($statusToken . '|' . ($gatewayCheck ? 'gateway' : 'poll') . '|' . $ipAddress);
-        $mutexKey = 'formie.payment-status-rate-lock.' . md5($statusToken . '|' . ($gatewayCheck ? 'gateway' : 'poll') . '|' . $ipAddress);
+        $cacheKey = 'formie.payment-status-rate.' . md5($statusToken . '|poll|' . $ipAddress);
+        $mutexKey = 'formie.payment-status-rate-lock.' . md5($statusToken . '|poll|' . $ipAddress);
         $cache = Craft::$app->getCache();
         $mutex = Craft::$app->getMutex();
         $now = time();

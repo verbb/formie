@@ -34,9 +34,9 @@
 - Return strings for Phone and a consistent Name value in both input modes; replace beta Array/value-class APIs and browser validation names.
 - Separate shared field definition identity from form-field instances, retain Formie 3 identity aliases and require registered fields to extend the base Field class.
 - Share identity remapping across imports, duplicates and stencils; use portable definition UIDs for Synced Fields and explicit enabled/recursive traversal APIs.
-- Make payment amounts exact, return typed payment decisions and atomically settle payment-backed submissions with recoverable provider evidence.
-- Retain coherent subscription and recurring-payment history; scope cancellation, provider return, status and session authority.
-- Persist encrypted, idempotent webhook receipts with redacted diagnostics and reject unauthenticated provider events.
+- Make payment amounts exact, return typed payment decisions with immutable actions and explicit resubmit/return/poll modes, and atomically settle payment-backed submissions with recoverable provider evidence.
+- Retain coherent subscription and recurring-payment history; separate cancellation, provider return, read-only status and browser-session authority, and reconcile status polling on a server-controlled cadence.
+- Process payment webhooks through adapter verification and a durable asynchronous inbox with stable integration URLs, encrypted idempotent receipts, bounded retries and redacted diagnostics; reject unauthenticated provider events without discarding valid bursts.
 - Store canonical journey progress in the database and use independent purpose-bound, expiring grants for Save & Continue and authorised editing across browsers.
 - Require structured, purpose-bound staged-upload references across server-rendered, client-rendered, REST and GraphQL submissions; bind accepted uploads to their exact form, field, owner and browser context before dispatch, with durable promotion recovery.
 - Remove beta draft-storage APIs, etags and `maxSavedDraftsPerSession`; existing beta resume links must be reissued after upgrading.

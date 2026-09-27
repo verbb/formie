@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\console\controllers;
 
+use verbb\formie\Formie;
 use verbb\formie\helpers\PaymentRecovery;
-use verbb\formie\helpers\PaymentWebhookReceipt;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Payment;
 
@@ -49,7 +49,28 @@ class PaymentsController extends Controller
      */
     public function actionReceipts(int $afterId = 0, int $limit = 100): int
     {
-        $rows = (new Query())->select(['id', 'integrationId', 'environment', 'eventId', 'status', 'attempts', 'receivedAt', 'processedAt', 'error', 'display', 'history'])
+        $rows = (new Query())->select([
+            'id',
+            'integrationId',
+            'integrationUid',
+            'environment',
+            'eventId',
+            'eventType',
+            'resourceType',
+            'resourceReference',
+            'providerCreatedAt',
+            'status',
+            'attempts',
+            'receivedAt',
+            'verifiedAt',
+            'scheduledAt',
+            'startedAt',
+            'nextAttemptAt',
+            'processedAt',
+            'error',
+            'display',
+            'history',
+        ])
             ->from(Table::FORMIE_WEBHOOK_RECEIPTS)->where(['>', 'id', $afterId])->orderBy(['id' => SORT_ASC])->limit(max(1, min(500, $limit)))->all();
         foreach ($rows as $row) {
             $this->stdout(Json::encode($row) . PHP_EOL);
@@ -60,7 +81,15 @@ class PaymentsController extends Controller
     public function actionEvidence(int $receiptId): int
     {
         // Explicit privileged export; ordinary receipt listings never decrypt evidence.
-        $this->stdout(PaymentWebhookReceipt::evidence($receiptId));
+        $this->stdout(Json::encode(Formie::$plugin->getPaymentWebhooks()->evidence($receiptId), JSON_PRETTY_PRINT) . PHP_EOL);
+        return ExitCode::OK;
+    }
+
+    public function actionRecoverWebhooks(int $limit = 100): int
+    {
+        $count = Formie::$plugin->getPaymentWebhooks()->recover($limit);
+        $this->stdout("Scheduled {$count} verified payment webhook receipts.\n");
+
         return ExitCode::OK;
     }
 

@@ -4,6 +4,7 @@ namespace verbb\formie\models;
 use verbb\formie\Formie;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\PaymentCapabilityPurpose;
 use verbb\formie\enums\SubscriptionStatus;
 use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\PaymentCapabilities;
@@ -162,7 +163,7 @@ class Subscription extends Model
 
     public function getCancelUrl(): string
     {
-        $token = PaymentCapabilities::issue('cancel', (int)$this->id, ['subscriptionUid' => $this->uid, 'integrationId' => $this->integrationId, 'submissionId' => $this->submissionId], 86400);
+        $token = PaymentCapabilities::issue(PaymentCapabilityPurpose::CANCEL, (int)$this->id, ['subscriptionUid' => $this->uid, 'integrationId' => $this->integrationId, 'submissionId' => $this->submissionId], 86400);
         return UrlHelper::actionUrl('formie/payment-subscriptions/cancel', ['id' => $this->id, 'token' => $token]);
     }
 }

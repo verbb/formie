@@ -19,7 +19,7 @@ it('preserves accepted content through the real payment replay boundary and dupl
     $submission->setFieldValue('control', 'hide');
     (new \verbb\formie\services\RuntimeConfiguration())->applyValues($submission);
     (new \verbb\formie\conditions\ConditionVisibility())->clear($submission);
-    // Model an accepted record whose provider callback arrives on a later date.
+    // Model an accepted record whose provider webhook arrives on a later date.
     $submission->setFieldValue('acceptedDate', '01/01/2000');
     expect($submission->getFieldValue('detail'))->toBe('');
     expect(Craft::$app->getElements()->saveElement($submission, false))->toBeTrue();
@@ -88,15 +88,15 @@ it('reconciles hosted payment completion with the current submission requirement
         Craft::$app->getRequest()->setQueryParams($webhookQuery);
         Craft::$app->getRequest()->setRawBody(http_build_query(['id' => 'tr_audit' . $integration->id]));
         Craft::$app->getRequest()->setBodyParams(['id' => 'tr_audit' . $integration->id]);
-        $result = $integration->processWebhook();
+        $result = $integration->processWebhooks();
         $saved = Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->one();
         expect($saved->isIncomplete)->toBe($currentAmount !== 25);
         $payments = Formie::$plugin->getPayments()->getSubmissionPayments($saved);
         expect($payments)->toHaveCount(1);
         expect($payments[0]->status)->toBe('success');
         expect($payments[0]->amount)->toBe('25.00');
-        // A repeated authoritative callback preserves both the receipt and completion decision.
-        $integration->processWebhook();
+        // A repeated authoritative webhook preserves both the receipt and completion decision.
+        $integration->processWebhooks();
         $again = Submission::find()->id($saved->id)->status(null)->isIncomplete(null)->one();
         expect($again->isIncomplete)->toBe($currentAmount !== 25);
     });

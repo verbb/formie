@@ -23,14 +23,10 @@ Formie uses GoCardless **Billing Request Flows** for hosted Direct Debit authori
 
 ### Step 3. Configure Webhooks
 
-1. In the GoCardless dashboard, create a webhook endpoint pointing to your Formie webhook URL:
-
-```text
-https://your-site.test/formie/payment-webhooks/process-webhook?handle=yourGoCardlessHandle
-```
-
-2. Copy the webhook signing secret into Formie’s **Webhook Secret Key** field.
-3. Enable payment, billing request, and subscription events in GoCardless.
+1. Save the integration in Formie, then copy its **Webhook URL**. The URL contains the integration’s stable UID, so changing its handle does not disconnect GoCardless.
+2. In the GoCardless dashboard, create a webhook endpoint using that URL.
+3. Copy the webhook signing secret into Formie’s **Webhook Secret Key** field.
+4. Enable payment, billing request, and subscription events in GoCardless.
 
 Formie listens for payment status updates, billing request fulfilment, and subscription lifecycle events. Do not rely on the customer redirect alone to confirm payment status.
 

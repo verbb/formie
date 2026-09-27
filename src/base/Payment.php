@@ -3,11 +3,10 @@ namespace verbb\formie\base;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
+use verbb\formie\compatibility\payments\LegacyPaymentWebhooks;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
-use verbb\formie\events\PaymentCallbackEvent;
 use verbb\formie\events\PaymentIntegrationProcessEvent;
-use verbb\formie\events\PaymentWebhookEvent;
 use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldReferenceHelper;
@@ -22,6 +21,8 @@ use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentFieldPayload;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\payments\PaymentWebhookCommand;
+use verbb\formie\models\payments\PaymentWebhookReceipt;
+use verbb\formie\models\payments\VerifiedWebhookBatch;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\theme\context\RenderContext;
 
@@ -51,8 +52,9 @@ abstract class Payment extends Integration
     public const EVENT_AFTER_PROCESS_PAYMENT = 'afterProcessPayment';
     public const EVENT_BEFORE_PROCESS_WEBHOOK = 'beforeProcessWebhook';
     public const EVENT_AFTER_PROCESS_WEBHOOK = 'afterProcessWebhook';
-    public const EVENT_BEFORE_PROCESS_CALLBACK = 'beforeProcessCallback';
-    public const EVENT_AFTER_PROCESS_CALLBACK = 'afterProcessCallback';
+    public const EVENT_BEFORE_VERIFY_WEBHOOK = 'beforeVerifyWebhook';
+    public const EVENT_AFTER_VERIFY_WEBHOOK = 'afterVerifyWebhook';
+    public const EVENT_WEBHOOK_FAILED = 'webhookFailed';
     public const EVENT_MODIFY_CURRENCY_OPTIONS = 'modifyCurrencyOptions';
 
     public const PAYMENT_TYPE_SINGLE = 'single';
@@ -60,6 +62,12 @@ abstract class Payment extends Integration
     
     public const VALUE_TYPE_FIXED = 'fixed';
     public const VALUE_TYPE_DYNAMIC = 'dynamic';
+
+
+    // Traits
+    // =========================================================================
+
+    use LegacyPaymentWebhooks;
 
 
     // Static Methods
@@ -115,11 +123,6 @@ abstract class Payment extends Integration
     }
 
     public function supportsWebhooks(): bool
-    {
-        return false;
-    }
-
-    public function supportsCallbacks(): bool
     {
         return false;
     }
@@ -351,12 +354,16 @@ abstract class Payment extends Integration
         return [];
     }
 
-    public function getRedirectUri(): string
+    public function getWebhookUrl(): string
     {
+        if (!$this->uid) {
+            throw new RuntimeException('Save the payment integration before registering its webhook URL.');
+        }
+
         if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
-            $url = UrlHelper::actionUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
+            $url = UrlHelper::actionUrl('formie/payment-webhooks/process-webhook', ['integrationUid' => $this->uid]);
         } else {
-            $url = UrlHelper::siteUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
+            $url = UrlHelper::siteUrl('formie/payment-webhooks/process-webhook', ['integrationUid' => $this->uid]);
         }
 
         return self::applyPaymentWebhookProxy($url);
@@ -434,86 +441,48 @@ abstract class Payment extends Integration
         return $this->getAmount($submission);
     }
 
-    public function processWebhooks(?PaymentWebhookCommand $command = null): Response
+    public function receiveWebhook(PaymentWebhookCommand $command): Response
     {
-        $response = null;
-
-        // Fire a 'beforeProcessWebhook' event
-        if ($this->hasEventHandlers(self::EVENT_BEFORE_PROCESS_WEBHOOK)) {
-            $this->trigger(self::EVENT_BEFORE_PROCESS_WEBHOOK, new PaymentWebhookEvent([
-                'integration' => $this,
-            ]));
+        if (!$this->supportsWebhooks()) {
+            throw new BadRequestHttpException('Integration does not support webhooks.');
         }
 
-        try {
-            if ($this->supportsWebhooks()) {
-                $command ??= PaymentWebhookCommand::fromRequest($this->id);
-                if ($command->integrationId !== $this->id) { throw new BadRequestHttpException('Webhook integration mismatch.'); }
-                $response = $this->processWebhook($command);
-            } else {
-                throw new BadRequestHttpException('Integration does not support webhooks.');
-            }
-        } catch (Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'Exception while processing webhook: “{message}” {file}:{line}. Trace: “{trace}”.', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]));
-
-            $response = Craft::$app->getResponse();
-            $response->setStatusCodeByException($e);
+        if ($this->hasLegacyWebhookHandler()) {
+            return $this->processLegacyWebhook();
         }
 
-        // Fire a 'afterProcessWebhook' event
-        if ($this->hasEventHandlers(self::EVENT_AFTER_PROCESS_WEBHOOK)) {
-            $this->trigger(self::EVENT_AFTER_PROCESS_WEBHOOK, new PaymentWebhookEvent([
-                'integration' => $this,
-                'response' => $response,
-            ]));
-        }
+        return Formie::$plugin->getPaymentWebhooks()->receive($this, $command);
+    }
+
+    public function verifyWebhook(PaymentWebhookCommand $request): VerifiedWebhookBatch
+    {
+        throw new BadRequestHttpException('Integration does not implement verified webhooks.');
+    }
+
+    public function handleWebhook(PaymentWebhookReceipt $receipt): void
+    {
+    }
+
+    public function getWebhookAcknowledgement(): Response
+    {
+        $response = Craft::$app->getRequest()->getIsConsoleRequest()
+            ? new \craft\web\Response()
+            : Craft::$app->getResponse();
+        $response->format = Response::FORMAT_RAW;
+        $response->setStatusCode(200);
+        $response->data = 'ok';
 
         return $response;
     }
 
-    public function processCallbacks(): Response
+    public function getWebhookAccountFingerprint(string $environment, ?string $accountIdentity = null): string
     {
-        $response = null;
+        return hash('sha256', static::class . '|' . $this->uid . '|' . $environment . '|' . ($accountIdentity ?? 'default'));
+    }
 
-        // Fire a 'beforeProcessCallback' event
-        if ($this->hasEventHandlers(self::EVENT_BEFORE_PROCESS_CALLBACK)) {
-            $this->trigger(self::EVENT_BEFORE_PROCESS_CALLBACK, new PaymentCallbackEvent([
-                'integration' => $this,
-            ]));
-        }
-
-        try {
-            if ($this->supportsCallbacks()) {
-                $response = $this->processCallback();
-            } else {
-                throw new BadRequestHttpException('Integration does not support callbacks.');
-            }
-        } catch (Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'Exception while processing webhook: “{message}” {file}:{line}. Trace: “{trace}”.', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]));
-
-            $response = Craft::$app->getResponse();
-            $response->setStatusCodeByException($e);
-        }
-
-        // Fire an 'afterProcessCallback' event
-        if ($this->hasEventHandlers(self::EVENT_AFTER_PROCESS_CALLBACK)) {
-            $this->trigger(self::EVENT_AFTER_PROCESS_CALLBACK, new PaymentCallbackEvent([
-                'integration' => $this,
-                'response' => $response,
-            ]));
-        }
-
-        return $response;
+    public function getReconciliationInterval(PaymentModel $payment): int
+    {
+        return 10;
     }
 
     public function getTransaction(PaymentModel $payment): void

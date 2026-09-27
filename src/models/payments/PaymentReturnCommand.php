@@ -1,7 +1,9 @@
 <?php
 namespace verbb\formie\models\payments;
 
+use verbb\formie\Formie;
 use verbb\formie\helpers\PaymentAccess;
+use verbb\formie\models\Payment;
 
 use yii\web\NotFoundHttpException;
 
@@ -14,11 +16,15 @@ final class PaymentReturnCommand
     {
     }
 
-    public function statusToken(): string
+    public function payment(): Payment
     {
-        if (!PaymentAccess::resolveStatusToken($this->token)) {
+        $scope = PaymentAccess::resolveReturnToken($this->token);
+        $payment = $scope ? Formie::$plugin->getPayments()->getPaymentById((int)$scope['paymentId']) : null;
+
+        if (!$payment) {
             throw new NotFoundHttpException('Payment not found.');
         }
-        return $this->token;
+
+        return $payment;
     }
 }

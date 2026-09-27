@@ -7,6 +7,8 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\PaymentCapabilityPurpose;
+use verbb\formie\enums\PaymentResumeMode;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
@@ -109,11 +111,6 @@ class Opayo extends Payment
         return Craft::t('formie', 'Provide payment capabilities for your forms with {name}.', ['name' => static::displayName()]);
     }
 
-    public function supportsCallbacks(): bool
-    {
-        return true;
-    }
-
     public function hasValidSettings(): bool
     {
         return App::parseEnv($this->vendorName) && App::parseEnv($this->integrationKey) && App::parseEnv($this->integrationPassword);
@@ -209,40 +206,40 @@ class Opayo extends Payment
     public function initializeSession(?PaymentSessionCommand $command = null): Response
     {
         $request = Craft::$app->getRequest();
-        $callbackResponse = Craft::$app->getResponse();
-            $callbackResponse->format = Response::FORMAT_JSON;
-            $command ??= new PaymentSessionCommand((string)$request->getParam('sessionToken'), $this->id);
-            $command->authorize('opayo');
-            $sessionToken = $command->token;
+        $sessionResponse = Craft::$app->getResponse();
+        $sessionResponse->format = Response::FORMAT_JSON;
+        $command ??= new PaymentSessionCommand((string)$request->getParam('sessionToken'), $this->id);
+        $command->authorize('opayo');
+        $sessionToken = $command->token;
 
-            $this->_requireValidMerchantSessionToken($sessionToken);
-            $this->_enforceMerchantSessionRateLimit($sessionToken);
+        $this->_requireValidMerchantSessionToken($sessionToken);
+        $this->_enforceMerchantSessionRateLimit($sessionToken);
 
-            try {
-                $response = $this->request('POST', 'merchant-session-keys', [
-                    'json' => ['vendorName' => App::parseEnv($this->vendorName)],
-                ]);
+        try {
+            $response = $this->request('POST', 'merchant-session-keys', [
+                'json' => ['vendorName' => App::parseEnv($this->vendorName)],
+            ]);
 
-                $callbackResponse->data = [
-                    'merchantSessionKey' => $response['merchantSessionKey'] ?? null,
-                ];
-            } catch (Throwable $e) {
-                $callbackResponse->data = [
-                    'error' => Craft::t('formie', 'Unable to initialize payment session.'),
-                ];
-            }
+            $sessionResponse->data = [
+                'merchantSessionKey' => $response['merchantSessionKey'] ?? null,
+            ];
+        } catch (Throwable $e) {
+            $sessionResponse->data = [
+                'error' => Craft::t('formie', 'Unable to initialize payment session.'),
+            ];
+        }
 
-        return $callbackResponse;
+        return $sessionResponse;
     }
 
     public function completeChallenge(): Response
     {
         $request = Craft::$app->getRequest();
-        $callbackResponse = Craft::$app->getResponse();
-        $callbackResponse->format = Response::FORMAT_RAW;
+        $challengeResponse = Craft::$app->getResponse();
+        $challengeResponse->format = Response::FORMAT_RAW;
         $cres = $request->getParam('cres');
         $token = $request->getParam('threeDSSessionData');
-        $identity = is_string($token) ? PaymentCapabilities::resolve($token, 'challenge') : null;
+        $identity = is_string($token) ? PaymentCapabilities::resolve($token, PaymentCapabilityPurpose::CHALLENGE) : null;
         $payments = Formie::$plugin->getPayments();
         $payment = $identity ? $payments->getPaymentById((int)$identity['resourceId']) : null;
 
@@ -262,8 +259,8 @@ class Opayo extends Payment
         }
 
         try {
-            // Re-read after acquiring the lock so duplicate callbacks observe the
-            // first callback's persisted outcome instead of re-running the charge.
+            // Re-read after acquiring the lock so duplicate challenge returns
+            // observe the first return's outcome instead of re-running the charge.
             $row = (new Query())->from(Table::FORMIE_PAYMENTS)->where([
                 'id' => $payment->id, 'integrationId' => $this->id, 'reference' => $transactionId,
             ])->one();
@@ -311,7 +308,7 @@ class Opayo extends Payment
         } catch (Throwable $e) {
             // Error 1017 (operation not allowed) is not proof of payment. Leave
             // uncertain outcomes unknown for reconciliation rather than granting
-            // access or overwriting stored ownership from callback parameters.
+            // access or overwriting stored ownership from challenge parameters.
             $payment = $payments->getPaymentById($payment->id);
             $payment->status = PaymentModel::STATUS_UNKNOWN;
             $payments->savePayment($payment);
@@ -322,9 +319,9 @@ class Opayo extends Payment
         }
 
         // Send back some JS to trigger the iframe to close, and the submission to submit
-        $callbackResponse->data = '<script>window.parent.postMessage({ message: "formie:payment:opayo:challenge:response", value: ' . Json::encode($responseData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ' }, "*");</script>';
+        $challengeResponse->data = '<script>window.parent.postMessage({ message: "formie:payment:opayo:challenge:response", value: ' . Json::encode($responseData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ' }, "*");</script>';
 
-        return $callbackResponse;
+        return $challengeResponse;
     }
 
     public function fetchConnection(): bool
@@ -678,9 +675,9 @@ class Opayo extends Payment
                 throw new Exception('Unable to save the pending Opayo payment.');
             }
 
-            // The callback carries only a signed, expiring capability; all
+            // The challenge return carries only a signed, expiring capability; all
             // ownership and monetary values are reloaded from this payment.
-            $threeDSSessionData = PaymentCapabilities::issue('challenge', (int)$payment->id, ['paymentUid' => $payment->uid], 1800);
+            $threeDSSessionData = PaymentCapabilities::issue(PaymentCapabilityPurpose::CHALLENGE, (int)$payment->id, ['paymentUid' => $payment->uid], 1800);
 
             if (!$threeDSSessionData) {
                 throw new Exception('Unable to create the Opayo challenge token.');
@@ -699,16 +696,20 @@ class Opayo extends Payment
 
             return PaymentDecision::requiresAction(
                 $payment->reference,
-                PaymentAction::challengeEvent('formie:payment:opayo:challenge', $acsUrl)
-                    ->forProvider($this->handle)
-                    ->withMessage(Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'))
-                    ->withPayload([
+                PaymentAction::challenge(
+                    provider: $this->handle,
+                    event: 'formie:payment:opayo:challenge',
+                    message: Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'),
+                    url: $acsUrl,
+                    payload: [
                         'acsUrl' => $acsUrl,
                         'creq' => $response['cReq'] ?? '',
                         'returnUrl' => $this->getReturnUrl(),
                         'threeDSSessionData' => $threeDSSessionData,
-                    ])
-                    ->resumeMode(PaymentAction::RESUME_MODE_CALLBACK, $this->getReturnUrl())
+                    ],
+                    resumeMode: PaymentResumeMode::RESUBMIT,
+                    resumeUrl: $this->getReturnUrl(),
+                )
             );
         }
 

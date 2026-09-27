@@ -3,10 +3,12 @@
 use craft\db\Query;
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\Formie;
-use verbb\formie\helpers\{PaymentAccess, PaymentCapabilities, PaymentWebhookReceipt, Table};
+use verbb\formie\enums\PaymentCapabilityPurpose;
+use verbb\formie\helpers\{PaymentAccess, PaymentCapabilities, Table};
 use verbb\formie\integrations\payments\Stripe;
 use verbb\formie\models\{Payment, PaymentDecision, PaymentMoney, Subscription};
-use verbb\formie\enums\{PaymentDecisionStatus, PaymentResumeMode};
+use verbb\formie\models\payments\{PaymentWebhookCommand, PaymentWebhookReceipt, VerifiedWebhook, VerifiedWebhookBatch};
+use verbb\formie\enums\PaymentDecisionStatus;
 
 it('round trips exact money beyond binary integer precision and enforces currency scale', function (string $decimal, string $currency, string $minor): void {
     $money = PaymentMoney::fromDecimal($decimal, $currency);
@@ -21,7 +23,8 @@ it('serializes typed unknown and cancellation decisions without treating either 
     expect(PaymentDecision::unknown()->status)->toBe(PaymentDecisionStatus::UNKNOWN)
         ->and(PaymentDecision::unknown()->toArray()['status'])->toBe('unknown')
         ->and(PaymentDecision::cancelled()->status)->toBe(PaymentDecisionStatus::CANCELLED)
-        ->and(PaymentDecision::succeeded()->merge(PaymentDecision::unknown())->status)->toBe(PaymentDecisionStatus::UNKNOWN);
+        ->and(PaymentDecision::succeeded()->merge(PaymentDecision::unknown())->status)->toBe(PaymentDecisionStatus::UNKNOWN)
+        ->and((new ReflectionClass(\verbb\formie\models\PaymentAction::class))->getConstructor()->isPrivate())->toBeTrue();
 });
 
 function paymentBoundaryFixture(): array {
@@ -55,17 +58,18 @@ it('persists immutable exact snapshots and rejects stale payment writers', funct
     expect(fn() => $payments->savePayment($current))->toThrow(RuntimeException::class, 'snapshot');
 });
 
-it('separates cancellation and reconciliation authority and supports revocation', function (): void {
+it('separates return, status and cancellation authority and supports revocation', function (): void {
     [$integration, $submission, $payment] = paymentBoundaryFixture();
     $status = PaymentAccess::issueStatusToken($payment);
-    expect(PaymentAccess::resolveStatusToken($status)['purpose'])->toBe('status')
-        ->and(PaymentCapabilities::resolve($status, 'cancel'))->toBeNull()
-        ->and(PaymentCapabilities::resolve($status, 'reconcile'))->toBeNull();
-    $reconcile = PaymentAccess::issueStatusToken($payment, mode: PaymentResumeMode::RECONCILE);
-    expect(PaymentAccess::resolveStatusToken($reconcile)['purpose'])->toBe('reconcile');
-    PaymentCapabilities::revoke('reconcile', $payment->id);
-    expect(PaymentAccess::resolveStatusToken($reconcile))->toBeNull();
-    $row = (new Query())->from(Table::FORMIE_PAYMENT_CAPABILITIES)->where(['purpose' => 'status'])->one();
+    $return = PaymentAccess::issueReturnToken($payment);
+    expect(PaymentAccess::resolveStatusToken($status)['purpose'])->toBe(PaymentCapabilityPurpose::STATUS->value)
+        ->and(PaymentCapabilities::resolve($status, PaymentCapabilityPurpose::CANCEL))->toBeNull()
+        ->and(PaymentAccess::resolveReturnToken($status))->toBeNull()
+        ->and(PaymentAccess::resolveStatusToken($return))->toBeNull()
+        ->and(PaymentAccess::resolveReturnToken($return)['purpose'])->toBe(PaymentCapabilityPurpose::RETURN->value);
+    PaymentCapabilities::revoke(PaymentCapabilityPurpose::RETURN, $payment->id);
+    expect(PaymentAccess::resolveReturnToken($return))->toBeNull();
+    $row = (new Query())->from(Table::FORMIE_PAYMENT_CAPABILITIES)->where(['purpose' => PaymentCapabilityPurpose::STATUS->value])->one();
     expect(json_encode($row))->not->toContain($status);
 });
 
@@ -85,62 +89,265 @@ it('keeps recurring charges distinct and retains financial history after archive
         ->and($payments->getPaymentById($first->id)->amount)->toBe('25.01');
 });
 
+class BoundaryWebhookPayment extends Stripe
+{
+    public static int $calls = 0;
+    public static bool $fail = false;
+
+    public function verifyWebhook(PaymentWebhookCommand $request): VerifiedWebhookBatch
+    {
+        $payload = json_decode($request->body, true, 512, JSON_THROW_ON_ERROR);
+        $fingerprint = $payload;
+        ksort($fingerprint);
+
+        return new VerifiedWebhookBatch(
+            $this->getWebhookAccountFingerprint('test'),
+            'test',
+            [new VerifiedWebhook((string)$payload['id'], (string)($payload['type'] ?? 'test'), 'test', null, null, $payload, json_encode($fingerprint))],
+            ['signature' => 'private'],
+        );
+    }
+
+    public function handleWebhook(PaymentWebhookReceipt $receipt): void
+    {
+        self::$calls++;
+        if (self::$fail) {
+            throw new RuntimeException('secret');
+        }
+    }
+}
+
+class LegacyBoundaryWebhookPayment extends \verbb\formie\base\Payment
+{
+    public static int $calls = 0;
+
+    public static function displayName(): string
+    {
+        return 'Legacy boundary';
+    }
+
+    public function hasValidSettings(): bool
+    {
+        return true;
+    }
+
+    public function supportsWebhooks(): bool
+    {
+        return true;
+    }
+
+    public function processWebhook(): \yii\web\Response
+    {
+        self::$calls++;
+        $response = new \craft\web\Response();
+        $response->format = \yii\web\Response::FORMAT_RAW;
+        $response->data = 'legacy';
+
+        return $response;
+    }
+}
+
+class CadencedBoundaryPayment extends \verbb\formie\base\Payment
+{
+    public static int $lookups = 0;
+
+    public static function displayName(): string
+    {
+        return 'Cadenced boundary';
+    }
+
+    public function hasValidSettings(): bool
+    {
+        return true;
+    }
+
+    public function getTransaction(Payment $payment): void
+    {
+        self::$lookups++;
+    }
+}
+
+function boundaryWebhookFixture(): BoundaryWebhookPayment {
+    $integration = new BoundaryWebhookPayment(['name' => 'Webhook', 'handle' => 'webhook' . bin2hex(random_bytes(6))]);
+    expect(Formie::$plugin->getIntegrations()->saveIntegration($integration, false))->toBeTrue();
+    BoundaryWebhookPayment::$calls = 0;
+    BoundaryWebhookPayment::$fail = false;
+
+    return $integration;
+}
+
+it('isolates Formie 3 webhook adapters behind the compatibility facade', function (): void {
+    LegacyBoundaryWebhookPayment::$calls = 0;
+    $integration = new LegacyBoundaryWebhookPayment(['name' => 'Legacy', 'handle' => 'legacy' . uniqid()]);
+
+    expect($integration->processWebhooks()->data)->toBe('legacy')
+        ->and(LegacyBoundaryWebhookPayment::$calls)->toBe(1);
+});
+
+it('uses a stable webhook URL as the canonical payment endpoint name', function (): void {
+    $integration = boundaryWebhookFixture();
+
+    expect($integration->getWebhookUrl())->toContain('integrationUid=' . $integration->uid)
+        ->and($integration->getRedirectUri())->toBe($integration->getWebhookUrl());
+});
+
+it('separates webhook identities when provider credentials change', function (): void {
+    $integration = new Stripe([
+        'secretKey' => 'sk_test_first-account',
+        'webhookSecretKey' => 'whsec_account-boundary',
+    ]);
+    $body = json_encode([
+        'id' => 'evt_account_boundary',
+        'type' => 'payment_intent.processing',
+        'livemode' => false,
+        'data' => ['object' => ['id' => 'pi_account_boundary', 'object' => 'payment_intent']],
+    ], JSON_THROW_ON_ERROR);
+    $time = time();
+    $signature = 't=' . $time . ',v1=' . hash_hmac('sha256', $time . '.' . $body, 'whsec_account-boundary');
+    $command = new PaymentWebhookCommand(0, $body, ['Stripe-Signature' => $signature]);
+    $first = $integration->verifyWebhook($command);
+    $integration->secretKey = 'sk_test_second-account';
+    $second = $integration->verifyWebhook($command);
+
+    expect($first->accountFingerprint)->not->toBe($second->accountFingerprint);
+});
+
+it('keeps browser status reads on the persisted reconciliation cadence', function (): void {
+    $integration = new CadencedBoundaryPayment(['name' => 'Cadenced', 'handle' => 'cadenced' . uniqid()]);
+    expect(Formie::$plugin->getIntegrations()->saveIntegration($integration, false))->toBeTrue();
+    $payment = new Payment([
+        'integrationId' => $integration->id,
+        'amount' => '10.00',
+        'currency' => 'USD',
+        'status' => Payment::STATUS_PENDING,
+    ]);
+    expect(Formie::$plugin->getPayments()->savePayment($payment))->toBeTrue();
+    CadencedBoundaryPayment::$lookups = 0;
+
+    $payment = Formie::$plugin->getPayments()->refreshIfDue($payment);
+    expect(CadencedBoundaryPayment::$lookups)->toBe(1)
+        ->and($payment->nextReconcileAt)->toBeGreaterThan(time());
+
+    $statusToken = PaymentAccess::issueStatusToken($payment);
+    WebRequestTestHelper::withWebRequestContext(function (): void {
+        $controller = new \verbb\formie\controllers\PaymentStatusController('payment-status', Craft::$app);
+        expect($controller->actionPollStatus()->data['status'])->toBe('pending');
+    }, ['queryParams' => ['statusToken' => $statusToken, 'checkGateway' => '1']]);
+
+    expect(CadencedBoundaryPayment::$lookups)->toBe(1);
+});
+
 it('retains exact encrypted webhook evidence with a redacted escaped support projection and deduplicates side effects', function (): void {
-    [$integration] = paymentBoundaryFixture();
-    $body = "{\n  \"id\": \"evt_<script>\", \"email\": \"private@example.test\", \"secret\": \"sensitive\"\n}";
-    $calls = 0;
-    $process = function () use (&$calls): void { $calls++; };
-    PaymentWebhookReceipt::process($integration, 'test', 'evt_contract', $body, ['signature' => 'private'], $process);
-    PaymentWebhookReceipt::process($integration, 'test', 'evt_contract', $body, ['signature' => 'private'], $process);
-    $row = (new Query())->from(Table::FORMIE_WEBHOOK_RECEIPTS)->where(['eventId' => 'evt_contract', 'integrationId' => $integration->id])->one();
-    expect($calls)->toBe(1)->and($row['status'])->toBe('processed')->and((int)$row['attempts'])->toBe(1)
+    $integration = boundaryWebhookFixture();
+    $body = "{\n  \"id\": \"evt_<script>\", \"type\": \"contract\", \"email\": \"private@example.test\", \"secret\": \"sensitive\"\n}";
+    $command = new PaymentWebhookCommand($integration->id, $body, []);
+    Formie::$plugin->getPaymentWebhooks()->receive($integration, $command, true);
+    Formie::$plugin->getPaymentWebhooks()->receive($integration, $command, true);
+    $row = (new Query())->from(Table::FORMIE_WEBHOOK_RECEIPTS)->where(['eventId' => 'evt_<script>', 'integrationId' => $integration->id])->one();
+    expect(BoundaryWebhookPayment::$calls)->toBe(1)->and($row['status'])->toBe('processed')->and((int)$row['attempts'])->toBe(1)
         ->and($row['body'])->not->toContain('private@example.test')->and($row['headers'])->not->toContain('private')
         ->and($row['display'])->not->toContain('<script>')->not->toContain('private@example.test')->not->toContain('sensitive')
-        ->and(PaymentWebhookReceipt::evidence((int)$row['id']))->toBe($body);
+        ->and(Formie::$plugin->getPaymentWebhooks()->evidence((int)$row['id'])['body'])->toBe($body);
+});
+
+it('fires the typed after-process event once after durable domain handling', function (): void {
+    $integration = boundaryWebhookFixture();
+    $events = [];
+    $handler = function ($event) use (&$events): void {
+        $events[] = $event;
+    };
+    \yii\base\Event::on(BoundaryWebhookPayment::class, \verbb\formie\base\Payment::EVENT_AFTER_PROCESS_WEBHOOK, $handler);
+
+    try {
+        Formie::$plugin->getPaymentWebhooks()->receive(
+            $integration,
+            new PaymentWebhookCommand($integration->id, '{"id":"evt_lifecycle"}', []),
+            true,
+        );
+    } finally {
+        \yii\base\Event::off(BoundaryWebhookPayment::class, \verbb\formie\base\Payment::EVENT_AFTER_PROCESS_WEBHOOK, $handler);
+    }
+
+    expect($events)->toHaveCount(1)
+        ->and($events[0])->toBeInstanceOf(\verbb\formie\events\PaymentWebhookLifecycleEvent::class)
+        ->and($events[0]->receipt->providerEventId)->toBe('evt_lifecycle');
 });
 
 it('leaves failed authenticated handling durable and retries it without accepting tampered identity', function (): void {
-    [$integration] = paymentBoundaryFixture();
-    expect(fn() => PaymentWebhookReceipt::process($integration, 'test', 'evt_retry', '{}', [], fn() => throw new RuntimeException('secret')))->toThrow(RuntimeException::class);
+    $integration = boundaryWebhookFixture();
+    BoundaryWebhookPayment::$fail = true;
+    expect(fn() => Formie::$plugin->getPaymentWebhooks()->receive($integration, new PaymentWebhookCommand($integration->id, '{"id":"evt_retry"}', []), true))->toThrow(RuntimeException::class);
     $row = (new Query())->from(Table::FORMIE_WEBHOOK_RECEIPTS)->where(['eventId' => 'evt_retry', 'integrationId' => $integration->id])->one();
-    expect($row['status'])->toBe('reconciliation')->and($row['error'])->not->toContain('secret');
-    PaymentWebhookReceipt::process($integration, 'test', 'evt_retry', '{}', [], fn() => false);
+    expect($row['status'])->toBe('scheduled')->and($row['nextAttemptAt'])->not->toBeNull()->and($row['error'])->not->toContain('secret');
+    BoundaryWebhookPayment::$fail = false;
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_WEBHOOK_RECEIPTS, [
+        'nextAttemptAt' => gmdate('Y-m-d H:i:s', time() - 1),
+    ], ['id' => $row['id']])->execute();
+    Formie::$plugin->getPaymentWebhooks()->process((int)$row['id']);
     $row = (new Query())->from(Table::FORMIE_WEBHOOK_RECEIPTS)->where(['eventId' => 'evt_retry', 'integrationId' => $integration->id])->one();
-    expect($row['status'])->toBe('ignored')->and((int)$row['attempts'])->toBe(2);
-    expect(fn() => PaymentWebhookReceipt::process($integration, 'test', 'evt_retry', '{ }', [], fn() => true))->toThrow(RuntimeException::class, 'different evidence');
+    expect($row['status'])->toBe('processed')->and((int)$row['attempts'])->toBe(2);
+    expect(fn() => Formie::$plugin->getPaymentWebhooks()->receive($integration, new PaymentWebhookCommand($integration->id, '{"id":"evt_retry","changed":true}', []), true))->toThrow(RuntimeException::class, 'different evidence');
+});
+
+it('does not enqueue duplicate work while a webhook receipt is actively processing', function (): void {
+    $integration = boundaryWebhookFixture();
+    Formie::$plugin->getPaymentWebhooks()->receive($integration, new PaymentWebhookCommand($integration->id, '{"id":"evt_active"}', []));
+    $row = (new Query())->from(Table::FORMIE_WEBHOOK_RECEIPTS)->where(['eventId' => 'evt_active', 'integrationId' => $integration->id])->one();
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_WEBHOOK_RECEIPTS, [
+        'status' => 'processing',
+        'startedAt' => gmdate('Y-m-d H:i:s'),
+    ], ['id' => $row['id']])->execute();
+
+    expect(Formie::$plugin->getPaymentWebhooks()->schedule((int)$row['id']))->toBeFalse();
+});
+
+it('counts an unavailable integration as a bounded webhook processing attempt', function (): void {
+    $integration = boundaryWebhookFixture();
+    Formie::$plugin->getPaymentWebhooks()->receive($integration, new PaymentWebhookCommand($integration->id, '{"id":"evt_missing_integration"}', []));
+    $row = (new Query())->from(Table::FORMIE_WEBHOOK_RECEIPTS)->where(['eventId' => 'evt_missing_integration', 'integrationId' => $integration->id])->one();
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_WEBHOOK_RECEIPTS, [
+        'integrationUid' => '00000000-0000-4000-8000-000000000000',
+        'status' => 'verified',
+        'scheduledAt' => null,
+    ], ['id' => $row['id']])->execute();
+
+    expect(fn() => Formie::$plugin->getPaymentWebhooks()->process((int)$row['id']))->toThrow(RuntimeException::class, 'unavailable');
+    $row = (new Query())->from(Table::FORMIE_WEBHOOK_RECEIPTS)->where(['id' => $row['id']])->one();
+    expect((int)$row['attempts'])->toBe(1)->and($row['status'])->toBe('scheduled');
 });
 
 it('deduplicates the same GoCardless event redelivered in a different signed batch', function (): void {
-    [$integration] = paymentBoundaryFixture();
-    $first = '{"events":[{"id":"EV1"}]}';
-    $second = '{"events":[{"id":"EV2"},{"id":"EV1"}]}';
-    $calls = 0;
-    $handler = function () use (&$calls) { $calls++; };
-    PaymentWebhookReceipt::process($integration, 'test', 'EV1', $first, [], $handler, '{"id":"EV1"}');
-    PaymentWebhookReceipt::process($integration, 'test', 'EV1', $second, [], $handler, '{"id":"EV1"}');
+    $integration = boundaryWebhookFixture();
+    $first = '{"id":"EV1","type":"batch"}';
+    $second = "{\n\"type\":\"batch\",\"id\":\"EV1\"\n}";
+    Formie::$plugin->getPaymentWebhooks()->receive($integration, new PaymentWebhookCommand($integration->id, $first, []), true);
+    Formie::$plugin->getPaymentWebhooks()->receive($integration, new PaymentWebhookCommand($integration->id, $second, []), true);
     $row = (new Query())->from(Table::FORMIE_WEBHOOK_RECEIPTS)->where(['integrationId' => $integration->id, 'eventId' => 'EV1'])->one();
-    expect($calls)->toBe(1)->and(PaymentWebhookReceipt::evidence((int)$row['id']))->toBe($first);
+    expect(BoundaryWebhookPayment::$calls)->toBe(1)->and(Formie::$plugin->getPaymentWebhooks()->evidence((int)$row['id'])['body'])->toBe($first);
 });
 
 it('prevents public display of decrypted webhook evidence', function (): void {
-    [$integration] = paymentBoundaryFixture();
-    PaymentWebhookReceipt::process($integration, 'test', 'secret', '{"customer":"private"}', [], fn() => true);
+    $integration = boundaryWebhookFixture();
+    Formie::$plugin->getPaymentWebhooks()->receive($integration, new PaymentWebhookCommand($integration->id, '{"id":"secret","customer":"private"}', []), true);
     $id = (new Query())->from(Table::FORMIE_WEBHOOK_RECEIPTS)->select('id')->where(['integrationId' => $integration->id])->scalar();
     WebRequestTestHelper::withWebRequestContext(function () use ($id) {
-        expect(fn() => PaymentWebhookReceipt::evidence((int)$id))->toThrow(\yii\web\ForbiddenHttpException::class);
+        expect(fn() => Formie::$plugin->getPaymentWebhooks()->evidence((int)$id))->toThrow(\yii\web\ForbiddenHttpException::class);
     });
 });
 
 it('keeps a browser return and a read capability inert even with forged success and gateway flags', function (): void {
     [$integration, $submission, $payment] = paymentBoundaryFixture();
-    $token = PaymentAccess::issueStatusToken($payment);
-    WebRequestTestHelper::withWebRequestContext(function () use ($payment, $token) {
+    $returnToken = PaymentAccess::issueReturnToken($payment);
+    WebRequestTestHelper::withWebRequestContext(function () use ($returnToken) {
         $return = new \verbb\formie\controllers\PaymentReturnController('payment-return', Craft::$app);
         expect($return->actionIndex()->statusCode)->toBe(302);
+    }, ['queryParams' => ['returnToken' => $returnToken, 'status' => 'success', 'payment_intent' => 'pi_forged']]);
+    $statusToken = PaymentAccess::issueStatusToken($payment);
+    WebRequestTestHelper::withWebRequestContext(function () use ($payment) {
         $status = new \verbb\formie\controllers\PaymentStatusController('payment-status', Craft::$app);
         expect($status->actionPollStatus()->data['status'])->toBe('pending');
         expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->version)->toBe($payment->version);
-    }, ['queryParams' => ['statusToken' => $token, 'checkGateway' => '1', 'status' => 'success', 'payment_intent' => 'pi_forged']]);
+    }, ['queryParams' => ['statusToken' => $statusToken, 'checkGateway' => '1', 'status' => 'success', 'payment_intent' => 'pi_forged']]);
 });
 
 class AtomicBoundaryPayment extends \verbb\formie\base\Payment

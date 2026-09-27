@@ -5,6 +5,15 @@
 
 {% block content %}
 
+{% if integration.uid %}
+    {{ macros.proxyField(fieldVariables, 'textField', {
+        readonly: true,
+        label: 'Webhook URL' | t('formie'),
+        instructions: 'Use this URL when setting up webhooks for your {name} account.' | t('formie'),
+        value: integration.getWebhookUrl(),
+    }) }}
+{% endif %}
+
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Access Token' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),

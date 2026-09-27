@@ -1585,13 +1585,15 @@ Formie 4 keeps `verbb\formie\base\Payment`. Custom Formie 3 providers need the f
 | `getPaymentByReference()` / `getSubscriptionByReference()` | Optional integration ID scopes the lookup. Native provider adapters always pass it. Identifiers alone never authorize public requests. |
 | Subscription boolean flags | Read-only `hasStarted`, `isSuspended`, `isCanceled`, `isExpired` projections remain. Write the coherent `status` instead. Contradictory legacy flags migrate to unknown with original flags retained in history. |
 | Subscription deletion | Archive through the service. Financial foreign keys use SET NULL and preserve owner snapshots. |
+| Provider `processWebhook()` | Implement `verifyWebhook()` to authenticate and normalize the request, then `handleWebhook()` to process one durable receipt. Compatibility mode can run the inseparable Formie 3 method synchronously, but it cannot provide the canonical inbox guarantees. |
+| Payment `getRedirectUri()` | Use `getWebhookUrl()`. The Formie 3 name remains a compatibility alias. |
 | Generic callback handlers | Move to the return, status, session or provider-challenge endpoint matching the operation. No generic public callback dispatcher remains. |
 | Cancellation links | Reissue cancellation-only capabilities. Other submission/status/resume credentials cannot cancel subscriptions. GET only displays confirmation; POST requires CSRF. |
 | Stripe `invoice.created` automatic payment request | Stripe automatic collection owns charging. Formie observes the invoice instead of issuing an unreceipted additional pay request. Paid/failed invoices create distinct history. |
 
 Unresolved legacy payments migrate to unknown rather than inventing a confirmed provider result. Successful and failed historical payments retain their meaning and exact stored decimal text. The upgrade preserves payment and subscription identities, linkage and provider snapshots. Deploy when active checkout sessions have drained. Regenerate payment links using the scoped return, status and session endpoints.
 
-Webhook signatures must be valid before Formie acknowledges an event. Stripe and GoCardless now retain encrypted authenticated evidence; Mollie URLs include a per-payment secret and use the provider API to authenticate the observed state. Reconfigure registered URLs where needed and retain the Formie security key for historical evidence decryption. See [Payment Integration](../developers/custom-integration/payment-integration) and [Console Commands](../developers/console-commands) for outcomes, replay, diagnostics and retention.
+Webhook signatures must be valid before Formie accepts an event. Stripe and GoCardless retain encrypted authenticated evidence; Mollie URLs include a per-payment secret and use the provider API to authenticate the observed state. Reconfigure provider endpoints with the stable integration-UID URL shown by Formie, then retain the Formie security key for historical evidence decryption. See [Payment Integration](../developers/custom-integration/payment-integration) and [Console Commands](../developers/console-commands) for outcomes, replay, diagnostics and retention.
 
 
 ## Field Extensions and Portable Forms

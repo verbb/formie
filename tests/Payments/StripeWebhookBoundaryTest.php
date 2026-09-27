@@ -28,7 +28,7 @@ it('keeps successful Stripe payments terminal and binds signed events to their i
                 $time = time();
                 $_SERVER['HTTP_STRIPE_SIGNATURE'] = 't=' . $time . ',v1=' . hash_hmac('sha256', $time . '.' . $body, $integration->webhookSecretKey);
                 $request->setRawBody($body);
-                expect($integration->processWebhook()->getStatusCode())->toBe(200);
+                expect($integration->processWebhooks()->getStatusCode())->toBe(200);
             }, ['method' => 'POST']);
         } finally {
             if ($oldSignature === null) { unset($_SERVER['HTTP_STRIPE_SIGNATURE']); } else { $_SERVER['HTTP_STRIPE_SIGNATURE'] = $oldSignature; }
@@ -85,7 +85,7 @@ it('returns a retryable failure when a valid Stripe webhook cannot be processed'
             $time = time();
             $_SERVER['HTTP_STRIPE_SIGNATURE'] = 't=' . $time . ',v1=' . hash_hmac('sha256', $time . '.' . $body, 'whsec_failure');
             $request->setRawBody($body);
-            $response = $integration->processWebhook();
+            $response = $integration->processWebhooks();
             expect($response->getStatusCode())->toBe(500);
             expect($response->data)->toBe('error');
         }, ['method' => 'POST']);

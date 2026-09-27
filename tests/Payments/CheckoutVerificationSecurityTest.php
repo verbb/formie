@@ -170,7 +170,7 @@ it('creates one Paddle transaction and verifies its server response before compl
     }
 })->with(['completed', 'paid', 'tax', 'draft', 'ready', 'canceled', 'past_due', 'currency', 'underpaid', 'price', 'quantity', 'reference', 'missing-total', 'borrowed-checkout', 'changed-amount']);
 
-it('binds Opayo callbacks to a valid payment capability and preserves the stored owner on errors', function (string $variant): void {
+it('binds Opayo challenge returns to a valid payment capability and preserves the stored owner on errors', function (string $variant): void {
     [$integration, $submission, $field] = checkoutVerificationFixture('opayo');
     $payment = new Payment([
         'integrationId' => $integration->id, 'submissionId' => $submission->id, 'fieldId' => $field->id,
@@ -178,7 +178,7 @@ it('binds Opayo callbacks to a valid payment capability and preserves the stored
         'reference' => 'opayo-' . bin2hex(random_bytes(10)),
     ]);
     expect(Formie::$plugin->getPayments()->savePayment($payment))->toBeTrue();
-    $token = \verbb\formie\helpers\PaymentCapabilities::issue('challenge', $payment->id, ['paymentUid' => $payment->uid], $variant === 'expired' ? -1 : 1800);
+    $token = \verbb\formie\helpers\PaymentCapabilities::issue(\verbb\formie\enums\PaymentCapabilityPurpose::CHALLENGE, $payment->id, ['paymentUid' => $payment->uid], $variant === 'expired' ? -1 : 1800);
     if ($variant === 'unsigned') {
         $token = base64_encode(json_encode(['reference' => $payment->reference, 'submissionId' => $submission->id + 1, 'amount' => 1, 'currency' => 'EUR']));
     }
@@ -222,7 +222,7 @@ it('issues the Opayo challenge token from the persisted payment and completes th
     $decision = \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => $integration->processPayment($submission), ['method' => 'POST']);
     expect($decision->status->value)->toBe('actionRequired');
     $token = $decision->action['payload']['threeDSSessionData'];
-    $identity = \verbb\formie\helpers\PaymentCapabilities::resolve($token, 'challenge');
+    $identity = \verbb\formie\helpers\PaymentCapabilities::resolve($token, \verbb\formie\enums\PaymentCapabilityPurpose::CHALLENGE);
     expect($identity)->not->toBeNull();
     $stored = Formie::$plugin->getPayments()->getPaymentById((int)$identity['resourceId']);
     expect($stored->reference)->toBe($reference)

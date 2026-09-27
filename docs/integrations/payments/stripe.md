@@ -22,7 +22,7 @@ Connect Stripe to take payments through the provider configured for your form. Y
 1. In Stripe, on the left-hand sidebar menu, click **Developers**.
 1. On the top sub-menu, click **Webhooks**.
 1. Click the **Create an event destination** button.
-1. Copy the **Redirect URI** from the Formie integration settings and paste in the **Endpoint URL** in Stripe.
+1. Copy the **Webhook URL** from the Formie integration settings and paste it into the **Endpoint URL** in Stripe. This URL uses the integration’s stable UID, so changing its handle does not disconnect Stripe.
 1. Click the **Select Events** button under the "Select events to listen to" heading.
 1. We recommend emitting all possible events, but the required events are:
     - `customer.subscription.created`

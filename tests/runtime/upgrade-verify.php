@@ -49,6 +49,13 @@ $app->getDb()->createCommand()->delete(\verbb\formie\helpers\Table::FORMIE_SUBSC
 $payment = Formie::$plugin->getPayments()->getPaymentById($fixture['paymentIds']['success']);
 $check($payment && $payment->subscriptionId === null && $payment->scope['subscriptionId'] === $fixture['subscriptionIds']['active'], 'upgraded payment history and owner snapshot survive subscription deletion');
 $check($app->getDb()->tableExists(\verbb\formie\helpers\Table::FORMIE_WEBHOOK_RECEIPTS), 'encrypted receipt storage exists after populated upgrade');
+$receiptSchema = $app->getDb()->getTableSchema(\verbb\formie\helpers\Table::FORMIE_WEBHOOK_RECEIPTS, true);
+foreach (['integrationUid', 'accountFingerprint', 'eventType', 'payload', 'verifiedAt', 'scheduledAt', 'startedAt', 'nextAttemptAt'] as $column) {
+    $check(isset($receiptSchema->columns[$column]), 'upgrade creates payment webhook receipt column ' . $column);
+}
+foreach (['lastReconciledAt', 'nextReconcileAt', 'reconciliationAttempts'] as $column) {
+    $check($app->getDb()->columnExists(\verbb\formie\helpers\Table::FORMIE_PAYMENTS, $column), 'upgrade creates payment reconciliation column ' . $column);
+}
 echo "Populated Formie 3 → current Formie upgrade contract passed.\n";
 $referenceContext = \verbb\formie\references\ReferenceContext::forSubmission($submission);
 $check(\verbb\formie\helpers\References::resolveValue('{field:' . $field->reference . '}', $referenceContext)->requireValue() === 'Synthetic Ada', 'exact upgraded field instance resolves through the shared runtime');

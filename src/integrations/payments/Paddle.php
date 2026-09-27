@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\PaymentResumeMode;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
@@ -410,11 +411,13 @@ class Paddle extends Payment
 
         return PaymentDecision::requiresAction(
             $payment->reference,
-            PaymentAction::initializeEvent('formie:payment:paddle:initialize')
-                ->forProvider($this->handle)
-                ->withMessage(Craft::t('formie', 'Please wait while payment data is initialized.'))
-                ->withPayload($payload)
-                ->resumeMode(PaymentAction::RESUME_MODE_CLIENT)
+            PaymentAction::initialize(
+                provider: $this->handle,
+                event: 'formie:payment:paddle:initialize',
+                message: Craft::t('formie', 'Please wait while payment data is initialized.'),
+                payload: $payload,
+                resumeMode: PaymentResumeMode::RESUBMIT,
+            )
         );
     }
 

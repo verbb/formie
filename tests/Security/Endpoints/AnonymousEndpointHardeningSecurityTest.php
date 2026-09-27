@@ -552,7 +552,7 @@ it('requires a valid gocardless webhook signature before processing webhook payl
             $request->setRawBody($payload);
             $request->getHeaders()->set('Webhook-Signature', hash_hmac('sha256', $payload, 'wrong-secret'));
 
-            $response = $integration->processWebhook();
+            $response = $integration->processWebhooks();
 
             expect($response->data)->toBe('error')
                 ->and($response->statusCode)->toBeGreaterThanOrEqual(400)
@@ -570,24 +570,26 @@ it('accepts correctly signed gocardless webhook payloads before processing them'
         'accessToken' => '$GO_CARDLESS_ACCESS_TOKEN',
         'webhookSecretKey' => '$GO_CARDLESS_WEBHOOK_SECRET',
     ]) extends GoCardless {
-        public bool $requested = false;
+        public static bool $requested = false;
+        public static int $paymentId = 0;
 
         public function request(string $method, string $uri, array $options = []): mixed
         {
-            $this->requested = true;
+            self::$requested = true;
 
             return ['payments' => [
                 'id' => 'PM123', 'amount' => 1000, 'currency' => 'AUD',
                 'status' => 'confirmed',
                 'metadata' => [
-                    'formiePaymentId' => (string)$this->context['paymentId'],
+                    'formiePaymentId' => (string)self::$paymentId,
                 ],
             ]];
         }
     };
     Formie::$plugin->getIntegrations()->saveIntegration($integration, false);
     $payment = createPaymentFixture(['integrationId' => $integration->id, 'reference' => null]);
-    $integration->context['paymentId'] = (int)$payment->id;
+    $integration::$paymentId = (int)$payment->id;
+    $integration::$requested = false;
 
     withEnvOverrides([
         'GO_CARDLESS_ACCESS_TOKEN' => 'test-token',
@@ -606,9 +608,9 @@ it('accepts correctly signed gocardless webhook payloads before processing them'
             $request->setRawBody($payload);
             $request->getHeaders()->set('Webhook-Signature', hash_hmac('sha256', $payload, 'correct-secret'));
 
-            $response = $integration->processWebhook();
+            $response = $integration->processWebhooks();
 
-            expect($integration->requested)->toBeTrue();
+            expect($integration::$requested)->toBeTrue();
             $saved = Formie::$plugin->getPayments()->getPaymentById($payment->id);
             expect($saved->status)->toBe(PaymentModel::STATUS_SUCCESS)
                 ->and($saved->reference)->toBe('PM123')
@@ -643,7 +645,7 @@ it('ignores unknown mollie webhook references before requesting provider status'
                 'id' => 'tr_unknown_' . uniqid(),
             ]);
 
-            $response = $integration->processWebhook();
+            $response = $integration->processWebhooks();
 
             expect($response->data)->toBe('error')
                 ->and($response->statusCode)->toBeGreaterThanOrEqual(400)
@@ -654,47 +656,43 @@ it('ignores unknown mollie webhook references before requesting provider status'
     });
 })->group('security');
 
-it('rate limits anonymous payment webhook requests by handle reference and client', function (): void {
-    $integration = createPaymentIntegrationFixture();
+it('accepts authenticated payment webhook bursts through the stable integration identity', function (): void {
+    $secret = 'whsec_burst_contract';
+    $integration = new Stripe([
+        'name' => 'Security Stripe burst',
+        'handle' => 'securityStripeBurst' . uniqid(),
+        'webhookSecretKey' => $secret,
+    ]);
+    expect(Formie::$plugin->getIntegrations()->saveIntegration($integration, false))->toBeTrue();
 
-    WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration): void {
-        $request->setQueryParams([
-            'handle' => (string)$integration->handle,
-            'id' => 'tr_rate_limited_' . uniqid(),
-        ]);
-
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration, $secret): void {
+        $request->setQueryParams(['integrationUid' => (string)$integration->uid]);
         $controller = new PaymentWebhooksController('formie-payment-security', Craft::$app);
 
-        for ($i = 0; $i < 60; $i++) {
-            expect($controller->actionProcessWebhook()->data)->toBe('error');
-            expect(Craft::$app->getResponse()->statusCode)->toBe(403);
+        // Application-level throttling must not discard legitimate provider bursts.
+        // Volumetric protection belongs at the edge; provider authentication and
+        // the durable receipt identity protect this boundary inside Formie.
+        for ($i = 0; $i < 61; $i++) {
+            $body = json_encode([
+                'id' => 'evt_burst_' . $i,
+                'type' => 'contract.unhandled',
+                'livemode' => false,
+                'data' => ['object' => ['id' => 'resource_' . $i, 'object' => 'contract']],
+            ], JSON_THROW_ON_ERROR);
+            $timestamp = time();
+            $request->setRawBody($body);
+            $request->getHeaders()->set('Stripe-Signature', 't=' . $timestamp . ',v1=' . hash_hmac('sha256', $timestamp . '.' . $body, $secret));
+
+            expect($controller->actionProcessWebhook()->getStatusCode())->toBe(200);
         }
 
-        expect(fn() => $controller->actionProcessWebhook())->toThrow(TooManyRequestsHttpException::class);
+        expect((int)(new \craft\db\Query())
+            ->from(\verbb\formie\helpers\Table::FORMIE_WEBHOOK_RECEIPTS)
+            ->where(['integrationId' => $integration->id])
+            ->count())->toBe(61);
     }, [
         'method' => 'POST',
         'remoteAddr' => '198.51.100.57',
-    ]);
-})->group('security');
-
-it('rate limits repeated anonymous webhook requests by handle reference and client', function (): void {
-    $integration = createPaymentIntegrationFixture();
-
-    WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration): void {
-        $request->setQueryParams([
-            'handle' => (string)$integration->handle,
-        ]);
-
-        $controller = new PaymentWebhooksController('formie-payment-security', Craft::$app);
-
-        for ($i = 0; $i < 60; $i++) {
-            $controller->actionProcessWebhook();
-        }
-
-        expect(fn() => $controller->actionProcessWebhook())->toThrow(TooManyRequestsHttpException::class);
-    }, [
-        'method' => 'POST',
-        'remoteAddr' => '198.51.100.58',
     ]);
 })->group('security');
 
@@ -707,7 +705,7 @@ it('fails closed when stripe webhook signing is not configured or supplied', fun
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration): void {
         $request->setRawBody('{"type":"payment_intent.succeeded"}');
 
-        $response = $integration->processWebhook();
+        $response = $integration->processWebhooks();
 
         expect($response->getStatusCode())->toBe(400)
             ->and($response->data)->toBe('error');

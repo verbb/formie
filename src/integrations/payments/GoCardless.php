@@ -13,7 +13,6 @@ use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\PaymentAccess;
-use verbb\formie\helpers\PaymentWebhookReceipt;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\BrowserModuleEntry;
@@ -23,6 +22,9 @@ use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
 use verbb\formie\models\payments\PaymentWebhookCommand;
+use verbb\formie\models\payments\PaymentWebhookReceipt;
+use verbb\formie\models\payments\VerifiedWebhook;
+use verbb\formie\models\payments\VerifiedWebhookBatch;
 use verbb\formie\models\Subscription;
 
 use Craft;
@@ -30,9 +32,11 @@ use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
-use craft\web\Response;
+use yii\web\BadRequestHttpException;
+use yii\web\Response;
 
 use DateTime;
+use DateTimeImmutable;
 use Exception;
 use Throwable;
 
@@ -141,7 +145,7 @@ class GoCardless extends Payment
             Formie::$plugin->getPayments()->savePayment($payment);
 
             $returnUrl = $this->getReturnUrl([
-                'statusToken' => PaymentAccess::issueStatusToken($payment, mode: PaymentResumeMode::RECONCILE),
+                'returnToken' => PaymentAccess::issueReturnToken($payment),
             ]);
 
             $billingRequestPayload = $this->_buildBillingRequestPayload($payment, $submission);
@@ -192,11 +196,15 @@ class GoCardless extends Payment
 
             return PaymentDecision::requiresAction(
                 $payment->reference,
-                PaymentAction::redirectEvent('formie:payment:go-cardless:redirect', $authorisationUrl)
-                    ->forProvider($this->handle)
-                    ->withMessage(Craft::t('formie', 'Please wait while you are redirected to GoCardless.'))
-                    ->withPayload(['redirectUrl' => $authorisationUrl])
-                    ->resumeMode(PaymentAction::RESUME_MODE_WEBHOOK, $this->getRedirectUri())
+                PaymentAction::redirect(
+                    provider: $this->handle,
+                    event: 'formie:payment:go-cardless:redirect',
+                    message: Craft::t('formie', 'Please wait while you are redirected to GoCardless.'),
+                    url: $authorisationUrl,
+                    payload: ['redirectUrl' => $authorisationUrl],
+                    resumeMode: PaymentResumeMode::RETURN,
+                    resumeUrl: $returnUrl,
+                )
             );
         } catch (Throwable $e) {
             Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
@@ -220,65 +228,83 @@ class GoCardless extends Payment
         }
     }
 
-    public function processWebhook(?PaymentWebhookCommand $command = null): Response
+    public function verifyWebhook(PaymentWebhookCommand $request): VerifiedWebhookBatch
     {
-        $command ??= PaymentWebhookCommand::fromRequest((int)$this->id);
-        $rawBody = $command->body;
-        $response = Craft::$app->getResponse();
-        $response->format = Response::FORMAT_RAW;
+        $rawBody = $request->body;
         $secret = trim((string)App::parseEnv($this->webhookSecretKey));
-        $signature = trim((string)($command->header('Webhook-Signature') ?? ''));
+        $signature = trim($request->header('Webhook-Signature'));
 
         if (!$secret || !$signature) {
-            Integration::error($this, 'Webhook not signed or signing secret not set.');
-            $response->setStatusCode(400);
-            $response->data = 'error';
-
-            return $response;
+            throw new BadRequestHttpException('Webhook not signed or signing secret not set.');
         }
 
-        $expectedSignature = hash_hmac('sha256', $rawBody, $secret);
-
-        if (!hash_equals($expectedSignature, $signature)) {
-            Integration::error($this, 'Webhook signature check failed.');
-            $response->setStatusCode(400);
-            $response->data = 'error';
-
-            return $response;
+        if (!hash_equals(hash_hmac('sha256', $rawBody, $secret), $signature)) {
+            throw new BadRequestHttpException('Webhook signature check failed.');
         }
 
         try {
-            $payload = Json::decode($rawBody);
-            $events = $payload['events'] ?? [];
+            $events = Json::decode($rawBody)['events'] ?? [];
+        } catch (Throwable $e) {
+            throw new BadRequestHttpException('Could not decode GoCardless webhook payload.', 0, $e);
+        }
 
-            foreach ($events as $event) {
-                PaymentWebhookReceipt::process($this, hash('sha256', (string)App::parseEnv($this->accessToken)), (string)($event['id'] ?? ''), $rawBody, ['Webhook-Signature' => $signature], function () use ($event): bool {
-                    $resourceType = (string)($event['resource_type'] ?? '');
-                    $action = (string)($event['action'] ?? '');
-                    switch ($resourceType) {
-                        case 'payments':
-                            $this->_processPaymentWebhookEvent($event);
-                            break;
-                        case 'billing_requests':
-                            $this->_processBillingRequestWebhookEvent($event, $action);
-                            break;
-                        case 'subscriptions':
-                            $this->_processSubscriptionWebhookEvent($event, $action);
-                            break;
-                        default:
-                            return false;
-                    }
-                    $this->trigger(self::EVENT_RECEIVE_WEBHOOK, new PaymentReceiveWebhookEvent(['webhookData' => ['events' => [$event]]]));
-                    return true;
-                }, Json::encode($event));
+        if (!$events || !is_array($events)) {
+            throw new BadRequestHttpException('GoCardless webhook contains no events.');
+        }
+
+        $verified = [];
+        foreach ($events as $event) {
+            $eventId = trim((string)($event['id'] ?? ''));
+
+            if ($eventId === '') {
+                throw new BadRequestHttpException('GoCardless webhook event has no identity.');
             }
 
-            $response->data = 'success';
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e, false);
-            $response->setStatusCode(500);
-            $response->data = 'error';
+            $links = $event['links'] ?? [];
+            $resourceReference = is_array($links) ? (string)(reset($links) ?: '') : '';
+            $verified[] = new VerifiedWebhook(
+                $eventId,
+                (string)($event['action'] ?? 'unknown'),
+                isset($event['resource_type']) ? (string)$event['resource_type'] : null,
+                $resourceReference !== '' ? $resourceReference : null,
+                isset($event['created_at']) ? new DateTimeImmutable((string)$event['created_at']) : null,
+                $event,
+                Json::encode($event),
+            );
         }
+
+        $environment = $this->useSandbox ? 'test' : 'live';
+        $accountIdentity = hash('sha256', (string)App::parseEnv($this->accessToken));
+
+        return new VerifiedWebhookBatch(
+            $this->getWebhookAccountFingerprint($environment, $accountIdentity),
+            $environment,
+            $verified,
+            ['Webhook-Signature' => $signature],
+        );
+    }
+
+    public function handleWebhook(PaymentWebhookReceipt $receipt): void
+    {
+        $event = $receipt->payload;
+        $resourceType = (string)($event['resource_type'] ?? '');
+        $action = (string)($event['action'] ?? '');
+
+        if ($resourceType === 'payments') {
+            $this->_processPaymentWebhookEvent($event);
+        } else if ($resourceType === 'billing_requests') {
+            $this->_processBillingRequestWebhookEvent($event, $action);
+        } else if ($resourceType === 'subscriptions') {
+            $this->_processSubscriptionWebhookEvent($event, $action);
+        }
+
+        $this->trigger(self::EVENT_RECEIVE_WEBHOOK, new PaymentReceiveWebhookEvent(['webhookData' => ['events' => [$event]]]));
+    }
+
+    public function getWebhookAcknowledgement(): Response
+    {
+        $response = parent::getWebhookAcknowledgement();
+        $response->data = 'success';
 
         return $response;
     }

@@ -36,6 +36,9 @@ class Payment extends Model
     public string $amount = '0';
     public int $version = 0;
     public ?string $idempotencyKey = null;
+    public ?int $lastReconciledAt = null;
+    public ?int $nextReconcileAt = null;
+    public int $reconciliationAttempts = 0;
     public ?array $history = null;
     public ?array $scope = null;
     public ?string $currency = null;

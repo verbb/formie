@@ -53,6 +53,7 @@ use verbb\formie\services\Notifications;
 use verbb\formie\services\NotificationTriggers;
 use verbb\formie\services\OptionSources;
 use verbb\formie\services\Payments;
+use verbb\formie\services\PaymentWebhooks;
 use verbb\formie\services\PdfTemplates;
 use verbb\formie\services\Permissions;
 use verbb\formie\services\Phone;
@@ -240,6 +241,7 @@ trait PluginTrait
                 'browserModuleManifestBuilder' => BrowserModuleManifestBuilder::class,
                 'notifications' => Notifications::class,
                 'payments' => Payments::class,
+                'paymentWebhooks' => PaymentWebhooks::class,
                 'permissions' => Permissions::class,
                 'questionnaireResults' => QuestionnaireResults::class,
                 'questionnaireScoring' => QuestionnaireScoring::class,
@@ -541,6 +543,11 @@ trait PluginTrait
     public function getPayments(): Payments
     {
         return $this->get('payments');
+    }
+
+    public function getPaymentWebhooks(): PaymentWebhooks
+    {
+        return $this->get('paymentWebhooks');
     }
 
     public function getPermissions(): Permissions

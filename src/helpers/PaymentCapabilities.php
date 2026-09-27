@@ -2,6 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\enums\PaymentCapabilityPurpose;
 
 use Craft;
 use craft\db\Query;
@@ -15,11 +16,12 @@ final class PaymentCapabilities
     // Static Methods
     // =========================================================================
 
-    public static function issue(string $purpose, int $resourceId, array $scope, int $ttl): string
+    public static function issue(PaymentCapabilityPurpose $purpose, int $resourceId, array $scope, int $ttl): string
     {
-        if (!in_array($purpose, ['status', 'reconcile', 'session', 'cancel', 'challenge'], true) || $resourceId <= 0) {
+        if ($resourceId <= 0) {
             throw new InvalidArgumentException('Invalid payment capability.');
         }
+        $purpose = $purpose->value;
         $db = Craft::$app->getDb();
         $scopeJson = Json::encode($scope);
         $lock = 'formie.payment-capability.' . hash('sha256', $purpose . '|' . $resourceId . '|' . $scopeJson);
@@ -43,8 +45,9 @@ final class PaymentCapabilities
         }
     }
 
-    public static function resolve(string $token, string $purpose): ?array
+    public static function resolve(string $token, PaymentCapabilityPurpose $purpose): ?array
     {
+        $purpose = $purpose->value;
         $row = Craft::$app->getDb()->useMaster(fn() => (new Query())->from(Table::FORMIE_PAYMENT_CAPABILITIES)->where(['tokenHash' => self::_hash($token), 'purpose' => $purpose, 'revokedAt' => null])->andWhere(['>', 'expiresAt', time()])->one());
         if (!$row) {
             return null;
@@ -53,9 +56,9 @@ final class PaymentCapabilities
         return $row;
     }
 
-    public static function revoke(string $purpose, int $resourceId): void
+    public static function revoke(PaymentCapabilityPurpose $purpose, int $resourceId): void
     {
-        Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PAYMENT_CAPABILITIES, ['revokedAt' => time()], ['purpose' => $purpose, 'resourceId' => $resourceId])->execute();
+        Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PAYMENT_CAPABILITIES, ['revokedAt' => time()], ['purpose' => $purpose->value, 'resourceId' => $resourceId])->execute();
     }
 
     private static function _token(array $row): string
