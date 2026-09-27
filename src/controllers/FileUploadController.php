@@ -15,6 +15,8 @@ use craft\helpers\Assets;
 use craft\web\Controller;
 use craft\web\UploadedFile;
 use yii\web\BadRequestHttpException;
+use yii\web\MethodNotAllowedHttpException;
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use yii\web\TooManyRequestsHttpException;
 
@@ -34,6 +36,7 @@ class FileUploadController extends Controller
         'upload' => self::ALLOW_ANONYMOUS_LIVE,
         'delete' => self::ALLOW_ANONYMOUS_LIVE,
         'hydrate' => self::ALLOW_ANONYMOUS_LIVE,
+        'view' => self::ALLOW_ANONYMOUS_LIVE,
     ];
     
 
@@ -42,6 +45,12 @@ class FileUploadController extends Controller
 
     public function beforeAction($action): bool
     {
+        // Image/download requests carry an explicit view capability and cannot
+        // supply the custom session headers used by cross-origin form mutations.
+        if ($action->id === 'view') {
+            return parent::beforeAction($action);
+        }
+
         $profile = \verbb\formie\helpers\BrowserRequestProfile::enter();
         if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
@@ -111,10 +120,10 @@ class FileUploadController extends Controller
         $filename = $field->sanitizeUploadedFilename($uploadedFile->name);
         $this->_validateUploadRequestFile($field, $filename, $uploadedFile->tempName, (int)$uploadedFile->size, $uploadedFile->type ?: null);
 
+        $uploadFolder = Formie::$plugin->getFileUploads()->getStagingFolder();
         $tempPath = Assets::tempFilePath($filename);
         $this->_moveUploadedFile($uploadedFile->tempName, $tempPath);
 
-        $uploadFolder = Craft::$app->getAssets()->getUserTemporaryUploadFolder();
         $asset = new Asset();
         $asset->tempFilePath = $tempPath;
         $asset->setFilename($filename);
@@ -146,7 +155,7 @@ class FileUploadController extends Controller
             'success' => true,
             'assetId' => (int)$asset->id,
             'filename' => $asset->filename,
-            'url' => $asset->url,
+            'url' => UploadAccess::viewUrl($uploadToken),
             'uploadToken' => $uploadToken,
             'uploadUid' => Formie::$plugin->getFileUploads()->getTrackedUploadByAssetId((int)$asset->id)['uid'],
             'deleteToken' => UploadAccess::issueToken((int)$asset->id, (int)$form->id, (string)$field->uid, purpose: 'delete'),
@@ -174,6 +183,32 @@ class FileUploadController extends Controller
         }
 
         return $this->asJson(['success' => true]);
+    }
+
+    public function actionView(): Response
+    {
+        if (!$this->request->getIsGet() && !$this->request->getIsHead()) {
+            throw new MethodNotAllowedHttpException('Upload previews require GET or HEAD.');
+        }
+        $upload = UploadAccess::resolveToken((string)$this->request->getQueryParam('token', ''), 'view');
+        $asset = $upload ? Asset::find()->id((int)$upload['assetId'])->status(null)->one() : null;
+        if (!$asset) {
+            throw new NotFoundHttpException('Upload is unavailable.');
+        }
+
+        $headers = $this->response->getHeaders();
+        $headers->set('Cache-Control', 'private, no-store, max-age=0');
+        $headers->set('Pragma', 'no-cache');
+        $headers->set('Referrer-Policy', 'no-referrer');
+        $headers->set('X-Content-Type-Options', 'nosniff');
+        $headers->set('Content-Security-Policy', "default-src 'none'; sandbox");
+        $inline = in_array($asset->getMimeType(), ['image/jpeg', 'image/png', 'image/gif', 'image/webp'], true);
+
+        return $this->response->sendStreamAsFile($asset->getVolume()->getFileStream($asset->getPath()), $asset->filename, [
+            'fileSize' => (int)$asset->size,
+            'mimeType' => $inline ? $asset->getMimeType() : 'application/octet-stream',
+            'inline' => $inline,
+        ]);
     }
 
     public function actionHydrate(): Response
@@ -235,7 +270,7 @@ class FileUploadController extends Controller
             $assetMap[$assetId] = [
                 'assetId' => $assetId,
                 'filename' => (string)$asset->filename,
-                'url' => $asset->url ?: null,
+                'url' => UploadAccess::viewUrl($token) ?? (($tracked['state'] ?? null) !== 'staged' ? $asset->url : null),
                 'uploadToken' => $token,
                 'deleteToken' => $mayDelete ? UploadAccess::issueToken($assetId, $formId, $fieldUid, purpose: 'delete') : null,
             ];

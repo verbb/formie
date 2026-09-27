@@ -1182,7 +1182,7 @@ class FileUpload extends ElementField
         $uploadedFiles = $this->_getUploadedFiles($element);
 
         if (!empty($uploadedFiles)) {
-            $uploadFolderId = $staging ? $assetsService->getUserTemporaryUploadFolder()->id : $getUploadFolderId();
+            $uploadFolderId = $staging ? Formie::$plugin->getFileUploads()->getStagingFolder()->id : $getUploadFolderId();
 
             if ($uploadFolderId === null) {
                 return;

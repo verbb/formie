@@ -46,6 +46,7 @@
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
 
 ### Fixed
+- Serve staged upload previews through expiring view capabilities and require private temporary upload storage.
 - Bound Base64 upload input and decoded sizes before allocating file contents, using Craft’s maximum upload size.
 - Complete required upload promotion before marking submissions complete, and finalize accepted uploads before completion events and delivery, including payment replay.
 - Retain upload cleanup records after permanent submission deletion and failed file deletion, preserve retryable field references, and leave shared or unowned files intact.

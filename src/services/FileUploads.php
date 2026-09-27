@@ -17,6 +17,7 @@ use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
 use craft\helpers\Console;
 use craft\helpers\Db;
+use craft\models\VolumeFolder;
 
 use DateTime;
 use Throwable;
@@ -33,6 +34,16 @@ class FileUploads extends Component
 
     // Public Methods
     // =========================================================================
+
+    public function getStagingFolder(): VolumeFolder
+    {
+        $assets = Craft::$app->getAssets();
+        if ($assets->getTempAssetUploadFs()->getRootUrl() !== null) {
+            throw new \RuntimeException('Formie uploads require a private temporary asset filesystem without public URLs.');
+        }
+
+        return $assets->getUserTemporaryUploadFolder();
+    }
 
     public function trackSubmissionAsset(Asset $asset, int $formId, ?int $submissionId, ?string $fieldUid = null, ?Form $form = null, ?string $contentKey = null): void
     {

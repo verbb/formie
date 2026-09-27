@@ -6,12 +6,18 @@ use verbb\formie\Formie;
 use Craft;
 use craft\db\Query;
 use craft\helpers\Json;
+use craft\helpers\UrlHelper;
 
 /** Durable, purpose-bound upload capabilities. Tokens are returned once; only hashes persist. */
 final class UploadAccess
 {
     // Static Methods
     // =========================================================================
+
+    public static function viewUrl(?string $token): ?string
+    {
+        return $token ? UrlHelper::actionUrl('formie/file-upload/view', ['token' => $token]) : null;
+    }
 
     public static function issueToken(int $assetId, int $formId, string $fieldUid, string $purpose = 'view'): ?string
     {
