@@ -9,6 +9,7 @@
 - Protect Signature image URLs for new submissions with field-scoped access tokens while preserving URLs in previously sent email notifications.
 
 ### Fixed
+- Fixed OAuth callback transaction validation.
 - Fixed a moderate-severity information disclosure vulnerability. (GHSA-rh4q-6j5r-8jqf)
 - Fixed a moderate-severity authorization vulnerability. (GHSA-p696-447f-9258)
 - Fixed a moderate-severity authorization vulnerability. (GHSA-qg3f-hm4x-h5h8)
