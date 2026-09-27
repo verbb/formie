@@ -56,6 +56,9 @@ Payment | `Payment` | Payment provider integrations used by Payment fields. See 
 OAuth can apply to several integration types. See [OAuth Integration](/developers/custom-integration/oauth-integration) if your provider needs users to connect an account before Formie can send or fetch data.
 
 ## Common Methods
+
+Integration results are stored in an `IntegrationRunContext`, not on the Submission element. During integration and notification execution, Formie scopes reference resolution to the active run. To inspect a particular run explicitly, use `Formie::$plugin->getIntegrationDispatcher()->loadContext($submission, $executionUid)`. Omitting the identity outside an active run returns an empty context; it does not select the latest result. Use the `executionUid` from the delivery event or attempt you are inspecting.
+
 Most integration classes define a few common methods.
 
 Method | Use

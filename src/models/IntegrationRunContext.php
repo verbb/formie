@@ -4,19 +4,12 @@ namespace verbb\formie\models;
 use craft\base\Model;
 use craft\helpers\Json;
 
-class IntegrationDispatchContext extends Model
+class IntegrationRunContext extends Model
 {
-    // Properties
+    // Static Methods
     // =========================================================================
 
-    /** @var array<string, array<string, mixed>> */
-    public array $results = [];
-
-
-    // Public Methods
-    // =========================================================================
-
-    public static function fromSubmission(mixed $value): self
+    public static function fromStorage(mixed $value): self
     {
         if ($value instanceof self) {
             return $value;
@@ -34,6 +27,16 @@ class IntegrationDispatchContext extends Model
             'results' => is_array($value['results'] ?? null) ? $value['results'] : [],
         ]);
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public array $results = [];
+
+
+    // Public Methods
+    // =========================================================================
 
     public function record(string $handle, array $result): void
     {

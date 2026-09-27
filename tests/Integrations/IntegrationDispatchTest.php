@@ -56,7 +56,7 @@ it('allows per-notification dispatch timing overrides', function (): void {
 });
 
 it('records integration dispatch context results', function (): void {
-    $context = \verbb\formie\models\IntegrationDispatchContext::fromSubmission(null);
+    $context = \verbb\formie\models\IntegrationRunContext::fromStorage(null);
 
     $context->record('user', [
         'success' => true,
@@ -94,22 +94,19 @@ it('detects when any notification requires the after-integrations phase', functi
 });
 
 
-it('round trips integration context and reads previously double encoded context', function (): void {
+it('round trips integration context only for the requested run', function (): void {
     $form = formie()->form()->singleLineTextField('fullName')->create();
     $submission = formie()->submission($form)->with(['fullName' => 'Context'])->save();
-    $context = new \verbb\formie\models\IntegrationDispatchContext();
+    $context = new \verbb\formie\models\IntegrationRunContext();
     $context->record('example', ['success' => true, 'elementId' => 42]);
     $service = new IntegrationDispatcher();
-    $service->saveContext($submission, $context);
-    $raw = (new \craft\db\Query())->select(['integrationDispatchContext'])
-        ->from(\verbb\formie\helpers\Table::FORMIE_SUBMISSIONS)->where(['id' => $submission->id])->scalar();
+    $service->saveContext($submission, $context, 'context-run');
+    $raw = (new \craft\db\Query())->select('context')
+        ->from(IntegrationDispatcher::CONTEXT_TABLE)->where(['submissionId' => $submission->id, 'runUid' => 'context-run'])->scalar();
     expect(\craft\helpers\Json::decodeIfJson($raw))->toBe($context->toStorageArray());
 
-    // Simulate the historical encoding for compatibility with already saved rows.
-    Craft::$app->getDb()->createCommand()->update(\verbb\formie\helpers\Table::FORMIE_SUBMISSIONS,
-        ['integrationDispatchContext' => \craft\helpers\Json::encode($context->toStorageArray())],
-        ['id' => $submission->id],
-    )->execute();
     $restored = \verbb\formie\elements\Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->one();
-    expect($service->loadContext($restored)->getResult('example'))->toBe(['success' => true, 'elementId' => 42]);
+    expect($service->loadContext($restored, 'context-run')->getResult('example'))->toBe(['success' => true, 'elementId' => 42])
+        ->and($service->loadContext($restored)->results)->toBe([])
+        ->and($service->loadContext($restored, 'other-run')->results)->toBe([]);
 });

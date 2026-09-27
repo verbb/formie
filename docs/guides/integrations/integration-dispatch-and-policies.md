@@ -45,6 +45,8 @@ Open **Submission Delivery History** on the submission to see what ran and wheth
 
 Formie remembers completed steps so a retry does not repeat them. For example, if a CRM contact was created but adding it to a list failed, a safe retry can continue with the list step.
 
+Integration results belong to the run that produced them. A queued notification reads results from its own run, even if a later edit has already run the same integration again. Results from another run are not used as a fallback.
+
 For an unknown result, first check the remote account. A user with reconciliation permission can then select **Confirm delivered** or **Confirm not delivered** and enter a reason. Resolve any unknown individual operations before the overall attempt. Confirming non-delivery allows the original attempt to be retried safely.
 
 If later steps need a provider response that Formie never received, confirming delivery alone cannot supply that missing data. Further support may be needed to continue. Do not start a separate manual run to get around an unresolved result: it could duplicate something the service already received.

@@ -8,19 +8,24 @@ use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\events\IntegrationDeliveryEvent;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\IntegrationTriggerEvents;
-use verbb\formie\helpers\Table;
 use verbb\formie\models\IntegrationBatchResult;
-use verbb\formie\models\IntegrationDispatchContext;
+use verbb\formie\models\IntegrationRunContext;
 use verbb\formie\models\IntegrationDispatchPlan;
 use verbb\formie\models\IntegrationExecutionContext;
 use verbb\formie\models\IntegrationResult;
 use verbb\formie\models\Notification;
-use verbb\formie\services\SubmissionWorkflow;
 
 use Craft;
+use craft\db\Query;
+use craft\helpers\Db;
+use craft\helpers\Json;
 use craft\helpers\StringHelper;
 
 use yii\base\Component;
+
+use DateTime;
+use InvalidArgumentException;
+use RuntimeException;
 
 class IntegrationDispatcher extends Component
 {
@@ -31,6 +36,13 @@ class IntegrationDispatcher extends Component
     public const PHASE_BEFORE = 'before';
     public const PHASE_AFTER = 'afterFinalizedDeliveryAttempts';
     public const PHASE_SYNCHRONOUS = 'afterSynchronousIntegrations';
+    public const CONTEXT_TABLE = '{{%formie_integration_run_contexts}}';
+
+
+    // Properties
+    // =========================================================================
+
+    private array $_runs = [];
 
 
     // Public Methods
@@ -150,7 +162,7 @@ class IntegrationDispatcher extends Component
 
         if ($phase !== self::PHASE_BEFORE) {
             $plan = $this->getPlan($form);
-            $context = $this->loadContext($submission);
+            $context = $this->loadContext($submission, $deliveryKey);
             $handles = $phase === self::PHASE_SYNCHRONOUS ? $plan->getSynchronousHandles($form) : $plan->getOrderedHandles($form);
             foreach ($handles as $handle) {
                 $result = $context->getResult($handle);
@@ -208,29 +220,62 @@ class IntegrationDispatcher extends Component
         return $phase === self::PHASE_BEFORE;
     }
 
-    public function loadContext(Submission $submission): IntegrationDispatchContext
+    public function withRun(Submission $submission, string $runUid, callable $callback): mixed
     {
-        return IntegrationDispatchContext::fromSubmission($submission->integrationDispatchContext ?? null);
+        if ($runUid === '' || strlen($runUid) > 255) {
+            throw new InvalidArgumentException('An integration run identity is required.');
+        }
+        $this->_runs[] = [(int)$submission->id, $runUid];
+        try {
+            return $callback();
+        } finally {
+            array_pop($this->_runs);
+        }
     }
 
-    public function saveContext(Submission $submission, IntegrationDispatchContext $context): void
+    public function loadContext(Submission $submission, ?string $runUid = null): IntegrationRunContext
     {
-        $submission->integrationDispatchContext = $context->toStorageArray();
-
-        if (!$submission->id) {
-            return;
+        $runUid ??= $this->currentRunUid($submission);
+        if (!$submission->id || $runUid === null) {
+            return new IntegrationRunContext();
         }
+        $value = (new Query())->select('context')->from(self::CONTEXT_TABLE)
+            ->where(['submissionId' => $submission->id, 'runUid' => $runUid])->scalar();
+        return IntegrationRunContext::fromStorage($value);
+    }
 
-        if (!Craft::$app->getDb()->columnExists(Table::FORMIE_SUBMISSIONS, 'integrationDispatchContext')) {
-            return;
+    public function saveContext(Submission $submission, IntegrationRunContext $context, string $runUid): void
+    {
+        if (!$submission->id || $runUid === '' || strlen($runUid) > 255) {
+            throw new InvalidArgumentException('A saved submission and integration run identity are required.');
         }
+        $mutex = Craft::$app->getMutex();
+        $lock = 'formie.run-context.' . hash('sha256', $submission->id . ':' . $runUid);
+        if (!$mutex->acquire($lock, 10)) {
+            throw new RuntimeException('Unable to update integration run context.');
+        }
+        try {
+            // Independent workers may finish different bindings in the same run.
+            $stored = $this->loadContext($submission, $runUid);
+            $stored->results = array_replace($stored->results, $context->results);
+            $now = Db::prepareDateForDb(new DateTime());
+            Craft::$app->getDb()->createCommand()->upsert(self::CONTEXT_TABLE, [
+                'submissionId' => $submission->id, 'runUid' => $runUid,
+                'context' => Json::encode($stored->toStorageArray()),
+                'dateCreated' => $now, 'dateUpdated' => $now,
+            ], ['context' => Json::encode($stored->toStorageArray()), 'dateUpdated' => $now])->execute();
+        } finally {
+            $mutex->release($lock);
+        }
+    }
 
-        Craft::$app->getDb()->createCommand()
-            ->update(
-                Table::FORMIE_SUBMISSIONS,
-                ['integrationDispatchContext' => $submission->integrationDispatchContext],
-                ['id' => $submission->id],
-            )
-            ->execute();
+    public function currentRunUid(Submission $submission): ?string
+    {
+        if ($this->_runs) {
+            [$submissionId, $runUid] = $this->_runs[array_key_last($this->_runs)];
+            return $submissionId === (int)$submission->id ? $runUid : null;
+        }
+        $workflow = \verbb\formie\workflow\WorkflowContext::current();
+        return $workflow?->command->submission === $submission ? DeliveryAttempt::workflowIdentity() : null;
     }
 }

@@ -211,12 +211,6 @@ class SubmissionQuery extends ElementQuery
         if (isset($row['metadata']) && is_string($row['metadata'])) {
             $row['metadata'] = Json::decode($row['metadata']);
         }
-        if (isset($row['integrationDispatchContext'])) {
-            // Earlier context saves encoded JSON before passing it to a JSON column.
-            $row['integrationDispatchContext'] = \verbb\formie\models\IntegrationDispatchContext::fromSubmission(
-                Json::decodeIfJson($row['integrationDispatchContext']),
-            )->toStorageArray();
-        }
 
         return parent::createElement($row);
     }
@@ -264,10 +258,6 @@ class SubmissionQuery extends ElementQuery
         ];
 
         $db = Craft::$app->getDb();
-
-        if ($db->columnExists(Table::FORMIE_SUBMISSIONS, 'integrationDispatchContext')) {
-            $submissionColumns[] = 'formie_submissions.integrationDispatchContext';
-        }
 
         if ($db->columnExists(Table::FORMIE_SUBMISSIONS, 'metadata')) {
             $submissionColumns[] = 'formie_submissions.metadata';

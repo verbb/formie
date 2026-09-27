@@ -152,8 +152,6 @@ it('retries failed queued steps without repeating completed steps', function ():
         $executor = Formie::$plugin->getIntegrationRunner();
         $run = fn(string $key) => $executor->runSteps($submission, ['completedStep', 'retryStep'], $context, null, $key);
         expect($run('retry-job')->accepts())->toBeFalse();
-        // Simulate a stale submission object loaded by another worker.
-        $submission->integrationDispatchContext = null;
         $second->succeeds = true;
         expect($run('retry-job')->accepts())->toBeTrue();
         expect($first::$calls[$first->handle])->toBe(1)->and($second::$calls[$second->handle])->toBe(2);

@@ -46,6 +46,7 @@
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
 
 ### Fixed
+- Keep integration results and reference values scoped to their delivery run instead of overwriting the submission’s latest results.
 - Serve staged upload previews through expiring view capabilities and require private temporary upload storage.
 - Enforce aggregate staged-upload file and byte budgets across fields and cap staged expiry independently of incomplete-submission retention.
 - Bound Base64 upload input and decoded sizes before allocating file contents, using Craft’s maximum upload size.

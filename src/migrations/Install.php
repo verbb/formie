@@ -542,7 +542,6 @@ class Install extends Migration
         $this->createTable(Table::FORMIE_SUBMISSIONS, [
             'id' => $this->primaryKey(),
             'content' => $this->json(),
-            'integrationDispatchContext' => $this->json(),
             'formId' => $this->integer()->notNull(),
             'statusId' => $this->integer(),
             'userId' => $this->integer(),
@@ -601,6 +600,7 @@ class Install extends Migration
 
         (new m260927_000000_delivery_attempts())->safeUp();
         (new m260927_010000_instance_configuration())->safeUp();
+        (new m260927_040000_integration_run_contexts())->safeUp();
 
     }
 
@@ -731,6 +731,7 @@ class Install extends Migration
             'formie_delivery_diagnostics',
             'formie_instance_configs',
             'formie_delivery_attempts',
+            'formie_integration_run_contexts',
             'formie_emailtemplates',
             'formie_fieldlayout_pages',
             'formie_fieldlayout_rows',
@@ -870,6 +871,7 @@ class Install extends Migration
             'formie_delivery_diagnostics',
             'formie_instance_configs',
             'formie_delivery_attempts',
+            'formie_integration_run_contexts',
             'formie_emailtemplates',
             'formie_fieldlayout_pages',
             'formie_fieldlayout_rows',

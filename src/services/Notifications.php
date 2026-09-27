@@ -190,7 +190,9 @@ class Notifications extends Component
             return ['success' => false, 'deliveryOutcomeUnknown' => true, 'error' => 'Notification delivery is already running.'];
         }
         try {
-            return $this->_deliverNotification($notification, $submission, $queueJob, $deliveryKey);
+            $deliveryKey ??= DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
+            return Formie::$plugin->getIntegrationDispatcher()->withRun($submission, $deliveryKey,
+                fn() => $this->_deliverNotification($notification, $submission, $queueJob, $deliveryKey));
         } finally {
             $mutex->release($lock);
         }

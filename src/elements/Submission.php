@@ -462,7 +462,6 @@ class Submission extends Element
     public ?string $spamClass = null;
     public array $snapshot = [];
     public ?array $metadata = null;
-    public ?array $integrationDispatchContext = null;
     public ?bool $validateCurrentPageOnly = null;
 
     private ?Form $_form = null;
@@ -1247,10 +1246,6 @@ class Submission extends Element
 
         if (Craft::$app->getDb()->columnExists(Table::FORMIE_SUBMISSIONS, 'metadata')) {
             $record->metadata = $this->metadata;
-        }
-
-        if (Craft::$app->getDb()->columnExists(Table::FORMIE_SUBMISSIONS, 'integrationDispatchContext')) {
-            $record->integrationDispatchContext = $this->integrationDispatchContext;
         }
 
         $record->dateCreated = $this->dateCreated;

@@ -10,7 +10,6 @@ use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\events\IntegrationDeliveryEvent;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\IntegrationTriggerEvents;
-use verbb\formie\helpers\Table;
 use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\models\FormIntegration;
 use verbb\formie\models\IntegrationBatchResult;
@@ -21,7 +20,6 @@ use verbb\formie\models\IntegrationResult;
 use Craft;
 use craft\db\Query;
 use craft\elements\User;
-use craft\helpers\Json;
 use craft\helpers\Queue;
 use craft\helpers\StringHelper;
 
@@ -101,7 +99,8 @@ class IntegrationRunner extends Component
             return IntegrationResult::unknown('binding_running');
         }
         try {
-            return $this->_runIntegration($connection, $submission, $executionKey, $execution, $triggerContext);
+            return Formie::$plugin->getIntegrationDispatcher()->withRun($submission, $executionKey,
+                fn() => $this->_runIntegration($connection, $submission, $executionKey, $execution, $triggerContext));
         } finally {
             $mutex->release($lock);
         }
@@ -280,9 +279,7 @@ class IntegrationRunner extends Component
         }
         try {
             $dispatcher = Formie::$plugin->getIntegrationDispatcher();
-            $stored = (new Query())->select('integrationDispatchContext')->from(Table::FORMIE_SUBMISSIONS)->where(['id' => $submission->id])->scalar();
-            $submission->integrationDispatchContext = is_string($stored) ? Json::decode($stored) : ($stored ?: []);
-            $context = $dispatcher->loadContext($submission);
+            $context = $dispatcher->loadContext($submission, $executionKey);
             $value = $result->toStorage() + ['success' => $result->isSuccessful(), 'executionUid' => $executionKey, 'handle' => $handle];
             $element = is_string($integration) ? null : ($integration->context['dispatchElement'] ?? null);
             if (is_array($element) && $result->isSuccessful()) {
@@ -300,7 +297,7 @@ class IntegrationRunner extends Component
                 }
             }
             $context->record($handle, $value);
-            $dispatcher->saveContext($submission, $context);
+            $dispatcher->saveContext($submission, $context, $executionKey);
         } finally {
             $mutex->release($lock);
         }
