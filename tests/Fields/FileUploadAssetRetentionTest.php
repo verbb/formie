@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 beforeEach(fn() => \Tests\Support\UploadTestHelper::ensureUploadVolume());
 
-use Craft;
 use craft\elements\Asset;
 use Tests\Support\UploadTestHelper;
 use verbb\formie\fields\FileUpload;
@@ -109,6 +108,9 @@ it('purges repeater file upload assets independently of the submission record', 
             ]],
         ])
         ->save();
+
+    $field = FileUploadRetentionHelper::resolveFileUploadFieldForContentKey($form, 'repeatUpload.0.rowUpload');
+    Formie::$plugin->getFileUploads()->trackSubmissionAsset($asset, (int)$form->id, (int)$submission->id, $field->uid, $form, 'repeatUpload.0.rowUpload');
 
     Craft::$app->getDb()->createCommand()
         ->update(Craft::$app->getDb()->quoteTableName('{{%elements}}'), [

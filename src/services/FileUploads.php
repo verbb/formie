@@ -112,21 +112,26 @@ class FileUploads extends Component
             return false;
         }
 
-        $upload = $this->getTrackedUploadByAssetId($assetId, $formId, $fieldUid);
-
-        if (!$upload || in_array($upload['state'], ['bound', 'finalized'], true) || $this->isReferenced($assetId)) {
+        $mutex = Craft::$app->getMutex();
+        $key = 'formie.upload.' . $assetId;
+        if (isset($this->_lockedUploads[$assetId]) || !$mutex->acquire($key, 0)) {
             return false;
         }
 
-        if (Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, ['state' => 'rejected', 'expiresAt' => time()], ['assetId' => $assetId, 'state' => 'staged'])->execute() !== 1) {
-            return false;
-        }
-        Craft::$app->getElements()->deleteElementById($assetId, Asset::class, true);
-        Craft::$app->getDb()->createCommand()
-            ->delete(Table::FORMIE_PENDING_UPLOADS, ['assetId' => $assetId])
-            ->execute();
+        try {
+            $upload = $this->getTrackedUploadByAssetId($assetId, $formId, $fieldUid);
+            if (!$upload || $upload['state'] !== 'staged' || $this->isReferenced($assetId)) {
+                return false;
+            }
 
-        return true;
+            if (Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, ['state' => 'rejected', 'expiresAt' => time()], ['id' => $upload['id'], 'state' => 'staged'])->execute() !== 1) {
+                return false;
+            }
+
+            return $this->_deleteTrackedAsset($upload);
+        } finally {
+            $mutex->release($key);
+        }
     }
 
     public function getUploadMetadata(array $assetIds, ?int $formId = null, ?string $fieldUid = null): array
@@ -158,7 +163,7 @@ class FileUploads extends Component
             $expiry = ['or', $expiry, ['<', 'dateUpdated', gmdate('Y-m-d H:i:s', $olderThanTimestamp)]];
         }
         $rows = (new Query())
-            ->select(['id', 'assetId'])
+            ->select('*')
             ->from(Table::FORMIE_PENDING_UPLOADS)
             ->where(['state' => ['staged', 'bound', 'expired', 'rejected']])
             ->andWhere(['promotionState' => null])
@@ -180,18 +185,15 @@ class FileUploads extends Component
                     continue;
                 }
 
-                if (Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, ['state' => 'expired'], ['and', ['id' => $row['id'], 'state' => ['staged', 'bound', 'expired', 'rejected'], 'promotionState' => null], $expiry])->execute() !== 1) {
+                $eligible = ['and', ['id' => $row['id'], 'state' => ['staged', 'bound', 'expired', 'rejected'], 'promotionState' => null], $expiry];
+                if (!(new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where($eligible)->exists()) {
                     continue;
                 }
-                if ($assetId > 0) {
-                    Craft::$app->getElements()->deleteElementById($assetId, Asset::class, true);
+                // The asset lock protects eligibility; already-expired retries may update zero rows.
+                Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, ['state' => 'expired'], $eligible)->execute();
+                if ($this->_deleteTrackedAsset($row)) {
+                    $count++;
                 }
-
-                Craft::$app->getDb()->createCommand()
-                    ->delete(Table::FORMIE_PENDING_UPLOADS, ['id' => (int)$row['id']])
-                    ->execute();
-
-                $count++;
             } finally {
                 $mutex->release($key);
             }
@@ -470,7 +472,7 @@ class FileUploads extends Component
         return $purgedAssetCount;
     }
 
-    public function isReferenced(int $assetId, ?int $exceptSubmissionId = null): bool
+    public function isReferenced(int $assetId, ?int $exceptSubmissionId = null, ?string $exceptContentKey = null): bool
     {
         if ((new Query())->from('{{%relations}}')->where(['targetId' => $assetId])->andFilterWhere(['not', ['sourceId' => $exceptSubmissionId]])->exists()) {
             return true;
@@ -479,11 +481,14 @@ class FileUploads extends Component
             return true;
         }
         // Formie stores field values in JSON rather than Craft relation rows.
-        foreach (Submission::find()->site('*')->unique()->isIncomplete(null)->isSpam(null)->status(null)->each() as $submission) {
-            if ($exceptSubmissionId === (int)$submission->id) {
+        foreach (Submission::find()->site('*')->unique()->isIncomplete(null)->isSpam(null)->status(null)->trashed(null)->each() as $submission) {
+            if ($exceptSubmissionId === (int)$submission->id && $exceptContentKey === null) {
                 continue;
             }
-            foreach ($submission->getFieldValuesForField(FileUpload::class) as $value) {
+            foreach ($submission->getFieldValuesForField(FileUpload::class) as $contentKey => $value) {
+                if ($exceptSubmissionId === (int)$submission->id && $exceptContentKey === $contentKey) {
+                    continue;
+                }
                 if (in_array($assetId, $this->_extractAssetIds($value), true)) {
                     return true;
                 }
@@ -601,34 +606,73 @@ class FileUploads extends Component
             return 0;
         }
 
-        $elementsService = Craft::$app->getElements();
+        $field = FileUploadRetentionHelper::resolveFileUploadFieldForContentKey($submission->getForm(), $contentKey);
+        $remaining = $assetIds;
         $purged = 0;
 
         foreach ($assetIds as $assetId) {
+            $mutex = Craft::$app->getMutex();
+            $key = 'formie.upload.' . $assetId;
+            if (isset($this->_lockedUploads[$assetId]) || !$mutex->acquire($key, 0)) {
+                continue;
+            }
             try {
-                $asset = Asset::find()->id($assetId)->status(null)->one();
+                $upload = $this->getTrackedUploadByAssetId($assetId, (int)$submission->formId, $field?->uid);
+                $owned = $upload && $field && (int)$upload['submissionId'] === (int)$submission->id
+                    && ($upload['contentKey'] === null || $upload['contentKey'] === $contentKey);
 
-                if ($this->isReferenced($assetId, (int)$submission->id)) {
-                    continue;
-                }
-                if ($asset && $elementsService->deleteElement($asset, true)) {
+                // Retention of a relation does not grant ownership of a shared or imported asset.
+                if ($owned && !$this->isReferenced($assetId, (int)$submission->id, $contentKey)) {
+                    if (!$this->_deleteTrackedAsset($upload)) {
+                        continue;
+                    }
                     $purged++;
                 }
 
-                Craft::$app->getDb()->createCommand()
-                    ->delete(Table::FORMIE_PENDING_UPLOADS, ['assetId' => $assetId])
-                    ->execute();
-            } catch (Throwable $e) {
-                Formie::error("Failed to purge uploaded asset #{$assetId} for submission #{$submission->id}: {$e->getMessage()}");
+                $remaining = array_values(array_diff($remaining, [$assetId]));
+            } finally {
+                $mutex->release($key);
             }
         }
 
-        if ($purged) {
-            $submission->setFieldValue($contentKey, []);
+        if ($remaining !== $assetIds) {
+            $submission->setFieldValue($contentKey, $remaining);
             $this->_persistSubmissionContent($submission);
         }
 
         return $purged;
+    }
+
+    private function _deleteTrackedAsset(array $upload): bool
+    {
+        $assetId = (int)$upload['assetId'];
+        $db = Craft::$app->getDb();
+        $transaction = $db->beginTransaction();
+
+        try {
+            $asset = Asset::find()->id($assetId)->status(null)->trashed(null)->one();
+            if ($asset) {
+                $volume = $asset->getVolume();
+                $path = $asset->getPath();
+                if (!Craft::$app->getElements()->deleteElement($asset, true) || $volume->fileExists($path)) {
+                    throw new \RuntimeException('Asset deletion did not complete.');
+                }
+            }
+            $db->createCommand()->delete(Table::FORMIE_PENDING_UPLOADS, ['id' => $upload['id']])->execute();
+            $transaction->commit();
+        } catch (Throwable) {
+            // Roll back metadata, not the filesystem. A retry can finish an already-removed file.
+            $transaction->rollBack();
+            $db->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
+                'failureCode' => 'deletionFailed',
+                'dateUpdated' => gmdate('Y-m-d H:i:s'),
+            ], ['id' => $upload['id']])->execute();
+            Formie::error("Failed to delete tracked upload asset #{$assetId}; cleanup will retry.");
+
+            return false;
+        }
+
+        return true;
     }
 
     private function _persistSubmissionContent(Submission $submission): void
