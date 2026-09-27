@@ -105,6 +105,7 @@ class ProcessPaymentTask implements TaskInterface
             }
             if ($completed) {
                 Formie::$plugin->getFileUploads()->finalizeSubmissionUploads((int)$submission->id);
+                Formie::$plugin->getSubmissionDispatches()->recordIntent($context);
             }
             $transaction->commit();
         } catch (Throwable $e) {

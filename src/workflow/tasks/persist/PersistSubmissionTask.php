@@ -46,15 +46,20 @@ class PersistSubmissionTask implements TaskInterface
             }
 
             // Validate owns content validation; field persistence also enforces mandatory upload policy.
+            $saveTransaction = Craft::$app->getDb()->beginTransaction();
             try {
                 if (!Craft::$app->getElements()->saveElement($submission, false)) {
+                    $saveTransaction->rollBack();
                     $uploads->releaseUnpersistedBindings($bound);
                     if ($submission->hasErrors()) {
                         return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
                     }
                     throw new RuntimeException('Unable to persist the accepted submission.');
                 }
+                Formie::$plugin->getSubmissionDispatches()->recordIntent($context);
+                $saveTransaction->commit();
             } catch (\Throwable $e) {
+                $saveTransaction->rollBack();
                 $uploads->releaseUnpersistedBindings($bound);
                 throw $e;
             }
@@ -75,6 +80,7 @@ class PersistSubmissionTask implements TaskInterface
                 }
                 if (!$submission->isIncomplete) {
                     $uploads->finalizeSubmissionUploads((int)$submission->id);
+                    Formie::$plugin->getSubmissionDispatches()->recordIntent($context);
                 }
                 $transaction->commit();
             } catch (\Throwable $e) {

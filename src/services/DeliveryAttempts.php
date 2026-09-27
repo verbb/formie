@@ -49,6 +49,7 @@ class DeliveryAttempts extends Component
         if ($context->submissionId <= 0) {
             throw new RuntimeException('Save the submission before preparing delivery.');
         }
+        Formie::$plugin->getSubmissionDispatches()->ensureRun($context);
         $identity = hash('sha256', Json::encode([$context->submissionId, $context->binding, $context->executionUid, $step]));
         $uid = StringHelper::UUID();
         $now = Db::prepareDateForDb(new DateTime());
@@ -67,6 +68,7 @@ class DeliveryAttempts extends Component
         if ($row['uid'] === $uid) {
             $this->checkpoint($uid, 'prepared', ['step' => $step, 'execution' => $context->execution, 'reason' => $context->reason, 'actorId' => $context->overrides ? Craft::$app->getUser()->getId() : null, 'eligible' => $context->eligible, 'overrides' => $context->overrides]);
         }
+        Formie::$plugin->getSubmissionDispatches()->refresh($context->submissionId, $context->executionUid);
         return $row['uid'];
     }
 
@@ -140,6 +142,7 @@ class DeliveryAttempts extends Component
             }
             $now = Db::prepareDateForDb(new DateTime());
             Db::update(self::TABLE, ['status' => 'sending', 'startedAt' => $now, 'dateUpdated' => $now], ['uid' => $uid]);
+            Formie::$plugin->getSubmissionDispatches()->refresh((int)$row['submissionId'], $row['executionUid']);
             $this->checkpoint($uid, 'started');
             $this->_event(self::EVENT_OPERATION_START, $uid);
             try {
@@ -235,6 +238,7 @@ class DeliveryAttempts extends Component
             $uid = $this->prepare($context, 'integration');
             $now = Db::prepareDateForDb(new DateTime());
             Db::update(self::TABLE, ['status' => 'sending', 'startedAt' => $now, 'dateUpdated' => $now], ['uid' => $uid]);
+            Formie::$plugin->getSubmissionDispatches()->refresh($context->submissionId, $context->executionUid);
             $this->checkpoint($uid, 'started');
             return $uid;
         } finally {
@@ -353,6 +357,8 @@ class DeliveryAttempts extends Component
         $now = Db::prepareDateForDb(new DateTime());
         $this->checkpoint($uid, 'result', $result->toStorage());
         Db::update(self::TABLE, ['status' => $result->status->value, 'result' => DeliveryDiagnostics::encode($result->toStorage()), 'completedAt' => $now, 'dateUpdated' => $now], ['uid' => $uid]);
+        $row = $this->get($uid);
+        Formie::$plugin->getSubmissionDispatches()->refresh((int)$row['submissionId'], $row['executionUid']);
         $this->_event(self::EVENT_ATTEMPT_COMPLETED, $uid, $result);
     }
 

@@ -27,8 +27,10 @@ class CronController extends Controller
      */
     public bool $skipReports = false;
 
+    public bool $skipDeliveries = false;
+
     /**
-     * @var string|null Comma-separated task groups to run: `gc`, `reports`. Omit to run all groups.
+     * @var string|null Comma-separated task groups to run: `gc`, `reports`, `deliveries`. Omit to run all groups.
      */
     public ?string $only = null;
 
@@ -43,6 +45,7 @@ class CronController extends Controller
         if ($actionID === 'run') {
             $options[] = 'skipGc';
             $options[] = 'skipReports';
+            $options[] = 'skipDeliveries';
             $options[] = 'only';
         }
 
@@ -70,6 +73,11 @@ class CronController extends Controller
         }
 
         $exitCode = ExitCode::OK;
+
+        if (in_array('deliveries', $groups, true)) {
+            $count = Formie::$plugin->getSubmissionDispatches()->recover();
+            $this->stdout("Scheduled {$count} interrupted submission dispatches.\n", Console::FG_GREEN);
+        }
 
         if (in_array('gc', $groups, true)) {
             $this->stdout("Running Formie cleanup tasks ...\n", Console::FG_YELLOW);
@@ -138,7 +146,7 @@ class CronController extends Controller
             $groups = array_values(array_filter(array_map('trim', explode(',', $this->only))));
 
             foreach ($groups as $group) {
-                if (!in_array($group, ['gc', 'reports'], true)) {
+                if (!in_array($group, ['gc', 'reports', 'deliveries'], true)) {
                     $this->stderr("Unknown cron task group: $group\n", Console::FG_RED);
 
                     return null;
@@ -158,8 +166,12 @@ class CronController extends Controller
             $groups[] = 'reports';
         }
 
+        if (!$this->skipDeliveries) {
+            $groups[] = 'deliveries';
+        }
+
         if (!$groups) {
-            $this->stderr("No cron task groups selected. Remove --skip-gc and --skip-reports, or set --only.\n", Console::FG_RED);
+            $this->stderr("No cron task groups selected. Enable a group or set --only.\n", Console::FG_RED);
 
             return null;
         }

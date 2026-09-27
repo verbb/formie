@@ -12,9 +12,9 @@ class NotificationTriggers extends Component
     // Public Methods
     // =========================================================================
 
-    public function dispatchStatusChange(Submission $submission): void
+    public function dispatchStatusChange(Submission $submission, ?bool $statusChanged = null): void
     {
-        if (!$submission->id || !$submission->hasStatusChanged()) {
+        if (!$submission->id || !($statusChanged ?? $submission->hasStatusChanged())) {
             return;
         }
 

@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\enums\workflow\Stage;
@@ -11,6 +12,7 @@ use verbb\formie\events\SubmissionWorkflowStageEvent;
 use verbb\formie\events\SubmissionWorkflowTaskEvent;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\models\SubmissionCommand;
+use verbb\formie\models\SubmissionDispatch;
 use verbb\formie\models\SubmissionOutcome;
 use verbb\formie\workflow\tasks\dispatch\DispatchState;
 use verbb\formie\workflow\tasks\TaskRegistry;
@@ -43,12 +45,36 @@ class SubmissionWorkflow extends Component
     /** Only the processor's resolved and authorized command enters this workflow. */
     public function process(SubmissionCommand $command): SubmissionOutcome
     {
+        return $this->_run(new WorkflowContext($command), false)
+            ?? throw new LogicException('The submission workflow did not produce an outcome.');
+    }
+
+    public function resumeDispatch(SubmissionCommand $command, SubmissionDispatch $run, string $lock): void
+    {
         $context = new WorkflowContext($command);
+        $context->processingSuccess = true;
+        $context->taskState['dispatch.uid'] = $run->uid;
+        $context->taskState['dispatch.lock'] = $lock;
+        $context->taskState['dispatch.statusChanged'] = $run->command['statusChanged'];
+        $context->taskState['dispatch.spamUnmarked'] = $run->command['spamUnmarked'];
+        $this->_run($context, true);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _run(WorkflowContext $context, bool $dispatchOnly): ?SubmissionOutcome
+    {
+        $command = $context->command;
         WorkflowContext::push($context);
 
         try {
             foreach (WorkflowManifest::stages() as $stageName => $builtIns) {
                 $stage = Stage::from($stageName);
+                if ($dispatchOnly && $stage !== Stage::DISPATCH) {
+                    continue;
+                }
                 if ($context->outcome && $stage !== Stage::FINALIZE) {
                     continue;
                 }
@@ -109,6 +135,7 @@ class SubmissionWorkflow extends Component
 
                 if ($stage === Stage::PERSIST && !$context->outcome) {
                     $this->_raisePersistenceEvents($context);
+                    Formie::$plugin->getSubmissionDispatches()->updateAcceptedVersion($context);
                 }
                 if ($stage === Stage::DISPATCH) {
                     $state = $context->taskState['dispatch.state'];
@@ -116,6 +143,7 @@ class SubmissionWorkflow extends Component
                         || $state->hasMarker(DispatchState::MARKER_SPAM_NOTIFICATIONS)) {
                         $state->markMarker(DispatchState::MARKER_FINALIZED);
                     }
+                    Formie::$plugin->getSubmissionDispatches()->finish($context, $context->outcome === null);
                 }
                 if ($context->outcome && !in_array($context->outcome->type, [
                     SubmissionOutcomeType::PAYMENT_ACTION_REQUIRED,
@@ -126,21 +154,21 @@ class SubmissionWorkflow extends Component
                 }
             }
 
-            return $context->outcome ?? throw new LogicException('The submission workflow did not produce an outcome.');
+            return $context->outcome;
         } finally {
-            FileUpload::clearStagedUploads($command->submission);
-            WorkflowContext::pop();
+            try {
+                Formie::$plugin->getSubmissionDispatches()->finish($context, false);
+            } finally {
+                FileUpload::clearStagedUploads($command->submission);
+                WorkflowContext::pop();
+            }
         }
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     private function _prepareDispatch(WorkflowContext $context): bool
     {
-        $state = new DispatchState($context->command->submission, $context->command->operation, $context->processingSuccess, $context->command->operationId);
-        if (!$state->isDispatchable() || $state->isAlreadyFinalized()) {
+        $state = new DispatchState($context->command->submission, $context->command->operation, $context->processingSuccess, $context->taskState['dispatch.uid'] ?? null);
+        if (!$state->isDispatchable() || !Formie::$plugin->getSubmissionDispatches()->begin($context)) {
             return false;
         }
         $state->applySpamFailureIfNeeded();

@@ -75,6 +75,7 @@ use verbb\formie\services\SentNotifications;
 use verbb\formie\services\Service;
 use verbb\formie\services\SpamProtection;
 use verbb\formie\services\Stencils;
+use verbb\formie\services\SubmissionDispatches;
 use verbb\formie\services\SubmissionGrants;
 use verbb\formie\services\SubmissionGuards;
 use verbb\formie\services\SubmissionMetadata;
@@ -232,6 +233,7 @@ trait PluginTrait
                 'integrationDispatcher' => IntegrationDispatcher::class,
                 'integrationRunner' => IntegrationRunner::class,
                 'deliveryAttempts' => DeliveryAttempts::class,
+                'submissionDispatches' => SubmissionDispatches::class,
                 'integrationTriggers' => IntegrationTriggers::class,
                 'notificationTriggers' => NotificationTriggers::class,
                 'serverRenderPayloadBuilder' => ServerRenderPayloadBuilder::class,
@@ -509,6 +511,11 @@ trait PluginTrait
     public function getDeliveryAttempts(): DeliveryAttempts
     {
         return $this->get('deliveryAttempts');
+    }
+
+    public function getSubmissionDispatches(): SubmissionDispatches
+    {
+        return $this->get('submissionDispatches');
     }
 
     public function getIntegrationRunner(): IntegrationRunner

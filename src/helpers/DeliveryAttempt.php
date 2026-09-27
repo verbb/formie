@@ -33,6 +33,9 @@ class DeliveryAttempt
         if (!$context) {
             return null;
         }
+        if (isset($context->taskState['dispatch.uid'])) {
+            return $context->taskState['dispatch.uid'];
+        }
         if ($context->command->operationId) {
             return 'workflow:' . $context->command->operationId;
         }

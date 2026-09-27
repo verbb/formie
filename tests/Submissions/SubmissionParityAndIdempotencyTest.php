@@ -70,7 +70,7 @@ it('bridges deprecated email value listeners through the reference block pipelin
         ->and($legacySaw)->toBe('canonical-value');
 });
 
-it('deduplicates post-submit workflow markers by idempotency key', function (): void {
+it('deduplicates post-submit workflow markers by business run across request keys', function (): void {
     $form = formie()
         ->form(['title' => 'Idempotency Workflow'])
         ->singleLineTextField('fullName')
@@ -88,11 +88,14 @@ it('deduplicates post-submit workflow markers by idempotency key', function (): 
         'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         'operationId' => $idempotencyKey,
     ]));
+    $dispatchUid = (new Query())->select('uid')->from(\verbb\formie\services\SubmissionDispatches::TABLE)
+        ->where(['submissionId' => $submission->id, 'kind' => 'completion'])->scalar();
+    expect($dispatchUid)->toBeString()->not->toBe($idempotencyKey);
     $countAfterFirst = (new Query())
         ->from(Table::FORMIE_SUBMISSION_WORKFLOW)
         ->where([
             'submissionId' => $submission->id,
-            'idempotencyKey' => hash('sha256', $idempotencyKey),
+            'idempotencyKey' => hash('sha256', $dispatchUid),
         ])
         ->count();
 
@@ -107,7 +110,7 @@ it('deduplicates post-submit workflow markers by idempotency key', function (): 
         ->from(Table::FORMIE_SUBMISSION_WORKFLOW)
         ->where([
             'submissionId' => $submission->id,
-            'idempotencyKey' => hash('sha256', $idempotencyKey),
+            'idempotencyKey' => hash('sha256', $dispatchUid),
         ])
         ->count();
 
@@ -125,7 +128,9 @@ it('deduplicates post-submit workflow markers by idempotency key', function (): 
 
     expect((int)$countAfterFirst)->toBeGreaterThan(0)
         ->and((int)$countAfterSecond)->toBe((int)$countAfterFirst)
-        ->and((int)$countAfterDifferentKey)->toBeGreaterThan((int)$countAfterSecond);
+        ->and((int)$countAfterDifferentKey)->toBe((int)$countAfterSecond)
+        ->and((int)(new Query())->from(\verbb\formie\services\SubmissionDispatches::TABLE)
+            ->where(['submissionId' => $submission->id, 'kind' => 'completion'])->count())->toBe(1);
 });
 
 it('rejects the second provisional progress writer at the same version', function (): void {

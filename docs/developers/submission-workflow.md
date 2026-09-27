@@ -83,6 +83,10 @@ Stage and task observation events carry `command`, `context`, `stage`, and, afte
 
 `EVENT_AFTER_PAGE_ADVANCE` fires after a successfully persisted forward page. `Submission::EVENT_AFTER_COMPLETE` fires when completion becomes durable, before completion dispatch. Direct Craft element saves persist the record and raise element events, but do not run the workflow or automatically dispatch notifications and integrations.
 
+Completion also commits a pending `SubmissionDispatch` in the same database transaction. Its identity represents the business run, not a browser request token. Payment replay reuses the completion run; accepted revisions and deliberate manual deliveries have separate runs. Queue publication and provider requests happen after commit. If processing is interrupted, scheduled recovery runs only the registered Dispatch tasks, using the same run identity; it does not repeat persistence, payment or completion events. Custom Dispatch tasks must tolerate retry and protect their own external effects.
+
+The dispatch status distinguishes scheduled work from running work, completed delivery, completed delivery with failures and work needing attention. A delivery attempt describes one operation within that run. See [delivery recovery commands](/developers/console-commands#recover-interrupted-submission-delivery) for scheduling and inspection.
+
 ## Versions and Retries
 
 Interactive sessions expose `version`; managed HTML/AJAX requests post it as `expectedVersion`. Administrative GraphQL edits also require `expectedVersion`, obtained from the submission's `stateVersion`. A stale write returns `stateConflict` before posted values are applied.

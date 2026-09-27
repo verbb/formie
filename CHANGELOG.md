@@ -47,6 +47,7 @@
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
 
 ### Fixed
+- Commit pending delivery intent with submission completion and recover interrupted dispatches without repeating payment or creating another completion run.
 - Keep integration results and reference values scoped to their delivery run instead of overwriting the submission’s latest results.
 - Serve staged upload previews through expiring view capabilities and require private temporary upload storage.
 - Enforce aggregate staged-upload file and byte budgets across fields and cap staged expiry independently of incomplete-submission retention.

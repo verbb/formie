@@ -239,8 +239,8 @@ class IntegrationDispatcher extends Component
         if (!$submission->id || $runUid === null) {
             return new IntegrationRunContext();
         }
-        $value = (new Query())->select('context')->from(self::CONTEXT_TABLE)
-            ->where(['submissionId' => $submission->id, 'runUid' => $runUid])->scalar();
+        $value = Craft::$app->getDb()->useMaster(fn() => (new Query())->select('context')->from(self::CONTEXT_TABLE)
+            ->where(['submissionId' => $submission->id, 'runUid' => $runUid])->scalar());
         return IntegrationRunContext::fromStorage($value);
     }
 

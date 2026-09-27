@@ -77,5 +77,7 @@ it('keeps side-effect dispatch idempotency stable across submit-action and reque
         ->and($afterSaveAction)->toBe($afterFirstSubmit)
         ->and($afterBackAction)->toBe($afterFirstSubmit)
         ->and($afterReplaySameToken)->toBe($afterFirstSubmit)
-        ->and($afterReplayNewToken)->toBeGreaterThan($afterReplaySameToken);
+        ->and($afterReplayNewToken)->toBe($afterReplaySameToken)
+        ->and((int)(new Query())->from(\verbb\formie\services\SubmissionDispatches::TABLE)
+            ->where(['submissionId' => $submission->id, 'kind' => 'completion'])->count())->toBe(1);
 });
