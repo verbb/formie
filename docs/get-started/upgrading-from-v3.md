@@ -1509,6 +1509,7 @@ The most upgrade-relevant settings are:
 Setting | Use
 --- | ---
 `compatibilityMode` | Enables Formie 3 compatibility shims. Defaults to `true`.
+`allowLegacySignatureImageUrls` | Keeps unsigned Signature images in previously sent Formie 2/3 emails available for explicitly grandfathered submissions. Defaults to `true`; new emails use signed URLs.
 `staticCacheRefreshOnLoad` | Enables token refresh support for static-cache setups that are not auto-detected.
 `submissionStateRetentionDays` | Controls retention for stored submission state.
 `saveResumeTokenTtlDays` | Controls resume link lifetime.

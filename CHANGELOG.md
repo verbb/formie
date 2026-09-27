@@ -14,6 +14,7 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Use non-expiring, exact-value Signature image capabilities while preserving explicitly grandfathered Formie 2/3 email image URLs behind a dedicated compatibility setting.
 - Keep required behavioural and accessibility attributes authoritative, retain the final trusted PHP slot event escape hatch, and bind Summary theme state to compact, expiring access tokens backed by encrypted shared storage.
 - Keep Formie 3 theme grammar compatibility while renaming the beta `defineFieldSlotTag()` method to `defineSlotTag()` and removing mutable render state from shared Form elements.
 - Split `formie.css` into functional `formie-base.css` and visual `formie-theme.css` layers; the `none` theme now omits only visual styling.

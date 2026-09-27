@@ -32,30 +32,29 @@ final class FieldAccess
         if (!$form) {
             return null;
         }
-        $isSummary = $form->getFieldById($fieldId) instanceof Summary;
+        if (!$form->getFieldById($fieldId) instanceof Summary) {
+            return null;
+        }
+
         $payload = [
             'version' => 2,
-            'purpose' => $isSummary ? 'summary' : 'field',
+            'purpose' => 'summary',
             'submissionUid' => $submissionUid,
             'formId' => $formId,
             'siteId' => (int)$form->siteId,
             'fieldId' => $fieldId,
         ];
-        // Signature image links do not render a theme and retain their existing
-        // lifetime independently of expiring Summary fragment state.
-        if ($isSummary) {
-            $frame = Formie::$plugin->getRendering()->getActiveRenderFrame();
-            $resolvedTheme = ($frame && (int)$frame->getForm()->id === $formId && (int)$frame->getForm()->siteId === (int)$form->siteId)
-                ? $frame->getResolvedTheme()
-                : Formie::$plugin->getThemeConfigService()->resolve($form);
-            $expiresAt = time() + SubmissionOperations::RETENTION_SECONDS;
-            $payload += [
-                'expiresAt' => $expiresAt,
-                'theme' => self::_storeTheme($form, $resolvedTheme, $expiresAt),
-                'themeMode' => $resolvedTheme->mode,
-                'themeDigest' => $resolvedTheme->digest,
-            ];
-        }
+        $frame = Formie::$plugin->getRendering()->getActiveRenderFrame();
+        $resolvedTheme = ($frame && (int)$frame->getForm()->id === $formId && (int)$frame->getForm()->siteId === (int)$form->siteId)
+            ? $frame->getResolvedTheme()
+            : Formie::$plugin->getThemeConfigService()->resolve($form);
+        $expiresAt = time() + SubmissionOperations::RETENTION_SECONDS;
+        $payload += [
+            'expiresAt' => $expiresAt,
+            'theme' => self::_storeTheme($form, $resolvedTheme, $expiresAt),
+            'themeMode' => $resolvedTheme->mode,
+            'themeDigest' => $resolvedTheme->digest,
+        ];
 
         $key = Formie::$plugin->getSettings()->getSecurityKey();
         $encrypted = Craft::$app->getSecurity()->encryptByKey(Json::encode($payload), $key);
@@ -88,7 +87,7 @@ final class FieldAccess
 
         $payload = Json::decodeIfJson($decrypted);
 
-        if (!is_array($payload) || ($payload['version'] ?? null) !== 2 || !in_array($payload['purpose'] ?? null, ['summary', 'field'], true)) {
+        if (!is_array($payload) || ($payload['version'] ?? null) !== 2 || ($payload['purpose'] ?? null) !== 'summary') {
             return null;
         }
 
@@ -101,9 +100,6 @@ final class FieldAccess
             return null;
         }
         $context = ['submissionUid' => $submissionUid, 'formId' => $formId, 'siteId' => $siteId, 'fieldId' => $fieldId];
-        if ($payload['purpose'] === 'field') {
-            return $context + ['theme' => null];
-        }
         if (!is_int($payload['expiresAt'] ?? null) || $payload['expiresAt'] <= time()
             || !array_key_exists('theme', $payload) || ($payload['theme'] !== null && !is_string($payload['theme']))
             || !in_array($payload['themeMode'] ?? null, ['formie', 'none'], true) || !is_string($payload['themeDigest'] ?? null)) {

@@ -364,6 +364,15 @@ Sets the maximum age of incomplete submissions in days before they are deleted b
 
 
 ::: reference
+#### `allowLegacySignatureImageUrls`
+
+**Type:** `bool` · **Default:** `true`
+
+Allows previously sent unsigned Formie 2 and Formie 3 Signature image URLs to continue loading for submissions explicitly marked as legacy during the upgrade. New Formie 4 submissions always use signed, non-expiring, exact-value image URLs. Set this to `false` when historical email images no longer need to load.
+:::
+
+
+::: reference
 #### `enableCsrfValidationForGuests`
 
 **Type:** `bool` · **Default:** `true`

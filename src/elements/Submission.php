@@ -22,10 +22,11 @@ use verbb\formie\events\SubmissionRulesEvent;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Payment;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\Table;
 use verbb\formie\helpers\References;
+use verbb\formie\helpers\SignatureAccess;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\SubmissionLimitHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\helpers\ValidationHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\FieldLayout as FormLayout;
@@ -492,6 +493,11 @@ class Submission extends Element
     public function __toString(): string
     {
         return (string)$this->title;
+    }
+
+    public function usesLegacySignatureAccess(): bool
+    {
+        return SignatureAccess::usesLegacyAccess($this);
     }
 
     public function getMetadata(?string $key = null): array
@@ -1243,6 +1249,14 @@ class Submission extends Element
         $record->spamClass = $this->spamClass;
         $record->snapshot = $this->snapshot;
         $record->ipAddress = $this->ipAddress;
+
+        if ($isNew && Craft::$app->getDb()->columnExists(Table::FORMIE_SUBMISSIONS, 'signatureAccessKey')) {
+            $record->signatureAccessKey = Craft::$app->getSecurity()->generateRandomString(64);
+        }
+
+        if ($isNew && Craft::$app->getDb()->columnExists(Table::FORMIE_SUBMISSIONS, 'legacySignatureAccess')) {
+            $record->legacySignatureAccess = false;
+        }
 
         if (Craft::$app->getDb()->columnExists(Table::FORMIE_SUBMISSIONS, 'metadata')) {
             $record->metadata = $this->metadata;

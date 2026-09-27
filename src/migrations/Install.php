@@ -50,6 +50,7 @@ class Install extends Migration
         (new m260926_000000_submission_operations())->safeUp();
         (new m260926_010000_submission_continuity())->safeUp();
         (new m260926_020000_payment_boundary())->safeUp();
+        (new m260927_050000_submission_dispatches())->safeUp();
 
         return true;
     }
@@ -552,6 +553,8 @@ class Install extends Migration
             'spamClass' => $this->string(),
             'snapshot' => $this->text(),
             'ipAddress' => $this->string(),
+            'signatureAccessKey' => $this->string(64),
+            'legacySignatureAccess' => $this->boolean()->notNull()->defaultValue(false),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),

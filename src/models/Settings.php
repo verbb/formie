@@ -109,6 +109,7 @@ class Settings extends Model
     public int $submissionStateRetentionDays = 30;
     public string $submissionSidebarFormOrder = self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC;
     public string $defaultCpSubmissionFieldConditions = CpSubmissionFieldConditions::FOLLOW;
+    public bool $allowLegacySignatureImageUrls = true;
     public int $reportTablePageSize = 100;
     public int $reportAsyncExportRowThreshold = 1000;
     public int $reportInteractiveExportExpiryHours = 72;
@@ -450,8 +451,8 @@ class Settings extends Model
         $rules[] = [['pluginName', 'defaultPage', 'maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'required'];
         $rules[] = [['pluginName'], 'string', 'max' => 52];
         $rules[] = [['maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'number', 'integerOnly' => true];
-        $rules[] = [['reportTablePageSize'], 'number', 'integerOnly' => true, 'min' => 1, 'max' => 100];
         $rules[] = [['maxStagedUploadFiles', 'maxStagedUploadBytes'], 'number', 'integerOnly' => true, 'min' => 1];
+        $rules[] = [['reportTablePageSize'], 'number', 'integerOnly' => true, 'min' => 1, 'max' => 100];
         $rules[] = [['reportAsyncExportRowThreshold'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['reportInteractiveExportExpiryHours', 'reportScheduledExportExpiryHours'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['reportExportSingleUseDownload'], 'boolean'];

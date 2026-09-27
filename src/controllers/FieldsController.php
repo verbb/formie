@@ -7,9 +7,10 @@ use verbb\formie\elements\Submission;
 use verbb\formie\fields\Payment;
 use verbb\formie\fields\Signature;
 use verbb\formie\fields\Summary;
-use verbb\formie\helpers\FieldAccess;
 use verbb\formie\helpers\CalculationsHelper;
+use verbb\formie\helpers\FieldAccess;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\SignatureAccess;
 use verbb\formie\options\OptionSourceFieldInterface;
 
 use Craft;
@@ -428,17 +429,34 @@ class FieldsController extends Controller
 
     public function actionGetSignatureImage(): ?Response
     {
-        $context = $this->_resolveFieldAccessContext((string)$this->request->getParam('accessToken', ''));
+        $accessToken = $this->request->getParam('accessToken');
 
-        if (!$context || !($context['field'] instanceof Signature)) {
+        // Supplying any token selects the signed path. Invalid or empty tokens
+        // must never downgrade into the unsigned compatibility branch.
+        if ($accessToken !== null) {
+            if (!is_string($accessToken)) {
+                return null;
+            }
+
+            $context = SignatureAccess::resolveAccessToken($accessToken, [
+                'submissionUid' => $this->request->getParam('submissionUid'),
+                'siteId' => $this->request->getParam('siteId'),
+                'fieldId' => $this->request->getParam('fieldId'),
+                'fieldKey' => $this->request->getParam('fieldKey'),
+            ]);
+        } else {
+            $submissionUid = $this->request->getParam('submissionUid');
+            $context = is_string($submissionUid) ? SignatureAccess::resolveLegacyAccess(
+                $submissionUid,
+                (int)$this->request->getParam('fieldId'),
+            ) : null;
+        }
+
+        if (!$context) {
             return null;
         }
 
-        $value = trim((string)$context['submission']->getFieldValue($context['field']->valueKey()));
-
-        if ($value === '') {
-            return null;
-        }
+        $value = $context['value'];
 
         if (str_contains($value, 'base64,')) {
             $parts = explode('base64,', $value, 2);

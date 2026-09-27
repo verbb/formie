@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
@@ -9,8 +10,8 @@ use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
-use verbb\formie\helpers\FieldAccess;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\SignatureAccess;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModuleEntry;
@@ -84,29 +85,43 @@ class Signature extends Field implements PreviewableFieldInterface
             return $value;
         }
 
-        $accessToken = FieldAccess::issueAccessToken($submission, (int)$this->id);
+        $accessToken = SignatureAccess::issueAccessToken($submission, (int)$this->id, $this->valueKey(), $value);
 
-        if (!$accessToken) {
-            return $value;
+        if ($accessToken) {
+            return UrlHelper::actionUrl('formie/fields/get-signature-image', [
+                'accessToken' => $accessToken,
+            ]);
         }
 
-        // On non-dev sites, use a proxy to serve the "image" so web-based clients work
-        return UrlHelper::actionUrl('formie/fields/get-signature-image', [
-            'accessToken' => $accessToken,
-        ]);
+        if ($submission->usesLegacySignatureAccess() && Formie::$plugin->getSettings()->allowLegacySignatureImageUrls) {
+            return UrlHelper::actionUrl('formie/fields/get-signature-image', [
+                'submissionUid' => $submission->uid,
+                'fieldId' => $this->id,
+            ]);
+        }
+
+        return null;
     }
 
     public function getDownloadUrl(Submission $submission): ?string
     {
-        $accessToken = FieldAccess::issueAccessToken($submission, (int)$this->id);
+        $value = $submission->getFieldValue($this->valueKey());
+        $accessToken = SignatureAccess::issueAccessToken($submission, (int)$this->id, $this->valueKey(), $value);
 
-        if (!$accessToken) {
-            return null;
+        if ($accessToken) {
+            return StringHelper::sanitizeUrlAttribute(UrlHelper::actionUrl('formie/fields/get-signature-image', [
+                'accessToken' => $accessToken,
+            ]));
         }
 
-        return StringHelper::sanitizeUrlAttribute(UrlHelper::actionUrl('formie/fields/get-signature-image', [
-            'accessToken' => $accessToken,
-        ]));
+        if ($submission->usesLegacySignatureAccess() && Formie::$plugin->getSettings()->allowLegacySignatureImageUrls) {
+            return StringHelper::sanitizeUrlAttribute(UrlHelper::actionUrl('formie/fields/get-signature-image', [
+                'submissionUid' => $submission->uid,
+                'fieldId' => $this->id,
+            ]));
+        }
+
+        return null;
     }
 
     public function getSettingGqlTypes(): array
