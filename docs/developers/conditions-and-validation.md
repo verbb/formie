@@ -44,7 +44,7 @@ New visibility rules select preceding fields, previous pages or preceding siblin
 
 After applying initial, default, forced and submitted values, the server evaluates visibility and clears hidden or disabled values recursively, including repeater children. Public requests cannot opt out. Trusted control-panel follow-conditions and muted modes also clear values; explicit show-all mode may preserve hidden values.
 
-Validation then checks the applicable visible fields. Only a valid request can proceed to progression rules and server-selected navigation. A target cannot skip an unvalidated page. Rejected forward navigation stays on the current page with a form-level error. Routing errors halt before CAPTCHA, content-spam screening and persistence. Request-integrity and abuse checks remain outside that workflow boundary.
+Preflight then enforces progression rules and resolves the visible-page transition. Validate uses that transition to check the applicable visible fields before any page advancement is persisted. A target cannot skip an unvalidated page. Rejected forward navigation stays on the current page with a form-level error. Routing and validation errors halt before CAPTCHA, content-spam screening and persistence. Request-integrity and abuse checks remain outside that workflow boundary.
 
 | Operation | Validation scope |
 | --- | --- |
@@ -55,11 +55,11 @@ Validation then checks the applicable visible fields. Only a valid request can p
 
 ## Submission Errors
 
-`$submission->getSubmissionErrors()` normalizes Yii/Craft errors once into form-local identity and full nested paths. `toClient()` returns `form` and `fields`; a field key is `<field-instance-id>.<nested-path>`, such as `123.1.email`. It never uses a shared field definition ID. `toLegacy()` returns full handle paths such as `people.1.email` for server-rendered and stable Formie 3 AJAX consumers. Raw `getErrors()` remains available for compatibility.
+`$submission->getSubmissionErrors()` normalizes Yii/Craft errors once into form-local identity and full nested paths. `toClient()` returns `form` and `fields`; a field key is `<field-instance-id>.<nested-path>`, such as `123.1.email`. It never uses a shared field definition ID. `toLegacy()` returns full handle paths such as `people.1.email` for server-rendered HTML and AJAX responses. `getErrors()` returns the underlying Yii/Craft errors.
 
 Messages are plain text. Rich completion/outcome messages are a separate contract. CAPTCHA, spam and provider diagnostics are private. `forPage()` and `firstPageId()` derive summaries from canonical errors and the current layout; there is no persisted page-error map.
 
-REST-style actions return 422 for validation/progression errors, 409 for stale state, 429 for rate limits and 403 for authorization. Interactive GraphQL submit/page mutations return expected domain failures in result data, including `httpStatus`; GraphQL protocol errors remain separate. Stable Formie 3 AJAX can retain HTTP 200 with its legacy error shape. Page reload rerenders the submitted form and its exact controls.
+REST-style actions return 422 for validation/progression errors, 409 for stale state, 429 for rate limits and 403 for authorization. Interactive GraphQL submit/page mutations return expected domain failures in result data, including `httpStatus`; GraphQL protocol errors remain separate. Handle-based AJAX responses may return HTTP 200 with validation errors in the response body. Page reload rerenders the submitted form and its exact controls.
 
 ## Browser Validation
 

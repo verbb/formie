@@ -11,7 +11,7 @@ Use the narrowest layer that solves the problem:
 3. Use `--formie-*` CSS custom properties for visual tokens.
 4. Override template partials or use trusted PHP slot events for structural markup.
 
-The stable Formie 3 theme grammar remains compatible. Client-rendered forms own their markup; selecting them does not implicitly request server-rendered HTML.
+Client-rendered forms own their markup; selecting them does not implicitly request server-rendered HTML.
 
 ## Immutable Render State
 
@@ -28,16 +28,18 @@ Trusted server PHP/Twig can use tag changes and explicit raw `html` nodes. Text 
 - arbitrary Twig and method expressions;
 - invalid slots, properties, types, condition paths and CSS custom properties.
 
-Summary and fragment tokens contain the canonical theme state and digest. A request can present the token, but cannot replace its executable theme configuration.
+Summary refresh requests use the issued access token to restore the theme used when the form was rendered. They cannot replace that configuration with browser input. Tokens expire after seven days; a request with missing or expired theme state is rejected.
+
+Web nodes must share the database and Formie security key. Scheduled progress cleanup removes expired theme records. Re-render cached forms within the seven-day lifetime to issue fresh tokens and extend retained state. Signature image links use field access without theme storage and retain their existing lifetime.
 
 ## Attribute Merge Order
 
-Theme attributes and render-instance attributes merge first. Required core attributes merge last and remain the single source of functional, identity and accessibility markup. Do not create a second protected-attribute registry.
+Theme and render-option attributes merge first. Formie’s required submission, JavaScript and accessibility attributes merge last, so theme config cannot remove them.
 
 `Form::EVENT_MODIFY_SLOT_TAG`, `Field::EVENT_MODIFY_SLOT_TAG` and the equivalent integration event run after that merge. They are trusted expert escape hatches and may deliberately replace or remove core attributes.
 
 ## Browser State and Assets
 
-Canonical dynamic class names come from `src/config/browser-theme-state.json`. The generated TypeScript and [Browser Theme State reference](/reference/browser-theme-state) must be rebuilt with the browser package whenever the manifest changes.
+Use the keys listed in [Browser Theme State](/reference/browser-theme-state) to customise classes that change during browser interaction, such as loading and error states.
 
 `formie-base.css` contains functional and accessibility behaviour. `formie-theme.css` contains the visual theme, while `formie.css` combines both for compatibility. The `none` theme still emits accessible markup, runtime hooks, base CSS and JavaScript; it omits only visual theme CSS and classes.

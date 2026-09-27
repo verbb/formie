@@ -26,7 +26,55 @@ it('has one fixed manifest and exposes exactly the semantic task anchors', funct
             }
         }
     }
-    expect($anchors)->toBe(array_map(fn($task) => $task->value, Task::cases()));
+    $lockedAnchors = [
+        'preflight.resolveNavigationIntent', 'preflight.applySubmissionDefaults', 'preflight.clearHiddenValues',
+        'preflight.enforceProgression', 'preflight.resolveTransition', 'preflight.captureMetadata', 'preflight.applyStatusRules',
+        'validate.submission', 'screen.evaluateSpam', 'screen.verifyCaptcha', 'persist.submission',
+        'persist.processPayment', 'persist.questionnaireResult', 'dispatch.sendNotifications',
+        'dispatch.triggerIntegrations', 'dispatch.sendSpamNotifications',
+    ];
+    expect($anchors)->toBe($lockedAnchors)
+        ->and(array_map(fn($task) => $task->value, Task::cases()))->toBe($lockedAnchors);
+});
+
+it('resolves cleared-value routing at the public Preflight anchors before validation', function () {
+    $form = formie()->form()->multiPage(2)->onPage(1)
+        ->singleLineTextField('control', ['defaultValue' => 'hide'])
+        ->singleLineTextField('detail', ['enableConditions' => true, 'conditions' => [
+            'showRule' => 'show', 'conditionRule' => 'all', 'conditions' => [['field' => 'control', 'condition' => '=', 'value' => 'show']],
+        ]])->singleLineTextField('required', ['required' => true])->onPage(2)->singleLineTextField('later')->create();
+    $form->getPages()[1]->getPageSettings()->enablePageConditions = true;
+    $form->getPages()[1]->getPageSettings()->pageConditions = [
+        'showRule' => 'show', 'conditionRule' => 'all', 'conditions' => [['field' => 'detail', 'condition' => '=', 'value' => 'route']],
+    ];
+    $submission = new Submission(); $submission->setForm($form); $submission->setFieldValue('detail', 'route');
+    $probe = new class implements TaskInterface {
+        public array $seen = [];
+        public function execute(WorkflowContext $context): TaskResult {
+            $this->seen = [$context->command->submission->getFieldValue('detail'), $context->nextPage, $context->attemptedCompletion];
+            return TaskResult::continue();
+        }
+    };
+    $register = function (RegisterStageTasksEvent $event) use ($probe) {
+        if ($event->stage === Stage::PREFLIGHT) {
+            $event->insertTaskAfter(Task::PREFLIGHT_RESOLVE_TRANSITION, new TaskDefinition('test.transition', $probe, [Operation::SUBMIT]));
+            $event->insertTaskAfter(Task::PREFLIGHT_ENFORCE_PROGRESSION, new TaskDefinition('test.progression', new class implements TaskInterface {
+                public function execute(WorkflowContext $context): TaskResult { return TaskResult::continue(); }
+            }, [Operation::SUBMIT]));
+        }
+    };
+    $stages = [];
+    $observe = function ($event) use (&$stages) { $stages[] = $event->stage; };
+    Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_STAGE_TASKS, $register);
+    Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_STAGE, $observe);
+    try {
+        $result = runSubmissionCommand(submissionCommand(['form' => $form, 'submission' => $submission]));
+        expect($probe->seen)->toBe(['', null, true])->and($stages)->toBe(['preflight', 'validate'])
+            ->and($result->outcome->type)->toBe(Outcome::VALIDATION_FAILED)->and($submission->id)->toBeNull();
+    } finally {
+        Event::off(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_STAGE_TASKS, $register);
+        Event::off(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_STAGE, $observe);
+    }
 });
 
 it('halts invalid input before screening and allows a typed custom validation task', function () {

@@ -89,7 +89,7 @@ it('blocks target tampering before screening and persistence while keeping the c
         expect($response->outcome->type)->toBe(\verbb\formie\enums\SubmissionOutcomeType::VALIDATION_FAILED)
             ->and($form->getCurrentPage()->id)->toBe($pages[0]->id)
             ->and($submission->getErrors('form'))->not->toBeEmpty()
-            ->and($submission->id)->toBeNull()->and($seen)->toBe(['preflight', 'validate']);
+            ->and($submission->id)->toBeNull()->and($seen)->toBe(['preflight']);
     } finally {
         \yii\base\Event::off(\verbb\formie\services\SubmissionWorkflow::class, \verbb\formie\services\SubmissionWorkflow::EVENT_BEFORE_STAGE, $observe);
     }

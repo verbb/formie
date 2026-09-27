@@ -423,7 +423,11 @@ class SubmissionProcessor extends Component
                 }
             }
             $populate();
-            (new RuntimeConfiguration())->applyValues($command->submission);
+            // Replay settles the accepted record. Reapplying values here would undo
+            // conditional clearing and reevaluate Hidden sources in the callback's context.
+            if ($command->operation !== SubmissionOperation::PAYMENT_REPLAY) {
+                (new RuntimeConfiguration())->applyValues($command->submission);
+            }
             return Formie::$plugin->getSubmissionWorkflow()->process($command);
         });
         // A lost-response retry may resolve a new in-memory element. Restore the durable identity for adapters.

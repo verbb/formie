@@ -32,15 +32,13 @@ final class WorkflowManifest
                 new TaskDefinition('preflight.resolveNavigationIntent', new preflight\ResolveNavigationIntentTask(), $journey, true, true),
                 new TaskDefinition('preflight.applySubmissionDefaults', new preflight\ApplySubmissionDefaultsTask(), $writes),
                 new TaskDefinition('preflight.clearHiddenValues', new preflight\ClearHiddenValuesTask(), $writes),
+                new TaskDefinition('preflight.enforceProgression', new preflight\EnforceProgressionTask(), $submit, true, true),
                 new TaskDefinition('preflight.resolveTransition', new preflight\ResolveTransitionTask(), $journey, true, true),
                 new TaskDefinition('preflight.captureMetadata', new preflight\CaptureMetadataTask(), $writes),
                 new TaskDefinition('preflight.applyStatusRules', new preflight\ApplyStatusRulesTask(), $submit, true, true),
             ],
             Stage::VALIDATE->value => [
                 new TaskDefinition('validate.submission', new validate\ValidateSubmissionTask(), [Operation::SUBMIT, Operation::REVISE]),
-                new TaskDefinition('validate.enforceProgression', new preflight\EnforceProgressionTask(), $submit, true, true),
-                new TaskDefinition('validate.resolveTransition', new preflight\ResolveTransitionTask(), $submit, true, true),
-
             ],
             Stage::SCREEN->value => [
                 new TaskDefinition('screen.evaluateSpam', new screen\EvaluateSpamTask(), $submit),
@@ -71,13 +69,6 @@ final class WorkflowManifest
         }
 
         if ($task->visitorProgression && !$command->usesVisitorProgression()) {
-            return false;
-        }
-
-        if ($task->id === 'preflight.resolveTransition' && !in_array($command->navigation, [NavigationIntent::BACK, NavigationIntent::STAY], true)) {
-            return false;
-        }
-        if (in_array($task->id, ['validate.enforceProgression', 'validate.resolveTransition'], true) && in_array($command->navigation, [NavigationIntent::BACK, NavigationIntent::STAY], true)) {
             return false;
         }
 

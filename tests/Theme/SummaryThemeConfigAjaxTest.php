@@ -91,3 +91,107 @@ it('rejects a tampered encrypted Summary theme snapshot', function (): void {
 
     expect(FieldAccess::resolveAccessToken($tampered))->toBeNull();
 });
+
+it('keeps large issued themes out of compact tokens and restores them in another process', function (): void {
+    $form = formie()->form()->singleLineTextField('name')->summaryField('summary')->create();
+    $submission = formie()->submission($form)->with(['name' => 'Owner'])->save();
+    $rendering = Formie::$plugin->getRendering();
+    $rendering->pushRenderFrame($form, ['theme' => 'none', 'themeConfig' => [
+        'fieldSummaryLabel' => ['attributes' => ['title' => str_repeat('x', 48000)]],
+    ]]);
+    try {
+        $token = FieldAccess::issueAccessToken($submission, $form->getFieldByHandle('summary')->id);
+        $second = FieldAccess::issueAccessToken($submission, $form->getFieldByHandle('summary')->id);
+    } finally {
+        $rendering->popRenderFrame();
+    }
+    $decode = static fn($value) => Json::decode(Craft::$app->getSecurity()->decryptByKey(base64_decode($value), Formie::$plugin->getSettings()->getSecurityKey()));
+    $payload = $decode($token);
+    expect(strlen($token))->toBeLessThan(1024)->and($payload)->not->toHaveKey('config')
+        ->and($payload['theme'])->toBeString()->toBe($decode($second)['theme']);
+    $rows = (new \craft\db\Query())->from('{{%formie_instance_configs}}')->where(['tokenHash' => $payload['theme']])->all();
+    expect($rows)->toHaveCount(1)->and($rows[0]['config'])->not->toContain(str_repeat('x', 64));
+
+    $script = <<<'PHP'
+require 'tests/bootstrap-craft.php';
+$payload = \verbb\formie\helpers\FieldAccess::resolveAccessToken($argv[1]);
+$form = \verbb\formie\elements\Form::find()->id($payload['formId'])->siteId($payload['siteId'])->status(null)->one();
+$theme = (new \verbb\formie\services\ThemeConfig())->restoreFragmentState($form, $payload['theme']);
+echo json_encode([$theme->mode, strlen($theme->config['fieldSummaryLabel']['attributes']['title']), $theme->digest]);
+PHP;
+    $process = proc_open([PHP_BINARY, '-r', $script, $token], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, dirname(__DIR__, 2));
+    expect(is_resource($process))->toBeTrue();
+    fclose($pipes[0]);
+    $output = stream_get_contents($pipes[1]); $errors = stream_get_contents($pipes[2]);
+    fclose($pipes[1]); fclose($pipes[2]);
+    expect(proc_close($process))->toBe(0, $errors)
+        ->and(Json::decode(substr($output, strrpos($output, "\n") + 1)))->toBe(['none', 48000, $payload['themeDigest']]);
+
+    Craft::$app->getDb()->createCommand()->update('{{%formie_instance_configs}}', ['expiresAt' => time() - 1], ['tokenHash' => $payload['theme']])->execute();
+    expect(FieldAccess::resolveAccessToken($token))->toBeNull();
+});
+
+it('issues default-theme tokens without extra rows and expires the token itself', function (): void {
+    $form = formie()->form()->summaryField('summary')->create();
+    $submission = formie()->submission($form)->save();
+    $before = (new \craft\db\Query())->from('{{%formie_instance_configs}}')->count();
+    $token = FieldAccess::issueAccessToken($submission, $form->getFieldByHandle('summary')->id);
+    expect((new \craft\db\Query())->from('{{%formie_instance_configs}}')->count())->toBe($before);
+    $payload = Json::decode(Craft::$app->getSecurity()->decryptByKey(base64_decode($token), Formie::$plugin->getSettings()->getSecurityKey()));
+    expect($payload['theme'])->toBeNull()->and(FieldAccess::resolveAccessToken($token)['theme']['config'])->toBe([]);
+    $payload['expiresAt'] = time() - 1;
+    $expired = base64_encode(Craft::$app->getSecurity()->encryptByKey(Json::encode($payload), Formie::$plugin->getSettings()->getSecurityKey()));
+    expect(FieldAccess::resolveAccessToken($expired))->toBeNull();
+});
+
+it('rejects unavailable or mismatched stored Summary state without a theme fallback', function (string $change): void {
+    $form = formie()->form()->summaryField('summary')->create();
+    $submission = formie()->submission($form)->save();
+    $rendering = Formie::$plugin->getRendering();
+    $rendering->pushRenderFrame($form, ['themeConfig' => ['fieldSummaryLabel' => ['class' => 'issued-theme']]]);
+    try {
+        $token = FieldAccess::issueAccessToken($submission, $form->getFieldByHandle('summary')->id);
+    } finally {
+        $rendering->popRenderFrame();
+    }
+    expect(FieldAccess::resolveAccessToken($token)['theme']['config']['fieldSummaryLabel']['class'])->toBe(['issued-theme']);
+    $payload = Json::decode(Craft::$app->getSecurity()->decryptByKey(base64_decode($token), Formie::$plugin->getSettings()->getSecurityKey()));
+    $db = Craft::$app->getDb();
+    if ($change === 'missing') {
+        $db->createCommand()->delete('{{%formie_instance_configs}}', ['tokenHash' => $payload['theme']])->execute();
+    } elseif ($change === 'site') {
+        $db->createCommand()->update('{{%formie_instance_configs}}', ['siteId' => 0], ['tokenHash' => $payload['theme']])->execute();
+    } elseif ($change === 'form') {
+        $otherForm = formie()->form()->create();
+        $db->createCommand()->update('{{%formie_instance_configs}}', ['formId' => $otherForm->id], ['tokenHash' => $payload['theme']])->execute();
+    } else {
+        $payload['themeDigest'] = str_repeat('0', 64);
+        $token = base64_encode(Craft::$app->getSecurity()->encryptByKey(Json::encode($payload), Formie::$plugin->getSettings()->getSecurityKey()));
+    }
+    expect(FieldAccess::resolveAccessToken($token))->toBeNull();
+    expect(WebRequestTestHelper::withWebRequestContext(function () use ($token): string {
+        Craft::$app->getRequest()->setBodyParams(['accessToken' => $token]);
+        return (new FieldsController('formie-fields-summary-unavailable', Craft::$app))->actionGetSummaryHtml();
+    }, ['method' => 'POST']))->toBe('');
+})->with(['missing', 'site', 'form', 'digest']);
+
+it('keeps Signature image links independent of retained Summary theme state', function (): void {
+    $form = formie()->form()->signatureField('signature')->create();
+    $png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4////fwAJ+wP9KobjigAAAABJRU5ErkJggg==';
+    $submission = formie()->submission($form)->with(['signature' => 'data:image/png;base64,' . $png])->save();
+    $before = (new \craft\db\Query())->from('{{%formie_instance_configs}}')->count();
+    $rendering = Formie::$plugin->getRendering();
+    $rendering->pushRenderFrame($form, ['themeConfig' => ['fieldSummaryLabel' => ['class' => 'unused-theme']]]);
+    try {
+        $token = FieldAccess::issueAccessToken($submission, $form->getFieldByHandle('signature')->id);
+    } finally {
+        $rendering->popRenderFrame();
+    }
+    $payload = Json::decode(Craft::$app->getSecurity()->decryptByKey(base64_decode($token), Formie::$plugin->getSettings()->getSecurityKey()));
+    expect($payload)->not->toHaveKey('expiresAt')->not->toHaveKey('theme')
+        ->and((new \craft\db\Query())->from('{{%formie_instance_configs}}')->count())->toBe($before);
+    $image = WebRequestTestHelper::withWebRequestContext(function () use ($token) {
+        return (new FieldsController('formie-fields-signature-theme', Craft::$app))->actionGetSignatureImage()?->data;
+    }, ['queryParams' => ['accessToken' => $token]]);
+    expect($image)->toBe(base64_decode($png));
+});

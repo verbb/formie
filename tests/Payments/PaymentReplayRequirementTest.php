@@ -3,6 +3,53 @@
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 
+it('preserves accepted content through the real payment replay boundary and duplicate receipt', function (string $status): void {
+    $integration = new \verbb\formie\integrations\payments\Mollie(['name' => 'Replay content', 'handle' => 'replayContent' . bin2hex(random_bytes(5))]);
+    expect(Formie::$plugin->getIntegrations()->saveIntegration($integration, false))->toBeTrue();
+    $form = formie()->form()->singleLineTextField('control')->singleLineTextField('detail', [
+        'enableConditions' => true, 'conditions' => ['showRule' => 'show', 'conditionRule' => 'all', 'conditions' => [
+            ['field' => 'control', 'condition' => '=', 'value' => 'show'],
+        ]],
+    ])->hiddenField('acceptedDate', ['valueSource' => 'dateInt'])->paymentField('payment', [
+        'paymentIntegration' => $integration->handle, 'paymentIntegrationType' => get_class($integration),
+        'providerSettings' => [$integration->handle => ['currency' => 'USD', 'amountType' => 'fixed', 'amountFixed' => '25']],
+    ])->settings(['disableCaptchas' => true])->create();
+    Formie::$plugin->getRendering()->populateFormValues($form, ['detail' => 'server value'], true);
+    $submission = new Submission(['isIncomplete' => true]); $submission->setForm($form);
+    $submission->setFieldValue('control', 'hide');
+    (new \verbb\formie\services\RuntimeConfiguration())->applyValues($submission);
+    (new \verbb\formie\conditions\ConditionVisibility())->clear($submission);
+    // Model an accepted record whose provider callback arrives on a later date.
+    $submission->setFieldValue('acceptedDate', '01/01/2000');
+    expect($submission->getFieldValue('detail'))->toBe('');
+    expect(Craft::$app->getElements()->saveElement($submission, false))->toBeTrue();
+    $payment = new \verbb\formie\models\Payment([
+        'submissionId' => $submission->id, 'fieldId' => $form->getFieldByHandle('payment')->id,
+        'integrationId' => $integration->id, 'amount' => '25.00', 'currency' => 'USD',
+        'status' => $status, 'reference' => 'accepted-' . bin2hex(random_bytes(5)),
+    ]);
+    expect(Formie::$plugin->getPayments()->savePayment($payment))->toBeTrue();
+    $dispatched = [];
+    $observe = function ($event) use (&$dispatched) {
+        if ($event->stage === 'dispatch') {
+            $dispatched[] = [$event->command->submission->getFieldValue('detail'), $event->command->submission->getFieldValue('acceptedDate')];
+        }
+    };
+    \yii\base\Event::on(\verbb\formie\services\SubmissionWorkflow::class, \verbb\formie\services\SubmissionWorkflow::EVENT_BEFORE_STAGE, $observe);
+    try {
+        $processor = Formie::$plugin->getSubmissionProcessor();
+        $first = $processor->executePaymentReplay($payment);
+        $again = $processor->executePaymentReplay($payment);
+        $saved = Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->one();
+        expect($saved->getFieldValue('detail'))->toBe('')->and($saved->getFieldValue('acceptedDate'))->toBe('01/01/2000')
+            ->and($saved->isIncomplete)->toBe($status !== 'success')
+            ->and($again->response->outcome)->toEqual($first->response->outcome)
+            ->and($dispatched)->toBe($status === 'success' ? [['', '01/01/2000']] : []);
+    } finally {
+        \yii\base\Event::off(\verbb\formie\services\SubmissionWorkflow::class, \verbb\formie\services\SubmissionWorkflow::EVENT_BEFORE_STAGE, $observe);
+    }
+})->with(['success', 'pending']);
+
 class ReplayCompletionMollie extends \verbb\formie\integrations\payments\Mollie
 {
     public array $created = [];

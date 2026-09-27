@@ -14,7 +14,7 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
-- Keep required behavioural and accessibility attributes authoritative, retain the final trusted PHP slot event escape hatch, and bind Summary/fragment theme state to issued access tokens.
+- Keep required behavioural and accessibility attributes authoritative, retain the final trusted PHP slot event escape hatch, and bind Summary theme state to compact, expiring access tokens backed by encrypted shared storage.
 - Keep Formie 3 theme grammar compatibility while renaming the beta `defineFieldSlotTag()` method to `defineSlotTag()` and removing mutable render state from shared Form elements.
 - Split `formie.css` into functional `formie-base.css` and visual `formie-theme.css` layers; the `none` theme now omits only visual styling.
 - Share versioned tri-state conditions and plain-text validation rules across PHP and browser consumers; enforce recursive hidden-value clearing and server-authoritative navigation.
@@ -39,12 +39,14 @@
 - Bind accepted uploads to their form, field and owner before dispatch, with durable promotion recovery and scoped upload capabilities.
 - Remove beta draft-storage APIs, etags and `maxSavedDraftsPerSession`; existing beta resume links must be reissued after upgrading.
 - Replace beta submission workflow APIs with explicit operations, authorised commands, typed outcomes and six fixed stages with operation-scoped custom tasks.
+- Resolve progression and page transitions at the public Preflight anchors after hidden-value clearing, with validation consuming the selected transition.
 - Require expected submission versions and retain bounded durable retry receipts to prevent duplicate and stale writes.
 - Require integrations to explicitly declare attributes that can be configured per form.
 - Require `verbb/base` 3.0.17 or later.
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
 
 ### Fixed
+- Preserve accepted field values during payment replay, including condition-cleared forced values and previously evaluated Hidden sources.
 - Stop manual asset resolution from rendering the full form a second time, and memoise missing browser submission progress per Form instance to prevent all-field render query amplification. ([#2637](https://github.com/verbb/formie/issues/2637))
 - Enforce field ownership and allowed field types at builder and save boundaries, preserve nested references and refresh layout lookups after descendant changes.
 - Stop invalid submissions before spam screening and CAPTCHA, and keep pending payment submissions incomplete until payment succeeds.

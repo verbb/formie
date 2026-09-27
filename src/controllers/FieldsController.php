@@ -397,7 +397,7 @@ class FieldsController extends Controller
             return '';
         }
 
-        if (!($context['field'] instanceof Summary)) {
+        if (!($context['field'] instanceof Summary) || $context['theme'] === null) {
             return '';
         }
 
@@ -492,6 +492,7 @@ class FieldsController extends Controller
         $submission = Submission::find()
             ->uid($payload['submissionUid'])
             ->formId($payload['formId'])
+            ->siteId($payload['siteId'])
             ->isIncomplete(null)
             ->one();
 
@@ -515,9 +516,7 @@ class FieldsController extends Controller
             'submission' => $submission,
             'form' => $form,
             'field' => $field,
-            'theme' => is_array($payload['theme'] ?? null)
-                ? $payload['theme']
-                : Formie::$plugin->getThemeConfigService()->resolve($form)->toFragmentState(),
+            'theme' => $payload['theme'],
         ];
     }
 
