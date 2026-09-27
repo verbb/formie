@@ -75,12 +75,10 @@ it('migrates persisted plans and secrets idempotently without dispatching', func
     expect($hydrated->integrationDispatch['steps'][0]['execution'])->toBe('synchronous');
 });
 
-it('defines notification terminal policy for every normalized result', function (string $status, bool $successful, bool $finalized) {
-    $success = IntegrationDispatchPlan::fromFormSettings(['completionPolicy' => 'successful']);
-    $all = IntegrationDispatchPlan::fromFormSettings(['completionPolicy' => 'finalized']);
-    expect(in_array($status, $success->acceptedStatuses(), true))->toBe($successful);
-    expect(in_array($status, $all->acceptedStatuses(), true))->toBe($finalized);
-})->with([['succeeded', true, true], ['skipped', true, true], ['failed', false, true], ['rejected', false, true], ['unknown', false, false], ['pending', false, false]]);
+it('distinguishes finalized delivery from successful delivery', function (string $status, bool $finalized) {
+    expect(IntegrationStatus::tryFrom($status)?->isFinalized() ?? false)->toBe($finalized);
+    expect(IntegrationDispatchPlan::fromFormSettings(['completionPolicy' => 'successful'])->toSettingsArray())->not->toHaveKey('completionPolicy');
+})->with([['succeeded', true], ['skipped', true], ['failed', true], ['rejected', true], ['unknown', false], ['pending', false], ['sending', false]]);
 
 it('preserves legacy queue locators without restoring their debug payloads', function () {
     $job = new \verbb\formie\jobs\TriggerIntegration();
@@ -162,7 +160,7 @@ it('runs the complete synchronous lane before enqueueing the queued lane and hon
     }
 });
 
-it('enforces notification completion policy against stored results of the same execution', function (string $status, string $policy, bool $expected) {
+it('waits for finalized results of the same run without implicit success gating', function (string $status, string $policy, bool $expected) {
     $form = formie()->form()->singleLineTextField('name')->create();
     $form->settings->integrationDispatch = ['enabled' => true, 'completionPolicy' => $policy, 'notificationTiming' => 'afterFinalizedDeliveryAttempts', 'steps' => [['handle' => 'remote', 'execution' => 'queued']]];
     $form->setNotifications([new \verbb\formie\models\Notification(['enabled' => true])]);
@@ -185,7 +183,7 @@ it('enforces notification completion policy against stored results of the same e
         expect($recorder->sent)->toBe($expected ? 1 : 0);
     } finally { Formie::$plugin->set('notifications', $original); }
 })->with([
-    ['succeeded', 'successful', true], ['skipped', 'successful', true], ['failed', 'successful', false], ['rejected', 'successful', false], ['unknown', 'successful', false],
+    ['succeeded', 'successful', true], ['skipped', 'successful', true], ['failed', 'successful', true], ['rejected', 'successful', true], ['unknown', 'successful', false],
     ['succeeded', 'finalized', true], ['skipped', 'finalized', true], ['failed', 'finalized', true], ['rejected', 'finalized', true], ['unknown', 'finalized', false],
 ]);
 

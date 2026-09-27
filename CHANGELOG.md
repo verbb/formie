@@ -15,6 +15,7 @@
 
 ### Changed
 - Use non-expiring, exact-value Signature image capabilities while preserving explicitly grandfathered Formie 2/3 email image URLs behind a dedicated compatibility setting.
+- Isolate Formie 3 adapters behind dedicated compatibility boundaries instead of exposing them through canonical Formie 4 models and services.
 - Keep required behavioural and accessibility attributes authoritative, retain the final trusted PHP slot event escape hatch, and bind Summary theme state to compact, expiring access tokens backed by encrypted shared storage.
 - Keep Formie 3 theme grammar compatibility while renaming the beta `defineFieldSlotTag()` method to `defineSlotTag()` and removing mutable render state from shared Form elements.
 - Split `formie.css` into functional `formie-base.css` and visual `formie-theme.css` layers; the `none` theme now omits only visual styling.
@@ -47,13 +48,15 @@
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
 
 ### Fixed
+- Build the current database schema directly during fresh installs instead of replaying upgrade migrations.
+- Treat notification timing as order rather than implicit integration success, while leaving unknown outcomes unresolved and preserving explicit notification conditions.
 - Commit pending delivery intent with submission completion and recover interrupted dispatches without repeating payment or creating another completion run.
 - Keep integration results and reference values scoped to their delivery run instead of overwriting the submission’s latest results.
 - Serve staged upload previews through expiring view capabilities and require private temporary upload storage.
 - Enforce aggregate staged-upload file and byte budgets across fields and cap staged expiry independently of incomplete-submission retention.
 - Bound Base64 upload input and decoded sizes before allocating file contents, using Craft’s maximum upload size.
 - Complete required upload promotion before marking submissions complete, and finalize accepted uploads before completion events and delivery, including payment replay.
-- Retain upload cleanup records after permanent submission deletion and failed file deletion, preserve retryable field references, and leave shared or unowned files intact.
+- Retain upload cleanup records across permanent submission and form deletion and failed file deletion, preserve retryable field references, and leave shared or unowned files intact.
 - Preserve accepted field values during payment replay, including condition-cleared forced values and previously evaluated Hidden sources.
 - Stop manual asset resolution from rendering the full form a second time, and memoise missing browser submission progress per Form instance to prevent all-field render query amplification. ([#2637](https://github.com/verbb/formie/issues/2637))
 - Enforce field ownership and allowed field types at builder and save boundaries, preserve nested references and refresh layout lookups after descendant changes.

@@ -22,10 +22,10 @@ Set a default timing for the form, then override it in an individual notificatio
 | Timing | Sends when |
 | --- | --- |
 | Before integrations | The submission is saved and the notification's conditions pass. |
-| After synchronous integrations | The synchronous integrations finish and meet the completion policy. Queued integrations may still be waiting. |
-| After finalized delivery attempts | All integrations in that run finish and meet the completion policy. |
+| After synchronous integrations | The synchronous integrations finish. Queued integrations may still be waiting. |
+| After finalized delivery attempts | All integrations in that run finish. |
 
-The **Delivery Completion Policy** decides which results allow a notification to send. The default requires each integration to have **succeeded or skipped**. Choose **Also allow failed or rejected** if the email should also send after a known failure. A skipped integration might have an unmet condition or missing opt-in.
+Timing controls order, not success. Succeeded, skipped, failed and rejected integrations have all finished, so a known failure does not suppress an otherwise eligible notification. A skipped integration might have an unmet condition or missing opt-in, or have been skipped by the Stop policy. Use an explicitly authored notification condition when the email requires a particular integration to succeed.
 
 An **unknown** result means the service may have received the request, but Formie could not confirm it. Notifications that wait for integrations remain blocked until that result is resolved. Pending or running integrations also keep those notifications waiting.
 

@@ -12,7 +12,6 @@ const DEFAULT_PLAN = {
     enabled: false,
     notificationTiming: 'beforeIntegrations',
     failurePolicy: 'continue',
-    completionPolicy: 'successful',
     steps: [],
 };
 
@@ -124,6 +123,7 @@ function IntegrationDispatchSettings({
             ...(getValueAtPath(DISPATCH_PATH, null) || {}),
             ...patch,
         };
+        delete nextPlan.completionPolicy;
 
         parentForm.setFieldValue(DISPATCH_PATH, nextPlan);
     }, [getValueAtPath, parentForm]);
@@ -278,14 +278,6 @@ function IntegrationDispatchSettings({
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="mb-1 block text-sm font-semibold text-gray-900">{Craft.t('formie', 'Delivery Completion Policy')}</label>
-                                    <p className="mb-2 text-sm text-gray-500">{Craft.t('formie', 'Unknown outcomes always require reconciliation before after-delivery notifications can send.')}</p>
-                                    <SelectInput value={plan.completionPolicy} options={[
-                                        { value: 'successful', label: Craft.t('formie', 'Require succeeded or skipped') },
-                                        { value: 'finalized', label: Craft.t('formie', 'Also allow failed or rejected') },
-                                    ]} onChange={(value) => updatePlan({ completionPolicy: value })} />
-                                </div>
                                 <div>
                                     <label className="mb-1 block text-sm font-semibold text-gray-900">
                                         {Craft.t('formie', 'Failure Policy')}

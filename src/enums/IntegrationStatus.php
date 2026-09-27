@@ -8,4 +8,13 @@ enum IntegrationStatus: string
     case Rejected = 'rejected';
     case Failed = 'failed';
     case Unknown = 'unknown';
+
+
+    // Public Methods
+    // =========================================================================
+
+    public function isFinalized(): bool
+    {
+        return $this !== self::Unknown;
+    }
 }

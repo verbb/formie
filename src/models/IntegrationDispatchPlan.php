@@ -27,7 +27,6 @@ class IntegrationDispatchPlan extends Model
 
     public bool $enabled = false;
     public string $notificationTiming = self::NOTIFICATION_TIMING_BEFORE;
-    public string $completionPolicy = 'successful';
     public string $failurePolicy = self::FAILURE_CONTINUE;
 
     /** @var array<int, array{handle: string, execution: string}> */
@@ -56,7 +55,6 @@ class IntegrationDispatchPlan extends Model
         return new self([
             'enabled' => (bool)($settings['enabled'] ?? false),
             'notificationTiming' => ($settings['notificationTiming'] ?? '') === 'afterIntegrations' ? self::NOTIFICATION_TIMING_AFTER : (string)($settings['notificationTiming'] ?? self::NOTIFICATION_TIMING_BEFORE),
-            'completionPolicy' => ($settings['completionPolicy'] ?? '') === 'finalized' ? 'finalized' : 'successful',
             'failurePolicy' => (string)($settings['failurePolicy'] ?? self::FAILURE_CONTINUE),
             'steps' => array_values(array_filter(array_map(static function($step) {
                 if (!is_array($step)) {
@@ -147,11 +145,6 @@ class IntegrationDispatchPlan extends Model
         return array_values(array_filter($this->getOrderedHandles($form), fn(string $handle) => $this->getStepExecution($handle) === self::EXECUTION_QUEUED));
     }
 
-    public function acceptedStatuses(): array
-    {
-        return $this->completionPolicy === 'finalized' ? ['succeeded', 'skipped', 'failed', 'rejected'] : ['succeeded', 'skipped'];
-    }
-
     public function shouldStopOnFailure(): bool
     {
         return $this->failurePolicy === self::FAILURE_STOP;
@@ -162,7 +155,6 @@ class IntegrationDispatchPlan extends Model
         return [
             'enabled' => $this->enabled,
             'notificationTiming' => $this->notificationTiming,
-            'completionPolicy' => $this->completionPolicy,
             'failurePolicy' => $this->failurePolicy,
             'steps' => $this->steps,
         ];

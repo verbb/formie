@@ -4,6 +4,7 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\IntegrationStatus;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\events\IntegrationDeliveryEvent;
 use verbb\formie\helpers\DeliveryAttempt;
@@ -166,7 +167,7 @@ class IntegrationDispatcher extends Component
             $handles = $phase === self::PHASE_SYNCHRONOUS ? $plan->getSynchronousHandles($form) : $plan->getOrderedHandles($form);
             foreach ($handles as $handle) {
                 $result = $context->getResult($handle);
-                if (!$result || !in_array($result['status'] ?? '', $plan->acceptedStatuses(), true) || ($deliveryKey !== null && ($result['executionUid'] ?? '') !== $deliveryKey)) {
+                if (!$result || !IntegrationStatus::tryFrom($result['status'] ?? '')?->isFinalized() || ($deliveryKey !== null && ($result['executionUid'] ?? '') !== $deliveryKey)) {
                     return;
                 }
             }
