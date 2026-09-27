@@ -213,6 +213,51 @@ class FileUploads extends Component
         return $rows[0] ?? null;
     }
 
+    public function getUploadsForSubmissionDeletion(Submission $submission): array
+    {
+        return (new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where([
+            'submissionId' => (int)$submission->id,
+            'formId' => (int)$submission->formId,
+        ])->all();
+    }
+
+    public function deleteSubmissionUploads(array $uploads): void
+    {
+        foreach ($uploads as $upload) {
+            $assetId = (int)$upload['assetId'];
+            $mutex = Craft::$app->getMutex();
+            $key = 'formie.upload.' . $assetId;
+
+            // Preserve intent even if a binding owns the asset lock. Craft's enclosing
+            // submission-delete transaction rolls back this insert and the FK cascade together.
+            if (!$this->getTrackedUploadByAssetId($assetId) && Asset::find()->id($assetId)->status(null)->trashed(null)->exists()) {
+                unset($upload['id']);
+                $upload['submissionId'] = null;
+                $upload['state'] = 'expired';
+                $upload['expiresAt'] = time();
+                $upload['isFinalized'] = false;
+                $upload['capabilities'] = null;
+                if ($upload['promotionState'] === 'moved') {
+                    $upload['promotionState'] = null;
+                }
+                Craft::$app->getDb()->createCommand()->insert(Table::FORMIE_PENDING_UPLOADS, $upload)->execute();
+            }
+
+            if (isset($this->_lockedUploads[$assetId]) || !$mutex->acquire($key, 0)) {
+                continue;
+            }
+            try {
+                $tracked = $this->getTrackedUploadByAssetId($assetId);
+                if (!$tracked || $tracked['uid'] !== $upload['uid'] || $tracked['promotionState'] === 'moving' || $this->isReferenced($assetId)) {
+                    continue;
+                }
+                $this->_deleteTrackedAsset($tracked);
+            } finally {
+                $mutex->release($key);
+            }
+        }
+    }
+
     public function withUploadLocks(Submission $submission, callable $callback): mixed
     {
         $ids = [];

@@ -471,7 +471,7 @@ class Submission extends Element
     private ?FormLayout $_formLayout = null;
     private ?string $_fieldContext = null;
     private ?array $_pagesForField = null;
-    private ?array $_assetsToDelete = [];
+    private array $_uploadsToDelete = [];
     private bool $_previousIsSpam = false;
     private bool $_previousIsIncomplete = false;
     private ?int $_previousStatusId = null;
@@ -1318,10 +1318,9 @@ class Submission extends Element
 
         // Delete associated file upload assets when the submission is permanently deleted
         // and the form is configured to remove files.
+        $this->_uploadsToDelete = [];
         if ($form && $form->fileUploadsAction === 'delete' && $this->hardDelete) {
-            foreach ($this->getFieldValuesForField(FileUpload::class) as $value) {
-                $this->_assetsToDelete = array_merge($this->_assetsToDelete, $value->all());
-            }
+            $this->_uploadsToDelete = Formie::$plugin->getFileUploads()->getUploadsForSubmissionDeletion($this);
         }
 
         foreach ($this->getFields() as $field) {
@@ -1335,19 +1334,8 @@ class Submission extends Element
 
     public function afterDelete(): void
     {
-        $elementsService = Craft::$app->getElements();
-
-        // Check if we have any assets to delete
-        if ($this->_assetsToDelete) {
-            foreach ($this->_assetsToDelete as $asset) {
-                if (Formie::$plugin->getFileUploads()->isReferenced((int)$asset->id, (int)$this->id)) {
-                    continue;
-                }
-                if (!$elementsService->deleteElement($asset)) {
-                    Formie::error("Unable to delete file ”{$asset->id}” for submission ”{$this->id}”: " . Json::encode($asset->getErrors()) . ".");
-                }
-            }
-        }
+        Formie::$plugin->getFileUploads()->deleteSubmissionUploads($this->_uploadsToDelete);
+        $this->_uploadsToDelete = [];
 
         foreach ($this->getFields() as $field) {
             $field->afterElementDelete($this);

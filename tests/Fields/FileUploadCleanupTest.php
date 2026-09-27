@@ -108,3 +108,53 @@ it('preserves an asset referenced by a restorable trashed submission', function 
         ->and($uploads->getTrackedUploadByAssetId((int)$asset->id)['state'])->toBe('staged')
         ->and(Asset::find()->id($asset->id)->one())->not->toBeNull();
 });
+
+it('keeps retryable cleanup after the owning submission is permanently deleted', function (string $mode): void {
+    $form = formie()->form(['fileUploadsAction' => 'delete'])->fileUploadField('documents', ['restrictFiles' => false])->create();
+    $asset = UploadTestHelper::seedAsset('cleanup-deleted-submission.txt', 'retry after cascade');
+    $unowned = UploadTestHelper::seedAsset('cleanup-unowned-submission.txt', 'keep');
+    $submission = formie()->submission($form)->with(['documents' => [$asset->id, $unowned->id]])->save();
+    $uploads = Formie::$plugin->getFileUploads();
+    $uploads->trackSubmissionAsset($asset, (int)$form->id, (int)$submission->id, $form->getFieldByHandle('documents')->uid, $form, 'documents');
+    $uid = $uploads->getTrackedUploadByAssetId((int)$asset->id)['uid'];
+    $handler = static function ($event) use ($asset, $mode): void {
+        if ((int)$event->sender->id !== (int)$asset->id) {
+            return;
+        }
+        if ($mode === 'exception') {
+            throw new RuntimeException('Controlled deletion failure.');
+        }
+        $event->isValid = false;
+    };
+    Event::on(Asset::class, Asset::EVENT_BEFORE_DELETE, $handler);
+    try {
+        expect(Craft::$app->getElements()->deleteElement($submission, true))->toBeTrue();
+        $tracked = $uploads->getTrackedUploadByAssetId((int)$asset->id);
+        expect($tracked['uid'])->toBe($uid)->and($tracked['submissionId'])->toBeNull()
+            ->and($tracked['state'])->toBe('expired')->and($tracked['failureCode'])->toBe('deletionFailed')
+            ->and(Submission::find()->id($submission->id)->trashed(null)->one())->toBeNull()
+            ->and(Asset::find()->id($unowned->id)->one())->not->toBeNull();
+    } finally {
+        Event::off(Asset::class, Asset::EVENT_BEFORE_DELETE, $handler);
+    }
+    $uploads->purgeStalePendingUploads();
+    expect($uploads->getTrackedUploadByAssetId((int)$asset->id))->toBeNull()
+        ->and(Asset::find()->id($asset->id)->one())->toBeNull();
+})->with(['declined', 'exception']);
+
+it('retains shared owned files after deletion until the final reference is removed', function (): void {
+    $form = formie()->form(['fileUploadsAction' => 'delete'])->fileUploadField('documents', ['restrictFiles' => false])->create();
+    $asset = UploadTestHelper::seedAsset('cleanup-shared-deletion.txt', 'shared');
+    $owner = formie()->submission($form)->with(['documents' => [$asset->id]])->save();
+    $other = formie()->submission($form)->with(['documents' => [$asset->id]])->save();
+    $uploads = Formie::$plugin->getFileUploads();
+    $uploads->trackSubmissionAsset($asset, (int)$form->id, (int)$owner->id, $form->getFieldByHandle('documents')->uid, $form, 'documents');
+    expect(Craft::$app->getElements()->deleteElement($owner, true))->toBeTrue();
+    $uploads->purgeStalePendingUploads();
+    expect(Asset::find()->id($asset->id)->one())->not->toBeNull()
+        ->and($uploads->getTrackedUploadByAssetId((int)$asset->id)['state'])->toBe('expired');
+    expect(Craft::$app->getElements()->deleteElement($other, true))->toBeTrue();
+    $uploads->purgeStalePendingUploads();
+    expect(Asset::find()->id($asset->id)->one())->toBeNull()
+        ->and($uploads->getTrackedUploadByAssetId((int)$asset->id))->toBeNull();
+});

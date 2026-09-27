@@ -47,6 +47,8 @@ it('retains file upload assets when trashing a submission configured to delete f
         ->with(['documents' => [$assetId]])
         ->save();
 
+    \verbb\formie\Formie::$plugin->getFileUploads()->trackSubmissionAsset($asset, (int)$form->id, (int)$submission->id, $form->getFieldByHandle('documents')->uid, $form, 'documents');
+
     $deleted = \Craft::$app->elements->deleteElement($submission);
 
     expect($deleted)->toBeTrue()
