@@ -3,56 +3,47 @@ namespace verbb\formie\validators;
 
 use verbb\formie\base\Field;
 use verbb\formie\helpers\Table;
+
 use Craft;
 use craft\db\Query;
 
 use yii\validators\Validator;
 
-class LayoutHandleUniqueValidator extends Validator
+class FieldReferenceUniqueValidator extends Validator
 {
     // Public Methods
     // =========================================================================
 
     public function validateAttribute($model, $attribute): void
     {
-        $layoutId = $model->layoutId ?? null;
-        $handle = $model->$attribute ?? null;
-        $fieldId = $model->id ?? null;
+        $reference = $model->$attribute ?? null;
 
-        if (!$handle || $model->hasErrors($attribute)) {
+        if (!$reference || $model->hasErrors($attribute)) {
             return;
         }
 
         if ($model instanceof Field && $model->layoutSaveContext) {
-            $isUnique = $model->layoutSaveContext->getIsHandleUnique($model);
+            $isUnique = $model->layoutSaveContext->getIsReferenceUnique($model);
 
             if ($isUnique !== null) {
                 if (!$isUnique) {
-                    $this->_addDuplicateError($model, $attribute, $handle);
+                    $this->_addDuplicateError($model, $attribute, $reference);
                 }
 
                 return;
             }
         }
 
-        if (!$layoutId) {
-            return;
-        }
-
         $query = (new Query())
-            ->from(['ff' => Table::FORMIE_FORM_FIELDS])
-            ->innerJoin(['f' => Table::FORMIE_FIELDS], '[[f.id]] = [[ff.fieldId]]')
-            ->where([
-                'ff.layoutId' => $layoutId,
-                'f.handle' => $handle,
-            ]);
+            ->from(Table::FORMIE_FORM_FIELDS)
+            ->where(['reference' => $reference]);
 
-        if ($fieldId) {
-            $query->andWhere(['not', ['ff.id' => $fieldId]]);
+        if ($model->id ?? null) {
+            $query->andWhere(['not', ['id' => $model->id]]);
         }
 
         if ($query->exists()) {
-            $this->_addDuplicateError($model, $attribute, $handle);
+            $this->_addDuplicateError($model, $attribute, $reference);
         }
     }
 
@@ -60,11 +51,11 @@ class LayoutHandleUniqueValidator extends Validator
     // Private Methods
     // =========================================================================
 
-    private function _addDuplicateError($model, string $attribute, string $handle): void
+    private function _addDuplicateError($model, string $attribute, string $reference): void
     {
         $message = $this->message ?: Craft::t('yii', '{attribute} "{value}" has already been taken.', [
             'attribute' => $model->getAttributeLabel($attribute),
-            'value' => $handle,
+            'value' => $reference,
         ]);
 
         $this->addError($model, $attribute, $message);

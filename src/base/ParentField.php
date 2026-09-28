@@ -240,7 +240,10 @@ abstract class ParentField extends Field implements ParentFieldInterface
 
     public function validateFieldLayout(): void
     {
-        if (!$this->hasFieldLayout()) {
+        // The root graph validation already traversed this nested layout. Field
+        // persistence still validates the parent after beforeSave() normalization,
+        // but must not recursively validate the same children a second time.
+        if (!$this->hasFieldLayout() || $this->layoutSaveContext?->getIsGraphValidated()) {
             return;
         }
 

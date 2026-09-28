@@ -15,7 +15,7 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
-- Batch form field-layout persistence at the root save boundary and add installation-scale load, save and export profiling.
+- Save form field layouts atomically inside Craft’s element transaction, batch persistence and identity validation at the root boundary, and add installation-scale load, save and export profiling.
 - Use explicit completion behavior, redirect source, redirect target and success-message settings throughout Formie 4, while retaining Formie 3 setting, GraphQL and response aliases at compatibility boundaries.
 - Treat subscription setup and mandate operations as non-monetary while recording each recurring invoice as a separate payment, and prevent payment integrations with manageable subscriptions from being deleted or disconnected.
 - Make browser-module declarations immutable, project one authoritative manifest per rendering surface, reference exact occurrence keys from fields and expose stable submit hooks instead of internal pipeline stages.

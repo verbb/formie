@@ -38,9 +38,9 @@ use verbb\formie\models\RichText;
 use verbb\formie\models\Settings;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\query\FieldValueQueryHelper;
-use verbb\formie\records\FieldInstanceRecord;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\references\ReferenceResolver;
+use verbb\formie\validators\FieldReferenceUniqueValidator;
 use verbb\formie\validators\HandleValidator;
 use verbb\formie\validators\LayoutHandleUniqueValidator;
 
@@ -61,7 +61,6 @@ use craft\helpers\Html as CraftHtml;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\models\GqlSchema;
-use craft\validators\UniqueValidator;
 use craft\web\View;
 
 use GraphQL\Type\Definition\Type;
@@ -1310,9 +1309,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
         $rules[] = [
             ['reference'],
-            UniqueValidator::class,
-            'targetClass' => FieldInstanceRecord::class,
-            'targetAttribute' => ['reference'],
+            FieldReferenceUniqueValidator::class,
             'skipOnEmpty' => true,
             'message' => Craft::t('yii', '{attribute} "{value}" has already been taken.'),
         ];

@@ -41,7 +41,6 @@ use verbb\formie\records\FieldInstanceRecord;
 use verbb\formie\records\FieldLayout as FieldLayoutRecord;
 use verbb\formie\records\FieldLayoutPage as FieldLayoutPageRecord;
 use verbb\formie\records\FieldLayoutRow as FieldLayoutRowRecord;
-use verbb\formie\validators\LayoutHandleUniqueValidator;
 
 use Craft;
 use craft\base\Component;
@@ -1266,14 +1265,19 @@ class Fields extends Component
             }
         }
         $context->assertLayout($layout->id);
+        $context->ensureValidationGraph($layout);
         $isNewLayout = !$layout->id;
 
         if (!$layout->beforeSave($isNewLayout)) {
             return false;
         }
 
-        if (!$layout->validate()) {
-            return false;
+        if (!$context->getIsGraphValidated()) {
+            if (!$layout->validate()) {
+                return false;
+            }
+
+            $context->markGraphValidated();
         }
 
         // Nested layouts participate in the root save rather than opening their own
@@ -1285,9 +1289,6 @@ class Fields extends Component
         if ($isRootSave) {
             $this->_beginFieldSaveBatch();
         }
-
-        $layoutId = null;
-
 
         try {
             if ($isRootSave) {
@@ -1302,10 +1303,7 @@ class Fields extends Component
 
             $layoutRecord->save(false);
             $layout->id = $layoutRecord->id;
-            $layoutId = $layout->id;
-            $context->layouts[$layoutId] = true;
-            LayoutHandleUniqueValidator::beginLayoutSaveScope($layout);
-
+            $context->layouts[$layout->id] = true;
             foreach ($layout->getPages() as $pageKey => $page) {
                 $page->layoutId = $layout->id;
                 $page->sortOrder = $pageKey;
@@ -1347,7 +1345,6 @@ class Fields extends Component
                 $layout->addError('layout', $e->getMessage() ?: Craft::t('formie', 'An error occurred.'));
             }
         } finally {
-            LayoutHandleUniqueValidator::endLayoutSaveScope($layoutId);
             $context->endSave();
 
             if ($isRootSave) {
@@ -1397,7 +1394,7 @@ class Fields extends Component
             return false;
         }
 
-        if (!$page->validate()) {
+        if (!$context?->getIsGraphValidated() && !$page->validate()) {
             return false;
         }
 
@@ -1476,7 +1473,7 @@ class Fields extends Component
             return false;
         }
 
-        if (!$row->validate()) {
+        if (!$context?->getIsGraphValidated() && !$row->validate()) {
             return false;
         }
 
@@ -1552,6 +1549,7 @@ class Fields extends Component
         }
 
         $context->assertField($field);
+        $context->prepareFieldValidation($field);
         $isRootSave = $context->beginSave(FieldTraversal::recursively([$field]));
         $transaction = null;
         $transactionFinished = false;
@@ -1595,11 +1593,11 @@ class Fields extends Component
                 return false;
             }
 
+            $context->refreshValidationField($field);
+
             if (!$field->validate()) {
                 return false;
             }
-
-            LayoutHandleUniqueValidator::registerAssignedHandle((int)$field->layoutId, (string)$field->handle);
 
             if ($definitionId && $existingDefinitionUsageCount > 1) {
                 $field->handle = $definitionRecord->handle;

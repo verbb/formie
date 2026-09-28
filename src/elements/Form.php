@@ -39,6 +39,7 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\SubmissionLimitHelper;
 use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\ValidationHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleManifest;
@@ -625,12 +626,9 @@ class Form extends Element implements FormInterface
         }
 
         if (!$formLayout->validate()) {
-            // Element models can't handle nested errors
-            $errors = ArrayHelper::flatten($formLayout->getErrors());
-
-            foreach ($errors as $errorKey => $error) {
-                $this->addError($errorKey, $error);
-            }
+            ValidationHelper::addPrefixedErrors($this, $formLayout->getErrors());
+        } else {
+            $this->layoutSaveContext?->markGraphValidated();
         }
     }
 
@@ -2077,22 +2075,28 @@ class Form extends Element implements FormInterface
             fn(array $field) => is_a($field['type'], Group::class, true),
         ), 'uid');
 
-        // Re-establish persisted ownership for every save, preserving only orchestration policy.
-        $context = LayoutSaveContext::forForm($this, $this->layoutSaveContext?->operation ?? 'save');
-        $context->trusted = $this->layoutSaveContext?->trusted ?? true;
-        $context->remaps = $this->layoutSaveContext?->remaps ?? [];
-        $context->updateDefinitions = $this->layoutSaveContext?->updateDefinitions ?? true;
-        if (!Formie::$plugin->getFields()->saveLayout($this->getFormLayout(), $context)) {
-            $this->addErrors($this->getFormLayout()->getErrors());
-
-            return false;
-        }
+        // Re-establish persisted ownership before Craft validates the form. The same
+        // context then owns validation and persistence inside Craft's transaction.
+        $requestedContext = $this->layoutSaveContext;
+        $context = LayoutSaveContext::forForm($this, $requestedContext?->operation ?? 'save');
+        $context->trusted = $requestedContext?->trusted ?? true;
+        $context->remaps = $requestedContext?->remaps ?? [];
+        $context->updateDefinitions = $requestedContext?->updateDefinitions ?? true;
+        $context->prepareValidationGraph($this->getFormLayout());
+        $this->layoutSaveContext = $context;
 
         return true;
     }
 
     public function afterSave(bool $isNew): void
     {
+        $context = $this->layoutSaveContext ?? LayoutSaveContext::forForm($this);
+        if (!Formie::$plugin->getFields()->saveLayout($this->getFormLayout(), $context)) {
+            $this->addErrors($this->getFormLayout()->getErrors());
+
+            throw new InvalidConfigException('Unable to save the form field layout.');
+        }
+
         // Get the form record
         if (!$isNew) {
             $record = FormRecord::findOne($this->id);
