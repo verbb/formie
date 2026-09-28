@@ -39,16 +39,6 @@ class AliasBootstrap
             // Craft core migrations should see unresolved `fields\formfields` rows as missing
             // fields until Formie's own migrations convert their raw database records.
 
-            // Added in 4.0.0
-            ['verbb\\formie\\client\\models\\PageTransitionRequest', 'verbb\\formie\\runtime\\models\\PageTransitionRequest'],
-            ['verbb\\formie\\client\\models\\SessionRefreshRequest', 'verbb\\formie\\runtime\\models\\SessionRefreshRequest'],
-            ['verbb\\formie\\client\\models\\SubmitRequest', 'verbb\\formie\\runtime\\models\\SubmitRequest'],
-            ['verbb\\formie\\events\\ModifyFrontendJsTranslationsEvent', 'verbb\\formie\\events\\ModifyRuntimeJsTranslationsEvent'],
-            ['verbb\\formie\\models\\RenderFrame', 'verbb\\formie\\models\\RuntimeRenderFrame'],
-            ['verbb\\formie\\services\\FrontendAssets', 'verbb\\formie\\services\\RuntimeAssets'],
-            ['verbb\\formie\\compatibility\\client\\ClientCompatibility', 'verbb\\formie\\compatibility\\runtime\\RuntimeCompatibility'],
-            ['verbb\\formie\\compatibility\\client\\RefreshTokensCompatibility', 'verbb\\formie\\compatibility\\runtime\\RefreshTokensCompatibility'],
-
             // Option sources replaced the standalone predefined options service in 4.0.0.
             ['verbb\\formie\\services\\OptionSources', 'verbb\\formie\\services\\PredefinedOptions'],
 

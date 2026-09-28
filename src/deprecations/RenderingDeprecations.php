@@ -78,11 +78,4 @@ trait RenderingDeprecations
         return $this->formAssets($form, $renderOptions);
     }
 
-    public function renderRuntimeAssets(array $renderOptions = []): ?Markup
-    {
-        // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Rendering `renderRuntimeAssets()` has been deprecated. Use `frontendAssets()` instead.');
-
-        return $this->frontendAssets($renderOptions);
-    }
 }

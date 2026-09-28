@@ -79,14 +79,6 @@ trait FormieVariableDeprecations
         return FormiePlugin::$plugin->getRendering()->formAssets($form, $renderOptions);
     }
 
-    public function renderRuntimeAssets(array $renderOptions = []): ?Markup
-    {
-        // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(__METHOD__, '`craft.formie.renderRuntimeAssets()` has been deprecated. Use `craft.formie.frontendAssets()` instead.');
-
-        return FormiePlugin::$plugin->getRendering()->frontendAssets($renderOptions);
-    }
-
     public function getStatuses(): array
     {
         // Deprecated in 4.0.0
