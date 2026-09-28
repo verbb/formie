@@ -64,7 +64,7 @@ export function createManagedAddressModule<
 >(adapter: ManagedAddressModuleAdapter<TProvider, TApi, TWidget>): BrowserModuleDefinition {
     return {
         moduleId: adapter.moduleId,
-        version: 1,
+        version: 2,
         surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
         kind: 'address',
         match: (ctx) => {

@@ -11,7 +11,6 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionUploadStatus;
 use verbb\formie\fields\Repeater;
-use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\input\FileUploadInputType;
@@ -22,7 +21,7 @@ use verbb\formie\helpers\Table;
 use verbb\formie\helpers\UploadAccess;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SlotTag;
@@ -220,12 +219,19 @@ class FileUpload extends ElementField
         $upload = Formie::$plugin->getFileUploads()->getTrackedUploadByAssetId($assetId, $formId, $fieldUid);
         $contentKey = $this->_submissionContentKey($submission);
         $submissionId = $submission->id ? (int)$submission->id : null;
+        $uploadSubmissionId = $upload && $upload['submissionId'] !== null ? (int)$upload['submissionId'] : null;
+        $availableState = $upload && (
+            $upload['state'] === SubmissionUploadStatus::STAGED->value
+            || ($upload['state'] === SubmissionUploadStatus::BOUND->value
+                && $submissionId
+                && $uploadSubmissionId === $submissionId)
+        );
 
         if ($upload
-            && $upload['state'] === SubmissionUploadStatus::STAGED->value
+            && $availableState
             && (int)$upload['siteId'] === (int)$form->siteId
             && $upload['contentKey'] === $contentKey
-            && ($upload['submissionId'] === null ? null : (int)$upload['submissionId']) === $submissionId
+            && $uploadSubmissionId === $submissionId
             && hash_equals((string)$upload['browserHash'], Formie::$plugin->getSubmissionGrants()->browserHash($form))
         ) {
             $reference['uploadUid'] = (string)$upload['uid'];
@@ -1154,9 +1160,9 @@ class FileUpload extends ElementField
         $modules = parent::defineBrowserModules();
 
         if ($this->displayType === 'uploadManager') {
-            $modules[] = new BrowserModuleEntry([
+            $modules[] = new BrowserModule([
                 'moduleId' => 'formie:upload-manager',
-                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
+                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
                 'config' => [
                     'uploadEndpoint' => UrlHelper::actionUrl('formie/file-upload/upload'),
                     'deleteEndpoint' => UrlHelper::actionUrl('formie/file-upload/delete'),
@@ -1169,9 +1175,9 @@ class FileUpload extends ElementField
                 ],
             ]);
         } else {
-            $modules[] = new BrowserModuleEntry([
+            $modules[] = new BrowserModule([
                 'moduleId' => 'formie:file-upload',
-                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
+                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
             ]);
         }
 

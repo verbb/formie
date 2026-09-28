@@ -17,7 +17,7 @@ class BrowserModuleContext extends BaseObject
     public ?FieldInterface $field = null;
     public ?IntegrationInterface $integration = null;
     public ?FieldLayoutPage $page = null;
-    public string $surface = BrowserModuleEntry::SURFACE_SERVER_RENDERED;
+    public string $surface = BrowserModule::SURFACE_SERVER_RENDERED;
 
 
     // Public Methods
@@ -26,14 +26,13 @@ class BrowserModuleContext extends BaseObject
     {
         if ($this->field) {
             return [[
-                'targetType' => 'field',
-                'targetId' => (string)$this->field->uid,
+                'type' => 'field',
+                'uid' => (string)$this->field->uid,
             ]];
         }
 
         return [[
-            'targetType' => 'form',
-            'targetId' => 'form',
+            'type' => 'form',
         ]];
     }
 }

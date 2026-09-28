@@ -9,7 +9,7 @@ import { createFormieClient, type BrowserModuleDefinition } from '@verbb/formie-
 
 const rating: BrowserModuleDefinition = {
     moduleId: 'acme:rating',
-    version: 1,
+    version: 2,
     surfaces: ['server-rendered'],
     kind: 'field',
     match: ({ target }) => Boolean(target.querySelector('input[type="range"]')),
@@ -31,21 +31,20 @@ await client.scan(document);
 Declare its configuration in your PHP field's `defineBrowserModules()` method:
 
 ```php
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 
 protected function defineBrowserModules(): array
 {
-    return [new BrowserModuleEntry([
+    return [new BrowserModule([
         'key' => $this->uid . ':rating-primary',
         'moduleId' => 'acme:rating',
-        'capability' => 'rating',
-        'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED],
+        'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED],
         'config' => ['max' => 10],
         'required' => true,
     ])];
 }
 ```
 
-Formie supplies the field target and includes the entry in the canonical manifest. Keep credentials and server-only settings out of `config`. The manifest cannot load a `src` URL; module code must already be registered or be resolved by Formie's trusted built-in import map.
+Formie supplies the field target and includes the entry in the surface-specific manifest. Keep credentials and server-only settings out of `config`. The manifest cannot load a `src` URL; module code must already be registered or be resolved by Formie's trusted built-in import map.
 
 For React, Vue and Web Components, register trusted definitions with `clientRenderedModuleRegistry.register(definition)` before mounting the component. The shared host owns reconciliation even when you replace the form component. Framework-independent consumers can pass their own `ModuleRegistry` to `mountClientRenderedModules(root, instance, registry)`. Declare `client-rendered` in both the PHP entry and executable definition only when the module supports that component's markup. Keep `<FormieForm>` for server-rendered forms and `<FormieClientForm>` for the structured client-rendered product.

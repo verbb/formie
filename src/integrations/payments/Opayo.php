@@ -22,7 +22,7 @@ use verbb\formie\helpers\PaymentCapabilities;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
@@ -139,7 +139,7 @@ class Opayo extends Payment
         return UrlHelper::siteUrl('formie/payment-challenges/complete', ['handle' => $this->handle]);
     }
 
-    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -147,9 +147,9 @@ class Opayo extends Payment
 
         $this->setField($context->field);
 
-        return new BrowserModuleEntry([
+        return new BrowserModule([
             'moduleId' => 'formie:opayo',
-            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
+            'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'handle' => $this->handle,
                 'useSandbox' => App::parseBooleanEnv($this->useSandbox),

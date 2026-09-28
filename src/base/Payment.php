@@ -13,7 +13,7 @@ use verbb\formie\helpers\FieldReferenceHelper;
 use verbb\formie\helpers\PaymentAmountHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Payment as PaymentModel;
@@ -324,7 +324,7 @@ abstract class Payment extends Integration
         return [];
     }
 
-    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule
     {
         return null;
     }
@@ -337,7 +337,7 @@ abstract class Payment extends Integration
             'form' => $field->getForm(),
             'field' => $field,
             'integration' => $this,
-            'surface' => BrowserModuleEntry::SURFACE_SERVER_RENDERED,
+            'surface' => BrowserModule::SURFACE_SERVER_RENDERED,
         ]));
 
         $required = [];

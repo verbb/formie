@@ -11,7 +11,7 @@ The browser and server pieces work together:
 3. `renderFieldHtml()` renders the provider’s Payment field template.
 4. `getBrowserModule()` registers any browser module the provider needs.
 5. The browser module mounts the provider UI and writes the token, payment id or authorisation value into hidden Payment field inputs.
-6. During the browser payment stage, the module can block submission if the payment UI has not produced the required value.
+6. Before submission, the module can block the request if the payment UI has not produced the required value.
 7. The inherited `processPayment()` establishes the durable attempt and lock, then calls your protected `executePayment()` method, which returns a typed `PaymentDecision`.
 8. If the provider uses redirects, challenges or webhooks, the integration handles the follow-up provider response and updates the payment record.
 
@@ -29,7 +29,7 @@ use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use Throwable;
 
@@ -48,7 +48,7 @@ class ExamplePayment extends Payment
         return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey);
     }
 
-    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -56,7 +56,7 @@ class ExamplePayment extends Payment
 
         $this->setField($context->field);
 
-        return new BrowserModuleEntry([
+        return new BrowserModule([
             'moduleId' => 'example:example-payment',
             'config' => [
                 'publishableKey' => App::parseEnv($this->publishableKey),

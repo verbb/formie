@@ -16,7 +16,6 @@ use verbb\formie\fields\traits\AutocompleteFieldTrait;
 use verbb\formie\fields\traits\TextLimitFieldTrait;
 use verbb\formie\fields\traits\UniqueValueFieldTrait;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
@@ -282,7 +281,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
-            'textLimitConfig' => $this->getTextLimitClientConfig(BrowserModuleEntry::SURFACE_CP_EDIT),
+            'textLimitConfig' => $this->getTextLimitClientConfig(true),
         ]);
     }
 

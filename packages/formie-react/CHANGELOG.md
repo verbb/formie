@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Changed
+- Resolve field browser modules through exact manifest entry references rather than inferred capabilities.
 - Clarify that client-rendered forms own their markup and that browser-supplied server-rendered theme config is bounded declarative data.
 - Share versioned tri-state conditions and plain-text validation rules across PHP and browser consumers; enforce recursive hidden-value clearing and server-authoritative navigation.
 - Preserve exact nested submission error paths, return typed page-transition results, and distinguish skipped side effects from invalid condition configuration.

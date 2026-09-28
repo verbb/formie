@@ -6,7 +6,7 @@ use verbb\formie\fields\Address;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
@@ -279,9 +279,9 @@ class AddressState extends SingleLineText implements ChildFieldInterface
             }
         }
 
-        $modules[] = new BrowserModuleEntry([
+        $modules[] = new BrowserModule([
             'moduleId' => 'formie:address-state',
-            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
+            'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
             'config' => [
                 'inputMode' => $this->inputMode,
                 'hideWhenUnused' => $this->hideWhenUnused,

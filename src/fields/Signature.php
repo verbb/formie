@@ -7,14 +7,13 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\SignatureAccess;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
@@ -315,9 +314,9 @@ class Signature extends Field implements PreviewableFieldInterface
     {
         $modules = parent::defineBrowserModules();
         
-        $modules[] = new BrowserModuleEntry([
+        $modules[] = new BrowserModule([
             'moduleId' => 'formie:signature',
-            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
+            'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
             'config' => [
                 'backgroundColor' => $this->backgroundColor,
                 'penColor' => $this->penColor,

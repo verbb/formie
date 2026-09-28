@@ -6,7 +6,7 @@ export type PaymentModuleSetupContext<TProvider extends Record<string, unknown>>
 };
 type PaymentSetupResult = {
     destroy?: () => void | Promise<void>;
-    onBeforeStage?: (stageCtx: import('#contracts/modules').SubmitHookContext) => void | Promise<void>;
+    beforeSubmit?: (stageCtx: import('#contracts/modules').BeforeSubmitContext) => void | Promise<void>;
 };
 export type PaymentAfterSubmitResult = {
     /** Tear down the current widget and mount again (for example after a failed payment). */
@@ -42,7 +42,7 @@ export type ManagedPaymentModuleAdapter<TProvider extends Record<string, unknown
         services: PaymentHostServices;
         options: NormalizedPaymentModuleOptions<TProvider>;
         provider: TProvider;
-        stageCtx: import('#contracts/modules').SubmitHookContext;
+        stageCtx: import('#contracts/modules').BeforeSubmitContext;
     }) => Promise<boolean> | boolean;
     /** Called after send (on any result) to reset hidden inputs, clear UI, etc. */
     onAfterSubmit?: (args: {

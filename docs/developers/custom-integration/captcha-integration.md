@@ -7,7 +7,7 @@ The browser and server pieces work together:
 1. `renderHtml()` outputs the captcha placeholder or hidden input.
 2. `getBrowserModule()` registers any browser module the captcha needs.
 3. The browser module loads the provider script, renders the widget and writes the provider token into a normal posted value.
-4. When the form is submitted, Formie runs the captcha during the browser challenge stage.
+4. Before the form is submitted, Formie asks the captcha module to complete its browser check.
 5. `validateSubmission()` reads the submitted value and verifies it with the provider.
 6. If validation returns `true`, Formie continues processing the submission. If it returns `false`, the submission is blocked as spam.
 
@@ -22,7 +22,7 @@ use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\FieldLayoutPage;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 
 class ExampleCaptcha extends Captcha
@@ -43,13 +43,13 @@ class ExampleCaptcha extends Captcha
         ]);
     }
 
-    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule
     {
         if (!$context->form) {
             return null;
         }
 
-        return new BrowserModuleEntry([
+        return new BrowserModule([
             'moduleId' => 'example:example-captcha',
             'config' => [
                 'placeholderSelector' => '[data-example-captcha-placeholder]',
@@ -210,6 +210,6 @@ export default defineCaptchaModule<ExampleCaptchaOptions, ExampleCaptchaApi, Ret
 });
 ```
 
-In this example, the PHP integration registers the module with `new BrowserModuleEntry([...])`, and the browser module writes the solved token to `example-captcha-token`. That is the same name `validateSubmission()` reads with `getCaptchaValue()`.
+In this example, the PHP integration declares the module with `new BrowserModule([...])`, and the browser module writes the solved token to `example-captcha-token`. That is the same name `validateSubmission()` reads with `getCaptchaValue()`.
 
 `getRefreshJsVariables()` is available for captcha providers that need data when Formie refreshes captcha-related browser state. `getGqlVariables()` is available when a captcha needs to expose values for GraphQL mutation handling.

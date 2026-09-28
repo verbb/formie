@@ -2,7 +2,7 @@
 namespace verbb\formie\base;
 
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 
 use Craft;
@@ -77,7 +77,7 @@ abstract class AddressProvider extends Integration
         return '';
     }
 
-    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule
     {
         return null;
     }

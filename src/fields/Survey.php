@@ -16,7 +16,7 @@ use verbb\formie\helpers\OptionsMode;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\SurveyPresentationDefaults;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\RichText;
 use verbb\formie\models\SlotTag;
 use verbb\formie\elements\Form;
@@ -1203,25 +1203,25 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
     {
         return match ($this->displayType) {
             self::DISPLAY_LIKERT => [
-                new BrowserModuleEntry([
+                new BrowserModule([
                     'moduleId' => 'formie:survey-likert',
-                    'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
+                    'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
                 ]),
-                new BrowserModuleEntry([
+                new BrowserModule([
                     'moduleId' => 'formie:checkbox-radio',
-                    'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
+                    'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
                 ]),
             ],
             self::DISPLAY_RANK => [
-                new BrowserModuleEntry([
+                new BrowserModule([
                     'moduleId' => 'formie:survey-rank',
-                    'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
+                    'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
                 ]),
             ],
             self::DISPLAY_RATING => [
-                new BrowserModuleEntry([
+                new BrowserModule([
                     'moduleId' => 'formie:survey-rating',
-                    'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
+                    'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
                 ]),
             ],
             default => [],

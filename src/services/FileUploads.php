@@ -470,11 +470,18 @@ class FileUploads extends Component
             foreach ($ids as $id) {
                 // Stable Formie 3 ID payloads are accepted only after proving actual ownership.
                 $upload = $this->getTrackedUploadByAssetId($id, (int)$form->id, $field->uid);
+                $uploadSubmissionId = $upload && $upload['submissionId'] !== null ? (int)$upload['submissionId'] : null;
+                $availableState = $upload && (
+                    $upload['state'] === SubmissionUploadStatus::STAGED->value
+                    || ($upload['state'] === SubmissionUploadStatus::BOUND->value
+                        && $submission->id
+                        && $uploadSubmissionId === (int)$submission->id)
+                );
                 $owned = $upload && (int)$upload['siteId'] === (int)$form->siteId
                     && $upload['contentKey'] === $contentKey
                     && hash_equals((string)$upload['browserHash'], Formie::$plugin->getSubmissionGrants()->browserHash($form))
-                    && (int)$upload['expiresAt'] > time() && $upload['state'] === SubmissionUploadStatus::STAGED->value
-                    && (!$upload['submissionId'] || (int)$upload['submissionId'] === (int)$submission->id);
+                    && (int)$upload['expiresAt'] > time() && $availableState
+                    && (!$uploadSubmissionId || $uploadSubmissionId === (int)$submission->id);
                 $retainedAsset = in_array($id, $retained, true);
                 $claim = $command->uploadClaims->get($contentKey, $id);
                 $legacyOwned = $command->allowLegacyUploadIds && $owned;
@@ -489,7 +496,7 @@ class FileUploads extends Component
                     throw new ForbiddenHttpException('Upload authorization no longer matches the staged asset.');
                 }
                 // Trusted workflows may omit a browser capability, but they never bypass
-                // Formie ownership, field scope, expiry, or staged-state checks.
+                // Formie ownership, field scope, expiry, or lifecycle-state checks.
                 if (!$retainedAsset && !$owned) {
                     throw new ForbiddenHttpException('Invalid upload ownership.');
                 }
@@ -497,7 +504,7 @@ class FileUploads extends Component
                 if (!$asset || $field->exceedsMaxUploadSize((int)$asset->size) || ($field->sizeMinLimit && $asset->size < $field->sizeMinLimit * 1000000) || $field->getUploadTypeValidationErrors($asset->filename, $asset->getCopyOfFile())) {
                     throw new ForbiddenHttpException('Upload policy rejected the file.');
                 }
-                if ($owned && !$retainedAsset) {
+                if ($owned && $upload['state'] === SubmissionUploadStatus::STAGED->value && !$retainedAsset) {
                     $toBind[$id] = $claim ?? $this->_claimFromRow($upload);
                 }
             }
@@ -730,6 +737,13 @@ class FileUploads extends Component
         $uploadSubmissionId = $upload['submissionId'] === null ? null : (int)$upload['submissionId'];
         $progressId = $upload['progressId'] === null ? null : (int)$upload['progressId'];
         $progress = $progressId ? Formie::$plugin->getSubmissionProgress()->getProgressState($form) : null;
+        $isStaged = $upload['state'] === SubmissionUploadStatus::STAGED->value;
+        $isRetainedBoundUpload = $upload['state'] === SubmissionUploadStatus::BOUND->value
+            && $submissionId
+            && $uploadSubmissionId === $submissionId
+            && $this->_isRetainedSubmissionUpload((int)$upload['assetId'], $submissionId, (int)$upload['siteId'], $contentKey);
+        $availableState = $upload['state'] === SubmissionUploadStatus::STAGED->value
+            || $isRetainedBoundUpload;
 
         $matches = (int)$upload['formId'] === (int)$form->id
             && (int)$upload['siteId'] === (int)$form->siteId
@@ -738,15 +752,37 @@ class FileUploads extends Component
             && hash_equals((string)$upload['browserHash'], Formie::$plugin->getSubmissionGrants()->browserHash($form))
             && $uploadSubmissionId === $submissionId
             && (int)$upload['expiresAt'] > time()
-            && $upload['state'] === SubmissionUploadStatus::STAGED->value
+            && $availableState
             && (!$progressId || ($progress && (int)$progress->id === $progressId && $progress->submissionId === $submissionId));
 
         $asset = $matches ? Asset::find()->id((int)$upload['assetId'])->status(null)->one() : null;
-        $stagingFolder = $asset ? $this->getStagingFolder() : null;
+        $stagingFolder = $asset && $isStaged ? $this->getStagingFolder() : null;
+        $validLocation = $asset && ($isRetainedBoundUpload || ($stagingFolder
+            && (int)$asset->folderId === (int)$stagingFolder->id
+            && (int)$asset->volumeId === (int)$stagingFolder->volumeId));
 
-        if (!$asset || !$stagingFolder || (int)$asset->folderId !== (int)$stagingFolder->id || (int)$asset->volumeId !== (int)$stagingFolder->volumeId) {
+        if (!$validLocation) {
             throw new ForbiddenHttpException('Upload is not available for this submission field.');
         }
+    }
+
+    private function _isRetainedSubmissionUpload(int $assetId, int $submissionId, int $siteId, string $contentKey): bool
+    {
+        $persisted = Submission::find()
+            ->id($submissionId)
+            ->siteId($siteId)
+            ->isIncomplete(null)
+            ->isSpam(null)
+            ->status(null)
+            ->one();
+
+        if (!$persisted) {
+            return false;
+        }
+
+        $value = $persisted->getFieldValuesForField(FileUpload::class)[$contentKey] ?? null;
+
+        return in_array($assetId, $this->_extractAssetIds($value), true);
     }
 
     private function _claimFromRow(array $upload): SubmissionUploadClaim

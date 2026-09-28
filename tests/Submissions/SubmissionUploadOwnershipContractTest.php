@@ -263,6 +263,55 @@ it('accepts the same structured staged-upload reference through every submission
     }, ['method' => 'POST', 'headers' => ['Accept' => $transport === 'html' ? 'text/html' : 'application/json']]);
 })->with(['html', 'ajax', 'rest', 'graphql']);
 
+it('accepts an exact bound upload capability when an incomplete submission revisits a page', function () {
+    WebRequestTestHelper::withWebRequestContext(function () {
+        $volume = UploadTestHelper::ensureUploadVolume();
+        $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false])->create();
+        $field = $form->getFieldByHandle('document');
+        $submission = formie()->submission($form)->with([])->save();
+        $submission->isIncomplete = true;
+        expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
+
+        $progress = Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission);
+        $asset = UploadTestHelper::seedStagedAsset(
+            $form,
+            $field->uid,
+            'document',
+            'bound-revisit-' . uniqid() . '.txt',
+            'bound revisit',
+            (int)$submission->id,
+        );
+        $uploads = Formie::$plugin->getFileUploads();
+        $tracked = $uploads->getTrackedUploadByAssetId((int)$asset->id);
+        $submission->setFieldValue('document', [$asset->id]);
+        expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
+        Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
+            'state' => 'bound',
+        ], ['id' => $tracked['id']])->execute();
+        $destination = Craft::$app->getAssets()->ensureFolderByFullPathAndVolume('bound-revisit-' . uniqid(), $volume);
+        $uploads->promote($asset, $destination);
+
+        $submission = Submission::find()->id($submission->id)->siteId($form->siteId)->isIncomplete(null)->status(null)->one();
+        $submission->setForm($form);
+        $reference = $field->getSubmissionUploadReference($asset, $submission);
+
+        $submission->getContentState()->uploadClaims = new \verbb\formie\models\SubmissionUploadClaims();
+        $value = $field->normalizeValueFromRequest([[
+            'uploadUid' => $reference['uploadUid'],
+            'attachToken' => $reference['attachToken'],
+        ]], $submission);
+        $submission->setFieldValue('document', $value);
+
+        expect($value->ids())->toBe([(int)$asset->id])
+            ->and((int)$tracked['progressId'])->toBe((int)$progress->id)
+            ->and($reference['uploadUid'])->toBe($tracked['uid'])
+            ->and($reference['attachToken'])->not->toBeNull()
+            ->and((int)$asset->folderId)->toBe((int)$destination->id)
+            ->and($uploads->bindAccepted(submissionCommand(['form' => $form, 'submission' => $submission])))->toBe([])
+            ->and($uploads->getTrackedUploadByAssetId((int)$asset->id)['state'])->toBe('bound');
+    });
+});
+
 it('binds upload capabilities to their purpose and exact field context', function (string $attack) {
     WebRequestTestHelper::withWebRequestContext(function () use ($attack) {
         $volume = UploadTestHelper::ensureUploadVolume();

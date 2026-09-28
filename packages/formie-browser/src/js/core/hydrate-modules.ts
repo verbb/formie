@@ -1,6 +1,6 @@
 import type { FormEventUnsubscribe } from '#contracts/client';
 import type { FormMode } from '#contracts/common';
-import type { BrowserModuleDefinition, BrowserModuleInstance, ModuleRegistrationOptions } from '#contracts/modules';
+import type { BrowserModuleDefinition, ModuleRegistrationOptions } from '#contracts/modules';
 import type { BrowserModuleEntry } from '#contracts/schema';
 import { EventBus } from '#events/event-bus';
 import { loadModulesFromManifest } from '#modules/loader';
@@ -34,7 +34,8 @@ const debug = createDebug('general', 'module-hydrator');
 export async function hydrateFormieModules(options: FormieModuleHydratorOptions): Promise<FormieModuleHydrator> {
     const root = options.root;
     const form = options.form ?? (root instanceof HTMLFormElement ? root : root.closest('form') ?? root.querySelector('form'));
-    const modules = options.modules ?? { contractVersion: 1, entries: [] };
+    const surface = options.surface ?? 'cp-edit';
+    const modules = options.modules ?? { contractVersion: 2, surface, entries: [] };
     const mode = options.mode ?? 'server-rendered';
     const registry = options.registry ?? new ModuleRegistry();
     const bus = new EventBus();
@@ -64,7 +65,7 @@ export async function hydrateFormieModules(options: FormieModuleHydratorOptions)
             root,
             form,
             mode,
-            surface: options.surface ?? 'cp-edit',
+            surface,
         },
     });
 
@@ -79,20 +80,16 @@ export async function hydrateFormieModules(options: FormieModuleHydratorOptions)
             if (!form) throw new Error('Browser modules require a mounted form element.');
             instances.forEach((instance) => instance.assertReady?.());
             let reason: string | undefined;
-            for (const stage of ['prepare', 'validate', 'challenge', 'payment', 'send'] as const) {
-                const context = {
-                    form, stage, action: action === 'back' || action === 'save' ? action : 'submit' as const,
-                    formData: new FormData(form),
-                    abort: (message?: string) => { reason = message || 'A form feature could not complete.'; },
-                    isAborted: () => Boolean(reason), abortReason: () => reason,
-                };
-                await bus.emit(`formie:browser:${stage}`, context);
-                for (const instance of instances) await instance.onBeforeStage?.(context);
+            const context = {
+                form, action: action === 'back' || action === 'save' ? action : 'submit' as const,
+                formData: new FormData(form),
+                abort: (message?: string) => { reason = message || 'A form feature could not complete.'; },
+                isAborted: () => Boolean(reason), abortReason: () => reason,
+            };
+            const priority = { core: 0, field: 0, address: 0, captcha: 1, payment: 2 };
+            for (const instance of [...instances].sort((a, b) => priority[a.kind ?? 'core'] - priority[b.kind ?? 'core'])) {
+                await instance.beforeSubmit?.(context);
                 if (reason) throw new Error(reason);
-                if (stage !== 'send') {
-                    for (const instance of instances) await instance.onAfterStage?.(context);
-                    if (reason) throw new Error(reason);
-                }
             }
             // Only transient module inputs cross this seam. PHP reads CAPTCHA data
             // and payment fields without allowing arbitrary request/authority overrides.
@@ -100,19 +97,15 @@ export async function hydrateFormieModules(options: FormieModuleHydratorOptions)
         },
         result: async(result) => {
             if (!form) return;
-            const context = { form, stage: 'send' as const, action: 'submit' as const, formData: new FormData(form), abort: () => {}, isAborted: () => false, abortReason: () => undefined };
-            for (const instance of instances) await instance.onAfterStage?.(context, result);
-            const resultContext = { ...context, stage: 'result' as const };
-            await bus.emit('formie:browser:result', resultContext);
-            for (const instance of instances) await instance.onBeforeStage?.(resultContext);
+            const context = { form, action: result.action ?? 'submit' as const, formData: new FormData(form) };
             await bus.emit('formie:submit:result', result);
-            for (const instance of instances) await instance.onAfterStage?.(resultContext, result);
+            for (const instance of instances) await instance.afterSubmit?.(context, result);
             form.dispatchEvent(new CustomEvent('formie:submit:result', { detail: result, bubbles: true }));
         },
         update: (manifest) => instances.updateManifest(manifest),
         assertReady: () => instances.forEach((instance) => instance.assertReady?.()),
         destroy: async() => {
-            await destroyModuleInstances(instances);
+            await instances[0]?.destroy();
             bus.clear();
         },
         on: (eventName, callback) => {
@@ -131,15 +124,4 @@ export async function hydrateFormieModules(options: FormieModuleHydratorOptions)
             return registry.getAll();
         },
     };
-}
-
-async function destroyModuleInstances(instances: BrowserModuleInstance[]): Promise<void> {
-    for (const instance of instances) {
-        try {
-            await instance.destroy();
-        } catch (error) {
-            console.error('[formie] Failed to destroy module instance.', error);
-            debug.warn('Failed destroying module instance.', { error });
-        }
-    }
 }

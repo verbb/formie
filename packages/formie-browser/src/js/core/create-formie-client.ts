@@ -938,9 +938,7 @@ export function createFormieClient(): FormieClient {
         state.validator?.destroy();
         state.validator = null;
 
-        for (const moduleInstance of state.modules) {
-            await moduleInstance.destroy();
-        }
+        await state.modules[0]?.destroy();
         state.modules = [];
 
         state.bus.clear();
@@ -1025,7 +1023,7 @@ export function createFormieClient(): FormieClient {
             : null;
         const themeClassMap = payload?.theme as ThemeClassMap | undefined;
         const stateStore: Record<string, unknown> = {};
-        const moduleManifest = payload?.modules ?? { contractVersion: 1, entries: [] };
+        const moduleManifest = payload?.modules ?? { contractVersion: 2, surface: 'server-rendered' as const, entries: [] };
         assertBrowserModuleManifest(moduleManifest);
         debug.log('Resolved mount payload.', {
             target: getTargetDebugLabel(target),
@@ -1096,6 +1094,7 @@ export function createFormieClient(): FormieClient {
                 root: target,
                 form,
                 mode: normalizedOptions.mode,
+                surface: moduleManifest.surface,
             },
             setupContext: {
                 formId: id,
@@ -1236,16 +1235,18 @@ export function createFormieClient(): FormieClient {
         }
 
         stageNames.forEach((stageName) => {
-            // Stage fan-out keeps submit pipeline ownership centralized while still
-            // letting modules participate before and after each stage.
             const beforeDomUnbind = bus.on(`formie:stage:${stageName}:before`, async(payload) => {
                 dispatchFormieDomEvent(target, `formie:stage:${stageName}:before`, payload);
             });
 
             const beforeUnbind = bus.on(`formie:stage:${stageName}:before`, async(payload) => {
+                const hookStage = { core: 'prepare', field: 'prepare', address: 'prepare', captcha: 'challenge', payment: 'payment' } as const;
+                const stagePayload = payload as Parameters<NonNullable<BrowserModuleInstance['beforeSubmit']>>[0] & { stage: string };
+
                 for (const moduleInstance of modules) {
-                    if (moduleInstance.onBeforeStage) {
-                        await moduleInstance.onBeforeStage(payload as Parameters<NonNullable<BrowserModuleInstance['onBeforeStage']>>[0]);
+                    if (moduleInstance.beforeSubmit && hookStage[moduleInstance.kind ?? 'core'] === stageName) {
+                        const { form, action, formData, abort, isAborted, abortReason } = stagePayload;
+                        await moduleInstance.beforeSubmit({ form, action, formData, abort, isAborted, abortReason });
                     }
                 }
             });
@@ -1254,19 +1255,7 @@ export function createFormieClient(): FormieClient {
                 dispatchFormieDomEvent(target, `formie:stage:${stageName}:after`, payload);
             });
 
-            const afterUnbind = bus.on(`formie:stage:${stageName}:after`, async(payload) => {
-                const stagePayload = payload as {
-                    result?: FormSubmitResult;
-                } & Parameters<NonNullable<BrowserModuleInstance['onAfterStage']>>[0];
-
-                for (const moduleInstance of modules) {
-                    if (moduleInstance.onAfterStage) {
-                        await moduleInstance.onAfterStage(stagePayload, stagePayload.result);
-                    }
-                }
-            });
-
-            unbinds.push(beforeDomUnbind, beforeUnbind, afterDomUnbind, afterUnbind);
+            unbinds.push(beforeDomUnbind, beforeUnbind, afterDomUnbind);
         });
 
         const submitBeforeUnbind = bus.on('formie:submit:before', async(payload) => {
@@ -1275,6 +1264,16 @@ export function createFormieClient(): FormieClient {
 
         const submitAfterUnbind = bus.on('formie:submit:after', async(payload) => {
             dispatchFormieDomEvent(target, 'formie:submit:after', payload);
+
+            if (!form) return;
+            const result = payload as FormSubmitResult;
+            if (result.code === 'PREFLIGHT_COMPLETE') return;
+            const context = {
+                form,
+                action: result.action ?? 'submit' as const,
+                formData: new FormData(form),
+            };
+            for (const moduleInstance of modules) await moduleInstance.afterSubmit?.(context, result);
         });
 
         const submitFinalBeforeUnbind = bus.on('formie:submit:final:before', async(payload) => {

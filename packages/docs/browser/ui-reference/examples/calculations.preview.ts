@@ -4,25 +4,23 @@ const preview: FormiePreviewSourceDefinition = {
     minHeight: 420,
     modules: [
         {
-            id: 'calculations',
-            type: 'field',
-            targets: [{ targetType: 'field', targetId: 'estimateTotal' }],
+            moduleId: 'formie:calculations',
+            kind: 'field',
+            targets: [{ type: 'selector', selector: '[data-formie-field-handle="estimateTotal"]' }],
             config: {
-                options: {
-                    formula: {
-                        expression: 'a + b',
-                        variables: {
-                            a: {
-                                sourceKey: 'fieldA',
-                            },
-                            b: {
-                                sourceKey: 'fieldB',
-                            },
+                formula: {
+                    expression: 'a + b',
+                    variables: {
+                        a: {
+                            sourceKey: 'fieldA',
+                        },
+                        b: {
+                            sourceKey: 'fieldB',
                         },
                     },
-                    formatting: 'number',
-                    decimals: 0,
                 },
+                formatting: 'number',
+                decimals: 0,
             },
         },
     ],

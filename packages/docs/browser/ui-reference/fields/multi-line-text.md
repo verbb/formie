@@ -85,23 +85,18 @@ Register the `rich-text` field module against a Multi Line Text field target:
   class="formie-form"
   data-formie
   data-formie-form
-  data-formie-modules='[
-    {
-      "id": "rich-text",
-      "type": "field",
-      "targets": [
-        {
-          "targetType": "field",
-          "targetId": "projectBrief"
-        }
-      ],
-      "config": {
-        "options": {
-          "buttons": ["bold", "italic", "ulist", "link"]
-        }
-      }
-    }
-  ]'
+  data-formie-modules='{
+    "contractVersion": 2,
+    "surface": "server-rendered",
+    "entries": [{
+      "key": "field:project-brief:formie:rich-text:0",
+      "moduleId": "formie:rich-text",
+      "kind": "field",
+      "targets": [{"type": "field", "uid": "project-brief"}],
+      "config": {"buttons": ["bold", "italic", "ulist", "link"]},
+      "required": true
+    }]
+  }'
 >
   ...
 </form>

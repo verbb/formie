@@ -4,12 +4,12 @@ const preview: FormiePreviewSourceDefinition = {
     minHeight: 320,
     modules: [
         {
-            id: 'signature',
-            type: 'field',
+            moduleId: 'formie:signature',
+            kind: 'field',
             targets: [
                 {
-                    targetType: 'field',
-                    targetId: 'signature',
+                    type: 'selector',
+                    selector: '[data-formie-field-handle="signature"]',
                 },
             ],
         },

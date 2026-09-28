@@ -419,7 +419,14 @@ class FileUploadController extends Controller
         $submissionUid = trim((string)$submissionUid);
 
         if (!$submissionId && $submissionUid === '') {
-            return null;
+            // Client-rendered continuation intentionally exposes only the opaque
+            // progress identity. Resolve its already-authorized submission on the
+            // server so uploads staged on later pages bind to the same submission.
+            $submissionId = Formie::$plugin->getSubmissionProgress()->getProgressState($form)?->submissionId;
+
+            if (!$submissionId) {
+                return null;
+            }
         }
 
         $query = Submission::find()

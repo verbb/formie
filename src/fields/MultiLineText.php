@@ -15,7 +15,7 @@ use verbb\formie\fields\conditions\TextFieldConditionRule;
 use verbb\formie\fields\traits\AutocompleteFieldTrait;
 use verbb\formie\fields\traits\TextLimitFieldTrait;
 use verbb\formie\fields\traits\UniqueValueFieldTrait;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
@@ -385,7 +385,7 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
             'value' => $value,
             'field' => $this,
             'form' => $form,
-            'textLimitConfig' => $this->getTextLimitClientConfig(BrowserModuleEntry::SURFACE_CP_EDIT),
+            'textLimitConfig' => $this->getTextLimitClientConfig(true),
         ]);
     }
 
@@ -440,9 +440,9 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
         }
 
         if ($this->useRichText) {
-            $modules[] = new BrowserModuleEntry([
+            $modules[] = new BrowserModule([
                 'moduleId' => 'formie:rich-text',
-                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
+                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
                 'config' => [
                     'buttons' => $this->getRichTextButtons(),
                 ],

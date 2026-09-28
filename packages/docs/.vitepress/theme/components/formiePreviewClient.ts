@@ -1,7 +1,17 @@
-import { createFormieClient, setFormieDebugEnabled, type FormModuleManifest } from '../../../../formie-browser/src/index';
+import {
+    createFormieClient,
+    setFormieDebugEnabled,
+    type BrowserModuleEntry,
+    type BrowserModuleManifest,
+} from '../../../../formie-browser/src/index';
+
+type FormiePreviewModule = Omit<BrowserModuleEntry, 'key' | 'config' | 'required'> & {
+    config?: BrowserModuleEntry['config'];
+    required?: boolean;
+};
 
 type PreviewClientConfig = {
-    modules?: FormModuleManifest[];
+    modules?: FormiePreviewModule[];
 };
 
 type HeightCallback = (height: number) => void;
@@ -21,12 +31,22 @@ function readConfig(previewDocument: Document): PreviewClientConfig {
     }
 }
 
-function applyModules(previewDocument: Document, modules: FormModuleManifest[] | undefined): void {
+function applyModules(previewDocument: Document, modules: FormiePreviewModule[] | undefined): void {
     if (!modules?.length) {
         return;
     }
 
-    const serializedModules = JSON.stringify(modules);
+    const manifest: BrowserModuleManifest = {
+        contractVersion: 2,
+        surface: 'server-rendered',
+        entries: modules.map((module, index) => ({
+            ...module,
+            key: `preview:${index}:${module.moduleId}`,
+            config: module.config ?? {},
+            required: module.required ?? true,
+        })),
+    };
+    const serializedModules = JSON.stringify(manifest);
 
     previewDocument.querySelectorAll('[data-formie], [data-formie-form]').forEach((root) => {
         root.setAttribute('data-formie-modules', serializedModules);

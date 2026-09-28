@@ -4,14 +4,12 @@ const preview: FormiePreviewSourceDefinition = {
     minHeight: 420,
     modules: [
         {
-            id: 'phone-country',
-            type: 'field',
-            targets: [{ targetType: 'field', targetId: 'phoneNumberWithCountry' }],
+            moduleId: 'formie:phone-country',
+            kind: 'field',
+            targets: [{ type: 'selector', selector: '[data-formie-field-handle="phoneNumberWithCountry"]' }],
             config: {
-                options: {
-                    countryDefaultValue: 'US',
-                    countryAllowed: ['US', 'CA', 'GB'],
-                },
+                countryDefaultValue: 'US',
+                countryAllowed: ['US', 'CA', 'GB'],
             },
         },
     ],

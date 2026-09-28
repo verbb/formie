@@ -19,7 +19,7 @@ The browser and server pieces work together:
 use Craft;
 use craft\helpers\App;
 use verbb\formie\base\AddressProvider;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 
 class ExampleAddressProvider extends AddressProvider
@@ -34,13 +34,13 @@ class ExampleAddressProvider extends AddressProvider
         return true;
     }
 
-    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        return new BrowserModuleEntry([
+        return new BrowserModule([
             'moduleId' => 'example:example-address-provider',
             'config' => [
                 'apiKey' => App::parseEnv($this->apiKey),

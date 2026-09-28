@@ -184,7 +184,7 @@ function initRichTextField(container: HTMLElement, input: RichTextInput, options
 
 export const richTextModule: BrowserModuleDefinition = {
     moduleId: `formie:${MODULE_ID}`,
-    version: 1,
+    version: 2,
     surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {

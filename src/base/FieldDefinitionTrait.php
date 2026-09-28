@@ -2,13 +2,14 @@
 namespace verbb\formie\base;
 
 use verbb\formie\fields\definitions\FieldClientRenderedDefinition;
-use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldConditions;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldReferences;
 use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\ConditionsHelper;
+use verbb\formie\models\BrowserModule;
+use verbb\formie\models\BrowserModuleContext;
 use Craft;
 
 trait FieldDefinitionTrait
@@ -48,10 +49,15 @@ trait FieldDefinitionTrait
     }
 
     // Lazy browser modules the field needs when Formie manages client behavior.
-    public function browserModules(): FieldBrowserModules
+    public function browserModules(BrowserModuleContext $context): array
     {
-        return FieldBrowserModules::make()
-            ->withModules(array_merge($this->defineBrowserModules(), \verbb\formie\compatibility\fields\LegacyBrowserModules::fromField($this)));
+        return array_map(static function(array|BrowserModule $module): BrowserModule {
+            return $module instanceof BrowserModule ? $module : new BrowserModule($module);
+        }, array_merge(
+            $this->defineBrowserModules(),
+            $this->defineContextualBrowserModules($context),
+            \verbb\formie\compatibility\fields\LegacyBrowserModules::fromField($this),
+        ));
     }
 
     // Reference selectors feed token UIs and server-side variable resolution.
@@ -224,6 +230,11 @@ trait FieldDefinitionTrait
     }
 
     protected function defineBrowserModules(): array
+    {
+        return [];
+    }
+
+    protected function defineContextualBrowserModules(BrowserModuleContext $context): array
     {
         return [];
     }

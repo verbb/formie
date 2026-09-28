@@ -146,19 +146,17 @@ function renderPreviewForm(fieldsMarkup: string[]): string {
 
 function datePickerModule(handle: string, options: DateModuleConfig) {
     return {
-        id: 'date-picker',
-        type: 'field' as const,
+        moduleId: 'formie:date-picker',
+        kind: 'field',
         targets: [
             {
-                targetType: 'field' as const,
-                targetId: handle,
+                type: 'selector' as const,
+                selector: `[data-formie-field-handle="${handle}"]`,
             },
         ],
         config: {
-            options: {
-                locale: 'en',
-                ...options,
-            },
+            locale: 'en',
+            ...options,
         },
     };
 }

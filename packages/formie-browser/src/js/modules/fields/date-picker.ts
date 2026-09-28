@@ -330,7 +330,7 @@ function initDatePicker(input: FlatpickrInput, options: DatePickerOptions): () =
 
 export const datePickerModule: BrowserModuleDefinition = {
     moduleId: `formie:${MODULE_ID}`,
-    version: 1,
+    version: 2,
     surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {

@@ -1,11 +1,11 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\models\BrowserModuleContext;
 use craft\base\ElementInterface;
 use craft\base\SavableComponentInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldConditions;
 use verbb\formie\fields\definitions\FieldClientRenderedDefinition;
 use verbb\formie\fields\definitions\FieldReferences;
@@ -39,7 +39,7 @@ interface FieldInterface extends SavableComponentInterface, FieldTypeDefinitionI
     public function valueType(): FieldValueType;
     public function clientRenderedChildren(): FieldClientRenderedChildren;
     public function clientRenderedDefinition(): FieldClientRenderedDefinition;
-    public function browserModules(): FieldBrowserModules;
+    public function browserModules(BrowserModuleContext $context): array;
     public function references(): FieldReferences;
     public function variableSources(): array;
     public function conditions(): FieldConditions;

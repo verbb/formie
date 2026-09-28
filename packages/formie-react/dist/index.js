@@ -205,10 +205,11 @@ function B(e, t, n, r, a = [], o = "") {
 	});
 }
 function V(e, t, n) {
-	return new Set(e.moduleRefs || []), t.modules.entries.find((t) => t.targets.some((t) => t.targetType === "field" && t.targetId === e.uid) && t.capability === (n === "draw-signature" ? "signature" : n)) || null;
+	let r = new Set(e.moduleRefs || []);
+	return t.modules.entries.find((e) => r.has(e.key) && e.moduleId === n) || null;
 }
 function H({ field: e, value: t, errorKey: n, disabled: r, setValue: a }) {
-	let { state: s } = L(), u = c(null), d = c(null), [f, p] = l(null), m = V(e, s.definition, "draw-signature")?.config, h = typeof m?.options == "object" && m.options && typeof m.options.backgroundColor == "string" ? String(m.options.backgroundColor) : "#ffffff", g = typeof m?.options == "object" && m.options && typeof m.options.penColor == "string" ? String(m.options.penColor) : "#000000", _ = typeof m?.options == "object" && m.options && Number(m.options.penWeight ?? 2) || 2, v = typeof t == "string" ? t : "";
+	let { state: s } = L(), u = c(null), d = c(null), [f, p] = l(null), m = V(e, s.definition, "formie:signature")?.config, h = typeof m?.backgroundColor == "string" ? String(m.backgroundColor) : "#ffffff", g = typeof m?.penColor == "string" ? String(m.penColor) : "#000000", _ = Number(m?.penWeight ?? 2) || 2, v = typeof t == "string" ? t : "";
 	return o(() => {
 		let e = !1, t = () => void 0, n = () => void 0;
 		return (async () => {

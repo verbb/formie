@@ -24,7 +24,7 @@ function getCookieValue(name: string): string | null {
 
 export const hiddenModule: BrowserModuleDefinition = {
     moduleId: 'formie:hidden',
-    version: 1,
+    version: 2,
     surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {

@@ -931,7 +931,7 @@ function initAddressStateField(field: HTMLElement, options: AddressStateOptions)
 
 export const addressStateModule: BrowserModuleDefinition = {
     moduleId: `formie:${MODULE_ID}`,
-    version: 1,
+    version: 2,
     surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {

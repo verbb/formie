@@ -4,8 +4,7 @@ namespace verbb\formie\fields\traits;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\models\BrowserModuleEntry;
-use verbb\formie\models\BrowserModuleContext;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 
 use verbb\formie\theme\context\RenderContext;
@@ -222,20 +221,23 @@ trait TextLimitFieldTrait
         }
 
         return [
-            function(BrowserModuleContext $context) {
-                return new BrowserModuleEntry([
-                    'moduleId' => 'formie:text-limit',
-                    'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
-                    'config' => $this->getTextLimitClientConfig($context->surface),
-                ]);
-            },
+            new BrowserModule([
+                'moduleId' => 'formie:text-limit',
+                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
+                'config' => $this->getTextLimitClientConfig(false),
+            ]),
+            new BrowserModule([
+                'moduleId' => 'formie:text-limit',
+                'surfaces' => [BrowserModule::SURFACE_CP_EDIT],
+                'config' => $this->getTextLimitClientConfig(true),
+            ]),
         ];
     }
 
-    protected function getTextLimitClientConfig(string $surface): array
+    protected function getTextLimitClientConfig(bool $allowOvertype): array
     {
         return [
-            'allowOvertype' => $surface === BrowserModuleEntry::SURFACE_CP_EDIT,
+            'allowOvertype' => $allowOvertype,
         ];
     }
 

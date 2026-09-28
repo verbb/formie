@@ -15,7 +15,6 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
 use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\events\RegisterDateTimeFormatOptionsEvent;
-use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\subfields\DateYear;
@@ -29,7 +28,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\models\SlotTag;
@@ -2133,9 +2132,9 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 $datePickerOptions[$key]['value'] = Json::decodeIfJson($option['value']);
             }
 
-            $modules[] = new BrowserModuleEntry([
+            $modules[] = new BrowserModule([
                 'moduleId' => 'formie:date-picker',
-                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
+                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
                 'config' => [
                     'includeFlatpickrCss' => Formie::$plugin->getSettings()->includeFlatpickrCss,
                     'datePickerOptions' => $datePickerOptions,

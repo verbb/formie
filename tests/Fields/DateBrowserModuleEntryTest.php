@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use verbb\formie\Formie;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 
 it('passes includeFlatpickrCss through the date-picker client module config', function (): void {
     $previousSetting = Formie::$plugin->getSettings()->includeFlatpickrCss;
@@ -18,7 +18,7 @@ it('passes includeFlatpickrCss through the date-picker client module config', fu
             ])
             ->create();
 
-        $modules = Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED)['entries'];
+        $modules = Formie::$plugin->getBrowserModuleManifestBuilder()->buildForSurface($form, BrowserModule::SURFACE_SERVER_RENDERED)->toArray()['entries'];
         $datePickerModule = current(array_filter($modules, static fn(array $module): bool => ($module['moduleId'] ?? null) === 'formie:date-picker')) ?: null;
 
         expect($datePickerModule)->not->toBeNull()

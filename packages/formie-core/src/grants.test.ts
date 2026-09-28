@@ -7,7 +7,7 @@ afterEach(() => vi.unstubAllGlobals());
 it.each(['rest', 'graphql'])('exchanges a grant and strips only the matching bearer from browser history through %s', async (transport) => {
     const replaceState = vi.fn();
     vi.stubGlobal('window', { location: { href: 'https://example.test/form?resumeToken=secret&campaign=summer' }, history: { state: {}, replaceState } });
-    const envelope = { contractVersion: 1, definition: { pages: [], modules: { contractVersion: 1, entries: [] } }, session: { version: 2, continuation: { progressId: '17' } } };
+    const envelope = { contractVersion: 1, definition: { pages: [], modules: { contractVersion: 2, surface: 'client-rendered', entries: [] } }, session: { version: 2, continuation: { progressId: '17' } } };
     const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(transport === 'rest' ? envelope : { data: { formieClientForm: envelope } })));
     vi.stubGlobal('fetch', fetch);
     const options = { endpoint: '/api', formHandle: 'contact', grantToken: 'secret', grantPurpose: 'continue-incomplete' as const };

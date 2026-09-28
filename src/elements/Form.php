@@ -40,7 +40,8 @@ use verbb\formie\helpers\SubmissionLimitHelper;
 use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
+use verbb\formie\models\BrowserModuleManifest;
 use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutPageSettings;
@@ -897,6 +898,8 @@ class Form extends Element implements FormInterface
 
     public function getCpEditConfig(): array
     {
+        $moduleManifest = Formie::$plugin->getBrowserModuleManifestBuilder()->buildForSurface($this, BrowserModule::SURFACE_CP_EDIT);
+
         return [
             'formId' => (string)$this->id,
             'handle' => $this->handle,
@@ -915,15 +918,17 @@ class Form extends Element implements FormInterface
                 'validationOnSubmit' => (bool)$this->settings->validationOnSubmit,
                 'disableSubmitButtonUntilValid' => (bool)$this->settings->disableSubmitButtonUntilValid,
             ],
-            'modules' => Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($this, BrowserModuleEntry::SURFACE_CP_EDIT),
+            'modules' => $moduleManifest->toArray(),
         ];
     }
 
     public function getClientRenderedDefinition(LoadContext $context): FormDefinition
     {
+        $moduleManifest = Formie::$plugin->getBrowserModuleManifestBuilder()->buildForSurface($this, BrowserModule::SURFACE_CLIENT_RENDERED);
         $pages = array_map(function(FieldLayoutPage $page, int $index) {
             return $page->getClientRenderedDefinition($this, $index);
         }, $this->getPages(), array_keys($this->getPages()));
+        $pages = $this->_applyBrowserModuleReferences($pages, $moduleManifest);
 
         return new FormDefinition([
             'id' => (string)$this->id,
@@ -947,7 +952,7 @@ class Form extends Element implements FormInterface
                 ],
             ],
             'pages' => $pages,
-            'modules' => Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($this, BrowserModuleEntry::SURFACE_SERVER_RENDERED),
+            'modules' => $moduleManifest->toArray(),
             'submission' => [
                 'endpoint' => UrlHelper::actionUrl('formie/client/submissions/submit'),
                 'method' => 'POST',
@@ -3536,6 +3541,21 @@ class Form extends Element implements FormInterface
 
     // Private Methods
     // =========================================================================
+
+    private function _applyBrowserModuleReferences(array $definition, BrowserModuleManifest $manifest): array
+    {
+        if (array_key_exists('moduleRefs', $definition) && isset($definition['uid'])) {
+            $definition['moduleRefs'] = $manifest->getFieldEntryKeys((string)$definition['uid']);
+        }
+
+        foreach ($definition as $key => $value) {
+            if (is_array($value)) {
+                $definition[$key] = $this->_applyBrowserModuleReferences($value, $manifest);
+            }
+        }
+
+        return $definition;
+    }
 
     private function _getFormUserMeta(?User $user): ?array
     {

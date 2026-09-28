@@ -9,7 +9,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\CaptchaValidateSubmissionEvent;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Stencil;
@@ -102,7 +102,7 @@ abstract class Captcha extends Integration
         return '';
     }
 
-    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule
     {
         return null;
     }

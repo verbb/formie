@@ -14,6 +14,7 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Make browser-module declarations immutable, project one authoritative manifest per rendering surface, reference exact occurrence keys from fields and expose stable submit hooks instead of internal pipeline stages.
 - Use non-expiring, exact-value Signature image capabilities while preserving explicitly grandfathered Formie 2/3 email image URLs behind a dedicated compatibility setting.
 - Isolate Formie 3 adapters behind dedicated compatibility boundaries instead of exposing them through canonical Formie 4 models and services.
 - Keep required behavioural and accessibility attributes authoritative, retain the final trusted PHP slot event escape hatch, and bind Summary theme state to compact, expiring access tokens backed by encrypted shared storage.
@@ -32,6 +33,9 @@
 - Make field runtime types explicit, keep precise numeric strings through GraphQL and immutable rich values, and add natural data projections with Formie 3 compatibility adapters.
 - Separate request, browser, condition and storage value paths; encrypt complete structured values and decode legacy encryption only from trusted storage.
 - Return strings for Phone and a consistent Name value in both input modes; replace beta Array/value-class APIs and browser validation names.
+
+### Fixed
+- Preserve uploaded files when an incomplete multi-page submission navigates back after the asset has been bound and promoted, without weakening upload ownership checks.
 - Separate shared field definition identity from form-field instances, retain Formie 3 identity aliases and require registered fields to extend the base Field class.
 - Share identity remapping across imports, duplicates and stencils; use portable definition UIDs for Synced Fields and explicit enabled/recursive traversal APIs.
 - Make payment amounts exact, return typed payment decisions with immutable actions and explicit resubmit/return/poll modes, and atomically settle payment-backed submissions with recoverable provider evidence.

@@ -467,6 +467,7 @@ export async function runSubmitPipeline(
     const successResult: FormSubmitResult = dispatchResult || {
         ok: true,
         stage: options.preflightOnly ? 'payment' : 'result',
+        code: options.preflightOnly ? 'PREFLIGHT_COMPLETE' : undefined,
         message: options.preflightOnly ? 'Submission preflight completed.' : 'Submission completed.',
     };
 

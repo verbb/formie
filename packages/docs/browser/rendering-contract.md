@@ -22,7 +22,7 @@ Client-rendered forms can both load and submit through REST or GraphQL. Their re
         pages,       // rows, field instance IDs/UIDs, safe inputs and initial values
         settings,    // public validation/navigation configuration
         submission,  // staged upload endpoint
-        modules: { contractVersion: 1, entries: [] },
+        modules: { contractVersion: 2, surface: 'client-rendered', entries: [] },
     },
     session,         // current page, version, tokens and scoped continuation
 }

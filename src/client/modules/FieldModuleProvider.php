@@ -3,7 +3,7 @@ namespace verbb\formie\client\modules;
 
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 
 class FieldModuleProvider implements BrowserModuleProviderInterface
@@ -11,17 +11,19 @@ class FieldModuleProvider implements BrowserModuleProviderInterface
     // Public Methods
     // =========================================================================
 
-    public function build(Form $form, string $surface = BrowserModuleEntry::SURFACE_SERVER_RENDERED): array
+    public function build(Form $form, string $surface = BrowserModule::SURFACE_SERVER_RENDERED): array
     {
         $modules = [];
 
         foreach ($this->_getFields($form->getFields()) as $field) {
-            foreach ($field->browserModules()->toModules(new BrowserModuleContext([
+            $context = new BrowserModuleContext([
                 'form' => $form,
                 'field' => $field,
                 'surface' => $surface,
-            ])) as $module) {
-                $modules[] = $module;
+            ]);
+
+            foreach ($field->browserModules($context) as $module) {
+                $modules[] = $module->withProjectionDefaults('field', $context->getTargets());
             }
         }
 

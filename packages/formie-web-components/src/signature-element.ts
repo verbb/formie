@@ -45,7 +45,7 @@ export class FormieInternalSignature extends LitElement {
     field!: ClientFieldDefinition;
 
     @property({ attribute: false })
-    modules: ClientFormDefinition['modules'] = { contractVersion: 1, entries: [] };
+    modules: ClientFormDefinition['modules'] = { contractVersion: 2, surface: 'client-rendered', entries: [] };
 
     @property({ type: String })
     value = '';
@@ -80,21 +80,14 @@ export class FormieInternalSignature extends LitElement {
             const { default: SignaturePad } = await import('signature_pad');
             const moduleConfig = this.resolveDrawModuleConfig();
             const backgroundColor =
-                typeof moduleConfig?.options === 'object' &&
-                moduleConfig.options &&
-                typeof (moduleConfig.options as Record<string, unknown>).backgroundColor === 'string'
-                    ? String((moduleConfig.options as Record<string, unknown>).backgroundColor)
+                typeof moduleConfig?.backgroundColor === 'string'
+                    ? String(moduleConfig.backgroundColor)
                     : '#ffffff';
             const penColor =
-                typeof moduleConfig?.options === 'object' &&
-                moduleConfig.options &&
-                typeof (moduleConfig.options as Record<string, unknown>).penColor === 'string'
-                    ? String((moduleConfig.options as Record<string, unknown>).penColor)
+                typeof moduleConfig?.penColor === 'string'
+                    ? String(moduleConfig.penColor)
                     : '#000000';
-            const penWeight =
-                typeof moduleConfig?.options === 'object' && moduleConfig.options
-                    ? Number((moduleConfig.options as Record<string, unknown>).penWeight ?? 2) || 2
-                    : 2;
+            const penWeight = Number(moduleConfig?.penWeight ?? 2) || 2;
 
             const pad = new SignaturePad(canvas, {
                 backgroundColor,
@@ -132,14 +125,12 @@ export class FormieInternalSignature extends LitElement {
         }
     };
 
-    private resolveDrawModuleConfig(): { options?: Record<string, unknown> } | null {
+    private resolveDrawModuleConfig(): Record<string, unknown> | null {
         const refs = new Set(this.field.moduleRefs || []);
-        const mod = this.modules.entries.find((m) => {
-            return m.targets.some((target) => target.targetType === 'field' && target.targetId === this.field.uid) && m.capability === 'signature';
-        });
+        const mod = this.modules.entries.find((entry) => refs.has(entry.key) && entry.moduleId === 'formie:signature');
 
         return mod && typeof mod.config === 'object' && mod.config
-            ? (mod.config as { options?: Record<string, unknown> })
+            ? mod.config
             : null;
     }
 

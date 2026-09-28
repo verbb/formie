@@ -1,4 +1,4 @@
-import type { BrowserModuleDefinition, BrowserModuleInstance, ModuleSetupContext, SubmitHookContext } from '#contracts/modules';
+import type { BrowserModuleDefinition, BrowserModuleInstance, ModuleSetupContext, BeforeSubmitContext } from '#contracts/modules';
 import { type CaptchaHostServices, type NormalizedCaptchaModuleOptions } from '#modules/captchas/host';
 type CaptchaModuleFactory<TProvider extends Record<string, unknown>> = {
     moduleId: string;
@@ -27,7 +27,7 @@ export type ManagedCaptchaModuleAdapter<TProvider extends Record<string, unknown
         services: CaptchaHostServices;
         options: NormalizedCaptchaModuleOptions<TProvider>;
         provider: TProvider;
-        stageCtx: SubmitHookContext;
+        stageCtx: BeforeSubmitContext;
     }) => Promise<void> | void;
     unmount?: (args: {
         api: TApi;

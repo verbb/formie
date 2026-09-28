@@ -4,12 +4,12 @@ const preview: FormiePreviewSourceDefinition = {
     minHeight: 390,
     modules: [
         {
-            id: 'repeater',
-            type: 'field',
+            moduleId: 'formie:repeater',
+            kind: 'field',
             targets: [
                 {
-                    targetType: 'field',
-                    targetId: 'experience',
+                    type: 'selector',
+                    selector: '[data-formie-field-handle="experience"]',
                 },
             ],
         },

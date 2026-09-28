@@ -13,11 +13,10 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\fields\values\ColorFieldValue;
-use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\gql\types\TableRowType;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
 use verbb\formie\gql\types\generators\TableRowTypeGenerator;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
@@ -1138,9 +1137,9 @@ class Table extends Field
     {
         $modules = parent::defineBrowserModules();
         
-        $modules[] = new BrowserModuleEntry([
+        $modules[] = new BrowserModule([
             'moduleId' => 'formie:table',
-            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
+            'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'static' => $this->static,
             ],

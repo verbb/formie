@@ -1523,7 +1523,8 @@ var Bt = class extends HTMLElement {
 }, $ = class extends B {
 	constructor(...e) {
 		super(...e), this.modules = {
-			contractVersion: 1,
+			contractVersion: 2,
+			surface: "client-rendered",
 			entries: []
 		}, this.value = "", this.disabled = !1, this.loadError = null, this.pad = null, this.strokeListener = () => {
 			this.emitValue();
@@ -1572,7 +1573,7 @@ var Bt = class extends HTMLElement {
 	async firstUpdated() {
 		let e = this.shadowRoot?.querySelector("canvas");
 		if (e && e instanceof HTMLCanvasElement) try {
-			let { default: t } = await import("./signature_pad-dbpVgfTh.js"), n = this.resolveDrawModuleConfig(), r = typeof n?.options == "object" && n.options && typeof n.options.backgroundColor == "string" ? String(n.options.backgroundColor) : "#ffffff", i = typeof n?.options == "object" && n.options && typeof n.options.penColor == "string" ? String(n.options.penColor) : "#000000", a = typeof n?.options == "object" && n.options && Number(n.options.penWeight ?? 2) || 2, o = new t(e, {
+			let { default: t } = await import("./signature_pad-dbpVgfTh.js"), n = this.resolveDrawModuleConfig(), r = typeof n?.backgroundColor == "string" ? String(n.backgroundColor) : "#ffffff", i = typeof n?.penColor == "string" ? String(n.penColor) : "#000000", a = Number(n?.penWeight ?? 2) || 2, o = new t(e, {
 				backgroundColor: r,
 				penColor: i,
 				minWidth: a,
@@ -1587,9 +1588,8 @@ var Bt = class extends HTMLElement {
 		super.disconnectedCallback(), window.removeEventListener("resize", this.onWinResize), this.pad?.removeEventListener && this.pad.removeEventListener("endStroke", this.strokeListener), this.pad = null;
 	}
 	resolveDrawModuleConfig() {
-		new Set(this.field.moduleRefs || []);
-		let e = this.modules.entries.find((e) => e.targets.some((e) => e.targetType === "field" && e.targetId === this.field.uid) && e.capability === "signature");
-		return e && typeof e.config == "object" && e.config ? e.config : null;
+		let e = new Set(this.field.moduleRefs || []), t = this.modules.entries.find((t) => e.has(t.key) && t.moduleId === "formie:signature");
+		return t && typeof t.config == "object" && t.config ? t.config : null;
 	}
 	resizeCanvas(e) {
 		let t = Math.max(window.devicePixelRatio || 1, 1), n = Math.max(1, Math.floor(e.clientWidth || 480)), r = e.getContext("2d");

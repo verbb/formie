@@ -94,6 +94,10 @@ it('builds a canonical client bootstrap for simple and advanced config fields', 
         $lineItems = $fields[array_search('lineItems', array_column($fields, 'handle'), true)];
         $attachments = $fields[array_search('attachments', array_column($fields, 'handle'), true)];
         $signature = $fields[array_search('signature', array_column($fields, 'handle'), true)];
+        $signatureEntry = current(array_filter(
+            $bootstrap['definition']['modules']['entries'],
+            static fn(array $entry): bool => ($entry['moduleId'] ?? null) === 'formie:signature',
+        ));
 
         expect($fields[0]['meta'] ?? [])->not->toHaveKey('settings')
             ->and($contactName['input']['parts'] ?? [])->not->toBeEmpty()
@@ -122,7 +126,8 @@ it('builds a canonical client bootstrap for simple and advanced config fields', 
                     'model' => 'scalar',
                 ],
             ])
-            ->and($signature['moduleRefs'] ?? [])->toContain('formie:signature');
+            ->and($signatureEntry)->not->toBeFalse()
+            ->and($signature['moduleRefs'] ?? [])->toContain($signatureEntry['key']);
     });
 });
 

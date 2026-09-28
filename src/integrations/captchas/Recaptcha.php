@@ -10,7 +10,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\LanguageOptions;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Stencil;
@@ -95,7 +95,7 @@ class Recaptcha extends Captcha
         ]);
     }
 
-    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule
     {
         if (!$context->form) {
             return null;
@@ -113,9 +113,9 @@ class Recaptcha extends Captcha
             return null;
         }
 
-        return new BrowserModuleEntry([
+        return new BrowserModule([
             'moduleId' => 'formie:' . $moduleId,
-            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
+            'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'handle' => $this->handle,
                 'placeholderSelector' => '[data-recaptcha-placeholder]',

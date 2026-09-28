@@ -4,7 +4,6 @@ namespace verbb\formie\fields;
 use verbb\formie\base\Field;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
-use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
@@ -13,7 +12,7 @@ use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\RichText;
 use verbb\formie\theme\context\RenderContext;
@@ -399,9 +398,9 @@ class Calculations extends Field implements PreviewableFieldInterface
     {
         $modules = parent::defineBrowserModules();
         
-        $modules[] = new BrowserModuleEntry([
+        $modules[] = new BrowserModule([
             'moduleId' => 'formie:calculations',
-            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
+            'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
             'config' => [
                 'formula' => $this->getFormula(),
                 'formatting' => $this->formatting,

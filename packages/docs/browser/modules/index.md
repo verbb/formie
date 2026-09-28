@@ -10,14 +10,13 @@ The `data-formie-modules` attribute and client-rendered definition use this stru
 
 ```json
 {
-  "contractVersion": 1,
+  "contractVersion": 2,
+  "surface": "client-rendered",
   "entries": [{
     "key": "rating-primary",
     "moduleId": "acme:rating",
-    "type": "field",
-    "capability": "rating",
-    "surfaces": ["server-rendered", "client-rendered"],
-    "targets": [{"targetType": "field", "targetId": "form-field-instance-uid"}],
+    "kind": "field",
+    "targets": [{"type": "field", "uid": "form-field-instance-uid"}],
     "config": {"max": 10},
     "required": true
   }]
@@ -26,9 +25,11 @@ The `data-formie-modules` attribute and client-rendered definition use this stru
 
 The entry key identifies the declaration, independently of its configuration. Declare separate keys when the same field needs the same module twice. The PHP builder assigns occurrence keys to declarations without an explicit key. Repeated declarations are retained even when their configurations are identical.
 
-Field targets use form-field instance UIDs. Form, page, button and global targets use explicit `targetType` values and their corresponding `targetId`. Targets are scoped to the mounted form; arbitrary selectors and executable URLs are not accepted. Register custom code in your trusted bundle as shown in [Build a custom module](/browser/modules/build-a-custom-module).
+Field targets use form-field instance UIDs. Other discriminated targets address the form, a page ID, a form action or an explicit selector. Targets are scoped to the mounted form, and executable URLs are not accepted. Register custom code in your trusted bundle as shown in [Build a custom module](/browser/modules/build-a-custom-module).
 
-Surfaces are `server-rendered`, `client-rendered` and `cp-edit`. A declaration that omits surfaces applies to server-rendered forms. Explicitly add other surfaces after verifying the module supports their markup and lifecycle. CP configuration stays separate from the public field definition.
+Each manifest contains exactly one `surface`: `server-rendered`, `client-rendered` or `cp-edit`. PHP declarations list their supported surfaces; Formie filters and completes those declarations when it projects a manifest. A declaration that omits surfaces applies to server-rendered forms. CP configuration stays separate from the public field definition.
+
+Client-rendered field definitions reference exact entry keys through `moduleRefs`. Consumers resolve only those keys; `moduleId` identifies reusable executable code and is not an occurrence reference.
 
 ## Dynamic Lifecycle and Failures
 
@@ -36,4 +37,4 @@ The runtime tracks each entry key and matching DOM element. Repeater rows and co
 
 A required module failure blocks submission and displays an actionable message. An optional failure emits a diagnostic and lets unrelated fields continue. Diagnostics include the entry key, module ID, surface and failure code, without publishing secret configuration. Unsupported manifest versions fail before module execution. Use matching Formie and npm package versions when deploying.
 
-Framework adapters explicitly delegate capabilities already owned by their controls or the core state engine, such as repeater values, conditions and staged uploads. They preserve every entry and its occurrence identity. Other declarations pass through the same trusted browser registry and lifecycle.
+Framework adapters preserve every entry and its occurrence identity. Modules can expose stable `beforeSubmit` and `afterSubmit` hooks without depending on Formie's internal submission-stage names. `beforeSubmit` can stop dispatch through its abort helpers; `afterSubmit` observes a result already returned to the browser and cannot retroactively abort it. Native browser submissions run `beforeSubmit`, then navigate without a browser-visible result, so `afterSubmit` applies to Ajax and client-rendered submissions. Other declarations pass through the same trusted browser registry and lifecycle.

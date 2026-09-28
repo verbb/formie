@@ -83,7 +83,7 @@ function createEnvelope(fields: ClientFieldDefinition[], session: Partial<Client
                     },
                 },
             ],
-            modules: { contractVersion: 1, entries: [] },
+            modules: { contractVersion: 2, surface: 'client-rendered', entries: [] },
             submission: {
                 endpoint: '/actions/formie/client/submissions/submit',
                 method: 'POST',

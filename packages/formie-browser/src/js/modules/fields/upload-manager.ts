@@ -1332,7 +1332,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
 
 export const uploadManagerModule: BrowserModuleDefinition = {
     moduleId: `formie:${MODULE_ID}`,
-    version: 1,
+    version: 2,
     surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {

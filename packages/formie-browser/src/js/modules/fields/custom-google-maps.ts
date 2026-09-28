@@ -392,7 +392,7 @@ function initCustomGoogleMaps(root: HTMLElement): () => void {
 
 export const customGoogleMapsModule: BrowserModuleDefinition = {
     moduleId: `formie:${MODULE_ID}`,
-    version: 1,
+    version: 2,
     surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: ({ target }) => {

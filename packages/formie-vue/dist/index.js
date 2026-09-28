@@ -104,7 +104,8 @@ function M(e) {
 	return t === "text" ? "single-line-text" : t === "textarea" ? "multi-line-text" : t === "boolean" ? "agree" : t === "file" ? "file" : e.type;
 }
 function N(e, t, n) {
-	return new Set(e.moduleRefs || []), t.modules.entries.find((t) => t.targets.some((t) => t.targetType === "field" && t.targetId === e.uid) && t.capability === (n === "draw-signature" ? "signature" : n)) || null;
+	let r = new Set(e.moduleRefs || []);
+	return t.modules.entries.find((e) => r.has(e.key) && e.moduleId === n) || null;
 }
 function P(e, t, n, r) {
 	if (!n) return null;
@@ -258,18 +259,10 @@ var F = i({
 	props: k,
 	setup(e) {
 		let t = A(), n = u(null), i = d(null), o = u(null), l = r(() => N(e.field, t.state.value?.definition || { modules: {
-			contractVersion: 1,
+			contractVersion: 2,
+			surface: "client-rendered",
 			entries: []
-		} }, "draw-signature")?.config), p = r(() => {
-			let e = l.value?.options;
-			return typeof e?.backgroundColor == "string" ? e.backgroundColor : "#ffffff";
-		}), m = r(() => {
-			let e = l.value?.options;
-			return typeof e?.penColor == "string" ? e.penColor : "#000000";
-		}), h = r(() => {
-			let e = l.value?.options;
-			return Number(e?.penWeight ?? 2) || 2;
-		}), g = r(() => typeof e.value == "string" ? e.value : ""), _ = !1, v = () => void 0, y = () => void 0;
+		} }, "formie:signature")?.config), p = r(() => typeof l.value?.backgroundColor == "string" ? l.value.backgroundColor : "#ffffff"), m = r(() => typeof l.value?.penColor == "string" ? l.value.penColor : "#000000"), h = r(() => Number(l.value?.penWeight ?? 2) || 2), g = r(() => typeof e.value == "string" ? e.value : ""), _ = !1, v = () => void 0, y = () => void 0;
 		return c(() => {
 			(async () => {
 				try {

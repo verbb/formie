@@ -2,7 +2,7 @@ import type {
     BrowserModuleDefinition,
     BrowserModuleInstance,
     ModuleSetupContext,
-    SubmitHookContext,
+    BeforeSubmitContext,
 } from '#contracts/modules';
 import type { FormSubmitResult } from '#contracts/schema';
 import { DEFAULT_WAIT_FOR_VALUE_MS } from '#modules/captchas/constants';
@@ -52,7 +52,7 @@ export type ManagedCaptchaModuleAdapter<
         services: CaptchaHostServices;
         options: NormalizedCaptchaModuleOptions<TProvider>;
         provider: TProvider;
-        stageCtx: SubmitHookContext;
+        stageCtx: BeforeSubmitContext;
     }) => Promise<void> | void;
     unmount?: (args: {
         api: TApi;
@@ -87,7 +87,7 @@ export function createCaptchaModule<TProvider extends Record<string, unknown> = 
 }: CaptchaModuleFactory<TProvider>): BrowserModuleDefinition {
     return {
         moduleId,
-        version: 1,
+        version: 2,
         surfaces: ['server-rendered', 'client-rendered'],
         kind: 'captcha',
         match: () => true,
@@ -205,8 +205,8 @@ export function createPassiveCaptchaModule({
                         cleanup();
                     });
                 },
-                onBeforeStage: async(stageCtx) => {
-                    if (stageCtx.stage !== 'challenge' || stageCtx.action !== 'submit') {
+                beforeSubmit: async(stageCtx) => {
+                    if (stageCtx.action !== 'submit') {
                         return;
                     }
 
@@ -455,8 +455,8 @@ export function createManagedCaptchaModule<
                         await unmountPlaceholder(placeholder);
                     }
                 },
-                onBeforeStage: async(stageCtx) => {
-                    if (stageCtx.stage !== 'challenge' || stageCtx.action !== 'submit') {
+                beforeSubmit: async(stageCtx) => {
+                    if (stageCtx.action !== 'submit') {
                         return;
                     }
 

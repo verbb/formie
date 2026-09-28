@@ -605,24 +605,27 @@ function Se(e, t, n = {}) {
 }
 //#endregion
 //#region src/browser-modules.ts
-var Ce = 1;
+var Ce = 2;
 function we(e) {
 	let t = e;
-	if (!t || t.contractVersion !== 1 || !Array.isArray(t.entries)) throw Error("Unsupported browser module contractVersion. Update Formie and its browser packages together.");
+	if (!t || t.contractVersion !== 2 || ![
+		"server-rendered",
+		"client-rendered",
+		"cp-edit"
+	].includes(t.surface) || !Array.isArray(t.entries)) throw Error("Unsupported browser module contractVersion. Update Formie and its browser packages together.");
 	let n = /* @__PURE__ */ new Set();
 	for (let e of t.entries) {
-		if (!e || typeof e.key != "string" || !e.key || n.has(e.key) || typeof e.moduleId != "string" || !/^[a-z][a-z0-9.-]*:[a-z][a-z0-9.-]*$/.test(e.moduleId) || "src" in e || !Array.isArray(e.surfaces) || !Array.isArray(e.targets) || typeof e.required != "boolean" || e.surfaces.some((e) => ![
-			"server-rendered",
-			"client-rendered",
-			"cp-edit"
-		].includes(e)) || !e.config || typeof e.config != "object" || Array.isArray(e.config) && e.config.length > 0 || typeof e.type != "string" || typeof e.capability != "string") throw Error("Invalid browser module entry. Check the registered module ID, occurrence key and surfaces.");
-		for (let t of e.targets) if (!t || ![
+		if (!e || typeof e.key != "string" || !e.key || n.has(e.key) || typeof e.moduleId != "string" || !/^[a-z][a-z0-9.-]*:[a-z][a-z0-9.-]*$/.test(e.moduleId) || "src" in e || !Array.isArray(e.targets) || e.targets.length === 0 || typeof e.required != "boolean" || !e.config || typeof e.config != "object" || Array.isArray(e.config) || ![
 			"field",
-			"form",
-			"page",
-			"button",
-			"global"
-		].includes(t.targetType) || typeof t.targetId != "string") throw Error("Invalid browser module target. Fields require a form-field instance UID.");
+			"captcha",
+			"payment",
+			"address",
+			"core"
+		].includes(e.kind)) throw Error("Invalid browser module entry. Check the registered module ID, occurrence key, kind and targets.");
+		for (let t of e.targets) {
+			let e = t && typeof t == "object" ? Object.keys(t).length : 0;
+			if (!(t && (t.type === "form" && e === 1 || t.type === "field" && e === 2 && typeof t.uid == "string" && t.uid !== "" || t.type === "page" && e === 2 && typeof t.id == "string" && t.id !== "" || t.type === "action" && e === 2 && typeof t.action == "string" && t.action !== "" || t.type === "selector" && e === 2 && typeof t.selector == "string" && t.selector !== ""))) throw Error("Invalid browser module target. Fields require a form-field instance UID.");
+		}
 		n.add(e.key);
 	}
 }

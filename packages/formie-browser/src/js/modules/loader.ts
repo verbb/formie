@@ -31,11 +31,15 @@ async function resolveDefinition(moduleId: string, registry: ModuleRegistry): Pr
 }
 
 function resolveTargets(entry: BrowserModuleEntry, root: Element, form: HTMLFormElement | null): Element[] {
-    const targets = entry.targets.length ? entry.targets : [{ targetType: 'form', targetId: 'form' }];
-    return [...new Set(targets.flatMap((target) => {
-        if (target.targetType === 'form' || target.targetType === 'global') return [form || root];
-        const attribute = { field: 'data-formie-field-uid', page: 'data-formie-page-id', button: 'data-formie-action' }[target.targetType];
-        const selector = `[${attribute}="${CSS.escape(target.targetId)}"]`;
+    return [...new Set(entry.targets.flatMap((target) => {
+        if (target.type === 'form') return [form || root];
+        const selector = target.type === 'selector'
+            ? target.selector
+            : target.type === 'field'
+                ? `[data-formie-field-uid="${CSS.escape(target.uid)}"]`
+                : target.type === 'page'
+                    ? `[data-formie-page-id="${CSS.escape(target.id)}"]`
+                    : `[data-formie-action="${CSS.escape(target.action)}"]`;
         return [...(root.matches(selector) ? [root] : []), ...root.querySelectorAll(selector)];
     }))].filter((target) => !target.closest('[hidden], [data-formie-hidden="true"], [data-formie-conditionally-hidden], [data-formie-page-hidden]'));
 }
@@ -43,7 +47,10 @@ function resolveTargets(entry: BrowserModuleEntry, root: Element, form: HTMLForm
 /** Reconcile declaration key + DOM occurrence, including targets added by repeaters. */
 export async function loadModulesFromManifest(manifest: BrowserModuleManifest, ctx: ModuleLoadContext): Promise<BrowserModuleRuntime> {
     assertBrowserModuleManifest(manifest);
-    const surface = ctx.matchContext.surface ?? 'server-rendered';
+    const surface = manifest.surface;
+    if (ctx.matchContext.surface && ctx.matchContext.surface !== surface) {
+        throw new Error(`Browser module manifest surface ${surface} cannot mount as ${ctx.matchContext.surface}.`);
+    }
     const { root, form } = ctx.setupContext;
     const mounted = new Map<string, Map<Element, { instance: BrowserModuleInstance; config: string; moduleId: string; required: boolean }>>();
     const failures = new Map<string, BrowserModuleEntry>();
@@ -78,24 +85,28 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
         event.preventDefault(); event.stopImmediatePropagation(); showFailure();
     };
     const reconcile = async() => {
-        const activeKeys = new Set(manifest.entries.filter((entry) => entry.surfaces.includes(surface)).map((entry) => entry.key));
+        const activeKeys = new Set(manifest.entries.map((entry) => entry.key));
         for (const key of failures.keys()) if (!activeKeys.has(key)) failures.delete(key);
+        const inactiveInstances: BrowserModuleInstance[] = [];
         for (const [key, records] of mounted) {
             if (activeKeys.has(key)) continue;
-            for (const { instance } of records.values()) {
-                await dispose(instance);
-                instances.splice(instances.indexOf(instance), 1);
-            }
+            inactiveInstances.push(...Array.from(records.values(), ({ instance }) => instance));
             mounted.delete(key);
             failures.delete(key);
         }
+        for (const instance of inactiveInstances.reverse()) {
+            await dispose(instance);
+            instances.splice(instances.indexOf(instance), 1);
+        }
         for (const entry of manifest.entries) {
-            if (disposed || !entry.surfaces.includes(surface)) continue;
+            if (disposed) continue;
             if (failures.has(entry.key)) failures.set(entry.key, entry);
-            const targets = resolveTargets(entry, root, form);
+            let targets: Element[];
+            try { targets = resolveTargets(entry, root, form); }
+            catch (error) { if (!failures.has(entry.key)) await diagnose(entry, error); continue; }
             const records = mounted.get(entry.key) ?? new Map();
             mounted.set(entry.key, records);
-            for (const [target, record] of records) {
+            for (const [target, record] of Array.from(records.entries()).reverse()) {
                 if (!targets.includes(target)) {
                     await dispose(record.instance); records.delete(target);
                     instances.splice(instances.indexOf(record.instance), 1);
@@ -112,7 +123,7 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
                 const config = JSON.stringify([entry.moduleId, entry.config, entry.required]);
                 const existing = records.get(target);
                 if (existing?.config === config) continue;
-                const setup = { ...ctx.setupContext, target, entryKey: entry.key, surface, scope: entry.targets[0]?.targetType ?? 'form', options: entry.config };
+                const setup = { ...ctx.setupContext, target, entryKey: entry.key, surface, scope: entry.targets[0]?.type ?? 'form', options: entry.config };
                 try {
                     if (existing) {
                         if (existing.instance.update && existing.moduleId === entry.moduleId && existing.required === entry.required) { await existing.instance.update(setup); existing.config = config; continue; }
@@ -120,27 +131,28 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
                         instances.splice(instances.indexOf(existing.instance), 1);
                     }
                     if (definition.surfaces && !definition.surfaces.includes(surface)) throw new Error(`Module ${entry.moduleId} does not support ${surface}.`);
+                    if (definition.kind !== entry.kind) throw new Error(`Module ${entry.moduleId} is registered as ${definition.kind}, not ${entry.kind}.`);
                     if (!definition.match({ ...ctx.matchContext, mode: 'server-rendered', target, scope: setup.scope, manifestItem: entry })) {
                         throw new Error(`Module ${entry.moduleId} does not support the rendered target.`);
                     }
                     const instance = await definition.setup(setup);
                     if (!instance) throw new Error(`Module ${entry.moduleId} did not initialize.`);
                     if (disposed || !root.contains(target) && target !== root) { await dispose(instance); continue; }
-                    instance.key = entry.key; instance.moduleId = entry.moduleId; instance.target = target;
+                    instance.key = entry.key; instance.moduleId = entry.moduleId; instance.kind = entry.kind; instance.target = target;
                     const ready = instance.assertReady;
                     instance.assertReady = () => {
                         try { ready?.(); }
                         catch (error) { void diagnose(entry, error); if (entry.required) throw new Error('A required form feature could not start.'); }
                     };
-                    const before = instance.onBeforeStage;
-                    const after = instance.onAfterStage;
-                    instance.onBeforeStage = async(context) => {
+                    const before = instance.beforeSubmit;
+                    const after = instance.afterSubmit;
+                    instance.beforeSubmit = async(context) => {
                         try { await before?.(context); }
                         catch (error) { await diagnose(entry, error); if (entry.required) context.abort('A required form feature could not complete. Reload the page or contact the site administrator.'); }
                     };
-                    instance.onAfterStage = async(context, result) => {
+                    instance.afterSubmit = async(context, result) => {
                         try { await after?.(context, result); }
-                        catch (error) { await diagnose(entry, error); if (entry.required) context.abort('A required form feature could not complete.'); }
+                        catch (error) { await diagnose(entry, error); }
                     };
                     records.set(target, { instance, config, moduleId: entry.moduleId, required: entry.required }); instances.push(instance); recovered = true;
                     await ctx.setupContext.emit('formie:browser:module:mount', { key: entry.key, moduleId: entry.moduleId, target });
@@ -163,13 +175,16 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
         destroy: async() => {
             disposed = true; observer.disconnect(); form?.removeEventListener('submit', guard, true);
             await running;
-            for (const records of mounted.values()) for (const { instance } of records.values()) await dispose(instance);
+            for (const records of Array.from(mounted.values()).reverse()) {
+                for (const { instance } of Array.from(records.values()).reverse()) await dispose(instance);
+            }
             mounted.clear(); instances.splice(1);
         },
-        onBeforeStage: (context) => { if (blocked()) context.abort('A required form feature could not start. Reload the page or contact the site administrator.'); },
+        beforeSubmit: (context) => { if (blocked()) context.abort('A required form feature could not start. Reload the page or contact the site administrator.'); },
     });
     instances.updateManifest = async(next) => {
         assertBrowserModuleManifest(next);
+        if (next.surface !== surface) throw new Error('A mounted browser module runtime cannot change surfaces.');
         manifest = next;
         running = running.then(reconcile);
         await running;

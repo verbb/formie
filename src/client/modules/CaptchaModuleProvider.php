@@ -3,7 +3,7 @@ namespace verbb\formie\client\modules;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 
 class CaptchaModuleProvider implements BrowserModuleProviderInterface
@@ -11,7 +11,7 @@ class CaptchaModuleProvider implements BrowserModuleProviderInterface
     // Public Methods
     // =========================================================================
 
-    public function build(Form $form, string $surface = BrowserModuleEntry::SURFACE_SERVER_RENDERED): array
+    public function build(Form $form, string $surface = BrowserModule::SURFACE_SERVER_RENDERED): array
     {
         $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form, null, true);
 
@@ -33,19 +33,7 @@ class CaptchaModuleProvider implements BrowserModuleProviderInterface
                 continue;
             }
 
-            if (!$browserModule->type) {
-                $browserModule->type = $captcha->getType();
-            }
-
-            if (!$browserModule->targets) {
-                $browserModule->targets = $context->getTargets();
-            }
-
-            if (!$browserModule->surfaces) {
-                $browserModule->surfaces = [BrowserModuleEntry::SURFACE_SERVER_RENDERED];
-            }
-
-            $modules[] = $browserModule;
+            $modules[] = $browserModule->withProjectionDefaults('captcha', $context->getTargets());
         }
 
         return $modules;

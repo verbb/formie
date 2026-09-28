@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use verbb\formie\Formie;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 
 it('filters frontend-only field modules out of cp edit manifests and config', function (): void {
     $form = formie()
@@ -39,8 +39,8 @@ it('filters frontend-only field modules out of cp edit manifests and config', fu
         ->create();
 
     $builder = Formie::$plugin->getBrowserModuleManifestBuilder();
-    $frontendModules = $builder->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED)['entries'];
-    $cpModules = $builder->buildCanonical($form, BrowserModuleEntry::SURFACE_CP_EDIT)['entries'];
+    $frontendModules = $builder->buildForSurface($form, BrowserModule::SURFACE_SERVER_RENDERED)->toArray()['entries'];
+    $cpModules = $builder->buildForSurface($form, BrowserModule::SURFACE_CP_EDIT)->toArray()['entries'];
     $frontendModuleIds = array_values(array_map(static fn(array $module): string => (string)$module['moduleId'], $frontendModules));
     $cpModuleIds = array_values(array_map(static fn(array $module): string => (string)$module['moduleId'], $cpModules));
     $cpConfigModuleIds = array_values(array_map(static fn(array $module): string => (string)$module['moduleId'], $form->getCpEditConfig()['modules']['entries'] ?? []));
@@ -74,8 +74,8 @@ it('filters conditions out of cp edit manifests when the form shows all fields',
     $form->settings->setAttributes($form->settings->getAttributes());
 
     $builder = Formie::$plugin->getBrowserModuleManifestBuilder();
-    $frontendModuleIds = array_values(array_map(static fn(array $module): string => (string)$module['moduleId'], $builder->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED)['entries']));
-    $cpModuleIds = array_values(array_map(static fn(array $module): string => (string)$module['moduleId'], $builder->buildCanonical($form, BrowserModuleEntry::SURFACE_CP_EDIT)['entries']));
+    $frontendModuleIds = array_values(array_map(static fn(array $module): string => (string)$module['moduleId'], $builder->buildForSurface($form, BrowserModule::SURFACE_SERVER_RENDERED)->toArray()['entries']));
+    $cpModuleIds = array_values(array_map(static fn(array $module): string => (string)$module['moduleId'], $builder->buildForSurface($form, BrowserModule::SURFACE_CP_EDIT)->toArray()['entries']));
 
     expect($frontendModuleIds)
         ->toContain('formie:conditions')
@@ -88,7 +88,7 @@ it('includes conditions in cp edit manifests when the form follows field conditi
     ]);
 
     $builder = Formie::$plugin->getBrowserModuleManifestBuilder();
-    $cpModules = $builder->buildCanonical($form, BrowserModuleEntry::SURFACE_CP_EDIT)['entries'];
+    $cpModules = $builder->buildForSurface($form, BrowserModule::SURFACE_CP_EDIT)->toArray()['entries'];
     $cpModuleIds = array_values(array_map(static fn(array $module): string => (string)$module['moduleId'], $cpModules));
     $conditionsModule = current(array_filter($cpModules, static fn(array $module): bool => ($module['moduleId'] ?? null) === 'formie:conditions')) ?: null;
 
@@ -105,7 +105,7 @@ it('uses muted cp display mode when configured on the form', function (): void {
     $form->settings->setAttributes($form->settings->getAttributes());
 
     $builder = Formie::$plugin->getBrowserModuleManifestBuilder();
-    $cpModules = $builder->buildCanonical($form, BrowserModuleEntry::SURFACE_CP_EDIT)['entries'];
+    $cpModules = $builder->buildForSurface($form, BrowserModule::SURFACE_CP_EDIT)->toArray()['entries'];
     $conditionsModule = current(array_filter($cpModules, static fn(array $module): bool => ($module['moduleId'] ?? null) === 'formie:conditions')) ?: null;
 
     expect($conditionsModule['config']['cpDisplayMode'] ?? null)->toBe('muted');

@@ -291,16 +291,15 @@ Reload the control panel. Your **URL** field should appear in the field picker. 
 When a field needs companion JavaScript, register a client module so Formie lazy-loads it only when the field is on the form:
 
 ```php
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 
 protected function defineBrowserModules(): array
 {
     $modules = parent::defineBrowserModules();
 
-    $modules[] = new BrowserModuleEntry([
-        'id' => 'url-field',
-        'type' => 'field',
-        'src' => '/assets/formie/url-field-module.js',
+    $modules[] = new BrowserModule([
+        'moduleId' => 'example:url-field',
+        'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED],
         'config' => [
             'validateOnInput' => true,
         ],
@@ -310,7 +309,7 @@ protected function defineBrowserModules(): array
 }
 ```
 
-Author the module as a `FormieModuleDefinition` in that JS file. See [Build a custom module](https://docs.verbb.io/formie/browser/modules/build-a-custom-module) for the full pattern with `match()`, `setup()`, and `destroy()`.
+Register the executable module as a `BrowserModuleDefinition` in your trusted application bundle. See [Build a custom module](https://docs.verbb.io/formie/browser/modules/build-a-custom-module) for the full pattern with `match()`, `setup()`, and `destroy()`.
 
 ## Value Handling for Complex Fields
 

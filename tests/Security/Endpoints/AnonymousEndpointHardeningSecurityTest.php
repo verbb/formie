@@ -485,6 +485,32 @@ it('rejects anonymous upload binding to an incomplete submission outside the cur
     ]);
 })->group('security');
 
+it('resolves later-page upload ownership through the current progress continuation', function (): void {
+    $form = formie()
+        ->form(['title' => 'Anonymous Progress Upload Binding'])
+        ->fileUploadField('documents', ['restrictFiles' => false])
+        ->create();
+
+    WebRequestTestHelper::withWebRequestContext(function () use ($form): void {
+        $submission = formie()->submission($form)->with([])->save();
+        $submission->isIncomplete = true;
+        expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
+
+        $progress = Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission);
+        $controller = new FileUploadController('formie-file-upload-progress', Craft::$app);
+        $resolveSubmissionId = new ReflectionMethod($controller, '_resolveSubmissionId');
+
+        expect($progress?->submissionId)->toBe((int)$submission->id)
+            ->and($resolveSubmissionId->invoke($controller, $form, null, null))->toBe((int)$submission->id);
+    }, [
+        'method' => 'POST',
+        'remoteAddr' => '198.51.100.57',
+        'headers' => [
+            'Accept' => 'application/json',
+        ],
+    ]);
+})->group('security');
+
 it('rate limits anonymous file upload attempts by form field and client', function (): void {
     $formHandle = 'uploadRate' . uniqid();
     $fieldHandle = 'documents' . uniqid();

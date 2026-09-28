@@ -6,14 +6,13 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\HiddenDefaultTemplateResolver;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
@@ -394,9 +393,9 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
         $modules = parent::defineBrowserModules();
 
         if ($this->valueSource === 'cookie' && $this->cookieName) {
-            $modules[] = new BrowserModuleEntry([
+            $modules[] = new BrowserModule([
                 'moduleId' => 'formie:hidden',
-                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
+                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
                 'config' => [
                     'cookieName' => $this->cookieName,
                 ],

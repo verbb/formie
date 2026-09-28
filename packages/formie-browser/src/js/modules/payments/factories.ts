@@ -24,7 +24,7 @@ export type PaymentModuleSetupContext<TProvider extends Record<string, unknown>>
 
 type PaymentSetupResult = {
     destroy?: () => void | Promise<void>;
-    onBeforeStage?: (stageCtx: import('#contracts/modules').SubmitHookContext) => void | Promise<void>;
+    beforeSubmit?: (stageCtx: import('#contracts/modules').BeforeSubmitContext) => void | Promise<void>;
 };
 
 export type PaymentAfterSubmitResult = {
@@ -64,7 +64,7 @@ export type ManagedPaymentModuleAdapter<
         services: PaymentHostServices;
         options: NormalizedPaymentModuleOptions<TProvider>;
         provider: TProvider;
-        stageCtx: import('#contracts/modules').SubmitHookContext;
+        stageCtx: import('#contracts/modules').BeforeSubmitContext;
     }) => Promise<boolean> | boolean;
     /** Called after send (on any result) to reset hidden inputs, clear UI, etc. */
     onAfterSubmit?: (args: {
@@ -87,7 +87,7 @@ export function createManagedPaymentModule<
 
     return {
         moduleId: adapter.moduleId,
-        version: 1,
+        version: 2,
         surfaces: ['server-rendered', 'client-rendered'],
         kind: 'payment',
         match: (ctx) => {
@@ -246,13 +246,13 @@ export function createManagedPaymentModule<
 
             return {
                 destroy,
-                onBeforeStage: async(stageCtx) => {
-                    if (customSetupResult?.onBeforeStage) {
-                        await customSetupResult.onBeforeStage(stageCtx);
+                beforeSubmit: async(stageCtx) => {
+                    if (customSetupResult?.beforeSubmit) {
+                        await customSetupResult.beforeSubmit(stageCtx);
                         return;
                     }
 
-                    if (stageCtx.stage !== 'payment' || stageCtx.action !== 'submit') {
+                    if (stageCtx.action !== 'submit') {
                         return;
                     }
 
@@ -319,8 +319,8 @@ export function createManagedPaymentModule<
                         stageCtx.abort(options.transport.errorMessage);
                     }
                 },
-                onAfterStage: async(stagePayload, result) => {
-                    if (stagePayload.stage !== 'send' || !adapter.onAfterSubmit) {
+                afterSubmit: async(stagePayload, result) => {
+                    if (!adapter.onAfterSubmit) {
                         return;
                     }
 

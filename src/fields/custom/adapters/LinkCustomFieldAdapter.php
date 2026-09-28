@@ -9,7 +9,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\CustomLinkFieldValue;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\models\SlotTag;
@@ -251,9 +251,9 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
         }
 
         return [
-            new BrowserModuleEntry([
+            new BrowserModule([
                 'moduleId' => 'formie:custom-link',
-                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
+                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
             ]),
         ];
     }

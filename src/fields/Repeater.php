@@ -8,7 +8,6 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\base\RepeatableParentField;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldReferences;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\interfaces\RowInterface;
@@ -16,7 +15,7 @@ use verbb\formie\gql\types\input\RepeaterInputType;
 use verbb\formie\gql\types\RowType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\DynamicModel;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
@@ -509,9 +508,9 @@ class Repeater extends RepeatableParentField
     protected function defineBrowserModules(): array
     {
         $modules = parent::defineBrowserModules();
-        $modules[] = new BrowserModuleEntry([
+        $modules[] = new BrowserModule([
             'moduleId' => 'formie:repeater',
-            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
+            'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
         ]);
 
         return $modules;

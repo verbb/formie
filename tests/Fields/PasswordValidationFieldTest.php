@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\References;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\theme\context\RenderContext;
 
 it('enforces password validation rules', function (): void {
@@ -83,7 +83,7 @@ it('renders password validation client attributes and registers the client modul
 
     $moduleIds = array_values(array_map(
         static fn(array $module): string => (string)$module['moduleId'],
-        Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED)['entries'],
+        Formie::$plugin->getBrowserModuleManifestBuilder()->buildForSurface($form, BrowserModule::SURFACE_SERVER_RENDERED)->toArray()['entries'],
     ));
 
     expect($moduleIds)->toContain('formie:password-validation');
@@ -97,7 +97,7 @@ it('does not register password validation modules when disabled', function (): v
 
     $moduleIds = array_values(array_map(
         static fn(array $module): string => (string)$module['moduleId'],
-        Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED)['entries'],
+        Formie::$plugin->getBrowserModuleManifestBuilder()->buildForSurface($form, BrowserModule::SURFACE_SERVER_RENDERED)->toArray()['entries'],
     ));
 
     expect($moduleIds)->not->toContain('formie:password-validation');

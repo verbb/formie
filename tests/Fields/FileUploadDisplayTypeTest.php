@@ -7,7 +7,7 @@ beforeEach(fn() => \Tests\Support\UploadTestHelper::ensureUploadVolume());
 use verbb\formie\fields\FileUpload;
 use verbb\formie\Formie;
 use verbb\formie\helpers\FieldBuilderPolicy;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\theme\context\RenderContext;
 
 it('registers the file-upload module for simple display type', function (): void {
@@ -18,7 +18,7 @@ it('registers the file-upload module for simple display type', function (): void
         ])
         ->create();
 
-    $modules = Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED)['entries'];
+    $modules = Formie::$plugin->getBrowserModuleManifestBuilder()->buildForSurface($form, BrowserModule::SURFACE_SERVER_RENDERED)->toArray()['entries'];
     $moduleIds = array_map(static fn(array $module): string => (string)($module['moduleId'] ?? ''), $modules);
 
     expect($moduleIds)->toContain('formie:file-upload')
@@ -33,7 +33,7 @@ it('registers the upload-manager module for advanced display type', function ():
         ])
         ->create();
 
-    $modules = Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED)['entries'];
+    $modules = Formie::$plugin->getBrowserModuleManifestBuilder()->buildForSurface($form, BrowserModule::SURFACE_SERVER_RENDERED)->toArray()['entries'];
     $uploadManagerModule = current(array_filter($modules, static fn(array $module): bool => ($module['moduleId'] ?? null) === 'formie:upload-manager')) ?: null;
 
     expect($uploadManagerModule)->not->toBeNull()

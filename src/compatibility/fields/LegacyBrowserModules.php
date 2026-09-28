@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\compatibility\fields;
 
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 
 use Craft;
 
@@ -29,12 +29,9 @@ class LegacyBrowserModules
             }
             $id = strtolower(preg_replace('/(?<!^)[A-Z]/', '-$0', preg_replace('/^Formie/', '', $name)));
             $config = (array)($module['settings'] ?? []);
-            if ($name === 'FormieSignature') {
-                $config = ['options' => $config];
-            }
             // Source URLs never cross the wire. Third-party names require an
             // explicit trusted browser registry entry under the legacy namespace.
-            $entries[] = new BrowserModuleEntry([
+            $entries[] = new BrowserModule([
                 'moduleId' => (str_starts_with($name, 'Formie') ? 'formie:' : 'legacy:') . $id,
                 'config' => $config,
             ]);

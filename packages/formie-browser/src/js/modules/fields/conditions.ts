@@ -28,9 +28,9 @@ function uniqueConditionInputs(inputs: ConditionInput[]): ConditionInput[] {
 
 export const conditionsModule: BrowserModuleDefinition = {
     moduleId: 'formie:conditions',
-    version: 1,
+    version: 2,
     surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
-    kind: 'field',
+    kind: 'core',
     match: (ctx) => {
         return ctx.target instanceof HTMLElement && (
             ctx.target.matches(CONDITION_SELECTOR) ||

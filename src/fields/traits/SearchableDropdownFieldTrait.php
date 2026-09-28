@@ -2,7 +2,7 @@
 namespace verbb\formie\fields\traits;
 
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 
 use Craft;
 
@@ -58,7 +58,7 @@ trait SearchableDropdownFieldTrait
         return true;
     }
 
-    protected function getSearchableDropdownBrowserModuleEntryConfig(): array
+    protected function getSearchableDropdownBrowserModuleConfig(): array
     {
         $placeholder = null;
 
@@ -79,10 +79,10 @@ trait SearchableDropdownFieldTrait
         }
 
         return [
-            new BrowserModuleEntry([
+            new BrowserModule([
                 'moduleId' => 'formie:combobox',
-                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
-                'config' => $this->getSearchableDropdownBrowserModuleEntryConfig(),
+                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
+                'config' => $this->getSearchableDropdownBrowserModuleConfig(),
             ]),
         ];
     }

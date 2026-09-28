@@ -1,32 +1,33 @@
 import { setFormBrowserRequestOptions } from '#utils/request-profile';
-import type { ClientFormInstance } from '@verbb/formie-core';
+import type { BrowserModuleKind, ClientFormInstance } from '@verbb/formie-core';
 import { hydrateFormieModules } from './hydrate-modules';
 import { ModuleRegistry, clientRenderedModuleRegistry } from '#modules/registry';
 
-// These capabilities are implemented by the shared core state engine or native
+// These modules are implemented by the shared core state engine or native
 // framework controls. Explicit delegation preserves every declared occurrence.
-const nativeCapabilities: Record<string, string> = {
-    conditions: 'Core evaluates structured conditions and the adapter renders visibility.',
-    repeater: 'The adapter owns row markup and core owns row values.',
-    signature: 'The adapter owns its signature control and cleanup.',
-    'file-upload': 'The shared transport stages selected files and submits attachment capabilities.',
-    'upload-manager': 'Native file selection uses the shared staged upload transport.',
-    'checkbox-radio': 'Framework controls own checked state.',
-    'text-limit': 'Core validation enforces the structured minimum and maximum rules.',
-    'date-picker': 'The adapter renders the structured date input contract.',
+const nativeModuleDelegations: Record<string, { kind: BrowserModuleKind; reason: string }> = {
+    conditions: { kind: 'core', reason: 'Core evaluates structured conditions and the adapter renders visibility.' },
+    repeater: { kind: 'field', reason: 'The adapter owns row markup and core owns row values.' },
+    signature: { kind: 'field', reason: 'The adapter owns its signature control and cleanup.' },
+    'file-upload': { kind: 'field', reason: 'The shared transport stages selected files and submits attachment capabilities.' },
+    'upload-manager': { kind: 'field', reason: 'Native file selection uses the shared staged upload transport.' },
+    'checkbox-radio': { kind: 'field', reason: 'Framework controls own checked state.' },
+    'text-limit': { kind: 'field', reason: 'Core validation enforces the structured minimum and maximum rules.' },
+    'date-picker': { kind: 'field', reason: 'The adapter renders the structured date input contract.' },
 };
 
 export async function mountClientRenderedModules(root: Element, instance: ClientFormInstance, registry = clientRenderedModuleRegistry) {
-    for (const [capability, reason] of Object.entries(nativeCapabilities)) {
-        if (registry.get(`formie:${capability}`)) continue;
+    for (const [moduleName, delegation] of Object.entries(nativeModuleDelegations)) {
+        const moduleId = `formie:${moduleName}`;
+        if (registry.get(moduleId)) continue;
         registry.register({
-            moduleId: `formie:${capability}`,
-            version: 1,
+            moduleId,
+            version: 2,
             surfaces: ['client-rendered'],
-            kind: 'field',
+            kind: delegation.kind,
             match: () => true,
             setup: async(context) => {
-                await context.emit('formie:browser:module:delegated', { capability, reason, target: context.target });
+                await context.emit('formie:browser:module:delegated', { moduleId, reason: delegation.reason, target: context.target });
                 return { destroy: () => undefined };
             },
         });

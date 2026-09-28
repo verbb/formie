@@ -1,16 +1,16 @@
 import { n as e } from "./chunks/request-profile-DhwkeCpS.js";
-import { i as t, m as n, t as r } from "./chunks/dist-1mhMV4JB.js";
+import { i as t, m as n, t as r } from "./chunks/dist-vTdOlBe4.js";
 import { c as i, d as a, l as o, o as s, r as c, t as l, u } from "./chunks/event-names-BCI2FLD8.js";
-import { a as d, c as f, d as p, f as m, i as h, l as g, n as _, o as v, p as y, r as b, s as x, t as S, u as C } from "./chunks/api-C1WjaFL-.js";
+import { a as d, c as f, d as p, f as m, i as h, l as g, n as _, o as v, p as y, r as b, s as x, t as S, u as C } from "./chunks/api-C4LVRc2v.js";
 import { a as ee, i as te, n as ne, r as w, t as T } from "./chunks/debug-BV0DvdHx.js";
 import { i as E, r as re, t as D } from "./chunks/theme-classes-DAQuEqdP.js";
 import { i as O, t as ie } from "./chunks/csrf-DxHg_ZYt.js";
-import { n as k, t as ae } from "./chunks/http-BslIJLrj.js";
+import { n as k, t as ae } from "./chunks/http-E5a9jzeL.js";
 import { a as oe, i as se, n as ce, r as le, t as ue } from "./chunks/i18n-BY1ds1BL.js";
-import { n as de, t as fe } from "./chunks/api-CLDiLxn0.js";
+import { n as de, t as fe } from "./chunks/api-DYYsVIub.js";
 import { n as pe, r as me, t as he } from "./chunks/field-references.keys-58ZSTrCW.js";
-import { i as ge, n as _e, r as ve, t as ye } from "./chunks/field-references.resolver--GdIlYhd.js";
-import { t as be } from "./chunks/api-CXzW6J-X.js";
+import { i as ge, n as _e, r as ve, t as ye } from "./chunks/field-references.resolver-CiSbhRUV.js";
+import { t as be } from "./chunks/api-ghNr2uxX.js";
 //#region src/js/compatibility/event-map.ts
 var xe = [
 	{
@@ -741,6 +741,7 @@ async function ct(e, t, n, r = {}) {
 	let d = o || {
 		ok: !0,
 		stage: r.preflightOnly ? "payment" : "result",
+		code: r.preflightOnly ? "PREFLIGHT_COMPLETE" : void 0,
 		message: r.preflightOnly ? "Submission preflight completed." : "Submission completed."
 	};
 	{
@@ -1030,11 +1031,17 @@ var Rt = class {
 }, B = class {
 	modules = /* @__PURE__ */ new Map();
 	register(e, t = {}) {
-		if (!/^[a-z][a-z0-9.-]*:[a-z][a-z0-9.-]*$/.test(e.moduleId) || e.version !== 1 || !Array.isArray(e.surfaces) || e.surfaces.some((e) => ![
+		if (!/^[a-z][a-z0-9.-]*:[a-z][a-z0-9.-]*$/.test(e.moduleId) || e.version !== 2 || !Array.isArray(e.surfaces) || e.surfaces.length === 0 || e.surfaces.some((e) => ![
 			"server-rendered",
 			"client-rendered",
 			"cp-edit"
-		].includes(e))) throw Error("Unsupported browser module definition. Register a namespaced moduleId compatible with version 1.");
+		].includes(e)) || ![
+			"field",
+			"captcha",
+			"payment",
+			"address",
+			"core"
+		].includes(e.kind) || typeof e.match != "function" || typeof e.setup != "function") throw Error("Unsupported browser module definition. Register a namespaced moduleId compatible with version 2.");
 		let n = this.modules.get(e.moduleId);
 		return n === e ? !0 : n && !t.replace ? (console.warn(`[formie] Module "${e.moduleId}" is already registered. Pass { replace: true } to override the existing definition.`), !1) : (this.modules.set(e.moduleId, e), !0);
 	}
@@ -1048,58 +1055,58 @@ var Rt = class {
 		return Array.from(this.modules.values());
 	}
 }, zt = new B(), Bt = {
-	"address-finder": () => import("./chunks/address-finder-5RA475tB.js").then((e) => e.addressFinderModule),
-	"google-address": () => import("./chunks/google-address-C0Qg8W0H.js").then((e) => e.googleAddressModule),
-	loqate: () => import("./chunks/loqate-D23p1mBG.js").then((e) => e.loqateModule),
-	"place-kit": () => import("./chunks/place-kit-DDfyZ_EH.js").then((e) => e.placeKitModule)
+	"address-finder": () => import("./chunks/address-finder-O49uDRoR.js").then((e) => e.addressFinderModule),
+	"google-address": () => import("./chunks/google-address-gDnTF-_k.js").then((e) => e.googleAddressModule),
+	loqate: () => import("./chunks/loqate-DD1S7PY9.js").then((e) => e.loqateModule),
+	"place-kit": () => import("./chunks/place-kit-BE5gi3vo.js").then((e) => e.placeKitModule)
 }, Vt = {
-	"captcha-eu": () => import("./chunks/captcha-eu-BgDsj2cv.js").then((e) => e.captchaEuModule),
-	"friendly-captcha-v1": () => import("./chunks/friendly-captcha-v1-C00RdZqR.js").then((e) => e.friendlyCaptchaV1Module),
-	"friendly-captcha-v2": () => import("./chunks/friendly-captcha-v2-BZDSNK3X.js").then((e) => e.friendlyCaptchaV2Module),
-	hcaptcha: () => import("./chunks/hcaptcha-6JAHMxqf.js").then((e) => e.hcaptchaModule),
-	"recaptcha-enterprise": () => import("./chunks/recaptcha-enterprise-DmPtwlxc.js").then((e) => e.recaptchaEnterpriseModule),
-	"recaptcha-v2-checkbox": () => import("./chunks/recaptcha-v2-checkbox-BpqEodYw.js").then((e) => e.recaptchaV2CheckboxModule),
-	"recaptcha-v2-invisible": () => import("./chunks/recaptcha-v2-invisible-CJRA0BS-.js").then((e) => e.recaptchaV2InvisibleModule),
-	"recaptcha-v3": () => import("./chunks/recaptcha-v3-3nHjFpbH.js").then((e) => e.recaptchaV3Module),
-	snaptcha: () => import("./chunks/snaptcha-DoDGX8Fa.js").then((e) => e.snaptchaModule),
-	turnstile: () => import("./chunks/turnstile-DJXZm4Tk.js").then((e) => e.turnstileModule)
+	"captcha-eu": () => import("./chunks/captcha-eu-DERJbXnH.js").then((e) => e.captchaEuModule),
+	"friendly-captcha-v1": () => import("./chunks/friendly-captcha-v1-GFqCt1Mh.js").then((e) => e.friendlyCaptchaV1Module),
+	"friendly-captcha-v2": () => import("./chunks/friendly-captcha-v2-WoW246JG.js").then((e) => e.friendlyCaptchaV2Module),
+	hcaptcha: () => import("./chunks/hcaptcha-D0T8aIHz.js").then((e) => e.hcaptchaModule),
+	"recaptcha-enterprise": () => import("./chunks/recaptcha-enterprise-CruXddZq.js").then((e) => e.recaptchaEnterpriseModule),
+	"recaptcha-v2-checkbox": () => import("./chunks/recaptcha-v2-checkbox-CCnJYCnG.js").then((e) => e.recaptchaV2CheckboxModule),
+	"recaptcha-v2-invisible": () => import("./chunks/recaptcha-v2-invisible-BuVqRRYn.js").then((e) => e.recaptchaV2InvisibleModule),
+	"recaptcha-v3": () => import("./chunks/recaptcha-v3-CloqhO2A.js").then((e) => e.recaptchaV3Module),
+	snaptcha: () => import("./chunks/snaptcha-C04kNGYQ.js").then((e) => e.snaptchaModule),
+	turnstile: () => import("./chunks/turnstile-n9DNyPxi.js").then((e) => e.turnstileModule)
 }, Ht = {
-	calculations: () => import("./chunks/calculations-BxfOmyea.js").then((e) => e.calculationsModule),
-	"checkbox-radio": () => import("./chunks/checkbox-radio-DHP3DW3Y.js").then((e) => e.checkboxRadioModule),
-	combobox: () => import("./chunks/combobox-D3TnVL2r.js").then((e) => e.comboboxModule),
-	conditions: () => import("./chunks/conditions-BlNjCq5h.js").then((e) => e.conditionsModule),
-	"custom-google-maps": () => import("./chunks/custom-google-maps-B9IK9561.js").then((e) => e.customGoogleMapsModule),
-	"custom-link": () => import("./chunks/custom-link-D39CIxKN.js").then((e) => e.customLinkModule),
-	"custom-maps": () => import("./chunks/custom-maps-BBpPi__M.js").then((e) => e.customMapsModule),
-	"date-picker": () => import("./chunks/date-picker-BZ0_fkoD.js").then((e) => e.datePickerModule),
-	"file-upload": () => import("./chunks/file-upload-fsiDpR04.js").then((e) => e.fileUploadModule),
-	"upload-manager": () => import("./chunks/upload-manager-Bw6GjBku.js").then((e) => e.uploadManagerModule),
-	hidden: () => import("./chunks/hidden-C28bjH9X.js").then((e) => e.hiddenModule),
-	"phone-country": () => import("./chunks/phone-country-Bb7DFp0E.js").then((e) => e.phoneCountryModule),
-	"password-validation": () => import("./chunks/password-validation-Daw0U-4h.js").then((e) => e.passwordValidationModule),
-	"address-country": () => import("./chunks/address-country-e7bvO5ZW.js").then((e) => e.addressCountryModule),
-	"address-state": () => import("./chunks/address-state-CIgCd-4E.js").then((e) => e.addressStateModule),
-	repeater: () => import("./chunks/repeater-FGvfUvSl.js").then((e) => e.repeaterModule),
-	"rich-text": () => import("./chunks/rich-text-67B-sTbF.js").then((e) => e.richTextModule),
-	signature: () => import("./chunks/signature-Cuun7L4F.js").then((e) => e.signatureModule),
-	summary: () => import("./chunks/summary-CYWM_tsT.js").then((e) => e.summaryModule),
-	"survey-likert": () => import("./chunks/survey-likert-Ci7TEdDl.js").then((e) => e.surveyLikertModule),
-	"survey-rank": () => import("./chunks/survey-rank-D9eqvIxh.js").then((e) => e.surveyRankModule),
-	"survey-rating": () => import("./chunks/survey-rating-CrHukOI-.js").then((e) => e.surveyRatingModule),
-	table: () => import("./chunks/table-BN6TdE1D.js").then((e) => e.tableModule),
-	"text-limit": () => import("./chunks/text-limit-CPmgwJOW.js").then((e) => e.textLimitModule)
+	calculations: () => import("./chunks/calculations-BGVT6SxX.js").then((e) => e.calculationsModule),
+	"checkbox-radio": () => import("./chunks/checkbox-radio-18yYJzpK.js").then((e) => e.checkboxRadioModule),
+	combobox: () => import("./chunks/combobox-uP2fNn2e.js").then((e) => e.comboboxModule),
+	conditions: () => import("./chunks/conditions-C8kv6fDE.js").then((e) => e.conditionsModule),
+	"custom-google-maps": () => import("./chunks/custom-google-maps-B5AkIZLS.js").then((e) => e.customGoogleMapsModule),
+	"custom-link": () => import("./chunks/custom-link-FBXzYP2j.js").then((e) => e.customLinkModule),
+	"custom-maps": () => import("./chunks/custom-maps-CXBthhJs.js").then((e) => e.customMapsModule),
+	"date-picker": () => import("./chunks/date-picker-BloA6HqR.js").then((e) => e.datePickerModule),
+	"file-upload": () => import("./chunks/file-upload-BF1MZRNq.js").then((e) => e.fileUploadModule),
+	"upload-manager": () => import("./chunks/upload-manager-lSmjEoKW.js").then((e) => e.uploadManagerModule),
+	hidden: () => import("./chunks/hidden-CvIeBVSw.js").then((e) => e.hiddenModule),
+	"phone-country": () => import("./chunks/phone-country-B-C-b7-5.js").then((e) => e.phoneCountryModule),
+	"password-validation": () => import("./chunks/password-validation-Aw48tJ6a.js").then((e) => e.passwordValidationModule),
+	"address-country": () => import("./chunks/address-country-CykkMN2V.js").then((e) => e.addressCountryModule),
+	"address-state": () => import("./chunks/address-state-16pr3P5m.js").then((e) => e.addressStateModule),
+	repeater: () => import("./chunks/repeater-BWRKp9I7.js").then((e) => e.repeaterModule),
+	"rich-text": () => import("./chunks/rich-text-Bqak9rUT.js").then((e) => e.richTextModule),
+	signature: () => import("./chunks/signature-BH8wwtRd.js").then((e) => e.signatureModule),
+	summary: () => import("./chunks/summary-2O-S0ZSq.js").then((e) => e.summaryModule),
+	"survey-likert": () => import("./chunks/survey-likert-fk1hUPff.js").then((e) => e.surveyLikertModule),
+	"survey-rank": () => import("./chunks/survey-rank-hPi8iMXl.js").then((e) => e.surveyRankModule),
+	"survey-rating": () => import("./chunks/survey-rating-C04ujvBU.js").then((e) => e.surveyRatingModule),
+	table: () => import("./chunks/table-9RF567j5.js").then((e) => e.tableModule),
+	"text-limit": () => import("./chunks/text-limit-B_aZx7ez.js").then((e) => e.textLimitModule)
 }, Ut = {
-	bpoint: () => import("./chunks/bpoint-BmnsI3A7.js").then((e) => e.bpointModule),
-	eway: () => import("./chunks/eway-BtSALgIS.js").then((e) => e.ewayModule),
-	"go-cardless": () => import("./chunks/go-cardless-CmEp4Kwb.js").then((e) => e.goCardlessModule),
-	mollie: () => import("./chunks/mollie-Bp8sXCuu.js").then((e) => e.mollieModule),
-	moneris: () => import("./chunks/moneris-WUN82K-K.js").then((e) => e.monerisModule),
-	opayo: () => import("./chunks/opayo-CVkhLYvc.js").then((e) => e.opayoModule),
-	paddle: () => import("./chunks/paddle-DyjRF79N.js").then((e) => e.paddleModule),
-	paypal: () => import("./chunks/paypal-D5pj9_Si.js").then((e) => e.paypalModule),
-	payway: () => import("./chunks/payway-BnPbB1nM.js").then((e) => e.paywayModule),
-	square: () => import("./chunks/square-VI0xoHrS.js").then((e) => e.squareModule),
-	stripe: () => import("./chunks/stripe-BJspj6Ra.js").then((e) => e.stripeModule)
+	bpoint: () => import("./chunks/bpoint-BOw0P6cM.js").then((e) => e.bpointModule),
+	eway: () => import("./chunks/eway-MaA7Q118.js").then((e) => e.ewayModule),
+	"go-cardless": () => import("./chunks/go-cardless-B0m1ZMdc.js").then((e) => e.goCardlessModule),
+	mollie: () => import("./chunks/mollie-CGAPuHjQ.js").then((e) => e.mollieModule),
+	moneris: () => import("./chunks/moneris-DS2txsPw.js").then((e) => e.monerisModule),
+	opayo: () => import("./chunks/opayo-D1XAggh6.js").then((e) => e.opayoModule),
+	paddle: () => import("./chunks/paddle-CTuHiudg.js").then((e) => e.paddleModule),
+	paypal: () => import("./chunks/paypal-Dhqc5B3-.js").then((e) => e.paypalModule),
+	payway: () => import("./chunks/payway-QxAQIghW.js").then((e) => e.paywayModule),
+	square: () => import("./chunks/square-D2TdpyO4.js").then((e) => e.squareModule),
+	stripe: () => import("./chunks/stripe-BQEmEYLz.js").then((e) => e.stripeModule)
 }, Wt = {
 	...Ht,
 	...Bt,
@@ -1119,23 +1126,17 @@ async function Gt(e, t) {
 	return t.register(i), i;
 }
 function Kt(e, t, n) {
-	let r = e.targets.length ? e.targets : [{
-		targetType: "form",
-		targetId: "form"
-	}];
-	return [...new Set(r.flatMap((e) => {
-		if (e.targetType === "form" || e.targetType === "global") return [n || t];
-		let r = `[${{
-			field: "data-formie-field-uid",
-			page: "data-formie-page-id",
-			button: "data-formie-action"
-		}[e.targetType]}="${CSS.escape(e.targetId)}"]`;
+	return [...new Set(e.targets.flatMap((e) => {
+		if (e.type === "form") return [n || t];
+		let r = e.type === "selector" ? e.selector : e.type === "field" ? `[data-formie-field-uid="${CSS.escape(e.uid)}"]` : e.type === "page" ? `[data-formie-page-id="${CSS.escape(e.id)}"]` : `[data-formie-action="${CSS.escape(e.action)}"]`;
 		return [...t.matches(r) ? [t] : [], ...t.querySelectorAll(r)];
 	}))].filter((e) => !e.closest("[hidden], [data-formie-hidden=\"true\"], [data-formie-conditionally-hidden], [data-formie-page-hidden]"));
 }
 async function qt(e, t) {
 	n(e);
-	let r = t.matchContext.surface ?? "server-rendered", { root: i, form: a } = t.setupContext, o = /* @__PURE__ */ new Map(), s = /* @__PURE__ */ new Map(), c = [], l = !1, u = Promise.resolve(), d = !1, f = async (e, n) => {
+	let r = e.surface;
+	if (t.matchContext.surface && t.matchContext.surface !== r) throw Error(`Browser module manifest surface ${r} cannot mount as ${t.matchContext.surface}.`);
+	let { root: i, form: a } = t.setupContext, o = /* @__PURE__ */ new Map(), s = /* @__PURE__ */ new Map(), c = [], l = !1, u = Promise.resolve(), d = !1, f = async (e, n) => {
 		s.set(e.key, e);
 		let i = {
 			key: e.key,
@@ -1165,18 +1166,24 @@ async function qt(e, t) {
 	}, g = (e) => {
 		m() && (e.preventDefault(), e.stopImmediatePropagation(), h());
 	}, _ = async () => {
-		let n = new Set(e.entries.filter((e) => e.surfaces.includes(r)).map((e) => e.key));
+		let n = new Set(e.entries.map((e) => e.key));
 		for (let e of s.keys()) n.has(e) || s.delete(e);
-		for (let [e, t] of o) if (!n.has(e)) {
-			for (let { instance: e } of t.values()) await p(e), c.splice(c.indexOf(e), 1);
-			o.delete(e), s.delete(e);
-		}
+		let u = [];
+		for (let [e, t] of o) n.has(e) || (u.push(...Array.from(t.values(), ({ instance: e }) => e)), o.delete(e), s.delete(e));
+		for (let e of u.reverse()) await p(e), c.splice(c.indexOf(e), 1);
 		for (let n of e.entries) {
-			if (l || !n.surfaces.includes(r)) continue;
+			if (l) continue;
 			s.has(n.key) && s.set(n.key, n);
-			let e = Kt(n, i, a), u = o.get(n.key) ?? /* @__PURE__ */ new Map();
+			let e;
+			try {
+				e = Kt(n, i, a);
+			} catch (e) {
+				s.has(n.key) || await f(n, e);
+				continue;
+			}
+			let u = o.get(n.key) ?? /* @__PURE__ */ new Map();
 			o.set(n.key, u);
-			for (let [t, n] of u) e.includes(t) || (await p(n.instance), u.delete(t), c.splice(c.indexOf(n.instance), 1));
+			for (let [t, n] of Array.from(u.entries()).reverse()) e.includes(t) || (await p(n.instance), u.delete(t), c.splice(c.indexOf(n.instance), 1));
 			let d;
 			try {
 				d = await Gt(n.moduleId, t.registry);
@@ -1198,7 +1205,7 @@ async function qt(e, t) {
 					target: a,
 					entryKey: n.key,
 					surface: r,
-					scope: n.targets[0]?.targetType ?? "form",
+					scope: n.targets[0]?.type ?? "form",
 					options: n.config
 				};
 				try {
@@ -1210,6 +1217,7 @@ async function qt(e, t) {
 						await p(o.instance), u.delete(a), c.splice(c.indexOf(o.instance), 1);
 					}
 					if (d.surfaces && !d.surfaces.includes(r)) throw Error(`Module ${n.moduleId} does not support ${r}.`);
+					if (d.kind !== n.kind) throw Error(`Module ${n.moduleId} is registered as ${d.kind}, not ${n.kind}.`);
 					if (!d.match({
 						...t.matchContext,
 						mode: "server-rendered",
@@ -1223,7 +1231,7 @@ async function qt(e, t) {
 						await p(s);
 						continue;
 					}
-					s.key = n.key, s.moduleId = n.moduleId, s.target = a;
+					s.key = n.key, s.moduleId = n.moduleId, s.kind = n.kind, s.target = a;
 					let m = s.assertReady;
 					s.assertReady = () => {
 						try {
@@ -1232,18 +1240,18 @@ async function qt(e, t) {
 							if (f(n, e), n.required) throw Error("A required form feature could not start.");
 						}
 					};
-					let _ = s.onBeforeStage, v = s.onAfterStage;
-					s.onBeforeStage = async (e) => {
+					let _ = s.beforeSubmit, v = s.afterSubmit;
+					s.beforeSubmit = async (e) => {
 						try {
 							await _?.(e);
 						} catch (t) {
 							await f(n, t), n.required && e.abort("A required form feature could not complete. Reload the page or contact the site administrator.");
 						}
-					}, s.onAfterStage = async (e, t) => {
+					}, s.afterSubmit = async (e, t) => {
 						try {
 							await v?.(e, t);
-						} catch (t) {
-							await f(n, t), n.required && e.abort("A required form feature could not complete.");
+						} catch (e) {
+							await f(n, e);
 						}
 					}, u.set(a, {
 						instance: s,
@@ -1273,14 +1281,15 @@ async function qt(e, t) {
 		},
 		destroy: async () => {
 			l = !0, v.disconnect(), a?.removeEventListener("submit", g, !0), await u;
-			for (let e of o.values()) for (let { instance: t } of e.values()) await p(t);
+			for (let e of Array.from(o.values()).reverse()) for (let { instance: t } of Array.from(e.values()).reverse()) await p(t);
 			o.clear(), c.splice(1);
 		},
-		onBeforeStage: (e) => {
+		beforeSubmit: (e) => {
 			m() && e.abort("A required form feature could not start. Reload the page or contact the site administrator.");
 		}
 	}), c.updateManifest = async (t) => {
-		n(t), e = t, u = u.then(_), await u;
+		if (n(t), t.surface !== r) throw Error("A mounted browser module runtime cannot change surfaces.");
+		e = t, u = u.then(_), await u;
 	}, a?.addEventListener("submit", g, !0), await _(), v.observe(i, {
 		childList: !0,
 		subtree: !0,
@@ -2119,9 +2128,7 @@ function tr() {
 			}
 			y(e, "formie:unmount:before", { id: r.instance.id }), r.unbinds.forEach((e) => {
 				e();
-			}), r.unbinds = [], r.validator?.destroy(), r.validator = null;
-			for (let e of r.modules) await e.destroy();
-			r.modules = [], r.bus.clear(), t.delete(e), y(e, "formie:unmount:after", { id: r.instance.id }), K.log("Unmount complete.", {
+			}), r.unbinds = [], r.validator?.destroy(), r.validator = null, await r.modules[0]?.destroy(), r.modules = [], r.bus.clear(), t.delete(e), y(e, "formie:unmount:after", { id: r.instance.id }), K.log("Unmount complete.", {
 				id: r.instance.id,
 				target: Q(e)
 			});
@@ -2166,7 +2173,8 @@ function tr() {
 			...v || {},
 			...S || {}
 		} : null, te = ee?.theme, ne = {}, w = ee?.modules ?? {
-			contractVersion: 1,
+			contractVersion: 2,
+			surface: "server-rendered",
 			entries: []
 		};
 		n(w), K.log("Resolved mount payload.", {
@@ -2200,7 +2208,8 @@ function tr() {
 			matchContext: {
 				root: a,
 				form: b,
-				mode: g.mode
+				mode: g.mode,
+				surface: w.surface
 			},
 			setupContext: {
 				formId: p,
@@ -2294,20 +2303,42 @@ function tr() {
 		}, 350)), o.forEach((e) => {
 			let t = d.on(`formie:stage:${e}:before`, async (t) => {
 				y(a, `formie:stage:${e}:before`, t);
-			}), n = d.on(`formie:stage:${e}:before`, async (e) => {
-				for (let t of D) t.onBeforeStage && await t.onBeforeStage(e);
+			}), n = d.on(`formie:stage:${e}:before`, async (t) => {
+				let n = {
+					core: "prepare",
+					field: "prepare",
+					address: "prepare",
+					captcha: "challenge",
+					payment: "payment"
+				}, r = t;
+				for (let t of D) if (t.beforeSubmit && n[t.kind ?? "core"] === e) {
+					let { form: e, action: n, formData: i, abort: a, isAborted: o, abortReason: s } = r;
+					await t.beforeSubmit({
+						form: e,
+						action: n,
+						formData: i,
+						abort: a,
+						isAborted: o,
+						abortReason: s
+					});
+				}
 			}), r = d.on(`formie:stage:${e}:after`, async (t) => {
 				y(a, `formie:stage:${e}:after`, t);
-			}), i = d.on(`formie:stage:${e}:after`, async (e) => {
-				let t = e;
-				for (let e of D) e.onAfterStage && await e.onAfterStage(t, t.result);
 			});
-			f.push(t, n, r, i);
+			f.push(t, n, r);
 		});
 		let ie = d.on("formie:submit:before", async (e) => {
 			y(a, "formie:submit:before", e);
 		}), k = d.on("formie:submit:after", async (e) => {
-			y(a, "formie:submit:after", e);
+			if (y(a, "formie:submit:after", e), !b) return;
+			let t = e;
+			if (t.code === "PREFLIGHT_COMPLETE") return;
+			let n = {
+				form: b,
+				action: t.action ?? "submit",
+				formData: new FormData(b)
+			};
+			for (let e of D) await e.afterSubmit?.(n, t);
 		}), ae = d.on("formie:submit:final:before", async (e) => {
 			y(a, "formie:submit:final:before", e);
 		}), oe = d.on("formie:submit:final:after", async (e) => {
@@ -2442,11 +2473,12 @@ function tr() {
 //#region src/js/core/hydrate-modules.ts
 var nr = T("general", "module-hydrator");
 async function rr(e) {
-	let t = e.root, n = e.form ?? (t instanceof HTMLFormElement ? t : t.closest("form") ?? t.querySelector("form")), r = e.modules ?? {
-		contractVersion: 1,
+	let t = e.root, n = e.form ?? (t instanceof HTMLFormElement ? t : t.closest("form") ?? t.querySelector("form")), r = e.surface ?? "cp-edit", i = e.modules ?? {
+		contractVersion: 2,
+		surface: r,
 		entries: []
-	}, i = e.mode ?? "server-rendered", a = e.registry ?? new B(), o = new Rt(), s = await qt(r, {
-		registry: a,
+	}, a = e.mode ?? "server-rendered", o = e.registry ?? new B(), s = new Rt(), c = await qt(i, {
+		registry: o,
 		setupContext: {
 			formId: n?.id || t.id || "formie-modules",
 			root: t,
@@ -2455,146 +2487,118 @@ async function rr(e) {
 			scope: "form",
 			state: {},
 			options: {},
-			on: (e, t) => o.on(e, t),
+			on: (e, t) => s.on(e, t),
 			emit: async (e, n) => {
 				t.dispatchEvent(new CustomEvent(e, {
 					detail: n,
 					bubbles: !0
-				})), await o.emit(e, n);
+				})), await s.emit(e, n);
 			}
 		},
 		matchContext: {
 			root: t,
 			form: n,
-			mode: i,
-			surface: e.surface ?? "cp-edit"
+			mode: a,
+			surface: r
 		}
 	});
 	return nr.log("Hydrated module manifest.", {
-		moduleCount: r.entries.length,
-		instanceCount: s.length,
-		mode: i
+		moduleCount: i.entries.length,
+		instanceCount: c.length,
+		mode: a
 	}), {
 		prepare: async (e) => {
 			if (!n) throw Error("Browser modules require a mounted form element.");
-			s.forEach((e) => e.assertReady?.());
-			let t;
-			for (let r of [
-				"prepare",
-				"validate",
-				"challenge",
-				"payment",
-				"send"
-			]) {
-				let i = {
-					form: n,
-					stage: r,
-					action: e === "back" || e === "save" ? e : "submit",
-					formData: new FormData(n),
-					abort: (e) => {
-						t = e || "A form feature could not complete.";
-					},
-					isAborted: () => !!t,
-					abortReason: () => t
-				};
-				await o.emit(`formie:browser:${r}`, i);
-				for (let e of s) await e.onBeforeStage?.(i);
-				if (t) throw Error(t);
-				if (r !== "send") {
-					for (let e of s) await e.onAfterStage?.(i);
-					if (t) throw Error(t);
-				}
-			}
+			c.forEach((e) => e.assertReady?.());
+			let t, r = {
+				form: n,
+				action: e === "back" || e === "save" ? e : "submit",
+				formData: new FormData(n),
+				abort: (e) => {
+					t = e || "A form feature could not complete.";
+				},
+				isAborted: () => !!t,
+				abortReason: () => t
+			}, i = {
+				core: 0,
+				field: 0,
+				address: 0,
+				captcha: 1,
+				payment: 2
+			};
+			for (let e of [...c].sort((e, t) => i[e.kind ?? "core"] - i[t.kind ?? "core"])) if (await e.beforeSubmit?.(r), t) throw Error(t);
 			return Object.fromEntries(Array.from(n.querySelectorAll("input[type=\"hidden\"][name]")).map((e) => [e.name, e.value]));
 		},
 		result: async (e) => {
 			if (!n) return;
 			let t = {
 				form: n,
-				stage: "send",
-				action: "submit",
-				formData: new FormData(n),
-				abort: () => {},
-				isAborted: () => !1,
-				abortReason: () => void 0
+				action: e.action ?? "submit",
+				formData: new FormData(n)
 			};
-			for (let n of s) await n.onAfterStage?.(t, e);
-			let r = {
-				...t,
-				stage: "result"
-			};
-			await o.emit("formie:browser:result", r);
-			for (let e of s) await e.onBeforeStage?.(r);
-			await o.emit("formie:submit:result", e);
-			for (let t of s) await t.onAfterStage?.(r, e);
+			await s.emit("formie:submit:result", e);
+			for (let n of c) await n.afterSubmit?.(t, e);
 			n.dispatchEvent(new CustomEvent("formie:submit:result", {
 				detail: e,
 				bubbles: !0
 			}));
 		},
-		update: (e) => s.updateManifest(e),
-		assertReady: () => s.forEach((e) => e.assertReady?.()),
+		update: (e) => c.updateManifest(e),
+		assertReady: () => c.forEach((e) => e.assertReady?.()),
 		destroy: async () => {
-			await ir(s), o.clear();
+			await c[0]?.destroy(), s.clear();
 		},
-		on: (e, t) => o.on(e, t),
+		on: (e, t) => s.on(e, t),
 		emit: async (e, t) => {
-			await o.emit(e, t);
+			await s.emit(e, t);
 		},
-		registerModule: (e, t = {}) => a.register(e, t),
+		registerModule: (e, t = {}) => o.register(e, t),
 		unregisterModule: (e) => {
-			a.unregister(e);
+			o.unregister(e);
 		},
-		getRegisteredModules: () => a.getAll()
+		getRegisteredModules: () => o.getAll()
 	};
-}
-async function ir(e) {
-	for (let t of e) try {
-		await t.destroy();
-	} catch (e) {
-		console.error("[formie] Failed to destroy module instance.", e), nr.warn("Failed destroying module instance.", { error: e });
-	}
 }
 //#endregion
 //#region src/js/core/formie.ts
 function $(e) {
 	return e instanceof Element;
 }
-function ar(e) {
+function ir(e) {
 	return e.ok;
 }
-function or(e) {
+function ar(e) {
 	return typeof e == "string" ? `selector "${e}"` : $(e) ? `element "${e.tagName.toLowerCase()}"` : "provided element collection";
 }
-function sr(e) {
+function or(e) {
 	let t = /* @__PURE__ */ new Set(), n = [];
 	for (let r of e) $(r) && !t.has(r) && (t.add(r), n.push(r));
 	return n;
 }
-function cr(e) {
-	return typeof e == "string" ? Array.from(document.querySelectorAll(e)) : $(e) ? [e] : sr(e);
+function sr(e) {
+	return typeof e == "string" ? Array.from(document.querySelectorAll(e)) : $(e) ? [e] : or(e);
 }
-function lr() {
+function cr() {
 	return document.readyState === "loading" ? new Promise((e) => {
 		document.addEventListener("DOMContentLoaded", () => e(), { once: !0 });
 	}) : Promise.resolve();
 }
-async function ur(e) {
-	let t = cr(e);
-	return t.length > 0 || typeof e != "string" ? t : (await lr(), cr(e));
+async function lr(e) {
+	let t = sr(e);
+	return t.length > 0 || typeof e != "string" ? t : (await cr(), sr(e));
 }
-function dr(e) {
+function ur(e) {
 	return typeof e == "string" ? document : $(e) ? e.getRootNode() : document;
 }
-function fr(e) {
+function dr(e) {
 	let { element: t, observe: n, allowEmpty: r, client: i, onReady: a, onResult: o, onSuccess: s, onError: c, onEvent: l, ...u } = e;
 	return {
 		mode: "server-rendered",
 		...u
 	};
 }
-async function pr(e, t, n, r) {
-	let i = [], a = fr(e);
+async function fr(e, t, n, r) {
+	let i = [], a = dr(e);
 	for (let o of r) {
 		let r = n.get(o);
 		if (r) {
@@ -2604,7 +2608,7 @@ async function pr(e, t, n, r) {
 		let s = await t.mount(o, a), c = [];
 		if (e.onReady?.(s), c.push(s.on("formie:submit:result", (t) => {
 			let n = t;
-			e.onResult?.(n, s), ar(n) ? e.onSuccess?.(n, s) : e.onError?.(n, s);
+			e.onResult?.(n, s), ir(n) ? e.onSuccess?.(n, s) : e.onError?.(n, s);
 		})), e.onEvent) for (let t of l) c.push(s.on(t, (n) => {
 			e.onEvent?.({
 				name: t,
@@ -2618,11 +2622,11 @@ async function pr(e, t, n, r) {
 	}
 	return i;
 }
-async function mr(e) {
-	let t = e.client ?? tr(), n = /* @__PURE__ */ new Map(), r = await ur(e.element);
-	if (r.length === 0 && !e.allowEmpty) throw Error(`Formie could not find any elements for ${or(e.element)}.`);
-	await pr(e, t, n, r);
-	let i = e.observe ? t.observe(dr(e.element)) : null;
+async function pr(e) {
+	let t = e.client ?? tr(), n = /* @__PURE__ */ new Map(), r = await lr(e.element);
+	if (r.length === 0 && !e.allowEmpty) throw Error(`Formie could not find any elements for ${ar(e.element)}.`);
+	await fr(e, t, n, r);
+	let i = e.observe ? t.observe(ur(e.element)) : null;
 	return {
 		client: t,
 		get instances() {
@@ -2633,8 +2637,8 @@ async function mr(e) {
 			return r ? n.get(r)?.instance ?? t.getInstance(r) : null;
 		},
 		async rescan() {
-			let r = cr(e.element);
-			return r.length === 0 ? Array.from(n.values()).map(({ instance: e }) => e) : pr(e, t, n, r);
+			let r = sr(e.element);
+			return r.length === 0 ? Array.from(n.values()).map(({ instance: e }) => e) : fr(e, t, n, r);
 		},
 		async destroy() {
 			i?.();
@@ -2645,29 +2649,56 @@ async function mr(e) {
 }
 //#endregion
 //#region src/js/core/client-rendered-modules.ts
-var hr = {
-	conditions: "Core evaluates structured conditions and the adapter renders visibility.",
-	repeater: "The adapter owns row markup and core owns row values.",
-	signature: "The adapter owns its signature control and cleanup.",
-	"file-upload": "The shared transport stages selected files and submits attachment capabilities.",
-	"upload-manager": "Native file selection uses the shared staged upload transport.",
-	"checkbox-radio": "Framework controls own checked state.",
-	"text-limit": "Core validation enforces the structured minimum and maximum rules.",
-	"date-picker": "The adapter renders the structured date input contract."
-};
-async function gr(t, n, r = zt) {
-	for (let [e, t] of Object.entries(hr)) r.get(`formie:${e}`) || r.register({
-		moduleId: `formie:${e}`,
-		version: 1,
-		surfaces: ["client-rendered"],
+var mr = {
+	conditions: {
+		kind: "core",
+		reason: "Core evaluates structured conditions and the adapter renders visibility."
+	},
+	repeater: {
 		kind: "field",
-		match: () => !0,
-		setup: async (n) => (await n.emit("formie:browser:module:delegated", {
-			capability: e,
-			reason: t,
-			target: n.target
-		}), { destroy: () => void 0 })
-	});
+		reason: "The adapter owns row markup and core owns row values."
+	},
+	signature: {
+		kind: "field",
+		reason: "The adapter owns its signature control and cleanup."
+	},
+	"file-upload": {
+		kind: "field",
+		reason: "The shared transport stages selected files and submits attachment capabilities."
+	},
+	"upload-manager": {
+		kind: "field",
+		reason: "Native file selection uses the shared staged upload transport."
+	},
+	"checkbox-radio": {
+		kind: "field",
+		reason: "Framework controls own checked state."
+	},
+	"text-limit": {
+		kind: "field",
+		reason: "Core validation enforces the structured minimum and maximum rules."
+	},
+	"date-picker": {
+		kind: "field",
+		reason: "The adapter renders the structured date input contract."
+	}
+};
+async function hr(t, n, r = zt) {
+	for (let [e, t] of Object.entries(mr)) {
+		let n = `formie:${e}`;
+		r.get(n) || r.register({
+			moduleId: n,
+			version: 2,
+			surfaces: ["client-rendered"],
+			kind: t.kind,
+			match: () => !0,
+			setup: async (e) => (await e.emit("formie:browser:module:delegated", {
+				moduleId: n,
+				reason: t.reason,
+				target: e.target
+			}), { destroy: () => void 0 })
+		});
+	}
 	let i = t instanceof HTMLFormElement ? t : t.querySelector("form"), a = () => {
 		if (!i) return;
 		let t = n.getState();
@@ -2709,4 +2740,4 @@ async function gr(t, n, r = zt) {
 	};
 }
 //#endregion
-export { l as FORMIE_HTML_EVENT_NAMES, cn as FormieValidator, xe as LEGACY_FORMIE_DOM_EVENT_BRIDGES, Se as LEGACY_FORMIE_VALIDATOR_EVENT_BRIDGES, B as ModuleRegistry, Oe as bindLegacyDomEventCompatibility, ke as bindLegacyValidatorCompatibility, ve as buildFieldValueRegistry, zt as clientRenderedModuleRegistry, T as createDebug, tr as createFormieClient, ne as debugLog, w as debugWarn, be as defineAddressModule, fe as defineCaptchaModule, de as definePassiveCaptchaModule, S as definePaymentModule, he as fieldKeyToInputName, mr as formie, c as getFieldModuleEventName, ue as getFormieTranslations, s as getGlobalModuleLifecycleEventName, i as getScopedModuleLifecycleEventName, rr as hydrateFormieModules, pe as inputNameToFieldKey, te as isFormieDebugEnabled, ce as mergeFormieTranslations, gr as mountClientRenderedModules, me as normalizeFieldKey, u as normalizeFormieEventName, ge as parseFieldReference, ye as resolveFieldReferenceFromFormData, _e as resolveFieldReferenceLive, Ce as resolveLegacyCompatibilityOptions, ee as setFormieDebugEnabled, le as setFormieTranslations, se as t, a as toDomEventName, oe as translate };
+export { l as FORMIE_HTML_EVENT_NAMES, cn as FormieValidator, xe as LEGACY_FORMIE_DOM_EVENT_BRIDGES, Se as LEGACY_FORMIE_VALIDATOR_EVENT_BRIDGES, B as ModuleRegistry, Oe as bindLegacyDomEventCompatibility, ke as bindLegacyValidatorCompatibility, ve as buildFieldValueRegistry, zt as clientRenderedModuleRegistry, T as createDebug, tr as createFormieClient, ne as debugLog, w as debugWarn, be as defineAddressModule, fe as defineCaptchaModule, de as definePassiveCaptchaModule, S as definePaymentModule, he as fieldKeyToInputName, pr as formie, c as getFieldModuleEventName, ue as getFormieTranslations, s as getGlobalModuleLifecycleEventName, i as getScopedModuleLifecycleEventName, rr as hydrateFormieModules, pe as inputNameToFieldKey, te as isFormieDebugEnabled, ce as mergeFormieTranslations, hr as mountClientRenderedModules, me as normalizeFieldKey, u as normalizeFormieEventName, ge as parseFieldReference, ye as resolveFieldReferenceFromFormData, _e as resolveFieldReferenceLive, Ce as resolveLegacyCompatibilityOptions, ee as setFormieDebugEnabled, le as setFormieTranslations, se as t, a as toDomEventName, oe as translate };

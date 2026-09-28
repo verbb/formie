@@ -4,8 +4,6 @@ namespace verbb\formie\base;
 use verbb\formie\base\Field;
 use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\helpers\ConditionsHelper;
-use verbb\formie\models\BrowserModuleContext;
-
 use Craft;
 
 trait FieldClientRenderedDefinitionTrait
@@ -34,7 +32,9 @@ trait FieldClientRenderedDefinitionTrait
                 'children' => $clientRenderedChildren->toArray(),
                 'valueType' => $valueType,
             ],
-            'moduleRefs' => $this->_getBrowserModuleIds(),
+            // The form-level manifest projection replaces this placeholder with
+            // the exact entry keys produced for this field and surface.
+            'moduleRefs' => [],
             'meta' => [
                 'fieldType' => static::kebabClassName(),
                 'hidden' => $this->getIsHidden(),
@@ -86,13 +86,6 @@ trait FieldClientRenderedDefinitionTrait
         }
 
         return $type;
-    }
-
-    private function _getBrowserModuleIds(): array
-    {
-        return array_values(array_filter(array_unique($this->browserModules()->getModuleIds(new BrowserModuleContext([
-            'field' => $this,
-        ])))));
     }
 
     private function _applyClientChildrenDefinition(array $contract): array

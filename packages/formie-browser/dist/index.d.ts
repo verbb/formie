@@ -21,8 +21,8 @@ export type { FormieModuleHydrator, FormieModuleHydratorOptions } from '#core/hy
 export type { FormieApp, FormieElementTarget, FormieEvent, FormieOptions } from '#core/formie';
 export type { LegacyBridgeDisposition, LegacyCompatibilityOptions, LegacyDomEventBridge, LegacyValidatorEventBridge, ResolvedLegacyCompatibilityOptions, } from '#compatibility/event-map';
 export type { FormAction, FormMode, FormTransport, SubmitStage } from '#contracts/common';
-export type { BrowserModuleDefinition, BrowserModuleInstance, ModuleHookContext, ModuleMatchContext, ModuleRegistrationOptions, ModuleSetupContext, SubmitHookContext, } from '#contracts/modules';
-export type { FormRefreshTokensPayload, FormEndpointPayload, BrowserModuleEntry, FormModuleTarget, FormModuleTargetType, FormRedirect, FormSubmitResult, } from '#contracts/schema';
+export type { BrowserModuleDefinition, BrowserModuleInstance, AfterSubmitContext, BeforeSubmitContext, ModuleHookContext, ModuleMatchContext, ModuleRegistrationOptions, ModuleSetupContext, SubmitHookContext, } from '#contracts/modules';
+export type { FormRefreshTokensPayload, FormEndpointPayload, BrowserModuleEntry, BrowserModuleKind, BrowserModuleManifest, FormModuleTarget, FormModuleTargetType, FormRedirect, FormSubmitResult, } from '#contracts/schema';
 export type { BrowserThemeClassMap, ThemeClassMap } from '#contracts/theme';
 export type { ValidationConfig, ValidationContext, ValidationError, ValidationInput, ValidationRuleDefinition, ValidationRules, ValidationRuleValue, } from '#validation/types';
 export type { TranslationReplacements } from '#utils/i18n';

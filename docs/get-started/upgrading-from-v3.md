@@ -148,14 +148,14 @@ public function getFrontEndJsVariables(Form $form, $page = null)
 ```
 
 ```php [Formie 4]
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 
-public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
+public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule
 {
-    return new BrowserModuleEntry([
-        'id' => 'my-captcha',
-        'src' => $this->scriptUrl,
+    return new BrowserModule([
+        'moduleId' => 'example:my-captcha',
+        'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED],
         'config' => [
             'siteKey' => $this->siteKey,
         ],
@@ -1661,9 +1661,9 @@ After upgrading, use Submission Delivery History to inspect delivery attempts an
 
 ## Browser module declarations
 
-Formie 4 distinguishes server-rendered HTML from client-rendered definitions. Browser modules apply to either product; CP edit configuration uses `getCpEditConfig()`. Public field definitions use `getClientRenderedDefinition()` and `getClientRenderedInput()`. Custom module declarations use `BrowserModuleEntry`, with a namespaced `moduleId`, unique occurrence key, explicit surfaces and form-field UID targets. The versioned manifest contains no executable `src` URLs.
+Formie 4 distinguishes server-rendered HTML from client-rendered definitions. Browser modules apply to either product; CP edit configuration uses `getCpEditConfig()`. Public field definitions use `getClientRenderedDefinition()` and `getClientRenderedInput()`. Custom PHP declarations use immutable `BrowserModule` values with a namespaced `moduleId` and explicit surfaces. Formie projects them into surface-specific manifests with unique occurrence keys and discriminated targets. The manifest contains no executable `src` URLs.
 
-Stable `getFrontEndJsModules()` declarations are adapted with a deprecation warning. Register third-party JavaScript in your trusted application bundle under `legacy:<kebab-name>`; old source URLs are ignored. Repeated declarations remain distinct. Custom client-rendered forms use a versioned bootstrap with `contractVersion: 1`; the client-rendered web component is `<formie-client-form>`.
+Stable `getFrontEndJsModules()` declarations are adapted with a deprecation warning. Register third-party JavaScript in your trusted application bundle under `legacy:<kebab-name>`; old source URLs are ignored. Repeated declarations remain distinct. The client-rendered bootstrap remains version 1; its nested browser-module manifest is version 2 and names its exact surface. The client-rendered web component is `<formie-client-form>`.
 
 ## Completion and Runtime Configuration
 

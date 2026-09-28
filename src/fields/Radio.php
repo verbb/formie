@@ -6,12 +6,11 @@ use verbb\formie\base\OptionsField;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\fields\traits\OtherOptionFieldTrait;
-use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\theme\context\RenderContext;
@@ -347,9 +346,9 @@ class Radio extends OptionsField implements SortableFieldInterface
     protected function defineBrowserModules(): array
     {
         $modules = parent::defineBrowserModules();
-        $modules[] = new BrowserModuleEntry([
+        $modules[] = new BrowserModule([
             'moduleId' => 'formie:checkbox-radio',
-            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
+            'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
         ]);
 
         return $modules;

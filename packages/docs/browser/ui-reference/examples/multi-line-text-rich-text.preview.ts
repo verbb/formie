@@ -4,18 +4,16 @@ const preview: FormiePreviewSourceDefinition = {
     minHeight: 360,
     modules: [
         {
-            id: 'rich-text',
-            type: 'field',
+            moduleId: 'formie:rich-text',
+            kind: 'field',
             targets: [
                 {
-                    targetType: 'field',
-                    targetId: 'projectBrief',
+                    type: 'selector',
+                    selector: '[data-formie-field-handle="projectBrief"]',
                 },
             ],
             config: {
-                options: {
-                    buttons: ['bold', 'italic', 'ulist', 'link'],
-                },
+                buttons: ['bold', 'italic', 'ulist', 'link'],
             },
         },
     ],

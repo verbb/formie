@@ -1,0 +1,131 @@
+import { f as e } from "./dist-vTdOlBe4.js";
+import { i as t } from "./i18n-BY1ds1BL.js";
+import { t as n } from "./styles-BfoIZwJp.js";
+import { c as r, i, l as a } from "./shared-Bx9s0i0P.js";
+//#region src/css/theme/fields/_text-limit.css?inline
+var o = "@layer formie-theme{.formie-limit-number{font-weight:var(--formie-font-weight-semibold);color:var(--formie-color-text)}.formie-limit-number-error{color:var(--formie-color-danger)}}", s = "input[data-formie-single-line-text-input], textarea[data-formie-multi-line-text-input]", c = [
+	"textMinCharacterLimit",
+	"textMaxCharacterLimit",
+	"textMinWordLimit",
+	"textMaxWordLimit"
+], l = "text-limit", u = "data-formie-text-limit-allow-overtype", d = "{count, plural, one{character allowed} other{characters allowed}}", f = "{count, plural, one{character left} other{characters left}}", p = "{count, plural, one{character over limit} other{characters over limit}}", m = "{count, plural, one{word allowed} other{words allowed}}", h = "{count, plural, one{word left} other{words left}}", g = "{count, plural, one{word over limit} other{words over limit}}", _ = /* @__PURE__ */ new WeakMap();
+n("text-limit", [o]);
+function v(e) {
+	return e instanceof HTMLInputElement || e instanceof HTMLTextAreaElement;
+}
+function y(e, t) {
+	return parseInt(e.getAttribute(t) || "", 10) || 0;
+}
+function b(e) {
+	return e.hasAttribute("data-formie-min-chars") || e.hasAttribute("data-formie-max-chars") || e.hasAttribute("data-formie-min-words") || e.hasAttribute("data-formie-max-words");
+}
+function x(e) {
+	return e.hasAttribute("data-formie-max-chars") || e.hasAttribute("data-formie-max-words");
+}
+function S(e) {
+	return e.hasAttribute(u);
+}
+function C(e) {
+	return e.value === "";
+}
+function w(t) {
+	a(t, l, (t) => {
+		t.addValidator("textMinCharacterLimit", ({ input: t }) => {
+			if (!v(t)) return !0;
+			let n = y(t, "data-formie-min-chars");
+			return !n || C(t) ? !0 : e(t.value).graphemeCount >= n;
+		}, ({ label: e, input: t, t: n }) => t.getAttribute("data-formie-validation-min-characters-message") || n("{label} must be no less than {min} characters.", {
+			label: e,
+			min: t.getAttribute("data-formie-min-chars") || ""
+		})), t.addValidator("textMaxCharacterLimit", ({ input: t }) => {
+			if (!v(t) || S(t)) return !0;
+			let n = y(t, "data-formie-max-chars");
+			return !n || C(t) ? !0 : e(t.value).graphemeCount <= n;
+		}, ({ label: e, input: t, t: n }) => t.getAttribute("data-formie-validation-max-characters-message") || n("{label} must be no greater than {max} characters.", {
+			label: e,
+			max: t.getAttribute("data-formie-max-chars") || ""
+		})), t.addValidator("textMinWordLimit", ({ input: t }) => {
+			if (!v(t)) return !0;
+			let n = y(t, "data-formie-min-words");
+			return !n || t.value.trim() === "" || e(t.value).wordCount >= n;
+		}, ({ label: e, input: t, t: n }) => t.getAttribute("data-formie-validation-min-words-message") || n("{label} must be no less than {min} words.", {
+			label: e,
+			min: t.getAttribute("data-formie-min-words") || ""
+		})), t.addValidator("textMaxWordLimit", ({ input: t }) => {
+			if (!v(t) || S(t)) return !0;
+			let n = y(t, "data-formie-max-words");
+			return !n || t.value.trim() === "" || e(t.value).wordCount <= n;
+		}, ({ label: e, input: t, t: n }) => t.getAttribute("data-formie-validation-max-words-message") || n("{label} must be no greater than {max} words.", {
+			label: e,
+			max: t.getAttribute("data-formie-max-words") || ""
+		}));
+	});
+}
+function T(e) {
+	r(e, l, c);
+}
+function E(e) {
+	if (_.has(e)) return _.get(e) || null;
+	let t = e.closest("[data-formie-field-handle]");
+	if (!t) return _.set(e, null), null;
+	let n = t.querySelector("[data-formie-limit-text]");
+	if (n) return _.set(e, n), n;
+	let r = t.querySelector("[data-formie-field-control]"), i = document.createElement("div");
+	return i.className = "formie-field-limit formie-limit-text", i.setAttribute("data-formie-field-limit", "true"), i.setAttribute("data-formie-limit-text", "true"), r?.parentElement ? (r.insertAdjacentElement("afterend", i), _.set(e, i), i) : (t.appendChild(i), _.set(e, i), i);
+}
+function D(e, t, n) {
+	return (n === "character" ? e.value === "" : e.value.trim() === "") ? "allowed" : t < 0 ? "over" : "left";
+}
+function O(e, t) {
+	return e === "character" ? t === "allowed" ? d : t === "over" ? p : f : t === "allowed" ? m : t === "over" ? g : h;
+}
+function k(e, n, r, i, a) {
+	let o = D(n, r, a), s = o === "allowed" ? i : Math.abs(r), c = document.createElement("span");
+	c.className = o === "over" ? "formie-limit-number formie-limit-number-error" : "formie-limit-number", c.textContent = String(s);
+	let l = O(a, o);
+	e.replaceChildren(c, document.createTextNode(` ${t(l, { count: s })}`));
+}
+function A(t) {
+	let n = y(t, "data-formie-max-chars"), r = y(t, "data-formie-max-words"), i = E(t);
+	if (!i) return;
+	let a = e(t.value);
+	if (n > 0) {
+		k(i, t, n - a.graphemeCount, n, "character");
+		return;
+	}
+	r > 0 && k(i, t, r - a.wordCount, r, "word");
+}
+var j = {
+	moduleId: "formie:text-limit",
+	version: 2,
+	surfaces: [
+		"server-rendered",
+		"client-rendered",
+		"cp-edit"
+	],
+	kind: "field",
+	match: (e) => !!e.target.querySelector(s),
+	setup: async (e) => {
+		let t = e.options || {}, n = i(e), r = Array.from((n || e.target).querySelectorAll(s)).filter((e) => (e instanceof HTMLInputElement || e instanceof HTMLTextAreaElement) && b(e)), a = r.filter((e) => x(e));
+		t.allowOvertype && r.forEach((e) => {
+			e.setAttribute(u, "true");
+		}), w(e.form);
+		let o = a.map((e) => {
+			let t = () => {
+				A(e);
+			};
+			return e.addEventListener("input", t), e.addEventListener("change", t), A(e), () => {
+				e.removeEventListener("input", t), e.removeEventListener("change", t);
+			};
+		});
+		return await e.emit("formie:module:text-limit:init", { count: r.length }), { destroy: () => {
+			o.forEach((e) => {
+				e();
+			}), t.allowOvertype && r.forEach((e) => {
+				e.removeAttribute(u);
+			}), T(e.form), e.emit("formie:module:text-limit:destroy", {});
+		} };
+	}
+};
+//#endregion
+export { j as textLimitModule };

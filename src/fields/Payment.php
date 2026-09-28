@@ -7,14 +7,12 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\PaymentFieldValue;
 use verbb\formie\gql\types\input\PaymentInputType;
 use verbb\formie\gql\types\Json as GqlJson;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\Notification;
 use verbb\formie\models\SlotTag;
@@ -372,41 +370,25 @@ class Payment extends Field
         ]);
     }
 
-    protected function defineBrowserModules(): array
+    protected function defineContextualBrowserModules(BrowserModuleContext $context): array
     {
-        $modules = parent::defineBrowserModules();
-        $modules[] = function(BrowserModuleContext $context) {
-            $integration = $this->getPaymentIntegration();
+        $modules = parent::defineContextualBrowserModules($context);
+        $integration = $this->getPaymentIntegration();
 
-            if (!$integration) {
-                return null;
-            }
+        if (!$integration) {
+            return $modules;
+        }
 
-            $browserModule = $integration->getBrowserModule(new BrowserModuleContext([
-                'form' => $context->form,
-                'field' => $this,
-                'integration' => $integration,
-                'surface' => $context->surface,
-            ]));
+        $browserModule = $integration->getBrowserModule(new BrowserModuleContext([
+            'form' => $context->form,
+            'field' => $this,
+            'integration' => $integration,
+            'surface' => $context->surface,
+        ]));
 
-            if (!$browserModule?->moduleId) {
-                return null;
-            }
-
-            if (!$browserModule->type) {
-                $browserModule->type = $integration->getType();
-            }
-
-            if (!$browserModule->targets) {
-                $browserModule->targets = $context->getTargets();
-            }
-
-            if (!$browserModule->surfaces) {
-                $browserModule->surfaces = [BrowserModuleEntry::SURFACE_SERVER_RENDERED];
-            }
-
-            return $browserModule;
-        };
+        if ($browserModule) {
+            $modules[] = $browserModule->withProjectionDefaults($integration->getType(), $context->getTargets());
+        }
 
         return $modules;
     }

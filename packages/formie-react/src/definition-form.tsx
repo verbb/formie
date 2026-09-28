@@ -415,12 +415,10 @@ function renderNestedFieldInput(field: ClientFieldDefinition, value: unknown, di
     });
 }
 
-function resolveFieldModule(field: ClientFieldDefinition, definition: ClientFormDefinition, capability: string) {
+function resolveFieldModule(field: ClientFieldDefinition, definition: ClientFormDefinition, moduleId: string) {
     const refs = new Set(field.moduleRefs || []);
 
-    return definition.modules.entries.find((module) => {
-        return module.targets.some((target) => target.targetType === 'field' && target.targetId === field.uid) && module.capability === (capability === 'draw-signature' ? 'signature' : capability);
-    }) || null;
+    return definition.modules.entries.find((module) => refs.has(module.key) && module.moduleId === moduleId) || null;
 }
 
 function SignatureFieldInput({
@@ -439,16 +437,14 @@ function SignatureFieldInput({
         fromDataURL: (value: string) => void;
     } | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
-    const moduleConfig = resolveFieldModule(field, state.definition, 'draw-signature')?.config;
-    const backgroundColor = typeof moduleConfig?.options === 'object' && moduleConfig.options && typeof (moduleConfig.options as Record<string, unknown>).backgroundColor === 'string'
-        ? String((moduleConfig.options as Record<string, unknown>).backgroundColor)
+    const moduleConfig = resolveFieldModule(field, state.definition, 'formie:signature')?.config;
+    const backgroundColor = typeof moduleConfig?.backgroundColor === 'string'
+        ? String(moduleConfig.backgroundColor)
         : '#ffffff';
-    const penColor = typeof moduleConfig?.options === 'object' && moduleConfig.options && typeof (moduleConfig.options as Record<string, unknown>).penColor === 'string'
-        ? String((moduleConfig.options as Record<string, unknown>).penColor)
+    const penColor = typeof moduleConfig?.penColor === 'string'
+        ? String(moduleConfig.penColor)
         : '#000000';
-    const penWeight = typeof moduleConfig?.options === 'object' && moduleConfig.options
-        ? Number((moduleConfig.options as Record<string, unknown>).penWeight ?? 2) || 2
-        : 2;
+    const penWeight = Number(moduleConfig?.penWeight ?? 2) || 2;
     const serializedValue = typeof value === 'string' ? value : '';
 
     useEffect(() => {

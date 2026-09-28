@@ -1,9 +1,14 @@
-import type { FormModuleManifest } from '../../../../formie-browser/src/index';
+import type { BrowserModuleEntry } from '../../../../formie-browser/src/index';
+
+export type FormiePreviewModule = Omit<BrowserModuleEntry, 'key' | 'config' | 'required'> & {
+    config?: BrowserModuleEntry['config'];
+    required?: boolean;
+};
 
 export type FormiePreviewSourceDefinition = {
     markup: string;
     minHeight?: number;
-    modules?: FormModuleManifest[];
+    modules?: FormiePreviewModule[];
 };
 
 const previewModules = import.meta.glob('../../../**/*.preview.ts');

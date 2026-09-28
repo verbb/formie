@@ -166,9 +166,9 @@ Declares browser modules with explicit supported surfaces and a required/optiona
 ::: reference
 ### `browserModules()`
 
-**Returns:** `verbb\formie\fields\definitions\FieldBrowserModules`
+**Returns:** `verbb\formie\models\BrowserModule[]`
 
-Returns the normalised browser-module entries for browser-managed field behaviour.
+Returns immutable browser-module declarations completed for the current form, field and rendering surface.
 :::
 
 ::: reference

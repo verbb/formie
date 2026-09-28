@@ -666,7 +666,7 @@ function bindFileUploadInput(field: HTMLElement, input: HTMLInputElement, form: 
 
 export const fileUploadModule: BrowserModuleDefinition = {
     moduleId: `formie:${MODULE_ID}`,
-    version: 1,
+    version: 2,
     surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {

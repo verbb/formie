@@ -4,12 +4,12 @@ const preview: FormiePreviewSourceDefinition = {
     minHeight: 390,
     modules: [
         {
-            id: 'table',
-            type: 'field',
+            moduleId: 'formie:table',
+            kind: 'field',
             targets: [
                 {
-                    targetType: 'field',
-                    targetId: 'links',
+                    type: 'selector',
+                    selector: '[data-formie-field-handle="links"]',
                 },
             ],
         },

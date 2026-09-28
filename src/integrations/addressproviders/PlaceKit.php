@@ -2,7 +2,7 @@
 namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\base\AddressProvider;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 
 use Craft;
@@ -36,15 +36,15 @@ class PlaceKit extends AddressProvider
         return Craft::t('formie', 'Use {link} to suggest addresses for Address fields using a fast, privacy-friendly autocomplete service.', ['link' => '[PlaceKit](https://placekit.io)']);
     }
 
-    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        return new BrowserModuleEntry([
+        return new BrowserModule([
             'moduleId' => 'formie:place-kit',
-            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
+            'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
             'config' => [
                 'apiKey' => App::parseEnv($this->apiKey),
                 'options' => $this->_getOptions(),

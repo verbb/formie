@@ -275,12 +275,10 @@ function resolveFieldRendererType(field: ClientFieldDefinition): ClientFieldDefi
     return field.type;
 }
 
-function resolveFieldModule(field: ClientFieldDefinition, definition: ClientFormDefinition, capability: string) {
+function resolveFieldModule(field: ClientFieldDefinition, definition: ClientFormDefinition, moduleId: string) {
     const refs = new Set(field.moduleRefs || []);
 
-    return definition.modules.entries.find((module) => {
-        return module.targets.some((target) => target.targetType === 'field' && target.targetId === field.uid) && module.capability === (capability === 'draw-signature' ? 'signature' : capability);
-    }) || null;
+    return definition.modules.entries.find((module) => refs.has(module.key) && module.moduleId === moduleId) || null;
 }
 
 function renderSlotWrapper(context: FormieDefinitionContextValue, slotKey: string, child: VNode | null, attributes?: Record<string, unknown>) {
@@ -505,22 +503,16 @@ const SignatureFieldInput = defineComponent({
         } | null>(null);
         const loadError = ref<string | null>(null);
         const moduleConfig = computed(() => resolveFieldModule(props.field, context.state.value?.definition || {
-            modules: { contractVersion: 1, entries: [] },
-        } as ClientFormDefinition, 'draw-signature')?.config);
+            modules: { contractVersion: 2, surface: 'client-rendered', entries: [] },
+        } as ClientFormDefinition, 'formie:signature')?.config);
         const backgroundColor = computed(() => {
-            const options = moduleConfig.value?.options as Record<string, unknown> | undefined;
-
-            return typeof options?.backgroundColor === 'string' ? options.backgroundColor : '#ffffff';
+            return typeof moduleConfig.value?.backgroundColor === 'string' ? moduleConfig.value.backgroundColor : '#ffffff';
         });
         const penColor = computed(() => {
-            const options = moduleConfig.value?.options as Record<string, unknown> | undefined;
-
-            return typeof options?.penColor === 'string' ? options.penColor : '#000000';
+            return typeof moduleConfig.value?.penColor === 'string' ? moduleConfig.value.penColor : '#000000';
         });
         const penWeight = computed(() => {
-            const options = moduleConfig.value?.options as Record<string, unknown> | undefined;
-
-            return Number(options?.penWeight ?? 2) || 2;
+            return Number(moduleConfig.value?.penWeight ?? 2) || 2;
         });
         const serializedValue = computed(() => {
             return typeof props.value === 'string' ? props.value : '';

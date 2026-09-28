@@ -6,7 +6,7 @@ use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\models\Settings;
 use verbb\formie\helpers\SetPageReturnUrlHelper;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutRow;
 use verbb\formie\models\SlotTag;
@@ -73,7 +73,7 @@ class FormSlotRegistry extends Component
     private function _form(RenderContext $context): SlotTag
     {
         $form = $context->form;
-        $moduleManifest = $form ? Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form, BrowserModuleEntry::SURFACE_SERVER_RENDERED) : [];
+        $moduleManifest = $form ? Formie::$plugin->getBrowserModuleManifestBuilder()->buildForSurface($form, BrowserModule::SURFACE_SERVER_RENDERED)->toArray() : [];
         $themeClassMap = $form ? $form->getBrowserThemeClassMap() : [];
         $settings = Formie::$plugin->getSettings();
         $hasStaticCache = $settings->hasStaticCache();

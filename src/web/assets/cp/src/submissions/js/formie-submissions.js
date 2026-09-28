@@ -56,7 +56,7 @@ async function initSubmissionModules(root = document) {
         }
 
         const config = parseConfigAttribute(target);
-        const modules = config?.modules ?? { contractVersion: 1, entries: [] };
+        const modules = config?.modules ?? { contractVersion: 2, surface: 'cp-edit', entries: [] };
 
         if (modules.entries?.length === 0) {
             return;

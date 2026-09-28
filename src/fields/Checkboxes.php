@@ -4,13 +4,12 @@ namespace verbb\formie\fields;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\OptionsField;
 use verbb\formie\fields\values\MultiOptionFieldValue;
-use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\traits\OptionsLimitFieldTrait;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\theme\context\RenderContext;
@@ -423,9 +422,9 @@ class Checkboxes extends OptionsField
     protected function defineBrowserModules(): array
     {
         $modules = parent::defineBrowserModules();
-        $modules[] = new BrowserModuleEntry([
+        $modules[] = new BrowserModule([
             'moduleId' => 'formie:checkbox-radio',
-            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
+            'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
         ]);
 
         return $modules;

@@ -9,7 +9,6 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\base\FixedParentField;
 use verbb\formie\base\PreviewableFieldInterface;
-use verbb\formie\fields\definitions\FieldBrowserModules;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\AddressType;
@@ -22,7 +21,7 @@ use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\integrations\addressproviders\Google;
 use verbb\formie\fields\subfields\AddressCountry;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\AboveInput;
@@ -652,9 +651,9 @@ class Address extends FixedParentField implements PreviewableFieldInterface
         $countrySubfield = $this->getFieldByHandle('country');
 
         if ($countrySubfield instanceof AddressCountry && $countrySubfield->enabled && $this->countryPreselectFromIp) {
-            $modules[] = new BrowserModuleEntry([
+            $modules[] = new BrowserModule([
                 'moduleId' => 'formie:address-country',
-                'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
+                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
                 'config' => [
                     'countryPreselectFromIp' => true,
                     'countryAllowed' => $this->countryAllowed,
@@ -664,43 +663,42 @@ class Address extends FixedParentField implements PreviewableFieldInterface
             ]);
         }
 
-        $modules[] = function(BrowserModuleContext $context) {
-            $integration = $this->getAddressProviderIntegration();
+        return $modules;
+    }
 
-            if (!$integration) {
-                return null;
+    protected function defineContextualBrowserModules(BrowserModuleContext $context): array
+    {
+        $modules = parent::defineContextualBrowserModules($context);
+        $integration = $this->getAddressProviderIntegration();
+
+        if (!$integration) {
+            return $modules;
+        }
+
+        $browserModule = $integration->getBrowserModule(new BrowserModuleContext([
+            'form' => $context->form,
+            'field' => $this,
+            'integration' => $integration,
+            'surface' => $context->surface,
+        ]));
+
+        if (!$browserModule) {
+            return $modules;
+        }
+
+        if ($integration instanceof Google) {
+            $autoComplete = $this->getFieldByHandle('autoComplete');
+            $countryDefaultValue = $autoComplete->countryDefaultValue ?? null;
+
+            if ($countryDefaultValue) {
+                $browserModule = $browserModule->withConfig([
+                    ...$browserModule->config,
+                    'countryDefaultValue' => $countryDefaultValue,
+                ]);
             }
+        }
 
-            $browserModule = $integration->getBrowserModule(new BrowserModuleContext([
-                'form' => $context->form,
-                'field' => $this,
-                'integration' => $integration,
-                'surface' => $context->surface,
-            ]));
-
-            if (!$browserModule?->moduleId) {
-                return null;
-            }
-
-            if (!$browserModule->type) {
-                $browserModule->type = 'address';
-            }
-
-            if (!$browserModule->targets) {
-                $browserModule->targets = $context->getTargets();
-            }
-
-            if ($integration instanceof Google) {
-                $autoComplete = $this->getFieldByHandle('autoComplete');
-                $countryDefaultValue = $autoComplete->countryDefaultValue ?? null;
-
-                if ($countryDefaultValue) {
-                    $browserModule->config['countryDefaultValue'] = $countryDefaultValue;
-                }
-            }
-
-            return $browserModule;
-        };
+        $modules[] = $browserModule->withProjectionDefaults('address', $context->getTargets());
 
         return $modules;
     }

@@ -3,7 +3,7 @@ namespace verbb\formie\integrations\captchas;
 
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
-use verbb\formie\models\BrowserModuleEntry;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\FieldLayoutPage;
 
@@ -64,7 +64,7 @@ class Snaptcha extends Captcha
         ];
     }
 
-    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModuleEntry
+    public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule
     {
         if (!$context->form) {
             return null;
@@ -72,9 +72,9 @@ class Snaptcha extends Captcha
 
         $refresh = $this->getRefreshJsVariables($context->form, $context->page);
 
-        return new BrowserModuleEntry([
+        return new BrowserModule([
             'moduleId' => 'formie:snaptcha',
-            'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED],
+            'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'handle' => $this->handle,
                 'placeholderSelector' => '[data-snaptcha-captcha-placeholder]',

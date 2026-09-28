@@ -11,8 +11,7 @@ use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\models\BrowserModuleEntry;
-use verbb\formie\models\BrowserModuleContext;
+use verbb\formie\models\BrowserModule;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\models\SlotTag;
@@ -412,12 +411,10 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         $modules = parent::defineBrowserModules();
 
         if ($this->hasPasswordValidationRules()) {
-            $modules[] = function(BrowserModuleContext $context) {
-                return new BrowserModuleEntry([
-                    'moduleId' => 'formie:password-validation',
-                    'surfaces' => [BrowserModuleEntry::SURFACE_SERVER_RENDERED, BrowserModuleEntry::SURFACE_CLIENT_RENDERED, BrowserModuleEntry::SURFACE_CP_EDIT],
-                ]);
-            };
+            $modules[] = new BrowserModule([
+                'moduleId' => 'formie:password-validation',
+                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
+            ]);
         }
 
         return $modules;

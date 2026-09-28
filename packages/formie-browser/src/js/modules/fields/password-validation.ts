@@ -106,7 +106,7 @@ function unregisterValidators(form: HTMLFormElement | null): void {
 
 export const passwordValidationModule: BrowserModuleDefinition = {
     moduleId: 'formie:password-validation',
-    version: 1,
+    version: 2,
     surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {

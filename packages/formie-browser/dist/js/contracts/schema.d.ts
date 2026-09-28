@@ -52,7 +52,7 @@ export type FormEndpointPayload = {
     modules?: BrowserModuleManifest;
     refreshTokens?: FormRefreshTokensPayload;
 };
-export type { BrowserModuleEntry, BrowserModuleManifest } from '@verbb/formie-core';
+export type { BrowserModuleEntry, BrowserModuleKind, BrowserModuleManifest } from '@verbb/formie-core';
 export type FormModuleTarget = import('@verbb/formie-core').BrowserModuleTarget;
-export type FormModuleTargetType = FormModuleTarget['targetType'];
+export type FormModuleTargetType = FormModuleTarget['type'];
 //# sourceMappingURL=schema.d.ts.map

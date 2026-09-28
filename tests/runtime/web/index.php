@@ -79,7 +79,7 @@ if ($path === '/browser-completion-instances' && $_SERVER['REQUEST_METHOD'] === 
 if ($path === '/browser-module-parity') {
     $fixture = json_decode(file_get_contents($runtime . '/browser-enabled.json'), true);
     $form = \verbb\formie\elements\Form::find()->id($fixture['journeyId'])->one();
-    $manifest = \verbb\formie\Formie::$plugin->getBrowserModuleManifestBuilder()->buildCanonical($form);
+    $manifest = \verbb\formie\Formie::$plugin->getBrowserModuleManifestBuilder()->buildForSurface($form)->toArray();
     $bootstrap = \verbb\formie\Formie::$plugin->getClientFormBootstrapBuilder()->build($form, new \verbb\formie\client\models\LoadContext())->toArrayRecursive();
     $app->getResponse()->format = \yii\web\Response::FORMAT_JSON;
     $graphql = $app->getGql()->executeQuery($app->getGql()->getPublicSchema(), '{ formieClientForm(handle: "browserJourney") { contractVersion definition } }');
@@ -155,11 +155,14 @@ if ($path === '/browser-rendered-saved') {
 }
 if ($path === '/browser-fixture') {
     header('Content-Type: text/html; charset=utf-8');
-    echo '<!doctype html><html lang="en"><title>Formie browser contract</title><button id="unmount">Unmount</button><button id="mount">Mount</button><main id="host"></main><script src="/browser-bundle"></script></html>';
+    $browserBundle = $runtime . '/browser/fixture.js';
+    $browserBundleVersion = is_file($browserBundle) ? (string)filemtime($browserBundle) : 'missing';
+    echo '<!doctype html><html lang="en"><title>Formie browser contract</title><button id="unmount">Unmount</button><button id="mount">Mount</button><main id="host"></main><script src="/browser-bundle?v=' . rawurlencode($browserBundleVersion) . '"></script></html>';
     exit;
 }
 if ($path === '/browser-bundle') {
     header('Content-Type: text/javascript');
+    header('Cache-Control: no-store');
     readfile($runtime . '/browser/fixture.js');
     exit;
 }

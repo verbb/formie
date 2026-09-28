@@ -137,7 +137,7 @@ function bindRatingField(field: HTMLElement): () => void {
 
 export const surveyRatingModule: BrowserModuleDefinition = {
     moduleId: `formie:${MODULE_ID}`,
-    version: 1,
+    version: 2,
     surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {

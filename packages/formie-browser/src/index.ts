@@ -87,6 +87,8 @@ export type { FormAction, FormMode, FormTransport, SubmitStage } from '#contract
 export type {
     BrowserModuleDefinition,
     BrowserModuleInstance,
+    AfterSubmitContext,
+    BeforeSubmitContext,
     ModuleHookContext,
     ModuleMatchContext,
     ModuleRegistrationOptions,
@@ -97,6 +99,8 @@ export type {
     FormRefreshTokensPayload,
     FormEndpointPayload,
     BrowserModuleEntry,
+    BrowserModuleKind,
+    BrowserModuleManifest,
     FormModuleTarget,
     FormModuleTargetType,
     FormRedirect,

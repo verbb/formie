@@ -96,7 +96,7 @@ async function waitForRequiredInputs(root: Element, requiredInputSuffixes: strin
 
 export const paymentModule: BrowserModuleDefinition = {
     moduleId: 'formie:payment',
-    version: 1,
+    version: 2,
     surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'payment',
     match: () => true,
@@ -113,11 +113,7 @@ export const paymentModule: BrowserModuleDefinition = {
             destroy: () => {
                 void ctx.emit('formie:module:payment:destroy', {});
             },
-            onBeforeStage: async(stageCtx) => {
-                if (stageCtx.stage !== 'payment') {
-                    return;
-                }
-
+            beforeSubmit: async(stageCtx) => {
                 if (stageCtx.action !== 'submit') {
                     return;
                 }
@@ -180,11 +176,7 @@ export const paymentModule: BrowserModuleDefinition = {
                     });
                 }
             },
-            onAfterStage: async(stageCtx, result) => {
-                if (stageCtx.stage !== 'payment') {
-                    return;
-                }
-
+            afterSubmit: async(stageCtx, result) => {
                 await ctx.emit('formie:payment:payment:after', {
                     action: stageCtx.action,
                     result,

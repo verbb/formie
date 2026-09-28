@@ -284,7 +284,7 @@ function updateCounter(input: HTMLInputElement | HTMLTextAreaElement): void {
 
 export const textLimitModule: BrowserModuleDefinition = {
     moduleId: 'formie:text-limit',
-    version: 1,
+    version: 2,
     surfaces: ['server-rendered', 'client-rendered', 'cp-edit'],
     kind: 'field',
     match: (ctx) => {
