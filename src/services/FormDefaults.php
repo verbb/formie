@@ -650,7 +650,7 @@ class FormDefaults extends Component
     public function getSubmissionTitleFormatVariableConfig(): array
     {
         return [
-            'content' => Variables::CONTENT_SINGLE_LINE,
+            'shapes' => ['inline'],
             'types' => [Variables::TYPE_TEXT],
             'groups' => [
                 Variables::STATIC_FORM,

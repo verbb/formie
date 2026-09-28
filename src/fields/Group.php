@@ -12,7 +12,6 @@ use verbb\formie\elements\Submission;
 use verbb\formie\gql\resolvers\elements\NestedFieldRowResolver;
 use verbb\formie\gql\types\generators\NestedFieldGenerator;
 use verbb\formie\gql\types\input\GroupInputType;
-use verbb\formie\fields\definitions\FieldReferences;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
@@ -250,13 +249,4 @@ class Group extends ContainerParentField implements ContainerParentFieldInterfac
         return false;
     }
 
-    protected function defineAllowNestedReference(): bool
-    {
-        return true;
-    }
-
-    protected function defineNestedReferenceMode(): string
-    {
-        return 'childrenOnly';
-    }
 }

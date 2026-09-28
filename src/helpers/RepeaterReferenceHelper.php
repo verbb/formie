@@ -1,11 +1,6 @@
 <?php
 namespace verbb\formie\helpers;
 
-use verbb\formie\base\FieldInterface;
-use verbb\formie\base\RepeatableParentFieldInterface;
-use verbb\formie\elements\Submission;
-use verbb\formie\references\ReferenceContext;
-
 class RepeaterReferenceHelper
 {
     // Constants
@@ -22,15 +17,6 @@ class RepeaterReferenceHelper
     // Static Methods
     // =========================================================================
 
-    public static function resolve(
-        Submission $submission,
-        FieldInterface $repeaterField,
-        string $selector,
-        array $params = [],
-    ): mixed {
-        return References::resolveValue(References::field((string)$repeaterField->reference, $selector, $params), ReferenceContext::forSubmission($submission))->requireValue();
-    }
-
     public static function parseSelectorAndScope(string $selector, array $params = []): array
     {
         $scope = self::_normalizeScope($params['scope'] ?? null);
@@ -42,12 +28,6 @@ class RepeaterReferenceHelper
         }
 
         $parts = array_values(array_filter(explode(':', $selector), static fn(string $part): bool => $part !== ''));
-
-        if ($parts !== [] && is_numeric($parts[0]) && $scope === null) {
-            $scope = self::SCOPE_INDEX;
-            $index = (int)$parts[0];
-            array_shift($parts);
-        }
 
         $subPath = implode('.', $parts);
 
@@ -131,20 +111,6 @@ class RepeaterReferenceHelper
         return $indices;
     }
 
-    public static function requiresScope(Submission $submission, string $fieldReference, string $selector, array $params = []): bool
-    {
-        $field = self::_findFieldByReference($submission, $fieldReference);
-
-        if (!$field instanceof RepeatableParentFieldInterface) {
-            return false;
-        }
-
-        [, $scope] = self::parseSelectorAndScope($selector, $params);
-
-        return $scope === null && trim($selector) !== '';
-    }
-
-
     private static function _filterParityIndices(int $rowCount, bool $odd): array
     {
         $indices = [];
@@ -176,23 +142,5 @@ class RepeaterReferenceHelper
             self::SCOPE_COUNT,
             self::SCOPE_ROWS,
         ], true) ? $scope : null;
-    }
-
-
-    private static function _findFieldByReference(Submission $submission, string $reference): ?FieldInterface
-    {
-        $reference = trim($reference);
-
-        if ($reference === '') {
-            return null;
-        }
-
-        foreach ($submission->getFields() as $field) {
-            if ((string)($field->reference ?? '') === $reference) {
-                return $field;
-            }
-        }
-
-        return null;
     }
 }

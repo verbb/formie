@@ -13,8 +13,7 @@ use verbb\formie\models\IntegrationField;
 
 /**
  * Integration value resolution for complex (nested) fields: Address, Name (multi), Group.
- * Exercises {field:ref:selector} tokens and getMappedFieldValue via Variables::getFieldAndValueForReference
- * with submission getFieldValue(handle.selector) for nested paths.
+ * Exercises field-owned selectors and stable nested-field references through integration mappings.
  */
 $groupRows = [[
     'fields' => [[
@@ -94,9 +93,9 @@ it('resolves Group child field via {field:ref:selector} and getMappedFieldValue'
     ])->save();
 
     $field = ArrayHelper::firstWhere($submission->getFields(), 'handle', 'groupContent');
-    expect($field)->not->toBeNull();
-    $ref = $field->reference ?? $field->handle;
-    $token = References::field($ref, 'innerText');
+    $innerField = $field?->getFieldByHandle('innerText');
+    expect($innerField)->not->toBeNull();
+    $token = References::field((string)$innerField->reference);
 
     $integration = new HubSpot(['name' => 'HubSpot', 'handle' => 'hubspot']);
     $integrationField = new IntegrationField(['type' => IntegrationField::TYPE_STRING]);
@@ -105,7 +104,7 @@ it('resolves Group child field via {field:ref:selector} and getMappedFieldValue'
     expect($value)->toBe('Group Value');
 });
 
-it('resolves Group child field via nested field reference token (picker legacy format)', function () use ($groupRows): void {
+it('resolves Group child fields through their stable references', function () use ($groupRows): void {
     $form = formie()
         ->form(['title' => 'Complex Group Nested Ref'])
         ->groupField('groupContent', ['rows' => $groupRows])
@@ -120,7 +119,6 @@ it('resolves Group child field via nested field reference token (picker legacy f
     expect($innerField)->not->toBeNull()
         ->and($innerField->reference)->not->toBeEmpty();
 
-    // Variable/field pickers historically emitted `{field:nestedUid}` for Group children.
     $token = References::field((string)$innerField->reference);
 
     $integration = new HubSpot(['name' => 'HubSpot', 'handle' => 'hubspot']);
@@ -137,14 +135,11 @@ it('applies Group child tokens in submission title format', function () use ($gr
         ->groupField('groupContent', ['rows' => $groupRows])
         ->create();
 
-    $groupField = $form->getFieldByHandle('groupContent');
-    $innerField = $groupField?->getFieldByHandle('innerText');
-    expect($groupField)->not->toBeNull()
-        ->and($innerField)->not->toBeNull();
+    $innerField = $form->getFieldByHandle('groupContent')?->getFieldByHandle('innerText');
+    expect($innerField)->not->toBeNull();
 
-    $parentScopedToken = References::field((string)$groupField->reference, 'innerText');
     $nestedUidToken = References::field((string)$innerField->reference);
-    $form->settings->submissionTitleFormat = "Lead {$parentScopedToken} / {$nestedUidToken}";
+    $form->settings->submissionTitleFormat = "Lead {$nestedUidToken}";
 
     $submission = formie()->submission($form)->with([
         'groupContent' => ['innerText' => 'Acme'],
@@ -152,5 +147,5 @@ it('applies Group child tokens in submission title format', function () use ($gr
 
     $submission->updateTitle($form);
 
-    expect($submission->title)->toBe('Lead Acme / Acme');
+    expect($submission->title)->toBe('Lead Acme');
 });

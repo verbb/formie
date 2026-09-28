@@ -69,7 +69,7 @@ function Notifications({ schema, schemaIndex }) {
     }, [notifications, editingNotification?._id, globalReservedHandles]);
     const notificationVariableCategories = useVariableCategories({
         groups: ['fieldsVariables', 'staticFormVariables', 'staticGeneralVariables', 'staticSiteVariables'],
-        content: 'singleLine',
+        shapes: ['inline'],
     });
 
     useEffect(() => {

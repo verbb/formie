@@ -747,8 +747,8 @@
       "_scripts-CbQ7agX3-C-1aO496.js"
     ]
   },
-  "_registerFormieOwnedSchemaFields-BEb6ulGQ.js": {
-    "file": "assets/registerFormieOwnedSchemaFields-BEb6ulGQ.js",
+  "_registerFormieOwnedSchemaFields-AyWFR4gf.js": {
+    "file": "assets/registerFormieOwnedSchemaFields-AyWFR4gf.js",
     "name": "registerFormieOwnedSchemaFields",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
@@ -784,13 +784,13 @@
       "_event-names-BCI2FLD8-B7DhW5sh.js"
     ]
   },
-  "_style-CapTXLr_.js": {
-    "file": "assets/style-CapTXLr_.js",
+  "_style-CKTWhUhu.js": {
+    "file": "assets/style-CKTWhUhu.js",
     "name": "style",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
       "_plugin-kit-DKsFSll4.js",
-      "_registerFormieOwnedSchemaFields-BEb6ulGQ.js",
+      "_registerFormieOwnedSchemaFields-AyWFR4gf.js",
       "_dndkit-Tbq_EQgB.js",
       "_utils-DCg2gHLI.js"
     ]
@@ -833,10 +833,10 @@
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
       "_plugin-kit-DKsFSll4.js",
-      "_registerFormieOwnedSchemaFields-BEb6ulGQ.js",
+      "_registerFormieOwnedSchemaFields-AyWFR4gf.js",
       "_dndkit-Tbq_EQgB.js",
       "_utils-DCg2gHLI.js",
-      "_style-CapTXLr_.js"
+      "_style-CKTWhUhu.js"
     ]
   },
   "src/delivery/formie-delivery.js": {
@@ -864,7 +864,7 @@
     ]
   },
   "src/form-builder/formie-form-builder.js": {
-    "file": "assets/formie-form-builder-DODv2WO-.js",
+    "file": "assets/formie-form-builder-toWlU0Rr.js",
     "name": "formie-form-builder",
     "src": "src/form-builder/formie-form-builder.js",
     "isEntry": true,
@@ -873,7 +873,7 @@
       "_plugin-kit-DKsFSll4.js",
       "src/tiptap/formie-tiptap.js",
       "src/tiptap/formie-tiptap.js",
-      "_registerFormieOwnedSchemaFields-BEb6ulGQ.js",
+      "_registerFormieOwnedSchemaFields-AyWFR4gf.js",
       "_dndkit-Tbq_EQgB.js",
       "_data-utils-n4oSH26Q.js",
       "_createUid-BtKO1cQV.js",
@@ -890,10 +890,10 @@
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
       "_plugin-kit-DKsFSll4.js",
-      "_registerFormieOwnedSchemaFields-BEb6ulGQ.js",
+      "_registerFormieOwnedSchemaFields-AyWFR4gf.js",
       "_dndkit-Tbq_EQgB.js",
       "_utils-DCg2gHLI.js",
-      "_style-CapTXLr_.js",
+      "_style-CKTWhUhu.js",
       "_style-pfj8m0Ak.js"
     ]
   },

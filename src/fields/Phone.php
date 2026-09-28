@@ -464,29 +464,11 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     protected function defineReferenceValues(): array
     {
         return [
-            FieldReferenceValue::default([
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'country',
-                'label' => Craft::t('formie', 'Country (ISO)'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'countryName',
-                'label' => Craft::t('formie', 'Country (Full)'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'countryCode',
-                'label' => Craft::t('formie', 'Country Code'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'number',
-                'label' => Craft::t('formie', 'Number'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
+            FieldReferenceValue::primary(),
+            FieldReferenceValue::selector('country', Craft::t('formie', 'Country (ISO)')),
+            FieldReferenceValue::selector('countryName', Craft::t('formie', 'Country (Full)')),
+            FieldReferenceValue::selector('countryCode', Craft::t('formie', 'Country Code')),
+            FieldReferenceValue::selector('number', Craft::t('formie', 'Number')),
         ];
     }
 

@@ -14,6 +14,7 @@ use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
 use verbb\formie\query\NumericValueQueryHelper;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -482,12 +483,7 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
     protected function defineReferenceValues(): array
     {
         return [
-            FieldReferenceValue::default([
-                'variableTypes' => [
-                    Variables::TYPE_NUMBER,
-                    Variables::TYPE_TEXT,
-                ],
-            ]),
+            FieldReferenceValue::primary(types: [ReferenceType::Number, ReferenceType::Text]),
         ];
     }
 

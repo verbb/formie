@@ -17,6 +17,7 @@ use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -330,14 +331,8 @@ class Signature extends Field implements PreviewableFieldInterface
     protected function defineReferenceValues(): array
     {
         return [
-            FieldReferenceValue::default([
-                'variableTypes' => [Variables::TYPE_URL],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'url',
-                'label' => Craft::t('formie', 'Image URL'),
-                'variableTypes' => [Variables::TYPE_URL],
-            ]),
+            FieldReferenceValue::primary(types: [ReferenceType::Url]),
+            FieldReferenceValue::selector('url', Craft::t('formie', 'Image URL'), [ReferenceType::Url]),
         ];
     }
 }

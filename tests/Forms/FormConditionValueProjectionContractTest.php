@@ -79,7 +79,7 @@ it('obscures recipients condition values instead of exposing raw recipient paylo
         expect(ConditionsHelper::getConditionalTestResult([
             'conditionRule' => 'all',
             'conditions' => [[
-                'field' => References::field($reference),
+                'field' => References::field((string)$field->reference),
                 'condition' => '=',
                 'value' => $nonMatching,
             ]],
@@ -106,12 +106,14 @@ it('uses handle keyed condition subjects for container fields', function (): voi
     ])->save();
 
     $field = $form->getFieldByHandle('groupContent');
-    expect($field)->not->toBeNull();
+    $innerField = $field?->getFieldByHandle('innerText');
+    expect($field)->not->toBeNull()
+        ->and($innerField)->not->toBeNull();
 
     $normalized = $submission->getFieldValue('groupContent');
     $conditionValue = $submission->getFieldValueForCondition('groupContent');
     $serialized = $field->serializeValue($normalized, $submission);
-    $reference = $field->reference ?? 'groupContent';
+    $reference = $innerField->reference;
 
     expect($conditionValue)->toBe([
         'innerText' => 'Group Value',
@@ -120,7 +122,7 @@ it('uses handle keyed condition subjects for container fields', function (): voi
         ->and(ConditionsHelper::getConditionalTestResult([
             'conditionRule' => 'all',
             'conditions' => [[
-                'field' => References::field($reference, 'innerText'),
+                'field' => References::field((string)$reference),
                 'condition' => '=',
                 'value' => 'Group Value',
             ]],
@@ -149,12 +151,14 @@ it('uses handle keyed row values for repeatable field conditions', function (): 
     ])->save();
 
     $field = $form->getFieldByHandle('lineItems');
-    expect($field)->not->toBeNull();
+    $innerField = $field?->getFieldByHandle('innerText');
+    expect($field)->not->toBeNull()
+        ->and($innerField)->not->toBeNull();
 
     $normalized = $submission->getFieldValue('lineItems');
     $conditionValue = $submission->getFieldValueForCondition('lineItems');
     $serialized = $field->serializeValue($normalized, $submission);
-    $reference = $field->reference ?? 'lineItems';
+    $reference = $innerField->reference;
 
     expect($conditionValue)->toBe([
         ['innerText' => 'Row One'],
@@ -164,17 +168,9 @@ it('uses handle keyed row values for repeatable field conditions', function (): 
         ->and(ConditionsHelper::getConditionalTestResult([
             'conditionRule' => 'all',
             'conditions' => [[
-                'field' => References::field($reference, '0:innerText'),
+                'field' => References::field((string)$reference, metadata: ['scope' => 'index', 'index' => 0]),
                 'condition' => '=',
                 'value' => 'Row One',
-            ]],
-        ], $submission))->toBeTrue()
-        ->and(ConditionsHelper::getConditionalTestResult([
-            'conditionRule' => 'all',
-            'conditions' => [[
-                'field' => References::field($reference),
-                'condition' => 'contains',
-                'value' => 'Row Two',
             ]],
         ], $submission))->toBeTrue();
 });

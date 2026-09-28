@@ -182,11 +182,18 @@ use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\references\ReferenceCatalogue;
 use verbb\formie\references\ReferenceDefinition;
 use verbb\formie\references\ReferenceSource;
+use verbb\formie\references\ReferenceType;
 use yii\base\Event;
 
 Event::on(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER, function(RegisterReferencesEvent $event) {
     $event->sources[] = new ReferenceSource(
-        new ReferenceDefinition('acme/campaign', 'Campaign Code', 'custom', FieldValueType::string()),
+        new ReferenceDefinition(
+            id: 'acme/campaign',
+            label: 'Campaign Code',
+            category: 'custom',
+            valueType: FieldValueType::string(),
+            types: [ReferenceType::Text],
+        ),
         static fn() => 'spring-sale',
     );
 });

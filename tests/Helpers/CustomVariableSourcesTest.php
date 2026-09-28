@@ -41,12 +41,14 @@ it('validates extension input output and availability rather than coercing error
     Event::on(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER, function(RegisterReferencesEvent $event) {
         $event->sources[] = new ReferenceSource(new ReferenceDefinition('acme/value', 'Value', 'custom', FieldValueType::string(), transforms: ['acme/shout']), fn() => 'hello');
         $event->sources[] = new ReferenceSource(new ReferenceDefinition('acme/invalid', 'Invalid', 'custom', FieldValueType::boolean()), fn() => 'false');
+        $event->sources[] = new ReferenceSource(new ReferenceDefinition('acme/fixed', 'Fixed', 'custom', FieldValueType::string(), transforms: ['acme/shout'], allowTransforms: false), fn() => 'fixed');
         $event->transforms[] = new ReferenceTransform('acme/shout', FieldValueType::string(), FieldValueType::string(), fn($value) => strtoupper($value));
     });
     $context = new ReferenceContext(permissions: ['server']);
     expect(References::resolveValue('{custom:acme/value;transform=acme%2Fshout}', $context)->requireValue())->toBe('HELLO')
         ->and(References::resolveValue('{custom:acme/invalid}', $context)->diagnostic)->toBe(ReferenceDiagnostic::InvalidType)
-        ->and(References::resolveValue('{custom:acme/value;transform=missing}', $context)->diagnostic)->toBe(ReferenceDiagnostic::UnknownTransform);
+        ->and(References::resolveValue('{custom:acme/value;transform=missing}', $context)->diagnostic)->toBe(ReferenceDiagnostic::UnknownTransform)
+        ->and(References::resolveValue('{custom:acme/fixed;transform=acme%2Fshout}', $context)->diagnostic)->toBe(ReferenceDiagnostic::UnknownTransform);
 });
 
 it('diagnoses abandoned beta tokens instead of silently returning empty strings', function() {

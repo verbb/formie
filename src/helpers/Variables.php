@@ -325,117 +325,6 @@ class Variables
         return $value;
     }
 
-    public static function getBuiltinPickerGroups(): array
-    {
-        return [
-            self::GROUP_FORM => [
-                self::_pickerSource(Craft::t('formie', 'All Form Fields'), '{allFields}', [], self::CONTENT_ANY, 'selector', false),
-                self::_pickerSource(Craft::t('formie', 'All Non Empty Fields'), '{allContentFields}', [], self::CONTENT_ANY, 'selector', false),
-                self::_pickerSource(Craft::t('formie', 'All Visible Fields'), '{allVisibleFields}', [], self::CONTENT_ANY, 'selector', false),
-                self::_pickerGroup(Craft::t('formie', 'Form'), [
-                    self::_pickerSource(Craft::t('formie', 'Form Name'), '{form:name}'),
-                    self::_pickerSource(Craft::t('formie', 'Form Handle'), '{form:handle}'),
-                ]),
-            ],
-            self::GROUP_SUBMISSION => [
-                self::_pickerGroup(Craft::t('formie', 'Submission'), [
-                    self::_pickerSource(Craft::t('formie', 'Submission Title'), '{submission:title}'),
-                    self::_pickerSource(Craft::t('formie', 'Submission ID'), '{submission:id}'),
-                    self::_pickerSource(Craft::t('formie', 'Submission UID'), '{submission:uid}'),
-                    self::_pickerSource(Craft::t('formie', 'Submission URL'), '{submission:url}', [self::TYPE_URL]),
-                    self::_pickerSource(Craft::t('formie', 'Submission Date'), '{submission:date}', [self::TYPE_DATE]),
-                    self::_pickerSource(Craft::t('formie', 'Submission Status'), '{submission:status}'),
-                ]),
-            ],
-            self::GROUP_SYSTEM => [
-                self::_pickerGroup(Craft::t('formie', 'System'), [
-                    self::_pickerSource(Craft::t('formie', 'System Name'), '{system:name}'),
-                    self::_pickerSource(Craft::t('formie', 'System Email'), '{system:email}', [self::TYPE_TEXT, self::TYPE_EMAIL]),
-                    self::_pickerSource(Craft::t('formie', 'System Reply-To'), '{system:replyTo}', [self::TYPE_TEXT, self::TYPE_EMAIL]),
-                ]),
-            ],
-            self::GROUP_CURRENT_TIME => [
-                self::_pickerSource(Craft::t('formie', 'Current Date/Time'), '{timestamp}', [self::TYPE_TEXT, self::TYPE_DATE], self::CONTENT_SINGLE_LINE, 'format'),
-            ],
-            self::GROUP_ENVIRONMENT => self::_getEnvironmentVariableSources(),
-            self::GROUP_CURRENT_SITE => [
-                self::_pickerGroup(Craft::t('formie', 'Current Site'), [
-                    self::_pickerSource(Craft::t('formie', 'Site Name'), '{site:name}'),
-                    self::_pickerSource(Craft::t('formie', 'Site Handle'), '{site:handle}'),
-                    self::_pickerSource(Craft::t('formie', 'Site URL'), '{site:url}', [self::TYPE_URL]),
-                    self::_pickerSource(Craft::t('formie', 'Site Language'), '{site:language}'),
-                ]),
-            ],
-            self::GROUP_CURRENT_USER => [
-                self::_pickerGroup(Craft::t('formie', 'Current User'), [
-                    self::_pickerSource(Craft::t('formie', 'User IP Address'), '{user:ip}'),
-                    self::_pickerSource(Craft::t('formie', 'User ID'), '{user:id}'),
-                    self::_pickerSource(Craft::t('formie', 'User Email'), '{user:email}', [self::TYPE_TEXT, self::TYPE_EMAIL]),
-                    self::_pickerSource(Craft::t('formie', 'Username'), '{user:username}'),
-                    self::_pickerSource(Craft::t('formie', 'User Full Name'), '{user:fullName}'),
-                    self::_pickerSource(Craft::t('formie', 'User First Name'), '{user:firstName}'),
-                    self::_pickerSource(Craft::t('formie', 'User Last Name'), '{user:lastName}'),
-                ]),
-            ],
-        ];
-    }
-
-    private static function _getEnvironmentVariableSources(): array
-    {
-        $envKeys = self::_getPrefixedEnvironmentVariableKeys(self::ENVIRONMENT_VARIABLE_PREFIX);
-
-        if ($envKeys === []) {
-            return [];
-        }
-
-        $children = [];
-
-        foreach ($envKeys as $envKey) {
-            $children[] = self::_pickerSource(
-                '$' . $envKey,
-                '{env:' . $envKey . '}',
-                [self::TYPE_TEXT, self::TYPE_EMAIL, self::TYPE_NUMBER, self::TYPE_CALCULATIONS, self::TYPE_URL],
-                self::CONTENT_SINGLE_LINE,
-                'selector',
-            );
-        }
-
-        return [
-            self::_pickerGroup(Craft::t('formie', 'Environment'), $children),
-        ];
-    }
-
-    private static function _pickerSource(string $label, string $value, array $types = [self::TYPE_TEXT], string $content = self::CONTENT_SINGLE_LINE, ?string $group = 'selector', ?bool $allowTransforms = null): array
-    {
-        $entry = [
-            'label' => $label,
-            'value' => $value,
-            'content' => $content,
-            'types' => array_values(array_unique(array_filter(array_map('strval', $types)))),
-            'valueType' => \verbb\formie\fields\definitions\FieldValueType::storageSafe()->toArray(),
-            'availability' => ['server' => true, 'browser' => false],
-        ];
-
-        if ($group !== null && $group !== '') {
-            $entry['group'] = $group;
-        }
-
-        if ($allowTransforms !== null) {
-            $entry['allowTransforms'] = $allowTransforms;
-        }
-
-        return $entry;
-    }
-
-    private static function _pickerGroup(string $label, array $children, string $content = self::CONTENT_SINGLE_LINE): array
-    {
-        return [
-            'label' => $label,
-            'content' => $content,
-            'children' => array_values($children),
-        ];
-    }
-
     private static function _getTransformerRegistry(): array
     {
         $transformerRegistry = [
@@ -909,12 +798,6 @@ class Variables
     }
 
 
-    private static function _getPrefixedEnvironmentVariableKeys(string $prefix): array
-    {
-        // Environment access is opt-in; never enumerate process/server secrets.
-        return array_values(array_filter(Formie::$plugin->getSettings()->referenceEnvironmentAllowlist, static fn($name): bool => is_string($name) && (bool)preg_match('/^[A-Z][A-Z0-9_]*$/D', $name)));
-    }
-
     public static function getSummaryVariables(Submission $submission, Notification $notification): array
     {
         $allFields = [];
@@ -1041,9 +924,6 @@ class Variables
     // =========================================================================
 
     public const TARGET_CUSTOM = 'custom';
-    public const CONTENT_ANY = 'any';
-    public const CONTENT_SINGLE_LINE = 'singleLine';
-
     public const TYPE_TEXT = 'text';
     public const TYPE_EMAIL = 'email';
     public const TYPE_NUMBER = 'number';
@@ -1070,7 +950,5 @@ class Variables
     public const STATIC_SITE = 'staticSiteVariables';
     public const STATIC_DISPATCH = 'staticDispatchVariables';
     public const STATIC_CUSTOM = 'staticCustomVariables';
-
-    public const ENVIRONMENT_VARIABLE_PREFIX = 'FORMIE_';
 
 }

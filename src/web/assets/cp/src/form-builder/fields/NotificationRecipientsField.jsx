@@ -10,7 +10,7 @@ import { useVariableCategories } from '@form-builder/hooks/useVariableCategories
 import { ConditionVariablePickerCell } from '@form-builder/fields/components/ConditionVariablePickerCell';
 
 const CONDITION_FIELD_VARIABLE_CONFIG = {
-    content: 'singleLine',
+    shapes: ['inline'],
     types: ['text'],
     groupFieldsByPage: true,
     groups: [

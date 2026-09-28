@@ -15,6 +15,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\references\ReferenceType;
 
 use Craft;
 use craft\elements\db\ElementQueryInterface;
@@ -288,30 +289,9 @@ class Products extends ElementField
     {
         return [
             ...parent::defineReferenceValues(),
-            FieldReferenceValue::property([
-                'handle' => 'price',
-                'label' => Craft::t('formie', 'Price'),
-                'supportsFieldSelect' => false,
-                'variableTypes' => [
-                    Variables::TYPE_NUMBER,
-                    Variables::TYPE_TEXT,
-                ],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'sku',
-                'label' => Craft::t('formie', 'SKU'),
-                'supportsFieldSelect' => false,
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'quantity',
-                'label' => Craft::t('formie', 'Quantity'),
-                'supportsFieldSelect' => false,
-                'variableTypes' => [
-                    Variables::TYPE_NUMBER,
-                    Variables::TYPE_TEXT,
-                ],
-            ]),
+            FieldReferenceValue::selector('price', Craft::t('formie', 'Price'), [ReferenceType::Number, ReferenceType::Text], supportsFieldSelect: false),
+            FieldReferenceValue::selector('sku', Craft::t('formie', 'SKU'), supportsFieldSelect: false),
+            FieldReferenceValue::selector('quantity', Craft::t('formie', 'Quantity'), [ReferenceType::Number, ReferenceType::Text], supportsFieldSelect: false),
         ];
     }
 }

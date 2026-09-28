@@ -35,6 +35,7 @@ use verbb\formie\options\OptionSourceContext;
 use verbb\formie\options\OptionSourceFieldInterface;
 use verbb\formie\options\OptionSourceProviderHelper;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -859,11 +860,9 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
     protected function defineReferenceValues(): array
     {
         return [
-            FieldReferenceValue::default([
-                'variableTypes' => $this->displayType === 'checkboxes'
-                    ? [Variables::TYPE_EMAIL, Variables::TYPE_CALCULATIONS, Variables::TYPE_BOOLEAN]
-                    : [Variables::TYPE_EMAIL],
-            ]),
+            FieldReferenceValue::primary(types: $this->displayType === 'checkboxes'
+                ? [ReferenceType::Email, ReferenceType::List, ReferenceType::Boolean]
+                : [ReferenceType::Email]),
         ];
     }
 

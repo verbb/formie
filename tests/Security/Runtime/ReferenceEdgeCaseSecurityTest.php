@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Craft;
 use craft\web\Request;
 use verbb\formie\helpers\CrossOriginRequestHelper;
 use verbb\formie\helpers\References;
@@ -47,7 +46,7 @@ it('stringifies multi-value referenced fields before interpolation', function ()
     expect(References::parseContent("Topics={$token}", $submission))->toBe('Topics=one, two');
 })->group('security');
 
-it('diagnoses unknown reference targets during content parsing', function (): void {
+it('keeps unknown reference targets literal during free-text parsing', function (): void {
     $form = formie()
         ->form(['title' => 'Reference Unknown Target Security'])
         ->singleLineTextField('fullName')
@@ -58,7 +57,7 @@ it('diagnoses unknown reference targets during content parsing', function (): vo
         ->with(['fullName' => 'Security Tester'])
         ->save();
 
-    expect(fn() => References::parseContent('Value={evil:payload}', $submission))->toThrow(\verbb\formie\references\ReferenceException::class);
+    expect(References::parseContent('Value={evil:payload}', $submission))->toBe('Value={evil:payload}');
 })->group('security');
 
 it('does not reflect arbitrary origins when graphql origins are enabled without an explicit allowlist', function (): void {

@@ -16,11 +16,15 @@ final class ContextReferenceSource
     {
         $id = $expression->identifier;
         $target = $expression->target;
+        if ($target === 'dispatch') {
+            $id = str_replace(':', '.', $id);
+        }
+        $definition = (new ReferenceCatalogue())->definition($target, $id);
+        if (!$definition) {
+            throw new ReferenceException(ReferenceDiagnostic::UnknownSource);
+        }
         if ($target === 'custom') {
             $source = (new ReferenceCatalogue())->source($id);
-            if (!$source) {
-                throw new ReferenceException(ReferenceDiagnostic::UnknownSource);
-            }
             if (!$source->definition->server || !in_array('server', $context->permissions, true)) {
                 throw new ReferenceException(ReferenceDiagnostic::ForbiddenSource);
             }
@@ -72,7 +76,7 @@ final class ContextReferenceSource
             }
             $value = $values[$id];
         }
-        return new ResolvedReference($expression, $value, new ReferenceDefinition($target . ':' . $id, $id ?: $target, $target, FieldValueType::storageSafe()));
+        return new ResolvedReference($expression, $value, $definition);
     }
 
     // Private Methods

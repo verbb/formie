@@ -84,9 +84,21 @@ it('requires row scope for table column tokens', function (): void {
             ['col3' => '2'],
         ],
     ])->save();
+    $compiled = (new \verbb\formie\conditions\ConditionCompiler())->compile(
+        \verbb\formie\conditions\ConditionSet::fromArray([
+            'conditions' => [[
+                'field' => References::field($ref, 'qty', ['scope' => 'first']),
+                'condition' => '=',
+                'value' => '2',
+            ]],
+        ]),
+        $form,
+    );
 
     expect(TableReferenceHelper::requiresScope($submission, $ref, 'col3'))->toBeTrue()
-        ->and(TableReferenceHelper::resolve($submission, $tableField, 'col3', ['scope' => 'first']))->toBe('2');
+        ->and(TableReferenceHelper::resolve($submission, $tableField, 'col3', ['scope' => 'first']))->toBe('2')
+        ->and($compiled['rules'][0]['valueType'])->toBe('number')
+        ->and($compiled['rules'][0]['browserSafe'])->toBeTrue();
 });
 
 it('builds calculation formula variables with table row scope metadata', function (): void {

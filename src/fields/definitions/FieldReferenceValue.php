@@ -1,129 +1,126 @@
 <?php
 namespace verbb\formie\fields\definitions;
 
-use verbb\formie\helpers\Variables;
+use verbb\formie\references\ReferenceCondition;
+use verbb\formie\references\ReferenceShape;
+use verbb\formie\references\ReferenceType;
 
+use InvalidArgumentException;
 
-
-/**
- * Author-facing definition for one field reference value.
- * A single value can drive both selector metadata and variable-picker sources.
- */
-final class FieldReferenceValue
+/** Describes one public value exposed by a field reference. */
+final readonly class FieldReferenceValue
 {
     // Static Methods
     // =========================================================================
 
-    public static function make(array|string $handle = '', ?string $label = null): self
-    {
-        if (is_array($handle)) {
-            return self::fromArray($handle);
-        }
-
-        return new self([
-            'handle' => $handle,
-            'label' => $label,
-        ]);
+    public static function primary(
+        ?string $label = null,
+        array $types = [ReferenceType::Text],
+        ReferenceShape $shape = ReferenceShape::Inline,
+        ?ReferenceCondition $when = null,
+        bool $supportsFieldSelect = true,
+        bool $supportsVariablePicker = true,
+        bool $supportsBrowser = true,
+        bool $allowTransforms = true,
+        array $meta = [],
+    ): self {
+        return new self(null, $label, $types, $shape, $when, $supportsFieldSelect, $supportsVariablePicker, $supportsBrowser, $allowTransforms, $meta);
     }
 
-    public static function default(array $config = []): self
-    {
-        return self::fromArray([
-            ...$config,
-            'default' => true,
-        ]);
+    public static function selector(
+        string $key,
+        string $label,
+        array $types = [ReferenceType::Text],
+        ReferenceShape $shape = ReferenceShape::Inline,
+        ?ReferenceCondition $when = null,
+        bool $supportsFieldSelect = true,
+        bool $supportsVariablePicker = true,
+        bool $supportsBrowser = true,
+        bool $allowTransforms = true,
+        array $meta = [],
+    ): self {
+        return new self($key, $label, $types, $shape, $when, $supportsFieldSelect, $supportsVariablePicker, $supportsBrowser, $allowTransforms, $meta);
     }
-
-    public static function property(array|string $handle = '', ?string $label = null): self
-    {
-        return self::make($handle, $label);
-    }
-
-    public static function fromArray(array $config): self
-    {
-        return new self([
-            'handle' => (string)($config['handle'] ?? ''),
-            'label' => $config['label'] ?? null,
-            'content' => (string)($config['content'] ?? Variables::CONTENT_SINGLE_LINE),
-            'variableTypes' => (array)($config['variableTypes'] ?? []),
-            'default' => (bool)($config['default'] ?? false),
-            'condition' => $config['if'] ?? $config['condition'] ?? null,
-            'supportsFieldSelect' => (bool)($config['supportsFieldSelect'] ?? true),
-            'supportsVariablePicker' => (bool)($config['supportsVariablePicker'] ?? true),
-            'supportsClient' => (bool)($config['supportsClient'] ?? $config['supportsRuntime'] ?? true),
-            'meta' => (array)($config['meta'] ?? []),
-        ]);
-    }
-
-
-    // Properties
-    // =========================================================================
-
-    public readonly string $handle;
-    public readonly ?string $label;
-    public readonly string $content;
-    public readonly array $variableTypes;
-    public readonly bool $default;
-    public readonly ?string $condition;
-    public readonly bool $supportsFieldSelect;
-    public readonly bool $supportsVariablePicker;
-    public readonly bool $supportsClient;
-    public readonly array $meta;
 
 
     // Public Methods
     // =========================================================================
 
-    public function __construct(array $config = [])
+    public function isPrimary(): bool
     {
-        $this->handle = $config['handle'] ?? '';
-        $this->label = $config['label'] ?? null;
-        $this->content = $config['content'] ?? Variables::CONTENT_SINGLE_LINE;
-        $this->variableTypes = $config['variableTypes'] ?? [];
-        $this->default = $config['default'] ?? false;
-        $this->condition = $config['condition'] ?? null;
-        $this->supportsFieldSelect = $config['supportsFieldSelect'] ?? true;
-        $this->supportsVariablePicker = $config['supportsVariablePicker'] ?? true;
-        $this->supportsClient = $config['supportsClient'] ?? true;
-        $this->meta = $config['meta'] ?? [];
+        return $this->selector === null;
     }
 
-    public function toReferenceSelectorDefinition(): ?FieldReferenceSelector
+    public function matchesSelector(string $selector): bool
     {
-        if ($this->handle === '') {
-            return null;
+        if ($selector === '') {
+            return $this->isPrimary();
         }
 
-        return FieldReferenceSelector::fromArray([
-            'handle' => $this->handle, 'label' => $this->label ?? $this->handle,
-            'condition' => $this->condition, 'supportsFieldSelect' => $this->supportsFieldSelect,
-            'supportsVariablePicker' => $this->supportsVariablePicker, 'supportsClient' => $this->supportsClient, 'meta' => $this->meta,
-        ]);
+        return $this->selector === $selector || in_array($selector, $this->meta['aliases'] ?? [], true);
     }
 
-    public function toDefaultVariableSourceDefinition(): ?FieldVariableSource
+    public function appliesTo(object|array $settings): bool
     {
-        if ($this->variableTypes === []) {
-            return null;
-        }
-
-        return new FieldVariableSource([
-            'key' => 'value', 'label' => $this->label ?? 'Value', 'selector' => '',
-            'condition' => $this->condition, 'supportsVariablePicker' => $this->supportsVariablePicker,
-            'supportsClient' => $this->supportsClient, 'content' => $this->content, 'types' => $this->variableTypes, 'meta' => $this->meta,
-        ]);
+        return $this->when?->matches($settings) ?? true;
     }
 
-    public function toSelectorVariableSourceDefinition(): ?FieldVariableSource
+    public function toArray(): array
     {
-        if ($this->handle === '' || $this->variableTypes === []) {
-            return null;
+        return [
+            'kind' => $this->isPrimary() ? 'primary' : 'selector',
+            'selector' => $this->selector,
+            'label' => $this->label,
+            'types' => array_map(static fn(ReferenceType $type): string => $type->value, $this->types),
+            'shape' => $this->shape->value,
+            'when' => $this->when?->toArray(),
+            'supportsFieldSelect' => $this->supportsFieldSelect,
+            'supportsVariablePicker' => $this->supportsVariablePicker,
+            'supportsBrowser' => $this->supportsBrowser,
+            'allowTransforms' => $this->allowTransforms,
+            'meta' => $this->meta,
+        ];
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function __construct(
+        public ?string $selector,
+        public ?string $label,
+        public array $types,
+        public ReferenceShape $shape,
+        public ?ReferenceCondition $when,
+        public bool $supportsFieldSelect,
+        public bool $supportsVariablePicker,
+        public bool $supportsBrowser,
+        public bool $allowTransforms,
+        public array $meta,
+    ) {
+        if ($selector !== null && !preg_match('/^[a-zA-Z0-9_][a-zA-Z0-9_.-]*$/D', $selector)) {
+            throw new InvalidArgumentException('Reference selectors must use a safe identifier.');
         }
 
-        return new FieldVariableSource([
-            'key' => $this->handle, 'label' => $this->label ?? 'Value', 'selector' => $this->handle,
-            'condition' => $this->condition, 'supportsVariablePicker' => $this->supportsVariablePicker,
-            'supportsClient' => $this->supportsClient, 'content' => $this->content, 'types' => $this->variableTypes, 'meta' => $this->meta,
-        ]);
+        if ($types === []) {
+            throw new InvalidArgumentException('Reference values must declare at least one semantic type.');
+        }
+
+        foreach ($types as $type) {
+            if (!$type instanceof ReferenceType) {
+                throw new InvalidArgumentException('Reference values must use ReferenceType cases.');
+            }
+        }
+
+        $aliases = $meta['aliases'] ?? [];
+        if (!is_array($aliases)) {
+            throw new InvalidArgumentException('Reference selector aliases must be an array.');
+        }
+
+        foreach ($aliases as $alias) {
+            if (!is_string($alias) || !preg_match('/^[a-zA-Z0-9_][a-zA-Z0-9_.-]*$/D', $alias)) {
+                throw new InvalidArgumentException('Reference selector aliases must use safe identifiers.');
+            }
+        }
     }
 }

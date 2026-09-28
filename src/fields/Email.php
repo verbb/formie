@@ -16,6 +16,7 @@ use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
 use verbb\formie\events\ModifyFieldUniqueUserQueryEvent;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -237,7 +238,7 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [
                         Variables::STATIC_FORM,
@@ -419,12 +420,7 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
     protected function defineReferenceValues(): array
     {
         return [
-            FieldReferenceValue::default([
-                'variableTypes' => [
-                    Variables::TYPE_TEXT,
-                    Variables::TYPE_EMAIL,
-                ],
-            ]),
+            FieldReferenceValue::primary(types: [ReferenceType::Text, ReferenceType::Email]),
         ];
     }
 

@@ -15,6 +15,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\RichText;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -259,7 +260,7 @@ class Calculations extends Field implements PreviewableFieldInterface
                 'name' => 'formula',
                 'validationAction' => 'formie/fields/validate-calculations-formula',
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT, Variables::TYPE_EMAIL, Variables::TYPE_NUMBER, Variables::TYPE_BOOLEAN],
                     'groups' => [
                         Variables::STATIC_FIELDS,
@@ -416,13 +417,7 @@ class Calculations extends Field implements PreviewableFieldInterface
     protected function defineReferenceValues(): array
     {
         return [
-            FieldReferenceValue::default([
-                'variableTypes' => [
-                    Variables::TYPE_CALCULATIONS,
-                    Variables::TYPE_NUMBER,
-                    Variables::TYPE_TEXT,
-                ],
-            ]),
+            FieldReferenceValue::primary(types: [ReferenceType::Number, ReferenceType::Text]),
         ];
     }
 

@@ -8,7 +8,6 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\base\RepeatableParentField;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\definitions\FieldReferences;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\input\RepeaterInputType;
@@ -484,16 +483,6 @@ class Repeater extends RepeatableParentField
     protected function defineAllowPrimaryReference(): bool
     {
         return false;
-    }
-
-    protected function defineAllowNestedReference(): bool
-    {
-        return true;
-    }
-
-    protected function defineNestedReferenceMode(): string
-    {
-        return 'childrenOnly';
     }
 
     protected function defineClientRenderedInput(): array

@@ -27,6 +27,7 @@ use verbb\formie\models\Settings;
 use verbb\formie\models\SlotTag;
 use verbb\formie\records\Submission as SubmissionRecord;
 use verbb\formie\references\ReferenceException;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 use verbb\formie\workflow\WorkflowContext;
 
@@ -643,7 +644,7 @@ class FileUpload extends ElementField
                 'instructions' => Craft::t('formie', 'Enter the format for uploaded files to be renamed as. Do not include the extension.'),
                 'name' => 'filenameFormat',
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [
                         Variables::STATIC_FIELDS,
@@ -1192,39 +1193,11 @@ class FileUpload extends ElementField
     protected function defineReferenceValues(): array
     {
         return [
-            FieldReferenceValue::default([
-                'variableTypes' => [
-                    Variables::TYPE_TEXT,
-                    Variables::TYPE_URL,
-                    Variables::TYPE_BOOLEAN,
-                ],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'url',
-                'label' => Craft::t('formie', 'URL'),
-                'variableTypes' => [
-                    Variables::TYPE_TEXT,
-                    Variables::TYPE_URL,
-                ],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'filename',
-                'label' => Craft::t('formie', 'Filename'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'extension',
-                'label' => Craft::t('formie', 'Extension'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'size',
-                'label' => Craft::t('formie', 'Size'),
-                'variableTypes' => [
-                    Variables::TYPE_NUMBER,
-                    Variables::TYPE_TEXT,
-                ],
-            ]),
+            FieldReferenceValue::primary(types: [ReferenceType::Text, ReferenceType::Url, ReferenceType::Boolean, ReferenceType::List]),
+            FieldReferenceValue::selector('url', Craft::t('formie', 'URL'), [ReferenceType::Text, ReferenceType::Url]),
+            FieldReferenceValue::selector('filename', Craft::t('formie', 'Filename')),
+            FieldReferenceValue::selector('extension', Craft::t('formie', 'Extension')),
+            FieldReferenceValue::selector('size', Craft::t('formie', 'Size'), [ReferenceType::Number, ReferenceType::Text]),
         ];
     }
 

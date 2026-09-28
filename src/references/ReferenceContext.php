@@ -49,6 +49,8 @@ final readonly class ReferenceContext
     // Public Methods
     // =========================================================================
 
+    public ReferenceDiagnostics $diagnostics;
+
     public function __construct(
         public ?Form $form = null,
         public ?Submission $submission = null,
@@ -64,7 +66,10 @@ final readonly class ReferenceContext
         public array $dispatch = [],
         public array $report = [],
         public array $metadata = [],
+        ?ReferenceDiagnostics $diagnostics = null,
     ) {
+        $this->diagnostics = $diagnostics ?? new ReferenceDiagnostics();
+
         if ($submission && $form && $submission->formId !== $form->id) {
             throw new \InvalidArgumentException('Reference form and submission must share an owner.');
         }

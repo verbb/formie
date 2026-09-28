@@ -11,7 +11,7 @@ import { resolveVariableCategories } from '@form-builder/hooks/useVariableCatego
 import { ConditionVariablePickerCell } from '@form-builder/fields/components/ConditionVariablePickerCell';
 
 const CONDITION_FIELD_VARIABLE_CONFIG = {
-    content: 'singleLine',
+    shapes: ['inline'],
     types: ['text'],
     groupFieldsByPage: true,
     showFieldHandle: true,

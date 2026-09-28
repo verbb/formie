@@ -33,6 +33,8 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\references\ReferenceCondition;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -2158,107 +2160,39 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     protected function defineReferenceValues(): array
     {
-        // Reference config is built from a blank field instance, so use `if` conditions
-        // that the CP evaluates per form field — not runtime branching here.
-        $rangeCondition = 'collectMode == "' . self::COLLECT_RANGE . '" && displayType == "datePicker"';
-        $singleCalendarCondition = 'displayType == "calendar" || (displayType == "datePicker" && collectMode != "' . self::COLLECT_RANGE . '")';
+        $rangeCondition = ReferenceCondition::all(
+            ReferenceCondition::equals('collectMode', self::COLLECT_RANGE),
+            ReferenceCondition::equals('displayType', 'datePicker'),
+        );
+        $singleCalendarCondition = ReferenceCondition::any(
+            ReferenceCondition::equals('displayType', 'calendar'),
+            ReferenceCondition::all(
+                ReferenceCondition::equals('displayType', 'datePicker'),
+                ReferenceCondition::notEquals('collectMode', self::COLLECT_RANGE),
+            ),
+        );
+        $partsCondition = ReferenceCondition::any(
+            ReferenceCondition::equals('displayType', 'dropdowns'),
+            ReferenceCondition::equals('displayType', 'inputs'),
+        );
 
         return [
-            FieldReferenceValue::default([
-                'handle' => '__toString',
-                'label' => Craft::t('formie', 'Formatted Date'),
-                'variableTypes' => [Variables::TYPE_DATE, Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'start',
-                'label' => Craft::t('formie', 'Start Date/Time'),
-                'if' => $rangeCondition,
-                'variableTypes' => [Variables::TYPE_DATE],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'end',
-                'label' => Craft::t('formie', 'End Date/Time'),
-                'if' => $rangeCondition,
-                'variableTypes' => [Variables::TYPE_DATE],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'startDate',
-                'label' => Craft::t('formie', 'Start Date'),
-                'if' => $rangeCondition,
-                'variableTypes' => [Variables::TYPE_DATE],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'startTime',
-                'label' => Craft::t('formie', 'Start Time'),
-                'if' => $rangeCondition,
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'endDate',
-                'label' => Craft::t('formie', 'End Date'),
-                'if' => $rangeCondition,
-                'variableTypes' => [Variables::TYPE_DATE],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'endTime',
-                'label' => Craft::t('formie', 'End Time'),
-                'if' => $rangeCondition,
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'date',
-                'label' => Craft::t('formie', 'Date'),
-                'if' => $singleCalendarCondition,
-                'variableTypes' => [Variables::TYPE_DATE],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'time',
-                'label' => Craft::t('formie', 'Time'),
-                'if' => $singleCalendarCondition,
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'year',
-                'label' => Craft::t('formie', 'Year'),
-                'if' => 'displayType == "dropdowns" || displayType == "inputs"',
-                'variableTypes' => [Variables::TYPE_NUMBER, Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'month',
-                'label' => Craft::t('formie', 'Month'),
-                'if' => 'displayType == "dropdowns" || displayType == "inputs"',
-                'variableTypes' => [Variables::TYPE_NUMBER, Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'day',
-                'label' => Craft::t('formie', 'Day'),
-                'if' => 'displayType == "dropdowns" || displayType == "inputs"',
-                'variableTypes' => [Variables::TYPE_NUMBER, Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'hour',
-                'label' => Craft::t('formie', 'Hour'),
-                'if' => 'displayType == "dropdowns" || displayType == "inputs"',
-                'variableTypes' => [Variables::TYPE_NUMBER, Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'minute',
-                'label' => Craft::t('formie', 'Minute'),
-                'if' => 'displayType == "dropdowns" || displayType == "inputs"',
-                'variableTypes' => [Variables::TYPE_NUMBER, Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'second',
-                'label' => Craft::t('formie', 'Second'),
-                'if' => 'displayType == "dropdowns" || displayType == "inputs"',
-                'variableTypes' => [Variables::TYPE_NUMBER, Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'ampm',
-                'label' => Craft::t('formie', 'AM/PM'),
-                'if' => 'displayType == "dropdowns" || displayType == "inputs"',
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
+            FieldReferenceValue::primary(Craft::t('formie', 'Formatted Date'), [ReferenceType::Date, ReferenceType::Text]),
+            FieldReferenceValue::selector('start', Craft::t('formie', 'Start Date/Time'), [ReferenceType::Date], when: $rangeCondition),
+            FieldReferenceValue::selector('end', Craft::t('formie', 'End Date/Time'), [ReferenceType::Date], when: $rangeCondition),
+            FieldReferenceValue::selector('startDate', Craft::t('formie', 'Start Date'), [ReferenceType::Date], when: $rangeCondition),
+            FieldReferenceValue::selector('startTime', Craft::t('formie', 'Start Time'), when: $rangeCondition),
+            FieldReferenceValue::selector('endDate', Craft::t('formie', 'End Date'), [ReferenceType::Date], when: $rangeCondition),
+            FieldReferenceValue::selector('endTime', Craft::t('formie', 'End Time'), when: $rangeCondition),
+            FieldReferenceValue::selector('date', Craft::t('formie', 'Date'), [ReferenceType::Date], when: $singleCalendarCondition),
+            FieldReferenceValue::selector('time', Craft::t('formie', 'Time'), when: $singleCalendarCondition),
+            FieldReferenceValue::selector('year', Craft::t('formie', 'Year'), [ReferenceType::Number, ReferenceType::Text], when: $partsCondition),
+            FieldReferenceValue::selector('month', Craft::t('formie', 'Month'), [ReferenceType::Number, ReferenceType::Text], when: $partsCondition),
+            FieldReferenceValue::selector('day', Craft::t('formie', 'Day'), [ReferenceType::Number, ReferenceType::Text], when: $partsCondition),
+            FieldReferenceValue::selector('hour', Craft::t('formie', 'Hour'), [ReferenceType::Number, ReferenceType::Text], when: $partsCondition),
+            FieldReferenceValue::selector('minute', Craft::t('formie', 'Minute'), [ReferenceType::Number, ReferenceType::Text], when: $partsCondition),
+            FieldReferenceValue::selector('second', Craft::t('formie', 'Second'), [ReferenceType::Number, ReferenceType::Text], when: $partsCondition),
+            FieldReferenceValue::selector('ampm', Craft::t('formie', 'AM/PM'), when: $partsCondition),
         ];
     }
 

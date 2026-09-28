@@ -9,7 +9,6 @@ use verbb\formie\deprecations\SubmissionContentManagerDeprecations;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\ValueContext;
 
 use Throwable;
 
@@ -148,7 +147,7 @@ class SubmissionContentManager
         return $this->getProjectedFieldValue($submission, $fieldPath, null);
     }
 
-    public function getProjectedFieldValue(Submission $submission, string $fieldPath, mixed $context): mixed
+    public function getProjectedFieldValue(Submission $submission, string $fieldPath, ?FieldValueProjectionContext $context = null): mixed
     {
         if ($this->_looksLikeReferenceToken($fieldPath)) {
             // Resolve full `{field:...}` expressions before splitting on dots so
@@ -158,7 +157,7 @@ class SubmissionContentManager
             $value = $resolved['value'];
 
             if ($context !== null && $field) {
-                return $this->projectValueByContext($submission, $field, $value, $context);
+                return $this->projectValue($submission, $field, $value, $context);
             }
 
             return $value;
@@ -186,13 +185,13 @@ class SubmissionContentManager
                 }
                 $field = $child;
             }
-            return $context !== null && $field && !$segments ? $this->projectValueByContext($submission, $field, $field->normalizeFieldValue($value, $submission), $context) : $value;
+            return $context !== null && $field && !$segments ? $this->projectValue($submission, $field, $field->normalizeFieldValue($value, $submission), $context) : $value;
         }
 
         $fieldValue = $this->getNormalizedValue($submission, $handle);
 
         if ($context !== null && ($field = $this->getFieldByHandle($submission, $handle))) {
-            return $this->projectValueByContext($submission, $field, $fieldValue, $context);
+            return $this->projectValue($submission, $field, $fieldValue, $context);
         }
 
         return $fieldValue;
@@ -269,12 +268,12 @@ class SubmissionContentManager
 
     public function getValuesAsString(Submission $submission): array
     {
-        return $this->_getNonCosmeticProjectedValues($submission, ValueContext::string());
+        return $this->_getNonCosmeticProjectedValues($submission, FieldValueProjectionContext::string());
     }
 
     public function getValuesAsData(Submission $submission): array
     {
-        return $this->_getNonCosmeticProjectedValues($submission, ValueContext::data());
+        return $this->_getNonCosmeticProjectedValues($submission, FieldValueProjectionContext::data());
     }
 
     public function getValuesForExport(Submission $submission): array
@@ -282,7 +281,7 @@ class SubmissionContentManager
         $values = [];
 
         foreach ($this->getFieldCollection($submission)->nonCosmetic() as $field) {
-            $valueForExport = $this->getProjectedFieldValue($submission, $field->handle, ValueContext::export());
+            $valueForExport = $this->getProjectedFieldValue($submission, $field->handle, FieldValueProjectionContext::export());
 
             // Some fields emit multiple export columns as keyed arrays.
             if (is_array($valueForExport)) {
@@ -305,7 +304,7 @@ class SubmissionContentManager
             }
 
             $value = $this->getFieldValue($submission, $field->handle);
-            $html = $this->getProjectedFieldValue($submission, $field->handle, ValueContext::summary());
+            $html = $this->getProjectedFieldValue($submission, $field->handle, FieldValueProjectionContext::summary());
 
             $items[] = [
                 'field' => $field,
@@ -373,9 +372,9 @@ class SubmissionContentManager
         return $this->_serializer->serializeForDb($submission);
     }
 
-    public function projectValueByContext(Submission $submission, FieldInterface $field, mixed $value, mixed $context): mixed
+    public function projectValue(Submission $submission, FieldInterface $field, mixed $value, FieldValueProjectionContext $context): mixed
     {
-        return $this->_projector->projectValueByContext($submission, $field, $value, $context);
+        return $this->_projector->projectValue($submission, $field, $value, $context);
     }
 
 
@@ -417,7 +416,7 @@ class SubmissionContentManager
         return str_starts_with($trimmed, '{') && str_ends_with($trimmed, '}') && substr_count($trimmed, '{') === 1 && substr_count($trimmed, '}') === 1;
     }
 
-    private function _getNonCosmeticProjectedValues(Submission $submission, ValueContext $context): array
+    private function _getNonCosmeticProjectedValues(Submission $submission, FieldValueProjectionContext $context): array
     {
         $values = [];
 

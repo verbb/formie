@@ -18,6 +18,7 @@ use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\RichText;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -466,9 +467,7 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
     protected function defineReferenceValues(): array
     {
         return [
-            FieldReferenceValue::default([
-                'variableTypes' => [Variables::TYPE_BOOLEAN],
-            ]),
+            FieldReferenceValue::primary(types: [ReferenceType::Boolean]),
         ];
     }
 

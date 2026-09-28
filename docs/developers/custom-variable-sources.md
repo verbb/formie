@@ -8,7 +8,9 @@ use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\references\ReferenceCatalogue;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\references\ReferenceDefinition;
+use verbb\formie\references\ReferenceShape;
 use verbb\formie\references\ReferenceSource;
+use verbb\formie\references\ReferenceType;
 use yii\base\Event;
 
 Event::on(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER, function(RegisterReferencesEvent $event) {
@@ -21,13 +23,15 @@ Event::on(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER, functio
             transforms: ['acme/shout'],
             server: true,
             browser: false,
+            types: [ReferenceType::Text],
+            shape: ReferenceShape::Inline,
         ),
         static fn(ReferenceContext $context): string => 'spring-sale',
     );
 });
 ```
 
-Editors can insert `{custom:acme/campaign}`. The picker receives its label, type and availability, never the resolved value or resolver. IDs use `vendor/name`; duplicate IDs and invalid registrations fail explicitly. Use translations for labels when your project supports multiple languages.
+Editors can insert `{custom:acme/campaign}`. The picker receives its label, semantic `types`, inline or block `shape` and availability, never the resolved value or resolver. IDs use `vendor/name`; duplicate IDs and invalid registrations fail explicitly. Use translations for labels when your project supports multiple languages.
 
 ## Context and Return Types
 

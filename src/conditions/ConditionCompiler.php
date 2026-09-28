@@ -7,11 +7,13 @@ use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\Date;
+use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\Recipients;
 use verbb\formie\helpers\References;
 use verbb\formie\references\FieldReferenceResolver;
 use verbb\formie\references\ReferenceCatalogue;
 use verbb\formie\references\ReferenceContext;
+use verbb\formie\references\ReferenceType;
 
 use Throwable;
 
@@ -70,16 +72,15 @@ final class ConditionCompiler
             }
             $type = $field instanceof Field ? self::fieldType($field) : ($expression->identifier === 'id' ? 'number' : 'text');
             if ($expression->selector !== '' && $field) {
-                $childSelector = preg_replace('/^[0-9]+[.:]/', '', $expression->selector);
-                $child = $field instanceof ParentFieldInterface && $form ? (new FieldReferenceResolver())->findField($path . '.' . str_replace(':', '.', $childSelector), new ReferenceContext(form: $form)) : null;
-                $type = $child ? self::fieldType($child['field']) : ($field instanceof Date && in_array($expression->selector, ['date', 'time'], true) ? $expression->selector : 'text');
+                $type = $field instanceof Date && in_array($expression->selector, ['date', 'time'], true) ? $expression->selector : 'text';
                 if ($field instanceof OptionsField && $field->multi) {
                     $type = 'collection';
                 }
-                $selectorAvailable = $child !== null;
-                foreach ($field->references()->selectors as $selector) {
-                    if ($selector->handle === $expression->selector) {
-                        $selectorAvailable = $selector->supportsClient;
+                $selectorAvailable = false;
+                foreach ($field->referenceValues() as $referenceValue) {
+                    if ($referenceValue->matchesSelector($expression->selector)) {
+                        $selectorAvailable = $referenceValue->supportsBrowser && $referenceValue->appliesTo($field);
+                        $type = self::_referenceValueType($referenceValue, $type);
                     }
                 }
                 $browser = $browser && $selectorAvailable;
@@ -113,5 +114,30 @@ final class ConditionCompiler
             ];
         }
         return ['version' => $set->version, 'purpose' => $set->purpose, 'mode' => $set->mode, 'effect' => $set->effect, 'clearOnHide' => true, 'rules' => $rules];
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private static function _referenceValueType(FieldReferenceValue $referenceValue, string $fallback): string
+    {
+        if (in_array(ReferenceType::List, $referenceValue->types, true)) {
+            return 'collection';
+        }
+
+        if (in_array(ReferenceType::Number, $referenceValue->types, true)) {
+            return 'number';
+        }
+
+        if (in_array(ReferenceType::Boolean, $referenceValue->types, true)) {
+            return 'boolean';
+        }
+
+        if (in_array(ReferenceType::Date, $referenceValue->types, true)) {
+            return 'date';
+        }
+
+        return $fallback;
     }
 }

@@ -739,7 +739,7 @@ class Notifications extends Component
                 'name' => 'name',
                 'required' => true,
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [
                         Variables::STATIC_FIELDS,
@@ -765,7 +765,7 @@ class Notifications extends Component
                 'name' => 'to',
                 'required' => true,
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_EMAIL],
                     'groups' => [
                         Variables::STATIC_FIELDS,
@@ -791,7 +791,7 @@ class Notifications extends Component
                 'name' => 'subject',
                 'required' => true,
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [
                         Variables::STATIC_FIELDS,
@@ -826,7 +826,7 @@ class Notifications extends Component
                 'instructions' => Craft::t('formie', 'The name the notification email will be sent from.'),
                 'name' => 'fromName',
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [
                         Variables::STATIC_FIELDS,
@@ -842,7 +842,7 @@ class Notifications extends Component
                 'name' => 'from',
                 'validation' => 'emailOrVariable',
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_EMAIL],
                     'groups' => [
                         Variables::STATIC_FIELDS,
@@ -858,7 +858,7 @@ class Notifications extends Component
                 'instructions' => Craft::t('formie', 'The name to be used as the reply to for the notification email.'),
                 'name' => 'replyToName',
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [
                         Variables::STATIC_FIELDS,
@@ -874,7 +874,7 @@ class Notifications extends Component
                 'name' => 'replyTo',
                 'validation' => 'emailOrVariable',
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_EMAIL],
                     'groups' => [
                         Variables::STATIC_FIELDS,
@@ -890,7 +890,7 @@ class Notifications extends Component
                 'instructions' => Craft::t('formie', 'Email addresses who will receive a CC of the notification email. Separate multiple emails with a comma.'),
                 'name' => 'cc',
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_EMAIL],
                     'groups' => [
                         Variables::STATIC_FIELDS,
@@ -905,7 +905,7 @@ class Notifications extends Component
                 'instructions' => Craft::t('formie', 'Email addresses who will receive a BCC of the notification email. Separate multiple emails with a comma.'),
                 'name' => 'bcc',
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_EMAIL],
                     'groups' => [
                         Variables::STATIC_FIELDS,
@@ -921,7 +921,7 @@ class Notifications extends Component
                 'name' => 'sender',
                 'validation' => 'emailOrVariable',
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_EMAIL],
                     'groups' => [
                         Variables::STATIC_FIELDS,

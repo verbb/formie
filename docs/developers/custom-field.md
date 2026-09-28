@@ -172,19 +172,19 @@ Returns immutable browser-module declarations completed for the current form, fi
 :::
 
 ::: reference
-### `references()`
+### `defineReferenceValues()`
 
-**Returns:** `verbb\formie\fields\definitions\FieldReferences`
+**Returns:** `verbb\formie\fields\definitions\FieldReferenceValue[]`
 
-Declares the field’s reference selectors and nested-reference rules for tokens and picker UIs.
+Declares the field values available to reference tokens, field selectors and the Variable Picker. Use `FieldReferenceValue::primary()` for the field’s natural value and `FieldReferenceValue::selector()` for deliberate projections such as an Address field’s city. Each declaration provides semantic types, inline or block shape, authoring availability and any structured setting condition; the same declaration is enforced when the token resolves.
 :::
 
 ::: reference
-### `variableSources()`
+### `referenceValues()`
 
-**Returns:** `array`
+**Returns:** `verbb\formie\fields\definitions\FieldReferenceValue[]`
 
-Returns the variable-picker sources exposed by the field.
+Returns the validated reference declarations exposed by the field. Formie adds the default primary declaration when `defineReferenceValues()` does not provide one. Override `defineReferenceValues()` rather than this method.
 :::
 
 ::: reference

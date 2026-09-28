@@ -1,5 +1,4 @@
-const CONTENT_ANY = 'any';
-const CONTENT_SINGLE_LINE = 'singleLine';
+const SHAPE_INLINE = 'inline';
 
 const normalizeVariableConfig = (variableConfig) => {
     if (!variableConfig || typeof variableConfig !== 'object') {
@@ -53,12 +52,8 @@ const resolveGroupSections = (variableConfig, config) => {
     });
 };
 
-const getItemContent = (item) => {
-    if (typeof item?.content === 'string' && item.content) {
-        return item.content;
-    }
-
-    return CONTENT_SINGLE_LINE;
+const getItemShape = (item) => {
+    return item?.shape === 'block' ? 'block' : SHAPE_INLINE;
 };
 
 const getItemTypes = (item) => {
@@ -66,17 +61,17 @@ const getItemTypes = (item) => {
         return item.types;
     }
 
-    return getItemContent(item) === CONTENT_SINGLE_LINE ? ['text'] : [];
+    return getItemShape(item) === SHAPE_INLINE ? ['text'] : [];
 };
 
 const filterPickerItems = (items = [], variableConfig = {}) => {
     const requestedTypes = Array.isArray(variableConfig?.types) ? variableConfig.types : [];
-    const requestedContent = variableConfig?.content || CONTENT_ANY;
+    const requestedShapes = Array.isArray(variableConfig?.shapes) ? variableConfig.shapes : [];
 
     const itemMatches = (item) => {
-        const itemMode = getItemContent(item);
+        const itemShape = getItemShape(item);
 
-        if (requestedContent && requestedContent !== CONTENT_ANY && itemMode !== requestedContent) {
+        if (requestedShapes.length && !requestedShapes.includes(itemShape)) {
             return false;
         }
 

@@ -29,6 +29,7 @@ use verbb\formie\models\OptionSource;
 use verbb\formie\options\ElementOptionSourceHelper;
 use verbb\formie\options\OptionResolvableInterface;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -1234,30 +1235,10 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
     protected function defineReferenceValues(): array
     {
         return [
-            FieldReferenceValue::property([
-                'handle' => 'title',
-                'label' => Craft::t('formie', 'Title'),
-                'supportsFieldSelect' => false,
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'url',
-                'label' => Craft::t('formie', 'Public URL'),
-                'supportsFieldSelect' => false,
-                'variableTypes' => [Variables::TYPE_TEXT, Variables::TYPE_URL],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'cpUrl',
-                'label' => Craft::t('formie', 'Control Panel URL'),
-                'supportsFieldSelect' => false,
-                'variableTypes' => [Variables::TYPE_TEXT, Variables::TYPE_URL],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => '__toString',
-                'label' => Craft::t('formie', 'Formatted'),
-                'supportsFieldSelect' => false,
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
+            FieldReferenceValue::primary(Craft::t('formie', 'Formatted')),
+            FieldReferenceValue::selector('title', Craft::t('formie', 'Title'), supportsFieldSelect: false),
+            FieldReferenceValue::selector('url', Craft::t('formie', 'Public URL'), [ReferenceType::Text, ReferenceType::Url], supportsFieldSelect: false),
+            FieldReferenceValue::selector('cpUrl', Craft::t('formie', 'Control Panel URL'), [ReferenceType::Text, ReferenceType::Url], supportsFieldSelect: false),
         ];
     }
 

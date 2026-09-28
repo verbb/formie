@@ -17,6 +17,7 @@ use verbb\formie\fields\traits\TextLimitFieldTrait;
 use verbb\formie\fields\traits\UniqueValueFieldTrait;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -419,10 +420,7 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
     protected function defineReferenceValues(): array
     {
         return [
-            FieldReferenceValue::default([
-                'variableTypes' => [Variables::TYPE_TEXT],
-                'content' => Variables::CONTENT_ANY,
-            ]),
+            FieldReferenceValue::primary(types: [ReferenceType::Text]),
         ];
     }
 

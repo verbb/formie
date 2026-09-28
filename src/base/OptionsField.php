@@ -31,6 +31,7 @@ use verbb\formie\options\OptionSourceContext;
 use verbb\formie\options\OptionSourceFieldInterface;
 use verbb\formie\options\OptionSourceProviderHelper;
 use verbb\formie\options\OptionSourceValidationMode;
+use verbb\formie\references\ReferenceType;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -956,24 +957,14 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
     protected function defineReferenceValues(): array
     {
-        $primaryTypes = $this->definePrimaryOptionVariableSourceTypes();
+        $primaryTypes = array_values(array_unique(array_map(static function(string $type): ReferenceType {
+            return $type === FormieVariables::TYPE_CALCULATIONS ? ReferenceType::List : ReferenceType::from($type);
+        }, $this->definePrimaryOptionVariableSourceTypes()), SORT_REGULAR));
 
         return [
-            FieldReferenceValue::default([
-                'variableTypes' => $primaryTypes,
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'label',
-                'label' => Craft::t('formie', 'Label'),
-                'supportsClient' => false,
-                'variableTypes' => [FormieVariables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'value',
-                'label' => Craft::t('formie', 'Value'),
-                'supportsClient' => false,
-                'variableTypes' => $primaryTypes,
-            ]),
+            FieldReferenceValue::primary(types: $primaryTypes),
+            FieldReferenceValue::selector('label', Craft::t('formie', 'Label'), supportsBrowser: false),
+            FieldReferenceValue::selector('value', Craft::t('formie', 'Value'), $primaryTypes, supportsBrowser: false),
         ];
     }
 

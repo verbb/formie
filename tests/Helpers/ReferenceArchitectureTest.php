@@ -62,7 +62,18 @@ it('resolves persisted repeater children only in explicit current-row context', 
     $token = References::field($child->reference);
     expect(References::resolveValue($token, ReferenceContext::forSubmission($submission))->diagnostic)->toBe(ReferenceDiagnostic::MissingRowScope);
     expect(References::resolveValue($token, ReferenceContext::forSubmission($submission, rows: [$parent->reference => 1]))->requireValue())->toBe('Two');
-    expect(References::resolveValue(References::field($parent->reference, 'name', ['scope' => 'all']), ReferenceContext::forSubmission($submission))->requireValue())->toBe(['One', 'Two']);
+    expect(References::resolveValue(References::field($child->reference, metadata: ['scope' => 'all']), ReferenceContext::forSubmission($submission))->requireValue())->toBe(['One', 'Two']);
+});
+
+it('keeps unknown brace tokens literal and records known unresolved references', function() {
+    $context = new ReferenceContext();
+
+    expect(References::interpolateText('Hello {other:token}', $context))->toBe('Hello {other:token}')
+        ->and(References::interpolateText('Hello {field:deleted}', $context))->toBe('Hello ')
+        ->and($context->diagnostics->all())->toBe([
+            ['token' => '{field:deleted}', 'diagnostic' => ReferenceDiagnostic::MissingField->value],
+        ]);
+    expect(fn() => References::interpolateText('{other:token}', $context, ReferenceOutputContext::EmailHeader))->toThrow(ReferenceException::class);
 });
 
 it('keeps field identity stable across renaming and rejects cross-form references', function() {
@@ -112,6 +123,33 @@ it('keeps slot semantics independent of braces and migrates legacy mapping data 
         ->and($migrated['fieldMapping']['provider'])->toBe(['kind' => 'literal', 'value' => 'a+b'])
         ->and($migrated['apiKey'])->toBe('$PRIVATE')
         ->and(\verbb\formie\references\ReferenceMigration::integrationSlots($migrated))->toBe($migrated);
+});
+
+it('migrates beta parent-child tokens to stable nested field identities', function() {
+    $rows = [['fields' => [[
+        'type' => \verbb\formie\fields\SingleLineText::class,
+        'handle' => 'innerText',
+        'label' => 'Inner Text',
+    ]]]];
+    $form = formie()->form()
+        ->groupField('groupContent', ['rows' => $rows])
+        ->repeaterField('lineItems', ['rows' => $rows])
+        ->create();
+    $group = $form->getFieldByHandle('groupContent');
+    $repeater = $form->getFieldByHandle('lineItems');
+    $groupChild = $group->getFieldByHandle('innerText');
+    $repeaterChild = $repeater->getFieldByHandle('innerText');
+    $stored = implode(' / ', [
+        References::field((string)$group->reference, 'innerText'),
+        References::field((string)$repeater->reference, 'innerText', ['scope' => 'all', 'transform' => 'join']),
+    ]);
+    $migrated = \verbb\formie\references\ReferenceMigration::canonicalFieldTokens($form, $stored);
+
+    expect($migrated)->toBe(implode(' / ', [
+        References::field((string)$groupChild->reference),
+        References::field((string)$repeaterChild->reference, metadata: ['scope' => 'all', 'transform' => 'join']),
+    ]))
+        ->and(\verbb\formie\references\ReferenceMigration::canonicalFieldTokens($form, $migrated))->toBe($migrated);
 });
 
 it('uses one instance reference across conditions integrations headers redirects and the picker', function() {

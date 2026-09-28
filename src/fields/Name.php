@@ -31,6 +31,7 @@ use verbb\formie\models\Notification;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\query\NestedFieldQueryHelper;
+use verbb\formie\references\ReferenceCondition;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -289,7 +290,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
                 'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [
                         Variables::STATIC_FORM,
@@ -608,35 +609,11 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
     protected function defineReferenceValues(): array
     {
         return [
-            FieldReferenceValue::default([
-                'handle' => '__toString',
-                'label' => Craft::t('formie', 'Full Name'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'prefix',
-                'label' => Craft::t('formie', 'Prefix'),
-                'if' => 'useMultipleFields == true',
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'firstName',
-                'label' => Craft::t('formie', 'First Name'),
-                'if' => 'useMultipleFields == true',
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'middleName',
-                'label' => Craft::t('formie', 'Middle Name'),
-                'if' => 'useMultipleFields == true',
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'lastName',
-                'label' => Craft::t('formie', 'Last Name'),
-                'if' => 'useMultipleFields == true',
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
+            FieldReferenceValue::primary(Craft::t('formie', 'Full Name')),
+            FieldReferenceValue::selector('prefix', Craft::t('formie', 'Prefix'), when: ReferenceCondition::equals('useMultipleFields', true)),
+            FieldReferenceValue::selector('firstName', Craft::t('formie', 'First Name'), when: ReferenceCondition::equals('useMultipleFields', true)),
+            FieldReferenceValue::selector('middleName', Craft::t('formie', 'Middle Name'), when: ReferenceCondition::equals('useMultipleFields', true)),
+            FieldReferenceValue::selector('lastName', Craft::t('formie', 'Last Name'), when: ReferenceCondition::equals('useMultipleFields', true)),
         ];
     }
 

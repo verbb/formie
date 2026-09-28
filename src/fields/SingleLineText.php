@@ -17,6 +17,7 @@ use verbb\formie\fields\traits\TextLimitFieldTrait;
 use verbb\formie\fields\traits\UniqueValueFieldTrait;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\SlotTag;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -133,7 +134,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
                 'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [
                         Variables::STATIC_FORM,
@@ -298,9 +299,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
     protected function defineReferenceValues(): array
     {
         return [
-            FieldReferenceValue::default([
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
+            FieldReferenceValue::primary(types: [ReferenceType::Text]),
         ];
     }
 

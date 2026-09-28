@@ -195,7 +195,7 @@ These are most useful in custom module or plugin code, where you already have th
 
 ::: code-group
 ```php [PHP]
-$referenceValue = $submission->getFieldValueForReference('billingAddress', $notification);
+$referenceValue = $submission->getFieldValueForReference('billingAddress');
 $referenceBlockValue = $submission->getFieldValueForReferenceBlock('billingAddress', $notification);
 $conditionValue = $submission->getFieldValueForCondition('subscribe');
 $integrationValue = $submission->getFieldValueForIntegration('billingAddress', $integrationField, $integration, 'address');
@@ -203,7 +203,7 @@ $integrationValue = $submission->getFieldValueForIntegration('billingAddress', $
 ```
 
 ```twig [Twig]
-{% set referenceValue = submission.getFieldValueForReference('billingAddress', notification) %}
+{% set referenceValue = submission.getFieldValueForReference('billingAddress') %}
 {% set referenceBlockValue = submission.getFieldValueForReferenceBlock('billingAddress', notification) %}
 {% set conditionValue = submission.getFieldValueForCondition('subscribe') %}
 {% set integrationValue = submission.getFieldValueForIntegration('billingAddress', integrationField, integration, 'address') %}

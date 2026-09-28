@@ -86,7 +86,7 @@ const ExistingNotifications = ({ onClose }) => {
     const searchInputRef = useRef(null);
     const notificationVariableCategories = useVariableCategories({
         groups: ['fieldsVariables', 'staticFormVariables', 'staticGeneralVariables', 'staticSiteVariables'],
-        content: 'singleLine',
+        shapes: ['inline'],
     });
     const trimmedSearch = search.trim();
     const hasSearch = Boolean(trimmedSearch);

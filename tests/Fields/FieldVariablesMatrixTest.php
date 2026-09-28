@@ -3,8 +3,9 @@
 declare(strict_types=1);
 
 use verbb\formie\Formie;
-use verbb\formie\helpers\Variables;
 use verbb\formie\helpers\References;
+use verbb\formie\helpers\Variables;
+use verbb\formie\references\ReferenceShape;
 
 it('keeps registry-driven field variable sources aligned with registered fields', function (): void {
     $registered = Formie::$plugin->getFields()->getRegisteredFields();
@@ -12,15 +13,13 @@ it('keeps registry-driven field variable sources aligned with registered fields'
     expect($registered)->not->toBeEmpty();
 
     foreach ($registered as $class => $field) {
-        $sources = array_map(static function($source) {
-            return $source->toArray();
-        }, $field->variableSources());
+        $sources = array_map(static fn($source): array => $source->toArray(), $field->referenceValues());
 
         expect($sources)->toBeArray();
 
         foreach ($sources as $source) {
-            expect($source)->toHaveKey('selector');
-            expect($source)->toHaveKey('content');
+            expect($source)->toHaveKeys(['kind', 'selector']);
+            expect($source)->toHaveKey('shape');
             expect($source)->toHaveKey('types');
         }
     }
@@ -61,8 +60,12 @@ it('gives every registered transformation an independently specified result', fu
     expect($covered)->toBe($registered);
     foreach ($cases as [$template, $expected]) {
         foreach ($form->getFields() as $field) {
-            $selector = $field->handle === 'choices' ? ':item;scope=all' : '';
-            $template = str_replace('{field:' . $field->handle . ';', '{field:' . $field->reference . $selector . ';', $template);
+            if ($field->handle === 'choices') {
+                $child = $field->getFields()[0];
+                $template = str_replace('{field:choices;', '{field:' . $child->reference . ';scope=all;', $template);
+            } else {
+                $template = str_replace('{field:' . $field->handle . ';', '{field:' . $field->reference . ';', $template);
+            }
         }
         expect(References::parseContent($template, $submission))->toBe($expected);
     }
@@ -93,7 +96,7 @@ it('marks summary variables as aggregate content that cannot use regular transfo
     expect($summarySources)->toHaveCount(3);
 
     foreach ($summarySources as $source) {
-        expect($source['content'] ?? null)->toBe(Variables::CONTENT_ANY)
+        expect($source['shape'] ?? null)->toBe(ReferenceShape::Block->value)
             ->and($source['types'] ?? null)->toBe([])
             ->and($source['allowTransforms'] ?? null)->toBeFalse();
     }

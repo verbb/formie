@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
+use verbb\formie\content\FieldValueProjectionContext;
+use verbb\formie\content\SubmissionContentManager;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\References;
-use verbb\formie\models\Notification;
-use verbb\formie\models\ValueContext;
 
 it('keeps the runtime getter separate from convenience projections', function (): void {
     $form = formie()
@@ -19,9 +19,13 @@ it('keeps the runtime getter separate from convenience projections', function ()
         'email' => 'context@example.test',
     ])->save();
 
-    $notification = new Notification(['name' => 'n', 'handle' => 'n' . uniqid()]);
+    $projectionParameter = (new ReflectionMethod(SubmissionContentManager::class, 'getProjectedFieldValue'))->getParameters()[2];
+    $projectionType = $projectionParameter->getType();
 
     expect((new ReflectionMethod($submission, 'getFieldValue'))->getNumberOfParameters())->toBe(1)
+        ->and($projectionType)->toBeInstanceOf(ReflectionNamedType::class)
+        ->and($projectionType?->getName())->toBe(FieldValueProjectionContext::class)
+        ->and($projectionType?->allowsNull())->toBeTrue()
         ->and($submission->getFieldValue('fullName'))->toBe('Context Contract')
         ->and($submission->getFieldValueAsData('fullName'))->toBe('Context Contract')
         ->and($submission->getFieldValueAsJson('fullName'))->toBe('Context Contract');
@@ -74,10 +78,14 @@ it('resolves reference tokens and applies transforms via getFieldValue', functio
     $fullNameField = $form->getFieldByHandle('fullName');
     $groupField = $form->getFieldByHandle('groupContent');
     $repeaterField = $form->getFieldByHandle('lineItems');
+    $groupChild = $groupField?->getFieldByHandle('innerText');
+    $repeaterChild = $repeaterField?->getFieldByHandle('innerText');
 
     expect($fullNameField)->not->toBeNull()
         ->and($groupField)->not->toBeNull()
-        ->and($repeaterField)->not->toBeNull();
+        ->and($repeaterField)->not->toBeNull()
+        ->and($groupChild)->not->toBeNull()
+        ->and($repeaterChild)->not->toBeNull();
 
     $submission = formie()->submission($form)->with([
         'fullName' => 'JOHN SMITH',
@@ -89,15 +97,13 @@ it('resolves reference tokens and applies transforms via getFieldValue', functio
 
     $fullNameToken = References::field((string)$fullNameField->reference);
     $fullNameLowerToken = '{field:' . $fullNameField->reference . ';transform=lower}';
-    $groupToken = '{field:' . $groupField->reference . ':innerText}';
-    $repeaterToken = '{field:' . $repeaterField->reference . ':innerText;scope=first}';
-    $repeaterLegacyToken = '{field:' . $repeaterField->reference . ':0:innerText}';
+    $groupToken = References::field((string)$groupChild->reference);
+    $repeaterToken = References::field((string)$repeaterChild->reference, metadata: ['scope' => 'first']);
 
     expect($submission->getFieldValue($fullNameToken))->toBe('JOHN SMITH')
         ->and($submission->getFieldValue($fullNameLowerToken))->toBe('john smith')
         ->and($submission->getFieldValue($groupToken))->toBe('Group Token Value')
         ->and($submission->getFieldValue($repeaterToken))->toBe('Row One Token Value')
-        ->and($submission->getFieldValue($repeaterLegacyToken))->toBe('Row One Token Value')
         ->and($submission->getFieldValue('{submission:id}'))->toBe($submission->id)
         ->and($submission->getFieldValue('{form:handle}'))->toBe($form->handle);
 });

@@ -3,8 +3,7 @@ import useAppStore from '@form-builder/hooks/useAppStore';
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
 import { getFieldReferenceOptions } from '@form-builder/hooks/useFormTools';
 
-const CONTENT_ANY = 'any';
-const CONTENT_SINGLE_LINE = 'singleLine';
+const SHAPE_INLINE = 'inline';
 const GROUP_FIELDS = 'fieldsVariables';
 const GROUP_DISPATCH = 'dispatchVariables';
 
@@ -73,7 +72,7 @@ const buildDispatchVariableOptions = (formValues = {}) => {
             label: property.label,
             value: `{dispatch:${handle}:${property.key}}`,
             types: property.types,
-            content: CONTENT_SINGLE_LINE,
+            shape: SHAPE_INLINE,
         })),
     }));
 };
@@ -157,12 +156,8 @@ const resolveGroupSections = (variableConfig, config) => {
     return sections;
 };
 
-const getItemContent = (item) => {
-    if (typeof item?.content === 'string' && item.content) {
-        return item.content;
-    }
-
-    return CONTENT_SINGLE_LINE;
+const getItemShape = (item) => {
+    return item?.shape === 'block' ? 'block' : SHAPE_INLINE;
 };
 
 const getItemTypes = (item) => {
@@ -170,16 +165,16 @@ const getItemTypes = (item) => {
         return item.types;
     }
 
-    return getItemContent(item) === CONTENT_SINGLE_LINE ? ['text'] : [];
+    return getItemShape(item) === SHAPE_INLINE ? ['text'] : [];
 };
 
 const filterPickerItems = (items = [], variableConfig = {}) => {
     const requestedTypes = Array.isArray(variableConfig?.types) ? variableConfig.types : [];
-    const requestedContent = variableConfig?.content || CONTENT_ANY;
+    const requestedShapes = Array.isArray(variableConfig?.shapes) ? variableConfig.shapes : [];
 
     const itemMatches = (item) => {
-        const itemMode = getItemContent(item);
-        if (requestedContent && requestedContent !== CONTENT_ANY && itemMode !== requestedContent) {
+        const itemShape = getItemShape(item);
+        if (requestedShapes.length && !requestedShapes.includes(itemShape)) {
             return false;
         }
 

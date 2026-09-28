@@ -1,11 +1,10 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\fields\definitions\FieldClientRenderedDefinition;
 use verbb\formie\fields\definitions\FieldConditions;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\fields\definitions\FieldReferences;
-use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\models\BrowserModule;
@@ -60,16 +59,31 @@ trait FieldDefinitionTrait
         ));
     }
 
-    // Reference selectors feed token UIs and server-side variable resolution.
-    public function references(): FieldReferences
+    /**
+     * One declaration drives runtime resolution, field selection, and variable pickers.
+     *
+     * @return FieldReferenceValue[]
+     */
+    public function referenceValues(): array
     {
-        return $this->referenceDefinition();
-    }
+        $values = [];
+        $hasPrimary = false;
 
-    // Variable sources are usually derived from reference values rather than authored separately.
-    public function variableSources(): array
-    {
-        return $this->variableSourceDefinitions();
+        foreach ($this->defineReferenceValues() as $value) {
+            if (!$value instanceof FieldReferenceValue) {
+                throw new \UnexpectedValueException(sprintf('%s::defineReferenceValues() must return FieldReferenceValue objects.', static::class));
+            }
+
+            $key = $value->isPrimary() ? '__primary' : $value->selector;
+            $values[$key] = $value;
+            $hasPrimary = $hasPrimary || $value->isPrimary();
+        }
+
+        if (!$hasPrimary && $this->defineAllowPrimaryReference()) {
+            $values = ['__primary' => FieldReferenceValue::primary(), ...$values];
+        }
+
+        return array_values($values);
     }
 
     // Conditions are normalized once here so browser payloads and rendered fields stay aligned.
@@ -100,99 +114,6 @@ trait FieldDefinitionTrait
     protected function defineBrowserModuleConfig(): array
     {
         return [];
-    }
-
-    // Build the reference/selector contract once, then let UIs and token resolution consume it.
-    protected function referenceDefinition(): FieldReferences
-    {
-        $values = $this->referenceValueDefinitions();
-        $defaultValue = $this->_findDefaultReferenceValue($values);
-        $selectors = [];
-
-        foreach ($values as $value) {
-            $selector = $value->toReferenceSelectorDefinition();
-
-            if ($selector !== null) {
-                $selectors[] = $selector;
-            }
-        }
-
-        return new FieldReferences([
-            'allowPrimary' => $this->defineAllowPrimaryReference(),
-            'primaryCondition' => $defaultValue?->condition,
-            'primaryTokenSuffix' => $defaultValue?->handle ?: null,
-            'allowNested' => $this->defineAllowNestedReference(),
-            'nestedMode' => $this->defineNestedReferenceMode(),
-            'selectors' => $selectors,
-        ]);
-    }
-
-    // Variable pickers and reference helpers both originate from the same value definitions.
-    protected function variableSourceDefinitions(): array
-    {
-        $sources = [];
-        $allowPrimary = $this->defineAllowPrimaryReference();
-
-        foreach ($this->referenceValueDefinitions() as $value) {
-            if ($allowPrimary && $value->default) {
-                $source = $value->toDefaultVariableSourceDefinition();
-
-                if ($source !== null) {
-                    $sources[] = $source;
-                }
-            }
-
-            $source = $value->toSelectorVariableSourceDefinition();
-
-            if ($source !== null) {
-                $sources[] = $source;
-            }
-        }
-
-        $deduped = [];
-
-        foreach ($sources as $source) {
-            $key = $source->selector === '' ? '__primary' : $source->selector;
-            $deduped[$key] = $source;
-        }
-
-        return array_values($deduped);
-    }
-
-    // Normalize and dedupe author-defined values so downstream consumers see one stable shape.
-    protected function referenceValueDefinitions(): array
-    {
-        $values = [];
-        $defaultValueKey = null;
-
-        foreach ($this->defineReferenceValues() as $value) {
-            $value = $value instanceof FieldReferenceValue ? $value : FieldReferenceValue::fromArray($value);
-            $key = $value->handle === '' ? '__default' : $value->handle;
-            $values[$key] = $value;
-
-            if ($value->default) {
-                $defaultValueKey = $key;
-            }
-        }
-
-        if ($defaultValueKey !== null) {
-            foreach ($values as $key => $value) {
-                $values[$key] = FieldReferenceValue::fromArray([...get_object_vars($value), 'default' => $key === $defaultValueKey]);
-            }
-        }
-
-        return array_values($values);
-    }
-
-    protected function _findDefaultReferenceValue(array $values): ?FieldReferenceValue
-    {
-        foreach ($values as $value) {
-            if ($value->default) {
-                return $value;
-            }
-        }
-
-        return null;
     }
 
     // Conditions remain field-authored config until we have a form context to normalize against.
@@ -249,21 +170,11 @@ trait FieldDefinitionTrait
         return true;
     }
 
-    protected function defineAllowNestedReference(): bool
-    {
-        return false;
-    }
-
-    protected function defineNestedReferenceMode(): string
-    {
-        return 'none';
-    }
-
-    // Declare the values a field exposes to references and variable pickers.
-    // Use FieldReferenceValue::default() for the top-level field value and
-    // FieldReferenceValue::property() for named sub-values like "__toString" or "firstName".
-    // variableTypes describes how the value appears to variable-picker consumers.
-    // Add an "if" expression when a value only exists for certain field settings.
+    /**
+     * Declare the primary value and any explicitly supported selectors.
+     *
+     * @return FieldReferenceValue[]
+     */
     protected function defineReferenceValues(): array
     {
         return [];

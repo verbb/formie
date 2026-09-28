@@ -601,46 +601,14 @@ class Address extends FixedParentField implements PreviewableFieldInterface
     protected function defineReferenceValues(): array
     {
         return [
-            FieldReferenceValue::default([
-                'handle' => '__toString',
-                'label' => Craft::t('formie', 'Formatted Address'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'address1',
-                'label' => Craft::t('formie', 'Address 1'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'address2',
-                'label' => Craft::t('formie', 'Address 2'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'address3',
-                'label' => Craft::t('formie', 'Address 3'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'city',
-                'label' => Craft::t('formie', 'City'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'state',
-                'label' => Craft::t('formie', 'State / Province'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'zip',
-                'label' => Craft::t('formie', 'ZIP / Postal Code'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
-            FieldReferenceValue::property([
-                'handle' => 'country',
-                'label' => Craft::t('formie', 'Country'),
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
+            FieldReferenceValue::primary(Craft::t('formie', 'Formatted Address')),
+            FieldReferenceValue::selector('address1', Craft::t('formie', 'Address 1')),
+            FieldReferenceValue::selector('address2', Craft::t('formie', 'Address 2')),
+            FieldReferenceValue::selector('address3', Craft::t('formie', 'Address 3')),
+            FieldReferenceValue::selector('city', Craft::t('formie', 'City')),
+            FieldReferenceValue::selector('state', Craft::t('formie', 'State / Province')),
+            FieldReferenceValue::selector('zip', Craft::t('formie', 'ZIP / Postal Code')),
+            FieldReferenceValue::selector('country', Craft::t('formie', 'Country')),
         ];
     }
 

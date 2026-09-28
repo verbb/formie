@@ -5,7 +5,6 @@ declare(strict_types=1);
 use verbb\formie\fields\Email;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\References;
-use verbb\formie\helpers\RepeaterReferenceHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\integrations\crm\HubSpot;
 use verbb\formie\models\IntegrationField;
@@ -13,11 +12,11 @@ use verbb\formie\models\Notification;
 use verbb\formie\services\Emails;
 
 it('parses repeater scope metadata from reference tokens', function (): void {
-    $expr = References::parseReferenceExpression('{field:attendees:email;scope=all}');
+    $expr = References::parseReferenceExpression('{field:emailReference;scope=all}');
 
     expect($expr->isValid)->toBeTrue()
-        ->and($expr->identifier)->toBe('attendees')
-        ->and($expr->selector)->toBe('email')
+        ->and($expr->identifier)->toBe('emailReference')
+        ->and($expr->selector)->toBe('')
         ->and($expr->transformerParams['scope'] ?? null)->toBe('all');
 });
 
@@ -36,7 +35,9 @@ it('resolves repeater sub-field references by scope', function (): void {
         ->create();
 
     $repeaterField = $form->getFieldByHandle('lineItems');
-    expect($repeaterField)->not->toBeNull();
+    $childField = $repeaterField?->getFieldByHandle('innerText');
+    expect($repeaterField)->not->toBeNull()
+        ->and($childField)->not->toBeNull();
 
     $submission = formie()->submission($form)->with([
         'lineItems' => [
@@ -46,13 +47,12 @@ it('resolves repeater sub-field references by scope', function (): void {
         ],
     ])->save();
 
-    $ref = (string)$repeaterField->reference;
+    $ref = (string)$childField->reference;
 
-    expect($submission->getFieldValue(References::field($ref, 'innerText', ['scope' => 'first'])))->toBe('Row One')
-        ->and($submission->getFieldValue(References::field($ref, 'innerText', ['scope' => 'last'])))->toBe('Row Three')
-        ->and($submission->getFieldValue(References::field($ref, 'innerText', ['scope' => 'all'])))->toBe(['Row One', 'Row Two', 'Row Three'])
-        ->and($submission->getFieldValue(References::field($ref, 'innerText', ['scope' => 'count'])))->toBe(3)
-        ->and($submission->getFieldValue('{field:' . $ref . ':0:innerText}'))->toBe('Row One');
+    expect($submission->getFieldValue(References::field($ref, metadata: ['scope' => 'first'])))->toBe('Row One')
+        ->and($submission->getFieldValue(References::field($ref, metadata: ['scope' => 'last'])))->toBe('Row Three')
+        ->and($submission->getFieldValue(References::field($ref, metadata: ['scope' => 'all'])))->toBe(['Row One', 'Row Two', 'Row Three'])
+        ->and($submission->getFieldValue(References::field($ref, metadata: ['scope' => 'count'])))->toBe(3);
 });
 
 it('applies array transforms to repeater scope=all values', function (): void {
@@ -70,7 +70,9 @@ it('applies array transforms to repeater scope=all values', function (): void {
         ->create();
 
     $repeaterField = $form->getFieldByHandle('lineItems');
-    $ref = (string)$repeaterField->reference;
+    $childField = $repeaterField?->getFieldByHandle('innerText');
+    expect($childField)->not->toBeNull();
+    $ref = (string)$childField->reference;
 
     $submission = formie()->submission($form)->with([
         'lineItems' => [
@@ -79,7 +81,7 @@ it('applies array transforms to repeater scope=all values', function (): void {
         ],
     ])->save();
 
-    $token = References::field($ref, 'innerText', ['scope' => 'all', 'transform' => 'join', 'separator' => '|']);
+    $token = References::field($ref, metadata: ['scope' => 'all', 'transform' => 'join', 'separator' => '|']);
 
     expect($submission->getFieldValue($token))->toBe('Alpha|Beta');
 });
@@ -99,7 +101,9 @@ it('expands repeater email scope=all into notification recipient lists', functio
         ->create();
 
     $repeaterField = $form->getFieldByHandle('guests');
-    $ref = (string)$repeaterField->reference;
+    $childField = $repeaterField?->getFieldByHandle('guestEmail');
+    expect($childField)->not->toBeNull();
+    $ref = (string)$childField->reference;
 
     $submission = formie()->submission($form)->with([
         'guests' => [
@@ -109,7 +113,7 @@ it('expands repeater email scope=all into notification recipient lists', functio
     ])->save();
 
     $notification = new Notification(['name' => 'Guests', 'handle' => 'guests' . uniqid()]);
-    $token = References::field($ref, 'guestEmail', ['scope' => 'all']);
+    $token = References::field($ref, metadata: ['scope' => 'all']);
     $parsed = References::parseListContent($token, $submission, ['notification' => $notification]);
 
     expect($parsed)->toBe('one@example.test, two@example.test');
@@ -130,7 +134,9 @@ it('maps repeater scope=all values through integrations', function (): void {
         ->create();
 
     $repeaterField = $form->getFieldByHandle('attendees');
-    $ref = (string)$repeaterField->reference;
+    $childField = $repeaterField?->getFieldByHandle('company');
+    expect($childField)->not->toBeNull();
+    $ref = (string)$childField->reference;
 
     $submission = formie()->submission($form)->with([
         'attendees' => [
@@ -141,7 +147,7 @@ it('maps repeater scope=all values through integrations', function (): void {
 
     $integration = new HubSpot(['name' => 'HubSpot', 'handle' => 'hubspot']);
     $integrationField = new IntegrationField(['type' => IntegrationField::TYPE_STRING]);
-    $token = References::field($ref, 'company', ['scope' => 'all', 'transform' => 'join']);
+    $token = References::field($ref, metadata: ['scope' => 'all', 'transform' => 'join']);
 
     expect($integration->getMappedFieldValue($token, $submission, $integrationField))->toBe('Acme, Beta Corp');
 });
@@ -161,7 +167,9 @@ it('stringifies repeater scope=all and custom row values in notification content
         ->create();
 
     $repeaterField = $form->getFieldByHandle('lineItems');
-    $ref = (string)$repeaterField->reference;
+    $childField = $repeaterField?->getFieldByHandle('innerText');
+    expect($childField)->not->toBeNull();
+    $ref = (string)$childField->reference;
 
     $submission = formie()->submission($form)->with([
         'lineItems' => [
@@ -173,8 +181,8 @@ it('stringifies repeater scope=all and custom row values in notification content
         ],
     ])->save();
 
-    $allToken = References::field($ref, 'innerText', ['scope' => 'all']);
-    $customToken = References::field($ref, 'innerText', ['scope' => 'rows', 'rows' => '1,3,5']);
+    $allToken = References::field($ref, metadata: ['scope' => 'all']);
+    $customToken = References::field($ref, metadata: ['scope' => 'rows', 'rows' => '1,3,5']);
 
     expect(References::parseContent("all: {$allToken}", $submission))->toBe('all: a, b, c, d, e')
         ->and(References::parseContent("custom: {$customToken}", $submission))->toBe('custom: a, c, e');
@@ -195,7 +203,9 @@ it('diagnoses repeater sub-field tokens without scope metadata', function (): vo
         ->create();
 
     $repeaterField = $form->getFieldByHandle('lineItems');
-    $ref = (string)$repeaterField->reference;
+    $childField = $repeaterField?->getFieldByHandle('innerText');
+    expect($childField)->not->toBeNull();
+    $ref = (string)$childField->reference;
 
     $submission = formie()->submission($form)->with([
         'lineItems' => [
@@ -203,6 +213,6 @@ it('diagnoses repeater sub-field tokens without scope metadata', function (): vo
         ],
     ])->save();
 
-    expect(RepeaterReferenceHelper::requiresScope($submission, $ref, 'innerText'))->toBeTrue()
-        ->and(References::resolveValue(References::field($ref, 'innerText'), \verbb\formie\references\ReferenceContext::forSubmission($submission))->diagnostic)->toBe(\verbb\formie\references\ReferenceDiagnostic::MissingRowScope);
+    expect(References::resolveValue(References::field($ref), \verbb\formie\references\ReferenceContext::forSubmission($submission))->diagnostic)
+        ->toBe(\verbb\formie\references\ReferenceDiagnostic::MissingRowScope);
 });

@@ -113,12 +113,11 @@ it('exposes granular range reference selectors for variable pickers', function (
         'displayType' => 'datePicker',
     ]);
 
-    $selectorHandles = array_map(
-        static fn($selector) => $selector->handle,
-        $field->references()->selectors,
-    );
+    $values = $field->referenceValues();
+    $selectorHandles = array_values(array_filter(array_map(static fn($value) => $value->selector, $values)));
 
-    expect($field->references()->primaryTokenSuffix)->toBe('__toString')
+    expect($values[0]->isPrimary())->toBeTrue()
+        ->and($values[0]->label)->toBe('Formatted Date')
         ->and($selectorHandles)->toContain(
             'start',
             'end',
@@ -130,30 +129,30 @@ it('exposes granular range reference selectors for variable pickers', function (
 
     $labelsByHandle = [];
 
-    foreach ($field->references()->selectors as $selector) {
-        $labelsByHandle[$selector->handle] = $selector->label;
+    foreach ($values as $value) {
+        $labelsByHandle[$value->selector ?? '__primary'] = $value->label;
     }
 
-    expect($labelsByHandle['__toString'])->toBe('Formatted Date')
+    expect($labelsByHandle['__primary'])->toBe('Formatted Date')
         ->and($labelsByHandle['startDate'])->toBe('Start Date')
         ->and($labelsByHandle['endDate'])->toBe('End Date');
 });
 
 it('includes range and single date reference selectors in field type config', function (): void {
     $field = new Date();
-    $selectors = $field->getFieldTypeConfig()['referenceConfig']['selectors'] ?? [];
-    $handles = array_column($selectors, 'handle');
+    $selectors = $field->getFieldTypeConfig()['referenceValues'] ?? [];
+    $handles = array_column($selectors, 'selector');
 
     expect($handles)->toContain('startDate', 'endDate', 'date', 'time');
 
     $conditionsByHandle = [];
 
     foreach ($selectors as $selector) {
-        $conditionsByHandle[$selector['handle']] = $selector['condition'] ?? null;
+        $conditionsByHandle[$selector['selector'] ?? '__primary'] = $selector['when'] ?? null;
     }
 
-    expect($conditionsByHandle['startDate'])->toBe('collectMode == "range" && displayType == "datePicker"')
-        ->and($conditionsByHandle['date'])->toBe('displayType == "calendar" || (displayType == "datePicker" && collectMode != "range")');
+    expect($conditionsByHandle['startDate']['operator'])->toBe('all')
+        ->and($conditionsByHandle['date']['operator'])->toBe('any');
 });
 
 it('does not expose range-only reference selectors on single date fields', function (): void {
@@ -164,14 +163,16 @@ it('does not expose range-only reference selectors on single date fields', funct
 
     $conditionsByHandle = [];
 
-    foreach ($field->references()->selectors as $selector) {
-        $conditionsByHandle[$selector->handle] = $selector->condition;
+    foreach ($field->referenceValues() as $value) {
+        if ($value->selector) {
+            $conditionsByHandle[$value->selector] = $value->when;
+        }
     }
 
-    expect($conditionsByHandle['date'])->toContain('collectMode != "range"')
-        ->and($conditionsByHandle['time'])->toContain('collectMode != "range"')
-        ->and($conditionsByHandle['startDate'])->toContain('collectMode == "range"')
-        ->and($conditionsByHandle['endDate'])->toContain('collectMode == "range"');
+    expect($conditionsByHandle['date']->matches($field))->toBeTrue()
+        ->and($conditionsByHandle['time']->matches($field))->toBeTrue()
+        ->and($conditionsByHandle['startDate']->matches($field))->toBeFalse()
+        ->and($conditionsByHandle['endDate']->matches($field))->toBeFalse();
 });
 
 it('generates fake email preview values for date ranges', function (): void {

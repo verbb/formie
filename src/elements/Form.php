@@ -2956,7 +2956,7 @@ class Form extends Element implements FormInterface
                 'instructions' => Craft::t('formie', 'Enter the format of the auto-generated submission titles. If left blank, the date/time of submission will be used.'),
                 'name' => 'settings.submissionTitleFormat',
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [
                         Variables::STATIC_FIELDS,
@@ -2993,7 +2993,7 @@ class Form extends Element implements FormInterface
                 'instructions' => Craft::t('formie', 'These events are used on any page that enables client events but does not define its own events.'),
                 'mode' => 'formDefaults',
                 'variableConfig' => [
-                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [
                         Variables::STATIC_FIELDS,
@@ -3392,7 +3392,7 @@ class Form extends Element implements FormInterface
                         'instructions' => Craft::t('formie', 'Configure one or more analytics events to push after a successful page submit. Values support field references and other Formie variables.'),
                         'mode' => 'page',
                         'variableConfig' => [
-                            'content' => Variables::CONTENT_SINGLE_LINE,
+                            'shapes' => ['inline'],
                             'types' => [Variables::TYPE_TEXT],
                             'groups' => [
                                 Variables::STATIC_FIELDS,

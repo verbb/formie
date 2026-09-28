@@ -58,7 +58,7 @@ Some contexts support transforms and extra metadata on the token body:
 
 ```text
 {timestamp;transform=format;preset=isoDate}
-{field:a1b2c3:email;scope=all}
+{field:child-reference;scope=all}
 ```
 
 The variable picker configures these for you. When building tokens manually, match the picker output. See [Calculations](/fields/calculations) for transform examples on field references.
@@ -166,7 +166,7 @@ Field values use a **stable field reference**, not the field handle. Each field 
 {{ craft.formie.refField(form, 'address', 'city') }}
 ```
 
-Some fields expose multiple selectors (for example Name, Address, Date/Time, Table, and Repeater columns). Use the variable picker on that field in the form builder to see which selectors are available.
+Some fields expose multiple selectors, such as Name, Address, Date/Time and Table columns. Nested Group and Repeater fields use the child field’s own stable reference rather than a selector on the parent. Repeater children also include an explicit `scope`, such as `{field:child-reference;scope=all}`. Use the Variable Picker to see the values and scopes available for the current field.
 
 ::: warning
 Do not type `{field:myFieldHandle}`. Handles are for templates and `refField()` — stored tokens must use the field reference.
@@ -223,8 +223,8 @@ use verbb\formie\helpers\References;
 
 // Build a token
 References::token('submission', 'uid');
-References::field('a1b2c3', 'email');
-References::token('field', 'a1b2c3', 'email', ['scope' => 'all']);
+References::field('address-reference', 'city');
+References::field('repeater-child-reference', metadata: ['scope' => 'all']);
 
 // Resolve a token against a submission
 References::parseContent('{submission:uid}', $submission);
@@ -284,6 +284,8 @@ The Variable Picker's field mode stores an exact reference. Its custom value edi
 
 The grammar uses `{source:identifier:selector;key=value|default}`. The selector applies to fields. `transform` names a registered transform; `scope`, `index` and `rows` select collection values. Metadata values and defaults are percent-encoded by the serializer, so `;`, `|`, braces, plus signs and percent signs round-trip. Version 1 is implicit; `;v=1` is accepted and unsupported versions produce an invalid-expression diagnostic. Use `References::token()` or `ReferenceParser::serialize()` instead of concatenating untrusted strings.
 
-Exact field references identify one persisted form-field instance. Handles are secondary, form-local selectors; ambiguous handles fail instead of choosing the first match. Fixed child fields have their own references. A direct repeater-child reference requires `ReferenceContext::forSubmission($submission, rows: [$parentReference => 0])`, or select a collection through its parent token. Row indices are zero-based; the picker displays one-based row numbers. Table columns use parent selectors and never become synthetic persisted fields.
+Exact field references identify one persisted form-field instance. Handles are secondary, form-local identifiers; ambiguous handles fail instead of choosing the first match. Fixed and nested child fields have their own references. A repeater-child reference must either declare an explicit collection scope in its token (`first`, `last`, `index`, `all`, `count` or `rows`) or receive the current row through `ReferenceContext::forSubmission($submission, rows: [$parentReference => 0])`. Row indices are zero-based; the picker displays one-based row numbers. Table columns remain selectors on their persisted Table field and never become synthetic fields.
 
 Deleted fields produce `missingField`; unscoped repeater children produce `missingRowScope`; undeclared selectors produce `invalidSelector`. Unknown sources and transforms produce `unknownSource` and `unknownTransform`. A default replaces a successfully resolved empty value (null, an empty string or list, or a field value that declares itself empty). Zero and false remain values. It does not hide a deleted field, missing extension or forbidden source.
+
+Plain-text and HTML interpolation leave an unknown, non-Formie brace token unchanged. An unresolved token for a known Formie source records a warning on `ReferenceContext::diagnostics` and contributes its authored default or an empty string. Exact-value resolution and strict `EmailHeader`, `UrlComponent` and `StructuredData` output contexts throw instead of silently weakening the consumer contract.

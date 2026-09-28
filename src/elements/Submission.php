@@ -5,9 +5,11 @@ use verbb\formie\Formie;
 use verbb\formie\base\Captcha;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
+use verbb\formie\content\FieldValueProjectionContext;
 use verbb\formie\content\SubmissionContentManager;
 use verbb\formie\content\SubmissionContentNormalizer;
 use verbb\formie\content\SubmissionContentState;
@@ -29,9 +31,10 @@ use verbb\formie\helpers\Table;
 use verbb\formie\helpers\ValidationHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\FieldLayout as FormLayout;
+use verbb\formie\models\IntegrationField;
+use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SubmissionStatus;
-use verbb\formie\models\ValueContext;
 use verbb\formie\records\Submission as SubmissionRecord;
 use verbb\formie\workflow\WorkflowContext;
 use Craft;
@@ -1034,37 +1037,37 @@ class Submission extends Element
 
     public function getFieldValueAsString(string $fieldKey): mixed
     {
-        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::string());
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, FieldValueProjectionContext::string());
     }
 
     public function getFieldValueAsData(string $fieldKey): mixed
     {
-        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::data());
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, FieldValueProjectionContext::data());
     }
 
     public function getFieldValueForExport(string $fieldKey): mixed
     {
-        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::export());
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, FieldValueProjectionContext::export());
     }
 
     public function getFieldValueForSummary(string $fieldKey): mixed
     {
-        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::summary());
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, FieldValueProjectionContext::summary());
     }
 
-    public function getFieldValueForReference(string $fieldKey, mixed $notification = null): mixed
+    public function getFieldValueForReference(string $fieldKey, ?Notification $notification = null): mixed
     {
-        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::reference($notification));
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, FieldValueProjectionContext::reference());
     }
 
-    public function getFieldValueForReferenceBlock(string $fieldKey, mixed $notification): mixed
+    public function getFieldValueForReferenceBlock(string $fieldKey, Notification $notification): mixed
     {
-        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::referenceBlock($notification));
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, FieldValueProjectionContext::referenceBlock($notification));
     }
 
-    public function getFieldValueForIntegration(string $fieldKey, mixed $integrationField, mixed $integration, string $integrationFieldKey = ''): mixed
+    public function getFieldValueForIntegration(string $fieldKey, IntegrationField $integrationField, IntegrationInterface $integration, string $integrationFieldKey = ''): mixed
     {
-        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::integration($integrationField, $integration, $integrationFieldKey));
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, FieldValueProjectionContext::integration($integrationField, $integration, $integrationFieldKey));
     }
 
     public function getFieldValueForCondition(string $fieldKey): mixed
@@ -1072,7 +1075,7 @@ class Submission extends Element
         // Conditions must always route through the same projection path as the
         // standalone evaluators so builder rules, Twig checks, and workflow
         // logic compare against one canonical representation.
-        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, ValueContext::condition());
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, FieldValueProjectionContext::condition());
     }
 
     public function getValuesAsString(): array

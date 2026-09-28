@@ -2,11 +2,12 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Field;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -21,6 +22,7 @@ use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -154,6 +156,33 @@ class Table extends Field
 
     // Public Methods
     // =========================================================================
+
+    public function referenceValues(): array
+    {
+        $values = [];
+        foreach ($this->columns as $id => $column) {
+            $types = match ($column['type'] ?? 'singleline') {
+                'number' => [ReferenceType::Number, ReferenceType::Text],
+                'email' => [ReferenceType::Email, ReferenceType::Text],
+                'url' => [ReferenceType::Url, ReferenceType::Text],
+                'date' => [ReferenceType::Date, ReferenceType::Text],
+                default => [ReferenceType::Text],
+            };
+            $values[] = FieldReferenceValue::selector(
+                (string)$id,
+                (string)($column['heading'] ?? $column['handle'] ?? $id),
+                $types,
+                meta: [
+                    'rowScoped' => true,
+                    'aliases' => array_values(array_filter([
+                        ($column['handle'] ?? '') !== (string)$id ? ($column['handle'] ?? '') : null,
+                    ], static fn(mixed $alias): bool => is_string($alias) && $alias !== '')),
+                ],
+            );
+        }
+
+        return $values;
+    }
 
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {

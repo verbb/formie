@@ -20,7 +20,7 @@ import {
 } from '@form-builder/utils/clientEventTemplates';
 
 const CLIENT_EVENT_VARIABLE_CONFIG = {
-    content: 'singleLine',
+    shapes: ['inline'],
     types: ['text', 'date', 'number'],
     groupFieldsByPage: true,
     groups: [

@@ -28,10 +28,7 @@ trait FieldFormBuilderTrait
         $newField = $this->getFormBuilderConfig();
         $configData = $this->getFieldTypeConfigData();
 
-        $referenceConfig = $this->references()->toConfigArray();
-        $variableSourceConfig = array_values(array_map(static function($source) {
-            return $source->toArray();
-        }, $this->variableSources()));
+        $referenceValues = array_map(static fn($value): array => $value->toArray(), $this->referenceValues());
         $baseTypeDefinition = static::getFieldTypeDefinition();
         $config = array_merge($baseTypeDefinition, [
             'preview' => $preview,
@@ -43,8 +40,7 @@ trait FieldFormBuilderTrait
             'labelPositions' => Formie::$plugin->getFields()->getLabelPositionsOptions($this),
             'instructionsPositions' => Formie::$plugin->getFields()->getInstructionsPositionsOptions($this),
             'errorMessagePositions' => Formie::$plugin->getFields()->getErrorMessagePositionsOptions($this),
-            'referenceConfig' => $referenceConfig,
-            'variableSourceConfig' => $variableSourceConfig,
+            'referenceValues' => $referenceValues,
 
             // Load in the regular field data, but for a new field
             'newField' => $newField,

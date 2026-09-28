@@ -26,18 +26,35 @@ final class FieldReferenceResolver
             throw new ReferenceException(ReferenceDiagnostic::MissingField);
         }
         $field = $entry['field'];
-        $path = $this->_scopedPath($entry['path'], $context);
-        $value = $context->submission->getFieldValue($path);
         $selector = $expression->selector;
         $params = $expression->transformerParams;
         $projection = $selector === '' && !isset($params['scope']) ? 'value' : 'none';
-        $selectors = array_map(static fn($item): string => $item->handle, $field->references()->selectors);
-        $definition = new ReferenceDefinition('field:' . $field->reference, $field->label, 'fields', $field->valueType(), $selectors, browser: true);
+        $referenceValue = $this->_referenceValue($field, $selector);
+        if (!$referenceValue || !$referenceValue->appliesTo($field)) {
+            throw new ReferenceException($selector === '' ? ReferenceDiagnostic::InvalidType : ReferenceDiagnostic::InvalidSelector);
+        }
+        $definition = new ReferenceDefinition(
+            'field:' . $field->reference,
+            $field->label,
+            'fields',
+            $field->valueType(),
+            browser: $referenceValue->supportsBrowser,
+            types: $referenceValue->types,
+            shape: $referenceValue->shape,
+            allowTransforms: $referenceValue->allowTransforms,
+        );
 
-        if (!$field instanceof RepeatableParentFieldInterface && !$field instanceof Table && (isset($params['scope']) || isset($params['rows']) || (isset($params['index']) && !$field instanceof ElementField))) {
+        if ($this->_hasRowMarker($entry) && isset($params['scope'])) {
+            [$value, $projection] = $this->_nestedCollection($entry, $selector, $params, $context);
+        } else {
+            $path = $this->_scopedPath($entry['path'], $context);
+            $value = $context->submission->getFieldValue($path);
+        }
+
+        if (!$this->_hasRowMarker($entry) && !$field instanceof RepeatableParentFieldInterface && !$field instanceof Table && (isset($params['scope']) || isset($params['rows']) || (isset($params['index']) && !$field instanceof ElementField))) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidRowScope);
         }
-        if ($field instanceof RepeatableParentFieldInterface || $field instanceof Table) {
+        if (!$this->_hasRowMarker($entry) && ($field instanceof RepeatableParentFieldInterface || $field instanceof Table)) {
             if ($selector !== '' || isset($params['scope'])) {
                 $rowCount = is_array($value) ? count($value) : 0;
                 $value = $this->_collection($field, $value, $selector, $params, $context);
@@ -50,28 +67,8 @@ final class FieldReferenceResolver
                     }
                 }
             }
-        } elseif ($selector !== '') {
-            if ($field instanceof ElementField) {
-                [$property] = ElementReferenceHelper::parseSelector($selector, $params);
-                if (!in_array($property, $selectors, true)) {
-                    throw new ReferenceException(ReferenceDiagnostic::InvalidSelector);
-                }
-                $value = ElementReferenceHelper::resolveFromValue($field, $value, $selector, $params);
-            } elseif ($field instanceof ParentFieldInterface) {
-                $childPath = $path . '.' . str_replace(':', '.', $selector);
-                $child = $this->findField($childPath, $context);
-                if (!$child && !in_array(str_replace(':', '.', $selector), $selectors, true)) {
-                    throw new ReferenceException(ReferenceDiagnostic::InvalidSelector);
-                }
-                $value = $context->submission->getFieldValue($childPath);
-                $field = $child['field'] ?? $field;
-                $projection = $child ? 'value' : 'none';
-            } else {
-                if (!in_array(str_replace(':', '.', $selector), $selectors, true)) {
-                    throw new ReferenceException(ReferenceDiagnostic::InvalidSelector);
-                }
-                $value = $context->submission->getFieldValue($path . '.' . str_replace(':', '.', $selector));
-            }
+        } elseif (!$this->_hasRowMarker($entry) && $selector !== '') {
+            $value = $this->_select($field, $value, $selector, $params, $context);
         }
         return new ResolvedReference($expression, $value, $definition, field: $field, fieldProjection: $projection);
     }
@@ -106,6 +103,73 @@ final class FieldReferenceResolver
                 $this->_index($field->getFields(), $field instanceof RepeatableParentFieldInterface ? [...$parts, ['row' => (string)$field->reference]] : $parts, $entries);
             }
         }
+    }
+
+    private function _referenceValue(FieldInterface $field, string $selector): ?object
+    {
+        foreach ($field->referenceValues() as $value) {
+            if ($value->matchesSelector($selector)) {
+                return $value;
+            }
+        }
+
+        return null;
+    }
+
+    private function _hasRowMarker(array $entry): bool
+    {
+        foreach ($entry['parts'] as $part) {
+            if (is_array($part)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function _nestedCollection(array $entry, string $selector, array $params, ReferenceContext $context): array
+    {
+        $markerIndex = null;
+        foreach ($entry['parts'] as $index => $part) {
+            if (is_array($part)) {
+                $markerIndex = $index;
+                break;
+            }
+        }
+        if ($markerIndex === null) {
+            throw new ReferenceException(ReferenceDiagnostic::InvalidRowScope);
+        }
+
+        $marker = $entry['parts'][$markerIndex];
+        $parent = $this->findField($marker['row'], $context)['field'] ?? null;
+        if (!$parent instanceof RepeatableParentFieldInterface) {
+            throw new ReferenceException(ReferenceDiagnostic::InvalidRowScope);
+        }
+
+        $parentPath = implode('.', array_slice($entry['parts'], 0, $markerIndex));
+        $childPath = implode('.', array_filter(array_slice($entry['parts'], $markerIndex + 1), 'is_string'));
+        $rows = $context->submission->getFieldValue($parentPath);
+        $value = $this->_collection($parent, $rows, $childPath, $params, $context);
+        $scope = $params['scope'] ?? '';
+        $collection = $scope === 'all' || ($scope === 'rows' && is_array($value) && array_is_list($value));
+
+        if ($selector !== '') {
+            $field = $entry['field'];
+            $value = $collection
+                ? array_map(fn(mixed $item): mixed => $this->_select($field, $item, $selector, $params, $context), $value)
+                : $this->_select($field, $value, $selector, $params, $context);
+        }
+
+        return [$value, $scope === 'count' ? 'none' : ($collection ? 'collection' : 'value')];
+    }
+
+    private function _select(FieldInterface $field, mixed $value, string $selector, array $params, ReferenceContext $context): mixed
+    {
+        if ($field instanceof ElementField) {
+            return ElementReferenceHelper::resolveFromValue($field, $value, $selector, $params);
+        }
+
+        return $context->submission->getContentManager()->resolvePathValue($value, str_replace(':', '.', $selector));
     }
 
     private function _scopedPath(string $path, ReferenceContext $context): string

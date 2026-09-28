@@ -28,6 +28,9 @@ final class ReferenceResolver
             $result = $expression->target === 'field' ? (new FieldReferenceResolver())->resolve($expression, $context) : (new ContextReferenceSource())->resolve($expression, $context);
             $value = $result->requireValue();
             if ($expression->transformerId !== '') {
+                if (!$result->definition->allowTransforms) {
+                    throw new ReferenceException(ReferenceDiagnostic::UnknownTransform);
+                }
                 if ($expression->target === 'custom' && !in_array($expression->transformerId, $result->definition->transforms, true)) {
                     throw new ReferenceException(ReferenceDiagnostic::UnknownTransform);
                 }
@@ -53,8 +56,27 @@ final class ReferenceResolver
                 return $match[0];
             }
             $result = $this->resolveValue($match[0], $context);
-            $value = $result->requireValue();
             $expression = $result->expression;
+            if ($result->diagnostic !== null) {
+                $strictOutput = in_array($outputContext, [
+                    ReferenceOutputContext::EmailHeader,
+                    ReferenceOutputContext::UrlComponent,
+                    ReferenceOutputContext::StructuredData,
+                ], true);
+
+                if ($result->diagnostic === ReferenceDiagnostic::UnknownSource && !$this->_knownTarget($expression->target) && !$strictOutput) {
+                    return $match[0];
+                }
+
+                if ($strictOutput) {
+                    $result->requireValue();
+                }
+
+                $context->diagnostics->add($match[0], $result->diagnostic);
+                return $expression->default;
+            }
+
+            $value = $result->requireValue();
             $summary = in_array($expression->target, ['allFields', 'allContentFields', 'allVisibleFields'], true);
             if ($result->field && $result->fieldProjection !== 'none') {
                 $field = $result->field;
@@ -131,6 +153,15 @@ final class ReferenceResolver
             throw new ReferenceException(ReferenceDiagnostic::InvalidType);
         }
         return Variables::applyVariableTransformer($value, $id, $expression->transformerParams);
+    }
+
+    private function _knownTarget(string $target): bool
+    {
+        return in_array($target, [
+            'field', 'form', 'submission', 'site', 'user', 'system', 'timestamp',
+            'allFields', 'allContentFields', 'allVisibleFields', 'env', 'metadata',
+            'report', 'dispatch', 'custom',
+        ], true);
     }
 
     private function _encode(mixed $value, ReferenceOutputContext $outputContext): string

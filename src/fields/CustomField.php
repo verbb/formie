@@ -17,6 +17,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
+use verbb\formie\references\ReferenceType;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -354,9 +355,7 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
     protected function defineReferenceValues(): array
     {
         return [
-            FieldReferenceValue::default([
-                'variableTypes' => [Variables::TYPE_TEXT],
-            ]),
+            FieldReferenceValue::primary(types: [ReferenceType::Text]),
         ];
     }
 }
