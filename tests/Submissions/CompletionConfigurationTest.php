@@ -199,13 +199,39 @@ it('preserves instance settings when refreshing a client session', function (): 
     });
 });
 
-it('maps beta snapshot handles and Formie 3 field aliases without accepting arbitrary properties', function (): void {
+it('adapts Formie 3 snapshots without accepting arbitrary properties or beta-only sections', function (): void {
     $form = formie()->form()->singleLineTextField('name')->create();
-    $decoded = SubmissionConfig::decode(['form' => ['submitAction' => 'url', 'redirectUrl' => '/legacy', 'requireUser' => false], 'fields' => ['name' => ['prePopulate' => 'visitor', 'columnPrefix' => 'bad']]], $form);
-    expect($decoded->form['completionBehavior'])->toBe('redirect')->and($decoded->form)->not->toHaveKey('requireUser')
-        ->and($decoded->fields[$form->getFieldByHandle('name')->uid])->toBe(['prefillQueryParam' => 'visitor']);
+    $decoded = SubmissionConfig::decode([
+        'form' => ['submitAction' => 'url', 'submitActionUrl' => '/legacy', 'requireUser' => false],
+        'fields' => ['name' => ['prePopulate' => 'visitor', 'columnPrefix' => 'bad']],
+        'forced' => [$form->getFieldByHandle('name')->uid => 'beta'],
+        'query' => ['utm_source' => 'beta'],
+    ], $form);
+    expect($decoded->form)->toMatchArray(['completionBehavior' => 'redirect', 'redirectUrl' => '/legacy'])
+        ->and($decoded->form)->not->toHaveKey('requireUser')
+        ->and($decoded->fields[$form->getFieldByHandle('name')->uid])->toBe(['prefillQueryParam' => 'visitor'])
+        ->and($decoded->forced)->toBe([])
+        ->and($decoded->query)->toBe([]);
     expect(\verbb\formie\helpers\RuntimeConfigurationMigration::migrate(['type' => \verbb\formie\fields\Hidden::class, 'settings' => ['defaultOption' => 'dateInt', 'prePopulate' => 'date']]))
         ->toBe(['type' => \verbb\formie\fields\Hidden::class, 'settings' => ['prefillQueryParam' => 'date', 'valueSource' => 'dateInt']]);
+});
+
+it('keeps versioned Formie 4 snapshots on UID and canonical setting contracts', function (): void {
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $field = $form->getFieldByHandle('name');
+    $decoded = SubmissionConfig::decode([
+        'version' => 1,
+        'form' => ['completionBehavior' => 'redirect', 'submitActionUrl' => '/legacy'],
+        'fields' => [
+            $field->uid => ['prefillQueryParam' => 'canonical', 'prePopulate' => 'legacy'],
+            'name' => ['required' => true],
+        ],
+        'forced' => [$field->uid => 'fixed'],
+    ], $form);
+
+    expect($decoded->form)->toBe(['completionBehavior' => 'redirect'])
+        ->and($decoded->fields)->toBe([$field->uid => ['prefillQueryParam' => 'canonical']])
+        ->and($decoded->forced)->toBe([$field->uid => 'fixed']);
 });
 
 it('enforces nested values and UID settings after reloading a durable submission', function (): void {

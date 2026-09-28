@@ -1,7 +1,11 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\base\Field;
+use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
+use verbb\formie\Formie;
+use verbb\formie\helpers\RuntimeConfigurationMigration;
 use verbb\formie\services\RuntimeConfiguration;
 
 final class SubmissionConfig
@@ -14,25 +18,25 @@ final class SubmissionConfig
         if ($data === []) {
             return new FormInstanceConfig();
         }
-        if (isset($data['version']) && $data['version'] !== 1) {
+
+        if (!array_key_exists('version', $data)) {
+            return self::_decodeFormie3($data, $form);
+        }
+
+        if ($data['version'] !== 1) {
             throw new \InvalidArgumentException('Unsupported submission configuration version.');
         }
-        $runtime = new RuntimeConfiguration();
+
         $fields = [];
         foreach ((array)($data['fields'] ?? []) as $identity => $settings) {
-            $field = $runtime->findField($form, (string)$identity, false);
+            $field = self::_findFieldByUid($form, (string)$identity);
             if ($field) {
-                // Legacy beta snapshots were handle keyed and could contain arbitrary
-                // properties. Decode only today's allowlisted durable subset.
-                $settings = \verbb\formie\helpers\RuntimeConfigurationMigration::migrate((array)$settings, get_class($field));
-                $fields[$field->uid] = array_intersect_key($settings, array_flip($field->runtimeOverridableSettings()));
+                $fields[$field->uid] = self::_filterFieldSettings($field, (array)$settings);
             }
         }
-        $formSettings = \verbb\formie\helpers\RuntimeConfigurationMigration::migrate((array)($data['form'] ?? []));
-        $formSettings = array_intersect_key($formSettings, array_flip(RuntimeConfiguration::FORM_SETTINGS));
-        if (isset($data['form']['integrations'])) {
-            $formSettings['integrations'] = \verbb\formie\Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings($data['form']['integrations'], false);
-        }
+
+        $formSettings = self::_filterFormSettings((array)($data['form'] ?? []));
+
         return new FormInstanceConfig($formSettings, $fields, (array)($data['pages'] ?? []),
             (array)($data['initial'] ?? []), (array)($data['forced'] ?? []),
             (array)($data['query'] ?? []), (array)($data['prefill'] ?? []),
@@ -50,5 +54,74 @@ final class SubmissionConfig
             return [];
         }
         return $data;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private static function _decodeFormie3(array $data, Form $form): FormInstanceConfig
+    {
+        $fields = [];
+        foreach ((array)($data['fields'] ?? []) as $handle => $settings) {
+            $field = self::_findFieldByHandle($form, (string)$handle);
+            if ($field) {
+                $settings = RuntimeConfigurationMigration::migrate((array)$settings, get_class($field));
+                $fields[$field->uid] = self::_filterFieldSettings($field, $settings);
+            }
+        }
+
+        $formSettings = RuntimeConfigurationMigration::migrate((array)($data['form'] ?? []));
+
+        // Formie 3 snapshots contained only form and handle-keyed field settings.
+        // Do not interpret unversioned Formie 4 beta sections as current config.
+        return new FormInstanceConfig(self::_filterFormSettings($formSettings), $fields);
+    }
+
+    private static function _findFieldByUid(Form $form, string $uid): ?Field
+    {
+        foreach ($form->getFieldsRecursively() as $field) {
+            if ($field->uid === $uid) {
+                return $field;
+            }
+        }
+
+        return null;
+    }
+
+    private static function _findFieldByHandle(Form $form, string $path): ?Field
+    {
+        $handles = explode('.', $path);
+        $handle = array_shift($handles);
+        if (!$handle) {
+            return null;
+        }
+
+        $field = $form->getFieldByHandle($handle);
+
+        foreach ($handles as $handle) {
+            if (!$field instanceof ParentFieldInterface) {
+                return null;
+            }
+
+            $field = $field->getFieldByHandle($handle);
+        }
+
+        return $field instanceof Field ? $field : null;
+    }
+
+    private static function _filterFieldSettings(Field $field, array $settings): array
+    {
+        return array_intersect_key($settings, array_flip($field->runtimeOverridableSettings()));
+    }
+
+    private static function _filterFormSettings(array $settings): array
+    {
+        $formSettings = array_intersect_key($settings, array_flip(RuntimeConfiguration::FORM_SETTINGS));
+        if (isset($settings['integrations'])) {
+            $formSettings['integrations'] = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings($settings['integrations'], false);
+        }
+
+        return $formSettings;
     }
 }
