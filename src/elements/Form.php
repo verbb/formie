@@ -1713,11 +1713,6 @@ class Form extends Element implements FormInterface
         return $event->tag;
     }
 
-    public function getFrontendTheme(): string
-    {
-        return $this->_getResolvedTheme()->mode;
-    }
-
     public function getThemeConfig(): array
     {
         return $this->_getResolvedTheme()->config;
@@ -1726,20 +1721,6 @@ class Form extends Element implements FormInterface
     public function getThemeConfigItem(string $key): array|bool|null
     {
         return $this->_getResolvedTheme()->getConfigItem($key);
-    }
-
-    public function getFrontendThemeClasses(): array
-    {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Use `getBrowserThemeClassMap()` instead.');
-
-        return $this->getBrowserThemeClassMap();
-    }
-
-    public function getFrontendThemeClassMap(): array
-    {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Use `getBrowserThemeClassMap()` instead.');
-
-        return $this->getBrowserThemeClassMap();
     }
 
     public function getBrowserThemeClassMap(): array

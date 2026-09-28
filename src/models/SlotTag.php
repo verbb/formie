@@ -28,7 +28,6 @@ class SlotTag extends Model
     public array $coreAttributes = [];
     public array $themeAttributes = [];
     public array $instanceAttributes = [];
-    public array $overrideAttributes = [];
     public array $prependContent = [];
     public array $appendContent = [];
     private array $_trustedAttributeOverrides = [];
@@ -51,11 +50,6 @@ class SlotTag extends Model
     public function instanceAttributes(array $attributes): self
     {
         return $this->mergeInstanceAttributes($attributes);
-    }
-
-    public function override(array $attributes): self
-    {
-        return $this->mergeOverrideAttributes($attributes);
     }
 
     public function setFromConfig(array $config, array $context = []): void
@@ -106,17 +100,7 @@ class SlotTag extends Model
             unset($themeAttributes['class']);
         }
 
-        $attributes = Html::mergeAttributes($themeAttributes, $this->instanceAttributes);
-        $attributes = Html::mergeAttributes($attributes, ArrayHelper::filterEmptyFalse($instanceAttributes));
-        $attributes = Html::mergeAttributes($attributes, $this->coreAttributes);
-        $attributes = Html::mergeAttributes($attributes, $this->overrideAttributes);
-        $attributes = Html::mergeAttributes($attributes, $this->_trustedAttributeOverrides);
-
-        foreach ($this->_trustedAttributeRemovals as $name) {
-            unset($attributes[$name]);
-        }
-
-        return ArrayHelper::filterEmptyFalse($attributes);
+        return $this->_composeAttributes($themeAttributes, $instanceAttributes);
     }
 
     public function captureTrustedEventResult(array $beforeAttributes): void
@@ -163,15 +147,6 @@ class SlotTag extends Model
         return $this;
     }
 
-    public function mergeOverrideAttributes(array $attributes): self
-    {
-        $this->overrideAttributes = Html::mergeAttributes($this->overrideAttributes, ArrayHelper::filterEmptyFalse($attributes));
-        $this->_syncAttributes();
-
-        return $this;
-    }
-
-
     // Private Methods
     // =========================================================================
 
@@ -197,10 +172,25 @@ class SlotTag extends Model
 
     private function _syncAttributes(): void
     {
-        $attributes = Html::mergeAttributes($this->themeAttributes, $this->instanceAttributes);
-        $attributes = Html::mergeAttributes($attributes, $this->coreAttributes);
-        $attributes = Html::mergeAttributes($attributes, $this->overrideAttributes);
+        $this->attributes = $this->_composeAttributes($this->themeAttributes);
+    }
 
-        $this->attributes = ArrayHelper::filterEmptyFalse($attributes);
+    private function _composeAttributes(array $themeAttributes, array $renderAttributes = []): array
+    {
+        $attributes = Html::mergeAttributes($themeAttributes, $this->instanceAttributes);
+        $attributes = Html::mergeAttributes($attributes, ArrayHelper::filterEmptyFalse($renderAttributes));
+        $attributes = Html::mergeAttributes($attributes, $this->coreAttributes);
+
+        // Event changes are deliberate expert overrides. Assign changed top-level
+        // values exactly so nested core attributes can also be replaced or removed.
+        foreach ($this->_trustedAttributeOverrides as $name => $value) {
+            $attributes[$name] = $value;
+        }
+
+        foreach ($this->_trustedAttributeRemovals as $name) {
+            unset($attributes[$name]);
+        }
+
+        return ArrayHelper::filterEmptyFalse($attributes);
     }
 }

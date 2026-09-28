@@ -23,7 +23,6 @@ it('embeds browser classes but never executable theme config on the form element
         ])));
 
         expect($tag?->coreAttributes['data']['formie-theme-config'] ?? null)->toBeNull()
-            ->and($tag?->coreAttributes['data']['formie-frontend-theme'] ?? null)->toBeNull()
             ->and($tag?->coreAttributes['data']['formie-theme-classes'] ?? null)->toBeString();
     } finally {
         Formie::$plugin->getRendering()->popRenderFrame();
@@ -57,7 +56,7 @@ it('binds Summary fragments to the issued immutable theme and ignores posted exe
     $html = WebRequestTestHelper::withWebRequestContext(function () use ($accessToken): string {
         Craft::$app->getRequest()->setBodyParams([
             'accessToken' => $accessToken,
-            'frontendTheme' => 'none',
+            'theme' => 'none',
             'themeConfig' => Json::encode([
                 'fieldSummaryLabel' => [
                     'tag' => 'script',

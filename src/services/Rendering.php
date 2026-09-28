@@ -595,9 +595,17 @@ class Rendering extends Component
 
         if ($type !== self::RENDER_TYPE_JS && ($renderOptions['includeCss'] ?? true)) {
             $assetUrls = Formie::$plugin->getFrontendAssets()->getBrowserAssetUrls();
+            $activeFrame = $this->getActiveRenderFrame();
+            $resolvedTheme = $activeFrame && $activeFrame->getForm() === $form
+                ? $activeFrame->getResolvedTheme()
+                : Formie::$plugin->getThemeConfigService()->resolve(
+                    $form,
+                    $renderOptions,
+                    (bool)($renderOptions['_transportedThemeConfig'] ?? false),
+                );
             $cssFiles = array_filter([
                 $assetUrls['baseStyles'] ?? null,
-                $form->getFrontendTheme() === 'none' ? null : ($assetUrls['themeStyles'] ?? null),
+                $resolvedTheme->isNone() ? null : ($assetUrls['themeStyles'] ?? null),
             ]);
             $cssAttributes = $renderOptions['cssAttributes'] ?? [];
             $outputCssLocation = $assetSettings['outputCssLocation'];

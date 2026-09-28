@@ -131,13 +131,6 @@ class ThemeConfig extends Component
         return $this->_resolvedTheme($form)->browserClassMap;
     }
 
-    public function buildFrontendClassMap(Form $form): array
-    {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Use `buildBrowserClassMap()` instead.');
-
-        return $this->buildBrowserClassMap($form);
-    }
-
     private function _buildBrowserClassMap(Form $form, ResolvedTheme $theme): array
     {
         $context = RenderContext::from([
@@ -155,7 +148,7 @@ class ThemeConfig extends Component
                 $fallbackClasses = [];
             }
 
-            $classes = $this->_resolveFrontendThemeClasses($config, $fallbackClasses, $evaluationContext);
+            $classes = $this->_resolveBrowserThemeClasses($config, $fallbackClasses, $evaluationContext);
 
             if ($classes !== []) {
                 $themeClasses[$key] = $classes;
@@ -940,7 +933,7 @@ class ThemeConfig extends Component
         return $normalized;
     }
 
-    private function _resolveFrontendThemeClasses(mixed $config, array $fallbackClasses, array $context): array
+    private function _resolveBrowserThemeClasses(mixed $config, array $fallbackClasses, array $context): array
     {
         if ($config === false || $config === null) {
             return [];

@@ -17,7 +17,7 @@ function withBrowserThemeFrame(Form $form, array $themeConfig, callable $callbac
     }
 }
 
-it('includes tab link state classes in the frontend theme class map', function (): void {
+it('includes tab link state classes in the browser theme class map', function (): void {
     $form = formie()
         ->form(['title' => 'Tab Link Theme Map'])
         ->multiPage(2)

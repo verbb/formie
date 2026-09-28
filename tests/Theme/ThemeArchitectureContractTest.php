@@ -48,18 +48,22 @@ it('applies core attributes after theme and instance while retaining the trusted
     $tag = SlotTag::make('form')
         ->theme(['method' => 'delete', 'data' => ['formie' => false], 'class' => 'theme'])
         ->instanceAttributes(['method' => 'put', 'data' => ['formie' => false], 'class' => 'instance'])
-        ->core(['method' => 'post', 'data' => ['formie' => true]]);
+        ->core(['method' => 'post', 'data' => ['formie' => true, 'required' => true], 'enctype' => 'multipart/form-data']);
 
     expect($tag->attributesForRender(['method' => 'patch', 'data' => ['formie' => false]])['method'])->toBe('post')
-        ->and($tag->attributesForRender()['data']['formie'])->toBeTrue();
+        ->and($tag->attributesForRender()['data']['formie'])->toBeTrue()
+        ->and(property_exists($tag, 'overrideAttributes'))->toBeFalse()
+        ->and(method_exists($tag, 'override'))->toBeFalse();
 
     $before = $tag->attributes;
     $tag->attributes['method'] = 'get';
-    unset($tag->attributes['data']);
+    $tag->attributes['data'] = ['trusted' => true];
+    unset($tag->attributes['enctype']);
     $tag->captureTrustedEventResult($before);
 
     expect($tag->attributesForRender(['method' => 'patch'])['method'])->toBe('get')
-        ->and($tag->attributesForRender())->not->toHaveKey('data');
+        ->and($tag->attributesForRender()['data'])->toBe(['trusted' => true])
+        ->and($tag->attributesForRender())->not->toHaveKey('enctype');
 });
 
 it('keeps Formie 3 reset and flat grammar and escapes injected text by default', function (): void {
