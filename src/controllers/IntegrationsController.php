@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\errors\IntegrationException;
 
 use Craft;

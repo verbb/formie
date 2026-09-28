@@ -9,6 +9,7 @@
 - Protect Signature image URLs for new submissions with field-scoped access tokens while preserving URLs in previously sent email notifications.
 
 ### Fixed
+- Fix OAuth integrations failing to connect after authorisation. ([#2973](https://github.com/verbb/formie/issues/2973))
 - Fixed OAuth callback transaction validation.
 - Fixed authorization for connecting and disconnecting OAuth integrations.
 - Fixed a moderate-severity information disclosure vulnerability. (GHSA-rh4q-6j5r-8jqf)
