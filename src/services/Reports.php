@@ -3,7 +3,6 @@ namespace verbb\formie\services;
 
 use verbb\formie\events\ReportEvent;
 use verbb\formie\Formie;
-use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Report;
@@ -63,10 +62,6 @@ class Reports extends Component
 
     public function getAllReportHandles(): array
     {
-        if (!DbSchema::tableExists(Table::FORMIE_REPORTS)) {
-            return [];
-        }
-
         return (new Query())
             ->select(['handle'])
             ->from([Table::FORMIE_REPORTS])
@@ -249,10 +244,6 @@ class Reports extends Component
     private function _reports(): MemoizableArray
     {
         if (!isset($this->_reports)) {
-            if (!DbSchema::tableExists(Table::FORMIE_REPORTS)) {
-                return $this->_reports = new MemoizableArray([]);
-            }
-
             $reports = [];
 
             foreach ($this->_createReportsQuery()->all() as $result) {

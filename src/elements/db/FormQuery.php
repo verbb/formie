@@ -138,11 +138,6 @@ class FormQuery extends ElementQuery
 
     protected function beforePrepare(): bool
     {
-        // Prevent this from running in Craft's `m250315_131608_unlimited_authors` migration before our upgrade
-        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_FIELD_LAYOUT_PAGES)) {
-            return false;
-        }
-        
         $this->joinElementTable('formie_forms');
 
         $formColumns = [
@@ -158,29 +153,12 @@ class FormQuery extends ElementQuery
             'formie_forms.dataRetentionValue',
             'formie_forms.userDeletedAction',
             'formie_forms.fileUploadsAction',
+            'formie_forms.createdById',
+            'formie_forms.updatedById',
+            'formie_forms.groupId',
+            'formie_forms.formStatusId',
+            'formie_forms.sourceSiteId',
         ];
-
-        $db = Craft::$app->getDb();
-
-        if ($db->columnExists(Table::FORMIE_FORMS, 'createdById')) {
-            $formColumns[] = 'formie_forms.createdById';
-        }
-
-        if ($db->columnExists(Table::FORMIE_FORMS, 'updatedById')) {
-            $formColumns[] = 'formie_forms.updatedById';
-        }
-
-        if ($db->columnExists(Table::FORMIE_FORMS, 'groupId')) {
-            $formColumns[] = 'formie_forms.groupId';
-        }
-
-        if ($db->columnExists(Table::FORMIE_FORMS, 'formStatusId')) {
-            $formColumns[] = 'formie_forms.formStatusId';
-        }
-
-        if ($db->columnExists(Table::FORMIE_FORMS, 'sourceSiteId')) {
-            $formColumns[] = 'formie_forms.sourceSiteId';
-        }
 
         $this->query->select($formColumns);
 
@@ -203,7 +181,7 @@ class FormQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseParam('formie_forms.templateId', $this->templateId));
         }
 
-        if ($this->groupId !== null && $db->columnExists(Table::FORMIE_FORMS, 'groupId')) {
+        if ($this->groupId !== null) {
             if ($this->groupId === ':empty:') {
                 $this->subQuery->andWhere(['formie_forms.groupId' => null]);
             } else {
@@ -211,7 +189,7 @@ class FormQuery extends ElementQuery
             }
         }
 
-        if ($this->formStatusId !== null && $db->columnExists(Table::FORMIE_FORMS, 'formStatusId')) {
+        if ($this->formStatusId !== null) {
             if ($this->formStatusId === ':empty:') {
                 $this->subQuery->andWhere(['formie_forms.formStatusId' => null]);
             } else {

@@ -81,15 +81,11 @@ class FormSiteOverrides extends Component
             return $this->_sourceSiteIdsByFormId[$formId];
         }
 
-        $sourceSiteId = null;
-
-        if (Craft::$app->getDb()->columnExists(Table::FORMIE_FORMS, 'sourceSiteId')) {
-            $sourceSiteId = (new Query())
-                ->select(['sourceSiteId'])
-                ->from([Table::FORMIE_FORMS])
-                ->where(['id' => $formId])
-                ->scalar();
-        }
+        $sourceSiteId = (new Query())
+            ->select(['sourceSiteId'])
+            ->from([Table::FORMIE_FORMS])
+            ->where(['id' => $formId])
+            ->scalar();
 
         if ($sourceSiteId) {
             return $this->_sourceSiteIdsByFormId[$formId] = (int)$sourceSiteId;

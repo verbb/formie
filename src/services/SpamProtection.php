@@ -2,7 +2,6 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
-use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Settings;
@@ -59,10 +58,6 @@ class SpamProtection extends Component
     // =========================================================================
 
     private ?array $_row = null;
-    private ?bool $_guardColumnsExist = null;
-    private ?bool $_extendedSpamColumnsExist = null;
-    private ?bool $_abuseControlColumnsExist = null;
-    private ?bool $_emailAllowlistColumnsExist = null;
 
 
     // Public Methods
@@ -74,64 +69,40 @@ class SpamProtection extends Component
             return $this->_row;
         }
 
-        if (!DbSchema::tableExists(Table::FORMIE_SPAM_SETTINGS)) {
-            return null;
-        }
-
         $select = [
-                'id',
-                'scope',
-                'saveSpam',
-                'spamLimit',
-                'spamEmailNotifications',
-                'spamBehaviour',
-                'spamBehaviourMessage',
-                'spamKeywords',
-                'dateCreated',
-                'dateUpdated',
-                'uid',
-            ];
-
-        if ($this->_guardColumnsExist()) {
-            $select = array_merge($select, [
-                'enableHoneypot',
-                'honeypotFieldName',
-                'enableMinimumSubmitTime',
-                'minimumSubmitTime',
-                'enableReplayProtection',
-            ]);
-        }
-
-        if ($this->_extendedSpamColumnsExist()) {
-            $select = array_merge($select, [
-                'enableBlockedEmailDomains',
-                'blockedEmailDomains',
-                'enableBlockFreeEmailDomains',
-                'enableFormSubmitExpiration',
-                'formSubmitExpiration',
-            ]);
-        }
-
-        if ($this->_abuseControlColumnsExist()) {
-            $select = array_merge($select, [
-                'enableSuspiciousTextDetection',
-                'suspiciousTextAllowedTerms',
-                'enableMaximumLinks',
-                'maximumLinks',
-                'enableGlobalSubmissionThrottling',
-                'globalSubmissionThrottleLimit',
-                'globalSubmissionThrottleWindowSeconds',
-                'enableIpSubmissionThrottling',
-                'ipSubmissionThrottleMinutes',
-            ]);
-        }
-
-        if ($this->_emailAllowlistColumnsExist()) {
-            $select = array_merge($select, [
-                'enableAllowedEmailDomains',
-                'allowedEmailDomains',
-            ]);
-        }
+            'id',
+            'scope',
+            'saveSpam',
+            'spamLimit',
+            'spamEmailNotifications',
+            'spamBehaviour',
+            'spamBehaviourMessage',
+            'spamKeywords',
+            'enableHoneypot',
+            'honeypotFieldName',
+            'enableMinimumSubmitTime',
+            'minimumSubmitTime',
+            'enableReplayProtection',
+            'enableBlockedEmailDomains',
+            'blockedEmailDomains',
+            'enableBlockFreeEmailDomains',
+            'enableAllowedEmailDomains',
+            'allowedEmailDomains',
+            'enableFormSubmitExpiration',
+            'formSubmitExpiration',
+            'enableSuspiciousTextDetection',
+            'suspiciousTextAllowedTerms',
+            'enableMaximumLinks',
+            'maximumLinks',
+            'enableGlobalSubmissionThrottling',
+            'globalSubmissionThrottleLimit',
+            'globalSubmissionThrottleWindowSeconds',
+            'enableIpSubmissionThrottling',
+            'ipSubmissionThrottleMinutes',
+            'dateCreated',
+            'dateUpdated',
+            'uid',
+        ];
 
         $row = (new Query())
             ->select($select)
@@ -342,7 +313,7 @@ class SpamProtection extends Component
 
     public function seedFromLegacySettings(array $legacy = []): void
     {
-        if (!DbSchema::tableExists(Table::FORMIE_SPAM_SETTINGS) || $this->getRow()) {
+        if ($this->getRow()) {
             return;
         }
 
@@ -362,41 +333,23 @@ class SpamProtection extends Component
             'spamBehaviour' => (string)$values['spamBehaviour'],
             'spamBehaviourMessage' => (string)$values['spamBehaviourMessage'],
             'spamKeywords' => (string)$values['spamKeywords'],
+            'enableHoneypot' => (bool)$values['enableHoneypot'],
+            'honeypotFieldName' => (string)$values['honeypotFieldName'],
+            'enableMinimumSubmitTime' => (bool)$values['enableMinimumSubmitTime'],
+            'minimumSubmitTime' => (int)$values['minimumSubmitTime'],
+            'enableReplayProtection' => (bool)$values['enableReplayProtection'],
+            'enableBlockedEmailDomains' => (bool)$values['enableBlockedEmailDomains'],
+            'blockedEmailDomains' => (string)$values['blockedEmailDomains'],
+            'enableBlockFreeEmailDomains' => (bool)$values['enableBlockFreeEmailDomains'],
+            'enableAllowedEmailDomains' => (bool)$values['enableAllowedEmailDomains'],
+            'allowedEmailDomains' => (string)$values['allowedEmailDomains'],
+            'enableFormSubmitExpiration' => (bool)$values['enableFormSubmitExpiration'],
+            'formSubmitExpiration' => (int)$values['formSubmitExpiration'],
+            ...$this->_abuseControlValuesFromArray($values),
             'dateCreated' => $now,
             'dateUpdated' => $now,
             'uid' => StringHelper::UUID(),
         ];
-
-        if ($this->_guardColumnsExist()) {
-            $insert = array_merge($insert, [
-                'enableHoneypot' => (bool)$values['enableHoneypot'],
-                'honeypotFieldName' => (string)$values['honeypotFieldName'],
-                'enableMinimumSubmitTime' => (bool)$values['enableMinimumSubmitTime'],
-                'minimumSubmitTime' => (int)$values['minimumSubmitTime'],
-                'enableReplayProtection' => (bool)$values['enableReplayProtection'],
-            ]);
-        }
-
-        if ($this->_extendedSpamColumnsExist()) {
-            $insert = array_merge($insert, [
-                'enableBlockedEmailDomains' => (bool)$values['enableBlockedEmailDomains'],
-                'blockedEmailDomains' => (string)$values['blockedEmailDomains'],
-                'enableBlockFreeEmailDomains' => (bool)$values['enableBlockFreeEmailDomains'],
-                'enableFormSubmitExpiration' => (bool)$values['enableFormSubmitExpiration'],
-                'formSubmitExpiration' => (int)$values['formSubmitExpiration'],
-            ]);
-        }
-
-        if ($this->_abuseControlColumnsExist()) {
-            $insert = array_merge($insert, $this->_abuseControlValuesFromArray($values));
-        }
-
-        if ($this->_emailAllowlistColumnsExist()) {
-            $insert = array_merge($insert, [
-                'enableAllowedEmailDomains' => (bool)$values['enableAllowedEmailDomains'],
-                'allowedEmailDomains' => (string)$values['allowedEmailDomains'],
-            ]);
-        }
 
         Craft::$app->getDb()->createCommand()
             ->insert(Table::FORMIE_SPAM_SETTINGS, $insert)
@@ -519,42 +472,10 @@ class SpamProtection extends Component
     private function _resetCache(): void
     {
         $this->_row = null;
-        $this->_guardColumnsExist = null;
-        $this->_extendedSpamColumnsExist = null;
-        $this->_abuseControlColumnsExist = null;
-        $this->_emailAllowlistColumnsExist = null;
-    }
-
-    private function _guardColumnsExist(): bool
-    {
-        if ($this->_guardColumnsExist !== null) {
-            return $this->_guardColumnsExist;
-        }
-
-        if (!DbSchema::tableExists(Table::FORMIE_SPAM_SETTINGS)) {
-            return $this->_guardColumnsExist = false;
-        }
-
-        return $this->_guardColumnsExist = DbSchema::columnExists(
-            Table::FORMIE_SPAM_SETTINGS,
-            'enableHoneypot',
-        );
     }
 
     private function _guardValuesFromRow(array $row): array
     {
-        $defaults = $this->getDefaultValues();
-
-        if (!$this->_guardColumnsExist()) {
-            return [
-                'enableHoneypot' => (bool)$defaults['enableHoneypot'],
-                'honeypotFieldName' => (string)$defaults['honeypotFieldName'],
-                'enableMinimumSubmitTime' => (bool)$defaults['enableMinimumSubmitTime'],
-                'minimumSubmitTime' => (int)$defaults['minimumSubmitTime'],
-                'enableReplayProtection' => (bool)$defaults['enableReplayProtection'],
-            ];
-        }
-
         return [
             'enableHoneypot' => (bool)($row['enableHoneypot'] ?? true),
             'honeypotFieldName' => (string)($row['honeypotFieldName'] ?? 'formieHoneypot'),
@@ -566,10 +487,6 @@ class SpamProtection extends Component
 
     private function _assignGuardValues(SpamSettingsRecord $record, array $values): void
     {
-        if (!$this->_guardColumnsExist()) {
-            return;
-        }
-
         $record->enableHoneypot = (bool)($values['enableHoneypot'] ?? true);
         $record->honeypotFieldName = (string)($values['honeypotFieldName'] ?? 'formieHoneypot');
         $record->enableMinimumSubmitTime = (bool)($values['enableMinimumSubmitTime'] ?? true);
@@ -577,36 +494,8 @@ class SpamProtection extends Component
         $record->enableReplayProtection = (bool)($values['enableReplayProtection'] ?? true);
     }
 
-    private function _extendedSpamColumnsExist(): bool
-    {
-        if ($this->_extendedSpamColumnsExist !== null) {
-            return $this->_extendedSpamColumnsExist;
-        }
-
-        if (!DbSchema::tableExists(Table::FORMIE_SPAM_SETTINGS)) {
-            return $this->_extendedSpamColumnsExist = false;
-        }
-
-        return $this->_extendedSpamColumnsExist = DbSchema::columnExists(
-            Table::FORMIE_SPAM_SETTINGS,
-            'enableFormSubmitExpiration',
-        );
-    }
-
     private function _extendedSpamValuesFromRow(array $row): array
     {
-        $defaults = $this->getDefaultValues();
-
-        if (!$this->_extendedSpamColumnsExist()) {
-            return [
-                'enableBlockedEmailDomains' => (bool)$defaults['enableBlockedEmailDomains'],
-                'blockedEmailDomains' => (string)$defaults['blockedEmailDomains'],
-                'enableBlockFreeEmailDomains' => (bool)$defaults['enableBlockFreeEmailDomains'],
-                'enableFormSubmitExpiration' => (bool)$defaults['enableFormSubmitExpiration'],
-                'formSubmitExpiration' => (int)$defaults['formSubmitExpiration'],
-            ];
-        }
-
         return [
             'enableBlockedEmailDomains' => (bool)($row['enableBlockedEmailDomains'] ?? false),
             'blockedEmailDomains' => (string)($row['blockedEmailDomains'] ?? ''),
@@ -618,10 +507,6 @@ class SpamProtection extends Component
 
     private function _assignExtendedSpamValues(SpamSettingsRecord $record, array $values): void
     {
-        if (!$this->_extendedSpamColumnsExist()) {
-            return;
-        }
-
         $record->enableBlockedEmailDomains = (bool)($values['enableBlockedEmailDomains'] ?? false);
         $record->blockedEmailDomains = (string)($values['blockedEmailDomains'] ?? '');
         $record->enableBlockFreeEmailDomains = (bool)($values['enableBlockFreeEmailDomains'] ?? false);
@@ -629,33 +514,8 @@ class SpamProtection extends Component
         $record->formSubmitExpiration = (int)($values['formSubmitExpiration'] ?? 86400);
     }
 
-    private function _emailAllowlistColumnsExist(): bool
-    {
-        if ($this->_emailAllowlistColumnsExist !== null) {
-            return $this->_emailAllowlistColumnsExist;
-        }
-
-        if (!DbSchema::tableExists(Table::FORMIE_SPAM_SETTINGS)) {
-            return $this->_emailAllowlistColumnsExist = false;
-        }
-
-        return $this->_emailAllowlistColumnsExist = DbSchema::columnExists(
-            Table::FORMIE_SPAM_SETTINGS,
-            'enableAllowedEmailDomains',
-        );
-    }
-
     private function _emailAllowlistValuesFromRow(array $row): array
     {
-        $defaults = $this->getDefaultValues();
-
-        if (!$this->_emailAllowlistColumnsExist()) {
-            return [
-                'enableAllowedEmailDomains' => (bool)$defaults['enableAllowedEmailDomains'],
-                'allowedEmailDomains' => (string)$defaults['allowedEmailDomains'],
-            ];
-        }
-
         return [
             'enableAllowedEmailDomains' => (bool)($row['enableAllowedEmailDomains'] ?? false),
             'allowedEmailDomains' => (string)($row['allowedEmailDomains'] ?? ''),
@@ -664,38 +524,12 @@ class SpamProtection extends Component
 
     private function _assignEmailAllowlistValues(SpamSettingsRecord $record, array $values): void
     {
-        if (!$this->_emailAllowlistColumnsExist()) {
-            return;
-        }
-
         $record->enableAllowedEmailDomains = (bool)($values['enableAllowedEmailDomains'] ?? false);
         $record->allowedEmailDomains = (string)($values['allowedEmailDomains'] ?? '');
     }
 
-    private function _abuseControlColumnsExist(): bool
-    {
-        if ($this->_abuseControlColumnsExist !== null) {
-            return $this->_abuseControlColumnsExist;
-        }
-
-        if (!DbSchema::tableExists(Table::FORMIE_SPAM_SETTINGS)) {
-            return $this->_abuseControlColumnsExist = false;
-        }
-
-        return $this->_abuseControlColumnsExist = DbSchema::columnExists(
-            Table::FORMIE_SPAM_SETTINGS,
-            'enableSuspiciousTextDetection',
-        );
-    }
-
     private function _abuseControlValuesFromRow(array $row): array
     {
-        $defaults = $this->getDefaultValues();
-
-        if (!$this->_abuseControlColumnsExist()) {
-            return $this->_abuseControlValuesFromArray($defaults);
-        }
-
         return $this->_abuseControlValuesFromArray($row);
     }
 
@@ -718,10 +552,6 @@ class SpamProtection extends Component
 
     private function _assignAbuseControlValues(SpamSettingsRecord $record, array $values): void
     {
-        if (!$this->_abuseControlColumnsExist()) {
-            return;
-        }
-
         $abuseValues = $this->_abuseControlValuesFromArray($values, true);
         $record->enableSuspiciousTextDetection = (bool)$abuseValues['enableSuspiciousTextDetection'];
         $record->suspiciousTextAllowedTerms = (string)$abuseValues['suspiciousTextAllowedTerms'];

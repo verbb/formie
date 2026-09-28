@@ -7,7 +7,6 @@ use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\events\StencilEvent;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Stencil;
@@ -74,10 +73,6 @@ class Stencils extends Component
 
     public function getAllStencils(bool $withTrashed = false): array
     {
-        if (!DbSchema::tableExists(Table::FORMIE_STENCILS)) {
-            return [];
-        }
-
         if ($this->_stencils !== null && !$withTrashed) {
             return $this->_stencils;
         }
@@ -366,10 +361,6 @@ class Stencils extends Component
 
     public function handleChangedStencil(ConfigEvent $event): void
     {
-        if (!DbSchema::tableExists(Table::FORMIE_STENCILS)) {
-            return;
-        }
-
         $stencilUid = $event->tokenMatches[0];
         $data = $event->newValue;
 
@@ -486,10 +477,6 @@ class Stencils extends Component
 
     public function handleDeletedStencil(ConfigEvent $event): void
     {
-        if (!DbSchema::tableExists(Table::FORMIE_STENCILS)) {
-            return;
-        }
-
         $stencilUid = $event->tokenMatches[0];
 
         $stencil = $this->getStencilByUid($stencilUid);
@@ -758,6 +745,7 @@ class Stencils extends Component
             'id',
             'name',
             'handle',
+            'scope',
             'data',
             'templateId',
             'redirectEntryId',
@@ -767,17 +755,9 @@ class Stencils extends Component
             'uid',
         ];
 
-        if (DbSchema::columnExists(Table::FORMIE_STENCILS, 'scope')) {
-            array_splice($select, 3, 0, ['scope']);
-        }
-
-        $orderBy = DbSchema::columnExists(Table::FORMIE_STENCILS, 'scope')
-            ? ['scope' => SORT_ASC, 'name' => SORT_ASC]
-            : ['name' => SORT_ASC];
-
         $query = (new Query())
             ->select($select)
-            ->orderBy($orderBy)
+            ->orderBy(['scope' => SORT_ASC, 'name' => SORT_ASC])
             ->from([Table::FORMIE_STENCILS]);
 
         if (!$withTrashed) {

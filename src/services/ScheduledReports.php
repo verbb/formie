@@ -3,7 +3,6 @@ namespace verbb\formie\services;
 
 use verbb\formie\events\ScheduledReportEvent;
 use verbb\formie\Formie;
-use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\ScheduledReport;
@@ -346,10 +345,6 @@ class ScheduledReports extends Component
     private function _scheduledReports(): MemoizableArray
     {
         if (!isset($this->_scheduledReports)) {
-            if (!DbSchema::tableExists(Table::FORMIE_SCHEDULED_REPORTS)) {
-                return $this->_scheduledReports = new MemoizableArray([]);
-            }
-
             $scheduledReports = [];
 
             foreach ($this->_createScheduledReportsQuery()->all() as $result) {

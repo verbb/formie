@@ -255,17 +255,9 @@ class SubmissionQuery extends ElementQuery
             'formie_submissions.spamClass',
             'formie_submissions.snapshot',
             'formie_submissions.ipAddress',
+            'formie_submissions.metadata',
+            'formie_submissions.updatedById',
         ];
-
-        $db = Craft::$app->getDb();
-
-        if ($db->columnExists(Table::FORMIE_SUBMISSIONS, 'metadata')) {
-            $submissionColumns[] = 'formie_submissions.metadata';
-        }
-
-        if ($db->columnExists(Table::FORMIE_SUBMISSIONS, 'updatedById')) {
-            $submissionColumns[] = 'formie_submissions.updatedById';
-        }
 
         // Should always be at the end, due to `setFieldContent` triggering order, so that `formId` (and other props) are set first
         $submissionColumns[] = 'formie_submissions.content as fieldContent';

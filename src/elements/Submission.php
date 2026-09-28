@@ -218,10 +218,8 @@ class Submission extends Element
             'es.title',
         ];
 
-        if (Craft::$app->getDb()->columnExists(Table::FORMIE_FORMS, 'groupId')) {
-            $formColumns[] = 'f.groupId';
-            $formColumns[] = 'g.handle AS groupHandle';
-        }
+        $formColumns[] = 'f.groupId';
+        $formColumns[] = 'g.handle AS groupHandle';
 
         $formsQuery = (new Query())
             ->select($formColumns)
@@ -231,9 +229,7 @@ class Submission extends Element
                 ':siteId' => $activeSiteId,
             ]);
 
-        if (Craft::$app->getDb()->columnExists(Table::FORMIE_FORMS, 'groupId')) {
-            $formsQuery->leftJoin(['g' => Table::FORMIE_FORM_GROUPS], '[[g.id]] = [[f.groupId]]');
-        }
+        $formsQuery->leftJoin(['g' => Table::FORMIE_FORM_GROUPS], '[[g.id]] = [[f.groupId]]');
 
         $forms = $formsQuery
             ->where(['e.dateDeleted' => null])
@@ -1236,9 +1232,7 @@ class Submission extends Element
         $record->statusId = $this->statusId;
         $record->userId = $this->userId;
 
-        if (Craft::$app->getDb()->columnExists(Table::FORMIE_SUBMISSIONS, 'updatedById')) {
-            $record->updatedById = $this->updatedById;
-        }
+        $record->updatedById = $this->updatedById;
 
         $record->isIncomplete = $this->isIncomplete;
         $record->isSpam = $this->isSpam;
@@ -1247,13 +1241,11 @@ class Submission extends Element
         $record->snapshot = $this->snapshot;
         $record->ipAddress = $this->ipAddress;
 
-        if ($isNew && Craft::$app->getDb()->columnExists(Table::FORMIE_SUBMISSIONS, 'signatureAccessKey')) {
+        if ($isNew) {
             $record->signatureAccessKey = Craft::$app->getSecurity()->generateRandomString(64);
         }
 
-        if (Craft::$app->getDb()->columnExists(Table::FORMIE_SUBMISSIONS, 'metadata')) {
-            $record->metadata = $this->metadata;
-        }
+        $record->metadata = $this->metadata;
 
         $record->dateCreated = $this->dateCreated;
         $record->dateUpdated = $this->dateUpdated;

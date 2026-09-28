@@ -5,7 +5,6 @@ use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\events\IntegrationEvent;
-use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Settings;
@@ -166,10 +165,6 @@ class CaptchaProviders extends Component
 
     public function seedRegistryFromLegacySettings(array $legacyCaptchas = []): void
     {
-        if (!DbSchema::tableExists(Table::FORMIE_CAPTCHA_PROVIDERS)) {
-            return;
-        }
-
         $integrations = Formie::$plugin->getIntegrations();
         $now = Db::prepareDateForDb(new \DateTime());
 
@@ -284,7 +279,7 @@ class CaptchaProviders extends Component
 
     public function hydrateLegacyCaptchas(Settings $settings): void
     {
-        if (empty($settings->captchas) || !DbSchema::tableExists(Table::FORMIE_CAPTCHA_PROVIDERS)) {
+        if (empty($settings->captchas)) {
             return;
         }
 
@@ -308,14 +303,11 @@ class CaptchaProviders extends Component
             return $this->_providersByHandle;
         }
 
-        if (!DbSchema::tableExists(Table::FORMIE_CAPTCHA_PROVIDERS)) {
-            return $this->_providersByHandle = [];
-        }
-
         $select = [
             'id',
             'handle',
             'type',
+            'scope',
             'enabled',
             'saveSpam',
             'settings',
@@ -323,10 +315,6 @@ class CaptchaProviders extends Component
             'dateUpdated',
             'uid',
         ];
-
-        if (DbSchema::columnExists(Table::FORMIE_CAPTCHA_PROVIDERS, 'scope')) {
-            array_splice($select, 3, 0, ['scope']);
-        }
 
         $rows = (new Query())
             ->select($select)

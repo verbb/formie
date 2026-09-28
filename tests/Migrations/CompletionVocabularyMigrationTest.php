@@ -6,7 +6,7 @@ use craft\db\Query;
 use craft\helpers\Json;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\Table;
-use verbb\formie\migrations\m260928_030000_completion_vocabulary;
+use verbb\formie\migrations\m260912_000000_completion_vocabulary;
 
 it('migrates Formie 3 completion settings and redirect columns idempotently', function (): void {
     $db = Craft::$app->getDb();
@@ -35,7 +35,7 @@ it('migrates Formie 3 completion settings and redirect columns idempotently', fu
         $db->createCommand()->renameColumn($table, 'redirectEntrySiteId', 'submitActionEntrySiteId')->execute();
     }
 
-    $migration = new m260928_030000_completion_vocabulary();
+    $migration = new m260912_000000_completion_vocabulary();
     expect($migration->safeUp())->toBeTrue()
         ->and($migration->safeUp())->toBeTrue();
 

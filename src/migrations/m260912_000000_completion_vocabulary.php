@@ -8,7 +8,7 @@ use craft\db\Migration;
 use craft\db\Query;
 use craft\helpers\Json;
 
-class m260928_030000_completion_vocabulary extends Migration
+class m260912_000000_completion_vocabulary extends Migration
 {
     // Public Methods
     // =========================================================================
@@ -25,7 +25,7 @@ class m260928_030000_completion_vocabulary extends Migration
 
     public function safeDown(): bool
     {
-        echo "m260928_030000_completion_vocabulary cannot be reverted.\n";
+        echo "m260912_000000_completion_vocabulary cannot be reverted.\n";
 
         return false;
     }

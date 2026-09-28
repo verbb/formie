@@ -4,7 +4,6 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\events\FormGroupEvent;
-use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FormGroup;
@@ -259,10 +258,6 @@ class FormGroups extends Component
     private function _groups(): MemoizableArray
     {
         if (!isset($this->_groups)) {
-            if (!DbSchema::tableExists(Table::FORMIE_FORM_GROUPS)) {
-                return $this->_groups = new MemoizableArray([]);
-            }
-
             $groups = [];
 
             foreach ($this->_createGroupsQuery()->all() as $result) {

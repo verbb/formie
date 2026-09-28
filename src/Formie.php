@@ -24,6 +24,7 @@ use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\helpers\CrossOriginRequestHelper;
 use verbb\formie\helpers\Gql as GqlHelper;
 use verbb\formie\helpers\ProjectConfigHelper;
+use verbb\formie\helpers\SchemaReadiness;
 use verbb\formie\integrations\feedme\elements\Submission as FeedMeSubmission;
 use verbb\formie\integrations\link\FormLinkType;
 use verbb\formie\jobs\DebuggableJobInterface;
@@ -168,8 +169,10 @@ class Formie extends Plugin
             $this->_registerPermissions();
         }
 
-        $this->getSpamProtection()->hydrateSettings($this->getSettings());
-        $this->getCaptchaProviders()->hydrateLegacyCaptchas($this->getSettings());
+        if (SchemaReadiness::canHydrateRuntimeSettings()) {
+            $this->getSpamProtection()->hydrateSettings($this->getSettings());
+            $this->getCaptchaProviders()->hydrateLegacyCaptchas($this->getSettings());
+        }
     }
 
     public function getPluginName(): string

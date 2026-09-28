@@ -8,7 +8,6 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\PaymentEvent;
 use verbb\formie\events\PaymentSuccessRedirectEvent;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
@@ -514,16 +513,13 @@ class Payments extends Component
             'reference',
             'code',
             'message',
+            'redirectUrl',
             'note',
             'response',
             'dateCreated',
             'dateUpdated',
             'uid',
         ];
-
-        if (DbSchema::columnExists(Table::FORMIE_PAYMENTS, 'redirectUrl')) {
-            array_splice($select, 18, 0, ['redirectUrl']);
-        }
 
         return (new Query())
             ->select($select)

@@ -17,6 +17,7 @@
 
 ### Changed
 - Save form field layouts atomically inside Craft’s element transaction, batch persistence and identity validation at the root boundary, and add installation-scale load, save and export profiling.
+- Treat the migrated Formie 4 database schema as one required runtime contract instead of silently disabling form, submission, notification, integration, payment and spam behavior when required columns are missing.
 - Use explicit completion behavior, redirect source, redirect target and success-message settings throughout Formie 4, while retaining Formie 3 setting, GraphQL and response aliases at compatibility boundaries.
 - Treat subscription setup and mandate operations as non-monetary while recording each recurring invoice as a separate payment, and prevent payment integrations with manageable subscriptions from being deleted or disconnected.
 - Make browser-module declarations immutable, project one authoritative manifest per rendering surface, reference exact occurrence keys from fields and expose stable submit hooks instead of internal pipeline stages.

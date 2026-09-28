@@ -13,7 +13,6 @@ use verbb\formie\events\NotificationEvent;
 use verbb\formie\events\SendNotificationEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
-use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -245,9 +244,7 @@ class Notifications extends Component
             $notificationRecord->enableConditions = $notification->enableConditions;
             $notificationRecord->conditions = $notification->conditions;
 
-            if (DbSchema::columnExists(Table::FORMIE_NOTIFICATIONS, 'dispatchTiming')) {
-                $notificationRecord->dispatchTiming = $notification->dispatchTiming;
-            }
+            $notificationRecord->dispatchTiming = $notification->dispatchTiming;
 
             $notificationRecord->customSettings = $notification->customSettings;
 
@@ -1145,13 +1142,10 @@ class Notifications extends Component
             'attachAssets',
             'enableConditions',
             'conditions',
+            'dispatchTiming',
             'customSettings',
             'uid',
         ];
-
-        if (DbSchema::columnExists(Table::FORMIE_NOTIFICATIONS, 'dispatchTiming')) {
-            array_splice($select, -2, 0, ['dispatchTiming']);
-        }
 
         return (new Query())
             ->select($select)

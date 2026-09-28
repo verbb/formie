@@ -22,7 +22,6 @@ use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\events\TriggerIntegrationFailureEvent;
 use verbb\formie\gql\types\input\CaptchaInputType;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\DbSchema;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\IntegrationTriggerEvents;
@@ -1460,6 +1459,7 @@ class Integrations extends Component
             'id',
             'name',
             'handle',
+            'scope',
             'type',
             'enabled',
             'sortOrder',
@@ -1469,10 +1469,6 @@ class Integrations extends Component
             'dateUpdated',
             'uid',
         ];
-
-        if (DbSchema::columnExists(Table::FORMIE_INTEGRATIONS, 'scope')) {
-            array_splice($select, 3, 0, ['scope']);
-        }
 
         return (new Query())
             ->select($select)
