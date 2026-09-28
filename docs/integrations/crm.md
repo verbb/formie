@@ -960,57 +960,46 @@ Do **not** share the same Salesforce OAuth connection (Consumer Key / tokens) ac
 1. Click the **New Integration** button.
 1. Select Salesforce as the **Integration Provider**.
 
-### Step 2. Connect to the Salesforce API
-1. Go to <a href="https://www.salesforce.com" target="_blank">Salesforce</a> and login to your account.
-1. In the main menu, on the top-right, click the **Settings** icon and select **Setup**.
-1. In the left-hand sidebar (or Quick Find), go to **Apps** → **External Client Apps** → **External Client App Manager**.
-1. Click the **New External Client App** button.
-1. Fill out the **Basic Information** fields.
-1. In the **API (Enable OAuth Settings)** section, tick the **Enable OAuth** checkbox.
-    - In the **Callback URL** field, paste the **Redirect URI** value from Formie.
-    - In the **Selected OAuth Scopes** field, select the following permissions from the list and click the **Add** arrow button:
-        - **Manage user data via APIs (api)**
-        - **Access unique user identifiers (openid)**
-        - **Perform requests at any time (refresh_token, offline_access)**
-1. In the **Flow Enablement** section (labels may vary slightly by Salesforce release):
-    - Enable the Authorization Code / Web Server flow (sometimes labelled **Enable Authorization Code and Credentials Flow**). This is required for Formie’s **Connect** button.
-1. In the **Security** section:
-    - Tick **Require secret for Web Server Flow**.
-    - Tick **Require secret for Refresh Token Flow**.
-    - Tick **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**. Formie uses PKCE with the S256 challenge method, and your Salesforce organisation may enforce this setting for all supported OAuth flows. See [Salesforce’s PKCE guidance](https://help.salesforce.com/s/articleView?id=005316703&type=1) for details.
-    - **Enable Refresh Token Rotation** may already be required and locked. Formie supports rotated refresh tokens.
-    - **Limit Idle Refresh Token Time-to-Live (TTL) to 30 Days** may already be required and locked. Active form submissions keep the token alive; infrequently used integrations may need reconnecting after long idle periods.
-    - Leave **Enforce Refresh Token IP Allowlist** unticked unless you intentionally manage a Salesforce IP allowlist for token refresh.
-1. Click the **Create** (or **Save**) button.
-1. Open the app’s **Settings** → **OAuth Settings**, then reveal the **Consumer Key** and **Consumer Secret**.
-1. Copy the **Consumer Key** from Salesforce and paste in the **Consumer Key** field in Formie.
-1. Copy the **Consumer Secret** from Salesforce and paste in the **Consumer Secret** field in Formie.
-1. Open the app’s **Policies** (or **Manage** → **Edit Policies**, depending on your Salesforce UI).
-1. In the **OAuth policies** / **App Authorization** section:
-    - In the **Permitted Users** field, select **All users may self-authorize** (or your org’s preferred approved-users policy).
-    - In the **IP Relaxation** field, select **Relax IP restrictions**, unless you use a static egress IP and prefer stricter controls.
-    - In the **Refresh Token Policy** field:
-        - Prefer **Refresh token is valid until revoked**, if available.
-        - If that option is no longer shown (common when the 30-day idle TTL is enforced), select **Expire refresh token if not used for specific time** and choose a long inactivity window.
-        - Do **not** select **Immediately expire refresh token**. That disables usable refresh tokens and will cause Formie to lose its Salesforce connection after the access token expires.
-1. Untick **High Assurance Session Required** if shown.
-1. Click the **Save** button.
+### Step 2. Choose an OAuth Grant
+Salesforce supports several OAuth grants. Choose **Authorization Code** when an authorised Salesforce user can complete an interactive browser login. Choose **Client Credentials** for a server-to-server connection that always acts as a designated Salesforce integration user.
 
-:::tip
-**Use Credentials** (username/password) is a legacy option and is **not** supported by External Client Apps. Prefer the normal **Connect** OAuth flow above. Only use credentials with an older Connected App that still allows the username-password OAuth flow.
-:::
+The **Password** grant remains available for existing integrations, but Salesforce recommends moving away from username-password authentication. Use one of the other grants for a new connection.
 
-### Step 3. Test Connection
-1. Save this integration.
-1. Click on the **Connect** button in the right-hand sidebar.
-1. You‘ll be redirected to Salesforce, where you must approve Formie to access your Salesforce account.
+### Step 3. Configure an External Client App
+Go to Salesforce **Setup** → **External Client Apps Manager**, create an External Client App and enable OAuth. Copy Formie’s **Redirect URI** into Salesforce’s **Callback URL** field when the field is required.
 
-### Step 4. Form Setting
+For either supported grant, add **Manage user data via APIs (api)** to the selected OAuth scopes. Authorization Code connections should also add **Access unique user identifiers (openid)** and **Perform requests at any time (refresh_token, offline_access)**.
+
+#### Authorization Code
+Leave **Enable Client Credentials Flow** disabled unless another system also uses that flow. You can enable **Require Proof Key for Code Exchange (PKCE) extension for Supported Authorization Flows**; Formie sends the PKCE challenge and verifier during the connection.
+
+Configure the app’s policies to allow the Salesforce user who will click Formie’s **Connect** button to authorise the app. The callback URL must exactly match the **Redirect URI** shown by Formie.
+
+#### Client Credentials
+Under **Flow Enablement**, select **Enable Client Credentials Flow**. After creating the app, open its policies, enable the Client Credentials flow and choose a **Run As** user. Every Salesforce API request from Formie uses that user’s permissions, so give the account only the access required by the mapped objects and fields.
+
+Copy the Current My Domain URL from Salesforce’s **My Domain** settings. It normally resembles `https://example.my.salesforce.com` and must not include `/services/oauth2/token`; Formie adds the token endpoint path.
+
+### Step 4. Enter the Credentials in Formie
+Copy the External Client App’s **Consumer Key** and **Consumer Secret** into the corresponding Formie fields, then select the matching **Grant**.
+
+For Client Credentials, enter the Salesforce My Domain URL in **Authentication Domain**. You can leave this field empty to use `https://login.salesforce.com`, or `https://test.salesforce.com` when **Use Sandbox** is enabled.
+
+For the Password grant, enter the Salesforce username and password. These fields are not used by Client Credentials because Salesforce obtains the user identity from the app’s **Run As** policy.
+
+### Step 5. Test Connection
+Save the integration and click **Connect** in the right-hand sidebar.
+
+Authorization Code opens Salesforce so the user can sign in and approve Formie. Client Credentials obtains a token directly and returns to the integration without displaying Salesforce’s authorisation screen. A successful connection confirms that Salesforce issued a token; the submission test below confirms that the Run As user can access the selected records.
+
+### Step 6. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
 1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
+
+Save the form, open it on your site and submit recognisable test values. Find the test record in Salesforce and check that the mapped values arrived. For Client Credentials, also check that the External Client App still has a Run As user and that the user can access every enabled Salesforce object. A successful connection check verifies credentials; it does not prove that field mapping and delivery work.
 
 
 ## Salesmate

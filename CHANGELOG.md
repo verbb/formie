@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add Salesforce Client Credentials authentication with configurable My Domain support. ([#2961](https://github.com/verbb/formie/issues/2961))
 - Add the `allowLegacySignatureImageUrls` config setting to disable unsigned Signature image URLs for existing submissions.
 
 ### Changed

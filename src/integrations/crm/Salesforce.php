@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\fields\FileUpload;
@@ -32,6 +33,7 @@ use Throwable;
 use Exception;
 
 use verbb\auth\base\OAuthProviderInterface;
+use verbb\auth\clients\salesforce\token\SalesforceAccessToken;
 use verbb\auth\models\Token;
 use verbb\auth\providers\Salesforce as SalesforceProvider;
 
@@ -57,12 +59,22 @@ class Salesforce extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Salesforce');
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const GRANT_AUTHORIZATION_CODE = 'authorization_code';
+    public const GRANT_CLIENT_CREDENTIALS = 'client_credentials';
+    public const GRANT_PASSWORD = 'password';
     
 
     // Properties
     // =========================================================================
     
     public ?string $apiDomain = null;
+    public ?string $authDomain = null;
+    public ?string $grant = null;
     public ?string $matchLead = null;
     public bool|string $useSandbox = false;
     public bool|string $useCredentials = false;
@@ -138,6 +150,25 @@ class Salesforce extends Crm implements OAuthProviderInterface
         return App::parseBooleanEnv($this->useCredentials);
     }
 
+    public function getGrant(): string
+    {
+        $grant = App::parseEnv($this->grant);
+
+        if (in_array($grant, [self::GRANT_AUTHORIZATION_CODE, self::GRANT_CLIENT_CREDENTIALS, self::GRANT_PASSWORD], true)) {
+            return $grant;
+        }
+
+        // Preserve integrations saved before the grant selector was introduced.
+        return $this->getUseCredentials() ? self::GRANT_PASSWORD : self::GRANT_AUTHORIZATION_CODE;
+    }
+
+    public function getAuthDomain(): ?string
+    {
+        $domain = App::parseEnv($this->authDomain);
+
+        return is_string($domain) && $domain !== '' ? rtrim($domain, '/') : null;
+    }
+
     public function getUsername(): string
     {
         return App::parseEnv($this->username);
@@ -150,6 +181,10 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     public function getApiDomain(): string
     {
+        if ($domain = $this->getAuthDomain()) {
+            return $domain;
+        }
+
         $prefix = $this->getUseSandbox() ? 'test' : 'login';
 
         return "https://{$prefix}.salesforce.com";
@@ -157,13 +192,54 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     public function getBaseApiUrl(?Token $token): ?string
     {
-        if (!$token) {
+        $instanceUrl = $this->getInstanceUrl($token);
+
+        if (!$instanceUrl) {
             return null;
         }
 
-        $url = $token->values['instance_url'] ?? '';
+        return "$instanceUrl/services/data/v49.0/";
+    }
 
-        return "$url/services/data/v49.0/";
+    public function getInstanceUrl(?Token $token): ?string
+    {
+        $instanceUrl = $token?->values['instance_url'] ?? null;
+
+        if (is_string($instanceUrl) && $instanceUrl !== '') {
+            return rtrim($instanceUrl, '/');
+        }
+
+        $accessToken = $token?->getToken();
+
+        if ($accessToken instanceof SalesforceAccessToken) {
+            $instanceUrl = $accessToken->getInstanceUrl();
+
+            if (is_string($instanceUrl) && $instanceUrl !== '') {
+                return rtrim($instanceUrl, '/');
+            }
+        }
+
+        $apiDomain = App::parseEnv($this->apiDomain);
+
+        if (is_string($apiDomain) && $apiDomain !== '') {
+            return rtrim($apiDomain, '/');
+        }
+
+        return null;
+    }
+
+    public function afterFetchAccessToken(Token $token): void
+    {
+        $instanceUrl = $this->getInstanceUrl($token);
+
+        if (!$instanceUrl) {
+            throw new IntegrationException(Craft::t('formie', 'Salesforce response missing `instance_url`.'));
+        }
+
+        $values = $token->values;
+        $values['instance_url'] = $instanceUrl;
+        $token->values = $values;
+        $this->apiDomain = $instanceUrl;
     }
 
     public function getOAuthProviderConfig(): array
@@ -191,12 +267,11 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     public function getAccessToken(): OAuth1Token|OAuth2Token|null
     {
-        // In some instances (service users) we might want to use the insecure password grant
-        if ($this->getUseCredentials()) {
+        // Retain the legacy password grant for existing service-user integrations.
+        if ($this->getGrant() === self::GRANT_PASSWORD) {
             $oauthProvider = $this->getOAuthProvider();
 
-            // SugarCRM doesn't support `authorization_code` grant
-            $token = $oauthProvider->getAccessToken('password', [
+            $token = $oauthProvider->getAccessToken(self::GRANT_PASSWORD, [
                 'client_id' => $this->getClientId(),
                 'client_secret' => $this->getClientSecret(),
                 'username' => $this->getUsername(),
@@ -642,6 +717,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
     {
         $rules = parent::defineRules();
         $rules[] = [['duplicateLeadTask', 'duplicateLeadTaskSubject'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [['grant'], 'in', 'range' => [self::GRANT_AUTHORIZATION_CODE, self::GRANT_CLIENT_CREDENTIALS, self::GRANT_PASSWORD], 'skipOnEmpty' => true];
+        $rules[] = [
+            ['username', 'password'], 'required', 'when' => function($model) {
+                return $model->enabled && $model->getGrant() === self::GRANT_PASSWORD;
+            },
+        ];
 
         $contact = $this->getFormSettingValue('contact');
         $lead = $this->getFormSettingValue('lead');
