@@ -2,12 +2,13 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
-use verbb\formie\services\Permissions;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Form;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\models\IntegrationSettingsContext;
+use verbb\formie\services\Permissions;
 
 use Craft;
 use craft\elements\User;
@@ -122,8 +123,19 @@ class IntegrationsController extends Controller
 
         $request = $this->request;
         $integrationId = $request->getRequiredParam('id');
+        $integration = Formie::$plugin->getIntegrations()->getIntegrationById((int)$integrationId);
 
-        Formie::$plugin->getIntegrations()->deleteIntegrationById($integrationId);
+        if (!$integration || !Formie::$plugin->getIntegrations()->deleteIntegration($integration)) {
+            $message = $integration?->getFirstError() ?: Craft::t('formie', 'Unable to delete integration.');
+
+            if ($request->getAcceptsJson()) {
+                return $this->asJson(['success' => false, 'error' => $message]);
+            }
+
+            $this->setFailFlash($message);
+
+            return $this->redirectToPostedUrl();
+        }
 
         if ($request->getAcceptsJson()) {
             return $this->asJson([
@@ -379,6 +391,13 @@ class IntegrationsController extends Controller
 
         if (!($integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($integrationHandle))) {
             return $this->asFailure(Craft::t('formie', 'Unable to find integration “{integration}”.', ['integration' => $integrationHandle]));
+        }
+
+        if ($integration instanceof PaymentIntegration && $integration->id
+            && Formie::$plugin->getSubscriptions()->hasManageableSubscriptionsForIntegration($integration->id)) {
+            $integration->addError('id', Craft::t('formie', 'Cancel or complete active subscriptions before disconnecting this payment integration.'));
+
+            return $this->asModelFailure($integration, Craft::t('formie', 'Unable to disconnect {name}.', ['name' => $integration->name]), 'integration');
         }
 
         // Delete all tokens for this integration

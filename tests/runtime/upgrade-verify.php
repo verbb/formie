@@ -41,9 +41,14 @@ foreach (['active' => 'active', 'cancelled' => 'cancelled', 'ambiguous' => 'unkn
     $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionById($fixture['subscriptionIds'][$legacy]);
     $check($subscription->status === $expected && !empty($subscription->history), 'legacy ' . $legacy . ' subscription has a coherent status and retained history');
 }
+foreach (['providerStatus', 'startedAt', 'trialStartsAt', 'trialEndsAt', 'currentPeriodStartsAt', 'currentPeriodEndsAt', 'nextPaymentAt', 'pausedAt', 'cancelAt', 'cancelledAt', 'endedAt', 'cancellationMode'] as $column) {
+    $check($app->getDb()->columnExists(\verbb\formie\helpers\Table::FORMIE_SUBSCRIPTIONS, $column), 'upgrade creates canonical subscription column ' . $column);
+}
 foreach (['success' => 'success', 'pending' => 'unknown'] as $legacy => $expected) {
     $payment = Formie::$plugin->getPayments()->getPaymentById($fixture['paymentIds'][$legacy]);
-    $check($payment->status === $expected && $payment->amount === '25.0100', 'exact legacy amount and ' . $legacy . ' payment certainty survived');
+    $check($payment->status === $expected && $payment->amount === '25.0100'
+        && $payment->isMonetary && $payment->operation === 'legacySubscriptionPayment',
+        'exact legacy amount, operation meaning and ' . $legacy . ' payment certainty survived');
 }
 $app->getDb()->createCommand()->delete(\verbb\formie\helpers\Table::FORMIE_SUBSCRIPTIONS, ['id' => $fixture['subscriptionIds']['active']])->execute();
 $payment = Formie::$plugin->getPayments()->getPaymentById($fixture['paymentIds']['success']);

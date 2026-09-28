@@ -50,6 +50,8 @@ Your form **must** use the Ajax (Client-side) submission method when using the S
 
 The Stripe payment integration supports both once-off payments and subscription-based payments.
 
+Formie records subscription setup separately from money collected. Each paid or failed Stripe invoice is retained as its own payment, while trials, pauses, past-due periods and scheduled cancellation remain part of the subscription lifecycle. Cancelling from Formie defaults to the end of the current billing period; API callers can explicitly request immediate cancellation.
+
 ### Subscription Payment Limits
 For subscription payments, you can optionally limit how many recurring payments Stripe collects before the subscription is cancelled automatically.
 

@@ -8,6 +8,8 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\PaymentResumeMode;
+use verbb\formie\enums\SubscriptionCancellationMode;
+use verbb\formie\enums\SubscriptionStatus;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
@@ -30,6 +32,7 @@ use verbb\formie\models\SlotTag;
 use verbb\formie\models\Subscription;
 use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\payments\PaymentWebhookReceipt;
+use verbb\formie\models\payments\SubscriptionSnapshot;
 use verbb\formie\models\payments\VerifiedWebhook;
 use verbb\formie\models\payments\VerifiedWebhookBatch;
 use verbb\formie\references\ReferenceContext;
@@ -329,7 +332,7 @@ class Stripe extends Payment
 
         if ($type === self::PAYMENT_TYPE_SUBSCRIPTION && $latestPayment?->subscriptionId) {
             $subscription = $latestPayment->getSubscription();
-            if ($subscription && in_array($subscription->status, ['active', 'cancelling'], true)) {
+            if ($subscription && in_array($subscription->getState(), [SubscriptionStatus::TRIALING, SubscriptionStatus::ACTIVE], true)) {
                 return PaymentDecision::succeeded($this->handle, $subscription->reference);
             }
             if ($subscription?->getState()->isTerminal()) {
@@ -395,12 +398,11 @@ class Stripe extends Payment
                     if ($subscription && (int)$subscription->submissionId === (int)$submission->id
                         && (int)$subscription->integrationId === (int)$this->id && (int)$subscription->fieldId === (int)$field->id
                         && !$subscription->getState()->isTerminal()) {
-                        $subscription->reference = $stripeSubscription->id;
-                        $subscription->subscriptionData = $stripeSubscription->toArray();
-
-                        $this->_setSubscriptionStatusData($subscription);
-
-                        Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+                        $subscription = $this->_applySubscriptionSnapshot(
+                            $subscription,
+                            $stripeSubscription->toArray(),
+                            'stripeReturn',
+                        );
                     } else {
                         throw new Exception('Unable to find subscription by "' . $stripeSubscription->id . '".');
                     }
@@ -486,22 +488,20 @@ class Stripe extends Payment
             $subscription->fieldId = $field->id;
             $subscription->planId = $plan->id;
             $subscription->reference = $response->id;
-            $subscription->subscriptionData = $response->toArray();
+            $subscriptionData = $response->toArray();
 
             if ($scheduleId) {
-                $subscription->subscriptionData['formieScheduleId'] = $scheduleId;
-                $subscription->subscriptionData['formiePaymentLimit'] = $paymentLimit;
+                $subscriptionData['formieScheduleId'] = $scheduleId;
+                $subscriptionData['formiePaymentLimit'] = $paymentLimit;
             }
 
             if (($setupFee = $this->getSubscriptionSetupFee($submission)) !== null) {
-                $subscription->subscriptionData['formieSetupFee'] = $setupFee;
+                $subscriptionData['formieSetupFee'] = $setupFee;
             }
 
             $subscription->trialDays = 0;
-
-            $this->_setSubscriptionStatusData($subscription);
-
             Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+            $this->_applySubscriptionSnapshot($subscription, $subscriptionData, 'stripeCreate');
 
             $this->_addStripeSubscriptionConfirmSubmitData($submission, $response);
 
@@ -776,9 +776,7 @@ class Stripe extends Payment
             $subscription = $payment->getSubscription();
             if (!$subscription?->reference) { return; }
             $remote = $this->getStripe()->subscriptions->retrieve($subscription->reference);
-            $subscription->subscriptionData = $remote->toArray();
-            $this->_setSubscriptionStatusData($subscription);
-            Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+            $subscription = $this->_applySubscriptionSnapshot($subscription, $remote->toArray(), 'stripeReconcile');
             $this->_syncInitialSubscriptionPayment($subscription);
             return;
         }
@@ -867,28 +865,49 @@ class Stripe extends Payment
 
     public function cancelSubscription($reference, $params = []): ?array
     {
-        try {
-            $stripeSubscription = $this->getStripe()->subscriptions->retrieve($reference);
-            $cancelImmediately = $params['cancelImmediately'] ?? false;
+        $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($reference, $this->id);
 
-            if ($cancelImmediately) {
+        if (!$subscription) {
+            return null;
+        }
+
+        $snapshot = $this->cancelSubscriptionSnapshot(
+            $subscription,
+            ($params['cancelImmediately'] ?? false) ? SubscriptionCancellationMode::IMMEDIATE : SubscriptionCancellationMode::AT_PERIOD_END,
+        );
+
+        if (!$snapshot) {
+            return null;
+        }
+
+        Formie::$plugin->getSubscriptions()->applySnapshot($subscription, $snapshot, 'legacyCancellation');
+
+        return $snapshot->rawData;
+    }
+
+    public function getSubscriptionCancellationModes(): array
+    {
+        return [SubscriptionCancellationMode::AT_PERIOD_END, SubscriptionCancellationMode::IMMEDIATE];
+    }
+
+    public function getDefaultSubscriptionCancellationMode(): SubscriptionCancellationMode
+    {
+        return SubscriptionCancellationMode::AT_PERIOD_END;
+    }
+
+    public function cancelSubscriptionSnapshot(Subscription $subscription, SubscriptionCancellationMode $mode): ?SubscriptionSnapshot
+    {
+        try {
+            $stripeSubscription = $this->getStripe()->subscriptions->retrieve($subscription->reference);
+
+            if ($mode === SubscriptionCancellationMode::IMMEDIATE) {
                 $response = $stripeSubscription->cancel();
             } else {
                 $stripeSubscription->cancel_at_period_end = true;
                 $response = $stripeSubscription->save();
             }
 
-            $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($reference, $this->id);
-
-            if ($subscription) {
-                $subscription->subscriptionData = $response->toArray();
-
-                $this->_setSubscriptionStatusData($subscription);
-
-                Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
-            }
-
-            return $response->toArray();
+            return $this->_subscriptionSnapshot($response->toArray(), cancellationMode: $mode);
         } catch (Throwable $e) {
             Integration::apiError($this, $e, false);
         }
@@ -1303,14 +1322,17 @@ class Stripe extends Payment
         Formie::$plugin->getPayments()->recordRecurring($subscription, $invoice['id'],
             self::fromStripeAmount((string)$invoice['amount_paid'], strtoupper($invoice['currency'])),
             strtoupper($invoice['currency']), PaymentModel::STATUS_SUCCESS, $invoice);
-        $previousPeriod = $subscription->nextPaymentDate;
+        $previousPeriod = $subscription->nextPaymentAt;
         $remote = $this->getStripe()->subscriptions->retrieve($subscription->reference);
-        $subscription->subscriptionData = $remote->toArray();
-        $this->_setSubscriptionStatusData($subscription);
-        $subscription->nextPaymentDate = $previousPeriod;
-        Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+        $subscription = $this->_applySubscriptionSnapshot(
+            $subscription,
+            $remote->toArray(),
+            'stripeInvoiceSucceeded',
+            (string)($data['id'] ?? ''),
+            isset($data['created']) ? (int)$data['created'] : null,
+        );
         $date = DateTimeHelper::toDateTime($remote['current_period_end']);
-        if ($date) { Formie::$plugin->getSubscriptions()->receivePayment($subscription, $date); }
+        if ($date) { Formie::$plugin->getSubscriptions()->receivePayment($subscription, $date, $previousPeriod); }
         $this->_syncInitialSubscriptionPayment($subscription);
     }
 
@@ -1340,10 +1362,13 @@ class Stripe extends Payment
             'expand' => ['latest_invoice.payment_intent'],
         ]);
 
-        $subscription->subscriptionData = $stripeSubscription->toArray();
-        $this->_setSubscriptionStatusData($subscription);
-
-        Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+        $this->_applySubscriptionSnapshot(
+            $subscription,
+            $stripeSubscription->toArray(),
+            'stripeInvoiceFailed',
+            (string)($data['id'] ?? ''),
+            isset($data['created']) ? (int)$data['created'] : null,
+        );
     }
 
     protected function handlePlanDeleted(array $data): void
@@ -1372,6 +1397,7 @@ class Stripe extends Payment
     protected function handleSubscriptionExpired(array $data): void
     {
         $stripeSubscription = $data['data']['object'];
+        $stripeSubscription['status'] ??= 'canceled';
 
         $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($stripeSubscription['id'], $this->id);
 
@@ -1381,7 +1407,13 @@ class Stripe extends Payment
             return;
         }
 
-        Formie::$plugin->getSubscriptions()->expireSubscription($subscription);
+        $this->_applySubscriptionSnapshot(
+            $subscription,
+            $stripeSubscription,
+            'stripeWebhook',
+            (string)($data['id'] ?? ''),
+            isset($data['created']) ? (int)$data['created'] : null,
+        );
     }
 
     protected function handleSubscriptionUpdated(array $data): void
@@ -1397,9 +1429,13 @@ class Stripe extends Payment
 
         // See if we care about this subscription at all
         $remote = $this->getStripe()->subscriptions->retrieve($subscription->reference);
-        $subscription->subscriptionData = $remote->toArray();
-
-        $this->_setSubscriptionStatusData($subscription);
+        $subscription = $this->_applySubscriptionSnapshot(
+            $subscription,
+            $remote->toArray(),
+            'stripeWebhook',
+            (string)($data['id'] ?? ''),
+            isset($data['created']) ? (int)$data['created'] : null,
+        );
 
         if (empty($data['data']['object']['plan'])) {
             Integration::info($this, $subscription->reference . ' contains multiple plans, which is not supported. (event "' . $data['id'] . '")');
@@ -1817,10 +1853,9 @@ class Stripe extends Payment
             return null;
         }
         $candidate->reference = $reference;
-        $candidate->subscriptionData = $remote;
-        $this->_setSubscriptionStatusData($candidate);
         $subscriptions->saveSubscription($candidate);
-        return $candidate;
+
+        return $subscriptions->getSubscriptionById($candidate->id);
     }
 
     private function _syncInitialSubscriptionPayment(Subscription $subscription): void
@@ -1828,10 +1863,11 @@ class Stripe extends Payment
         if (!$submission = $subscription->getSubmission()) { return; }
         foreach (Formie::$plugin->getPayments()->getSubmissionPayments($submission) as $payment) {
             if ($payment->subscriptionId !== $subscription->id || !($payment->scope['initial'] ?? false)) { continue; }
-            $payment->status = match ($subscription->status) {
-                'active', 'cancelling' => PaymentModel::STATUS_SUCCESS,
-                'cancelled', 'expired' => PaymentModel::STATUS_CANCELLED,
-                'unknown' => PaymentModel::STATUS_UNKNOWN,
+            $payment->status = match ($subscription->getState()) {
+                SubscriptionStatus::TRIALING, SubscriptionStatus::ACTIVE => PaymentModel::STATUS_SUCCESS,
+                SubscriptionStatus::CANCELLED, SubscriptionStatus::COMPLETED => PaymentModel::STATUS_CANCELLED,
+                SubscriptionStatus::FAILED => PaymentModel::STATUS_FAILED,
+                SubscriptionStatus::UNKNOWN => PaymentModel::STATUS_UNKNOWN,
                 default => PaymentModel::STATUS_PENDING,
             };
             $payment->reference ??= $subscription->reference;
@@ -1840,25 +1876,87 @@ class Stripe extends Payment
         }
     }
 
-    private function _setSubscriptionStatusData(Subscription $subscription): void
+    private function _applySubscriptionSnapshot(
+        Subscription $subscription,
+        array $data,
+        string $source,
+        ?string $providerEventId = null,
+        ?int $providerUpdatedAt = null,
+    ): Subscription
     {
-        $data = $subscription->subscriptionData;
+        return Formie::$plugin->getSubscriptions()->applySnapshot(
+            $subscription,
+            $this->_subscriptionSnapshot($data, $providerEventId, $providerUpdatedAt),
+            $source,
+        );
+    }
 
-        $canceledAt = $data['canceled_at'] ?? null;
-        $endedAt = $data['ended_at'] ?? null;
-        $status = $data['status'] ?? null;
-
-        $subscription->status = match ($status) {
-            'active', 'trialing' => !empty($data['cancel_at_period_end']) ? 'cancelling' : 'active',
-            'incomplete' => 'pending',
-            'incomplete_expired' => 'expired',
-            'canceled' => 'cancelled',
-            'past_due', 'unpaid', 'paused' => 'suspended',
-            default => 'unknown',
+    private function _subscriptionSnapshot(
+        array $data,
+        ?string $providerEventId = null,
+        ?int $providerUpdatedAt = null,
+        ?SubscriptionCancellationMode $cancellationMode = null,
+    ): SubscriptionSnapshot
+    {
+        $providerStatus = (string)($data['status'] ?? '');
+        $status = match ($providerStatus) {
+            'trialing' => SubscriptionStatus::TRIALING,
+            'active' => SubscriptionStatus::ACTIVE,
+            'incomplete' => SubscriptionStatus::PENDING,
+            'past_due', 'unpaid' => SubscriptionStatus::PAST_DUE,
+            'paused' => SubscriptionStatus::PAUSED,
+            'incomplete_expired' => SubscriptionStatus::FAILED,
+            'canceled' => SubscriptionStatus::CANCELLED,
+            default => SubscriptionStatus::UNKNOWN,
         };
-        $subscription->dateCanceled = $canceledAt ? DateTimeHelper::toDateTime($canceledAt) : null;
-        $subscription->dateExpired = $endedAt ? DateTimeHelper::toDateTime($endedAt) : null;
-        $subscription->nextPaymentDate = isset($data['current_period_end']) ? DateTimeHelper::toDateTime($data['current_period_end']) : null;
+        $scheduledCancellation = !empty($data['cancel_at_period_end']) || !empty($data['cancel_at']);
+        $periodEnd = $this->_subscriptionDate($data['current_period_end'] ?? null);
+        $observedAt = $providerUpdatedAt ?? time();
+        $observedDate = (new DateTimeImmutable())->setTimestamp($observedAt);
+        $resolvedCancellationMode = $cancellationMode
+            ?? ($scheduledCancellation ? SubscriptionCancellationMode::AT_PERIOD_END : null)
+            ?? ($status === SubscriptionStatus::CANCELLED ? SubscriptionCancellationMode::IMMEDIATE : null);
+
+        return new SubscriptionSnapshot(
+            status: $status,
+            providerStatus: $providerStatus,
+            reference: isset($data['id']) ? (string)$data['id'] : null,
+            providerUpdatedAt: $observedAt,
+            providerEventId: $providerEventId ?: null,
+            startedAt: $this->_subscriptionDate($data['start_date'] ?? null),
+            trialStartsAt: $this->_subscriptionDate($data['trial_start'] ?? null),
+            trialEndsAt: $this->_subscriptionDate($data['trial_end'] ?? null),
+            currentPeriodStartsAt: $this->_subscriptionDate($data['current_period_start'] ?? null),
+            currentPeriodEndsAt: $periodEnd,
+            nextPaymentAt: $status->isTerminal() ? null : $periodEnd,
+            pausedAt: $status === SubscriptionStatus::PAUSED ? new DateTimeImmutable() : null,
+            cancelAt: $scheduledCancellation ? $this->_subscriptionDate($data['cancel_at'] ?? null) ?? $periodEnd : null,
+            cancelledAt: $status === SubscriptionStatus::CANCELLED
+                ? $this->_subscriptionDate($data['canceled_at'] ?? null) ?? $observedDate
+                : null,
+            endedAt: $status->isTerminal()
+                ? $this->_subscriptionDate($data['ended_at'] ?? null) ?? $observedDate
+                : null,
+            cancellationMode: $resolvedCancellationMode,
+            rawData: $data,
+        );
+    }
+
+    private function _subscriptionDate(mixed $value): ?DateTimeImmutable
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            return (new DateTimeImmutable())->setTimestamp((int)$value);
+        }
+
+        try {
+            return new DateTimeImmutable((string)$value);
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     private function _getLatestPendingPaymentForField(Submission $submission, int $fieldId): ?PaymentModel

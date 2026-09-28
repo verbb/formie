@@ -6,6 +6,8 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\PaymentResumeMode;
+use verbb\formie\enums\SubscriptionCancellationMode;
+use verbb\formie\enums\SubscriptionStatus;
 use verbb\formie\errors\DeliveryOutcomeUnknownException;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
@@ -21,11 +23,12 @@ use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
+use verbb\formie\models\Subscription;
 use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\payments\PaymentWebhookReceipt;
+use verbb\formie\models\payments\SubscriptionSnapshot;
 use verbb\formie\models\payments\VerifiedWebhook;
 use verbb\formie\models\payments\VerifiedWebhookBatch;
-use verbb\formie\models\Subscription;
 
 use Craft;
 use craft\helpers\App;
@@ -35,7 +38,6 @@ use craft\helpers\UrlHelper;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
-use DateTime;
 use DateTimeImmutable;
 use Exception;
 use Throwable;
@@ -353,22 +355,37 @@ class GoCardless extends Payment
 
     public function cancelSubscription($reference, $params = []): ?array
     {
+        $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($reference, $this->id);
+
+        if (!$subscription) {
+            return null;
+        }
+
+        $snapshot = $this->cancelSubscriptionSnapshot($subscription, SubscriptionCancellationMode::IMMEDIATE);
+
+        if (!$snapshot) {
+            return null;
+        }
+
+        Formie::$plugin->getSubscriptions()->applySnapshot($subscription, $snapshot, 'legacyCancellation');
+
+        return $snapshot->rawData;
+    }
+
+    public function cancelSubscriptionSnapshot(Subscription $subscription, SubscriptionCancellationMode $mode): ?SubscriptionSnapshot
+    {
+        if ($mode !== SubscriptionCancellationMode::IMMEDIATE) {
+            return null;
+        }
+
         try {
-            $response = $this->request('POST', "subscriptions/{$reference}/actions/cancel")['subscriptions'] ?? [];
+            $response = $this->request('POST', "subscriptions/{$subscription->reference}/actions/cancel")['subscriptions'] ?? [];
 
             if (!$response) {
                 return null;
             }
 
-            $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($reference, $this->id);
-
-            if ($subscription) {
-                $subscription->subscriptionData = $response;
-                $this->_setSubscriptionStatusData($subscription, $response);
-                Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
-            }
-
-            return $response;
+            return $this->_subscriptionSnapshot($response, cancellationMode: $mode);
         } catch (Throwable $e) {
             Integration::apiError($this, $e, false);
         }
@@ -832,7 +849,7 @@ class GoCardless extends Payment
         $gcSubscriptionId = $gcPayment['links']['subscription'] ?? null;
 
         if ($gcSubscriptionId) {
-            $this->_processSubscriptionPaymentWebhook($gcPayment, (string)$gcSubscriptionId);
+            $this->_processSubscriptionPaymentWebhook($gcPayment, (string)$gcSubscriptionId, $event);
 
             return;
         }
@@ -1097,11 +1114,9 @@ class GoCardless extends Payment
         $subscription->submissionId = $submission->id;
         $subscription->fieldId = $payment->fieldId;
         $subscription->reference = $gcSubscription['id'];
-        $subscription->subscriptionData = $gcSubscription;
         $subscription->trialDays = 0;
-        $this->_setSubscriptionStatusData($subscription, $gcSubscription);
-
         Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+        $subscription = $this->_applySubscriptionSnapshot($subscription, $gcSubscription, 'goCardlessCreate');
 
         $existing = is_array($payment->response) ? $payment->response : [];
         $preserved = [];
@@ -1149,9 +1164,7 @@ class GoCardless extends Payment
             : Formie::$plugin->getSubscriptions()->getSubscriptionByReference((string)$subscriptionReference, $this->id);
 
         if ($subscription) {
-            $subscription->subscriptionData = $gcSubscription;
-            $this->_setSubscriptionStatusData($subscription, $gcSubscription);
-            Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+            $subscription = $this->_applySubscriptionSnapshot($subscription, $gcSubscription, 'goCardlessReconcile');
         }
 
         $preserved = [];
@@ -1177,32 +1190,7 @@ class GoCardless extends Payment
         Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
     }
 
-    private function _setSubscriptionStatusData(Subscription $subscription, array $gcSubscription): void
-    {
-        $status = (string)($gcSubscription['status'] ?? '');
-
-        $subscription->status = match ($status) {
-            'active' => 'active', 'cancelled' => 'cancelled', 'finished' => 'expired',
-            'pending_customer_approval' => 'pending', 'customer_approval_denied' => 'cancelled',
-            default => 'unknown',
-        };
-
-        if ($subscription->isCanceled && !$subscription->dateCanceled) {
-            $subscription->dateCanceled = DateTimeHelper::toDateTime(new DateTime());
-        }
-
-        if ($subscription->isExpired && !$subscription->dateExpired) {
-            $subscription->dateExpired = DateTimeHelper::toDateTime(new DateTime());
-        }
-
-        $nextChargeDate = $gcSubscription['upcoming_payments'][0]['charge_date'] ?? null;
-
-        if ($nextChargeDate) {
-            $subscription->nextPaymentDate = DateTimeHelper::toDateTime($nextChargeDate);
-        }
-    }
-
-    private function _processSubscriptionPaymentWebhook(array $gcPayment, string $gcSubscriptionId): void
+    private function _processSubscriptionPaymentWebhook(array $gcPayment, string $gcSubscriptionId, array $event): void
     {
         $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($gcSubscriptionId, $this->id);
 
@@ -1214,12 +1202,17 @@ class GoCardless extends Payment
             $this->setField($field);
         }
 
+        $previousPeriod = $subscription->nextPaymentAt;
         $gcSubscription = $this->request('GET', "subscriptions/{$gcSubscriptionId}")['subscriptions'] ?? [];
 
         if ($gcSubscription) {
-            $subscription->subscriptionData = $gcSubscription;
-            $this->_setSubscriptionStatusData($subscription, $gcSubscription);
-            Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+            $subscription = $this->_applySubscriptionSnapshot(
+                $subscription,
+                $gcSubscription,
+                'goCardlessPaymentWebhook',
+                isset($event['id']) ? (string)$event['id'] : null,
+                $this->_subscriptionTimestamp($event['created_at'] ?? null),
+            );
         }
 
         $status = (string)($gcPayment['status'] ?? '');
@@ -1237,6 +1230,7 @@ class GoCardless extends Payment
             Formie::$plugin->getSubscriptions()->receivePayment(
                 $subscription,
                 DateTimeHelper::toDateTime($gcSubscription['upcoming_payments'][0]['charge_date']),
+                $previousPeriod,
             );
         }
     }
@@ -1269,9 +1263,13 @@ class GoCardless extends Payment
             return;
         }
 
-        $subscription->subscriptionData = $gcSubscription;
-        $this->_setSubscriptionStatusData($subscription, $gcSubscription);
-        Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
+        $subscription = $this->_applySubscriptionSnapshot(
+            $subscription,
+            $gcSubscription,
+            'goCardlessWebhook',
+            isset($event['id']) ? (string)$event['id'] : null,
+            $this->_subscriptionTimestamp($event['created_at'] ?? null),
+        );
 
         $formiePaymentId = $gcSubscription['metadata']['formiePaymentId'] ?? null;
 
@@ -1290,6 +1288,81 @@ class GoCardless extends Payment
         }
 
         $this->_refreshGoCardlessSubscription($payment, $gcSubscription);
+    }
+
+    private function _applySubscriptionSnapshot(
+        Subscription $subscription,
+        array $data,
+        string $source,
+        ?string $providerEventId = null,
+        ?int $providerUpdatedAt = null,
+    ): Subscription
+    {
+        return Formie::$plugin->getSubscriptions()->applySnapshot(
+            $subscription,
+            $this->_subscriptionSnapshot($data, $providerEventId, $providerUpdatedAt),
+            $source,
+        );
+    }
+
+    private function _subscriptionSnapshot(
+        array $data,
+        ?string $providerEventId = null,
+        ?int $providerUpdatedAt = null,
+        ?SubscriptionCancellationMode $cancellationMode = null,
+    ): SubscriptionSnapshot
+    {
+        $providerStatus = (string)($data['status'] ?? '');
+        $status = match ($providerStatus) {
+            'active' => SubscriptionStatus::ACTIVE,
+            'pending_customer_approval' => SubscriptionStatus::PENDING,
+            'customer_approval_denied' => SubscriptionStatus::FAILED,
+            'cancelled' => SubscriptionStatus::CANCELLED,
+            'finished' => SubscriptionStatus::COMPLETED,
+            default => SubscriptionStatus::UNKNOWN,
+        };
+        $nextPaymentAt = $this->_subscriptionDate($data['upcoming_payments'][0]['charge_date'] ?? null);
+        $observedAt = $providerUpdatedAt ?? time();
+
+        return new SubscriptionSnapshot(
+            status: $status,
+            providerStatus: $providerStatus,
+            reference: isset($data['id']) ? (string)$data['id'] : null,
+            providerUpdatedAt: $observedAt,
+            providerEventId: $providerEventId,
+            startedAt: $this->_subscriptionDate($data['start_date'] ?? $data['created_at'] ?? null),
+            nextPaymentAt: $status->isTerminal() ? null : $nextPaymentAt,
+            cancelledAt: $status === SubscriptionStatus::CANCELLED
+                ? $this->_subscriptionDate($data['cancelled_at'] ?? null) ?? (new DateTimeImmutable())->setTimestamp($observedAt)
+                : null,
+            endedAt: $status->isTerminal()
+                ? $this->_subscriptionDate($data['end_date'] ?? null) ?? (new DateTimeImmutable())->setTimestamp($observedAt)
+                : null,
+            cancellationMode: $cancellationMode ?? ($status === SubscriptionStatus::CANCELLED ? SubscriptionCancellationMode::IMMEDIATE : null),
+            rawData: $data,
+        );
+    }
+
+    private function _subscriptionTimestamp(mixed $value): ?int
+    {
+        return $this->_subscriptionDate($value)?->getTimestamp();
+    }
+
+    private function _subscriptionDate(mixed $value): ?DateTimeImmutable
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_numeric($value)) {
+            return (new DateTimeImmutable())->setTimestamp((int)$value);
+        }
+
+        try {
+            return new DateTimeImmutable((string)$value);
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     private function _amountToMinorUnits(string|int|float $amount, string $currencyCode): int

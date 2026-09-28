@@ -71,7 +71,9 @@ it('retrieves the current Stripe subscription period before persisting a paid in
     $method = new ReflectionMethod(Stripe::class, 'handleInvoiceSucceeded');
     $method->invoke($integration, ['id' => 'evt_paid', 'data' => ['object' => ['id' => 'in_boundary', 'amount_paid' => 2500, 'currency' => 'usd', 'paid' => true, 'subscription' => $subscription->reference]]]);
     expect($client->references)->toBe([$subscription->reference]);
-    expect(Formie::$plugin->getSubscriptions()->getSubscriptionById($subscription->id)->nextPaymentDate->getTimestamp())->toBe(1800000000);
+    $saved = Formie::$plugin->getSubscriptions()->getSubscriptionById($subscription->id);
+    expect($saved->nextPaymentAt->getTimestamp())->toBe(1800000000)
+        ->and($saved->nextPaymentDate->getTimestamp())->toBe(1800000000);
 });
 
 it('returns a retryable failure when a valid Stripe webhook cannot be processed', function (): void {
@@ -111,5 +113,5 @@ it('ignores subscription and invoice events authenticated by another integration
     expect($subscriptions->getSubscriptionById($subscription->id)->isExpired)->toBeFalse();
     expect($subscriptions->getSubscriptionById($subscription->id)->subscriptionData)->toBeNull();
     (new ReflectionMethod(Stripe::class, 'handleSubscriptionExpired'))->invoke($owner, $data);
-    expect($subscriptions->getSubscriptionById($subscription->id)->isExpired)->toBeTrue();
+    expect($subscriptions->getSubscriptionById($subscription->id)->isCanceled)->toBeTrue();
 })->group('security');

@@ -926,6 +926,13 @@ class Integrations extends Component
 
     public function deleteIntegration(IntegrationInterface $integration): bool
     {
+        if ($integration->id
+            && Formie::$plugin->getSubscriptions()->hasManageableSubscriptionsForIntegration($integration->id)) {
+            $integration->addError('id', Craft::t('formie', 'Cancel or complete active subscriptions before deleting this payment integration.'));
+
+            return false;
+        }
+
         // Fire a 'beforeDeleteIntegration' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_INTEGRATION)) {
             $this->trigger(self::EVENT_BEFORE_DELETE_INTEGRATION, new IntegrationEvent([
@@ -960,6 +967,10 @@ class Integrations extends Component
         }
 
         $integration = $this->getIntegrationById($integrationRecord->id);
+
+        if (Formie::$plugin->getSubscriptions()->hasManageableSubscriptionsForIntegration($integrationRecord->id)) {
+            throw new InvalidConfigException('Cancel or complete active subscriptions before removing this payment integration from project config.');
+        }
 
         // Fire a 'beforeApplyIntegrationDelete' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_APPLY_INTEGRATION_DELETE)) {
@@ -1531,6 +1542,13 @@ class Integrations extends Component
 
     private function _deleteSiteIntegration(IntegrationInterface $integration): bool
     {
+        if ($integration->id
+            && Formie::$plugin->getSubscriptions()->hasManageableSubscriptionsForIntegration($integration->id)) {
+            $integration->addError('id', Craft::t('formie', 'Cancel or complete active subscriptions before deleting this payment integration.'));
+
+            return false;
+        }
+
         if ($this->hasEventHandlers(self::EVENT_BEFORE_APPLY_INTEGRATION_DELETE)) {
             $this->trigger(self::EVENT_BEFORE_APPLY_INTEGRATION_DELETE, new IntegrationEvent([
                 'integration' => $integration,

@@ -516,6 +516,24 @@ Event::on(Subscriptions::class, Subscriptions::EVENT_RECEIVE_SUBSCRIPTION_PAYMEN
 });
 ```
 
+### The `afterApplySubscriptionSnapshot` Event
+The event that is triggered after a current provider snapshot has been accepted and persisted. Duplicate events, stale observations and attempted terminal regressions do not trigger it. The event exposes the previous and current canonical status, immutable provider snapshot and source label.
+
+```php
+use verbb\formie\events\SubscriptionEvent;
+use verbb\formie\services\Subscriptions;
+use yii\base\Event;
+
+Event::on(Subscriptions::class, Subscriptions::EVENT_AFTER_APPLY_SUBSCRIPTION_SNAPSHOT, function(SubscriptionEvent $event) {
+    $subscription = $event->subscription;
+    $previousStatus = $event->previousStatus;
+    $currentStatus = $event->currentStatus;
+    $providerStatus = $event->snapshot?->providerStatus;
+    $source = $event->source;
+    // ...
+});
+```
+
 ## Integration Connection Events
 
 The following events use the `Mailchimp` class as an example, but any class that inherits from the `verbb\formie\base\Integration` class can use these events.

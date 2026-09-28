@@ -3,8 +3,10 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\PaymentCapabilityPurpose;
+use verbb\formie\enums\SubscriptionCancellationMode;
 use verbb\formie\enums\SubscriptionStatus;
 use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\PaymentCapabilities;
@@ -15,6 +17,8 @@ use craft\helpers\UrlHelper;
 
 use DateInterval;
 use DateTime;
+use DateTimeInterface;
+use InvalidArgumentException;
 
 class Subscription extends Model
 {
@@ -37,6 +41,7 @@ class Subscription extends Model
     public ?string $idempotencyKey = null;
     public ?DateTime $archivedAt = null;
     public ?int $providerUpdatedAt = null;
+    public ?string $providerStatus = null;
 
     public ?int $integrationId = null;
     public ?int $submissionId = null;
@@ -45,15 +50,22 @@ class Subscription extends Model
     public ?string $reference = null;
     public ?array $subscriptionData = null;
     public ?int $trialDays = 0;
-    public ?DateTime $nextPaymentDate = null;
-    public ?DateTime $dateSuspended = null;
-    public ?DateTime $dateCanceled = null;
-    public ?DateTime $dateExpired = null;
+    public ?DateTimeInterface $startedAt = null;
+    public ?DateTimeInterface $trialStartsAt = null;
+    public ?DateTimeInterface $trialEndsAt = null;
+    public ?DateTimeInterface $currentPeriodStartsAt = null;
+    public ?DateTimeInterface $currentPeriodEndsAt = null;
+    public ?DateTimeInterface $nextPaymentAt = null;
+    public ?DateTimeInterface $pausedAt = null;
+    public ?DateTimeInterface $cancelAt = null;
+    public ?DateTimeInterface $cancelledAt = null;
+    public ?DateTimeInterface $endedAt = null;
     public ?DateTime $dateCreated = null;
     public ?DateTime $dateUpdated = null;
     public ?string $uid = null;
 
     private SubscriptionStatus $_status = SubscriptionStatus::PENDING;
+    private ?SubscriptionCancellationMode $_cancellationMode = null;
     private ?IntegrationInterface $_integration = null;
     private ?Submission $_submission = null;
     private ?PaymentField $_field = null;
@@ -105,20 +117,30 @@ class Subscription extends Model
 
     public function canReactivate(): bool
     {
-        return $this->isCanceled && !$this->isExpired;
+        return $this->cancelAt !== null && !$this->_status->isTerminal();
     }
 
     public function getIsOnTrial(): bool
     {
-        if ($this->isExpired) {
+        if ($this->_status !== SubscriptionStatus::TRIALING || $this->isExpired) {
             return false;
         }
 
-        return $this->trialDays > 0 && time() <= $this->getTrialExpires()->getTimestamp();
+        $expires = $this->getTrialExpires();
+
+        return $expires === null || time() <= $expires->getTimestamp();
     }
 
-    public function getTrialExpires(): ?DateTIme
+    public function getTrialExpires(): ?DateTimeInterface
     {
+        if ($this->trialEndsAt) {
+            return $this->trialEndsAt;
+        }
+
+        if (!$this->dateCreated || !$this->trialDays) {
+            return null;
+        }
+
         $created = clone $this->dateCreated;
 
         return $created->add(new DateInterval('P' . $this->trialDays . 'D'));
@@ -131,7 +153,7 @@ class Subscription extends Model
 
     public function setStatus(string|SubscriptionStatus $status): void
     {
-        $this->_status = is_string($status) ? SubscriptionStatus::from($status) : $status;
+        $this->_status = is_string($status) ? SubscriptionStatus::fromStored($status, $this->providerStatus) : $status;
     }
 
     public function getState(): SubscriptionStatus
@@ -139,31 +161,124 @@ class Subscription extends Model
         return $this->_status;
     }
 
+    public function getStatusLabel(): string
+    {
+        return Craft::t('formie', match ($this->_status) {
+            SubscriptionStatus::PENDING => 'Pending',
+            SubscriptionStatus::TRIALING => 'Trialing',
+            SubscriptionStatus::ACTIVE => 'Active',
+            SubscriptionStatus::PAST_DUE => 'Past Due',
+            SubscriptionStatus::PAUSED => 'Paused',
+            SubscriptionStatus::CANCELLED => 'Cancelled',
+            SubscriptionStatus::FAILED => 'Failed',
+            SubscriptionStatus::COMPLETED => 'Completed',
+            SubscriptionStatus::UNKNOWN => 'Unknown',
+        });
+    }
+
+    public function getCanCancel(): bool
+    {
+        return $this->reference !== null
+            && $this->getIntegration() instanceof PaymentIntegration
+            && !$this->_status->isTerminal()
+            && $this->cancelAt === null
+            && empty($this->scope['cancellationPending']);
+    }
+
     // Stable template projections; the aggregate has only one authoritative state.
     public function getHasStarted(): bool
     {
-        return !in_array($this->_status, [SubscriptionStatus::PENDING, SubscriptionStatus::UNKNOWN], true);
+        return $this->startedAt !== null || $this->_status->isEstablished() || $this->_status === SubscriptionStatus::COMPLETED;
     }
 
     public function getIsSuspended(): bool
     {
-        return $this->_status === SubscriptionStatus::SUSPENDED;
+        return in_array($this->_status, [SubscriptionStatus::PAST_DUE, SubscriptionStatus::PAUSED], true);
     }
 
     public function getIsCanceled(): bool
     {
-        return in_array($this->_status, [SubscriptionStatus::CANCELLED, SubscriptionStatus::CANCELLING], true);
+        return $this->_status === SubscriptionStatus::CANCELLED;
     }
 
     public function getIsExpired(): bool
     {
-        return $this->_status === SubscriptionStatus::EXPIRED;
+        return in_array($this->_status, [SubscriptionStatus::FAILED, SubscriptionStatus::COMPLETED], true);
     }
 
-
-    public function getCancelUrl(): string
+    public function getCancellationMode(): ?SubscriptionCancellationMode
     {
-        $token = PaymentCapabilities::issue(PaymentCapabilityPurpose::CANCEL, (int)$this->id, ['subscriptionUid' => $this->uid, 'integrationId' => $this->integrationId, 'submissionId' => $this->submissionId], 86400);
-        return UrlHelper::actionUrl('formie/payment-subscriptions/cancel', ['id' => $this->id, 'token' => $token]);
+        return $this->_cancellationMode;
+    }
+
+    public function setCancellationMode(string|SubscriptionCancellationMode|null $mode): void
+    {
+        $this->_cancellationMode = is_string($mode) ? SubscriptionCancellationMode::tryFrom($mode) : $mode;
+    }
+
+    // Formie 3 template projections remain aliases over the canonical timeline.
+    public function getDateSuspended(): ?DateTimeInterface
+    {
+        return $this->pausedAt;
+    }
+
+    public function setDateSuspended(?DateTimeInterface $value): void
+    {
+        $this->pausedAt = $value;
+    }
+
+    public function getDateCanceled(): ?DateTimeInterface
+    {
+        return $this->cancelledAt;
+    }
+
+    public function setDateCanceled(?DateTimeInterface $value): void
+    {
+        $this->cancelledAt = $value;
+    }
+
+    public function getDateExpired(): ?DateTimeInterface
+    {
+        return $this->endedAt;
+    }
+
+    public function setDateExpired(?DateTimeInterface $value): void
+    {
+        $this->endedAt = $value;
+    }
+
+    public function getNextPaymentDate(): ?DateTimeInterface
+    {
+        return $this->nextPaymentAt;
+    }
+
+    public function setNextPaymentDate(?DateTimeInterface $value): void
+    {
+        $this->nextPaymentAt = $value;
+    }
+
+    public function getCancelUrl(?SubscriptionCancellationMode $mode = null): string
+    {
+        $integration = $this->getIntegration();
+        $mode ??= $integration instanceof PaymentIntegration
+            ? $integration->getDefaultSubscriptionCancellationMode()
+            : SubscriptionCancellationMode::IMMEDIATE;
+
+        if ($integration instanceof PaymentIntegration && !in_array($mode, $integration->getSubscriptionCancellationModes(), true)) {
+            throw new InvalidArgumentException('The payment provider does not support this cancellation mode.');
+        }
+
+        $token = PaymentCapabilities::issue(PaymentCapabilityPurpose::CANCEL, (int)$this->id, [
+            'subscriptionUid' => $this->uid,
+            'integrationId' => $this->integrationId,
+            'submissionId' => $this->submissionId,
+            'cancellationMode' => $mode->value,
+        ], 86400);
+
+        return UrlHelper::actionUrl('formie/payment-subscriptions/cancel', [
+            'id' => $this->id,
+            'token' => $token,
+            'mode' => $mode->value,
+        ]);
     }
 }

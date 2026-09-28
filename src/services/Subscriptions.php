@@ -2,13 +2,17 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubscriptionCancellationMode;
+use verbb\formie\enums\SubscriptionStatus;
 use verbb\formie\events\SubscriptionEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\payments\CancelSubscriptionCommand;
+use verbb\formie\models\payments\SubscriptionSnapshot;
 use verbb\formie\models\Subscription;
 use verbb\formie\records\Subscription as SubscriptionRecord;
 
@@ -26,6 +30,7 @@ use yii\base\NotSupportedException;
 use yii\web\ServerErrorHttpException;
 
 use DateTime;
+use DateTimeInterface;
 use RuntimeException;
 use Throwable;
 
@@ -43,6 +48,7 @@ class Subscriptions extends Component
     public const EVENT_AFTER_CANCEL_SUBSCRIPTION = 'afterCancelSubscription';
     public const EVENT_BEFORE_UPDATE_SUBSCRIPTION = 'beforeUpdateSubscription';
     public const EVENT_RECEIVE_SUBSCRIPTION_PAYMENT = 'receiveSubscriptionPayment';
+    public const EVENT_AFTER_APPLY_SUBSCRIPTION_SNAPSHOT = 'afterApplySubscriptionSnapshot';
 
 
     // Properties
@@ -65,35 +71,65 @@ class Subscriptions extends Component
         try {
             $current = $this->getSubscriptionById($subscription->id);
             $command->authorize($current);
-            if ($current->getState()->isTerminal() || $current->status === 'cancelling') {
+            if ($current->getState()->isTerminal()) {
                 $subscription->status = $current->status;
                 return true;
             }
-            if (!empty($current->scope['cancellationRequested'])) {
+            $integration = $current->getIntegration();
+            if (!$current->reference || !$integration instanceof PaymentIntegration) {
                 return false;
             }
-            if (!$current->reference || !$current->getIntegration()) {
+            $mode = $command->resolveMode($current);
+            if ((!empty($current->scope['cancellationPending']) || $current->cancelAt !== null)
+                && $current->cancellationMode === $mode) {
                 return false;
             }
-            $this->trigger(self::EVENT_BEFORE_CANCEL_SUBSCRIPTION, new SubscriptionEvent(['subscription' => $current]));
-            $current->scope = array_merge($current->scope ?? [], ['cancellationRequested' => gmdate('c')]);
-            $current->status = 'cancelling';
+            if (!in_array($mode, $integration->getSubscriptionCancellationModes(), true)) {
+                throw new RuntimeException('The payment provider does not support this cancellation mode.');
+            }
+            $previousStatus = $current->getState();
+            $this->trigger(self::EVENT_BEFORE_CANCEL_SUBSCRIPTION, new SubscriptionEvent([
+                'subscription' => $current,
+                'previousStatus' => $previousStatus,
+                'currentStatus' => $previousStatus,
+                'source' => 'cancellation',
+            ]));
+            $current->scope = array_merge($current->scope ?? [], [
+                'cancellationRequested' => gmdate('c'),
+                'cancellationMode' => $mode->value,
+                'cancellationPending' => true,
+            ]);
+            $current->cancellationMode = $mode;
             $this->saveSubscription($current);
             // No database transaction spans the remote call. Unknown cancellation never retries blindly.
             try {
-                $result = $current->getIntegration()->cancelSubscription($current->reference, []);
+                $snapshot = $integration->cancelSubscriptionSnapshot($current, $mode);
             } catch (Throwable) {
-                $result = null;
+                $snapshot = null;
             }
             $current = $this->getSubscriptionById($current->id);
-            if (!$result) {
-                $current->status = 'unknown';
-                $this->saveSubscription($current);
+            if (!$snapshot) {
+                $snapshot = new SubscriptionSnapshot(
+                    SubscriptionStatus::UNKNOWN,
+                    'unknown',
+                    reference: $current->reference,
+                    providerUpdatedAt: time(),
+                    cancellationMode: $mode,
+                    rawData: $current->subscriptionData ?? [],
+                );
+                $current = $this->applySnapshot($current, $snapshot, 'cancellation');
                 $subscription->status = $current->status;
                 return false;
             }
+            $current = $this->applySnapshot($current, $snapshot, 'cancellation');
             $subscription->status = $current->status;
-            $this->trigger(self::EVENT_AFTER_CANCEL_SUBSCRIPTION, new SubscriptionEvent(['subscription' => $current]));
+            $this->trigger(self::EVENT_AFTER_CANCEL_SUBSCRIPTION, new SubscriptionEvent([
+                'subscription' => $current,
+                'previousStatus' => $previousStatus,
+                'currentStatus' => $current->getState(),
+                'snapshot' => $snapshot,
+                'source' => 'cancellation',
+            ]));
             return true;
         } finally {
             $mutex->release($lock);
@@ -145,7 +181,102 @@ class Subscriptions extends Component
         return $this->_findSubscription(['uid' => $uid]);
     }
 
-    public function saveSubscription(Subscription $subscription, bool $runValidation = true): bool
+    public function applySnapshot(Subscription $subscription, SubscriptionSnapshot $snapshot, string $source = 'provider'): Subscription
+    {
+        $current = $subscription->id ? $this->getSubscriptionById($subscription->id) : $subscription;
+
+        if (!$current) {
+            throw new RuntimeException('Subscription not found.');
+        }
+
+        if ($snapshot->providerEventId && $this->_historyContainsEvent($current->history ?? [], $snapshot->providerEventId)) {
+            return $current;
+        }
+
+        if ($snapshot->providerUpdatedAt !== null && $current->providerUpdatedAt !== null && $snapshot->providerUpdatedAt < $current->providerUpdatedAt) {
+            return $current;
+        }
+
+        $previousStatus = $current->getState();
+        if ($previousStatus->isTerminal() && $snapshot->status !== $previousStatus) {
+            return $current;
+        }
+
+        if ($current->reference && $snapshot->reference && $current->reference !== $snapshot->reference) {
+            throw new RuntimeException('Subscription provider identity cannot change.');
+        }
+
+        $current->reference ??= $snapshot->reference;
+        $current->status = $snapshot->status;
+        $current->providerStatus = $snapshot->providerStatus;
+        $current->providerUpdatedAt = $snapshot->providerUpdatedAt ?? $current->providerUpdatedAt;
+        $current->subscriptionData = $snapshot->rawData;
+        $current->startedAt ??= $snapshot->startedAt;
+        $current->trialStartsAt ??= $snapshot->trialStartsAt;
+        $current->trialEndsAt ??= $snapshot->trialEndsAt;
+        $current->currentPeriodStartsAt = $snapshot->currentPeriodStartsAt;
+        $current->currentPeriodEndsAt = $snapshot->currentPeriodEndsAt;
+        $current->nextPaymentAt = $snapshot->nextPaymentAt;
+        $current->pausedAt ??= $snapshot->pausedAt;
+        $current->cancelAt = $snapshot->cancelAt;
+        $current->cancelledAt ??= $snapshot->cancelledAt;
+        $current->endedAt ??= $snapshot->endedAt;
+        $current->cancellationMode = $snapshot->cancellationMode;
+
+        $scope = $current->scope ?? [];
+        if ($snapshot->status !== SubscriptionStatus::UNKNOWN
+            && ($snapshot->cancellationMode !== null || $snapshot->cancelAt !== null || $snapshot->status === SubscriptionStatus::CANCELLED)) {
+            if (!empty($scope['cancellationPending'])) {
+                $scope['cancellationConfirmed'] = gmdate('c');
+            }
+            $scope['cancellationPending'] = false;
+        } elseif (!empty($scope['cancellationPending'])
+            && $source !== 'cancellation'
+            && $snapshot->status !== SubscriptionStatus::UNKNOWN) {
+            // A later authoritative provider observation proves the uncertain request
+            // was not applied. Preserve the audit trail while allowing an explicit retry.
+            $scope['cancellationPending'] = false;
+            $scope['cancellationNotApplied'] = gmdate('c');
+        }
+        $current->scope = $scope;
+
+        $historyEntry = [
+            'status' => $snapshot->status->value,
+            'providerStatus' => $snapshot->providerStatus,
+            'providerUpdatedAt' => $snapshot->providerUpdatedAt,
+            'providerEventId' => $snapshot->providerEventId,
+            'source' => $source,
+            'at' => gmdate('c'),
+        ];
+        $this->saveSubscription($current, historyEntry: $historyEntry);
+        $saved = $this->getSubscriptionById($current->id);
+
+        $this->trigger(self::EVENT_AFTER_APPLY_SUBSCRIPTION_SNAPSHOT, new SubscriptionEvent([
+            'subscription' => $saved,
+            'previousStatus' => $previousStatus,
+            'currentStatus' => $saved->getState(),
+            'snapshot' => $snapshot,
+            'source' => $source,
+        ]));
+
+        return $saved;
+    }
+
+    public function hasManageableSubscriptionsForIntegration(int $integrationId): bool
+    {
+        return (new Query())
+            ->from(Table::FORMIE_SUBSCRIPTIONS)
+            ->where(['integrationId' => $integrationId])
+            ->andWhere(['not in', 'status', [
+                SubscriptionStatus::CANCELLED->value,
+                SubscriptionStatus::FAILED->value,
+                SubscriptionStatus::COMPLETED->value,
+                'expired',
+            ]])
+            ->exists();
+    }
+
+    public function saveSubscription(Subscription $subscription, bool $runValidation = true, ?array $historyEntry = null): bool
     {
         $isNewSubscription = !(bool)$subscription->id;
 
@@ -184,14 +315,25 @@ class Subscriptions extends Component
             }
             $subscription->version++;
             $subscription->idempotencyKey ??= bin2hex(random_bytes(24));
-            if (!$subscriptionRecord->getIsNewRecord() && in_array($subscriptionRecord->status, ['cancelled', 'expired'], true)) {
-                $subscription->status = $subscriptionRecord->status;
+            if (!$subscriptionRecord->getIsNewRecord()
+                && SubscriptionStatus::fromStored((string)$subscriptionRecord->status, $subscriptionRecord->providerStatus)->isTerminal()) {
+                $subscription->status = SubscriptionStatus::fromStored((string)$subscriptionRecord->status, $subscriptionRecord->providerStatus);
             }
+            $previousStatus = (string)$subscriptionRecord->status;
             $subscriptionRecord->status = $subscription->status;
             $subscriptionRecord->archivedAt = $subscription->archivedAt;
             $subscriptionRecord->providerUpdatedAt = $subscription->providerUpdatedAt;
+            $subscriptionRecord->providerStatus = $subscription->providerStatus;
             $subscription->scope ??= ['submissionId' => $subscription->submissionId, 'integrationId' => $subscription->integrationId, 'fieldId' => $subscription->fieldId];
-            $subscription->history = array_slice(array_merge($subscription->history ?? [], [['status' => $subscription->status, 'at' => gmdate('c'), 'version' => $subscription->version, 'providerStatus' => $subscription->subscriptionData['status'] ?? null]]), -100);
+            if ($historyEntry !== null || $subscriptionRecord->getIsNewRecord() || $previousStatus !== $subscription->status) {
+                $historyEntry ??= [
+                    'status' => $subscription->status,
+                    'providerStatus' => $subscription->providerStatus,
+                    'at' => gmdate('c'),
+                ];
+                $historyEntry['version'] = $subscription->version;
+                $subscription->history = array_slice(array_merge($subscription->history ?? [], [$historyEntry]), -100);
+            }
             $subscriptionRecord->version = $subscription->version;
             $subscriptionRecord->idempotencyKey = $subscription->idempotencyKey;
             $subscriptionRecord->scope = $subscription->scope;
@@ -203,10 +345,17 @@ class Subscriptions extends Component
             $subscriptionRecord->reference = $subscription->reference;
             $subscriptionRecord->subscriptionData = $subscription->subscriptionData;
             $subscriptionRecord->trialDays = $subscription->trialDays;
-            $subscriptionRecord->nextPaymentDate = $subscription->nextPaymentDate;
-            $subscriptionRecord->dateSuspended = $subscription->dateSuspended;
-            $subscriptionRecord->dateCanceled = $subscription->dateCanceled;
-            $subscriptionRecord->dateExpired = $subscription->dateExpired;
+            $subscriptionRecord->startedAt = $subscription->startedAt;
+            $subscriptionRecord->trialStartsAt = $subscription->trialStartsAt;
+            $subscriptionRecord->trialEndsAt = $subscription->trialEndsAt;
+            $subscriptionRecord->currentPeriodStartsAt = $subscription->currentPeriodStartsAt;
+            $subscriptionRecord->currentPeriodEndsAt = $subscription->currentPeriodEndsAt;
+            $subscriptionRecord->nextPaymentAt = $subscription->nextPaymentAt;
+            $subscriptionRecord->pausedAt = $subscription->pausedAt;
+            $subscriptionRecord->cancelAt = $subscription->cancelAt;
+            $subscriptionRecord->cancelledAt = $subscription->cancelledAt;
+            $subscriptionRecord->endedAt = $subscription->endedAt;
+            $subscriptionRecord->cancellationMode = $subscription->cancellationMode?->value;
 
             if (!$subscriptionRecord->save(false)) {
                 throw new RuntimeException('Unable to save subscription.');
@@ -275,11 +424,11 @@ class Subscriptions extends Component
 
     public function expireSubscription(Subscription $subscription, DateTime $dateTime = null): bool
     {
-        $subscription->status = 'expired';
-        $subscription->dateExpired = $dateTime;
+        $subscription->status = SubscriptionStatus::COMPLETED;
+        $subscription->endedAt = $dateTime;
 
-        if (!$subscription->dateExpired) {
-            $subscription->dateExpired = new DateTime();
+        if (!$subscription->endedAt) {
+            $subscription->endedAt = new DateTime();
         }
 
         $this->saveSubscription($subscription, false);
@@ -305,9 +454,11 @@ class Subscriptions extends Component
         return $this->saveSubscription($subscription);
     }
 
-    public function receivePayment(Subscription $subscription, DateTime $paidUntil): bool
+    public function receivePayment(Subscription $subscription, DateTimeInterface $paidUntil, ?DateTimeInterface $previousPaidUntil = null): bool
     {
-        if ($subscription->nextPaymentDate && $subscription->nextPaymentDate >= $paidUntil) {
+        $comparisonDate = $previousPaidUntil ?? $subscription->nextPaymentAt;
+
+        if ($comparisonDate && $comparisonDate >= $paidUntil) {
             return true;
         }
         if ($this->hasEventHandlers(self::EVENT_RECEIVE_SUBSCRIPTION_PAYMENT)) {
@@ -316,7 +467,11 @@ class Subscriptions extends Component
             ]));
         }
 
-        $subscription->nextPaymentDate = $paidUntil;
+        if ($subscription->nextPaymentAt && $subscription->nextPaymentAt >= $paidUntil) {
+            return true;
+        }
+
+        $subscription->nextPaymentAt = $paidUntil;
 
         return $this->saveSubscription($subscription);
     }
@@ -338,6 +493,7 @@ class Subscriptions extends Component
         return (new Query())
             ->select([
                 'id', 'version', 'status', 'history', 'scope', 'idempotencyKey', 'archivedAt', 'providerUpdatedAt',
+                'providerStatus',
                 'integrationId',
                 'submissionId',
                 'fieldId',
@@ -345,16 +501,34 @@ class Subscriptions extends Component
                 'reference',
                 'subscriptionData',
                 'trialDays',
-                'nextPaymentDate',
-                'dateSuspended',
-                'dateCanceled',
-                'dateExpired',
+                'startedAt',
+                'trialStartsAt',
+                'trialEndsAt',
+                'currentPeriodStartsAt',
+                'currentPeriodEndsAt',
+                'nextPaymentAt',
+                'pausedAt',
+                'cancelAt',
+                'cancelledAt',
+                'endedAt',
+                'cancellationMode',
                 'dateCreated',
                 'dateUpdated',
                 'uid',
             ])
             ->orderBy('dateCreated')
             ->from([Table::FORMIE_SUBSCRIPTIONS]);
+    }
+
+    private function _historyContainsEvent(array $history, string $eventId): bool
+    {
+        foreach ($history as $entry) {
+            if (($entry['providerEventId'] ?? null) === $eventId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function _getSubscriptionRecord(int|string|null $id): SubscriptionRecord

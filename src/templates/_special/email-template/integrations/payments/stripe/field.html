@@ -25,7 +25,7 @@
     <strong>{{ 'Amount' | t }}: </strong>{{ amount | currency(currency) }} {{ currency | upper }}<br>
 
     <strong>{{ 'Frequency' | t }}: </strong>{{ subscription.getPlan().getFrequencySummary() | t }}<br>
-    <strong>{{ 'Next Payment' | t }}: </strong>{{ subscription.nextPaymentDate | datetime('short') }}<br>
+    <strong>{{ 'Next Payment' | t }}: </strong>{{ subscription.nextPaymentAt | datetime('short') }}<br>
     <strong>{{ 'Transaction Reference' | t }}: </strong>{{ subscription.reference }}<br>
     <strong>{{ 'Transaction URL' | t }}: </strong>https://dashboard.stripe.com/subscriptions/{{ subscription.reference }}<br>
 {% endif %}

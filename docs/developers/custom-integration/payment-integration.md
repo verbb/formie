@@ -152,7 +152,13 @@ GoCardless deduplicates per event even when a retry batches it with other events
 
 ## Subscriptions
 
-Use `prepareSubscription()` before remote creation. `SubscriptionStatus` has pending, active, suspended, cancelling, cancelled, expired and unknown states. Preserve provider snapshots in `subscriptionData`; use `recordRecurring()` for invoice/charge history. Plans are optional. Cancellation records intent before the API call; a lost response stays unknown and must reconcile rather than repeat. `deleteSubscription()` archives the aggregate. Foreign keys retain payments when subscription, form content or provider configuration is physically removed; scope snapshots retain the former owner.
+Use `prepareSubscription()` before remote creation. The setup or mandate operation is durable but non-monetary; call `recordRecurring()` for every actual invoice or charge. `Payment::getIsMonetary()` and `getOperation()` distinguish `subscriptionSetup` from `recurringCharge`. A trial or successful mandate must not be presented as money collected.
+
+Translate provider data into an immutable `SubscriptionSnapshot` and pass it to `Subscriptions::applySnapshot()`. The canonical `SubscriptionStatus` values are `pending`, `trialing`, `active`, `pastDue`, `paused`, `cancelled`, `failed`, `completed` and `unknown`. Scheduled cancellation remains an active lifecycle state with `cancelAt` and `cancellationMode`; it is not another status. Include the provider's update time and stable event ID where available. Formie rejects stale observations, deduplicates repeated events, prevents terminal regression and preserves the raw provider payload in `subscriptionData`.
+
+Override `cancelSubscriptionSnapshot()` and advertise the supported `SubscriptionCancellationMode` values. Generate customer links with `Subscription::getCancelUrl()` or pass an explicit supported mode to that method; the resulting capability is bound to that mode and cannot be escalated from period-end to immediate cancellation. Cancellation intent is saved before the remote call, so a lost response becomes unknown and is never blindly repeated. Stripe defaults to `atPeriodEnd`; GoCardless supports `immediate`. Formie 3 providers that still implement `cancelSubscription()` run through a compatibility adapter, but should migrate to snapshots for accurate lifecycle data.
+
+Plans are optional. `deleteSubscription()` archives the aggregate. A payment integration cannot be disconnected or deleted while it owns a manageable subscription. Terminal financial records and their ownership snapshots remain available for support and reconciliation.
 
 
 ## Payment Field Template

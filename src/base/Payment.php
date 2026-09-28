@@ -5,6 +5,8 @@ use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\compatibility\payments\LegacyPaymentWebhooks;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubscriptionCancellationMode;
+use verbb\formie\enums\SubscriptionStatus;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\PaymentIntegrationProcessEvent;
 use verbb\formie\fields\Payment as PaymentField;
@@ -20,8 +22,10 @@ use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentFieldPayload;
 use verbb\formie\models\SlotTag;
+use verbb\formie\models\Subscription;
 use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\payments\PaymentWebhookReceipt;
+use verbb\formie\models\payments\SubscriptionSnapshot;
 use verbb\formie\models\payments\VerifiedWebhookBatch;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\theme\context\RenderContext;
@@ -36,6 +40,7 @@ use yii\base\Event;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
+use DateTimeImmutable;
 use NumberFormatter;
 use RuntimeException;
 use Throwable;
@@ -175,7 +180,13 @@ abstract class Payment extends Integration
                 throw new RuntimeException('Commit the submission before provider execution.');
             }
             $payments = Formie::$plugin->getPayments();
-            $payment = $payments->prepareAttempt($this, $submission);
+            $isSubscription = $this->getFieldSetting('type') === self::PAYMENT_TYPE_SUBSCRIPTION;
+            $payment = $payments->prepareAttempt(
+                $this,
+                $submission,
+                !$isSubscription,
+                $isSubscription ? 'subscriptionSetup' : 'payment',
+            );
             if ($payment->status === PaymentModel::STATUS_SUCCESS || ($payment->scope['providerOutcome']['status'] ?? null) === PaymentModel::STATUS_SUCCESS) {
                 return PaymentDecision::succeeded($this->handle, $payment->reference);
             }
@@ -187,7 +198,7 @@ abstract class Payment extends Integration
             if ($payment->status === PaymentModel::STATUS_CANCELLED) {
                 return PaymentDecision::cancelled($payment->message, $this->handle, $payment->reference);
             }
-            if ($this->getFieldSetting('type') === self::PAYMENT_TYPE_SUBSCRIPTION) {
+            if ($isSubscription) {
                 $payments->prepareSubscription($this, $submission);
             }
             $decision = $this->executePayment($submission);
@@ -298,6 +309,7 @@ abstract class Payment extends Integration
             'integration' => $this,
             'form' => $submission,
             'payments' => $payments,
+            'monetaryPayments' => array_values(array_filter($payments, fn(PaymentModel $payment) => $payment->getIsMonetary())),
             'subscriptions' => $subscriptions,
         ]);
     }
@@ -367,6 +379,50 @@ abstract class Payment extends Integration
         }
 
         return self::applyPaymentWebhookProxy($url);
+    }
+
+    /** @return SubscriptionCancellationMode[] */
+    public function getSubscriptionCancellationModes(): array
+    {
+        return [SubscriptionCancellationMode::IMMEDIATE];
+    }
+
+    public function getDefaultSubscriptionCancellationMode(): SubscriptionCancellationMode
+    {
+        return $this->getSubscriptionCancellationModes()[0];
+    }
+
+    /**
+     * Canonical cancellation boundary. The fallback isolates Formie 3 payment
+     * integrations that still implement cancelSubscription(reference, params).
+     */
+    public function cancelSubscriptionSnapshot(Subscription $subscription, SubscriptionCancellationMode $mode): ?SubscriptionSnapshot
+    {
+        if (!method_exists($this, 'cancelSubscription')) {
+            return null;
+        }
+
+        $data = $this->cancelSubscription($subscription->reference, [
+            'cancelImmediately' => $mode === SubscriptionCancellationMode::IMMEDIATE,
+        ]);
+
+        if (!is_array($data)) {
+            return null;
+        }
+
+        $immediate = $mode === SubscriptionCancellationMode::IMMEDIATE;
+
+        return new SubscriptionSnapshot(
+            $immediate ? SubscriptionStatus::CANCELLED : $subscription->getState(),
+            'legacyCancellation',
+            reference: $subscription->reference,
+            providerUpdatedAt: time(),
+            cancelAt: $immediate ? null : $subscription->currentPeriodEndsAt ?? $subscription->nextPaymentAt,
+            cancelledAt: $immediate ? new DateTimeImmutable() : null,
+            endedAt: $immediate ? new DateTimeImmutable() : null,
+            cancellationMode: $mode,
+            rawData: $data,
+        );
     }
 
     public static function applyPaymentWebhookProxy(string $url): string

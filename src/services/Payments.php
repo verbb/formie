@@ -83,11 +83,14 @@ class Payments extends Component
     }
 
     /** Create the local intent before any remote operation, under the execution lock. */
-    public function prepareAttempt(PaymentIntegration $integration, Submission $submission): Payment
+    public function prepareAttempt(PaymentIntegration $integration, Submission $submission, ?bool $monetary = null, ?string $operation = null): Payment
     {
         if (!$submission->id || !$integration->id || !$integration->getField()?->id) {
             throw new RuntimeException('Save and authorize the submission before payment.');
         }
+        $isSubscription = $integration->getFieldSetting('type') === PaymentIntegration::PAYMENT_TYPE_SUBSCRIPTION;
+        $monetary ??= !$isSubscription;
+        $operation ??= $isSubscription ? 'subscriptionSetup' : 'payment';
         $currency = strtoupper((string)$integration->getCurrency($submission));
         $amount = PaymentMoney::fromDecimal((string)$integration->getPaymentAmount($submission), $currency);
         if ($amount->minor === '0' || str_starts_with($amount->minor, '-')) {
@@ -103,7 +106,9 @@ class Payments extends Component
         $accountHash = hash_hmac('sha256', Json::encode($account), Formie::$plugin->getSettings()->getSecurityKey());
         foreach (array_reverse($this->getSubmissionPayments($submission)) as $payment) {
             if ($payment->status === Payment::STATUS_FAILED) { continue; }
-            if ($payment->integrationId === $integration->id && $payment->fieldId === $integration->getField()->id && (!$payment->subscriptionId || ($payment->scope['initial'] ?? false))) {
+            if ($payment->integrationId === $integration->id && $payment->fieldId === $integration->getField()->id
+                && (!$payment->subscriptionId || ($payment->scope['initial'] ?? false))
+                && ($payment->scope['operation'] ?? 'payment') === $operation) {
                 if (isset($payment->scope['account']) && !hash_equals($payment->scope['account'], $accountHash)) { throw new RuntimeException('Payment account changed; reconcile the original account.'); }
                 if (!PaymentMoney::fromDecimal($payment->amount, (string)$payment->currency)->equals($amount)) {
                     throw new RuntimeException('The existing payment amount changed; reconcile it before retrying.');
@@ -114,7 +119,8 @@ class Payments extends Component
         $payment = new Payment(['integrationId' => $integration->id, 'submissionId' => $submission->id,
             'fieldId' => $integration->getField()->id, 'amount' => $amount->decimal(), 'currency' => $currency,
             'status' => Payment::STATUS_PENDING,
-            'scope' => ['initial' => true, 'account' => $accountHash, 'submissionId' => $submission->id, 'formId' => $submission->formId,
+            'scope' => ['initial' => true, 'monetary' => $monetary, 'operation' => $operation,
+                'account' => $accountHash, 'submissionId' => $submission->id, 'formId' => $submission->formId,
                 'siteId' => $submission->siteId, 'integrationId' => $integration->id, 'fieldId' => $integration->getField()->id],
         ]);
         if (!$this->savePayment($payment)) {
@@ -125,7 +131,7 @@ class Payments extends Component
 
     public function prepareSubscription(PaymentIntegration $integration, Submission $submission): Subscription
     {
-        $payment = $this->prepareAttempt($integration, $submission);
+        $payment = $this->prepareAttempt($integration, $submission, false, 'subscriptionSetup');
         if ($payment->subscriptionId) {
             return Formie::$plugin->getSubscriptions()->getSubscriptionById($payment->subscriptionId);
         }
@@ -167,7 +173,8 @@ class Payments extends Component
                 'submissionId' => $subscription->submissionId, 'fieldId' => $subscription->fieldId,
                 'subscriptionId' => $subscription->id, 'reference' => $reference, 'amount' => $amount,
                 'currency' => strtoupper($currency), 'idempotencyKey' => $key,
-                'scope' => ['initial' => false, 'subscriptionId' => $subscription->id, 'subscriptionUid' => $subscription->uid,
+                'scope' => ['initial' => false, 'monetary' => true, 'operation' => 'recurringCharge',
+                    'subscriptionId' => $subscription->id, 'subscriptionUid' => $subscription->uid,
                     'subscriptionReference' => $subscription->reference, 'formId' => $subscription->scope['formId'] ?? null,
                     'submissionId' => $subscription->submissionId, 'integrationId' => $subscription->integrationId, 'fieldId' => $subscription->fieldId]]);
             if ($row && ((int)$payment->subscriptionId !== (int)$subscription->id

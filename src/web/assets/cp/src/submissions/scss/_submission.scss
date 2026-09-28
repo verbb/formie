@@ -14,18 +14,22 @@
     &.payments-meta .status {
 
         &.active,
+        &.trialing,
+        &.completed,
         &.success {
             border-color: var(--teal-500) !important;
             background-color: var(--teal-500);
         }
 
         &.pending,
+        &.unknown,
         &.processing {
             border-color: var(--yellow-700) !important;
             background-color: var(--yellow-700);
         }
 
         &.cancelled,
+        &.past-due,
         &.failed {
             border-color: var(--red-600) !important;
             background-color: var(--red-600);
@@ -36,6 +40,7 @@
             background-color: var(--yellow-300);
         }
 
+        &.paused,
         &.suspended,
         &.redirect {
             border-color: var(--blue-600) !important;
@@ -63,7 +68,5 @@
         content: "external";
     }
 }
-
-
 
 

@@ -749,19 +749,15 @@ it('renders a confirmation page before executing subscription cancel links via g
     ]);
     expect(Formie::$plugin->getSubscriptions()->saveSubscription($subscription, false))->toBeTrue();
     parse_str(parse_url($subscription->getCancelUrl(), PHP_URL_QUERY), $cancelParams);
-    $hash = $cancelParams['token'];
 
-    WebRequestTestHelper::withWebRequestContext(function ($request) use ($subscription, $hash): void {
-        $request->setQueryParams([
-            'id' => (int)$subscription->id,
-            'token' => $hash,
-        ]);
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($cancelParams): void {
+        $request->setQueryParams($cancelParams);
 
         $controller = new PaymentSubscriptionsController('formie-subscription-security', Craft::$app);
         $response = $controller->actionCancel();
 
         expect($response->data)
-            ->toContain('Are you sure you want to cancel this subscription?')
+            ->toContain('The subscription will be cancelled immediately.')
             ->and($response->data)->toContain('method="post"');
     }, [
         'method' => 'GET',

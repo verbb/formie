@@ -65,6 +65,8 @@ Formie listens for payment status updates, billing request fulfilment, and subsc
 
 Customers can cancel subscriptions using Formie’s subscription cancel URL when included in notifications.
 
+Mandate and subscription setup is recorded separately from money collected. Each GoCardless recurring payment is retained as its own monetary payment. GoCardless cancellation is immediate; Formie keeps pending, active, failed, cancelled and completed provider states distinct while ignoring stale webhook observations.
+
 ## Limitations
 
 - **Direct Debit only** — Instant Bank Pay and combined instant + Direct Debit flows are not supported yet.

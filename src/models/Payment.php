@@ -101,4 +101,14 @@ class Payment extends Model
 
         return $this->_subscription;
     }
+
+    public function getIsMonetary(): bool
+    {
+        return (bool)($this->scope['monetary'] ?? true);
+    }
+
+    public function getOperation(): string
+    {
+        return (string)($this->scope['operation'] ?? 'payment');
+    }
 }

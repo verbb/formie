@@ -7,12 +7,15 @@
         </div>
     </div>
 
-    {% if payments %}
-        {% set payment = payments | last %}
+    {% if monetaryPayments %}
+        {% set payment = monetaryPayments | last %}
+        {% set isRecurringPayment = payment.operation == 'recurringCharge' %}
 
         <div class="data">
             <h5 class="heading">{{ 'Type' | t('formie') }}</h5>
-            <div class="value">{{ 'Single' | t('formie') }}</div>
+            <div class="value">
+                {{ isRecurringPayment ? ('Recurring Payment' | t('formie')) : ('Single' | t('formie')) }}
+            </div>
         </div>
 
         <div class="data">
@@ -33,8 +36,8 @@
             <h5 class="heading"></h5>
 
             <div class="value">
-                <a href="https://dashboard.stripe.com/payments/{{ payment.reference }}" class="external" target="_blank" rel="noopener">
-                    View in Stripe
+                <a href="https://dashboard.stripe.com/{{ isRecurringPayment ? 'invoices' : 'payments' }}/{{ payment.reference }}" class="external" target="_blank" rel="noopener">
+                    {{ isRecurringPayment ? ('View invoice in Stripe' | t('formie')) : ('View in Stripe' | t('formie')) }}
                 </a>
             </div>
         </div>
@@ -53,15 +56,10 @@
 
             <div class="value">
                 <span class="status {{ subscription.getStatus() | kebab }}"></span>
-                {{ subscription.getStatus() | title | t('formie') }}
+                {{ subscription.getStatusLabel() }}
 
-                {% if not subscription.isCanceled and not subscription.isExpired %}
-                    {% set params = {
-                        id: subscription.id,
-                        hash: craft.app.security.hashData(subscription.reference),
-                    } %}
-
-                    <a class="btn small formsubmit" data-form="x" data-action="formie/payment-subscriptions/cancel" data-params="{{ params | json_encode }}" data-confirm="{{ 'Are you sure you want to cancel this subscription?' | t('formie') }}" style="margin-left: 0.5rem;">{{ 'Cancel' | t('formie') }}</a>
+                {% if subscription.canCancel %}
+                    <a class="btn small" href="{{ subscription.cancelUrl }}" style="margin-left: 0.5rem;">{{ 'Cancel' | t('formie') }}</a>
                 {% endif %}
             </div>
         </div>
@@ -79,10 +77,12 @@
             <div class="value">{{ subscription.getPlan().getFrequencySummary() | t('formie') }}</div>
         </div>
 
-        <div class="data">
-            <h5 class="heading">{{ 'Next Payment' | t('formie') }}</h5>
-            <div id="date-created-value" class="value">{{ subscription.nextPaymentDate | datetime('short') }}</div>
-        </div>
+        {% if subscription.nextPaymentAt %}
+            <div class="data">
+                <h5 class="heading">{{ 'Next Payment' | t('formie') }}</h5>
+                <div id="date-created-value" class="value">{{ subscription.nextPaymentAt | datetime('short') }}</div>
+            </div>
+        {% endif %}
 
         <div class="data">
             <h5 class="heading"></h5>

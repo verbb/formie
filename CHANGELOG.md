@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add provider-neutral subscription snapshots, canonical lifecycle/timeline fields, stale-event protection and mode-bound immediate or period-end cancellation capabilities.
 - Add immutable render-scoped theme frames, a generated PHP/TypeScript browser-theme state manifest, split functional/visual CSS assets and bounded theme-config validation.
 - Add end-to-end portability and repeatable builder/render/bootstrap/submit/resume/revise performance fixtures.
 - Add typed After Completion outcomes shared by HTML, Ajax, REST and GraphQL, with validated redirect overrides and captured query allowlists.
@@ -14,6 +15,7 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Treat subscription setup and mandate operations as non-monetary while recording each recurring invoice as a separate payment, and prevent payment integrations with manageable subscriptions from being deleted or disconnected.
 - Make browser-module declarations immutable, project one authoritative manifest per rendering surface, reference exact occurrence keys from fields and expose stable submit hooks instead of internal pipeline stages.
 - Use non-expiring, exact-value Signature image capabilities while preserving explicitly grandfathered Formie 2/3 email image URLs behind a dedicated compatibility setting.
 - Isolate Formie 3 adapters behind dedicated compatibility boundaries instead of exposing them through canonical Formie 4 models and services.

@@ -377,10 +377,18 @@ class Install extends Migration
             'reference' => $this->string(),
             'subscriptionData' => $this->text(),
             'trialDays' => $this->integer()->notNull(),
-            'nextPaymentDate' => $this->dateTime(),
-            'dateSuspended' => $this->dateTime(),
-            'dateCanceled' => $this->dateTime(),
-            'dateExpired' => $this->dateTime(),
+            'providerStatus' => $this->string(80),
+            'startedAt' => $this->dateTime(),
+            'trialStartsAt' => $this->dateTime(),
+            'trialEndsAt' => $this->dateTime(),
+            'currentPeriodStartsAt' => $this->dateTime(),
+            'currentPeriodEndsAt' => $this->dateTime(),
+            'nextPaymentAt' => $this->dateTime(),
+            'pausedAt' => $this->dateTime(),
+            'cancelAt' => $this->dateTime(),
+            'cancelledAt' => $this->dateTime(),
+            'endedAt' => $this->dateTime(),
+            'cancellationMode' => $this->string(32),
             'version' => $this->integer()->notNull()->defaultValue(0),
             'history' => $this->mediumText(),
             'scope' => $this->text(),
@@ -823,8 +831,9 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'fieldId', false);
         $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'planId', false);
         $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'reference', false);
-        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'nextPaymentDate', false);
-        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'dateExpired', false);
+        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'nextPaymentAt', false);
+        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'cancelAt', false);
+        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'endedAt', false);
         $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'idempotencyKey', true);
         $this->createIndex(null, Table::FORMIE_WEBHOOK_RECEIPTS, 'identity', true);
         $this->createIndex(null, Table::FORMIE_WEBHOOK_RECEIPTS, ['status', 'nextAttemptAt'], false);
