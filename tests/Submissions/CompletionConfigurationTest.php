@@ -8,6 +8,7 @@ use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\helpers\CompletionRedirectPolicy;
 use verbb\formie\helpers\UrlHelper;
 use verbb\formie\models\FormInstanceConfig;
+use verbb\formie\models\Payment;
 use verbb\formie\models\SubmissionConfig;
 use verbb\formie\services\CompletionResolver;
 use verbb\formie\services\RuntimeConfiguration;
@@ -65,6 +66,34 @@ it('captures allowlisted query values and preserves explicit empty target parame
         $settings->completionQueryAllowlist = ['affiliate', 'csrfToken'];
         expect(UrlHelper::filterRedirectQueryParams(['affiliate' => 'a', 'csrfToken' => 'secret']))->toBe(['affiliate' => 'a']);
     } finally { $settings->completionQueryAllowlist = $original; }
+});
+
+it('preserves redirect page and query options across the completion resolver boundary', function (): void {
+    $form = formie()->form([
+        'title' => 'Redirect Compatibility Options',
+        'settings' => [
+            'submitMethod' => 'page-reload',
+        ],
+    ])
+        ->multiPage(2)
+        ->onPage(1)->singleLineTextField('first')
+        ->onPage(2)->singleLineTextField('last')
+        ->create();
+
+    $form->setRedirectUrl('/thanks');
+    (new RuntimeConfiguration())->establish($form, ['utm_source' => 'campaign']);
+    $submission = new Submission();
+    $submission->setForm($form);
+    $form->setCurrentSubmission($submission);
+
+    expect($form->getRedirectUrl())->toBe('')
+        ->and($form->getRedirectUrl(false))->toBe('/thanks?utm_source=campaign')
+        ->and($form->getRedirectUrl(false, false))->toBe('/thanks')
+        ->and(Formie::$plugin->getPayments()->resolvePaymentFailureRedirectUrl(new Payment(), $submission, $form))->toBe('/thanks');
+
+    $form->setCurrentPage($form->getPages()[1]);
+
+    expect($form->getRedirectUrl())->toBe('/thanks?utm_source=campaign');
 });
 
 it('isolates cloned render occurrences and snapshots by stable UID', function (): void {

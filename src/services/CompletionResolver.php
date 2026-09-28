@@ -28,7 +28,7 @@ final class CompletionResolver extends Component
     // Public Methods
     // =========================================================================
 
-    public function resolve(Form $form, Submission $submission, bool $raiseEvents = true): CompletionOutcome
+    public function resolve(Form $form, Submission $submission, bool $raiseEvents = true, bool $includeCapturedQuery = true): CompletionOutcome
     {
         $saved = $submission->getMetadata('completion');
         if ($raiseEvents && !$submission->isIncomplete && isset($saved['behavior'])) {
@@ -92,7 +92,7 @@ final class CompletionResolver extends Component
             $behavior = CompletionBehavior::Redirect;
         }
         $url = CompletionRedirectPolicy::validate((string)$event->redirectUrl);
-        if ($url !== '') {
+        if ($url !== '' && $includeCapturedQuery) {
             $url = CompletionRedirectPolicy::validate(UrlHelper::appendQueryParams($url, $form->getInstanceConfig()->query));
         }
         // Invalid trusted configuration fails closed to the normal completion message.

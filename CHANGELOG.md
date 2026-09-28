@@ -54,6 +54,7 @@
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
 
 ### Fixed
+- Respect the existing last-page and query-string options when resolving completion redirect URLs, including payment-failure fallbacks.
 - Fixed authorization for connecting OAuth integrations and revalidated access when callbacks return.
 - Fixed OAuth callback transaction validation.
 - Keep valid Save & Continue links usable when optional page-progress state expires or is removed.

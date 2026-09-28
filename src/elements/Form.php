@@ -1550,7 +1550,16 @@ class Form extends Element implements FormInterface
             $submission = new Submission();
             $submission->setForm(clone $this);
         }
-        return (new \verbb\formie\services\CompletionResolver())->resolve($this, $submission, false)->url ?? '';
+
+        // Preserve the Formie 3 template contract without making the terminal
+        // completion resolver responsible for visitor page navigation.
+        if ($checkLastPage && $this->settings->submitMethod === 'page-reload' && !$this->isLastPage(null, $submission)) {
+            return '';
+        }
+
+        return (new \verbb\formie\services\CompletionResolver())
+            ->resolve($this, $submission, false, $includeQueryString)
+            ->url ?? '';
     }
 
     public function getRedirectEntry(): ?Entry
