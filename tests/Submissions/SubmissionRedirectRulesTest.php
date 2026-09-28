@@ -5,9 +5,9 @@ declare(strict_types=1);
 use craft\elements\Entry;
 use verbb\formie\conditions\ConditionOperator;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\CompletionBehavior;
 use verbb\formie\helpers\SubmissionRedirectRulesHelper;
-use verbb\formie\models\SubmissionCommand;
-use verbb\formie\services\SubmissionWorkflow;
+use verbb\formie\services\CompletionResolver;
 
 beforeEach(function () { \verbb\formie\Formie::$plugin->getSettings()->completionRedirectAllowedOrigins = ['https://example.test', 'http://formie-react-tests.ddev.site']; });
 
@@ -20,11 +20,11 @@ it('overrides the default submit action when a redirect rule matches', function 
 
     $form->settings->setAttributes([
         'submitAction' => 'message',
-        'submitActionMessage' => 'Thanks for submitting.',
+        'successMessage' => 'Thanks for submitting.',
         'enableRedirectRules' => true,
         'redirectRules' => [[
             'redirectType' => 'url',
-            'submitActionUrl' => 'https://example.test/vip-thanks',
+            'redirectUrl' => 'https://example.test/vip-thanks',
             'conditions' => [
                 'conditionRule' => 'all',
                 'conditions' => [[
@@ -43,8 +43,10 @@ it('overrides the default submit action when a redirect rule matches', function 
     $submission->setFieldValueFromRequest('tier', 'vip');
     $form->setCurrentSubmission($submission);
 
-    expect($form->settings->getEffectiveSubmitAction($submission))->toBe('url')
-        ->and($form->getRedirectUrl())->toContain('example.test/vip-thanks');
+    $completion = (new CompletionResolver())->resolve($form, $submission, false);
+
+    expect($completion->behavior)->toBe(CompletionBehavior::Redirect)
+        ->and($completion->url)->toContain('example.test/vip-thanks');
 });
 
 it('uses the default submit action when redirect rules are disabled', function (): void {
@@ -59,7 +61,7 @@ it('uses the default submit action when redirect rules are disabled', function (
         'enableRedirectRules' => false,
         'redirectRules' => [[
             'redirectType' => 'url',
-            'submitActionUrl' => 'https://example.test/vip-thanks',
+            'redirectUrl' => 'https://example.test/vip-thanks',
             'conditions' => [
                 'conditionRule' => 'all',
                 'conditions' => [[
@@ -78,8 +80,10 @@ it('uses the default submit action when redirect rules are disabled', function (
     $submission->setFieldValueFromRequest('tier', 'vip');
     $form->setCurrentSubmission($submission);
 
-    expect($form->settings->getEffectiveSubmitAction($submission))->toBe('message')
-        ->and($form->getRedirectUrl())->toBe('');
+    $completion = (new CompletionResolver())->resolve($form, $submission, false);
+
+    expect($completion->behavior)->toBe(CompletionBehavior::Message)
+        ->and($completion->url)->toBeNull();
 });
 
 it('uses the default submit action when no redirect rules match', function (): void {
@@ -91,11 +95,11 @@ it('uses the default submit action when no redirect rules match', function (): v
 
     $form->settings->setAttributes([
         'submitAction' => 'url',
-        'submitActionUrl' => 'https://example.test/default-thanks',
+        'redirectUrl' => 'https://example.test/default-thanks',
         'enableRedirectRules' => true,
         'redirectRules' => [[
             'redirectType' => 'url',
-            'submitActionUrl' => 'https://example.test/vip-thanks',
+            'redirectUrl' => 'https://example.test/vip-thanks',
             'conditions' => [
                 'conditionRule' => 'all',
                 'conditions' => [[
@@ -114,8 +118,10 @@ it('uses the default submit action when no redirect rules match', function (): v
     $submission->setFieldValueFromRequest('tier', 'standard');
     $form->setCurrentSubmission($submission);
 
-    expect($form->settings->getEffectiveSubmitAction($submission))->toBe('url')
-        ->and($form->getRedirectUrl())->toContain('example.test/default-thanks');
+    $completion = (new CompletionResolver())->resolve($form, $submission, false);
+
+    expect($completion->behavior)->toBe(CompletionBehavior::Redirect)
+        ->and($completion->url)->toContain('example.test/default-thanks');
 });
 
 it('uses the first matching redirect rule', function (): void {
@@ -131,7 +137,7 @@ it('uses the first matching redirect rule', function (): void {
         'redirectRules' => [
             [
                 'redirectType' => 'url',
-                'submitActionUrl' => 'https://example.test/first',
+                'redirectUrl' => 'https://example.test/first',
                 'conditions' => [
                     'conditionRule' => 'all',
                     'conditions' => [[
@@ -143,7 +149,7 @@ it('uses the first matching redirect rule', function (): void {
             ],
             [
                 'redirectType' => 'url',
-                'submitActionUrl' => 'https://example.test/second',
+                'redirectUrl' => 'https://example.test/second',
                 'conditions' => [
                     'conditionRule' => 'all',
                     'conditions' => [[
@@ -182,7 +188,7 @@ it('resolves entry redirect rules', function (): void {
         'enableRedirectRules' => true,
         'redirectRules' => [[
             'redirectType' => 'entry',
-            'submitActionEntry' => [[
+            'redirectEntry' => [[
                 'id' => $entry->id,
                 'siteId' => $entry->siteId,
             ]],
@@ -204,8 +210,11 @@ it('resolves entry redirect rules', function (): void {
     $submission->setFieldValueFromRequest('tier', 'vip');
     $form->setCurrentSubmission($submission);
 
-    expect($form->settings->getEffectiveSubmitAction($submission))->toBe('entry')
-        ->and((string)$form->getRedirectUrl())->toContain('formie-seed-entry');
+    $completion = (new CompletionResolver())->resolve($form, $submission, false);
+
+    expect($completion->behavior)->toBe(CompletionBehavior::Redirect)
+        ->and($completion->url)->toContain('formie-seed-entry')
+        ->and(SubmissionRedirectRulesHelper::getMatchedRule($form, $submission)['redirectType'] ?? null)->toBe('entry');
 });
 
 it('returns the default message action from redirect rule workflow responses', function (): void {
@@ -217,11 +226,11 @@ it('returns the default message action from redirect rule workflow responses', f
 
     $form->settings->setAttributes([
         'submitAction' => 'message',
-        'submitActionMessage' => 'Thanks for submitting.',
+        'successMessage' => 'Thanks for submitting.',
         'enableRedirectRules' => true,
         'redirectRules' => [[
             'redirectType' => 'url',
-            'submitActionUrl' => 'https://example.test/vip-thanks',
+            'redirectUrl' => 'https://example.test/vip-thanks',
             'conditions' => [
                 'conditionRule' => 'all',
                 'conditions' => [[
@@ -247,5 +256,5 @@ it('returns the default message action from redirect rule workflow responses', f
     ]));
 
     expect($response->success)->toBeTrue()
-        ->and(SubmissionRedirectRulesHelper::getEffectiveSubmitAction($form, $response->submission))->toBe('message');
+        ->and($response->outcome->data['completion']['behavior'] ?? null)->toBe(CompletionBehavior::Message->value);
 });

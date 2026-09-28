@@ -1670,7 +1670,7 @@ class Submission extends Element
             // integration overrides belong to the durable instance config.
             unset($completion['integrations']);
             if ($this->_form->settings->completionRedirectSource === 'entry' && $this->_form->getRedirectEntry()) {
-                $completion['submitActionUrl'] = $this->_form->getRedirectEntry()->url;
+                $completion['redirectUrl'] = $this->_form->getRedirectEntry()->url;
                 $completion['completionRedirectSource'] = 'url';
             }
             $config = new \verbb\formie\models\FormInstanceConfig(...array_replace(get_object_vars($config), [

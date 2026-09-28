@@ -1077,7 +1077,9 @@ function ConfigRenderer({ className }: { className?: string }) {
             state.lastSubmitResult?.messages.notice ? createElement('div', {
                 key: 'notice',
                 className: 'formie-react-notice',
-            }, state.lastSubmitResult.messages.notice) : null,
+                // Formie sanitizes rich completion messages before placing them in the client contract.
+                dangerouslySetInnerHTML: { __html: state.lastSubmitResult.messages.notice },
+            }) : null,
             shouldRenderStandaloneError ? createElement('div', {
                 key: 'error',
                 className: 'formie-react-error',

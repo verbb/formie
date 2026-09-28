@@ -7,6 +7,7 @@
 - Add `data-formie-validation-skip` so helper controls (such as the Upload Manager browse input) can opt out of client-side validation.
 
 ### Changed
+- Consume canonical completion data attributes and response fields while retaining Formie 3 markup and response fallbacks.
 - Resolve surface-specific browser-module manifests by exact occurrence key and expose stable `beforeSubmit` and `afterSubmit` lifecycle hooks instead of internal pipeline stages.
 - Read the bounded `data-formie-theme-classes` contract, stop posting executable theme config during Summary refreshes, and keep client-rendered forms responsible for their own markup.
 - Split required `formie-base.css` behaviour from optional `formie-theme.css` visuals while retaining combined `formie.css`.

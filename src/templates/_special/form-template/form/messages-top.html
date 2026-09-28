@@ -1,5 +1,5 @@
 {% formtag 'formMessagesTop' %}
-    {% if flashNotice and form.settings.submitActionMessagePosition == 'top-form' %}
+    {% if flashNotice and form.settings.successMessagePosition == 'top-form' %}
         {{ formieInclude('form/message-success') }}
     {% endif %}
 

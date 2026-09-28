@@ -42,14 +42,14 @@ it('exposes json siblings for form settings html message fields', function (): v
     $type = FormSettingsType::getType();
     $fields = $type->getFields();
 
-    expect(array_keys($fields))->toContain('submitActionMessageJson', 'errorMessageJson')
-        ->and($fields['submitActionMessageJson']->getType()->name)->toBe('Json')
+    expect(array_keys($fields))->toContain('successMessageJson', 'errorMessageJson')
+        ->and($fields['successMessageJson']->getType()->name)->toBe('Json')
         ->and($fields['errorMessageJson']->getType()->name)->toBe('Json');
 });
 
 it('resolves form settings message json fields from rich text storage', function (): void {
     $settings = new FormSettings([
-        'submitActionMessage' => [
+        'successMessage' => [
             [
                 'type' => 'paragraph',
                 'content' => [
@@ -67,7 +67,7 @@ it('resolves form settings message json fields from rich text storage', function
         ],
     ]);
 
-    expect(FormieGql::resolveRichTextJson($settings->submitActionMessage))->toBe([
+    expect(FormieGql::resolveRichTextJson($settings->successMessage))->toBe([
         'type' => 'doc',
         'content' => [
             [

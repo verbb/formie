@@ -6,7 +6,7 @@ You need Craft user accounts with an existing sign-in page, permission to create
 
 ## Prepare the Form and Private File
 
-Create a form named **Resource Request**, with handle `resourceRequest`. Add a required Email Address field with handle `emailAddress`. In its settings, enable **Collect User** under **Settings → Privacy** (`collectUser`), choose a URL submit action and enter `/resource-ready`. Save the form. The owner must come from the signed-in Craft account, not the email typed into the form.
+Create a form named **Resource Request**, with handle `resourceRequest`. Add a required Email Address field with handle `emailAddress`. In its settings, enable **Collect User** under **Settings → Privacy** (`collectUser`), choose the redirect completion behavior with a URL source and enter `/resource-ready`. Save the form. The owner must come from the signed-in Craft account, not the email typed into the form.
 
 Create an asset volume with handle `privateDownloads`, backed by a filesystem without public URLs. For local storage, place the files outside the web root; for object storage, deny public access. Upload a PDF and note its asset ID. The example below uses `10839`; replace it with your PDF's ID.
 

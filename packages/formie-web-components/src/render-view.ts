@@ -679,6 +679,8 @@ export function renderFormView(ctx: RenderViewContext): TemplateResult {
 
     const formErrors = ctx.state.errors.form;
     const errorMessage = ctx.state.lastSubmitResult?.messages.error;
+    // Formie sanitizes rich completion messages before placing them in the client contract.
+    const noticeHtml = ctx.state.lastSubmitResult?.messages.notice;
     const shouldStandaloneErr = !!errorMessage && !formErrors.includes(errorMessage);
 
     const formInner = html`
@@ -689,9 +691,9 @@ export function renderFormView(ctx: RenderViewContext): TemplateResult {
                   </ul>
               </div>`
             : nothing}
-        ${ctx.state.lastSubmitResult?.messages.notice
+        ${noticeHtml
             ? html`<div class="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                  ${ctx.state.lastSubmitResult.messages.notice}
+                  ${unsafeHTML(noticeHtml)}
               </div>`
             : nothing}
         ${shouldStandaloneErr

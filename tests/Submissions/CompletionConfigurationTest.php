@@ -16,9 +16,12 @@ use verbb\formie\workflow\WorkflowContext;
 
 it('resolves each completion behavior only for the completed outcome', function (string $behavior): void {
     $form = formie()->form()->singleLineTextField('name')->create();
-    $form->setSettings(['completionBehavior' => $behavior, 'submitActionUrl' => '/thanks']);
+    $form->settings->setAttributes(['completionBehavior' => $behavior, 'redirectUrl' => '/thanks'], false);
     $submission = new Submission();
     $submission->setForm($form);
+    expect($form->settings->completionBehavior)->toBe($behavior)
+        ->and($form->getInstanceConfig()->completionRedirectOverride)->toBeNull()
+        ->and((new CompletionResolver())->resolve($form, $submission, false)->behavior->value)->toBe($behavior);
     $context = new WorkflowContext(submissionCommand(['form' => $form, 'submission' => $submission]));
     foreach ([SubmissionOutcomeType::PAGE_CHANGED, SubmissionOutcomeType::DRAFT_SAVED, SubmissionOutcomeType::PAYMENT_ACTION_REQUIRED, SubmissionOutcomeType::PAYMENT_PENDING] as $type) {
         expect($context->result($type)->data)->not->toHaveKey('completion');
@@ -198,7 +201,7 @@ it('preserves instance settings when refreshing a client session', function (): 
 
 it('maps beta snapshot handles and Formie 3 field aliases without accepting arbitrary properties', function (): void {
     $form = formie()->form()->singleLineTextField('name')->create();
-    $decoded = SubmissionConfig::decode(['form' => ['submitAction' => 'url', 'submitActionUrl' => '/legacy', 'requireUser' => false], 'fields' => ['name' => ['prePopulate' => 'visitor', 'columnPrefix' => 'bad']]], $form);
+    $decoded = SubmissionConfig::decode(['form' => ['submitAction' => 'url', 'redirectUrl' => '/legacy', 'requireUser' => false], 'fields' => ['name' => ['prePopulate' => 'visitor', 'columnPrefix' => 'bad']]], $form);
     expect($decoded->form['completionBehavior'])->toBe('redirect')->and($decoded->form)->not->toHaveKey('requireUser')
         ->and($decoded->fields[$form->getFieldByHandle('name')->uid])->toBe(['prefillQueryParam' => 'visitor']);
     expect(\verbb\formie\helpers\RuntimeConfigurationMigration::migrate(['type' => \verbb\formie\fields\Hidden::class, 'settings' => ['defaultOption' => 'dateInt', 'prePopulate' => 'date']]))
@@ -231,7 +234,7 @@ it('retains completion and forced values through persisted draft and queued relo
     (new RuntimeConfiguration())->applyValues($draft);
     expect(Craft::$app->getElements()->saveElement($draft, false))->toBeTrue();
     $base = Form::find()->id($form->id)->status(null)->one();
-    $base->settings->submitActionUrl = '/changed-base';
+    $base->settings->redirectUrl = '/changed-base';
     Craft::$app->getElements()->saveElement($base, false);
     $loaded = Submission::find()->id($draft->id)->isIncomplete(true)->status(null)->one();
     $loaded->setFieldValueFromRequest('name', 'replacement');

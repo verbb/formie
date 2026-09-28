@@ -46,15 +46,15 @@ class Stencil extends Model implements FormInterface
     public ?StencilData $data = null;
 
     public ?int $templateId = null;
-    public ?int $submitActionEntryId = null;
-    public ?int $submitActionEntrySiteId = null;
+    public ?int $redirectEntryId = null;
+    public ?int $redirectEntrySiteId = null;
     public ?int $defaultStatusId = null;
     public ?DateTime $dateDeleted = null;
     public ?string $uid = null;
 
     private ?FormTemplate $_template = null;
     private ?SubmissionStatus $_defaultStatus = null;
-    private mixed $_submitActionEntry = null;
+    private mixed $_redirectEntry = null;
 
 
     // Public Methods
@@ -196,7 +196,7 @@ class Stencil extends Model implements FormInterface
             'handle' => $this->handle,
             'template' => $this->getTemplate()->uid ?? null,
             'defaultStatus' => $this->getDefaultStatus()->uid ?? null,
-            'submitActionEntry' => $this->getRedirectEntry()->uid ?? null,
+            'redirectEntry' => $this->getRedirectEntry()->uid ?? null,
             'data' => $this->data->getSerializedData(),
         ];
     }
@@ -226,17 +226,41 @@ class Stencil extends Model implements FormInterface
 
     public function getRedirectEntry(): ?Entry
     {
-        if (!$this->submitActionEntryId) {
+        if (!$this->redirectEntryId) {
             return null;
         }
 
-        if (!$this->_submitActionEntry) {
-            $siteId = $this->submitActionEntrySiteId ?: '*';
+        if (!$this->_redirectEntry) {
+            $siteId = $this->redirectEntrySiteId ?: '*';
 
-            $this->_submitActionEntry = Craft::$app->getEntries()->getEntryById($this->submitActionEntryId, $siteId);
+            $this->_redirectEntry = Craft::$app->getEntries()->getEntryById($this->redirectEntryId, $siteId);
         }
 
-        return $this->_submitActionEntry;
+        return $this->_redirectEntry;
+    }
+
+    /** @deprecated Use redirectEntryId. */
+    public function getSubmitActionEntryId(): ?int
+    {
+        return $this->redirectEntryId;
+    }
+
+    /** @deprecated Use redirectEntryId. */
+    public function setSubmitActionEntryId(?int $value): void
+    {
+        $this->redirectEntryId = $value;
+    }
+
+    /** @deprecated Use redirectEntrySiteId. */
+    public function getSubmitActionEntrySiteId(): ?int
+    {
+        return $this->redirectEntrySiteId;
+    }
+
+    /** @deprecated Use redirectEntrySiteId. */
+    public function setSubmitActionEntrySiteId(?int $value): void
+    {
+        $this->redirectEntrySiteId = $value;
     }
 
     public function getDefaultStatus(): SubmissionStatus

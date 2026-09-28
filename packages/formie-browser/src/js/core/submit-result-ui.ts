@@ -13,8 +13,8 @@ import { addThemeClasses, removeThemeClasses } from '#theme/theme-classes';
 
 const successHideTimers = new WeakMap<HTMLFormElement, number>();
 
-function getConfiguredSubmitAction(form: HTMLFormElement): string {
-    return (form.dataset.formieSubmitAction || '').trim();
+function getConfiguredCompletionBehavior(form: HTMLFormElement): string {
+    return (form.dataset.formieCompletionBehavior || form.dataset.formieSubmitAction || '').trim();
 }
 
 function getErrorMessagePosition(form: HTMLFormElement): string {
@@ -22,11 +22,11 @@ function getErrorMessagePosition(form: HTMLFormElement): string {
 }
 
 function getSuccessMessagePosition(form: HTMLFormElement): string {
-    return (form.dataset.formieSubmitActionMessagePosition || '').trim();
+    return (form.dataset.formieSuccessMessagePosition || form.dataset.formieSubmitActionMessagePosition || '').trim();
 }
 
 function getSuccessMessageTimeoutMs(form: HTMLFormElement): number | null {
-    const rawValue = (form.dataset.formieSubmitActionMessageTimeout || '').trim();
+    const rawValue = (form.dataset.formieSuccessMessageTimeout || form.dataset.formieSubmitActionMessageTimeout || '').trim();
 
     if (!rawValue) {
         return null;
@@ -42,7 +42,7 @@ function getSuccessMessageTimeoutMs(form: HTMLFormElement): number | null {
 }
 
 function shouldHideFormOnSuccess(form: HTMLFormElement): boolean {
-    const rawValue = form.dataset.formieSubmitActionFormHide;
+    const rawValue = form.dataset.formieHideFormAfterSubmit ?? form.dataset.formieSubmitActionFormHide;
 
     if (rawValue === undefined) {
         return false;
@@ -243,7 +243,7 @@ export function clearFormSuccess(form: HTMLFormElement): void {
         }
     });
 
-    if (!(getConfiguredSubmitAction(form) === 'message' && shouldHideFormOnSuccess(form))) {
+    if (!(getConfiguredCompletionBehavior(form) === 'message' && shouldHideFormOnSuccess(form))) {
         setFormHiddenState(form, false);
     }
 }
@@ -361,7 +361,7 @@ function shouldRenderSuccessMessage(form: HTMLFormElement, result: FormSubmitRes
         return true;
     }
 
-    return getConfiguredSubmitAction(form) === 'message' && getSuccessMessagePosition(form) !== '';
+    return getConfiguredCompletionBehavior(form) === 'message' && getSuccessMessagePosition(form) !== '';
 }
 
 export function renderFormSuccess(form: HTMLFormElement, message: string): void {

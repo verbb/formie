@@ -18,7 +18,7 @@ it('exposes expected form builder and runtime config contracts', function (): vo
     expect($runtimeConfig)->toHaveKeys(['formId', 'handle', 'settings', 'pages', 'modules'])
         ->and($settings)->toHaveKeys(['currentPageId', 'errorMessage', 'submitMethod', 'validationOnSubmit'])
         ->and($form->settings->submitAction)->toBe('message')
-        ->and($form->settings->submitActionFormHide)->toBeTrue();
+        ->and($form->settings->hideFormAfterSubmit)->toBeTrue();
 });
 
 it('reports baseline condition flags as false on simple forms', function (): void {

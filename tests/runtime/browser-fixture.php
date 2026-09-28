@@ -124,7 +124,7 @@ require __DIR__ . '/browser-graphql-fixture.php';
 
 foreach (['message', 'redirect', 'reload', 'reset'] as $behavior) {
     \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Completion ' . $behavior, 'handle' => 'completion' . ucfirst($behavior)])
-        ->settings(['disableCaptchas' => true, 'completionBehavior' => $behavior, 'submitActionUrl' => '/browser-completion-done?utm_medium=explicit', 'submitMethod' => 'ajax', 'submitActionFormHide' => $behavior === 'message'])
+        ->settings(['disableCaptchas' => true, 'completionBehavior' => $behavior, 'redirectUrl' => '/browser-completion-done?utm_medium=explicit', 'submitMethod' => 'ajax', 'hideFormAfterSubmit' => $behavior === 'message'])
         ->singleLineTextField('visitorName', ['label' => 'Visitor name', 'required' => true])
         ->singleLineTextField('note', ['label' => 'Note', 'prefillQueryParam' => 'note', 'defaultValue' => 'saved default'])
         ->hiddenField('serverDate', ['valueSource' => 'dateInt'])->create();

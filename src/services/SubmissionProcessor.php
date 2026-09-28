@@ -641,7 +641,7 @@ class SubmissionProcessor extends Component
         $notice = $response->outcome->data['completion']['message'] ?? null;
 
         if ($submitAction === 'save' && $response->success) {
-            $notice = StringHelper::sanitizeMessageHtml($form->settings->getSubmitActionMessage($submission));
+            $notice = StringHelper::sanitizeMessageHtml($form->settings->getSuccessMessage($submission));
         }
 
         if (!$response->success) {

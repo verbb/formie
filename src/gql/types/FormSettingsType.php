@@ -89,18 +89,23 @@ class FormSettingsType extends ObjectType
                     'type' => Type::string(),
                     'description' => 'The form’s submit method. Either `page-reload` or `ajax`.',
                 ],
-                'submitAction' => [
-                    'name' => 'submitAction',
+                'completionBehavior' => [
+                    'name' => 'completionBehavior',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit action. Either `message`, `entry`, `url`, `reload`.',
+                    'description' => 'The form’s completion behavior. Either `message`, `redirect`, `reload` or `reset`.',
                 ],
-                'submitActionTab' => [
-                    'name' => 'submitActionTab',
+                'completionRedirectSource' => [
+                    'name' => 'completionRedirectSource',
+                    'type' => Type::string(),
+                    'description' => 'The source used by redirect completion. Either `url` or `entry`.',
+                ],
+                'redirectTarget' => [
+                    'name' => 'redirectTarget',
                     'type' => Type::string(),
                     'description' => 'The form’s submit redirect option (if in new tab or same tab). Either `same-tab` or `new-tab`.',
                 ],
-                'submitActionFormHide' => [
-                    'name' => 'submitActionFormHide',
+                'hideFormAfterSubmit' => [
+                    'name' => 'hideFormAfterSubmit',
                     'type' => Type::boolean(),
                     'description' => 'Whether to hide the form’s success message.',
                 ],
@@ -109,29 +114,78 @@ class FormSettingsType extends ObjectType
                     'type' => Type::boolean(),
                     'description' => 'Whether to automatically restore an in-progress submission when the visitor returns to the form.',
                 ],
+                'successMessageHtml' => [
+                    'name' => 'successMessageHtml',
+                    'type' => Type::string(),
+                    'description' => 'The form’s submit success message.',
+                ],
+                'successMessageJson' => [
+                    'name' => 'successMessageJson',
+                    'type' => JsonType::getType(),
+                    'description' => 'The form’s submit success message as stored rich-text JSON (`type: doc`). Variable tags are not resolved.',
+                    'resolve' => static fn($settings) => FormieGql::resolveRichTextJson($settings->successMessage),
+                ],
+                'successMessageTimeout' => [
+                    'name' => 'successMessageTimeout',
+                    'type' => Type::int(),
+                    'description' => 'The form’s submit success message timeout in seconds.',
+                    'resolve' => function($class) {
+                        return (int)$class->successMessageTimeout;
+                    },
+                ],
+                'successMessagePosition' => [
+                    'name' => 'successMessagePosition',
+                    'type' => Type::string(),
+                    'description' => 'The form’s submit message position. Either `top-form` or `bottom-form`.',
+                ],
+                'submitAction' => [
+                    'name' => 'submitAction',
+                    'type' => Type::string(),
+                    'description' => 'Deprecated Formie 3 completion action.',
+                    'deprecationReason' => 'Use `completionBehavior` and `completionRedirectSource`.',
+                    'resolve' => static fn($settings) => $settings->getSubmitAction(),
+                ],
+                'submitActionTab' => [
+                    'name' => 'submitActionTab',
+                    'type' => Type::string(),
+                    'description' => 'Deprecated Formie 3 redirect target.',
+                    'deprecationReason' => 'Use `redirectTarget`.',
+                    'resolve' => static fn($settings) => $settings->redirectTarget,
+                ],
+                'submitActionFormHide' => [
+                    'name' => 'submitActionFormHide',
+                    'type' => Type::boolean(),
+                    'description' => 'Deprecated Formie 3 form visibility setting.',
+                    'deprecationReason' => 'Use `hideFormAfterSubmit`.',
+                    'resolve' => static fn($settings) => $settings->hideFormAfterSubmit,
+                ],
                 'submitActionMessageHtml' => [
                     'name' => 'submitActionMessageHtml',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit success message.',
+                    'description' => 'Deprecated Formie 3 success message.',
+                    'deprecationReason' => 'Use `successMessageHtml`.',
+                    'resolve' => static fn($settings) => $settings->getSuccessMessageHtml(),
                 ],
                 'submitActionMessageJson' => [
                     'name' => 'submitActionMessageJson',
                     'type' => JsonType::getType(),
-                    'description' => 'The form’s submit success message as stored rich-text JSON (`type: doc`). Variable tags are not resolved.',
-                    'resolve' => static fn($settings) => FormieGql::resolveRichTextJson($settings->submitActionMessage),
+                    'description' => 'Deprecated Formie 3 success-message rich-text JSON.',
+                    'deprecationReason' => 'Use `successMessageJson`.',
+                    'resolve' => static fn($settings) => FormieGql::resolveRichTextJson($settings->successMessage),
                 ],
                 'submitActionMessageTimeout' => [
                     'name' => 'submitActionMessageTimeout',
                     'type' => Type::int(),
-                    'description' => 'The form’s submit success message timeout in seconds.',
-                    'resolve' => function($class) {
-                        return (int)$class->submitActionMessageTimeout;
-                    },
+                    'description' => 'Deprecated Formie 3 success-message timeout.',
+                    'deprecationReason' => 'Use `successMessageTimeout`.',
+                    'resolve' => static fn($settings) => (int)$settings->successMessageTimeout,
                 ],
                 'submitActionMessagePosition' => [
                     'name' => 'submitActionMessagePosition',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit message position. Either `top-form` or `bottom-form`.',
+                    'description' => 'Deprecated Formie 3 success-message position.',
+                    'deprecationReason' => 'Use `successMessagePosition`.',
+                    'resolve' => static fn($settings) => $settings->successMessagePosition,
                 ],
                 'loadingIndicator' => [
                     'name' => 'loadingIndicator',
@@ -181,7 +235,7 @@ class FormSettingsType extends ObjectType
                 'redirectUrl' => [
                     'name' => 'redirectUrl',
                     'type' => Type::string(),
-                    'description' => 'The form’s submit action redirect URL, resolved depending on `submitAction` being `entry` or `url`.',
+                    'description' => 'The resolved completion redirect URL.',
                     'resolve' => function($class) {
                         return $class->getFormRedirectUrl(false);
                     },
@@ -190,7 +244,7 @@ class FormSettingsType extends ObjectType
                     'name' => 'redirectEntry',
                     'type' => EntryInterface::getType(),
                     'args' => EntryArguments::getArguments(),
-                    'description' => 'The form’s submit action entry (for redirection), if `submitAction` is `entry`.',
+                    'description' => 'The entry selected as the completion redirect source.',
                 ],
                 'integrations' => [
                     'name' => 'integrations',

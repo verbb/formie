@@ -24,11 +24,11 @@ Use `setSettings()` when the setting belongs to the form itself.
 
 Keep these overrides deliberate. If the setting should always apply to the form, it is usually better to save it in the form builder.
 
-For submit action messages and other settings that use [reference tokens](/developers/reference-tokens), build picker-compatible tokens in Twig with `craft.formie.ref()` — those settings do not evaluate Twig at submit time:
+For completion messages and other settings that use [reference tokens](/developers/reference-tokens), build picker-compatible tokens in Twig with `craft.formie.ref()` — those settings do not evaluate Twig at submit time:
 
 ```twig
 {% do form.setSettings({
-    submitActionMessage: 'Thanks! Your reference is ' ~ craft.formie.ref('submission', 'uid'),
+    successMessage: 'Thanks! Your reference is ' ~ craft.formie.ref('submission', 'uid'),
 }) %}
 ```
 

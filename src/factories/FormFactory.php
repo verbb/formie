@@ -429,39 +429,48 @@ final class FormFactory
         return $this;
     }
 
-    public function submitAction(string $action, array $config = []): self
+    public function completion(string $behavior, array $config = []): self
     {
         $allowedActions = ['message', 'reload', 'reset', 'url', 'entry'];
 
-        if (!in_array($action, $allowedActions, true)) {
-            throw new InvalidArgumentException('Unknown submit action `' . $action . '`.');
+        if (!in_array($behavior, $allowedActions, true)) {
+            throw new InvalidArgumentException('Unknown completion behavior `' . $behavior . '`.');
         }
 
-        $settings = ['submitAction' => $action];
+        $settings = [
+            'completionBehavior' => in_array($behavior, ['url', 'entry'], true) ? 'redirect' : $behavior,
+            'completionRedirectSource' => $behavior === 'entry' ? 'entry' : 'url',
+        ];
 
         if (isset($config['method'])) {
             $settings['submitMethod'] = $config['method'];
         }
 
         if (isset($config['url'])) {
-            $settings['submitActionUrl'] = $config['url'];
+            $settings['redirectUrl'] = $config['url'];
         }
 
         if (isset($config['tab'])) {
-            $settings['submitActionTab'] = $config['tab'];
+            $settings['redirectTarget'] = $config['tab'];
         }
 
         if (isset($config['message'])) {
-            $settings['submitActionMessage'] = $config['message'];
+            $settings['successMessage'] = $config['message'];
         }
 
         if (array_key_exists('hideForm', $config)) {
-            $settings['submitActionFormHide'] = (bool)$config['hideForm'];
+            $settings['hideFormAfterSubmit'] = (bool)$config['hideForm'];
         }
 
         $this->settingsConfig = array_merge($this->settingsConfig, $settings);
 
         return $this;
+    }
+
+    /** @deprecated Use completion(). */
+    public function submitAction(string $action, array $config = []): self
+    {
+        return $this->completion($action, $config);
     }
 
     public function create(): Form

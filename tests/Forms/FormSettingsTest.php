@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use verbb\formie\elements\Form;
+use verbb\formie\models\FormSettings;
 
 it('persists appearance and behavior settings', function (): void {
     $form = formie()
@@ -18,7 +19,7 @@ it('persists appearance and behavior settings', function (): void {
         'validationOnSubmit' => true,
         'validationOnFocus' => true,
         'submitMethod' => 'ajax',
-        'submitActionMessagePosition' => 'bottom-form',
+        'successMessagePosition' => 'bottom-form',
     ], false);
 
     $saved = Craft::$app->elements->saveElement($form);
@@ -31,7 +32,7 @@ it('persists appearance and behavior settings', function (): void {
         ->and($reloaded?->settings->displayPageProgress)->toBeTrue()
         ->and($reloaded?->settings->validationOnFocus)->toBeTrue()
         ->and($reloaded?->settings->submitMethod)->toBe('ajax')
-        ->and($reloaded?->settings->submitActionMessagePosition)->toBe('bottom-form');
+        ->and($reloaded?->settings->successMessagePosition)->toBe('bottom-form');
 });
 
 it('persists lifecycle and retention-oriented settings', function (): void {
@@ -101,4 +102,16 @@ it('persists schedule datetimes without timezone drift', function (): void {
 
     expect($reloaded?->settings->getFormBuilderConfig()['scheduleFormStart'])->toBe('2026-05-01 00:00:00')
         ->and($reloaded?->settings->getFormBuilderConfig()['scheduleFormEnd'])->toBe('2026-05-18 00:00:00');
+});
+
+it('preserves rich text settings during partial attribute updates', function (): void {
+    $settings = new FormSettings([
+        'successMessage' => '<p>Keep this success message.</p>',
+        'errorMessage' => '<p>Keep this error message.</p>',
+    ]);
+
+    $settings->setAttributes(['integrations' => []], false);
+
+    expect($settings->getSuccessMessage())->toContain('Keep this success message.')
+        ->and($settings->getErrorMessage())->toContain('Keep this error message.');
 });

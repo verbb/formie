@@ -30,7 +30,7 @@ it('persists a Behaviour-tab redirect entry from the builder list payload', func
             'id' => $form->id,
             'title' => $form->title,
             'handle' => $form->handle,
-            'submitActionEntry' => [[
+            'redirectEntry' => [[
                 'id' => $entry->id,
                 'siteId' => $entry->siteId,
             ]],
@@ -41,8 +41,8 @@ it('persists a Behaviour-tab redirect entry from the builder list payload', func
 
         $populated = Formie::$plugin->getForms()->buildFormFromPost();
 
-        expect($populated->submitActionEntryId)->toBe($entry->id)
-            ->and($populated->submitActionEntrySiteId)->toBe($entry->siteId);
+        expect($populated->redirectEntryId)->toBe($entry->id)
+            ->and($populated->redirectEntrySiteId)->toBe($entry->siteId);
 
         expect(Craft::$app->getElements()->saveElement($populated))->toBeTrue();
     }, [
@@ -52,8 +52,8 @@ it('persists a Behaviour-tab redirect entry from the builder list payload', func
     $reloaded = Form::find()->id($form->id)->one();
 
     expect($reloaded)->not->toBeNull()
-        ->and($reloaded->submitActionEntryId)->toBe($entry->id)
-        ->and($reloaded->submitActionEntrySiteId)->toBe($entry->siteId);
+        ->and($reloaded->redirectEntryId)->toBe($entry->id)
+        ->and($reloaded->redirectEntrySiteId)->toBe($entry->siteId);
 });
 
 it('clears a saved redirect entry when the builder posts an empty list', function (): void {
@@ -65,8 +65,8 @@ it('clears a saved redirect entry when the builder posts an empty list', functio
         ->singleLineTextField('fullName')
         ->create();
 
-    $form->submitActionEntryId = $entry->id;
-    $form->submitActionEntrySiteId = $entry->siteId;
+    $form->redirectEntryId = $entry->id;
+    $form->redirectEntrySiteId = $entry->siteId;
     $form->settings->setAttributes(['submitAction' => 'entry'], false);
 
     expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
@@ -76,7 +76,7 @@ it('clears a saved redirect entry when the builder posts an empty list', functio
             'id' => $form->id,
             'title' => $form->title,
             'handle' => $form->handle,
-            'submitActionEntry' => [],
+            'redirectEntry' => [],
             'settings' => [
                 'submitAction' => 'message',
             ],
@@ -84,8 +84,8 @@ it('clears a saved redirect entry when the builder posts an empty list', functio
 
         $populated = Formie::$plugin->getForms()->buildFormFromPost();
 
-        expect($populated->submitActionEntryId)->toBeNull()
-            ->and($populated->submitActionEntrySiteId)->toBeNull();
+        expect($populated->redirectEntryId)->toBeNull()
+            ->and($populated->redirectEntrySiteId)->toBeNull();
 
         expect(Craft::$app->getElements()->saveElement($populated))->toBeTrue();
     }, [
@@ -94,6 +94,6 @@ it('clears a saved redirect entry when the builder posts an empty list', functio
 
     $reloaded = Form::find()->id($form->id)->one();
 
-    expect($reloaded?->submitActionEntryId)->toBeNull()
-        ->and($reloaded?->submitActionEntrySiteId)->toBeNull();
+    expect($reloaded?->redirectEntryId)->toBeNull()
+        ->and($reloaded?->redirectEntrySiteId)->toBeNull();
 });

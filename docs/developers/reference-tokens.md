@@ -35,7 +35,7 @@ Examples:
 | `{field:a1b2c3}` | A field value (stable field reference, not the handle) |
 | `{allFields}` | HTML summary of all fields |
 
-Formie resolves tokens in stored content at submit time (or when previewing with sample submission data in the control panel). **Twig is not evaluated** inside submit action messages, notification bodies, or similar settings.
+Formie resolves tokens in stored content at submit time (or when previewing with sample submission data in the control panel). **Twig is not evaluated** inside completion messages, notification bodies, or similar settings.
 
 That means these do **not** work in those settings:
 
@@ -182,13 +182,13 @@ Register project-specific variables with `{custom:handle}` tokens. See [Custom v
 
 ## Building Tokens from Twig
 
-Use `craft.formie.ref()` and `craft.formie.refField()` when overriding form settings in templates — for example a dynamic [submit action message](/templates/overriding-settings):
+Use `craft.formie.ref()` and `craft.formie.refField()` when overriding form settings in templates — for example a dynamic [completion message](/templates/overriding-settings):
 
 ```twig
 {% set form = craft.formie.forms.handle('contactForm').one() %}
 
 {% do form.setSettings({
-    submitActionMessage: 'Thanks! Your reference is ' ~ craft.formie.ref('submission', 'uid'),
+    successMessage: 'Thanks! Your reference is ' ~ craft.formie.ref('submission', 'uid'),
 }) %}
 
 {{ craft.formie.renderForm(form) }}

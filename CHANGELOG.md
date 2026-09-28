@@ -15,6 +15,7 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Use explicit completion behavior, redirect source, redirect target and success-message settings throughout Formie 4, while retaining Formie 3 setting, GraphQL and response aliases at compatibility boundaries.
 - Treat subscription setup and mandate operations as non-monetary while recording each recurring invoice as a separate payment, and prevent payment integrations with manageable subscriptions from being deleted or disconnected.
 - Make browser-module declarations immutable, project one authoritative manifest per rendering surface, reference exact occurrence keys from fields and expose stable submit hooks instead of internal pipeline stages.
 - Use non-expiring, exact-value Signature image capabilities while preserving explicitly grandfathered Formie 2/3 email image URLs behind a dedicated compatibility setting.
@@ -37,6 +38,7 @@
 - Return strings for Phone and a consistent Name value in both input modes; replace beta Array/value-class APIs and browser validation names.
 
 ### Fixed
+- Preserve configured rich completion and error messages across partial settings updates, and render sanitized rich completion messages in client-rendered adapters.
 - Preserve uploaded files when an incomplete multi-page submission navigates back after the asset has been bound and promoted, without weakening upload ownership checks.
 - Separate shared field definition identity from form-field instances, use explicit definition/instance records and settings APIs, isolate the Formie 3 `syncId` alias, require registered fields to extend the base Field class and formalize parent-field traversal.
 - Share identity remapping across imports, duplicates and stencils; use portable definition UIDs for Synced Fields and explicit enabled/recursive traversal APIs.

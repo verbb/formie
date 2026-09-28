@@ -14,19 +14,19 @@ it('isolates localized layout settings and callbacks from the canonical form', f
     $sourceSite = $service->getSourceSiteId($form);
     $siteIds = Formie::$plugin->getFormSitePropagation()->resolveSiteIdsForForm($form);
     $secondary = array_values(array_filter($siteIds, fn($id) => (int)$id !== $sourceSite))[0];
-    $form->settings->submitActionMessage = RichText::from('Canonical message');
+    $form->settings->successMessage = RichText::from('Canonical message');
     $page = $form->getPages()[0];
     $page->getPageSettings()->submitButtonLabel = 'Canonical submit';
     $service->saveOverrides($form->id, $secondary, [
-        'settings' => ['submitActionMessage' => 'Localized message'],
+        'settings' => ['successMessage' => 'Localized message'],
         'pages' => [$page->uid => ['label' => 'Localized page', 'settings' => ['submitButtonLabel' => 'Localized submit']]],
     ]);
     $nested = $form->getFieldByHandle('items')->getFieldLayout()->getFields()[0];
     $nested->on('auditCallback', static function (): void {});
     $localized = $service->applyToForm($form, $secondary, true);
     expect($localized)->not->toBe($form);
-    expect((string)$localized->settings->submitActionMessage)->toContain('Localized message');
-    expect((string)$form->settings->submitActionMessage)->toContain('Canonical message');
+    expect((string)$localized->settings->successMessage)->toContain('Localized message');
+    expect((string)$form->settings->successMessage)->toContain('Canonical message');
     expect($localized->getPages()[0]->getPageSettings()->submitButtonLabel)->toBe('Localized submit');
     expect($page->getPageSettings()->submitButtonLabel)->toBe('Canonical submit');
     $localizedNested = $localized->getFieldByHandle('items')->getFieldLayout()->getFields()[0];

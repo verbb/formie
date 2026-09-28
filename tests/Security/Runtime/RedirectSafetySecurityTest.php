@@ -31,8 +31,8 @@ it('rejects javascript redirect urls resolved from submission references', funct
 
     $form->settings->setAttributes([
         'submitAction' => 'url',
-        'submitActionUrl' => References::field((string)$field->reference),
-        'submitActionTab' => 'same-tab',
+        'redirectUrl' => References::field((string)$field->reference),
+        'redirectTarget' => 'same-tab',
     ], false);
     $form->setCurrentSubmission($submission);
 
@@ -54,8 +54,8 @@ it('rejects protocol-relative redirect urls resolved from submission references'
 
     $form->settings->setAttributes([
         'submitAction' => 'url',
-        'submitActionUrl' => References::field((string)$field->reference),
-        'submitActionTab' => 'same-tab',
+        'redirectUrl' => References::field((string)$field->reference),
+        'redirectTarget' => 'same-tab',
     ], false);
     $form->setCurrentSubmission($submission);
 

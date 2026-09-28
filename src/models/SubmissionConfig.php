@@ -28,18 +28,15 @@ final class SubmissionConfig
                 $fields[$field->uid] = array_intersect_key($settings, array_flip($field->runtimeOverridableSettings()));
             }
         }
-        $formSettings = array_intersect_key((array)($data['form'] ?? []), array_flip(RuntimeConfiguration::FORM_SETTINGS));
+        $formSettings = \verbb\formie\helpers\RuntimeConfigurationMigration::migrate((array)($data['form'] ?? []));
+        $formSettings = array_intersect_key($formSettings, array_flip(RuntimeConfiguration::FORM_SETTINGS));
         if (isset($data['form']['integrations'])) {
             $formSettings['integrations'] = \verbb\formie\Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings($data['form']['integrations'], false);
         }
-        if (isset($formSettings['submitAction']) && !isset($formSettings['completionBehavior'])) {
-            $action = $formSettings['submitAction'];
-            $formSettings['completionBehavior'] = in_array($action, ['entry', 'url'], true) ? 'redirect' : $action;
-            $formSettings['completionRedirectSource'] = $action === 'entry' ? 'entry' : 'url';
-        }
         return new FormInstanceConfig($formSettings, $fields, (array)($data['pages'] ?? []),
             (array)($data['initial'] ?? []), (array)($data['forced'] ?? []),
-            (array)($data['query'] ?? []), (array)($data['prefill'] ?? []));
+            (array)($data['query'] ?? []), (array)($data['prefill'] ?? []),
+            isset($data['completionRedirectOverride']) ? (string)$data['completionRedirectOverride'] : null);
     }
 
     public static function capture(FormInstanceConfig $config): array

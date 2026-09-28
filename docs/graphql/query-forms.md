@@ -14,7 +14,8 @@ Use `formieForm` when you expect one form, or `formieForms` when you need a list
         settings {
             errorMessageHtml
             submitMethod
-            submitAction
+            completionBehavior
+            completionRedirectSource
         }
 
         pages {

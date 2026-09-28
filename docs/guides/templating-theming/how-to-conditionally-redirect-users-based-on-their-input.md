@@ -4,7 +4,7 @@ Sometimes the thank-you destination should depend on what the user submitted —
 
 ## Prerequisites
 
-- A form with submit action set to **URL** or **Entry**
+- A form with completion behavior set to **Redirect**, using either a **URL** or **Entry** source
 - Familiarity with [Conditions](/forms/conditions) and [Reference tokens](/developers/reference-tokens)
 
 ## Use Redirect Rules (Recommended)

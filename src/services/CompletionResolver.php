@@ -5,6 +5,8 @@ use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\CompletionBehavior;
+use verbb\formie\enums\RedirectSource;
+use verbb\formie\enums\RedirectTarget;
 use verbb\formie\events\SubmissionEvent;
 use verbb\formie\helpers\CompletionRedirectPolicy;
 use verbb\formie\helpers\References;
@@ -32,12 +34,13 @@ final class CompletionResolver extends Component
     {
         $saved = $submission->getMetadata('completion');
         if ($raiseEvents && !$submission->isIncomplete && isset($saved['behavior'])) {
-            return new CompletionOutcome(CompletionBehavior::from($saved['behavior']), $saved['url'], $saved['target'], $saved['message'], $saved['hideForm']);
+            return new CompletionOutcome(CompletionBehavior::from($saved['behavior']), $saved['url'], RedirectTarget::from($saved['target']), $saved['message'], $saved['hideForm']);
         }
         $settings = $form->settings;
         $behavior = CompletionBehavior::from($settings->completionBehavior);
-        $url = $settings->completionRedirectSource === 'entry'
-            ? (string)($form->getRedirectEntry()?->url ?? '') : (string)$settings->submitActionUrl;
+        $source = RedirectSource::from($settings->completionRedirectSource);
+        $url = $source === RedirectSource::Entry
+            ? (string)($form->getRedirectEntry()?->url ?? '') : (string)$settings->redirectUrl;
         $rule = SubmissionRedirectRulesHelper::getMatchedRule($form, $submission);
         $resolved = false;
         if ($rule) {
@@ -49,7 +52,7 @@ final class CompletionResolver extends Component
             $resolved = true;
             $behavior = CompletionBehavior::Redirect;
         }
-        $override = $form->getCompletionRedirectOverride() ?? $settings->redirectUrl;
+        $override = $form->getCompletionRedirectOverride();
         if ($override !== null && $override !== '') {
             $url = $override;
             $resolved = false;
@@ -100,8 +103,8 @@ final class CompletionResolver extends Component
             $behavior = CompletionBehavior::Message;
         }
         return new CompletionOutcome($behavior, $behavior === CompletionBehavior::Redirect ? $url : null,
-            $settings->submitActionTab === 'new-tab' ? 'new-tab' : 'same-tab',
-            $behavior === CompletionBehavior::Message ? (StringHelper::sanitizeMessageHtml($settings->getSubmitActionMessage($submission)) ?: Craft::t('formie', 'Submission saved.')) : null,
-            $settings->submitActionFormHide);
+            RedirectTarget::from($settings->redirectTarget),
+            $behavior === CompletionBehavior::Message ? (StringHelper::sanitizeMessageHtml($settings->getSuccessMessage($submission)) ?: Craft::t('formie', 'Submission saved.')) : null,
+            $settings->hideFormAfterSubmit);
     }
 }

@@ -293,10 +293,10 @@ class Forms extends Component
             'templateId' => $canonicalForm->templateId,
             'groupId' => $canonicalForm->groupId,
             'formStatusId' => $canonicalForm->getFormStatusModel()?->id,
-            'submitActionEntry' =>  array_filter([
+            'redirectEntry' =>  array_filter([
                 array_filter([
-                    'id' => $canonicalForm->submitActionEntryId,
-                    'siteId' => $canonicalForm->submitActionEntrySiteId,
+                    'id' => $canonicalForm->redirectEntryId,
+                    'siteId' => $canonicalForm->redirectEntrySiteId,
                 ]),
             ]),
             'defaultStatusId' => $canonicalForm->defaultStatusId,
@@ -632,8 +632,8 @@ class Forms extends Component
         $form->fileUploadsAction = $request->getParam('fileUploadsAction', $form->fileUploadsAction);
         $form->dataRetention = $request->getParam('dataRetention', $form->dataRetention);
         $form->dataRetentionValue = $request->getParam('dataRetentionValue', $form->dataRetentionValue);
-        [$form->submitActionEntryId, $form->submitActionEntrySiteId] = SchemaHelper::firstElementSelectIds(
-            $request->getParam('submitActionEntry'),
+        [$form->redirectEntryId, $form->redirectEntrySiteId] = SchemaHelper::firstElementSelectIds(
+            $request->getParam('redirectEntry', $request->getParam('submitActionEntry')),
         );
 
         // Populate the form builder layout (pages/rows/fields)

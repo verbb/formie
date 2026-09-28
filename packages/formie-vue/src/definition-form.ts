@@ -1307,7 +1307,9 @@ const ConfigRenderer = defineComponent({
                     state.lastSubmitResult?.messages.notice ? h('div', {
                         key: 'notice',
                         class: 'formie-vue-notice',
-                    }, state.lastSubmitResult.messages.notice) : null,
+                        // Formie sanitizes rich completion messages before placing them in the client contract.
+                        innerHTML: state.lastSubmitResult.messages.notice,
+                    }) : null,
                     shouldRenderStandaloneError ? h('div', {
                         key: 'error',
                         class: 'formie-vue-error',

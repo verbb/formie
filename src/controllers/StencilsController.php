@@ -137,8 +137,8 @@ class StencilsController extends Controller
         $stencil->id = $stencilId;
         $stencil->name = $request->getParam('title', $stencil->name);
         $stencil->handle = $request->getParam('handle', $stencil->handle);
-        [$stencil->submitActionEntryId, $stencil->submitActionEntrySiteId] = SchemaHelper::firstElementSelectIds(
-            $request->getParam('submitActionEntry'),
+        [$stencil->redirectEntryId, $stencil->redirectEntrySiteId] = SchemaHelper::firstElementSelectIds(
+            $request->getParam('redirectEntry', $request->getParam('submitActionEntry')),
         );
 
         $originalName = $stencil->name;
@@ -265,8 +265,8 @@ class StencilsController extends Controller
         $form->handle = $stencil->handle;
         $form->templateId = $stencil->templateId;
         $form->defaultStatusId = $stencil->defaultStatusId;
-        $form->submitActionEntryId = $stencil->submitActionEntryId;
-        $form->submitActionEntrySiteId = $stencil->submitActionEntrySiteId;
+        $form->redirectEntryId = $stencil->redirectEntryId;
+        $form->redirectEntrySiteId = $stencil->redirectEntrySiteId;
         $form->builderEntityType = FormElement::BUILDER_ENTITY_TYPE_STENCIL;
         $form->dateCreated = $now;
         $form->dateUpdated = $now;
@@ -313,10 +313,10 @@ class StencilsController extends Controller
             'isStencil' => true,
             'stencilScope' => $stencil->scope,
             'templateId' => $stencil->templateId,
-            'submitActionEntry' => array_filter([
+            'redirectEntry' => array_filter([
                 array_filter([
-                    'id' => $stencil->submitActionEntryId,
-                    'siteId' => $stencil->submitActionEntrySiteId,
+                    'id' => $stencil->redirectEntryId,
+                    'siteId' => $stencil->redirectEntrySiteId,
                 ]),
             ]),
             'defaultStatusId' => $stencil->defaultStatusId,

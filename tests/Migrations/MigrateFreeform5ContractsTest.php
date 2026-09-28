@@ -182,7 +182,7 @@ it('migrates a large freeform v5 fixture with exact layout settings notification
         ->and($result->stats)->toHaveKeys(['formsAttempted'])
         ->and((int)$result->stats['formsAttempted'])->toBe(1)
         ->and($levels)->toContain('info')
-        ->and(implode(' ', $messages))->not->toContain('Cannot assign array to property verbb\\formie\\models\\FormSettings::$submitActionMessage')
+        ->and(implode(' ', $messages))->not->toContain('Cannot assign array to property verbb\\formie\\models\\FormSettings::$successMessage')
         ->and(implode(' ', $messages))->not->toContain('Cannot assign string to property verbb\\formie\\models\\Notification::$content')
         ->and(implode(' ', $messages))->toContain('All entries completed.');
 
@@ -226,7 +226,7 @@ it('migrates a large freeform v5 fixture with exact layout settings notification
         ->and($migratedForm->settings->submitMethod)->toBe('ajax')
         ->and($migratedForm->settings->completionBehavior)->toBe('redirect')
         ->and($migratedForm->settings->completionRedirectSource)->toBe('url')
-        ->and($migratedForm->settings->submitActionUrl)->toBe('https://example.test/thanks');
+        ->and($migratedForm->settings->redirectUrl)->toBe('https://example.test/thanks');
     $pages = $migratedForm->getPages();
     expect(array_map(fn($field) => $field->handle, $pages[0]->getRows()[0]->getFields()))->toBe(['fullName', 'contactEmail', 'alternateName'])
         ->and($migratedForm->getFieldByHandle('fullName')->required)->toBeTrue()

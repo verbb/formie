@@ -46,7 +46,7 @@ it('emits runtime frontend variables for loading indicator and scroll behavior',
         'loadingIndicator' => 'spinner',
         'loadingIndicatorText' => 'Submitting...',
         'scrollToTop' => false,
-        'submitActionMessagePosition' => 'bottom-form',
+        'successMessagePosition' => 'bottom-form',
     ], false);
 
     expect(Craft::$app->elements->saveElement($form))->toBeTrue();
@@ -58,5 +58,5 @@ it('emits runtime frontend variables for loading indicator and scroll behavior',
         ->and($settings['loadingIndicator'] ?? null)->toBe('spinner')
         ->and($settings['loadingIndicatorText'] ?? null)->toBe('Submitting...')
         ->and((bool)($settings['scrollToTop'] ?? true))->toBeFalse()
-        ->and($form->settings->submitActionMessagePosition)->toBe('bottom-form');
+        ->and($form->settings->successMessagePosition)->toBe('bottom-form');
 });

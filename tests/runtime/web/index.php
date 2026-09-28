@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && str_starts_with($path, '/browser-com
     $behavior = substr($path, strlen('/browser-completion-native-'));
     if (!in_array($behavior, ['message', 'redirect', 'reload', 'reset', 'newtab', 'malicious'], true)) { http_response_code(404); exit; }
     $form = \verbb\formie\elements\Form::find()->handle('completionMessage')->one();
-    $form->setSettings(['submitMethod' => 'page-reload', 'completionBehavior' => in_array($behavior, ['newtab', 'malicious'], true) ? 'redirect' : $behavior, 'submitActionUrl' => '/browser-completion-done', 'submitActionTab' => $behavior === 'newtab' ? 'new-tab' : 'same-tab']);
+    $form->setSettings(['submitMethod' => 'page-reload', 'completionBehavior' => in_array($behavior, ['newtab', 'malicious'], true) ? 'redirect' : $behavior, 'redirectUrl' => '/browser-completion-done', 'redirectTarget' => $behavior === 'newtab' ? 'new-tab' : 'same-tab']);
     if ($behavior === 'malicious') $form->setRedirectUrl("https://evil.test/%0d%0aInjected");
     $view = $app->getView(); $view->setTemplateMode(\craft\web\View::TEMPLATE_MODE_SITE);
     $html = \verbb\formie\Formie::$plugin->getFrontendAssets()->withPublishedBrowserAssets(function () use ($view, $form) {

@@ -209,11 +209,11 @@ class ImportExportHelper
         $form->settings->setAttributes($settings, false);
 
         // Check if there is an entry selected as the redirect action. If not found, will cause a fatal error
-        if ($form->submitActionEntryId) {
-            $entry = Entry::find()->id($form->submitActionEntryId)->one();
+        if ($form->redirectEntryId) {
+            $entry = Entry::find()->id($form->redirectEntryId)->one();
 
             if (!$entry) {
-                $form->submitActionEntryId = null;
+                $form->redirectEntryId = null;
             }
         }
 

@@ -721,8 +721,9 @@ var oe = i({
 				}),
 				r.lastSubmitResult?.messages.notice ? a("div", {
 					key: "notice",
-					class: "formie-vue-notice"
-				}, r.lastSubmitResult.messages.notice) : null,
+					class: "formie-vue-notice",
+					innerHTML: r.lastSubmitResult.messages.notice
+				}) : null,
 				u ? a("div", {
 					key: "error",
 					class: "formie-vue-error"

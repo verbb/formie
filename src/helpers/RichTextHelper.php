@@ -57,7 +57,7 @@ class RichTextHelper
     {
         return [
             'forms' => [
-                'submitActionMessage' => [
+                'successMessage' => [
                     'buttons' => ['bold', 'italic', 'variableTag'],
                     'rows' => 3,
                 ],

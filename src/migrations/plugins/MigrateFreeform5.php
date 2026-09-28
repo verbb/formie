@@ -130,14 +130,14 @@ class MigrateFreeform5 extends BasePluginMigrator
             $behaviorSettings = $freeformForm->getSettings()->getBehavior();
 
             if ($behaviorSettings->successBehavior === 'reload') {
-                $form->settings->submitActionMessage = RichText::fromHtml('<p>' . $behaviorSettings->successMessage . '</p>');
+                $form->settings->successMessage = RichText::fromHtml('<p>' . $behaviorSettings->successMessage . '</p>');
                 $form->settings->completionBehavior = 'message';
             } else if ($behaviorSettings->successBehavior === 'redirect-return-url') {
-                $form->settings->submitActionUrl = $behaviorSettings->returnUrl;
+                $form->settings->redirectUrl = $behaviorSettings->returnUrl;
                 $form->settings->completionBehavior = 'redirect';
             $form->settings->completionRedirectSource = 'url';
             } else if ($behaviorSettings->successBehavior === 'load-success-template') {
-                $form->settings->submitActionMessage = RichText::fromHtml('<p>' . $behaviorSettings->successMessage . '</p>');
+                $form->settings->successMessage = RichText::fromHtml('<p>' . $behaviorSettings->successMessage . '</p>');
                 $form->settings->completionBehavior = 'message';
             }
 

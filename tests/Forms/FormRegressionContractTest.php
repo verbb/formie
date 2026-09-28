@@ -50,6 +50,6 @@ it('keeps runtime config json parseable and stable for core keys', function (): 
             'validationOnSubmit',
         ])
         ->and($form->settings->submitAction)->toBe('url')
-        ->and($form->settings->submitActionTab)->toBe('same-tab')
+        ->and($form->settings->redirectTarget)->toBe('same-tab')
         ->and((string)$form->getRedirectUrl())->toContain('example.test/thanks');
 });

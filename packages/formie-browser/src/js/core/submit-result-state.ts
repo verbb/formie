@@ -99,23 +99,17 @@ function getProgressState(progress: number): 'start' | 'middle' | 'end' {
     return 'middle';
 }
 
-function getConfiguredSubmitAction(form: HTMLFormElement): string {
-    return (form.dataset.formieSubmitAction || '').trim();
+function getConfiguredCompletionBehavior(form: HTMLFormElement): string {
+    return (form.dataset.formieCompletionBehavior || form.dataset.formieSubmitAction || '').trim();
 }
 
-function getResolvedSubmitAction(form: HTMLFormElement, result: FormSubmitResult): string {
+function getResolvedCompletionBehavior(form: HTMLFormElement, result: FormSubmitResult): string {
     if (result.completion) return String(result.completion.behavior);
-    const fromResponse = result.meta?.effectiveSubmitAction;
-
-    if (typeof fromResponse === 'string' && fromResponse.trim() !== '') {
-        return fromResponse.trim();
-    }
-
-    return getConfiguredSubmitAction(form);
+    return getConfiguredCompletionBehavior(form);
 }
 
 function shouldHideFormOnSuccess(form: HTMLFormElement): boolean {
-    const rawValue = form.dataset.formieSubmitActionFormHide;
+    const rawValue = form.dataset.formieHideFormAfterSubmit ?? form.dataset.formieSubmitActionFormHide;
 
     if (rawValue === undefined) {
         return false;
@@ -200,7 +194,7 @@ function applyCompletedProgressState(form: HTMLFormElement): void {
 
 function scheduleFinalSubmitReset(form: HTMLFormElement): void {
     clearPendingFinalSubmitReset(form);
-    const preserveHiddenState = getConfiguredSubmitAction(form) === 'message' && shouldHideFormOnSuccess(form);
+    const preserveHiddenState = getConfiguredCompletionBehavior(form) === 'message' && shouldHideFormOnSuccess(form);
 
     if (DEFAULT_FINAL_SUBMIT_RESET_DELAY_MS < 1) {
         resetSubmissionState(form, { preserveHiddenState });
@@ -617,17 +611,17 @@ export function applySubmitResultState(form: HTMLFormElement, result: FormSubmit
     }
 
     if (result.completion && action === 'submit' && !result.redirect?.url) {
-        const configuredSubmitAction = getResolvedSubmitAction(form, result);
-        const preserveHiddenState = configuredSubmitAction === 'message' && shouldHideFormOnSuccess(form);
+        const completionBehavior = getResolvedCompletionBehavior(form, result);
+        const preserveHiddenState = completionBehavior === 'message' && shouldHideFormOnSuccess(form);
 
-        if (configuredSubmitAction === 'reload') {
+        if (completionBehavior === 'reload') {
             clearPendingFinalSubmitReset(form);
             markInternalNavigation(form, 'reload');
             window.location.reload();
             return;
         }
 
-        if (configuredSubmitAction === 'reset') {
+        if (completionBehavior === 'reset') {
             resetSubmissionState(form);
             return;
         }
@@ -640,8 +634,8 @@ export function applySubmitResultState(form: HTMLFormElement, result: FormSubmit
     }
 
     if (action === 'submit' && result.redirect?.url && result.redirect.target === 'new-tab') {
-        const configuredSubmitAction = getResolvedSubmitAction(form, result);
-        const preserveHiddenState = configuredSubmitAction === 'message' && shouldHideFormOnSuccess(form);
+        const completionBehavior = getResolvedCompletionBehavior(form, result);
+        const preserveHiddenState = completionBehavior === 'message' && shouldHideFormOnSuccess(form);
         clearPendingFinalSubmitReset(form);
         resetSubmissionState(form, { preserveHiddenState });
         return;

@@ -170,8 +170,8 @@ class Install extends Migration
             'groupId' => $this->integer(),
             'formStatusId' => $this->integer(),
             'sourceSiteId' => $this->integer(),
-            'submitActionEntryId' => $this->integer(),
-            'submitActionEntrySiteId' => $this->integer(),
+            'redirectEntryId' => $this->integer(),
+            'redirectEntrySiteId' => $this->integer(),
             'defaultStatusId' => $this->integer(),
             'dataRetention' => $this->enum('dataRetention', ['forever', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'])
                 ->defaultValue('forever')
@@ -586,8 +586,8 @@ class Install extends Migration
             'scope' => $this->string(16)->notNull()->defaultValue('project'),
             'data' => $this->mediumText(),
             'templateId' => $this->integer(),
-            'submitActionEntryId' => $this->integer(),
-            'submitActionEntrySiteId' => $this->integer(),
+            'redirectEntryId' => $this->integer(),
+            'redirectEntrySiteId' => $this->integer(),
             'defaultStatusId' => $this->integer(),
             'dateDeleted' => $this->dateTime(),
             'dateCreated' => $this->dateTime()->notNull(),
@@ -809,8 +809,8 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_FORMS, 'formStatusId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'sourceSiteId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'defaultStatusId', false);
-        $this->createIndex(null, Table::FORMIE_FORMS, 'submitActionEntryId', false);
-        $this->createIndex(null, Table::FORMIE_FORMS, 'submitActionEntrySiteId', false);
+        $this->createIndex(null, Table::FORMIE_FORMS, 'redirectEntryId', false);
+        $this->createIndex(null, Table::FORMIE_FORMS, 'redirectEntrySiteId', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'createdById', false);
         $this->createIndex(null, Table::FORMIE_FORMS, 'updatedById', false);
         $this->createIndex(null, Table::FORMIE_FORM_SITE_OVERRIDES, ['formId', 'siteId'], true);
@@ -894,7 +894,7 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['formStatusId'], Table::FORMIE_FORM_STATUSES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['sourceSiteId'], '{{%sites}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['defaultStatusId'], Table::FORMIE_SUBMISSION_STATUSES, ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, Table::FORMIE_FORMS, ['submitActionEntryId'], '{{%entries}}', ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FORMS, ['redirectEntryId'], '{{%entries}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['createdById'], '{{%users}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORMS, ['updatedById'], '{{%users}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_FORM_SITE_OVERRIDES, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);

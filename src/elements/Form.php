@@ -389,8 +389,8 @@ class Form extends Element implements FormInterface
     public ?int $groupId = null;
     public ?int $formStatusId = null;
     public ?int $sourceSiteId = null;
-    public ?int $submitActionEntryId = null;
-    public ?int $submitActionEntrySiteId = null;
+    public ?int $redirectEntryId = null;
+    public ?int $redirectEntrySiteId = null;
     public ?int $defaultStatusId = null;
     public string $dataRetention = 'forever';
     public ?string $dataRetentionValue = null;
@@ -412,7 +412,7 @@ class Form extends Element implements FormInterface
     private ?FormGroup $_group = null;
     private ?FormStatus $_formStatus = null;
     private ?SubmissionStatus $_defaultStatus = null;
-    private ?Entry $_submitActionEntry = null;
+    private ?Entry $_redirectEntry = null;
     private ?array $_notifications = null;
     private ?FieldLayoutPage $_currentPage = null;
     private ?Submission $_currentSubmission = null;
@@ -1536,11 +1536,36 @@ class Form extends Element implements FormInterface
     public function setRedirectUrl(string $value): void
     {
         $this->setSettings(['redirectUrl' => $value]);
+        $this->replaceInstanceConfig($this->getInstanceConfig()->withCompletionRedirectOverride($value));
     }
 
     public function getCompletionRedirectOverride(): ?string
     {
-        return $this->settings->redirectUrl;
+        return $this->getInstanceConfig()->completionRedirectOverride;
+    }
+
+    /** @deprecated Use redirectEntryId. */
+    public function getSubmitActionEntryId(): ?int
+    {
+        return $this->redirectEntryId;
+    }
+
+    /** @deprecated Use redirectEntryId. */
+    public function setSubmitActionEntryId(?int $value): void
+    {
+        $this->redirectEntryId = $value;
+    }
+
+    /** @deprecated Use redirectEntrySiteId. */
+    public function getSubmitActionEntrySiteId(): ?int
+    {
+        return $this->redirectEntrySiteId;
+    }
+
+    /** @deprecated Use redirectEntrySiteId. */
+    public function setSubmitActionEntrySiteId(?int $value): void
+    {
+        $this->redirectEntrySiteId = $value;
     }
 
     public function getRedirectUrl(bool $checkLastPage = true, bool $includeQueryString = true): string
@@ -1564,22 +1589,22 @@ class Form extends Element implements FormInterface
 
     public function getRedirectEntry(): ?Entry
     {
-        if (!$this->submitActionEntryId) {
+        if (!$this->redirectEntryId) {
             return null;
         }
 
-        if (!$this->_submitActionEntry) {
-            $siteId = $this->submitActionEntrySiteId ?: '*';
+        if (!$this->_redirectEntry) {
+            $siteId = $this->redirectEntrySiteId ?: '*';
 
-            $this->_submitActionEntry = Craft::$app->getEntries()->getEntryById($this->submitActionEntryId, $siteId);
+            $this->_redirectEntry = Craft::$app->getEntries()->getEntryById($this->redirectEntryId, $siteId);
         }
 
-        return $this->_submitActionEntry;
+        return $this->_redirectEntry;
     }
 
     public function setRedirectEntry(Entry $entry): void
     {
-        $this->_submitActionEntry = $entry;
+        $this->_redirectEntry = $entry;
     }
 
     public function getGqlTypeName(): string
@@ -1797,6 +1822,7 @@ class Form extends Element implements FormInterface
     public function setSettings(array $settings): void
     {
         $runtime = new \verbb\formie\services\RuntimeConfiguration();
+        $settings = \verbb\formie\helpers\RuntimeConfigurationMigration::migrate($settings);
         $settings = $runtime->validateSettings($this->settings, $settings, $runtime::FORM_SETTINGS, 'form');
         if (isset($settings['completionBehavior'])) {
             \verbb\formie\enums\CompletionBehavior::from($settings['completionBehavior']);
@@ -2107,8 +2133,8 @@ class Form extends Element implements FormInterface
         $record->groupId = $this->groupId ?: null;
         $record->formStatusId = $this->formStatusId ?: null;
         $record->sourceSiteId = $this->sourceSiteId ?: null;
-        $record->submitActionEntryId = $this->submitActionEntryId;
-        $record->submitActionEntrySiteId = $this->submitActionEntrySiteId;
+        $record->redirectEntryId = $this->redirectEntryId;
+        $record->redirectEntrySiteId = $this->redirectEntrySiteId;
         $record->defaultStatusId = $this->defaultStatusId;
         $record->dataRetention = $this->dataRetention;
         $record->dataRetentionValue = $this->dataRetentionValue;
@@ -2555,22 +2581,22 @@ class Form extends Element implements FormInterface
                     SchemaHelper::lightswitchField([
                         'label' => Craft::t('formie', 'Hide Form'),
                         'instructions' => Craft::t('formie', 'Whether to hide the form and only show the success message.'),
-                        'name' => 'settings.submitActionFormHide',
+                        'name' => 'settings.hideFormAfterSubmit',
                     ]),
                     SchemaHelper::richTextField(array_merge([
                         'label' => Craft::t('formie', 'Submission Message'),
                         'instructions' => Craft::t('formie', 'This text will be shown after submission, as a success message.'),
-                        'name' => 'settings.submitActionMessage',
-                    ], RichTextHelper::getRichTextConfig('forms.submitActionMessage'))),
+                        'name' => 'settings.successMessage',
+                    ], RichTextHelper::getRichTextConfig('forms.successMessage'))),
                     SchemaHelper::numberField([
                         'label' => Craft::t('formie', 'Submission Message Timeout'),
                         'instructions' => Craft::t('formie', 'The number of seconds to automatically hide the message. Leave empty to disable hiding.'),
-                        'name' => 'settings.submitActionMessageTimeout',
+                        'name' => 'settings.successMessageTimeout',
                     ]),
                     SchemaHelper::selectField([
                         'label' => Craft::t('formie', 'Submission Message Position'),
                         'instructions' => Craft::t('formie', 'Where to position the success message in the form, when shown.'),
-                        'name' => 'settings.submitActionMessagePosition',
+                        'name' => 'settings.successMessagePosition',
                         'options' => [
                             ['label' => Craft::t('formie', 'None'), 'value' => ''],
                             ['label' => Craft::t('formie', 'Top of Form'), 'value' => 'top-form'],
@@ -2589,7 +2615,7 @@ class Form extends Element implements FormInterface
                     SchemaHelper::elementSelectField([
                         'label' => Craft::t('formie', 'Redirect Entry'),
                         'instructions' => Craft::t('formie', 'Select an entry for the user to be redirected to.'),
-                        'name' => 'submitActionEntry',
+                        'name' => 'redirectEntry',
                         'limit' => 1,
                         'elementType' => 'craft\\elements\\Entry',
                         'showSiteMenu' => true,
@@ -2597,7 +2623,7 @@ class Form extends Element implements FormInterface
                     SchemaHelper::selectField([
                         'label' => Craft::t('formie', 'Redirect Option'),
                         'instructions' => Craft::t('formie', 'How to redirect the user after submission, whether in the same tab, or a new tab.'),
-                        'name' => 'settings.submitActionTab',
+                        'name' => 'settings.redirectTarget',
                         'options' => [
                             ['label' => Craft::t('formie', 'Redirect on the same tab'), 'value' => 'same-tab'],
                             ['label' => Craft::t('formie', 'Redirect on a new tab'), 'value' => 'new-tab'],
@@ -2615,12 +2641,12 @@ class Form extends Element implements FormInterface
                     SchemaHelper::textField([
                         'label' => Craft::t('formie', 'Redirect URL'),
                         'instructions' => Craft::t('formie', 'The full URL that the user to be redirected to.'),
-                        'name' => 'settings.submitActionUrl',
+                        'name' => 'settings.redirectUrl',
                     ]),
                     SchemaHelper::selectField([
                         'label' => Craft::t('formie', 'Redirect Option'),
                         'instructions' => Craft::t('formie', 'How to redirect the user after submission, whether in the same tab, or a new tab.'),
-                        'name' => 'settings.submitActionTab',
+                        'name' => 'settings.redirectTarget',
                         'options' => [
                             ['label' => Craft::t('formie', 'Redirect on the same tab'), 'value' => 'same-tab'],
                             ['label' => Craft::t('formie', 'Redirect on a new tab'), 'value' => 'new-tab'],
@@ -2664,7 +2690,7 @@ class Form extends Element implements FormInterface
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Redirect Option'),
                 'instructions' => Craft::t('formie', 'How to redirect the user when a redirect rule matches, whether in the same tab, or a new tab.'),
-                'name' => 'settings.submitActionTab',
+                'name' => 'settings.redirectTarget',
                 'if' => 'settings.enableRedirectRules && settings.completionBehavior != "redirect"',
                 'options' => [
                     ['label' => Craft::t('formie', 'Redirect on the same tab'), 'value' => 'same-tab'],
@@ -3477,7 +3503,7 @@ class Form extends Element implements FormInterface
 
         $rules[] = [['title', 'handle'], 'required'];
         $rules[] = [['title'], 'string', 'max' => 255];
-        $rules[] = [['templateId', 'groupId', 'formStatusId', 'sourceSiteId', 'submitActionEntryId', 'submitActionEntrySiteId', 'defaultStatusId'], 'number', 'integerOnly' => true];
+        $rules[] = [['templateId', 'groupId', 'formStatusId', 'sourceSiteId', 'redirectEntryId', 'redirectEntrySiteId', 'defaultStatusId'], 'number', 'integerOnly' => true];
         $rules[] = [['formLayout'], 'validateFormLayout'];
         $rules[] = [['settings'], 'validateFormSettings'];
         $rules[] = [['notifications'], 'validateNotifications'];

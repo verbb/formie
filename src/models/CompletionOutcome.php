@@ -2,6 +2,7 @@
 namespace verbb\formie\models;
 
 use verbb\formie\enums\CompletionBehavior;
+use verbb\formie\enums\RedirectTarget;
 
 final class CompletionOutcome
 {
@@ -11,7 +12,7 @@ final class CompletionOutcome
     public function __construct(
         public readonly CompletionBehavior $behavior,
         public readonly ?string $url = null,
-        public readonly string $target = 'same-tab',
+        public readonly RedirectTarget $target = RedirectTarget::SameTab,
         public readonly ?string $message = null,
         public readonly bool $hideForm = false,
     ) {
@@ -19,7 +20,7 @@ final class CompletionOutcome
 
     public function toArray(): array
     {
-        return ['behavior' => $this->behavior->value, 'url' => $this->url, 'target' => $this->target,
+        return ['behavior' => $this->behavior->value, 'url' => $this->url, 'target' => $this->target->value,
             'message' => $this->message, 'hideForm' => $this->hideForm];
     }
 }

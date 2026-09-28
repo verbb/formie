@@ -78,7 +78,8 @@ $check(!str_contains(json_encode($app->getProjectConfig()->get('formie.integrati
 $check((new \craft\db\Query())->from(\verbb\formie\services\DeliveryAttempts::TABLE)->count() == 0, 'upgrade does not perform or invent external deliveries');
 
 $check($app->getDb()->tableExists('{{%formie_instance_configs}}'), 'upgrade creates encrypted instance configuration storage');
-$check($form->settings->completionBehavior === 'redirect' && $form->settings->completionRedirectSource === 'url' && $form->settings->submitActionUrl === '/upgraded-completion', 'legacy URL completion migrates to the explicit behavior and source');
+$check($form->settings->completionBehavior === 'redirect' && $form->settings->completionRedirectSource === 'url' && $form->settings->redirectUrl === '/upgraded-completion', 'legacy URL completion migrates to the explicit behavior and source');
+$check($app->getDb()->columnExists(\verbb\formie\helpers\Table::FORMIE_FORMS, 'redirectEntryId') && !$app->getDb()->columnExists(\verbb\formie\helpers\Table::FORMIE_FORMS, 'submitActionEntryId'), 'legacy form redirect columns migrate to canonical names');
 $check($form->getFieldByHandle('fullName')->prefillQueryParam === 'legacyName', 'legacy query prefill name survives as prefillQueryParam');
 $check($form->getFieldByHandle('legacyDate')->valueSource === 'dateInt', 'legacy Hidden defaultOption survives as valueSource');
 $check(!str_contains((string)(new \craft\db\Query())->select('settings')->from(\verbb\formie\helpers\Table::FORMIE_FORM_FIELDS)->where(['id' => $form->getFieldByHandle('fullName')->id])->scalar(), 'prePopulate'), 'stored field instances use the canonical prefill key');

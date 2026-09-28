@@ -267,7 +267,7 @@ class SubmissionsController extends Controller
             $payload['nextPageId'] = null;
             $payload['totalPages'] = count($pages);
             $payload['isFinalPage'] = false;
-            $payload['submitActionMessage'] = StringHelper::sanitizeMessageHtml($form->settings->getSubmitActionMessage($submission));
+            $payload['successMessage'] = StringHelper::sanitizeMessageHtml($form->settings->getSuccessMessage($submission));
         } else {
             $payload['nextPageId'] = $nextPageId;
             $payload['totalPages'] = count($pages);
@@ -277,10 +277,12 @@ class SubmissionsController extends Controller
         $payload['completion'] = $response->outcome->data['completion'] ?? null;
         $payload['redirect'] = $response->outcome->data['redirect'] ?? null;
         if ($completion = $payload['completion']) {
-            $payload['effectiveSubmitAction'] = $completion['behavior'];
             $payload['redirectUrl'] = $completion['url'];
-            $payload['submitActionTab'] = $completion['target'];
-            $payload['submitActionMessage'] = $completion['message'];
+            $payload['redirectTarget'] = $completion['target'];
+            $payload['successMessage'] = $completion['message'];
+        }
+        if (array_key_exists('successMessage', $payload)) {
+            $payload['submitActionMessage'] = $payload['successMessage'];
         }
 
         if ($response->quizResult) {

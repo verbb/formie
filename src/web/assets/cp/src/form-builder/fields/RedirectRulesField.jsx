@@ -11,8 +11,8 @@ const REDIRECT_RULE_CARD_CLASSNAME = 'relative rounded-sm border border-[rgba(96
 const createDefaultRule = () => ({
     ...createItem({}),
     redirectType: 'url',
-    submitActionUrl: '',
-    submitActionEntry: [],
+    redirectUrl: '',
+    redirectEntry: [],
     conditions: {
         applyRule: 'apply',
         conditionRule: 'all',
@@ -34,12 +34,12 @@ function RedirectRuleItem({
         instructions: t('Choose whether to redirect to a URL or a Craft entry when this rule matches.'),
     };
     const urlField = {
-        name: `${baseName}.${index}.submitActionUrl`,
+        name: `${baseName}.${index}.redirectUrl`,
         label: t('Redirect URL'),
         instructions: t('The full URL that the user to be redirected to.'),
     };
     const entryField = {
-        name: `${baseName}.${index}.submitActionEntry`,
+        name: `${baseName}.${index}.redirectEntry`,
         label: t('Redirect Entry'),
         instructions: t('Select an entry for the user to be redirected to.'),
         elementType: 'craft\\elements\\Entry',
@@ -59,9 +59,9 @@ function RedirectRuleItem({
         setTouched: setRedirectTypeTouched,
     } = useEngineField(form, redirectTypeField.name);
     const {
-        value: submitActionUrl,
-        setValue: setSubmitActionUrl,
-        setTouched: setSubmitActionUrlTouched,
+        value: redirectUrl,
+        setValue: setRedirectUrl,
+        setTouched: setRedirectUrlTouched,
     } = useEngineField(form, urlField.name);
 
     const resolvedRedirectType = redirectType || 'url';
@@ -107,10 +107,10 @@ function RedirectRuleItem({
                         instructions={urlField.instructions}
                     >
                         <Input
-                            value={submitActionUrl ?? ''}
+                            value={redirectUrl ?? ''}
                             onChange={(event) => {
-                                setSubmitActionUrl(event.target.value);
-                                setSubmitActionUrlTouched();
+                                setRedirectUrl(event.target.value);
+                                setRedirectUrlTouched();
                             }}
                         />
                     </FieldLayout>

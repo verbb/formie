@@ -244,15 +244,13 @@ function ge(e) {
 	return e <= 0 ? "start" : e >= 100 ? "end" : "middle";
 }
 function _e(e) {
-	return (e.dataset.formieSubmitAction || "").trim();
+	return (e.dataset.formieCompletionBehavior || e.dataset.formieSubmitAction || "").trim();
 }
 function P(e, t) {
-	if (t.completion) return String(t.completion.behavior);
-	let n = t.meta?.effectiveSubmitAction;
-	return typeof n == "string" && n.trim() !== "" ? n.trim() : _e(e);
+	return t.completion ? String(t.completion.behavior) : _e(e);
 }
 function F(e) {
-	let t = e.dataset.formieSubmitActionFormHide;
+	let t = e.dataset.formieHideFormAfterSubmit ?? e.dataset.formieSubmitActionFormHide;
 	if (t === void 0) return !1;
 	let n = t.trim().toLowerCase();
 	return n === "true" || n === "1" || n === "";

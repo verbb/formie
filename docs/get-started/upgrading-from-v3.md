@@ -1697,6 +1697,13 @@ Stable `getFrontEndJsModules()` declarations are adapted with a deprecation warn
 | `prePopulate` | `prefillQueryParam`; stable PHP alias and stored-configuration migration |
 | Hidden `defaultOption` | `valueSource`; hydration alias and migration |
 | `submitAction` values `entry` / `url` | `completionBehavior: redirect`, with `completionRedirectSource: entry` / `url` |
+| `submitActionTab` | `redirectTarget` |
+| `submitActionUrl` | `redirectUrl` |
+| `submitActionEntry` | `redirectEntry` |
+| `submitActionFormHide` | `hideFormAfterSubmit` |
+| `submitActionMessage` | `successMessage` |
+| `submitActionMessageTimeout` | `successMessageTimeout` |
+| `submitActionMessagePosition` | `successMessagePosition` |
 | `$updateSnapshot` argument on `setSettings()`, `setFieldSettings()` and `setIntegrationSettings()` | Remove this argument; configuration lifetime is managed internally |
 | Settings retained in the visitor’s session | Settings needed to continue the form are stored with its progress and submission |
 

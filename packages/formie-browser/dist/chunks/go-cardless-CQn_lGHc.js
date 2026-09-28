@@ -1,5 +1,5 @@
 import { s as e } from "./event-names-BCI2FLD8.js";
-import { t } from "./api-C4LVRc2v.js";
+import { t } from "./api-DjGZPLgb.js";
 //#region src/js/modules/payments/go-cardless.ts
 var n = e("go-cardless", "redirect"), r = t({
 	moduleId: "formie:go-cardless",

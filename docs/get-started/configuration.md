@@ -788,7 +788,7 @@ The default rich-text config is:
 ```json
 {
     "forms": {
-        "submitActionMessage": {
+        "successMessage": {
             "buttons": ["bold", "italic", "variableTag"],
             "rows": 3
         },

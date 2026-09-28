@@ -4,7 +4,7 @@ A success page confirms that a visitor has finished your form. This guide first 
 
 ## Create a Public Thank-You Page
 
-Start with an existing form whose handle is `contactForm`. A handle is the name you use to find the form in code. In the form builder, choose a URL redirect as the submit action and set its destination to `/thanks`. Save the form.
+Start with an existing form whose handle is `contactForm`. A handle is the name you use to find the form in code. In the form builder, choose the redirect completion behavior with a URL source and set its destination to `/thanks`. Save the form.
 
 Create `templates/contact.twig` in your Craft project:
 
@@ -19,7 +19,7 @@ Create `templates/thanks.twig`:
 <p>Your enquiry has been submitted. Our team will reply using the details you provided.</p>
 ```
 
-Open `/contact`, complete the form and submit it. You should arrive at `/thanks`; check **Formie → Submissions** to confirm the saved answers. This works with both Ajax and page-reload submission methods when the submit action redirects.
+Open `/contact`, complete the form and submit it. You should arrive at `/thanks`; check **Formie → Submissions** to confirm the saved answers. This works with both Ajax and page-reload submission methods when the completion behavior redirects.
 
 Anyone can open the thank-you URL. It confirms the normal submission journey, but does not prove that the person viewing it submitted a form. Keep personal information, paid resources and other restricted content off this public page.
 

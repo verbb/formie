@@ -402,7 +402,7 @@ class Stencils extends Component
             $stencilRecord->uid = $stencilUid;
             $stencilRecord->scope = self::SCOPE_PROJECT;
 
-            $submitActionEntryUid = $data['submitActionEntry'] ?? null;
+            $redirectEntryUid = $data['redirectEntry'] ?? $data['submitActionEntry'] ?? null;
             $defaultStatusUid = $data['defaultStatus'] ?? null;
             $templateUid = $data['template'] ?? null;
 
@@ -414,11 +414,11 @@ class Stencils extends Component
                 }
             }
 
-            if ($submitActionEntryUid) {
-                $submitActionEntry = Craft::$app->getElements()->getElementByUid($submitActionEntryUid);
+            if ($redirectEntryUid) {
+                $redirectEntry = Craft::$app->getElements()->getElementByUid($redirectEntryUid);
 
-                if ($submitActionEntry) {
-                    $stencilRecord->submitActionEntryId = $submitActionEntry->id;
+                if ($redirectEntry) {
+                    $stencilRecord->redirectEntryId = $redirectEntry->id;
                 }
             }
 
@@ -673,13 +673,13 @@ class Stencils extends Component
                 $stencilRecord->templateId = $stencil->templateId;
             }
 
-            if ($submitActionEntryUid = $config['submitActionEntry'] ?? null) {
-                $submitActionEntry = Craft::$app->getElements()->getElementByUid($submitActionEntryUid);
-                $stencilRecord->submitActionEntryId = $submitActionEntry?->id;
-                $stencilRecord->submitActionEntrySiteId = $submitActionEntry?->siteId;
+            if ($redirectEntryUid = $config['redirectEntry'] ?? $config['submitActionEntry'] ?? null) {
+                $redirectEntry = Craft::$app->getElements()->getElementByUid($redirectEntryUid);
+                $stencilRecord->redirectEntryId = $redirectEntry?->id;
+                $stencilRecord->redirectEntrySiteId = $redirectEntry?->siteId;
             } else {
-                $stencilRecord->submitActionEntryId = $stencil->submitActionEntryId;
-                $stencilRecord->submitActionEntrySiteId = $stencil->submitActionEntrySiteId;
+                $stencilRecord->redirectEntryId = $stencil->redirectEntryId;
+                $stencilRecord->redirectEntrySiteId = $stencil->redirectEntrySiteId;
             }
 
             $stencilRecord->save(false);
@@ -760,7 +760,8 @@ class Stencils extends Component
             'handle',
             'data',
             'templateId',
-            'submitActionEntryId',
+            'redirectEntryId',
+            'redirectEntrySiteId',
             'defaultStatusId',
             'dateDeleted',
             'uid',

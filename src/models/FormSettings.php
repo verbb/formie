@@ -7,10 +7,12 @@ use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\base\TranslatablePropertiesInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\CompletionBehavior;
+use verbb\formie\enums\RedirectSource;
+use verbb\formie\enums\RedirectTarget;
 use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\CpSubmissionFieldConditions;
 use verbb\formie\helpers\IntegrationSecrets;
-use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 
 use Craft;
 use craft\base\Model;
@@ -34,7 +36,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     {
         return [
             'errorMessage',
-            'submitActionMessage',
+            'successMessage',
             'limitSubmissionsMessage',
             'requireUserMessage',
             'scheduleFormPendingMessage',
@@ -70,16 +72,15 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     public ?string $submitMethod = 'page-reload';
     public string $completionBehavior = 'message';
     public string $completionRedirectSource = 'url';
-    public ?string $submitAction = 'message';
-    public ?string $submitActionTab = 'same-tab';
-    public ?string $submitActionUrl = null;
+    public string $redirectTarget = 'same-tab';
+    public ?string $redirectUrl = null;
     public bool $enableRedirectRules = false;
     public array $redirectRules = [];
-    public bool $submitActionFormHide = false;
+    public bool $hideFormAfterSubmit = false;
     public bool $automaticSubmissionState = true;
-    public RichText $submitActionMessage;
-    public mixed $submitActionMessageTimeout = null;
-    public string $submitActionMessagePosition = 'top-form';
+    public RichText $successMessage;
+    public mixed $successMessageTimeout = null;
+    public string $successMessagePosition = 'top-form';
     public ?string $loadingIndicator = null;
     public ?string $loadingIndicatorText = null;
 
@@ -141,7 +142,6 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     public bool $quizShowScoreAfterSubmit = true;
 
     // Other
-    public ?string $redirectUrl = null;
     public ?string $pageRedirectUrl = null;
     public ?string $defaultEmailTemplateId = null;
 
@@ -156,13 +156,11 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
     public function __construct($config = [])
     {
-        // Decode saved Formie 3/beta settings without maintaining a second resolver.
-        if (!array_key_exists('completionBehavior', $config)) {
-            $action = $config['submitAction'] ?? 'message';
-            $config['completionBehavior'] = in_array($action, ['entry', 'url'], true) ? 'redirect' : $action;
-            $config['completionRedirectSource'] = $action === 'entry' ? 'entry' : 'url';
-        }
-        \verbb\formie\enums\CompletionBehavior::from($config['completionBehavior']);
+        $config = self::_normalizeCompletionAttributes($config);
+        CompletionBehavior::from($config['completionBehavior']);
+        RedirectSource::from($config['completionRedirectSource']);
+        RedirectTarget::from($config['redirectTarget']);
+
         // Config normalization
         if (array_key_exists('customAttributes', $config)) {
             if (is_string($config['customAttributes'])) {
@@ -222,8 +220,8 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
             $this->errorMessage = RichText::from('<p>' . Craft::t('formie', 'Couldn’t save submission due to errors.') . '</p>');
         }
 
-        if ($this->submitActionMessage->isEmpty()) {
-            $this->submitActionMessage = RichText::from('<p>' . Craft::t('formie', 'Submission saved.') . '</p>');
+        if ($this->successMessage->isEmpty()) {
+            $this->successMessage = RichText::from('<p>' . Craft::t('formie', 'Submission saved.') . '</p>');
         }
 
         if (!$this->defaultLabelPosition) {
@@ -243,13 +241,9 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
     public function setAttributes($values, $safeOnly = true): void
     {
-        if (is_array($values) && array_key_exists('submitAction', $values) && !array_key_exists('completionBehavior', $values)) {
-            $action = $values['submitAction'];
-            $values['completionBehavior'] = in_array($action, ['entry', 'url'], true) ? 'redirect' : $action;
-            $values['completionRedirectSource'] = $action === 'entry' ? 'entry' : 'url';
-        }
         if (is_array($values)) {
-            $values = $this->_normalizeRichTextAttributes($values);
+            $values = self::_normalizeCompletionAttributes($values, false);
+            $values = $this->_normalizeRichTextAttributes($values, false);
             $values = $this->_normalizeScheduleDateTimeAttributes($values);
 
             if (array_key_exists('limitSubmissionsScope', $values) || array_key_exists('limitSubmissions', $values)) {
@@ -287,16 +281,108 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         return $config;
     }
 
-    public function getSubmitActionMessage($submission = null): string
+    public function getSuccessMessage(?Submission $submission = null): string
     {
-        $message = $this->_getHtmlContent($this->submitActionMessage, $submission);
-
-        return $message;
+        return $this->_getHtmlContent($this->successMessage, $submission);
     }
 
+    public function getSuccessMessageHtml(): string
+    {
+        return $this->_getHtmlContent($this->successMessage);
+    }
+
+    /** @deprecated Use getSuccessMessage(). */
+    public function getSubmitActionMessage(?Submission $submission = null): string
+    {
+        return $this->getSuccessMessage($submission);
+    }
+
+    /** @deprecated Use getSuccessMessageHtml(). */
     public function getSubmitActionMessageHtml(): string
     {
-        return $this->_getHtmlContent($this->submitActionMessage);
+        return $this->getSuccessMessageHtml();
+    }
+
+    /** @deprecated Use completionBehavior and completionRedirectSource. */
+    public function getSubmitAction(): string
+    {
+        return $this->completionBehavior === CompletionBehavior::Redirect->value ? $this->completionRedirectSource : $this->completionBehavior;
+    }
+
+    /** @deprecated Use completionBehavior and completionRedirectSource. */
+    public function setSubmitAction(?string $value): void
+    {
+        $action = $value ?? CompletionBehavior::Message->value;
+        $this->completionBehavior = in_array($action, [RedirectSource::Entry->value, RedirectSource::Url->value], true)
+            ? CompletionBehavior::Redirect->value
+            : CompletionBehavior::from($action)->value;
+        $this->completionRedirectSource = $action === RedirectSource::Entry->value ? RedirectSource::Entry->value : RedirectSource::Url->value;
+    }
+
+    /** @deprecated Use redirectUrl. */
+    public function getSubmitActionUrl(): ?string
+    {
+        return $this->redirectUrl;
+    }
+
+    /** @deprecated Use redirectUrl. */
+    public function setSubmitActionUrl(?string $value): void
+    {
+        $this->redirectUrl = $value;
+    }
+
+    /** @deprecated Use redirectTarget. */
+    public function getSubmitActionTab(): string
+    {
+        return $this->redirectTarget;
+    }
+
+    /** @deprecated Use redirectTarget. */
+    public function setSubmitActionTab(?string $value): void
+    {
+        $this->redirectTarget = RedirectTarget::from($value ?? RedirectTarget::SameTab->value)->value;
+    }
+
+    /** @deprecated Use hideFormAfterSubmit. */
+    public function getSubmitActionFormHide(): bool
+    {
+        return $this->hideFormAfterSubmit;
+    }
+
+    /** @deprecated Use hideFormAfterSubmit. */
+    public function setSubmitActionFormHide(bool $value): void
+    {
+        $this->hideFormAfterSubmit = $value;
+    }
+
+    /** @deprecated Use successMessage. */
+    public function setSubmitActionMessage(mixed $value): void
+    {
+        $this->successMessage = RichText::from($value);
+    }
+
+    /** @deprecated Use successMessageTimeout. */
+    public function getSubmitActionMessageTimeout(): mixed
+    {
+        return $this->successMessageTimeout;
+    }
+
+    /** @deprecated Use successMessageTimeout. */
+    public function setSubmitActionMessageTimeout(mixed $value): void
+    {
+        $this->successMessageTimeout = $value;
+    }
+
+    /** @deprecated Use successMessagePosition. */
+    public function getSubmitActionMessagePosition(): string
+    {
+        return $this->successMessagePosition;
+    }
+
+    /** @deprecated Use successMessagePosition. */
+    public function setSubmitActionMessagePosition(?string $value): void
+    {
+        $this->successMessagePosition = $value ?? 'top-form';
     }
 
     public function getErrorMessage(): string
@@ -422,17 +508,6 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         return $this->getForm()->getRedirectUrl($checkLastPage);
     }
 
-    public function getEffectiveSubmitAction(?Submission $submission = null): string
-    {
-        $form = $this->getForm();
-
-        if (!$form) {
-            return $this->completionBehavior === 'redirect' ? $this->completionRedirectSource : $this->completionBehavior;
-        }
-
-        return SubmissionRedirectRulesHelper::getEffectiveSubmitAction($form, $submission);
-    }
-
     public function getRedirectEntry(): ?Entry
     {
         return $this->getForm()->getRedirectEntry();
@@ -478,6 +553,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         $rules[] = [['submitMethod'], 'validateSubmitMethod'];
         $rules[] = [['completionBehavior'], 'in', 'range' => ['message', 'redirect', 'reload', 'reset']];
         $rules[] = [['completionRedirectSource'], 'in', 'range' => ['url', 'entry']];
+        $rules[] = [['redirectTarget'], 'in', 'range' => ['same-tab', 'new-tab']];
         $rules[] = [['progressCalculation'], 'in', 'range' => ['completion', 'page-position']];
         $rules[] = [['cpSubmissionFieldConditions'], 'in', 'range' => array_merge([''], CpSubmissionFieldConditions::values())];
         $rules[] = [['quizPassPercentage'], 'number', 'min' => 0, 'max' => 100];
@@ -558,7 +634,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     private function _serializeRichTextAttributes(array $config): array
     {
         foreach ([
-            'submitActionMessage',
+            'successMessage',
             'errorMessage',
             'requireUserMessage',
             'scheduleFormPendingMessage',
@@ -572,10 +648,10 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         return $config;
     }
 
-    private function _normalizeRichTextAttributes(array $config): array
+    private function _normalizeRichTextAttributes(array $config, bool $withDefaults = true): array
     {
         foreach ([
-            'submitActionMessage',
+            'successMessage',
             'errorMessage',
             'requireUserMessage',
             'scheduleFormPendingMessage',
@@ -583,7 +659,51 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
             'limitSubmissionsMessage',
             'limitSubmissionsIpAddressMessage',
         ] as $attribute) {
+            if (!$withDefaults && !array_key_exists($attribute, $config)) {
+                continue;
+            }
+
             $config[$attribute] = RichText::from($config[$attribute] ?? null);
+        }
+
+        return $config;
+    }
+
+    private static function _normalizeCompletionAttributes(array $config, bool $withDefaults = true): array
+    {
+        $aliases = [
+            'submitActionUrl' => 'redirectUrl',
+            'submitActionTab' => 'redirectTarget',
+            'submitActionFormHide' => 'hideFormAfterSubmit',
+            'submitActionMessage' => 'successMessage',
+            'submitActionMessageTimeout' => 'successMessageTimeout',
+            'submitActionMessagePosition' => 'successMessagePosition',
+        ];
+
+        foreach ($aliases as $legacy => $canonical) {
+            $canonicalMissing = !array_key_exists($canonical, $config);
+            if ($legacy === 'submitActionUrl') {
+                // Formie 3 serialized a template-only redirectUrl beside the authored
+                // submitActionUrl. A blank override must not discard the authored URL.
+                $canonicalMissing = $canonicalMissing || $config[$canonical] === null || $config[$canonical] === '';
+            }
+            if (array_key_exists($legacy, $config) && $canonicalMissing) {
+                $config[$canonical] = $config[$legacy];
+            }
+            unset($config[$legacy]);
+        }
+
+        if (array_key_exists('submitAction', $config) && !array_key_exists('completionBehavior', $config)) {
+            $action = $config['submitAction'];
+            $config['completionBehavior'] = in_array($action, ['entry', 'url'], true) ? 'redirect' : $action;
+            $config['completionRedirectSource'] = $action === 'entry' ? 'entry' : 'url';
+        }
+        unset($config['submitAction']);
+
+        if ($withDefaults) {
+            $config['completionBehavior'] ??= CompletionBehavior::Message->value;
+            $config['completionRedirectSource'] ??= RedirectSource::Url->value;
+            $config['redirectTarget'] ??= RedirectTarget::SameTab->value;
         }
 
         return $config;

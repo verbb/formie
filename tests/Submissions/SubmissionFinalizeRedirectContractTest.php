@@ -17,8 +17,8 @@ it('resolves url redirect targets and tab behavior contract from form settings',
 
     $form->settings->setAttributes([
         'submitAction' => 'url',
-        'submitActionUrl' => 'https://example.test/redirect-url',
-        'submitActionTab' => $tab,
+        'redirectUrl' => 'https://example.test/redirect-url',
+        'redirectTarget' => $tab,
     ], false);
 
     expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
@@ -29,7 +29,7 @@ it('resolves url redirect targets and tab behavior contract from form settings',
     expect($form->getRedirectUrl())->toContain('example.test/redirect-url')
         ->and($settings['submitMethod'] ?? null)->toBe($form->settings->submitMethod)
         ->and($form->settings->submitAction)->toBe('url')
-        ->and($form->settings->submitActionTab)->toBe($tab);
+        ->and($form->settings->redirectTarget)->toBe($tab);
 })->with('redirect_tabs');
 
 it('does not execute Twig in submit action URLs', function (): void {
@@ -40,8 +40,8 @@ it('does not execute Twig in submit action URLs', function (): void {
 
     $form->settings->setAttributes([
         'submitAction' => 'url',
-        'submitActionUrl' => 'https://example.test/redirect-{{7*7}}',
-        'submitActionTab' => 'same-tab',
+        'redirectUrl' => 'https://example.test/redirect-{{7*7}}',
+        'redirectTarget' => 'same-tab',
     ], false);
 
     expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
@@ -61,10 +61,10 @@ it('resolves entry redirect targets and tab behavior contract from form settings
 
     $form->settings->setAttributes([
         'submitAction' => 'entry',
-        'submitActionTab' => $tab,
+        'redirectTarget' => $tab,
     ], false);
-    $form->submitActionEntryId = $entry->id;
-    $form->submitActionEntrySiteId = $entry->siteId;
+    $form->redirectEntryId = $entry->id;
+    $form->redirectEntrySiteId = $entry->siteId;
 
     expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
 
@@ -74,5 +74,5 @@ it('resolves entry redirect targets and tab behavior contract from form settings
     expect((string)$form->getRedirectUrl())->toContain('formie-seed-entry')
         ->and($settings['submitMethod'] ?? null)->toBe($form->settings->submitMethod)
         ->and($form->settings->submitAction)->toBe('entry')
-        ->and($form->settings->submitActionTab)->toBe($tab);
+        ->and($form->settings->redirectTarget)->toBe($tab);
 })->with('redirect_tabs');

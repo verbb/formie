@@ -697,7 +697,7 @@ class SubmissionsController extends Controller
         }
 
         if ($response->submitAction === 'save') {
-            $message = $form->settings->getSubmitActionMessage($submission);
+            $message = $form->settings->getSuccessMessage($submission);
             $resumeUrl = $saveResumePayload['resumeUrl'] ?? null;
 
             Formie::$plugin->getService()->setNotice($form->getFlashNamespace(), $message);
@@ -835,16 +835,18 @@ class SubmissionsController extends Controller
         }
 
         if ($submitAction === 'save') {
-            $payload['submitActionMessage'] = StringHelper::sanitizeMessageHtml($form->settings->getSubmitActionMessage($submission));
+            $payload['successMessage'] = StringHelper::sanitizeMessageHtml($form->settings->getSuccessMessage($submission));
         }
 
         $payload['completion'] = $response->outcome->data['completion'] ?? null;
         $payload['redirect'] = $response->outcome->data['redirect'] ?? null;
         if ($completion = $payload['completion']) {
-            $payload['effectiveSubmitAction'] = $completion['behavior'];
             $payload['redirectUrl'] = $completion['url'];
-            $payload['submitActionTab'] = $completion['target'];
-            $payload['submitActionMessage'] = $completion['message'];
+            $payload['redirectTarget'] = $completion['target'];
+            $payload['successMessage'] = $completion['message'];
+        }
+        if (array_key_exists('successMessage', $payload)) {
+            $payload['submitActionMessage'] = $payload['successMessage'];
         }
 
         if ($response->quizResult) {

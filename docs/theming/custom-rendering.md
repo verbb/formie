@@ -19,7 +19,7 @@ Even when you render everything yourself, there are a few pieces you still need 
 - captcha output, if the form uses captchas
 - `multipart/form-data` for file uploads
 
-Features like multi-page forms, save and continue later, payments, conditions, and different submit actions all build on those basics.
+Features like multi-page forms, save and continue later, payments, conditions, and different completion behaviors all build on those basics.
 
 ## Example
 The below is the most bare-bone form rendering for a Formie form. We'll use this as a base template to add more functionality.
@@ -40,8 +40,8 @@ This guide serves as a starter. There are several aspects of templating that sho
     'data-formie-form': true,
     'data-formie-handle': form.handle,
     'data-formie-submit-method': form.settings.submitMethod,
-    'data-formie-submit-action': form.settings.completionBehavior,
-    'data-formie-submit-action-form-hide': form.settings.submitActionFormHide ? true : false,
+    'data-formie-completion-behavior': form.settings.completionBehavior,
+    'data-formie-hide-form-after-submit': form.settings.hideFormAfterSubmit ? true : false,
     'data-formie-automatic-submission-state': form.settings.automaticSubmissionState ? true : false,
     'data-formie-error-message': form.getClientErrorMessage(),
     'data-formie-error-message-position': form.settings.errorMessagePosition,
@@ -241,8 +241,8 @@ That should provide us with a working example to continue building. Here's the t
     'data-formie-form': true,
     'data-formie-handle': form.handle,
     'data-formie-submit-method': form.settings.submitMethod,
-    'data-formie-submit-action': form.settings.completionBehavior,
-    'data-formie-submit-action-form-hide': form.settings.submitActionFormHide ? true : false,
+    'data-formie-completion-behavior': form.settings.completionBehavior,
+    'data-formie-hide-form-after-submit': form.settings.hideFormAfterSubmit ? true : false,
     'data-formie-automatic-submission-state': form.settings.automaticSubmissionState ? true : false,
     'data-formie-error-message': form.getClientErrorMessage(),
     'data-formie-error-message-position': form.settings.errorMessagePosition,
@@ -335,7 +335,7 @@ If Ajax submit fails with a generic error when fields are empty, either enable *
 See [reCAPTCHA](/integrations/captchas/recaptcha) for cookie-consent deferral with `initJs: false`.
 
 ### What's Not Covered
-Whilst we've covered the basics, there's still plenty left to address, such as different submit actions, multi-page navigation, save-and-resume flows, and payment-specific behaviour. For more complete examples, consult the templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-5/src/templates/_special/form-template).
+Whilst we've covered the basics, there's still plenty left to address, such as different completion behaviors, multi-page navigation, save-and-resume flows, and payment-specific behaviour. For more complete examples, consult the templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-5/src/templates/_special/form-template).
 
 :::tip
 Check out the raw templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-5/src/templates/_special/form-template) for the most up to date reference.

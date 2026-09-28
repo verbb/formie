@@ -29,6 +29,9 @@ function toServerRenderPayloadInput(renderOptions: Record<string, unknown>): Rec
 
 function normalizePayload(payload: Record<string, unknown>, fallbackFormError?: string): FormSubmitResult {
     const success = payload.success === true;
+    const completion = payload.completion && typeof payload.completion === 'object'
+        ? payload.completion as NonNullable<FormSubmitResult['completion']>
+        : null;
     const keepSubmitLoading = payload.keepSubmitLoading === true;
     const errors = payload.errors;
     const fieldErrorsFlat: Record<string, string[]> = Object.fromEntries(Object.entries(errors && typeof errors === 'object' ? errors : {}).map(([path, messages]) => [path, Array.isArray(messages) ? messages.filter((message): message is string => typeof message === 'string') : []]));
@@ -60,12 +63,14 @@ function normalizePayload(payload: Record<string, unknown>, fallbackFormError?: 
         submissionUid: typeof payload.submissionUid === 'string' ? payload.submissionUid : null,
         errors: payload.errors,
         session: payload.session,
-        completion: payload.completion as FormSubmitResult['completion'],
+        completion,
         action: (payload.submitAction === 'back' || payload.submitAction === 'save' || payload.submitAction === 'submit')
             ? payload.submitAction
             : undefined,
         message: (
-            payload.submitActionMessage
+            completion?.message
+            || payload.successMessage
+            || payload.submitActionMessage
             || (success ? 'Submission completed.' : (isTransientPendingResult ? '' : (resolvedFormErrors[0] || 'Submission failed.')))
         ) as string,
         code: success ? undefined : String(payload.code || 'SUBMIT_ERROR'),
@@ -77,10 +82,15 @@ function normalizePayload(payload: Record<string, unknown>, fallbackFormError?: 
                 id: String(payload.nextPageId),
             }
             : null,
-        redirect: payload.redirectUrl
+        redirect: completion?.url
+            ? {
+                url: completion.url,
+                target: completion.target,
+            }
+            : payload.redirectUrl
             ? {
                 url: String(payload.redirectUrl),
-                target: payload.submitActionTab === 'new-tab' ? 'new-tab' : 'same-tab',
+                target: payload.redirectTarget === 'new-tab' ? 'new-tab' : 'same-tab',
             }
             : null,
         submitData: Array.isArray(payload.submitData) ? payload.submitData : undefined,

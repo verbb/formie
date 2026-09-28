@@ -22,8 +22,8 @@ final class RuntimeConfiguration
     // Constants
     // =========================================================================
 
-    public const DURABLE_FORM_SETTINGS = ['completionBehavior', 'completionRedirectSource', 'submitAction', 'submitActionUrl', 'submitActionTab', 'submitActionMessage', 'submitActionFormHide', 'redirectUrl', 'enableRedirectRules', 'redirectRules', 'integrations'];
-    public const FORM_SETTINGS = [...self::DURABLE_FORM_SETTINGS, 'displayFormTitle', 'displayCurrentPageTitle', 'displayPageTabs', 'displayPageProgress', 'scrollToTop', 'submitMethod', 'submitActionMessageTimeout', 'submitActionMessagePosition', 'errorMessage', 'defaultLabelPosition', 'defaultInstructionsPosition'];
+    public const DURABLE_FORM_SETTINGS = ['completionBehavior', 'completionRedirectSource', 'redirectUrl', 'redirectTarget', 'successMessage', 'hideFormAfterSubmit', 'enableRedirectRules', 'redirectRules', 'integrations'];
+    public const FORM_SETTINGS = [...self::DURABLE_FORM_SETTINGS, 'displayFormTitle', 'displayCurrentPageTitle', 'displayPageTabs', 'displayPageProgress', 'scrollToTop', 'submitMethod', 'successMessageTimeout', 'successMessagePosition', 'errorMessage', 'defaultLabelPosition', 'defaultInstructionsPosition'];
     public const PAGE_SETTINGS = ['submitButtonLabel', 'backButtonLabel', 'saveButtonLabel', 'showBackButton', 'showSaveButton', 'saveButtonStyle', 'buttonsPosition', 'submitButtonPlacement', 'cssClasses', 'containerAttributes', 'inputAttributes'];
 
 

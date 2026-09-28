@@ -52,8 +52,8 @@ it('does not substitute the completion request query for journey-start capture',
 
     $form->settings->setAttributes([
         'submitAction' => 'url',
-        'submitActionUrl' => 'https://example.test/thanks?name=' . References::field((string)$form->getFieldByHandle('fullName')->reference),
-        'submitActionTab' => 'same-tab',
+        'redirectUrl' => 'https://example.test/thanks?name=' . References::field((string)$form->getFieldByHandle('fullName')->reference),
+        'redirectTarget' => 'same-tab',
     ], false);
     expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
 

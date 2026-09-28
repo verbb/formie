@@ -93,7 +93,7 @@ class PaymentStatusController extends Controller
 
             $form = $submission->getForm();
             $flashNamespace = $form->getFlashNamespace();
-            $submitMessage = $form->settings->getSubmitActionMessage($submission);
+            $submitMessage = $form->settings->getSuccessMessage($submission);
 
             Formie::$plugin->getService()->setFlash($flashNamespace, 'submitted', true);
             if ($submitMessage) {

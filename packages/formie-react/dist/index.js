@@ -537,8 +537,9 @@ function re({ className: e }) {
 			}),
 			n.lastSubmitResult?.messages.notice ? i("div", {
 				key: "notice",
-				className: "formie-react-notice"
-			}, n.lastSubmitResult.messages.notice) : null,
+				className: "formie-react-notice",
+				dangerouslySetInnerHTML: { __html: n.lastSubmitResult.messages.notice }
+			}) : null,
 			u ? i("div", {
 				key: "error",
 				className: "formie-react-error"

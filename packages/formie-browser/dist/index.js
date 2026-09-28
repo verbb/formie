@@ -1,7 +1,7 @@
 import { n as e } from "./chunks/request-profile-DhwkeCpS.js";
 import { i as t, m as n, t as r } from "./chunks/dist-vTdOlBe4.js";
 import { c as i, d as a, l as o, o as s, r as c, t as l, u } from "./chunks/event-names-BCI2FLD8.js";
-import { a as d, c as f, d as p, f as m, i as h, l as g, n as _, o as v, p as y, r as b, s as x, t as S, u as C } from "./chunks/api-C4LVRc2v.js";
+import { a as d, c as f, d as p, f as m, i as h, l as g, n as _, o as v, p as y, r as b, s as x, t as S, u as C } from "./chunks/api-DjGZPLgb.js";
 import { a as ee, i as te, n as ne, r as w, t as T } from "./chunks/debug-BV0DvdHx.js";
 import { i as E, r as re, t as D } from "./chunks/theme-classes-DAQuEqdP.js";
 import { i as O, t as ie } from "./chunks/csrf-DxHg_ZYt.js";
@@ -311,11 +311,11 @@ function Ue(e) {
 	}), t;
 }
 function We(e, t) {
-	let n = e.success === !0, r = e.keepSubmitLoading === !0, i = e.errors, a = Object.fromEntries(Object.entries(i && typeof i == "object" ? i : {}).map(([e, t]) => [e, Array.isArray(t) ? t.filter((e) => typeof e == "string") : []])), o = a.form || [], s = {};
-	Object.entries(a).forEach(([e, t]) => {
-		e !== "form" && (s[e] = t);
+	let n = e.success === !0, r = e.completion && typeof e.completion == "object" ? e.completion : null, i = e.keepSubmitLoading === !0, a = e.errors, o = Object.fromEntries(Object.entries(a && typeof a == "object" ? a : {}).map(([e, t]) => [e, Array.isArray(t) ? t.filter((e) => typeof e == "string") : []])), s = o.form || [], c = {};
+	Object.entries(o).forEach(([e, t]) => {
+		e !== "form" && (c[e] = t);
 	});
-	let c = !n && o.length === 0 && Object.keys(s).length > 0 ? [t || "Submission failed."] : o, l = !n && r && c.length === 0 && Object.keys(s).length === 0;
+	let l = !n && s.length === 0 && Object.keys(c).length > 0 ? [t || "Submission failed."] : s, u = !n && i && l.length === 0 && Object.keys(c).length === 0;
 	return {
 		ok: n,
 		outcome: typeof e.outcome == "string" ? e.outcome : void 0,
@@ -323,17 +323,20 @@ function We(e, t) {
 		submissionUid: typeof e.submissionUid == "string" ? e.submissionUid : null,
 		errors: e.errors,
 		session: e.session,
-		completion: e.completion,
+		completion: r,
 		action: e.submitAction === "back" || e.submitAction === "save" || e.submitAction === "submit" ? e.submitAction : void 0,
-		message: e.submitActionMessage || (n ? "Submission completed." : l ? "" : c[0] || "Submission failed."),
+		message: r?.message || e.successMessage || e.submitActionMessage || (n ? "Submission completed." : u ? "" : l[0] || "Submission failed."),
 		code: n ? void 0 : String(e.code || "SUBMIT_ERROR"),
-		keepSubmitLoading: r,
-		fieldErrors: Object.keys(s).length ? s : void 0,
-		formErrors: c.length ? c : void 0,
+		keepSubmitLoading: i,
+		fieldErrors: Object.keys(c).length ? c : void 0,
+		formErrors: l.length ? l : void 0,
 		nextPage: e.nextPageId ? { id: String(e.nextPageId) } : null,
-		redirect: e.redirectUrl ? {
+		redirect: r?.url ? {
+			url: r.url,
+			target: r.target
+		} : e.redirectUrl ? {
 			url: String(e.redirectUrl),
-			target: e.submitActionTab === "new-tab" ? "new-tab" : "same-tab"
+			target: e.redirectTarget === "new-tab" ? "new-tab" : "same-tab"
 		} : null,
 		submitData: Array.isArray(e.submitData) ? e.submitData : void 0,
 		clientEvents: Array.isArray(e.clientEvents) ? e.clientEvents : void 0,
@@ -773,22 +776,22 @@ function ut(e, t) {
 //#region src/js/core/submit-result-ui.ts
 var I = /* @__PURE__ */ new WeakMap();
 function dt(e) {
-	return (e.dataset.formieSubmitAction || "").trim();
+	return (e.dataset.formieCompletionBehavior || e.dataset.formieSubmitAction || "").trim();
 }
 function ft(e) {
 	return (e.dataset.formieErrorMessagePosition || "top-form").trim() || "top-form";
 }
 function pt(e) {
-	return (e.dataset.formieSubmitActionMessagePosition || "").trim();
+	return (e.dataset.formieSuccessMessagePosition || e.dataset.formieSubmitActionMessagePosition || "").trim();
 }
 function mt(e) {
-	let t = (e.dataset.formieSubmitActionMessageTimeout || "").trim();
+	let t = (e.dataset.formieSuccessMessageTimeout || e.dataset.formieSubmitActionMessageTimeout || "").trim();
 	if (!t) return null;
 	let n = Number.parseFloat(t);
 	return !Number.isFinite(n) || n < 0 ? null : Math.round(n * 1e3);
 }
 function ht(e) {
-	let t = e.dataset.formieSubmitActionFormHide;
+	let t = e.dataset.formieHideFormAfterSubmit ?? e.dataset.formieSubmitActionFormHide;
 	if (t === void 0) return !1;
 	let n = t.trim().toLowerCase();
 	return n === "true" || n === "1" || n === "";
@@ -1096,17 +1099,17 @@ var Rt = class {
 	table: () => import("./chunks/table-9RF567j5.js").then((e) => e.tableModule),
 	"text-limit": () => import("./chunks/text-limit-B_aZx7ez.js").then((e) => e.textLimitModule)
 }, Ut = {
-	bpoint: () => import("./chunks/bpoint-BOw0P6cM.js").then((e) => e.bpointModule),
-	eway: () => import("./chunks/eway-MaA7Q118.js").then((e) => e.ewayModule),
-	"go-cardless": () => import("./chunks/go-cardless-B0m1ZMdc.js").then((e) => e.goCardlessModule),
-	mollie: () => import("./chunks/mollie-CGAPuHjQ.js").then((e) => e.mollieModule),
-	moneris: () => import("./chunks/moneris-DS2txsPw.js").then((e) => e.monerisModule),
-	opayo: () => import("./chunks/opayo-D1XAggh6.js").then((e) => e.opayoModule),
-	paddle: () => import("./chunks/paddle-CTuHiudg.js").then((e) => e.paddleModule),
-	paypal: () => import("./chunks/paypal-Dhqc5B3-.js").then((e) => e.paypalModule),
-	payway: () => import("./chunks/payway-QxAQIghW.js").then((e) => e.paywayModule),
-	square: () => import("./chunks/square-D2TdpyO4.js").then((e) => e.squareModule),
-	stripe: () => import("./chunks/stripe-BQEmEYLz.js").then((e) => e.stripeModule)
+	bpoint: () => import("./chunks/bpoint-CXQGs1VD.js").then((e) => e.bpointModule),
+	eway: () => import("./chunks/eway-CjFTmeEU.js").then((e) => e.ewayModule),
+	"go-cardless": () => import("./chunks/go-cardless-CQn_lGHc.js").then((e) => e.goCardlessModule),
+	mollie: () => import("./chunks/mollie-DE72esUl.js").then((e) => e.mollieModule),
+	moneris: () => import("./chunks/moneris-Dr80EaoQ.js").then((e) => e.monerisModule),
+	opayo: () => import("./chunks/opayo-BJEtUXHx.js").then((e) => e.opayoModule),
+	paddle: () => import("./chunks/paddle-YbKvaTWf.js").then((e) => e.paddleModule),
+	paypal: () => import("./chunks/paypal-Cmf_vhg5.js").then((e) => e.paypalModule),
+	payway: () => import("./chunks/payway-Cd7gtnlM.js").then((e) => e.paywayModule),
+	square: () => import("./chunks/square-CaSx-cM_.js").then((e) => e.squareModule),
+	stripe: () => import("./chunks/stripe-CDYFJnqm.js").then((e) => e.stripeModule)
 }, Wt = {
 	...Ht,
 	...Bt,

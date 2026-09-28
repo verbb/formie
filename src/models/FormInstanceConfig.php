@@ -30,6 +30,7 @@ final class FormInstanceConfig
         public readonly array $forced = [],
         public readonly array $query = [],
         public readonly array $prefill = [],
+        public readonly ?string $completionRedirectOverride = null,
     ) {
     }
 
@@ -40,6 +41,14 @@ final class FormInstanceConfig
             throw new \InvalidArgumentException('Unknown instance configuration section: ' . $section);
         }
         $data[$section] = self::merge($data[$section], $values);
+        return new self(...$data);
+    }
+
+    public function withCompletionRedirectOverride(?string $value): self
+    {
+        $data = get_object_vars($this);
+        $data['completionRedirectOverride'] = $value;
+
         return new self(...$data);
     }
 

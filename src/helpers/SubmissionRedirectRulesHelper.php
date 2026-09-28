@@ -38,18 +38,6 @@ class SubmissionRedirectRulesHelper
         return null;
     }
 
-    public static function getEffectiveSubmitAction(Form $form, ?Submission $submission = null): string
-    {
-        $submission ??= $form->getCurrentSubmission();
-        if (!$submission) {
-            $submission = new Submission();
-            $submission->setForm(clone $form);
-        }
-        $completion = (new \verbb\formie\services\CompletionResolver())->resolve($form, $submission, false);
-        return $completion->behavior === \verbb\formie\enums\CompletionBehavior::Redirect
-            ? (self::getMatchedRule($form, $submission)['redirectType'] ?? $form->settings->completionRedirectSource) : $completion->behavior->value;
-    }
-
     public static function resolveMatchedRuleUrl(Form $form, Submission $submission, bool $includeQueryString = true): ?string
     {
         $matchedRule = self::getMatchedRule($form, $submission);
@@ -77,7 +65,7 @@ class SubmissionRedirectRulesHelper
             return $entry?->url ?? '';
         }
 
-        $url = (string)($rule['submitActionUrl'] ?? '');
+        $url = (string)($rule['redirectUrl'] ?? '');
 
         if ($url !== '') {
             $url = References::resolveUrl($url, $submission);
@@ -92,7 +80,7 @@ class SubmissionRedirectRulesHelper
 
     private static function _getRuleEntry(array $rule): ?Entry
     {
-        $entryRef = $rule['submitActionEntry'] ?? null;
+        $entryRef = $rule['redirectEntry'] ?? null;
 
         if (is_array($entryRef)) {
             if (isset($entryRef['id'])) {

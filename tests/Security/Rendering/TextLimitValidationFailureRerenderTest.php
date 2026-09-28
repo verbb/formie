@@ -6,6 +6,7 @@ use craft\web\View;
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\SubmissionCommand;
+use verbb\formie\models\SubmissionErrors;
 use verbb\formie\services\SubmissionWorkflow;
 
 it('renders text limit field and form errors after a page-reload validation failure', function (): void {
@@ -55,7 +56,7 @@ it('renders text limit field and form errors after a page-reload validation fail
             ->toContain('data-formie-field-error')
             ->toContain('data-formie-max-chars="10"')
             ->toContain('aria-invalid="true"')
-            ->toContain($form->settings->getErrorMessage());
+            ->toContain(SubmissionErrors::plainText($form->settings->getErrorMessage()));
     });
 })->group('security');
 

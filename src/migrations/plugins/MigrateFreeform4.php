@@ -120,7 +120,7 @@ class MigrateFreeform4 extends BasePluginMigrator
             $form->handle = $this->_getHandle($freeformForm);
             $form->settings->submissionTitleFormat = $freeformForm->submissionTitle != '{{ dateCreated|date("Y-m-d H:i:s") }}' ? $freeformForm->submissionTitle : '';
             $form->settings->submitMethod = $freeformForm->isAjaxEnabled() ? 'ajax' : 'page-reload';
-            $form->settings->submitActionUrl = $freeformForm->returnUrl;
+            $form->settings->redirectUrl = $freeformForm->returnUrl;
             $form->settings->completionBehavior = 'redirect';
             $form->settings->completionRedirectSource = 'url';
 

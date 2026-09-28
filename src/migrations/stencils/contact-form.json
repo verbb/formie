@@ -175,9 +175,9 @@
         "progressPosition":"end",
         "progressValuePosition":"inside-center",
         "submissionTitleFormat":"{timestamp}",
-        "submitAction":"message",
-        "submitActionMessage":"[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Thank you for contacting us! Our team will get in touch shortly to follow up on your message.\"}]}]",
-        "submitActionMessagePosition":"top-form",
+        "completionBehavior":"message",
+        "successMessage":"[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Thank you for contacting us! Our team will get in touch shortly to follow up on your message.\"}]}]",
+        "successMessagePosition":"top-form",
         "submitMethod":"ajax",
         "validationOnFocus":"1",
         "validationOnSubmit":"1"

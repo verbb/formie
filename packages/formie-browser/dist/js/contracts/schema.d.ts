@@ -19,6 +19,13 @@ export type FormRedirect = {
     url: string;
     target?: 'same-tab' | 'new-tab';
 };
+export type FormCompletion = {
+    behavior: 'message' | 'redirect' | 'reload' | 'reset';
+    url: string | null;
+    target: 'same-tab' | 'new-tab';
+    message: string | null;
+    hideForm: boolean;
+};
 export type FormClientEvent = {
     event: string;
     payload: Record<string, string>;
@@ -30,7 +37,7 @@ export type FormSubmitResult = {
     submissionUid?: string | null;
     errors?: unknown;
     session?: unknown;
-    completion?: Record<string, unknown> | null;
+    completion?: FormCompletion | null;
     action?: FormAction;
     stage?: SubmitStage;
     code?: string;

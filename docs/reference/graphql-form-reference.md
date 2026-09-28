@@ -70,14 +70,16 @@ Field | Type | Description
 `defaultInstructionsPosition` | `String` | The default field instructions position.
 `requiredIndicator` | `String` | How required or optional fields are marked.
 `submitMethod` | `String` | The submit method, such as `page-reload` or `ajax`.
-`submitAction` | `String` | The submit action, such as `message`, `entry`, `url` or `reload`.
-`submitActionTab` | `String` | Whether redirects open in the same tab or a new tab.
-`submitActionFormHide` | `Boolean` | Whether to hide the form after success.
+`completionBehavior` | `String` | The completion behavior: `message`, `redirect`, `reload` or `reset`.
+`completionRedirectSource` | `String` | The redirect source: `url` or `entry`.
+`submitAction` | `String` | Deprecated Formie 3 alias for the completion behavior and redirect source.
+`redirectTarget` | `String` | Whether redirects open in the same tab or a new tab.
+`hideFormAfterSubmit` | `Boolean` | Whether to hide the form after success.
 `automaticSubmissionState` | `Boolean` | Whether Formie should automatically restore an in-progress submission when the visitor returns.
-`submitActionMessageHtml` | `String` | The success message HTML.
-`submitActionMessageJson` | `Json` | The success message as stored rich-text JSON (`type: doc`). Variable tags are not resolved.
-`submitActionMessageTimeout` | `Int` | The success message timeout, in seconds.
-`submitActionMessagePosition` | `String` | The success message position.
+`successMessageHtml` | `String` | The success message HTML.
+`successMessageJson` | `Json` | The success message as stored rich-text JSON (`type: doc`). Variable tags are not resolved.
+`successMessageTimeout` | `Int` | The success message timeout, in seconds.
+`successMessagePosition` | `String` | The success message position.
 `loadingIndicator` | `String` | The loading indicator type.
 `loadingIndicatorText` | `String` | The loading indicator text.
 `validationOnSubmit` | `Boolean` | Whether to validate on submit.

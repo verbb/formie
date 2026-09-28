@@ -22,27 +22,29 @@ it('keeps finalize submit actions stable across ajax and page-reload submit meth
     $form->settings->setAttributes([
         'submitMethod' => $submitMethod,
         'submitAction' => $submitAction,
-        'submitActionMessage' => 'Submission completed successfully.',
-        'submitActionMessagePosition' => 'top-form',
-        'submitActionMessageTimeout' => 5,
-        'submitActionFormHide' => true,
-        'submitActionTab' => 'same-tab',
+        'successMessage' => 'Submission completed successfully.',
+        'successMessagePosition' => 'top-form',
+        'successMessageTimeout' => 5,
+        'hideFormAfterSubmit' => true,
+        'redirectTarget' => 'same-tab',
     ], false);
 
     if ($submitAction === 'url') {
         $form->settings->setAttributes([
-            'submitActionUrl' => 'https://example.test/finalized',
+            'redirectUrl' => 'https://example.test/finalized',
         ], false);
     }
 
     if ($submitAction === 'entry') {
         $entry = Entry::find()->status(null)->slug('formie-seed-entry')->one();
         expect($entry)->not->toBeNull();
-        $form->submitActionEntryId = $entry->id;
-        $form->submitActionEntrySiteId = $entry->siteId;
+        $form->redirectEntryId = $entry->id;
+        $form->redirectEntrySiteId = $entry->siteId;
     }
 
     expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
+    expect($form->settings->completionBehavior)->toBe(in_array($submitAction, ['url', 'entry'], true) ? 'redirect' : $submitAction)
+        ->and($form->settings->completionRedirectSource)->toBe($submitAction === 'entry' ? 'entry' : 'url');
 
     $submission = new Submission();
     $submission->setForm($form);
@@ -61,10 +63,13 @@ it('keeps finalize submit actions stable across ajax and page-reload submit meth
     expect($response->success)->toBeTrue(json_encode($response->submission->getErrors()))
         ->and($response->submission->id)->not->toBeNull()
         ->and($settings['submitMethod'] ?? null)->toBe($submitMethod)
-        ->and($form->settings->submitAction)->toBe($submitAction)
-        ->and($form->settings->submitActionMessagePosition)->toBe('top-form')
-        ->and((int)$form->settings->submitActionMessageTimeout)->toBe(5)
-        ->and($form->settings->submitActionFormHide)->toBeTrue();
+        ->and($form->settings->completionBehavior)->toBe(in_array($submitAction, ['url', 'entry'], true) ? 'redirect' : $submitAction)
+        // Entry redirects are resolved into the durable submission snapshot so a later
+        // entry change cannot alter the completion URL for this submission.
+        ->and($form->settings->completionRedirectSource)->toBe('url')
+        ->and($form->settings->successMessagePosition)->toBe('top-form')
+        ->and((int)$form->settings->successMessageTimeout)->toBe(5)
+        ->and($form->settings->hideFormAfterSubmit)->toBeTrue();
 
     if ($submitAction === 'url') {
         expect((string)$form->getRedirectUrl())->toContain('example.test/finalized');

@@ -352,7 +352,7 @@ it('sanitizes submit json success messages while preserving safe html links', fu
     $method = new ReflectionMethod(SubmissionsController::class, '_createSubmitJsonResponsePayload');
     $method->setAccessible(true);
     $payload = $method->invoke($controller, $response, 'submit', []);
-    $message = (string)($payload['submitActionMessage'] ?? '');
+    $message = (string)($payload['successMessage'] ?? '');
 
     expect($message)
         ->toContain('<a href="https://example.com/next">Next steps</a>')
