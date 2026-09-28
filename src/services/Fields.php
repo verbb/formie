@@ -19,6 +19,7 @@ use verbb\formie\events\RegisterFieldOptionsEvent;
 use verbb\formie\events\RegisterFieldsEvent;
 use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\FieldTraversal;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
@@ -93,6 +94,8 @@ class Fields extends Component
     private ?FieldGqlCache $_fieldGqlCache = null;
     private ?array $_reservedHandles = null;
     private array $_definitionIdsBeingDeleted = [];
+    private int $_fieldSaveBatchDepth = 0;
+    private bool $_fieldCachesDirty = false;
 
     
 
@@ -1273,12 +1276,24 @@ class Fields extends Component
             return false;
         }
 
-        // Use a transaction to ensure we don't have any records unless the entire layout succeeds
-        $transaction = Craft::$app->getDb()->beginTransaction();
+        // Nested layouts participate in the root save rather than opening their own
+        // transactions, repeating usage queries and flushing the same caches.
+        $isRootSave = $context->beginSave($layout->getFieldsRecursively());
+        $transaction = null;
+        $transactionFinished = false;
+
+        if ($isRootSave) {
+            $this->_beginFieldSaveBatch();
+        }
+
         $layoutId = null;
 
 
         try {
+            if ($isRootSave) {
+                $transaction = Craft::$app->getDb()->beginTransaction();
+            }
+
             $layoutRecord = $isNewLayout ? new FieldLayoutRecord() : FieldLayoutRecord::findOne($layout->id);
 
             if (!$layoutRecord) {
@@ -1306,13 +1321,21 @@ class Fields extends Component
             // Cleanup any deleted pages/rows/fields by diffing against payload.
             $this->_cleanupDeletedLayoutItems($layout);
 
-            $transaction->commit();
+            if ($isRootSave) {
+                $context->refreshSavedFieldUsage();
+                $transaction->commit();
+                $transactionFinished = true;
+            }
             
             $layout->afterSave($isNewLayout);
 
             return true;
         } catch (Throwable $e) {
-            $transaction->rollBack();
+            if ($transaction && !$transactionFinished) {
+                $transaction->rollBack();
+                $transactionFinished = true;
+            }
+
             Formie::error('Failed to save field layout: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -1325,6 +1348,16 @@ class Fields extends Component
             }
         } finally {
             LayoutHandleUniqueValidator::endLayoutSaveScope($layoutId);
+            $context->endSave();
+
+            if ($isRootSave) {
+                if ($transaction && !$transactionFinished) {
+                    $transaction->rollBack();
+                    $transactionFinished = true;
+                }
+
+                $this->_endFieldSaveBatch();
+            }
         }
 
         return false;
@@ -1517,16 +1550,28 @@ class Fields extends Component
                 $context->includeLayout($field->layoutId);
             }
         }
+
         $context->assertField($field);
+        $isRootSave = $context->beginSave(FieldTraversal::recursively([$field]));
+        $transaction = null;
+        $transactionFinished = false;
+
+        if ($isRootSave) {
+            $this->_beginFieldSaveBatch();
+        }
+
         $field->layoutSaveContext = $context;
+
         try {
+            if ($isRootSave) {
+                $transaction = Craft::$app->getDb()->beginTransaction();
+            }
+
             $isNewField = !$field->id;
             $definitionId = $field->definitionId;
+            $previousDefinitionId = $field->id ? ($context->fields[$field->id] ?? $definitionId) : null;
             $definitionRecord = $definitionId ? FieldDefinitionRecord::findOne($definitionId) : new FieldDefinitionRecord();
-            $existingDefinitionUsageCount = $definitionId ? (int)((new Query())
-                ->from(Table::FORMIE_FORM_FIELDS)
-                ->where(['fieldId' => $definitionId])
-                ->count() ?: 0) : 0;
+            $existingDefinitionUsageCount = $context->getDefinitionUsageCount($definitionId);
 
             if (!$definitionRecord) {
                 throw new Exception('Invalid field definition ID: ' . $definitionId);
@@ -1560,9 +1605,10 @@ class Fields extends Component
                 $field->handle = $definitionRecord->handle;
             }
 
-            $skipSharedDefinitionUpdate = $definitionId
-                && $existingDefinitionUsageCount > 1
-                && (!$updateSyncedFields || !$context->updateDefinitions || isset($context->savedDefinitions[$definitionId]));
+            $skipSharedDefinitionUpdate = $definitionId && (
+                isset($context->savedDefinitions[$definitionId])
+                || ($existingDefinitionUsageCount > 1 && (!$updateSyncedFields || !$context->updateDefinitions))
+            );
 
             if (!$skipSharedDefinitionUpdate) {
                 $definitionRecord->id = $definitionId;
@@ -1580,9 +1626,10 @@ class Fields extends Component
                 }
 
                 $definitionRecord->save(false);
+                $context->savedDefinitions[$definitionRecord->id] = true;
 
-                if ($definitionId && $existingDefinitionUsageCount > 1) {
-                    $context->savedDefinitions[$definitionId] = true;
+                if (!$definitionId) {
+                    $context->registerNewDefinition((int)$definitionRecord->id);
                 }
             }
 
@@ -1610,20 +1657,30 @@ class Fields extends Component
             $field->definitionUid = $definitionRecord->uid;
             $field->uid = $instanceRecord->uid;
             $field->reference = $instanceRecord->reference;
-            $field->usageCount = (int)((new Query())
-                ->from(Table::FORMIE_FORM_FIELDS)
-                ->where(['fieldId' => $definitionRecord->id])
-                ->count() ?: 0);
-            $field->isSynced = $field->usageCount > 1;
-
-            $context->fields[$field->id] = $field->definitionId;
-            $field->afterSave($isNewField);
-
+            $context->recordSavedField($field, $previousDefinitionId);
             $this->_resetFieldCaches();
+
+            if ($isRootSave) {
+                $context->refreshSavedFieldUsage();
+                $transaction->commit();
+                $transactionFinished = true;
+            }
+
+            $field->afterSave($isNewField);
 
             return true;
         } finally {
             $field->layoutSaveContext = null;
+            $context->endSave();
+
+            if ($isRootSave) {
+                if ($transaction && !$transactionFinished) {
+                    $transaction->rollBack();
+                    $transactionFinished = true;
+                }
+
+                $this->_endFieldSaveBatch();
+            }
         }
     }
     
@@ -2404,12 +2461,38 @@ class Fields extends Component
         return new $fieldClass();
     }
 
+    private function _beginFieldSaveBatch(): void
+    {
+        $this->_fieldSaveBatchDepth++;
+    }
+
+    private function _endFieldSaveBatch(): void
+    {
+        $this->_fieldSaveBatchDepth = max(0, $this->_fieldSaveBatchDepth - 1);
+
+        if ($this->_fieldSaveBatchDepth === 0 && $this->_fieldCachesDirty) {
+            $this->_flushFieldCaches();
+        }
+    }
+
     private function _resetFieldCaches(): void
+    {
+        if ($this->_fieldSaveBatchDepth > 0) {
+            $this->_fieldCachesDirty = true;
+
+            return;
+        }
+
+        $this->_flushFieldCaches();
+    }
+
+    private function _flushFieldCaches(): void
     {
         $this->_fieldLookupCache?->reset();
         $this->_fieldRegistryCache?->reset();
         $this->_fieldGqlCache?->reset();
         SubmissionQuery::invalidateStaticCaches();
+        $this->_fieldCachesDirty = false;
     }
 
     private function _getFieldConfigById(int $id): array

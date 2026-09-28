@@ -17,6 +17,7 @@ use verbb\formie\controllers\FieldsController;
 use verbb\formie\fields\Address;
 use verbb\formie\fields\Name;
 use verbb\formie\helpers\FieldAccess;
+use verbb\formie\helpers\ImportExportHelper;
 use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\gql\queries\FormQuery;
 use verbb\formie\gql\queries\SubmissionQuery;
@@ -244,6 +245,15 @@ function perfProfiles(): array
             'pages' => 5,
             'advancedFields' => true,
         ],
+        'installation' => [
+            'name' => 'installation',
+            'forms' => 10,
+            'fieldsPerForm' => 196,
+            'submissions' => 1,
+            'nestedFieldSets' => 0,
+            'pages' => 5,
+            'advancedFields' => false,
+        ],
     ];
 }
 
@@ -273,6 +283,7 @@ function perfScenarios(): array
         'client:manifest' => 'runClientManifestPerfScenario',
         'builder:load' => 'runBuilderLoadPerfScenario',
         'builder:edit-save' => 'runBuilderEditSavePerfScenario',
+        'builder:export' => 'runBuilderExportPerfScenario',
         'render:form' => 'runFormRenderPerfScenario',
         'render:assets' => 'runFormAssetsPerfScenario',
         'render:summary-fragment' => 'runSummaryFragmentPerfScenario',
@@ -634,18 +645,30 @@ function runClientManifestPerfScenario(array $profile, int $iterations): array
 
 function runBuilderLoadPerfScenario(array $profile, int $iterations): array
 {
+    $coldMs = [];
+    $warmMs = [];
     $pageCounts = [];
     $fieldCounts = [];
 
     for ($i = 0; $i < $iterations; $i++) {
         resetPerfRuntimeCaches();
+
+        $started = microtime(true);
         $form = requirePerfMainForm($profile);
         $config = $form->getFormBuilderConfig();
+        $coldMs[] = round((microtime(true) - $started) * 1000, 3);
+
+        $started = microtime(true);
+        $form->getFormBuilderConfig();
+        $warmMs[] = round((microtime(true) - $started) * 1000, 3);
+
         $pageCounts[] = count($config['pages'] ?? []);
         $fieldCounts[] = count($form->getFieldsRecursively());
     }
 
     return [
+        'coldMs' => summarizePerfValues($coldMs),
+        'warmMs' => summarizePerfValues($warmMs),
         'pageCounts' => summarizePerfValues($pageCounts),
         'fieldCounts' => summarizePerfValues($fieldCounts),
     ];
@@ -669,6 +692,50 @@ function runBuilderEditSavePerfScenario(array $profile, int $iterations): array
     }
 
     return ['saved' => $saved];
+}
+
+function runBuilderExportPerfScenario(array $profile, int $iterations): array
+{
+    $pageCounts = [];
+    $fieldCounts = [];
+    $exportBytes = [];
+
+    for ($i = 0; $i < $iterations; $i++) {
+        resetPerfRuntimeCaches();
+        $export = ImportExportHelper::generateFormExport(requirePerfMainForm($profile));
+        $pageCounts[] = count($export['pages'] ?? []);
+        $fieldCounts[] = countPerfSerializedFields($export['pages'] ?? []);
+        $exportBytes[] = strlen(json_encode($export, JSON_UNESCAPED_SLASHES) ?: '');
+    }
+
+    return [
+        'pageCounts' => summarizePerfValues($pageCounts),
+        'fieldCounts' => summarizePerfValues($fieldCounts),
+        'exportBytes' => summarizePerfValues($exportBytes),
+    ];
+}
+
+function countPerfSerializedFields(array $pages): int
+{
+    $countRows = function(array $rows) use (&$countRows): int {
+        $count = 0;
+
+        foreach ($rows as $row) {
+            foreach ($row['fields'] ?? [] as $field) {
+                $count++;
+                $count += $countRows($field['settings']['rows'] ?? []);
+            }
+        }
+
+        return $count;
+    };
+    $count = 0;
+
+    foreach ($pages as $page) {
+        $count += $countRows($page['rows'] ?? []);
+    }
+
+    return $count;
 }
 
 function runFormRenderPerfScenario(array $profile, int $iterations): array
@@ -1022,11 +1089,12 @@ function perfHandle(array $profile, string $suffix): string
     $alphabet = 'abcdefghijklmnopqrstuvwxyz';
     $index = max(1, (int)$suffix);
     $letter = $alphabet[($index - 1) % 26];
+    $prefix = $profile['name'] === 'installation' ? 'x' : strtolower($profile['name'][0]);
 
     // The programmatic form factory intentionally keeps form handles tiny so
     // generated GraphQL names stay readable in tests. Keep perf handles inside
     // that contract while still reserving distinct profile namespaces.
-    return strtolower($profile['name'][0]) . $letter;
+    return $prefix . $letter;
 }
 
 function perfFormIndexFromHandle(string $handle): int
