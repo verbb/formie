@@ -18,6 +18,7 @@
 - Fixed a moderate-severity information disclosure vulnerability. (GHSA-963f-vfpf-f85p)
 - Fix slow GraphQL schema creation and form rendering when integrations have large cached settings. ([#2972](https://github.com/verbb/formie/issues/2972))
 - Fix email notifications failing when their content references an empty optional field.
+- Fix email notifications failing when their content references a deleted field.
 - Fix PHP 8.4 deprecation warnings caused by implicitly nullable parameters and CSV parsing. ([#2970](https://github.com/verbb/formie/issues/2970))
 
 ## 3.1.43 - 2026-09-24

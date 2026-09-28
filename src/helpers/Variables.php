@@ -274,6 +274,10 @@ class Variables
         Formie::$plugin->getRenderCache()->setFieldVariables($cacheKey, $fieldVariables);
         $variables = Formie::$plugin->getRenderCache()->getVariables($cacheKey);
 
+        // Deleted fields can leave stale variable tags in notification content. Preserve the pre-sandbox behaviour
+        // where these tags render as empty, without making unrelated missing Twig variables permissive.
+        $variables = self::_setMissingFieldVariables($value, $variables);
+
         // Parse each variable on it's own to handle .env vars
         foreach ($variables as $key => $variable) {
             if (is_string($variable)) {
@@ -399,6 +403,42 @@ class Variables
 
     // Private Methods
     // =========================================================================
+
+    private static function _setMissingFieldVariables(string $value, array $variables): array
+    {
+        if (!preg_match_all('/\{field\.([a-zA-Z][a-zA-Z0-9_.]*)\}/', $value, $matches)) {
+            return $variables;
+        }
+
+        $fieldVariables = $variables['field'] ?? [];
+
+        if (!is_array($fieldVariables)) {
+            return $variables;
+        }
+
+        foreach (array_unique($matches[1]) as $fieldPath) {
+            self::_setMissingFieldVariable($fieldVariables, explode('.', $fieldPath));
+        }
+
+        $variables['field'] = $fieldVariables;
+
+        return $variables;
+    }
+
+    private static function _setMissingFieldVariable(array &$variables, array $path): void
+    {
+        $key = array_shift($path);
+
+        if (!array_key_exists($key, $variables)) {
+            $variables[$key] = $path ? [] : '';
+        }
+
+        if (!$path || !is_array($variables[$key])) {
+            return;
+        }
+
+        self::_setMissingFieldVariable($variables[$key], $path);
+    }
 
     public static function _getSite(?Submission $submission): ?Site
     {
