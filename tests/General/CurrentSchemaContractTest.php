@@ -31,6 +31,7 @@ it('keeps schema inspection at migration, repair, and bootstrap boundaries', fun
             || str_contains($source, 'DbSchema::tableExists(')
             || str_contains($source, '->columnExists(')
             || str_contains($source, '->tableExists(')
+            || str_contains($source, '->getTableSchema(')
         ) {
             $violations[] = substr($path, strlen($sourceRoot) + 1);
         }
@@ -42,7 +43,7 @@ it('keeps schema inspection at migration, repair, and bootstrap boundaries', fun
 it('installs every column required by normal runtime paths', function (): void {
     $required = [
         Table::FORMIE_FORMS => ['createdById', 'updatedById', 'groupId', 'formStatusId', 'sourceSiteId'],
-        Table::FORMIE_SUBMISSIONS => ['updatedById', 'signatureAccessKey', 'metadata'],
+        Table::FORMIE_SUBMISSIONS => ['updatedById', 'signatureAccessKey', 'legacySignatureAccess', 'metadata'],
         Table::FORMIE_NOTIFICATIONS => ['dispatchTiming'],
         Table::FORMIE_PAYMENTS => ['redirectUrl'],
         Table::FORMIE_INTEGRATIONS => ['scope'],

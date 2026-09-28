@@ -34,7 +34,6 @@ final class SignatureAccess
     // =========================================================================
 
     private static array $_accessStates = [];
-    private static ?bool $_hasAccessColumns = null;
 
 
     // Public Methods
@@ -270,7 +269,7 @@ final class SignatureAccess
     {
         $submissionId = (int)$submission->id;
 
-        if ($submissionId <= 0 || !self::_hasRequiredColumns()) {
+        if ($submissionId <= 0) {
             return null;
         }
 
@@ -290,27 +289,6 @@ final class SignatureAccess
         }
 
         return self::$_accessStates[$submissionId];
-    }
-
-    private static function _hasRequiredColumns(): bool
-    {
-        if (self::$_hasAccessColumns === true) {
-            return true;
-        }
-
-        // Long-running queue workers can load the new code before migrations run.
-        // Recheck missing schema state until both columns become visible.
-        $refresh = self::$_hasAccessColumns === false;
-        $schema = Craft::$app->getDb()->getTableSchema(Table::FORMIE_SUBMISSIONS, $refresh);
-
-        if (!$refresh && (!$schema?->getColumn('signatureAccessKey') || !$schema?->getColumn('legacySignatureAccess'))) {
-            $schema = Craft::$app->getDb()->getTableSchema(Table::FORMIE_SUBMISSIONS, true);
-        }
-
-        self::$_hasAccessColumns = $schema?->getColumn('signatureAccessKey') !== null
-            && $schema?->getColumn('legacySignatureAccess') !== null;
-
-        return self::$_hasAccessColumns;
     }
 
     private static function _hasValidContext(Submission $submission, int $fieldId, string $fieldKey): bool
