@@ -53,7 +53,7 @@ it('saves explicit translations payload without server-side diffing', function (
     $translations = [
         'title' => 'Explicit Translations Form (Site 2)',
         'fieldOverrides' => [
-            (string)$field->fieldId => [
+            (string)$field->definitionId => [
                 'label' => 'Test Field Site 2',
             ],
         ],
@@ -62,7 +62,7 @@ it('saves explicit translations payload without server-side diffing', function (
     $service->saveTranslationBundle((int)$form->id, $secondarySiteId, $translations);
 
     $saved = $service->getOverrides((int)$form->id, $secondarySiteId);
-    $fieldOverride = Formie::$plugin->getFieldSiteOverrides()->getOverride((int)$field->fieldId, $secondarySiteId);
+    $fieldOverride = Formie::$plugin->getFieldSiteOverrides()->getOverride((int)$field->definitionId, $secondarySiteId);
 
     expect($saved['title'] ?? null)->toBe('Explicit Translations Form (Site 2)');
     expect($fieldOverride['label'] ?? null)->toBe('Test Field Site 2');
@@ -516,7 +516,7 @@ it('merges nested child field overrides into form elements for front-end renderi
     expect($secondarySiteId === null)->toBeFalse();
 
     Formie::$plugin->getFieldSiteOverrides()->saveOverride(
-        (int)$childField->fieldId,
+        (int)$childField->definitionId,
         $secondarySiteId,
         ['label' => 'First Name (Site 2)'],
     );

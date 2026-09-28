@@ -5,7 +5,7 @@ use verbb\formie\helpers\Table;
 
 use craft\db\ActiveRecord;
 
-class FormField extends ActiveRecord
+class FieldInstanceRecord extends ActiveRecord
 {
     // Static Methods
     // =========================================================================

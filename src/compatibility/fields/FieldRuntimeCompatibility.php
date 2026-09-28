@@ -22,6 +22,27 @@ trait FieldRuntimeCompatibility
     private bool $_projectingLegacyData = false;
 
 
+    // Public Methods
+    // =========================================================================
+
+    public function getSyncId(): ?int
+    {
+        \Craft::$app->getDeprecator()->log(static::class . '::syncId', 'The `syncId` field property has been deprecated. Use `definitionId` and `isSynced` instead.');
+
+        return $this->getIsSynced() ? $this->definitionId : null;
+    }
+
+    public function setSyncId(?int $value): void
+    {
+        \Craft::$app->getDeprecator()->log(static::class . '::syncId', 'The `syncId` field property has been deprecated. Use `definitionId` and `isSynced` instead.');
+
+        if ($value) {
+            $this->definitionId = $value;
+            $this->isSynced = true;
+        }
+    }
+
+
     // Protected Methods
     // =========================================================================
 

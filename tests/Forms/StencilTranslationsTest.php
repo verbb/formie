@@ -152,7 +152,7 @@ it('copies portable stencil bundles into a newly materialized forms normal overr
         (int)$secondarySite->id,
     );
     $fieldOverride = Formie::$plugin->getFieldSiteOverrides()->getOverride(
-        (int)$field?->fieldId,
+        (int)$field?->definitionId,
         (int)$secondarySite->id,
     );
 
@@ -188,7 +188,7 @@ it('captures existing form translations when saving a form as a stencil', functi
             ],
         ],
         'fieldOverrides' => [
-            (string)$field->fieldId => [
+            (string)$field->definitionId => [
                 'label' => 'Nom',
             ],
         ],

@@ -31,7 +31,7 @@ $values = $submission->getValuesAsData();
 $check(($values['company']['companyName'] ?? null) === 'Synthetic Company', 'nested group content survived');
 $field = $form->getFieldByHandle('fullName');
 $check($field->uid === $fixture['fieldUid'] && $field->required, 'field identity and required setting survived');
-$check($field->fieldId === $shared->getFieldByHandle('fullName')->fieldId, 'legacy synced fields became one shared definition');
+$check($field->definitionId === $shared->getFieldByHandle('fullName')->definitionId, 'legacy synced fields became one shared definition');
 $notification = $form->getNotifications()[0] ?? null;
 $check($notification !== null && $notification->name === 'Receipt' && !$notification->enabled, 'notification settings survived');
 $check(str_contains((string)\verbb\formie\helpers\References::parseContent($notification->subject, $submission), 'Synthetic Ada'), 'migrated notification field reference resolves original content');

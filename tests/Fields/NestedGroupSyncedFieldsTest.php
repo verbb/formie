@@ -16,8 +16,7 @@ it('allows the same synced field handle inside multiple group fields', function 
     $sourceField = $sourceForm->getFieldByHandle('addressComponent');
     $syncedFieldConfig = nestedGroupSyncedFieldsStripImportedMeta($sourceField->getFormBuilderConfig());
     $syncedFieldConfig['type'] = SingleLineText::class;
-    $syncedFieldConfig['fieldId'] = $sourceField->fieldId;
-    $syncedFieldConfig['syncId'] = $sourceField->fieldId;
+    $syncedFieldConfig['definitionId'] = $sourceField->definitionId;
     $syncedFieldConfig['isSynced'] = true;
 
     $targetForm = formie()
@@ -43,8 +42,8 @@ it('allows the same synced field handle inside multiple group fields', function 
 
     expect($deliveryField)->not->toBeNull()
         ->and($invoiceField)->not->toBeNull()
-        ->and($deliveryField->fieldId)->toBe($sourceField->fieldId)
-        ->and($invoiceField->fieldId)->toBe($sourceField->fieldId)
+        ->and($deliveryField->definitionId)->toBe($sourceField->definitionId)
+        ->and($invoiceField->definitionId)->toBe($sourceField->definitionId)
         ->and($deliveryField->isSynced)->toBeTrue()
         ->and($invoiceField->isSynced)->toBeTrue();
 
@@ -69,8 +68,7 @@ it('keeps remaining nested synced group fields readable after removing one insta
     $sourceField = $sourceForm->getFieldByHandle('addressComponent');
     $syncedFieldConfig = nestedGroupSyncedFieldsStripImportedMeta($sourceField->getFormBuilderConfig());
     $syncedFieldConfig['type'] = SingleLineText::class;
-    $syncedFieldConfig['fieldId'] = $sourceField->fieldId;
-    $syncedFieldConfig['syncId'] = $sourceField->fieldId;
+    $syncedFieldConfig['definitionId'] = $sourceField->definitionId;
     $syncedFieldConfig['isSynced'] = true;
 
     $targetForm = formie()
@@ -105,7 +103,7 @@ it('keeps remaining nested synced group fields readable after removing one insta
     $reloadedSubmission = Submission::find()->id($submission->id)->status(null)->one();
 
     expect($reloadedInvoiceField)->not->toBeNull()
-        ->and($reloadedInvoiceField?->fieldId)->toBe($sourceField->fieldId)
+        ->and($reloadedInvoiceField?->definitionId)->toBe($sourceField->definitionId)
         ->and($reloadedSubmission?->getFieldValue('invoiceAddress.addressComponent'))->toBe('Remove me');
 });
 
@@ -113,7 +111,7 @@ function nestedGroupSyncedFieldsStripImportedMeta(mixed $value): mixed
 {
     $metaKeys = [
         'id' => true,
-        'fieldId' => true,
+        'definitionId' => true,
         'layoutId' => true,
         'pageId' => true,
         'rowId' => true,

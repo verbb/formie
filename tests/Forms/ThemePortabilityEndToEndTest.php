@@ -38,8 +38,7 @@ it('round trips the complete portable form graph without mutating it during rend
         $syncedConfig['pageId'],
         $syncedConfig['rowId'],
     );
-    $syncedConfig['fieldId'] = $sharedField->definitionId;
-    $syncedConfig['syncId'] = $sharedField->definitionId;
+    $syncedConfig['definitionId'] = $sharedField->definitionId;
     $syncedConfig['isSynced'] = true;
 
     $form = formie()

@@ -43,7 +43,7 @@ it('exports and imports form and field site overrides using portable keys', func
     $siteOverrides->saveTranslationBundle((int)$form->id, (int)$secondarySite->id, [
         'title' => 'Import Export Site Overrides Form (Translated)',
         'fieldOverrides' => [
-            (string)$field->fieldId => [
+            (string)$field->definitionId => [
                 'label' => 'Translated Field Label',
             ],
         ],
@@ -73,7 +73,7 @@ it('exports and imports form and field site overrides using portable keys', func
         ->and($importedField)->not->toBeNull();
 
     $importedFieldOverride = Formie::$plugin->getFieldSiteOverrides()->getOverride(
-        (int)$importedField->fieldId,
+        (int)$importedField->definitionId,
         (int)$secondarySite->id,
     );
 
@@ -106,20 +106,20 @@ it('remaps nested translations on create and preserves field identity on update'
     $site = current(array_filter(Craft::$app->getSites()->getAllSites(), fn($site) => (int)$site->id !== $source));
     expect($site)->not->toBeFalse();
     $child = $form->getFieldByHandle('fullName')->getFieldByHandle('firstName');
-    $originalId = $child->fieldId;
+    $originalId = $child->definitionId;
     $originalReference = $child->reference;
     $submission = formie()->submission($form)->with(['fullName' => ['firstName' => 'Original', 'lastName' => 'Person']])->save();
     $overrides->saveOverride((int)$originalId, (int)$site->id, ['label' => 'Translated first name']);
     $export = ImportExportHelper::generateFormExport($form);
     $created = ImportExportHelper::importFormFromJson($export, 'create');
     $newChild = $created->getFieldByHandle('fullName')->getFieldByHandle('firstName');
-    expect($newChild->fieldId)->not->toBe($originalId)
+    expect($newChild->definitionId)->not->toBe($originalId)
         ->and($newChild->reference)->not->toBe($originalReference)
-        ->and($overrides->getOverride((int)$newChild->fieldId, (int)$site->id)['label'] ?? null)->toBe('Translated first name');
+        ->and($overrides->getOverride((int)$newChild->definitionId, (int)$site->id)['label'] ?? null)->toBe('Translated first name');
     $updated = ImportExportHelper::importFormFromJson($export, 'update');
     $updatedChild = $updated->getFieldByHandle('fullName')->getFieldByHandle('firstName');
     expect($updated->id)->toBe($form->id)
-        ->and($updatedChild->fieldId)->toBe($originalId)
+        ->and($updatedChild->definitionId)->toBe($originalId)
         ->and($updatedChild->reference)->toBe($originalReference)
         ->and($overrides->getOverride((int)$originalId, (int)$site->id)['label'] ?? null)->toBe('Translated first name');
     $loaded = \verbb\formie\elements\Submission::find()->id($submission->id)->one();

@@ -38,7 +38,7 @@ use verbb\formie\models\RichText;
 use verbb\formie\models\Settings;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\query\FieldValueQueryHelper;
-use verbb\formie\records\FormField as FormFieldRecord;
+use verbb\formie\records\FieldInstanceRecord;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\references\ReferenceResolver;
 use verbb\formie\validators\HandleValidator;
@@ -454,30 +454,6 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     // Public Methods
     // =========================================================================
-
-    // Formie 3 aliases remain at the PHP/config boundary. Content always uses id/uid.
-    public function getFieldId(): ?int
-    {
-        return $this->definitionId;
-    }
-
-    public function setFieldId(?int $value): void
-    {
-        $this->definitionId = $value;
-    }
-
-    public function getSyncId(): ?int
-    {
-        return $this->getIsSynced() ? $this->definitionId : null;
-    }
-
-    public function setSyncId(?int $value): void
-    {
-        if ($value) {
-            $this->definitionId = $value;
-            $this->isSynced = true;
-        }
-    }
 
     public function __construct(array $config = [])
     {
@@ -1063,19 +1039,22 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public function getDefinitionSettings(): array
     {
         $settings = $this->getSettings();
-        unset($settings['required']);
+
+        foreach (array_keys($this->getInstanceSettings()) as $key) {
+            unset($settings[$key]);
+        }
 
         return $settings;
     }
 
-    public function getFormFieldSettings(): array
+    public function getInstanceSettings(): array
     {
         return [
             'required' => $this->required,
         ];
     }
 
-    public function applyFormFieldSettings(array|string|null $settings): void
+    public function applyInstanceSettings(array|string|null $settings): void
     {
         $settings = is_string($settings) ? Json::decodeIfJson($settings) : $settings;
 
@@ -1332,7 +1311,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         $rules[] = [
             ['reference'],
             UniqueValidator::class,
-            'targetClass' => FormFieldRecord::class,
+            'targetClass' => FieldInstanceRecord::class,
             'targetAttribute' => ['reference'],
             'skipOnEmpty' => true,
             'message' => Craft::t('yii', '{attribute} "{value}" has already been taken.'),

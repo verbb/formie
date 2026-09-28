@@ -25,8 +25,7 @@ it('stores synced definition metadata in stencil snapshots', function (): void {
     $sourceField = $sourceForm->getFieldByHandle('email');
     $syncedFieldConfig = $sourceField->getFormBuilderConfig();
     unset($syncedFieldConfig['id'], $syncedFieldConfig['uid'], $syncedFieldConfig['reference'], $syncedFieldConfig['layoutId'], $syncedFieldConfig['pageId'], $syncedFieldConfig['rowId']);
-    $syncedFieldConfig['fieldId'] = $sourceField->fieldId;
-    $syncedFieldConfig['syncId'] = $sourceField->fieldId;
+    $syncedFieldConfig['definitionId'] = $sourceField->definitionId;
     $syncedFieldConfig['isSynced'] = true;
 
     $stencilSourceForm = formie()
@@ -56,12 +55,11 @@ it('materializes new forms with synced fields linked to the shared definition', 
         ->create();
 
     $sourceField = $sourceForm->getFieldByHandle('email');
-    $definitionId = $sourceField->fieldId;
+    $definitionId = $sourceField->definitionId;
 
     $syncedFieldConfig = $sourceField->getFormBuilderConfig();
     unset($syncedFieldConfig['id'], $syncedFieldConfig['uid'], $syncedFieldConfig['reference'], $syncedFieldConfig['layoutId'], $syncedFieldConfig['pageId'], $syncedFieldConfig['rowId']);
-    $syncedFieldConfig['fieldId'] = $definitionId;
-    $syncedFieldConfig['syncId'] = $definitionId;
+    $syncedFieldConfig['definitionId'] = $definitionId;
     $syncedFieldConfig['isSynced'] = true;
 
     $stencilSourceForm = formie()
@@ -86,7 +84,7 @@ it('materializes new forms with synced fields linked to the shared definition', 
     $materializedField = $newForm->getFieldByHandle('email');
 
     expect($materializedField)->not->toBeNull()
-        ->and($materializedField->fieldId)->toBe($definitionId)
+        ->and($materializedField->definitionId)->toBe($definitionId)
         ->and($materializedField->getIsSynced())->toBeTrue();
 
     expect(Craft::$app->elements->saveElement($newForm))->toBeTrue();
@@ -94,7 +92,7 @@ it('materializes new forms with synced fields linked to the shared definition', 
     $reloaded = Form::find()->id($newForm->id)->one();
     $reloadedField = $reloaded?->getFieldByHandle('email');
 
-    expect($reloadedField?->fieldId)->toBe($definitionId);
+    expect($reloadedField?->definitionId)->toBe($definitionId);
 
     $usageCount = (int)(new craft\db\Query())
         ->from('{{%formie_form_fields}}')
@@ -111,7 +109,7 @@ it('does not couple legacy handle-only stencils to an arbitrary definition', fun
         ->emailField($fieldHandle, ['label' => 'Email'])
         ->create();
 
-    $definitionId = $sourceForm->getFieldByHandle($fieldHandle)->fieldId;
+    $definitionId = $sourceForm->getFieldByHandle($fieldHandle)->definitionId;
 
     $stencil = new Stencil([
         'name' => 'Handle Resolve Stencil',

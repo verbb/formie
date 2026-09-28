@@ -13,8 +13,12 @@ use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\FieldReferenceHelper;
 use verbb\formie\helpers\FormSerializer;
 use verbb\formie\helpers\ImportExportHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldDefinition;
 use verbb\formie\models\FieldLayout;
+use verbb\formie\records\Field as LegacyFieldDefinitionRecord;
+use verbb\formie\records\FieldDefinitionRecord;
+use verbb\formie\records\FieldInstanceRecord;
 use verbb\formie\services\Fields;
 use yii\base\Event;
 use yii\base\InvalidConfigException;
@@ -35,6 +39,26 @@ class Workstream04NestedParentField extends Group
     protected function getNestedLayoutBuilderDisallowedFieldTypes(): array { return []; }
 }
 
+class Workstream04InstanceSettingsField extends SingleLineText
+{
+    public ?string $instanceNote = null;
+
+    public function getInstanceSettings(): array
+    {
+        return parent::getInstanceSettings() + ['instanceNote' => $this->instanceNote];
+    }
+
+    public function applyInstanceSettings(array|string|null $settings): void
+    {
+        parent::applyInstanceSettings($settings);
+        $settings = is_string($settings) ? json_decode($settings, true) : $settings;
+
+        if (is_array($settings) && array_key_exists('instanceNote', $settings)) {
+            $this->instanceNote = $settings['instanceNote'];
+        }
+    }
+}
+
 it('defines parent traversal structurally while accepting legacy optional signatures', function () {
     $methods = array_map(fn(ReflectionMethod $method) => $method->getName(), (new ReflectionClass(ParentFieldInterface::class))->getMethods());
     $field = new Workstream04LegacyParentSignatureField();
@@ -47,17 +71,55 @@ it('defines parent traversal structurally while accepting legacy optional signat
         ->and($field->hasFieldLayout())->toBeTrue();
 });
 
-it('separates immutable definition metadata from runtime instance and keeps PHP aliases', function () {
+it('separates immutable definition metadata from runtime instances and keeps the Formie 3 sync alias', function () {
     $form = formie()->form()->singleLineTextField('identity')->create();
     $field = $form->getFieldByHandle('identity');
     $definition = Formie::$plugin->getFields()->getFieldDefinitionById($field->definitionId);
     expect($definition)->toBeInstanceOf(FieldDefinition::class)
         ->and($definition)->not->toBeInstanceOf(Field::class)
         ->and($definition->uid)->toBe($field->definitionUid)
-        ->and($field->fieldId)->toBe($field->definitionId)
+        ->and($field->canGetProperty('fieldId'))->toBeFalse()
+        ->and($field->canSetProperty('fieldId'))->toBeFalse()
         ->and($field->getCpEditConfig()['id'])->toBe((string)$field->id);
-    $alias = new Email(['fieldId' => $field->definitionId, 'syncId' => $field->definitionId]);
+    $alias = new Email(['syncId' => $field->definitionId]);
     expect($alias->definitionId)->toBe($field->definitionId)->and($alias->isSynced)->toBeTrue();
+});
+
+it('uses explicit records and APIs for definition and instance persistence', function () {
+    $field = new Email(['required' => true]);
+
+    expect(FieldDefinitionRecord::tableName())->toBe(Table::FORMIE_FIELDS)
+        ->and(FieldInstanceRecord::tableName())->toBe(Table::FORMIE_FORM_FIELDS)
+        ->and(is_subclass_of(LegacyFieldDefinitionRecord::class, FieldDefinitionRecord::class))->toBeTrue()
+        ->and($field->getInstanceSettings())->toBe(['required' => true])
+        ->and(method_exists($field, 'getFormFieldSettings'))->toBeFalse()
+        ->and(method_exists($field, 'applyFormFieldSettings'))->toBeFalse();
+
+    $field->applyInstanceSettings(['required' => false]);
+    expect($field->required)->toBeFalse();
+});
+
+it('hydrates custom per-instance settings through the field contract', function () {
+    $service = Formie::$plugin->getFields();
+    $listener = function ($event) { $event->fields[] = Workstream04InstanceSettingsField::class; };
+    Event::on(Fields::class, Fields::EVENT_REGISTER_FIELDS, $listener);
+    $service->resetFieldRegistryCache();
+
+    try {
+        $field = $service->hydrateField([
+            'type' => Workstream04InstanceSettingsField::class,
+            'handle' => 'instanceSettings',
+            'instanceSettings' => ['required' => true, 'instanceNote' => 'Per form'],
+        ]);
+
+        expect($field->required)->toBeTrue()
+            ->and($field->instanceNote)->toBe('Per form')
+            ->and($field->getInstanceSettings())->toBe(['required' => true, 'instanceNote' => 'Per form'])
+            ->and($field->getDefinitionSettings())->not->toHaveKey('instanceNote');
+    } finally {
+        Event::off(Fields::class, Fields::EVENT_REGISTER_FIELDS, $listener);
+        $service->resetFieldRegistryCache();
+    }
 });
 
 it('does not share mutable field prototypes and rejects invalid registration before construction', function () {

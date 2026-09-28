@@ -35,11 +35,11 @@ use verbb\formie\positions\BelowInput;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\positions\LeftInput;
 use verbb\formie\positions\RightInput;
-use verbb\formie\records\Field as FieldRecord;
+use verbb\formie\records\FieldDefinitionRecord;
+use verbb\formie\records\FieldInstanceRecord;
 use verbb\formie\records\FieldLayout as FieldLayoutRecord;
 use verbb\formie\records\FieldLayoutPage as FieldLayoutPageRecord;
 use verbb\formie\records\FieldLayoutRow as FieldLayoutRowRecord;
-use verbb\formie\records\FormField as FormFieldRecord;
 use verbb\formie\validators\LayoutHandleUniqueValidator;
 
 use Craft;
@@ -795,7 +795,7 @@ class Fields extends Component
     {
         // This path hydrates trusted persisted/internal config. Request payloads first pass FormSerializer.
         $type = (string)($config['type'] ?? '');
-        $config = array_merge($config, $config['instanceSettings'] ?? []);
+        $instanceSettings = $config['instanceSettings'] ?? null;
         unset($config['instanceSettings']);
         if (!empty($config['syncedDefinitionUid'])) {
             $config['definitionUid'] = $config['syncedDefinitionUid'];
@@ -819,7 +819,7 @@ class Fields extends Component
         }
         unset($config['class'], $config['syncedDefinitionHandle'], $config['syncedDefinitionId']);
         if (!in_array($type, $this->_getResolvedRegisteredFieldTypes(true), true)) {
-            $identity = array_intersect_key($config, array_flip(['id', 'uid', 'reference', 'definitionId', 'definitionUid', 'fieldId', 'layoutId', 'pageId', 'rowId', 'sortOrder', 'label', 'handle', 'required', 'isSynced', 'usageCount']));
+            $identity = array_intersect_key($config, array_flip(['id', 'uid', 'reference', 'definitionId', 'definitionUid', 'layoutId', 'pageId', 'rowId', 'sortOrder', 'label', 'handle', 'required', 'isSynced', 'usageCount']));
             $field = new formiefields\MissingField($identity + [
                 'expectedType' => $type,
                 'settings' => $settings,
@@ -831,6 +831,7 @@ class Fields extends Component
             $config['settings'] = $recoverable ? (new \verbb\formie\helpers\FormSerializer())->recoverSettings($type, $settings) : $settings;
             $field = ComponentHelper::createComponent($config, Field::class);
         }
+        $field->applyInstanceSettings($instanceSettings);
         $field->afterCreateField($config);
 
         return $field;
@@ -1521,24 +1522,24 @@ class Fields extends Component
         try {
             $isNewField = !$field->id;
             $definitionId = $field->definitionId;
-            $fieldRecord = $definitionId ? FieldRecord::findOne($definitionId) : new FieldRecord();
+            $definitionRecord = $definitionId ? FieldDefinitionRecord::findOne($definitionId) : new FieldDefinitionRecord();
             $existingDefinitionUsageCount = $definitionId ? (int)((new Query())
                 ->from(Table::FORMIE_FORM_FIELDS)
                 ->where(['fieldId' => $definitionId])
                 ->count() ?: 0) : 0;
 
-            if (!$fieldRecord) {
+            if (!$definitionRecord) {
                 throw new Exception('Invalid field definition ID: ' . $definitionId);
             }
 
-            if ($definitionId && !($field instanceof formiefields\MissingField) && $fieldRecord->type !== $field->type) {
+            if ($definitionId && !($field instanceof formiefields\MissingField) && $definitionRecord->type !== $field->type) {
                 if ($existingDefinitionUsageCount > 1) {
                     $field->addError('type', Craft::t('formie', 'Synced fields cannot change field type.'));
 
                     return false;
                 }
 
-                if (!$this->canChangeFieldType($fieldRecord->type, $field->type)) {
+                if (!$this->canChangeFieldType($definitionRecord->type, $field->type)) {
                     $field->addError('type', Craft::t('formie', 'This field type cannot be changed to the selected field type.'));
 
                     return false;
@@ -1556,7 +1557,7 @@ class Fields extends Component
             LayoutHandleUniqueValidator::registerAssignedHandle((int)$field->layoutId, (string)$field->handle);
 
             if ($definitionId && $existingDefinitionUsageCount > 1) {
-                $field->handle = $fieldRecord->handle;
+                $field->handle = $definitionRecord->handle;
             }
 
             $skipSharedDefinitionUpdate = $definitionId
@@ -1564,54 +1565,54 @@ class Fields extends Component
                 && (!$updateSyncedFields || !$context->updateDefinitions || isset($context->savedDefinitions[$definitionId]));
 
             if (!$skipSharedDefinitionUpdate) {
-                $fieldRecord->id = $definitionId;
-                $fieldRecord->label = $field->label;
-                $fieldRecord->handle = $field->handle;
-                $fieldRecord->type = $field->type;
-                $fieldRecord->settings = Json::encode($field->getDefinitionSettings());
+                $definitionRecord->id = $definitionId;
+                $definitionRecord->label = $field->label;
+                $definitionRecord->handle = $field->handle;
+                $definitionRecord->type = $field->type;
+                $definitionRecord->settings = Json::encode($field->getDefinitionSettings());
 
                 // Check if this is a missing field, and swap back its type.
                 // This can commonly happen during a migration, not really from normal use.
                 if ($field instanceof formiefields\MissingField) {
-                    $fieldRecord->type = $field->expectedType;
+                    $definitionRecord->type = $field->expectedType;
                     // Keep unavailable configuration inert until the registered type can validate its schema.
-                    $fieldRecord->settings = Json::encode(['__formieMissingSettings' => $field->getSettings()]);
+                    $definitionRecord->settings = Json::encode(['__formieMissingSettings' => $field->getSettings()]);
                 }
 
-                $fieldRecord->save(false);
+                $definitionRecord->save(false);
 
                 if ($definitionId && $existingDefinitionUsageCount > 1) {
                     $context->savedDefinitions[$definitionId] = true;
                 }
             }
 
-            $formFieldRecord = $isNewField ? new FormFieldRecord() : FormFieldRecord::findOne($field->id);
+            $instanceRecord = $isNewField ? new FieldInstanceRecord() : FieldInstanceRecord::findOne($field->id);
 
-            if (!$formFieldRecord) {
+            if (!$instanceRecord) {
                 throw new Exception('Invalid form field ID: ' . $field->id);
             }
 
-            $formFieldRecord->id = $field->id;
-            $formFieldRecord->fieldId = $fieldRecord->id;
-            $formFieldRecord->layoutId = $field->layoutId;
-            $formFieldRecord->pageId = $field->pageId;
-            $formFieldRecord->rowId = $field->rowId;
-            $formFieldRecord->sortOrder = $field->sortOrder;
-            $formFieldRecord->reference = $field->reference ?: StringHelper::UUID();
-            $formFieldRecord->settings = Json::encode($field->getFormFieldSettings());
+            $instanceRecord->id = $field->id;
+            $instanceRecord->fieldId = $definitionRecord->id;
+            $instanceRecord->layoutId = $field->layoutId;
+            $instanceRecord->pageId = $field->pageId;
+            $instanceRecord->rowId = $field->rowId;
+            $instanceRecord->sortOrder = $field->sortOrder;
+            $instanceRecord->reference = $field->reference ?: StringHelper::UUID();
+            $instanceRecord->settings = Json::encode($field->getInstanceSettings());
             if ($field->uid) {
-                $formFieldRecord->uid = $field->uid;
+                $instanceRecord->uid = $field->uid;
             }
-            $formFieldRecord->save(false);
+            $instanceRecord->save(false);
 
-            $field->id = $formFieldRecord->id;
-            $field->definitionId = $fieldRecord->id;
-            $field->definitionUid = $fieldRecord->uid;
-            $field->uid = $formFieldRecord->uid;
-            $field->reference = $formFieldRecord->reference;
+            $field->id = $instanceRecord->id;
+            $field->definitionId = $definitionRecord->id;
+            $field->definitionUid = $definitionRecord->uid;
+            $field->uid = $instanceRecord->uid;
+            $field->reference = $instanceRecord->reference;
             $field->usageCount = (int)((new Query())
                 ->from(Table::FORMIE_FORM_FIELDS)
-                ->where(['fieldId' => $fieldRecord->id])
+                ->where(['fieldId' => $definitionRecord->id])
                 ->count() ?: 0);
             $field->isSynced = $field->usageCount > 1;
 
@@ -1961,6 +1962,7 @@ class Fields extends Component
             'reference' => $item['fieldReference'],
             'type' => $item['fieldType'],
             'settings' => $item['fieldSettings'],
+            'instanceSettings' => is_array($formFieldSettings) ? $formFieldSettings : [],
             'required' => is_array($formFieldSettings) && array_key_exists('required', $formFieldSettings)
                 ? (bool)$formFieldSettings['required']
                 : null,
@@ -2488,6 +2490,7 @@ class Fields extends Component
         }
 
         $formFieldSettings = Json::decodeIfJson($fieldConfig['formFieldSettings'] ?? null);
+        $fieldConfig['instanceSettings'] = is_array($formFieldSettings) ? $formFieldSettings : [];
 
         if (is_array($formFieldSettings) && array_key_exists('required', $formFieldSettings)) {
             $fieldConfig['required'] = (bool)$formFieldSettings['required'];
@@ -2508,11 +2511,11 @@ class Fields extends Component
     {
         $identityKeys = [
             'id',
-            'fieldId',
+            'definitionId',
+            'definitionUid',
             'layoutId',
             'pageId',
             'rowId',
-            'syncId',
             'type',
             'label',
             'handle',

@@ -22,11 +22,10 @@ it('persists synced field label changes when saving a form', function (): void {
         ->create();
 
     $sourceField = $sourceForm->getFieldByHandle('email');
-    $definitionId = (int)$sourceField->fieldId;
+    $definitionId = (int)$sourceField->definitionId;
 
     $syncedFieldConfig = syncedFieldLabelSaveStripImportedMeta($sourceField->getFormBuilderConfig());
-    $syncedFieldConfig['fieldId'] = $definitionId;
-    $syncedFieldConfig['syncId'] = $definitionId;
+    $syncedFieldConfig['definitionId'] = $definitionId;
     $syncedFieldConfig['isSynced'] = true;
 
     $targetForm = formie()
@@ -70,8 +69,7 @@ it('persists synced field label changes when the same definition appears twice i
     $sourceField = $sourceForm->getFieldByHandle('sharedText');
     $syncedFieldConfig = syncedFieldLabelSaveStripImportedMeta($sourceField->getFormBuilderConfig());
     $syncedFieldConfig['type'] = SingleLineText::class;
-    $syncedFieldConfig['fieldId'] = $sourceField->fieldId;
-    $syncedFieldConfig['syncId'] = $sourceField->fieldId;
+    $syncedFieldConfig['definitionId'] = $sourceField->definitionId;
     $syncedFieldConfig['isSynced'] = true;
 
     $form = formie()
@@ -119,7 +117,7 @@ function syncedFieldLabelSaveStripImportedMeta(mixed $value): mixed
 {
     $metaKeys = [
         'id' => true,
-        'fieldId' => true,
+        'definitionId' => true,
         'layoutId' => true,
         'pageId' => true,
         'rowId' => true,

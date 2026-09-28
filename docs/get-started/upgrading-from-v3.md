@@ -1607,8 +1607,7 @@ Existing field subclasses continue to extend `verbb\formie\base\Field`. Register
 | Formie 3 | Formie 4 |
 |---|---|
 | `Field`, `id`, `uid` | Preserved; these identify the form-field instance |
-| `fieldId` | `definitionId`; PHP/config alias remains available |
-| `syncId` | Shared `definitionId` plus `isSynced`; legacy PHP/config input remains supported |
+| `syncId` | Shared `definitionId` plus `isSynced`; the legacy PHP/config property remains supported with a deprecation notice |
 | `getAllFields()` | Preserved as fully hydrated runtime field objects |
 | Boolean field traversal flags | `getFields()`, `getEnabledFields()`, `getFieldsRecursively()` |
 

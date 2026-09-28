@@ -38,7 +38,7 @@
 
 ### Fixed
 - Preserve uploaded files when an incomplete multi-page submission navigates back after the asset has been bound and promoted, without weakening upload ownership checks.
-- Separate shared field definition identity from form-field instances, retain Formie 3 identity aliases, require registered fields to extend the base Field class and formalize parent-field traversal.
+- Separate shared field definition identity from form-field instances, use explicit definition/instance records and settings APIs, isolate the Formie 3 `syncId` alias, require registered fields to extend the base Field class and formalize parent-field traversal.
 - Share identity remapping across imports, duplicates and stencils; use portable definition UIDs for Synced Fields and explicit enabled/recursive traversal APIs.
 - Make payment amounts exact, return typed payment decisions with immutable actions and explicit resubmit/return/poll modes, and atomically settle payment-backed submissions with recoverable provider evidence.
 - Retain coherent subscription and recurring-payment history; separate cancellation, provider return, read-only status and browser-session authority, and reconcile status polling on a server-controlled cadence.

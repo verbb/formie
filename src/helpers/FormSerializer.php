@@ -75,7 +75,7 @@ class FormSerializer
             'definitionUid' => $field->definitionUid,
             'syncedDefinitionUid' => $field->getIsSynced() ? $field->definitionUid : null,
             'settings' => $settings,
-            'instanceSettings' => $field->getFormFieldSettings(),
+            'instanceSettings' => $field->getInstanceSettings(),
         ];
     }
 
@@ -336,7 +336,7 @@ class FormSerializer
             $this->_tokenHandles[$path] = $reference;
         }
         if ($operation === 'builder') {
-            if ($existing && $existing->getIsSynced() && empty($source['isSynced']) && empty($source['syncId'])) {
+            if ($existing && $existing->getIsSynced() && empty($source['isSynced'])) {
                 $config['definitionId'] = null;
                 $config['definitionUid'] = null;
             }

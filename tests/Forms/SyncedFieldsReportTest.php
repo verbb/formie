@@ -21,12 +21,11 @@ it('reports synced field definitions and the forms they appear on', function ():
         ->create();
 
     $sourceField = $sourceForm->getFieldByHandle('email');
-    $definitionId = (int)$sourceField->fieldId;
+    $definitionId = (int)$sourceField->definitionId;
 
     $syncedFieldConfig = $sourceField->getFormBuilderConfig();
     unset($syncedFieldConfig['id'], $syncedFieldConfig['uid'], $syncedFieldConfig['reference'], $syncedFieldConfig['layoutId'], $syncedFieldConfig['pageId'], $syncedFieldConfig['rowId']);
-    $syncedFieldConfig['fieldId'] = $definitionId;
-    $syncedFieldConfig['syncId'] = $definitionId;
+    $syncedFieldConfig['definitionId'] = $definitionId;
     $syncedFieldConfig['isSynced'] = true;
 
     $targetForm = formie()
@@ -59,7 +58,7 @@ it('excludes single-use field definitions from the synced field report', functio
         ->emailField('singleEmail', ['label' => 'Single Email'])
         ->create();
 
-    $definitionId = (int)$form->getFieldByHandle('singleEmail')->fieldId;
+    $definitionId = (int)$form->getFieldByHandle('singleEmail')->definitionId;
     $report = Formie::$plugin->getFields()->getSyncedFieldReport();
 
     expect(collect($report)->firstWhere('id', $definitionId))->toBeNull();

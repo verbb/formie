@@ -31,7 +31,7 @@ it('isolates localized layout settings and callbacks from the canonical form', f
     expect($page->getPageSettings()->submitButtonLabel)->toBe('Canonical submit');
     $localizedNested = $localized->getFieldByHandle('items')->getFieldLayout()->getFields()[0];
     expect($localizedNested)->not->toBe($nested);
-    expect($localizedNested->fieldId)->toBe($nested->fieldId);
+    expect($localizedNested->definitionId)->toBe($nested->definitionId);
     $localizedNested->label = 'Changed local item';
     expect($nested->label)->toBe('Canonical item');
 });

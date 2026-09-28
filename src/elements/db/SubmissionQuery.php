@@ -569,13 +569,15 @@ class SubmissionQuery extends ElementQuery
 
         foreach ($fieldRecords as $fieldRecord) {
             $formFieldSettings = Json::decodeIfJson($fieldRecord['formFieldSettings'] ?? null);
+            $fieldRecord['instanceSettings'] = is_array($formFieldSettings) ? $formFieldSettings : [];
 
             if (is_array($formFieldSettings) && array_key_exists('required', $formFieldSettings)) {
                 $fieldRecord['required'] = (bool)$formFieldSettings['required'];
             }
 
             $fieldRecord['isSynced'] = (int)($fieldRecord['usageCount'] ?? 1) > 1;
-            $fieldRecord['syncId'] = $fieldRecord['isSynced'] ? (int)($fieldRecord['fieldId'] ?? 0) : null;
+            $fieldRecord['definitionId'] = (int)($fieldRecord['fieldId'] ?? 0);
+            unset($fieldRecord['fieldId']);
             unset($fieldRecord['formFieldSettings']);
 
             $field = Formie::$plugin->getFields()->createField($fieldRecord);

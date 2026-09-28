@@ -31,8 +31,7 @@ it('keeps synced parent field nested uids stable when adding another synced inst
         ->save();
 
     $syncedFieldConfig = syncedParentRegressionStripImportedMeta($sourceField->getFormBuilderConfig());
-    $syncedFieldConfig['fieldId'] = $sourceField->fieldId;
-    $syncedFieldConfig['syncId'] = $sourceField->fieldId;
+    $syncedFieldConfig['definitionId'] = $sourceField->definitionId;
     $syncedFieldConfig['isSynced'] = true;
 
     formie()
@@ -54,7 +53,7 @@ function syncedParentRegressionStripImportedMeta(mixed $value): mixed
 {
     $metaKeys = [
         'id' => true,
-        'fieldId' => true,
+        'definitionId' => true,
         'layoutId' => true,
         'pageId' => true,
         'rowId' => true,
