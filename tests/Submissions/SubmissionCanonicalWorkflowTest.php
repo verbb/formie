@@ -13,10 +13,22 @@ use verbb\formie\workflow\TaskDefinition;
 use verbb\formie\workflow\WorkflowContext;
 use verbb\formie\workflow\WorkflowManifest;
 use verbb\formie\workflow\tasks\TaskInterface;
+use verbb\formie\workflow\tasks\TaskRegistry;
 use verbb\formie\workflow\tasks\TaskResult;
 use yii\base\Event;
 
-it('has one fixed manifest and exposes exactly the semantic task anchors', function () {
+it('keeps the complete Preflight order while exposing only stable semantic task anchors', function () {
+    $preflight = WorkflowManifest::stages()[Stage::PREFLIGHT->value];
+    expect(array_map(fn($task) => $task->id, $preflight))->toBe([
+        'preflight.resolveNavigationIntent',
+        'preflight.applySubmissionDefaults',
+        'preflight.clearHiddenValues',
+        'preflight.enforceProgression',
+        'preflight.resolveTransition',
+        'preflight.captureMetadata',
+        'preflight.applyStatusRules',
+    ]);
+
     expect(array_keys(WorkflowManifest::stages()))->toBe(['preflight', 'validate', 'screen', 'persist', 'dispatch', 'finalize']);
     $anchors = [];
     foreach (WorkflowManifest::stages() as $tasks) {
@@ -27,8 +39,8 @@ it('has one fixed manifest and exposes exactly the semantic task anchors', funct
         }
     }
     $lockedAnchors = [
-        'preflight.resolveNavigationIntent', 'preflight.applySubmissionDefaults', 'preflight.clearHiddenValues',
-        'preflight.enforceProgression', 'preflight.resolveTransition', 'preflight.captureMetadata', 'preflight.applyStatusRules',
+        'preflight.applySubmissionDefaults', 'preflight.clearHiddenValues', 'preflight.resolveTransition',
+        'preflight.captureMetadata', 'preflight.applyStatusRules',
         'validate.submission', 'screen.evaluateSpam', 'screen.verifyCaptcha', 'persist.submission',
         'persist.processPayment', 'persist.questionnaireResult', 'dispatch.sendNotifications',
         'dispatch.triggerIntegrations', 'dispatch.sendSpamNotifications',
@@ -37,7 +49,23 @@ it('has one fixed manifest and exposes exactly the semantic task anchors', funct
         ->and(array_map(fn($task) => $task->value, Task::cases()))->toBe($lockedAnchors);
 });
 
-it('resolves cleared-value routing at the public Preflight anchors before validation', function () {
+it('rejects custom task placement against internal Preflight bookkeeping', function (string $taskId) {
+    $registry = new TaskRegistry(WorkflowManifest::stages()[Stage::PREFLIGHT->value]);
+    $customTask = new TaskDefinition('test.internalAnchor', new class implements TaskInterface {
+        public function execute(WorkflowContext $context): TaskResult
+        {
+            return TaskResult::continue();
+        }
+    }, [Operation::SUBMIT]);
+
+    expect(fn() => $registry->insertAfter($taskId, $customTask))
+        ->toThrow(InvalidArgumentException::class, 'Unknown or internal task anchor: ' . $taskId);
+})->with([
+    'navigation intent' => 'preflight.resolveNavigationIntent',
+    'progression enforcement' => 'preflight.enforceProgression',
+]);
+
+it('resolves cleared-value routing before validation and exposes the resolved transition anchor', function () {
     $form = formie()->form()->multiPage(2)->onPage(1)
         ->singleLineTextField('control', ['defaultValue' => 'hide'])
         ->singleLineTextField('detail', ['enableConditions' => true, 'conditions' => [
@@ -58,9 +86,6 @@ it('resolves cleared-value routing at the public Preflight anchors before valida
     $register = function (RegisterStageTasksEvent $event) use ($probe) {
         if ($event->stage === Stage::PREFLIGHT) {
             $event->insertTaskAfter(Task::PREFLIGHT_RESOLVE_TRANSITION, new TaskDefinition('test.transition', $probe, [Operation::SUBMIT]));
-            $event->insertTaskAfter(Task::PREFLIGHT_ENFORCE_PROGRESSION, new TaskDefinition('test.progression', new class implements TaskInterface {
-                public function execute(WorkflowContext $context): TaskResult { return TaskResult::continue(); }
-            }, [Operation::SUBMIT]));
         }
     };
     $stages = [];

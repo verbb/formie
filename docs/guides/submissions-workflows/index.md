@@ -39,7 +39,7 @@ Observe validation and integration dispatch from a Craft module. Use a registere
 
 When one ordered step inside an existing stage is what you need — before integrations, after spam checks, and so on — register a custom task and insert it relative to a built-in anchor. This walkthrough adds and tests an order-reference rule after field validation.
 
-## [Choosing a Workflow Stage](/guides/submissions-workflows/adding-a-custom-workflow-stage-from-scratch)
+## [Choosing a Workflow Stage](/guides/submissions-workflows/choosing-a-workflow-stage)
 
 Choose one of the six fixed stages for your custom task. This guide maps common checks and actions to their supported public anchors.
 

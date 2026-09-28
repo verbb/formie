@@ -10,7 +10,7 @@ Use a [custom task](/guides/submissions-workflows/adding-a-custom-workflow-task-
 
 | Stage | Public Task Anchors |
 | --- | --- |
-| `preflight` | `preflight.resolveNavigationIntent`, `preflight.applySubmissionDefaults`, `preflight.clearHiddenValues`, `preflight.enforceProgression`, `preflight.resolveTransition`, `preflight.captureMetadata`, `preflight.applyStatusRules` |
+| `preflight` | `preflight.applySubmissionDefaults`, `preflight.clearHiddenValues`, `preflight.resolveTransition`, `preflight.captureMetadata`, `preflight.applyStatusRules` |
 | `validate` | `validate.submission` |
 | `screen` | `screen.evaluateSpam`, `screen.verifyCaptcha` |
 | `persist` | `persist.submission`, `persist.processPayment`, `persist.questionnaireResult` |
@@ -19,7 +19,7 @@ Use a [custom task](/guides/submissions-workflows/adding-a-custom-workflow-task-
 
 Preflight applies defaults and conditions before selecting the next page. Validate checks the current page or the whole submission and questionnaire retake eligibility. Validation errors stop processing before content spam checks or CAPTCHA. Persist plans the write, stores the submission, processes payment and recalculates questionnaire results. Payment submissions remain incomplete until payment succeeds. Dispatch starts the applicable notification and integration work. Finalize applies spam policy, progression, upload bookkeeping, token consumption and the terminal outcome. Transport adapters build the HTML, AJAX, REST or GraphQL response.
 
-Persistence planning, revision follow-ups and finalisation bookkeeping are internal tasks, not public anchors. The task observation events only expose public anchors. Stage events still expose Finalize.
+Navigation-state resolution, progression enforcement, persistence planning, revision follow-ups and finalisation bookkeeping are internal tasks, not public anchors. The task observation events only expose public anchors. Stage events still expose Finalize.
 
 ## Operations and Navigation
 

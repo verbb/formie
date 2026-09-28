@@ -6,10 +6,8 @@ enum Task: string
     // Cases
     // =========================================================================
 
-    case PREFLIGHT_RESOLVE_NAVIGATION_INTENT = 'preflight.resolveNavigationIntent';
     case PREFLIGHT_APPLY_SUBMISSION_DEFAULTS = 'preflight.applySubmissionDefaults';
     case PREFLIGHT_CLEAR_HIDDEN_VALUES = 'preflight.clearHiddenValues';
-    case PREFLIGHT_ENFORCE_PROGRESSION = 'preflight.enforceProgression';
     case PREFLIGHT_RESOLVE_TRANSITION = 'preflight.resolveTransition';
     case PREFLIGHT_CAPTURE_METADATA = 'preflight.captureMetadata';
     case PREFLIGHT_APPLY_STATUS_RULES = 'preflight.applyStatusRules';

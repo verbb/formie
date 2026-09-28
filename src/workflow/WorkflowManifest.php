@@ -29,10 +29,10 @@ final class WorkflowManifest
 
         return [
             Stage::PREFLIGHT->value => [
-                new TaskDefinition('preflight.resolveNavigationIntent', new preflight\ResolveNavigationIntentTask(), $journey, true, true),
+                new TaskDefinition('preflight.resolveNavigationIntent', new preflight\ResolveNavigationIntentTask(), $journey, false, true),
                 new TaskDefinition('preflight.applySubmissionDefaults', new preflight\ApplySubmissionDefaultsTask(), $writes),
                 new TaskDefinition('preflight.clearHiddenValues', new preflight\ClearHiddenValuesTask(), $writes),
-                new TaskDefinition('preflight.enforceProgression', new preflight\EnforceProgressionTask(), $submit, true, true),
+                new TaskDefinition('preflight.enforceProgression', new preflight\EnforceProgressionTask(), $submit, false, true),
                 new TaskDefinition('preflight.resolveTransition', new preflight\ResolveTransitionTask(), $journey, true, true),
                 new TaskDefinition('preflight.captureMetadata', new preflight\CaptureMetadataTask(), $writes),
                 new TaskDefinition('preflight.applyStatusRules', new preflight\ApplyStatusRulesTask(), $submit, true, true),

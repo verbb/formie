@@ -45,7 +45,7 @@
 - Require structured, purpose-bound staged-upload references across server-rendered, client-rendered, REST and GraphQL submissions; bind accepted uploads to their exact form, field, owner and browser context before dispatch, with durable promotion recovery.
 - Remove beta draft-storage APIs, etags and `maxSavedDraftsPerSession`; existing beta resume links must be reissued after upgrading.
 - Replace beta submission workflow APIs with explicit operations, authorised commands, typed outcomes and six fixed stages with operation-scoped custom tasks.
-- Resolve progression and page transitions at the public Preflight anchors after hidden-value clearing, with validation consuming the selected transition.
+- Resolve progression and page transitions in Preflight after hidden-value clearing, while exposing only stable semantic task anchors and having validation consume the selected transition.
 - Require expected submission versions and retain bounded durable retry receipts to prevent duplicate and stale writes.
 - Require integrations to explicitly declare attributes that can be configured per form.
 - Require `verbb/base` 3.0.17 or later.
