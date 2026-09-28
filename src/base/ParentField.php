@@ -561,7 +561,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
                         $field->usageCount = null;
                     }
 
-                    if ($field instanceof NestedFieldInterface) {
+                    if ($field instanceof ParentFieldInterface) {
                         $this->_clearLayoutIdentifiers($field->getFieldLayout());
                         $field->nestedLayoutId = null;
                     }

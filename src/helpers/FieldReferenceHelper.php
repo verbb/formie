@@ -57,7 +57,7 @@ class FieldReferenceHelper
                 $map[$fullReference] = $fieldKey;
             }
 
-            if ($field instanceof ParentFieldInterface && method_exists($field, 'getFields')) {
+            if ($field instanceof ParentFieldInterface) {
                 $map += self::_buildClientFieldReferenceMap(
                     $field->getFields(),
                     $fullUid ?: $uidPrefix,

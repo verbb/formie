@@ -2,11 +2,15 @@
 
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
+use verbb\formie\base\FieldInterface;
+use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\Email;
+use verbb\formie\fields\Group;
 use verbb\formie\fields\MissingField;
 use verbb\formie\fields\Name;
 use verbb\formie\fields\SingleLineText;
+use verbb\formie\helpers\FieldReferenceHelper;
 use verbb\formie\helpers\FormSerializer;
 use verbb\formie\helpers\ImportExportHelper;
 use verbb\formie\models\FieldDefinition;
@@ -14,6 +18,34 @@ use verbb\formie\models\FieldLayout;
 use verbb\formie\services\Fields;
 use yii\base\Event;
 use yii\base\InvalidConfigException;
+
+class Workstream04LegacyParentSignatureField extends SingleLineText implements ParentFieldInterface
+{
+    private ?FieldLayout $_fieldLayout = null;
+
+    public function getRows(bool $includeDisabled = true, string|int|null $rowKey = null): array { return []; }
+    public function getFields(bool $includeDisabled = true, string|int|null $rowKey = null): array { return []; }
+    public function getFieldByHandle(string $handle): ?FieldInterface { return null; }
+    public function getFieldLayout(): FieldLayout { return $this->_fieldLayout ??= new FieldLayout(); }
+    public function hasFieldLayout(): bool { return true; }
+}
+
+class Workstream04NestedParentField extends Group
+{
+    protected function getNestedLayoutBuilderDisallowedFieldTypes(): array { return []; }
+}
+
+it('defines parent traversal structurally while accepting legacy optional signatures', function () {
+    $methods = array_map(fn(ReflectionMethod $method) => $method->getName(), (new ReflectionClass(ParentFieldInterface::class))->getMethods());
+    $field = new Workstream04LegacyParentSignatureField();
+
+    expect($methods)->toContain('getRows', 'getFields', 'getFieldByHandle', 'getFieldLayout', 'hasFieldLayout')
+        ->and($field->getRows(false, 'row'))->toBe([])
+        ->and($field->getFields(false, 'row'))->toBe([])
+        ->and($field->getFieldByHandle('missing'))->toBeNull()
+        ->and($field->getFieldLayout())->toBeInstanceOf(FieldLayout::class)
+        ->and($field->hasFieldLayout())->toBeTrue();
+});
 
 it('separates immutable definition metadata from runtime instance and keeps PHP aliases', function () {
     $form = formie()->form()->singleLineTextField('identity')->create();
@@ -190,6 +222,52 @@ it('remaps fixed and arbitrary nested children and conditions when duplicating a
             ->and($field->definitionId)->not->toBe($source[$index]->definitionId);
     }
     expect($copy->settings->submissionTitleFormat)->toBe('{field:' . $copy->getFields()[0]->reference . '}');
+});
+
+it('traverses and remaps nested parent fields at every depth', function () {
+    $service = Formie::$plugin->getFields();
+    $listener = function ($event) { $event->fields[] = Workstream04NestedParentField::class; };
+    Event::on(Fields::class, Fields::EVENT_REGISTER_FIELDS, $listener);
+    $service->resetFieldRegistryCache();
+
+    try {
+        $form = formie()->form()->addFieldConfig([
+            'type' => Workstream04NestedParentField::class,
+            'handle' => 'outer',
+            'label' => 'Outer',
+            'rows' => [['fields' => [[
+                'type' => Group::class,
+                'handle' => 'inner',
+                'label' => 'Inner',
+                'rows' => [['fields' => [[
+                    'type' => Email::class,
+                    'handle' => 'email',
+                    'label' => 'Email',
+                ]]]],
+            ]]]],
+        ])->create();
+        $sourceFields = $form->getFieldsRecursively();
+        $sourceParents = array_values(array_filter($sourceFields, fn($field) => $field instanceof ParentFieldInterface));
+        $sourceLeaf = current(array_filter($sourceFields, fn($field) => $field->handle === 'email'));
+        $referenceMap = FieldReferenceHelper::getClientFieldReferenceMap($form->getFields());
+        $copy = Formie::$plugin->getForms()->duplicateForm($form);
+        $copyParents = array_values(array_filter($copy->getFieldsRecursively(), fn($field) => $field instanceof ParentFieldInterface));
+
+        expect($sourceParents)->toHaveCount(2)
+            ->and($copyParents)->toHaveCount(2)
+            ->and($sourceLeaf)->toBeInstanceOf(Email::class)
+            ->and($referenceMap)->toHaveKey($sourceLeaf->reference)
+            ->and($referenceMap[$sourceLeaf->reference])->toBe($sourceLeaf->valueKey());
+
+        foreach ($copyParents as $index => $field) {
+            expect($field->id)->not->toBe($sourceParents[$index]->id)
+                ->and($field->uid)->not->toBe($sourceParents[$index]->uid)
+                ->and($field->nestedLayoutId)->not->toBe($sourceParents[$index]->nestedLayoutId);
+        }
+    } finally {
+        Event::off(Fields::class, Fields::EVENT_REGISTER_FIELDS, $listener);
+        $service->resetFieldRegistryCache();
+    }
 });
 
 it('rejects forged synced selections and fixed-child reparenting', function () {
