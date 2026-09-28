@@ -10,7 +10,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -64,7 +64,7 @@ class Agile extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -325,7 +325,7 @@ class Agile extends Crm
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -479,9 +479,9 @@ class Agile extends Crm
 
         $rules[] = [['apiKey', 'apiEmail', 'apiDomain'], 'required'];
 
-        $contact = $this->getFormSettingValue('contact');
-        $deal = $this->getFormSettingValue('deal');
-        $task = $this->getFormSettingValue('task');
+        $contact = $this->getConfigValue('contact');
+        $deal = $this->getConfigValue('deal');
+        $task = $this->getConfigValue('task');
 
         // Validate the following when saving form settings
         $rules[] = [

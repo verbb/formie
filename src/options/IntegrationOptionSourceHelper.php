@@ -393,12 +393,12 @@ class IntegrationOptionSourceHelper
             }
         }
 
-        if (method_exists($integration, 'getFormSettingsRefreshParams')) {
-            $params = $integration->getFormSettingsRefreshParams();
+        if (method_exists($integration, 'getConfigRefreshParams')) {
+            $params = $integration->getConfigRefreshParams();
+        }
 
-            if (is_array($params)) {
-                return $params;
-            }
+        if (isset($params) && is_array($params)) {
+            return $params;
         }
 
         return [];

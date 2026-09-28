@@ -6,7 +6,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -40,7 +40,7 @@ class Benchmark extends EmailMarketing
         return Craft::t('formie', 'Sign up users to your {name} lists to grow your audience for campaigns.', ['name' => static::displayName()]);
     }
 
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -89,7 +89,7 @@ class Benchmark extends EmailMarketing
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult

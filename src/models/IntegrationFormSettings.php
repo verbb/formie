@@ -5,8 +5,18 @@ use verbb\formie\helpers\ArrayHelper;
 
 use craft\base\Model;
 
+/** @deprecated in 4.0.0. Use IntegrationConfig. */
 class IntegrationFormSettings extends Model
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function fromConfig(IntegrationConfig $config): self
+    {
+        return new self($config->all());
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -27,6 +37,11 @@ class IntegrationFormSettings extends Model
     public function getSettings(): array
     {
         return $this->collections;
+    }
+
+    public function toConfig(): IntegrationConfig
+    {
+        return new IntegrationConfig($this->collections);
     }
 
     public function getSettingsByKey(string $key)

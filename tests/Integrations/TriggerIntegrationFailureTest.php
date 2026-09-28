@@ -7,7 +7,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\Formie;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\services\Integrations;
 
@@ -23,9 +23,9 @@ function integrationFailureTestIntegration(bool $shouldSucceed): Integration
             return 'Test Integration';
         }
 
-        public function fetchFormSettings(): IntegrationFormSettings
+        public function fetchConfig(): IntegrationConfig
         {
-            return new IntegrationFormSettings();
+            return new IntegrationConfig();
         }
 
         public function sendPayload(Submission $submission): bool
@@ -92,9 +92,9 @@ it('fires EVENT_AFTER_TRIGGER_INTEGRATION_FAILED when sendIntegrationPayload thr
             return 'Throwing Integration';
         }
 
-        public function fetchFormSettings(): IntegrationFormSettings
+        public function fetchConfig(): IntegrationConfig
         {
-            return new IntegrationFormSettings();
+            return new IntegrationConfig();
         }
 
         public function sendPayload(Submission $submission): bool
@@ -132,9 +132,9 @@ it('fires EVENT_AFTER_TRIGGER_INTEGRATION_FAILED when sendIntegrationPayload ret
             return 'Response Integration';
         }
 
-        public function fetchFormSettings(): IntegrationFormSettings
+        public function fetchConfig(): IntegrationConfig
         {
-            return new IntegrationFormSettings();
+            return new IntegrationConfig();
         }
 
         public function sendPayload(Submission $submission): IntegrationResponse

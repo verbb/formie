@@ -70,7 +70,7 @@ abstract class EmailMarketing extends Integration
         return Craft::$app->getView()->renderTemplate("formie/integrations/email-marketing/{$handle}/_plugin-settings", $variables);
     }
 
-    public function supportsFormSettingsRefresh(): bool
+    public function supportsConfigRefresh(): bool
     {
         return true;
     }
@@ -117,7 +117,7 @@ abstract class EmailMarketing extends Integration
             ],
         ];
 
-        $lists = $this->getFormSettingValue('lists');
+        $lists = $this->getConfigValue('lists');
         
         if (is_array($lists)) {
             foreach ($lists as $list) {
@@ -202,7 +202,7 @@ abstract class EmailMarketing extends Integration
 
     private function _getListSettings()
     {
-        $lists = $this->getFormSettingValue('lists');
+        $lists = $this->getConfigValue('lists');
 
         if ($list = ArrayHelper::firstWhere($lists, 'id', $this->listId)) {
             return $list;

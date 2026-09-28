@@ -14,7 +14,7 @@ use verbb\formie\events\ModifyFormIntegrationsEvent;
 use verbb\formie\Formie;
 use verbb\formie\helpers\IntegrationRerunPolicies;
 use verbb\formie\helpers\IntegrationTriggerEvents;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\SubmissionWorkflow;
@@ -29,9 +29,9 @@ function cpSaveIntegrationTestIntegration(string $handle = 'cpSaveTest'): Integr
             return 'CP Save Test';
         }
 
-        public function fetchFormSettings(): IntegrationFormSettings
+        public function fetchConfig(): IntegrationConfig
         {
-            return new IntegrationFormSettings();
+            return new IntegrationConfig();
         }
 
         public function sendPayload(Submission $submission): bool

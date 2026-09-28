@@ -16,7 +16,7 @@ use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -144,7 +144,7 @@ class Pardot extends Crm implements OAuthProviderInterface
         return parent::request($method, $uri, $options);
     }
 
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -394,7 +394,7 @@ class Pardot extends Crm implements OAuthProviderInterface
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -545,8 +545,8 @@ class Pardot extends Crm implements OAuthProviderInterface
 
         $rules[] = [['businessUnitId'], 'required'];
 
-        $prospect = $this->getFormSettingValue('prospect');
-        $opportunity = $this->getFormSettingValue('opportunity');
+        $prospect = $this->getConfigValue('prospect');
+        $opportunity = $this->getConfigValue('opportunity');
 
         // Validate the following when saving form settings
         $rules[] = [

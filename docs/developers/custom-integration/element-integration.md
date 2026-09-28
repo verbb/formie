@@ -61,7 +61,7 @@ public function sendPayload(Submission $submission): \verbb\formie\models\Integr
         $element->{$attribute} = $value;
     }
 
-    $fields = $this->getFormSettingValue('elements')->fields ?? [];
+    $fields = $this->getConfigValue('elements')->fields ?? [];
     $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
     $element->setFieldValues($fieldValues);

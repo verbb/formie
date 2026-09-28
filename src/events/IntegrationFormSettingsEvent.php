@@ -1,17 +1,13 @@
 <?php
 namespace verbb\formie\events;
 
-use verbb\formie\base\Integration;
 use verbb\formie\models\IntegrationFormSettings;
 
-use craft\events\CancelableEvent;
-
-class IntegrationFormSettingsEvent extends CancelableEvent
+/** @deprecated in 4.0.0. Use IntegrationConfigEvent. */
+class IntegrationFormSettingsEvent extends IntegrationConfigEvent
 {
     // Properties
     // =========================================================================
 
-    public ?Integration $integration = null;
     public ?IntegrationFormSettings $settings = null;
-    
 }

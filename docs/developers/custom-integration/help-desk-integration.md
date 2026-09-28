@@ -60,5 +60,5 @@ public function sendPayload(Submission $submission): \verbb\formie\models\Integr
 }
 ```
 
-If the provider has separate contact and ticket objects, treat them as separate collections in `IntegrationFormSettings` and expose separate field mappings in the schema.
+If the provider has separate contact and ticket objects, treat them as separate collections in `IntegrationConfig` and expose separate field mappings in the schema.
 

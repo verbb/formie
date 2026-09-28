@@ -27,7 +27,7 @@
 - Preserve explicit empty values, enforce server-populated values across resume, capture query prefill once, and evaluate Hidden value sources without changing reusable field definitions.
 - Standardise server-rendered and client-rendered products, separate CP edit configuration, and enforce the client-rendered contract across React, Vue and Web Components.
 - Require Formie origin allowlisting and explicit cross-origin public session credentials; share staged uploads and backend submission results across rendering products.
-- Separate global integration connections, annotated form bindings and non-secret builder metadata; isolate runtime instances and return explicit integration and batch results.
+- Use `IntegrationConfig` for globally cached non-secret builder metadata and immutable `FormIntegration` bindings for each form; isolate Formie 3 metadata APIs behind compatibility adapters, create fresh runtime instances and return explicit integration and batch results.
 - Run synchronous integrations before the queued lane and expose three notification timings with explicit completion policies.
 - Keep queue jobs immutable and small, encrypt literal integration settings and retained responses, and require validated public destinations and provider origins.
 - Store explicit integration mapping slot kinds, preserve Formie 3 tokens through compatibility parsing, and replace beta fluent variable APIs with namespaced source and transform definitions.

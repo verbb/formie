@@ -11,7 +11,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -160,7 +160,7 @@ class Zoho extends Crm implements OAuthProviderInterface
 
     public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
     {
-        $fields = is_string($fieldSettings) ? $this->getFormSettingValue($fieldSettings) : $fieldSettings;
+        $fields = is_string($fieldSettings) ? $this->getConfigValue($fieldSettings) : $fieldSettings;
         $fieldValues = parent::getFieldMappingValues($submission, $fieldMapping, $fields);
 
         foreach ($fieldValues as $handle => $value) {
@@ -174,7 +174,7 @@ class Zoho extends Crm implements OAuthProviderInterface
         return $fieldValues;
     }
 
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -202,7 +202,7 @@ class Zoho extends Crm implements OAuthProviderInterface
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -366,11 +366,11 @@ class Zoho extends Crm implements OAuthProviderInterface
     {
         $rules = parent::defineRules();
 
-        $contact = $this->getFormSettingValue('contact');
-        $deal = $this->getFormSettingValue('deal');
-        $lead = $this->getFormSettingValue('lead');
-        $account = $this->getFormSettingValue('account');
-        $quote = $this->getFormSettingValue('quote');
+        $contact = $this->getConfigValue('contact');
+        $deal = $this->getConfigValue('deal');
+        $lead = $this->getConfigValue('lead');
+        $account = $this->getConfigValue('account');
+        $quote = $this->getConfigValue('quote');
 
         // Validate the following when saving form settings
         $rules[] = [

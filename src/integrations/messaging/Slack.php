@@ -9,7 +9,7 @@ use verbb\formie\base\Messaging;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -92,7 +92,7 @@ class Slack extends Messaging implements OAuthProviderInterface
         return Craft::t('formie', 'Send your form content to Slack.');
     }
     
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -119,7 +119,7 @@ class Slack extends Messaging implements OAuthProviderInterface
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -232,7 +232,7 @@ class Slack extends Messaging implements OAuthProviderInterface
             'name' => 'channelId',
             'if' => 'channelType == "public"',
             'placeholder' => Craft::t('formie', 'Select an option'),
-            'options' => [], // Populated from fetchFormSettings (channels)
+            'options' => [], // Populated from fetchConfig (channels)
         ]);
         $schema[] = SchemaHelper::comboboxField([
             'label' => Craft::t('app', 'User'),
@@ -240,7 +240,7 @@ class Slack extends Messaging implements OAuthProviderInterface
             'name' => 'userId',
             'if' => 'channelType == "directMessage"',
             'placeholder' => Craft::t('formie', 'Select an option'),
-            'options' => [], // Populated from fetchFormSettings (members)
+            'options' => [], // Populated from fetchConfig (members)
         ]);
         $schema[] = SchemaHelper::textField([
             'label' => Craft::t('formie', 'Webhook URL'),

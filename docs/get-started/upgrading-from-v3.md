@@ -129,6 +129,25 @@ Formie 4 only saves and populates form-level integration attributes annotated wi
 
 Custom integrations that send to a URL configured on each form should use `requestPublicEndpoint()` or `deliverPayloadToPublicEndpoint()`. Provider API calls with fixed endpoints should continue to use `request()` or `deliverPayload()`.
 
+### Integration Config
+
+Formie 3 called provider metadata such as lists, fields, pipelines and channels “form settings.” Formie 4 calls this globally cached metadata `IntegrationConfig`, keeping it distinct from the settings saved for one form.
+
+Existing `fetchFormSettings(): IntegrationFormSettings` implementations continue through the Formie 3 compatibility adapter. New and updated integrations should use the canonical API:
+
+```php
+use verbb\formie\models\IntegrationConfig;
+
+public function fetchConfig(): IntegrationConfig
+{
+    return new IntegrationConfig([
+        'fields' => $this->fetchRemoteFields(),
+    ]);
+}
+```
+
+Use `getConfig()`, `refreshConfig()`, `supportsConfigRefresh()`, `EVENT_BEFORE_FETCH_CONFIG`, `EVENT_AFTER_FETCH_CONFIG`, and `IntegrationConfigEvent` in Formie 4 code. Formie 3's `fetchFormSettings()`, `getFormSettings()`, `getFormSettingValue()`, and form-settings events remain deprecated compatibility APIs.
+
 ### Captchas and Address Providers
 
 > [!CAUTION]

@@ -13,7 +13,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -77,7 +77,7 @@ class CalendarEvent extends Element
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
     
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $customFields = [];
 
@@ -94,7 +94,7 @@ class CalendarEvent extends Element
             }
         }
 
-        return new IntegrationFormSettings([
+        return new IntegrationConfig([
             'elements' => $customFields,
             'attributes' => $this->getElementAttributes(),
         ]);
@@ -445,7 +445,7 @@ class CalendarEvent extends Element
 
     private function _getCalendarSettings()
     {
-        $calendars = $this->getFormSettingValue('elements');
+        $calendars = $this->getConfigValue('elements');
 
         return ArrayHelper::firstWhere($calendars, 'id', $this->calendarId);
     }

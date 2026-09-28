@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\helpers\ArrayHelper;
+
 use InvalidArgumentException;
 
 /** Versioned, non-executable builder metadata. Expired data is display-only until refreshed. */
@@ -73,6 +75,7 @@ final class IntegrationConfig
         if (($value['version'] ?? null) !== self::VERSION || ($value['invalidationKey'] ?? '') !== $invalidationKey) {
             return new self([], $invalidationKey, 0);
         }
+
         return new self((array)($value['data'] ?? []), $invalidationKey, (int)($value['fetchedAt'] ?? 0));
     }
 
@@ -96,15 +99,27 @@ final class IntegrationConfig
     // Public Methods
     // =========================================================================
 
-    public function __construct(array $data, string $invalidationKey, int $fetchedAt)
+    public function __construct(array $data = [], string $invalidationKey = '', int $fetchedAt = 0)
     {
-        $data = self::encode($data);
-        if (strlen(json_encode($data, JSON_THROW_ON_ERROR)) > self::MAX_BYTES) {
+        // Round-trip through the storage codec so callers always receive inert,
+        // redacted metadata while retaining the known value objects they expect.
+        $encoded = self::encode($data);
+        if (strlen(json_encode($encoded, JSON_THROW_ON_ERROR)) > self::MAX_BYTES) {
             throw new InvalidArgumentException('Integration metadata exceeds the storage limit.');
         }
-        $this->data = $data;
+        $this->data = self::decode($encoded);
         $this->invalidationKey = $invalidationKey;
         $this->fetchedAt = $fetchedAt;
+    }
+
+    public function all(): array
+    {
+        return $this->data;
+    }
+
+    public function get(string $key, mixed $default = []): mixed
+    {
+        return ArrayHelper::getValue($this->data, $key) ?? $default;
     }
 
     public function isStale(?int $now = null): bool
@@ -114,6 +129,6 @@ final class IntegrationConfig
 
     public function toStorage(): array
     {
-        return ['version' => self::VERSION, 'fetchedAt' => $this->fetchedAt, 'invalidationKey' => $this->invalidationKey, 'data' => $this->data];
+        return ['version' => self::VERSION, 'fetchedAt' => $this->fetchedAt, 'invalidationKey' => $this->invalidationKey, 'data' => self::encode($this->data)];
     }
 }

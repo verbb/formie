@@ -68,7 +68,7 @@ Method | Use
 `getIconUrl()` | The icon URL shown in the control panel. Many core integrations use Formie’s default icon path for their category.
 `defineClient()` | Creates the Guzzle client used by `request()` and `deliverPayload()`.
 `fetchConnection()` | Checks whether the integration can connect to the provider.
-`fetchFormSettings()` | Fetches provider data used by the form builder, such as lists, fields, channels or element layouts.
+`fetchConfig()` | Fetches provider data used by the form builder, such as lists, fields, channels or element layouts.
 `defineFormSettingsSchema()` | Defines the integration settings shown inside a form’s Integrations tab.
 `#[FormIntegrationSetting]` | Annotates existing properties that Formie may hydrate for each form.
 `sendPayload()` | Sends or saves data after a submission has completed.
@@ -113,7 +113,7 @@ For registered integrations, Formie discards undeclared form values before savin
 
 If a declared form setting contains an outbound URL, send to it with `requestPublicEndpoint()` or `deliverPayloadToPublicEndpoint()`. These methods use a credential-free client, reject private and reserved network targets, disable redirects and pin DNS resolution. Continue using `request()` and `deliverPayload()` for the integration provider's fixed API endpoints.
 
-Many integrations also use field mapping. The helper expects provider fields that have already been fetched into `IntegrationFormSettings`.
+Many integrations also use field mapping. The helper expects provider fields that have already been fetched into `IntegrationConfig`.
 
 ```php
 protected function defineFormSettingsSchema(FormInterface $form): array
@@ -133,14 +133,15 @@ protected function defineFormSettingsSchema(FormInterface $form): array
 
 For a broader explanation of schema nodes, helpers, conditions and layout, see [Schema](/developers/schema).
 
-## Form Settings Data
-Use `fetchFormSettings()` to fetch data the form builder needs before a user configures the integration on a form. This data is cached by `getFormSettings()` and refreshed when the form builder asks Formie to refresh integration data.
+## Integration Config
+
+Use `fetchConfig()` to fetch data the form builder needs before a user configures the integration on a form. This data is cached by `getConfig()` and refreshed when the form builder asks Formie to refresh integration data.
 
 ```php
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 
-public function fetchFormSettings(): IntegrationFormSettings
+public function fetchConfig(): IntegrationConfig
 {
     $contactFields = [
         new IntegrationField([
@@ -154,13 +155,13 @@ public function fetchFormSettings(): IntegrationFormSettings
         ]),
     ];
 
-    return new IntegrationFormSettings([
+    return new IntegrationConfig([
         'contact' => $contactFields,
     ]);
 }
 ```
 
-`IntegrationFormSettings` can contain plain arrays, `IntegrationField` instances, and `IntegrationCollection` instances. Email marketing integrations often return lists, each with its own fields.
+`IntegrationConfig` can contain plain arrays, `IntegrationField` instances, and `IntegrationCollection` instances. Email marketing integrations often return lists, each with its own fields.
 
 ## Integration Option Sources
 
@@ -171,15 +172,15 @@ See [Option Sources](/developers/custom-integration/integration-option-sources) 
 ```php
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 
-public function fetchFormSettings(): IntegrationFormSettings
+public function fetchConfig(): IntegrationConfig
 {
-    $settings = [];
+    $config = [];
     $lists = $this->request('GET', 'lists');
 
     foreach ($lists as $list) {
-        $settings['lists'][] = new IntegrationCollection([
+        $config['lists'][] = new IntegrationCollection([
             'id' => (string)$list['id'],
             'name' => $list['name'],
             'fields' => [
@@ -192,7 +193,7 @@ public function fetchFormSettings(): IntegrationFormSettings
         ]);
     }
 
-    return new IntegrationFormSettings($settings);
+    return new IntegrationConfig($config);
 }
 ```
 

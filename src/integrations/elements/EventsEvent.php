@@ -13,7 +13,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -64,7 +64,7 @@ class EventsEvent extends Element
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
     
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $customFields = [];
 
@@ -80,7 +80,7 @@ class EventsEvent extends Element
             ]);
         }
 
-        return new IntegrationFormSettings([
+        return new IntegrationConfig([
             'elements' => $customFields,
             'attributes' => $this->getElementAttributes(),
         ]);
@@ -390,7 +390,7 @@ class EventsEvent extends Element
 
     private function _getEventTypeSettings()
     {
-        $eventTypes = $this->getFormSettingValue('elements');
+        $eventTypes = $this->getConfigValue('elements');
 
         return ArrayHelper::firstWhere($eventTypes, 'id', $this->eventTypeId);
     }
@@ -398,7 +398,7 @@ class EventsEvent extends Element
     private function _getEventTypeOptions(): array
     {
         $options = [];
-        $elements = $this->getFormSettingValue('elements');
+        $elements = $this->getConfigValue('elements');
         if (is_array($elements)) {
             foreach ($elements as $item) {
                 $id = $item->id ?? $item['id'] ?? null;
@@ -413,7 +413,7 @@ class EventsEvent extends Element
 
     private function _getFirstEventTypeId(): string
     {
-        $elements = $this->getFormSettingValue('elements');
+        $elements = $this->getConfigValue('elements');
         if (is_array($elements) && !empty($elements)) {
             $first = reset($elements);
             $id = $first->id ?? $first['id'] ?? null;

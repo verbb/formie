@@ -10,7 +10,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -57,7 +57,7 @@ class Capsule extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -269,7 +269,7 @@ class Capsule extends Crm
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -404,9 +404,9 @@ class Capsule extends Crm
 
         $rules[] = [['apiKey'], 'required'];
 
-        $people = $this->getFormSettingValue('people');
-        $opportunity = $this->getFormSettingValue('opportunity');
-        $task = $this->getFormSettingValue('task');
+        $people = $this->getConfigValue('people');
+        $opportunity = $this->getConfigValue('opportunity');
+        $task = $this->getConfigValue('task');
 
         // Validate the following when saving form settings
         $rules[] = [

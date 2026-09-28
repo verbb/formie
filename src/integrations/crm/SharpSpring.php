@@ -14,7 +14,7 @@ use verbb\formie\fields\Repeater;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -59,7 +59,7 @@ class SharpSpring extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -192,17 +192,10 @@ class SharpSpring extends Crm
             Integration::apiError($this, $e);
         }
 
-        // Because we have split settings for partial settings fetches, ensure we populate settings from cache
-        // So we need to un-serialize the cached form settings, and combine with any new settings and return
-        $cachedSettings = $this->getIntegrationConfig()->data;
+        // Partial refreshes retain metadata that was not requested this time.
+        $settings = array_merge($this->getConfig()->all(), $settings);
 
-        if ($cachedSettings) {
-            $formSettings = new IntegrationFormSettings();
-            $formSettings->unserialize($cachedSettings);
-            $settings = array_merge($formSettings->collections, $settings);
-        }
-
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -264,7 +257,7 @@ class SharpSpring extends Crm
 
         $rules[] = [['accountId', 'secretKey'], 'required'];
 
-        $contact = $this->getFormSettingValue('contact');
+        $contact = $this->getConfigValue('contact');
 
         // Validate the following when saving form settings
         $rules[] = [

@@ -14,7 +14,7 @@ Built-in examples:
 
 ## How It Works
 
-1. The integration fetches provider metadata in `fetchFormSettings()` and caches it through `getFormSettings()`.
+1. The integration fetches provider metadata in `fetchConfig()` and caches it through `getConfig()`.
 2. The integration declares option sources in `defineOptionSources()`.
 3. Authors configure a Dropdown, Radio or Checkboxes field with **Options → Integration**, pick the integration instance, then choose the collection and remote field that supplies options.
 4. At render and submit time, Formie resolves `{ label, value }` rows from the cached `IntegrationField` options.
@@ -53,11 +53,11 @@ Formie supports two cached storage shapes.
 
 ### Collections (`storage: collections`)
 
-Use when `fetchFormSettings()` returns an array of `IntegrationCollection` instances under a settings key.
+Use when `fetchConfig()` returns an array of `IntegrationCollection` instances under a config key.
 
 | Setting | Default | Purpose |
 | --- | --- | --- |
-| `collectionKey` | `lists` | The `IntegrationFormSettings` key that holds collections |
+| `collectionKey` | `lists` | The `IntegrationConfig` key that holds collections |
 | `storage` | `collections` | Read `IntegrationCollection[]` |
 
 Email marketing integrations commonly use `collectionKey: lists`. HubSpot forms use `collectionKey: forms`.
@@ -66,11 +66,11 @@ Each collection’s `fields` should include `IntegrationField` instances with an
 
 ### Objects (`storage: objects`)
 
-Use when `fetchFormSettings()` returns flat `IntegrationField[]` arrays keyed by CRM object, such as `contact`, `lead` or `deal`.
+Use when `fetchConfig()` returns flat `IntegrationField[]` arrays keyed by CRM object, such as `contact`, `lead` or `deal`.
 
 | Setting | Purpose |
 | --- | --- |
-| `objectKeys` | Which settings keys to expose as selectable collections |
+| `objectKeys` | Which config keys to expose as selectable collections |
 | `objectLabels` | Author-facing labels for each object key |
 | `optionSourceTypes` | Optional list of `IntegrationField::$sourceType` values to include (for example Salesforce `picklist` and `multipicklist`) |
 
@@ -147,7 +147,7 @@ Submissions store `{ value, label }` for dynamic integration fields.
 
 You usually do not call the resolver directly. For reference:
 
-- `IntegrationOptionSourceHelper::resolveOptions($provider, $params)` resolves rows from cached settings.
+- `IntegrationOptionSourceHelper::resolveOptions($provider, $params)` resolves rows from cached config.
 - `IntegrationOptionSourceResolver` handles fields implementing `OptionSourceFieldInterface`.
 - `OptionSources::EVENT_REGISTER_OPTION_SOURCE_RESOLVERS` registers additional resolvers if needed.
 

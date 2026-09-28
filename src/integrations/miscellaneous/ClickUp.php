@@ -8,7 +8,7 @@ use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -51,7 +51,7 @@ class ClickUp extends Miscellaneous
         return Craft::t('formie', 'Send your form content to ClickUp.');
     }
     
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -107,7 +107,7 @@ class ClickUp extends Miscellaneous
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -204,7 +204,7 @@ class ClickUp extends Miscellaneous
     {
         $schema = parent::defineFormSettingsSchema($form);
 
-        $lists = $this->getFormSettingValue('lists');
+        $lists = $this->getConfigValue('lists');
         $options = [['label' => Craft::t('formie', 'Select an option'), 'value' => '']];
         $fieldCollections = [];
         $listFields = [];
@@ -312,7 +312,7 @@ class ClickUp extends Miscellaneous
 
     private function _getListSettings(): array
     {
-        $lists = $this->getFormSettingValue('lists');
+        $lists = $this->getConfigValue('lists');
 
         if ($list = ArrayHelper::firstWhere($lists, 'id', $this->listId)) {
             return $list;

@@ -9,7 +9,7 @@ use verbb\formie\events\ModifyFormIntegrationsEvent;
 use verbb\formie\Formie;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\jobs\TriggerIntegration;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\IntegrationRunner;
 use verbb\formie\services\SubmissionWorkflow;
@@ -24,9 +24,9 @@ function executorTestIntegration(string $handle): Integration
             return 'Executor Test';
         }
 
-        public function fetchFormSettings(): IntegrationFormSettings
+        public function fetchConfig(): IntegrationConfig
         {
-            return new IntegrationFormSettings();
+            return new IntegrationConfig();
         }
 
         public bool $succeeds = true;

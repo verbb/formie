@@ -183,7 +183,7 @@ class IntegrationsController extends Controller
             ]);
 
             // Handball to the integration class to deal with the return.
-            return $this->asJson($integration->getFormSettings(false)->getSettings());
+            return $this->asJson($integration->refreshConfig()->all());
         } catch (Throwable $e) {
             throw $e;
         }

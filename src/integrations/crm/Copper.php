@@ -10,7 +10,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -62,7 +62,7 @@ class Copper extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
         try {
@@ -418,7 +418,7 @@ class Copper extends Crm
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -583,10 +583,10 @@ class Copper extends Crm
 
         $rules[] = [['apiKey', 'apiEmail'], 'required'];
 
-        $people = $this->getFormSettingValue('people');
-        $lead = $this->getFormSettingValue('lead');
-        $opportunity = $this->getFormSettingValue('opportunity');
-        $task = $this->getFormSettingValue('task');
+        $people = $this->getConfigValue('people');
+        $lead = $this->getConfigValue('lead');
+        $opportunity = $this->getConfigValue('opportunity');
+        $task = $this->getConfigValue('task');
 
         // Validate the following when saving form settings
         $rules[] = [

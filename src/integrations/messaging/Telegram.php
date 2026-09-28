@@ -9,7 +9,7 @@ use verbb\formie\base\Messaging;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -50,9 +50,9 @@ class Telegram extends Messaging
         return Craft::t('formie', 'Send your form content to Telegram.');
     }
     
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
-        return new IntegrationFormSettings([]);
+        return new IntegrationConfig([]);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult

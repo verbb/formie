@@ -18,7 +18,7 @@ use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 use verbb\formie\models\Stencil;
 
@@ -202,10 +202,10 @@ abstract class Element extends Integration
         return Craft::$app->getView()->renderTemplate("formie/integrations/elements/{$handle}/_plugin-settings", $variables);
     }
 
-    public function getFormSettings(bool $useCache = true): IntegrationFormSettings|bool
+    public function getConfig(bool $useCache = true): IntegrationConfig
     {
         // Always fetch, no real need for cache
-        return $this->fetchFormSettings();
+        return $this->fetchConfig();
     }
 
     public function populateQueueJobContext($submission, $endpoint, $payload, $method, $contentType): void

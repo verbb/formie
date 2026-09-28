@@ -13,7 +13,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -62,7 +62,9 @@ class Product extends Element
     public function getDescription(): string
     {
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
-    }    public function fetchFormSettings()
+    }
+
+    public function fetchConfig(): IntegrationConfig
     {
         $customFields = [];
 
@@ -78,7 +80,7 @@ class Product extends Element
             ]);
         }
 
-        return new IntegrationFormSettings([
+        return new IntegrationConfig([
             'elements' => $customFields,
             'attributes' => $this->getElementAttributes(),
         ]);
@@ -439,7 +441,7 @@ class Product extends Element
 
     private function _getProductTypeSettings()
     {
-        $productTypes = $this->getFormSettingValue('elements');
+        $productTypes = $this->getConfigValue('elements');
 
         return ArrayHelper::firstWhere($productTypes, 'id', $this->productTypeId);
     }
@@ -447,7 +449,7 @@ class Product extends Element
     private function _getProductTypeOptions(): array
     {
         $options = [];
-        $elements = $this->getFormSettingValue('elements');
+        $elements = $this->getConfigValue('elements');
         if (is_array($elements)) {
             foreach ($elements as $item) {
                 $id = $item->id ?? $item['id'] ?? null;
@@ -462,7 +464,7 @@ class Product extends Element
 
     private function _getFirstProductTypeId(): string
     {
-        $elements = $this->getFormSettingValue('elements');
+        $elements = $this->getConfigValue('elements');
         if (is_array($elements) && !empty($elements)) {
             $first = reset($elements);
             $id = $first->id ?? $first['id'] ?? null;

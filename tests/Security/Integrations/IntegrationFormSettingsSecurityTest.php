@@ -242,6 +242,7 @@ it('discards global integration settings when a form is persisted', function ():
             ->integrations([
                 'freshdesk' => [
                     'enabled' => true,
+                    'execution' => 'synchronous',
                     'apiDomain' => 'http://169.254.169.254/latest/meta-data/',
                     'apiKey' => 'form-secret',
                     'mapToContact' => true,
@@ -255,6 +256,7 @@ it('discards global integration settings when a form is persisted', function ():
 
         expect($savedSettings)->toBe([
             'enabled' => true,
+            'execution' => 'synchronous',
             'mapToContact' => true,
             'contactFieldMapping' => ['email' => ['kind' => 'literal', 'value' => 'email']],
         ]);
@@ -275,9 +277,12 @@ it('discards global integration settings when a form is persisted', function ():
             'mapToContact' => true,
         ]);
 
+        $binding = $registry->getFormIntegrationsForForm($savedForm)[0];
         $formIntegration = $registry->getAllEnabledIntegrationsForForm($savedForm)[0];
 
-        expect($formIntegration->apiDomain)->toBe('https://example.freshdesk.com')
+        expect($binding->execution)->toBe('synchronous')
+            ->and($binding->formId)->toBe($savedForm->id)
+            ->and($formIntegration->apiDomain)->toBe('https://example.freshdesk.com')
             ->and($formIntegration->apiKey)->toBe('global-secret')
             ->and($formIntegration->mapToContact)->toBeTrue()
             ->and($fixture->mapToContact)->toBeFalse();

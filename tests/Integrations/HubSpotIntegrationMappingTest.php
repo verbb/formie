@@ -8,7 +8,7 @@ use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\integrations\crm\HubSpot;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use Tests\Support\IntegrationTestHelper;
 use verbb\formie\helpers\ArrayHelper;
 
@@ -232,7 +232,7 @@ it('includes a hardcoded marketing consent in the HubSpot form submission payloa
             'legalConsentOptionsMarketing' => 'true',
         ],
     ]);
-    $settings = new IntegrationFormSettings([
+    $settings = new IntegrationConfig([
         'forms' => [
             new IntegrationCollection([
                 'id' => '123__abc',
@@ -249,7 +249,9 @@ it('includes a hardcoded marketing consent in the HubSpot form submission payloa
             ]),
         ],
     ]);
-    $integration->cache = ['settings' => $settings->serialize()];
+    $integration->cache = [
+        'config' => (new IntegrationConfig($settings->all(), $integration->getIntegrationConfigKey(), time()))->toStorage(),
+    ];
     $capturedPayload = null;
     $integration->on(Integration::EVENT_BEFORE_SEND_PAYLOAD, function(SendIntegrationPayloadEvent $event) use (&$capturedPayload): void {
         $capturedPayload = $event->payload;

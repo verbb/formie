@@ -13,7 +13,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -274,7 +274,7 @@ class HubSpot extends Crm
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
-    public function getFormSettingsRefreshParams(): array
+    public function getConfigRefreshParams(): array
     {
         return [
             'refreshForms' => true,
@@ -292,7 +292,7 @@ class HubSpot extends Crm
         return [];
     }
 
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -310,7 +310,7 @@ class HubSpot extends Crm
                         'error' => Integration::getExceptionLogMessage($e),
                     ]));
 
-                    $settings['customObjectSchemas'] = $this->getFormSettingValue('customObjectSchemas') ?? [];
+                    $settings['customObjectSchemas'] = $this->getConfigValue('customObjectSchemas') ?? [];
                 }
 
                 $forms = $this->request('GET', 'forms/v2/forms');
@@ -466,17 +466,10 @@ class HubSpot extends Crm
             Integration::apiError($this, $e);
         }
 
-        // Because we have split settings for partial settings fetches, enssure we populate settings from cache
-        // So we need to unserialize the cached form settings, and combine with any new settings and return
-        $cachedSettings = $this->getIntegrationConfig()->data;
+        // Partial refreshes retain metadata that was not requested this time.
+        $settings = array_merge($this->getConfig()->all(), $settings);
 
-        if ($cachedSettings) {
-            $formSettings = new IntegrationFormSettings();
-            $formSettings->unserialize($cachedSettings);
-            $settings = array_merge($formSettings->collections, $settings);
-        }
-
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
     public function sendPayload(Submission $submission): IntegrationResult
     {
@@ -834,7 +827,7 @@ class HubSpot extends Crm
         // When mapping to forms, the field settings will be an array of `IntegrationCollection` objects.
         // So we need to select the form's settings that we're mapping to and return just the field.
         if ($fieldSettings === 'forms') {
-            $collections = $this->getFormSettingValue($fieldSettings);
+            $collections = $this->getConfigValue($fieldSettings);
 
             foreach ($collections as $collection) {
                 if ($collection->id === $this->formId) {
@@ -856,8 +849,8 @@ class HubSpot extends Crm
 
         $rules[] = [['accessToken'], 'required'];
 
-        $contact = $this->getFormSettingValue('contact');
-        $deal = $this->getFormSettingValue('deal');
+        $contact = $this->getConfigValue('contact');
+        $deal = $this->getConfigValue('deal');
 
         // Validate the following when saving form settings
         $rules[] = [
@@ -1109,7 +1102,7 @@ class HubSpot extends Crm
 
     private function _getField(string $dataHandle, string $dataId, string $fieldHandle): array
     {
-        $objects = $this->getFormSettingValue($dataHandle);
+        $objects = $this->getConfigValue($dataHandle);
 
         foreach ($objects as $object) {
             if (ArrayHelper::getValue($object, 'id') === $dataId) {
@@ -1274,7 +1267,7 @@ class HubSpot extends Crm
 
     private function _getCustomObjectSchemas(): array
     {
-        $schemas = $this->getFormSettingValue('customObjectSchemas');
+        $schemas = $this->getConfigValue('customObjectSchemas');
 
         return is_array($schemas) ? $schemas : [];
     }

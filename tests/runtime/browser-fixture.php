@@ -96,9 +96,10 @@ $referenceIntegration = new \verbb\formie\integrations\helpdesk\Freshdesk([
 if (!\verbb\formie\Formie::$plugin->getIntegrations()->saveIntegration($referenceIntegration, false)) {
     throw new RuntimeException('Cannot save reference picker integration fixture.');
 }
-$referenceIntegration->cache = ['connection' => 'success', 'settings' => (new \verbb\formie\models\IntegrationFormSettings([
+$referenceConfig = new \verbb\formie\models\IntegrationConfig([
     'contact' => [new \verbb\formie\models\IntegrationField(['handle' => 'name', 'name' => 'Contact name'])],
-]))->serialize()];
+], $referenceIntegration->getIntegrationConfigKey(), time());
+$referenceIntegration->cache = ['connection' => 'success', 'config' => $referenceConfig->toStorage()];
 Craft::$app->getDb()->createCommand()->update(\verbb\formie\helpers\Table::FORMIE_INTEGRATIONS, ['cache' => \craft\helpers\Json::encode($referenceIntegration->cache)], ['id' => $referenceIntegration->id])->execute();
 $referencePicker = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Reference picker contract', 'handle' => 'referencePickerContract'])
     ->singleLineTextField('contactName', ['label' => 'Contact name'])

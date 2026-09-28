@@ -9,7 +9,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -57,7 +57,7 @@ class ActiveCampaign extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -218,7 +218,7 @@ class ActiveCampaign extends Crm
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -462,9 +462,9 @@ class ActiveCampaign extends Crm
 
         $rules[] = [['apiKey', 'apiUrl'], 'required'];
 
-        $contact = $this->getFormSettingValue('contact');
-        $deal = $this->getFormSettingValue('deal');
-        $account = $this->getFormSettingValue('account');
+        $contact = $this->getConfigValue('contact');
+        $deal = $this->getConfigValue('deal');
+        $account = $this->getConfigValue('account');
 
         // Validate the following when saving form settings
         $rules[] = [

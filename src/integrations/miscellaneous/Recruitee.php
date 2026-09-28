@@ -10,7 +10,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -51,7 +51,7 @@ class Recruitee extends Miscellaneous
         return Craft::t('formie', 'Apply for Recruitee job offers.');
     }
 
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -104,13 +104,13 @@ class Recruitee extends Miscellaneous
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
     {
         // A quick shortcut to keep CRM's simple, just pass in a string to the namespace
-        $fields = $this->getFormSettingValue($fieldSettings);
+        $fields = $this->getConfigValue($fieldSettings);
 
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
     }
@@ -181,7 +181,7 @@ class Recruitee extends Miscellaneous
 
         $rules[] = [['apiKey', 'subdomain'], 'required'];
 
-        $candidate = $this->getFormSettingValue('candidate');
+        $candidate = $this->getConfigValue('candidate');
 
         // Validate the following when saving form settings
         $rules[] = [
@@ -211,7 +211,7 @@ class Recruitee extends Miscellaneous
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Candidates']),
         ]);
 
-        $candidate = $this->getFormSettingValue('candidate');
+        $candidate = $this->getConfigValue('candidate');
         $schemaFields = is_array($candidate) ? $this->convertIntegrationFieldsToSchema($candidate) : [];
         $candidateMappingSchema = array_map(fn(array $f) => SchemaHelper::fieldSelectField([
             'name' => $f['handle'],

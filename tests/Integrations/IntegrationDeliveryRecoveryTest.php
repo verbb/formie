@@ -16,7 +16,7 @@ it('stops a swallowed transport failure from being retried and requires reconcil
         protected function createDeliveryHttpHandler(): callable { return self::$mockClient->getConfig('handler'); }
         public function getClient() { return self::$mockClient; }
         public static function displayName(): string { return 'Recovery fixture'; }
-        public function fetchFormSettings(): \verbb\formie\models\IntegrationFormSettings { return new \verbb\formie\models\IntegrationFormSettings(); }
+        public function fetchConfig(): \verbb\formie\models\IntegrationConfig { return new \verbb\formie\models\IntegrationConfig(); }
         public function sendPayload(\verbb\formie\elements\Submission $submission): bool {
             self::$calls++;
             try {

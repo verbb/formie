@@ -81,7 +81,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 
 class ExampleEmailMarketing extends EmailMarketing
 {
@@ -112,9 +112,9 @@ class ExampleEmailMarketing extends EmailMarketing
         ]);
     }
 
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
-        $settings = [];
+        $config = [];
 
         try {
             $response = $this->request('GET', 'lists');
@@ -137,7 +137,7 @@ class ExampleEmailMarketing extends EmailMarketing
                     ]),
                 ];
 
-                $settings['lists'][] = new IntegrationCollection([
+                $config['lists'][] = new IntegrationCollection([
                     'id' => (string)$list['id'],
                     'name' => $list['name'] . ' (' . $list['id'] . ')',
                     'fields' => $listFields,
@@ -147,7 +147,7 @@ class ExampleEmailMarketing extends EmailMarketing
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($config);
     }
 
     public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
@@ -230,7 +230,7 @@ Use `$this->request('GET', 'lists')` for JSON APIs — Formie decodes responses 
 
 ### Fetching Lists and Mappable Fields
 
-When an editor opens the **Integrations** tab on a form, Formie needs to know which lists exist and which fields can be mapped on each list. That is what `fetchFormSettings()` returns.
+When an editor opens the **Integrations** tab on a form, Formie needs to know which lists exist and which fields can be mapped on each list. That is what `fetchConfig()` returns.
 
 Email marketing integrations use **`IntegrationCollection`** for each list — not plain object keys like CRM contacts and deals. Each collection has:
 
@@ -240,14 +240,16 @@ Email marketing integrations use **`IntegrationCollection`** for each list — n
 | `name` | Label shown in the list picker |
 | `fields` | Array of `IntegrationField` instances mappable on that list |
 
-Return them under the `lists` key inside `IntegrationFormSettings`:
+Return them under the `lists` key inside `IntegrationConfig`:
 
 ```php
-$settings['lists'][] = new IntegrationCollection([
+$lists[] = new IntegrationCollection([
     'id' => (string) $list['id'],
     'name' => $list['name'],
     'fields' => $listFields,
 ]);
+
+return new IntegrationConfig(['lists' => $lists]);
 ```
 
 The `EmailMarketing` base class renders the list selector and field-mapping UI from this data. When you call `getFieldMappingValues($submission, $this->fieldMapping)` in `sendPayload()`, Formie resolves values for the list the editor selected on this form.

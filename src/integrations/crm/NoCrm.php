@@ -8,7 +8,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -50,7 +50,7 @@ class NoCrm extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -86,7 +86,7 @@ class NoCrm extends Crm
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -147,7 +147,7 @@ class NoCrm extends Crm
 
         $rules[] = [['apiKey', 'apiDomain'], 'required'];
 
-        $lead = $this->getFormSettingValue('lead');
+        $lead = $this->getConfigValue('lead');
 
         // Validate the following when saving form settings
         $rules[] = [

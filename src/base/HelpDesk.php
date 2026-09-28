@@ -60,7 +60,7 @@ abstract class HelpDesk extends Integration
     public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
     {
         // A quick shortcut to keep CRM's simple, just pass in a string to the namespace
-        $fields = $this->getFormSettingValue($fieldSettings);
+        $fields = $this->getConfigValue($fieldSettings);
 
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
     }

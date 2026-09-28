@@ -32,7 +32,7 @@ class GuardedOAuthIntegrationFixture extends Integration
     public function getOAuthProviderConfig(): array {
         return ['clientId' => 'synthetic-id', 'clientSecret' => 'synthetic-secret', 'urlAuthorize' => 'https://example.com/oauth/authorize', 'urlAccessToken' => 'https://example.com/oauth/token', 'urlResourceOwnerDetails' => 'https://example.com/api/me'];
     }
-    public function fetchFormSettings(): \verbb\formie\models\IntegrationFormSettings { return new \verbb\formie\models\IntegrationFormSettings(); }
+    public function fetchConfig(): \verbb\formie\models\IntegrationConfig { return new \verbb\formie\models\IntegrationConfig(); }
     protected function createDeliveryHttpHandler(): callable { return self::$transport; }
 }
 

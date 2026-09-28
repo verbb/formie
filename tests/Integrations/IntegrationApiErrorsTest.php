@@ -96,9 +96,9 @@ it('defaults integrations without severity handling to unsupported', function ()
             return 'Custom';
         }
 
-        public function fetchFormSettings(): \verbb\formie\models\IntegrationFormSettings
+        public function fetchConfig(): \verbb\formie\models\IntegrationConfig
         {
-            return new \verbb\formie\models\IntegrationFormSettings();
+            return new \verbb\formie\models\IntegrationConfig();
         }
 
         public function sendPayload(Submission $submission): bool

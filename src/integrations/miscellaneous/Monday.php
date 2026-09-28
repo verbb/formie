@@ -13,7 +13,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -56,7 +56,7 @@ class Monday extends Miscellaneous
         return Craft::t('formie', 'Send your form content to Monday.');
     }
     
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -84,7 +84,7 @@ class Monday extends Miscellaneous
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -365,7 +365,7 @@ class Monday extends Miscellaneous
 
     private function _getBoardSettings(?string $boardId = null): array
     {
-        $boards = $this->getFormSettingValue('boards');
+        $boards = $this->getConfigValue('boards');
         $selectedBoardId = $boardId ?? $this->boardId ?? '';
 
         if (!is_array($boards)) {
@@ -390,7 +390,7 @@ class Monday extends Miscellaneous
     private function _getBoardOptions(): array
     {
         $options = [];
-        $boards = $this->getFormSettingValue('boards');
+        $boards = $this->getConfigValue('boards');
 
         if (!is_array($boards)) {
             return $options;
@@ -415,7 +415,7 @@ class Monday extends Miscellaneous
 
     private function _getFirstBoardId(): string
     {
-        $boards = $this->getFormSettingValue('boards');
+        $boards = $this->getConfigValue('boards');
 
         if (!is_array($boards) || empty($boards)) {
             return '';

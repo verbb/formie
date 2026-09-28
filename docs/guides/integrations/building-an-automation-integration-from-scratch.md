@@ -82,7 +82,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\Formie;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 
 class ExampleAutomation extends Automation
 {
@@ -108,7 +108,7 @@ class ExampleAutomation extends Automation
         return $rules;
     }
 
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $payload = [];
 
@@ -139,7 +139,7 @@ class ExampleAutomation extends Automation
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings(['payload' => $payload]);
+        return new IntegrationConfig(['payload' => $payload]);
     }
 
     public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
@@ -244,7 +244,7 @@ Prefer `$this->deliverPayload()` over calling the client directly — it fires p
 
 ### Test Payload from the Builder
 
-`fetchFormSettings()` runs when an editor refreshes or tests the integration while editing a form. That is your chance to send a **sample request** to the configured URL so the editor can verify the endpoint before going live.
+`fetchConfig()` runs when an editor refreshes or tests the integration while editing a form. That is your chance to send a **sample request** to the configured URL so the editor can verify the endpoint before going live.
 
 The pattern:
 
@@ -253,7 +253,7 @@ The pattern:
 3. Build the payload with `generatePayloadValues($submission)`.
 4. Call `deliverPayload()` against the URL from form settings.
 
-Return `IntegrationFormSettings` with the payload so the control panel can display what was sent. Errors flow through `Integration::apiError()` and appear in the UI.
+Return `IntegrationConfig` with the payload so the control panel can display what was sent. Errors flow through `Integration::apiError()` and appear in the UI.
 
 ### Sending the Payload on Submit
 

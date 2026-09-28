@@ -59,7 +59,7 @@ abstract class Crm extends Integration
         return Craft::$app->getView()->renderTemplate("formie/integrations/crm/{$handle}/_plugin-settings", $variables);
     }
 
-    public function supportsFormSettingsRefresh(): bool
+    public function supportsConfigRefresh(): bool
     {
         return true;
     }
@@ -68,7 +68,7 @@ abstract class Crm extends Integration
     {
         // A quick shortcut to keep CRM's simple, just pass in a string to the namespace
         if (is_string($fieldSettings)) {
-            $fields = $this->getFormSettingValue($fieldSettings);
+            $fields = $this->getConfigValue($fieldSettings);
         } else {
             $fields = $fieldSettings;
         }
@@ -91,7 +91,7 @@ abstract class Crm extends Integration
     protected function getCollectionOptions(string $settingsKey): array
     {
         $options = [];
-        $collections = $this->getFormSettingValue($settingsKey);
+        $collections = $this->getConfigValue($settingsKey);
 
         if (!is_array($collections)) {
             return $options;

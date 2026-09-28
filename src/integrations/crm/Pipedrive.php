@@ -11,7 +11,7 @@ use verbb\formie\fields\Phone;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -95,7 +95,7 @@ class Pipedrive extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -214,7 +214,7 @@ class Pipedrive extends Crm
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -298,7 +298,7 @@ class Pipedrive extends Crm
                             $personPayload,
                             'person',
                             $existingPersonId,
-                            $this->_getMultiOptionFieldHandles($this->getFormSettingValue('person') ?? []),
+                            $this->_getMultiOptionFieldHandles($this->getConfigValue('person') ?? []),
                         );
                     }
 
@@ -514,11 +514,11 @@ class Pipedrive extends Crm
 
         $rules[] = [['apiKey'], 'required'];
 
-        $person = $this->getFormSettingValue('person');
-        $deal = $this->getFormSettingValue('deal');
-        $lead = $this->getFormSettingValue('lead');
-        $organization = $this->getFormSettingValue('organization');
-        $note = $this->getFormSettingValue('note');
+        $person = $this->getConfigValue('person');
+        $deal = $this->getConfigValue('deal');
+        $lead = $this->getConfigValue('lead');
+        $organization = $this->getConfigValue('organization');
+        $note = $this->getConfigValue('note');
 
         // Validate the following when saving form settings
         $rules[] = [

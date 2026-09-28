@@ -80,7 +80,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 
 class ExampleCrm extends Crm
 {
@@ -105,8 +105,8 @@ class ExampleCrm extends Crm
         $rules = parent::defineRules();
         $rules[] = [['apiKey'], 'required'];
 
-        $contact = $this->getFormSettingValue('contact');
-        $deal = $this->getFormSettingValue('deal');
+        $contact = $this->getConfigValue('contact');
+        $deal = $this->getConfigValue('deal');
 
         $rules[] = [
             ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
@@ -130,7 +130,7 @@ class ExampleCrm extends Crm
         ]);
     }
 
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         try {
             $contactFields = [
@@ -166,14 +166,14 @@ class ExampleCrm extends Crm
                 ]),
             ];
 
-            return new IntegrationFormSettings([
+            return new IntegrationConfig([
                 'contact' => $contactFields,
                 'deal' => $dealFields,
             ]);
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
-            return new IntegrationFormSettings();
+            return new IntegrationConfig();
         }
     }
 
@@ -300,14 +300,14 @@ $json = Json::decode((string) $response->getBody());
 
 Use `fetchConnection()` for a lightweight test request when an editor clicks **Test connection** in the control panel. Any exception should flow through `Integration::apiError()` so the message appears in the UI and in logs.
 
-### Fetching Form Settings
+### Fetching Integration Config
 
 When an editor opens the **Integrations** tab on a form, Formie needs to know which CRM fields can be mapped. CRM integrations usually support multiple **objects** — contacts, deals, leads, accounts, opportunities, and so on.
 
-`fetchFormSettings()` returns an `IntegrationFormSettings` object: a keyed array where each key is an object handle (`contact`, `deal`, …) and each value is a list of `IntegrationField` instances.
+`fetchConfig()` returns an `IntegrationConfig` object: a keyed array where each key is an object handle (`contact`, `deal`, …) and each value is a list of `IntegrationField` instances.
 
 ```php
-return new IntegrationFormSettings([
+return new IntegrationConfig([
     'contact' => $contactFields,
     'deal' => $dealFields,
 ]);
@@ -352,7 +352,7 @@ Start with `parent::defineFormSettingsSchema($form)`. The parent schema already 
 For each CRM object you support, add:
 
 1. A lightswitch (`mapToContact`, `mapToDeal`, …) so editors can turn that object on for this form.
-2. A field-mapping block via `getIntegrationFieldMappingField()`, with `dataKey` matching the key you used in `fetchFormSettings()`.
+2. A field-mapping block via `getIntegrationFieldMappingField()`, with `dataKey` matching the key you used in `fetchConfig()`.
 
 The `if` attribute hides the mapping UI until the lightswitch is on. When an editor saves the form, values land on the public properties you declared on the class (`$mapToContact`, `$contactFieldMapping`, etc.).
 
@@ -407,7 +407,7 @@ Use Craft's `autosuggestField` so editors can pick `$ENV_VAR` names for secrets.
 
 For each enabled object:
 
-1. Call `getFieldMappingValues($submission, $this->contactFieldMapping, 'contact')` — the third argument must match the object key from `fetchFormSettings()`.
+1. Call `getFieldMappingValues($submission, $this->contactFieldMapping, 'contact')` — the third argument must match the object key from `fetchConfig()`.
 2. Build the array shape your provider's API expects.
 3. Send it with `deliverPayload($submission, 'contacts', $payload)`.
 
@@ -439,7 +439,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\integrations\crm\Salesforce;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 
 class SalesforceCustom extends Salesforce
 {
@@ -449,7 +449,7 @@ class SalesforceCustom extends Salesforce
     public function defineRules(): array
     {
         $rules = parent::defineRules();
-        $pipeline = $this->getFormSettingValue('pipeline');
+        $pipeline = $this->getConfigValue('pipeline');
 
         $rules[] = [
             ['pipelineFieldMapping'], 'validateFieldMapping', 'params' => $pipeline, 'when' => function($model) {
@@ -460,18 +460,16 @@ class SalesforceCustom extends Salesforce
         return $rules;
     }
 
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
-        $settings = parent::fetchFormSettings();
+        $config = parent::fetchConfig();
 
-        $settings->setSettings(array_merge($settings->getSettings(), [
+        return new IntegrationConfig(array_merge($config->all(), [
             'pipeline' => [
                 new IntegrationField(['handle' => 'name', 'name' => Craft::t('formie', 'Name')]),
                 new IntegrationField(['handle' => 'value', 'name' => Craft::t('formie', 'Value')]),
             ],
         ]));
-
-        return $settings;
     }
 
     public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult

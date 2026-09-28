@@ -9,13 +9,14 @@ use verbb\formie\integrations\crm\Zoho;
 use verbb\formie\integrations\emailmarketing\Mailchimp;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\options\IntegrationOptionSourceHelper;
 
-function primeIntegrationSettings(object $integration, IntegrationFormSettings $settings): void
+function primeIntegrationConfig(object $integration, IntegrationConfig $config): void
 {
+    $config = new IntegrationConfig($config->all(), $integration->getIntegrationConfigKey(), time());
     $integration->cache = [
-        'settings' => $settings->serialize(),
+        'config' => $config->toStorage(),
     ];
 }
 
@@ -41,7 +42,7 @@ it('registers integration option source providers for top integrations', functio
 it('exposes HubSpot form refresh params for integration and option source refresh', function (): void {
     $integration = new HubSpot(['name' => 'HubSpot', 'handle' => 'hubspot']);
 
-    expect($integration->getFormSettingsRefreshParams())->toBe(['refreshForms' => true])
+    expect($integration->getConfigRefreshParams())->toBe(['refreshForms' => true])
         ->and($integration->getOptionSourceRefreshParams('hubspot-forms'))->toBe(['refreshForms' => true])
         ->and($integration->getOptionSourceRefreshParams('hubspot-properties'))->toBe([]);
 });
@@ -49,7 +50,7 @@ it('exposes HubSpot form refresh params for integration and option source refres
 it('resolves Mailchimp interest options from cached list settings', function (): void {
     $integration = new Mailchimp(['name' => 'Mailchimp', 'handle' => 'mailchimp']);
 
-    primeIntegrationSettings($integration, new IntegrationFormSettings([
+    primeIntegrationConfig($integration, new IntegrationConfig([
         'lists' => [
             new IntegrationCollection([
                 'id' => 'list-1',
@@ -85,7 +86,7 @@ it('resolves Mailchimp interest options from cached list settings', function ():
 it('resolves HubSpot form fields from cached form settings', function (): void {
     $integration = new HubSpot(['name' => 'HubSpot', 'handle' => 'hubspot']);
 
-    primeIntegrationSettings($integration, new IntegrationFormSettings([
+    primeIntegrationConfig($integration, new IntegrationConfig([
         'forms' => [
             new IntegrationCollection([
                 'id' => '123__abc',
@@ -121,7 +122,7 @@ it('resolves HubSpot form fields from cached form settings', function (): void {
 it('resolves CRM object picklists from cached field mapping settings', function (): void {
     $integration = new Salesforce(['name' => 'Salesforce', 'handle' => 'salesforce']);
 
-    primeIntegrationSettings($integration, new IntegrationFormSettings([
+    primeIntegrationConfig($integration, new IntegrationConfig([
         'contact' => [
             new IntegrationField([
                 'handle' => 'LeadSource',
@@ -178,7 +179,7 @@ it('returns builder warnings when cached integration settings are empty', functi
 it('resolves Dynamics 365 picklist rows for validation ranges', function (): void {
     $integration = new MicrosoftDynamics365(['name' => 'Dynamics', 'handle' => 'dynamics365']);
 
-    primeIntegrationSettings($integration, new IntegrationFormSettings([
+    primeIntegrationConfig($integration, new IntegrationConfig([
         'contact' => [
             new IntegrationField([
                 'handle' => 'industrycode',

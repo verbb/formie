@@ -5,7 +5,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\IntegrationStatus;
 use verbb\formie\enums\SubmissionOperation;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 use verbb\formie\models\Notification;
 use verbb\formie\services\Emails;
@@ -18,7 +18,7 @@ class NotificationTimingProvider extends Integration
     public IntegrationStatus $fixtureStatus = IntegrationStatus::Succeeded;
     public static array $calls = [];
     public static function displayName(): string { return 'Timing fixture'; }
-    public function fetchFormSettings(): IntegrationFormSettings { return new IntegrationFormSettings(); }
+    public function fetchConfig(): IntegrationConfig { return new IntegrationConfig(); }
     public function shouldTrigger(Submission $submission, array $triggerContext = []): bool { return true; }
     public function sendPayload(Submission $submission): IntegrationResult {
         self::$calls[] = $this->handle;

@@ -15,7 +15,7 @@ use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 use verbb\formie\references\ReferenceSlot;
 use verbb\formie\references\ReferenceSlotKind;
@@ -64,7 +64,7 @@ class User extends Element
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
     
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $customFields = [];
 
@@ -77,7 +77,7 @@ class User extends Element
             'fields' => $fields,
         ]);
 
-        return new IntegrationFormSettings([
+        return new IntegrationConfig([
             'elements' => $customFields,
             'attributes' => $this->getElementAttributes(),
         ]);
@@ -284,7 +284,7 @@ class User extends Element
             // Set the attributes on the user element
             $this->_setElementAttributes($user, $attributeValues);
 
-            $fields = $this->getFormSettingValue('elements')[0]->fields ?? [];
+            $fields = $this->getConfigValue('elements')[0]->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
             // Filter null values
@@ -462,7 +462,7 @@ class User extends Element
     {
         $rules = parent::defineRules();
 
-        $fields = $this->getFormSettingValue('elements')[0]->fields ?? [];
+        $fields = $this->getConfigValue('elements')[0]->fields ?? [];
 
         $rules[] = [
             ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
@@ -502,7 +502,7 @@ class User extends Element
             'integrationFields' => $this->convertIntegrationFieldsToSchema($this->getElementAttributes()),
         ]);
 
-        $elements = $this->getFormSettingValue('elements');
+        $elements = $this->getConfigValue('elements');
         $userFields = [];
         if (is_array($elements) && isset($elements[0])) {
             $userFields = is_array($elements[0]) ? ($elements[0]['fields'] ?? []) : ($elements[0]->fields ?? []);

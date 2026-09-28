@@ -46,9 +46,9 @@ class IntegrationRunner extends Component
 
     public function resolveEnabledHandles(Form $form): array
     {
-        return array_values(array_map(fn($integration) => $integration->handle, array_filter(
-            Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form),
-            fn($integration) => $integration->supportsPayloadSending(),
+        return array_values(array_map(fn(FormIntegration $binding) => $binding->integration->handle, array_filter(
+            Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($form),
+            fn(FormIntegration $binding) => $binding->integration->supportsPayloadSending(),
         )));
     }
 
@@ -61,13 +61,13 @@ class IntegrationRunner extends Component
         }
         $executionKey ??= DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
         $available = [];
-        foreach (Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form) as $integration) {
-            $available[$integration->handle] = $integration;
+        foreach (Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($form) as $binding) {
+            $available[$binding->integration->handle] = $binding;
         }
         $stopped = (bool)($triggerContext['skipRemaining'] ?? false);
         foreach ($handles as $handle) {
-            $integration = $available[$handle] ?? null;
-            if ($stopped || !$integration instanceof Integration || !$integration->supportsPayloadSending()) {
+            $binding = $available[$handle] ?? null;
+            if ($stopped || !$binding instanceof FormIntegration || !$binding->integration instanceof Integration || !$binding->integration->supportsPayloadSending()) {
                 $result = IntegrationResult::skipped($stopped ? 'previous_step_failed' : 'disabled_or_missing');
                 $context = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, $handle, $executionKey, $triggerContext['execution'] ?? 'synchronous');
                 $attempts = Formie::$plugin->getDeliveryAttempts();
@@ -77,8 +77,9 @@ class IntegrationRunner extends Component
                 $batch->record($handle, $result);
                 continue;
             }
+            $integration = $binding->createRuntime();
             if (isset($triggerContext['bindings'][$handle])) {
-                $integration = FormIntegration::fromSettings($integration, $triggerContext['bindings'][$handle])->createRuntime($integration);
+                $integration = FormIntegration::fromSettings($binding->integration, $triggerContext['bindings'][$handle], $form->getId(), $form->getHandle())->createRuntime();
             }
             $execution = $triggerContext['execution'] ?? 'synchronous';
             $result = $this->runIntegration($integration, $submission, $executionKey, $execution, $triggerContext);
@@ -115,8 +116,8 @@ class IntegrationRunner extends Component
         $identity = $executionKey ?? DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
         $context = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, '@dispatch', $identity, 'queued');
         $bindings = [];
-        foreach (Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($submission->getForm()) as $integration) {
-            $bindings[$integration->handle] = FormIntegration::filterSettings($integration, ['enabled' => $integration->getEnabled()] + $integration->getAttributes());
+        foreach (Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($submission->getForm()) as $binding) {
+            $bindings[$binding->integration->handle] = $binding->toSettings();
         }
         $triggerContext['bindings'] = $bindings;
         $uid = Formie::$plugin->getDeliveryAttempts()->prepare($context, 'dispatch', [
@@ -144,9 +145,9 @@ class IntegrationRunner extends Component
         Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
         Craft::$app->getSites()->setCurrentSite($submission->getSite());
         if ($row['step'] === 'integration') {
-            foreach (Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($submission->getForm()) as $connection) {
-                if ($connection->handle === $row['binding']) {
-                    $integration = FormIntegration::fromSettings($connection, $data['settings'] ?? [])->createRuntime($connection);
+            foreach (Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($submission->getForm()) as $binding) {
+                if ($binding->integration->handle === $row['binding']) {
+                    $integration = FormIntegration::fromSettings($binding->integration, $data['settings'] ?? [], $submission->formId, $submission->getForm()->handle)->createRuntime();
                     $result = $this->runIntegration($integration, $submission, $row['executionUid'], $row['execution'], ['triggerEvent' => IntegrationTriggerEvents::SUBMIT, 'operatorInitiated' => true, 'retryAttemptUid' => $uid]);
                     $this->finalizeDelivery($uid, $result);
                     return $result;

@@ -8,7 +8,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -52,7 +52,7 @@ class Gorgias extends HelpDesk
         return Craft::t('formie', 'Send your form content to Gorgias.');
     }
     
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -100,7 +100,7 @@ class Gorgias extends HelpDesk
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -190,7 +190,7 @@ class Gorgias extends HelpDesk
 
         $rules[] = [['apiUrl', 'username', 'apiKey'], 'required'];
 
-        $ticket = $this->getFormSettingValue('ticket');
+        $ticket = $this->getConfigValue('ticket');
 
         // Validate the following when saving form settings
         $rules[] = [

@@ -148,7 +148,7 @@ final class RuntimeConfiguration
         $connection = $service->getIntegrationByHandle($handle) ?? $service->getCaptchaByHandle($handle);
         try {
             $binding = \verbb\formie\models\FormIntegration::fromSettings($connection, $settings);
-            $runtime = $binding->createRuntime($connection);
+            $runtime = $binding->createRuntime();
             $attributes = array_values(array_diff(array_keys($settings), ['execution']));
             if (!$runtime->validate($attributes)) {
                 throw new \InvalidArgumentException(Json::encode($runtime->getErrors()));

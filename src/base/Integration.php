@@ -9,6 +9,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\errors\IntegrationStepException;
+use verbb\formie\events\IntegrationConfigEvent;
 use verbb\formie\events\IntegrationConnectionEvent;
 use verbb\formie\events\IntegrationFormSettingsEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
@@ -68,6 +69,7 @@ use yii\helpers\IpHelper;
 
 use Error;
 use Exception;
+use ReflectionMethod;
 use Throwable;
 
 use GuzzleHttp\Client;
@@ -313,6 +315,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public const EVENT_AFTER_SEND_PAYLOAD = 'afterSendPayload';
     public const EVENT_BEFORE_CHECK_CONNECTION = 'beforeCheckConnection';
     public const EVENT_AFTER_CHECK_CONNECTION = 'afterCheckConnection';
+    public const EVENT_BEFORE_FETCH_CONFIG = 'beforeFetchConfig';
+    public const EVENT_AFTER_FETCH_CONFIG = 'afterFetchConfig';
     public const EVENT_BEFORE_FETCH_FORM_SETTINGS = 'beforeFetchFormSettings';
     public const EVENT_AFTER_FETCH_FORM_SETTINGS = 'afterFetchFormSettings';
     public const EVENT_MODIFY_FIELD_MAPPING_VALUES = 'modifyFieldMappingValues';
@@ -391,6 +395,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     private ?string $_deliveryAttemptUid = null;
     private array $_deliveryStepCounts = [];
     private bool $_directDelivery = false;
+    private bool $_configRefreshCancelled = false;
     private bool|string $_enabled = false;
 
 
@@ -486,6 +491,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->_deliveryAttemptUid = null;
         $this->_deliveryStepCounts = [];
         $this->_directDelivery = false;
+        $this->_configRefreshCancelled = false;
         $this->context = [];
         $this->settingsContext = clone $this->settingsContext;
     }
@@ -689,7 +695,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return true;
     }
 
-    public function supportsFormSettingsRefresh(): bool
+    public function supportsConfigRefresh(): bool
     {
         return false;
     }
@@ -771,61 +777,89 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return false;
     }
 
-    public function getFormSettings(bool $useCache = true): bool|IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
-        // If using the cache (the default), don't fetch it automatically. Just save API requests a tad.
+        return new IntegrationConfig();
+    }
+
+    public function getConfig(bool $useCache = true): IntegrationConfig
+    {
         if ($useCache) {
-            $config = $this->getIntegrationConfig();
-            $settings = $config->data;
-
-            // Add support for emoji in cached content
-            $settings = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($settings)));
-
-            // De-serialize it from the cache back into full, nested class objects
-            $formSettings = new IntegrationFormSettings();
-            $formSettings->unserialize($settings);
-
-            // Always deal with a `IntegrationFormSettings` model
-            return $formSettings;
+            return $this->_getCachedConfig();
         }
 
-        // Fire a 'beforeFetchFormSettings' event
-        $event = new IntegrationFormSettingsEvent([
+        $this->_configRefreshCancelled = false;
+        $previous = $this->_getCachedConfig();
+        $event = new IntegrationConfigEvent([
             'integration' => $this,
         ]);
-        $this->trigger(self::EVENT_BEFORE_FETCH_FORM_SETTINGS, $event);
+        $this->trigger(self::EVENT_BEFORE_FETCH_CONFIG, $event);
 
         if (!$event->isValid) {
-            Integration::info($this, 'Checking connection cancelled by event hook.');
+            $this->_configRefreshCancelled = true;
+            Integration::info($this, 'Refreshing integration config cancelled by event hook.');
 
-            return false;
+            return $previous;
         }
 
-        // Only proceed if the provider is connected
+        // Stable Formie 3 events remain an adapter around the canonical event.
+        $legacyEvent = new IntegrationFormSettingsEvent([
+            'integration' => $this,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_FETCH_FORM_SETTINGS, $legacyEvent);
+        if (!$legacyEvent->isValid) {
+            $this->_configRefreshCancelled = true;
+            Integration::info($this, 'Refreshing integration config cancelled by legacy event hook.');
+
+            return $previous;
+        }
+
         if (static::supportsConnection() && !static::getIsConnected()) {
             Integration::error($this, 'Connect to the integration provider first.', true);
         }
 
-        $settings = $this->fetchFormSettings();
+        $config = $this->_fetchConfigWithCompatibility();
 
-        // Fire a 'afterFetchFormSettings' event
-        $event = new IntegrationFormSettingsEvent([
+        $event = new IntegrationConfigEvent([
             'integration' => $this,
-            'settings' => $settings,
+            'config' => $config,
         ]);
-        $this->trigger(self::EVENT_AFTER_FETCH_FORM_SETTINGS, $event);
+        $this->trigger(self::EVENT_AFTER_FETCH_CONFIG, $event);
+        $config = $event->config ?? $config;
 
-        // Save a serialised version to the cache, that retains classes
-        $previous = $this->getIntegrationConfig();
+        $legacyEvent = new IntegrationFormSettingsEvent([
+            'integration' => $this,
+            'config' => $config,
+            'settings' => IntegrationFormSettings::fromConfig($config),
+        ]);
+        $this->trigger(self::EVENT_AFTER_FETCH_FORM_SETTINGS, $legacyEvent);
+        $config = $legacyEvent->settings?->toConfig() ?? $legacyEvent->config ?? $config;
+
         $config = new IntegrationConfig(
-            IntegrationSecrets::redactValues(array_merge($previous->data, $settings->serialize()), $this->getDiagnosticSecrets()),
+            IntegrationSecrets::redactValues(array_merge($previous->all(), $config->all()), $this->getDiagnosticSecrets()),
             $this->getIntegrationConfigKey(),
             time(),
         );
         $this->_setCache(['config' => $config->toStorage()]);
 
-        // Always deal with a `IntegrationFormSettings` model
-        return $settings;
+        return $config;
+    }
+
+    public function refreshConfig(): IntegrationConfig
+    {
+        return $this->getConfig(false);
+    }
+
+    /** @deprecated in 4.0.0. Use getConfig(). */
+    public function getFormSettings(bool $useCache = true): bool|IntegrationFormSettings
+    {
+        $config = $this->getConfig($useCache);
+
+        if (!$useCache && $this->_configRefreshCancelled) {
+            return false;
+        }
+
+        return IntegrationFormSettings::fromConfig($config);
     }
 
     public function getIntegrationConfigKey(): string
@@ -834,29 +868,21 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return hash('sha256', static::class . ':' . ($this->uid ?: $this->id) . ':' . ($this->cache['configGeneration'] ?? 'initial'));
     }
 
-    public function getIntegrationConfig(): IntegrationConfig
-    {
-        $stored = $this->_getCache('config');
-        if (is_array($stored)) {
-            return IntegrationConfig::fromStorage($stored, $this->getIntegrationConfigKey());
-        }
-        $legacy = $this->_getCache('settings') ?: [];
-        return new IntegrationConfig(
-            IntegrationConfig::encode(IntegrationConfig::decode($legacy)),
-            $this->getIntegrationConfigKey(),
-            0,
-        );
-    }
-
-    public function invalidateIntegrationConfig(): void
+    public function invalidateConfig(): void
     {
         unset($this->cache['settings'], $this->cache['config']);
         $this->_setCache(['configGeneration' => StringHelper::UUID()]);
     }
 
-    public function getFormSettingValue(string $key)
+    public function getConfigValue(string $key): mixed
     {
-        return $this->getFormSettings()->getSettingsByKey($key);
+        return $this->getConfig()->get($key);
+    }
+
+    /** @deprecated in 4.0.0. Use getConfigValue(). */
+    public function getFormSettingValue(string $key): mixed
+    {
+        return $this->getConfigValue($key);
     }
 
     public function validateFieldMapping(string $attribute, array $fields = []): void
@@ -1381,15 +1407,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             ];
         }
 
-        $settings = $this->getFormSettings();
+        $config = $this->getConfig();
 
-        if ($settings === false) {
-            return [
-                'error' => Craft::t('formie', 'Refresh the integration settings first.'),
-            ];
-        }
-
-        return $this->buildOptionSourceBuilderConfig($provider, $settings, $definition);
+        return $this->buildOptionSourceBuilderConfig($provider, $config, $definition);
     }
 
     public function resolveOptionSourceOptions(string $provider, array $params = []): OptionList
@@ -1414,13 +1434,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         try {
-            $settings = $this->getFormSettings();
+            $config = $this->getConfig();
 
-            if ($settings === false) {
-                return OptionList::error(Craft::t('formie', 'Refresh the integration settings first.'));
-            }
-
-            foreach ($this->getOptionSourceCollections($settings, $definition) as $collection) {
+            foreach ($this->getOptionSourceCollections($config, $definition) as $collection) {
                 if ((string)$collection['id'] !== $collectionId) {
                     continue;
                 }
@@ -1558,7 +1574,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     protected function defineFieldMappingSchema(string $settingsKey, ?string $selectedCollectionField = null): array
     {
-        $integrationFields = $this->getFormSettingValue($settingsKey);
+        $integrationFields = $this->getConfigValue($settingsKey);
 
         if ($selectedCollectionField) {
             $selectedCollectionId = (string)($this->{$selectedCollectionField} ?? '');
@@ -1646,18 +1662,18 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ]);
     }
 
-    protected function getOptionSourceCollections(IntegrationFormSettings $settings, array $definition): array
+    protected function getOptionSourceCollections(IntegrationConfig $config, array $definition): array
     {
         $storage = (string)($definition['storage'] ?? 'collections');
 
         if ($storage === 'objects') {
-            return $this->_getOptionSourceObjectCollections($settings, $definition);
+            return $this->_getOptionSourceObjectCollections($config, $definition);
         }
 
-        return $this->_getOptionSourceIntegrationCollections($settings, $definition);
+        return $this->_getOptionSourceIntegrationCollections($config, $definition);
     }
 
-    protected function buildOptionSourceBuilderConfig(string $provider, IntegrationFormSettings $settings, array $definition): array
+    protected function buildOptionSourceBuilderConfig(string $provider, IntegrationConfig $config, array $definition): array
     {
         $collectionParam = (string)($definition['collectionParam'] ?? 'collectionId');
         $remoteHandleParam = (string)($definition['remoteHandleParam'] ?? 'remoteHandle');
@@ -1665,7 +1681,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $remoteHandles = [];
         $remoteHandlesByCollection = [];
 
-        foreach ($this->getOptionSourceCollections($settings, $definition) as $collection) {
+        foreach ($this->getOptionSourceCollections($config, $definition) as $collection) {
             $collectionRemoteHandles = [];
 
             foreach ($collection['fields'] as $field) {
@@ -1852,6 +1868,50 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Private Methods
     // =========================================================================
 
+    private function _getCachedConfig(): IntegrationConfig
+    {
+        $stored = $this->_getCache('config');
+        if (is_array($stored)) {
+            // The integration cache stores emoji as shortcodes for database
+            // compatibility; restore them before exposing config to callers.
+            $stored = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($stored)));
+
+            return IntegrationConfig::fromStorage($stored, $this->getIntegrationConfigKey());
+        }
+
+        // Formie 3 stored the encoded metadata directly under `settings`.
+        $legacy = $this->_getCache('settings') ?: [];
+        $legacy = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($legacy)));
+
+        return new IntegrationConfig(
+            IntegrationConfig::decode($legacy),
+            $this->getIntegrationConfigKey(),
+            0,
+        );
+    }
+
+    private function _fetchConfigWithCompatibility(): IntegrationConfig
+    {
+        if (method_exists($this, 'fetchFormSettings')) {
+            $legacyMethod = new ReflectionMethod($this, 'fetchFormSettings');
+            $configMethod = new ReflectionMethod($this, 'fetchConfig');
+            $legacyClass = $legacyMethod->getDeclaringClass()->getName();
+            $configClass = $configMethod->getDeclaringClass()->getName();
+
+            // A Formie 3 subclass of a concrete provider may override the old
+            // method while inheriting that provider's new fetchConfig(). The
+            // most-derived extension method remains authoritative.
+            if ($legacyClass !== $configClass && is_subclass_of($legacyClass, $configClass)) {
+                $settings = $this->fetchFormSettings();
+                if ($settings instanceof IntegrationFormSettings) {
+                    return $settings->toConfig();
+                }
+            }
+        }
+
+        return $this->fetchConfig();
+    }
+
     private function _readDeliveryResponse(ResponseInterface $response): string
     {
         if ($response->getStatusCode() >= 300 && $response->getStatusCode() < 400) {
@@ -2003,12 +2063,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return true;
     }
 
-    private function _getOptionSourceIntegrationCollections(IntegrationFormSettings $settings, array $definition): array
+    private function _getOptionSourceIntegrationCollections(IntegrationConfig $config, array $definition): array
     {
         $collectionKey = (string)($definition['collectionKey'] ?? 'lists');
         $collections = [];
 
-        foreach ($settings->getSettingsByKey($collectionKey) as $collection) {
+        foreach ($config->get($collectionKey) as $collection) {
             if (!$collection instanceof IntegrationCollection) {
                 continue;
             }
@@ -2029,7 +2089,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $collections;
     }
 
-    private function _getOptionSourceObjectCollections(IntegrationFormSettings $settings, array $definition): array
+    private function _getOptionSourceObjectCollections(IntegrationConfig $config, array $definition): array
     {
         $objectKeys = (array)($definition['objectKeys'] ?? []);
         $objectLabels = (array)($definition['objectLabels'] ?? []);
@@ -2037,7 +2097,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         foreach ($objectKeys as $objectKey) {
             $objectKey = (string)$objectKey;
-            $fields = $settings->getSettingsByKey($objectKey);
+            $fields = $config->get($objectKey);
 
             if (!is_array($fields) || !$fields) {
                 continue;

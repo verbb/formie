@@ -78,7 +78,7 @@ use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\models\Token;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 
 class GoToWebinar extends Miscellaneous implements OAuthProviderInterface
 {
@@ -151,9 +151,9 @@ class GoToWebinar extends Miscellaneous implements OAuthProviderInterface
         return 'https://api.getgo.com/G2W/rest/v2/';
     }
 
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
-        return new IntegrationFormSettings();
+        return new IntegrationConfig();
     }
 
     public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
@@ -164,7 +164,7 @@ class GoToWebinar extends Miscellaneous implements OAuthProviderInterface
 }
 ```
 
-If your integration also maps submission data to the provider, implement `fetchFormSettings()` and `sendPayload()` the same way you would for a non-OAuth integration — see [Building a CRM integration from scratch](/guides/integrations/building-a-crm-integration-from-scratch).
+If your integration also maps submission data to the provider, implement `fetchConfig()` and `sendPayload()` the same way you would for a non-OAuth integration — see [Building a CRM integration from scratch](/guides/integrations/building-a-crm-integration-from-scratch).
 
 ### OAuth Hooks
 
@@ -285,4 +285,4 @@ Every provider differs in scopes, token shape, and API base URLs. A practical pa
 1. Find the closest built-in Formie integration and read its OAuth hooks.
 2. Implement `OAuthProviderInterface` with your provider's URLs and scopes.
 3. Connect in the control panel and verify `$this->request()` works.
-4. Add `fetchFormSettings()` and `sendPayload()` if the integration should run on form submit.
+4. Add `fetchConfig()` and `sendPayload()` if the integration should run on form submit.

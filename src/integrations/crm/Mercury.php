@@ -8,7 +8,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -59,7 +59,7 @@ class Mercury extends Crm
         return App::parseBooleanEnv($this->useUat);
     }
 
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -342,7 +342,7 @@ class Mercury extends Crm
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -436,8 +436,8 @@ class Mercury extends Crm
             $rules[] = [['uatKey', 'uatToken'], 'required'];
         }
 
-        $contact = $this->getFormSettingValue('contact');
-        $opportunity = $this->getFormSettingValue('opportunity');
+        $contact = $this->getConfigValue('contact');
+        $opportunity = $this->getConfigValue('opportunity');
 
         // Validate the following when saving form settings
         $rules[] = [

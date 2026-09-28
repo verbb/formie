@@ -11,7 +11,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -63,7 +63,7 @@ class Entry extends Element
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
 
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $customFields = [];
 
@@ -85,7 +85,7 @@ class Entry extends Element
             }
         }
 
-        return new IntegrationFormSettings([
+        return new IntegrationConfig([
             'elements' => $customFields,
             'attributes' => $this->getElementAttributes(),
         ]);
@@ -491,7 +491,7 @@ class Entry extends Element
 
     private function _getEntryTypeSettings(?string $entryTypeSection = null)
     {
-        $entryTypes = $this->getFormSettingValue('elements');
+        $entryTypes = $this->getConfigValue('elements');
         $selectedEntryTypeSection = $entryTypeSection ?? $this->entryTypeSection ?? '';
 
         if (!is_array($entryTypes)) {
@@ -514,7 +514,7 @@ class Entry extends Element
     private function _getEntryTypeOptions(): array
     {
         $options = [];
-        $elements = $this->getFormSettingValue('elements');
+        $elements = $this->getConfigValue('elements');
 
         if (!is_array($elements)) {
             return $options;
@@ -544,7 +544,7 @@ class Entry extends Element
 
     private function _getFirstEntryTypeId(): string
     {
-        $elements = $this->getFormSettingValue('elements');
+        $elements = $this->getConfigValue('elements');
 
         if (!is_array($elements)) {
             return '';

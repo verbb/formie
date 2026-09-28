@@ -107,7 +107,7 @@ class DeliveryLaneProvider extends \verbb\formie\base\Integration
 {
     public static array $order = [];
     public static function displayName(): string { return 'Delivery lane fixture'; }
-    public function fetchFormSettings(): \verbb\formie\models\IntegrationFormSettings { return new \verbb\formie\models\IntegrationFormSettings(); }
+    public function fetchConfig(): \verbb\formie\models\IntegrationConfig { return new \verbb\formie\models\IntegrationConfig(); }
     public function sendPayload(\verbb\formie\elements\Submission $submission): IntegrationResult { self::$order[] = $this->handle; return IntegrationResult::succeeded(); }
 }
 
@@ -193,7 +193,7 @@ it('requires scoped force authority and a reason and records the ordinary inelig
     $provider = new class(['name' => 'Force fixture', 'handle' => 'forceFixture']) extends \verbb\formie\base\Integration {
         public static int $calls = 0;
         public static function displayName(): string { return 'Force fixture'; }
-        public function fetchFormSettings(): \verbb\formie\models\IntegrationFormSettings { return new \verbb\formie\models\IntegrationFormSettings(); }
+        public function fetchConfig(): \verbb\formie\models\IntegrationConfig { return new \verbb\formie\models\IntegrationConfig(); }
         public function shouldTrigger(\verbb\formie\elements\Submission $submission, array $triggerContext = []): bool { return false; }
         public function sendPayload(\verbb\formie\elements\Submission $submission): IntegrationResult { self::$calls++; return IntegrationResult::succeeded(); }
     };

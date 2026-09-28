@@ -5,21 +5,21 @@ Email marketing integrations extend `EmailMarketing`. They usually fetch lists f
 For a full walkthrough, see [Building an Email Marketing Integration from Scratch](/guides/integrations/building-an-email-marketing-integration-from-scratch).
 :::
 
-## Form Settings Data
-Return an `IntegrationFormSettings` object containing provider lists. Each list is usually an `IntegrationCollection` with its own `fields`.
+## Integration Config
+Return an `IntegrationConfig` object containing provider lists. Each list is usually an `IntegrationCollection` with its own `fields`.
 
 ```php
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 
-public function fetchFormSettings(): IntegrationFormSettings
+public function fetchConfig(): IntegrationConfig
 {
-    $settings = [];
+    $config = [];
     $lists = $this->request('GET', 'lists');
 
     foreach ($lists as $list) {
-        $settings['lists'][] = new IntegrationCollection([
+        $config['lists'][] = new IntegrationCollection([
             'id' => (string)$list['id'],
             'name' => $list['name'],
             'fields' => [
@@ -36,7 +36,7 @@ public function fetchFormSettings(): IntegrationFormSettings
         ]);
     }
 
-    return new IntegrationFormSettings($settings);
+    return new IntegrationConfig($config);
 }
 ```
 
@@ -92,7 +92,7 @@ public function sendPayload(Submission $submission): \verbb\formie\models\Integr
 }
 ```
 
-Email marketing providers differ in how they represent custom fields, groups and resubscribe behaviour. Keep provider-specific API decisions in `fetchFormSettings()` and `sendPayload()`, and let the base class handle the common Formie mapping flow.
+Email marketing providers differ in how they represent custom fields, groups and resubscribe behaviour. Keep provider-specific API decisions in `fetchConfig()` and `sendPayload()`, and let the base class handle the common Formie mapping flow.
 
 ## Option Sources
 

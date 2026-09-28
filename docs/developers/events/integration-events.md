@@ -541,7 +541,7 @@ The following events use the `Mailchimp` class as an example, but any class that
 ### The `beforeCheckConnection` Event
 The event that is triggered before an integration has checked its connection.
 
-The `isValid` event property can be set to `false` to prevent the payload from being sent.
+The `isValid` event property can be set to `false` to prevent the connection check.
 
 ```php
 use verbb\formie\events\IntegrationConnectionEvent;
@@ -569,37 +569,40 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_CHECK_CONNECTION, function(In
 });
 ```
 
-## Integration Form Settings Events
+## Integration Config Events
+
 The following events use the `Mailchimp` class as an example, but any class that inherits from the `verbb\formie\base\Integration` class can use these events.
 
 
-### The `beforeFetchFormSettings` Event
-The event that is triggered before an integration fetches its available settings for the form settings.
+### The `beforeFetchConfig` Event
 
-The `isValid` event property can be set to `false` to prevent the payload from being sent.
+The event that is triggered before an integration fetches the metadata used to configure it in the form builder.
+
+The `isValid` event property can be set to `false` to prevent the config refresh.
 
 ```php
-use verbb\formie\events\IntegrationFormSettingsEvent;
+use verbb\formie\events\IntegrationConfigEvent;
 use verbb\formie\integrations\emailmarketing\Mailchimp;
 use yii\base\Event;
 
-Event::on(Mailchimp::class, Mailchimp::EVENT_BEFORE_FETCH_FORM_SETTINGS, function(IntegrationFormSettingsEvent $event) {
+Event::on(Mailchimp::class, Mailchimp::EVENT_BEFORE_FETCH_CONFIG, function(IntegrationConfigEvent $event) {
     $integration = $event->integration;
     // ...
 });
 ```
 
-### The `afterFetchFormSettings` Event
-The event that is triggered after an integration fetches its available settings for the form settings.
+### The `afterFetchConfig` Event
+
+The event that is triggered after an integration fetches its configuration metadata.
 
 ```php
-use verbb\formie\events\IntegrationFormSettingsEvent;
+use verbb\formie\events\IntegrationConfigEvent;
 use verbb\formie\integrations\emailmarketing\Mailchimp;
 use yii\base\Event;
 
-Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_FETCH_FORM_SETTINGS, function(IntegrationFormSettingsEvent $event) {
+Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_FETCH_CONFIG, function(IntegrationConfigEvent $event) {
     $integration = $event->integration;
-    $settings = $event->settings;
+    $config = $event->config;
     // ...
 });
 ```

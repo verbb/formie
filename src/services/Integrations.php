@@ -669,7 +669,7 @@ class Integrations extends Component
 
     public function populateIntegrationFromFormSettings(IntegrationInterface $integration, array $settings): IntegrationInterface
     {
-        return FormIntegration::fromSettings($integration, $settings)->createRuntime($integration);
+        return FormIntegration::fromSettings($integration, $settings)->createRuntime();
     }
 
     /**
@@ -706,6 +706,9 @@ class Integrations extends Component
 
         $schema = $integration->getFormSettingsSchema($form);
         $compiled = SchemaHelper::compileSchema($schema);
+        if (Craft::$app->getConfig()->getGeneral()->devMode) {
+            FormIntegration::validateSchema($integration, $compiled);
+        }
 
         return [
             'schema' => $compiled['schema'],
@@ -1088,7 +1091,7 @@ class Integrations extends Component
                 'description' => $resolvedIntegration->getDescription(),
                 'enabled' => $resolvedIntegration->getEnabled(false),
                 'icon' => $resolveSummaryIconUrl($resolvedIntegration),
-                'supportsRefresh' => method_exists($resolvedIntegration, 'supportsFormSettingsRefresh') ? $resolvedIntegration->supportsFormSettingsRefresh() : false,
+                'supportsRefresh' => $resolvedIntegration->supportsConfigRefresh(),
                 'supportsPayloadSending' => $resolvedIntegration::supportsPayloadSending(),
             ];
         };
@@ -1105,6 +1108,14 @@ class Integrations extends Component
     }
 
     public function getAllEnabledIntegrationsForForm(Form $form): array
+    {
+        return array_map(
+            static fn(FormIntegration $binding): IntegrationInterface => $binding->createRuntime(),
+            $this->getFormIntegrationsForForm($form),
+        );
+    }
+
+    public function getFormIntegrationsForForm(Form $form): array
     {
         $enabledIntegrations = [];
         $integrationsByHandle = [];
@@ -1134,21 +1145,35 @@ class Integrations extends Component
 
             // If this disabled globally? Then don't include it, otherwise populate the settings
             if ($integration && $integration->getEnabled()) {
-                $resolvedIntegration = $this->populateIntegrationFromFormSettings($integration, $formSettings);
-
-                $enabledIntegrations[] = $resolvedIntegration;
+                $enabledIntegrations[] = FormIntegration::fromSettings($integration, $formSettings, $form->getId(), $form->getHandle());
             }
         }
 
-        // Fire a 'modifyFormIntegrations' event
+        // Preserve the Formie 3 aggregate event at the compatibility boundary,
+        // then restore immutable bindings before canonical callers receive them.
+        $bindingsByHandle = [];
+        foreach ($enabledIntegrations as $binding) {
+            $bindingsByHandle[$binding->integration->handle] = $binding;
+        }
         $event = new ModifyFormIntegrationsEvent([
             'allIntegrations' => array_values($integrationsByHandle),
-            'integrations' => $enabledIntegrations,
+            'integrations' => array_map(static fn(FormIntegration $binding): IntegrationInterface => $binding->createRuntime(), $enabledIntegrations),
             'form' => $form,
         ]);
         $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATIONS, $event);
 
-        return $event->integrations;
+        return array_values(array_map(
+            static function(IntegrationInterface $integration) use ($bindingsByHandle, $form): FormIntegration {
+                $settings = ['enabled' => $integration->getEnabled()] + $integration->getAttributes();
+                $binding = $bindingsByHandle[$integration->handle] ?? null;
+                if ($binding !== null) {
+                    $settings['execution'] = $binding->execution;
+                }
+
+                return FormIntegration::fromSettings($integration, $settings, $form->getId(), $form->getHandle());
+            },
+            $event->integrations,
+        ));
     }
 
     public function getAllCaptchas(): array

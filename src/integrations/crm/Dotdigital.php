@@ -10,7 +10,7 @@ use verbb\formie\events\DotdigitalAddressBooksEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -63,7 +63,7 @@ class Dotdigital extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -217,7 +217,7 @@ class Dotdigital extends Crm
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -361,8 +361,8 @@ class Dotdigital extends Crm
 
         $rules[] = [['username', 'password', 'apiDomain'], 'required'];
 
-        $contact = $this->getFormSettingValue('contact');
-        $emailCampaign = $this->getFormSettingValue('emailCampaign');
+        $contact = $this->getConfigValue('contact');
+        $emailCampaign = $this->getConfigValue('emailCampaign');
 
         // Validate the following when saving form settings
         $rules[] = [
@@ -412,7 +412,7 @@ class Dotdigital extends Crm
             'instructions' => Craft::t('formie', 'Whether to send an email campaign to the created contact.'),
         ]);
 
-        $emailCampaign = $this->getFormSettingValue('emailCampaign');
+        $emailCampaign = $this->getConfigValue('emailCampaign');
         $emailMappingSchema = is_array($emailCampaign) ? $this->convertIntegrationFieldsToSchema($emailCampaign) : [];
         if ($emailMappingSchema) {
             $schema[] = $this->getIntegrationFieldMappingField([

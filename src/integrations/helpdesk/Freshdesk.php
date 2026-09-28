@@ -11,7 +11,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 use verbb\formie\references\ReferenceSlot;
 use verbb\formie\references\ReferenceSlotKind;
@@ -62,7 +62,7 @@ class Freshdesk extends HelpDesk
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
     
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -311,7 +311,7 @@ class Freshdesk extends HelpDesk
             Integration::apiError($this, $e);
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function sendPayload(Submission $submission): IntegrationResult
@@ -482,7 +482,7 @@ class Freshdesk extends HelpDesk
     public function getFieldMappingMultipartValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
     {
         // Manually get field settings since we're not using parent method
-        $fieldSettings = $this->getFormSettingValue($fieldSettings);
+        $fieldSettings = $this->getConfigValue($fieldSettings);
         $fieldValues = [];
 
         if (!is_array($fieldMapping)) {
@@ -567,8 +567,8 @@ class Freshdesk extends HelpDesk
 
         $rules[] = [['apiKey', 'apiDomain'], 'required'];
 
-        $contact = $this->getFormSettingValue('contact');
-        $ticket = $this->getFormSettingValue('ticket');
+        $contact = $this->getConfigValue('contact');
+        $ticket = $this->getConfigValue('ticket');
 
         // Validate the following when saving form settings
         $rules[] = [

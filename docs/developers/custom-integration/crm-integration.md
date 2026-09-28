@@ -5,14 +5,14 @@ CRM integrations extend `Crm`. They usually fetch one or more provider objects, 
 For a full walkthrough, see [Building a CRM Integration from Scratch](/guides/integrations/building-a-crm-integration-from-scratch).
 :::
 
-## Form Settings Data
-Use `fetchFormSettings()` to fetch the CRM fields Formie can map to. A CRM often has multiple objects, such as contacts, deals, leads, accounts or opportunities.
+## Integration Config
+Use `fetchConfig()` to fetch the CRM fields Formie can map to. A CRM often has multiple objects, such as contacts, deals, leads, accounts or opportunities.
 
 ```php
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 
-public function fetchFormSettings(): IntegrationFormSettings
+public function fetchConfig(): IntegrationConfig
 {
     $contactFields = [
         new IntegrationField([
@@ -34,7 +34,7 @@ public function fetchFormSettings(): IntegrationFormSettings
         ]),
     ];
 
-    return new IntegrationFormSettings([
+    return new IntegrationConfig([
         'contact' => $contactFields,
         'deal' => $dealFields,
     ]);
@@ -72,7 +72,7 @@ protected function defineFormSettingsSchema(FormInterface $form): array
 
 ## Option Sources
 
-CRM integrations often cache picklist fields on each object. Expose them to Dropdown, Radio and Checkboxes fields with `defineOptionSources()`, using `storage: objects` and the same object keys returned from `fetchFormSettings()`.
+CRM integrations often cache picklist fields on each object. Expose them to Dropdown, Radio and Checkboxes fields with `defineOptionSources()`, using `storage: objects` and the same object keys returned from `fetchConfig()`.
 
 See [Option Sources](/developers/custom-integration/integration-option-sources).
 
@@ -104,4 +104,3 @@ public function sendPayload(Submission $submission): \verbb\formie\models\Integr
 ```
 
 If your CRM has selectable objects, use `IntegrationCollection` and pass the selected collection field to your mapping schema. That lets Formie show the right destination fields for the selected CRM object.
-

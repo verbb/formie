@@ -15,7 +15,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Assets;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -312,7 +312,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-    public function fetchFormSettings(): IntegrationFormSettings
+    public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
@@ -353,7 +353,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
             }
         }
 
-        return new IntegrationFormSettings($settings);
+        return new IntegrationConfig($settings);
     }
 
     public function getMappedFieldValue(mixed $mappedFieldValue, Submission $submission, IntegrationField $integrationField): mixed
@@ -692,11 +692,11 @@ class Salesforce extends Crm implements OAuthProviderInterface
     {
         $rules = parent::defineRules();
 
-        $contact = $this->getFormSettingValue('contact');
-        $lead = $this->getFormSettingValue('lead');
-        $opportunity = $this->getFormSettingValue('opportunity');
-        $account = $this->getFormSettingValue('account');
-        $case = $this->getFormSettingValue('case');
+        $contact = $this->getConfigValue('contact');
+        $lead = $this->getConfigValue('lead');
+        $opportunity = $this->getConfigValue('opportunity');
+        $account = $this->getConfigValue('account');
+        $case = $this->getConfigValue('case');
 
         // Validate the following when saving form settings
         $rules[] = [

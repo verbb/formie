@@ -4,7 +4,7 @@ Messaging integrations extend `Messaging`. They usually post a message to a sele
 Messaging integrations are often lighter than CRM or email marketing integrations, but still use the same form builder schema and payload flow.
 
 ## Form Settings
-Use `fetchFormSettings()` when the provider has selectable destinations such as channels or users. Use `defineFormSettingsSchema()` to expose destination and message settings.
+Use `fetchConfig()` when the provider has selectable destinations such as channels or users. Use `defineFormSettingsSchema()` to expose destination and message settings.
 
 ```php
 use verbb\formie\base\FormInterface;

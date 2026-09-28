@@ -6,7 +6,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\conditions\ConditionOperator;
 use verbb\formie\elements\Submission;
 use verbb\formie\Formie;
-use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\SubmissionStatus;
 
 function integrationConditionsTestIntegration(array $config = []): Integration
@@ -17,9 +17,9 @@ function integrationConditionsTestIntegration(array $config = []): Integration
             return 'Test Integration';
         }
 
-        public function fetchFormSettings(): IntegrationFormSettings
+        public function fetchConfig(): IntegrationConfig
         {
-            return new IntegrationFormSettings();
+            return new IntegrationConfig();
         }
 
         public function sendPayload(Submission $submission): bool
