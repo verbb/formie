@@ -10,7 +10,6 @@ use verbb\formie\client\modules\BrowserModuleManifestBuilder;
 use verbb\formie\deprecations\PluginDeprecations;
 use verbb\formie\elements\Submission as SubmissionElement;
 use verbb\formie\events\ModifyTwigEnvironmentEvent;
-use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\helpers\Plugin as FormiePluginHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\HiddenDefaultTemplateContext;
@@ -141,6 +140,8 @@ trait PluginTrait
             'allowedProperties' => [],
         ]);
 
+        // Formie 4 values extend the Formie 3 marker, so one allow-list keeps
+        // canonical and legacy third-party value objects available to Twig.
         $event->allowedMethods[FieldValueInterface::class] = ['__toString'];
 
         $event->allowedProperties[FieldValueInterface::class] = function(FieldValueInterface $value, string $property): bool {

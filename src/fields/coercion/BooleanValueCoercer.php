@@ -16,11 +16,11 @@ final class BooleanValueCoercer
     {
         // The date client's parts array describes the editor, not an opt-in.
         if ($value instanceof DateFieldValue) {
-            return self::toBoolean($value->toValueString());
+            return self::toBoolean((string)$value);
         }
 
         if ($value instanceof FieldValueInterface) {
-            return self::toBoolean($value->toClientValue());
+            return !$value->isEmpty();
         }
 
         if (is_array($value)) {

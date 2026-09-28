@@ -10,9 +10,9 @@ final class FieldValueType
     // Static Methods
     // =========================================================================
 
-    public static function string(bool $nullable = false): self
+    public static function string(): self
     {
-        return new self('string', nullable: $nullable);
+        return new self('string');
     }
 
     public static function boolean(): self
@@ -23,17 +23,17 @@ final class FieldValueType
     // Numeric domain values retain invalid text for validation; no float coercion occurs here.
     public static function number(): self
     {
-        return new self('number', nullable: true);
+        return new self('number');
     }
 
-    public static function object(string $class, bool $nullable = false): self
+    public static function object(string $class): self
     {
-        return new self('object', $class, $nullable);
+        return new self('object', $class);
     }
 
-    public static function array(?self $items = null, bool $nullable = false): self
+    public static function array(?self $items = null): self
     {
-        return new self('array', nullable: $nullable, items: $items);
+        return new self('array', items: $items);
     }
 
     public static function relationQuery(string $elementType): self
@@ -43,13 +43,13 @@ final class FieldValueType
 
     public static function none(): self
     {
-        return new self('none', nullable: true);
+        return new self('none');
     }
 
     // Used only for unavailable owners and bounded legacy adapters, not to infer object schemas.
     public static function storageSafe(): self
     {
-        return new self('storageSafe', nullable: true);
+        return new self('storageSafe');
     }
 
 
@@ -77,25 +77,23 @@ final class FieldValueType
 
     public readonly string $kind;
     public readonly ?string $class;
-    public readonly bool $nullable;
     public readonly ?self $items;
 
 
     // Public Methods
     // =========================================================================
 
-    public function __construct(string $kind, ?string $class = null, bool $nullable = false, ?self $items = null)
+    public function __construct(string $kind, ?string $class = null, ?self $items = null)
     {
         $this->kind = $kind;
         $this->class = $class;
-        $this->nullable = $nullable;
         $this->items = $items;
     }
 
     public function accepts(mixed $value): bool
     {
         if ($value === null) {
-            return $this->nullable;
+            return true;
         }
 
         return match ($this->kind) {
@@ -123,7 +121,6 @@ final class FieldValueType
         return array_filter([
             'kind' => $this->kind,
             'class' => $this->class,
-            'nullable' => $this->nullable,
             'items' => $this->items?->toArray(),
             'representation' => $this->kind === 'number' ? 'decimal-string' : null,
         ], static fn($value) => $value !== null);

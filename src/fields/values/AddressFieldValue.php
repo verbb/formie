@@ -59,10 +59,14 @@ class AddressFieldValue extends BaseFieldValue
             $config['country'] = self::nameToCode($config['countryOption']) ?? $config['countryOption'];
         }
         unset($config['countryOption']);
-        parent::__construct($config);
+
+        foreach (['autoComplete', 'address1', 'address2', 'address3', 'city', 'state', 'zip', 'country'] as $key) {
+            $value = $config[$key] ?? null;
+            $this->{$key} = $value === null ? null : (string)$value;
+        }
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         if ($this->autoComplete) {
             return (string)$this->autoComplete;
@@ -86,7 +90,7 @@ class AddressFieldValue extends BaseFieldValue
         return $this->__toString() === '';
     }
 
-    public function toValueArray(): array
+    public function toArray(): array
     {
         return [
             'autoComplete' => $this->autoComplete,

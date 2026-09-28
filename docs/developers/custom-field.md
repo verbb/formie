@@ -274,7 +274,7 @@ Refer to the [Field](/reference/field) object documentation for more.
 
 Choose a runtime value that is useful to a template author. Text, Email and Phone return strings; Agree returns a boolean; Number retains a decimal string so PHP floats cannot round large values. Null is accepted as input, but each field defines its own empty result. Name always returns `NameFieldValue`, while Date and option fields preserve their domain objects. Group and Repeater compose their actual child fields, and relation fields return Craft queries.
 
-Declare the runtime contract with `FieldValueType::string()`, `boolean()`, `number()`, `object(MyValue::class)`, `array()` or `relationQuery(MyElement::class)`. Use `none()` for cosmetic fields. Object and array declarations accept a `nullable` argument where null is the normalised empty result. Number describes a numeric domain represented by a string; invalid text remains available to the validator. A type mismatch names the field, actual type and expected declaration.
+Declare the runtime contract with `FieldValueType::string()`, `boolean()`, `number()`, `object(MyValue::class)`, `array()` or `relationQuery(MyElement::class)`. Use `none()` for cosmetic fields. Every declaration accepts `null` as the universal absent value; the type describes the non-null result of normalization, while requiredness remains a validation concern. Number describes a numeric domain represented by a string; invalid text remains available to the validator. A type mismatch names the field, actual type and expected declaration.
 
 Numeric GraphQL fields use `verbb\formie\gql\types\Decimal::getType()` to preserve the decimal-string runtime contract. Craft's `Number` scalar converts through PHP floats; use `FormieDecimal` for exact literals and string variables.
 
@@ -293,6 +293,8 @@ public function normalizeValue(mixed $value, ?\craft\base\ElementInterface $elem
 ```
 
 A rich value should expose read-only domain parts and an explicit property-path allowlist. Construct it once during normalisation. Keep field presentation settings, submission objects and service lookups outside the value. Repeated normalisation and every projection must leave the original unchanged.
+
+Implement `verbb\formie\fields\values\FieldValueInterface` directly, or extend `BaseFieldValue` when an intrinsic `toArray()` representation is useful for domain parts. The interface deliberately contains only `Stringable`, `isEmpty()`, `canResolvePath()` and `getPathValue()`; browser, storage and public-data conversion belong to the owning field rather than the value object. The legacy `verbb\formie\base\FieldValueInterface` remains an empty Formie 3 compatibility marker, not the Formie 4 authoring contract.
 
 Keep these boundaries separate:
 

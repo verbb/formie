@@ -1,11 +1,8 @@
 <?php
 namespace verbb\formie\fields\values;
 
-use verbb\formie\Formie;
 use verbb\formie\content\FieldStorageCodec;
-use verbb\formie\elements\Submission;
 
-use craft\base\ElementInterface;
 use craft\helpers\Json;
 
 class PaymentFieldValue extends BaseFieldValue
@@ -41,9 +38,8 @@ class PaymentFieldValue extends BaseFieldValue
     // Public Methods
     // =========================================================================
 
-    public function __construct(mixed $value = [], array $config = [])
+    public function __construct(mixed $value = [])
     {
-        parent::__construct($config);
         $this->parts = FieldStorageCodec::assertSafe(self::parseParts($value));
     }
 
@@ -72,7 +68,7 @@ class PaymentFieldValue extends BaseFieldValue
         return array_key_exists($name, $this->parts);
     }
 
-    public function toValueArray(): array
+    public function toArray(): array
     {
         return $this->parts;
     }

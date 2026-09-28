@@ -3,24 +3,6 @@ namespace verbb\formie\fields\values;
 
 class LikertMultipleRowsFieldValue implements FieldValueInterface
 {
-    // Static Methods
-    // =========================================================================
-
-
-    public static function toClientValueFrom(mixed $value): mixed
-    {
-        if ($value instanceof self) {
-            return $value->toClientValue();
-        }
-
-        if (!is_array($value)) {
-            return [];
-        }
-
-        return (new self($value))->toClientValue();
-    }
-
-
     // Properties
     // =========================================================================
 
@@ -102,7 +84,7 @@ class LikertMultipleRowsFieldValue implements FieldValueInterface
         return true;
     }
 
-    public function toClientValue(): array
+    public function values(): array
     {
         $result = [];
 
@@ -113,18 +95,18 @@ class LikertMultipleRowsFieldValue implements FieldValueInterface
         return $result;
     }
 
-    public function toValueArray(): array
+    public function toArray(): array
     {
         $result = [];
 
         foreach ($this->_selections as $rowKey => $selection) {
-            $result[$rowKey] = $selection->toValueArray();
+            $result[$rowKey] = $selection->toArray();
         }
 
         return $result;
     }
 
-    public function toValueString(): string
+    public function __toString(): string
     {
         $parts = [];
 
@@ -138,11 +120,6 @@ class LikertMultipleRowsFieldValue implements FieldValueInterface
         }
 
         return implode(', ', $parts);
-    }
-
-    public function __toString(): string
-    {
-        return $this->toValueString();
     }
 
     public function canResolvePath(string $path): bool

@@ -8,8 +8,6 @@ use verbb\formie\fields\values\RecipientsFieldValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 
-use Arrayable;
-use Serializable;
 use Traversable;
 
 final class ArrayValueCoercer
@@ -38,7 +36,7 @@ final class ArrayValueCoercer
         }
 
         if ($value instanceof FieldValueInterface) {
-            return $value->toValueArray();
+            return $value->isEmpty() ? [] : [(string)$value];
         }
 
         if ($value instanceof Traversable) {

@@ -45,7 +45,7 @@ final class CustomLinkFieldValue extends BaseFieldValue
         return $this->_parts;
     }
 
-    public function toValueArray(): array
+    public function toArray(): array
     {
         return $this->_parts + ['url' => $this->_url, 'label' => $this->_label];
     }

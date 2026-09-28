@@ -1,8 +1,6 @@
 <?php
 namespace verbb\formie\fields\coercion;
 
-use verbb\formie\fields\values\FieldValueInterface;
-
 use Throwable;
 
 use libphonenumber\PhoneNumberFormat;
@@ -17,8 +15,6 @@ final class PhoneValueCoercer
     {
         if (is_array($value)) {
             $value = implode(', ', $value);
-        } else if ($value instanceof FieldValueInterface) {
-            $value = $value->toValueString();
         } else if (!is_scalar($value) && is_object($value)) {
             if (method_exists($value, '__toString')) {
                 $value = $value->__toString();

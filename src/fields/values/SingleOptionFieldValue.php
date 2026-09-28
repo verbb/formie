@@ -5,24 +5,6 @@ use verbb\formie\helpers\ArrayHelper;
 
 class SingleOptionFieldValue implements FieldValueInterface
 {
-    // Static Methods
-    // =========================================================================
-
-
-    public static function toClientValueFrom(mixed $value): mixed
-    {
-        if ($value instanceof self || $value instanceof OptionValue) {
-            return $value->value;
-        }
-
-        if (is_array($value) && array_key_exists('value', $value)) {
-            return $value['value'];
-        }
-
-        return $value;
-    }
-
-
     // Properties
     // =========================================================================
 
@@ -61,10 +43,10 @@ class SingleOptionFieldValue implements FieldValueInterface
             return null;
         }
 
-        return ArrayHelper::getValue($this->toValueArray(), $path);
+        return ArrayHelper::getValue($this->toArray(), $path);
     }
 
-    public function toValueArray(): array
+    public function toArray(): array
     {
         return [
             'label' => $this->label,
@@ -72,16 +54,6 @@ class SingleOptionFieldValue implements FieldValueInterface
             'selected' => $this->selected,
             'valid' => $this->valid,
         ];
-    }
-
-    public function toClientValue(): mixed
-    {
-        return $this->value;
-    }
-
-    public function toValueString(): string
-    {
-        return (string)$this;
     }
 
     public function canResolvePath(string $path): bool

@@ -275,11 +275,12 @@ final class RuntimeConfiguration
             $changed = true;
         }
         if ($field instanceof ParentFieldInterface) {
-            $raw = $value instanceof \verbb\formie\fields\values\FieldValueInterface ? $value->toValueArray() : $value;
+            // Parent fields own the writable parts shape for rich domain values.
+            $raw = is_array($value) ? $value : $field->serializeValueForClientInput($value, $submission);
             $repeatable = $field instanceof \verbb\formie\base\RepeatableParentFieldInterface;
             $rows = $repeatable ? (is_array($raw) ? $raw : []) : [is_array($raw) ? $raw : []];
             foreach ($rows as $index => $row) {
-                $row = $row instanceof \verbb\formie\fields\values\FieldValueInterface ? $row->toValueArray() : (array)$row;
+                $row = is_array($row) ? $row : [];
                 foreach ($field->getFields($repeatable ? $index : null) as $child) {
                     [$childValue, $childChanged] = $this->_resolveValue($child, $row[$child->handle] ?? null, array_key_exists($child->handle, $row), $config, $submission);
                     if ($childChanged) {

@@ -111,7 +111,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
 
     public function valueType(): FieldValueType
     {
-        return FieldValueType::object(RecipientsFieldValue::class, true);
+        return FieldValueType::object(RecipientsFieldValue::class);
     }
 
     public function __construct(array $config = [])
@@ -694,7 +694,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        return $value?->toValueArray();
+        return $value?->toArray();
     }
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
@@ -796,7 +796,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         if ($value instanceof RecipientsFieldValue) {
-            return $value->toValueString();
+            return (string)$value;
         }
 
         if (is_array($value)) {

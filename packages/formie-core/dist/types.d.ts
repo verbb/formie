@@ -4,7 +4,6 @@ export type ClientFieldType = KnownClientFieldType | (string & {});
 export type ClientFieldValueStructure = 'scalar' | 'fixed-parent' | 'container-parent' | 'repeatable-parent';
 export type ClientFieldValueType = {
     kind: 'string' | 'boolean' | 'number' | 'object' | 'array' | 'relationQuery' | 'none' | 'storageSafe';
-    nullable: boolean;
     representation?: 'decimal-string';
     items?: ClientFieldValueType;
     class?: string | null;

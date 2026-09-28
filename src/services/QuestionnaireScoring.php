@@ -6,6 +6,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\fields\Quiz;
 use verbb\formie\fields\Survey;
 use verbb\formie\fields\values\MultiOptionFieldValue;
+use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\RichText;
@@ -550,7 +551,9 @@ class QuestionnaireScoring extends Component
 
     private function _extractMultiOptionValues(mixed $stored): array
     {
-        $stored = MultiOptionFieldValue::toClientValueFrom($stored);
+        if ($stored instanceof MultiOptionFieldValue) {
+            return $stored->values();
+        }
 
         if (!is_array($stored)) {
             return [];
@@ -574,7 +577,9 @@ class QuestionnaireScoring extends Component
 
     private function _extractSingleOptionValue(mixed $stored): array
     {
-        $stored = SingleOptionFieldValue::toClientValueFrom($stored);
+        if ($stored instanceof SingleOptionFieldValue || $stored instanceof OptionValue) {
+            $stored = $stored->value;
+        }
 
         if (is_string($stored) && $stored !== '') {
             return [$stored];

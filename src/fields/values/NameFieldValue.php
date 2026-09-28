@@ -33,7 +33,12 @@ class NameFieldValue extends BaseFieldValue
             }
             $config[$key] = $value === null ? null : trim(is_scalar($value) ? (string)$value : \craft\helpers\Json::encode($value));
         }
-        parent::__construct($config);
+        $this->prefix = $config['prefix'];
+        $this->prefixOption = $config['prefixOption'];
+        $this->firstName = $config['firstName'];
+        $this->middleName = $config['middleName'];
+        $this->lastName = $config['lastName'];
+        $this->name = $config['name'];
     }
 
     public function __toString(): string
@@ -46,7 +51,7 @@ class NameFieldValue extends BaseFieldValue
         return $this->__toString() === '';
     }
 
-    public function toValueArray(): array
+    public function toArray(): array
     {
         return [
             'prefix' => $this->prefix,

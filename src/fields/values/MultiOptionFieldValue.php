@@ -10,34 +10,6 @@ use Traversable;
 
 class MultiOptionFieldValue implements FieldValueInterface, IteratorAggregate, Countable
 {
-    // Static Methods
-    // =========================================================================
-
-
-    public static function toClientValueFrom(mixed $value): mixed
-    {
-        if ($value instanceof self) {
-            return $value->toClientValue();
-        }
-
-        if (!is_array($value)) {
-            return $value;
-        }
-
-        return array_values(array_filter(array_map(static function(mixed $item): mixed {
-            if ($item instanceof OptionValue) {
-                return $item->value;
-            }
-
-            if (is_array($item) && array_key_exists('value', $item)) {
-                return $item['value'];
-            }
-
-            return $item;
-        }, $value), static fn(mixed $item): bool => $item !== null && $item !== ''));
-    }
-
-
     // Properties
     // =========================================================================
 
@@ -91,22 +63,12 @@ class MultiOptionFieldValue implements FieldValueInterface, IteratorAggregate, C
             return $option?->value;
         }
 
-        return ArrayHelper::getValue($this->toValueArray(), $path);
+        return ArrayHelper::getValue($this->toArray(), $path);
     }
 
-    public function toValueArray(): array
+    public function toArray(): array
     {
         return array_map(static fn(OptionValue $option) => $option->toArray(), $this->_selectedOptions);
-    }
-
-    public function toClientValue(): mixed
-    {
-        return $this->values();
-    }
-
-    public function toValueString(): string
-    {
-        return (string)$this;
     }
 
     public function canResolvePath(string $path): bool

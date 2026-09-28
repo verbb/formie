@@ -90,7 +90,14 @@ class Address extends FixedParentField implements PreviewableFieldInterface
 
     public function valueType(): FieldValueType
     {
-        return FieldValueType::object(AddressFieldValue::class, true);
+        return FieldValueType::object(AddressFieldValue::class);
+    }
+
+    public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        $value = $this->normalizeValue($value, $element);
+
+        return parent::serializeValueForClientInput($value?->toArray() ?? [], $element);
     }
 
     public function __construct(array $config = [])
@@ -188,6 +195,11 @@ class Address extends FixedParentField implements PreviewableFieldInterface
     public function fieldKind(): string
     {
         return self::KIND_ADDRESS;
+    }
+
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
+    {
+        return $value instanceof AddressFieldValue ? $value : parent::normalizeValueFromRequest($value, $element);
     }
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
@@ -347,7 +359,19 @@ class Address extends FixedParentField implements PreviewableFieldInterface
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        return $value?->toValueArray();
+        return $value?->toArray();
+    }
+
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
+    {
+        $value = $this->normalizeValue($value, $element);
+
+        return parent::defineValueForDb($value?->toArray() ?? [], $element);
+    }
+
+    protected function nestedValueParts(mixed $value): array
+    {
+        return $value instanceof AddressFieldValue ? $value->toArray() : parent::nestedValueParts($value);
     }
 
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag

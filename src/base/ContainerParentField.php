@@ -7,7 +7,6 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\fields\definitions\FieldValueType;
-use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\gql\resolvers\elements\NestedFieldRowResolver;
 use verbb\formie\gql\types\generators\NestedFieldGenerator;
 use verbb\formie\gql\types\input\GroupInputType;
@@ -58,10 +57,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         if (!is_array($incoming) || $incoming === []) {
             return $incoming;
         }
-        if ($previous instanceof FieldValueInterface) {
-            $previous = $previous->toValueArray();
-        }
-        $previous = is_array($previous) ? $previous : [];
+        $previous = $this->nestedValueParts($previous);
         $result = [];
         foreach ($this->getFields() as $field) {
             $prior = $previous[$field->handle] ?? null;
@@ -122,13 +118,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        if ($value instanceof FieldValueInterface) {
-            $value = $value->toValueArray();
-        }
-
-        if (!is_array($value)) {
-            $value = [];
-        }
+        $value = $this->nestedValueParts($value);
 
         // Normalize all inner fields
         $values = [];
@@ -172,10 +162,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
 
     protected function projectChildValues(mixed $value, ?ElementInterface $element, callable $project): array
     {
-        if ($value instanceof FieldValueInterface) {
-            $value = $value->toValueArray();
-        }
-        $value = is_array($value) ? $value : [];
+        $value = $this->nestedValueParts($value);
         $rows = [$value];
         $result = [];
         foreach ($rows as $rowKey => $row) {
@@ -209,7 +196,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         $values = [];
 
         foreach ($this->getEnabledFields($element) as $field) {
-            $parts = $value instanceof FieldValueInterface ? $value->toValueArray() : (array)$value;
+            $parts = $this->nestedValueParts($value);
             $subValue = $field->normalizeFieldValue($parts[$field->handle] ?? $parts[$field->uid] ?? null, $element);
             $valueAsString = $field->getValueAsString($subValue, $element);
 
@@ -235,7 +222,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         $values = [];
 
         foreach ($this->getEnabledFields($element) as $field) {
-            $parts = $value instanceof FieldValueInterface ? $value->toValueArray() : (array)$value;
+            $parts = $this->nestedValueParts($value);
             $subValue = $field->normalizeFieldValue($parts[$field->handle] ?? $parts[$field->uid] ?? null, $element);
             $valueForExport = $field->getValueForExport($subValue, $element);
 
@@ -255,13 +242,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
 
     protected function serializeNestedFieldValues(mixed $value, ?ElementInterface $element, string $keyBy): array
     {
-        if ($value instanceof FieldValueInterface) {
-            $value = $value->toValueArray();
-        }
-
-        if (!is_array($value)) {
-            $value = [];
-        }
+        $value = $this->nestedValueParts($value);
 
         $values = [];
 
@@ -284,7 +265,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         $values = '';
 
         foreach ($this->getVisibleEnabledFields($element) as $field) {
-            $parts = $value instanceof FieldValueInterface ? $value->toValueArray() : (array)$value;
+            $parts = $this->nestedValueParts($value);
             $subValue = $field->normalizeFieldValue($parts[$field->handle] ?? $parts[$field->uid] ?? null, $element);
             $summary = $field->getValueForSummary($subValue, $element);
             $summaryHtml = $summary instanceof \Twig\Markup ? (string)$summary : Html::encode((string)$summary);
@@ -304,7 +285,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
             $subFieldKey = implode('.', $subFieldKey);
 
             $subField = $this->getFieldByHandle($subFieldHandle);
-            $parts = $value instanceof FieldValueInterface ? $value->toValueArray() : (array)$value;
+            $parts = $this->nestedValueParts($value);
             $subValue = $subField->normalizeFieldValue($parts[$subField->handle] ?? $parts[$subField->uid] ?? null, $element);
 
             return $subField->getValueForIntegration($subValue, $integrationField, $integration, $element, $subFieldKey);
@@ -317,6 +298,13 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
     protected function defineValueForCondition(mixed $value, Submission $submission): mixed
     {
         return $this->projectChildValues($value, $submission, fn($field, $child) => $field->getValueForCondition($field->normalizeFieldValue($child, $submission), $submission));
+    }
+
+    protected function nestedValueParts(mixed $value): array
+    {
+        // Fixed parent fields with domain objects opt into their intrinsic
+        // parts explicitly; generic parents never infer a transport shape.
+        return is_array($value) ? $value : [];
     }
 
 }

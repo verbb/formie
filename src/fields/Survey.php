@@ -596,7 +596,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
 
         if ($this->usesLikertMultipleRows()) {
             if ($value instanceof LikertMultipleRowsFieldValue) {
-                $variables['value'] = $value->toClientValue();
+                $variables['value'] = $value->values();
             } elseif (!is_array($variables['value'])) {
                 $variables['value'] = [];
             }
@@ -613,7 +613,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
             return $this->getDisplayTypeField()->valueType();
         }
         if ($this->displayType === self::DISPLAY_LIKERT && $this->usesLikertMultipleRows()) {
-            return FieldValueType::object(LikertMultipleRowsFieldValue::class, true);
+            return FieldValueType::object(LikertMultipleRowsFieldValue::class);
         }
         return parent::valueType();
     }
@@ -699,13 +699,17 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
 
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
+        if ($value instanceof LikertMultipleRowsFieldValue) {
+            return $value->values();
+        }
+
         return !$this->usesOptions() ? $this->getDisplayTypeField()->serializeValueForClientInput($value, $element) : parent::serializeValueForClientInput($value, $element);
     }
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         if ($value instanceof LikertMultipleRowsFieldValue) {
-            return $value->toValueString();
+            return (string)$value;
         }
         return !$this->usesOptions() ? $this->getDisplayTypeField()->defineValueAsString($value, $element) : parent::defineValueAsString($value, $element);
     }
@@ -714,7 +718,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
     {
         if ($value instanceof LikertMultipleRowsFieldValue) {
             return \verbb\formie\base\Integration::convertValueForIntegration(
-                $integrationField->getType() === \verbb\formie\models\IntegrationField::TYPE_ARRAY ? $value->toClientValue() : $value->toValueString(),
+                $integrationField->getType() === \verbb\formie\models\IntegrationField::TYPE_ARRAY ? $value->values() : (string)$value,
                 $integrationField,
             );
         }
@@ -849,7 +853,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
     {
         if ($forLikert && $this->usesLikertMultipleRows()) {
             if ($value instanceof LikertMultipleRowsFieldValue) {
-                return $value->toClientValue();
+                return $value->values();
             }
 
             return is_array($value) ? $value : [];
@@ -864,7 +868,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         }
 
         if ($value instanceof LikertMultipleRowsFieldValue) {
-            return $value->toClientValue();
+            return $value->values();
         }
 
         return $value;
@@ -940,7 +944,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
     {
         if ($this->displayType === self::DISPLAY_LIKERT && $value instanceof LikertMultipleRowsFieldValue) {
             if (!$this->shouldPersistOptionLabels()) {
-                return $value->toClientValue();
+                return $value->values();
             }
 
             $serialized = [];

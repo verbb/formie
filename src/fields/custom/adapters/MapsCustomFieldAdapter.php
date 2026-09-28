@@ -222,7 +222,7 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
 
     public function valueType(CustomField $field): FieldValueType
     {
-        return FieldValueType::object(CustomMapFieldValue::class, true);
+        return FieldValueType::object(CustomMapFieldValue::class);
     }
 
     public function normalizeValue(mixed $value, CustomField $field, ?ElementInterface $element): mixed
@@ -249,7 +249,7 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
     {
         $value = $this->normalizeValue($value, $field, $element);
 
-        return $value instanceof CustomMapFieldValue ? $value->toValueArray() : $value;
+        return $value instanceof CustomMapFieldValue ? $value->toArray() : $value;
     }
 
     public function isValueEmpty(mixed $value, CustomField $field, ?ElementInterface $element): bool
@@ -297,7 +297,7 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
     {
         $value = $this->normalizeValue($value, $field, $element);
 
-        return $value instanceof CustomMapFieldValue ? $value->toValueArray() : parent::getValueAsData($value, $field, $element);
+        return $value instanceof CustomMapFieldValue ? $value->toArray() : parent::getValueAsData($value, $field, $element);
     }
 
 

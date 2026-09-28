@@ -260,7 +260,7 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
 
     public function valueType(CustomField $field): FieldValueType
     {
-        return FieldValueType::object(CustomLinkFieldValue::class, true);
+        return FieldValueType::object(CustomLinkFieldValue::class);
     }
 
     public function normalizeValue(mixed $value, CustomField $field, ?ElementInterface $element): mixed

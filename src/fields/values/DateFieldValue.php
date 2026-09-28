@@ -30,7 +30,7 @@ class DateFieldValue extends BaseFieldValue
         }
 
         if ($value instanceof FieldValueInterface) {
-            $value = $value->toValueString();
+            $value = (string)$value;
         } else if (is_object($value)) {
             if (method_exists($value, '__toString')) {
                 $value = (string)$value;
@@ -396,10 +396,10 @@ class DateFieldValue extends BaseFieldValue
     // Public Methods
     // =========================================================================
 
-    public function __construct(mixed $value = [], array $config = [])
+    public function __construct(mixed $value = [])
     {
         if ($value instanceof self) {
-            $value = $value->toValueArray();
+            $value = $value->toArray();
         }
         $this->parts = self::parseParts($value);
         $this->rawInput = is_array($value) ? ($value['_input'] ?? null) : null;
@@ -443,7 +443,7 @@ class DateFieldValue extends BaseFieldValue
         return empty($this->parts) && $this->rawInput === null;
     }
 
-    public function toValueArray(): array
+    public function toArray(): array
     {
         return $this->rawInput === null ? $this->parts : $this->parts + ['_input' => $this->rawInput];
     }

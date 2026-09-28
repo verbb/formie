@@ -5,18 +5,6 @@ use craft\base\Serializable;
 
 class ColorFieldValue extends BaseFieldValue implements Serializable
 {
-    // Static Methods
-    // =========================================================================
-
-    public static function toClientValueFrom(mixed $value): mixed
-    {
-        if ($value instanceof self) {
-            return $value->toClientValue();
-        }
-
-        return $value;
-    }
-
     // Properties
     // =========================================================================
 
@@ -26,11 +14,9 @@ class ColorFieldValue extends BaseFieldValue implements Serializable
     // Public Methods
     // =========================================================================
 
-    public function __construct(string $hex, array $config = [])
+    public function __construct(string $hex)
     {
         $this->_hex = $hex;
-
-        parent::__construct($config);
     }
 
     public function __toString(): string
@@ -48,7 +34,7 @@ class ColorFieldValue extends BaseFieldValue implements Serializable
         return $this->_hex === '';
     }
 
-    public function toValueArray(): array
+    public function toArray(): array
     {
         return [
             'hex' => $this->getHex(),
@@ -62,11 +48,6 @@ class ColorFieldValue extends BaseFieldValue implements Serializable
             'l' => $this->getL(),
             'luma' => $this->getLuma(),
         ];
-    }
-
-    public function toClientValue(): mixed
-    {
-        return $this->getHex();
     }
 
     public function getHex(): string

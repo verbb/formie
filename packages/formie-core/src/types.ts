@@ -26,7 +26,6 @@ export type ClientFieldValueStructure =
 
 export type ClientFieldValueType = {
     kind: 'string' | 'boolean' | 'number' | 'object' | 'array' | 'relationQuery' | 'none' | 'storageSafe';
-    nullable: boolean;
     representation?: 'decimal-string';
     items?: ClientFieldValueType;
     class?: string | null;

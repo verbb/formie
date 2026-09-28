@@ -35,16 +35,16 @@ trait FieldRuntimeCompatibility
         }
 
         if ($class && class_exists($class)) {
-            return FieldValueType::object($class, true);
+            return FieldValueType::object($class);
         }
 
         return match ($type) {
             'mixed', 'int', 'float', 'int|float' => FieldValueType::storageSafe(),
             'bool', 'boolean' => FieldValueType::boolean(),
-            'array' => FieldValueType::array(nullable: true),
+            'array' => FieldValueType::array(),
             default => class_exists($type)
-                ? FieldValueType::object($type, true)
-                : FieldValueType::string(nullable: true),
+                ? FieldValueType::object($type)
+                : FieldValueType::string(),
         };
     }
 

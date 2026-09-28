@@ -47,7 +47,7 @@ class DateRangeFieldValue extends BaseFieldValue
     // Public Methods
     // =========================================================================
 
-    public function __construct(mixed $value = [], array $config = [])
+    public function __construct(mixed $value = [])
     {
         $value = is_array($value) ? $value : ['start' => $value];
         $this->start = new DateFieldValue($value['start'] ?? self::_parseFlatSideParts($value, 'start'));
@@ -84,9 +84,9 @@ class DateRangeFieldValue extends BaseFieldValue
         return $this->start->isEmpty() && $this->end->isEmpty();
     }
 
-    public function toValueArray(): array
+    public function toArray(): array
     {
-        return ['start' => $this->start->toValueArray(), 'end' => $this->end->toValueArray()];
+        return ['start' => $this->start->toArray(), 'end' => $this->end->toArray()];
     }
 
     public function getStartParts(): array

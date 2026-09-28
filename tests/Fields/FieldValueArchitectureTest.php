@@ -8,6 +8,42 @@ use verbb\formie\fields\values\NameFieldValue;
 use verbb\formie\fields\values\DateFieldValue;
 use verbb\formie\fields\values\PaymentFieldValue;
 
+it('keeps the rich value contract limited to domain behavior and Formie 3 identity', function () {
+    $contract = new ReflectionClass(\verbb\formie\fields\values\FieldValueInterface::class);
+    $declaredMethods = array_map(
+        static fn(ReflectionMethod $method): string => $method->getName(),
+        array_filter(
+            $contract->getMethods(),
+            static fn(ReflectionMethod $method): bool => $method->getDeclaringClass()->getName() === $contract->getName(),
+        ),
+    );
+
+    expect($contract->getInterfaceNames())
+        ->toContain(Stringable::class, \verbb\formie\base\FieldValueInterface::class)
+        ->and($declaredMethods)->toBe(['isEmpty', 'canResolvePath', 'getPathValue'])
+        ->and($contract->hasMethod('toClientValue'))->toBeFalse()
+        ->and($contract->hasMethod('toValueArray'))->toBeFalse()
+        ->and($contract->hasMethod('toValueString'))->toBeFalse();
+});
+
+it('treats null as universal absence without publishing nullable type metadata', function () {
+    $types = [
+        FieldValueType::string(),
+        FieldValueType::boolean(),
+        FieldValueType::number(),
+        FieldValueType::object(NameFieldValue::class),
+        FieldValueType::array(FieldValueType::string()),
+        FieldValueType::relationQuery(\craft\elements\Entry::class),
+        FieldValueType::none(),
+        FieldValueType::storageSafe(),
+    ];
+
+    foreach ($types as $type) {
+        expect($type->accepts(null))->toBeTrue()
+            ->and($type->toArray())->not->toHaveKey('nullable');
+    }
+});
+
 it('declares and enforces each registered core empty runtime value', function () {
     foreach (\verbb\formie\Formie::$plugin->getFields()->getRegisteredFields() as $type) {
         $field = is_string($type) ? new $type(['handle' => 'subject']) : $type;
@@ -287,10 +323,17 @@ it('declares and preserves every survey presentation runtime shape', function (s
 })->with(['likert', 'rank', 'rating', 'dropdown', 'radio', 'checkboxes', 'singleLineText', 'multiLineText']);
 
 it('normalizes configured multi-part names and Likert rows without mutable collections', function () {
-    $form = formie()->form()->nameField('person', ['useMultipleFields' => true, 'enableContentEncryption' => true])->create();
+    $form = formie()->form()->nameField('person', ['useMultipleFields' => true, 'enableContentEncryption' => true, 'rows' => (new fields\Name())->getSubFields()])->create();
     $field = $form->getFieldByHandle('person');
     $value = $field->normalizeFieldValue(['firstName' => 'Ada', 'lastName' => 'Lovelace']);
     expect($value)->toBeInstanceOf(NameFieldValue::class);
+    $childFields = $field->getFields();
+    $stored = FieldStorageCodec::decode($field->serializeValueForDb($value));
+    expect(array_keys($stored))->toBe(array_map(static fn(Field $child): string => $child->uid, $childFields));
+    expect(array_keys($field->serializeValueForClientInput($value)))->toBe(array_map(static fn(Field $child): string => $child->handle, $childFields));
+    expect($field->normalizeValueFromRequest($value, null))->toBe($value);
+    $merged = $field->normalizeValueFromRequest($field->mergePartialRequestValue($value, ['firstName' => 'Grace']), null);
+    expect($merged->firstName)->toBe('Grace')->and($merged->lastName)->toBe('Lovelace');
     expect($field->getValueAsData($field->normalizeValueFromStorage($field->serializeValueForDb($value))))->toEqual($field->getValueAsData($value));
     $survey = new fields\Survey(['handle' => 'rating', 'displayType' => 'likert', 'likertRows' => [['label' => 'First', 'value' => 'first'], ['label' => 'Second', 'value' => 'second']], 'options' => [['label' => 'Yes', 'value' => 'yes']], 'enableContentEncryption' => true]);
     $value = $survey->normalizeFieldValue(['first' => 'yes', 'second' => 'invalid']);
@@ -300,15 +343,30 @@ it('normalizes configured multi-part names and Likert rows without mutable colle
     expect($value->canResolvePath('unlisted'))->toBeFalse();
 });
 
+it('keeps address domain parts separate from nested storage and browser keys', function () {
+    $form = formie()->form()->addressField('address', ['enableContentEncryption' => true, 'rows' => (new fields\Address())->getSubFields()])->create();
+    $field = $form->getFieldByHandle('address');
+    $value = $field->normalizeFieldValue(['address1' => '123 Main St', 'city' => 'Melbourne', 'country' => 'AU']);
+    $childFields = $field->getFields();
+    $stored = FieldStorageCodec::decode($field->serializeValueForDb($value));
+
+    expect(array_keys($stored))->toBe(array_map(static fn(Field $child): string => $child->uid, $childFields));
+    expect(array_keys($field->serializeValueForClientInput($value)))->toBe(array_map(static fn(Field $child): string => $child->handle, $childFields));
+    expect($field->normalizeValueFromRequest($value, null))->toBe($value);
+    $merged = $field->normalizeValueFromRequest($field->mergePartialRequestValue($value, ['city' => 'Geelong']), null);
+    expect($merged->address1)->toBe('123 Main St')->and($merged->city)->toBe('Geelong');
+    expect($field->getValueAsData($value))->toMatchArray(['address1' => '123 Main St', 'city' => 'Melbourne', 'country' => 'AU']);
+});
+
 it('separates date display and integration formats without mutating canonical parts', function () {
     $field = new fields\Date(['handle' => 'when', 'dateFormat' => 'd/m/Y', 'timeFormat' => 'H:i']);
     $value = $field->normalizeFieldValue(['year' => '2026', 'month' => '9', 'day' => '26', 'hour' => '1', 'minute' => '30', 'ampm' => 'PM']);
-    $before = $value->toValueArray();
+    $before = $value->toArray();
     $integration = new class extends \verbb\formie\base\Integration {};
     $target = new \verbb\formie\models\IntegrationField(['type' => \verbb\formie\models\IntegrationField::TYPE_DATETIME]);
     expect($field->getValueForIntegration($value, $target, $integration))->toBe('2026-09-26 13:30:00');
     expect((string)$value)->toBe('2026-09-26 13:30:00');
-    expect($value->toValueArray())->toBe($before);
+    expect($value->toArray())->toBe($before);
 });
 
 it('preserves map adapter parts and isolates them from mutable public projections', function (string $adapter, array $input) {

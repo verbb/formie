@@ -113,7 +113,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = $this->normalizeValue($value, $element);
-        return $this->useMultipleFields ? parent::serializeValueForClientInput($value, $element) : (string)$value;
+        return $this->useMultipleFields ? parent::serializeValueForClientInput($value->toArray(), $element) : (string)$value;
     }
 
     public function valueType(): FieldValueType
@@ -220,6 +220,10 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
 
     public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
     {
+        if ($value instanceof NameFieldValue) {
+            return $value;
+        }
+
         return $this->useMultipleFields ? parent::normalizeValueFromRequest($value, $element) : $this->normalizeValue($value, $element);
     }
 
@@ -385,7 +389,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {
         $value = $this->normalizeValue($value, $element);
-        return $this->useMultipleFields ? parent::defineValueForDb($value, $element) : (string)$value;
+        return $this->useMultipleFields ? parent::defineValueForDb($value->toArray(), $element) : (string)$value;
     }
 
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
@@ -543,7 +547,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        return $this->normalizeValue($value, $element)->toValueArray();
+        return $this->normalizeValue($value, $element)->toArray();
     }
 
 
@@ -569,6 +573,11 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
         }
 
         return (string)$value;
+    }
+
+    protected function nestedValueParts(mixed $value): array
+    {
+        return $value instanceof NameFieldValue ? $value->toArray() : parent::nestedValueParts($value);
     }
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed

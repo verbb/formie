@@ -13,8 +13,6 @@ use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
-use verbb\formie\fields\values\AddressFieldValue;
-use verbb\formie\fields\values\NameFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\helpers\PaymentAttempt;
@@ -780,10 +778,6 @@ class Opayo extends Payment
         }
 
         if ($billingName && ($fullName = $submission->getFieldValueAsData($billingName))) {
-            if ($fullName instanceof NameFieldValue) {
-                $fullName = $fullName->toValueArray();
-            }
-
             if (is_array($fullName)) {
                 if ($firstName = ArrayHelper::remove($fullName, 'firstName')) {
                     $payload['customerFirstName'] = $firstName;
@@ -796,10 +790,6 @@ class Opayo extends Payment
         }
 
         if ($billingAddress && ($address = $submission->getFieldValueAsData($billingAddress))) {
-            if ($address instanceof AddressFieldValue) {
-                $address = $address->toValueArray();
-            }
-
             if (is_array($address)) {
                 $payload['billingAddress']['address1'] = trim((string)ArrayHelper::remove($address, 'address1'));
                 $payload['billingAddress']['city'] = trim((string)ArrayHelper::remove($address, 'city'));

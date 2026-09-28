@@ -2,26 +2,9 @@
 namespace verbb\formie\fields\values;
 
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\RecipientTokenHelper;
-
-use craft\helpers\Json;
 
 class RecipientsFieldValue implements FieldValueInterface
 {
-    // Static Methods
-    // =========================================================================
-
-
-    public static function toClientValueFrom(mixed $value): mixed
-    {
-        if ($value instanceof self) {
-            return $value->toClientValue();
-        }
-
-        return $value;
-    }
-
-
     // Properties
     // =========================================================================
 
@@ -114,7 +97,7 @@ class RecipientsFieldValue implements FieldValueInterface
         return $this->values() === [];
     }
 
-    public function toValueArray(): array
+    public function toArray(): array
     {
         if ($this->_displayType === 'checkboxes') {
             return array_map(static fn(OptionValue $option) => $option->toArray(), $this->_selectedOptions);
@@ -134,70 +117,14 @@ class RecipientsFieldValue implements FieldValueInterface
         ];
     }
 
-    public function toClientValue(): mixed
-    {
-        if ($this->_displayType === 'checkboxes') {
-            $clientValues = [];
-
-            foreach ($this->_selectedOptions as $option) {
-                $clientValues[] = RecipientTokenHelper::encodeOption([
-                    'label' => $option->label,
-                    'value' => $option->value,
-                ]);
-            }
-
-            return $clientValues;
-        }
-
-        if ($this->_displayType === 'dropdown' || $this->_displayType === 'radio') {
-            foreach ($this->_options as $option) {
-                if (
-                    ($option->value ?? null) === $this->_rawValue
-                    && (
-                        $this->_label === null
-                        || $this->_label === ''
-                        || $this->_label === ($option->label ?? null)
-                    )
-                ) {
-                    return RecipientTokenHelper::encodeOption([
-                        'label' => $option->label,
-                        'value' => $option->value,
-                    ]);
-                }
-            }
-
-            if ($this->_rawValue !== null && $this->_rawValue !== '') {
-                return RecipientTokenHelper::encodeOption([
-                    'label' => $this->_label,
-                    'value' => $this->_rawValue,
-                ]);
-            }
-
-            return $this->_rawValue;
-        }
-
-        $value = $this->_rawValue;
-
-        if (is_array($value)) {
-            $value = Json::encode($value);
-        }
-
-        return RecipientTokenHelper::encodeHidden($value);
-    }
-
-    public function toValueString(): string
+    public function __toString(): string
     {
         return implode(', ', $this->values());
     }
 
-    public function __toString(): string
-    {
-        return $this->toValueString();
-    }
-
     public function canResolvePath(string $path): bool
     {
-        return in_array($path, array_keys($this->toValueArray()), true);
+        return in_array($path, array_keys($this->toArray()), true);
     }
 
     public function getPathValue(string $path): mixed
@@ -210,6 +137,6 @@ class RecipientsFieldValue implements FieldValueInterface
             return null;
         }
 
-        return ArrayHelper::getValue($this->toValueArray(), $path);
+        return ArrayHelper::getValue($this->toArray(), $path);
     }
 }

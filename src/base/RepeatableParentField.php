@@ -2,7 +2,6 @@
 namespace verbb\formie\base;
 
 use verbb\formie\fields\definitions\FieldValueType;
-use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\base\Field;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
@@ -126,9 +125,6 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         if (!is_array($incoming) || $incoming === []) {
             return $incoming;
         }
-        if ($previous instanceof FieldValueInterface) {
-            $previous = $previous->toValueArray();
-        }
         $previous = is_array($previous) ? $previous : [];
         $rows = $incoming['rows'] ?? $incoming;
         $result = [];
@@ -236,9 +232,6 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
 
     protected function projectChildValues(mixed $value, ?ElementInterface $element, callable $project): array
     {
-        if ($value instanceof FieldValueInterface) {
-            $value = $value->toValueArray();
-        }
         $value = is_array($value) ? $value : [];
         $rows = $value['rows'] ?? $value;
         $result = [];

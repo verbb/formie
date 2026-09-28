@@ -55,7 +55,9 @@ class SubmissionContentAccessor
         $rootValue = $this->_getRootNormalizedValue($submission, $rootHandle);
 
         if ($rootValue instanceof FieldValueInterface) {
-            $rootValue = $rootValue->toValueArray();
+            // Nested edits need the field's writable input shape, not a generic
+            // value-object transport representation.
+            $rootValue = $field->serializeValueForClientInput($rootValue, $submission);
         }
 
         if (!is_array($rootValue) && !$rootValue instanceof \ArrayAccess && !$rootValue instanceof \stdClass) {

@@ -1,9 +1,8 @@
 <?php
 namespace verbb\formie\fields\coercion;
 
-use verbb\formie\fields\values\FieldValueInterface;
-
 use DateTimeInterface;
+use Stringable;
 
 final class ScalarValueCoercer
 {
@@ -16,12 +15,8 @@ final class ScalarValueCoercer
             return $value;
         }
 
-        if ($value instanceof FieldValueInterface) {
-            return $value->toValueString();
-        }
-
-        if (is_object($value) && method_exists($value, '__toString')) {
-            return $value->__toString();
+        if ($value instanceof Stringable) {
+            return (string)$value;
         }
 
         return null;

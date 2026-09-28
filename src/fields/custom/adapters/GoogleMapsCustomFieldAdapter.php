@@ -222,7 +222,7 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
 
     public function valueType(CustomField $field): FieldValueType
     {
-        return FieldValueType::object(CustomGoogleMapsAddressFieldValue::class, true);
+        return FieldValueType::object(CustomGoogleMapsAddressFieldValue::class);
     }
 
     public function normalizeValue(mixed $value, CustomField $field, ?ElementInterface $element): mixed
@@ -257,7 +257,7 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
     {
         $value = $this->normalizeValue($value, $field, $element);
 
-        return $value instanceof CustomGoogleMapsAddressFieldValue ? $value->toValueArray() : $value;
+        return $value instanceof CustomGoogleMapsAddressFieldValue ? $value->toArray() : $value;
     }
 
     public function isValueEmpty(mixed $value, CustomField $field, ?ElementInterface $element): bool
@@ -305,7 +305,7 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
     {
         $value = $this->normalizeValue($value, $field, $element);
 
-        return $value instanceof CustomGoogleMapsAddressFieldValue ? $value->toValueArray() : parent::getValueAsData($value, $field, $element);
+        return $value instanceof CustomGoogleMapsAddressFieldValue ? $value->toArray() : parent::getValueAsData($value, $field, $element);
     }
 
 
@@ -507,7 +507,7 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
 
     protected function createCraftGoogleMapsAddressValue(CustomGoogleMapsAddressFieldValue $value): CraftGoogleMapsAddressValue
     {
-        return new CraftGoogleMapsAddressValue(array_merge($value->toValueArray(), [
+        return new CraftGoogleMapsAddressValue(array_merge($value->toArray(), [
             'enabledSubfields' => array_column(GoogleMapsDefaults::SUBFIELDCONFIG, 'handle'),
         ]));
     }

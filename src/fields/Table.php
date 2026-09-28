@@ -191,7 +191,7 @@ class Table extends Field
 
     public function valueType(): FieldValueType
     {
-        return FieldValueType::array(nullable: true);
+        return FieldValueType::array();
     }
 
     public function __construct(array $config = [])

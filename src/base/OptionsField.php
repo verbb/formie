@@ -324,7 +324,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
     public function valueType(): FieldValueType
     {
-        return FieldValueType::object($this->multi ? MultiOptionFieldValue::class : SingleOptionFieldValue::class, true);
+        return FieldValueType::object($this->multi ? MultiOptionFieldValue::class : SingleOptionFieldValue::class);
     }
 
     public function __construct($config = [])
@@ -756,7 +756,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
-        return $value?->toClientValue();
+        return $value instanceof MultiOptionFieldValue ? $value->values() : $value?->value;
     }
 
 
@@ -877,12 +877,12 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
     protected function defineValueForCondition(mixed $value, \verbb\formie\elements\Submission $submission): mixed
     {
-        return $value?->toClientValue();
+        return $value instanceof MultiOptionFieldValue ? $value->values() : $value?->value;
     }
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        return $value?->toValueArray() ?? ($this->multi ? [] : null);
+        return $value?->toArray() ?? ($this->multi ? [] : null);
     }
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element = null): mixed

@@ -1,8 +1,6 @@
 <?php
 namespace verbb\formie\fields\values;
 
-use verbb\formie\helpers\ArrayHelper;
-
 use craft\helpers\Json;
 
 class CustomMapFieldValue extends BaseFieldValue
@@ -43,7 +41,12 @@ class CustomMapFieldValue extends BaseFieldValue
         }
 
         \verbb\formie\content\FieldStorageCodec::assertSafe($config);
-        parent::__construct($config);
+        $this->address = isset($config['address']) ? (string)$config['address'] : null;
+        $this->lat = $config['lat'] ?? null;
+        $this->lng = $config['lng'] ?? null;
+        $this->zoom = $config['zoom'] ?? null;
+        $this->parts = $config['parts'] ?? null;
+        $this->what3words = isset($config['what3words']) ? (string)$config['what3words'] : null;
     }
 
     public function __toString(): string
@@ -64,7 +67,7 @@ class CustomMapFieldValue extends BaseFieldValue
         return (string)$this === '';
     }
 
-    public function toValueArray(): array
+    public function toArray(): array
     {
         return [
             'address' => $this->address,

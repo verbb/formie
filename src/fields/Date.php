@@ -474,7 +474,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     public function valueType(): FieldValueType
     {
-        return FieldValueType::object($this->getCollectsRange() ? DateRangeFieldValue::class : DateFieldValue::class, true);
+        return FieldValueType::object($this->getCollectsRange() ? DateRangeFieldValue::class : DateFieldValue::class);
     }
 
     public function __construct($config = [])
@@ -842,7 +842,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             $raw = $value->getRawInput();
             return is_array($raw) ? $raw : ['date' => $raw];
         }
-        return $value?->toValueArray();
+        return $value?->toArray();
     }
 
 
@@ -1561,7 +1561,16 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {
-        return $this->normalizeValue($value, $element)?->toValueArray();
+        return $this->normalizeValue($value, $element)?->toArray();
+    }
+
+    protected function nestedValueParts(mixed $value): array
+    {
+        if ($value instanceof DateFieldValue || $value instanceof DateRangeFieldValue) {
+            return $value->toArray();
+        }
+
+        return parent::nestedValueParts($value);
     }
 
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
@@ -1988,12 +1997,12 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        return $value?->toValueArray();
+        return $value?->toArray();
     }
 
     protected function defineValueForCondition(mixed $value, Submission $submission): mixed
     {
-        return $value?->toValueArray();
+        return $value?->toArray();
     }
 
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
@@ -2030,7 +2039,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 IntegrationField::TYPE_DATE => $date?->format('Y-m-d'),
                 IntegrationField::TYPE_DATETIME => $date?->format('Y-m-d H:i:s'),
                 IntegrationField::TYPE_DATECLASS => $date,
-                IntegrationField::TYPE_ARRAY => $value->toValueArray(),
+                IntegrationField::TYPE_ARRAY => $value->toArray(),
                 default => parent::defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey),
             };
         }
@@ -2525,7 +2534,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     private function _normalizeRangeSideInputValue(mixed $value, ?string $prefix = null): array
     {
         if (!is_array($value)) {
-            return (new DateFieldValue($value))->toValueArray();
+            return (new DateFieldValue($value))->toArray();
         }
         if ($prefix !== null) {
             if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {

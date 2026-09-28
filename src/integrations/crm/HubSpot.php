@@ -8,7 +8,6 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\fields\values\DateFieldValue;
-use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -187,10 +186,6 @@ class HubSpot extends Crm
 
                         if (is_array($v)) {
                             return implode(';', array_map('strval', $v));
-                        }
-
-                        if ($v instanceof FieldValueInterface) {
-                            return implode(';', array_map('strval', $v->toValueArray()));
                         }
 
                         if (is_object($v)) {

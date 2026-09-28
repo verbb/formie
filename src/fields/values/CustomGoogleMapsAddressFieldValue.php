@@ -1,8 +1,6 @@
 <?php
 namespace verbb\formie\fields\values;
 
-use verbb\formie\helpers\ArrayHelper;
-
 use craft\helpers\Json;
 
 use doublesecretagency\googlemaps\models\Address as GoogleMapsAddress;
@@ -55,7 +53,16 @@ class CustomGoogleMapsAddressFieldValue extends BaseFieldValue
         }
 
         \verbb\formie\content\FieldStorageCodec::assertSafe($config);
-        parent::__construct($config);
+
+        foreach (['formatted', 'name', 'street1', 'street2', 'city', 'state', 'zip', 'neighborhood', 'county', 'country', 'countryCode', 'placeId'] as $key) {
+            $value = $config[$key] ?? null;
+            $this->{$key} = $value === null ? null : (string)$value;
+        }
+
+        $this->raw = $config['raw'] ?? null;
+        $this->lat = $config['lat'] ?? null;
+        $this->lng = $config['lng'] ?? null;
+        $this->zoom = $config['zoom'] ?? null;
     }
 
     public static function fromGoogleMapsAddress(GoogleMapsAddress $address): self
@@ -112,7 +119,7 @@ class CustomGoogleMapsAddressFieldValue extends BaseFieldValue
         return (string)$this === '';
     }
 
-    public function toValueArray(): array
+    public function toArray(): array
     {
         return [
             'formatted' => $this->formatted,
