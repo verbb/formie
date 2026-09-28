@@ -91,12 +91,22 @@ class Salesforce extends Crm implements OAuthProviderInterface
             ],
         ];
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const GRANT_AUTHORIZATION_CODE = 'authorization_code';
+    public const GRANT_CLIENT_CREDENTIALS = 'client_credentials';
+    public const GRANT_PASSWORD = 'password';
     
 
     // Properties
     // =========================================================================
     
     public ?string $apiDomain = null;
+    public ?string $authDomain = null;
+    public ?string $grant = null;
     public ?string $matchLead = null;
     public bool|string $useSandbox = false;
     public bool|string $useCredentials = false;
@@ -196,6 +206,25 @@ class Salesforce extends Crm implements OAuthProviderInterface
         return App::parseBooleanEnv($this->useCredentials);
     }
 
+    public function getGrant(): string
+    {
+        $grant = App::parseEnv($this->grant);
+
+        if (in_array($grant, [self::GRANT_AUTHORIZATION_CODE, self::GRANT_CLIENT_CREDENTIALS, self::GRANT_PASSWORD], true)) {
+            return $grant;
+        }
+
+        // Preserve integrations migrated from Formie 3 before the grant selector was introduced.
+        return $this->getUseCredentials() ? self::GRANT_PASSWORD : self::GRANT_AUTHORIZATION_CODE;
+    }
+
+    public function getAuthDomain(): ?string
+    {
+        $domain = App::parseEnv($this->authDomain);
+
+        return is_string($domain) && $domain !== '' ? rtrim($domain, '/') : null;
+    }
+
     public function getUsername(): string
     {
         return App::parseEnv($this->username);
@@ -208,6 +237,10 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     public function getApiDomain(): string
     {
+        if ($domain = $this->getAuthDomain()) {
+            return $domain;
+        }
+
         $prefix = $this->getUseSandbox() ? 'test' : 'login';
 
         return "https://{$prefix}.salesforce.com";
@@ -290,12 +323,11 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     public function getAccessToken(): OAuth1Token|OAuth2Token|null
     {
-        // In some instances (service users) we might want to use the insecure password grant
-        if ($this->getUseCredentials()) {
+        // Retain the legacy password grant for existing service-user integrations.
+        if ($this->getGrant() === self::GRANT_PASSWORD) {
             $oauthProvider = $this->getOAuthProvider();
 
-            // SugarCRM doesn't support `authorization_code` grant
-            $token = $oauthProvider->getAccessToken('password', [
+            $token = $oauthProvider->getAccessToken(self::GRANT_PASSWORD, [
                 'client_id' => $this->getClientId(),
                 'client_secret' => $this->getClientSecret(),
                 'username' => $this->getUsername(),
@@ -691,6 +723,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
+        $rules[] = [['grant'], 'in', 'range' => [self::GRANT_AUTHORIZATION_CODE, self::GRANT_CLIENT_CREDENTIALS, self::GRANT_PASSWORD], 'skipOnEmpty' => true];
+        $rules[] = [
+            ['username', 'password'], 'required', 'when' => function($model) {
+                return $model->enabled && $model->getGrant() === self::GRANT_PASSWORD;
+            },
+        ];
 
         $contact = $this->getConfigValue('contact');
         $lead = $this->getConfigValue('lead');

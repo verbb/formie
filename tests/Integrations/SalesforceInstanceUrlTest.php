@@ -6,6 +6,49 @@ use verbb\auth\clients\salesforce\token\SalesforceAccessToken;
 use verbb\auth\models\Token;
 use verbb\formie\integrations\crm\Salesforce;
 
+it('resolves the configured Salesforce OAuth grant', function (array $config, string $expected): void {
+    $integration = new Salesforce(array_merge([
+        'name' => 'Salesforce',
+        'handle' => 'salesforce',
+    ], $config));
+
+    expect($integration->getGrant())->toBe($expected);
+})->with([
+    'authorization code by default' => [[], Salesforce::GRANT_AUTHORIZATION_CODE],
+    'client credentials' => [['grant' => Salesforce::GRANT_CLIENT_CREDENTIALS], Salesforce::GRANT_CLIENT_CREDENTIALS],
+    'password' => [['grant' => Salesforce::GRANT_PASSWORD], Salesforce::GRANT_PASSWORD],
+    'legacy use credentials' => [['useCredentials' => true], Salesforce::GRANT_PASSWORD],
+    'explicit grant overrides legacy setting' => [['grant' => Salesforce::GRANT_AUTHORIZATION_CODE, 'useCredentials' => true], Salesforce::GRANT_AUTHORIZATION_CODE],
+]);
+
+it('uses a configured Salesforce authentication domain before production or sandbox defaults', function (): void {
+    $integration = new Salesforce([
+        'name' => 'Salesforce',
+        'handle' => 'salesforce',
+        'authDomain' => 'https://example.my.salesforce.com/',
+        'useSandbox' => true,
+    ]);
+
+    expect($integration->getAuthDomain())->toBe('https://example.my.salesforce.com')
+        ->and($integration->getApiDomain())->toBe('https://example.my.salesforce.com')
+        ->and($integration->getOAuthProviderConfig()['domain'])->toBe('https://example.my.salesforce.com');
+});
+
+it('uses Salesforce production and sandbox authentication domains by default', function (): void {
+    $production = new Salesforce([
+        'name' => 'Salesforce',
+        'handle' => 'salesforce-production',
+    ]);
+    $sandbox = new Salesforce([
+        'name' => 'Salesforce',
+        'handle' => 'salesforce-sandbox',
+        'useSandbox' => true,
+    ]);
+
+    expect($production->getApiDomain())->toBe('https://login.salesforce.com')
+        ->and($sandbox->getApiDomain())->toBe('https://test.salesforce.com');
+});
+
 it('resolves Salesforce instance URL from token values', function (): void {
     $integration = new Salesforce([
         'name' => 'Salesforce',

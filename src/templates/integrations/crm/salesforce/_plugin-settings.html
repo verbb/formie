@@ -27,6 +27,38 @@
     errors: integration.getErrors('clientSecret'),
 }) }}
 
+{% set useCredentials = integration.settings.useCredentials ?? false %}
+{% set grant = integration.settings.grant ?? (useCredentials ? 'password' : 'authorization_code') %}
+
+{{ macros.proxyField(fieldVariables, 'selectField', {
+    label: 'Grant' | t('formie'),
+    instructions: 'Select the type of OAuth grant to use.' | t('formie'),
+    name: 'grant',
+    required: true,
+    value: grant,
+    options: [
+        { label: 'Authorization Code' | t('formie'), value: 'authorization_code' },
+        { label: 'Client Credentials' | t('formie'), value: 'client_credentials' },
+        { label: 'Password' | t('formie'), value: 'password' },
+    ],
+    toggle: true,
+    targetPrefix: '.salesforce-oauth-settings-',
+    warning: macros.configWarning('grant', 'formie'),
+    errors: integration.getErrors('grant'),
+}) }}
+
+<div class="salesforce-oauth-settings-client_credentials {{ grant != 'client_credentials' ? 'hidden' }}">
+    {{ macros.proxyField(fieldVariables, 'autosuggestField', {
+        label: 'Authentication Domain' | t('formie'),
+        instructions: 'Enter your Salesforce My Domain URL, or leave this blank to use the selected production or sandbox domain.' | t('formie'),
+        name: 'authDomain',
+        suggestEnvVars: true,
+        value: integration.settings.authDomain ?? '',
+        warning: macros.configWarning('authDomain', 'formie'),
+        errors: integration.getErrors('authDomain'),
+    }) }}
+</div>
+
 {{ macros.proxyField(fieldVariables, 'booleanMenuField', {
     label: 'Use Sandbox' | t('formie'),
     instructions: 'Whether to use the {name} sandbox.' | t('formie'),
@@ -37,20 +69,7 @@
     errors: integration.getErrors('useSandbox'),
 }) }}
 
-{% set useCredentials = integration.settings.useCredentials ?? false %}
-
-{{ macros.proxyField(fieldVariables, 'booleanMenuField', {
-    label: 'Use Credentials' | t('formie'),
-    instructions: 'Whether to use the {name} username/password credentials.' | t('formie'),
-    name: 'useCredentials',
-    value: useCredentials,
-    includeEnvVars: true,
-    warning: 'Only use this if your Salesforce account requires it.' | t('formie'),
-    errors: integration.getErrors('useCredentials'),
-    toggle: 'credentials',
-}) }}
-
-<div id="credentials" class="{{ not useCredentials ? 'hidden' }}">
+<div class="salesforce-oauth-settings-password {{ grant != 'password' ? 'hidden' }}">
     {{ macros.proxyField(fieldVariables, 'autosuggestField', {
         label: 'Username' | t('formie'),
         instructions: 'Enter your {name} {label} here.' | t('formie'),

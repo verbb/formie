@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add Salesforce Client Credentials authentication with configurable My Domain support. ([#2961](https://github.com/verbb/formie/issues/2961))
 - Add provider-neutral subscription snapshots, canonical lifecycle/timeline fields, stale-event protection and mode-bound immediate or period-end cancellation capabilities.
 - Add immutable render-scoped theme frames, a generated PHP/TypeScript browser-theme state manifest, split functional/visual CSS assets and bounded theme-config validation.
 - Add end-to-end portability and repeatable builder/render/bootstrap/submit/resume/revise performance fixtures.
