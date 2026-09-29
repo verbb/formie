@@ -39,7 +39,7 @@
 - Keep queue jobs immutable and small, encrypt literal integration settings and retained responses, and require validated public destinations and provider origins.
 - Store explicit integration mapping slot kinds, preserve Formie 3 tokens through compatibility parsing, and replace beta fluent variable APIs with namespaced source and transform definitions.
 - Require safe environment names to be allowlisted for references; diagnose missing fields and extensions and reject invalid email headers.
-- Replace beta rich-value projection methods with immutable domain objects and field-owned storage, browser, data and integration projections; describe only the non-null runtime type because `null` is the universal absent value, while retaining Formie 3 compatibility adapters.
+- Replace beta rich-value projection methods with immutable domain objects and field-owned storage, browser, data and integration projections; route native integration mappings through those field-owned projections, preserve explicit empty clears, describe only the non-null runtime type because `null` is the universal absent value, and retain Formie 3 compatibility adapters.
 - Separate request, browser, condition and storage value paths; encrypt complete structured values and decode legacy encryption only from trusted storage.
 - Return strings for Phone and a consistent Name value in both input modes; replace beta Array/value-class APIs and browser validation names.
 

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use verbb\formie\base\Field;
 use verbb\formie\helpers\References;
 use verbb\formie\integrations\crm\HubSpot;
 use verbb\formie\integrations\crm\Salesforce;
@@ -16,7 +17,7 @@ it('preserves mapped values in both direct and outgoing provider payloads', func
     $form = formie()->form()->$method('answer')->create();
     $saved = formie()->submission($form)->with(['answer' => $input])->save();
     $submission = \verbb\formie\elements\Submission::find()->id($saved->id)->status(null)->one();
-    $field = $form->getFieldByHandle('answer');
+    $field = $submission->getForm()->getFieldByHandle('answer');
     $integration = new $provider(['name' => 'Mapping contract', 'handle' => 'mappingContract']);
     $destination = new IntegrationField(['handle' => 'result', 'type' => $type]);
     $reference = References::field($field->reference ?? $field->handle);
@@ -29,8 +30,43 @@ it('preserves mapped values in both direct and outgoing provider payloads', func
     'integer' => ['numberField', '42', IntegrationField::TYPE_NUMBER, 42, ['result' => 42]],
     'zero' => ['numberField', '0', IntegrationField::TYPE_NUMBER, 0, ['result' => 0]],
     'decimal' => ['numberField', '42.5', IntegrationField::TYPE_FLOAT, 42.5, ['result' => 42.5]],
-    'empty text' => ['singleLineTextField', '', IntegrationField::TYPE_STRING, '', []],
+    'empty text' => ['singleLineTextField', '', IntegrationField::TYPE_STRING, '', ['result' => '']],
 ]);
+
+it('routes native field mappings through the field-owned integration projection', function (): void {
+    $form = formie()->form()->singleLineTextField('answer')->create();
+    $saved = formie()->submission($form)->with(['answer' => 'Original value'])->save();
+    $submission = \verbb\formie\elements\Submission::find()->id($saved->id)->status(null)->one();
+    $field = $form->getFieldByHandle('answer');
+    $handler = static function ($event): void {
+        $event->value = 'Field-owned projection';
+    };
+    \yii\base\Event::on(Field::class, Field::EVENT_MODIFY_VALUE_FOR_INTEGRATION, $handler);
+    $integration = new HubSpot(['name' => 'Mapping contract', 'handle' => 'mappingContract']);
+    $destination = new IntegrationField(['handle' => 'result', 'type' => IntegrationField::TYPE_STRING]);
+    $reference = References::field($field->reference ?? $field->handle);
+
+    try {
+        expect($integration->getMappedFieldValue($reference, $submission, $destination))->toBe('Field-owned projection')
+            ->and($integration->getFieldMappingValues($submission, ['result' => $reference], [$destination]))
+            ->toBe(['result' => 'Field-owned projection']);
+    } finally {
+        \yii\base\Event::off(Field::class, Field::EVENT_MODIFY_VALUE_FOR_INTEGRATION, $handler);
+    }
+});
+
+it('distinguishes an unset mapping from an explicitly mapped empty value', function (): void {
+    $form = formie()->form()->singleLineTextField('answer')->create();
+    $saved = formie()->submission($form)->with(['answer' => ''])->save();
+    $submission = \verbb\formie\elements\Submission::find()->id($saved->id)->status(null)->one();
+    $field = $form->getFieldByHandle('answer');
+    $integration = new HubSpot(['name' => 'Mapping contract', 'handle' => 'mappingContract']);
+    $destination = new IntegrationField(['handle' => 'result', 'type' => IntegrationField::TYPE_STRING]);
+
+    expect($integration->getFieldMappingValues($submission, ['result' => ''], [$destination]))->toBe([])
+        ->and($integration->getFieldMappingValues($submission, ['result' => References::field($field->reference ?? $field->handle)], [$destination]))
+        ->toBe(['result' => '']);
+});
 
 it('converts static integration values without erasing zero false or valid dates', function (string $type, mixed $input, mixed $expected): void {
     $converted = HubSpot::convertValueForIntegration($input, new IntegrationField(['type' => $type]));

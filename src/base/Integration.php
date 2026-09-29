@@ -51,6 +51,7 @@ use verbb\formie\records\Integration as IntegrationRecord;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\references\ReferenceSlot;
 use verbb\formie\references\ReferenceSlotKind;
+use verbb\formie\references\ResolvedReference;
 use verbb\formie\services\Integrations as IntegrationsService;
 use verbb\formie\theme\context\RenderContext;
 
@@ -1159,6 +1160,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $context = ReferenceContext::forSubmission($submission);
             $field = null;
             $rawValue = null;
+            $resolved = null;
             if ($slot->kind === ReferenceSlotKind::Exact) {
                 $resolved = References::resolveValue((string)$slot->value, $context);
                 $field = $resolved->field;
@@ -1166,26 +1168,23 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             } else {
                 $rawValue = $slot->resolve($context);
             }
-            $value = static::convertValueForIntegration($rawValue, $integrationField);
-            $shouldSet = $slot->kind === ReferenceSlotKind::Literal || !self::_isEmpty($value) || ($this instanceof Element && $this->overwriteValues);
+            $value = $this->_projectIntegrationMappingValue($resolved, $rawValue, $submission, $integrationField, $fieldKey);
 
-            if ($shouldSet) {
-                $eventConfig = [
-                    'value' => $value,
-                    'rawValue' => $rawValue,
-                    'submission' => $submission,
-                    'integrationField' => $integrationField,
-                    'integration' => $this,
-                ];
+            $eventConfig = [
+                'value' => $value,
+                'rawValue' => $rawValue,
+                'submission' => $submission,
+                'integrationField' => $integrationField,
+                'integration' => $this,
+            ];
 
-                if ($field !== null) {
-                    $eventConfig['field'] = $field;
-                }
-
-                $event = new ModifyFieldIntegrationValueEvent($eventConfig);
-                $this->trigger(static::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
-                $fieldValues[$tag] = $event->value;
+            if ($field !== null) {
+                $eventConfig['field'] = $field;
             }
+
+            $event = new ModifyFieldIntegrationValueEvent($eventConfig);
+            $this->trigger(static::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
+            $fieldValues[$tag] = $event->value;
         }
 
         $event = new ModifyFieldIntegrationValuesEvent([
@@ -1365,6 +1364,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $slot = ReferenceSlot::fromStored($fieldKey);
         $context = ReferenceContext::forSubmission($submission);
         $field = null;
+        $resolved = null;
         if ($slot->kind === ReferenceSlotKind::Exact) {
             $resolved = References::resolveValue((string)$slot->value, $context);
             $rawValue = $resolved->requireValue();
@@ -1372,7 +1372,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         } else {
             $rawValue = $slot->resolve($context);
         }
-        $fieldValue = static::convertValueForIntegration($rawValue, $integrationField);
+        $fieldValue = $this->_projectIntegrationMappingValue($resolved, $rawValue, $submission, $integrationField, $this->normalizeFieldMappingValue($fieldKey));
 
         $event = new ModifyFieldIntegrationValueEvent([
             'value' => $fieldValue,
@@ -1867,6 +1867,40 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     // Private Methods
     // =========================================================================
+
+    private function _projectIntegrationMappingValue(?ResolvedReference $resolved, mixed $rawValue, Submission $submission, IntegrationField $integrationField, string $fieldKey = ''): mixed
+    {
+        $field = $resolved?->field;
+        $expression = $resolved?->expression;
+        $isNativeFieldValue = $resolved !== null &&
+            $field !== null &&
+            $resolved->fieldProjection === 'value' &&
+            $expression->selector === '' &&
+            $expression->transformerId === '' &&
+            $expression->default === '' &&
+            $field->valueType()->accepts($rawValue);
+
+        if ($isNativeFieldValue) {
+            return $field->getValueForIntegration($rawValue, $integrationField, $this, $submission, $fieldKey);
+        }
+
+        if (
+            $resolved !== null &&
+            $field !== null &&
+            $resolved->fieldProjection === 'collection' &&
+            $expression->transformerId === '' &&
+            $expression->default === '' &&
+            is_array($rawValue) &&
+            count(array_filter($rawValue, static fn(mixed $item): bool => $field->valueType()->accepts($item))) === count($rawValue)
+        ) {
+            return array_map(
+                fn(mixed $item): mixed => $field->getValueForIntegration($item, $integrationField, $this, $submission, $fieldKey),
+                $rawValue,
+            );
+        }
+
+        return static::convertValueForIntegration($rawValue, $integrationField);
+    }
 
     private function _getCachedConfig(): IntegrationConfig
     {
