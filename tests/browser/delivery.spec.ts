@@ -19,25 +19,27 @@ test('opens Formie diagnostics from a failed real Craft job and exports a redact
     await expect(page.getByRole('button', { name: 'Formie delivery diagnostics', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Formie delivery diagnostics', exact: true }).click();
     const dialog = page.locator('pk-dialog');
-    await expect(dialog.getByText('browser_simulated_response_loss', { exact: false })).toBeVisible();
-    await expect(dialog.locator('pre')).toContainText('mapping-inputs');
-    await expect(dialog.locator('pre')).toContainText('Delivery browser fixture');
-    await expect(dialog.locator('pre')).toContainText('Gateway response lost');
-    await expect(dialog.locator('pre')).not.toContainText('browser-never-display-secret');
+    await expect(dialog.getByText('browser_simulated_response_loss', { exact: true })).toBeVisible();
+    await expect(dialog.getByRole('heading', { name: 'Delivery timeline', exact: true })).toBeVisible();
+    await expect(dialog.getByRole('heading', { name: 'Diagnostic evidence', exact: true })).toBeVisible();
+    await dialog.getByText('Mappings and submission values', { exact: false }).click();
+    await expect(dialog.getByText('Delivery browser fixture', { exact: false })).toBeVisible();
+    await expect(dialog.getByText('Gateway response lost', { exact: false })).toBeVisible();
+    await expect(dialog).not.toContainText('browser-never-display-secret');
     expect(await page.evaluate(() => (window as any).deliveryInjection)).toBeUndefined();
     await page.screenshot({ path: '../context/tasks/10-validation/delivery-modal.png', fullPage: true });
     const download = page.waitForEvent('download');
-    await dialog.getByRole('button', { name: 'Download support bundle', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Download full redacted bundle', exact: true }).click();
     expect((await download).suggestedFilename()).toBe(`formie-delivery-${data.uid}.json`);
     await expect(dialog.getByRole('button', { name: 'Export sensitive evidence', exact: true })).toBeDisabled();
     await dialog.getByRole('link', { name: 'Open Submission Delivery History' }).click();
     await expect(page.getByRole('heading', { name: 'Submission Delivery History' })).toBeVisible();
     await page.getByRole('button', { name: '@dispatch: dispatch (unknown)', exact: true }).click();
-    await expect(page.locator('pk-dialog pre')).toContainText('browser_simulated_response_loss');
+    await expect(page.locator('pk-dialog').getByText('browser_simulated_response_loss', { exact: true })).toBeVisible();
     await page.getByRole('textbox', { name: 'Reconciliation reason' }).fill('Synthetic fixture confirmed not sent.');
     await page.getByRole('button', { name: 'Confirm not delivered', exact: true }).click();
     await expect(page.locator('pk-dialog').getByRole('status')).toHaveText('Reconciliation recorded.');
-    await expect(page.locator('pk-dialog pre')).toContainText('confirmed_not_delivered');
+    await expect(page.locator('pk-dialog').getByText('confirmed_not_delivered', { exact: true })).toBeVisible();
 });
 
 test('denies delivery diagnostics without diagnostics and form permissions', async ({ page }) => {

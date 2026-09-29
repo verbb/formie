@@ -1,6 +1,89 @@
 import { useEffect, useState } from 'react';
 import { Button, Dialog, Textarea } from '@verbb/plugin-kit-react/components';
 
+import { diagnosticSummary } from './deliveryDiagnostics';
+
+const evidenceGroups = [
+    { id: 'mappings', label: () => Craft.t('formie', 'Mappings and submission values'), matches: (name) => /mapping|submission-projection/.test(name) },
+    { id: 'requests', label: () => Craft.t('formie', 'Provider requests'), matches: (name) => /request/.test(name) },
+    { id: 'responses', label: () => Craft.t('formie', 'Provider responses'), matches: (name) => /response|provider-resource/.test(name) },
+    { id: 'errors', label: () => Craft.t('formie', 'Errors'), matches: (name) => /error|exception/.test(name) },
+];
+
+const groupCheckpoints = (checkpoints = []) => {
+    const groups = evidenceGroups.map((group) => ({ ...group, checkpoints: [] }));
+    const lifecycle = { id: 'lifecycle', label: () => Craft.t('formie', 'Lifecycle and decisions'), checkpoints: [] };
+
+    checkpoints.forEach((checkpoint) => {
+        const group = groups.find((candidate) => candidate.matches(checkpoint.checkpoint));
+        (group ?? lifecycle).checkpoints.push(checkpoint);
+    });
+
+    return [...groups, lifecycle].filter((group) => group.checkpoints.length > 0);
+};
+
+function JsonBlock({ value }) {
+    return <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxHeight: '28vh', overflow: 'auto', padding: '12px', background: 'var(--gray-050)', borderRadius: '6px' }}>{JSON.stringify(value, null, 2)}</pre>;
+}
+
+function EvidenceGroups({ checkpoints }) {
+    return <div>
+        {groupCheckpoints(checkpoints).map((group) => <details key={group.id} open={group.id === 'errors'} style={{ marginBlock: '8px' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 600 }}>{group.label()} ({group.checkpoints.length})</summary>
+            <div style={{ marginInlineStart: '16px' }}>
+                {group.checkpoints.map((checkpoint, index) => <section key={`${checkpoint.checkpoint}-${checkpoint.dateCreated}-${index}`} style={{ marginBlock: '12px' }}>
+                    <h4 style={{ marginBlockEnd: '4px' }}>{checkpoint.checkpoint}</h4>
+                    {checkpoint.dateCreated && <p className="light" style={{ marginBlock: '0 0 6px' }}>{checkpoint.dateCreated}</p>}
+                    <JsonBlock value={checkpoint.data} />
+                </section>)}
+            </div>
+        </details>)}
+    </div>;
+}
+
+function DeliveryOverview({ bundle }) {
+    const items = [
+        [Craft.t('formie', 'Status'), bundle.status],
+        [Craft.t('formie', 'Integration'), bundle.binding],
+        [Craft.t('formie', 'Operation'), bundle.step],
+        [Craft.t('formie', 'Execution'), bundle.execution],
+        [Craft.t('formie', 'Result code'), bundle.result?.code || Craft.t('formie', 'None')],
+        [Craft.t('formie', 'Started'), bundle.startedAt || Craft.t('formie', 'Not started')],
+        [Craft.t('formie', 'Completed'), bundle.completedAt || Craft.t('formie', 'Not completed')],
+    ];
+
+    return <dl style={{ display: 'grid', gridTemplateColumns: 'max-content minmax(0, 1fr)', gap: '6px 16px', marginBlock: '12px 20px' }}>
+        {items.map(([label, value]) => <div key={label} style={{ display: 'contents' }}>
+            <dt style={{ fontWeight: 600 }}>{label}</dt>
+            <dd style={{ margin: 0, overflowWrap: 'anywhere' }}>{value}</dd>
+        </div>)}
+    </dl>;
+}
+
+function DeliveryTimeline({ checkpoints }) {
+    return <ol style={{ marginBlock: '8px 20px', paddingInlineStart: '24px' }}>
+        {(checkpoints ?? []).map((checkpoint, index) => <li key={`${checkpoint.checkpoint}-${checkpoint.dateCreated}-${index}`}>
+            <strong>{checkpoint.checkpoint}</strong>{checkpoint.dateCreated ? ` — ${checkpoint.dateCreated}` : ''}
+        </li>)}
+    </ol>;
+}
+
+function DeliveryOperations({ operations }) {
+    if (!operations?.length) {
+        return <p>{Craft.t('formie', 'No child operations were recorded for this delivery.')}</p>;
+    }
+
+    return <div>
+        {operations.map((operation) => <details key={operation.uid} style={{ marginBlock: '8px' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 600 }}>{operation.binding}: {operation.step} ({operation.status})</summary>
+            <div style={{ marginInlineStart: '16px' }}>
+                {operation.result?.code && <p><strong>{Craft.t('formie', 'Result code')}:</strong> {operation.result.code}</p>}
+                <EvidenceGroups checkpoints={operation.checkpoints} />
+            </div>
+        </details>)}
+    </div>;
+}
+
 export function DeliveryDiagnostics({ uid, submissionId = null, onClose }) {
     const [bundle, setBundle] = useState(null);
     const [attempts, setAttempts] = useState([]);
@@ -17,7 +100,7 @@ export function DeliveryDiagnostics({ uid, submissionId = null, onClose }) {
         Craft.sendActionRequest('GET', 'formie/delivery/history', { params: { submissionId } })
             .then(({ data }) => { if (current) setAttempts(data.attempts); })
             .catch(() => { if (current) setError(Craft.t('formie', 'Unable to load delivery history.')); });
-    return () => { current = false; };
+        return () => { current = false; };
     }, [submissionId]);
 
     useEffect(() => {
@@ -54,6 +137,15 @@ export function DeliveryDiagnostics({ uid, submissionId = null, onClose }) {
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     };
 
+    const copySummary = async () => {
+        try {
+            await navigator.clipboard.writeText(JSON.stringify(diagnosticSummary(bundle), null, 2));
+            setNotice(Craft.t('formie', 'Diagnostic summary copied without submission values.'));
+        } catch {
+            setError(Craft.t('formie', 'Copy failed. Download the full redacted bundle instead.'));
+        }
+    };
+
     const exportSensitive = async () => {
         try {
             const { data } = await Craft.sendActionRequest('POST', 'formie/delivery/sensitive-evidence', { data: { uid: selected, acknowledged } });
@@ -76,13 +168,26 @@ export function DeliveryDiagnostics({ uid, submissionId = null, onClose }) {
                 {error && <p role="alert">{error}</p>}
                 {!error && !bundle && <p>{Craft.t('formie', 'Loading diagnostics…')}</p>}
                 {bundle && <>
-                    <p>{Craft.t('formie', 'This support bundle is redacted. Completed delivery evidence is retained for 30 days. Unresolved delivery data remains available for reconciliation.')}</p>
-                    <p><strong>{Craft.t('formie', 'Status')}: {bundle.status}</strong> · {bundle.binding}</p>
+                    <p>{Craft.t('formie', 'Credentials are redacted from this view. Retained evidence can still contain personal submission data. Completed delivery evidence is retained for 30 days; unresolved evidence remains available for reconciliation.')}</p>
                     <p><a href={bundle.submissionUrl}>{Craft.t('formie', 'Open Submission Delivery History')}</a></p>
-                    <pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxHeight: '50vh', overflow: 'auto' }}>{JSON.stringify(bundle, null, 2)}</pre>
+
+                    <h3>{Craft.t('formie', 'Overview')}</h3>
+                    <DeliveryOverview bundle={bundle} />
+
+                    <h3>{Craft.t('formie', 'Delivery timeline')}</h3>
+                    <DeliveryTimeline checkpoints={bundle.checkpoints} />
+
+                    <h3>{Craft.t('formie', 'Diagnostic evidence')}</h3>
+                    <EvidenceGroups checkpoints={bundle.checkpoints} />
+
+                    <h3>{Craft.t('formie', 'Child operations')}</h3>
+                    <DeliveryOperations operations={bundle.operations} />
+
+                    <h3>{Craft.t('formie', 'Support export')}</h3>
+                    <p>{Craft.t('formie', 'Copy a value-free summary for an initial support request, or download the complete retained bundle when mapped values and provider evidence are required.')}</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '12px 0' }}>
-                        <Button type="button" onClick={async () => { try { await navigator.clipboard.writeText(JSON.stringify(bundle, null, 2)); setNotice(Craft.t('formie', 'Support bundle copied.')); } catch { setError(Craft.t('formie', 'Copy failed. Download the bundle instead.')); } }}>{Craft.t('formie', 'Copy support bundle')}</Button>
-                        <Button type="button" onClick={() => download(bundle)}>{Craft.t('formie', 'Download support bundle')}</Button>
+                        <Button type="button" onClick={copySummary}>{Craft.t('formie', 'Copy diagnostic summary')}</Button>
+                        <Button type="button" onClick={() => download(bundle)}>{Craft.t('formie', 'Download full redacted bundle')}</Button>
                     </div>
                     {bundle.canExportSensitive && <div>
                         <label><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} /> {Craft.t('formie', 'I understand this export may contain personal data.')}</label>

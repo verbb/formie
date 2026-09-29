@@ -59,9 +59,9 @@ A force run can override conditions and opt-in. It requires additional permissio
 
 ## Queue Diagnostics
 
-Craft's queue detail screen includes **Formie delivery diagnostics** for supported Formie jobs. It shows the mapped values, provider errors and delivery results. If the link is unavailable, open **Submission Delivery History** instead.
+Craft's queue detail screen includes **Formie delivery diagnostics** for supported Formie jobs. It shows an overview, delivery timeline, grouped mapped values, provider requests and responses, errors, and child operations. If the link is unavailable, open **Submission Delivery History** instead.
 
-Copy or download the support bundle when you need help investigating a failure. Viewing diagnostics requires access to both diagnostics and the form's submissions. Exporting sensitive responses requires a separate permission and confirmation; treat those downloads as private customer data.
+Copy the value-free diagnostic summary for an initial support request. Download the full redacted bundle when support needs mapped values or provider evidence; credentials are removed, but the bundle can still contain personal submission data. Viewing diagnostics requires access to both diagnostics and the form's submissions. Exporting sensitive evidence requires a separate permission and confirmation; treat those downloads as private customer data.
 
 Detailed evidence for completed attempts is removed after 30 days. Unresolved attempts keep the data needed for investigation, and delivery history remains after detailed evidence expires. Expired responses cannot be used to resume steps that depend on their contents. Keep the Formie security key with database backups so encrypted records can be restored.
 
