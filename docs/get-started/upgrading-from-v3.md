@@ -583,7 +583,7 @@ Formie 3 | Formie 4
 `{attribute} must select no less than {min}.` | `{label} must select no less than {min}.`
 `{attribute} must select no greater than {max}.` | `{label} must select no greater than {max}.`
 
-These strings are included in Formie’s front-end translation seed via `Rendering::getFrontendJsTranslations()`. If you append custom strings through the [`modifyFrontendJsTranslations`](/developers/events/form-events#the-modifyfrontendjstranslations-event) event, use the new `{label}` placeholders in both the source key and your translated value.
+These strings are included in Formie’s browser translation seed via `Rendering::getBrowserJsTranslations()`. If you append custom strings through the [`modifyBrowserJsTranslations`](/developers/events/form-events#the-modifybrowserjstranslations-event) event, use the new `{label}` placeholders in both the source key and your translated value.
 
 Custom per-field validation overrides in the form builder now live under **Validation** as `validationMessages.{key}` (for example `validationMessages.required` and `validationMessages.unique`). Legacy field `errorMessage` values are migrated to `validationMessages.required` automatically.
 
@@ -900,7 +900,7 @@ Formie 4 has a cleaner rendering API for form assets.
 
 ### Render Shared Assets
 
-If you are not rendering assets for a specific form, use `frontendAssets()`.
+If you are not rendering assets for a specific form, use `browserAssets()`.
 
 ::: code-group
 ```twig [Formie 3]
@@ -909,13 +909,13 @@ If you are not rendering assets for a specific form, use `frontendAssets()`.
 ```
 
 ```twig [Formie 4]
-{{ craft.formie.frontendAssets() }}
+{{ craft.formie.browserAssets() }}
 
-{{ craft.formie.frontendAssets({
+{{ craft.formie.browserAssets({
     includeJs: false,
 }) }}
 
-{{ craft.formie.frontendAssets({
+{{ craft.formie.browserAssets({
     includeCss: false,
 }) }}
 ```
@@ -1564,8 +1564,8 @@ Formie 3 | Formie 4
 `craft.formie.renderFormAssets(form)` | `craft.formie.formAssets(form)`
 `craft.formie.renderFormCss(form)` | `craft.formie.formAssets(form, { includeJs: false })`
 `craft.formie.renderFormJs(form)` | `craft.formie.formAssets(form, { includeCss: false })`
-`craft.formie.renderCss()` | `craft.formie.frontendAssets({ includeJs: false })`
-`craft.formie.renderJs()` | `craft.formie.frontendAssets({ includeCss: false })`
+`craft.formie.renderCss()` | `craft.formie.browserAssets({ includeJs: false })`
+`craft.formie.renderJs()` | `craft.formie.browserAssets({ includeCss: false })`
 `renderCss` render option | `includeCss`
 `renderJs` render option | `includeJs`
 `outputCssLayout` / `outputCssTheme` | `outputCss`

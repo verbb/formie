@@ -143,17 +143,17 @@ Event::on(Rendering::class, Rendering::EVENT_MODIFY_FORM_RENDER_OPTIONS, functio
 });
 ```
 
-### The `modifyFrontendJsTranslations` Event
+### The `modifyBrowserJsTranslations` Event
 The event that is triggered to modify or define additional translation strings for Formie's browser JavaScript.
 
 Those strings are encoded into the inline JSON translation seed that Formie outputs alongside its browser assets, and are then merged into the browser package's translation store at startup.
 
 ```php
-use verbb\formie\events\ModifyFrontendJsTranslationsEvent;
+use verbb\formie\events\ModifyBrowserJsTranslationsEvent;
 use verbb\formie\services\Rendering;
 use yii\base\Event;
 
-Event::on(Rendering::class, Rendering::EVENT_MODIFY_FRONTEND_JS_TRANSLATIONS, function(ModifyFrontendJsTranslationsEvent $event) {
+Event::on(Rendering::class, Rendering::EVENT_MODIFY_BROWSER_JS_TRANSLATIONS, function(ModifyBrowserJsTranslationsEvent $event) {
     $event->strings[] = 'My custom string';
 });
 ```

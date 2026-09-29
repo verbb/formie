@@ -190,7 +190,7 @@ class ValidationMessagesHelper
         );
     }
 
-    public static function applyPluginDefaultsToFrontendTranslations(array $translations): array
+    public static function applyPluginDefaultsToBrowserTranslations(array $translations): array
     {
         foreach (self::defaultTemplates() as $key => $predefinedTemplate) {
             $pluginDefault = self::pluginDefault($key);
@@ -209,11 +209,11 @@ class ValidationMessagesHelper
         return $translations;
     }
 
-    public static function frontendTranslationStringList(): array
+    public static function browserTranslationStringList(): array
     {
         $strings = array_merge(
             array_values(self::defaultTemplates()),
-            self::frontendGeneralTranslationStrings(),
+            self::browserGeneralTranslationStrings(),
         );
 
         return ValidationMessageCompatibility::expandTranslationStrings(
@@ -228,18 +228,18 @@ class ValidationMessagesHelper
     {
         return array_values(array_unique(array_merge(
             array_values(self::defaultTemplates()),
-            self::frontendGeneralTranslationStrings(),
+            self::browserGeneralTranslationStrings(),
         )));
     }
 
     /**
-     * Front-end-only strings seeded into the JS translation payload.
+     * Browser-only strings seeded into the JS translation payload.
      *
-     * Plain English literals — not Craft::t() — because Rendering::getFrontendJsTranslations()
+     * Plain English literals — not Craft::t() — because Rendering::getBrowserJsTranslations()
      * passes each string through Craft::t('formie', $message) at runtime. The literal is both the
      * message key and the default value in formie.php. Keep in sync with @verbb/formie-browser fallbacks.
      */
-    public static function frontendGeneralTranslationStrings(): array
+    public static function browserGeneralTranslationStrings(): array
     {
         return [
             '{count, plural, one{character allowed} other{characters allowed}}',
@@ -266,7 +266,7 @@ class ValidationMessagesHelper
         ];
     }
 
-    public static function frontendTranslationSourceStrings(string $key): array
+    public static function browserTranslationSourceStrings(string $key): array
     {
         return ValidationMessageCompatibility::legacyKeysForMessageKey($key);
     }

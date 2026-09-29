@@ -18,12 +18,12 @@ Use `formAssets()` when you are rendering a specific form manually and still wan
 
 This is the normal helper to use with [Rendering Pages](/templates/rendering-pages) and [Rendering Fields](/templates/rendering-fields).
 
-## `craft.formie.frontendAssets()`
+## `craft.formie.browserAssets()`
 
-Use `frontendAssets()` when you need the browser assets without resolving a specific form.
+Use `browserAssets()` when you need the browser assets without resolving a specific form.
 
 ```twig
-{{ craft.formie.frontendAssets() }}
+{{ craft.formie.browserAssets() }}
 ```
 
 This is more of an advanced helper. Most template-driven sites will use `formAssets(form)` instead.
@@ -43,7 +43,7 @@ These helpers can accept options such as:
 For example:
 
 ```twig
-{{ craft.formie.frontendAssets({
+{{ craft.formie.browserAssets({
     includeCss: false,
     includeJs: true,
     scriptAttributes: {
@@ -66,6 +66,6 @@ When Formie outputs the browser JavaScript for you, it also outputs:
 
 `initJs` is not an asset-level toggle. It belongs on the rendered form markup, such as `renderForm(form, { initJs: false })`, where it opts that specific form out of automatic startup.
 
-`useObserver` is the page-level browser-script toggle. You can pass it through whichever render path is outputting the JavaScript for the page, such as `renderForm()`, `formAssets()`, or `frontendAssets()`.
+`useObserver` is the page-level browser-script toggle. You can pass it through whichever render path is outputting the JavaScript for the page, such as `renderForm()`, `formAssets()`, or `browserAssets()`.
 
-If you are rendering one form manually, reach for `formAssets(form)`. If you are wiring up Formie's front-end assets yourself, reach for `frontendAssets()`.
+If you are rendering one form manually, reach for `formAssets(form)`. If you are wiring up Formie's browser assets yourself, reach for `browserAssets()`.

@@ -66,7 +66,7 @@ To delay captcha initialisation until consent is granted:
 
 For [custom rendering](/theming/custom-rendering), set `data-formie-init="false"` on the `<form>` element instead.
 
-2. Output Formie's assets as usual with `craft.formie.formAssets(form)` or `craft.formie.frontendAssets()`.
+2. Output Formie's assets as usual with `craft.formie.formAssets(form)` or `craft.formie.browserAssets()`.
 
 3. After your consent banner grants the relevant category, initialise Formie from your own bundle:
 

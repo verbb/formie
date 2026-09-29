@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && str_starts_with($path, '/browser-com
     $form->setSettings(['submitMethod' => 'page-reload', 'completionBehavior' => in_array($behavior, ['newtab', 'malicious'], true) ? 'redirect' : $behavior, 'redirectUrl' => '/browser-completion-done', 'redirectTarget' => $behavior === 'newtab' ? 'new-tab' : 'same-tab']);
     if ($behavior === 'malicious') $form->setRedirectUrl("https://evil.test/%0d%0aInjected");
     $view = $app->getView(); $view->setTemplateMode(\craft\web\View::TEMPLATE_MODE_SITE);
-    $html = \verbb\formie\Formie::$plugin->getFrontendAssets()->withPublishedBrowserAssets(function () use ($view, $form) {
+    $html = \verbb\formie\Formie::$plugin->getBrowserAssets()->withPublishedBrowserAssets(function () use ($view, $form) {
         ob_start(); $view->beginPage(); echo '<!doctype html><html><head><title>Native completion</title>'; $view->head();
         echo '</head><body>'; $view->beginBody(); echo $view->renderString('{{ craft.formie.renderForm(form) }}', ['form' => $form]);
         $view->endBody(); echo '</body></html>'; $view->endPage(); return ob_get_clean();
@@ -60,7 +60,7 @@ if ($path === '/browser-completion-instances' && $_SERVER['REQUEST_METHOD'] === 
     $base = \verbb\formie\elements\Form::find()->handle('completionMessage')->one();
     $view = $app->getView();
     $view->setTemplateMode(\craft\web\View::TEMPLATE_MODE_SITE);
-    $html = \verbb\formie\Formie::$plugin->getFrontendAssets()->withPublishedBrowserAssets(function () use ($view, $base) {
+    $html = \verbb\formie\Formie::$plugin->getBrowserAssets()->withPublishedBrowserAssets(function () use ($view, $base) {
         ob_start(); $view->beginPage();
         echo '<!doctype html><html lang="en"><head><title>Two instances</title>'; $view->head();
         echo '</head><body>'; $view->beginBody();
@@ -96,7 +96,7 @@ if ($path === '/browser-rendered' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $view->setTemplateMode(\craft\web\View::TEMPLATE_MODE_SITE);
     // Exercise the assets and registration that a Composer installation ships.
     // Source aliases in the adapter fixture cannot detect stale production bundles.
-    $html = \verbb\formie\Formie::$plugin->getFrontendAssets()->withPublishedBrowserAssets(function () use ($view, $form, $cached) {
+    $html = \verbb\formie\Formie::$plugin->getBrowserAssets()->withPublishedBrowserAssets(function () use ($view, $form, $cached) {
         ob_start();
         $view->beginPage();
         echo '<!doctype html><html lang="en"><head><title>Rendered form contract</title>';
@@ -128,7 +128,7 @@ if ($path === '/browser-theme' && $_SERVER['REQUEST_METHOD'] === 'GET') {
             'fieldControlError' => ['attributes' => ['class' => ['browser-input-error']]],
         ],
     ];
-    $html = \verbb\formie\Formie::$plugin->getFrontendAssets()->withPublishedBrowserAssets(function () use ($view, $form, $options) {
+    $html = \verbb\formie\Formie::$plugin->getBrowserAssets()->withPublishedBrowserAssets(function () use ($view, $form, $options) {
         ob_start();
         $view->beginPage();
         echo '<!doctype html><html lang="en"><head><title>Theme contract</title>';

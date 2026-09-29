@@ -6,7 +6,7 @@ use craft\base\Component;
 use craft\helpers\App;
 use verbb\formie\web\assets\frontend\FrontendAsset;
 
-class FrontendAssets extends Component
+class BrowserAssets extends Component
 {
     // Properties
     // =========================================================================
@@ -121,14 +121,14 @@ class FrontendAssets extends Component
 
     private function _getDevServerPublicUrl(): string
     {
-        $url = App::parseEnv('$FORMIE_FRONTEND_DEV_SERVER_PUBLIC') ?: 'http://localhost:3902/';
+        $url = App::parseEnv('$FORMIE_BROWSER_DEV_SERVER_PUBLIC') ?: 'http://localhost:3902/';
 
         return rtrim($url, '/') . '/';
     }
 
     private function _getDevServerInternalUrl(): string
     {
-        $url = App::parseEnv('$FORMIE_FRONTEND_DEV_SERVER_INTERNAL') ?: $this->_getDevServerPublicUrl();
+        $url = App::parseEnv('$FORMIE_BROWSER_DEV_SERVER_INTERNAL') ?: $this->_getDevServerPublicUrl();
 
         return rtrim($url, '/') . '/';
     }

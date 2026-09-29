@@ -43,9 +43,9 @@ trait RenderingDeprecations
     public function renderCss(bool $inline = false, array $renderOptions = []): ?Markup
     {
         // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Rendering `renderCss()` has been deprecated. Use `frontendAssets()` with `includeJs: false` instead.');
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Rendering `renderCss()` has been deprecated. Use `browserAssets()` with `includeJs: false` instead.');
 
-        return $this->frontendAssets(array_merge($renderOptions, [
+        return $this->browserAssets(array_merge($renderOptions, [
             'inline' => $inline,
             'includeJs' => false,
         ]));
@@ -54,9 +54,9 @@ trait RenderingDeprecations
     public function renderJs(bool $inline = false, array $renderOptions = []): ?Markup
     {
         // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Rendering `renderJs()` has been deprecated. Use `frontendAssets()` with `includeCss: false` instead.');
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Rendering `renderJs()` has been deprecated. Use `browserAssets()` with `includeCss: false` instead.');
 
-        return $this->frontendAssets(array_merge($renderOptions, [
+        return $this->browserAssets(array_merge($renderOptions, [
             'inline' => $inline,
             'includeCss' => false,
         ]));

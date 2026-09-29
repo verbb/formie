@@ -8,7 +8,7 @@ use verbb\formie\deprecations\RenderingDeprecations;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFormRenderOptionsEvent;
-use verbb\formie\events\ModifyFrontendJsTranslationsEvent;
+use verbb\formie\events\ModifyBrowserJsTranslationsEvent;
 use verbb\formie\events\ModifyRenderEvent;
 use verbb\formie\helpers\UploadAccess;
 use verbb\formie\helpers\ValidationMessagesHelper;
@@ -48,7 +48,7 @@ class Rendering extends Component
     public const EVENT_MODIFY_RENDER_PAGE = 'modifyRenderPage';
     public const EVENT_MODIFY_RENDER_FIELD = 'modifyRenderField';
     public const EVENT_MODIFY_FORM_RENDER_OPTIONS = 'modifyFormRenderOptions';
-    public const EVENT_MODIFY_FRONTEND_JS_TRANSLATIONS = 'modifyFrontendJsTranslations';
+    public const EVENT_MODIFY_BROWSER_JS_TRANSLATIONS = 'modifyBrowserJsTranslations';
     public const RENDER_TYPE_CSS = 'css';
     public const RENDER_TYPE_JS = 'js';
 
@@ -352,18 +352,18 @@ class Rendering extends Component
         return TemplateHelper::raw(implode(PHP_EOL, $output));
     }
 
-    public function getFrontendJsTranslations(): array
+    public function getBrowserJsTranslations(): array
     {
-        $strings = ValidationMessagesHelper::frontendTranslationStringList();
+        $strings = ValidationMessagesHelper::browserTranslationStringList();
 
         // Allow plugins to modify JS translation strings
-        $event = new ModifyFrontendJsTranslationsEvent([
+        $event = new ModifyBrowserJsTranslationsEvent([
             'strings' => $strings,
         ]);
-        $this->trigger(self::EVENT_MODIFY_FRONTEND_JS_TRANSLATIONS, $event);
+        $this->trigger(self::EVENT_MODIFY_BROWSER_JS_TRANSLATIONS, $event);
 
         return ValidationMessageCompatibility::applyTranslationAliases(
-            ValidationMessagesHelper::applyPluginDefaultsToFrontendTranslations(
+            ValidationMessagesHelper::applyPluginDefaultsToBrowserTranslations(
                 $this->_getTranslatedStrings($event->strings),
             ),
         );
@@ -475,18 +475,18 @@ class Rendering extends Component
         return $bufferedFiles;
     }
 
-    public function frontendAssets(array $renderOptions = []): ?Markup
+    public function browserAssets(array $renderOptions = []): ?Markup
     {
         $renderOptions = $this->_normalizeRenderOptions($renderOptions);
         $inline = (bool)($renderOptions['inline'] ?? false);
         $output = [];
 
         if ($renderOptions['includeCss'] ?? true) {
-            $output[] = $this->_renderFrontendCss($inline, $renderOptions);
+            $output[] = $this->_renderBrowserCss($inline, $renderOptions);
         }
 
         if ($renderOptions['includeJs'] ?? true) {
-            $output[] = $this->_renderFrontendJs($inline, $renderOptions);
+            $output[] = $this->_renderBrowserJs($inline, $renderOptions);
         }
 
         $output = array_filter($output, static fn($value) => $value !== null && $value !== '');
@@ -594,7 +594,7 @@ class Rendering extends Component
         $assetSettings = $this->_resolveFormAssetSettings($form, $renderOptions);
 
         if ($type !== self::RENDER_TYPE_JS && ($renderOptions['includeCss'] ?? true)) {
-            $assetUrls = Formie::$plugin->getFrontendAssets()->getBrowserAssetUrls();
+            $assetUrls = Formie::$plugin->getBrowserAssets()->getBrowserAssetUrls();
             $activeFrame = $this->getActiveRenderFrame();
             $resolvedTheme = $activeFrame && $activeFrame->getForm() === $form
                 ? $activeFrame->getResolvedTheme()
@@ -625,7 +625,7 @@ class Rendering extends Component
             $outputJsLocation = $assetSettings['outputJsLocation'];
 
             if ($assetSettings['outputJs'] && !$this->_renderedJs) {
-                $output[] = $this->_renderFrontendJs($forceInline || $outputJsLocation !== FormTemplate::PAGE_FOOTER, $renderOptions);
+                $output[] = $this->_renderBrowserJs($forceInline || $outputJsLocation !== FormTemplate::PAGE_FOOTER, $renderOptions);
 
                 if ($outputJsLocation === FormTemplate::PAGE_FOOTER && !$forceInline) {
                     $output = [];
@@ -640,10 +640,10 @@ class Rendering extends Component
         return TemplateHelper::raw(implode(PHP_EOL, $output));
     }
 
-    private function _renderFrontendCss(bool $inline, array $renderOptions = []): Markup
+    private function _renderBrowserCss(bool $inline, array $renderOptions = []): Markup
     {
         $view = Craft::$app->getView();
-        $assetUrls = Formie::$plugin->getFrontendAssets()->getBrowserAssetUrls();
+        $assetUrls = Formie::$plugin->getBrowserAssets()->getBrowserAssetUrls();
         $cssFiles = array_filter([
             $assetUrls['baseStyles'] ?? null,
             ($renderOptions['theme'] ?? 'formie') === 'none' ? null : ($assetUrls['themeStyles'] ?? null),
@@ -666,17 +666,17 @@ class Rendering extends Component
         return TemplateHelper::raw(implode(PHP_EOL, $output));
     }
 
-    private function _renderFrontendJs(bool $inline, array $renderOptions = []): Markup
+    private function _renderBrowserJs(bool $inline, array $renderOptions = []): Markup
     {
         $view = Craft::$app->getView();
-        $assetUrls = Formie::$plugin->getFrontendAssets()->getBrowserAssetUrls();
+        $assetUrls = Formie::$plugin->getBrowserAssets()->getBrowserAssetUrls();
         $jsFile = $assetUrls['js'];
         $viteClientFile = $assetUrls['viteClient'] ?? null;
         $output = [];
 
         $scriptAttributes = $this->_getScriptAttributes($renderOptions);
         $jsAttributes = $this->_getJsAttributes($renderOptions);
-        $translationsTag = $this->_renderFrontendTranslationsTag($renderOptions);
+        $translationsTag = $this->_renderBrowserTranslationsTag($renderOptions);
 
         if ($inline) {
             $output[] = $translationsTag;
@@ -703,7 +703,7 @@ class Rendering extends Component
         return TemplateHelper::raw(implode(PHP_EOL, $output));
     }
 
-    private function _renderFrontendTranslationsTag(array $renderOptions = []): string
+    private function _renderBrowserTranslationsTag(array $renderOptions = []): string
     {
         $attributes = array_merge($this->_getScriptAttributes($renderOptions), [
             'type' => 'application/json',
@@ -711,7 +711,7 @@ class Rendering extends Component
         ]);
         
         $translationsJson = Json::encode(
-            $this->getFrontendJsTranslations(),
+            $this->getBrowserJsTranslations(),
             JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
         );
 
@@ -723,15 +723,15 @@ class Rendering extends Component
         $strings = [];
 
         foreach ($array as $item) {
-            $strings[$item] = $this->_translateFrontendJsString($item);
+            $strings[$item] = $this->_translateBrowserJsString($item);
         }
 
         return $strings;
     }
 
-    private function _translateFrontendJsString(string $message): string
+    private function _translateBrowserJsString(string $message): string
     {
-        // Dynamic key — English source string is the Craft message key (see frontendTranslationStringList()).
+        // Dynamic key — English source string is the Craft message key (see browserTranslationStringList()).
         return ValidationMessageCompatibility::translate($message);
     }
 

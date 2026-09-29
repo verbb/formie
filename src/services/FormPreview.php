@@ -107,9 +107,9 @@ class FormPreview extends Component
         // asRaw() preview documents do not flush Craft-registered head assets. Force published
         // frontend URLs (never Vite localhost) and embed theme CSS in the frame <head> so the
         // iframe cannot end up unstyled when a <link> 404s or Vite sets css via JS only.
-        $frontendAssets = Formie::$plugin->getFrontendAssets();
+        $browserAssets = Formie::$plugin->getBrowserAssets();
 
-        $html = (string)$frontendAssets->withPublishedBrowserAssets(function() use ($form, $token) {
+        $html = (string)$browserAssets->withPublishedBrowserAssets(function() use ($form, $token) {
             return Formie::$plugin->getRendering()->renderForm($form, [
                 'useStockTemplates' => true,
                 'previewMode' => true,
@@ -130,7 +130,7 @@ class FormPreview extends Component
         return [
             'html' => $html,
             'previewKey' => $token,
-            'themeCss' => $frontendAssets->getPublishedThemeCssContents(),
+            'themeCss' => $browserAssets->getPublishedThemeCssContents(),
         ];
     }
 

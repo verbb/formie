@@ -78,7 +78,7 @@ By default, Formie's startup script only keeps observing the page when `useObser
 If you want to take full ownership in your own bundle, leave `initJs: false` on the form render, turn page-level observation off where you output the startup script, and then opt into observation explicitly when you call `formie()`:
 
 ```twig
-{{ craft.formie.frontendAssets({
+{{ craft.formie.browserAssets({
   useObserver: false,
 }) }}
 ```

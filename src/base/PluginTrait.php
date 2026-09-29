@@ -43,7 +43,7 @@ use verbb\formie\services\FormSiteOverrides;
 use verbb\formie\services\FormSitePropagation;
 use verbb\formie\services\FormStatuses;
 use verbb\formie\services\FormTemplates;
-use verbb\formie\services\FrontendAssets;
+use verbb\formie\services\BrowserAssets;
 use verbb\formie\services\IntegrationDispatcher;
 use verbb\formie\services\IntegrationRunner;
 use verbb\formie\services\Integrations;
@@ -264,7 +264,7 @@ trait PluginTrait
                 'scheduledReports' => ScheduledReports::class,
                 'renderCache' => RenderCache::class,
                 'rendering' => Rendering::class,
-                'frontendAssets' => FrontendAssets::class,
+                'browserAssets' => BrowserAssets::class,
                 'clientSessionService' => ClientSessionService::class,
                 'sentNotifications' => SentNotifications::class,
                 'spamProtection' => SpamProtection::class,
@@ -406,9 +406,9 @@ trait PluginTrait
         return $this->get('fieldPalette');
     }
 
-    public function getFrontendAssets(): FrontendAssets
+    public function getBrowserAssets(): BrowserAssets
     {
-        return $this->get('frontendAssets');
+        return $this->get('browserAssets');
     }
 
     public function getClientFormBootstrapBuilder(): FormBootstrapBuilder

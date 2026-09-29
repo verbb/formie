@@ -16,6 +16,7 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Use `browser` consistently for shared Formie 4 browser assets and JavaScript translation APIs, while retaining the Formie 3 `FrontendAsset` bundle and rendering compatibility helpers.
 - Remove intermediate Formie 4 beta `runtime` class and asset-helper aliases while retaining Formie 3 compatibility boundaries.
 - Separate versionless Formie 3 submission snapshot adaptation from the strict UID-based Formie 4 snapshot contract instead of retaining intermediate beta formats.
 - Save form field layouts atomically inside Craft’s element transaction, batch persistence and identity validation at the root boundary, and add installation-scale load, save and export profiling.

@@ -138,9 +138,9 @@ class Formie
         return FormiePlugin::$plugin->getRendering()->formAssets($form, $renderOptions);
     }
 
-    public function frontendAssets(array $renderOptions = []): ?Markup
+    public function browserAssets(array $renderOptions = []): ?Markup
     {
-        return FormiePlugin::$plugin->getRendering()->frontendAssets($renderOptions);
+        return FormiePlugin::$plugin->getRendering()->browserAssets($renderOptions);
     }
 
     public function getFieldOptions(FieldInterface $field, array $renderOptions = []): array

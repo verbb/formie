@@ -44,9 +44,9 @@ trait FormieVariableDeprecations
     public function renderCss(bool $inline = false, array $renderOptions = []): ?Markup
     {
         // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(__METHOD__, '`craft.formie.renderCss()` has been deprecated. Use `craft.formie.frontendAssets()` with `includeJs: false` instead.');
+        Craft::$app->getDeprecator()->log(__METHOD__, '`craft.formie.renderCss()` has been deprecated. Use `craft.formie.browserAssets()` with `includeJs: false` instead.');
 
-        return FormiePlugin::$plugin->getRendering()->frontendAssets(array_merge($renderOptions, [
+        return FormiePlugin::$plugin->getRendering()->browserAssets(array_merge($renderOptions, [
             'inline' => $inline,
             'includeJs' => false,
         ]));
@@ -55,9 +55,9 @@ trait FormieVariableDeprecations
     public function renderJs(bool $inline = false, array $renderOptions = []): ?Markup
     {
         // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(__METHOD__, '`craft.formie.renderJs()` has been deprecated. Use `craft.formie.frontendAssets()` with `includeCss: false` instead.');
+        Craft::$app->getDeprecator()->log(__METHOD__, '`craft.formie.renderJs()` has been deprecated. Use `craft.formie.browserAssets()` with `includeCss: false` instead.');
 
-        return FormiePlugin::$plugin->getRendering()->frontendAssets(array_merge($renderOptions, [
+        return FormiePlugin::$plugin->getRendering()->browserAssets(array_merge($renderOptions, [
             'inline' => $inline,
             'includeCss' => false,
         ]));

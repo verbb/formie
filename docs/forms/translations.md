@@ -44,7 +44,7 @@ return [
 
 These keys must match the **English source string** in the plugin exactly. Formie does not use separate message IDs.
 
-Front-end JavaScript validation messages are seeded from the same strings via `Rendering::getFrontendJsTranslations()`. Override them in `formie.php` the same way.
+Browser JavaScript validation messages are seeded from the same strings via `Rendering::getBrowserJsTranslations()`. Override them in `formie.php` the same way.
 
 ### Project Strings (`site` Category)
 

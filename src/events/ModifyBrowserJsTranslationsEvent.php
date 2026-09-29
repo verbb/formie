@@ -3,7 +3,7 @@ namespace verbb\formie\events;
 
 use yii\base\Event;
 
-class ModifyFrontendJsTranslationsEvent extends Event
+class ModifyBrowserJsTranslationsEvent extends Event
 {
     // Properties
     // =========================================================================

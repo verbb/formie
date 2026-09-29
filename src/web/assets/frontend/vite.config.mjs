@@ -15,9 +15,9 @@ export default defineConfig(({ mode, command }) => {
     const env = loadEnv(mode, process.cwd(), '');
     const useFormieBrowserSource =
         command === 'serve' && mode === 'development';
-    const devServerPublicUrl = (env.FORMIE_FRONTEND_DEV_SERVER_PUBLIC || 'http://localhost:3902/').replace(/\/$/, '');
-    const devServerHost = env.FORMIE_FRONTEND_DEV_SERVER_HOST || 'localhost';
-    const devServerPort = parseServerPort(env.FORMIE_FRONTEND_DEV_SERVER_PORT, 3902);
+    const devServerPublicUrl = (env.FORMIE_BROWSER_DEV_SERVER_PUBLIC || 'http://localhost:3902/').replace(/\/$/, '');
+    const devServerHost = env.FORMIE_BROWSER_DEV_SERVER_HOST || 'localhost';
+    const devServerPort = parseServerPort(env.FORMIE_BROWSER_DEV_SERVER_PORT, 3902);
     const previewServerPort = parseServerPort(env.FORMIE_FRONTEND_PREVIEW_PORT, 4392);
 
     return {

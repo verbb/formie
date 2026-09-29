@@ -159,8 +159,8 @@ it('normalizes plugin validation message defaults for storage', function (): voi
     ]);
 });
 
-it('seeds front-end translations from canonical validation templates', function (): void {
-    $strings = ValidationMessagesHelper::frontendTranslationStringList();
+it('seeds browser translations from canonical validation templates', function (): void {
+    $strings = ValidationMessagesHelper::browserTranslationStringList();
 
     expect($strings)
         ->toContain('{label} is not a valid email address.')
