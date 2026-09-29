@@ -9,20 +9,20 @@
 > [!NOTE]
 > Looking to make the switch to Formie? Read our [blog post](https://verbb.io/blog/introducing-formie) on why we built Formie.
 
-Formie is a Craft CMS plugin for creating user-friendly forms that your content editors will love. With over 30 fields available, a drag-and-drop form builder, multi-page support, and more!
+Formie is a Craft CMS plugin for creating user-friendly forms your content editors will love, with more than 30 fields, a drag-and-drop builder, multi-page support and plenty more.
 
 ## Features
 - Drag-and-drop form builder, with support for columns.
 - Multi-page support for complex forms, or single-page for simple ones.
 - Store submissions in the control panel, in case you want to view the users' submission later.
-- **Stencils** - A quick and easy way to create new forms. Stencils include your form settings, fields and notifications.
+- **Stencils**: A quick and easy way to create new forms. Stencils include your form settings, fields and notifications.
 - Multiple options to control how forms submit. Show a success message, redirect to an entry, or stay on the same page.
 - Conditions for pages, fields, buttons and email notifications.
 - Save incomplete submissions for users to come back to later.
 - Switch form submissions to be page-reload (POST), or async (Ajax).
 - Spam protection - Fight spam with our in-built keyword blocking and submission behaviour control.
 - Integrations API - Captchas, Address Providers, Elements, Email Marketing, CRM, Webhooks, Miscellaneous.
-- Migrate from Solspace Freeform or Sprout Forms with our handy migration assistants. 
+- Migrate from Solspace Freeform or Sprout Forms with our handy migration assistants.
 - Supports importing submissions via Feed Me.
 
 ### Fields
@@ -34,11 +34,11 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Customise your submit buttons - even multiple submits for multi-page forms.
 - Pick from existing fields with ease.
 - For Dropdown/Checkboxes/Radio Buttons - select from over 25 preset options to populate your field, like countries, states, languages, currencies, days, months and more!
-- **Synced fields** - Create your fields in one place, then use them everywhere!
-- **Conditions** - Hide or show fields based on other fields' values.
-- **Visibility** - Show, hide or disable any field from being visible to users.
-- **Content Encryption** - Protect sensitive data by encrypting it in the database.
-- **Match Field** - Enforce fields to match one another. Perfect for "confirm" fields.
+- **Synced fields**: Create your fields in one place, then use them everywhere!
+- **Conditions**: Hide or show fields based on other fields' values.
+- **Visibility**: Show, hide or disable any field from being visible to users.
+- **Content Encryption**: Protect sensitive data by encrypting it in the database.
+- **Match Field**: Enforce fields to match one another. Perfect for "confirm" fields.
 
 ### Email Notifications
 - Multiple email notifications per-form. Notify your staff and customers at the same time about their submissions.
@@ -50,8 +50,8 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Preview your emails, so you're 100% certain how they'll look.
 - Send test emails, for delivery troubleshooting and real-world previews.
 - Re-trigger email notifications from any submission, in case some were missed!
-- **Conditions** - Choose to send or prevent sending email notifications depending on field values.
-- **Conditional Recipients** - Create logic to send to various recipients, depending on field values.
+- **Conditions**: Choose to send or prevent sending email notifications depending on field values.
+- **Conditional Recipients**: Create logic to send to various recipients, depending on field values.
 
 ### Sent Notifications
 - Keep track of every email notification sent out from Formie. View the exact email sent.
@@ -136,7 +136,7 @@ Provide autocomplete behaviour for your address fields. Drastically reduce user 
 - PlaceKit
 
 #### Automations
-Trigger powerful workflows and integrations when a form is submitted — set it and forget it.
+Trigger powerful workflows and integrations when a form is submitted - set it and forget it.
 
 - IFTTT
 - Make
@@ -257,7 +257,7 @@ Turn form submissions into support tickets and streamline your customer service.
 - Zendesk
 
 #### Messaging
-Send messages via SMS, chat apps, and more — keep users in the loop wherever they are.
+Send messages via SMS, chat apps, and more - keep users in the loop wherever they are.
 
 - Discord
 - Plivo
@@ -289,7 +289,6 @@ Use your form as a paywall to collect payment from your users.
 - Square
 - Stripe
 
- 
 ## Documentation
 Visit the [Formie Plugin page](https://verbb.io/craft-plugins/formie) for all documentation, guides, pricing and developer resources.
 
