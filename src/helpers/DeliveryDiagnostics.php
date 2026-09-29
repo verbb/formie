@@ -30,15 +30,35 @@ final class DeliveryDiagnostics
                     return json_encode(self::redact($decoded, $secrets, $depth + 1), JSON_INVALID_UTF8_SUBSTITUTE);
                 }
             }
-            foreach ($secrets as $secret) {
-                if (is_string($secret) && $secret !== '') {
-                    $value = str_replace($secret, '[redacted]', $value);
+            return mb_substr(self::_redactString($value, $secrets), 0, 2048);
+        }
+        return is_scalar($value) || $value === null ? $value : '[unsupported value]';
+    }
+
+    public static function redactComplete(mixed $value, array $secrets = [], int $depth = 0): mixed
+    {
+        if ($depth > 32) {
+            return '[depth limit]';
+        }
+        if (is_array($value)) {
+            $safe = [];
+            foreach ($value as $key => $item) {
+                if (preg_match('/password|secret|token|authorization|cookie|api.?key|httpAuth|credential|card.?number|cvv/i', (string)$key)) {
+                    $safe[$key] = '[redacted]';
+                } else {
+                    $safe[$key] = self::redactComplete($item, $secrets, $depth + 1);
                 }
             }
-            $value = preg_replace('/((?:password|secret|api[_-]?key|access[_-]?token)\s*[:=]\s*)[^\s,;]+/i', '$1[redacted]', $value);
-            $value = preg_replace('/\b(Bearer|Basic)\s+[^\s"<>]+/i', '$1 [redacted]', $value);
-            $value = preg_replace('/([?&](?:[^=&]*(?:token|secret|key|password)[^=&]*)=)[^&#\s]*/i', '$1[redacted]', $value);
-            return mb_substr($value, 0, 2048);
+            return $safe;
+        }
+        if (is_string($value)) {
+            if (strlen($value) <= 2097152 && in_array($value[0] ?? '', ['{', '['], true)) {
+                $decoded = json_decode($value, true);
+                if (is_array($decoded)) {
+                    return json_encode(self::redactComplete($decoded, $secrets, $depth + 1), JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+                }
+            }
+            return self::_redactString($value, $secrets);
         }
         return is_scalar($value) || $value === null ? $value : '[unsupported value]';
     }
@@ -50,5 +70,22 @@ final class DeliveryDiagnostics
             return json_encode(['truncated' => true, 'preview' => mb_strcut($json, 0, 8192)], JSON_INVALID_UTF8_SUBSTITUTE);
         }
         return $json;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private static function _redactString(string $value, array $secrets): string
+    {
+        foreach ($secrets as $secret) {
+            if (is_string($secret) && $secret !== '') {
+                $value = str_replace($secret, '[redacted]', $value);
+            }
+        }
+        $value = preg_replace('/((?:password|secret|api[_-]?key|access[_-]?token)\s*[:=]\s*)[^\s,;]+/i', '$1[redacted]', $value);
+        $value = preg_replace('/\b(Bearer|Basic)\s+[^\s"<>]+/i', '$1 [redacted]', $value);
+
+        return preg_replace('/([?&](?:[^=&]*(?:token|secret|key|password)[^=&]*)=)[^&#\s]*/i', '$1[redacted]', $value) ?? $value;
     }
 }

@@ -745,7 +745,7 @@ class Install extends Migration
             'id' => $this->primaryKey(),
             'attemptId' => $this->integer()->notNull(),
             'checkpoint' => $this->string(64)->notNull(),
-            'data' => $this->text()->notNull(),
+            'data' => $this->mediumText()->notNull(),
             'dateCreated' => $this->dateTime()->notNull(),
         ]);
 

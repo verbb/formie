@@ -10,7 +10,7 @@
 - Add typed After Completion outcomes shared by HTML, Ajax, REST and GraphQL, with validated redirect overrides and captured query allowlists.
 - Add isolated render-instance configuration and versioned durable submission settings while preserving the trusted Twig APIs.
 - Add one versioned browser-module manifest with trusted executable IDs, repeated occurrence keys, dynamic target reconciliation and required/optional failure diagnostics.
-- Add durable integration and notification delivery history, safe per-operation retries, explicit reconciliation and a Plugin Kit diagnostics modal in Craft’s queue and submission views.
+- Add durable integration and notification delivery history with complete encrypted checkpoint evidence, safe per-operation retries, explicit reconciliation and a Plugin Kit diagnostics modal in Craft’s queue and submission views.
 - Add one typed reference runtime and Variable Picker catalogue, with immutable field declarations, native exact values, stable nested identities, explicit row scopes and context-safe diagnostics.
 - Add versioned, atomic form imports with dependency plans, stable-reference matching and recoverable missing field types.
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))

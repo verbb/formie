@@ -105,7 +105,7 @@ class DeliveryAttempts extends Component
         }
         Craft::$app->getDb()->createCommand()->insert(self::DIAGNOSTICS, [
             'attemptId' => $row['id'], 'checkpoint' => $checkpoint,
-            'data' => DeliveryDiagnostics::encode($data, $secrets),
+            'data' => $this->_encrypt(DeliveryDiagnostics::redactComplete($data, $secrets)),
             'dateCreated' => Db::prepareDateForDb(new DateTime()),
         ])->execute();
     }
@@ -288,7 +288,16 @@ class DeliveryAttempts extends Component
         }
         $row = $this->get($uid);
         $this->checkpoint($uid, 'sensitive-export', ['actorId' => Craft::$app->getUser()->getId()]);
-        return ['uid' => $uid, 'response' => $row['response'] ? $this->_decrypt($row['response']) : null];
+        $attempt = $row;
+        unset($attempt['response'], $attempt['payloadHash'], $attempt['requestKey'], $attempt['identity']);
+        $attempt['data'] = $row['data'] ? DeliveryDiagnostics::redactComplete($this->_decrypt($row['data'])) : null;
+        $attempt['result'] = $row['result'] ? Json::decode($row['result']) : null;
+
+        return [
+            'uid' => $uid,
+            'attempt' => $attempt,
+            'checkpoints' => $this->_evidenceCheckpoints((int)$row['id'], 200),
+        ];
     }
 
     public function reconcile(string $uid, IntegrationResult $result, string $reason): void
@@ -338,17 +347,25 @@ class DeliveryAttempts extends Component
     {
         $checkpoints = [];
         $bytes = 0;
-        foreach ((new Query())->select(['checkpoint', 'data', 'dateCreated'])->from(self::DIAGNOSTICS)->where(['attemptId' => $attemptId])->orderBy(['id' => SORT_DESC])->limit($limit)->all() as $checkpoint) {
-            $bytes += strlen($checkpoint['data']);
+        foreach ($this->_evidenceCheckpoints($attemptId, $limit) as $checkpoint) {
+            $bytes += strlen(Json::encode($checkpoint['data']));
             if ($bytes > 524288) {
                 $checkpoints[] = ['checkpoint' => 'truncated', 'data' => ['reason' => 'support_bundle_limit']];
                 break;
             }
-            // These projections were bounded and redacted at write time. Decode
-            // once so nesting a child operation does not erase useful evidence.
-            $checkpoint['data'] = Json::decode($checkpoint['data']);
             $checkpoints[] = $checkpoint;
         }
+        return $checkpoints;
+    }
+
+    private function _evidenceCheckpoints(int $attemptId, int $limit): array
+    {
+        $checkpoints = [];
+        foreach ((new Query())->select(['checkpoint', 'data', 'dateCreated'])->from(self::DIAGNOSTICS)->where(['attemptId' => $attemptId])->orderBy(['id' => SORT_DESC])->limit($limit)->all() as $checkpoint) {
+            $checkpoint['data'] = $this->_decrypt($checkpoint['data']);
+            $checkpoints[] = $checkpoint;
+        }
+
         return array_reverse($checkpoints);
     }
 
