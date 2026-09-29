@@ -1,5 +1,4 @@
 import type { FormEventUnsubscribe } from '#contracts/client';
-import type { FormMode } from '#contracts/common';
 import type { BrowserModuleDefinition, ModuleRegistrationOptions } from '#contracts/modules';
 import { ModuleRegistry } from '#modules/registry';
 export type FormieModuleHydratorOptions = {
@@ -7,7 +6,6 @@ export type FormieModuleHydratorOptions = {
     form?: HTMLFormElement | null;
     modules?: import('@verbb/formie-core').BrowserModuleManifest;
     surface?: import('@verbb/formie-core').BrowserSurface;
-    mode?: FormMode;
     registry?: ModuleRegistry;
 };
 export type FormieModuleHydrator = {

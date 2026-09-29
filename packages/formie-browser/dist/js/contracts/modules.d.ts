@@ -1,12 +1,12 @@
-import type { FormAction, FormMode } from '#contracts/common';
+import type { FormAction } from '#contracts/common';
 import type { BrowserModuleEntry, FormModuleTargetType, FormSubmitResult } from '#contracts/schema';
-import type { BrowserModuleKind } from '@verbb/formie-core';
+import type { BrowserModuleKind, BrowserSurface } from '@verbb/formie-core';
 export type ModuleMatchContext = {
     root: Element;
     form: HTMLFormElement | null;
     target: Element;
     scope: FormModuleTargetType;
-    mode: FormMode;
+    surface: BrowserSurface;
     manifestItem: BrowserModuleEntry;
 };
 export type ModuleHookContext = {
@@ -19,7 +19,7 @@ export type ModuleHookContext = {
 };
 export type ModuleSetupContext = ModuleHookContext & {
     entryKey?: string;
-    surface?: import('@verbb/formie-core').BrowserSurface;
+    surface: BrowserSurface;
     options?: Record<string, unknown>;
     on: (eventName: string, callback: (payload: unknown) => void) => () => void;
     emit: (eventName: string, payload?: unknown) => Promise<void>;
@@ -52,7 +52,7 @@ export type BrowserModuleInstance = {
 export type BrowserModuleDefinition = {
     moduleId: string;
     version: 2;
-    surfaces: import('@verbb/formie-core').BrowserSurface[];
+    surfaces: BrowserSurface[];
     kind: BrowserModuleKind;
     match: (ctx: ModuleMatchContext) => boolean;
     setup: (ctx: ModuleSetupContext) => Promise<BrowserModuleInstance | void>;

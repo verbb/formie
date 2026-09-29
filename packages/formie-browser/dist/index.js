@@ -1138,7 +1138,7 @@ function Kt(e, t, n) {
 async function qt(e, t) {
 	n(e);
 	let r = e.surface;
-	if (t.matchContext.surface && t.matchContext.surface !== r) throw Error(`Browser module manifest surface ${r} cannot mount as ${t.matchContext.surface}.`);
+	if (t.matchContext.surface !== r || t.setupContext.surface !== r) throw Error(`Browser module manifest surface ${r} cannot mount as ${t.matchContext.surface}.`);
 	let { root: i, form: a } = t.setupContext, o = /* @__PURE__ */ new Map(), s = /* @__PURE__ */ new Map(), c = [], l = !1, u = Promise.resolve(), d = !1, f = async (e, n) => {
 		s.set(e.key, e);
 		let i = {
@@ -1223,7 +1223,6 @@ async function qt(e, t) {
 					if (d.kind !== n.kind) throw Error(`Module ${n.moduleId} is registered as ${d.kind}, not ${n.kind}.`);
 					if (!d.match({
 						...t.matchContext,
-						mode: "server-rendered",
 						target: a,
 						scope: g.scope,
 						manifestItem: n
@@ -2211,7 +2210,6 @@ function tr() {
 			matchContext: {
 				root: a,
 				form: b,
-				mode: g.mode,
 				surface: w.surface
 			},
 			setupContext: {
@@ -2220,6 +2218,7 @@ function tr() {
 				form: b,
 				target: a,
 				scope: "form",
+				surface: w.surface,
 				state: ne,
 				on: (e, t) => d.on(e, t),
 				emit: (e, t) => (y(a, e, t), d.emitSafe(e, t).then((t) => {
@@ -2480,39 +2479,39 @@ async function rr(e) {
 		contractVersion: 2,
 		surface: r,
 		entries: []
-	}, a = e.mode ?? "server-rendered", o = e.registry ?? new B(), s = new Rt(), c = await qt(i, {
-		registry: o,
+	}, a = e.registry ?? new B(), o = new Rt(), s = await qt(i, {
+		registry: a,
 		setupContext: {
 			formId: n?.id || t.id || "formie-modules",
 			root: t,
 			form: n,
 			target: t,
 			scope: "form",
+			surface: r,
 			state: {},
 			options: {},
-			on: (e, t) => s.on(e, t),
+			on: (e, t) => o.on(e, t),
 			emit: async (e, n) => {
 				t.dispatchEvent(new CustomEvent(e, {
 					detail: n,
 					bubbles: !0
-				})), await s.emit(e, n);
+				})), await o.emit(e, n);
 			}
 		},
 		matchContext: {
 			root: t,
 			form: n,
-			mode: a,
 			surface: r
 		}
 	});
 	return nr.log("Hydrated module manifest.", {
 		moduleCount: i.entries.length,
-		instanceCount: c.length,
-		mode: a
+		instanceCount: s.length,
+		surface: r
 	}), {
 		prepare: async (e) => {
 			if (!n) throw Error("Browser modules require a mounted form element.");
-			c.forEach((e) => e.assertReady?.());
+			s.forEach((e) => e.assertReady?.());
 			let t, r = {
 				form: n,
 				action: e === "back" || e === "save" ? e : "submit",
@@ -2529,7 +2528,7 @@ async function rr(e) {
 				captcha: 1,
 				payment: 2
 			};
-			for (let e of [...c].sort((e, t) => i[e.kind ?? "core"] - i[t.kind ?? "core"])) if (await e.beforeSubmit?.(r), t) throw Error(t);
+			for (let e of [...s].sort((e, t) => i[e.kind ?? "core"] - i[t.kind ?? "core"])) if (await e.beforeSubmit?.(r), t) throw Error(t);
 			return Object.fromEntries(Array.from(n.querySelectorAll("input[type=\"hidden\"][name]")).map((e) => [e.name, e.value]));
 		},
 		result: async (e) => {
@@ -2539,27 +2538,27 @@ async function rr(e) {
 				action: e.action ?? "submit",
 				formData: new FormData(n)
 			};
-			await s.emit("formie:submit:result", e);
-			for (let n of c) await n.afterSubmit?.(t, e);
+			await o.emit("formie:submit:result", e);
+			for (let n of s) await n.afterSubmit?.(t, e);
 			n.dispatchEvent(new CustomEvent("formie:submit:result", {
 				detail: e,
 				bubbles: !0
 			}));
 		},
-		update: (e) => c.updateManifest(e),
-		assertReady: () => c.forEach((e) => e.assertReady?.()),
+		update: (e) => s.updateManifest(e),
+		assertReady: () => s.forEach((e) => e.assertReady?.()),
 		destroy: async () => {
-			await c[0]?.destroy(), s.clear();
+			await s[0]?.destroy(), o.clear();
 		},
-		on: (e, t) => s.on(e, t),
+		on: (e, t) => o.on(e, t),
 		emit: async (e, t) => {
-			await s.emit(e, t);
+			await o.emit(e, t);
 		},
-		registerModule: (e, t = {}) => o.register(e, t),
+		registerModule: (e, t = {}) => a.register(e, t),
 		unregisterModule: (e) => {
-			o.unregister(e);
+			a.unregister(e);
 		},
-		getRegisteredModules: () => o.getAll()
+		getRegisteredModules: () => a.getAll()
 	};
 }
 //#endregion

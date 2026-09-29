@@ -1,5 +1,5 @@
-import { assertBrowserModuleManifest, type BrowserModuleManifest, type BrowserModuleEntry, type BrowserSurface } from '@verbb/formie-core';
-import type { BrowserModuleDefinition, BrowserModuleInstance, ModuleSetupContext } from '#contracts/modules';
+import { assertBrowserModuleManifest, type BrowserModuleManifest, type BrowserModuleEntry } from '@verbb/formie-core';
+import type { BrowserModuleDefinition, BrowserModuleInstance, ModuleMatchContext, ModuleSetupContext } from '#contracts/modules';
 import { builtinAddressModuleLoaders } from '#modules/address';
 import { builtinCaptchaModuleLoaders } from '#modules/captchas';
 import { builtinFieldModuleLoaders } from '#modules/fields';
@@ -11,7 +11,7 @@ export type BrowserModuleRuntime = BrowserModuleInstance[] & { updateManifest: (
 type ModuleLoadContext = {
     registry: ModuleRegistry;
     setupContext: ModuleSetupContext;
-    matchContext: { root: Element; form: HTMLFormElement | null; mode?: string; surface?: BrowserSurface };
+    matchContext: Pick<ModuleMatchContext, 'root' | 'form' | 'surface'>;
 };
 const builtinLoaders = { ...builtinFieldModuleLoaders, ...builtinAddressModuleLoaders, ...builtinCaptchaModuleLoaders, ...builtinPaymentModuleLoaders };
 const pendingDefinitions = new Map<string, Promise<BrowserModuleDefinition>>();
@@ -48,7 +48,7 @@ function resolveTargets(entry: BrowserModuleEntry, root: Element, form: HTMLForm
 export async function loadModulesFromManifest(manifest: BrowserModuleManifest, ctx: ModuleLoadContext): Promise<BrowserModuleRuntime> {
     assertBrowserModuleManifest(manifest);
     const surface = manifest.surface;
-    if (ctx.matchContext.surface && ctx.matchContext.surface !== surface) {
+    if (ctx.matchContext.surface !== surface || ctx.setupContext.surface !== surface) {
         throw new Error(`Browser module manifest surface ${surface} cannot mount as ${ctx.matchContext.surface}.`);
     }
     const { root, form } = ctx.setupContext;
@@ -132,7 +132,7 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
                     }
                     if (definition.surfaces && !definition.surfaces.includes(surface)) throw new Error(`Module ${entry.moduleId} does not support ${surface}.`);
                     if (definition.kind !== entry.kind) throw new Error(`Module ${entry.moduleId} is registered as ${definition.kind}, not ${entry.kind}.`);
-                    if (!definition.match({ ...ctx.matchContext, mode: 'server-rendered', target, scope: setup.scope, manifestItem: entry })) {
+                    if (!definition.match({ ...ctx.matchContext, target, scope: setup.scope, manifestItem: entry })) {
                         throw new Error(`Module ${entry.moduleId} does not support the rendered target.`);
                     }
                     const instance = await definition.setup(setup);

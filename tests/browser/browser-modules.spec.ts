@@ -35,6 +35,53 @@ test('module occurrences reconcile repeated targets, conditional DOM and failure
     expect(result).toEqual({ initial: 2, unchanged: 2, repeated: 4, hidden: 2, shown: 6, removed: 4, destroyed: 6, optional: false, required: true, versionRejected: true });
 });
 
+test('module match and setup hooks receive the exact rendering surface', async({ page }) => {
+    await page.goto('/browser-fixture');
+    await page.waitForFunction(() => !!(window as any).browserModules);
+    const observations = await page.evaluate(async() => {
+        const { hydrateFormieModules, ModuleRegistry } = (window as any).browserModules;
+        const registry = new ModuleRegistry();
+        const seen: string[] = [];
+        registry.register({
+            moduleId: 'test:surface-context',
+            version: 2,
+            surfaces: ['server-rendered', 'client-rendered'],
+            kind: 'core',
+            match: (context) => {
+                seen.push(`match:${context.surface}:${'mode' in context}`);
+                return true;
+            },
+            setup: async(context) => {
+                seen.push(`setup:${context.surface}`);
+                return { destroy: () => {} };
+            },
+        });
+        const entry = { key: 'surface', moduleId: 'test:surface-context', kind: 'core', targets: [{ type: 'form' }], config: {}, required: true };
+
+        for (const surface of ['server-rendered', 'client-rendered']) {
+            const form = document.createElement('form');
+            document.body.append(form);
+            const host = await hydrateFormieModules({
+                root: form,
+                registry,
+                surface,
+                modules: { contractVersion: 2, surface, entries: [entry] },
+            });
+            await host.destroy();
+            form.remove();
+        }
+
+        return seen;
+    });
+
+    expect(observations).toEqual([
+        'match:server-rendered:false',
+        'setup:server-rendered',
+        'match:client-rendered:false',
+        'setup:client-rendered',
+    ]);
+});
+
 for (const adapter of ['react', 'vue', 'web-components']) {
     test(`${adapter}: canonical entries and unsupported bootstrap versions`, async({ page, request }) => {
         const parity = await (await request.get('/browser-module-parity')).json();

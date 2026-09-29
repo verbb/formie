@@ -29,6 +29,8 @@ Field targets use form-field instance UIDs. Other discriminated targets address 
 
 Each manifest contains exactly one `surface`: `server-rendered`, `client-rendered` or `cp-edit`. PHP declarations list their supported surfaces; Formie filters and completes those declarations when it projects a manifest. A declaration that omits surfaces applies to server-rendered forms. CP configuration stays separate from the public field definition.
 
+The runtime passes that exact `surface` to both `match(context)` and `setup(context)`. Use it when one trusted module supports multiple rendering products but needs to account for their different markup. It is distinct from the server-rendered form client's transport and navigation mode.
+
 Client-rendered field definitions reference exact entry keys through `moduleRefs`. Consumers resolve only those keys; `moduleId` identifies reusable executable code and is not an occurrence reference.
 
 ## Dynamic Lifecycle and Failures

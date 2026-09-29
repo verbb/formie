@@ -1,5 +1,4 @@
 import type { FormEventUnsubscribe } from '#contracts/client';
-import type { FormMode } from '#contracts/common';
 import type { BrowserModuleDefinition, ModuleRegistrationOptions } from '#contracts/modules';
 import type { BrowserModuleEntry } from '#contracts/schema';
 import { EventBus } from '#events/event-bus';
@@ -12,7 +11,6 @@ export type FormieModuleHydratorOptions = {
     form?: HTMLFormElement | null;
     modules?: import('@verbb/formie-core').BrowserModuleManifest;
     surface?: import('@verbb/formie-core').BrowserSurface;
-    mode?: FormMode;
     registry?: ModuleRegistry;
 };
 
@@ -36,7 +34,6 @@ export async function hydrateFormieModules(options: FormieModuleHydratorOptions)
     const form = options.form ?? (root instanceof HTMLFormElement ? root : root.closest('form') ?? root.querySelector('form'));
     const surface = options.surface ?? 'cp-edit';
     const modules = options.modules ?? { contractVersion: 2, surface, entries: [] };
-    const mode = options.mode ?? 'server-rendered';
     const registry = options.registry ?? new ModuleRegistry();
     const bus = new EventBus();
 
@@ -51,6 +48,7 @@ export async function hydrateFormieModules(options: FormieModuleHydratorOptions)
             form,
             target: root,
             scope: 'form',
+            surface,
             state: {},
             options: {},
             on: (eventName, callback) => {
@@ -64,7 +62,6 @@ export async function hydrateFormieModules(options: FormieModuleHydratorOptions)
         matchContext: {
             root,
             form,
-            mode,
             surface,
         },
     });
@@ -72,7 +69,7 @@ export async function hydrateFormieModules(options: FormieModuleHydratorOptions)
     debug.log('Hydrated module manifest.', {
         moduleCount: modules.entries.length,
         instanceCount: instances.length,
-        mode,
+        surface,
     });
 
     return {

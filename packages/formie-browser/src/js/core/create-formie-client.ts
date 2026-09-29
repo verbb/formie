@@ -1093,7 +1093,6 @@ export function createFormieClient(): FormieClient {
             matchContext: {
                 root: target,
                 form,
-                mode: normalizedOptions.mode,
                 surface: moduleManifest.surface,
             },
             setupContext: {
@@ -1102,6 +1101,7 @@ export function createFormieClient(): FormieClient {
                 form,
                 target,
                 scope: 'form',
+                surface: moduleManifest.surface,
                 state: stateStore,
                 on: (eventName, callback) => {
                     return bus.on(eventName, callback);

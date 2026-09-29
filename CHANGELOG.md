@@ -9,7 +9,7 @@
 - Add end-to-end portability and repeatable builder/render/bootstrap/submit/resume/revise performance fixtures.
 - Add typed After Completion outcomes shared by HTML, Ajax, REST and GraphQL, with validated redirect overrides and captured query allowlists.
 - Add isolated render-instance configuration and versioned durable submission settings while preserving the trusted Twig APIs.
-- Add one versioned browser-module manifest with trusted executable IDs, repeated occurrence keys, dynamic target reconciliation and required/optional failure diagnostics.
+- Add one versioned browser-module manifest with trusted executable IDs, repeated occurrence keys, exact rendering-surface lifecycle contexts, dynamic target reconciliation and required/optional failure diagnostics.
 - Add durable integration and notification delivery history with complete encrypted checkpoint evidence, safe per-operation retries, explicit reconciliation and a structured Plugin Kit diagnostics modal in Craft’s queue and submission views.
 - Add one typed reference runtime and Variable Picker catalogue, with immutable field declarations, native exact values, stable nested identities, explicit row scopes and context-safe diagnostics.
 - Add versioned, atomic form imports with dependency plans, stable-reference matching and recoverable missing field types.

@@ -8,7 +8,7 @@
 
 ### Changed
 - Consume canonical completion data attributes and response fields while retaining Formie 3 markup and response fallbacks.
-- Resolve surface-specific browser-module manifests by exact occurrence key and expose stable `beforeSubmit` and `afterSubmit` lifecycle hooks instead of internal pipeline stages.
+- Resolve surface-specific browser-module manifests by exact occurrence key, pass the exact rendering surface to match and setup hooks, and expose stable `beforeSubmit` and `afterSubmit` lifecycle hooks instead of internal pipeline stages.
 - Read the bounded `data-formie-theme-classes` contract, stop posting executable theme config during Summary refreshes, and keep client-rendered forms responsible for their own markup.
 - Split required `formie-base.css` behaviour from optional `formie-theme.css` visuals while retaining combined `formie.css`.
 - Share versioned tri-state conditions and plain-text validation rules across PHP and browser consumers; enforce recursive hidden-value clearing and server-authoritative navigation.
