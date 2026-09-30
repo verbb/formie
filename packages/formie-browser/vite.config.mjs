@@ -1,11 +1,14 @@
 import fs from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
+
+const configDir = dirname(fileURLToPath(import.meta.url));
 
 const copyFormieCss = () => ({
     name: 'copy-formie-css',
     async closeBundle() {
-        await fs.cp(resolve(__dirname, 'src/css'), resolve(__dirname, 'dist/css'), { recursive: true });
+        await fs.cp(resolve(configDir, 'src/css'), resolve(configDir, 'dist/css'), { recursive: true });
     },
 });
 
@@ -17,7 +20,7 @@ export default defineConfig({
         sourcemap: false,
         cssCodeSplit: true,
         lib: {
-            entry: resolve(__dirname, 'src/index.ts'),
+            entry: resolve(configDir, 'src/index.ts'),
             formats: ['es'],
             fileName: 'index',
         },
