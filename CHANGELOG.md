@@ -60,6 +60,7 @@
 - Return immutable Phone values that retain entered numbers and countries, and a consistent Name value in both input modes; replace beta Array/value-class APIs and browser validation names.
 
 ### Fixed
+- Apply event-modified Phone countries to server-rendered and client-rendered browser pickers when a field has no explicit allowed-country list.
 - Allow upgrades with beta integration-policy settings to complete the reference migration before forms are loaded.
 - Preserve configured rich completion and error messages across partial settings updates, and render sanitized rich completion messages in client-rendered adapters.
 - Preserve uploaded files when an incomplete multi-page submission navigates back after the asset has been bound and promoted, without weakening upload ownership checks.

@@ -238,12 +238,12 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
 
     public function getAllowedCountries(): array
     {
-        // Allow the field to override what countries
+        // An explicit picker list takes precedence over event-modified countries.
         if ($this->countryAllowed) {
             return $this->countryAllowed;
         }
 
-        // Otherwise, fall back to server, in case events have modified available countries.
+        // Otherwise, use the countries available to this field, including event changes.
         return Formie::$plugin->getCountries()->getPhoneCountries($this);
     }
 
@@ -497,7 +497,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
                 'config' => [
                     'countryDefaultValue' => $this->countryDefaultValue,
-                    'countryAllowed' => $this->countryAllowed,
+                    'countryAllowed' => $this->_getAllowedCountryCodes(),
                     'countryPreselectFromIp' => $this->countryPreselectFromIp,
                     'countryFromIpAction' => \craft\helpers\UrlHelper::actionUrl('formie/address/country-from-ip'),
                     'language' => $this->_getMatchedLanguageId() ?? 'en',
@@ -524,6 +524,27 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     public function getCountryLocale(): ?string
     {
         return $this->_getMatchedLanguageId();
+    }
+
+    private function _getAllowedCountryCodes(): array
+    {
+        $codes = [];
+
+        foreach ($this->getAllowedCountries() as $country) {
+            $code = is_array($country) ? ($country['value'] ?? null) : $country;
+
+            if (!is_scalar($code)) {
+                continue;
+            }
+
+            $code = strtoupper(trim((string)$code));
+
+            if ($code !== '') {
+                $codes[$code] = $code;
+            }
+        }
+
+        return array_values($codes);
     }
 
     private function _getMatchedLanguageId(): ?string

@@ -55,6 +55,5 @@ The front-end docs live on the separate browser UI reference site and cover rend
 
 ## Related Fields
 
-- Use [Single-Line Text](/fields/single-line-text) if the value should preserve arbitrary formatting and not be validated as a phone number.
+- Use [Single-Line Text](/fields/single-line-text) when the value is free-form text and should not receive Phone's browser picker, formatting or phone-specific projections.
 - Use [Name](/fields/name) and [Email Address](/fields/email-address) for adjacent contact details.
-
