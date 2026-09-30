@@ -1,7 +1,7 @@
 # Form Templates
 Form templates allow you to create custom templates for the rendering the form, page, rows and fields that Formie creates. It also provides a means to control any CSS and JS used in the front-end templates. Each [Form](docs:developers/form), can be assigned a form template, so you can have multiple form templates for a variety of different requirements.
 
-<img src="https://assets.verbb.io/plugins/formie/formie-templates.png" />
+![Formie form template settings](../../screenshots/formie-templates.png)
 
 By default, Formie comes with a set of front-end templates for your form, which also include CSS and JS. This is designed for the vast majority of cases where a functional and visually appealing form needs to be rendered on the page. For any form template, you can enable or disable the following:
 
@@ -29,4 +29,3 @@ You'll notice there's a "Copy Templates" field. You can use this to copy the def
 :::
 
 With your Form Templates and Custom Templates setup and ready to go, continue reading the in-depth [Custom Templates](docs:theming/template-overrides) templating guide.
-

@@ -9,7 +9,7 @@ Create forms with an intuitive drag-and-drop builder. Fields sit in rows and col
 
 Stencils provide a ready-made starting point with fields, settings and notifications already in place, while form templates let teams reuse proven structures across the project.
 
-![Formie’s visual form builder editing a contact form in Craft 5.](../screenshots/output/feature-tour/formie-form-builder.png)
+![Formie’s visual form builder editing a contact form in Craft 5.](../screenshots/formie-form-builder.png)
 
 <!-- feature-section-end -->
 
@@ -18,7 +18,7 @@ Stencils provide a ready-made starting point with fields, settings and notificat
 
 Turn the same builder into a quick contact form or a complete multi-step workflow. Give each page a clear purpose, control how visitors move between steps and apply conditions when a page only belongs in one path through the form.
 
-![A four-page form in Formie’s Craft 5 form builder.](../screenshots/output/feature-tour/formie-pages.png)
+![A four-page form in Formie’s Craft 5 form builder.](../screenshots/formie-pages.png)
 
 <!-- feature-section-end -->
 
@@ -27,7 +27,7 @@ Turn the same builder into a quick contact form or a complete multi-step workflo
 
 Build straightforward contact forms and involved application flows from the same field library. Each field carries the defaults, validation, appearance and instructions its job requires, while more structured answers do not have to be forced into one flat response.
 
-![The settings for a real Formie Address field.](../screenshots/output/feature-tour/formie-address.png)
+![The settings for a real Formie Address field.](../screenshots/formie-address.png)
 
 <!-- feature-section-end -->
 
@@ -62,7 +62,7 @@ Match fields can enforce confirmation values when an answer needs to be entered 
 
 Reuse one field across several forms and keep later configuration changes in sync. Editors can recognise the shared field in the builder, while projects avoid maintaining several almost-identical versions of the same question.
 
-![A synced Email Address field in Formie’s builder.](../screenshots/output/feature-tour/formie-synced-field.png)
+![A synced Email Address field in Formie’s builder.](../screenshots/formie-synced-field.png)
 
 <!-- feature-section-end -->
 
@@ -71,7 +71,7 @@ Reuse one field across several forms and keep later configuration changes in syn
 
 Build the messages a form needs with friendly variable pickers instead of asking content editors to write Twig. Recipients, subjects, templates and delivery rules remain configurable per notification, and the exact emails Formie sent remain available from the control panel.
 
-![A real Formie notification open in the email editor.](../screenshots/output/feature-tour/formie-email-notification.png)
+![A real Formie notification open in the email editor.](../screenshots/formie-email-notification.png)
 
 <!-- feature-section-end -->
 
@@ -87,7 +87,7 @@ Build the messages a form needs with friendly variable pickers instead of asking
 
 Send or suppress a notification according to submitted values and form logic. Combine several field rules to keep confirmations, internal alerts and follow-ups relevant to the path a visitor actually took.
 
-![A conditional email rule in Formie’s notification editor.](../screenshots/output/feature-tour/formie-notification-conditions.png)
+![A conditional email rule in Formie’s notification editor.](../screenshots/formie-notification-conditions.png)
 
 <!-- feature-section-end -->
 
@@ -96,7 +96,7 @@ Send or suppress a notification according to submitted values and form logic. Co
 
 Preview the rendered email with realistic submission values, then send a real test before relying on it. The result is easier to check than a template full of variables and helps catch content or recipient mistakes before a form goes live.
 
-![Formie’s generated preview for a contact-form notification.](../screenshots/output/feature-tour/formie-email-preview.png)
+![Formie’s generated preview for a contact-form notification.](../screenshots/formie-email-preview.png)
 
 <!-- feature-section-end -->
 
@@ -131,7 +131,7 @@ Add a payment field and connect a supported gateway to collect payment as part o
 
 Payment events, webhook handling and provider APIs give developers the extension points needed for project-specific transaction workflows.
 
-![A Payment field in Formie’s Craft 5 form builder.](../screenshots/output/feature-tour/formie-payments.png)
+![A Payment field in Formie’s Craft 5 form builder.](../screenshots/formie-payments.png)
 
 <!-- feature-section-end -->
 
@@ -140,7 +140,7 @@ Payment events, webhook handling and provider APIs give developers the extension
 
 Start with a complete front-end form, then take control at the level the project requires. Formie can supply the working experience or hand individual tags, attributes and components to project-owned templates and theme configuration.
 
-![A real Formie contact form rendered with its default front-end template.](../screenshots/output/feature-tour/formie-frontend.png)
+![A real Formie contact form rendered with its default front-end template.](../screenshots/formie-frontend.png)
 
 <!-- feature-section-end -->
 
@@ -158,7 +158,7 @@ Start with a complete front-end form, then take control at the level the project
 
 Map submitted values into another service’s expected structure and decide with conditions when that connection should run. Bundled and project-specific integrations share the same configuration and processing workflow instead of becoming separate form systems bolted onto the project.
 
-![A selection of the services available through Formie’s integrations.](../screenshots/output/feature-tour/formie-integrations.png)
+![A selection of the services available through Formie’s integrations.](../screenshots/formie-integrations.png)
 
 <!-- feature-section-end -->
 
