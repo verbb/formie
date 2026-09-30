@@ -4,7 +4,7 @@ The form builder is where most form work starts, and for most projects it is whe
 
 You use it to add pages and fields, but also to decide how the form should behave once it is live.
 
-![Fresh Formie form builder view](../_screenshots/forms/form-builder-create.png)
+![Fresh Formie form builder view](../../screenshots/forms/form-builder-create.png)
 
 ## Building the Form
 
@@ -61,7 +61,7 @@ These settings often end up being driven by policy rather than design, so it hel
 
 Multi-page forms are not just a layout choice.
 
-![Multi-page form builder view](../_screenshots/forms/form-builder-multi-page.png)
+![Multi-page form builder view](../../screenshots/forms/form-builder-multi-page.png)
 
 They affect:
 

@@ -6,7 +6,7 @@ Use sent notifications when you need to confirm what was sent, inspect the deliv
 
 You can use them to check whether a notification was generated at all, see the exact content that was sent, confirm who received it, and resend one message or several messages in bulk. They are separate from [Email Notifications](/forms/email-notifications), which control what will be sent in future.
 
-![Sent notification detail view](/_screenshots/forms/sent-notifications-view.png)
+![Sent notification detail view](../../screenshots/forms/sent-notifications-view.png)
 
 ## Resending
 

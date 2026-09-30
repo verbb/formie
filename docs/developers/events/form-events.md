@@ -86,6 +86,32 @@ Event::on(Form::class, Form::EVENT_MODIFY_SLOT_TAG, function(ModifyFormSlotTagEv
 
 ## Form Render Events
 
+### The `registerModules` Event
+
+Contribute browser modules for an entire form through `BrowserModuleManifestBuilder::EVENT_REGISTER_MODULES`. The event supplies the form and requested rendering surface. Contributions use a form target and core kind by default; specify other targets or kinds explicitly when needed. The normal surface filtering, occurrence keys and duplicate-key validation still apply. Module configuration is public browser data and must not contain credentials.
+
+```php
+use verbb\formie\client\modules\BrowserModuleManifestBuilder;
+use verbb\formie\events\RegisterBrowserModulesEvent;
+use verbb\formie\models\BrowserModule;
+use yii\base\Event;
+
+Event::on(BrowserModuleManifestBuilder::class, BrowserModuleManifestBuilder::EVENT_REGISTER_MODULES, function(RegisterBrowserModulesEvent $event) {
+    if ($event->form->handle !== 'registration') {
+        return;
+    }
+
+    $event->modules[] = new BrowserModule([
+        'key' => 'acme:registration-help',
+        'moduleId' => 'acme:help',
+        'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
+        'config' => ['message' => 'Contact us if you need help.'],
+    ]);
+});
+```
+
+Register the corresponding executable module in your trusted JavaScript bundle. A PHP contribution cannot load arbitrary JavaScript URLs.
+
 ### The `modifyRenderForm` Event
 The event that is triggered when a form is rendered using the `craft.formie.renderForm()` function.
 

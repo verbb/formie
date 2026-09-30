@@ -190,9 +190,9 @@ Returns the validated reference declarations exposed by the field. Formie adds t
 ::: reference
 ### `conditions()`
 
-**Returns:** `verbb\formie\fields\definitions\FieldConditions`
+**Returns:** `verbb\formie\conditions\ConditionSet`
 
-Returns normalised field-condition metadata for browser-managed flows.
+Returns the normalized predicate used by server evaluation and the browser condition compiler. Browser markup and client-rendered definitions compile the same set. Resolved field predicates are scoped to the submission instance and repeater row; setting a field value invalidates that derived state. Use the submission's value setters after editing a value model rather than mutating cached values in place.
 :::
 
 ::: reference
@@ -264,7 +264,7 @@ Defines the kind of field for the client input contract.
 
 **Returns:** `verbb\formie\fields\definitions\FieldValueType`
 
-Declares the post-normalisation PHP value. Formie asserts this type when normalising submission content and publishes its schema in client metadata. It does not choose storage or public projections.
+Returns the post-normalisation PHP value type declared by the protected `defineValueType()` hook. Formie asserts this type when normalising submission content and publishes its schema in client metadata. It does not choose storage or public projections.
 :::
 
 
@@ -272,16 +272,16 @@ Refer to the [Field](/reference/field) object documentation for more.
 
 ## Normalised Values and Projections
 
-Choose a runtime value that is useful to a template author. Text, Email and Phone return strings; Agree returns a boolean; Number retains a decimal string so PHP floats cannot round large values. Null is accepted as input, but each field defines its own empty result. Name always returns `NameFieldValue`, while Date and option fields preserve their domain objects. Group and Repeater compose their actual child fields, and relation fields return Craft queries.
+Choose a runtime value that is useful to a template author. Text and Email return strings; Agree returns a boolean; Number retains a decimal string so PHP floats cannot round large values. Null is accepted as input, but each field defines its own empty result. Name always returns `NameFieldValue`. Phone returns `PhoneFieldValue` with the entered number, country, canonical E.164 number when valid, and dialling code. Date and option fields preserve their domain objects. Group and Repeater compose their actual child fields, and relation fields return Craft queries.
 
-Declare the runtime contract with `FieldValueType::string()`, `boolean()`, `number()`, `object(MyValue::class)`, `array()` or `relationQuery(MyElement::class)`. Use `none()` for cosmetic fields. Every declaration accepts `null` as the universal absent value; the type describes the non-null result of normalization, while requiredness remains a validation concern. Number describes a numeric domain represented by a string; invalid text remains available to the validator. A type mismatch names the field, actual type and expected declaration.
+Declare the runtime contract with `FieldValueType::string()`, `boolean()`, `object(MyValue::class)`, `array()` or `relationQuery(MyElement::class)`. Use `none()` for cosmetic fields. Every declaration accepts `null` as the universal absent value; the type describes the non-null result of normalization, while requiredness remains a validation concern. Number and Calculations declare `string()` and expose `ReferenceType::Number` in their reference definitions. Their invalid text remains available to the validator. A type mismatch names the field, actual type and expected declaration.
 
 Numeric GraphQL fields use `verbb\formie\gql\types\Decimal::getType()` to preserve the decimal-string runtime contract. Craft's `Number` scalar converts through PHP floats; use `FormieDecimal` for exact literals and string variables.
 
 For a string field, the following methods belong inside your Field subclass:
 
 ```php
-public function valueType(): \verbb\formie\fields\definitions\FieldValueType
+protected function defineValueType(): \verbb\formie\fields\definitions\FieldValueType
 {
     return \verbb\formie\fields\definitions\FieldValueType::string();
 }

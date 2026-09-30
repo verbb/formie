@@ -290,6 +290,8 @@ Moneris, Eway, BPOINT, Opayo, Mollie and Paddle use this recovery flow. To list 
 
 Replace `123` with the local payment ID. The output includes the submission and integration IDs, amount, currency, gateway reference and merchant reference. For another page of results, pass the last payment ID and a limit: `./craft formie/payments/index 123 100`.
 
+An upgraded historical payment or subscription may have no verifiable account fingerprint. Do not assume it belongs to the currently configured merchant account. After independently finding the original provider resource and checking that the integration connects to that same account, use `./craft formie/payments/verify-account payment 123 "How the original account was verified" --confirmed`, or substitute `subscription`. This records the account binding and an audit note only; it cannot replace an existing binding, change the amount, settle the payment or send a provider request. Ordinary status lookups and cancellation remain blocked until historical ownership is verified.
+
 ### Check the Gateway
 
 Try a status lookup before making a manual decision:

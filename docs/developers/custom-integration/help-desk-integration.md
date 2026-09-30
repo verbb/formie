@@ -1,7 +1,7 @@
 # Help Desk Integration
 Help desk integrations extend `HelpDesk`. They usually create tickets, conversations or contacts from submission data.
 
-Help desk providers vary a lot in their object model, so these integrations tend to look closer to CRM integrations than email marketing integrations: fetch the destination fields, define mapping schema for the form builder, then send mapped values in `sendPayload()`.
+Help desk providers vary a lot in their object model, so these integrations tend to look closer to CRM integrations than email marketing integrations: fetch the destination fields, define mapping schema for the form builder, then send mapped values in `executePayload()`.
 
 ## Form Settings
 The `HelpDesk` base class includes the common integration form settings and opt-in handling. Add provider-specific fields with `defineFormSettingsSchema()`.
@@ -40,7 +40,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use Throwable;
 
-public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
+protected function executePayload(Submission $submission): \verbb\formie\models\IntegrationResult
 {
     $this->beginPayloadDelivery($submission);
     try {

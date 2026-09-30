@@ -27,7 +27,7 @@ sequenceDiagram
     alt Payment complete
         GQL-->>App: success + submissionUid
     else Action required (3DS, redirect)
-        GQL-->>App: paymentStatus + paymentAction
+        GQL-->>App: payment.status + payment.action
         App->>Provider: Complete follow-up (BYO)
         App->>GQL: submitFormieClientForm (same session + references)
         GQL-->>App: success
@@ -71,12 +71,7 @@ mutation SubmitFormieClientForm($input: FormieClientSubmitInput!) {
             continuation
             tokens
         }
-        paymentStatus
-        paymentMessage
-        paymentRedirectUrl
-        paymentAction
-        paymentDecision
-        keepSubmitLoading
+        payment
         errors
         messages
     }
@@ -101,7 +96,7 @@ Pass payment values in `input.values` using the Payment field’s builder ID as 
 }
 ```
 
-Form-specific submission mutations (`save_<handle>_Submission`) also accept structured payment input when the Payment field has provider-specific keys configured. Prefer `submitFormieClientForm` for headless apps.
+Form-specific administrative submission mutations (`save_<handle>_Submission`) persist content only; they do not execute payments. Use `submitFormieClientForm` for the headless payment workflow.
 
 ### 3. Handle Payment Follow-Up
 
@@ -109,16 +104,15 @@ When Formie needs more work from the provider, the submit result includes:
 
 Field | Description
 --- | ---
-`paymentStatus` | `actionRequired`, `pending`, `failed`, `succeeded`, or `notRequired`
-`paymentMessage` | User-facing message (show as a notice, not a validation error)
-`paymentAction` | Structured action for your app (`type`, `payload`, `resume`, etc.)
-`paymentDecision` | Full decision object from the submission workflow
-`paymentRedirectUrl` | Off-site redirect URL when applicable
-`keepSubmitLoading` | `true` when your UI should stay in a submitting state
+`payment.status` | `requiresAction`, `pending`, `failed`, `succeeded`, or `notRequired`
+`payment.message` | User-facing message (show as a notice, not a validation error)
+`payment.action` | Structured action for your app (`type`, `payload`, `resume`, etc.)
+`payment.action.url` | Off-site redirect URL when applicable
+`payment.provider`, `payment.reference` | Provider and saved resource reference; never authority for another operation
 
 **Important:** Resubmit with the **same `session` payload** (and the same provider references where needed). Formie resumes the existing submission instead of creating a duplicate.
 
-`success` may be `false` when `paymentStatus` is `actionRequired` or `pending`. That is expected — check `paymentStatus`, not only `success`.
+`success` may be `false` when `payment.status` is `requiresAction` or `pending`. That is expected — check `payment.status`, not only `success`.
 
 ## Payment Input Types
 
@@ -161,7 +155,7 @@ Key | Required | Description
 
 **Config from `formieClientForm`:** `publishableKey`, `paymentType`, `amountType`, `currencyType`, `initialPaymentInformation`, `billingDetails`.
 
-**Follow-up:** When 3DS is required, Formie returns `paymentStatus: actionRequired` with `paymentAction.type: confirm` and a `payload.clientSecret`. Call `stripe.confirmPayment()` in your app, then resubmit the form with the same session and `stripePaymentIntentId`.
+**Follow-up:** When 3DS is required, Formie returns `payment.status: requiresAction` with `payment.action.type: confirm` and a `payload.clientSecret`. Call `stripe.confirmPayment()` in your app, then resubmit the form with the same session and `stripePaymentIntentId`.
 
 See [Stripe (headless)](/graphql/payments/stripe-headless) for a full walkthrough.
 
@@ -222,7 +216,7 @@ Key | Description
 
 **BYO:** Redirect users to Mollie checkout (no upfront field values).
 
-Formie returns `paymentRedirectUrl` or `paymentAction.type: redirect`. Send the user to the URL, then rely on verified webhook completion or the scoped status/reconciliation URL. Browser return parameters cannot confirm success.
+Formie returns `payment.action.url` or `payment.action.type: redirect`. Send the user to the URL, then rely on verified webhook completion or the scoped status/reconciliation URL. Browser return parameters cannot confirm success.
 
 ### GoCardless
 
@@ -244,4 +238,4 @@ Collect payment field values on the final page only. Use `setFormieClientPage` t
 
 ## Unknown And Cancelled Outcomes
 
-Inspect `paymentStatus` alongside the submission outcome. `unknown` means the provider may have accepted the request; keep the submission incomplete and use its reconciliation continuation. Do not create another charge or invent a new operation identity to escape uncertainty. `pending` is a known asynchronous provider state. `cancelled` is explicit cancellation and retains its payment-specific status even though the enclosing submission outcome is payment-failed. Redirects remain action-required outcomes with a redirect action.
+Inspect `payment.status` alongside the submission outcome. `unknown` means the provider may have accepted the request; keep the submission incomplete and use its reconciliation continuation. Do not create another charge or invent a new operation identity to escape uncertainty. `pending` is a known asynchronous provider state. `cancelled` is explicit cancellation and retains its payment-specific status even though the enclosing submission outcome is payment-failed. Redirects remain action-required outcomes with a redirect action.

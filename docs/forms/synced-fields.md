@@ -20,7 +20,7 @@ They are a poor fit when a field only looks similar but needs to drift over time
 
 In the form builder, add a field from the existing fields picker instead of creating a new one. When you choose an existing field, you can add it as a synced field so it stays linked to the original.
 
-![Synced field badge in the builder](../_screenshots/forms/synced-field.png)
+![Synced field badge in the builder](../../screenshots/forms/synced-field.png)
 
 That same picker can also add a normal copied field instead. The difference is important:
 

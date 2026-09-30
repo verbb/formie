@@ -142,7 +142,7 @@ class ExampleAutomation extends Automation
         return new IntegrationConfig(['payload' => $payload]);
     }
 
-    public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
+    protected function executePayload(Submission $submission): \verbb\formie\models\IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {
@@ -257,7 +257,7 @@ Return `IntegrationConfig` with the payload so the control panel can display wha
 
 ### Sending the Payload on Submit
 
-`sendPayload()` runs when a real submission completes and this integration is dispatched.
+`executePayload()` runs when a real submission completes and this integration is dispatched.
 
 1. Build the payload with `generatePayloadValues($submission)` — Formie's standard shape with field handles, labels, and values — or override that method for a custom structure.
 2. Call `deliverPayload()` with the form's URL, method, and request type.

@@ -177,7 +177,7 @@ class ExampleCrm extends Crm
         }
     }
 
-    public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
+    protected function executePayload(Submission $submission): \verbb\formie\models\IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {
@@ -403,7 +403,7 @@ Use Craft's `autosuggestField` so editors can pick `$ENV_VAR` names for secrets.
 
 ### Sending the Payload
 
-`sendPayload()` runs when a submission completes and this integration is dispatched for the form. That is the last step in the lifecycle.
+`executePayload()` runs when a submission completes and this integration is dispatched for the form. That is the last step in the lifecycle.
 
 For each enabled object:
 
@@ -472,11 +472,11 @@ class SalesforceCustom extends Salesforce
         ]));
     }
 
-    public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
+    protected function executePayload(Submission $submission): \verbb\formie\models\IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {
-            parent::sendPayload($submission);
+            parent::executePayload($submission);
 
             if ($this->mapToPipeline) {
                 // Custom pipeline handling…

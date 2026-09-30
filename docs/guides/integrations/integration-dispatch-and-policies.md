@@ -45,6 +45,8 @@ Open **Submission Delivery History** on the submission to see what ran and wheth
 
 Formie remembers completed steps so a retry does not repeat them. For example, if a CRM contact was created but adding it to a list failed, a safe retry can continue with the list step.
 
+Queued work is bound to the accepted submission content, field configuration and applicable notification or integration settings. If these change before delivery or a retry, Formie reports `operation_stale` instead of sending changed work under the original identity. Review the change and start a deliberate new run; do not retry the stale attempt. Completed attempts still return their original result. Imported Formie 3 jobs capture this fingerprint when first imported because those jobs did not retain one at enqueue time.
+
 Integration results belong to the run that produced them. A queued notification reads results from its own run, even if a later edit has already run the same integration again. Results from another run are not used as a fallback.
 
 For an unknown result, first check the remote account. A user with reconciliation permission can then select **Confirm delivered** or **Confirm not delivered** and enter a reason. Resolve any unknown individual operations before the overall attempt. Confirming non-delivery allows the original attempt to be retried safely.
@@ -61,9 +63,11 @@ A force run can override conditions and opt-in. It requires additional permissio
 
 Craft's queue detail screen includes **Formie delivery diagnostics** for supported Formie jobs. It shows an overview, delivery timeline, grouped mapped values, provider requests and responses, errors, and child operations. If the link is unavailable, open **Submission Delivery History** instead.
 
-Copy the value-free diagnostic summary for an initial support request. Download the full redacted bundle when support needs mapped values or provider evidence; credentials are removed, but the bundle can still contain personal submission data. Viewing diagnostics requires access to both diagnostics and the form's submissions. Exporting sensitive evidence requires a separate permission and confirmation; treat those downloads as private customer data.
+Copy the value-free diagnostic summary for an initial support request. Download the full redacted bundle when support needs mapped values or provider evidence; credentials are removed, but the bundle can still contain personal submission data. Viewing diagnostics requires access to both diagnostics and the form's submissions. Both downloads require acknowledgement of that personal data. Exporting sensitive evidence additionally requires a separate permission; treat those downloads as private customer data.
 
-Detailed evidence for completed attempts is removed after 30 days. Unresolved attempts keep the data needed for investigation, and delivery history remains after detailed evidence expires. Expired responses cannot be used to resume steps that depend on their contents. Keep the Formie security key with database backups so encrypted records can be restored.
+Evidence records the stored and normalized submission values used at delivery time. Notification evidence includes the rendered subject, HTML and text, addressing, headers and attachment names before the mail transport runs. Error evidence includes the exception chain and stack locations without function arguments. Support does not need to reconstruct these details from a submission or notification that may have changed since delivery. Large checkpoints and export limits are marked explicitly when truncated; attachment binaries are not included.
+
+Detailed evidence for completed attempts is removed after 30 days by default. Change `deliveryEvidenceRetentionDays` in `config/formie.php` to choose another retention period. Unresolved attempts keep the data needed for investigation, and delivery history remains after detailed evidence expires. Expired responses cannot be used to resume steps that depend on their contents. Keep the Formie security key with database backups so encrypted records can be restored.
 
 ## Network and Credential Settings
 

@@ -282,6 +282,8 @@ The Variable Picker's field mode stores an exact reference. Its custom value edi
 
 ## Grammar and Diagnostics
 
+Inline field interpolation uses `getValueForReference()` and its `EVENT_MODIFY_VALUE_FOR_REFERENCE` event before context-specific encoding. It does not fire `EVENT_MODIFY_VALUE_AS_STRING`. Text transforms operate on that reference projection without projecting a second time. Exact untransformed value resolution retains the native field value; structured-data interpolation uses the field's data projection.
+
 The grammar uses `{source:identifier:selector;key=value|default}`. The selector applies to fields. `transform` names a registered transform; `scope`, `index` and `rows` select collection values. Metadata values and defaults are percent-encoded by the serializer, so `;`, `|`, braces, plus signs and percent signs round-trip. Version 1 is implicit; `;v=1` is accepted and unsupported versions produce an invalid-expression diagnostic. Use `References::token()` or `ReferenceParser::serialize()` instead of concatenating untrusted strings.
 
 Exact field references identify one persisted form-field instance. Handles are secondary, form-local identifiers; ambiguous handles fail instead of choosing the first match. Fixed and nested child fields have their own references. A repeater-child reference must either declare an explicit collection scope in its token (`first`, `last`, `index`, `all`, `count` or `rows`) or receive the current row through `ReferenceContext::forSubmission($submission, rows: [$parentReference => 0])`. Row indices are zero-based; the picker displays one-based row numbers. Table columns remain selectors on their persisted Table field and never become synthetic fields.

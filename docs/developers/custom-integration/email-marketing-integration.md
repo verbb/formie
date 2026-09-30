@@ -71,7 +71,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use Throwable;
 
-public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
+protected function executePayload(Submission $submission): \verbb\formie\models\IntegrationResult
 {
     $this->beginPayloadDelivery($submission);
     try {
@@ -92,7 +92,7 @@ public function sendPayload(Submission $submission): \verbb\formie\models\Integr
 }
 ```
 
-Email marketing providers differ in how they represent custom fields, groups and resubscribe behaviour. Keep provider-specific API decisions in `fetchConfig()` and `sendPayload()`, and let the base class handle the common Formie mapping flow.
+Email marketing providers differ in how they represent custom fields, groups and resubscribe behaviour. Keep provider-specific API decisions in `fetchConfig()` and `executePayload()`, and let the base class handle the common Formie mapping flow.
 
 ## Option Sources
 

@@ -156,7 +156,7 @@ class GoToWebinar extends Miscellaneous implements OAuthProviderInterface
         return new IntegrationConfig();
     }
 
-    public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
+    protected function executePayload(Submission $submission): \verbb\formie\models\IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         return $this->resultForPayload(true);
@@ -164,7 +164,7 @@ class GoToWebinar extends Miscellaneous implements OAuthProviderInterface
 }
 ```
 
-If your integration also maps submission data to the provider, implement `fetchConfig()` and `sendPayload()` the same way you would for a non-OAuth integration — see [Building a CRM integration from scratch](/guides/integrations/building-a-crm-integration-from-scratch).
+If your integration also maps submission data to the provider, implement `fetchConfig()` and `executePayload()` the same way you would for a non-OAuth integration — see [Building a CRM integration from scratch](/guides/integrations/building-a-crm-integration-from-scratch).
 
 ### OAuth Hooks
 
@@ -285,4 +285,4 @@ Every provider differs in scopes, token shape, and API base URLs. A practical pa
 1. Find the closest built-in Formie integration and read its OAuth hooks.
 2. Implement `OAuthProviderInterface` with your provider's URLs and scopes.
 3. Connect in the control panel and verify `$this->request()` works.
-4. Add `fetchConfig()` and `sendPayload()` if the integration should run on form submit.
+4. Add `fetchConfig()` and `executePayload()` if the integration should run on form submit.

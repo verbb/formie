@@ -1,6 +1,8 @@
 # Submission Workflow
 
-Formie executes a resolved, authorised `SubmissionCommand` through six fixed stages. The command identifies the form, submission, operation, navigation intent and authority. Request parsing, ownership checks, request-token integrity and rate limits run in the processor before the workflow begins. Input is applied only after the operation and submission resource are locked and the expected version is checked.
+Formie executes a resolved, authorised `SubmissionCommand` through six fixed stages. The command identifies the form, submission, operation, navigation intent and authority. `SubmissionRequests` adapts native, client-rendered, administrative GraphQL and verified payment inputs, enforces transport authority and request safeguards, and projects responses. `SubmissionProcessor::executeCommand()` accepts the resolved command and returns a domain outcome without reading request flags or building transport responses. Input is applied only after the operation and submission resource are locked and the expected version is checked.
+
+Administrative GraphQL `saveSubmission` mutations are persistence-only: schema permissions, content validation, expected-version checks and upload ownership still apply, but visitor progression, screening, payment processing, redirects and delivery dispatch do not run. Administrative and workflow saves share `SubmissionPersistence`, including upload promotion and atomic completion. Public GraphQL visitor submission uses the visitor command path instead.
 
 Use a [custom task](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch) for ordered work that can affect execution. Use [submission events](/developers/events/submission-events) to observe a stage, task, accepted page or completed submission.
 
@@ -80,6 +82,8 @@ return TaskResult::stop($context->result(SubmissionOutcomeType::REJECTED));
 Outcomes distinguish page changes, saved drafts, completed submissions, revisions, payment action required, payment pending, validation failure, payment failure, rejection and state conflict. Unexpected system failures remain exceptions. A stop does not roll back work already performed; put rejection checks before persistence.
 
 Stage and task observation events carry `command`, `context`, `stage`, and, after execution, `result`. Task events also carry `task`. They are not cancellable. Use a registered task and a typed result to control execution. An after-integration task event means the dispatch intent ran; queued remote delivery may still be pending.
+
+Notification and integration queue jobs implement `verbb\formie\jobs\DeliveryJobInterface`. Queue observers can test this interface and call `getDeliveryAttemptUid()` to associate the job with durable delivery evidence. The getter does not mutate the serialized job. Keep diagnostic evidence in the delivery store, not in replacement queue payloads.
 
 `EVENT_AFTER_PAGE_ADVANCE` fires after a successfully persisted forward page. `Submission::EVENT_AFTER_COMPLETE` fires when completion becomes durable, before completion dispatch. Direct Craft element saves persist the record and raise element events, but do not run the workflow or automatically dispatch notifications and integrations.
 

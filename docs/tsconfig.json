@@ -10,9 +10,5 @@
     "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": [
-    "./scripts/**/*.ts",
-    "./.screenshots/**/*.ts",
-    "./**/*.screenshot.ts"
-  ]
+  "include": ["./scripts/**/*.ts"]
 }

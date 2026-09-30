@@ -84,7 +84,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use Throwable;
 
-public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
+protected function executePayload(Submission $submission): \verbb\formie\models\IntegrationResult
 {
     $this->beginPayloadDelivery($submission);
     try {

@@ -409,6 +409,15 @@ Sets the Craft queue priority for notification and integration jobs.
 
 
 ::: reference
+#### `deliveryEvidenceRetentionDays`
+
+**Type:** `int` · **Default:** `30`
+
+Retains encrypted diagnostic evidence for completed notification and integration deliveries for this many days. Must be at least `1`. Cleanup keeps operation identities and audit decisions to prevent accidental replay. Pending, running, uncertain and retryable failed deliveries retain their evidence for reconciliation. Diagnostic views report omitted evidence explicitly when a size or checkpoint limit is reached. Downloading a support bundle requires acknowledgement that it can contain personal submission data.
+:::
+
+
+::: reference
 #### `redirectUri`
 
 **Type:** `string|null` · **Default:** `null`

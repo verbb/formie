@@ -57,7 +57,7 @@ OAuth can apply to several integration types. See [OAuth Integration](/developer
 
 ## Common Methods
 
-Integration results are stored in an `IntegrationRunContext`, not on the Submission element. During integration and notification execution, Formie scopes reference resolution to the active run. To inspect a particular run explicitly, use `Formie::$plugin->getIntegrationDispatcher()->loadContext($submission, $executionUid)`. Omitting the identity outside an active run returns an empty context; it does not select the latest result. Use the `executionUid` from the delivery event or attempt you are inspecting.
+Integration results are stored in an `IntegrationRunResults`, not on the Submission element. During integration and notification execution, Formie scopes reference resolution to the active run. To inspect a particular run explicitly, use `Formie::$plugin->getIntegrationDispatcher()->loadContext($submission, $executionUid)`. Omitting the identity outside an active run returns an empty context; it does not select the latest result. Use the `executionUid` from the delivery event or attempt you are inspecting.
 
 Most integration classes define a few common methods.
 
@@ -71,7 +71,7 @@ Method | Use
 `fetchConfig()` | Fetches provider data used by the form builder, such as lists, fields, channels or element layouts.
 `defineFormSettingsSchema()` | Defines the integration settings shown inside a form’s Integrations tab.
 `#[FormIntegrationSetting]` | Annotates existing properties that Formie may hydrate for each form.
-`sendPayload()` | Sends or saves data after a submission has completed.
+`execute(IntegrationRunContext $context)` | Sends or saves data through the explicit dispatch capability and returns an `IntegrationResult`.
 
 `getSettingsHtml()` renders plugin-level integration settings in Formie’s settings area. Use `defineFormSettingsSchema()` for the settings shown on each form.
 
@@ -214,15 +214,17 @@ Attribute | Use
 If `type` is omitted, Formie treats the field as `TYPE_STRING`. Available types are `TYPE_STRING`, `TYPE_NUMBER`, `TYPE_FLOAT`, `TYPE_BOOLEAN`, `TYPE_DATE`, `TYPE_DATETIME`, `TYPE_DATECLASS`, `TYPE_ARRAY` and `TYPE_PHONE`.
 
 ## Sending Payloads
-Use `sendPayload()` to send data after a submission has completed. Use `getFieldMappingValues()` to resolve the configured form mapping, and `deliverPayload()` when sending to a remote endpoint so Formie can run the before/after payload events.
+Dispatchable integrations implement `DispatchableIntegrationInterface`; the CRM, Email Marketing, Automation, Element, Help Desk, Messaging and Miscellaneous bases already implement it. Use `execute(IntegrationRunContext $context)` for a custom implementation. The context supplies the submission, immutable execution identity, attempt UID, prior results from the same run, and execution-local delivery state. Use `getFieldMappingValues()` to resolve the configured form mapping, and `deliverPayload()` when sending to a remote endpoint so Formie can run the before/after payload events. Invoke integrations through `IntegrationRunner` so authority, policy and retry checks apply. The inherited `sendPayload()` facade and overridden Formie 3 methods are adapted in compatibility traits.
 
 ```php
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use Throwable;
 
-public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
+public function execute(\verbb\formie\models\IntegrationRunContext $context): \verbb\formie\models\IntegrationResult
 {
+    $this->beginRun($context);
+    $submission = $context->submission;
     $this->beginPayloadDelivery($submission);
     try {
         $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
@@ -304,15 +306,19 @@ The integration type pages cover the details that differ between base classes:
 
 ## Configuration and Delivery Ownership
 
-`Integration` owns the global connection and provider behavior. `FormIntegration` is Formie's immutable binding of enabled state, execution lane and annotated settings; extensions do not create a binding subclass. Formie clones the connection for each binding and attempt. Avoid static mutable provider state and clear additional client caches in `__clone()` after calling the parent implementation.
+`Integration` owns the global connection and provider behavior. `FormIntegration` is Formie's immutable binding of enabled state, conditions, opt-in, trigger policy, execution lane and annotated provider-specific settings; extensions do not create a binding subclass. Common policy does not require property annotations. Triggers are stored under `settings.integrations.<handle>.trigger`; the beta `integrationPolicies` tree is migrated and removed. The dispatch plan supplies ordered lanes, projected onto each runtime binding. Formie clones the connection for each binding and attempt. Avoid static mutable provider state and clear additional client caches in `__clone()` after calling the parent implementation. Formie 3 opt-in/condition property access delegates through a compatibility trait; assign an updated conditions array rather than mutating a nested value in place.
 
 `IntegrationConfig` stores versioned non-secret builder metadata, its fetch time and invalidation key. Metadata is stale after 24 hours but remains available for display until an explicit refresh. Editing a connection invalidates its metadata. Only inert field and collection metadata is hydrated; arbitrary class names are rejected. `IntegrationField` remains the mapping-field model. Environment references are preferred for credentials. Literal global settings and permitted per-form secrets are encrypted at rest using Formie's Craft-compatible security key; retain that key when restoring data.
+
+Annotate sensitive properties with `#[\verbb\formie\attributes\Sensitive]`, including credentials whose names do not contain “secret” or “token”. Inherited annotations are recognized. This metadata supplies known values for log, delivery-result, support-bundle and configuration-cache redaction, and for encryption of permitted per-form settings. It does not grant form-builder assignment: that still requires `#[FormIntegrationSetting]`. Native credentials are annotated explicitly; conservative name-based recognition remains for older third-party integrations. Prefer environment references for project-managed credentials and never deliberately return credentials as integration metadata.
 
 `Integrations` registers and persists connections. `IntegrationDispatcher` plans lanes and notification timing. `IntegrationRunner` executes bindings using an immutable `IntegrationExecutionContext`. Run through these services rather than calling a cached provider directly.
 
 ## Results and Safe Retries
 
 Return `IntegrationResult` from providers. `succeeded()` confirms completion; `skipped()` records ineligibility or cancellation; `rejected()` means validation or the provider refused the operation; `failed($code, true)` permits retry only when the operation is known not to have occurred; `unknown()` requires reconciliation. An `IntegrationBatchResult` retains every step result. Returning an arbitrary array or truthy object does not establish success.
+
+The inherited `execute(IntegrationRunContext $context)` boundary initializes execution-local state and calls the protected `executePayload(Submission $submission)` hook used by native category integrations. Override that hook for ordinary provider implementations, or implement the explicit capability directly when the context is needed. Public downstream data belongs in `IntegrationResult::withOutputs()`; do not write output into a provider's mutable `context` array. Prior results are available as `IntegrationRunResults` on the run context. Provider responses remain internal evidence rather than the execution result.
 
 Formie records a durable root attempt before executing a provider and a child attempt before each write made through `request()`, `requestPublicEndpoint()` or `requestWithProviderClient()`. Confirmed child responses are encrypted and replayed to dependent steps; their payload hashes must match. Succeeded writes are never repeated, and unknown writes block further runs until an authorized operator confirms the outcome. HTTP errors retain their response contract so providers can handle documented duplicate-record responses. Additional HTTP clients must use `requestWithProviderClient()` with their fixed configured origin. For an API that writes using GET, explicitly wrap the call with `executeDeliveryWrite($method, $url, $options, $send, true)`.
 

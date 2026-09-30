@@ -9,7 +9,7 @@ Method | Use
 `getElementAttributes()` | Returns destination element attributes that can be mapped.
 `getFieldLayoutFields()` | Builds `IntegrationField` objects from a Craft field layout.
 `getElementForPayload()` | Gets or creates the destination element for the payload.
-`sendPayload()` | Creates or updates the destination element.
+`executePayload()` | Creates or updates the destination element.
 
 ## Form Settings
 Use schema to expose the destination element choices and field mapping. For example, an Entry integration might expose an entry type, default author, attribute mapping and field mapping.
@@ -45,12 +45,12 @@ protected function defineFormSettingsSchema(FormInterface $form): array
 ```
 
 ## Sending Payloads
-In `sendPayload()`, resolve the attribute mapping, resolve the field mapping, set those values on the element, then save it.
+In `executePayload()`, resolve the attribute mapping, resolve the field mapping, set those values on the element, then save it.
 
 ```php
 use verbb\formie\elements\Submission;
 
-public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
+protected function executePayload(Submission $submission): \verbb\formie\models\IntegrationResult
 {
     $this->beginPayloadDelivery($submission);
     $element = new YourElement();

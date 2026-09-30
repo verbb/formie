@@ -150,7 +150,7 @@ class ExampleEmailMarketing extends EmailMarketing
         return new IntegrationConfig($config);
     }
 
-    public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
+    protected function executePayload(Submission $submission): \verbb\formie\models\IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {
@@ -252,7 +252,7 @@ $lists[] = new IntegrationCollection([
 return new IntegrationConfig(['lists' => $lists]);
 ```
 
-The `EmailMarketing` base class renders the list selector and field-mapping UI from this data. When you call `getFieldMappingValues($submission, $this->fieldMapping)` in `sendPayload()`, Formie resolves values for the list the editor selected on this form.
+The `EmailMarketing` base class renders the list selector and field-mapping UI from this data. When you call `getFieldMappingValues($submission, $this->fieldMapping)` in `executePayload()`, Formie resolves values for the list the editor selected on this form.
 
 Many providers expose custom merge fields or attributes through their API. Fetch them and merge with your static fields:
 
@@ -331,7 +331,7 @@ Step-by-step instructions in the template reduce support burden — tell editors
 
 ### Sending the Payload
 
-`sendPayload()` runs when a submission completes and this integration is dispatched for the form.
+`executePayload()` runs when a submission completes and this integration is dispatched for the form.
 
 1. Call `getFieldMappingValues($submission, $this->fieldMapping)` to read mapped submission values for the selected list.
 2. Build the array shape your provider's subscribe or upsert endpoint expects.
@@ -352,11 +352,11 @@ use verbb\formie\integrations\emailmarketing\Mailchimp;
 
 class MailchimpCustom extends Mailchimp
 {
-    public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult
+    protected function executePayload(Submission $submission): \verbb\formie\models\IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         // Custom payload handling, then optionally call parent.
-        return $this->resultForPayload(parent::sendPayload($submission));
+        return $this->resultForPayload(parent::executePayload($submission));
     }
 }
 ```

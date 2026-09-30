@@ -12,6 +12,8 @@ save_<formHandle>_Submission
 
 For a form with the handle `contactForm`, the mutation is `save_contactForm_Submission`.
 
+These are administrative content mutations, authorized by the GraphQL schema. They validate and save the submission, including upload ownership, but do not run visitor CAPTCHA/spam screening, charge payments, send notifications, trigger integrations or resolve completion redirects. Use the [visitor submission flow](/guides/frontend-headless/graphql-submission-flow-end-to-end) when you need that lifecycle. Updating existing submissions requires the current `expectedVersion`; a stale or missing version cannot overwrite another save. Existing CAPTCHA arguments remain accepted for Formie 3 clients but are not used by administrative saves.
+
 You can also use the generic `saveSubmission` mutation when you want one stable mutation for every form. See [Generic `saveSubmission`](#generic-savesubmission).
 
 ## Basic Submission

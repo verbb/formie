@@ -10,7 +10,7 @@ For the request sequence shared by payment providers, follow [Headless Payments]
 2. Initialise Stripe.js with the `publishableKey` from the payment field module config.
 3. Create or confirm a PaymentIntent (or SetupIntent for subscriptions) using Stripe’s APIs.
 4. Submit to Formie via `submitFormieClientForm` with `stripePaymentIntentId`.
-5. If Formie returns `paymentStatus: actionRequired`, run Stripe’s confirm step and **resubmit with the same session**.
+5. If Formie returns `payment.status: requiresAction`, run Stripe’s confirm step and **resubmit with the same session**.
 
 Formie never replaces Stripe.js — it orchestrates server-side charging, stores the submission, and tells your app when follow-up is required.
 
@@ -73,11 +73,7 @@ mutation SubmitFormieClientForm($input: FormieClientSubmitInput!) {
     submitFormieClientForm(input: $input) {
         success
         submissionUid
-        paymentStatus
-        paymentMessage
-        paymentAction
-        paymentDecision
-        keepSubmitLoading
+        payment
         session {
             id
             continuation
@@ -118,14 +114,15 @@ When additional authentication is needed, Formie responds with:
 ```json
 {
     "success": false,
-    "paymentStatus": "actionRequired",
-    "keepSubmitLoading": true,
-    "paymentMessage": "Additional payment confirmation is required to continue.",
-    "paymentAction": {
-        "type": "confirm",
-        "provider": "stripe",
-        "payload": {
-            "clientSecret": "pi_3Example_secret_..."
+    "payment": {
+        "status": "requiresAction",
+        "message": "Additional payment confirmation is required to continue.",
+        "action": {
+            "type": "confirm",
+            "provider": "stripe",
+            "payload": {
+                "clientSecret": "pi_3Example_secret_..."
+            }
         }
     }
 }
@@ -133,8 +130,8 @@ When additional authentication is needed, Formie responds with:
 
 In your app:
 
-1. Show `paymentMessage` as a neutral notice (not a form validation error).
-2. Call `stripe.confirmPayment()` with the `clientSecret` from `paymentAction.payload`.
+1. Show `payment.message` as a neutral notice (not a form validation error).
+2. Call `stripe.confirmPayment()` with the `clientSecret` from `payment.action.payload`.
 3. Resubmit **the same form session** with the same (or updated) `stripePaymentIntentId`.
 
 Formie uses `paymentReplay` internally so the second submit continues the original submission instead of creating a duplicate.
@@ -163,6 +160,6 @@ Prefer `submitFormieClientForm` for headless apps so session and payment follow-
 
 **Duplicate submissions after 3DS** — Always pass the `session` object from the previous `submitFormieClientForm` response. Do not start a fresh `formieClientForm` query between follow-up submits unless you intend to abandon the in-progress submission.
 
-**Generic form error on 3DS** — Check `paymentStatus` and `paymentMessage`. Action-required responses clear form-level validation errors by design.
+**Generic form error on 3DS** — Check `payment.status` and `payment.message`. Action-required responses clear form-level validation errors by design.
 
 **Amount mismatch** — Dynamic amounts must match what Stripe expects. Use field values Formie can read when creating the intent, or align your Stripe amount with the form’s configured amount/currency settings.

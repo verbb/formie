@@ -820,6 +820,8 @@ Subscribe to `IntegrationRunner::EVENT_EVALUATED`, `EVENT_SKIPPED`, `EVENT_RESUL
 
 These events receive `IntegrationDeliveryEvent`, with immutable `context`, optional normalized `result`, optional `batch` and the durable `attemptUid` where applicable. Read status, eligibility, execution identity, reason and explicit force overrides from these contracts. They do not require access to mutable provider internals or queue payloads. A batch preserves individual results; `EVENT_FINALIZED` is withheld for an unknown outcome and is checkpointed once per execution identity. Existing before/after payload hooks remain available for provider-specific payload modification.
 
+`IntegrationRunner::EVENT_RESULT` fires once for each normalized run result, including unmet conditions, invalid settings, missing or disabled integrations, steps stopped by policy, unresolved previous delivery and normalized provider exceptions. A skipped run also emits `EVENT_SKIPPED` before its result event. Denied force authority and invalid retry authority throw before a run is authorized; they are not reported as completed deliveries. A lock-contention result has no durable attempt UID.
+
 ```php
 use verbb\formie\events\IntegrationDeliveryEvent;
 use verbb\formie\services\DeliveryAttempts;
