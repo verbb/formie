@@ -40,8 +40,13 @@ use DateTimeZone;
 use CommerceGuys\Addressing\Country\CountryRepository;
 use CommerceGuys\Addressing\Subdivision\SubdivisionRepository;
 
-abstract class Element extends Integration
+abstract class Element extends Integration implements DispatchableIntegrationInterface
 {
+    // Traits
+    // =========================================================================
+
+    use DispatchableIntegrationTrait;
+
     // Constants
     // =========================================================================
 
@@ -403,13 +408,13 @@ abstract class Element extends Integration
             return;
         }
 
-        $this->context['dispatchElement'] = [
+        $this->_deliveryState->outputs = [
             'elementType' => get_class($element),
             'elementId' => (int)$element->id,
             'url' => method_exists($element, 'getUrl') ? (string)$element->getUrl() : null,
         ];
         if ($uid = $this->getDeliveryAttemptUid()) {
-            Formie::$plugin->getDeliveryAttempts()->recordResource($uid, $this->context['dispatchElement']);
+            Formie::$plugin->getDeliveryAttempts()->recordResource($uid, $this->_deliveryState->outputs);
         }
     }
 }

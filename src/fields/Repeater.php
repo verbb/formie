@@ -144,11 +144,6 @@ class Repeater extends RepeatableParentField
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::array();
-    }
-
     public function __construct(array $config = [])
     {
         // Setuo defaults for some values which can't in in the property definition
@@ -298,6 +293,11 @@ class Repeater extends RepeatableParentField
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::array();
+    }
 
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {

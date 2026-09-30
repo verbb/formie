@@ -182,7 +182,7 @@ it('rejects arbitrary final asset IDs through every submission adapter', functio
         $token = $form->getRequestToken();
         if (in_array($transport, ['html', 'ajax'], true)) {
             $request->setBodyParams(['formieHoneypot' => '', 'formStartedAt' => (string)((int)(microtime(true) * 1000) - 60000), 'handle' => $form->handle, 'requestToken' => $token, 'fields' => ['document' => [$asset->id]]]);
-            $result = Formie::$plugin->getSubmissionProcessor()->executeManaged(new \verbb\formie\models\ManagedSubmissionRequest([
+            $result = Formie::$plugin->getSubmissionRequests()->executeManaged(new \verbb\formie\models\ManagedSubmissionRequest([
                 'handle' => $form->handle, 'requestToken' => $token, 'expectedVersion' => 0,
             ]), \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
             expect($result->response->outcome->type->value)->toBe('validationFailed');
@@ -228,7 +228,7 @@ it('accepts the same structured staged-upload reference through every submission
                 'expectedVersion' => 0,
                 'fields' => ['document' => $reference],
             ]);
-            $execution = Formie::$plugin->getSubmissionProcessor()->executeManaged(new \verbb\formie\models\ManagedSubmissionRequest([
+            $execution = Formie::$plugin->getSubmissionRequests()->executeManaged(new \verbb\formie\models\ManagedSubmissionRequest([
                 'handle' => $form->handle,
                 'requestToken' => $session['tokens']['request'],
                 'expectedVersion' => 0,

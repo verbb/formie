@@ -63,6 +63,7 @@ export type {
     ClientFormState,
     ClientSubmitAction,
     ClientSubmitResult,
+    PaymentDecision,
     ClientTransport,
     ClientValidationRule,
 } from './types';

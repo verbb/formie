@@ -1,3 +1,5 @@
+const resultSummary = (result) => result ? { status: result.status, code: result.code, retryable: result.retryable } : null;
+
 export const diagnosticSummary = (bundle) => ({
     uid: bundle.uid,
     submissionId: bundle.submissionId,
@@ -5,7 +7,7 @@ export const diagnosticSummary = (bundle) => ({
     step: bundle.step,
     execution: bundle.execution,
     status: bundle.status,
-    result: bundle.result,
+    result: resultSummary(bundle.result),
     startedAt: bundle.startedAt,
     completedAt: bundle.completedAt,
     dateCreated: bundle.dateCreated,
@@ -16,7 +18,7 @@ export const diagnosticSummary = (bundle) => ({
         binding: operation.binding,
         step: operation.step,
         status: operation.status,
-        result: operation.result,
+        result: resultSummary(operation.result),
         dateUpdated: operation.dateUpdated,
         checkpoints: (operation.checkpoints ?? []).map(({ checkpoint, dateCreated }) => ({ checkpoint, dateCreated })),
     })),

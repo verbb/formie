@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\messaging;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
@@ -35,6 +36,7 @@ class Telegram extends Messaging
     // Properties
     // =========================================================================
 
+    #[Sensitive]
     public ?string $botToken = null;
     #[FormIntegrationSetting]
     public ?string $chatId = null;
@@ -55,7 +57,7 @@ class Telegram extends Messaging
         return new IntegrationConfig([]);
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {

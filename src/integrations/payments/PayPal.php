@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
@@ -55,6 +56,7 @@ class PayPal extends Payment
     // =========================================================================
 
     public ?string $clientId = null;
+    #[Sensitive]
     public ?string $clientSecret = null;
     public bool|string $useSandbox = false;
 
@@ -122,7 +124,7 @@ class PayPal extends Payment
 
     public function getTransaction(PaymentModel $payment): void
     {
-        if (!$payment->reference || in_array($payment->status, [PaymentModel::STATUS_SUCCESS, PaymentModel::STATUS_FAILED], true)) {
+        if (!$payment->reference || in_array($payment->status, [PaymentModel::STATUS_SUCCEEDED, PaymentModel::STATUS_FAILED], true)) {
             return;
         }
         $submission = $payment->getSubmission();
@@ -134,7 +136,7 @@ class PayPal extends Payment
         if (!Formie::$plugin->getPayments()->savePayment($payment)) {
             throw new DeliveryOutcomeUnknownException('Unable to save the PayPal payment status.');
         }
-        Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+        Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
     }
 
     public function getTransactionStatus(PaymentModel $payment): void
@@ -468,7 +470,7 @@ class PayPal extends Payment
         $payment->reference = $capture['id'];
         $payment->response = $capture;
         $payment->status = match ($capture['status'] ?? '') {
-            'COMPLETED' => PaymentModel::STATUS_SUCCESS,
+            'COMPLETED' => PaymentModel::STATUS_SUCCEEDED,
             'DECLINED', 'FAILED', 'DENIED', 'REFUNDED', 'PARTIALLY_REFUNDED' => PaymentModel::STATUS_FAILED,
             default => PaymentModel::STATUS_PROCESSING,
         };
@@ -571,7 +573,7 @@ class PayPal extends Payment
             if (!Formie::$plugin->getPayments()->savePayment($payment)) {
                 throw new DeliveryOutcomeUnknownException('Unable to save the accepted PayPal payment.');
             }
-            if ($payment->status === PaymentModel::STATUS_SUCCESS) {
+            if ($payment->status === PaymentModel::STATUS_SUCCEEDED) {
                 $this->afterProcessPayment($submission, true);
                 return PaymentDecision::succeeded($this->handle);
             }

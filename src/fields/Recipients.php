@@ -109,11 +109,6 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::object(RecipientsFieldValue::class);
-    }
-
     public function __construct(array $config = [])
     {
         // Setuo defaults for some values which can't in in the property definition
@@ -686,6 +681,11 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::object(RecipientsFieldValue::class);
+    }
 
     protected function defineValueForCondition(mixed $value, Submission $submission): mixed
     {

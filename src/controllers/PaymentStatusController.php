@@ -73,7 +73,7 @@ class PaymentStatusController extends Controller
             return $this->asJson(['status' => 'unknown', 'message' => Craft::t('formie', 'Payment verification is pending. Please check again shortly.')]);
         }
 
-        if ($payment->status === PaymentModel::STATUS_SUCCESS) {
+        if ($payment->status === PaymentModel::STATUS_SUCCEEDED) {
             $submission = $payment->getSubmission();
 
             if (!$submission) {

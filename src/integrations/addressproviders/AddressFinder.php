@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\addressproviders;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\AddressProvider;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
@@ -30,6 +31,7 @@ class AddressFinder extends AddressProvider
     // Properties
     // =========================================================================
 
+    #[Sensitive]
     public ?string $apiKey = null;
     public ?string $countryCode = null;
     public array $widgetOptions = [];

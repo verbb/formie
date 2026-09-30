@@ -15,8 +15,13 @@ use craft\helpers\UrlHelper;
 
 use yii\helpers\Markdown;
 
-abstract class Crm extends Integration
+abstract class Crm extends Integration implements DispatchableIntegrationInterface
 {
+    // Traits
+    // =========================================================================
+
+    use DispatchableIntegrationTrait;
+
     // Static Methods
     // =========================================================================
 

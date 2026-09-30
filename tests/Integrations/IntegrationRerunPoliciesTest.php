@@ -17,12 +17,8 @@ it('defaults integrations to submit-only re-run behaviour', function (): void {
 
 it('resolves on-edit policy to submit and edit events', function (): void {
     $form = new Form();
-    $form->settings->integrationPolicies = [
-        'rerun' => [
-            'entry' => [
-                'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
-            ],
-        ],
+$form->settings->integrations['entry']['trigger'] = [
+        'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
     ];
 
     $integration = new Entry(['handle' => 'entry']);
@@ -53,13 +49,9 @@ it('allows operator unmark actions to run submit-only integrations', function ()
 
 it('respects custom re-run event selections', function (): void {
     $form = new Form();
-    $form->settings->integrationPolicies = [
-        'rerun' => [
-            'hubspot' => [
-                'policy' => IntegrationRerunPolicies::POLICY_CUSTOM,
-                'events' => [IntegrationTriggerEvents::SUBMIT, IntegrationTriggerEvents::UNMARK_SPAM],
-            ],
-        ],
+$form->settings->integrations['hubspot']['trigger'] = [
+        'policy' => IntegrationRerunPolicies::POLICY_CUSTOM,
+        'events' => [IntegrationTriggerEvents::SUBMIT, IntegrationTriggerEvents::UNMARK_SPAM],
     ];
 
     $integration = new Entry(['handle' => 'hubspot']);
@@ -78,12 +70,8 @@ it('respects custom re-run event selections', function (): void {
 
 it('detects when any enabled integration allows a trigger event', function (): void {
     $form = new Form();
-    $form->settings->integrationPolicies = [
-        'rerun' => [
-            'entry' => [
-                'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
-            ],
-        ],
+$form->settings->integrations['entry']['trigger'] = [
+        'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
     ];
 
     $integration = new Entry(['handle' => 'entry']);

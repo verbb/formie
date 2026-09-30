@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
@@ -58,6 +59,7 @@ class Moneris extends Payment
     // =========================================================================
 
     public ?string $storeId = null;
+    #[Sensitive]
     public ?string $apiToken = null;
     public ?string $profileId = null;
     public bool|string $useSandbox = false;
@@ -116,6 +118,11 @@ class Moneris extends Payment
             'apiToken' => $this->apiToken,
             'useSandbox' => $this->useSandbox,
         ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
+    }
+
+    protected function getPaymentAccountIdentity(): ?string
+    {
+        return App::parseEnv($this->storeId) ?: null;
     }
 
     public function fetchConnection(): bool
@@ -326,7 +333,7 @@ class Moneris extends Payment
         }
 
         $payment->reference = $transactionId;
-        $payment->status = PaymentModel::STATUS_SUCCESS;
+        $payment->status = PaymentModel::STATUS_SUCCEEDED;
         $payment->response = $receipt;
 
         $attempt->save();

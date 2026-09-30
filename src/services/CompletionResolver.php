@@ -70,7 +70,7 @@ final class CompletionResolver extends Component
         }
         if ($raiseEvents) {
             foreach ($submission->getPayments() ?? [] as $payment) {
-                if ($payment->status !== \verbb\formie\models\Payment::STATUS_SUCCESS) {
+                if ($payment->status !== \verbb\formie\models\Payment::STATUS_SUCCEEDED) {
                     continue;
                 }
                 $candidate = $behavior === CompletionBehavior::Redirect ? $url : '';

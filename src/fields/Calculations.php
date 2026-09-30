@@ -60,11 +60,6 @@ class Calculations extends Field implements PreviewableFieldInterface
         return \verbb\formie\fields\coercion\DecimalValueCoercer::normalize($value);
     }
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::number();
-    }
-
     public function __construct(array $config = [])
     {
         $config['formula'] = RichText::from($config['formula'] ?? null);
@@ -351,6 +346,11 @@ class Calculations extends Field implements PreviewableFieldInterface
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
 
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {

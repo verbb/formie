@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
@@ -35,6 +36,7 @@ class Insightly extends Crm
     // Properties
     // =========================================================================
     
+    #[Sensitive]
     public ?string $apiKey = null;
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
@@ -226,7 +228,7 @@ class Insightly extends Crm
         return new IntegrationConfig($settings);
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {

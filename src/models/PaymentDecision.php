@@ -43,7 +43,6 @@ class PaymentDecision extends Model
             'reference' => $reference,
             'provider' => $actionConfig['provider'] ?? null,
             'message' => $actionConfig['message'] ?? null,
-            'redirectUrl' => $actionConfig['url'] ?? null,
             'action' => $actionConfig,
         ], $config));
     }
@@ -84,7 +83,6 @@ class PaymentDecision extends Model
 
     public PaymentDecisionStatus $status = self::STATUS_NOT_REQUIRED;
     public ?string $message = null;
-    public ?string $redirectUrl = null;
     public ?array $action = null;
     public ?string $provider = null;
     public ?string $reference = null;
@@ -108,7 +106,6 @@ class PaymentDecision extends Model
         return [
             'status' => $this->status->value,
             'message' => $this->message,
-            'redirectUrl' => $this->redirectUrl,
             'action' => $this->action,
             'provider' => $this->provider,
             'reference' => $this->reference,

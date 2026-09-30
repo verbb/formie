@@ -11,11 +11,10 @@ async function login(page, username = 'admin') {
     await page.waitForURL(url => !url.pathname.endsWith('/login'));
 }
 
-test('opens Formie diagnostics from a failed real Craft job and exports a redacted support bundle', async ({ page }) => {
+test('opens Formie diagnostics from a real Craft job with unresolved delivery and exports a redacted support bundle', async ({ page }) => {
     const data = fixture();
     await login(page);
-    await page.goto('/admin/utilities/queue-manager');
-    await page.getByRole('rowheader', { name: 'Delivering form integrations.', exact: true }).click();
+    await page.goto(`/admin/utilities/queue-manager/${data.jobId}`);
     await expect(page.getByRole('button', { name: 'Formie delivery diagnostics', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Formie delivery diagnostics', exact: true }).click();
     const dialog = page.locator('pk-dialog');
@@ -28,10 +27,20 @@ test('opens Formie diagnostics from a failed real Craft job and exports a redact
     await expect(dialog).not.toContainText('browser-never-display-secret');
     expect(await page.evaluate(() => (window as any).deliveryInjection)).toBeUndefined();
     await page.screenshot({ path: '../context/tasks/10-validation/delivery-modal.png', fullPage: true });
+    await expect(dialog.getByRole('button', { name: 'Download full redacted bundle', exact: true })).toBeDisabled();
+    await expect(dialog.getByRole('button', { name: 'Export sensitive evidence', exact: true })).toBeDisabled();
+    const denied = await page.evaluate(async (uid) => {
+        try {
+            await (window as any).Craft.sendActionRequest('POST', 'formie/delivery/export-bundle', { data: { uid, acknowledged: false } });
+            return 200;
+        } catch (error: any) { return error.response.status; }
+    }, data.uid);
+    expect(denied).toBe(403);
+    await dialog.getByRole('checkbox', { name: 'I understand this export may contain personal data.' }).check();
     const download = page.waitForEvent('download');
     await dialog.getByRole('button', { name: 'Download full redacted bundle', exact: true }).click();
     expect((await download).suggestedFilename()).toBe(`formie-delivery-${data.uid}.json`);
-    await expect(dialog.getByRole('button', { name: 'Export sensitive evidence', exact: true })).toBeDisabled();
+    await expect(dialog.getByRole('button', { name: 'Export sensitive evidence', exact: true })).toBeEnabled();
     await dialog.getByRole('link', { name: 'Open Submission Delivery History' }).click();
     await expect(page.getByRole('heading', { name: 'Submission Delivery History' })).toBeVisible();
     await page.getByRole('button', { name: '@dispatch: dispatch (unknown)', exact: true }).click();

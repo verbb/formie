@@ -76,12 +76,6 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
         return FieldStorageCodec::assertSafe($this->getAdapter()->serializeValueForClientInput($value, $this, $element));
     }
 
-    public function valueType(): FieldValueType
-    {
-        $type = $this->getAdapter()->valueType($this);
-        return $type;
-    }
-
     public function settingsAttributes(): array
     {
         $attributes = parent::settingsAttributes();
@@ -271,6 +265,12 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        $type = $this->getAdapter()->valueType($this);
+        return $type;
+    }
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {

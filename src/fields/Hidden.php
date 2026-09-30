@@ -62,11 +62,6 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::string();
-    }
-
     public function __construct(array $config = [])
     {
         if (array_key_exists('defaultOption', $config)) {
@@ -313,6 +308,11 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
 
     protected function defineRules(): array
     {

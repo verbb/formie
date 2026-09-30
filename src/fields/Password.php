@@ -48,11 +48,6 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::string();
-    }
-
     public function fieldKind(): string
     {
         return self::KIND_TEXT;
@@ -298,6 +293,11 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {

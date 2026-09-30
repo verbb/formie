@@ -11,9 +11,11 @@ use verbb\formie\fields\Group;
 use verbb\formie\fields\Repeater;
 use verbb\formie\helpers\Assets;
 use verbb\formie\helpers\DeliveryAttempt;
+use verbb\formie\helpers\DeliveryDiagnostics;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Notification;
+use verbb\formie\jobs\DeliveryJobInterface;
 use verbb\formie\models\Settings;
 use verbb\formie\references\ReferenceOutputContext;
 
@@ -368,6 +370,9 @@ class Emails extends Component
             // Output the full exception if available
             if (isset($emailRender['exception']) && $emailRender['exception']) {
                 Formie::error($emailRender['exception']);
+                if ($queueJob instanceof DeliveryJobInterface) {
+                    Formie::$plugin->getDeliveryAttempts()->checkpoint($queueJob->getDeliveryAttemptUid(), 'email-render-exception', DeliveryDiagnostics::exception($emailRender['exception']));
+                }
             }
 
             // Save the sent notification, as failed
@@ -376,11 +381,6 @@ class Emails extends Component
             }
 
             return ['error' => $error];
-        }
-
-        // When in the context of a queue job, add some extra info
-        if ($queueJob && isset($queueJob->deliveryAttemptUid)) {
-            Formie::$plugin->getDeliveryAttempts()->checkpoint($queueJob->deliveryAttemptUid, 'email-prepared', ['notificationId' => $notification->id]);
         }
 
         // Attach any file uploads
@@ -430,6 +430,13 @@ class Emails extends Component
                 return ['error' => $error];
             }
 
+            if ($queueJob instanceof DeliveryJobInterface) {
+                Formie::$plugin->getDeliveryAttempts()->checkpoint($queueJob->getDeliveryAttemptUid(), 'email-prepared', [
+                    'notificationId' => $notification->id,
+                    'message' => $this->_serializeEmail($newEmail),
+                ]);
+            }
+
             $deliveryStarted = true;
             if (!Craft::$app->getMailer()->send($newEmail)) {
                 $mailerError = $this->_formatMailerError($newEmail);
@@ -464,7 +471,11 @@ class Emails extends Component
             }
         } catch (Throwable $e) {
             Craft::$app->getErrorHandler()->logException($e);
-            
+
+            if ($queueJob instanceof DeliveryJobInterface) {
+                Formie::$plugin->getDeliveryAttempts()->checkpoint($queueJob->getDeliveryAttemptUid(), 'email-exception', DeliveryDiagnostics::exception($e));
+            }
+
             $error = Craft::t('formie', 'Notification email “{notification}” could not be sent for submission “{submission}”. Error: {error} {file}:{line}', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -779,6 +790,9 @@ class Emails extends Component
             'sender' => $email->getSender(),
             'subject' => $email->getSubject(),
             'body' => $email->getSymfonyEmail()->getHtmlBody(),
+            'textBody' => $email->getSymfonyEmail()->getTextBody(),
+            'headers' => $email->getSymfonyEmail()->getHeaders()->toString(),
+            'attachments' => array_map(static fn($part): array => ['name' => $part->getFilename(), 'mediaType' => $part->getMediaType() . '/' . $part->getMediaSubtype()], $email->getSymfonyEmail()->getAttachments()),
         ];
     }
 

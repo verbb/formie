@@ -87,11 +87,6 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
         return array_merge(parent::runtimeOverridableSettings(), ['description', 'descriptionHtml', 'checkedValue', 'uncheckedValue']);
     }
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::boolean();
-    }
-
     public function __construct(array $config = [])
     {
         // Setuo defaults for some values which can't in in the property definition
@@ -306,6 +301,11 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::boolean();
+    }
 
     protected function supportedDefaults(): array
     {

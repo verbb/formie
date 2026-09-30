@@ -39,8 +39,8 @@ final class ConditionVisibility
             return false;
         }
         if ($field->hasConditions()) {
-            $settings = $field->getConditions();
-            $effect = $settings['showRule'] ?? $settings['effect'] ?? 'show';
+            $settings = $field->conditions();
+            $effect = $settings->effect;
             if (!in_array($effect, ['enable', 'disable'], true) && ConditionsHelper::evaluate($settings, $submission, rows: self::rowScope($field))->hides($effect)) {
                 return true;
             }
@@ -59,8 +59,8 @@ final class ConditionVisibility
         if (!self::followsConditions($submission)) {
             return false;
         }
-        $settings = $field->getConditions();
-        $effect = $settings['showRule'] ?? $settings['effect'] ?? 'show';
+        $settings = $field->conditions();
+        $effect = $settings->effect;
         if ($field->hasConditions() && in_array($effect, ['enable', 'disable'], true) && ConditionsHelper::evaluate($settings, $submission, rows: self::rowScope($field))->hides($effect)) {
             return true;
         }

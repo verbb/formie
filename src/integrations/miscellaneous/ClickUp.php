@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\miscellaneous;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -35,6 +36,7 @@ class ClickUp extends Miscellaneous
     // Properties
     // =========================================================================
     
+    #[Sensitive]
     public ?string $apiKey = null;
     public ?string $workspaceId = null;
     #[FormIntegrationSetting]
@@ -110,7 +112,7 @@ class ClickUp extends Miscellaneous
         return new IntegrationConfig($settings);
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {

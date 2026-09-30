@@ -20,7 +20,7 @@ final readonly class ReferenceContext
     // Static Methods
     // =========================================================================
 
-    public static function forSubmission(Submission $submission, ?Notification $notification = null, array $rows = [], array $permissions = ['server'], ReferenceOutputContext $outputContext = ReferenceOutputContext::PlainText): self
+    public static function forSubmission(Submission $submission, ?Notification $notification = null, array $rows = [], array $permissions = ['server'], ReferenceOutputContext $outputContext = ReferenceOutputContext::PlainText, ?ReferenceUsage $usage = null): self
     {
         $site = Craft::$app->getSites()->getSiteById($submission->siteId);
         $user = $submission->getUser();
@@ -42,7 +42,7 @@ final readonly class ReferenceContext
                 $environment[$name] = App::env($name);
             }
         }
-        return new self($submission->getForm(), $submission, $site, $user, $rows, $permissions, $outputContext, $notification, new DateTimeImmutable('now', new DateTimeZone(Craft::$app->getTimeZone())), $system, $environment, $dispatch, metadata: $submission->metadata ?? []);
+        return new self($submission->getForm(), $submission, $site, $user, $rows, $permissions, $outputContext, $notification, new DateTimeImmutable('now', new DateTimeZone(Craft::$app->getTimeZone())), $system, $environment, $dispatch, metadata: $submission->metadata ?? [], usage: $usage);
     }
 
 
@@ -67,11 +67,17 @@ final readonly class ReferenceContext
         public array $report = [],
         public array $metadata = [],
         ?ReferenceDiagnostics $diagnostics = null,
+        public ?ReferenceUsage $usage = null,
     ) {
         $this->diagnostics = $diagnostics ?? new ReferenceDiagnostics();
 
         if ($submission && $form && $submission->formId !== $form->id) {
             throw new \InvalidArgumentException('Reference form and submission must share an owner.');
         }
+    }
+
+    public function withOutputContext(ReferenceOutputContext $outputContext): self
+    {
+        return new self($this->form, $this->submission, $this->site, $this->user, $this->rows, $this->permissions, $outputContext, $this->notification, $this->now, $this->system, $this->environment, $this->dispatch, $this->report, $this->metadata, $this->diagnostics, $this->usage);
     }
 }

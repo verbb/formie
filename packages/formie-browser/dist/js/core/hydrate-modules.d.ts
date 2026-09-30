@@ -1,5 +1,5 @@
 import type { FormEventUnsubscribe } from '#contracts/client';
-import type { BrowserModuleDefinition, ModuleRegistrationOptions } from '#contracts/modules';
+import type { BrowserModuleDefinition, BrowserModuleHydrationReport, ModuleRegistrationOptions } from '#contracts/modules';
 import { ModuleRegistry } from '#modules/registry';
 export type FormieModuleHydratorOptions = {
     root: Element;
@@ -8,7 +8,7 @@ export type FormieModuleHydratorOptions = {
     surface?: import('@verbb/formie-core').BrowserSurface;
     registry?: ModuleRegistry;
 };
-export type FormieModuleHydrator = {
+export type FormieModuleHydrator = BrowserModuleHydrationReport & {
     assertReady: () => void;
     prepare: (action: import('@verbb/formie-core').ClientSubmitAction) => Promise<Record<string, unknown>>;
     result: (result: import('#contracts/schema').FormSubmitResult) => Promise<void>;

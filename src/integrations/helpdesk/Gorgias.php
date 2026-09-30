@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\helpdesk;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\HelpDesk;
@@ -37,6 +38,7 @@ class Gorgias extends HelpDesk
 
     public ?string $apiUrl = null;
     public ?string $username = null;
+    #[Sensitive]
     public ?string $apiKey = null;
     #[FormIntegrationSetting]
     public bool $mapToTicket = false;
@@ -103,7 +105,7 @@ class Gorgias extends HelpDesk
         return new IntegrationConfig($settings);
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {

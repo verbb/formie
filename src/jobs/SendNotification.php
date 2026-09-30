@@ -11,7 +11,7 @@ use craft\queue\BaseJob;
 
 use RuntimeException;
 
-class SendNotification extends BaseJob implements DebuggableJobInterface
+class SendNotification extends BaseJob implements DeliveryJobInterface
 {
     // Traits
     // =========================================================================
@@ -29,9 +29,14 @@ class SendNotification extends BaseJob implements DebuggableJobInterface
     // Public Methods
     // =========================================================================
 
+    public function getDeliveryAttemptUid(): string
+    {
+        return $this->resolveDeliveryAttemptUid();
+    }
+
     public function execute($queue): void
     {
-        $uid = $this->resolveDeliveryAttemptUid();
+        $uid = $this->getDeliveryAttemptUid();
         $attempts = Formie::$plugin->getDeliveryAttempts();
         $row = $attempts->get($uid);
         $data = $attempts->data($uid);

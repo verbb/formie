@@ -14,6 +14,7 @@ test('module occurrences reconcile repeated targets, conditional DOM and failure
         const host = await hydrateFormieModules({ root, registry, surface: 'client-rendered', modules: { contractVersion: 2, surface: 'client-rendered', entries: [entry, { ...entry, key: 'second' }] } });
         const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
         const initial = mounts;
+        const initialReport = { instances: host.instances.length, failures: host.failures.length };
         root.append(document.createElement('span')); await settle(); const unchanged = mounts;
         const row = document.createElement('div'); row.dataset.formieFieldUid = 'field-uid'; root.append(row); await settle();
         const repeated = mounts;
@@ -24,15 +25,18 @@ test('module occurrences reconcile repeated targets, conditional DOM and failure
         const failure = async(required: boolean) => {
             const failureHost = await hydrateFormieModules({ root, surface: 'client-rendered', modules: { contractVersion: 2, surface: 'client-rendered', entries: [{ ...entry, key: 'failure', moduleId: 'unknown:module', required }] } });
             let blocked = false; try { failureHost.assertReady(); } catch { blocked = true; }
-            await failureHost.destroy(); return blocked;
+            const report = { blocked, instances: failureHost.instances.length, failures: failureHost.failures.map(({ moduleId, required, code }) => ({ moduleId, required, code })) };
+            await failureHost.destroy(); return report;
         };
         const optional = await failure(false); const required = await failure(true);
         let versionRejected = false;
         try { await hydrateFormieModules({ root, modules: { contractVersion: 99, surface: 'cp-edit', entries: [] } }); } catch { versionRejected = true; }
         root.remove();
-        return { initial, unchanged, repeated, hidden, shown, removed, destroyed, optional, required, versionRejected };
+        return { initial, initialReport, unchanged, repeated, hidden, shown, removed, destroyed, optional, required, versionRejected };
     });
-    expect(result).toEqual({ initial: 2, unchanged: 2, repeated: 4, hidden: 2, shown: 6, removed: 4, destroyed: 6, optional: false, required: true, versionRejected: true });
+    expect(result).toEqual({ initial: 2, initialReport: { instances: 2, failures: 0 }, unchanged: 2, repeated: 4, hidden: 2, shown: 6, removed: 4, destroyed: 6,
+        optional: { blocked: false, instances: 0, failures: [{ moduleId: 'unknown:module', required: false, code: 'MODULE_UNAVAILABLE' }] },
+        required: { blocked: true, instances: 0, failures: [{ moduleId: 'unknown:module', required: true, code: 'MODULE_UNAVAILABLE' }] }, versionRejected: true });
 });
 
 test('module match and setup hooks receive the exact rendering surface', async({ page }) => {

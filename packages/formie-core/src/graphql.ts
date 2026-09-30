@@ -50,12 +50,7 @@ const CLIENT_SUBMIT_RESULT_SELECTION = `
     errors
     messages
     clientEvents
-    paymentStatus
-    paymentMessage
-    paymentRedirectUrl
-    paymentAction
-    paymentDecision
-    keepSubmitLoading
+    payment
     session {
         ${CLIENT_SESSION_SELECTION}
     }

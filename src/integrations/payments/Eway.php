@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
@@ -67,7 +68,9 @@ class Eway extends Payment
     // Properties
     // =========================================================================
 
+    #[Sensitive]
     public ?string $apiKey = null;
+    #[Sensitive]
     public ?string $apiPassword =  null;
     public ?string $clientSideEncryptionKey =  null;
     public bool|string $useSandbox = false;
@@ -138,7 +141,7 @@ class Eway extends Payment
 
             $current = new PaymentModel($row);
 
-            if ($current->status === PaymentModel::STATUS_SUCCESS) {
+            if ($current->status === PaymentModel::STATUS_SUCCEEDED) {
                 $payment->status = $current->status;
                 return;
             }
@@ -167,7 +170,7 @@ class Eway extends Payment
 
             $current->reference = (string)$transaction['TransactionID'];
             $current->response = $transaction;
-            $current->status = PaymentModel::STATUS_SUCCESS;
+            $current->status = PaymentModel::STATUS_SUCCEEDED;
             $current->message = null;
 
             if (!Formie::$plugin->getPayments()->savePayment($current)) {
@@ -459,7 +462,7 @@ class Eway extends Payment
             throw new Exception('Eway has not confirmed the payment.');
         }
 
-        $payment->status = PaymentModel::STATUS_SUCCESS;
+        $payment->status = PaymentModel::STATUS_SUCCEEDED;
         $payment->reference = $response['TransactionID'] ?? '';
         $payment->response = $response;
 

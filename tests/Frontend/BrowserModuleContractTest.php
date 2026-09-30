@@ -9,6 +9,28 @@ use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\BrowserModuleManifest;
 use Tests\Support\WebRequestTestHelper;
 
+it('accepts non-field module contributions through one surface-aware form hook', function () {
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $builder = Formie::$plugin->getBrowserModuleManifestBuilder();
+    $listener = static function (\verbb\formie\events\RegisterBrowserModulesEvent $event) use ($form) {
+        if ($event->form->id !== $form->id) return;
+        $event->modules[] = new BrowserModule('acme:form-feature', config: ['formUid' => $event->form->uid], surfaces: [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED]);
+    };
+    $builder->on($builder::EVENT_REGISTER_MODULES, $listener);
+    try {
+        foreach ([BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED] as $surface) {
+            $entries = $builder->buildForSurface($form, $surface)->toArray()['entries'];
+            $entry = array_values(array_filter($entries, fn($entry) => $entry['moduleId'] === 'acme:form-feature'))[0];
+            expect($entry['targets'])->toBe([['type' => 'form']])
+                ->and($entry['kind'])->toBe('core')
+                ->and($entry['config']['formUid'])->toBe($form->uid);
+        }
+        expect(array_column($builder->buildForSurface($form, BrowserModule::SURFACE_CP_EDIT)->toArray()['entries'], 'moduleId'))->not->toContain('acme:form-feature');
+    } finally {
+        $builder->off($builder::EVENT_REGISTER_MODULES, $listener);
+    }
+});
+
 it('retains repeated declarations and shares the exact public inventory', function() {
     $form = formie()->form(['title' => 'Module parity'])->singleLineTextField('name')->create();
     $original = $form->getFieldByHandle('name');

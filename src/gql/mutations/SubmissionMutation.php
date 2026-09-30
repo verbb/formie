@@ -26,7 +26,7 @@ class SubmissionMutation extends Mutation
     {
         $mutationList = [];
         $createDeleteMutation = false;
-        $forms = Formie::$plugin->getForms()->getAllFormsWithLayouts(forSchema: true);
+        $forms = Formie::$plugin->getForms()->getGqlSchemaSnapshot()->forms('formieSubmissions');
         $canCreateAll = Gql::canSchema('formieSubmissions.all', 'create');
         $canSaveAll = Gql::canSchema('formieSubmissions.all', 'save');
         $canDeleteAll = Gql::canSchema('formieSubmissions.all', 'delete');
@@ -127,7 +127,7 @@ class SubmissionMutation extends Mutation
     {
         $resolver = Craft::createObject(SubmissionResolver::class);
         $resolver->setResolutionData('form', $form);
-        $contentFieldConfigs = Formie::$plugin->getFields()->getAllFieldConfigsForForms([(int)$form->id])[(int)$form->id] ?? [];
+        $contentFieldConfigs = Formie::$plugin->getForms()->getGqlSchemaSnapshot()->fieldConfigs((int)$form->id);
 
         static::prepareFormieResolver($resolver, $contentFieldConfigs);
 

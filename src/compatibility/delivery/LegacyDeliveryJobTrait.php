@@ -81,6 +81,11 @@ trait LegacyDeliveryJobTrait
 
         $context = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, $binding, $data['executionUid'], 'queued', 'legacy_job');
         $attempts = Formie::$plugin->getDeliveryAttempts();
+        // Formie 3 jobs did not capture an accepted operation. Import the current
+        // operation once, explicitly, and keep subsequent retries bound to it.
+        $payload['acceptedFingerprint'] = $notification
+            ? $attempts->operationFingerprint($submission, $attempts->notificationConfiguration($notification))
+            : Formie::$plugin->getIntegrationRunner()->dispatchFingerprint($submission, $payload['handles']);
         $uid = $attempts->prepare($context, $step, $payload);
         $attempts->checkpoint($uid, 'legacy-job-imported', ['locators' => $data]);
 

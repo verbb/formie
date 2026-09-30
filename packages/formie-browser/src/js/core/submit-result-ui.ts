@@ -330,10 +330,9 @@ function isPaymentFollowUpResult(result: FormSubmitResult): boolean {
         return false;
     }
 
-    const meta = (result.meta || {}) as Record<string, unknown>;
-    const paymentStatus = String(meta.paymentStatus || '');
+    const paymentStatus = result.payment?.status;
 
-    return paymentStatus === 'actionRequired' || paymentStatus === 'pending' || paymentStatus === 'unknown';
+    return paymentStatus === 'requiresAction' || paymentStatus === 'pending' || paymentStatus === 'unknown';
 }
 
 export function renderFormNotice(form: HTMLFormElement, message: string): void {
@@ -417,8 +416,7 @@ export function applySubmitResultUi(form: HTMLFormElement, result: FormSubmitRes
 
     if (!result.ok) {
         if (isPaymentFollowUpResult(result)) {
-            const meta = (result.meta || {}) as Record<string, unknown>;
-            const message = String(meta.paymentMessage || '').trim();
+            const message = String(result.payment?.message || '').trim();
 
             if (message) {
                 renderFormNotice(form, message);

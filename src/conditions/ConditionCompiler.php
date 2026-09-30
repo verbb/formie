@@ -34,13 +34,23 @@ final class ConditionCompiler
         if ($field instanceof Date) {
             return $field->getCollectsRange() ? 'collection' : ($field->getIsTime() ? 'time' : ($field->getIsDate() ? 'date' : 'datetime'));
         }
-        return match ($field->valueType()->kind) {
-            'number' => 'number',
+        if ($field instanceof \verbb\formie\fields\Phone) {
+            return 'text';
+        }
+        $fallback = match ($field->valueType()->kind) {
             'boolean' => 'boolean',
             'array', 'relationQuery' => 'collection',
             'object' => in_array($field->fieldKind(), ['options', 'recipients'], true) ? 'text' : 'collection',
             default => 'text',
         };
+
+        foreach ($field->referenceValues() as $referenceValue) {
+            if ($referenceValue->isPrimary() && $referenceValue->appliesTo($field)) {
+                return self::_referenceValueType($referenceValue, $fallback);
+            }
+        }
+
+        return $fallback;
     }
 
 

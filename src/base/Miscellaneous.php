@@ -15,8 +15,13 @@ use craft\helpers\UrlHelper;
 
 use yii\helpers\Markdown;
 
-abstract class Miscellaneous extends Integration
+abstract class Miscellaneous extends Integration implements DispatchableIntegrationInterface
 {
+    // Traits
+    // =========================================================================
+
+    use DispatchableIntegrationTrait;
+
     // Constants
     // =========================================================================
 

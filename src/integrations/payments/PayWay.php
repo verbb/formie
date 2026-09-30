@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
@@ -73,6 +74,7 @@ class PayWay extends Payment
     // =========================================================================
 
     public ?string $publishableKey = null;
+    #[Sensitive]
     public ?string $secretKey = null;
     public ?string $merchantId = null;
 
@@ -129,7 +131,7 @@ class PayWay extends Payment
 
     public function getTransaction(PaymentModel $payment): void
     {
-        if (!$payment->reference || in_array($payment->status, [PaymentModel::STATUS_SUCCESS, PaymentModel::STATUS_FAILED], true)) {
+        if (!$payment->reference || in_array($payment->status, [PaymentModel::STATUS_SUCCEEDED, PaymentModel::STATUS_FAILED], true)) {
             return;
         }
         $submission = $payment->getSubmission();
@@ -142,7 +144,7 @@ class PayWay extends Payment
             throw new DeliveryOutcomeUnknownException('PayWay returned a different transaction.');
         }
         $payment->status = match (strtolower((string)($response['status'] ?? ''))) {
-            'approved', 'approved*' => PaymentModel::STATUS_SUCCESS,
+            'approved', 'approved*' => PaymentModel::STATUS_SUCCEEDED,
             'declined', 'voided' => PaymentModel::STATUS_FAILED,
             default => PaymentModel::STATUS_PENDING,
         };
@@ -150,12 +152,17 @@ class PayWay extends Payment
         if (!Formie::$plugin->getPayments()->savePayment($payment)) {
             throw new DeliveryOutcomeUnknownException('Unable to save the PayWay payment outcome.');
         }
-        Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+        Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
     }
 
     public function getTransactionStatus(PaymentModel $payment): void
     {
         $this->getTransaction($payment);
+    }
+
+    protected function getPaymentAccountIdentity(): ?string
+    {
+        return App::parseEnv($this->merchantId) ?: null;
     }
 
     public function fetchConnection(): bool
@@ -376,7 +383,7 @@ class PayWay extends Payment
             }
 
             if ($status === 'approved' || $status === 'approved*') {
-                $payment->status = PaymentModel::STATUS_SUCCESS;
+                $payment->status = PaymentModel::STATUS_SUCCEEDED;
             }
 
             if (!Formie::$plugin->getPayments()->savePayment($payment)) {

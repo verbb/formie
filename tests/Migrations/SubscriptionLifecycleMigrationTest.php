@@ -9,6 +9,19 @@ use craft\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\migrations\m260928_020000_subscription_lifecycle;
 
+beforeEach(function (): void {
+    // Recreate only the historical column consumed by this older migration.
+    if (!Craft::$app->getDb()->columnExists(Table::FORMIE_SUBSCRIPTIONS, 'subscriptionData')) {
+        Craft::$app->getDb()->createCommand()->addColumn(Table::FORMIE_SUBSCRIPTIONS, 'subscriptionData', 'text')->execute();
+    }
+});
+
+afterEach(function (): void {
+    if (Craft::$app->getDb()->columnExists(Table::FORMIE_SUBSCRIPTIONS, 'subscriptionData')) {
+        Craft::$app->getDb()->createCommand()->dropColumn(Table::FORMIE_SUBSCRIPTIONS, 'subscriptionData')->execute();
+    }
+});
+
 it('migrates legacy subscription lifecycle and operation scope idempotently', function (): void {
     $transaction = Craft::$app->getDb()->beginTransaction();
     $now = gmdate('Y-m-d H:i:s');

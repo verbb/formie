@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
@@ -60,6 +61,7 @@ class Paddle extends Payment
     // Properties
     // =========================================================================
 
+    #[Sensitive]
     public ?string $apiKey = null;
     public ?string $clientSideToken = null;
     public bool|string $useSandbox = false;
@@ -123,7 +125,7 @@ class Paddle extends Payment
         $this->_verifyTransaction($payment, $transaction);
         $payment->response = $transaction;
         $payment->status = match ($transaction['status'] ?? null) {
-            'paid', 'completed' => PaymentModel::STATUS_SUCCESS,
+            'paid', 'completed' => PaymentModel::STATUS_SUCCEEDED,
             'canceled' => PaymentModel::STATUS_CANCELLED,
             'draft', 'ready', 'billed', 'past_due' => PaymentModel::STATUS_PENDING,
             default => PaymentModel::STATUS_UNKNOWN,
@@ -322,14 +324,14 @@ class Paddle extends Payment
             $this->getTransaction($payment);
 
             return match ($payment->status) {
-                PaymentModel::STATUS_SUCCESS => PaymentDecision::succeeded($this->handle, $payment->reference),
+                PaymentModel::STATUS_SUCCEEDED => PaymentDecision::succeeded($this->handle, $payment->reference),
                 PaymentModel::STATUS_CANCELLED => PaymentDecision::cancelled(null, $this->handle, $payment->reference),
                 PaymentModel::STATUS_PENDING => PaymentDecision::pending(null, $this->handle, $payment->reference),
                 default => PaymentDecision::unknown(null, $this->handle, $payment->reference),
             };
         }
 
-        if ($payment?->status === PaymentModel::STATUS_SUCCESS) {
+        if ($payment?->status === PaymentModel::STATUS_SUCCEEDED) {
             return PaymentDecision::succeeded($this->handle, $payment->reference);
         }
 
@@ -399,10 +401,6 @@ class Paddle extends Payment
             }
         }
 
-        $submission->getForm()->addSubmitData([
-            'event' => 'formie:payment:paddle:initialize',
-            'data' => $payload,
-        ]);
 
         // Allow events to say the response is invalid
         if (!$this->afterProcessPayment($submission, false)) {

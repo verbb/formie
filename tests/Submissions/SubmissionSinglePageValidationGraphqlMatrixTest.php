@@ -31,10 +31,6 @@ it('blocks invalid single-page submissions over graphql mutation path', function
     $form = createGraphqlSinglePageValidationForm();
     $initialSubmissionCount = (int)Submission::find()->formId($form->id)->status(null)->isSpam(null)->isIncomplete(null)->count();
     $arguments = applyGraphqlValidationCase(buildValidGraphqlSinglePagePayload(), $case);
-    $mutation = SubmissionMutation::createSaveMutation($form);
-    $resolve = $mutation['resolve'];
-    $resolveInfo = $this->createMock(ResolveInfo::class);
-    $resolveInfo->fieldDefinition = \GraphQL\Type\Definition\FieldDefinition::create($mutation);
 
     $gqlService = Craft::$app->getGql();
     $activeSchema = null;
@@ -57,6 +53,10 @@ it('blocks invalid single-page submissions over graphql mutation path', function
     $extensions = [];
 
     try {
+        $mutation = SubmissionMutation::createSaveMutation($form);
+        $resolve = $mutation['resolve'];
+        $resolveInfo = $this->createMock(ResolveInfo::class);
+        $resolveInfo->fieldDefinition = \GraphQL\Type\Definition\FieldDefinition::create($mutation);
         call_user_func($resolve, null, $arguments, null, $resolveInfo);
 
         $this->fail('Expected GraphQL mutation to throw validation error.');

@@ -83,7 +83,7 @@ it('captures a graphql schema generation baseline for synthetic form volume', fu
 
         expect($combined['result']['formQueries'])->toHaveCount(3)
             ->and($combined['result']['submissionQueries'])->toHaveCount(3)
-            ->and(count($combined['result']['submissionMutations']))->toBeGreaterThanOrEqual($formCount + 1)
+            ->and(count($combined['result']['submissionMutations']))->toBe($formCount + 2)
             ->and(count($combined['result']['formTypes']))->toBe($formCount)
             ->and(count($combined['result']['submissionTypes']))->toBe($formCount)
             // Soft guardrail: fail only on obvious regressions.
@@ -139,7 +139,7 @@ function withGraphqlPerfSchema(array $scope, callable $callback): void
 
 function getSchemaScopedSubmissionForms(): array
 {
-    $forms = Formie::$plugin->getForms()->getAllFormsWithLayouts();
+    $forms = Formie::$plugin->getForms()->getGqlSchemaSnapshot()->forms('formieSubmissions');
 
     if (Gql::isSchemaAwareOf('formieSubmissions.all')) {
         return $forms;

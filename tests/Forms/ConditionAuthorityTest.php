@@ -27,6 +27,30 @@ it('clears attacker values in each repeater row according to that row source', f
         ->and($submission->validate())->toBeTrue(json_encode($submission->getErrors()));
 });
 
+it('shares row-aware predicates until content changes without leaking between submissions', function () {
+    $form = formie()->form()->singleLineTextField('allow')->emailField('email', ['enableConditions' => true, 'conditions' => authorityCondition('allow')])->create();
+    $submission = new Submission(['title' => 'State']);
+    $submission->setForm($form);
+    $submission->setFieldValue('allow', 'yes');
+    $field = $form->getFieldByHandle('email');
+    $set = $field->conditions();
+    expect($set)->toBeInstanceOf(\verbb\formie\conditions\ConditionSet::class);
+    $evaluate = fn($rows = []) => \verbb\formie\helpers\ConditionsHelper::evaluate($set, $submission, rows: $rows);
+    $first = $evaluate();
+    expect($first->matches())->toBeTrue()->and($evaluate())->toBe($first)
+        ->and($evaluate(['people' => 0]))->not->toBe($evaluate(['people' => 1]));
+    $submission->setFieldValue('allow', 'no');
+    expect($evaluate())->not->toBe($first)->and($evaluate()->matches())->toBeFalse()
+        ->and(ConditionVisibility::hidden($field, $submission))->toBeTrue();
+    $other = new Submission(['title' => 'Other']);
+    $other->setForm($form);
+    $other->setFieldValue('allow', 'yes');
+    expect(ConditionVisibility::hidden($field, $other))->toBeFalse();
+    $compiled = (new \verbb\formie\conditions\ConditionCompiler())->compile($set, $form);
+    expect($field->getBrowserConditions()['rules'])->toBe($compiled['rules'])
+        ->and($field->getClientRenderedDefinition()['condition']['rules'])->toBe($compiled['rules']);
+});
+
 it('clears children when a group is hidden without retaining posted child content', function () {
     $form = formie()->form()->singleLineTextField('allow')->groupField('contact', ['enableConditions' => true, 'conditions' => authorityCondition('allow'), 'rows' => [['fields' => [['type' => Email::class, 'handle' => 'email', 'label' => 'Email']]]]])->create();
     $submission = new Submission(['title' => 'Conditions test']);

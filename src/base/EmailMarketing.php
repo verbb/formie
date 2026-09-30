@@ -17,8 +17,13 @@ use craft\helpers\UrlHelper;
 
 use yii\helpers\Markdown;
 
-abstract class EmailMarketing extends Integration
+abstract class EmailMarketing extends Integration implements DispatchableIntegrationInterface
 {
+    // Traits
+    // =========================================================================
+
+    use DispatchableIntegrationTrait;
+
     // Static Methods
     // =========================================================================
 

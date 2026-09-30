@@ -149,7 +149,7 @@ class SubmissionResolver extends ElementMutationResolver
 
         \verbb\formie\helpers\BrowserRequestProfile::enterAdministrative();
 
-        $result = Formie::$plugin->getSubmissionProcessor()->executeMutation($form, $submission, $arguments, function () use ($form, $submission, $arguments, $resolveInfo): void {
+        $result = Formie::$plugin->getSubmissionRequests()->executeMutation($form, $submission, $arguments, function () use ($form, $submission, $arguments, $resolveInfo): void {
         $this->populateElementWithData($submission, $arguments, $resolveInfo);
 
         // GraphQL coercion produces request shapes (including staged uploads). Route

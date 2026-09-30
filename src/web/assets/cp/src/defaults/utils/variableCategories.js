@@ -69,6 +69,9 @@ const filterPickerItems = (items = [], variableConfig = {}) => {
     const requestedShapes = Array.isArray(variableConfig?.shapes) ? variableConfig.shapes : [];
 
     const itemMatches = (item) => {
+        if (Array.isArray(item.usages) && !item.usages.includes(variableConfig.usage || 'text')) {
+            return false;
+        }
         const itemShape = getItemShape(item);
 
         if (requestedShapes.length && !requestedShapes.includes(itemShape)) {

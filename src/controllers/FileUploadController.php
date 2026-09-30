@@ -401,7 +401,7 @@ class FileUploadController extends Controller
         }
 
         $contextToken = $this->request->getBodyParam('draftContextToken');
-        Formie::$plugin->getSubmissionProcessor()->applyFormRequestContext($form,
+        Formie::$plugin->getSubmissionRequests()->applyFormRequestContext($form,
             $this->request->getBodyParam('renderId'),
             $contextToken ? $form->resolveDraftContextToken($contextToken) : $this->request->getBodyParam('draftContext'),
         );

@@ -9,6 +9,52 @@ use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
+class SensitiveSettingFixture extends Freshdesk
+{
+    #[\verbb\formie\attributes\Sensitive]
+    #[FormIntegrationSetting]
+    public string $opaque = '';
+    public static function supportsConnection(): bool { return false; }
+    public function fetchConfig(): IntegrationConfig {
+        return new IntegrationConfig(['label' => $this->opaque, 'fields' => [new IntegrationField(['handle' => 'safe', 'name' => $this->opaque])]]);
+    }
+}
+
+it('uses inherited sensitive metadata for non-obviously-named settings across storage and diagnostics', function() {
+    $connection = new class(['name' => 'Sensitive metadata', 'handle' => 'sensitiveMetadata', 'opaque' => 'synthetic-private-value']) extends SensitiveSettingFixture {};
+    $secrets = $connection->getDiagnosticSecrets();
+    expect(\verbb\formie\helpers\IntegrationSecrets::sensitiveAttributes($connection))->toContain('opaque', 'apiKey', 'clientSecret');
+    expect($secrets)->toContain('synthetic-private-value');
+    $protected = \verbb\formie\helpers\IntegrationSecrets::protect(['opaque' => $connection->opaque], sensitiveAttributes: \verbb\formie\helpers\IntegrationSecrets::sensitiveAttributes($connection));
+    expect(json_encode($protected))->not->toContain('synthetic-private-value')
+        ->and(\verbb\formie\helpers\IntegrationSecrets::reveal($protected)['opaque'])->toBe($connection->opaque);
+    expect(json_encode($connection->refreshConfig()->toStorage()))->not->toContain($connection->opaque);
+    $connection->cache['config'] = (new IntegrationConfig(['oldLabel' => $connection->opaque], $connection->getIntegrationConfigKey(), time()))->toStorage();
+    expect(json_encode($connection->getConfig()->toStorage()))->not->toContain($connection->opaque);
+    $form = formie()->form()->create();
+    $submission = formie()->submission($form)->save();
+    $attempts = \verbb\formie\Formie::$plugin->getDeliveryAttempts();
+    $uid = $attempts->prepare(new \verbb\formie\models\IntegrationExecutionContext($submission->id, $form->id, 'sensitiveMetadata', 'sensitive-test'), 'integration');
+    $result = $attempts->execute($uid, fn() => new \verbb\formie\models\IntegrationResult(\verbb\formie\enums\IntegrationStatus::Failed, message: $connection->opaque, diagnostics: ['detail' => $connection->opaque]), $secrets);
+    expect(json_encode($result->toStorage()))->not->toContain($connection->opaque)
+        ->and(json_encode($attempts->supportBundle($uid)))->not->toContain($connection->opaque)
+        ->and($attempts->get($uid)['result'])->not->toContain($connection->opaque);
+});
+
+it('encrypts annotated form-owned values when saving and exporting a form', function() {
+    $connection = new SensitiveSettingFixture(['name' => 'Form secret', 'handle' => 'formSecret']);
+    expect(\verbb\formie\Formie::$plugin->getIntegrations()->saveIntegration($connection, false))->toBeTrue();
+    $form = formie()->form()->create();
+    $form->settings->integrations = ['formSecret' => ['enabled' => true, 'opaque' => 'private-binding-value']];
+    expect(Craft::$app->getElements()->saveElement($form, false))->toBeTrue();
+    $stored = (new \craft\db\Query())->select('settings')->from(\verbb\formie\helpers\Table::FORMIE_FORMS)->where(['id' => $form->id])->scalar();
+    expect($stored)->not->toContain('private-binding-value');
+    $export = \verbb\formie\models\StencilData::getSerializedFormSettings($form->settings);
+    expect(json_encode($export))->not->toContain('private-binding-value');
+    $revealed = \verbb\formie\helpers\IntegrationSecrets::reveal(json_decode($stored, true)['integrations']);
+    expect($revealed['formSecret']['opaque'])->toBe('private-binding-value');
+});
+
 it('hydrates only annotated properties even when a provider overrides its advertised allowlist', function () {
     $connection = new class extends Freshdesk {
         public function getFormSettingAttributes(): array { return ['apiKey', 'apiDomain', 'context']; }
@@ -147,7 +193,7 @@ it('keeps inherited annotations authoritative and excludes static properties', f
         public static string $global = '';
     };
     $names = FormIntegration::settingAttributes($connection);
-    expect($names)->toContain('custom', 'mapToContact', 'optInField')->not->toContain('global', 'apiKey');
+    expect($names)->toContain('custom', 'mapToContact')->not->toContain('global', 'apiKey', 'optInField', 'conditions');
     expect(fn() => FormIntegration::fromSettings($connection, ['execution' => 'immediate']))->toThrow(InvalidArgumentException::class);
 });
 
@@ -157,8 +203,37 @@ it('preserves every core form setting from the previous explicit allowlists', fu
     foreach ($inventory as $path => $expected) {
         $class = 'verbb\\formie\\' . str_replace('/', '\\', substr($path, 4, -4));
         $reflection = new ReflectionClass($class);
-        foreach (array_diff($expected, ['enabled']) as $name) {
+        foreach (array_diff($expected, FormIntegration::POLICY_ATTRIBUTES) as $name) {
             expect($reflection->getProperty($name)->getAttributes(FormIntegrationSetting::class))->not->toBeEmpty($class . '::' . $name);
         }
     }
+});
+
+it('owns common policy on the binding while preserving Formie 3 property access', function() {
+    $connection = new Freshdesk(['handle' => 'freshdesk', 'apiKey' => 'protected-key']);
+    $binding = FormIntegration::fromSettings($connection, ['enabled' => true, 'execution' => 'synchronous', 'optInField' => '{field:consent}', 'enableConditions' => true, 'conditions' => ['conditions' => []], 'trigger' => ['policy' => 'onEdit'], 'mapToContact' => true, 'apiKey' => 'builder-value']);
+    expect($binding->settings)->toBe(['mapToContact' => true])
+        ->and($binding->trigger)->toBe(['policy' => 'onEdit']);
+    $runtime = $binding->createRuntime();
+    expect($runtime->apiKey)->toBe('protected-key')->and($runtime->optInField)->toBe('{field:consent}')
+        ->and(FormIntegration::settingsFromRuntime($runtime)['execution'])->toBe('synchronous');
+    $runtime->optInField = '{field:otherConsent}';
+    expect($runtime->getFormIntegration()->optInField)->toBe('{field:otherConsent}')
+        ->and($binding->optInField)->toBe('{field:consent}')->and($connection->optInField)->toBeNull();
+});
+
+it('migrates the old policy tree once without retaining a beta runtime alias', function() {
+    $form = formie()->form()->create();
+    $settings = (new \craft\db\Query())->select('settings')->from('{{%formie_forms}}')->where(['id' => $form->id])->scalar();
+    $settings = \craft\helpers\Json::decode($settings);
+    $settings['integrations']['demo'] = ['enabled' => true, 'fieldMapping' => ['name' => '{field:name}']];
+    $settings['integrationPolicies'] = ['rerun' => ['demo' => ['policy' => 'onEdit']]];
+    Craft::$app->getDb()->createCommand()->update('{{%formie_forms}}', ['settings' => \craft\helpers\Json::encode($settings)], ['id' => $form->id])->execute();
+    $migration = new \verbb\formie\migrations\m260929_000000_form_integration_policy();
+    ob_start();
+    try { expect($migration->safeUp())->toBeTrue()->and($migration->safeUp())->toBeTrue(); } finally { ob_end_clean(); }
+    $stored = \craft\helpers\Json::decode((new \craft\db\Query())->select('settings')->from('{{%formie_forms}}')->where(['id' => $form->id])->scalar());
+    expect($stored)->not->toHaveKey('integrationPolicies')
+        ->and($stored['integrations']['demo'])->toMatchArray(['enabled' => true, 'trigger' => ['policy' => 'onEdit'], 'fieldMapping' => ['name' => '{field:name}']]);
+    expect(fn() => new \verbb\formie\models\FormSettings(['integrationPolicies' => []]))->toThrow(\yii\base\UnknownPropertyException::class);
 });

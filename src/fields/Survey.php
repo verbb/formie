@@ -607,17 +607,6 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         return $variables;
     }
 
-    public function valueType(): FieldValueType
-    {
-        if (!$this->usesOptions()) {
-            return $this->getDisplayTypeField()->valueType();
-        }
-        if ($this->displayType === self::DISPLAY_LIKERT && $this->usesLikertMultipleRows()) {
-            return FieldValueType::object(LikertMultipleRowsFieldValue::class);
-        }
-        return parent::valueType();
-    }
-
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if (!$this->usesOptions()) {
@@ -929,6 +918,17 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        if (!$this->usesOptions()) {
+            return $this->getDisplayTypeField()->valueType();
+        }
+        if ($this->displayType === self::DISPLAY_LIKERT && $this->usesLikertMultipleRows()) {
+            return FieldValueType::object(LikertMultipleRowsFieldValue::class);
+        }
+        return parent::defineValueType();
+    }
 
     protected function defineValueForCondition(mixed $value, Submission $submission): mixed
     {

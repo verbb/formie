@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\captchas;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -19,6 +20,7 @@ class OopSpam extends Captcha
     // =========================================================================
 
     public ?string $handle = 'OopSpam';
+    #[Sensitive]
     public ?string $apiKey = null;
     public int $spamThreshold = 3;
 

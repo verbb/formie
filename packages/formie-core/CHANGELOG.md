@@ -6,6 +6,8 @@
 - Add the shared, versioned reference grammar and typed browser source diagnostics.
 
 ### Changed
+- Expose one canonical payment decision across REST and GraphQL instead of parallel beta response fields.
+- Keep numeric condition semantics separate from decimal-string runtime field types.
 - Version browser-module manifests around one explicit surface, discriminated targets and configured occurrence keys without decorative capabilities.
 - Share versioned tri-state conditions and plain-text validation rules across PHP and browser consumers; enforce recursive hidden-value clearing and server-authoritative navigation.
 - Preserve exact nested submission error paths, return typed page-transition results, and distinguish skipped side effects from invalid condition configuration.

@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
@@ -70,6 +71,7 @@ class Mollie extends Payment
     // Properties
     // =========================================================================
 
+    #[Sensitive]
     public ?string $apiKey = null;
 
 
@@ -168,7 +170,7 @@ class Mollie extends Payment
 
             $row = Craft::$app->getDb()->useMaster(fn() => (new Query())->from(Table::FORMIE_PAYMENTS)->where([
                 'id' => $localId, 'integrationId' => $this->id, 'reference' => null,
-                'status' => [PaymentModel::STATUS_UNKNOWN, PaymentModel::STATUS_PENDING, PaymentModel::STATUS_REDIRECT],
+                'status' => [PaymentModel::STATUS_UNKNOWN, PaymentModel::STATUS_PENDING, PaymentModel::STATUS_REQUIRES_ACTION],
             ])->one());
 
             if (!$row || !hash_equals($this->_webhookRecoveryToken(new PaymentModel($row)), $token)) {
@@ -252,7 +254,7 @@ class Mollie extends Payment
         }
 
         if (
-            $payment->status === PaymentModel::STATUS_SUCCESS ||
+            $payment->status === PaymentModel::STATUS_SUCCEEDED ||
             $payment->status === PaymentModel::STATUS_FAILED
         ) {
             return;
@@ -416,7 +418,7 @@ class Mollie extends Payment
         $amount = $payment->amount;
         $currency = $this->getFieldSetting('currency');
 
-        $payment->status = PaymentModel::STATUS_REDIRECT;
+        $payment->status = PaymentModel::STATUS_REQUIRES_ACTION;
         $payment->redirectUrl = StringHelper::sanitizeRedirectUrl((string)Craft::$app->getRequest()->getReferrer());
 
         $attempt->save();
@@ -491,12 +493,6 @@ class Mollie extends Payment
         $attempt->save();
 
         // Redirect via the front-end for a nicer UX than just a sudden redirect away.
-        $submission->getForm()->addSubmitData([
-            'event' => 'formie:payment:mollie:redirect',
-            'data' => [
-                'checkoutUrl' => $checkoutUrl,
-            ],
-        ]);
 
         // Allow events to say the response is invalid
         if (!$this->afterProcessPayment($submission, $result)) {
@@ -578,7 +574,7 @@ class Mollie extends Payment
 
             if (!$current->reference) {
                 if (($molliePayment['metadata']['formiePaymentUid'] ?? null) !== $current->uid
-                    || !in_array($current->status, [PaymentModel::STATUS_UNKNOWN, PaymentModel::STATUS_PENDING, PaymentModel::STATUS_REDIRECT], true)
+                    || !in_array($current->status, [PaymentModel::STATUS_UNKNOWN, PaymentModel::STATUS_PENDING, PaymentModel::STATUS_REQUIRES_ACTION], true)
                     || !(new DeliveryAttempt((int)$current->submissionId, 'payment-purchase', (string)$current->uid))->getMetadata()) {
                     throw new Exception('This Mollie payment is not awaiting a creation result.');
                 }
@@ -587,11 +583,11 @@ class Mollie extends Payment
                 $current->reference = $molliePayment['id'];
             }
 
-            if ($current->status !== PaymentModel::STATUS_SUCCESS) {
+            if ($current->status !== PaymentModel::STATUS_SUCCEEDED) {
                 $status = $molliePayment['status'] ?? '';
                 $current->response = $molliePayment;
                 $current->status = match ($status) {
-                    'paid' => PaymentModel::STATUS_SUCCESS,
+                    'paid' => PaymentModel::STATUS_SUCCEEDED,
                     'failed', 'expired' => PaymentModel::STATUS_FAILED,
                     'canceled' => PaymentModel::STATUS_CANCELLED,
                     'open', 'pending', 'authorized' => PaymentModel::STATUS_PENDING,
@@ -612,7 +608,7 @@ class Mollie extends Payment
             $mutex->release($lock);
         }
 
-        $result = Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+        $result = Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
 
         if ($result && !$result->response?->success) {
             throw new Exception('The payment is verified, but submission processing needs to be retried.');

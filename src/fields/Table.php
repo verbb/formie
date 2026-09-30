@@ -189,11 +189,6 @@ class Table extends Field
         return $this->defineValueAsData($value, $element);
     }
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::array();
-    }
-
     public function __construct(array $config = [])
     {
         // Setuo defaults for some values which can't in in the property definition
@@ -601,6 +596,11 @@ class Table extends Field
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::array();
+    }
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {

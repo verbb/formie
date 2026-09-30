@@ -119,13 +119,13 @@ it('requires a successful Opayo payment belonging to the current submission and 
 it('creates one Paddle transaction and verifies its server response before completing the same payment', function (string $variant): void {
     [$integration, $submission, $field] = checkoutVerificationFixture('paddle');
     $decision = $integration->processPayment($submission);
-    expect($decision->status->value)->toBe('actionRequired');
+    expect($decision->status->value)->toBe('requiresAction');
     $rows = Formie::$plugin->getPayments()->getSubmissionPayments($submission);
     expect($rows)->toHaveCount(1);
     $payment = $rows[0];
     $reference = 'txn_' . str_repeat('c', 26);
     expect($payment->reference)->toBe($reference)
-        ->and($payment->status)->toBe(Payment::STATUS_PENDING)
+        ->and($payment->status)->toBe(Payment::STATUS_REQUIRES_ACTION)
         ->and($decision->action['payload']['transactionId'])->toBe($reference)
         ->and($decision->action['payload'])->not->toHaveKey('items');
     $repeated = $integration->processPayment($submission);
@@ -160,7 +160,7 @@ it('creates one Paddle transaction and verifies its server response before compl
     };
     expect($integration->processPayment($submission)->status->value)->toBe($expected);
     $saved = Formie::$plugin->getPayments()->getPaymentById($payment->id);
-    expect($saved->status)->toBe($valid ? Payment::STATUS_SUCCESS : match ($expected) { 'cancelled' => Payment::STATUS_CANCELLED, 'unknown' => Payment::STATUS_UNKNOWN, default => Payment::STATUS_PENDING })
+    expect($saved->status)->toBe($valid ? Payment::STATUS_SUCCESS : match ($expected) { 'cancelled' => Payment::STATUS_CANCELLED, 'unknown' => Payment::STATUS_UNKNOWN, 'failed' => Payment::STATUS_REQUIRES_ACTION, default => Payment::STATUS_PENDING })
         ->and($saved->submissionId)->toBe($submission->id)
         ->and($saved->amount)->toBe('25.00');
     expect(Formie::$plugin->getPayments()->getSubmissionPayments($submission))->toHaveCount(1);
@@ -220,7 +220,7 @@ it('issues the Opayo challenge token from the persisted payment and completes th
     $integration->payload = ['opayoTokenId' => 'test-card-token', 'opayoSessionKey' => 'test-session'];
     $integration->response = ['status' => '3DAuth', 'transactionId' => $reference, 'acsUrl' => 'https://example.test/challenge', 'cReq' => 'test-request'];
     $decision = \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => $integration->processPayment($submission), ['method' => 'POST']);
-    expect($decision->status->value)->toBe('actionRequired');
+    expect($decision->status->value)->toBe('requiresAction');
     $token = $decision->action['payload']['threeDSSessionData'];
     $identity = \verbb\formie\helpers\PaymentCapabilities::resolve($token, \verbb\formie\enums\PaymentCapabilityPurpose::CHALLENGE);
     expect($identity)->not->toBeNull();
@@ -228,7 +228,7 @@ it('issues the Opayo challenge token from the persisted payment and completes th
     expect($stored->reference)->toBe($reference)
         ->and($stored->submissionId)->toBe($submission->id)
         ->and($stored->fieldId)->toBe($field->id)
-        ->and($stored->status)->toBe(Payment::STATUS_PENDING);
+        ->and($stored->status)->toBe(Payment::STATUS_REQUIRES_ACTION);
     $integration->response = ['status' => 'Ok', 'transactionId' => $reference];
     \Tests\Support\WebRequestTestHelper::withWebRequestContext(fn() => $integration->completeChallenge(), [
         'method' => 'POST', 'bodyParams' => ['cres' => 'synthetic-challenge', 'threeDSSessionData' => $token],
@@ -242,7 +242,7 @@ it('issues the Opayo challenge token from the persisted payment and completes th
 it('creates Paddle prices in the currency minor unit', function (string $currency, string $expected): void {
     [$integration, $submission, $field] = checkoutVerificationFixture('paddle');
     $field->providerSettings[$integration->handle]['currency'] = $currency;
-    expect($integration->processPayment($submission)->status->value)->toBe('actionRequired');
+    expect($integration->processPayment($submission)->status->value)->toBe('requiresAction');
     expect($integration->requests[1][2]['json']['unit_price'])->toBe(['amount' => $expected, 'currency_code' => $currency]);
 })->with([['USD', '2500'], ['JPY', '25']]);
 

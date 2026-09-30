@@ -14,6 +14,7 @@ use verbb\formie\models\PaymentMoney;
 
 use Craft;
 use craft\db\Query;
+use craft\helpers\Json;
 
 use DateTime;
 use ReflectionMethod;
@@ -50,6 +51,7 @@ class PaymentRecovery
 
     public static function resolve(int $paymentId, string $outcome, string|int|float $amount, string $currency, string $reference, string $note): Payment
     {
+        $outcome = $outcome === 'success' ? Payment::STATUS_SUCCEEDED : $outcome;
         $payment = self::_load($paymentId);
         $mutex = Craft::$app->getMutex();
         $lock = PaymentAttempt::lockName((int)$payment->submissionId, (int)$payment->integrationId, (int)$payment->fieldId);
@@ -61,11 +63,11 @@ class PaymentRecovery
         try {
             $payment = self::_load($paymentId);
 
-            if (!in_array($payment->status, [Payment::STATUS_UNKNOWN, Payment::STATUS_PENDING, Payment::STATUS_PROCESSING, Payment::STATUS_REDIRECT], true)) {
+            if (!in_array($payment->status, [Payment::STATUS_UNKNOWN, Payment::STATUS_PENDING, Payment::STATUS_PROCESSING, Payment::STATUS_REQUIRES_ACTION], true)) {
                 throw new RuntimeException('Only unresolved payments can be resolved.');
             }
 
-            $owner = (new DeliveryAttempt((int)$payment->submissionId, 'payment-owner', (string)$payment->uid))->getMetadata();
+            $owner = (new DeliveryAttempt((int)$payment->submissionId, 'payment-account-owner', (string)$payment->uid))->getMetadata();
             $integration = $payment->getIntegration();
 
             // Older attempts may predate the ownership ledger. Only the explicit
@@ -78,7 +80,7 @@ class PaymentRecovery
                 throw new RuntimeException('This payment uses a different recovery flow. Use its gateway status check.');
             }
 
-            if (!in_array($outcome, [Payment::STATUS_SUCCESS, Payment::STATUS_FAILED], true)
+            if (!in_array($outcome, [Payment::STATUS_SUCCEEDED, Payment::STATUS_FAILED], true)
                 || !PaymentMoney::fromDecimal((string)$amount, $currency)->equals(PaymentMoney::fromDecimal($payment->amount, (string)$payment->currency)) || $currency !== $payment->currency
                 || trim($note) === '' || strlen($note) > 2000 || strlen($reference) > 255) {
                 throw new RuntimeException('Supply a verified outcome, the exact amount and currency, and a recovery note.');
@@ -86,7 +88,7 @@ class PaymentRecovery
 
             $reference = trim($reference);
 
-            if ($outcome === Payment::STATUS_SUCCESS && $reference === '') {
+            if ($outcome === Payment::STATUS_SUCCEEDED && $reference === '') {
                 throw new RuntimeException('A successful payment requires the verified gateway reference.');
             }
 
@@ -128,6 +130,9 @@ class PaymentRecovery
             throw new RuntimeException('Automatic lookup is unavailable. Check the merchant reference in the gateway, then record its verified outcome.');
         }
 
+        if (!$payment->accountFingerprint || !hash_equals($payment->accountFingerprint, $integration->getPaymentAccountFingerprint())) {
+            throw new RuntimeException('Verify the original account before reconciling this payment.');
+        }
         $integration->setField($payment->getField());
         Formie::$plugin->getPayments()->observeProvider(fn() => $integration->getTransaction($payment));
 
@@ -138,7 +143,7 @@ class PaymentRecovery
     {
         $payment = self::_load($paymentId);
 
-        if ($payment->status !== Payment::STATUS_SUCCESS && ($payment->scope['providerOutcome']['status'] ?? null) !== Payment::STATUS_SUCCESS) {
+        if ($payment->status !== Payment::STATUS_SUCCEEDED && ($payment->scope['providerOutcome']['status'] ?? null) !== Payment::STATUS_SUCCEEDED) {
             throw new RuntimeException('Only a verified successful payment can resume submission processing.');
         }
 
@@ -146,10 +151,33 @@ class PaymentRecovery
             throw new RuntimeException('The payment’s submission is unavailable.');
         }
 
-        $result = Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+        $result = Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
 
         if ($result && !$result->response?->success) {
             throw new RuntimeException('The payment remains verified, but submission processing failed. Check its errors before resuming again.');
+        }
+    }
+
+    /** Trusted operator migration boundary: never replaces an established account identity. */
+    public static function verifyLegacyAccount(string $kind, int $id, string $note): void
+    {
+        $table = match ($kind) { 'payment' => Table::FORMIE_PAYMENTS, 'subscription' => Table::FORMIE_SUBSCRIPTIONS, default => throw new RuntimeException('Choose payment or subscription.') };
+        if (trim($note) === '' || strlen($note) > 2000) {
+            throw new RuntimeException('Record how the original provider account was independently verified.');
+        }
+        $row = (new Query())->from($table)->where(['id' => $id])->one();
+        $integration = $row ? Formie::$plugin->getIntegrations()->getIntegrationById((int)$row['integrationId']) : null;
+        if (!$integration instanceof PaymentIntegration || $row['accountFingerprint'] !== null) {
+            throw new RuntimeException('Only an unbound historical record can have its account verified.');
+        }
+        $scope = (array)Json::decodeIfJson($row['scope']);
+        $scope['accountVerification'] = ['source' => 'operator', 'note' => trim($note), 'at' => gmdate('c')];
+        $changed = Craft::$app->getDb()->createCommand()->update($table, [
+            'accountFingerprint' => $integration->getPaymentAccountFingerprint(),
+            'scope' => Json::encode($scope), 'version' => (int)$row['version'] + 1,
+        ], ['id' => $id, 'version' => $row['version'], 'accountFingerprint' => null])->execute();
+        if ($changed !== 1) {
+            throw new RuntimeException('The financial record changed. Reload before verifying its account.');
         }
     }
 

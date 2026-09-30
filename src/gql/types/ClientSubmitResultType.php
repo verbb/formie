@@ -73,35 +73,10 @@ class ClientSubmitResultType extends ObjectType
                     'name' => 'clientEvents',
                     'type' => ArrayType::getType(),
                 ],
-                'paymentStatus' => [
-                    'name' => 'paymentStatus',
-                    'type' => Type::string(),
-                    'description' => 'The payment follow-up status when a payment provider requires additional action.',
-                ],
-                'paymentMessage' => [
-                    'name' => 'paymentMessage',
-                    'type' => Type::string(),
-                    'description' => 'A user-facing message describing the required payment follow-up.',
-                ],
-                'paymentRedirectUrl' => [
-                    'name' => 'paymentRedirectUrl',
-                    'type' => Type::string(),
-                    'description' => 'A redirect URL when the payment provider requires off-site completion.',
-                ],
-                'paymentAction' => [
-                    'name' => 'paymentAction',
+                'payment' => [
+                    'name' => 'payment',
                     'type' => Json::getType(),
-                    'description' => 'Structured payment follow-up action metadata for headless front-ends.',
-                ],
-                'paymentDecision' => [
-                    'name' => 'paymentDecision',
-                    'type' => Json::getType(),
-                    'description' => 'The canonical payment decision payload returned by the submission workflow.',
-                ],
-                'keepSubmitLoading' => [
-                    'name' => 'keepSubmitLoading',
-                    'type' => Type::boolean(),
-                    'description' => 'Whether the front-end should keep the submit state active while payment follow-up runs.',
+                    'description' => 'Payment state and any required browser action.',
                 ],
             ],
         ]));

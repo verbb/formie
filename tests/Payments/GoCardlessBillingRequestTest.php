@@ -77,7 +77,7 @@ it('creates a billing request flow during payment processing', function(): void 
         ['referrer' => 'https://example.test/donate'],
     );
 
-    expect($decision->status->value)->toBe('actionRequired')
+    expect($decision->status->value)->toBe('requiresAction')
         ->and($decision->action['payload']['redirectUrl'] ?? null)->toContain('pay.gocardless.com')
         ->and($integration->requests[0]['uri'])->toBe('billing_requests')
         ->and($integration->requests[0]['options']['json']['billing_requests']['mandate_request']['scheme'])->toBe('bacs')
@@ -257,7 +257,10 @@ it('creates a subscription after the billing request is fulfilled', function(): 
         'name' => 'GoCardless Subscription Sync',
         'handle' => $integration->handle,
         'accessToken' => 'test-token',
+        'originalAccountFingerprint' => $integration->getPaymentAccountFingerprint(),
     ]) extends GoCardless {
+        public string $originalAccountFingerprint;
+        public function getPaymentAccountFingerprint(): string { return $this->originalAccountFingerprint; }
         public function request(string $method, string $uri, array $options = []): mixed
         {
             if ($method === 'GET' && $uri === 'billing_requests/BRQ456') {

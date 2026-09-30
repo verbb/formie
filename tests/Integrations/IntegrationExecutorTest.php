@@ -40,6 +40,45 @@ function executorTestIntegration(string $handle): Integration
     };
 }
 
+it('passes explicit run inputs and persists typed outputs without mutable provider channels', function(): void {
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $submission = formie()->submission($form)->save();
+    $provider = new class(['name' => 'Explicit context', 'handle' => 'explicitContext']) extends Integration implements \verbb\formie\base\DispatchableIntegrationInterface {
+        public static ?\verbb\formie\models\IntegrationRunContext $seen = null;
+        public function execute(\verbb\formie\models\IntegrationRunContext $context): \verbb\formie\models\IntegrationResult {
+            self::$seen = $context;
+            return \verbb\formie\models\IntegrationResult::succeeded()->withOutputs(['elementId' => 42, 'elementType' => 'synthetic', 'url' => 'https://example.test/result']);
+        }
+    };
+    expect($provider->supportsPayloadSending())->toBeTrue();
+    $result = Formie::$plugin->getIntegrationRunner()->runIntegration($provider, $submission, 'explicit-run', 'synchronous', ['triggerEvent' => 'submit']);
+    expect($provider::$seen->submission)->toBe($submission)
+        ->and($provider::$seen->execution->executionUid)->toBe('explicit-run')
+        ->and($provider::$seen->attemptUid)->not->toBeNull()
+        ->and($result->outputs['elementId'])->toBe(42)
+        ->and(Formie::$plugin->getIntegrationDispatcher()->loadContext($submission, 'explicit-run')->getResult('explicitContext')['elementId'])->toBe(42)
+        ->and($provider->context)->not->toHaveKey('dispatchElement');
+});
+
+it('adapts inherited Formie 3 sendPayload overrides that call their native parent once', function(): void {
+    $form = formie()->form()->create();
+    $submission = formie()->submission($form)->save();
+    $provider = new class(['name' => 'Inherited legacy', 'handle' => 'inheritedLegacy']) extends \verbb\formie\integrations\helpdesk\Freshdesk {
+        public int $legacyCalls = 0;
+        public int $nativeCalls = 0;
+        public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult {
+            $this->legacyCalls++;
+            return parent::sendPayload($submission);
+        }
+        protected function executePayload(Submission $submission): \verbb\formie\models\IntegrationResult {
+            $this->nativeCalls++;
+            return $this->resultForPayload(true);
+        }
+    };
+    expect(Formie::$plugin->getIntegrations()->sendIntegrationPayload($provider, $submission)->isSuccessful())->toBeTrue()
+        ->and($provider->legacyCalls)->toBe(1)->and($provider->nativeCalls)->toBe(1);
+});
+
 function withExecutorTestIntegrations(object $form, array $integrations, callable $callback): mixed
 {
     $handler = function(ModifyFormIntegrationsEvent $event) use ($form, $integrations): void {

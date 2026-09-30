@@ -12,6 +12,12 @@ use ReflectionProperty;
 /** Formie owns binding state; extensions only annotate their existing properties. */
 final class FormIntegration
 {
+    // Constants
+    // =========================================================================
+
+    public const POLICY_ATTRIBUTES = ['enabled', 'execution', 'optInField', 'enableConditions', 'conditions', 'trigger'];
+
+
     // Static Methods
     // =========================================================================
 
@@ -24,7 +30,7 @@ final class FormIntegration
 
         $attributes = [];
         foreach ((new ReflectionObject($integration))->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
-            if (!$property->isStatic() && !$property->isReadOnly() && $property->getAttributes(FormIntegrationSetting::class)) {
+            if (!$property->isStatic() && !$property->isReadOnly() && !in_array($property->getName(), self::POLICY_ATTRIBUTES, true) && $property->getAttributes(FormIntegrationSetting::class)) {
                 $attributes[] = $property->getName();
             }
         }
@@ -35,12 +41,17 @@ final class FormIntegration
     public static function filterSettings(IntegrationInterface $integration, array $settings): array
     {
         // Never consult provider overrides, validation rules or UI schema for authority.
-        return array_intersect_key($settings, array_fill_keys(array_merge(['enabled', 'execution'], self::settingAttributes($integration)), true));
+        return array_intersect_key($settings, array_fill_keys(array_merge(self::POLICY_ATTRIBUTES, self::settingAttributes($integration)), true));
+    }
+
+    public static function settingsFromRuntime(Integration $integration): array
+    {
+        return array_replace($integration->getFormIntegration()->toSettings(), self::filterSettings($integration, $integration->getAttributes()), ['enabled' => $integration->getEnabled()]);
     }
 
     public static function validateSchema(IntegrationInterface $integration, array $compiledSchema): void
     {
-        $allowed = array_fill_keys(array_merge(['enabled', 'execution'], self::settingAttributes($integration)), true);
+        $allowed = array_fill_keys(array_merge(self::POLICY_ATTRIBUTES, self::settingAttributes($integration)), true);
         foreach ($compiledSchema['fieldEntries'] ?? [] as $entry) {
             $path = (string)($entry['path'] ?? '');
             $root = strtok($path, '.*[') ?: '';
@@ -77,6 +88,10 @@ final class FormIntegration
     public readonly array $settings;
     public readonly ?int $formId;
     public readonly ?string $formHandle;
+    public readonly ?string $optInField;
+    public readonly bool $enableConditions;
+    public readonly array $conditions;
+    public readonly array $trigger;
 
     private static array $_settingAttributesByClass = [];
 
@@ -89,7 +104,14 @@ final class FormIntegration
         $this->integration = $integration;
         $this->enabled = $enabled;
         $this->execution = $execution;
-        $this->settings = $settings;
+        $this->optInField = isset($settings['optInField']) ? (string)$settings['optInField'] : null;
+        $this->enableConditions = (bool)($settings['enableConditions'] ?? false);
+        $this->conditions = (array)($settings['conditions'] ?? []);
+        $this->trigger = (array)($settings['trigger'] ?? ['policy' => 'submitOnly']);
+        if (!in_array($this->trigger['policy'] ?? 'submitOnly', ['submitOnly', 'onEdit', 'custom'], true)) {
+            throw new InvalidArgumentException('Invalid integration trigger policy.');
+        }
+        $this->settings = array_intersect_key($settings, array_fill_keys(self::settingAttributes($integration), true));
         $this->formId = $formId;
         $this->formHandle = $formHandle;
     }
@@ -98,6 +120,9 @@ final class FormIntegration
     {
         $runtime = clone $this->integration;
         $runtime->enabled = $this->enabled;
+        if ($runtime instanceof Integration) {
+            $runtime->setFormIntegration($this);
+        }
         // Recheck at hydration even for bindings constructed directly by extensions.
         $settings = array_intersect_key($this->settings, array_fill_keys(self::settingAttributes($runtime), true));
         $runtime->setAttributes($settings, false);
@@ -108,7 +133,11 @@ final class FormIntegration
 
     public function toSettings(): array
     {
-        return ['enabled' => $this->enabled, 'execution' => $this->execution] + $this->settings;
+        return [
+            'enabled' => $this->enabled, 'execution' => $this->execution,
+            'optInField' => $this->optInField, 'enableConditions' => $this->enableConditions,
+            'conditions' => $this->conditions, 'trigger' => $this->trigger,
+        ] + $this->settings;
     }
 
     public function validate(): array

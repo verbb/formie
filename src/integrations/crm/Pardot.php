@@ -397,7 +397,7 @@ class Pardot extends Crm implements OAuthProviderInterface
         return new IntegrationConfig($settings);
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {

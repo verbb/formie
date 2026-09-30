@@ -2,6 +2,7 @@
 namespace verbb\formie\client\modules;
 
 use verbb\formie\elements\Form;
+use verbb\formie\events\RegisterBrowserModulesEvent;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleEntry;
 use verbb\formie\models\BrowserModuleManifest;
@@ -10,6 +11,12 @@ use yii\base\Component;
 
 class BrowserModuleManifestBuilder extends Component
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_REGISTER_MODULES = 'registerModules';
+
+
     // Public Methods
     // =========================================================================
 
@@ -19,29 +26,41 @@ class BrowserModuleManifestBuilder extends Component
 
         $entries = [];
         $occurrences = [];
+        $modules = [];
 
         foreach ([new ConditionsModuleProvider(), new FieldModuleProvider(), new CaptchaModuleProvider()] as $provider) {
-            foreach ($provider->build($form, $surface) as $module) {
-                if (!$module instanceof BrowserModule || !$module->supportsSurface($surface)) {
-                    continue;
-                }
+            array_push($modules, ...$provider->build($form, $surface));
+        }
 
-                if (!$module->kind || !$module->targets) {
-                    throw new \InvalidArgumentException('Browser module declarations must resolve kind and targets before manifest projection.');
-                }
-
-                $identity = $this->_entryIdentity($module);
-                $occurrence = $occurrences[$identity] ?? 0;
-                $occurrences[$identity] = $occurrence + 1;
-                $entries[] = new BrowserModuleEntry(
-                    key: $module->key ?: $identity . ':' . $occurrence,
-                    moduleId: $module->moduleId,
-                    kind: $module->kind,
-                    targets: $module->targets,
-                    config: $module->config,
-                    required: $module->required,
-                );
+        $event = new RegisterBrowserModulesEvent(['form' => $form, 'surface' => $surface]);
+        $this->trigger(self::EVENT_REGISTER_MODULES, $event);
+        foreach ($event->modules as $module) {
+            if (!$module instanceof BrowserModule) {
+                throw new \InvalidArgumentException('Form module contributions must be BrowserModule declarations.');
             }
+            $modules[] = $module->withProjectionDefaults(BrowserModule::KIND_CORE, [['type' => 'form']]);
+        }
+
+        foreach ($modules as $module) {
+            if (!$module instanceof BrowserModule || !$module->supportsSurface($surface)) {
+                continue;
+            }
+
+            if (!$module->kind || !$module->targets) {
+                throw new \InvalidArgumentException('Browser module declarations must resolve kind and targets before manifest projection.');
+            }
+
+            $identity = $this->_entryIdentity($module);
+            $occurrence = $occurrences[$identity] ?? 0;
+            $occurrences[$identity] = $occurrence + 1;
+            $entries[] = new BrowserModuleEntry(
+                key: $module->key ?: $identity . ':' . $occurrence,
+                moduleId: $module->moduleId,
+                kind: $module->kind,
+                targets: $module->targets,
+                config: $module->config,
+                required: $module->required,
+            );
         }
 
         return new BrowserModuleManifest($surface, $entries);

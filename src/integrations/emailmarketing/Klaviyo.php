@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\emailmarketing;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
@@ -30,6 +31,7 @@ class Klaviyo extends EmailMarketing
     // Properties
     // =========================================================================
 
+    #[Sensitive]
     public ?string $privateApiKey = null;
     public ?string $publicApiKey = null;
 
@@ -136,7 +138,7 @@ class Klaviyo extends EmailMarketing
         return new IntegrationConfig($settings);
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {

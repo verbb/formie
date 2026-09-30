@@ -4,6 +4,7 @@ namespace verbb\formie\models;
 use verbb\formie\Formie;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\Payment as PaymentIntegration;
+use verbb\formie\compatibility\payments\LegacySubscriptionData;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\PaymentCapabilityPurpose;
 use verbb\formie\enums\SubscriptionCancellationMode;
@@ -22,6 +23,11 @@ use InvalidArgumentException;
 
 class Subscription extends Model
 {
+    // Traits
+    // =========================================================================
+
+    use LegacySubscriptionData;
+
     // Constants
     // =========================================================================
 
@@ -48,7 +54,10 @@ class Subscription extends Model
     public ?int $fieldId = null;
     public ?int $planId = null;
     public ?string $reference = null;
-    public ?array $subscriptionData = null;
+    public array $providerData = [];
+    public ?string $accountFingerprint = null;
+    public ?array $terms = null;
+    public ?DateTimeInterface $lastSyncedAt = null;
     public ?int $trialDays = 0;
     public ?DateTimeInterface $startedAt = null;
     public ?DateTimeInterface $trialStartsAt = null;
@@ -69,7 +78,7 @@ class Subscription extends Model
     private ?IntegrationInterface $_integration = null;
     private ?Submission $_submission = null;
     private ?PaymentField $_field = null;
-    private ?Plan $_plan = null;
+    private ?SubscriptionPlan $_plan = null;
 
 
     // Public Methods
@@ -105,7 +114,7 @@ class Subscription extends Model
         return $this->_field;
     }
 
-    public function getPlan(): ?Plan
+    public function getPlan(): ?SubscriptionPlan
     {
         if (!$this->planId) { return null; }
         if (!isset($this->_plan)) {

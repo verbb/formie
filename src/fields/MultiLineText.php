@@ -76,11 +76,6 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::string();
-    }
-
     public function fieldKind(): string
     {
         return self::KIND_TEXTAREA;
@@ -296,6 +291,11 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
 
     protected function supportedDefaults(): array
     {

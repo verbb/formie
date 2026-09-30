@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
@@ -111,6 +112,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
     public bool|string $useSandbox = false;
     public bool|string $useCredentials = false;
     public ?string $username = null;
+    #[Sensitive]
     public ?string $password = null;
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
@@ -400,7 +402,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
         return $value;
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {

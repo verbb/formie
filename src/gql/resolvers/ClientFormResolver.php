@@ -47,7 +47,7 @@ class ClientFormResolver
         \verbb\formie\helpers\BrowserRequestProfile::enter(false);
         \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders(\Craft::$app->getRequest(), \Craft::$app->getResponse());
         $payload = $arguments['input'];
-        $form = Formie::$plugin->getSubmissionProcessor()->requireFormByHandle(
+        $form = Formie::$plugin->getSubmissionRequests()->requireFormByHandle(
             (string)($payload['handle'] ?? ''),
             isset($payload['siteId']) ? (int)$payload['siteId'] : null
         );
@@ -78,7 +78,7 @@ class ClientFormResolver
         \verbb\formie\helpers\BrowserRequestProfile::enter(false);
         \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders(\Craft::$app->getRequest(), \Craft::$app->getResponse());
         $payload = $arguments['input'];
-        $form = Formie::$plugin->getSubmissionProcessor()->requireFormByHandle(
+        $form = Formie::$plugin->getSubmissionRequests()->requireFormByHandle(
             (string)($payload['handle'] ?? ''),
             isset($payload['siteId']) ? (int)$payload['siteId'] : null
         );
@@ -113,7 +113,7 @@ class ClientFormResolver
         \verbb\formie\helpers\BrowserRequestProfile::enter(false);
         \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders(\Craft::$app->getRequest(), \Craft::$app->getResponse());
         $payload = $arguments['input'];
-        $form = Formie::$plugin->getSubmissionProcessor()->requireFormByHandle(
+        $form = Formie::$plugin->getSubmissionRequests()->requireFormByHandle(
             (string)($payload['handle'] ?? ''),
             isset($payload['siteId']) ? (int)$payload['siteId'] : null
         );
@@ -130,7 +130,7 @@ class ClientFormResolver
             throw new \yii\web\BadRequestHttpException('Unable to verify your data submission.');
         }
 
-        $result = Formie::$plugin->getSubmissionProcessor()->execute(new SubmitRequest([
+        $result = Formie::$plugin->getSubmissionRequests()->execute(new SubmitRequest([
             'handle' => (string)($payload['handle'] ?? ''),
             'action' => (string)($payload['action'] ?? 'submit'),
             'browserData' => (array)($payload['browserData'] ?? []),

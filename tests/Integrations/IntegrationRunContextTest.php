@@ -6,7 +6,7 @@ use craft\helpers\Json;
 use verbb\formie\Formie;
 use verbb\formie\helpers\Table;
 use verbb\formie\migrations\m260927_040000_integration_run_contexts;
-use verbb\formie\models\IntegrationRunContext;
+use verbb\formie\models\IntegrationRunResults;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\services\IntegrationDispatcher;
 
@@ -16,7 +16,7 @@ it('keeps interleaved run results and reference scopes independent', function ()
     $other = formie()->submission($form)->save();
     $dispatcher = Formie::$plugin->getIntegrationDispatcher();
     foreach (['earlier' => 10, 'later' => 20] as $run => $id) {
-        $context = new IntegrationRunContext();
+        $context = new IntegrationRunResults();
         $context->record('contact', ['success' => true, 'elementId' => $id]);
         $dispatcher->saveContext($submission, $context, $run);
     }

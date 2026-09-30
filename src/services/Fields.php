@@ -2489,6 +2489,7 @@ class Fields extends Component
         $this->_fieldLookupCache?->reset();
         $this->_fieldRegistryCache?->reset();
         $this->_fieldGqlCache?->reset();
+        Formie::$plugin->getForms()->invalidateFormCaches();
         SubmissionQuery::invalidateStaticCaches();
         $this->_fieldCachesDirty = false;
     }

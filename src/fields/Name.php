@@ -116,11 +116,6 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
         return $this->useMultipleFields ? parent::serializeValueForClientInput($value->toArray(), $element) : (string)$value;
     }
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::object(NameFieldValue::class);
-    }
-
     public function __construct(array $config = [])
     {
         unset(
@@ -385,6 +380,11 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::object(NameFieldValue::class);
+    }
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {

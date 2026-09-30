@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
@@ -55,6 +56,7 @@ class Square extends Payment
     // =========================================================================
 
     public ?string $applicationId = null;
+    #[Sensitive]
     public ?string $accessToken = null;
     public ?string $locationId = null;
     public bool|string $useSandbox = false;
@@ -167,7 +169,7 @@ class Square extends Payment
             $payment->fieldId = $field->id;
             $payment->amount = $amount;
             $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_SUCCESS;
+            $payment->status = PaymentModel::STATUS_SUCCEEDED;
             $payment->reference = $data['id'] ?? '';
             $payment->response = $response;
 
@@ -213,6 +215,11 @@ class Square extends Payment
         }
 
         return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
+    }
+
+    protected function getPaymentAccountIdentity(): ?string
+    {
+        return App::parseEnv($this->locationId) ?: null;
     }
 
     public function fetchConnection(): bool

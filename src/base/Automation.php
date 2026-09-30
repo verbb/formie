@@ -20,8 +20,13 @@ use GuzzleHttp\Client;
 
 use yii\helpers\Markdown;
 
-abstract class Automation extends Integration
+abstract class Automation extends Integration implements DispatchableIntegrationInterface
 {
+    // Traits
+    // =========================================================================
+
+    use DispatchableIntegrationTrait;
+
     // Constants
     // =========================================================================
 

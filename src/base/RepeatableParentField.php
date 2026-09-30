@@ -110,11 +110,6 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         }
     }
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::array();
-    }
-
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
         return $this->projectChildValues($value, $element, fn($field, $child) => $field->serializeValueForClientInput($field->normalizeFieldValue($child, $element), $element));
@@ -229,6 +224,11 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::array();
+    }
 
     protected function projectChildValues(mixed $value, ?ElementInterface $element, callable $project): array
     {

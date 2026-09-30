@@ -156,11 +156,6 @@ class FileUpload extends ElementField
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::relationQuery(static::elementType());
-    }
-
     public function __construct($config = [])
     {
         // Normalize the options
@@ -963,6 +958,11 @@ class FileUpload extends ElementField
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::relationQuery(static::elementType());
+    }
 
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {

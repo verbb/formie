@@ -8,7 +8,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\fields\definitions\FieldClientRenderedDefinition;
-use verbb\formie\fields\definitions\FieldConditions;
+use verbb\formie\conditions\ConditionSet;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\models\Notification;
@@ -42,7 +42,7 @@ interface FieldInterface extends SavableComponentInterface, FieldTypeDefinitionI
     public function browserModules(BrowserModuleContext $context): array;
     /** @return FieldReferenceValue[] */
     public function referenceValues(): array;
-    public function conditions(): FieldConditions;
+    public function conditions(): ConditionSet;
     public function hasLabel(): bool;
     public function getIsCosmetic(): bool;
     public function getIsHidden(): bool;

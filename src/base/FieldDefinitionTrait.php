@@ -3,10 +3,9 @@ namespace verbb\formie\base;
 
 use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\fields\definitions\FieldClientRenderedDefinition;
-use verbb\formie\fields\definitions\FieldConditions;
+use verbb\formie\conditions\ConditionSet;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
-use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use Craft;
@@ -31,7 +30,7 @@ trait FieldDefinitionTrait
     // The declared type describes normalization; each projection is owned by the field.
     public function valueType(): FieldValueType
     {
-        return $this->getIsCosmetic() ? FieldValueType::none() : $this->legacyValueType();
+        return $this->defineValueType();
     }
 
     // Client children describe how managed clients should model nested parts or rows.
@@ -87,7 +86,7 @@ trait FieldDefinitionTrait
     }
 
     // Conditions are normalized once here so browser payloads and rendered fields stay aligned.
-    public function conditions(): FieldConditions
+    public function conditions(): ConditionSet
     {
         return $this->conditionDefinition();
     }
@@ -100,6 +99,11 @@ trait FieldDefinitionTrait
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return $this->getIsCosmetic() ? FieldValueType::none() : $this->legacyValueType();
+    }
 
     protected function defineClientRenderedChildren(): FieldClientRenderedChildren
     {
@@ -117,26 +121,9 @@ trait FieldDefinitionTrait
     }
 
     // Conditions remain field-authored config until we have a form context to normalize against.
-    protected function conditionDefinition(): FieldConditions
+    protected function conditionDefinition(): ConditionSet
     {
-        if (!$this->enableConditions) {
-            return FieldConditions::make();
-        }
-
-        $conditions = $this->getConditions();
-
-        if (!$conditions) {
-            return FieldConditions::make();
-        }
-
-        if ($form = $this->getForm()) {
-            $conditions = ConditionsHelper::normalizeClientConditions($conditions, $form);
-        }
-
-        $conditions['clearOnHide'] = true;
-        $conditions['isNested'] = (bool)$this->getParentField();
-
-        return FieldConditions::make($conditions);
+        return ConditionSet::fromArray($this->enableConditions ? $this->getConditions() : []);
     }
 
     protected function defineClientRenderedInput(): array

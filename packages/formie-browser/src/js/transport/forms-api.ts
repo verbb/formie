@@ -32,7 +32,8 @@ function normalizePayload(payload: Record<string, unknown>, fallbackFormError?: 
     const completion = payload.completion && typeof payload.completion === 'object'
         ? payload.completion as NonNullable<FormSubmitResult['completion']>
         : null;
-    const keepSubmitLoading = payload.keepSubmitLoading === true;
+    const payment = payload.payment && typeof payload.payment === 'object' ? payload.payment as FormSubmitResult['payment'] : null;
+    const keepSubmitLoading = ['requiresAction', 'pending', 'unknown'].includes(payment?.status || '');
     const errors = payload.errors;
     const fieldErrorsFlat: Record<string, string[]> = Object.fromEntries(Object.entries(errors && typeof errors === 'object' ? errors : {}).map(([path, messages]) => [path, Array.isArray(messages) ? messages.filter((message): message is string => typeof message === 'string') : []]));
     const formErrors = fieldErrorsFlat.form || [];
@@ -75,6 +76,7 @@ function normalizePayload(payload: Record<string, unknown>, fallbackFormError?: 
         ) as string,
         code: success ? undefined : String(payload.code || 'SUBMIT_ERROR'),
         keepSubmitLoading,
+        payment,
         fieldErrors: Object.keys(fieldErrors).length ? fieldErrors : undefined,
         formErrors: resolvedFormErrors.length ? resolvedFormErrors : undefined,
         nextPage: payload.nextPageId
@@ -82,7 +84,12 @@ function normalizePayload(payload: Record<string, unknown>, fallbackFormError?: 
                 id: String(payload.nextPageId),
             }
             : null,
-        redirect: completion?.url
+        redirect: payment?.status === 'requiresAction' && payment.action?.type === 'redirect' && payment.action.url
+            ? {
+                url: payment.action.url,
+                target: 'same-tab',
+            }
+            : completion?.url
             ? {
                 url: completion.url,
                 target: completion.target,

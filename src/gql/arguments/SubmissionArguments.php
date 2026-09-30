@@ -67,10 +67,10 @@ class SubmissionArguments extends ElementArguments
         $arguments = [];
         $fieldsService = Formie::$plugin->getFields();
         $forms = self::_getSchemaScopedForms();
-        $fieldConfigsByForm = $fieldsService->getAllFieldConfigsForForms(array_map(static fn($form): int => (int)$form->id, $forms));
+        $snapshot = Formie::$plugin->getForms()->getGqlSchemaSnapshot();
 
         foreach ($forms as $form) {
-            foreach ($fieldConfigsByForm[$form->id] ?? [] as $fieldConfig) {
+            foreach ($snapshot->fieldConfigs((int)$form->id) as $fieldConfig) {
                 $handle = $fieldConfig['handle'] ?? null;
 
                 if ($handle && !isset($arguments[$handle])) {
@@ -117,7 +117,7 @@ class SubmissionArguments extends ElementArguments
 
     private static function _getSchemaScopedForms(): array
     {
-        $forms = Formie::$plugin->getForms()->getAllFormsWithLayouts(forSchema: true);
+        $forms = Formie::$plugin->getForms()->getGqlSchemaSnapshot()->forms('formieSubmissions');
 
         if (GqlHelper::isSchemaAwareOf('formieSubmissions.all')) {
             return $forms;

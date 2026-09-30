@@ -69,6 +69,11 @@ import { bindLegacyDomEventCompatibility, resolveLegacyCompatibilityOptions, cre
 import { evaluateCondition } from '../../packages/formie-core/src/index';
 (globalThis as any).conditionBoundary = { evaluateCondition };
 
+import { submitForm } from '../../packages/formie-browser/src/js/transport/forms-api';
+import { applySubmitResultState } from '../../packages/formie-browser/src/js/core/submit-result-state';
+import { applySubmitResultUi } from '../../packages/formie-browser/src/js/core/submit-result-ui';
+(globalThis as any).paymentResponseBoundary = { submitForm, applySubmitResultState, applySubmitResultUi };
+
 import { parseConditionSettings } from '../../packages/formie-browser/src/js/modules/fields/conditions/config';
 import { queryConditionInputs } from '../../packages/formie-browser/src/js/modules/fields/conditions/references';
 import { evaluateConditionSettings } from '../../packages/formie-browser/src/js/modules/fields/conditions/evaluator';

@@ -3,6 +3,9 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\compatibility\payments\LegacyPaymentAmount;
+use verbb\formie\compatibility\payments\LegacyPaymentStatus;
+use verbb\formie\enums\PaymentStatus;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Payment as PaymentField;
 
@@ -13,12 +16,18 @@ use DateTime;
 
 class Payment extends Model
 {
+    // Traits
+    // =========================================================================
+
+    use LegacyPaymentAmount;
+    use LegacyPaymentStatus;
+
     // Constants
     // =========================================================================
 
     public const STATUS_PENDING = 'pending';
-    public const STATUS_REDIRECT = 'redirect';
-    public const STATUS_SUCCESS = 'success';
+    public const STATUS_REQUIRES_ACTION = 'requiresAction';
+    public const STATUS_SUCCEEDED = 'succeeded';
     public const STATUS_FAILED = 'failed';
     public const STATUS_PROCESSING = 'processing';
     public const STATUS_UNKNOWN = 'unknown';
@@ -33,7 +42,8 @@ class Payment extends Model
     public ?int $submissionId = null;
     public ?int $fieldId = null;
     public ?int $subscriptionId = null;
-    public string $amount = '0';
+    public string $amountMinor = '0';
+    public ?string $accountFingerprint = null;
     public int $version = 0;
     public ?string $idempotencyKey = null;
     public ?int $lastReconciledAt = null;
@@ -42,7 +52,7 @@ class Payment extends Model
     public ?array $history = null;
     public ?array $scope = null;
     public ?string $currency = null;
-    public ?string $status = null;
+    private PaymentStatus $_status = PaymentStatus::PENDING;
     public ?string $reference = null;
     public ?string $code = null;
     public ?string $message = null;
@@ -62,6 +72,17 @@ class Payment extends Model
     // Public Methods
     // =========================================================================
 
+    public function __construct($config = [])
+    {
+        $this->currency = $config['currency'] ?? null;
+        if (isset($config['amountMinor'])) {
+            unset($config['amount']);
+        } else {
+            unset($config['amountMinor']);
+        }
+        parent::__construct($config);
+    }
+
     public function getIntegration(): ?IntegrationInterface
     {
         if (!$this->integrationId) { return null; }
@@ -70,6 +91,31 @@ class Payment extends Model
         }
 
         return $this->_integration;
+    }
+
+    public function attributes(): array
+    {
+        return [...parent::attributes(), 'status', 'amount'];
+    }
+
+    public function getStatus(): string
+    {
+        return $this->_status->value;
+    }
+
+    public function getState(): PaymentStatus
+    {
+        return $this->_status;
+    }
+
+    public function setStatus(string|PaymentStatus|null $status): void
+    {
+        $this->_status = $status instanceof PaymentStatus ? $status : PaymentStatus::from(match ($status) {
+            'redirect' => 'requiresAction',
+            'success' => 'succeeded',
+            null, '' => 'pending',
+            default => $status,
+        });
     }
 
     public function getSubmission(): ?Submission

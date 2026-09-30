@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
@@ -68,7 +69,9 @@ class GoCardless extends Payment
     // Properties
     // =========================================================================
 
+    #[Sensitive]
     public ?string $accessToken = null;
+    #[Sensitive]
     public ?string $webhookSecretKey = null;
     public bool|string $useSandbox = false;
 
@@ -141,7 +144,7 @@ class GoCardless extends Payment
         }
 
         try {
-            $payment->status = PaymentModel::STATUS_REDIRECT;
+            $payment->status = PaymentModel::STATUS_REQUIRES_ACTION;
             $payment->redirectUrl = Craft::$app->getRequest()->getReferrer();
 
             Formie::$plugin->getPayments()->savePayment($payment);
@@ -185,12 +188,6 @@ class GoCardless extends Payment
             ];
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            $submission->getForm()->addSubmitData([
-                'event' => 'formie:payment:go-cardless:redirect',
-                'data' => [
-                    'redirectUrl' => $authorisationUrl,
-                ],
-            ]);
 
             if (!$this->afterProcessPayment($submission, false)) {
                 return PaymentDecision::succeeded($this->handle);
@@ -328,7 +325,7 @@ class GoCardless extends Payment
 
     public function getTransactionStatus(PaymentModel $payment): void
     {
-        if (in_array($payment->status, [PaymentModel::STATUS_SUCCESS, PaymentModel::STATUS_FAILED], true)) {
+        if (in_array($payment->status, [PaymentModel::STATUS_SUCCEEDED, PaymentModel::STATUS_FAILED], true)) {
             return;
         }
 
@@ -797,7 +794,7 @@ class GoCardless extends Payment
             'mandateId' => $this->_resolveBillingRequestMandateId($billingRequest),
         ]);
 
-        if ($payment->status === PaymentModel::STATUS_REDIRECT && ($billingRequest['status'] ?? '') === 'fulfilled') {
+        if ($payment->status === PaymentModel::STATUS_REQUIRES_ACTION && ($billingRequest['status'] ?? '') === 'fulfilled') {
             $payment->status = PaymentModel::STATUS_PENDING;
         }
 
@@ -929,7 +926,7 @@ class GoCardless extends Payment
         switch ($status) {
             case 'confirmed':
             case 'paid_out':
-                $payment->status = PaymentModel::STATUS_SUCCESS;
+                $payment->status = PaymentModel::STATUS_SUCCEEDED;
                 break;
             case 'cancelled':
                 $payment->status = PaymentModel::STATUS_CANCELLED;
@@ -961,7 +958,7 @@ class GoCardless extends Payment
         ]);
 
         Formie::$plugin->getPayments()->savePayment($payment);
-        Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+        Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
     }
 
     private function _createGoCardlessPaymentForMandate(PaymentModel $payment, Submission $submission, string $mandateId): array
@@ -1130,7 +1127,7 @@ class GoCardless extends Payment
         $payment->subscriptionId = $subscription->id;
         $payment->reference = $gcSubscription['id'];
         $payment->status = match ($gcSubscription['status'] ?? '') {
-            'active' => PaymentModel::STATUS_SUCCESS,
+            'active' => PaymentModel::STATUS_SUCCEEDED,
             'customer_approval_denied', 'cancelled' => PaymentModel::STATUS_FAILED,
             default => PaymentModel::STATUS_PENDING,
         };
@@ -1139,7 +1136,7 @@ class GoCardless extends Payment
         ]);
 
         Formie::$plugin->getPayments()->savePayment($payment);
-        Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+        Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
     }
 
     private function _refreshGoCardlessSubscription(PaymentModel $payment, ?array $gcSubscription = null): void
@@ -1177,9 +1174,9 @@ class GoCardless extends Payment
 
         $payment->reference = $gcSubscription['id'] ?? $payment->reference;
         $payment->status = match ($gcSubscription['status'] ?? '') {
-            'active' => PaymentModel::STATUS_SUCCESS,
+            'active' => PaymentModel::STATUS_SUCCEEDED,
             'customer_approval_denied', 'cancelled' => PaymentModel::STATUS_FAILED,
-            'finished' => PaymentModel::STATUS_SUCCESS,
+            'finished' => PaymentModel::STATUS_SUCCEEDED,
             default => PaymentModel::STATUS_PENDING,
         };
         $payment->response = array_merge($preserved, [
@@ -1187,7 +1184,7 @@ class GoCardless extends Payment
         ]);
 
         Formie::$plugin->getPayments()->savePayment($payment);
-        Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+        Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
     }
 
     private function _processSubscriptionPaymentWebhook(array $gcPayment, string $gcSubscriptionId, array $event): void
@@ -1219,7 +1216,7 @@ class GoCardless extends Payment
         Formie::$plugin->getPayments()->recordRecurring($subscription, (string)$gcPayment['id'],
             PaymentMoney::fromMinor((string)$gcPayment['amount'], strtoupper($gcPayment['currency']))->decimal(),
             strtoupper($gcPayment['currency']), match ($status) {
-                'confirmed', 'paid_out' => PaymentModel::STATUS_SUCCESS,
+                'confirmed', 'paid_out' => PaymentModel::STATUS_SUCCEEDED,
                 'cancelled' => PaymentModel::STATUS_CANCELLED,
                 'failed', 'charged_back', 'customer_approval_denied' => PaymentModel::STATUS_FAILED,
                 default => PaymentModel::STATUS_PENDING,
@@ -1328,7 +1325,7 @@ class GoCardless extends Payment
             status: $status,
             providerStatus: $providerStatus,
             reference: isset($data['id']) ? (string)$data['id'] : null,
-            providerUpdatedAt: $observedAt,
+            providerUpdatedAt: $providerUpdatedAt,
             providerEventId: $providerEventId,
             startedAt: $this->_subscriptionDate($data['start_date'] ?? $data['created_at'] ?? null),
             nextPaymentAt: $status->isTerminal() ? null : $nextPaymentAt,

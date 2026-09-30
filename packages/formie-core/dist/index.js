@@ -508,7 +508,7 @@ function F(e, t, n) {
 			};
 		}
 		(a == null || a === "" || Array.isArray(a) && !a.length) && e.source?.defaultValue && (a = e.source.defaultValue);
-		let u = i.field.client?.valueType?.kind ?? i.field.runtime?.valueType?.kind, d = e.valueType ?? (u === "number" ? "number" : u === "boolean" ? "boolean" : Array.isArray(a) ? "collection" : "text");
+		let u = i.field.client?.valueType?.kind ?? i.field.runtime?.valueType?.kind, d = e.valueType ?? (u === "boolean" ? "boolean" : Array.isArray(a) ? "collection" : "text");
 		return _(e.operator, a, e.value, d);
 	}));
 }
@@ -4207,12 +4207,7 @@ var Xe = "\n    id\n    version\n    currentPageId\n    tokens\n    continuation
     errors
     messages
     clientEvents
-    paymentStatus
-    paymentMessage
-    paymentRedirectUrl
-    paymentAction
-    paymentDecision
-    keepSubmitLoading
+    payment
     session {
         ${Xe}
     }

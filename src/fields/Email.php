@@ -85,11 +85,6 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::string();
-    }
-
     public function themeConfigKey(): string
     {
         return 'emailAddress';
@@ -347,6 +342,11 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
 
     protected function supportedDefaults(): array
     {

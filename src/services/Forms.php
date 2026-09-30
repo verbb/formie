@@ -7,6 +7,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\gql\SchemaSnapshot;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\References;
@@ -46,6 +47,7 @@ class Forms extends Component
     // =========================================================================
 
     private array $_formLookupCaches = [];
+    private array $_gqlSnapshots = [];
 
 
     // Public Methods
@@ -226,6 +228,18 @@ class Forms extends Component
     public function invalidateFormCaches(): void
     {
         $this->_formLookupCaches = [];
+        $this->_gqlSnapshots = [];
+    }
+
+    public function getGqlSchemaSnapshot(): SchemaSnapshot
+    {
+        try {
+            $schema = Craft::$app->getGql()->getActiveSchema();
+        } catch (\craft\errors\GqlException) {
+            return new SchemaSnapshot(new \craft\models\GqlSchema(['scope' => []]));
+        }
+        $key = hash('sha256', Json::encode($schema->scope));
+        return $this->_gqlSnapshots[$key] ??= new SchemaSnapshot($schema);
     }
 
     public function duplicateForm(Form $form, array $attributes = []): Form

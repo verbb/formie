@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
@@ -34,6 +35,7 @@ class Avochato extends Crm
     // =========================================================================
 
     public ?string $authId = null;
+    #[Sensitive]
     public ?string $authSecret = null;
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
@@ -117,7 +119,7 @@ class Avochato extends Crm
         return new IntegrationConfig($settings);
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {

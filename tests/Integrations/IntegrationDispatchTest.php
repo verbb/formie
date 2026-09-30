@@ -56,7 +56,7 @@ it('allows per-notification dispatch timing overrides', function (): void {
 });
 
 it('records integration dispatch context results', function (): void {
-    $context = \verbb\formie\models\IntegrationRunContext::fromStorage(null);
+    $context = \verbb\formie\models\IntegrationRunResults::fromStorage(null);
 
     $context->record('user', [
         'success' => true,
@@ -97,7 +97,7 @@ it('detects when any notification requires the after-integrations phase', functi
 it('round trips integration context only for the requested run', function (): void {
     $form = formie()->form()->singleLineTextField('fullName')->create();
     $submission = formie()->submission($form)->with(['fullName' => 'Context'])->save();
-    $context = new \verbb\formie\models\IntegrationRunContext();
+    $context = new \verbb\formie\models\IntegrationRunResults();
     $context->record('example', ['success' => true, 'elementId' => 42]);
     $service = new IntegrationDispatcher();
     $service->saveContext($submission, $context, 'context-run');

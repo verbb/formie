@@ -403,10 +403,10 @@ it('rolls back the second payment and submission commit while retaining provider
     expect($payment->status)->toBe(Payment::STATUS_PROCESSING)
         ->and($payment->scope['providerOutcome']['status'])->toBe(Payment::STATUS_SUCCESS)
         ->and($payment->scope['submissionTransition'] ?? null)->toBeNull();
-    $result = Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+    $result = Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
     expect($result->response->success)->toBeTrue();
     $saved = Formie::$plugin->getPayments()->getPaymentById($payment->id);
     expect($saved->status)->toBe(Payment::STATUS_SUCCESS)->and($saved->scope['submissionTransition']['complete'])->toBeTrue();
     expect(AtomicBoundaryPayment::$charges)->toBe(1);
-    expect(Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($saved))->toBeNull();
+    expect(Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($saved))->toBeNull();
 })->with(['submission', 'payment']);

@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
@@ -27,7 +28,7 @@ use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
-use verbb\formie\models\Plan;
+use verbb\formie\models\SubscriptionPlan;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\Subscription;
 use verbb\formie\models\payments\PaymentWebhookCommand;
@@ -123,7 +124,9 @@ class Stripe extends Payment
     // =========================================================================
 
     public ?string $publishableKey = null;
+    #[Sensitive]
     public ?string $secretKey = null;
+    #[Sensitive]
     public ?string $webhookSecretKey = null;
     public bool $hidePostalCode = false;
     public bool $hideIcon = false;
@@ -296,6 +299,7 @@ class Stripe extends Payment
 
     protected function executePayment(Submission $submission): PaymentDecision
     {
+        $this->_confirmationAction = null;
         $result = false;
 
         $type = $this->getFieldSetting('type');
@@ -338,17 +342,20 @@ class Stripe extends Payment
             if ($subscription?->getState()->isTerminal()) {
                 return PaymentDecision::cancelled(null, $this->handle, $subscription->reference);
             }
-            if ($subscription && empty($subscription->subscriptionData['pending_setup_intent']['client_secret'])
-                && empty($subscription->subscriptionData['latest_invoice']['payment_intent']['client_secret'])) {
+            if ($subscription && empty($subscription->providerData['requiresAction'])) {
                 return $subscription->status === 'unknown' ? PaymentDecision::unknown(null, $this->handle, $subscription->reference)
                     : PaymentDecision::pending(null, $this->handle, $subscription->reference);
             }
         }
 
+        if ($this->_confirmationAction) {
+            return PaymentDecision::requiresAction($latestPayment?->reference, $this->_confirmationAction);
+        }
+
         if ($latestPayment) {
             return match ((string)$latestPayment->status) {
-                PaymentModel::STATUS_SUCCESS => PaymentDecision::succeeded($this->handle, $latestPayment->reference),
-                PaymentModel::STATUS_REDIRECT => PaymentDecision::requiresAction(
+                PaymentModel::STATUS_SUCCEEDED => PaymentDecision::succeeded($this->handle, $latestPayment->reference),
+                PaymentModel::STATUS_REQUIRES_ACTION => PaymentDecision::requiresAction(
                     $latestPayment->reference,
                     PaymentAction::redirect(
                         provider: $this->handle,
@@ -410,7 +417,7 @@ class Stripe extends Payment
                     throw new Exception('Unable to find Stripe subscription by "' . $subscriptionId . '".');
                 }
 
-                $this->_addStripeSubscriptionConfirmSubmitData($submission, $stripeSubscription);
+                $this->_setSubscriptionConfirmationAction($submission, $stripeSubscription);
                 return in_array($stripeSubscription->status, ['active', 'trialing'], true);
             }
 
@@ -503,7 +510,7 @@ class Stripe extends Payment
             Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
             $this->_applySubscriptionSnapshot($subscription, $subscriptionData, 'stripeCreate');
 
-            $this->_addStripeSubscriptionConfirmSubmitData($submission, $response);
+            $this->_setSubscriptionConfirmationAction($submission, $response);
 
             return false;
         } catch (Throwable $e) {
@@ -569,7 +576,7 @@ class Stripe extends Payment
                     }
 
                     if ($paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED) {
-                        $payment->status = PaymentModel::STATUS_SUCCESS;
+                        $payment->status = PaymentModel::STATUS_SUCCEEDED;
                         $payment->reference = $paymentIntent->id;
                         $payment->response = $paymentIntent->toArray();
 
@@ -586,7 +593,7 @@ class Stripe extends Payment
                         Formie::$plugin->getPayments()->savePayment($payment);
 
                         if (!empty($paymentIntent->client_secret)) {
-                            $submission->getForm()->addSubmitData([
+                            $this->_setConfirmationAction([
                                 'event' => 'formie:payment:stripe:confirm',
                                 'data' => [
                                     'clientSecret' => $paymentIntent->client_secret,
@@ -646,7 +653,7 @@ class Stripe extends Payment
                     'fieldId' => (string)$field->id,
                 ]));
 
-                $submission->getForm()->addSubmitData([
+                $this->_setConfirmationAction([
                     'event' => 'formie:payment:stripe:confirm',
                     'data' => [
                         'clientSecret' => $existingClientSecret,
@@ -713,7 +720,7 @@ class Stripe extends Payment
             Formie::$plugin->getPayments()->savePayment($payment);
 
             // Tell the front-end to stop the submission and to confirm the Payment Intent.
-            $submission->getForm()->addSubmitData([
+            $this->_setConfirmationAction([
                 'event' => 'formie:payment:stripe:confirm',
                 'data' => [
                     'clientSecret' => $response->client_secret,
@@ -817,10 +824,10 @@ class Stripe extends Payment
         $resource = $data['data']['object'] ?? [];
         $accountIdentity = isset($data['account'])
             ? (string)$data['account']
-            : hash('sha256', (string)App::parseEnv($this->secretKey));
+            : $this->getPaymentAccountIdentity();
 
         return new VerifiedWebhookBatch(
-            $this->getWebhookAccountFingerprint($environment, $accountIdentity),
+            $accountIdentity ? $this->getWebhookAccountFingerprint($environment, $accountIdentity) : $this->getPaymentAccountFingerprint(),
             $environment,
             [new VerifiedWebhook(
                 (string)$data['id'],
@@ -919,6 +926,8 @@ class Stripe extends Payment
     {
         try {
             $charges = $this->getStripe()->charges->all(['limit' => 1]);
+            $account = $this->getStripe()->accounts->retrieve();
+            Craft::$app->getCache()->set($this->_accountIdentityCacheKey(), (string)$account->id, 0);
         } catch (Throwable $e) {
             Integration::apiError($this, $e, $this->throwApiError);
 
@@ -940,6 +949,22 @@ class Stripe extends Payment
             'api_key' => App::parseEnv($this->secretKey),
             'stripe_version' => '2020-08-27',
         ]);
+    }
+
+    public function getPaymentEnvironment(): string
+    {
+        return str_contains((string)App::parseEnv($this->secretKey), '_test_') ? 'test' : 'live';
+    }
+
+    protected function getPaymentAccountIdentity(): ?string
+    {
+        // Connection verification resolves the stable account without a request per payment.
+        return Craft::$app->getCache()->get($this->_accountIdentityCacheKey()) ?: null;
+    }
+
+    private function _accountIdentityCacheKey(): string
+    {
+        return 'formie.stripe-account.' . hash_hmac('sha256', (string)App::parseEnv($this->secretKey), Formie::$plugin->getSettings()->getSecurityKey());
     }
 
     public function defineFormBuilderGeneralSchema(): array
@@ -1321,8 +1346,8 @@ class Stripe extends Payment
         if ((int)$subscription->integrationId !== (int)$this->id) { return; }
         Formie::$plugin->getPayments()->recordRecurring($subscription, $invoice['id'],
             self::fromStripeAmount((string)$invoice['amount_paid'], strtoupper($invoice['currency'])),
-            strtoupper($invoice['currency']), PaymentModel::STATUS_SUCCESS, $invoice);
-        $previousPeriod = $subscription->nextPaymentAt;
+            strtoupper($invoice['currency']), PaymentModel::STATUS_SUCCEEDED, $invoice);
+        $previousPeriod = $subscription->currentPeriodEndsAt;
         $remote = $this->getStripe()->subscriptions->retrieve($subscription->reference);
         $subscription = $this->_applySubscriptionSnapshot(
             $subscription,
@@ -1375,7 +1400,7 @@ class Stripe extends Payment
     {
         $reference = $data['data']['object']['id'];
 
-        if (($plan = Formie::$plugin->getPlans()->getPlanByReference($reference)) && (int)$plan->integrationId === (int)$this->id) {
+        if (($plan = Formie::$plugin->getPlans()->getPlanByReference($reference, $this->id, $this->getPaymentAccountFingerprint())) && (int)$plan->integrationId === (int)$this->id) {
             Formie::$plugin->getPlans()->archivePlanById($plan->id);
 
             Integration::info($this, Craft::t('formie', 'Plan “{reference}” was archived because the corresponding plan was deleted on Stripe.', [
@@ -1441,7 +1466,7 @@ class Stripe extends Payment
             Integration::info($this, $subscription->reference . ' contains multiple plans, which is not supported. (event "' . $data['id'] . '")');
         } else {
             $planReference = $data['data']['object']['plan']['id'];
-            $plan = Formie::$plugin->getPlans()->getPlanByReference($planReference);
+            $plan = Formie::$plugin->getPlans()->getPlanByReference($planReference, $this->id, $this->getPaymentAccountFingerprint());
 
             if ($plan && (int)$plan->integrationId === (int)$this->id) {
                 $subscription->planId = $plan->id;
@@ -1479,14 +1504,14 @@ class Stripe extends Payment
                 $payment->response = $paymentIntent;
                 // Stripe may deliver earlier processing/failure events after success.
                 // Successful intents are terminal; retries may still resume pending workflow work.
-                if ($payment->status !== PaymentModel::STATUS_SUCCESS) {
+                if ($payment->status !== PaymentModel::STATUS_SUCCEEDED) {
                     $payment->status = $this->_getPaymentStatusFromPaymentIntentStatus($paymentIntentStatus);
 
                     if (!Formie::$plugin->getPayments()->savePayment($payment)) {
                         throw new Exception('Unable to record the payment intent status.');
                     }
                 }
-                Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+                Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
             }
         }
     }
@@ -1511,7 +1536,7 @@ class Stripe extends Payment
     private function _getPaymentStatusFromPaymentIntentStatus(?string $status): string
     {
         return match ($status) {
-            PaymentIntent::STATUS_SUCCEEDED => PaymentModel::STATUS_SUCCESS,
+            PaymentIntent::STATUS_SUCCEEDED => PaymentModel::STATUS_SUCCEEDED,
             PaymentIntent::STATUS_PROCESSING, 'requires_capture' => PaymentModel::STATUS_PROCESSING,
             PaymentIntent::STATUS_REQUIRES_ACTION, PaymentIntent::STATUS_REQUIRES_CONFIRMATION => PaymentModel::STATUS_PENDING,
             PaymentIntent::STATUS_REQUIRES_PAYMENT_METHOD => PaymentModel::STATUS_FAILED,
@@ -1563,15 +1588,15 @@ class Stripe extends Payment
         return $plan;
     }
 
-    private function _getPlan($planId): ?Plan
+    private function _getPlan($planId): ?SubscriptionPlan
     {
         try {
             $data = $this->getStripe()->plans->retrieve($planId);
 
-            $plan = Formie::$plugin->getPlans()->getPlanByReference($data['id']);
+            $plan = Formie::$plugin->getPlans()->getPlanByReference($data['id'], $this->id, $this->getPaymentAccountFingerprint());
 
             if (!$plan) {
-                $plan = new Plan();
+                $plan = new SubscriptionPlan();
             }
 
             $plan->integrationId = $this->id;
@@ -1579,7 +1604,13 @@ class Stripe extends Payment
             $plan->handle = $data['nickname'];
             $plan->reference = $data['id'];
             $plan->enabled = true;
-            $plan->planData = $data->toArray();
+            $plan->accountFingerprint = $this->getPaymentAccountFingerprint();
+            $plan->amountMinor = (string)$data['amount'];
+            $plan->currency = strtoupper((string)$data['currency']);
+            $plan->interval = $data['interval'];
+            $plan->intervalCount = (int)$data['interval_count'];
+            $plan->providerStatus = !empty($data['active']) ? 'active' : 'inactive';
+            $plan->planData = ['interval' => $plan->interval, 'interval_count' => $plan->intervalCount, 'amount' => $plan->amountMinor, 'currency' => $plan->currency];
             $plan->isArchived = false;
 
             Formie::$plugin->getPlans()->savePlan($plan);
@@ -1595,7 +1626,7 @@ class Stripe extends Payment
         }
     }
 
-    private function _createPlan($payload): ?Plan
+    private function _createPlan($payload): ?SubscriptionPlan
     {
         try {
             // Raise a `modifyPlanPayload` event
@@ -1607,10 +1638,10 @@ class Stripe extends Payment
 
             $data = $this->getStripe()->plans->create($event->payload);
 
-            $plan = Formie::$plugin->getPlans()->getPlanByReference($data['id']);
+            $plan = Formie::$plugin->getPlans()->getPlanByReference($data['id'], $this->id, $this->getPaymentAccountFingerprint());
 
             if (!$plan) {
-                $plan = new Plan();
+                $plan = new SubscriptionPlan();
             }
 
             $plan->integrationId = $this->id;
@@ -1618,7 +1649,13 @@ class Stripe extends Payment
             $plan->handle = $data['nickname'];
             $plan->reference = $data['id'];
             $plan->enabled = true;
-            $plan->planData = $data->toArray();
+            $plan->accountFingerprint = $this->getPaymentAccountFingerprint();
+            $plan->amountMinor = (string)$data['amount'];
+            $plan->currency = strtoupper((string)$data['currency']);
+            $plan->interval = $data['interval'];
+            $plan->intervalCount = (int)$data['interval_count'];
+            $plan->providerStatus = !empty($data['active']) ? 'active' : 'inactive';
+            $plan->planData = ['interval' => $plan->interval, 'interval_count' => $plan->intervalCount, 'amount' => $plan->amountMinor, 'currency' => $plan->currency];
             $plan->isArchived = false;
 
             Formie::$plugin->getPlans()->savePlan($plan);
@@ -1769,10 +1806,23 @@ class Stripe extends Payment
         throw new Exception('Unable to resolve subscription from Stripe schedule.');
     }
 
-    private function _addStripeSubscriptionConfirmSubmitData(Submission $submission, StripeSubscription $stripeSubscription): void
+    private ?PaymentAction $_confirmationAction = null;
+
+    private function _setConfirmationAction(array $data): void
+    {
+        $this->_confirmationAction = PaymentAction::confirm(
+            provider: $this->handle,
+            event: 'formie:payment:stripe:confirm',
+            payload: $data['data'],
+            resumeMode: PaymentResumeMode::RETURN,
+            resumeUrl: $data['data']['returnUrl'] ?? null,
+        );
+    }
+
+    private function _setSubscriptionConfirmationAction(Submission $submission, StripeSubscription $stripeSubscription): void
     {
         if ($stripeSubscription->pending_setup_intent !== null) {
-            $submission->getForm()->addSubmitData([
+            $this->_setConfirmationAction([
                 'event' => 'formie:payment:stripe:confirm',
                 'data' => [
                     'type' => 'setup',
@@ -1792,7 +1842,7 @@ class Stripe extends Payment
             return;
         }
 
-        $submission->getForm()->addSubmitData([
+        $this->_setConfirmationAction([
             'event' => 'formie:payment:stripe:confirm',
             'data' => [
                 'type' => 'payment',
@@ -1864,7 +1914,7 @@ class Stripe extends Payment
         foreach (Formie::$plugin->getPayments()->getSubmissionPayments($submission) as $payment) {
             if ($payment->subscriptionId !== $subscription->id || !($payment->scope['initial'] ?? false)) { continue; }
             $payment->status = match ($subscription->getState()) {
-                SubscriptionStatus::TRIALING, SubscriptionStatus::ACTIVE => PaymentModel::STATUS_SUCCESS,
+                SubscriptionStatus::TRIALING, SubscriptionStatus::ACTIVE => PaymentModel::STATUS_SUCCEEDED,
                 SubscriptionStatus::CANCELLED, SubscriptionStatus::COMPLETED => PaymentModel::STATUS_CANCELLED,
                 SubscriptionStatus::FAILED => PaymentModel::STATUS_FAILED,
                 SubscriptionStatus::UNKNOWN => PaymentModel::STATUS_UNKNOWN,
@@ -1872,7 +1922,7 @@ class Stripe extends Payment
             };
             $payment->reference ??= $subscription->reference;
             Formie::$plugin->getPayments()->savePayment($payment);
-            Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+            Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
         }
     }
 
@@ -1921,14 +1971,14 @@ class Stripe extends Payment
             status: $status,
             providerStatus: $providerStatus,
             reference: isset($data['id']) ? (string)$data['id'] : null,
-            providerUpdatedAt: $observedAt,
+            providerUpdatedAt: $providerUpdatedAt,
             providerEventId: $providerEventId ?: null,
             startedAt: $this->_subscriptionDate($data['start_date'] ?? null),
             trialStartsAt: $this->_subscriptionDate($data['trial_start'] ?? null),
             trialEndsAt: $this->_subscriptionDate($data['trial_end'] ?? null),
             currentPeriodStartsAt: $this->_subscriptionDate($data['current_period_start'] ?? null),
             currentPeriodEndsAt: $periodEnd,
-            nextPaymentAt: $status->isTerminal() ? null : $periodEnd,
+            nextPaymentAt: $status->isTerminal() ? null : $this->_subscriptionDate($data['next_payment_attempt'] ?? null),
             pausedAt: $status === SubscriptionStatus::PAUSED ? new DateTimeImmutable() : null,
             cancelAt: $scheduledCancellation ? $this->_subscriptionDate($data['cancel_at'] ?? null) ?? $periodEnd : null,
             cancelledAt: $status === SubscriptionStatus::CANCELLED

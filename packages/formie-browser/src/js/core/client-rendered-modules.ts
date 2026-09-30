@@ -65,5 +65,5 @@ export async function mountClientRenderedModules(root: Element, instance: Client
         }
         void host.result({ ok: result.success, outcome: result.outcome, version: result.version, submissionUid: result.submissionUid, errors: result.errors, session: result.session, completion: result.completion, meta: result as unknown as Record<string, unknown> });
     });
-    return { ...host, destroy: async() => { unsubscribe(); unsubscribeRequest(); await host.destroy(); } };
+    return { ...host, get instances() { return host.instances; }, get failures() { return host.failures; }, destroy: async() => { unsubscribe(); unsubscribeRequest(); await host.destroy(); } };
 }

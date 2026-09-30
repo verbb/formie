@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\emailmarketing;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
@@ -30,6 +31,7 @@ class Ontraport extends EmailMarketing
     // Properties
     // =========================================================================
     
+    #[Sensitive]
     public ?string $apiKey = null;
     public ?string $appId = null;
 
@@ -132,7 +134,7 @@ class Ontraport extends EmailMarketing
         return new IntegrationConfig($settings);
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {

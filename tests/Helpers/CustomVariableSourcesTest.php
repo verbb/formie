@@ -54,3 +54,46 @@ it('validates extension input output and availability rather than coercing error
 it('diagnoses abandoned beta tokens instead of silently returning empty strings', function() {
     expect(References::resolveValue('{acme:campaign}', new ReferenceContext())->diagnostic)->toBe(ReferenceDiagnostic::UnknownSource);
 });
+
+it('enforces source usage before resolution in real mapping and redirect consumers', function() {
+    $calls = 0;
+    Event::on(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER, function(RegisterReferencesEvent $event) use (&$calls) {
+        $event->sources[] = new ReferenceSource(new ReferenceDefinition('acme/mapping', 'Mapping', 'custom', FieldValueType::string(), usages: [\verbb\formie\references\ReferenceUsage::Integration]), function() use (&$calls) {
+            $calls++;
+            return '<mapped>';
+        });
+    });
+    $form = formie()->form()->create();
+    $submission = formie()->submission($form)->save();
+    $integration = new \verbb\formie\integrations\automations\WebRequest();
+    $destination = new \verbb\formie\models\IntegrationField();
+    expect($integration->getMappedFieldValue(['kind' => 'reference', 'value' => '{custom:acme/mapping}'], $submission, $destination))->toBe('<mapped>')
+        ->and($integration->getMappedFieldValue(['kind' => 'text', 'value' => 'Value: {custom:acme/mapping}'], $submission, $destination))->toBe('Value: <mapped>');
+    expect(fn() => References::resolveUrl('{custom:acme/mapping}', $submission))->toThrow(\verbb\formie\references\ReferenceException::class);
+    expect(fn() => References::parseContent('{custom:acme/mapping}', $submission, ['outputContext' => \verbb\formie\references\ReferenceOutputContext::EmailHeader]))->toThrow(\verbb\formie\references\ReferenceException::class);
+    expect($calls)->toBe(2);
+    $metadata = (new ReferenceCatalogue())->pickerSources()[0];
+    expect($metadata['usages'])->toBe(['integration']);
+});
+
+it('enforces block shape for exact and interpolated references while retaining rich bodies', function() {
+    $calls = 0;
+    Event::on(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER, function(RegisterReferencesEvent $event) use (&$calls) {
+        $event->sources[] = new ReferenceSource(new ReferenceDefinition('acme/block', 'Block', 'custom', FieldValueType::string(), shape: \verbb\formie\references\ReferenceShape::Block), function(ReferenceContext $context) use (&$calls) {
+            $calls++;
+            expect($context->outputContext)->toBe(\verbb\formie\references\ReferenceOutputContext::Html);
+            return '<block>';
+        });
+    });
+    $context = new ReferenceContext(permissions: ['server']);
+    foreach ([\verbb\formie\references\ReferenceOutputContext::EmailHeader, \verbb\formie\references\ReferenceOutputContext::UrlComponent] as $output) {
+        expect(fn() => References::interpolateText('{custom:acme/block}', $context, $output))->toThrow(\verbb\formie\references\ReferenceException::class);
+    }
+    expect(References::resolveValue('{custom:acme/block}', $context)->diagnostic)->toBe(ReferenceDiagnostic::ForbiddenSource)
+        ->and(References::interpolateText('{custom:acme/block}', $context, \verbb\formie\references\ReferenceOutputContext::Html))->toBe('&lt;block&gt;')
+        ->and($calls)->toBe(1);
+    $form = formie()->form()->singleLineTextField('value')->create();
+    $submission = formie()->submission($form)->with(['value' => 'Body value'])->save();
+    expect(fn() => References::resolveUrl('{allFields}', $submission))->toThrow(\verbb\formie\references\ReferenceException::class);
+    expect(References::parseContent('{allFields}', $submission, ['outputContext' => \verbb\formie\references\ReferenceOutputContext::Html]))->toContain('Body value');
+});

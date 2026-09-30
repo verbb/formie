@@ -57,7 +57,6 @@ class FormDocumentSchema
         'limitSubmissionsIpAddressMessage',
         'integrations',
         'integrationDispatch',
-        'integrationPolicies',
         'submissionTitleFormat',
         'collectIp',
         'collectUser',

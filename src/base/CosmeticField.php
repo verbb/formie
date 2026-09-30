@@ -42,13 +42,17 @@ abstract class CosmeticField extends Field implements CosmeticFieldInterface
         return false;
     }
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::none();
-    }
-
     public function normalizeValue(mixed $value, ?\craft\base\ElementInterface $element): mixed
     {
         return null;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::none();
     }
 }

@@ -330,6 +330,8 @@ class Install extends Migration
             'fieldId' => $this->integer(),
             'subscriptionId' => $this->integer(),
             'amount' => $this->string(80),
+            'amountMinor' => $this->string(80),
+            'accountFingerprint' => $this->char(64),
             'currency' => $this->string(),
             'status' => $this->string(32)->notNull(),
             'reference' => $this->string(),
@@ -353,6 +355,12 @@ class Install extends Migration
         $this->archiveTableIfExists(Table::FORMIE_PAYMENT_PLANS);
         $this->createTable(Table::FORMIE_PAYMENT_PLANS, [
             'id' => $this->primaryKey(),
+            'accountFingerprint' => $this->char(64),
+            'amountMinor' => $this->string(80)->notNull()->defaultValue('0'),
+            'currency' => $this->string(3),
+            'interval' => $this->string(16),
+            'intervalCount' => $this->integer()->notNull()->defaultValue(1),
+            'providerStatus' => $this->string(80),
             'integrationId' => $this->integer()->notNull(),
             'name' => $this->string(),
             'handle' => $this->string(),
@@ -375,7 +383,10 @@ class Install extends Migration
             'fieldId' => $this->integer(),
             'planId' => $this->integer(),
             'reference' => $this->string(),
-            'subscriptionData' => $this->text(),
+            'providerData' => $this->text(),
+            'accountFingerprint' => $this->char(64),
+            'terms' => $this->text(),
+            'lastSyncedAt' => $this->dateTime(),
             'trialDays' => $this->integer()->notNull(),
             'providerStatus' => $this->string(80),
             'startedAt' => $this->dateTime(),
@@ -400,6 +411,12 @@ class Install extends Migration
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
         ]);
+
+        $this->createTable('{{%formie_subscription_diagnostics}}', [
+            'id' => $this->primaryKey(), 'subscriptionUid' => $this->uid()->notNull(),
+            'status' => $this->string(32)->notNull(), 'evidence' => $this->mediumText()->notNull(), 'observedAt' => $this->dateTime()->notNull(),
+        ]);
+        $this->createIndex(null, '{{%formie_subscription_diagnostics}}', ['subscriptionUid', 'observedAt']);
 
         $this->archiveTableIfExists(Table::FORMIE_WEBHOOK_RECEIPTS);
         $this->createTable(Table::FORMIE_WEBHOOK_RECEIPTS, [
@@ -792,6 +809,9 @@ class Install extends Migration
 
     public function createIndexes(): void
     {
+        foreach ([Table::FORMIE_PAYMENTS, Table::FORMIE_SUBSCRIPTIONS, Table::FORMIE_PAYMENT_PLANS] as $table) {
+            $this->createIndex(null, $table, ['integrationId', 'accountFingerprint', 'reference']);
+        }
         $this->createIndex(null, Table::FORMIE_FIELD_LAYOUT_PAGES, 'layoutId', false);
         $this->createIndex(null, Table::FORMIE_FIELD_LAYOUT_ROWS, 'layoutId', false);
         $this->createIndex(null, Table::FORMIE_FIELD_LAYOUT_ROWS, 'pageId', false);
@@ -824,7 +844,7 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_PAYMENTS, 'reference', false);
         $this->createIndex(null, Table::FORMIE_PAYMENTS, 'idempotencyKey', true);
         $this->createIndex(null, Table::FORMIE_PAYMENT_PLANS, 'integrationId', false);
-        $this->createIndex(null, Table::FORMIE_PAYMENT_PLANS, 'handle', true);
+        $this->createIndex(null, Table::FORMIE_PAYMENT_PLANS, 'handle', false);
         $this->createIndex(null, Table::FORMIE_PAYMENT_PLANS, 'reference', false);
         $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'integrationId', false);
         $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'submissionId', false);
@@ -992,6 +1012,7 @@ class Install extends Migration
             'formie_submission_progress',
             'formie_submission_grants',
             'formie_submission_workflow',
+            'formie_subscription_diagnostics',
             'formie_pending_uploads',
             'formie_submission_drafts',
             'formie_submission_resume_tokens',

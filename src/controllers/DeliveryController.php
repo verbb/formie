@@ -60,6 +60,21 @@ class DeliveryController extends Controller
         return $this->asJson($attempts->sensitiveEvidence($uid));
     }
 
+    public function actionExportBundle(): Response
+    {
+        $this->requireCpRequest();
+        $this->requirePostRequest();
+        if ($this->request->getBodyParam('acknowledged') !== true) {
+            throw new ForbiddenHttpException('Acknowledge personal data before exporting.');
+        }
+        $uid = (string)$this->request->getRequiredBodyParam('uid');
+        $attempts = Formie::$plugin->getDeliveryAttempts();
+        $this->_requireSubmission((int)$attempts->get($uid)['submissionId']);
+        $attempts->checkpoint($uid, 'support-export', ['actorId' => Craft::$app->getUser()->getId()]);
+
+        return $this->asJson($attempts->supportBundle($uid));
+    }
+
     public function actionRetry(): Response
     {
         $this->requireCpRequest();

@@ -78,12 +78,8 @@ it('routes workflow integration dispatch through the coordinator', function (): 
     $submission = formie()->submission($form)->save();
 
     $integration = integrationTriggersTestIntegration('workflowTest');
-    $form->settings->integrationPolicies = [
-        'rerun' => [
-            'workflowTest' => [
-                'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
-            ],
-        ],
+$form->settings->integrations['workflowTest']['trigger'] = [
+        'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
     ];
 
     $triggerCount = 0;
@@ -118,12 +114,8 @@ it('routes workflow integration dispatch through the coordinator', function (): 
 
 it('dispatches cp element saves only when re-run policy allows cp save', function (): void {
     $form = formie()->form()->singleLineTextField('name')->create();
-    $form->settings->integrationPolicies = [
-        'rerun' => [
-            'coordinatorTest' => [
-                'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
-            ],
-        ],
+$form->settings->integrations['coordinatorTest']['trigger'] = [
+        'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
     ];
 
     $submission = formie()->submission($form)->save();
@@ -170,12 +162,8 @@ it('unifies spam unmark notifications and integration dispatch', function (): vo
     $submission = formie()->submission($form)->save();
 
     $integration = integrationTriggersTestIntegration('spamTest');
-    $form->settings->integrationPolicies = [
-        'rerun' => [
-            'spamTest' => [
-                'policy' => IntegrationRerunPolicies::POLICY_SUBMIT_ONLY,
-            ],
-        ],
+$form->settings->integrations['spamTest']['trigger'] = [
+        'policy' => IntegrationRerunPolicies::POLICY_SUBMIT_ONLY,
     ];
 
     $triggerCount = 0;

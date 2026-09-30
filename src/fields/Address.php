@@ -88,11 +88,6 @@ class Address extends FixedParentField implements PreviewableFieldInterface
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::object(AddressFieldValue::class);
-    }
-
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = $this->normalizeValue($value, $element);
@@ -356,6 +351,11 @@ class Address extends FixedParentField implements PreviewableFieldInterface
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::object(AddressFieldValue::class);
+    }
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {

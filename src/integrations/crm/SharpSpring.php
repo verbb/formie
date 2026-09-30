@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
@@ -40,6 +41,7 @@ class SharpSpring extends Crm
     // =========================================================================
     
     public ?string $accountId = null;
+    #[Sensitive]
     public ?string $secretKey = null;
     public ?string $formUrl = null;
     #[FormIntegrationSetting]
@@ -198,7 +200,7 @@ class SharpSpring extends Crm
         return new IntegrationConfig($settings);
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {

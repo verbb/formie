@@ -1,5 +1,5 @@
 import type { FormEventUnsubscribe } from '#contracts/client';
-import type { BrowserModuleDefinition, ModuleRegistrationOptions } from '#contracts/modules';
+import type { BrowserModuleDefinition, BrowserModuleHydrationReport, ModuleRegistrationOptions } from '#contracts/modules';
 import type { BrowserModuleEntry } from '#contracts/schema';
 import { EventBus } from '#events/event-bus';
 import { loadModulesFromManifest } from '#modules/loader';
@@ -14,7 +14,7 @@ export type FormieModuleHydratorOptions = {
     registry?: ModuleRegistry;
 };
 
-export type FormieModuleHydrator = {
+export type FormieModuleHydrator = BrowserModuleHydrationReport & {
     assertReady: () => void;
     prepare: (action: import('@verbb/formie-core').ClientSubmitAction) => Promise<Record<string, unknown>>;
     result: (result: import('#contracts/schema').FormSubmitResult) => Promise<void>;
@@ -40,7 +40,7 @@ export async function hydrateFormieModules(options: FormieModuleHydratorOptions)
     // This helper reuses the canonical module manifest loader without mounting the
     // full form client, which lets CP edit hosts opt into shared
     // field modules without inheriting submit or pagination ownership.
-    const instances = await loadModulesFromManifest(modules, {
+    const runtime = await loadModulesFromManifest(modules, {
         registry,
         setupContext: {
             formId: form?.id || (root as HTMLElement).id || 'formie-modules',
@@ -68,14 +68,17 @@ export async function hydrateFormieModules(options: FormieModuleHydratorOptions)
 
     debug.log('Hydrated module manifest.', {
         moduleCount: modules.entries.length,
-        instanceCount: instances.length,
+        instanceCount: runtime.instances.length,
         surface,
     });
 
     return {
+        get instances() { return runtime.instances; },
+        get failures() { return runtime.failures; },
         prepare: async(action) => {
             if (!form) throw new Error('Browser modules require a mounted form element.');
-            instances.forEach((instance) => instance.assertReady?.());
+            runtime.assertReady();
+            runtime.instances.forEach((instance) => instance.assertReady?.());
             let reason: string | undefined;
             const context = {
                 form, action: action === 'back' || action === 'save' ? action : 'submit' as const,
@@ -84,7 +87,7 @@ export async function hydrateFormieModules(options: FormieModuleHydratorOptions)
                 isAborted: () => Boolean(reason), abortReason: () => reason,
             };
             const priority = { core: 0, field: 0, address: 0, captcha: 1, payment: 2 };
-            for (const instance of [...instances].sort((a, b) => priority[a.kind ?? 'core'] - priority[b.kind ?? 'core'])) {
+            for (const instance of [...runtime.instances].sort((a, b) => priority[a.kind ?? 'core'] - priority[b.kind ?? 'core'])) {
                 await instance.beforeSubmit?.(context);
                 if (reason) throw new Error(reason);
             }
@@ -96,13 +99,13 @@ export async function hydrateFormieModules(options: FormieModuleHydratorOptions)
             if (!form) return;
             const context = { form, action: result.action ?? 'submit' as const, formData: new FormData(form) };
             await bus.emit('formie:submit:result', result);
-            for (const instance of instances) await instance.afterSubmit?.(context, result);
+            for (const instance of runtime.instances) await instance.afterSubmit?.(context, result);
             form.dispatchEvent(new CustomEvent('formie:submit:result', { detail: result, bubbles: true }));
         },
-        update: (manifest) => instances.updateManifest(manifest),
-        assertReady: () => instances.forEach((instance) => instance.assertReady?.()),
+        update: (manifest) => runtime.updateManifest(manifest),
+        assertReady: () => { runtime.assertReady(); runtime.instances.forEach((instance) => instance.assertReady?.()); },
         destroy: async() => {
-            await instances[0]?.destroy();
+            await runtime.destroy();
             bus.clear();
         },
         on: (eventName, callback) => {

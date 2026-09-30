@@ -13,8 +13,13 @@ use craft\helpers\UrlHelper;
 
 use yii\helpers\Markdown;
 
-abstract class HelpDesk extends Integration
+abstract class HelpDesk extends Integration implements DispatchableIntegrationInterface
 {
+    // Traits
+    // =========================================================================
+
+    use DispatchableIntegrationTrait;
+
     // Static Methods
     // =========================================================================
 

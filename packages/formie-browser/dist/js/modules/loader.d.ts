@@ -1,7 +1,9 @@
 import { type BrowserModuleManifest } from '@verbb/formie-core';
-import type { BrowserModuleInstance, ModuleMatchContext, ModuleSetupContext } from '#contracts/modules';
+import type { BrowserModuleHydrationReport, ModuleMatchContext, ModuleSetupContext } from '#contracts/modules';
 import { ModuleRegistry } from '#modules/registry';
-export type BrowserModuleRuntime = BrowserModuleInstance[] & {
+export type BrowserModuleRuntime = BrowserModuleHydrationReport & {
+    assertReady: () => void;
+    destroy: () => Promise<void>;
     updateManifest: (manifest: BrowserModuleManifest) => Promise<void>;
 };
 type ModuleLoadContext = {

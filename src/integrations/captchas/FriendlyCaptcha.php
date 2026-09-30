@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\captchas;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Captcha;
 use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
@@ -22,6 +23,7 @@ class FriendlyCaptcha extends Captcha
     // =========================================================================
 
     public ?string $handle = 'friendlyCaptcha';
+    #[Sensitive]
     public ?string $secretKey = null;
     public ?string $siteKey = null;
     public string $apiVersion = 'v1';

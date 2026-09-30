@@ -92,7 +92,7 @@ class SubmissionsController extends Controller
         );
 
         try {
-            $result = Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+            $result = Formie::$plugin->getSubmissionRequests()->executeManaged(new ManagedSubmissionRequest([
                 'handle' => $this->_stringParam('handle'),
                 'operation' => SubmissionOperation::SUBMIT,
                 'siteId' => $siteId,
@@ -200,12 +200,12 @@ class SubmissionsController extends Controller
             throw new BadRequestHttpException('Missing required handle.');
         }
 
-        $form = Formie::$plugin->getSubmissionProcessor()->requireFormByHandle($handle, $siteId);
+        $form = Formie::$plugin->getSubmissionRequests()->requireFormByHandle($handle, $siteId);
         $draftContext = $this->_nullableStringParam('draftContextToken')
             ? $form->resolveDraftContextToken($this->_nullableStringParam('draftContextToken'))
             : $this->_nullableStringParam('draftContext');
 
-        Formie::$plugin->getSubmissionProcessor()->applyFormRequestContext(
+        Formie::$plugin->getSubmissionRequests()->applyFormRequestContext(
             $form,
             $this->_nullableStringParam('renderId'),
             $draftContext,
@@ -235,6 +235,7 @@ class SubmissionsController extends Controller
         $nextPageId = $nextPage?->id ?? null;
 
         $payload['success'] = $response->success;
+        $this->_appendPaymentResponsePayload($payload, $response);
         $payload['submissionUid'] = $submission->uid;
         $payload['submitAction'] = $submitAction;
         $payload['outcome'] = $response->outcome?->type->value;
@@ -248,16 +249,6 @@ class SubmissionsController extends Controller
 
         if (!$response->success) {
             $payload['errors'] = \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toValuePathMap();
-            $payload['keepSubmitLoading'] = in_array($response->paymentStatus, [
-                PaymentDecision::STATUS_ACTION_REQUIRED->value,
-                PaymentDecision::STATUS_UNKNOWN->value,
-                PaymentDecision::STATUS_PENDING->value,
-            ], true);
-
-            if ($response->paymentRedirectUrl) {
-                $payload['redirectUrl'] = $response->paymentRedirectUrl;
-            }
-
             $this->_appendPaymentResponsePayload($payload, $response);
 
             return $payload;
@@ -319,31 +310,20 @@ class SubmissionsController extends Controller
 
     private function _appendPaymentResponsePayload(array &$payload, SubmissionResponse $response): void
     {
-        if ($response->paymentStatus) {
-            $payload['paymentStatus'] = $response->paymentStatus;
-        }
-
-        if ($response->paymentMessage) {
-            $payload['paymentMessage'] = StringHelper::sanitizeMessageHtml($response->paymentMessage);
-        }
-
-        if ($response->paymentAction) {
-            $payload['paymentAction'] = $response->paymentAction;
-        }
-
-        if ($response->paymentDecision) {
-            $payload['paymentDecision'] = $response->paymentDecision;
+        $payload['payment'] = $response->payment;
+        if (isset($payload['payment']['message'])) {
+            $payload['payment']['message'] = StringHelper::sanitizeMessageHtml($payload['payment']['message']);
         }
     }
 
     private function _createSaveResumePayload(Form $form, Submission $submission): array
     {
-        $baseResumeUrl = Formie::$plugin->getSubmissionProcessor()->resolveTrustedResumeBaseUrl(
+        $baseResumeUrl = Formie::$plugin->getSubmissionRequests()->resolveTrustedResumeBaseUrl(
             $this->request->getReferrer(),
             (string)$this->request->getPathInfo()
         );
 
-        return Formie::$plugin->getSubmissionProcessor()->createSaveResumePayload($form, $submission, $baseResumeUrl);
+        return Formie::$plugin->getSubmissionRequests()->createSaveResumePayload($form, $submission, $baseResumeUrl);
     }
 
     private function _staleSubmissionStateResponse(Form $form, string $source, string $value): Response

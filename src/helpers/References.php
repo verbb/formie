@@ -11,6 +11,7 @@ use verbb\formie\references\ReferenceParser;
 use verbb\formie\references\ReferenceResolver;
 use verbb\formie\references\ReferenceSlot;
 use verbb\formie\references\ReferenceSlotKind;
+use verbb\formie\references\ReferenceUsage;
 use verbb\formie\references\ResolvedReference;
 
 /** Public bridge; all parsing and evaluation live in the shared reference runtime. */
@@ -50,7 +51,7 @@ class References
 
     public static function resolveUrl(string $template, Submission $submission): string
     {
-        $context = ReferenceContext::forSubmission($submission);
+        $context = ReferenceContext::forSubmission($submission, usage: ReferenceUsage::Url);
         // Stable URL settings allowed a whole exact reference. This bounded legacy
         // slot adapter preserves that meaning; embedded values are URL components.
         $slot = ReferenceSlot::fromStored($template);

@@ -7,7 +7,6 @@ beforeEach(function (): void {
 });
 
 use Tests\Support\WebRequestTestHelper;
-use Craft;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFormIntegrationsEvent;
@@ -66,12 +65,8 @@ it('detects when a form has integrations that allow cp save re-runs', function (
         ->form(['title' => 'CP Save Policy Detection'])
         ->create();
 
-    $form->settings->integrationPolicies = [
-        'rerun' => [
-            'entry' => [
-                'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
-            ],
-        ],
+$form->settings->integrations['entry']['trigger'] = [
+        'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
     ];
 
     $integration = cpSaveIntegrationTestIntegration('entry');
@@ -139,12 +134,8 @@ it('dispatches cp element saves through the integration coordinator', function (
         ->singleLineTextField('fullName')
         ->create();
 
-    $form->settings->integrationPolicies = [
-        'rerun' => [
-            'cpSaveTest' => [
-                'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
-            ],
-        ],
+$form->settings->integrations['cpSaveTest']['trigger'] = [
+        'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
     ];
     expect(Craft::$app->elements->saveElement($form))->toBeTrue();
 
@@ -164,7 +155,7 @@ it('dispatches cp element saves through the integration coordinator', function (
     try {
         withCpSaveTestIntegration($form, $integration, function () use ($submission): void {
             expect($submission->isIncomplete)->toBeFalse()->and($submission->isSpam)->toBeFalse();
-            expect($submission->getForm()->settings->integrationPolicies)->toHaveKey('rerun.cpSaveTest');
+            expect($submission->getForm()->settings->integrations)->toHaveKey('cpSaveTest.trigger');
             expect(Formie::$plugin->getIntegrationRunner()->resolveEnabledHandles($submission->getForm()))->toContain('cpSaveTest');
             expect(IntegrationRerunPolicies::formHasIntegrationAllowingEvent($submission->getForm(), IntegrationTriggerEvents::CP_SAVE))->toBeTrue();
             Formie::$plugin->getIntegrationTriggers()->dispatchCpElementSave($submission);
@@ -182,12 +173,8 @@ it('does not double-trigger integrations when cp saves go through the submission
         ->singleLineTextField('fullName')
         ->create();
 
-    $form->settings->integrationPolicies = [
-        'rerun' => [
-            'cpSaveTest' => [
-                'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
-            ],
-        ],
+$form->settings->integrations['cpSaveTest']['trigger'] = [
+        'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
     ];
     expect(Craft::$app->elements->saveElement($form))->toBeTrue();
 

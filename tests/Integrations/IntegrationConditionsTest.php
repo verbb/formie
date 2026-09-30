@@ -121,7 +121,9 @@ it('records rejected invalid integration conditions separately from skipped fals
     $runner = Formie::$plugin->getIntegrationRunner();
     $invalid = $runner->runIntegration($integration, $submission, 'invalid-conditions', 'synchronous');
     expect($invalid->status)->toBe(\verbb\formie\enums\IntegrationStatus::Rejected);
-    $integration->conditions['conditions'][0]['field'] = '{field:answer}';
+    $conditions = $integration->conditions;
+    $conditions['conditions'][0]['field'] = '{field:answer}';
+    $integration->conditions = $conditions;
     $skipped = $runner->runIntegration($integration, $submission, 'false-conditions', 'synchronous');
     expect($skipped->status)->toBe(\verbb\formie\enums\IntegrationStatus::Skipped);
 });

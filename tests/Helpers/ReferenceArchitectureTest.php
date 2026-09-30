@@ -41,7 +41,7 @@ it('diagnoses missing fields unknown extensions and forbidden environment access
     expect(fn() => References::interpolateText("a\r\nBcc: b", $context, ReferenceOutputContext::EmailHeader))->toThrow(ReferenceException::class);
 });
 
-it('preserves rich native values while text uses the owning string projection', function() {
+it('preserves rich native values while text uses the owning reference projection', function() {
     $form = formie()->form()->nameField('person', ['useMultipleFields' => true])->create();
     $submission = formie()->submission($form)->save();
     $submission->setFieldValue('person', new \verbb\formie\fields\values\NameFieldValue(['firstName' => 'Ada', 'lastName' => 'Lovelace']));
@@ -52,6 +52,41 @@ it('preserves rich native values while text uses the owning string projection', 
         ->and(References::interpolateText(References::withDefault($token, 'fallback'), $context))->toBe('Ada Lovelace')
         ->and(References::resolveValue('{field:person}', $context)->requireValue()->firstName)->toBe('Ada')
         ->and(References::resolveValue('{field:person;transform=upper}', $context)->requireValue())->toBe('ADA LOVELACE');
+});
+
+it('uses the reference projection event exactly once before contextual encoding', function() {
+    $form = formie()->form()->singleLineTextField('referenceProjection')->create();
+    $submission = formie()->submission($form)->with(['referenceProjection' => 'stored'])->save();
+    $field = $submission->getForm()->getFieldByHandle('referenceProjection');
+    $token = References::field($field->reference);
+    $context = ReferenceContext::forSubmission($submission);
+    $events = [];
+    $handler = function ($event) use (&$events) {
+        if ($event->field->handle === 'referenceProjection') {
+            $events[] = $event->name;
+            $event->value = '<reference & value>';
+        }
+    };
+    $referenceEvent = \verbb\formie\base\Field::EVENT_MODIFY_VALUE_FOR_REFERENCE;
+    $stringEvent = \verbb\formie\base\Field::EVENT_MODIFY_VALUE_AS_STRING;
+    foreach ([$referenceEvent, $stringEvent] as $event) {
+        \yii\base\Event::on(\verbb\formie\base\Field::class, $event, $handler);
+    }
+    try {
+        expect(References::interpolateText($token, $context, ReferenceOutputContext::Html))->toBe('&lt;reference &amp; value&gt;')
+            ->and($events)->toBe([$referenceEvent])
+            ->and(References::resolveValue($token, $context)->requireValue())->toBe('stored');
+        $events = [];
+        expect(References::interpolateText($token, $context, ReferenceOutputContext::EmailHeader))->toBe('<reference & value>')
+            ->and($events)->toBe([$referenceEvent]);
+        $events = [];
+        expect(References::interpolateText('{field:referenceProjection;transform=upper}', $context, ReferenceOutputContext::Html))->toBe('&lt;REFERENCE &amp; VALUE&gt;')
+            ->and($events)->toBe([$referenceEvent]);
+    } finally {
+        foreach ([$referenceEvent, $stringEvent] as $event) {
+            \yii\base\Event::off(\verbb\formie\base\Field::class, $event, $handler);
+        }
+    }
 });
 
 it('resolves persisted repeater children only in explicit current-row context', function() {

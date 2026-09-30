@@ -43,6 +43,7 @@ final class FieldReferenceResolver
             shape: $referenceValue->shape,
             allowTransforms: $referenceValue->allowTransforms,
         );
+        $definition->assertAvailable($context);
 
         if ($this->_hasRowMarker($entry) && isset($params['scope'])) {
             [$value, $projection] = $this->_nestedCollection($entry, $selector, $params, $context);
@@ -167,6 +168,10 @@ final class FieldReferenceResolver
     {
         if ($field instanceof ElementField) {
             return ElementReferenceHelper::resolveFromValue($field, $value, $selector, $params);
+        }
+
+        if ($field instanceof \verbb\formie\fields\Phone) {
+            return $field->resolveNormalizedValuePath($value, $selector);
         }
 
         return $context->submission->getContentManager()->resolvePathValue($value, str_replace(':', '.', $selector));

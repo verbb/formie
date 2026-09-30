@@ -151,15 +151,15 @@ function Integrations({ schema }) {
         }
 
         const plan = getValueAtPath('settings.integrationDispatch', null);
-        const rerunPolicies = getValueAtPath('settings.integrationPolicies.rerun', null);
+        const bindings = getValueAtPath('settings.integrations', null);
 
         if (plan?.enabled) {
             return true;
         }
 
-        if (rerunPolicies && typeof rerunPolicies === 'object') {
-            return Object.values(rerunPolicies).some((entry) => {
-                return entry?.policy && entry.policy !== 'submitOnly';
+        if (bindings && typeof bindings === 'object') {
+            return Object.values(bindings).some((entry) => {
+                return entry?.trigger?.policy && entry.trigger.policy !== 'submitOnly';
             });
         }
 

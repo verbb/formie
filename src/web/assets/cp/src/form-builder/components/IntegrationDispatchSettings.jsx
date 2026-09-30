@@ -172,20 +172,16 @@ function IntegrationDispatchSettings({
             return;
         }
 
-        const currentRerun = getValueAtPath('settings.integrationPolicies.rerun', null) || {};
-        const nextRerun = { ...currentRerun };
-
         payloadIntegrations.forEach((integration) => {
             if (!isUserOrEntryIntegration(integration) || !isIntegrationEnabled(integration.handle)) {
                 return;
             }
 
-            nextRerun[integration.handle] = {
+            parentForm.setFieldValue(`settings.integrations.${integration.handle}.trigger`, {
                 policy: 'onEdit',
-            };
+            });
         });
 
-        parentForm.setFieldValue('settings.integrationPolicies.rerun', nextRerun);
     };
 
     const showDispatchSection = payloadIntegrations.length >= 1;

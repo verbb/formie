@@ -3,8 +3,7 @@ export type KnownClientFieldType = 'single-line-text' | 'multi-line-text' | 'num
 export type ClientFieldType = KnownClientFieldType | (string & {});
 export type ClientFieldValueStructure = 'scalar' | 'fixed-parent' | 'container-parent' | 'repeatable-parent';
 export type ClientFieldValueType = {
-    kind: 'string' | 'boolean' | 'number' | 'object' | 'array' | 'relationQuery' | 'none' | 'storageSafe';
-    representation?: 'decimal-string';
+    kind: 'string' | 'boolean' | 'object' | 'array' | 'relationQuery' | 'none' | 'storageSafe';
     items?: ClientFieldValueType;
     class?: string | null;
 };
@@ -189,12 +188,23 @@ export type ClientSubmitResult = {
     } | null;
     quizResult?: Record<string, unknown> | null;
     clientEvents?: Array<Record<string, unknown>>;
-    paymentStatus?: string | null;
-    paymentMessage?: string | null;
-    paymentRedirectUrl?: string | null;
-    paymentAction?: Record<string, unknown> | null;
-    paymentDecision?: Record<string, unknown> | null;
-    keepSubmitLoading?: boolean;
+    payment?: PaymentDecision | null;
+};
+export type PaymentDecision = {
+    status: 'notRequired' | 'succeeded' | 'failed' | 'requiresAction' | 'pending' | 'unknown' | 'cancelled';
+    provider?: string | null;
+    reference?: string | null;
+    message?: string | null;
+    action?: {
+        type: string;
+        url?: string | null;
+        event?: string | null;
+        payload?: Record<string, unknown>;
+        resume?: {
+            mode: string;
+            url?: string | null;
+        } | null;
+    } | null;
 };
 export type ClientFormFieldState = {
     hidden: boolean;

@@ -2111,7 +2111,7 @@ class Form extends Element implements FormInterface
 
         $record->handle = $this->handle;
         $storedSettings = $this->getSettings()->toArray();
-        $storedSettings['integrations'] = IntegrationSecrets::protect((array)($storedSettings['integrations'] ?? []));
+        $storedSettings['integrations'] = IntegrationSecrets::protectBindings((array)($storedSettings['integrations'] ?? []));
         $record->settings = $storedSettings;
         $record->layoutId = $this->getFormLayout()->id;
         $record->templateId = $this->templateId;

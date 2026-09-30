@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
@@ -32,9 +33,13 @@ class Mercury extends Crm
     // Properties
     // =========================================================================
     
+    #[Sensitive]
     public ?string $apiKey = null;
+    #[Sensitive]
     public ?string $apiToken = null;
+    #[Sensitive]
     public ?string $uatKey = null;
+    #[Sensitive]
     public ?string $uatToken = null;
     public bool|string $useUat = false;
     #[FormIntegrationSetting]
@@ -345,7 +350,7 @@ class Mercury extends Crm
         return new IntegrationConfig($settings);
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {

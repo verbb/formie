@@ -28,7 +28,8 @@ import {
 // Integration destinations accept string payloads — include multi-line text
 // (`content: any`) alongside single-line/date/number sources.
 const MAPPING_VARIABLE_CONFIG = {
-    content: 'any',
+    usage: 'integration',
+    shapes: ['inline'],
     types: ['text', 'date', 'number'],
     groupFieldsByPage: true,
     groups: [

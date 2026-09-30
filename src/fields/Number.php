@@ -104,11 +104,6 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::number();
-    }
-
     public function __construct(array $config = [])
     {
         // Normalize number settings
@@ -393,6 +388,11 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
 
     protected function supportedDefaults(): array
     {

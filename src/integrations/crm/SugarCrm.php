@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
@@ -50,6 +51,7 @@ class SugarCrm extends Crm implements OAuthProviderInterface
     // =========================================================================
     
     public ?string $username = null;
+    #[Sensitive]
     public ?string $password = null;
     public ?string $apiDomain = null;
     #[FormIntegrationSetting]
@@ -188,7 +190,7 @@ class SugarCrm extends Crm implements OAuthProviderInterface
         return new IntegrationConfig($settings);
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {

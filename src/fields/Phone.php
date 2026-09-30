@@ -6,9 +6,12 @@ use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\base\Field;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
+use verbb\formie\compatibility\fields\PhoneStorageCompatibility;
+use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
+use verbb\formie\fields\values\PhoneFieldValue;
 use verbb\formie\gql\types\generators\CountryOptionGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldBuilderPolicy;
@@ -26,7 +29,6 @@ use craft\base\ElementInterface;
 use craft\helpers\Html;
 use craft\helpers\Json;
 
-use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
 
@@ -95,10 +97,17 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
         return LanguageOptions::buildOptions($languages);
     }
 
-    public static function dbType(): string
+    public static function dbType(): array
     {
-        return Schema::TYPE_JSON;
+        return ['number' => Schema::TYPE_STRING, 'country' => Schema::TYPE_STRING];
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use PhoneStorageCompatibility;
+
 
     // Properties
     // =========================================================================
@@ -112,11 +121,6 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
 
     // Public Methods
     // =========================================================================
-
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::string();
-    }
 
     public function __construct(array $config = [])
     {
@@ -162,45 +166,62 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
-        return $value === null || $value === '';
+        return $this->normalizeValue($value, $element)->isEmpty();
     }
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
+        if ($value instanceof PhoneFieldValue) {
+            return $value;
+        }
+
         $value = Json::decodeIfJson($value);
-        $country = is_array($value) ? ($value['country'] ?? $this->countryDefaultValue) : $this->countryDefaultValue;
+        $country = is_array($value) && array_key_exists('country', $value) ? $value['country'] : $this->countryDefaultValue;
+        $country = $country === null ? null : strtoupper(trim(is_scalar($country) ? (string)$country : Json::encode(FieldStorageCodec::assertSafe($country))));
         $number = is_array($value) ? (array_key_exists('number', $value) ? $value['number'] : (isset($value['country']) || $value === [] ? '' : $value)) : $value;
         if ($number !== null && !is_scalar($number)) {
-            \verbb\formie\content\FieldStorageCodec::assertSafe($number);
+            FieldStorageCodec::assertSafe($number);
             $number = Json::encode($number);
         }
         $number = trim((string)$number);
-        if ($number === '') {
-            return '';
-        }
+        $canonicalNumber = null;
+        $countryCode = null;
         try {
             $util = PhoneNumberUtil::getInstance();
             $parsed = $util->parse($number, $country ?: null);
             if ($util->isValidNumber($parsed)) {
-                return $util->format($parsed, PhoneNumberFormat::E164);
+                $canonicalNumber = $util->format($parsed, PhoneNumberFormat::E164);
+                $countryCode = '+' . $parsed->getCountryCode();
+                $country = $country ?: ($util->getRegionCodeForNumber($parsed) ?: null);
             }
         } catch (\Throwable) {
+            // Preserve malformed user input for validation and redisplay.
         }
-        // Invalid user input remains visible and available for validation.
-        return $number;
+
+        return new PhoneFieldValue($number, $country, $canonicalNumber, $countryCode);
     }
 
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
-        $number = $this->normalizeValue($value, $element);
-        $country = $this->countryDefaultValue;
-        try {
-            $util = PhoneNumberUtil::getInstance();
-            $parsed = $util->parse($number, $country ?: null);
-            $country = $util->getRegionCodeForNumber($parsed) ?: $country;
-        } catch (\Throwable) {
+        $phone = $this->normalizeValue($value, $element);
+
+        return ['number' => $phone->number, 'country' => $phone->country];
+    }
+
+    public function resolveNormalizedValuePath(mixed $value, string $path): mixed
+    {
+        $phone = $this->normalizeValue($value, null);
+        if ($path === 'countryName') {
+            // Country labels depend on the field's locale, not on the immutable value.
+            foreach ($this->getCountryOptions() as $country) {
+                if ($country['value'] === $phone->country) {
+                    return $country['label'];
+                }
+            }
+            return '';
         }
-        return ['number' => $number, 'country' => $country];
+
+        return $phone->getPathValue($path);
     }
 
     public function defineFormBuilderPreviewSchema(): array
@@ -349,6 +370,33 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     // Protected Methods
     // =========================================================================
 
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::object(PhoneFieldValue::class);
+    }
+
+    protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
+    {
+        $phone = $this->normalizeValue($value, $element);
+
+        return ['number' => $phone->number, 'country' => $phone->country];
+    }
+
+    protected function defineValueAsData(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        return $this->normalizeValue($value, $element)->toArray();
+    }
+
+    protected function defineValueAsString(mixed $value, ?ElementInterface $element = null): string
+    {
+        return (string)$this->normalizeValue($value, $element);
+    }
+
+    protected function defineValueForCondition(mixed $value, Submission $submission): mixed
+    {
+        return $this->defineValueAsString($value, $submission);
+    }
+
     protected function supportedDefaults(): array
     {
         return ['countryEnabled', 'countryDefaultValue'];
@@ -469,6 +517,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
             FieldReferenceValue::selector('countryName', Craft::t('formie', 'Country (Full)')),
             FieldReferenceValue::selector('countryCode', Craft::t('formie', 'Country Code')),
             FieldReferenceValue::selector('number', Craft::t('formie', 'Number')),
+            FieldReferenceValue::selector('canonicalNumber', Craft::t('formie', 'Canonical Number'), supportsBrowser: false),
         ];
     }
 

@@ -40,7 +40,14 @@ final class ReferenceResolver
             if (($value === null || $value === '' || $value === [] || ($value instanceof \verbb\formie\fields\values\FieldValueInterface && $value->isEmpty())) && $expression->default !== '') {
                 $value = $expression->default;
             }
-            return new ResolvedReference($expression, $value, $result->definition, field: $result->field, fieldProjection: $result->fieldProjection === 'collection' && in_array($expression->transformerId, ['first', 'last'], true) ? 'value' : $result->fieldProjection);
+            $projection = $result->fieldProjection;
+            if (in_array($expression->transformerId, ['lower', 'upper', 'title', 'capitalize', 'replace', 'truncate'], true)) {
+                // Text transforms have already applied the specialist projection.
+                $projection = 'none';
+            } elseif ($projection === 'collection' && in_array($expression->transformerId, ['first', 'last'], true)) {
+                $projection = 'value';
+            }
+            return new ResolvedReference($expression, $value, $result->definition, field: $result->field, fieldProjection: $projection);
         } catch (ReferenceException $e) {
             return new ResolvedReference($expression, diagnostic: $e->diagnostic);
         }
@@ -48,6 +55,7 @@ final class ReferenceResolver
 
     public function interpolateText(string $template, ReferenceContext $context, ReferenceOutputContext $outputContext = ReferenceOutputContext::PlainText): string
     {
+        $context = $context->withOutputContext($outputContext);
         if ($outputContext === ReferenceOutputContext::EmailHeader && preg_match('/[\r\n\x00]/', $template)) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidOutput);
         }
@@ -58,7 +66,7 @@ final class ReferenceResolver
             $result = $this->resolveValue($match[0], $context);
             $expression = $result->expression;
             if ($result->diagnostic !== null) {
-                $strictOutput = in_array($outputContext, [
+                $strictOutput = in_array($context->usage, [ReferenceUsage::Integration, ReferenceUsage::Url], true) || in_array($outputContext, [
                     ReferenceOutputContext::EmailHeader,
                     ReferenceOutputContext::UrlComponent,
                     ReferenceOutputContext::StructuredData,
@@ -82,7 +90,7 @@ final class ReferenceResolver
                 $field = $result->field;
                 $project = static fn(mixed $item): mixed => $outputContext === ReferenceOutputContext::StructuredData
                     ? $field->getValueAsData($item, $context->submission)
-                    : $field->getValueAsString($item, $context->submission);
+                    : $field->getValueForReference($item, $context->submission);
                 if ($result->fieldProjection === 'value' && $field->valueType()->accepts($value)) {
                     $value = $project($value);
                 } elseif ($result->fieldProjection === 'collection' && is_array($value) && count(array_filter($value, static fn(mixed $item): bool => $field->valueType()->accepts($item))) === count($value)) {
@@ -147,7 +155,7 @@ final class ReferenceResolver
             throw new ReferenceException(ReferenceDiagnostic::InvalidType);
         }
         if (in_array($id, ['lower', 'upper', 'title', 'capitalize', 'replace', 'truncate'], true) && $field && $field->valueType()->accepts($value)) {
-            $value = $field->getValueAsString($value, $context->submission);
+            $value = $field->getValueForReference($value, $context->submission);
         }
         if (in_array($id, ['lower', 'upper', 'title', 'capitalize', 'replace', 'truncate'], true) && !is_scalar($value) && $value !== null) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidType);

@@ -45,6 +45,11 @@ use InvalidArgumentException;
 
 class SubmissionsController extends Controller
 {
+    // Traits
+    // =========================================================================
+
+    use \verbb\formie\compatibility\payments\LegacyPaymentSubmitResponse;
+
     // Constants
     // =========================================================================
 
@@ -620,7 +625,7 @@ class SubmissionsController extends Controller
         }
 
         try {
-            $result = Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+            $result = Formie::$plugin->getSubmissionRequests()->executeManaged(new ManagedSubmissionRequest([
                 'handle' => $handle,
                 'operation' => $operation,
                 'expectedVersion' => $this->_parseTypedParam('expectedVersion', TypeHelper::TYPE_INT, null, false),
@@ -796,6 +801,7 @@ class SubmissionsController extends Controller
         $nextPageId = $nextPage?->id ?? null;
 
         $payload['success'] = $response->success;
+        $payload['payment'] = $response->payment;
         $payload['submissionUid'] = $submission->uid;
         $payload['submitAction'] = $submitAction;
         $payload['outcome'] = $response->outcome?->type->value;
@@ -809,16 +815,6 @@ class SubmissionsController extends Controller
 
         if (!$response->success) {
             $payload['errors'] = \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toValuePathMap();
-            $payload['keepSubmitLoading'] = in_array($response->paymentStatus, [
-                PaymentDecision::STATUS_ACTION_REQUIRED->value,
-                PaymentDecision::STATUS_UNKNOWN->value,
-                PaymentDecision::STATUS_PENDING->value,
-            ], true);
-
-            if ($response->paymentRedirectUrl) {
-                $payload['redirectUrl'] = $response->paymentRedirectUrl;
-            }
-
             $this->_appendPaymentResponsePayload($payload, $response);
 
             return $payload;
@@ -871,21 +867,11 @@ class SubmissionsController extends Controller
 
     private function _appendPaymentResponsePayload(array &$payload, SubmissionResponse $response): void
     {
-        if ($response->paymentStatus) {
-            $payload['paymentStatus'] = $response->paymentStatus;
+        $payload['payment'] = $response->payment;
+        if (isset($payload['payment']['message'])) {
+            $payload['payment']['message'] = StringHelper::sanitizeMessageHtml($payload['payment']['message']);
         }
-
-        if ($response->paymentMessage) {
-            $payload['paymentMessage'] = StringHelper::sanitizeMessageHtml($response->paymentMessage);
-        }
-
-        if ($response->paymentAction) {
-            $payload['paymentAction'] = $response->paymentAction;
-        }
-
-        if ($response->paymentDecision) {
-            $payload['paymentDecision'] = $response->paymentDecision;
-        }
+        $this->_appendLegacyPaymentSubmitResponse($payload);
     }
 
     private function _stashPageReloadClientEvents(
@@ -1029,12 +1015,12 @@ class SubmissionsController extends Controller
 
     private function _createSaveResumePayload(Form $form, Submission $submission): array
     {
-        $baseResumeUrl = Formie::$plugin->getSubmissionProcessor()->resolveTrustedResumeBaseUrl(
+        $baseResumeUrl = Formie::$plugin->getSubmissionRequests()->resolveTrustedResumeBaseUrl(
             $this->request->getReferrer(),
             (string)$this->request->getPathInfo()
         );
 
-        return Formie::$plugin->getSubmissionProcessor()->createSaveResumePayload($form, $submission, $baseResumeUrl);
+        return Formie::$plugin->getSubmissionRequests()->createSaveResumePayload($form, $submission, $baseResumeUrl);
     }
 
     private function _prepEditSubmissionVariables(array &$variables): void

@@ -1,64 +1,45 @@
 <?php
 namespace verbb\formie\models;
 
-use craft\base\Model;
-use craft\helpers\Json;
+use verbb\formie\Formie;
+use verbb\formie\base\Integration;
+use verbb\formie\elements\Submission;
+use verbb\formie\helpers\DeliveryAttempt;
 
-class IntegrationRunContext extends Model
+use craft\helpers\StringHelper;
+
+/** Explicit input and execution state for one integration operation. */
+final readonly class IntegrationRunContext
 {
     // Static Methods
     // =========================================================================
 
-    public static function fromStorage(mixed $value): self
+    public static function forIntegration(Integration $integration, Submission $submission): self
     {
-        if ($value instanceof self) {
-            return $value;
-        }
-
-        if (is_string($value) && $value !== '') {
-            $value = Json::decodeIfJson($value);
-        }
-
-        if (!is_array($value)) {
-            $value = [];
-        }
-
-        return new self([
-            'results' => is_array($value['results'] ?? null) ? $value['results'] : [],
-        ]);
+        $execution = $integration->getDeliveryExecutionContext() ?? new IntegrationExecutionContext(
+            (int)$submission->id, (int)$submission->formId, (string)$integration->handle,
+            DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID(), 'synchronous', 'direct',
+        );
+        return new self($submission, $execution, $integration->getDeliveryAttemptUid(),
+            Formie::$plugin->getIntegrationDispatcher()->loadContext($submission, $execution->executionUid));
     }
 
 
     // Properties
     // =========================================================================
 
-    public array $results = [];
+    public IntegrationDeliveryState $state;
 
 
     // Public Methods
     // =========================================================================
 
-    public function record(string $handle, array $result): void
-    {
-        $this->results[$handle] = $result;
-    }
-
-    public function wasSuccessful(string $handle): bool
-    {
-        return (bool)($this->results[$handle]['success'] ?? false);
-    }
-
-    public function getResult(string $handle): ?array
-    {
-        $result = $this->results[$handle] ?? null;
-
-        return is_array($result) ? $result : null;
-    }
-
-    public function toStorageArray(): array
-    {
-        return [
-            'results' => $this->results,
-        ];
+    public function __construct(
+        public Submission $submission,
+        public IntegrationExecutionContext $execution,
+        public ?string $attemptUid = null,
+        public IntegrationRunResults $previousResults = new IntegrationRunResults(),
+    ) {
+        $this->state = new IntegrationDeliveryState();
     }
 }

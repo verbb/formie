@@ -37,7 +37,7 @@ it('preserves accepted content through the real payment replay boundary and dupl
     };
     \yii\base\Event::on(\verbb\formie\services\SubmissionWorkflow::class, \verbb\formie\services\SubmissionWorkflow::EVENT_BEFORE_STAGE, $observe);
     try {
-        $processor = Formie::$plugin->getSubmissionProcessor();
+        $processor = Formie::$plugin->getSubmissionRequests();
         $first = $processor->executePaymentReplay($payment);
         $again = $processor->executePaymentReplay($payment);
         $saved = Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->one();
@@ -77,13 +77,13 @@ it('reconciles hosted payment completion with the current submission requirement
     $integration->setField($form->getFieldByHandle('payment'));
     \Tests\Support\WebRequestTestHelper::withWebRequestContext(function () use ($integration, $submission, $currentAmount): void {
         expect($integration->getAmount($submission))->toBe('25');
-        expect($integration->processPayment($submission)->status->value)->toBe('actionRequired');
+        expect($integration->processPayment($submission)->status->value)->toBe('requiresAction');
         $submission->setFieldValue('total', $currentAmount);
         $retry = runSubmissionCommand(submissionCommand([
             'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'form' => $submission->getForm(), 'submission' => $submission, 'navigation' => \verbb\formie\enums\NavigationIntent::ADVANCE,
         ]));
-        expect($retry->paymentStatus)->toBe($currentAmount === 25 ? 'actionRequired' : 'failed');
+        expect($retry->payment['status'])->toBe($currentAmount === 25 ? 'requiresAction' : 'failed');
         parse_str(parse_url($integration->created['webhookUrl'], PHP_URL_QUERY), $webhookQuery);
         Craft::$app->getRequest()->setQueryParams($webhookQuery);
         Craft::$app->getRequest()->setRawBody(http_build_query(['id' => 'tr_audit' . $integration->id]));
@@ -93,7 +93,7 @@ it('reconciles hosted payment completion with the current submission requirement
         expect($saved->isIncomplete)->toBe($currentAmount !== 25);
         $payments = Formie::$plugin->getPayments()->getSubmissionPayments($saved);
         expect($payments)->toHaveCount(1);
-        expect($payments[0]->status)->toBe('success');
+        expect($payments[0]->status)->toBe('succeeded');
         expect($payments[0]->amount)->toBe('25.00');
         // A repeated authoritative webhook preserves both the receipt and completion decision.
         $integration->processWebhooks();
@@ -139,7 +139,7 @@ it('compares stored payments using each provider currency unit and current setti
     expect($response->success)->toBe($matches);
     $saved = Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->one();
     expect($saved->isIncomplete)->toBe(!$matches);
-    expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->status)->toBe('success');
+    expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->status)->toBe('succeeded');
 })->with([
     ['Stripe', 'USD', 19.994, 19.99, false],
     ['Stripe', 'JPY', 19.1, 20, false],

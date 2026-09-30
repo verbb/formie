@@ -1,6 +1,8 @@
 import type { ClientFormInstance } from '@verbb/formie-core';
 import { ModuleRegistry } from '#modules/registry';
 export declare function mountClientRenderedModules(root: Element, instance: ClientFormInstance, registry?: ModuleRegistry): Promise<{
+    instances: readonly import("../..").BrowserModuleInstance[];
+    failures: readonly import("../..").BrowserModuleFailure[];
     destroy: () => Promise<void>;
     assertReady: () => void;
     prepare: (action: import("@verbb/formie-core").ClientSubmitAction) => Promise<Record<string, unknown>>;

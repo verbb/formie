@@ -90,8 +90,8 @@ class ProcessPaymentTask implements TaskInterface
             // Commit payment state, submission completion and upload finalization together.
             foreach (Formie::$plugin->getPayments()->getSubmissionPayments($submission) as $payment) {
                 if ($payment->scope['initial'] ?? false) {
-                    if (($payment->scope['providerOutcome']['status'] ?? null) === PaymentModel::STATUS_SUCCESS) {
-                        $payment->status = PaymentModel::STATUS_SUCCESS;
+                    if (($payment->scope['providerOutcome']['status'] ?? null) === PaymentModel::STATUS_SUCCEEDED) {
+                        $payment->status = PaymentModel::STATUS_SUCCEEDED;
                     }
                     $payment->scope['submissionTransition'] = ['complete' => $completed, 'decision' => $context->paymentDecision->status->value,
                         'operationId' => $context->command->operationId, 'expectedVersion' => $context->command->expectedVersion];
@@ -212,13 +212,13 @@ class ProcessPaymentTask implements TaskInterface
 
             $paymentIntegration->setField($field);
 
-            if (($storedPayment->scope['providerOutcome']['status'] ?? null) === PaymentModel::STATUS_SUCCESS) {
-                $storedPayment->status = PaymentModel::STATUS_SUCCESS;
+            if (($storedPayment->scope['providerOutcome']['status'] ?? null) === PaymentModel::STATUS_SUCCEEDED) {
+                $storedPayment->status = PaymentModel::STATUS_SUCCEEDED;
             }
 
             // Gateway success verifies the original purchase. Completion also
             // requires that purchase to cover the submission as it exists now.
-            if ($storedPayment->status === PaymentModel::STATUS_SUCCESS
+            if ($storedPayment->status === PaymentModel::STATUS_SUCCEEDED
                 && (!$paymentIntegration instanceof PaymentIntegration || !$this->_matchesPaymentRequirement($paymentIntegration, $submission, $storedPayment))) {
                 $message = Craft::t('formie', 'The saved payment does not match the current amount and currency. Review the payment before completing this submission.');
                 $submission->addError($field->errorKey(), $message);
@@ -280,9 +280,9 @@ class ProcessPaymentTask implements TaskInterface
         $provider ??= $payment->getIntegration()?->handle ?? null;
 
         return match ($payment->status) {
-            PaymentModel::STATUS_SUCCESS => PaymentDecision::succeeded($provider, $payment->reference),
+            PaymentModel::STATUS_SUCCEEDED => PaymentDecision::succeeded($provider, $payment->reference),
             PaymentModel::STATUS_FAILED => PaymentDecision::failed($payment->message, $provider, $payment->reference),
-            PaymentModel::STATUS_REDIRECT,
+            PaymentModel::STATUS_REQUIRES_ACTION,
             PaymentModel::STATUS_PENDING,
             PaymentModel::STATUS_PROCESSING => PaymentDecision::pending($payment->message, $provider, $payment->reference),
             PaymentModel::STATUS_CANCELLED => PaymentDecision::cancelled($payment->message, $provider, $payment->reference),

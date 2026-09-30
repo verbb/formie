@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
@@ -95,7 +96,9 @@ class Opayo extends Payment
     // =========================================================================
 
     public ?string $vendorName = null;
+    #[Sensitive]
     public ?string $integrationKey = null;
+    #[Sensitive]
     public ?string $integrationPassword = null;
     public bool|string $useSandbox = false;
     public string $checkoutMode = self::CHECKOUT_MODE_OWN_FORM;
@@ -269,14 +272,14 @@ class Opayo extends Payment
 
             $payment = new PaymentModel($row);
 
-            if ($payment->status !== PaymentModel::STATUS_SUCCESS) {
-                if (!in_array($payment->status, [PaymentModel::STATUS_PENDING, PaymentModel::STATUS_UNKNOWN], true)) {
+            if ($payment->status !== PaymentModel::STATUS_SUCCEEDED) {
+                if (!in_array($payment->status, [PaymentModel::STATUS_PENDING, PaymentModel::STATUS_REQUIRES_ACTION, PaymentModel::STATUS_UNKNOWN], true)) {
                     throw new Exception('Opayo payment is not awaiting a challenge.');
                 }
 
                 if (!empty($payment->scope['challengeSent'])) {
                     $this->getTransaction($payment);
-                    if ($payment->status !== PaymentModel::STATUS_SUCCESS) {
+                    if ($payment->status !== PaymentModel::STATUS_SUCCEEDED) {
                         throw new Exception('Challenge outcome requires reconciliation.');
                     }
                     $response = $payment->response;
@@ -294,7 +297,7 @@ class Opayo extends Payment
 
                 }
 
-                $payment->status = PaymentModel::STATUS_SUCCESS;
+                $payment->status = PaymentModel::STATUS_SUCCEEDED;
                 $payment->response = $response;
 
                 if (!$payments->savePayment($payment)) {
@@ -320,6 +323,11 @@ class Opayo extends Payment
         $challengeResponse->data = '<script>window.parent.postMessage({ message: "formie:payment:opayo:challenge:response", value: ' . Json::encode($responseData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ' }, "*");</script>';
 
         return $challengeResponse;
+    }
+
+    protected function getPaymentAccountIdentity(): ?string
+    {
+        return App::parseEnv($this->vendorName) ?: null;
     }
 
     public function fetchConnection(): bool
@@ -609,7 +617,7 @@ class Opayo extends Payment
 
             // A known reference is not proof of a successful payment, nor may
             // one submission reuse another visitor's completed challenge.
-            if ($payment && $payment->status === PaymentModel::STATUS_SUCCESS
+            if ($payment && $payment->status === PaymentModel::STATUS_SUCCEEDED
                 && $payment->integrationId === $this->id
                 && $payment->submissionId === $submission->id
                 && $payment->fieldId === $field->id
@@ -682,15 +690,6 @@ class Opayo extends Payment
             }
 
             // Store the data we need for 3DS against the form, which is added is the Ajax response
-            $submission->getForm()->addSubmitData([
-                'event' => 'formie:payment:opayo:challenge',
-                'data' => [
-                    'acsUrl' => $acsUrl,
-                    'creq' => $response['cReq'] ?? '',
-                    'returnUrl' => $this->getReturnUrl(),
-                    'threeDSSessionData' => $threeDSSessionData,
-                ],
-            ]);
 
             return PaymentDecision::requiresAction(
                 $payment->reference,
@@ -721,7 +720,7 @@ class Opayo extends Payment
 
         $payment->reference = $response['transactionId'] ?? '';
         $payment->response = $response;
-        $payment->status = PaymentModel::STATUS_SUCCESS;
+        $payment->status = PaymentModel::STATUS_SUCCEEDED;
         $paymentReference = $payment->reference;
 
         $attempt->save();

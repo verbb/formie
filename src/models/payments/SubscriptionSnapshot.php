@@ -30,6 +30,7 @@ final readonly class SubscriptionSnapshot
         public ?DateTimeImmutable $endedAt = null,
         public ?SubscriptionCancellationMode $cancellationMode = null,
         public array $rawData = [],
+        public array $providerData = [],
     ) {
     }
 }

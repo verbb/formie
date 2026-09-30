@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\automations;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Automation;
@@ -38,6 +39,7 @@ class Zapier extends Automation
     // =========================================================================
     
     #[FormIntegrationSetting]
+    #[Sensitive]
     public ?string $webhook = null;
     
 
@@ -80,7 +82,7 @@ class Zapier extends Automation
         return new IntegrationConfig($settings);
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {

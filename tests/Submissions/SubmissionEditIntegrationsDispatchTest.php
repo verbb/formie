@@ -26,12 +26,8 @@ it('includes standard integration dispatch in the edit-existing workflow', funct
 
 it('only opts Entry integrations into submission-edit dispatch when configured', function (): void {
     $form = new Form();
-    $form->settings->integrationPolicies = [
-        'rerun' => [
-            'entry' => [
-                'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
-            ],
-        ],
+$form->settings->integrations['entry']['trigger'] = [
+        'policy' => IntegrationRerunPolicies::POLICY_ON_EDIT,
     ];
 
     $integration = new Entry([

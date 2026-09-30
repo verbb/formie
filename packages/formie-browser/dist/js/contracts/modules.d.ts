@@ -57,4 +57,16 @@ export type BrowserModuleDefinition = {
     match: (ctx: ModuleMatchContext) => boolean;
     setup: (ctx: ModuleSetupContext) => Promise<BrowserModuleInstance | void>;
 };
+export type BrowserModuleFailure = {
+    key: string;
+    moduleId: string;
+    required: boolean;
+    surface: BrowserSurface;
+    code: 'MODULE_UNAVAILABLE';
+    message: string;
+};
+export type BrowserModuleHydrationReport = {
+    readonly instances: readonly BrowserModuleInstance[];
+    readonly failures: readonly BrowserModuleFailure[];
+};
 //# sourceMappingURL=modules.d.ts.map

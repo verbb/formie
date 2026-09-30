@@ -68,11 +68,6 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::string();
-    }
-
     public function fieldKind(): string
     {
         return self::KIND_TEXT;
@@ -202,6 +197,11 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
 
     protected function supportedDefaults(): array
     {

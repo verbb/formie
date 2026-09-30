@@ -130,6 +130,6 @@ it('reconciles a pending PayPal capture to a final status', function (): void {
     $payment = Formie::$plugin->getPayments()->getSubmissionPayments($submission)[0];
     $integration->captureStatus = 'COMPLETED';
     $integration->getTransaction($payment);
-    expect($payment->status)->toBe('success')
+    expect($payment->status)->toBe('succeeded')
         ->and(array_filter($integration->requests, fn($r) => str_ends_with($r[1], '/capture')))->toHaveCount(1);
 });

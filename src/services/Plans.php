@@ -7,7 +7,7 @@ use verbb\formie\events\PlanEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\models\Plan;
+use verbb\formie\models\SubscriptionPlan;
 use verbb\formie\records\Plan as PlanRecord;
 
 use Craft;
@@ -53,22 +53,26 @@ class Plans extends Component
         return $this->_plans()->all();
     }
 
-    public function getPlanById(int $id): ?Plan
+    public function getPlanById(int $id): ?SubscriptionPlan
     {
         return $this->_plans()->firstWhere('id', $id);
     }
 
-    public function getPlanByReference(string $reference): ?Plan
+    public function getPlanByReference(string $reference, ?int $integrationId = null, ?string $accountFingerprint = null): ?SubscriptionPlan
     {
-        return $this->_plans()->firstWhere('reference', $reference);
+        $matches = array_filter($this->getAllPlans(), static fn(SubscriptionPlan $plan): bool => $plan->reference === $reference
+            && ($integrationId === null || $plan->integrationId === $integrationId)
+            && ($accountFingerprint === null || $plan->accountFingerprint === $accountFingerprint));
+        // Legacy unscoped callers must never select an arbitrary account.
+        return count($matches) === 1 ? reset($matches) : null;
     }
 
-    public function getPlanByUid(string $uid): ?Plan
+    public function getPlanByUid(string $uid): ?SubscriptionPlan
     {
         return $this->_plans()->firstWhere('uid', $uid, true);
     }
 
-    public function savePlan(Plan $plan, bool $runValidation = true): bool
+    public function savePlan(SubscriptionPlan $plan, bool $runValidation = true): bool
     {
         $isNewPlan = !(bool)$plan->id;
 
@@ -90,6 +94,16 @@ class Plans extends Component
 
         try {
             $planRecord = $this->_getPlanRecord($plan->id);
+            if ($planRecord->getIsNewRecord()) {
+                $plan->accountFingerprint ??= $plan->getIntegration()?->getPaymentAccountFingerprint();
+            } else {
+                foreach (['integrationId', 'accountFingerprint', 'reference'] as $attribute) {
+                    $plan->$attribute = $planRecord->$attribute;
+                }
+            }
+            foreach (['accountFingerprint', 'amountMinor', 'currency', 'interval', 'intervalCount', 'providerStatus'] as $attribute) {
+                $planRecord->$attribute = $plan->$attribute;
+            }
             $planRecord->integrationId = $plan->integrationId;
             $planRecord->name = $plan->name;
             $planRecord->handle = $plan->handle;
@@ -134,7 +148,7 @@ class Plans extends Component
         return $this->deletePlan($plan);
     }
 
-    public function deletePlan(Plan $plan): bool
+    public function deletePlan(SubscriptionPlan $plan): bool
     {
         // Fire a 'beforeDeletePlan' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_PLAN)) {
@@ -191,7 +205,7 @@ class Plans extends Component
             $plans = [];
 
             foreach ($this->_createPlansQuery()->all() as $result) {
-                $plans[] = new Plan($result);
+                $plans[] = new SubscriptionPlan($result);
             }
 
             $this->_plans = new MemoizableArray($plans);
@@ -205,7 +219,7 @@ class Plans extends Component
         return (new Query())
             ->select([
                 'id',
-                'integrationId',
+                'integrationId', 'accountFingerprint', 'amountMinor', 'currency', 'interval', 'intervalCount', 'providerStatus',
                 'name',
                 'handle',
                 'reference',

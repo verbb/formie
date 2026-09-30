@@ -402,7 +402,6 @@ class Integrations extends Component
 
     public function sendIntegrationPayload(Integration $integration, Submission $submission): IntegrationResult
     {
-        unset($integration->context['deliveryUncertain'], $integration->context['deliveryWriteAccepted']);
         $event = new TriggerIntegrationEvent([
             'submission' => $submission,
             'type' => get_class($integration),
@@ -413,18 +412,13 @@ class Integrations extends Component
             return IntegrationResult::skipped('event_cancelled');
         }
         try {
-            $response = $integration->sendPayload($event->submission);
-            $errorResult = $integration->context['deliveryErrorResult'] ?? null;
-            $errorResult = $response === false || $errorResult?->requiresReconciliation() ? $errorResult : null;
-            $result = $errorResult ?? IntegrationResultCompatibility::normalize($response,
-                !empty($integration->context['deliveryUncertain'])
-                || ($response === false && !empty($integration->context['deliveryWriteAccepted'])),
-            );
-            if (!empty($integration->context['deliverySkipped']) && empty($integration->context['deliveryWriteAccepted'])) {
-                $result = IntegrationResult::skipped('event_or_opt_in');
-            }
+            $context = \verbb\formie\models\IntegrationRunContext::forIntegration($integration, $event->submission);
+            $integration->beginRun($context);
+            $result = $integration instanceof \verbb\formie\base\DispatchableIntegrationInterface
+                ? $integration->execute($context)
+                : $integration->executeLegacyPayload($context);
             if (!in_array($result->status, [IntegrationStatus::Succeeded, IntegrationStatus::Skipped], true)) {
-                $this->handleTriggerIntegrationFailed($integration, $submission, new IntegrationException('Integration delivery ' . $result->status->value), $response instanceof IntegrationResponse ? $response : $result->toStorage());
+                $this->handleTriggerIntegrationFailed($integration, $submission, new IntegrationException('Integration delivery ' . $result->status->value), $integration->getLegacyIntegrationResponse() ?? $result->toStorage());
             }
             return $result;
         } catch (Throwable $error) {
@@ -1144,6 +1138,11 @@ class Integrations extends Component
 
             // If this disabled globally? Then don't include it, otherwise populate the settings
             if ($integration && $integration->getEnabled()) {
+                // The dispatch plan supplies the lane; each runtime receives it as immutable common binding policy.
+                $plan = Formie::$plugin->getIntegrationDispatcher()->getPlan($form);
+                if ($plan->enabled) {
+                    $formSettings['execution'] = $plan->getStepExecution((string)$handle);
+                }
                 $enabledIntegrations[] = FormIntegration::fromSettings($integration, $formSettings, $form->getId(), $form->getHandle());
             }
         }
@@ -1163,7 +1162,7 @@ class Integrations extends Component
 
         return array_values(array_map(
             static function(IntegrationInterface $integration) use ($bindingsByHandle, $form): FormIntegration {
-                $settings = ['enabled' => $integration->getEnabled()] + $integration->getAttributes();
+                $settings = $integration instanceof Integration ? FormIntegration::settingsFromRuntime($integration) : ['enabled' => $integration->getEnabled()] + $integration->getAttributes();
                 $binding = $bindingsByHandle[$integration->handle] ?? null;
                 if ($binding !== null) {
                     $settings['execution'] = $binding->execution;

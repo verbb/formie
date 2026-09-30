@@ -20,12 +20,6 @@ final class FieldValueType
         return new self('boolean');
     }
 
-    // Numeric domain values retain invalid text for validation; no float coercion occurs here.
-    public static function number(): self
-    {
-        return new self('number');
-    }
-
     public static function object(string $class): self
     {
         return new self('object', $class);
@@ -97,7 +91,7 @@ final class FieldValueType
         }
 
         return match ($this->kind) {
-            'string', 'number' => is_string($value),
+            'string' => is_string($value),
             'boolean' => is_bool($value),
             'object' => $value instanceof $this->class,
             'relationQuery' => $value instanceof ElementQueryInterface && is_a($value->elementType, $this->class, true),
@@ -110,7 +104,7 @@ final class FieldValueType
     public function assert(mixed $value, string $owner): mixed
     {
         if (!$this->accepts($value)) {
-            throw new LogicException($owner . ' normalized to ' . get_debug_type($value) . '; expected FieldValueType::' . $this->kind . ($this->class ? '(' . $this->class . ')' : '') . '. Declare valueType() and return that runtime type from normalizeValue().');
+            throw new LogicException($owner . ' normalized to ' . get_debug_type($value) . '; expected FieldValueType::' . $this->kind . ($this->class ? '(' . $this->class . ')' : '') . '. Declare defineValueType() and return that runtime type from normalizeValue().');
         }
 
         return $value;
@@ -122,7 +116,6 @@ final class FieldValueType
             'kind' => $this->kind,
             'class' => $this->class,
             'items' => $this->items?->toArray(),
-            'representation' => $this->kind === 'number' ? 'decimal-string' : null,
         ], static fn($value) => $value !== null);
     }
 }

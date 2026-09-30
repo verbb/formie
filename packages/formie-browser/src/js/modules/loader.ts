@@ -1,12 +1,16 @@
 import { assertBrowserModuleManifest, type BrowserModuleManifest, type BrowserModuleEntry } from '@verbb/formie-core';
-import type { BrowserModuleDefinition, BrowserModuleInstance, ModuleMatchContext, ModuleSetupContext } from '#contracts/modules';
+import type { BrowserModuleDefinition, BrowserModuleInstance, BrowserModuleFailure, BrowserModuleHydrationReport, ModuleMatchContext, ModuleSetupContext } from '#contracts/modules';
 import { builtinAddressModuleLoaders } from '#modules/address';
 import { builtinCaptchaModuleLoaders } from '#modules/captchas';
 import { builtinFieldModuleLoaders } from '#modules/fields';
 import { builtinPaymentModuleLoaders } from '#modules/payments';
 import { ModuleRegistry } from '#modules/registry';
 
-export type BrowserModuleRuntime = BrowserModuleInstance[] & { updateManifest: (manifest: BrowserModuleManifest) => Promise<void> };
+export type BrowserModuleRuntime = BrowserModuleHydrationReport & {
+    assertReady: () => void;
+    destroy: () => Promise<void>;
+    updateManifest: (manifest: BrowserModuleManifest) => Promise<void>;
+};
 
 type ModuleLoadContext = {
     registry: ModuleRegistry;
@@ -53,14 +57,14 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
     }
     const { root, form } = ctx.setupContext;
     const mounted = new Map<string, Map<Element, { instance: BrowserModuleInstance; config: string; moduleId: string; required: boolean }>>();
-    const failures = new Map<string, BrowserModuleEntry>();
-    const instances = [] as unknown as BrowserModuleRuntime;
+    const failures = new Map<string, BrowserModuleFailure>();
+    const instances: BrowserModuleInstance[] = [];
     let disposed = false;
     let running: Promise<void> = Promise.resolve();
     let queued = false;
     const diagnose = async(entry: BrowserModuleEntry, error: unknown) => {
-        failures.set(entry.key, entry);
-        const diagnostic = { key: entry.key, moduleId: entry.moduleId, required: entry.required, surface, code: 'MODULE_UNAVAILABLE', message: 'A form feature could not start. Reload the page or contact the site administrator.' };
+        const diagnostic: BrowserModuleFailure = { key: entry.key, moduleId: entry.moduleId, required: entry.required, surface, code: 'MODULE_UNAVAILABLE', message: 'A form feature could not start. Reload the page or contact the site administrator.' };
+        failures.set(entry.key, diagnostic);
         console.error('[formie] Browser module failure', diagnostic, error);
         await ctx.setupContext.emit('formie:browser:module:error', diagnostic);
     };
@@ -100,7 +104,8 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
         }
         for (const entry of manifest.entries) {
             if (disposed) continue;
-            if (failures.has(entry.key)) failures.set(entry.key, entry);
+            const failure = failures.get(entry.key);
+            if (failure) failures.set(entry.key, { ...failure, required: entry.required });
             let targets: Element[];
             try { targets = resolveTargets(entry, root, form); }
             catch (error) { if (!failures.has(entry.key)) await diagnose(entry, error); continue; }
@@ -169,8 +174,9 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
         void running.catch((error) => console.error('[formie] Module reconciliation failed', error));
     };
     const observer = new MutationObserver(schedule);
-    // The controller is also a submit hook, so API-driven sends obey the same failure policy.
-    instances.push({
+    const runtime: BrowserModuleRuntime = {
+        get instances() { return instances; },
+        get failures() { return [...failures.values()]; },
         assertReady: () => { if (blocked()) throw new Error('A required form feature could not start. Reload the page or contact the site administrator.'); },
         destroy: async() => {
             disposed = true; observer.disconnect(); form?.removeEventListener('submit', guard, true);
@@ -178,19 +184,18 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
             for (const records of Array.from(mounted.values()).reverse()) {
                 for (const { instance } of Array.from(records.values()).reverse()) await dispose(instance);
             }
-            mounted.clear(); instances.splice(1);
+            mounted.clear(); instances.splice(0); failures.clear();
         },
-        beforeSubmit: (context) => { if (blocked()) context.abort('A required form feature could not start. Reload the page or contact the site administrator.'); },
-    });
-    instances.updateManifest = async(next) => {
-        assertBrowserModuleManifest(next);
-        if (next.surface !== surface) throw new Error('A mounted browser module runtime cannot change surfaces.');
-        manifest = next;
-        running = running.then(reconcile);
-        await running;
+        updateManifest: async(next) => {
+            assertBrowserModuleManifest(next);
+            if (next.surface !== surface) throw new Error('A mounted browser module runtime cannot change surfaces.');
+            manifest = next;
+            running = running.then(reconcile);
+            await running;
+        },
     };
     form?.addEventListener('submit', guard, true);
     await reconcile();
     observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'data-formie-hidden', 'data-formie-conditionally-hidden', 'data-formie-page-hidden', 'data-formie-field-uid', 'data-formie-page-id', 'data-formie-action'] });
-    return instances;
+    return runtime;
 }

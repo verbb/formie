@@ -27,10 +27,10 @@ final readonly class ReferenceDefinition
         ?array $types = null,
         public ReferenceShape $shape = ReferenceShape::Inline,
         public bool $allowTransforms = true,
+        public ?array $usages = null,
     ) {
         $this->types = $types ?? match ($valueType->kind) {
             'string' => [ReferenceType::Text],
-            'number' => [ReferenceType::Number],
             'boolean' => [ReferenceType::Boolean],
             'array' => [ReferenceType::List],
             default => throw new InvalidArgumentException('Reference definitions with structured values must declare semantic reference types.'),
@@ -40,6 +40,19 @@ final readonly class ReferenceDefinition
             if (!$type instanceof ReferenceType) {
                 throw new InvalidArgumentException('Reference definition types must use ReferenceType cases.');
             }
+        }
+        foreach ($this->usages ?? [] as $usage) {
+            if (!$usage instanceof ReferenceUsage) {
+                throw new InvalidArgumentException('Reference usages must use ReferenceUsage cases.');
+            }
+        }
+    }
+
+    public function assertAvailable(ReferenceContext $context): void
+    {
+        $usage = $context->usage ?? ReferenceUsage::forOutput($context->outputContext);
+        if (($this->usages !== null && !in_array($usage, $this->usages, true)) || ($this->shape === ReferenceShape::Block && $usage !== ReferenceUsage::RichText)) {
+            throw new ReferenceException(ReferenceDiagnostic::ForbiddenSource);
         }
     }
 
@@ -55,6 +68,7 @@ final readonly class ReferenceDefinition
             'types' => array_map(static fn(ReferenceType $type): string => $type->value, $this->types),
             'allowTransforms' => $this->allowTransforms,
             'availability' => ['server' => $this->server, 'browser' => $this->browser],
+            'usages' => $this->usages === null ? null : array_map(static fn(ReferenceUsage $usage): string => $usage->value, $this->usages),
         ];
     }
 }

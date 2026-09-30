@@ -5,6 +5,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\fields\Date;
 use verbb\formie\helpers\References;
 use verbb\formie\references\ReferenceContext;
+use verbb\formie\references\ReferenceUsage;
 
 use Throwable;
 
@@ -20,7 +21,7 @@ final class ConditionRowEvaluator
         }
         try {
             $token = str_starts_with($rule->reference, '{') ? $rule->reference : References::field($rule->reference);
-            $result = References::resolveValue($token, ReferenceContext::forSubmission($submission, rows: $rows));
+            $result = References::resolveValue($token, ReferenceContext::forSubmission($submission, rows: $rows, usage: ReferenceUsage::Condition));
             $value = $result->requireValue();
             $type = is_bool($value) ? 'boolean' : (is_int($value) || is_float($value) ? 'number' : (is_array($value) ? 'collection' : 'text'));
             if ($result->field && $result->fieldProjection === 'value' && $result->expression->transformerId === '') {

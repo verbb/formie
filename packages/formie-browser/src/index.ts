@@ -87,6 +87,8 @@ export type { FormAction, FormMode, FormTransport, SubmitStage } from '#contract
 export type {
     BrowserModuleDefinition,
     BrowserModuleInstance,
+    BrowserModuleFailure,
+    BrowserModuleHydrationReport,
     AfterSubmitContext,
     BeforeSubmitContext,
     ModuleHookContext,

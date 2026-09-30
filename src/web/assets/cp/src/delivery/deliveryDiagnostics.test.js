@@ -10,7 +10,7 @@ it('keeps submission and provider values out of the copied diagnostic summary', 
         step: 'integration',
         execution: 'queued',
         status: 'failed',
-        result: { status: 'failed', code: 'provider_rejected' },
+        result: { status: 'failed', code: 'provider_rejected', message: 'person@example.test failed', diagnostics: { input: 'private-value' } },
         checkpoints: [{ checkpoint: 'submission-projection', dateCreated: '2026-09-29', data: { email: 'person@example.test' } }],
         operations: [{
             uid: 'operation-uid',

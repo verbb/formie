@@ -259,6 +259,6 @@ it('verifies Stripe intent resume money and preserves explicit provider outcomes
     if ($variant === 'foreign') { $submission = formie()->submission($form)->save(); }
     expect($integration->processPayment($submission)->status->value)->toBe($expected);
     if (in_array($variant, ['amount', 'currency', 'foreign'], true)) {
-        expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->status)->not->toBe('success');
+        expect(Formie::$plugin->getPayments()->getPaymentById($payment->id)->status)->not->toBe('succeeded');
     }
-})->with([['succeeded', 'succeeded'], ['processing', 'pending'], ['requires_action', 'actionRequired'], ['canceled', 'cancelled'], ['unrecognized', 'unknown'], ['amount', 'unknown'], ['currency', 'unknown'], ['foreign', 'unknown']]);
+})->with([['succeeded', 'succeeded'], ['processing', 'pending'], ['requires_action', 'requiresAction'], ['canceled', 'cancelled'], ['unrecognized', 'unknown'], ['amount', 'unknown'], ['currency', 'unknown'], ['foreign', 'unknown']]);

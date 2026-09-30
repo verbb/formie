@@ -38,7 +38,6 @@ class DeliveryAttempts extends Component
     public const EVENT_ATTEMPT_COMPLETED = 'attemptCompleted';
     public const EVENT_RETRY_DECISION = 'retryDecision';
     public const EVENT_RECONCILIATION = 'reconciliation';
-    public const RETENTION_DAYS = 30;
 
 
     // Public Methods
@@ -101,16 +100,74 @@ class DeliveryAttempts extends Component
         // Keep history bounded without replacing earlier checkpoints. A final
         // status remains available even after the diagnostic checkpoint budget.
         if (!in_array($checkpoint, ['result', 'retry', 'reconciled', 'sensitive-export'], true) && (new Query())->from(self::DIAGNOSTICS)->where(['attemptId' => $row['id']])->count() >= 200) {
-            return;
+            if ((new Query())->from(self::DIAGNOSTICS)->where(['attemptId' => $row['id'], 'checkpoint' => 'evidence-truncated'])->exists()) {
+                return;
+            }
+            $data = ['truncated' => true, 'reason' => 'checkpoint_limit', 'firstOmittedCheckpoint' => $checkpoint];
+            $checkpoint = 'evidence-truncated';
+        }
+        $evidence = DeliveryDiagnostics::redactComplete($data, $secrets);
+        $encoded = Json::encode($evidence);
+        if (strlen($encoded) > 2097152) {
+            $evidence = ['truncated' => true, 'reason' => 'checkpoint_byte_limit', 'originalBytes' => strlen($encoded), 'preview' => mb_strcut($encoded, 0, 65536, 'UTF-8')];
         }
         Craft::$app->getDb()->createCommand()->insert(self::DIAGNOSTICS, [
             'attemptId' => $row['id'], 'checkpoint' => $checkpoint,
-            'data' => $this->_encrypt(DeliveryDiagnostics::redactComplete($data, $secrets)),
+            'data' => $this->_encrypt($evidence),
             'dateCreated' => Db::prepareDateForDb(new DateTime()),
         ])->execute();
     }
 
-    public function execute(string $uid, callable $send): IntegrationResult
+    public function checkpointSubmission(string $uid, Submission $submission, array $secrets = []): void
+    {
+        $stored = (new Query())->select('content')->from('{{%formie_submissions}}')->where(['id' => $submission->id])->scalar();
+        $fields = array_map(static fn($field): array => [
+            'uid' => $field->uid, 'handle' => $field->valueKey(), 'label' => $field->label, 'type' => get_class($field),
+        ], $submission->getForm()->getFieldsRecursively());
+        $this->checkpoint($uid, 'submission-projection', [
+            'submissionId' => $submission->id, 'formId' => $submission->formId,
+            'stateVersion' => $submission->stateVersion, 'fields' => $fields,
+            'storedValues' => is_string($stored) ? Json::decode($stored) : $stored,
+            'values' => $submission->getValuesAsData(), 'metadata' => $submission->getMetadata(),
+        ], $secrets);
+    }
+
+    public function operationFingerprint(Submission $submission, array $configuration): string
+    {
+        $input = $this->_operationFingerprintData($submission, $configuration);
+        return hash_hmac('sha256', Json::encode($input), Formie::$plugin->getSettings()->getSecurityKey());
+    }
+
+    public function integrationConfiguration(\verbb\formie\base\Integration $integration, array $settings): array
+    {
+        return [
+            'binding' => $settings,
+            'connection' => $integration->id ? (new Query())->select(['type', 'settings'])->from('{{%formie_integrations}}')->where(['id' => $integration->id])->one() : ['type' => get_class($integration)],
+        ];
+    }
+
+    public function notificationConfiguration(\verbb\formie\models\Notification $notification): array
+    {
+        $config = $notification->getAttributes();
+        // The durable attempt already owns the notification locator. A newly
+        // saved model may not yet carry the database-assigned UID.
+        unset($config['uid']);
+        return $config;
+    }
+
+    public function executePrepared(string $uid, string $fingerprint, callable $send, array $secrets = []): IntegrationResult
+    {
+        return $this->execute($uid, function() use ($uid, $fingerprint, $send): IntegrationResult {
+            $accepted = $this->data($uid)['acceptedFingerprint'] ?? null;
+            if (!is_string($accepted) || !hash_equals($accepted, $fingerprint)) {
+                $this->checkpoint($uid, 'operation-stale', ['reason' => $accepted === null ? 'missing_accepted_operation' : 'input_or_configuration_changed']);
+                return IntegrationResult::rejected('operation_stale');
+            }
+            return $send();
+        }, $secrets);
+    }
+
+    public function execute(string $uid, callable $send, array $secrets = []): IntegrationResult
     {
         if (Craft::$app->getDb()->getTransaction()?->getIsActive()) {
             throw new RuntimeException('Commit the transaction before external delivery.');
@@ -152,8 +209,9 @@ class DeliveryAttempts extends Component
                 }
             } catch (Throwable $error) {
                 $result = $error instanceof IntegrationStepException ? $error->result : IntegrationResult::fromException($error);
-                $this->checkpoint($uid, 'exception', ['type' => get_class($error), 'code' => $result->code]);
+                $this->checkpoint($uid, 'exception', DeliveryDiagnostics::exception($error) + ['resultCode' => $result->code], $secrets);
             }
+            $result = IntegrationResult::fromStorage(DeliveryDiagnostics::redactComplete($result->toStorage(), $secrets));
             $this->_finish($uid, $result);
             return $result;
         } finally {
@@ -189,7 +247,7 @@ class DeliveryAttempts extends Component
             $decoded = is_string($response) ? json_decode($response, true) : $response;
             $providerId = is_array($decoded) ? ($decoded['id'] ?? $decoded['data']['id'] ?? null) : null;
             return IntegrationResult::succeeded(is_scalar($providerId) ? (string)$providerId : null);
-        });
+        }, $secrets);
         $row = $this->get($uid);
         if ($row['payloadHash'] !== null && !hash_equals($row['payloadHash'], $hash)) {
             throw new IntegrationStepException(IntegrationResult::unknown('step_parameters_changed'));
@@ -263,10 +321,15 @@ class DeliveryAttempts extends Component
         unset($row['data'], $row['response'], $row['payloadHash'], $row['requestKey'], $row['identity']);
         $row = DeliveryDiagnostics::redact($row);
         $row['result'] = $row['result'] ? Json::decode($row['result']) : null;
+        $row['retentionDays'] = Formie::$plugin->getSettings()->deliveryEvidenceRetentionDays;
         $row['checkpoints'] = $this->_supportCheckpoints((int)$row['id'], 200);
         $row['operations'] = [];
         $bytes = strlen(Json::encode($row));
-        foreach ((new Query())->select(['id', 'uid', 'binding', 'step', 'parentUid', 'status', 'result', 'dateUpdated'])->from(self::TABLE)->where(['submissionId' => $row['submissionId'], 'executionUid' => $row['executionUid']])->andWhere(['not', ['uid' => $uid]])->orderBy(['id' => SORT_ASC])->limit(100)->all() as $operation) {
+        foreach ((new Query())->select(['id', 'uid', 'binding', 'step', 'parentUid', 'status', 'result', 'dateUpdated'])->from(self::TABLE)->where(['submissionId' => $row['submissionId'], 'executionUid' => $row['executionUid']])->andWhere(['not', ['uid' => $uid]])->orderBy(['id' => SORT_ASC])->limit(101)->all() as $operation) {
+            if (count($row['operations']) === 100) {
+                $row['truncated'] = true;
+                break;
+            }
             $operation = DeliveryDiagnostics::redact($operation);
             $operation['result'] = $operation['result'] ? Json::decode($operation['result']) : null;
             $operation['checkpoints'] = $this->_supportCheckpoints((int)$operation['id'], 20);
@@ -333,15 +396,40 @@ class DeliveryAttempts extends Component
 
     public function purgeExpiredEvidence(): void
     {
-        $before = Db::prepareDateForDb(new DateTime('-' . self::RETENTION_DAYS . ' days'));
+        $days = max(1, Formie::$plugin->getSettings()->deliveryEvidenceRetentionDays);
+        $before = Db::prepareDateForDb(new DateTime('-' . $days . ' days'));
+        Craft::$app->getDb()->createCommand()->delete('{{%formie_subscription_diagnostics}}', ['and', ['<', 'observedAt', $before], ['not in', 'status', ['pending', 'unknown', 'failed', 'pastDue']]])->execute();
         // Retain operation identities/results to prevent replay after evidence expiry.
-        Db::update(self::TABLE, ['data' => null, 'response' => null], ['and', ['<', 'dateUpdated', $before], ['not in', 'status', ['pending', 'sending', 'unknown', 'failed']]]);
-        Craft::$app->getDb()->createCommand()->delete(self::DIAGNOSTICS, ['and', ['<', 'dateCreated', $before], ['not in', 'checkpoint', ['prepared', 'result', 'retry', 'reconciled', 'sensitive-export']]])->execute();
+        Db::update(self::TABLE, ['data' => null, 'response' => null], ['and', ['<', 'dateUpdated', $before], ['not in', 'status', ['pending', 'sending', 'unknown', 'failed']]], updateTimestamp: false);
+        $completed = (new Query())->select('id')->from(self::TABLE)->where(['<', 'dateUpdated', $before])->andWhere(['not in', 'status', ['pending', 'sending', 'unknown', 'failed']]);
+        Craft::$app->getDb()->createCommand()->delete(self::DIAGNOSTICS, ['and', ['attemptId' => $completed], ['<', 'dateCreated', $before], ['not in', 'checkpoint', ['prepared', 'result', 'retry', 'reconciled', 'sensitive-export', 'support-export']]])->execute();
     }
 
 
     // Private Methods
     // =========================================================================
+
+    private function _operationFingerprintData(Submission $submission, array $configuration): array
+    {
+        $form = $submission->getForm();
+        $content = (new Query())->select('content')->from('{{%formie_submissions}}')->where(['id' => $submission->id])->scalar();
+        $fields = array_map(static function($field): array {
+            $settings = $field->getSettings();
+            // The layout loader normalizes these optional bags to empty arrays.
+            foreach (['containerAttributes', 'inputAttributes'] as $attribute) {
+                $settings[$attribute] = $settings[$attribute] ?? [];
+            }
+            return ['type' => get_class($field), 'uid' => $field->uid, 'handle' => $field->valueKey(), 'settings' => $settings];
+        }, $form->getFieldsRecursively());
+        $input = [
+            'content' => is_string($content) ? Json::decode($content) : $content,
+            'title' => $submission->title, 'siteId' => $submission->siteId,
+            'statusId' => $submission->statusId, 'fields' => $fields,
+            'settings' => $form->getSettings()->getAttributes(), 'configuration' => $configuration,
+        ];
+        // Hash the inert shape, not object identity or ordering of associative keys.
+        return $this->_canonicalize(Json::decode(Json::encode($input)));
+    }
 
     private function _supportCheckpoints(int $attemptId, int $limit): array
     {
@@ -361,12 +449,18 @@ class DeliveryAttempts extends Component
     private function _evidenceCheckpoints(int $attemptId, int $limit): array
     {
         $checkpoints = [];
-        foreach ((new Query())->select(['checkpoint', 'data', 'dateCreated'])->from(self::DIAGNOSTICS)->where(['attemptId' => $attemptId])->orderBy(['id' => SORT_DESC])->limit($limit)->all() as $checkpoint) {
+        $rows = (new Query())->select(['checkpoint', 'data', 'dateCreated'])->from(self::DIAGNOSTICS)->where(['attemptId' => $attemptId])->orderBy(['id' => SORT_DESC])->limit($limit + 1)->all();
+        $omitted = count($rows) > $limit;
+        foreach (array_slice($rows, 0, $limit) as $checkpoint) {
             $checkpoint['data'] = $this->_decrypt($checkpoint['data']);
             $checkpoints[] = $checkpoint;
         }
 
-        return array_reverse($checkpoints);
+        $checkpoints = array_reverse($checkpoints);
+        if ($omitted) {
+            array_unshift($checkpoints, ['checkpoint' => 'truncated', 'data' => ['truncated' => true, 'reason' => 'checkpoint_export_limit']]);
+        }
+        return $checkpoints;
     }
 
     private function _finish(string $uid, IntegrationResult $result): void

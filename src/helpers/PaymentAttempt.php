@@ -83,6 +83,7 @@ class PaymentAttempt
                 'fieldId' => $integration->getField()->id,
                 'amount' => $amount,
                 'currency' => $currency,
+                'accountFingerprint' => $integration->getPaymentAccountFingerprint(),
                 'status' => Payment::STATUS_PENDING,
             ]);
 
@@ -91,16 +92,16 @@ class PaymentAttempt
             }
 
             $attempt = new self($payment);
-            $owner = new DeliveryAttempt((int)$submission->id, 'payment-owner', (string)$payment->uid);
+            $owner = new DeliveryAttempt((int)$submission->id, 'payment-account-owner', (string)$payment->uid);
             $knownOwner = $owner->getMetadata() !== null;
 
-            if ($payment->status === Payment::STATUS_SUCCESS) {
+            if ($payment->status === Payment::STATUS_SUCCEEDED) {
                 return PaymentDecision::succeeded($integration->handle, $payment->reference);
             }
 
             // A retry cannot establish the original account or outcome. Keep
             // earlier unverified attempts unresolved until an operator checks them.
-            if (!$isNew && !$knownOwner && (!($payment->scope['initial'] ?? false) || $payment->reference || $payment->response)) {
+            if (!$isNew && !$knownOwner && empty($payment->scope['accountVerification']) && (!($payment->scope['initial'] ?? false) || $payment->reference || $payment->response)) {
                 throw new DeliveryOutcomeUnknownException('This earlier payment has no saved outcome. Check the gateway before retrying.');
             }
 
@@ -137,17 +138,19 @@ class PaymentAttempt
 
     public static function verifyAccount(PaymentIntegration $integration, Payment $payment, array $account, bool $requireExisting = true): void
     {
-        $owner = new DeliveryAttempt((int)$payment->submissionId, 'payment-owner', (string)$payment->uid);
+        $owner = new DeliveryAttempt((int)$payment->submissionId, 'payment-account-owner', (string)$payment->uid);
 
-        if ($requireExisting && !$owner->getMetadata()) {
+        if ($requireExisting && !$owner->getMetadata() && empty($payment->scope['accountVerification'])) {
             throw new DeliveryOutcomeUnknownException('The original payment account could not be verified.');
         }
 
-        // Resolve environment settings before hashing. Changing credentials must
-        // never redirect an unresolved attempt to another account.
+        $fingerprint = $integration->getPaymentAccountFingerprint();
+        if (!$payment->accountFingerprint || !hash_equals($payment->accountFingerprint, $fingerprint)) {
+            throw new DeliveryOutcomeUnknownException('The original payment account could not be verified.');
+        }
         $owner->execute([
             'integration' => get_class($integration),
-            'account' => array_map(static fn($value) => is_string($value) ? App::parseEnv($value) : $value, $account),
+            'accountFingerprint' => $fingerprint,
             'amount' => $payment->amount,
             'currency' => $payment->currency,
         ], static fn() => true);
@@ -245,7 +248,7 @@ class PaymentAttempt
     public function recordError(string $message, bool $unknown): void
     {
         // Leave a saved receipt/reference intact for the next verification.
-        if ($this->_rejected || $this->payment->status === Payment::STATUS_SUCCESS) {
+        if ($this->_rejected || $this->payment->status === Payment::STATUS_SUCCEEDED) {
             return;
         }
 

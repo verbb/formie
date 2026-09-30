@@ -509,15 +509,7 @@ function dispatchSubmitDataEvents(form: HTMLFormElement, result: FormSubmitResul
         }
     }
 
-    // Fallback: some payment action-required responses can carry action payloads
-    // as `paymentAction`/`paymentDecision` metadata without submitData entries.
-    const meta = (result.meta || {}) as Record<string, unknown>;
-    const paymentAction = (
-        (meta.paymentAction && typeof meta.paymentAction === 'object' ? meta.paymentAction : null)
-        || (meta.paymentDecision && typeof meta.paymentDecision === 'object'
-            ? ((meta.paymentDecision as Record<string, unknown>).action as Record<string, unknown> | null)
-            : null)
-    ) as Record<string, unknown> | null;
+    const paymentAction = result.payment?.action;
 
     const actionEvent = paymentAction ? String(paymentAction.event || '') : '';
     const actionPayload = paymentAction ? paymentAction.payload : undefined;

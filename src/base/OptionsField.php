@@ -322,11 +322,6 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::object($this->multi ? MultiOptionFieldValue::class : SingleOptionFieldValue::class);
-    }
-
     public function __construct($config = [])
     {
         // Setup default options
@@ -874,6 +869,11 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::object($this->multi ? MultiOptionFieldValue::class : SingleOptionFieldValue::class);
+    }
 
     protected function defineValueForCondition(mixed $value, \verbb\formie\elements\Submission $submission): mixed
     {

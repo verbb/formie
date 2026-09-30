@@ -63,11 +63,6 @@ class Payment extends Field
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::object(PaymentFieldValue::class);
-    }
-
     public function fieldKind(): string
     {
         return self::KIND_PAYMENT;
@@ -307,6 +302,11 @@ class Payment extends Field
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::object(PaymentFieldValue::class);
+    }
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {

@@ -45,8 +45,8 @@ it('requires every enabled payment field to be on the final submission page', fu
     }
     if ($paymentPage === 1) {
         expect($response->success)->toBeFalse();
-        expect($response->paymentStatus)->toBe('failed');
-        expect($response->paymentMessage)->toContain('final page');
+        expect($response->payment['status'])->toBe('failed');
+        expect($response->payment['message'])->toContain('final page');
         expect($submission->isIncomplete)->toBeTrue();
         expect($count)->toBe(0);
     }

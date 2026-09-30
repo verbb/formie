@@ -2,7 +2,7 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\helpers\Table;
-use verbb\formie\models\IntegrationRunContext;
+use verbb\formie\models\IntegrationRunResults;
 use verbb\formie\services\IntegrationDispatcher;
 
 use craft\db\Migration;
@@ -37,7 +37,7 @@ class m260927_040000_integration_run_contexts extends Migration
             foreach ((new Query())->select(['id', 'integrationDispatchContext'])->from(Table::FORMIE_SUBMISSIONS)->each() as $row) {
                 // Older saves could double-encode this JSON column. Preserve only
                 // its recorded run attribution; never pretend it is the latest run.
-                $context = IntegrationRunContext::fromStorage(Json::decodeIfJson($row['integrationDispatchContext']));
+                $context = IntegrationRunResults::fromStorage(Json::decodeIfJson($row['integrationDispatchContext']));
                 $runs = [];
                 foreach ($context->results as $handle => $result) {
                     if (!is_array($result)) {

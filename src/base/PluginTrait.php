@@ -81,6 +81,7 @@ use verbb\formie\services\SubmissionGuards;
 use verbb\formie\services\SubmissionMetadata;
 use verbb\formie\services\SubmissionOperations;
 use verbb\formie\services\SubmissionProcessor;
+use verbb\formie\services\SubmissionRequests;
 use verbb\formie\services\SubmissionProgress;
 use verbb\formie\services\Submissions;
 use verbb\formie\services\SubmissionStatuses;
@@ -275,6 +276,7 @@ trait PluginTrait
                 'stencils' => Stencils::class,
                 'submissions' => Submissions::class,
                 'submissionProcessor' => SubmissionProcessor::class,
+                'submissionRequests' => SubmissionRequests::class,
                 'submissionGuards' => SubmissionGuards::class,
                 'submissionProgress' => SubmissionProgress::class,
                 'submissionGrants' => SubmissionGrants::class,
@@ -694,6 +696,11 @@ trait PluginTrait
     public function getSubmissionProcessor(): SubmissionProcessor
     {
         return $this->get('submissionProcessor');
+    }
+
+    public function getSubmissionRequests(): SubmissionRequests
+    {
+        return $this->get('submissionRequests');
     }
 
     public function getSubmissionGuards(): SubmissionGuards

@@ -25,7 +25,7 @@ trait FieldClientRenderedDefinitionTrait
             'instructions' => $this->getInstructionsHtml()->__toString() ?: null,
             'type' => $clientRenderedDefinition->type,
             'required' => (bool)$this->required,
-            'condition' => ConditionsHelper::toComponentConditionDefinition($this->conditions()->toArray()),
+            'condition' => ConditionsHelper::toComponentConditionDefinition($this->getBrowserConditions()),
             'validation' => $this->browserValidationRules(),
             'input' => $this->getClientRenderedInput(),
             'client' => [

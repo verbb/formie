@@ -28,9 +28,9 @@ it('does not resolve raw submission uids as continuation credentials', function 
     $submissionB->isIncomplete = true;
     expect(Craft::$app->getElements()->saveElement($submissionB))->toBeTrue();
 
-    expect(Formie::$plugin->getSubmissionProcessor()->resolveContinuationSubmission($formA, null, (string)$submissionB->uid))
+    expect(Formie::$plugin->getSubmissionRequests()->resolveContinuationSubmission($formA, null, (string)$submissionB->uid))
         ->toBeNull()
-        ->and(Formie::$plugin->getSubmissionProcessor()->resolveContinuationSubmission($formB, null, (string)$submissionB->uid))
+        ->and(Formie::$plugin->getSubmissionRequests()->resolveContinuationSubmission($formB, null, (string)$submissionB->uid))
         ->toBeNull();
 })->group('security');
 
@@ -47,7 +47,7 @@ it('does not treat raw runtime submission uids as anonymous continuation credent
     $submission->isIncomplete = true;
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
 
-    expect(Formie::$plugin->getSubmissionProcessor()->resolveClientContinuationSubmission($form, null, [
+    expect(Formie::$plugin->getSubmissionRequests()->resolveClientContinuationSubmission($form, null, [
         'submissionUid' => (string)$submission->uid,
     ]))->toBeNull();
 })->group('security');
@@ -65,7 +65,7 @@ it('resolves runtime continuation only when presented with a valid continuation 
     $submission->isIncomplete = true;
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
     Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission, $form->getCurrentPage()?->id);
-    $resolved = Formie::$plugin->getSubmissionProcessor()->resolveClientContinuationSubmission($form, null, [
+    $resolved = Formie::$plugin->getSubmissionRequests()->resolveClientContinuationSubmission($form, null, [
         'grantToken' => Formie::$plugin->getSubmissionGrants()->issue($submission, \verbb\formie\services\SubmissionGrants::CONTINUE, Formie::$plugin->getSubmissionProgress()->getProgressState($form)->id)->token,
     ]);
 

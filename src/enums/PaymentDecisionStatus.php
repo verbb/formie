@@ -9,7 +9,7 @@ enum PaymentDecisionStatus: string
     case NOT_REQUIRED = 'notRequired';
     case SUCCEEDED = 'succeeded';
     case FAILED = 'failed';
-    case ACTION_REQUIRED = 'actionRequired';
+    case ACTION_REQUIRED = 'requiresAction';
     case PENDING = 'pending';
     case CANCELLED = 'cancelled';
     case UNKNOWN = 'unknown';

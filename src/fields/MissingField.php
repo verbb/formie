@@ -63,11 +63,6 @@ class MissingField extends Field implements MissingComponentInterface
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::storageSafe();
-    }
-
     public function getSettings(): array
     {
         return $this->settings ?? [];
@@ -108,6 +103,11 @@ class MissingField extends Field implements MissingComponentInterface
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::storageSafe();
+    }
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {

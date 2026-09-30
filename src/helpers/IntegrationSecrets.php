@@ -2,12 +2,16 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\attributes\Sensitive;
+use verbb\formie\base\IntegrationInterface;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
 use RuntimeException;
+use ReflectionObject;
+use ReflectionProperty;
 
 /** Encrypt literal connection settings while leaving environment references portable. */
 final class IntegrationSecrets
@@ -15,10 +19,34 @@ final class IntegrationSecrets
     // Static Methods
     // =========================================================================
 
-    public static function protect(array $settings, bool $connection = false): array
+    public static function sensitiveAttributes(IntegrationInterface $integration): array
+    {
+        $attributes = [];
+        foreach ((new ReflectionObject($integration))->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
+            if (!$property->isStatic() && $property->getAttributes(Sensitive::class)) {
+                $attributes[] = $property->getName();
+            }
+        }
+        return $attributes;
+    }
+
+    public static function protectBindings(array $bindings): array
+    {
+        $service = Formie::$plugin->getIntegrations();
+        foreach ($bindings as $handle => &$settings) {
+            if (!is_array($settings)) {
+                continue;
+            }
+            $integration = $service->getIntegrationByHandle((string)$handle) ?? $service->getCaptchaByHandle((string)$handle);
+            $settings = self::protect($settings, sensitiveAttributes: $integration ? self::sensitiveAttributes($integration) : []);
+        }
+        return $bindings;
+    }
+
+    public static function protect(array $settings, bool $connection = false, array $sensitiveAttributes = []): array
     {
         foreach ($settings as $key => &$value) {
-            $sensitive = $connection || preg_match('/password|secret|token|authorization|cookie|api.?key|httpAuth|credential|webhook|headers|url$/i', (string)$key);
+            $sensitive = $connection || in_array($key, $sensitiveAttributes, true) || preg_match('/password|secret|token|authorization|cookie|api.?key|httpAuth|credential|webhook|headers|url$/i', (string)$key);
             if (is_array($value)) {
                 $value = self::protect($value, (bool)$sensitive);
             } elseif ($sensitive && is_string($value) && $value !== '' && !str_starts_with($value, self::PREFIX) && !preg_match('/^\$[A-Z][A-Z0-9_]*$/D', $value)) {

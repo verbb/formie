@@ -1,11 +1,33 @@
 <?php
 namespace verbb\formie\helpers;
 
+use Throwable;
+
 /** Bounded support projections. Exact operational data belongs in encrypted storage. */
 final class DeliveryDiagnostics
 {
     // Static Methods
     // =========================================================================
+
+    public static function exception(Throwable $error): array
+    {
+        $chain = [];
+        do {
+            $chain[] = [
+                'type' => get_class($error),
+                'message' => $error->getMessage(),
+                'code' => $error->getCode(),
+                'file' => $error->getFile(),
+                'line' => $error->getLine(),
+                // Never retain trace arguments: they can contain credentials or whole service objects.
+                'trace' => array_map(static fn(array $frame): array => array_intersect_key($frame, array_flip(['file', 'line', 'class', 'type', 'function'])), array_slice($error->getTrace(), 0, 50)),
+                'traceTruncated' => count($error->getTrace()) > 50,
+            ];
+            $error = $error->getPrevious();
+        } while ($error && count($chain) < 5);
+
+        return ['exceptions' => $chain, 'chainTruncated' => $error !== null];
+    }
 
     public static function redact(mixed $value, array $secrets = [], int $depth = 0): mixed
     {

@@ -1,4 +1,4 @@
-import type { BrowserModuleManifest } from '@verbb/formie-core';
+import type { BrowserModuleManifest, PaymentDecision } from '@verbb/formie-core';
 import type { FormAction, SubmitStage } from '#contracts/common';
 import type { ThemeClassMap } from '#contracts/theme';
 export type FormRefreshTokensPayload = {
@@ -43,6 +43,7 @@ export type FormSubmitResult = {
     code?: string;
     message?: string;
     keepSubmitLoading?: boolean;
+    payment?: PaymentDecision | null;
     fieldErrors?: Record<string, string[]>;
     formErrors?: string[];
     nextPage?: {

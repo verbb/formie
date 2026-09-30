@@ -5,7 +5,7 @@ import {
 import { Checkbox, Icon, SelectInput } from '@verbb/plugin-kit-react/components';
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
 
-export const RERUN_POLICIES_PATH = 'settings.integrationPolicies.rerun';
+export const INTEGRATION_BINDINGS_PATH = 'settings.integrations';
 
 export const RERUN_POLICY_SUBMIT_ONLY = 'submitOnly';
 export const RERUN_POLICY_ON_EDIT = 'onEdit';
@@ -85,9 +85,8 @@ function IntegrationRerunSettings({
     const [expanded, setExpanded] = useState(false);
 
     const policies = useMemo(() => {
-        const stored = getValueAtPath(RERUN_POLICIES_PATH, null);
-
-        return stored && typeof stored === 'object' ? stored : {};
+        const bindings = getValueAtPath(INTEGRATION_BINDINGS_PATH, null) || {};
+        return Object.fromEntries(Object.entries(bindings).map(([handle, binding]) => [handle, binding?.trigger]));
     }, [getValueAtPath, values]);
 
     const summary = useMemo(() => {
@@ -99,8 +98,7 @@ function IntegrationRerunSettings({
             return;
         }
 
-        const current = getValueAtPath(RERUN_POLICIES_PATH, null) || {};
-        const existing = resolvePolicyConfig(current[handle]);
+        const existing = resolvePolicyConfig(getValueAtPath(`${INTEGRATION_BINDINGS_PATH}.${handle}.trigger`, null));
         const nextEntry = {
             ...existing,
             ...patch,
@@ -112,15 +110,11 @@ function IntegrationRerunSettings({
             nextEntry.events = [RERUN_EVENT_SUBMIT];
         }
 
-        parentForm.setFieldValue(RERUN_POLICIES_PATH, {
-            ...current,
-            [handle]: nextEntry,
-        });
+        parentForm.setFieldValue(`${INTEGRATION_BINDINGS_PATH}.${handle}.trigger`, nextEntry);
     }, [getValueAtPath, parentForm]);
 
     const toggleCustomEvent = useCallback((handle, event, checked) => {
-        const current = getValueAtPath(RERUN_POLICIES_PATH, null) || {};
-        const existing = resolvePolicyConfig(current[handle]);
+        const existing = resolvePolicyConfig(getValueAtPath(`${INTEGRATION_BINDINGS_PATH}.${handle}.trigger`, null));
         const events = new Set(existing.events || [RERUN_EVENT_SUBMIT]);
 
         if (checked) {

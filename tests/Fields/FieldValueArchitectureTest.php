@@ -30,7 +30,6 @@ it('treats null as universal absence without publishing nullable type metadata',
     $types = [
         FieldValueType::string(),
         FieldValueType::boolean(),
-        FieldValueType::number(),
         FieldValueType::object(NameFieldValue::class),
         FieldValueType::array(FieldValueType::string()),
         FieldValueType::relationQuery(\craft\elements\Entry::class),
@@ -95,6 +94,30 @@ it('preserves decimal precision and malformed numeric input without float parsin
     expect($field->normalizeFieldValue(['locale' => 'de', 'value' => '9.007.199.254.740.993,1234567890123456789']))->toBe('9007199254740993.1234567890123456789');
     expect($field->normalizeFieldValue('not numeric'))->toBe('not numeric');
     expect($field->normalizeFieldValue(['unexpected' => 'invalid']))->toBe('{"unexpected":"invalid"}');
+});
+
+it('keeps runtime declarations protected and numeric meaning in reference metadata', function () {
+    $field = new class(['handle' => 'customNumber']) extends fields\SingleLineText {
+        protected function defineValueType(): FieldValueType
+        {
+            return FieldValueType::string();
+        }
+
+        protected function defineReferenceValues(): array
+        {
+            return [\verbb\formie\fields\definitions\FieldReferenceValue::primary(types: [\verbb\formie\references\ReferenceType::Number])];
+        }
+    };
+
+    foreach ([$field, new fields\Number(), new fields\Calculations()] as $numericField) {
+        expect($numericField->valueType()->kind)->toBe('string')
+            ->and($numericField->valueType()->accepts('not numeric'))->toBeTrue()
+            ->and(\verbb\formie\conditions\ConditionCompiler::fieldType($numericField))->toBe('number')
+            ->and((new ReflectionMethod($numericField, 'defineValueType'))->isProtected())->toBeTrue()
+            ->and((new ReflectionMethod($numericField, 'valueType'))->getDeclaringClass()->getName())->toBe(Field::class);
+    }
+
+    expect(\verbb\formie\conditions\ConditionCompiler::fieldType(new fields\SingleLineText()))->toBe('text');
 });
 
 it('never decrypts untrusted strings and rejects tampered trusted envelopes', function () {
@@ -426,8 +449,8 @@ it('keeps every stored decimal digit in control-panel input markup', function ()
 it('retains malformed phone request shapes for validation and redisplay', function () {
     $field = new fields\Phone(['handle' => 'phone']);
     $value = $field->normalizeFieldValue(['number' => ['invalid']]);
-    expect($value)->toBe('["invalid"]');
-    expect($field->serializeValueForClientInput($value)['number'])->toBe($value);
+    expect($value->number)->toBe('["invalid"]');
+    expect($field->serializeValueForClientInput($value)['number'])->toBe($value->number);
 });
 
 

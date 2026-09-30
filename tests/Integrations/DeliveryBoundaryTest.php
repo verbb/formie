@@ -111,6 +111,78 @@ class DeliveryLaneProvider extends \verbb\formie\base\Integration
     public function sendPayload(\verbb\formie\elements\Submission $submission): IntegrationResult { self::$order[] = $this->handle; return IntegrationResult::succeeded(); }
 }
 
+class PreparedMappingProvider extends DeliveryLaneProvider
+{
+    #[\verbb\formie\attributes\FormIntegrationSetting]
+    public string $mapping = 'original';
+    public static int $calls = 0;
+    public function sendPayload(\verbb\formie\elements\Submission $submission): IntegrationResult {
+        self::$calls++;
+        return IntegrationResult::failed('synthetic_failure', true);
+    }
+}
+
+it('rejects a queued integration mapping changed before first execution or retry', function(bool $retry) {
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $submission = formie()->submission($form)->save();
+    $mapping = 'original';
+    PreparedMappingProvider::$calls = 0;
+    $listener = function($event) use ($form, &$mapping) {
+        if ($event->form->id === $form->id) $event->integrations[] = new PreparedMappingProvider(['name' => 'Prepared mapping', 'handle' => 'preparedMapping', 'enabled' => true, 'mapping' => $mapping]);
+    };
+    \yii\base\Event::on(\verbb\formie\services\Integrations::class, \verbb\formie\services\Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $listener);
+    try {
+        $runner = Formie::$plugin->getIntegrationRunner();
+        $runner->queueSteps($submission, ['preparedMapping'], \verbb\formie\enums\SubmissionOperation::SUBMIT, ['triggerEvent' => 'submit'], executionKey: 'prepared-mapping');
+        $uid = (new Query())->select('uid')->from(\verbb\formie\services\DeliveryAttempts::TABLE)->where(['submissionId' => $submission->id, 'step' => 'dispatch'])->scalar();
+        if ($retry) expect($runner->runQueuedAttempt($uid)->code)->toBe('batch_failed');
+        $mapping = 'changed';
+        expect($runner->runQueuedAttempt($uid)->code)->toBe('operation_stale')
+            ->and(PreparedMappingProvider::$calls)->toBe($retry ? 1 : 0);
+    } finally {
+        \yii\base\Event::off(\verbb\formie\services\Integrations::class, \verbb\formie\services\Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $listener);
+    }
+})->with([false, true]);
+
+it('reports exactly one completion result for normal early returns and provider exceptions', function (string $mode, string $status) {
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $submission = formie()->submission($form)->save();
+    $provider = new class(['name' => 'Result fixture', 'handle' => 'resultFixture']) extends DeliveryLaneProvider {
+        public string $mode = '';
+        public function shouldTrigger(\verbb\formie\elements\Submission $submission, array $context = []): bool { return $this->mode !== 'skip'; }
+        public function validate($attributeNames = null, $clearErrors = true): bool { return $this->mode !== 'invalid-settings'; }
+        public function sendPayload(\verbb\formie\elements\Submission $submission): IntegrationResult {
+            if ($this->mode === 'exception') throw new RuntimeException('Synthetic provider failure');
+            return IntegrationResult::succeeded();
+        }
+    };
+    $provider->mode = $mode;
+    if ($mode === 'invalid-conditions') {
+        $provider->enableConditions = true;
+        $provider->conditions = ['conditions' => [['field' => 'missing', 'condition' => 'unsupported', 'value' => 'x']]];
+    }
+    $runner = Formie::$plugin->getIntegrationRunner();
+    $events = [];
+    $listener = function($event) use (&$events) { $events[] = [$event->name, $event->result?->status->value, $event->context->binding]; };
+    foreach ([$runner::EVENT_SKIPPED, $runner::EVENT_RESULT] as $name) $runner->on($name, $listener);
+    try {
+        if (in_array($mode, ['missing', 'stopped'], true)) {
+            $runner->runSteps($submission, ['missing'], ['skipRemaining' => $mode === 'stopped'], executionKey: 'result-test');
+        } else {
+            if ($mode === 'unresolved') {
+                $uid = Formie::$plugin->getDeliveryAttempts()->prepare(new IntegrationExecutionContext($submission->id, $form->id, 'resultFixture', 'previous-run'), 'integration');
+                Formie::$plugin->getDeliveryAttempts()->execute($uid, fn() => IntegrationResult::unknown());
+            }
+            expect($runner->runIntegration($provider, $submission, 'result-test', 'synchronous')->status->value)->toBe($status);
+        }
+        expect(array_values(array_filter($events, fn($event) => $event[0] === $runner::EVENT_RESULT)))->toHaveCount(1);
+        expect($events[count($events) - 1][1])->toBe($status);
+        expect(count(array_filter($events, fn($event) => $event[0] === $runner::EVENT_SKIPPED)))->toBe($status === 'skipped' ? 1 : 0);
+    } finally {
+        foreach ([$runner::EVENT_SKIPPED, $runner::EVENT_RESULT] as $name) $runner->off($name, $listener);
+    }
+})->with([['success', 'succeeded'], ['skip', 'skipped'], ['invalid-settings', 'rejected'], ['invalid-conditions', 'rejected'], ['exception', 'unknown'], ['unresolved', 'unknown'], ['missing', 'skipped'], ['stopped', 'skipped']]);
+
 it('runs the complete synchronous lane before enqueueing the queued lane and honors all three notification timings', function () {
     $form = formie()->form()->singleLineTextField('name')->create();
     $form->settings->integrationDispatch = ['enabled' => true, 'steps' => [
@@ -125,6 +197,7 @@ it('runs the complete synchronous lane before enqueueing the queued lane and hon
         expect(Formie::$plugin->getNotifications()->saveNotification($notification, false))->toBeTrue();
     }
     $form->setNotifications($notifications);
+    expect(Craft::$app->getElements()->saveElement($form, false))->toBeTrue();
     $submission = formie()->submission($form)->save();
     $submission->setForm($form);
     $listener = function ($event) use ($form) {
@@ -149,8 +222,12 @@ it('runs the complete synchronous lane before enqueueing the queued lane and hon
         $attempts = Formie::$plugin->getDeliveryAttempts();
         $queued = (new Query())->from($attempts::TABLE)->where(['submissionId' => $submission->id, 'step' => 'dispatch'])->one();
         expect($queued['status'])->toBe('pending');
-        // The worker reloads the persisted form, as it would after a new request.
-        Craft::$app->getElements()->saveElement($form, false);
+        $fingerprintData = new ReflectionMethod($attempts, '_operationFingerprintData');
+        $reloaded = \verbb\formie\elements\Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->isSpam(null)->one();
+        expect($fingerprintData->invoke($attempts, $reloaded, []))->toBe($fingerprintData->invoke($attempts, $submission, []));
+        expect(array_map(fn($n) => $attempts->notificationConfiguration($n), $reloaded->getForm()->getNotifications()))->toBe(array_map(fn($n) => $attempts->notificationConfiguration($n), $submission->getForm()->getNotifications()));
+        expect(Formie::$plugin->getIntegrationRunner()->dispatchFingerprint($reloaded, ['q1', 'q2']))->toBe($attempts->data($queued['uid'])['acceptedFingerprint']);
+        // The worker reloads the form accepted before enqueueing.
         expect(Formie::$plugin->getIntegrationRunner()->runQueuedAttempt($queued['uid'])->status)->toBe(IntegrationStatus::Succeeded);
         expect(DeliveryLaneProvider::$order)->toBe(['beforeIntegrations', 's1', 's2', 'afterSynchronousIntegrations', 'q1', 'q2', 'afterFinalizedDeliveryAttempts']);
     } finally {
@@ -174,7 +251,7 @@ it('waits for finalized results of the same run without implicit success gating'
     Formie::$plugin->set('notifications', $recorder);
     try {
         $dispatcher = Formie::$plugin->getIntegrationDispatcher();
-        $context = new \verbb\formie\models\IntegrationRunContext();
+        $context = new \verbb\formie\models\IntegrationRunResults();
         $context->record('remote', ['status' => $status, 'executionUid' => 'policy-run']);
         $dispatcher->saveContext($submission, $context, 'policy-run');
         $dispatcher->sendNotifications($submission, $dispatcher::PHASE_AFTER, 'different-run');

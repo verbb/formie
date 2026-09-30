@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Changed
+- Report browser-module instances and failures through the shared hydration contract.
 - Resolve field browser modules through exact manifest entry references rather than inferred capabilities.
 - Clarify that client-rendered forms own their markup and that browser-supplied server-rendered theme config is bounded declarative data.
 - Share versioned tri-state conditions and plain-text validation rules across PHP and browser consumers; enforce recursive hidden-value clearing and server-authoritative navigation.

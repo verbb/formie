@@ -702,6 +702,11 @@ class Submission extends Element
             $this->_validationAttributeNames = null;
         }
 
+        $command = WorkflowContext::current()?->command;
+        if ($command?->submission === $this && $command->authority->type === \verbb\formie\enums\SubmissionAuthorityType::GRAPHQL_ADMIN) {
+            return $validates && !$this->hasErrors();
+        }
+
         $form = $this->getForm();
 
         if ($form && $form->settings->requireUser) {
@@ -1160,7 +1165,9 @@ class Submission extends Element
 
         // Check if this is a spam submission and if we should save it
         // Only trigger this for site requests though
-        if ($this->isSpam && $request->getIsSiteRequest()) {
+        $command = WorkflowContext::current()?->command;
+        $administrative = $command?->submission === $this && $command->authority->type === \verbb\formie\enums\SubmissionAuthorityType::GRAPHQL_ADMIN;
+        if ($this->isSpam && !$administrative && $request->getIsSiteRequest()) {
             // Always log spam submissions
             Formie::$plugin->getSubmissions()->logSpam($this);
 
@@ -1508,7 +1515,7 @@ class Submission extends Element
 
                 $color = $lastPayment->status;
 
-                if ($color === 'success') {
+                if (in_array($color, ['success', 'succeeded'], true)) {
                     $color = 'live';
                 }
 

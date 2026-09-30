@@ -111,7 +111,6 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     // Integrations
     public array $integrations = [];
     public array $integrationDispatch = [];
-    public array $integrationPolicies = [];
 
     // Settings
     public ?string $submissionTitleFormat = '{timestamp}';

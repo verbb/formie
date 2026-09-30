@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add a surface-aware form-level browser-module contribution event and expose structured hydration reports to module hosts.
 - Add Salesforce Client Credentials authentication with configurable My Domain support. ([#2961](https://github.com/verbb/formie/issues/2961))
 - Add provider-neutral subscription snapshots, canonical lifecycle/timeline fields, stale-event protection and mode-bound immediate or period-end cancellation capabilities.
 - Add immutable render-scoped theme frames, a generated PHP/TypeScript browser-theme state manifest, split functional/visual CSS assets and bounded theme-config validation.
@@ -16,6 +17,20 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Use explicit integration dispatch capability and execution-local results, with common form-integration policy separated from annotated provider settings.
+- Store canonical minor-unit payment amounts, account-scoped financial references and subscription terms; retain Formie 3 major-unit and plan projections at compatibility boundaries.
+- Separate payment states from browser actions and expose one canonical payment decision across submission transports and frontend adapters.
+- Keep curated subscription state separate from encrypted provider evidence, and distinguish billing-period end, actual next charge and synchronization time.
+- Keep administrative GraphQL saves persistence-only and separate request adapters from canonical command execution, sharing atomic content/upload persistence.
+- Bind queued notification and integration operations to accepted input/configuration fingerprints and report changed operations as stale before delivery or retry.
+- Replace field-only condition wrappers with shared ConditionSet predicates and row-aware submission-scoped evaluation state invalidated by content edits.
+- Share a permission-scoped lightweight GraphQL schema snapshot and keep unrelated form layouts out of schema generation.
+- Declare sensitive integration settings explicitly for encryption and diagnostic/configuration redaction, including inherited and non-standard property names.
+- Emit the integration result event once for every normalized run result, including skipped and early-rejected runs.
+- Enforce reference source usages and inline/block eligibility at the consuming boundary and filter the Variable Picker from the same declarations.
+- Make completed delivery evidence retention configurable, retain unresolved evidence for reconciliation, mark diagnostic limits explicitly and require personal-data acknowledgement for support downloads.
+- Retain prepared email content, stored and projected submission values, and argument-free exception traces in encrypted delivery diagnostics.
+- Declare field runtime types through protected `defineValueType()` hooks and keep numeric reference semantics separate from their decimal-string PHP values.
 - Use `browser` consistently for shared Formie 4 browser assets and JavaScript translation APIs, while retaining the Formie 3 `FrontendAsset` bundle and rendering compatibility helpers.
 - Remove intermediate Formie 4 beta `runtime` class and asset-helper aliases while retaining Formie 3 compatibility boundaries.
 - Separate versionless Formie 3 submission snapshot adaptation from the strict UID-based Formie 4 snapshot contract instead of retaining intermediate beta formats.
@@ -37,11 +52,12 @@
 - Use `IntegrationConfig` for globally cached non-secret builder metadata and immutable `FormIntegration` bindings for each form; isolate Formie 3 metadata APIs behind compatibility adapters, create fresh runtime instances and return explicit integration and batch results.
 - Run synchronous integrations before the queued lane and expose three notification timings with explicit completion policies.
 - Keep queue jobs immutable and small, encrypt literal integration settings and retained responses, and require validated public destinations and provider origins.
+- Expose durable queue identities through `DeliveryJobInterface` and use field-owned reference projections for inline token interpolation.
 - Store explicit integration mapping slot kinds, preserve Formie 3 tokens through compatibility parsing, and replace beta fluent variable APIs with namespaced source and transform definitions.
 - Require safe environment names to be allowlisted for references; diagnose missing fields and extensions and reject invalid email headers.
 - Replace beta rich-value projection methods with immutable domain objects and field-owned storage, browser, data and integration projections; route native integration mappings through those field-owned projections, preserve explicit empty clears, describe only the non-null runtime type because `null` is the universal absent value, and retain Formie 3 compatibility adapters.
 - Separate request, browser, condition and storage value paths; encrypt complete structured values and decode legacy encryption only from trusted storage.
-- Return strings for Phone and a consistent Name value in both input modes; replace beta Array/value-class APIs and browser validation names.
+- Return immutable Phone values that retain entered numbers and countries, and a consistent Name value in both input modes; replace beta Array/value-class APIs and browser validation names.
 
 ### Fixed
 - Preserve configured rich completion and error messages across partial settings updates, and render sanitized rich completion messages in client-rendered adapters.

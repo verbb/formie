@@ -37,19 +37,19 @@ function runSubmissionCommand(SubmissionCommand $command): SubmissionResponse
 
 function runManagedSubmission(\verbb\formie\models\ManagedSubmissionRequest $input, \verbb\formie\enums\SubmissionAuthorityType $authority = \verbb\formie\enums\SubmissionAuthorityType::VISITOR): \verbb\formie\models\SubmissionExecutionResult
 {
-    $form = Formie::$plugin->getSubmissionProcessor()->requireFormByHandle($input->handle, $input->siteId);
+    $form = Formie::$plugin->getSubmissionRequests()->requireFormByHandle($input->handle, $input->siteId);
     $input->requestToken ??= Formie::$plugin->getSubmissionGuards()->issueRequestToken($form);
     $request = Craft::$app->getRequest();
     $request->setBodyParams($request->getBodyParams() + ['formStartedAt' => (string)((int)(microtime(true) * 1000) - 60000), 'formieHoneypot' => '']);
     if ($input->submissionId && $input->expectedVersion === null) {
         $input->expectedVersion = (int)(new \craft\db\Query())->select('stateVersion')->from(\verbb\formie\helpers\Table::FORMIE_SUBMISSIONS)->where(['id' => $input->submissionId])->scalar();
     }
-    return Formie::$plugin->getSubmissionProcessor()->executeManaged($input, $authority);
+    return Formie::$plugin->getSubmissionRequests()->executeManaged($input, $authority);
 }
 
 function runClientSubmission(\verbb\formie\client\models\SubmitRequest $input): \verbb\formie\client\models\SubmitResult
 {
-    return Formie::$plugin->getSubmissionProcessor()->execute($input, \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
+    return Formie::$plugin->getSubmissionRequests()->execute($input, \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
 }
 
 function createGuardTestForm(): \verbb\formie\elements\Form

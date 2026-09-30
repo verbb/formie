@@ -89,7 +89,7 @@ it('reissues refresh-session tokens instead of trusting attacker supplied token 
 })->group('security');
 
 it('only allows same-origin bases for save-resume capability urls', function (): void {
-    $processor = Formie::$plugin->getSubmissionProcessor();
+    $processor = Formie::$plugin->getSubmissionRequests();
     $trustedUrl = UrlHelper::siteUrl('contact', ['foo' => 'bar']);
     $fallbackUrl = UrlHelper::siteUrl('contact');
 

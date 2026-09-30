@@ -49,7 +49,7 @@ class SubmissionsController extends Controller
 
         $this->requirePostRequest();
 
-        $result = Formie::$plugin->getSubmissionProcessor()->execute(new SubmitRequest([
+        $result = Formie::$plugin->getSubmissionRequests()->execute(new SubmitRequest([
             'handle' => (string)$this->request->getBodyParam('handle', $this->request->getParam('handle', '')),
             'operationId' => $this->request->getBodyParam('operationId'),
             'action' => (string)$this->request->getBodyParam('action', 'submit'),

@@ -10,7 +10,7 @@ use verbb\formie\events\IntegrationDeliveryEvent;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\models\IntegrationBatchResult;
-use verbb\formie\models\IntegrationRunContext;
+use verbb\formie\models\IntegrationRunResults;
 use verbb\formie\models\IntegrationDispatchPlan;
 use verbb\formie\models\IntegrationExecutionContext;
 use verbb\formie\models\IntegrationResult;
@@ -234,18 +234,18 @@ class IntegrationDispatcher extends Component
         }
     }
 
-    public function loadContext(Submission $submission, ?string $runUid = null): IntegrationRunContext
+    public function loadContext(Submission $submission, ?string $runUid = null): IntegrationRunResults
     {
         $runUid ??= $this->currentRunUid($submission);
         if (!$submission->id || $runUid === null) {
-            return new IntegrationRunContext();
+            return new IntegrationRunResults();
         }
         $value = Craft::$app->getDb()->useMaster(fn() => (new Query())->select('context')->from(self::CONTEXT_TABLE)
             ->where(['submissionId' => $submission->id, 'runUid' => $runUid])->scalar());
-        return IntegrationRunContext::fromStorage($value);
+        return IntegrationRunResults::fromStorage($value);
     }
 
-    public function saveContext(Submission $submission, IntegrationRunContext $context, string $runUid): void
+    public function saveContext(Submission $submission, IntegrationRunResults $context, string $runUid): void
     {
         if (!$submission->id || $runUid === '' || strlen($runUid) > 255) {
             throw new InvalidArgumentException('A saved submission and integration run identity are required.');

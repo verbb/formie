@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\emailmarketing;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
@@ -33,6 +34,7 @@ class IContact extends EmailMarketing
     public ?string $accountId = null;
     public ?string $appId = null;
     public ?string $clientFolderId = null;
+    #[Sensitive]
     public ?string $password = null;
     public ?string $username = null;
 
@@ -130,7 +132,7 @@ class IContact extends EmailMarketing
         return new IntegrationConfig($settings);
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         try {

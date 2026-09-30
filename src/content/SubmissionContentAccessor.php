@@ -45,6 +45,7 @@ class SubmissionContentAccessor
         }
 
         if ($nestedPath === null) {
+            $state->conditions->invalidate();
             $state->rawValuesByUid[$uid] = $value;
             unset($state->normalizedValuesByUid[$uid]);
             return;
@@ -65,6 +66,7 @@ class SubmissionContentAccessor
         }
 
         ArrayHelper::setValue($rootValue, $nestedPath, $value);
+        $state->conditions->invalidate();
         $state->rawValuesByUid[$uid] = $rootValue;
         unset($state->normalizedValuesByUid[$uid]);
     }
@@ -79,6 +81,7 @@ class SubmissionContentAccessor
         }
 
         $field->valueType()->assert($value, get_class($field) . ' [' . $field->handle . ']');
+        $state->conditions->invalidate();
         $state->rawValuesByUid[$field->uid] = $value;
         $state->normalizedValuesByUid[$field->uid] = $value;
     }
@@ -94,7 +97,7 @@ class SubmissionContentAccessor
 
         $field = $submission->getContentManager()->getFieldByHandle($submission, $rootHandle);
 
-        if ($field instanceof \verbb\formie\fields\Date) {
+        if ($field instanceof \verbb\formie\fields\Date || $field instanceof \verbb\formie\fields\Phone) {
             return $field->resolveNormalizedValuePath($rootValue, $nestedPath);
         }
 

@@ -178,11 +178,6 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::relationQuery(static::elementType());
-    }
-
     public function __construct($config = [])
     {
         // Normalize the options
@@ -898,6 +893,11 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::relationQuery(static::elementType());
+    }
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {

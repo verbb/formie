@@ -23,6 +23,7 @@ final class ContextReferenceSource
         if (!$definition) {
             throw new ReferenceException(ReferenceDiagnostic::UnknownSource);
         }
+        $definition->assertAvailable($context);
         if ($target === 'custom') {
             $source = (new ReferenceCatalogue())->source($id);
             if (!$source->definition->server || !in_array('server', $context->permissions, true)) {

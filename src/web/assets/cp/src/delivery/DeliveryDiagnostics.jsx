@@ -155,6 +155,15 @@ export function DeliveryDiagnostics({ uid, submissionId = null, onClose }) {
         }
     };
 
+    const exportBundle = async () => {
+        try {
+            const { data } = await Craft.sendActionRequest('POST', 'formie/delivery/export-bundle', { data: { uid: selected, acknowledged } });
+            download(data);
+        } catch {
+            setError(Craft.t('formie', 'Unable to export delivery diagnostics. Check your permissions and acknowledgement.'));
+        }
+    };
+
     return (
         <>
             {!selected && error && <p role="alert">{error}</p>}
@@ -168,7 +177,7 @@ export function DeliveryDiagnostics({ uid, submissionId = null, onClose }) {
                 {error && <p role="alert">{error}</p>}
                 {!error && !bundle && <p>{Craft.t('formie', 'Loading diagnostics…')}</p>}
                 {bundle && <>
-                    <p>{Craft.t('formie', 'Credentials are redacted from this view. Retained evidence can still contain personal submission data. Completed delivery evidence is retained for 30 days; unresolved evidence remains available for reconciliation.')}</p>
+                    <p>{Craft.t('formie', 'Credentials are redacted from this view. Retained evidence can still contain personal submission data. Completed delivery evidence is retained for {days} days; unresolved evidence remains available for reconciliation.', { days: bundle.retentionDays })}</p>
                     <p><a href={bundle.submissionUrl}>{Craft.t('formie', 'Open Submission Delivery History')}</a></p>
 
                     <h3>{Craft.t('formie', 'Overview')}</h3>
@@ -185,12 +194,12 @@ export function DeliveryDiagnostics({ uid, submissionId = null, onClose }) {
 
                     <h3>{Craft.t('formie', 'Support export')}</h3>
                     <p>{Craft.t('formie', 'Copy a value-free summary for an initial support request, or download the complete retained bundle when mapped values and provider evidence are required.')}</p>
+                    <label><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} /> {Craft.t('formie', 'I understand this export may contain personal data.')}</label>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '12px 0' }}>
                         <Button type="button" onClick={copySummary}>{Craft.t('formie', 'Copy diagnostic summary')}</Button>
-                        <Button type="button" onClick={() => download(bundle)}>{Craft.t('formie', 'Download full redacted bundle')}</Button>
+                        <Button type="button" disabled={!acknowledged} onClick={exportBundle}>{Craft.t('formie', 'Download full redacted bundle')}</Button>
                     </div>
                     {bundle.canExportSensitive && <div>
-                        <label><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} /> {Craft.t('formie', 'I understand this export may contain personal data.')}</label>
                         <Button type="button" disabled={!acknowledged} onClick={exportSensitive}>{Craft.t('formie', 'Export sensitive evidence')}</Button>
                     </div>}
                     {bundle.canReconcile && ['sending', 'unknown'].includes(bundle.status) && <div>

@@ -20,6 +20,7 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\SendNotification;
+use verbb\formie\jobs\DeliveryJobInterface;
 use verbb\formie\models\IntegrationExecutionContext;
 use verbb\formie\models\IntegrationResult;
 use verbb\formie\models\Notification;
@@ -147,7 +148,8 @@ class Notifications extends Component
 
         if ($useQueue) {
             $context = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, 'notification:' . ($notification->uid ?: $notification->id), $deliveryKey, 'queued');
-            $uid = Formie::$plugin->getDeliveryAttempts()->prepare($context, 'notification', ['notificationId' => $notification->id]);
+            $attempts = Formie::$plugin->getDeliveryAttempts();
+            $uid = $attempts->prepare($context, 'notification', ['notificationId' => $notification->id, 'acceptedFingerprint' => $attempts->operationFingerprint($submission, $attempts->notificationConfiguration($notification))]);
             $enqueue = function () use ($settings, $uid): bool {
                 Queue::push(new SendNotification(['deliveryAttemptUid' => $uid]), $settings->queuePriority);
                 Formie::$plugin->getDeliveryAttempts()->checkpoint($uid, 'queued');
@@ -736,6 +738,7 @@ class Notifications extends Component
                 'name' => 'name',
                 'required' => true,
                 'variableConfig' => [
+                    'usage' => 'text',
                     'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [
@@ -762,6 +765,7 @@ class Notifications extends Component
                 'name' => 'to',
                 'required' => true,
                 'variableConfig' => [
+                    'usage' => 'emailHeader',
                     'shapes' => ['inline'],
                     'types' => [Variables::TYPE_EMAIL],
                     'groups' => [
@@ -788,6 +792,7 @@ class Notifications extends Component
                 'name' => 'subject',
                 'required' => true,
                 'variableConfig' => [
+                    'usage' => 'emailHeader',
                     'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [
@@ -804,6 +809,7 @@ class Notifications extends Component
                 'name' => 'content',
                 'required' => true,
                 'variableConfig' => [
+                    'usage' => 'richText',
                     'groups' => [
                         Variables::STATIC_FIELDS,
                         Variables::STATIC_FORM,
@@ -823,6 +829,7 @@ class Notifications extends Component
                 'instructions' => Craft::t('formie', 'The name the notification email will be sent from.'),
                 'name' => 'fromName',
                 'variableConfig' => [
+                    'usage' => 'emailHeader',
                     'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [
@@ -839,6 +846,7 @@ class Notifications extends Component
                 'name' => 'from',
                 'validation' => 'emailOrVariable',
                 'variableConfig' => [
+                    'usage' => 'emailHeader',
                     'shapes' => ['inline'],
                     'types' => [Variables::TYPE_EMAIL],
                     'groups' => [
@@ -855,6 +863,7 @@ class Notifications extends Component
                 'instructions' => Craft::t('formie', 'The name to be used as the reply to for the notification email.'),
                 'name' => 'replyToName',
                 'variableConfig' => [
+                    'usage' => 'emailHeader',
                     'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [
@@ -871,6 +880,7 @@ class Notifications extends Component
                 'name' => 'replyTo',
                 'validation' => 'emailOrVariable',
                 'variableConfig' => [
+                    'usage' => 'emailHeader',
                     'shapes' => ['inline'],
                     'types' => [Variables::TYPE_EMAIL],
                     'groups' => [
@@ -887,6 +897,7 @@ class Notifications extends Component
                 'instructions' => Craft::t('formie', 'Email addresses who will receive a CC of the notification email. Separate multiple emails with a comma.'),
                 'name' => 'cc',
                 'variableConfig' => [
+                    'usage' => 'emailHeader',
                     'shapes' => ['inline'],
                     'types' => [Variables::TYPE_EMAIL],
                     'groups' => [
@@ -902,6 +913,7 @@ class Notifications extends Component
                 'instructions' => Craft::t('formie', 'Email addresses who will receive a BCC of the notification email. Separate multiple emails with a comma.'),
                 'name' => 'bcc',
                 'variableConfig' => [
+                    'usage' => 'emailHeader',
                     'shapes' => ['inline'],
                     'types' => [Variables::TYPE_EMAIL],
                     'groups' => [
@@ -918,6 +930,7 @@ class Notifications extends Component
                 'name' => 'sender',
                 'validation' => 'emailOrVariable',
                 'variableConfig' => [
+                    'usage' => 'emailHeader',
                     'shapes' => ['inline'],
                     'types' => [Variables::TYPE_EMAIL],
                     'groups' => [
@@ -1053,12 +1066,14 @@ class Notifications extends Component
         $deliveryKey ??= DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
         $attempts = Formie::$plugin->getDeliveryAttempts();
         $context = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, 'notification:' . ($notification->uid ?: $notification->id), $deliveryKey, $queueJob ? 'queued' : 'synchronous');
-        $uid = $queueJob->deliveryAttemptUid ?? $attempts->prepare($context, 'notification', ['notificationId' => $notification->id]);
+        $fingerprint = $attempts->operationFingerprint($submission, $attempts->notificationConfiguration($notification));
+        $uid = $queueJob instanceof DeliveryJobInterface ? $queueJob->getDeliveryAttemptUid() : $attempts->prepare($context, 'notification', ['notificationId' => $notification->id, 'acceptedFingerprint' => $fingerprint]);
         if ((new Query())->from(DeliveryAttempts::TABLE)->where(['submissionId' => $submission->id, 'binding' => $context->binding, 'status' => ['unknown', 'sending']])->andWhere(['not', ['uid' => $uid]])->exists()) {
             return ['success' => false, 'deliveryOutcomeUnknown' => true, 'error' => 'Reconcile the previous notification delivery before resending.'];
         }
         $diagnostics = $queueJob ?? new SendNotification(['deliveryAttemptUid' => $uid]);
-        $result = $attempts->execute($uid, function () use ($notification, $submission, $diagnostics, $deliveryKey): IntegrationResult {
+        $result = $attempts->executePrepared($uid, $fingerprint, function () use ($notification, $submission, $diagnostics, $deliveryKey, $attempts, $uid): IntegrationResult {
+            $attempts->checkpointSubmission($uid, $submission);
             $evaluation = $notification->enableConditions ? ConditionsHelper::evaluate($notification->conditions ?? [], $submission, 'notification') : null;
             if ($evaluation && $evaluation->value === null) {
                 return new IntegrationResult(IntegrationStatus::Rejected, code: 'invalid_conditions', diagnostics: $evaluation->diagnostics);
@@ -1067,6 +1082,7 @@ class Notifications extends Component
                 return IntegrationResult::skipped('conditions');
             }
             $response = $this->_sendNotificationEmail($notification, $submission, $diagnostics, $deliveryKey);
+            $attempts->checkpoint($uid, 'email-response', is_array($response) ? $response : ['success' => $response]);
             if (!empty($response['skipped'])) {
                 return IntegrationResult::skipped('event');
             }
@@ -1106,7 +1122,7 @@ class Notifications extends Component
             $submission,
             $notification,
             $deliveryKey,
-            $queueJob->deliveryAttemptUid,
+            $queueJob->getDeliveryAttemptUid(),
         );
         if ($legacyResponse) {
             return $legacyResponse;

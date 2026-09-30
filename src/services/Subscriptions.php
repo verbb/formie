@@ -79,6 +79,9 @@ class Subscriptions extends Component
             if (!$current->reference || !$integration instanceof PaymentIntegration) {
                 return false;
             }
+            if (!$current->accountFingerprint || !hash_equals($current->accountFingerprint, $integration->getPaymentAccountFingerprint())) {
+                throw new RuntimeException('Restore the original subscription account before managing it.');
+            }
             $mode = $command->resolveMode($current);
             if ((!empty($current->scope['cancellationPending']) || $current->cancelAt !== null)
                 && $current->cancellationMode === $mode) {
@@ -113,9 +116,8 @@ class Subscriptions extends Component
                     SubscriptionStatus::UNKNOWN,
                     'unknown',
                     reference: $current->reference,
-                    providerUpdatedAt: time(),
                     cancellationMode: $mode,
-                    rawData: $current->subscriptionData ?? [],
+                    providerData: $current->providerData,
                 );
                 $current = $this->applySnapshot($current, $snapshot, 'cancellation');
                 $subscription->status = $current->status;
@@ -148,7 +150,7 @@ class Subscriptions extends Component
         return $this->_findSubscription(['id' => $id]);
     }
 
-    public function getSubscriptionByReference(string $reference, ?int $integrationId = null): ?Subscription
+    public function getSubscriptionByReference(string $reference, ?int $integrationId = null, ?string $accountFingerprint = null): ?Subscription
     {
         $reference = trim($reference);
 
@@ -156,7 +158,12 @@ class Subscriptions extends Component
             return null;
         }
 
-        return $this->_findSubscription(array_filter(['reference' => $reference, 'integrationId' => $integrationId], static fn($value) => $value !== null));
+        if ($integrationId && $accountFingerprint === null) {
+            $integration = Formie::$plugin->getIntegrations()->getIntegrationById($integrationId);
+            $accountFingerprint = $integration instanceof PaymentIntegration ? $integration->getPaymentAccountFingerprint() : null;
+        }
+        $rows = $this->_createSubscriptionsQuery()->where(array_filter(['reference' => $reference, 'integrationId' => $integrationId, 'accountFingerprint' => $accountFingerprint], static fn($value) => $value !== null))->limit(2)->all();
+        return count($rows) === 1 ? new Subscription($rows[0]) : null;
     }
 
     public function getSubmissionSubscriptions(Submission $submission): array
@@ -210,7 +217,8 @@ class Subscriptions extends Component
         $current->status = $snapshot->status;
         $current->providerStatus = $snapshot->providerStatus;
         $current->providerUpdatedAt = $snapshot->providerUpdatedAt ?? $current->providerUpdatedAt;
-        $current->subscriptionData = $snapshot->rawData;
+        $current->providerData = \verbb\formie\helpers\SubscriptionProviderData::project($snapshot->providerData ?: $snapshot->rawData);
+        $current->lastSyncedAt = new \DateTimeImmutable();
         $current->startedAt ??= $snapshot->startedAt;
         $current->trialStartsAt ??= $snapshot->trialStartsAt;
         $current->trialEndsAt ??= $snapshot->trialEndsAt;
@@ -250,6 +258,7 @@ class Subscriptions extends Component
         ];
         $this->saveSubscription($current, historyEntry: $historyEntry);
         $saved = $this->getSubscriptionById($current->id);
+        $this->retainProviderEvidence($saved->uid, $snapshot->status->value, $snapshot->rawData);
 
         $this->trigger(self::EVENT_AFTER_APPLY_SUBSCRIPTION_SNAPSHOT, new SubscriptionEvent([
             'subscription' => $saved,
@@ -343,7 +352,18 @@ class Subscriptions extends Component
             $subscriptionRecord->fieldId = $subscription->fieldId;
             $subscriptionRecord->planId = $subscription->planId;
             $subscriptionRecord->reference = $subscription->reference;
-            $subscriptionRecord->subscriptionData = $subscription->subscriptionData;
+            $subscription->accountFingerprint ??= $subscriptionRecord->getIsNewRecord() ? $subscription->getIntegration()?->getPaymentAccountFingerprint() : null;
+            if (!$subscriptionRecord->getIsNewRecord() && $subscriptionRecord->accountFingerprint !== $subscription->accountFingerprint) {
+                throw new RuntimeException('Subscription account ownership cannot change.');
+            }
+            $subscription->terms ??= $subscription->getPlan() ? array_intersect_key($subscription->getPlan()->getAttributes(), array_flip(['amountMinor', 'currency', 'interval', 'intervalCount'])) : null;
+            if (!$subscriptionRecord->getIsNewRecord() && $subscriptionRecord->terms !== null) {
+                $subscription->terms = Json::decodeIfJson($subscriptionRecord->terms);
+            }
+            $subscriptionRecord->providerData = $subscription->providerData;
+            $subscriptionRecord->accountFingerprint = $subscription->accountFingerprint;
+            $subscriptionRecord->terms = $subscription->terms;
+            $subscriptionRecord->lastSyncedAt = $subscription->lastSyncedAt;
             $subscriptionRecord->trialDays = $subscription->trialDays;
             $subscriptionRecord->startedAt = $subscription->startedAt;
             $subscriptionRecord->trialStartsAt = $subscription->trialStartsAt;
@@ -456,7 +476,7 @@ class Subscriptions extends Component
 
     public function receivePayment(Subscription $subscription, DateTimeInterface $paidUntil, ?DateTimeInterface $previousPaidUntil = null): bool
     {
-        $comparisonDate = $previousPaidUntil ?? $subscription->nextPaymentAt;
+        $comparisonDate = $previousPaidUntil ?? $subscription->currentPeriodEndsAt;
 
         if ($comparisonDate && $comparisonDate >= $paidUntil) {
             return true;
@@ -467,13 +487,34 @@ class Subscriptions extends Component
             ]));
         }
 
-        if ($subscription->nextPaymentAt && $subscription->nextPaymentAt >= $paidUntil) {
+        if ($subscription->currentPeriodEndsAt && $subscription->currentPeriodEndsAt >= $paidUntil) {
             return true;
         }
 
-        $subscription->nextPaymentAt = $paidUntil;
+        $subscription->currentPeriodEndsAt = $paidUntil;
 
         return $this->saveSubscription($subscription);
+    }
+
+
+    /** Full provider observations are encrypted outside the public aggregate. */
+    public function retainProviderEvidence(string $subscriptionUid, string $status, array $data): void
+    {
+        if (!$data) {
+            return;
+        }
+        $encoded = Json::encode($data);
+        if (strlen($encoded) > 2097152) {
+            $encoded = Json::encode(['truncated' => true, 'originalBytes' => strlen($encoded), 'preview' => mb_strcut($encoded, 0, 65536)]);
+        }
+        $cipher = Craft::$app->getSecurity()->encryptByKey($encoded, Formie::$plugin->getSettings()->getSecurityKey());
+        if ($cipher === false) {
+            throw new RuntimeException('Unable to retain subscription provider evidence.');
+        }
+        Craft::$app->getDb()->createCommand()->insert('{{%formie_subscription_diagnostics}}', [
+            'subscriptionUid' => $subscriptionUid, 'status' => $status,
+            'evidence' => base64_encode($cipher), 'observedAt' => Db::prepareDateForDb(new \DateTimeImmutable()),
+        ])->execute();
     }
 
 
@@ -499,7 +540,7 @@ class Subscriptions extends Component
                 'fieldId',
                 'planId',
                 'reference',
-                'subscriptionData',
+                'providerData', 'accountFingerprint', 'terms', 'lastSyncedAt',
                 'trialDays',
                 'startedAt',
                 'trialStartsAt',

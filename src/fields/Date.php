@@ -472,11 +472,6 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::object($this->getCollectsRange() ? DateRangeFieldValue::class : DateFieldValue::class);
-    }
-
     public function __construct($config = [])
     {
         // Normalize date settings to ensure we strip timezones (they're saved without one)
@@ -1558,6 +1553,11 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::object($this->getCollectsRange() ? DateRangeFieldValue::class : DateFieldValue::class);
+    }
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {

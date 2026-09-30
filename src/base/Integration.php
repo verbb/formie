@@ -49,6 +49,7 @@ use verbb\formie\options\IntegrationOptionSourceHelper;
 use verbb\formie\options\OptionList;
 use verbb\formie\records\Integration as IntegrationRecord;
 use verbb\formie\references\ReferenceContext;
+use verbb\formie\references\ReferenceUsage;
 use verbb\formie\references\ReferenceSlot;
 use verbb\formie\references\ReferenceSlotKind;
 use verbb\formie\references\ResolvedReference;
@@ -120,7 +121,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public static function supportsPayloadSending(): bool
     {
-        return true;
+        return is_a(static::class, DispatchableIntegrationInterface::class, true) || static::hasLegacyPayloadOverride();
     }
 
     public static function hasFormSettings(): bool
@@ -197,11 +198,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public static function apiError(IntegrationInterface $integration, Error|Exception $exception, bool $throwError = true, ?Submission $submission = null): void
     {
         if ($integration instanceof self) {
-            $integration->context['deliveryErrorResult'] = $exception instanceof IntegrationStepException
+            $integration->_deliveryState->error = $exception instanceof IntegrationStepException
                 ? $exception->result : IntegrationResult::fromException($exception);
             if ($integration->_deliveryAttemptUid) {
                 Formie::$plugin->getDeliveryAttempts()->checkpoint($integration->_deliveryAttemptUid, 'provider-error', [
                     'type' => get_class($exception), 'error' => self::getExceptionLogMessage($exception),
+                    'exception' => DeliveryDiagnostics::exception($exception),
                 ], $integration->getDiagnosticSecrets());
             }
         }
@@ -363,6 +365,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     use OAuthProviderTrait {
         request as OAuthRequest;
     }
+    use \verbb\formie\compatibility\integrations\LegacyIntegrationDeliveryTrait;
+    use \verbb\formie\compatibility\integrations\LegacyIntegrationPolicyTrait;
 
 
     // Properties
@@ -375,12 +379,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public ?int $sortOrder = null;
     public array $cache = [];
     public ?string $uid = null;
-    #[FormIntegrationSetting]
-    public ?string $optInField = null;
-    #[FormIntegrationSetting]
-    public bool $enableConditions = false;
-    #[FormIntegrationSetting]
-    public ?array $conditions = null;
+    #[\verbb\formie\attributes\Sensitive]
+    public ?string $clientSecret = null;
+    private ?FormIntegration $_formIntegration = null;
 
     // Store extra context for when running the integration
     public array $context = [];
@@ -389,6 +390,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public IntegrationSettingsContext $settingsContext;
 
     protected ?Client $_client = null;
+    protected \verbb\formie\models\IntegrationDeliveryState $_deliveryState;
+    private ?\verbb\formie\models\IntegrationRunContext $_runContext = null;
 
     // Keep track of whether run in the context of a queue job
     private ?JobInterface $_queueJob = null;
@@ -405,6 +408,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function __construct($config = [])
     {
+        $this->_deliveryState = new \verbb\formie\models\IntegrationDeliveryState();
         if (!isset($config['settingsContext'])) {
             $config['settingsContext'] = new IntegrationSettingsContext();
         }
@@ -479,7 +483,18 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function getFormSettingAttributes(): array
     {
-        return array_merge(['enabled', 'execution'], FormIntegration::settingAttributes($this));
+        return array_merge(FormIntegration::POLICY_ATTRIBUTES, FormIntegration::settingAttributes($this));
+    }
+
+    public function getFormIntegration(): FormIntegration
+    {
+        return $this->_formIntegration ?? FormIntegration::fromSettings($this, ['enabled' => $this->getEnabled()] + $this->_legacyPolicyOverrides);
+    }
+
+    public function setFormIntegration(FormIntegration $binding): void
+    {
+        $this->_formIntegration = $binding;
+        $this->_legacyPolicyOverrides = [];
     }
 
     public function __clone(): void
@@ -493,6 +508,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->_deliveryStepCounts = [];
         $this->_directDelivery = false;
         $this->_configRefreshCancelled = false;
+        $this->_deliveryState = new \verbb\formie\models\IntegrationDeliveryState();
+        $this->_runContext = null;
         $this->context = [];
         $this->settingsContext = clone $this->settingsContext;
     }
@@ -837,7 +854,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $config = $legacyEvent->settings?->toConfig() ?? $legacyEvent->config ?? $config;
 
         $config = new IntegrationConfig(
-            IntegrationSecrets::redactValues(array_merge($previous->all(), $config->all()), $this->getDiagnosticSecrets()),
+            IntegrationSecrets::redactValues(IntegrationConfig::encode(array_merge($previous->all(), $config->all())), $this->getDiagnosticSecrets()),
             $this->getIntegrationConfigKey(),
             time(),
         );
@@ -929,7 +946,20 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->_deliveryContext = $context;
         $this->_deliveryAttemptUid = $attemptUid;
         $this->_deliveryStepCounts = [];
-        unset($this->context['deliveryErrorResult'], $this->context['deliverySkipped'], $this->context['deliveryWriteAccepted'], $this->context['deliveryUncertain']);
+        $this->_deliveryState = new \verbb\formie\models\IntegrationDeliveryState();
+    }
+
+    public function beginRun(\verbb\formie\models\IntegrationRunContext $context): void
+    {
+        if ($this->_runContext === $context) {
+            return;
+        }
+        $this->_runContext = $context;
+        $this->_deliveryContext = $context->execution;
+        $this->_deliveryAttemptUid = $context->attemptUid;
+        $this->_deliveryState = $context->state;
+        $this->_deliveryStepCounts = [];
+        $this->_directDelivery = $context->attemptUid === null;
     }
 
     public function getDeliveryAttemptUid(): ?string
@@ -945,7 +975,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function beginPayloadDelivery(Submission $submission): void
     {
         if (!$this->_deliveryContext) {
-            unset($this->context['deliveryErrorResult'], $this->context['deliverySkipped'], $this->context['deliveryWriteAccepted'], $this->context['deliveryUncertain']);
+            $this->_deliveryState = new \verbb\formie\models\IntegrationDeliveryState();
             $this->_directDelivery = true;
             $this->_deliveryContext = new IntegrationExecutionContext(
                 (int)$submission->id, (int)$submission->formId, (string)$this->handle,
@@ -956,13 +986,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function resultForPayload(mixed $value): IntegrationResult
     {
-        $errorResult = $this->context['deliveryErrorResult'] ?? null;
+        $errorResult = $this->_deliveryState->error ?? null;
         $errorResult = $value === false || $errorResult?->requiresReconciliation() ? $errorResult : null;
-        $result = $errorResult ?? (!empty($this->context['deliverySkipped']) && empty($this->context['deliveryWriteAccepted'])
+        $result = $errorResult ?? (!empty($this->_deliveryState->skipped) && empty($this->_deliveryState->writeAccepted)
             ? IntegrationResult::skipped('event_or_opt_in')
             : IntegrationResultCompatibility::normalize($value,
-                !empty($this->context['deliveryUncertain']) || ($value === false && !empty($this->context['deliveryWriteAccepted'])),
+                !empty($this->_deliveryState->uncertain) || ($value === false && !empty($this->_deliveryState->writeAccepted)),
             ));
+        $result = $result->withOutputs($this->_deliveryState->outputs);
         if ($this->_directDelivery) {
             if ($this->_deliveryAttemptUid) {
                 Formie::$plugin->getDeliveryAttempts()->completeDirect($this->_deliveryAttemptUid, $result);
@@ -1001,7 +1032,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->_applyPublicEndpointDnsPin($options, (string)$target);
         $text = $this->executeDeliveryWrite($method, (string)$target, $options, fn() => $this->_readDeliveryResponse($client->request($method, (string)$target, $options)));
         if (!in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true)) {
-            $this->context['deliveryWriteAccepted'] = true;
+            $this->_deliveryState->writeAccepted = true;
         }
         return Json::isJsonObject($text) ? Json::decode($text) : $text;
     }
@@ -1031,14 +1062,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 }
                 $result = $this->executeDeliveryWrite($method, $uri, $options, fn() => $this->OAuthRequest($method, $uri, $options));
                 if ($writes) {
-                    $this->context['deliveryWriteAccepted'] = true;
+                    $this->_deliveryState->writeAccepted = true;
                 }
                 return $result;
             }
 
             $text = $this->executeDeliveryWrite($method, $uri, $options, fn() => $this->_readDeliveryResponse($this->getClient()->request($method, ltrim($uri, '/'), $options)));
             if ($writes) {
-                $this->context['deliveryWriteAccepted'] = true;
+                $this->_deliveryState->writeAccepted = true;
             }
             if (Json::isJsonObject($text)) {
                 return Json::decode($text);
@@ -1046,10 +1077,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
             return $text;
         } catch (Throwable $e) {
-            $this->context['deliveryErrorResult'] = $e instanceof IntegrationStepException ? $e->result : IntegrationResult::fromException($e);
+            $this->_deliveryState->error = $e instanceof IntegrationStepException ? $e->result : IntegrationResult::fromException($e);
             $response = $e instanceof RequestException ? $e->getResponse() : null;
             if ($writes && (!$response || $response->getStatusCode() >= 500 || $response->getStatusCode() === 408)) {
-                $this->context['deliveryUncertain'] = true;
+                $this->_deliveryState->uncertain = true;
             }
             throw $e;
         }
@@ -1078,7 +1109,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $text = $this->executeDeliveryWrite($method, $uri, $options, fn() => $this->_readDeliveryResponse($this->createPublicEndpointClient($uri)->request($method, $uri, $options)));
 
             if ($writes) {
-                $this->context['deliveryWriteAccepted'] = true;
+                $this->_deliveryState->writeAccepted = true;
             }
 
             if (Json::isJsonObject($text)) {
@@ -1087,11 +1118,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
             return $text;
         } catch (Throwable $e) {
-            $this->context['deliveryErrorResult'] = $e instanceof IntegrationStepException ? $e->result : IntegrationResult::fromException($e);
+            $this->_deliveryState->error = $e instanceof IntegrationStepException ? $e->result : IntegrationResult::fromException($e);
             $response = $e instanceof RequestException ? $e->getResponse() : null;
 
             if ($writes && (!$response || $response->getStatusCode() >= 500 || $response->getStatusCode() === 408)) {
-                $this->context['deliveryUncertain'] = true;
+                $this->_deliveryState->uncertain = true;
             }
 
             throw $e;
@@ -1102,7 +1133,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     {
         // Allow events to cancel sending
         if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method, $contentType)) {
-            $this->context['deliverySkipped'] = true;
+            $this->_deliveryState->skipped = true;
             return false;
         }
 
@@ -1122,7 +1153,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function deliverPayloadToPublicEndpoint(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
     {
         if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method, $contentType)) {
-            $this->context['deliverySkipped'] = true;
+            $this->_deliveryState->skipped = true;
             return false;
         }
 
@@ -1157,7 +1188,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
 
             $slot = ReferenceSlot::fromStored($rawFieldKey);
-            $context = ReferenceContext::forSubmission($submission);
+            $context = ReferenceContext::forSubmission($submission, usage: ReferenceUsage::Integration);
             $field = null;
             $rawValue = null;
             $resolved = null;
@@ -1252,7 +1283,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 }
             }
         };
-        $collect($this->getAttributes());
+        $attributes = $this->getAttributes();
+        foreach (IntegrationSecrets::sensitiveAttributes($this) as $attribute) {
+            $collect($attributes[$attribute] ?? null, true);
+        }
+        // Retain conservative recognition for Formie 3 extensions without metadata.
+        $collect($attributes);
         return array_values(array_unique($secrets));
     }
 
@@ -1271,13 +1307,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->trigger(self::EVENT_BEFORE_SEND_PAYLOAD, $event);
 
         if (!$event->isValid) {
-            $this->context['deliverySkipped'] = true;
+            $this->_deliveryState->skipped = true;
             Integration::info($this, 'Sending payload cancelled by event hook.');
         }
 
         // Also, check for opt-in fields. This allows the above event to potentially alter things
         if (!$this->enforceOptInField($submission)) {
-            $this->context['deliverySkipped'] = true;
+            $this->_deliveryState->skipped = true;
             Integration::info($this, 'Sending payload cancelled by opt-in field.');
 
             return false;
@@ -1304,7 +1340,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->trigger(self::EVENT_AFTER_SEND_PAYLOAD, $event);
 
         if (!$event->isValid) {
-            $this->context['deliveryErrorResult'] = IntegrationResult::unknown('response_rejected_by_hook');
+            $this->_deliveryState->error = IntegrationResult::unknown('response_rejected_by_hook');
             Integration::info($this, 'Payload marked as invalid by event hook.');
         }
 
@@ -1362,7 +1398,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function getMappedFieldValue(mixed $fieldKey, Submission $submission, IntegrationField $integrationField): mixed
     {
         $slot = ReferenceSlot::fromStored($fieldKey);
-        $context = ReferenceContext::forSubmission($submission);
+        $context = ReferenceContext::forSubmission($submission, usage: ReferenceUsage::Integration);
         $field = null;
         $resolved = null;
         if ($slot->kind === ReferenceSlotKind::Exact) {
@@ -1910,7 +1946,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             // compatibility; restore them before exposing config to callers.
             $stored = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($stored)));
 
-            return IntegrationConfig::fromStorage($stored, $this->getIntegrationConfigKey());
+            return IntegrationConfig::fromStorage(IntegrationSecrets::redactValues($stored, $this->getDiagnosticSecrets()), $this->getIntegrationConfigKey());
         }
 
         // Formie 3 stored the encoded metadata directly under `settings`.
@@ -1918,7 +1954,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $legacy = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($legacy)));
 
         return new IntegrationConfig(
-            IntegrationConfig::decode($legacy),
+            IntegrationConfig::decode(IntegrationSecrets::redactValues($legacy, $this->getDiagnosticSecrets())),
             $this->getIntegrationConfigKey(),
             0,
         );

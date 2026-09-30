@@ -20,19 +20,7 @@ class IntegrationRerunPolicies
 
     public static function getStoredConfig(Form $form, string $handle): ?array
     {
-        $policies = $form->settings->integrationPolicies ?? [];
-
-        if (is_object($policies)) {
-            $policies = (array)$policies;
-        }
-
-        $rerun = $policies['rerun'] ?? [];
-
-        if (is_object($rerun)) {
-            $rerun = (array)$rerun;
-        }
-
-        $config = $rerun[$handle] ?? null;
+        $config = $form->settings->integrations[$handle]['trigger'] ?? null;
 
         if (!is_array($config)) {
             return null;

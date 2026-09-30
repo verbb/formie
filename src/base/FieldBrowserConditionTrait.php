@@ -18,11 +18,16 @@ trait FieldBrowserConditionTrait
 
     public function getBrowserConditions(): array
     {
-        return $this->conditions()->toArray();
+        $set = $this->conditions();
+        return $set->rules ? [
+            ...(new \verbb\formie\conditions\ConditionCompiler())->compile($set, $this->getForm()),
+            'isNested' => (bool)$this->getParentField(),
+        ] : [];
     }
 
     public function getConditionsJson(): ?string
     {
-        return $this->conditions()->toJson();
+        $conditions = $this->getBrowserConditions();
+        return $conditions ? \craft\helpers\Json::encode($conditions) : null;
     }
 }

@@ -74,6 +74,7 @@ class IntegrationRunner extends Component
                 $uid = $attempts->prepare($context, 'integration');
                 $attempts->execute($uid, fn() => $result);
                 $this->_saveProjection($handle, $submission, $result, $executionKey);
+                $this->_reportResult($context, $result, $uid);
                 $batch->record($handle, $result);
                 continue;
             }
@@ -98,7 +99,9 @@ class IntegrationRunner extends Component
         $mutex = Craft::$app->getMutex();
         $lock = 'formie.binding.' . hash('sha256', $submission->id . ':' . $connection->handle);
         if (!$mutex->acquire($lock, 10)) {
-            return IntegrationResult::unknown('binding_running');
+            $result = IntegrationResult::unknown('binding_running');
+            $this->_reportResult(new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, (string)$connection->handle, $executionKey, $execution), $result);
+            return $result;
         }
         try {
             return Formie::$plugin->getIntegrationDispatcher()->withRun($submission, $executionKey,
@@ -123,6 +126,7 @@ class IntegrationRunner extends Component
         $uid = Formie::$plugin->getDeliveryAttempts()->prepare($context, 'dispatch', [
             'handles' => array_values($handles), 'operation' => $operation->value,
             'triggerContext' => $triggerContext, 'afterNotifications' => $runAfterNotifications,
+            'acceptedFingerprint' => $this->dispatchFingerprint($submission, $handles),
         ]);
         (new DeliveryAttempt((int)$submission->id, 'integration-queue', $identity))->execute(['attemptUid' => $uid], function () use ($uid, $context): bool {
             Queue::push(new TriggerIntegration(['deliveryAttemptUid' => $uid]), Formie::$plugin->getSettings()->queuePriority);
@@ -139,7 +143,11 @@ class IntegrationRunner extends Component
         $data = $attempts->data($uid);
         $submission = Submission::find()->id($row['submissionId'])->status(null)->isIncomplete(null)->isSpam(null)->one();
         if (!$submission) {
-            return $attempts->execute($uid, fn() => IntegrationResult::rejected('submission_missing'));
+            $result = $attempts->execute($uid, fn() => IntegrationResult::rejected('submission_missing'));
+            if ($row['step'] === 'integration') {
+                $this->_reportResult($attempts->context($uid), $result, $uid);
+            }
+            return $result;
         }
         Craft::$app->language = $submission->getSite()->language;
         Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
@@ -153,9 +161,11 @@ class IntegrationRunner extends Component
                     return $result;
                 }
             }
-            return $attempts->execute($uid, fn() => IntegrationResult::skipped('disabled_or_missing'));
+            $result = $attempts->execute($uid, fn() => IntegrationResult::skipped('disabled_or_missing'));
+            $this->_reportResult($attempts->context($uid), $result, $uid);
+            return $result;
         }
-        return $attempts->execute($uid, function () use ($submission, $data, $row): IntegrationResult {
+        return $attempts->executePrepared($uid, $this->dispatchFingerprint($submission, $data['handles']), function () use ($submission, $data, $row): IntegrationResult {
             $triggerContext = $data['triggerContext'];
             $triggerContext['execution'] = 'queued';
             $batch = $this->runSteps($submission, $data['handles'], $triggerContext, Formie::$plugin->getIntegrationDispatcher()->getPlan($submission->getForm()), $row['executionUid']);
@@ -193,6 +203,18 @@ class IntegrationRunner extends Component
         $dispatcher->sendNotifications($submission, IntegrationDispatcher::PHASE_AFTER, $row['executionUid']);
     }
 
+    public function dispatchFingerprint(Submission $submission, array $handles): string
+    {
+        $configuration = [];
+        foreach (Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($submission->getForm()) as $binding) {
+            if (in_array($binding->integration->handle, $handles, true)) {
+                $configuration[$binding->integration->handle] = Formie::$plugin->getDeliveryAttempts()->integrationConfiguration($binding->integration, $binding->toSettings());
+            }
+        }
+        $configuration['notifications'] = array_map(static fn($notification) => Formie::$plugin->getDeliveryAttempts()->notificationConfiguration($notification), $submission->getForm()->getNotifications());
+        return Formie::$plugin->getDeliveryAttempts()->operationFingerprint($submission, $configuration);
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -225,11 +247,11 @@ class IntegrationRunner extends Component
         $this->trigger(self::EVENT_EVALUATED, new IntegrationDeliveryEvent(['context' => $context]));
         if ($invalidConditions || (!$eligible && !$overrides)) {
             $result = $invalidConditions ? new IntegrationResult(IntegrationStatus::Rejected, code: 'invalid_conditions', diagnostics: $conditionEvaluation->diagnostics) : IntegrationResult::skipped('conditions');
-            $this->trigger($invalidConditions ? self::EVENT_RESULT : self::EVENT_SKIPPED, new IntegrationDeliveryEvent(['context' => $context, 'result' => $result]));
             $attempts = Formie::$plugin->getDeliveryAttempts();
             $uid = $attempts->prepare($context, 'integration');
             $attempts->execute($uid, fn() => $result);
             $this->_saveProjection($integration, $submission, $result, $executionKey);
+            $this->_reportResult($context, $result, $uid);
             return $result;
         }
         $integration->setScenario(Integration::SCENARIO_FORM);
@@ -239,34 +261,47 @@ class IntegrationRunner extends Component
             $uid = $attempts->prepare($context, 'integration');
             $attempts->execute($uid, fn() => $result);
             $this->_saveProjection($integration, $submission, $result, $executionKey);
+            $this->_reportResult($context, $result, $uid);
             return $result;
         }
         $attempts = Formie::$plugin->getDeliveryAttempts();
-        $uid = $attempts->prepare($context, 'integration', ['settings' => array_intersect_key(['enabled' => $integration->getEnabled()] + $integration->getAttributes(), array_fill_keys($integration->getFormSettingAttributes(), true))]);
+        $settings = FormIntegration::settingsFromRuntime($integration);
+        $fingerprint = $attempts->operationFingerprint($submission, $attempts->integrationConfiguration($integration, $settings));
+        $uid = $attempts->prepare($context, 'integration', ['settings' => $settings, 'acceptedFingerprint' => $fingerprint]);
         $legacyResult = LegacyDeliveryAttempts::integrationResult($submission, $integration, $executionKey, $uid);
         if ($legacyResult) {
             $uid = $attempts->prepare($context, 'integration');
             $attempts->execute($uid, fn() => $legacyResult);
             $this->_saveProjection($integration, $submission, $legacyResult, $executionKey);
+            $this->_reportResult($context, $legacyResult, $uid);
             return $legacyResult;
         }
         if ((new Query())->from(DeliveryAttempts::TABLE)->where(['submissionId' => $submission->id, 'binding' => $integration->handle, 'step' => 'integration', 'status' => ['unknown', 'sending']])->exists()) {
             $result = IntegrationResult::unknown('previous_delivery_unresolved');
             $this->_saveProjection($integration, $submission, $result, $executionKey);
+            $this->_reportResult($context, $result, $uid);
             return $result;
         }
-        $result = $attempts->execute($uid, function () use ($integration, $submission, $context, $uid, $attempts): IntegrationResult {
+        $result = $attempts->executePrepared($uid, $fingerprint, function () use ($integration, $submission, $context, $uid, $attempts): IntegrationResult {
             $integration->setDeliveryContext($context, $uid);
             if ($context->execution === 'queued') {
                 $integration->setQueueJob(new TriggerIntegration(['deliveryAttemptUid' => $uid]));
             }
-            $attempts->checkpoint($uid, 'submission-projection', ['submissionId' => $submission->id, 'formId' => $submission->formId, 'values' => $submission->getValuesAsData()], $integration->getDiagnosticSecrets());
-            $attempts->checkpoint($uid, 'mapping-inputs', ['settings' => array_intersect_key(['enabled' => $integration->getEnabled()] + $integration->getAttributes(), array_fill_keys($integration->getFormSettingAttributes(), true))], $integration->getDiagnosticSecrets());
+            $attempts->checkpointSubmission($uid, $submission, $integration->getDiagnosticSecrets());
+            $attempts->checkpoint($uid, 'mapping-inputs', ['settings' => FormIntegration::settingsFromRuntime($integration)], $integration->getDiagnosticSecrets());
             return Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
-        });
+        }, $integration->getDiagnosticSecrets());
         $this->_saveProjection($integration, $submission, $result, $executionKey);
-        $this->trigger(self::EVENT_RESULT, new IntegrationDeliveryEvent(['context' => $context, 'result' => $result, 'attemptUid' => $uid]));
+        $this->_reportResult($context, $result, $uid);
         return $result;
+    }
+
+    private function _reportResult(IntegrationExecutionContext $context, IntegrationResult $result, ?string $uid = null): void
+    {
+        if ($result->status === IntegrationStatus::Skipped) {
+            $this->trigger(self::EVENT_SKIPPED, new IntegrationDeliveryEvent(['context' => $context, 'result' => $result, 'attemptUid' => $uid]));
+        }
+        $this->trigger(self::EVENT_RESULT, new IntegrationDeliveryEvent(['context' => $context, 'result' => $result, 'attemptUid' => $uid]));
     }
 
 
@@ -282,7 +317,7 @@ class IntegrationRunner extends Component
             $dispatcher = Formie::$plugin->getIntegrationDispatcher();
             $context = $dispatcher->loadContext($submission, $executionKey);
             $value = $result->toStorage() + ['success' => $result->isSuccessful(), 'executionUid' => $executionKey, 'handle' => $handle];
-            $element = is_string($integration) ? null : ($integration->context['dispatchElement'] ?? null);
+            $element = $result->outputs;
             if (is_array($element) && $result->isSuccessful()) {
                 $value += array_intersect_key($element, array_flip(['elementId', 'elementType', 'url']));
             }

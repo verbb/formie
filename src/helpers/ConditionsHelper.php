@@ -17,9 +17,10 @@ class ConditionsHelper
     // Static Methods
     // =========================================================================
 
-    public static function evaluate(array $settings, Submission $submission, string $purpose = 'visibility', array $rows = []): \verbb\formie\conditions\ConditionEvaluation
+    public static function evaluate(array|\verbb\formie\conditions\ConditionSet $settings, Submission $submission, string $purpose = 'visibility', array $rows = []): \verbb\formie\conditions\ConditionEvaluation
     {
-        return (new ConditionSetEvaluator())->evaluate(\verbb\formie\conditions\ConditionSet::fromArray($settings, $purpose), $submission, $rows);
+        $set = $settings instanceof \verbb\formie\conditions\ConditionSet ? $settings : \verbb\formie\conditions\ConditionSet::fromArray($settings, $purpose);
+        return $submission->getContentState()->conditions->evaluate($set, $submission, $rows);
     }
 
     public static function matchingRules(array $rules, Submission $submission): array

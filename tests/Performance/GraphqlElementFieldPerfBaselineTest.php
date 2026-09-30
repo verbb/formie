@@ -75,7 +75,7 @@ it('captures a graphql schema generation baseline for element-backed field famil
             ], JSON_UNESCAPED_SLASHES)
         ));
 
-        expect(count($combined['result']['submissionMutations']))->toBeGreaterThanOrEqual($formCount)
+        expect(count($combined['result']['submissionMutations']))->toBe($formCount + 2)
             ->and(count($combined['result']['formTypes']))->toBe($formCount)
             ->and(count($combined['result']['submissionTypes']))->toBe($formCount)
             ->and($combined['elapsedMs'])->toBeLessThan(5000);
@@ -136,7 +136,7 @@ function withGraphqlElementFieldPerfSchema(array $scope, callable $callback): vo
 
 function getSchemaScopedGraphqlElementFieldForms(): array
 {
-    $forms = Formie::$plugin->getForms()->getAllFormsWithLayouts();
+    $forms = Formie::$plugin->getForms()->getGqlSchemaSnapshot()->forms('formieSubmissions');
 
     if (Gql::isSchemaAwareOf('formieSubmissions.all')) {
         return $forms;

@@ -93,6 +93,6 @@ it('reconciles a pending PayWay transaction without creating another charge', fu
     $payment = Formie::$plugin->getPayments()->getSubmissionPayments($submission)[0];
     $integration->responseOverrides = ['status' => 'approved'];
     $integration->getTransaction($payment);
-    expect($payment->status)->toBe('success')
+    expect($payment->status)->toBe('succeeded')
         ->and(array_column($integration->requests, 0))->toBe(['POST', 'GET']);
 });

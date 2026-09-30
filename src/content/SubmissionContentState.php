@@ -2,6 +2,7 @@
 namespace verbb\formie\content;
 
 use verbb\formie\models\SubmissionUploadClaims;
+use verbb\formie\conditions\ConditionState;
 
 class SubmissionContentState
 {
@@ -16,13 +17,20 @@ class SubmissionContentState
     public array $uploadedDataFiles = [];
     public bool $isMergingPartialPayload = false;
     public ?SubmissionUploadClaims $uploadClaims = null;
+    public ConditionState $conditions;
 
 
     // Public Methods
     // =========================================================================
 
+    public function __construct()
+    {
+        $this->conditions = new ConditionState();
+    }
+
     public function resetFieldCollection(): void
     {
+        $this->conditions->invalidate();
         $this->fieldCollection = null;
         $this->currentPageFieldHandleMapsByPageId = [];
     }

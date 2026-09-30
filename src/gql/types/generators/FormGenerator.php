@@ -21,7 +21,7 @@ class FormGenerator extends Generator implements GeneratorInterface, SingleGener
 
     public static function generateTypes(mixed $context = null): array
     {
-        $forms = Formie::$plugin->getForms()->getAllFormsWithLayouts(forSchema: true);
+        $forms = Formie::$plugin->getForms()->getGqlSchemaSnapshot()->forms('formieForms');
         $gqlTypes = [];
 
         foreach ($forms as $form) {
@@ -69,7 +69,7 @@ class FormGenerator extends Generator implements GeneratorInterface, SingleGener
 
         $contentFieldGqlTypes = [];
         $fieldsService = Formie::$plugin->getFields();
-        $fieldConfigs = $fieldsService->getAllFieldConfigsForForms([(int)$context->id])[(int)$context->id] ?? [];
+        $fieldConfigs = Formie::$plugin->getForms()->getGqlSchemaSnapshot()->fieldConfigs((int)$context->id);
 
         // Handle form fields
         foreach ($fieldConfigs as $fieldConfig) {

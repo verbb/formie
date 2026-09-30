@@ -14,8 +14,13 @@ use craft\helpers\UrlHelper;
 
 use yii\helpers\Markdown;
 
-abstract class Messaging extends Integration
+abstract class Messaging extends Integration implements DispatchableIntegrationInterface
 {
+    // Traits
+    // =========================================================================
+
+    use DispatchableIntegrationTrait;
+
     // Static Methods
     // =========================================================================
 

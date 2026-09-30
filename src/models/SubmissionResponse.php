@@ -42,11 +42,7 @@ class SubmissionResponse extends Model
         }
         $payment = $outcome->data['payment'] ?? null;
         if (is_array($payment)) {
-            $response->paymentDecision = $payment;
-            $response->paymentStatus = $payment['status'] ?? null;
-            $response->paymentMessage = $payment['message'] ?? null;
-            $response->paymentRedirectUrl = $payment['redirectUrl'] ?? null;
-            $response->paymentAction = $payment['action'] ?? null;
+            $response->payment = $payment;
         }
         if ($form->settings->quizShowScoreAfterSubmit && $submission->id) {
             $scoring = \verbb\formie\Formie::$plugin->getQuestionnaireScoring();
@@ -69,10 +65,6 @@ class SubmissionResponse extends Model
     public ?Submission $submission = null;
     public ?Form $form = null;
     public ?FieldLayoutPage $nextPage = null;
-    public ?string $paymentStatus = null;
-    public ?string $paymentMessage = null;
-    public ?string $paymentRedirectUrl = null;
-    public ?array $paymentAction = null;
-    public ?array $paymentDecision = null;
+    public ?array $payment = null;
     public ?array $quizResult = null;
 }

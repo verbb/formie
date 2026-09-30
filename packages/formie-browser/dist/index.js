@@ -1,7 +1,7 @@
 import { n as e } from "./chunks/request-profile-DhwkeCpS.js";
 import { i as t, m as n, t as r } from "./chunks/dist-vTdOlBe4.js";
 import { c as i, d as a, l as o, o as s, r as c, t as l, u } from "./chunks/event-names-BCI2FLD8.js";
-import { a as d, c as f, d as p, f as m, i as h, l as g, n as _, o as v, p as y, r as b, s as x, t as S, u as C } from "./chunks/api-DjGZPLgb.js";
+import { a as d, c as f, d as p, f as m, i as h, l as g, n as _, o as v, p as y, r as b, s as x, t as S, u as C } from "./chunks/api-CVVIaC7M.js";
 import { a as ee, i as te, n as ne, r as w, t as T } from "./chunks/debug-BV0DvdHx.js";
 import { i as E, r as re, t as D } from "./chunks/theme-classes-DAQuEqdP.js";
 import { i as O, t as ie } from "./chunks/csrf-DxHg_ZYt.js";
@@ -311,11 +311,15 @@ function Ue(e) {
 	}), t;
 }
 function We(e, t) {
-	let n = e.success === !0, r = e.completion && typeof e.completion == "object" ? e.completion : null, i = e.keepSubmitLoading === !0, a = e.errors, o = Object.fromEntries(Object.entries(a && typeof a == "object" ? a : {}).map(([e, t]) => [e, Array.isArray(t) ? t.filter((e) => typeof e == "string") : []])), s = o.form || [], c = {};
-	Object.entries(o).forEach(([e, t]) => {
-		e !== "form" && (c[e] = t);
+	let n = e.success === !0, r = e.completion && typeof e.completion == "object" ? e.completion : null, i = e.payment && typeof e.payment == "object" ? e.payment : null, a = [
+		"requiresAction",
+		"pending",
+		"unknown"
+	].includes(i?.status || ""), o = e.errors, s = Object.fromEntries(Object.entries(o && typeof o == "object" ? o : {}).map(([e, t]) => [e, Array.isArray(t) ? t.filter((e) => typeof e == "string") : []])), c = s.form || [], l = {};
+	Object.entries(s).forEach(([e, t]) => {
+		e !== "form" && (l[e] = t);
 	});
-	let l = !n && s.length === 0 && Object.keys(c).length > 0 ? [t || "Submission failed."] : s, u = !n && i && l.length === 0 && Object.keys(c).length === 0;
+	let u = !n && c.length === 0 && Object.keys(l).length > 0 ? [t || "Submission failed."] : c, d = !n && a && u.length === 0 && Object.keys(l).length === 0;
 	return {
 		ok: n,
 		outcome: typeof e.outcome == "string" ? e.outcome : void 0,
@@ -325,13 +329,17 @@ function We(e, t) {
 		session: e.session,
 		completion: r,
 		action: e.submitAction === "back" || e.submitAction === "save" || e.submitAction === "submit" ? e.submitAction : void 0,
-		message: r?.message || e.successMessage || e.submitActionMessage || (n ? "Submission completed." : u ? "" : l[0] || "Submission failed."),
+		message: r?.message || e.successMessage || e.submitActionMessage || (n ? "Submission completed." : d ? "" : u[0] || "Submission failed."),
 		code: n ? void 0 : String(e.code || "SUBMIT_ERROR"),
-		keepSubmitLoading: i,
-		fieldErrors: Object.keys(c).length ? c : void 0,
-		formErrors: l.length ? l : void 0,
+		keepSubmitLoading: a,
+		payment: i,
+		fieldErrors: Object.keys(l).length ? l : void 0,
+		formErrors: u.length ? u : void 0,
 		nextPage: e.nextPageId ? { id: String(e.nextPageId) } : null,
-		redirect: r?.url ? {
+		redirect: i?.status === "requiresAction" && i.action?.type === "redirect" && i.action.url ? {
+			url: i.action.url,
+			target: "same-tab"
+		} : r?.url ? {
 			url: r.url,
 			target: r.target
 		} : e.redirectUrl ? {
@@ -891,8 +899,8 @@ function L(e, t) {
 }
 function At(e) {
 	if (e.ok || e.keepSubmitLoading !== !0) return !1;
-	let t = e.meta || {}, n = String(t.paymentStatus || "");
-	return n === "actionRequired" || n === "pending" || n === "unknown";
+	let t = e.payment?.status;
+	return t === "requiresAction" || t === "pending" || t === "unknown";
 }
 function jt(e, t) {
 	let n = xt(e), r = St(e, n);
@@ -925,8 +933,8 @@ function R(e, t) {
 	}
 	if (!t.ok) {
 		if (At(t)) {
-			let n = t.meta || {}, r = String(n.paymentMessage || "").trim();
-			r && jt(e, r);
+			let n = String(t.payment?.message || "").trim();
+			n && jt(e, n);
 			return;
 		}
 		t.fieldErrors && kt(e, t.fieldErrors), t.formErrors?.length ? L(e, t.formErrors) : !t.fieldErrors && t.message && L(e, [t.message]), He(e);
@@ -1099,17 +1107,17 @@ var Rt = class {
 	table: () => import("./chunks/table-9RF567j5.js").then((e) => e.tableModule),
 	"text-limit": () => import("./chunks/text-limit-B_aZx7ez.js").then((e) => e.textLimitModule)
 }, Ut = {
-	bpoint: () => import("./chunks/bpoint-CXQGs1VD.js").then((e) => e.bpointModule),
-	eway: () => import("./chunks/eway-CjFTmeEU.js").then((e) => e.ewayModule),
-	"go-cardless": () => import("./chunks/go-cardless-CQn_lGHc.js").then((e) => e.goCardlessModule),
-	mollie: () => import("./chunks/mollie-DE72esUl.js").then((e) => e.mollieModule),
-	moneris: () => import("./chunks/moneris-Dr80EaoQ.js").then((e) => e.monerisModule),
-	opayo: () => import("./chunks/opayo-BJEtUXHx.js").then((e) => e.opayoModule),
-	paddle: () => import("./chunks/paddle-YbKvaTWf.js").then((e) => e.paddleModule),
-	paypal: () => import("./chunks/paypal-Cmf_vhg5.js").then((e) => e.paypalModule),
-	payway: () => import("./chunks/payway-Cd7gtnlM.js").then((e) => e.paywayModule),
-	square: () => import("./chunks/square-CaSx-cM_.js").then((e) => e.squareModule),
-	stripe: () => import("./chunks/stripe-CDYFJnqm.js").then((e) => e.stripeModule)
+	bpoint: () => import("./chunks/bpoint-rLjpy31u.js").then((e) => e.bpointModule),
+	eway: () => import("./chunks/eway-DjcbUKPX.js").then((e) => e.ewayModule),
+	"go-cardless": () => import("./chunks/go-cardless-DVS8UyeI.js").then((e) => e.goCardlessModule),
+	mollie: () => import("./chunks/mollie-CeM6bu3J.js").then((e) => e.mollieModule),
+	moneris: () => import("./chunks/moneris-CGXenKVb.js").then((e) => e.monerisModule),
+	opayo: () => import("./chunks/opayo-BCMhSeWT.js").then((e) => e.opayoModule),
+	paddle: () => import("./chunks/paddle-BlHGAU78.js").then((e) => e.paddleModule),
+	paypal: () => import("./chunks/paypal-BZ7CEZ6V.js").then((e) => e.paypalModule),
+	payway: () => import("./chunks/payway-YqFTmXsL.js").then((e) => e.paywayModule),
+	square: () => import("./chunks/square-_0AJU_ov.js").then((e) => e.squareModule),
+	stripe: () => import("./chunks/stripe-BzNCADyH.js").then((e) => e.stripeModule)
 }, Wt = {
 	...Ht,
 	...Bt,
@@ -1140,7 +1148,6 @@ async function qt(e, t) {
 	let r = e.surface;
 	if (t.matchContext.surface !== r || t.setupContext.surface !== r) throw Error(`Browser module manifest surface ${r} cannot mount as ${t.matchContext.surface}.`);
 	let { root: i, form: a } = t.setupContext, o = /* @__PURE__ */ new Map(), s = /* @__PURE__ */ new Map(), c = [], l = !1, u = Promise.resolve(), d = !1, f = async (e, n) => {
-		s.set(e.key, e);
 		let i = {
 			key: e.key,
 			moduleId: e.moduleId,
@@ -1149,7 +1156,7 @@ async function qt(e, t) {
 			code: "MODULE_UNAVAILABLE",
 			message: "A form feature could not start. Reload the page or contact the site administrator."
 		};
-		console.error("[formie] Browser module failure", i, n), await t.setupContext.emit("formie:browser:module:error", i);
+		s.set(e.key, i), console.error("[formie] Browser module failure", i, n), await t.setupContext.emit("formie:browser:module:error", i);
 	}, p = async (e) => {
 		try {
 			await e.destroy();
@@ -1176,36 +1183,40 @@ async function qt(e, t) {
 		for (let e of u.reverse()) await p(e), c.splice(c.indexOf(e), 1);
 		for (let n of e.entries) {
 			if (l) continue;
-			s.has(n.key) && s.set(n.key, n);
-			let e;
+			let e = s.get(n.key);
+			e && s.set(n.key, {
+				...e,
+				required: n.required
+			});
+			let u;
 			try {
-				e = Kt(n, i, a);
+				u = Kt(n, i, a);
 			} catch (e) {
 				s.has(n.key) || await f(n, e);
 				continue;
 			}
-			let u = o.get(n.key) ?? /* @__PURE__ */ new Map();
-			o.set(n.key, u);
-			for (let [t, n] of Array.from(u.entries()).reverse()) e.includes(t) || (await p(n.instance), u.delete(t), c.splice(c.indexOf(n.instance), 1));
-			let d;
+			let d = o.get(n.key) ?? /* @__PURE__ */ new Map();
+			o.set(n.key, d);
+			for (let [e, t] of Array.from(d.entries()).reverse()) u.includes(e) || (await p(t.instance), d.delete(e), c.splice(c.indexOf(t.instance), 1));
+			let m;
 			try {
-				d = await Gt(n.moduleId, t.registry);
+				m = await Gt(n.moduleId, t.registry);
 			} catch (e) {
 				s.has(n.key) || await f(n, e);
 				continue;
 			}
-			let m = !1, h = !1;
-			for (let a of e) {
+			let h = !1, g = !1;
+			for (let e of u) {
 				if (l) return;
-				let e = JSON.stringify([
+				let a = JSON.stringify([
 					n.moduleId,
 					n.config,
 					n.required
-				]), o = u.get(a);
-				if (o?.config === e) continue;
-				let g = {
+				]), o = d.get(e);
+				if (o?.config === a) continue;
+				let u = {
 					...t.setupContext,
-					target: a,
+					target: e,
 					entryKey: n.key,
 					surface: r,
 					scope: n.targets[0]?.type ?? "form",
@@ -1214,30 +1225,30 @@ async function qt(e, t) {
 				try {
 					if (o) {
 						if (o.instance.update && o.moduleId === n.moduleId && o.required === n.required) {
-							await o.instance.update(g), o.config = e;
+							await o.instance.update(u), o.config = a;
 							continue;
 						}
-						await p(o.instance), u.delete(a), c.splice(c.indexOf(o.instance), 1);
+						await p(o.instance), d.delete(e), c.splice(c.indexOf(o.instance), 1);
 					}
-					if (d.surfaces && !d.surfaces.includes(r)) throw Error(`Module ${n.moduleId} does not support ${r}.`);
-					if (d.kind !== n.kind) throw Error(`Module ${n.moduleId} is registered as ${d.kind}, not ${n.kind}.`);
-					if (!d.match({
+					if (m.surfaces && !m.surfaces.includes(r)) throw Error(`Module ${n.moduleId} does not support ${r}.`);
+					if (m.kind !== n.kind) throw Error(`Module ${n.moduleId} is registered as ${m.kind}, not ${n.kind}.`);
+					if (!m.match({
 						...t.matchContext,
-						target: a,
-						scope: g.scope,
+						target: e,
+						scope: u.scope,
 						manifestItem: n
 					})) throw Error(`Module ${n.moduleId} does not support the rendered target.`);
-					let s = await d.setup(g);
+					let s = await m.setup(u);
 					if (!s) throw Error(`Module ${n.moduleId} did not initialize.`);
-					if (l || !i.contains(a) && a !== i) {
+					if (l || !i.contains(e) && e !== i) {
 						await p(s);
 						continue;
 					}
-					s.key = n.key, s.moduleId = n.moduleId, s.kind = n.kind, s.target = a;
-					let m = s.assertReady;
+					s.key = n.key, s.moduleId = n.moduleId, s.kind = n.kind, s.target = e;
+					let h = s.assertReady;
 					s.assertReady = () => {
 						try {
-							m?.();
+							h?.();
 						} catch (e) {
 							if (f(n, e), n.required) throw Error("A required form feature could not start.");
 						}
@@ -1255,21 +1266,21 @@ async function qt(e, t) {
 						} catch (e) {
 							await f(n, e);
 						}
-					}, u.set(a, {
+					}, d.set(e, {
 						instance: s,
-						config: e,
+						config: a,
 						moduleId: n.moduleId,
 						required: n.required
-					}), c.push(s), h = !0, await t.setupContext.emit("formie:browser:module:mount", {
+					}), c.push(s), g = !0, await t.setupContext.emit("formie:browser:module:mount", {
 						key: n.key,
 						moduleId: n.moduleId,
-						target: a
+						target: e
 					});
 				} catch (e) {
-					m = !0, s.has(n.key) || await f(n, e);
+					h = !0, s.has(n.key) || await f(n, e);
 				}
 			}
-			!m && (h || e.length === 0) && s.delete(n.key);
+			!h && (g || u.length === 0) && s.delete(n.key);
 		}
 		m() ? h() : a?.querySelector("[data-formie-module-error]")?.remove();
 	}, v = new MutationObserver(() => {
@@ -1277,22 +1288,7 @@ async function qt(e, t) {
 			d = !1, l || await _();
 		}), u.catch((e) => console.error("[formie] Module reconciliation failed", e)));
 	});
-	return c.push({
-		assertReady: () => {
-			if (m()) throw Error("A required form feature could not start. Reload the page or contact the site administrator.");
-		},
-		destroy: async () => {
-			l = !0, v.disconnect(), a?.removeEventListener("submit", g, !0), await u;
-			for (let e of Array.from(o.values()).reverse()) for (let { instance: t } of Array.from(e.values()).reverse()) await p(t);
-			o.clear(), c.splice(1);
-		},
-		beforeSubmit: (e) => {
-			m() && e.abort("A required form feature could not start. Reload the page or contact the site administrator.");
-		}
-	}), c.updateManifest = async (t) => {
-		if (n(t), t.surface !== r) throw Error("A mounted browser module runtime cannot change surfaces.");
-		e = t, u = u.then(_), await u;
-	}, a?.addEventListener("submit", g, !0), await _(), v.observe(i, {
+	return a?.addEventListener("submit", g, !0), await _(), v.observe(i, {
 		childList: !0,
 		subtree: !0,
 		attributes: !0,
@@ -1305,7 +1301,26 @@ async function qt(e, t) {
 			"data-formie-page-id",
 			"data-formie-action"
 		]
-	}), c;
+	}), {
+		get instances() {
+			return c;
+		},
+		get failures() {
+			return [...s.values()];
+		},
+		assertReady: () => {
+			if (m()) throw Error("A required form feature could not start. Reload the page or contact the site administrator.");
+		},
+		destroy: async () => {
+			l = !0, v.disconnect(), a?.removeEventListener("submit", g, !0), await u;
+			for (let e of Array.from(o.values()).reverse()) for (let { instance: t } of Array.from(e.values()).reverse()) await p(t);
+			o.clear(), c.splice(0), s.clear();
+		},
+		updateManifest: async (t) => {
+			if (n(t), t.surface !== r) throw Error("A mounted browser module runtime cannot change surfaces.");
+			e = t, u = u.then(_), await u;
+		}
+	};
 }
 //#endregion
 //#region src/js/utils/form-started-at.ts
@@ -2130,7 +2145,7 @@ function tr() {
 			}
 			y(e, "formie:unmount:before", { id: r.instance.id }), r.unbinds.forEach((e) => {
 				e();
-			}), r.unbinds = [], r.validator?.destroy(), r.validator = null, await r.modules[0]?.destroy(), r.modules = [], r.bus.clear(), t.delete(e), y(e, "formie:unmount:after", { id: r.instance.id }), K.log("Unmount complete.", {
+			}), r.unbinds = [], r.validator?.destroy(), r.validator = null, await r.modules.destroy(), r.bus.clear(), t.delete(e), y(e, "formie:unmount:after", { id: r.instance.id }), K.log("Unmount complete.", {
 				id: r.instance.id,
 				target: Q(e)
 			});
@@ -2231,7 +2246,7 @@ function tr() {
 		});
 		K.log("Module setup complete.", {
 			target: Q(a),
-			moduleInstances: D.length
+			moduleInstances: D.instances.length
 		});
 		let O = {
 			id: p,
@@ -2313,7 +2328,13 @@ function tr() {
 					captcha: "challenge",
 					payment: "payment"
 				}, r = t;
-				for (let t of D) if (t.beforeSubmit && n[t.kind ?? "core"] === e) {
+				if (e === "prepare") try {
+					D.assertReady();
+				} catch {
+					r.abort("A required form feature could not start. Reload the page or contact the site administrator.");
+					return;
+				}
+				for (let t of D.instances) if (t.beforeSubmit && n[t.kind ?? "core"] === e) {
 					let { form: e, action: n, formData: i, abort: a, isAborted: o, abortReason: s } = r;
 					await t.beforeSubmit({
 						form: e,
@@ -2340,7 +2361,7 @@ function tr() {
 				action: t.action ?? "submit",
 				formData: new FormData(b)
 			};
-			for (let e of D) await e.afterSubmit?.(n, t);
+			for (let e of D.instances) await e.afterSubmit?.(n, t);
 		}), ae = d.on("formie:submit:final:before", async (e) => {
 			y(a, "formie:submit:final:before", e);
 		}), oe = d.on("formie:submit:final:after", async (e) => {
@@ -2506,12 +2527,18 @@ async function rr(e) {
 	});
 	return nr.log("Hydrated module manifest.", {
 		moduleCount: i.entries.length,
-		instanceCount: s.length,
+		instanceCount: s.instances.length,
 		surface: r
 	}), {
+		get instances() {
+			return s.instances;
+		},
+		get failures() {
+			return s.failures;
+		},
 		prepare: async (e) => {
 			if (!n) throw Error("Browser modules require a mounted form element.");
-			s.forEach((e) => e.assertReady?.());
+			s.assertReady(), s.instances.forEach((e) => e.assertReady?.());
 			let t, r = {
 				form: n,
 				action: e === "back" || e === "save" ? e : "submit",
@@ -2528,7 +2555,7 @@ async function rr(e) {
 				captcha: 1,
 				payment: 2
 			};
-			for (let e of [...s].sort((e, t) => i[e.kind ?? "core"] - i[t.kind ?? "core"])) if (await e.beforeSubmit?.(r), t) throw Error(t);
+			for (let e of [...s.instances].sort((e, t) => i[e.kind ?? "core"] - i[t.kind ?? "core"])) if (await e.beforeSubmit?.(r), t) throw Error(t);
 			return Object.fromEntries(Array.from(n.querySelectorAll("input[type=\"hidden\"][name]")).map((e) => [e.name, e.value]));
 		},
 		result: async (e) => {
@@ -2539,16 +2566,18 @@ async function rr(e) {
 				formData: new FormData(n)
 			};
 			await o.emit("formie:submit:result", e);
-			for (let n of s) await n.afterSubmit?.(t, e);
+			for (let n of s.instances) await n.afterSubmit?.(t, e);
 			n.dispatchEvent(new CustomEvent("formie:submit:result", {
 				detail: e,
 				bubbles: !0
 			}));
 		},
 		update: (e) => s.updateManifest(e),
-		assertReady: () => s.forEach((e) => e.assertReady?.()),
+		assertReady: () => {
+			s.assertReady(), s.instances.forEach((e) => e.assertReady?.());
+		},
 		destroy: async () => {
-			await s[0]?.destroy(), o.clear();
+			await s.destroy(), o.clear();
 		},
 		on: (e, t) => o.on(e, t),
 		emit: async (e, t) => {
@@ -2736,6 +2765,12 @@ async function hr(t, n, r = zt) {
 	});
 	return {
 		...s,
+		get instances() {
+			return s.instances;
+		},
+		get failures() {
+			return s.failures;
+		},
 		destroy: async () => {
 			c(), o(), await s.destroy();
 		}

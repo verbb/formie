@@ -62,7 +62,7 @@ export function evaluateClientCondition(condition: ClientFieldDefinition['condit
         }
         if ((value == null || value === '' || (Array.isArray(value) && !value.length)) && rule.source?.defaultValue) value = rule.source.defaultValue;
         const kind = source.field.client?.valueType?.kind ?? source.field.runtime?.valueType?.kind;
-        const type: ConditionValueType = rule.valueType ?? (kind === 'number' ? 'number' : kind === 'boolean' ? 'boolean' : Array.isArray(value) ? 'collection' : 'text');
+        const type: ConditionValueType = rule.valueType ?? (kind === 'boolean' ? 'boolean' : Array.isArray(value) ? 'collection' : 'text');
         return evaluateCondition(rule.operator, value, rule.value, type);
     }));
 }

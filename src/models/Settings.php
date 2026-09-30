@@ -101,6 +101,7 @@ class Settings extends Model
     public bool $useQueueForNotifications = true;
     public bool $useQueueForIntegrations = true;
     public ?int $queuePriority = null;
+    public int $deliveryEvidenceRetentionDays = 30;
     public ?string $redirectUri = null;
     public ?string $paymentWebhookProxyUrl = null;
     public array $integrationApiErrorHandling = [];
@@ -458,6 +459,7 @@ class Settings extends Model
         $rules[] = [['reportExportSingleUseDownload'], 'boolean'];
         $rules[] = [['maxEmailAttachmentSizeMb'], 'number', 'integerOnly' => true, 'min' => 0];
         $rules[] = [['submissionStateRetentionDays'], 'number', 'integerOnly' => true, 'min' => 1];
+        $rules[] = [['deliveryEvidenceRetentionDays'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['saveResumeTokenTtlDays'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['anonymousClientBootstrapRateLimit', 'anonymousClientRefreshRateLimit'], 'number', 'integerOnly' => true, 'min' => 0];
         $rules[] = [['anonymousClientRateWindowSeconds'], 'number', 'integerOnly' => true, 'min' => 1];

@@ -61,11 +61,6 @@ class Signature extends Field implements PreviewableFieldInterface
     // Public Methods
     // =========================================================================
 
-    public function valueType(): FieldValueType
-    {
-        return FieldValueType::string();
-    }
-
     public function fieldKind(): string
     {
         return self::KIND_SIGNATURE;
@@ -218,6 +213,11 @@ class Signature extends Field implements PreviewableFieldInterface
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineValueType(): FieldValueType
+    {
+        return FieldValueType::string();
+    }
 
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {

@@ -3,6 +3,7 @@ namespace verbb\formie\base;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
+use verbb\formie\compatibility\payments\LegacyPaymentCredentials;
 use verbb\formie\compatibility\payments\LegacyPaymentWebhooks;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubscriptionCancellationMode;
@@ -12,6 +13,7 @@ use verbb\formie\events\PaymentIntegrationProcessEvent;
 use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldReferenceHelper;
+use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\PaymentAmountHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
@@ -73,6 +75,7 @@ abstract class Payment extends Integration
     // =========================================================================
 
     use LegacyPaymentWebhooks;
+    use LegacyPaymentCredentials;
 
 
     // Static Methods
@@ -187,7 +190,7 @@ abstract class Payment extends Integration
                 !$isSubscription,
                 $isSubscription ? 'subscriptionSetup' : 'payment',
             );
-            if ($payment->status === PaymentModel::STATUS_SUCCESS || ($payment->scope['providerOutcome']['status'] ?? null) === PaymentModel::STATUS_SUCCESS) {
+            if ($payment->status === PaymentModel::STATUS_SUCCEEDED || ($payment->scope['providerOutcome']['status'] ?? null) === PaymentModel::STATUS_SUCCEEDED) {
                 return PaymentDecision::succeeded($this->handle, $payment->reference);
             }
             if (!($payment->scope['initial'] ?? false)) {
@@ -204,11 +207,11 @@ abstract class Payment extends Integration
             $decision = $this->executePayment($submission);
             $payment = $payments->getPaymentById($payment->id);
             $payment->status = match ($decision->status) {
-                PaymentDecision::STATUS_SUCCEEDED => PaymentModel::STATUS_SUCCESS,
+                PaymentDecision::STATUS_SUCCEEDED => PaymentModel::STATUS_SUCCEEDED,
                 PaymentDecision::STATUS_FAILED => PaymentModel::STATUS_FAILED,
                 PaymentDecision::STATUS_CANCELLED => PaymentModel::STATUS_CANCELLED,
                 PaymentDecision::STATUS_UNKNOWN => PaymentModel::STATUS_UNKNOWN,
-                PaymentDecision::STATUS_ACTION_REQUIRED => $payment->status,
+                PaymentDecision::STATUS_ACTION_REQUIRED => PaymentModel::STATUS_REQUIRES_ACTION,
                 default => $payment->status,
             };
             $payments->savePayment($payment);
@@ -220,7 +223,7 @@ abstract class Payment extends Integration
                 $payment->message = 'Provider outcome requires reconciliation.';
                 Formie::$plugin->getPayments()->savePayment($payment);
             }
-            return $payment ? PaymentDecision::unknown('Unable to confirm the payment outcome.', $this->handle, $payment->reference)
+            return $payment || $e instanceof \verbb\formie\errors\DeliveryOutcomeUnknownException ? PaymentDecision::unknown('Unable to confirm the payment outcome.', $this->handle, $payment?->reference)
                 : PaymentDecision::failed('Unable to establish the payment amount and ownership.', $this->handle);
         } finally {
             $db->enableSlaves = $enableSlaves;
@@ -416,7 +419,6 @@ abstract class Payment extends Integration
             $immediate ? SubscriptionStatus::CANCELLED : $subscription->getState(),
             'legacyCancellation',
             reference: $subscription->reference,
-            providerUpdatedAt: time(),
             cancelAt: $immediate ? null : $subscription->currentPeriodEndsAt ?? $subscription->nextPaymentAt,
             cancelledAt: $immediate ? new DateTimeImmutable() : null,
             endedAt: $immediate ? new DateTimeImmutable() : null,
@@ -534,6 +536,37 @@ abstract class Payment extends Integration
     public function getWebhookAccountFingerprint(string $environment, ?string $accountIdentity = null): string
     {
         return hash('sha256', static::class . '|' . $this->uid . '|' . $environment . '|' . ($accountIdentity ?? 'default'));
+    }
+
+    /** Account identity is independent of credential rotation whenever the provider exposes it. */
+    public function getPaymentAccountFingerprint(): string
+    {
+        $identity = $this->getPaymentAccountIdentity();
+        if ($identity === null) {
+            // Providers without an account identifier remain conservatively bound to credentials.
+            $credentials = [];
+            $attributes = array_unique([...IntegrationSecrets::sensitiveAttributes($this), ...$this->getLegacyPaymentCredentialAttributes()]);
+            foreach ($attributes as $attribute) {
+                if (str_contains(strtolower($attribute), 'webhook')) {
+                    continue;
+                }
+                $value = $this->$attribute;
+                $credentials[$attribute] = is_string($value) ? App::parseEnv($value) : $value;
+            }
+            ksort($credentials);
+            $identity = 'credentials:' . hash_hmac('sha256', Json::encode($credentials), Formie::$plugin->getSettings()->getSecurityKey());
+        }
+        return $this->getWebhookAccountFingerprint($this->getPaymentEnvironment(), $identity);
+    }
+
+    public function getPaymentEnvironment(): string
+    {
+        return property_exists($this, 'useSandbox') && App::parseBooleanEnv($this->useSandbox) ? 'test' : 'live';
+    }
+
+    protected function getPaymentAccountIdentity(): ?string
+    {
+        return null;
     }
 
     public function getReconciliationInterval(PaymentModel $payment): int

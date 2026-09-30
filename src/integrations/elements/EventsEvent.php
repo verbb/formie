@@ -174,7 +174,7 @@ class EventsEvent extends Element
         return $attributes;
     }
 
-    public function sendPayload(Submission $submission): IntegrationResult
+    protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
         if (!$this->eventTypeId) {

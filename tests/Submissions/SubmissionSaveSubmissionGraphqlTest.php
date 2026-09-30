@@ -59,6 +59,34 @@ it('creates a submission through saveSubmission with a fields map', function ():
         ->and($finalCount)->toBe($initialCount + 1);
 });
 
+it('keeps administrative GraphQL saves outside visitor workflow and dispatch while validating content', function(): void {
+    $form = formie()->form()->settings(['requireUser' => true, 'scheduleForm' => true, 'scheduleFormStart' => new DateTime('+1 year')])->emailField('email', ['required' => true])->create();
+    $plugin = \verbb\formie\Formie::$plugin;
+    $workflow = $plugin->getSubmissionWorkflow();
+    $user = Craft::$app->getUser()->getIdentity();
+    $plugin->set('submissionWorkflow', new class extends \verbb\formie\services\SubmissionWorkflow {
+        public function process(\verbb\formie\models\SubmissionCommand $command): \verbb\formie\models\SubmissionOutcome {
+            throw new RuntimeException('Administrative saves must not execute workflow stages.');
+        }
+    });
+    Craft::$app->getUser()->setIdentity(null);
+    try {
+        withSaveSubmissionGraphqlScope(['formieSubmissions.' . $form->uid . ':create'], function() use ($form) {
+            $resolver = Craft::createObject(SubmissionResolver::class);
+            $info = $this->createMock(ResolveInfo::class);
+            $info->fieldDefinition = \GraphQL\Type\Definition\FieldDefinition::create(SubmissionMutation::createGenericSaveMutation());
+            expect(fn() => $resolver->saveSubmissionByHandle(null, ['formHandle' => $form->handle, 'fields' => ['email' => 'invalid']], null, $info))->toThrow(Error::class);
+            $saved = $resolver->saveSubmissionByHandle(null, ['formHandle' => $form->handle, 'fields' => ['email' => 'admin@example.test']], null, $info);
+            expect($saved->isIncomplete)->toBeFalse()->and($saved->getFieldValue('email'))->toBe('admin@example.test');
+            expect((new \craft\db\Query())->from('{{%formie_submission_dispatches}}')->where(['submissionId' => $saved->id])->exists())->toBeFalse();
+            expect((new \craft\db\Query())->from('{{%formie_delivery_attempts}}')->where(['submissionId' => $saved->id])->exists())->toBeFalse();
+        });
+    } finally {
+        $plugin->set('submissionWorkflow', $workflow);
+        Craft::$app->getUser()->setIdentity($user);
+    }
+});
+
 it('updates an existing submission through saveSubmission', function (): void {
     $form = formie()
         ->form([
@@ -285,13 +313,15 @@ it('clears optional nested fields through GraphQL submission updates', function 
         'items' => [['description' => 'Before']],
     ])->save();
 
-    $mutation = $generic ? SubmissionMutation::createGenericSaveMutation() : SubmissionMutation::createSaveMutation($form);
-    $resolveInfo = $this->createMock(ResolveInfo::class);
-    $resolveInfo->fieldDefinition = \GraphQL\Type\Definition\FieldDefinition::create($mutation);
     $arguments = $generic
         ? ['id' => $submission->id, 'expectedVersion' => $submission->stateVersion, 'formHandle' => $form->handle, 'fields' => [$fieldHandle => null]]
         : ['id' => $submission->id, 'expectedVersion' => $submission->stateVersion, $fieldHandle => null];
 
-    $saved = withSaveSubmissionGraphqlScope(['formieSubmissions.all:save'], fn() => ($mutation['resolve'])(null, $arguments, null, $resolveInfo));
+    $saved = withSaveSubmissionGraphqlScope(['formieSubmissions.all:save'], function() use ($generic, $form, $arguments) {
+        $mutation = $generic ? SubmissionMutation::createGenericSaveMutation() : SubmissionMutation::createSaveMutation($form);
+        $resolveInfo = $this->createMock(ResolveInfo::class);
+        $resolveInfo->fieldDefinition = \GraphQL\Type\Definition\FieldDefinition::create($mutation);
+        return ($mutation['resolve'])(null, $arguments, null, $resolveInfo);
+    });
     expect($form->getFieldByHandle($fieldHandle)->isValueEmpty($saved->getFieldValue($fieldHandle), $saved))->toBeTrue();
 })->with(['person', 'details', 'items'])->with([true, false]);

@@ -52,7 +52,7 @@ trait FieldRuntimeCompatibility
         $class = $this->defineValueClass();
 
         if ($class || !in_array($type, ['mixed', 'string'], true)) {
-            \Craft::$app->getDeprecator()->log(static::class . '::valueType', 'Declare valueType() for the post-normalization runtime value. Legacy phpType()/defineValueClass() is deprecated.');
+            \Craft::$app->getDeprecator()->log(static::class . '::valueType', 'Declare defineValueType() for the post-normalization runtime value. Legacy phpType()/defineValueClass() is deprecated.');
         }
 
         if ($class && class_exists($class)) {

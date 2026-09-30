@@ -25,7 +25,7 @@ class PaymentsController extends Controller
 
     public function options($actionID): array
     {
-        return array_merge(parent::options($actionID), $actionID === 'resolve' ? ['confirmed'] : []);
+        return array_merge(parent::options($actionID), in_array($actionID, ['resolve', 'verify-account'], true) ? ['confirmed'] : []);
     }
 
     /**
@@ -34,7 +34,7 @@ class PaymentsController extends Controller
     public function actionIndex(int $afterId = 0, int $limit = 100): int
     {
         $ids = (new Query())->select('id')->from(Table::FORMIE_PAYMENTS)
-            ->where(['status' => [Payment::STATUS_UNKNOWN, Payment::STATUS_PENDING, Payment::STATUS_PROCESSING, Payment::STATUS_REDIRECT]])
+            ->where(['status' => [Payment::STATUS_UNKNOWN, Payment::STATUS_PENDING, Payment::STATUS_PROCESSING, Payment::STATUS_REQUIRES_ACTION]])
             ->andWhere(['>', 'id', $afterId])->orderBy(['id' => SORT_ASC])->limit(max(1, min(500, $limit)))->column();
 
         foreach ($ids as $id) {
@@ -134,6 +134,17 @@ class PaymentsController extends Controller
     {
         PaymentRecovery::resume($paymentId);
         $this->stdout("Submission processing resumed.\n");
+        return ExitCode::OK;
+    }
+
+    public function actionVerifyAccount(string $kind, int $id, string $note): int
+    {
+        $this->stdout("Verify the saved provider reference in the original merchant account, and confirm that the current integration connects to that same account. This does not confirm payment or send any provider request.\n");
+        if (!$this->confirmed && (!$this->interactive || !$this->confirm('Have you independently verified the original account?', false))) {
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+        PaymentRecovery::verifyLegacyAccount($kind, $id, $note);
+        $this->stdout("Historical account binding recorded. No payment or subscription state was changed.\n");
         return ExitCode::OK;
     }
 }

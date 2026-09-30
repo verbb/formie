@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
@@ -63,6 +64,7 @@ class Bpoint extends Payment
     // =========================================================================
 
     public ?string $username = null;
+    #[Sensitive]
     public ?string $password = null;
     public ?string $merchantNumber = null;
 
@@ -93,6 +95,11 @@ class Bpoint extends Payment
             'username' => $this->username,
             'password' => $this->password,
         ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
+    }
+
+    protected function getPaymentAccountIdentity(): ?string
+    {
+        return App::parseEnv($this->merchantNumber) ?: null;
     }
 
     public function fetchConnection(): bool
@@ -368,7 +375,7 @@ class Bpoint extends Payment
             throw new Exception('BPOINT has not confirmed the payment.');
         }
 
-        $payment->status = PaymentModel::STATUS_SUCCESS;
+        $payment->status = PaymentModel::STATUS_SUCCEEDED;
         $payment->reference = $txnResponse['ReceiptNumber'] ?? $txnResponse['TxnNumber'] ?? '';
         $payment->response = $response;
 

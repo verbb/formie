@@ -26,7 +26,7 @@ import { applySubmitResultUi, renderFieldErrors, renderFormErrors } from '#core/
 import { applyPageState, clearSubmitLoading, setSubmitLoading } from '#core/submit-result-state';
 import { EventBus } from '#events/event-bus';
 import { ModuleRegistry } from '#modules/registry';
-import { loadModulesFromManifest } from '#modules/loader';
+import { loadModulesFromManifest, type BrowserModuleRuntime } from '#modules/loader';
 import { registerThemeClassMap } from '#theme/theme-classes';
 import { runSubmitPipeline } from '#submit/pipeline';
 import { clearSubmissionOnUnload, requestGraphqlRender, requestRefreshTokens, requestRender, requestSetPage } from '#transport/forms-api';
@@ -43,7 +43,7 @@ type InternalInstanceState = {
     bus: EventBus;
     form: HTMLFormElement | null;
     validator: FormieValidator | null;
-    modules: BrowserModuleInstance[];
+    modules: BrowserModuleRuntime;
     unbinds: Array<() => void>;
     instance: FormieFormInstance;
 };
@@ -938,8 +938,7 @@ export function createFormieClient(): FormieClient {
         state.validator?.destroy();
         state.validator = null;
 
-        await state.modules[0]?.destroy();
-        state.modules = [];
+        await state.modules.destroy();
 
         state.bus.clear();
         instances.delete(target);
@@ -1121,7 +1120,7 @@ export function createFormieClient(): FormieClient {
         });
         debug.log('Module setup complete.', {
             target: getTargetDebugLabel(target),
-            moduleInstances: modules.length,
+            moduleInstances: modules.instances.length,
         });
 
         const instance: FormieFormInstance = {
@@ -1243,7 +1242,11 @@ export function createFormieClient(): FormieClient {
                 const hookStage = { core: 'prepare', field: 'prepare', address: 'prepare', captcha: 'challenge', payment: 'payment' } as const;
                 const stagePayload = payload as Parameters<NonNullable<BrowserModuleInstance['beforeSubmit']>>[0] & { stage: string };
 
-                for (const moduleInstance of modules) {
+                if (stageName === 'prepare') {
+                    try { modules.assertReady(); }
+                    catch { stagePayload.abort('A required form feature could not start. Reload the page or contact the site administrator.'); return; }
+                }
+                for (const moduleInstance of modules.instances) {
                     if (moduleInstance.beforeSubmit && hookStage[moduleInstance.kind ?? 'core'] === stageName) {
                         const { form, action, formData, abort, isAborted, abortReason } = stagePayload;
                         await moduleInstance.beforeSubmit({ form, action, formData, abort, isAborted, abortReason });
@@ -1273,7 +1276,7 @@ export function createFormieClient(): FormieClient {
                 action: result.action ?? 'submit' as const,
                 formData: new FormData(form),
             };
-            for (const moduleInstance of modules) await moduleInstance.afterSubmit?.(context, result);
+            for (const moduleInstance of modules.instances) await moduleInstance.afterSubmit?.(context, result);
         });
 
         const submitFinalBeforeUnbind = bus.on('formie:submit:final:before', async(payload) => {

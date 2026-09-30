@@ -7,72 +7,87 @@ use verbb\formie\Formie;
 use verbb\formie\helpers\Table;
 
 it('captures forms and fields service baselines for synthetic volume', function (string $profileLabel, int $formCount, int $fieldCount): void {
-    seedFormsFieldsPerfForms($formCount, $fieldCount);
+    $unrelated = formie()->form(['title' => 'Outside measured profile'])->singleLineTextField('outsideProfile')->create();
+    $fixtures = seedFormsFieldsPerfForms($formCount, $fieldCount);
+    $fixtureIds = array_map(static fn($form): int => (int)$form->id, $fixtures);
+    $restrict = static function($event) use ($fixtureIds): void {
+        $event->sender->andWhere(['elements.id' => $fixtureIds]);
+    };
+    \yii\base\Event::on(\verbb\formie\elements\db\FormQuery::class, \craft\elements\db\ElementQuery::EVENT_BEFORE_PREPARE, $restrict);
+    try {
 
-    $formsService = Formie::$plugin->getForms();
-    $fieldsService = Formie::$plugin->getFields();
+        $formsService = Formie::$plugin->getForms();
+        $fieldsService = Formie::$plugin->getFields();
 
-    $forms = measureFormsFieldsPerfPhase(function () use ($formsService): array {
-        return $formsService->getAllForms();
-    })['result'];
+        $forms = measureFormsFieldsPerfPhase(function () use ($formsService): array {
+            return $formsService->getAllForms();
+        })['result'];
 
-    $formIds = array_values(array_map(static fn($form): int => (int)$form->id, $forms));
-    $layoutIds = array_values(array_filter(array_map(static fn($form): int => (int)$form->layoutId, $forms)));
+        $formIds = array_values(array_map(static fn($form): int => (int)$form->id, $forms));
+        $layoutIds = array_values(array_filter(array_map(static fn($form): int => (int)$form->layoutId, $forms)));
 
-    $formsPlain = measureFormsFieldsPerfPhase(function () use ($formsService): array {
-        return $formsService->getAllForms();
-    });
-    $formsWithLayouts = measureFormsFieldsPerfPhase(function () use ($formsService): array {
-        return $formsService->getAllFormsWithLayouts();
-    });
-    $layoutsByIds = measureFormsFieldsPerfPhase(function () use ($fieldsService, $layoutIds): array {
-        return $fieldsService->getLayoutsByIds($layoutIds);
-    });
-    $fieldsByForms = measureFormsFieldsPerfPhase(function () use ($fieldsService, $formIds): array {
-        return $fieldsService->getAllFieldsForForms($formIds);
-    });
+        $formsPlain = measureFormsFieldsPerfPhase(function () use ($formsService): array {
+            return $formsService->getAllForms();
+        });
+        $formsWithLayouts = measureFormsFieldsPerfPhase(function () use ($formsService): array {
+            return $formsService->getAllFormsWithLayouts();
+        });
+        $layoutsByIds = measureFormsFieldsPerfPhase(function () use ($fieldsService, $layoutIds): array {
+            return $fieldsService->getLayoutsByIds($layoutIds);
+        });
+        $fieldsByForms = measureFormsFieldsPerfPhase(function () use ($fieldsService, $formIds): array {
+            return $fieldsService->getAllFieldsForForms($formIds);
+        });
 
-    $representativeConfig = getRepresentativeFormFieldConfig();
-    $createFieldRepeated = measureFormsFieldsPerfPhase(function () use ($fieldsService, $representativeConfig): array {
-        $created = [];
+        $representativeConfig = getRepresentativeFormFieldConfig($layoutIds);
+        $createFieldRepeated = measureFormsFieldsPerfPhase(function () use ($fieldsService, $representativeConfig): array {
+            $created = [];
 
-        for ($i = 0; $i < 200; $i++) {
-            $config = $representativeConfig;
-            $config['handle'] = $representativeConfig['handle'] . $i;
-            $created[] = $fieldsService->createField($config);
-        }
+            for ($i = 0; $i < 200; $i++) {
+                $config = $representativeConfig;
+                $config['handle'] = $representativeConfig['handle'] . $i;
+                $created[] = $fieldsService->createField($config);
+            }
 
-        return $created;
-    });
+            return $created;
+        });
 
-    emitFormsFieldsPerfBreakdown($profileLabel, $formCount, $fieldCount, [
-        'formsPlainMs' => $formsPlain['elapsedMs'],
-        'formsWithLayoutsMs' => $formsWithLayouts['elapsedMs'],
-        'layoutsByIdsMs' => $layoutsByIds['elapsedMs'],
-        'fieldsByFormsMs' => $fieldsByForms['elapsedMs'],
-        'createFieldRepeatedMs' => $createFieldRepeated['elapsedMs'],
-        'counts' => [
-            'forms' => count($formsPlain['result']),
-            'formsWithLayouts' => count($formsWithLayouts['result']),
-            'layouts' => count($layoutsByIds['result']),
-            'fieldGroups' => count($fieldsByForms['result']),
-            'createdFields' => count($createFieldRepeated['result']),
-        ],
-    ]);
+        emitFormsFieldsPerfBreakdown($profileLabel, $formCount, $fieldCount, [
+            'formsPlainMs' => $formsPlain['elapsedMs'],
+            'formsWithLayoutsMs' => $formsWithLayouts['elapsedMs'],
+            'layoutsByIdsMs' => $layoutsByIds['elapsedMs'],
+            'fieldsByFormsMs' => $fieldsByForms['elapsedMs'],
+            'createFieldRepeatedMs' => $createFieldRepeated['elapsedMs'],
+            'counts' => [
+                'forms' => count($formsPlain['result']),
+                'formsWithLayouts' => count($formsWithLayouts['result']),
+                'layouts' => count($layoutsByIds['result']),
+                'fieldGroups' => count($fieldsByForms['result']),
+                'createdFields' => count($createFieldRepeated['result']),
+            ],
+        ]);
 
-    expect(count($formsPlain['result']))->toBeGreaterThanOrEqual($formCount)
-        ->and(count($formsWithLayouts['result']))->toBeGreaterThanOrEqual($formCount)
-        ->and(count($layoutsByIds['result']))->toBeGreaterThanOrEqual($formCount)
-        ->and(count($fieldsByForms['result']))->toBeGreaterThanOrEqual($formCount)
-        ->and(count($createFieldRepeated['result']))->toBe(200);
+        expect(count($formsPlain['result']))->toBe($formCount)
+            ->and(count($formsWithLayouts['result']))->toBe($formCount)
+            ->and(count($layoutsByIds['result']))->toBe($formCount)
+            ->and(count($fieldsByForms['result']))->toBe($formCount)
+            ->and(count($createFieldRepeated['result']))->toBe(200);
+        foreach ($fieldsByForms['result'] as $profileFields) expect($profileFields)->toHaveCount($fieldCount);
+        expect($formIds)->not->toContain((int)$unrelated->id);
+    } finally {
+        \yii\base\Event::off(\verbb\formie\elements\db\FormQuery::class, \craft\elements\db\ElementQuery::EVENT_BEFORE_PREPARE, $restrict);
+        resetFormsFieldsPerfCaches();
+    }
+    expect(\verbb\formie\elements\Form::find()->id($unrelated->id)->exists())->toBeTrue();
 })->with([
     'small' => ['small', 5, 10],
     'medium' => ['medium', 15, 15],
     'large' => ['large', 30, 15],
 ])->group('perf');
 
-function seedFormsFieldsPerfForms(int $formCount, int $fieldCount): void
+function seedFormsFieldsPerfForms(int $formCount, int $fieldCount): array
 {
+    $forms = [];
     for ($formIndex = 1; $formIndex <= $formCount; $formIndex++) {
         $builder = formie()->form([
             'title' => "Forms Fields Perf {$formIndex}",
@@ -82,8 +97,9 @@ function seedFormsFieldsPerfForms(int $formCount, int $fieldCount): void
             $builder->singleLineTextField("field{$formIndex}_{$fieldIndex}");
         }
 
-        $builder->create();
+        $forms[] = $builder->create();
     }
+    return $forms;
 }
 
 function measureFormsFieldsPerfPhase(callable $callback): array
@@ -111,7 +127,7 @@ function resetFormsFieldsPerfCaches(): void
     $resetFieldCaches->invoke($fieldsService);
 }
 
-function getRepresentativeFormFieldConfig(): array
+function getRepresentativeFormFieldConfig(array $layoutIds): array
 {
     $usageQuery = (new Query())
         ->select([
@@ -143,6 +159,7 @@ function getRepresentativeFormFieldConfig(): array
         ->from(['ff' => Table::FORMIE_FORM_FIELDS])
         ->innerJoin(['f' => Table::FORMIE_FIELDS], '[[f.id]] = [[ff.fieldId]]')
         ->leftJoin(['usage' => $usageQuery], '[[usage.fieldId]] = [[ff.fieldId]]')
+        ->where(['ff.layoutId' => $layoutIds])
         ->orderBy(['ff.id' => SORT_ASC])
         ->one();
 
