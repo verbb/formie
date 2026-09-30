@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed a moderate-severity authorization vulnerability. (GHSA-q6g7-g2wg-h43h)
+
 ## 2.2.36 - 2026-09-30
 
 ### Fixed
