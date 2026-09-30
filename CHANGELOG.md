@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix `{formName}` being blocked by the Twig sandbox in File Upload field subpaths. ([#2978](https://github.com/verbb/formie/issues/2978))
+
 ## 2.2.37 - 2026-09-30
 
 ### Fixed

@@ -248,6 +248,12 @@ trait PluginTrait
                 return true;
             }
 
+            // `formName` is a documented Formie variable backed by a safe
+            // virtual Submission property rather than a native attribute.
+            if ($property === 'formName') {
+                return true;
+            }
+
             if (strncmp($property, 'field:', 6) === 0) {
                 return $submission->getFieldByHandle(substr($property, 6)) !== null;
             }
