@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.2.36 - 2026-09-30
 
 ### Fixed
 - Fixed a moderate-severity information disclosure vulnerability. (GHSA-rh4q-6j5r-8jqf)
