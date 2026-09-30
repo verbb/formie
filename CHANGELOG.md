@@ -10,6 +10,7 @@
 - Protect Signature image URLs for new submissions with field-scoped access tokens while preserving URLs in previously sent email notifications.
 
 ### Fixed
+- Fixed a moderate-severity authorization vulnerability. (GHSA-q6g7-g2wg-h43h)
 - Fix field variables in notification email address settings resolving to rendered HTML when custom email templates are used. ([#2974](https://github.com/verbb/formie/issues/2974))
 - Fix OAuth integrations failing to connect after authorisation. ([#2973](https://github.com/verbb/formie/issues/2973))
 - Fixed OAuth callback transaction validation.

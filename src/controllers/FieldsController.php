@@ -13,6 +13,8 @@ use Craft;
 use craft\helpers\Db;
 use craft\web\Controller;
 
+use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 use Throwable;
@@ -44,15 +46,28 @@ class FieldsController extends Controller
 
     public function actionGetElementSelectOptions(): Response
     {
+        $this->requireCpRequest();
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+        $this->_requireFormAuthoringPermission();
+
         $elements = [];
 
-        try {
-            $fieldData = $this->request->getParam('field');
-            $type = $fieldData['type'];
-            $fieldSettings = $fieldData['settings'];
+        $fieldData = $this->request->getParam('field');
 
-            // Create a new fieldtype, and populate the settings
-            $field = new $type();
+        if (!is_array($fieldData) || !is_string($fieldData['type'] ?? null)) {
+            throw new BadRequestHttpException('Invalid element field data.');
+        }
+
+        $fieldSettings = $fieldData['settings'] ?? [];
+
+        if (!is_array($fieldSettings)) {
+            throw new BadRequestHttpException('Invalid element field settings.');
+        }
+
+        $field = $this->_getRegisteredElementField($fieldData['type']);
+
+        try {
             $field->sources = $fieldSettings['sources'] ?? [];
             $field->source = $fieldSettings['source'] ?? null;
 
@@ -172,6 +187,40 @@ class FieldsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _getRegisteredElementField(string $type): object
+    {
+        foreach (Formie::$plugin->getFields()->getRegisteredFields(false) as $field) {
+            if (get_class($field) === $type && is_callable([$field, 'getPreviewElements'])) {
+                return clone $field;
+            }
+        }
+
+        throw new BadRequestHttpException('Invalid element field type.');
+    }
+
+    private function _requireFormAuthoringPermission(): void
+    {
+        $user = Craft::$app->getUser();
+
+        if ($user->checkPermission('formie-createForms') || $user->checkPermission('formie-manageForms') || $user->checkPermission('formie-accessSettings')) {
+            return;
+        }
+
+        $identity = $user->getIdentity();
+
+        if ($identity && $identity->id) {
+            $permissions = Craft::$app->getUserPermissions()->getPermissionsByUserId($identity->id);
+
+            foreach ($permissions as $permission) {
+                if (str_starts_with(strtolower($permission), 'formie-manageforms:')) {
+                    return;
+                }
+            }
+        }
+
+        throw new ForbiddenHttpException('User is not permitted to perform this action.');
+    }
 
     private function _findFieldById(array $fields, int $fieldId): ?FieldInterface
     {
