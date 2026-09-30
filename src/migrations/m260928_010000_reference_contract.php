@@ -20,6 +20,8 @@ class m260928_010000_reference_contract extends Migration
 
     public function safeUp(): bool
     {
+        $this->_normalizeFormSettingsForHydration();
+
         foreach (Form::find()->status(null)->each() as $form) {
             $this->_migrateFormSettings($form);
             $this->_migrateFieldSettings($form);
@@ -42,6 +44,31 @@ class m260928_010000_reference_contract extends Migration
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Remove beta-only settings that the following form query can no longer hydrate.
+     *
+     * The dedicated integration-policy migration processes every persisted copy later.
+     * This preflight only unblocks canonical form loading for this migration.
+     */
+    private function _normalizeFormSettingsForHydration(): void
+    {
+        if (!$this->db->tableExists(Table::FORMIE_FORMS) || !$this->db->columnExists(Table::FORMIE_FORMS, 'settings')) {
+            return;
+        }
+
+        foreach ((new Query())->select(['id', 'settings'])->from(Table::FORMIE_FORMS)->each() as $row) {
+            $data = Json::decodeIfJson($row['settings'] ?? null);
+            if (!is_array($data)) {
+                continue;
+            }
+
+            $normalized = m260929_000000_form_integration_policy::normalize($data);
+            if ($normalized !== $data) {
+                $this->update(Table::FORMIE_FORMS, ['settings' => Json::encode($normalized)], ['id' => $row['id']], [], false);
+            }
+        }
+    }
 
     private function _migrateFormSettings(Form $form): void
     {

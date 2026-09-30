@@ -38,6 +38,7 @@ it('migrates beta nested tokens across persisted reference-bearing settings idem
         'GROUP_CHILD' => $legacyToken,
         'NAME_PART' => $canonicalSelectorToken,
     ]]];
+    $formSettings['integrationPolicies'] = ['rerun' => ['fixture' => ['policy' => 'onEdit']]];
     Craft::$app->getDb()->createCommand()->update(Table::FORMIE_FORMS, ['settings' => Json::encode($formSettings)], ['id' => $form->id])->execute();
 
     $fieldSettings = Json::decode((new Query())->select('settings')->from(Table::FORMIE_FORM_FIELDS)->where(['id' => $hidden->id])->scalar());
@@ -87,6 +88,8 @@ it('migrates beta nested tokens across persisted reference-bearing settings idem
 
         expect($storedFormSettings['integrations']['fixture']['fieldMapping']['GROUP_CHILD'])->toBe($canonicalToken)
             ->and($storedFormSettings['integrations']['fixture']['fieldMapping']['NAME_PART'])->toBe($canonicalSelectorToken)
+            ->and($storedFormSettings['integrations']['fixture']['trigger'])->toBe(['policy' => 'onEdit'])
+            ->and($storedFormSettings)->not->toHaveKey('integrationPolicies')
             ->and($storedFieldSettings['defaultValue'])->toBe('Tracked: ' . $canonicalToken)
             ->and($storedDefinitionSettings['defaultValue'])->toBe('Defined: ' . $canonicalToken)
             ->and($storedSubject)->toBe('Hello ' . $canonicalToken)

@@ -60,6 +60,7 @@
 - Return immutable Phone values that retain entered numbers and countries, and a consistent Name value in both input modes; replace beta Array/value-class APIs and browser validation names.
 
 ### Fixed
+- Allow upgrades with beta integration-policy settings to complete the reference migration before forms are loaded.
 - Preserve configured rich completion and error messages across partial settings updates, and render sanitized rich completion messages in client-rendered adapters.
 - Preserve uploaded files when an incomplete multi-page submission navigates back after the asset has been bound and promoted, without weakening upload ownership checks.
 - Separate shared field definition identity from form-field instances, use explicit definition/instance records and settings APIs, isolate the Formie 3 `syncId` alias, require registered fields to extend the base Field class and formalize parent-field traversal.
