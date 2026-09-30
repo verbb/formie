@@ -94,6 +94,12 @@ trait PluginTrait
                 return true;
             }
 
+            // These scalar metadata values are backed by safe virtual
+            // Submission properties rather than native attributes.
+            if (in_array($property, ['formName', 'formHandle', 'siteHandle'], true)) {
+                return true;
+            }
+
             if (strncmp($property, 'field:', 6) === 0) {
                 return $submission->getFieldByHandle(substr($property, 6)) !== null;
             }
