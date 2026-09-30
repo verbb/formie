@@ -33,20 +33,29 @@ it('treats allowed countries as picker choices rather than server rejection rule
     ];
 
     foreach ($examples as $label => [$input, $canonicalNumber, $countryCode]) {
-        $saved = formie()->submission($form)->with(['phone' => $input])->save();
+        $saved = new Submission();
+        $saved->setForm($form);
+        $saved->setScenario(\craft\base\Element::SCENARIO_LIVE);
+        $saved->title = 'Phone picker validation: ' . $label;
+        $saved->setFieldValueFromRequest('phone', $input);
+        $didSave = Craft::$app->getElements()->saveElement($saved);
         $value = $saved->getFieldValue('phone');
 
-        expect($saved->id, $label)->not->toBeNull()
+        expect($didSave, $label)->toBeTrue()
+            ->and($saved->id, $label)->not->toBeNull()
             ->and($value->number, $label)->toBe($input['number'])
             ->and($value->country, $label)->toBe($input['country'])
             ->and($value->canonicalNumber, $label)->toBe($canonicalNumber)
             ->and($value->countryCode, $label)->toBe($countryCode);
     }
 
-    $optionalEmpty = formie()->submission($form)->with([
-        'phone' => ['number' => '', 'country' => 'AU'],
-    ])->save();
-    expect($optionalEmpty->id)->not->toBeNull();
+    $optionalEmpty = new Submission();
+    $optionalEmpty->setForm($form);
+    $optionalEmpty->setScenario(\craft\base\Element::SCENARIO_LIVE);
+    $optionalEmpty->title = 'Optional empty phone picker validation';
+    $optionalEmpty->setFieldValueFromRequest('phone', ['number' => '', 'country' => 'AU']);
+    expect(Craft::$app->getElements()->saveElement($optionalEmpty))->toBeTrue()
+        ->and($optionalEmpty->id)->not->toBeNull();
 
     $requiredForm = formie()
         ->form(['title' => 'Required phone picker contract ' . uniqid()])
@@ -179,6 +188,15 @@ it('accepts an unlisted country through administrative GraphQL persistence', fun
 });
 
 it('projects explicit and event-modified picker choices to both browser manifests', function (): void {
+    $unrestricted = formie()
+        ->form(['title' => 'Unrestricted phone picker ' . uniqid()])
+        ->phoneField('phone')
+        ->create();
+
+    foreach ([BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED] as $surface) {
+        expect(f01PhoneCountryModuleConfig($unrestricted, $surface)['countryAllowed'])->toBe([]);
+    }
+
     $explicit = formie()
         ->form(['title' => 'Explicit phone picker ' . uniqid()])
         ->phoneField('phone', [

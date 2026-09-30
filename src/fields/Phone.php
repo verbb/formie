@@ -529,8 +529,19 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     private function _getAllowedCountryCodes(): array
     {
         $codes = [];
+        $countries = $this->countryAllowed;
 
-        foreach ($this->getAllowedCountries() as $country) {
+        if (!$countries) {
+            $countryService = Formie::$plugin->getCountries();
+
+            if (!$countryService->hasEventHandlers($countryService::EVENT_MODIFY_PHONE_COUNTRIES)) {
+                return [];
+            }
+
+            $countries = $this->getAllowedCountries();
+        }
+
+        foreach ($countries as $country) {
             $code = is_array($country) ? ($country['value'] ?? null) : $country;
 
             if (!is_scalar($code)) {
