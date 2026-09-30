@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.44 - 2026-09-30
 
 ### Added
 - Add Salesforce Client Credentials authentication with configurable My Domain support. ([#2961](https://github.com/verbb/formie/issues/2961))
