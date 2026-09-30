@@ -65,7 +65,6 @@
     "dev": "npm run dev:cp & npm run dev:frontend & wait",
     "dev:docs": "npm run docs:dev -w @verbb/formie-frontend-docs",
     "dev:plugin-docs": "npm run docs:dev --prefix docs",
-    "docs:screenshots": "npm --prefix docs run docs:screenshots --",
     "dev:cp": "npm run dev -w formie-cp",
     "dev:frontend": "npm run dev -w formie-frontend",
     "build": "npm run build:cp && npm run build:frontend",
