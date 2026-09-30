@@ -17,14 +17,31 @@ type IntlWithSegmenter = typeof Intl & {
 };
 
 const graphemeSegmenter = (() => {
+    if (typeof Intl === 'undefined') {
+        return null;
+    }
+
     const segmenterCtor = (Intl as IntlWithSegmenter).Segmenter;
 
-    return segmenterCtor
-        ? new segmenterCtor(undefined, { granularity: 'grapheme' })
-        : null;
+    if (!segmenterCtor) {
+        return null;
+    }
+
+    try {
+        return new segmenterCtor(undefined, { granularity: 'grapheme' });
+    } catch {
+        return null;
+    }
 })();
 
-const WORD_PATTERN = /[\p{L}\p{N}\p{M}]+(?:['’._-][\p{L}\p{N}\p{M}]+)*/gu;
+const WORD_PATTERN = /[^\s\u0085]+/gu;
+const GRAPHEME_PATTERN = (() => {
+    try {
+        return new RegExp('(?:\\p{Regional_Indicator}{2}|\\p{Extended_Pictographic}[\\p{Emoji_Modifier}\\p{M}\\u{E0020}-\\u{E007F}]*(?:\\u{200D}\\p{Extended_Pictographic}[\\p{Emoji_Modifier}\\p{M}\\u{E0020}-\\u{E007F}]*)*|[\\s\\S])\\p{M}*', 'gu');
+    } catch {
+        return null;
+    }
+})();
 
 function stripTags(value: string): string {
     if (typeof DOMParser !== 'undefined') {
@@ -32,7 +49,7 @@ function stripTags(value: string): string {
         return doc.body.textContent || '';
     }
 
-    return value.replace(/<[^>]*>/g, ' ');
+    return value.replace(/<[^>]*>/g, '');
 }
 
 function getPlainText(value: string): string {
@@ -40,7 +57,7 @@ function getPlainText(value: string): string {
 }
 
 export function normalizeText(value: string): string {
-    return getPlainText(value).replace(/[\s\t\n\r]+/g, ' ').trim();
+    return getPlainText(value).replace(/[\s\u0085]+/g, ' ').trim();
 }
 
 export function countGraphemes(value: string): number {
@@ -48,7 +65,7 @@ export function countGraphemes(value: string): number {
         return Array.from(graphemeSegmenter.segment(value)).length;
     }
 
-    return Array.from(value).length;
+    return GRAPHEME_PATTERN ? value.match(GRAPHEME_PATTERN)?.length || 0 : Array.from(value).length;
 }
 
 export function getWordCount(value: string): number {
@@ -64,4 +81,3 @@ export function getTextLimitMetrics(value: string): TextLimitMetrics {
         wordCount: getWordCount(normalizedText),
     };
 }
-

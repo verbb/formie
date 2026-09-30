@@ -11,7 +11,8 @@ use HTMLPurifier_Config;
 
 class StringHelper extends CraftStringHelper
 {
-    private const WORD_PATTERN = '/[\p{L}\p{N}\p{M}]+(?:[\'’._-][\p{L}\p{N}\p{M}]+)*/u';
+    private const GRAPHEME_PATTERN = '/\X/u';
+    private const WORD_PATTERN = '/[^\p{Z}\x{0009}-\x{000D}\x{0085}\x{FEFF}]+/u';
     private const ALLOWED_URL_PROTOCOLS = ['http', 'https', 'mailto', 'tel', 'ftp'];
 
     // Static Methods
@@ -146,48 +147,43 @@ class StringHelper extends CraftStringHelper
 
     public static function getCharacterCount(string $value): int
     {
-        $text = self::getPlainText($value);
+        $text = self::_getPlainText($value);
 
         // Browser `maxlength` counts newline characters as one character, so
         // normalize transport-specific CRLF pairs before comparing lengths.
         $text = str_replace(["\r\n", "\r"], "\n", $text);
 
-        // Prefer grapheme clusters so emoji, ZWJ sequences, accents, and other
-        // composed glyphs count the same way users visually perceive them.
-        if (function_exists('grapheme_strlen')) {
-            return grapheme_strlen($text);
-        }
+        $count = preg_match_all(self::GRAPHEME_PATTERN, $text);
 
-        return mb_strlen($text, 'UTF-8');
+        return $count === false ? mb_strlen($text, 'UTF-8') : $count;
     }
 
     public static function getWordCount(string $value): int
     {
-        $text = self::normalizeText($value);
+        $text = self::_getPlainText($value);
+        $count = preg_match_all(self::WORD_PATTERN, $text);
 
-        if ($text === '') {
-            return 0;
-        }
-
-        preg_match_all(self::WORD_PATTERN, $text, $matches);
-
-        return count($matches[0] ?? []);
+        return $count === false ? strlen($text) : $count;
     }
 
     public static function normalizeText(string $value): string
     {
-        $text = self::getPlainText($value);
+        $text = self::_getPlainText($value);
+        $normalized = preg_replace('/[\p{Z}\x{0009}-\x{000D}\x{0085}\x{FEFF}]+/u', ' ', $text);
 
-        // Normalize whitespace (replace tabs/newlines/multiple spaces with single space)
-        return trim(preg_replace('/[\s\t\n\r]+/', ' ', $text));
+        return trim($normalized ?? $text);
     }
 
-    private static function getPlainText(string $value): string
+    private static function _getPlainText(string $value): string
     {
         // Strip all HTML tags (if any)
         $text = strip_tags($value);
 
         // Decode HTML entities (e.g. &#x1F389; → 🎉)
-        return html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        // Browser form values are UTF-8; replace malformed transport bytes before
+        // applying Unicode-aware patterns so invalid input cannot bypass a limit.
+        return mb_scrub($text, 'UTF-8');
     }
 }
