@@ -4,6 +4,7 @@ namespace verbb\formie\jobs;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\IntegrationResponse;
 
 use Craft;
@@ -40,6 +41,22 @@ class TriggerIntegration extends BaseJob
         $this->setProgress($queue, 0.5);
 
         if ($submission) {
+            // Cached provider metadata is deliberately omitted from job data because it can be very large.
+            // Reload the current copy while retaining the form settings and request context captured at enqueue time.
+            $cache = $this->integration->id ? (new Query())
+                ->select(['cache'])
+                ->from(Table::FORMIE_INTEGRATIONS)
+                ->where(['id' => $this->integration->id])
+                ->scalar() : null;
+
+            if (is_string($cache) && $cache !== '') {
+                $cache = Json::decode($cache);
+            }
+
+            if (is_array($cache)) {
+                $this->integration->cache = $cache;
+            }
+
             // Pass a reference of this class to the integration, to assist with debugging.
             // Set with a private variable, so it doesn't appear in the queue job data which would be mayhem.
             $this->integration->setQueueJob($this);

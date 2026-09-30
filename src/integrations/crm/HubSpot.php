@@ -80,6 +80,7 @@ class HubSpot extends Crm
 
     private ?Client $_formsClient = null;
     private ?Client $_uploadClient = null;
+    private bool $_useSelectedFormSettings = false;
 
 
     // Public Methods
@@ -364,6 +365,9 @@ class HubSpot extends Crm
 
     public function sendPayload(Submission $submission): bool
     {
+        // HubSpot accounts can have hundreds of forms, but a submission only needs the selected one.
+        $this->_useSelectedFormSettings = true;
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
@@ -617,9 +621,10 @@ class HubSpot extends Crm
                 }
 
                 // Setup Hubspot's context, if we're mapping it, or if it's automatically saved in context
-                $hutk = $formValues['trackingID'] ?? $this->context['hubspotutk'] ?? '';
+                $hutk = $this->_getValidTrackingId($formValues['trackingID'] ?? null)
+                    ?? $this->_getValidTrackingId($this->context['hubspotutk'] ?? null);
 
-                if ($hutk) {
+                if ($hutk !== null) {
                     $formPayload['context']['hutk'] = $hutk;
                 }
 
@@ -652,6 +657,8 @@ class HubSpot extends Crm
             Integration::apiError($this, $e);
 
             return false;
+        } finally {
+            $this->_useSelectedFormSettings = false;
         }
 
         return true;
@@ -733,23 +740,37 @@ class HubSpot extends Crm
         $rules[] = [['accessToken'], 'required'];
         $rules[] = [['formId'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
 
-        $contact = $this->getFormSettingValue('contact');
-        $deal = $this->getFormSettingValue('deal');
-
         // Validate the following when saving form settings
         $rules[] = [
-            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+            ['contactFieldMapping'], function(string $attribute) {
+                $this->validateFieldMapping($attribute, $this->getFormSettingValue('contact'));
+            }, 'when' => function($model) {
                 return $model->enabled && $model->mapToContact;
             }, 'on' => [Integration::SCENARIO_FORM],
         ];
 
         $rules[] = [
-            ['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
+            ['dealFieldMapping'], function(string $attribute) {
+                $this->validateFieldMapping($attribute, $this->getFormSettingValue('deal'));
+            }, 'when' => function($model) {
                 return $model->enabled && $model->mapToDeal;
             }, 'on' => [Integration::SCENARIO_FORM],
         ];
 
         return $rules;
+    }
+
+    protected function prepareCachedFormSettings(array $settings): array
+    {
+        if (!$this->_useSelectedFormSettings || !$this->formId || !isset($settings['forms']) || !is_array($settings['forms'])) {
+            return $settings;
+        }
+
+        $settings['forms'] = array_values(array_filter($settings['forms'], function($form) {
+            return is_array($form) && ($form['id'] ?? null) === $this->formId;
+        }));
+
+        return $settings;
     }
 
     protected function defineClient(): Client
@@ -779,6 +800,15 @@ class HubSpot extends Crm
         ];
 
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    private function _getValidTrackingId(mixed $value): ?string
+    {
+        if (!is_string($value) || !preg_match('/\A[a-f0-9]{32}\z/i', $value)) {
+            return null;
+        }
+
+        return $value;
     }
 
     private function _getHubSpotFileValue(Asset $asset): ?string

@@ -277,7 +277,7 @@ class Submissions extends Component
             if ($settings->useQueueForIntegrations) {
                 Queue::push(new TriggerIntegration([
                     'submissionId' => $submission->id,
-                    'integration' => $integration,
+                    'integration' => $integration->getQueueJobCopy(),
                 ]), $settings->queuePriority);
             } else {
                 $this->sendIntegrationPayload($integration, $submission);

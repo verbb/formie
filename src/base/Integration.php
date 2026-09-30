@@ -391,6 +391,27 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->_client = $value;
     }
 
+    /**
+     * Returns a lightweight copy for queue serialization.
+     *
+     * Provider metadata can be several megabytes and is durable in the integration record, so jobs
+     * should reload it when they run rather than duplicating it in every queue row.
+     */
+    public function getQueueJobCopy(): static
+    {
+        $integration = clone $this;
+        $integration->_client = null;
+        $integration->_formSettingsCache = null;
+        $integration->_formSettings = null;
+
+        // Event-injected integrations without a durable record have nowhere to reload metadata from.
+        if ($integration->id) {
+            $integration->cache = [];
+        }
+
+        return $integration;
+    }
+
     public function getClient()
     {
         if ($this->_client) {
@@ -458,6 +479,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         // If using the cache (the default), don't fetch it automatically. Just save API requests a tad.
         if ($useCache) {
             $settings = $this->getCache('settings') ?: [];
+            $settings = $this->prepareCachedFormSettings($settings);
 
             // Compare the source too, since integrations can replace their public cache directly.
             if ($this->_formSettings === null || $this->_formSettingsCache !== $settings) {
@@ -945,6 +967,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         return $attributes;
+    }
+
+    /**
+     * Allows providers to reduce cached metadata for a specific runtime operation before hydration.
+     */
+    protected function prepareCachedFormSettings(array $settings): array
+    {
+        return $settings;
     }
 
     protected function defineClient(): Client
