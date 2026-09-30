@@ -9,6 +9,9 @@ use craft\helpers\StringHelper as CraftStringHelper;
 
 class StringHelper extends CraftStringHelper
 {
+    private const GRAPHEME_PATTERN = '/\X/u';
+    private const WORD_PATTERN = '/[^\p{Z}\x{0009}-\x{000D}\x{0085}\x{FEFF}]+/u';
+
     // Static Methods
     // =========================================================================
 
@@ -78,21 +81,30 @@ class StringHelper extends CraftStringHelper
 
     public static function getCharacterCount(string $value): int
     {
-        $text = self::normalizeText($value);
+        $text = self::_getPlainText($value);
+        $text = str_replace(["\r\n", "\r"], "\n", $text);
+        $count = preg_match_all(self::GRAPHEME_PATTERN, $text);
 
-        // Trim whitespace and count characters accurately (emoji, accents, etc.)
-        return mb_strlen(trim($text), 'UTF-8');
+        return $count === false ? mb_strlen($text, 'UTF-8') : $count;
     }
 
     public static function getWordCount(string $value): int
     {
-        $text = self::normalizeText($value);
+        $text = self::_getPlainText($value);
+        $count = preg_match_all(self::WORD_PATTERN, $text);
 
-        // Use `toWords` to handle inner punctuation and special characters
-        return count(StringHelper::toWords($text));
+        return $count === false ? strlen($text) : $count;
     }
 
     public static function normalizeText(string $value): string
+    {
+        $text = self::_getPlainText($value);
+        $normalized = preg_replace('/[\p{Z}\x{0009}-\x{000D}\x{0085}\x{FEFF}]+/u', ' ', $text);
+
+        return trim($normalized ?? $text);
+    }
+
+    private static function _getPlainText(string $value): string
     {
         // Strip all HTML tags (if any)
         $text = strip_tags($value);
@@ -100,7 +112,8 @@ class StringHelper extends CraftStringHelper
         // Decode HTML entities (e.g. &#x1F389; → 🎉)
         $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
-        // Normalize whitespace (replace tabs/newlines/multiple spaces with single space)
-        return trim(preg_replace('/[\s\t\n\r]+/', ' ', $text));
+        // Browser form values are UTF-8; replace malformed transport bytes before
+        // applying Unicode-aware patterns so invalid input cannot bypass a limit.
+        return mb_scrub($text, 'UTF-8');
     }
 }

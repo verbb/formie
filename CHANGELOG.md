@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix text word and character limits disagreeing between browser and server validation for Unicode punctuation, emoji, and composed characters. ([#2977](https://github.com/verbb/formie/issues/2977))
+
 ## 3.1.44 - 2026-09-30
 
 ### Added

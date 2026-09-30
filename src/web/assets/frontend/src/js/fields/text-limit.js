@@ -1,5 +1,25 @@
 import { t, eventKey } from '../utils/utils';
 
+const WORD_PATTERN = /[^\s\u0085]+/gu;
+const GRAPHEME_PATTERN = (() => {
+    try {
+        return new RegExp('(?:\\p{Regional_Indicator}{2}|\\p{Extended_Pictographic}[\\p{Emoji_Modifier}\\p{M}\\u{E0020}-\\u{E007F}]*(?:\\u{200D}\\p{Extended_Pictographic}[\\p{Emoji_Modifier}\\p{M}\\u{E0020}-\\u{E007F}]*)*|[\\s\\S])\\p{M}*', 'gu');
+    } catch {
+        return null;
+    }
+})();
+const graphemeSegmenter = (() => {
+    if (typeof Intl === 'undefined' || typeof Intl.Segmenter !== 'function') {
+        return null;
+    }
+
+    try {
+        return new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+    } catch {
+        return null;
+    }
+})();
+
 export class FormieTextLimit {
     constructor(settings = {}) {
         this.$form = settings.$form;
@@ -91,7 +111,7 @@ export class FormieTextLimit {
             }
 
             const value = this.stripTags(input.value);
-            const wordCount = value.split(/\S+/).length - 1;
+            const wordCount = this.getWordCount(value);
             const wordsLeft = limit - wordCount;
 
             if (wordsLeft > 0) {
@@ -114,7 +134,7 @@ export class FormieTextLimit {
             }
 
             const value = this.stripTags(input.value);
-            const wordCount = value.split(/\S+/).length - 1;
+            const wordCount = this.getWordCount(value);
             const wordsLeft = limit - wordCount;
 
             if (wordsLeft < 0) {
@@ -157,7 +177,7 @@ export class FormieTextLimit {
         setTimeout(() => {
             // Strip HTML tags
             const value = this.stripTags(e.target.value);
-            const wordCount = value.split(/\S+/).length - 1;
+            const wordCount = this.getWordCount(value);
             const wordsLeft = this.maxWords - wordCount;
             const extraClasses = ['fui-limit-number'];
             const type = wordsLeft == 1 || wordsLeft == -1 ? 'word' : 'words';
@@ -177,11 +197,15 @@ export class FormieTextLimit {
     }
 
     count(value) {
-        // Convert any multibyte characters to their HTML entity equivalent to match server-side processing
-        const unicodeRegExp = /(?:\p{Extended_Pictographic}[\p{Emoji_Modifier}\p{M}]*(?:\p{Join_Control}\p{Extended_Pictographic}[\p{Emoji_Modifier}\p{M}]*)*|\s|.)\p{M}*/guy;
-        const graphemes = value.match(unicodeRegExp) || [];
+        if (graphemeSegmenter) {
+            return Array.from(graphemeSegmenter.segment(value)).length;
+        }
 
-        return graphemes.length;
+        return GRAPHEME_PATTERN ? value.match(GRAPHEME_PATTERN)?.length || 0 : Array.from(value).length;
+    }
+
+    getWordCount(value) {
+        return value.match(WORD_PATTERN)?.length || 0;
     }
 
     stripTags(string) {
