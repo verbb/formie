@@ -6,7 +6,6 @@ use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
 use verbb\formie\workflow\WorkflowContext;
 
-
 class SendSpamNotificationsTask implements TaskInterface
 {
     // Public Methods
@@ -20,7 +19,7 @@ class SendSpamNotificationsTask implements TaskInterface
             return TaskResult::continue();
         }
 
-        $dispatchState->runOnce(DispatchState::MARKER_SPAM_NOTIFICATIONS, function () use ($context): void {
+        $dispatchState->runOnce(DispatchState::MARKER_SPAM_NOTIFICATIONS, function() use ($context): void {
             $this->_sendSpamNotifications($context);
         });
 

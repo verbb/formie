@@ -22,6 +22,7 @@ final class IntegrationSecrets
     public static function sensitiveAttributes(IntegrationInterface $integration): array
     {
         $attributes = [];
+
         foreach ((new ReflectionObject($integration))->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
             if (!$property->isStatic() && $property->getAttributes(Sensitive::class)) {
                 $attributes[] = $property->getName();
@@ -33,6 +34,7 @@ final class IntegrationSecrets
     public static function protectBindings(array $bindings): array
     {
         $service = Formie::$plugin->getIntegrations();
+
         foreach ($bindings as $handle => &$settings) {
             if (!is_array($settings)) {
                 continue;
@@ -47,6 +49,7 @@ final class IntegrationSecrets
     {
         foreach ($settings as $key => &$value) {
             $sensitive = $connection || in_array($key, $sensitiveAttributes, true) || preg_match('/password|secret|token|authorization|cookie|api.?key|httpAuth|credential|webhook|headers|url$/i', (string)$key);
+
             if (is_array($value)) {
                 $value = self::protect($value, (bool)$sensitive);
             } elseif ($sensitive && is_string($value) && $value !== '' && !str_starts_with($value, self::PREFIX) && !preg_match('/^\$[A-Z][A-Z0-9_]*$/D', $value)) {
@@ -91,6 +94,7 @@ final class IntegrationSecrets
             } elseif (is_string($value) && str_starts_with($value, self::PREFIX)) {
                 $cipher = base64_decode(substr($value, strlen(self::PREFIX)), true);
                 $plain = $cipher === false ? false : Craft::$app->getSecurity()->decryptByKey($cipher, Formie::$plugin->getSettings()->getSecurityKey());
+
                 if ($plain === false) {
                     throw new RuntimeException('Unable to decrypt integration settings. Restore the configured security key.');
                 }

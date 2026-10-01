@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-use verbb\formie\helpers\{SchemaReadiness, Table};
+use verbb\formie\helpers\Table;
 
-it('keeps schema inspection at migration, repair, and bootstrap boundaries', function (): void {
+it('keeps schema inspection at migration and repair boundaries', function (): void {
     $sourceRoot = dirname(__DIR__, 2) . '/src';
     $allowed = [
         $sourceRoot . '/helpers/DbSchema.php',
-        $sourceRoot . '/helpers/SchemaReadiness.php',
         $sourceRoot . '/services/Repair.php',
     ];
     $violations = [];
@@ -40,6 +39,14 @@ it('keeps schema inspection at migration, repair, and bootstrap boundaries', fun
     expect($violations)->toBe([]);
 });
 
+it('does not perform legacy data reconciliation during plugin bootstrap', function (): void {
+    $source = (string)file_get_contents(dirname(__DIR__, 2) . '/src/Formie.php');
+
+    expect($source)->toContain('$this->isInstalled')
+        ->and($source)->toContain('isPluginUpdatePending($this)')
+        ->and($source)->not->toContain('hydrateLegacyCaptchas');
+});
+
 it('installs every column required by normal runtime paths', function (): void {
     $required = [
         Table::FORMIE_FORMS => ['createdById', 'updatedById', 'groupId', 'formStatusId', 'sourceSiteId'],
@@ -65,6 +72,4 @@ it('installs every column required by normal runtime paths', function (): void {
             expect($db->columnExists($table, $column))->toBeTrue();
         }
     }
-
-    expect(SchemaReadiness::canHydrateRuntimeSettings())->toBeTrue();
 });

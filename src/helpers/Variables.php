@@ -134,11 +134,13 @@ class Variables
                 if (isset($item['value'])) {
                     $variables[] = $item;
                 }
+
                 if (isset($item['children'])) {
                     $walk($item['children']);
                 }
             }
         };
+
         foreach ((new ReferenceCatalogue())->pickerGroups() as $items) {
             $walk($items);
         }
@@ -168,7 +170,7 @@ class Variables
     {
         // Applies a registered v1 transformer to a resolved variable value.
         // Public so that reference parsing and other callers can transform values consistently.
-           
+
         switch ($transformerId) {
             case 'round':
             case 'floor':
@@ -582,6 +584,7 @@ class Variables
         ];
 
         $registry = self::_sanitizeTransformerRegistry($transformerRegistry);
+
         foreach ((new ReferenceCatalogue())->pickerTransforms() as $type => $transforms) {
             $registry[$type] = [...($registry[$type] ?? []), ...$transforms];
         }
@@ -609,6 +612,7 @@ class Variables
 
             foreach ($definitions as $definition) {
                 $normalized = self::_sanitizeTransformerDefinition($definition);
+
                 if ($normalized === null) {
                     continue;
                 }

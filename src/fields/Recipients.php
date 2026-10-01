@@ -209,7 +209,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
                 $valid = $option !== null;
                 $label = $selection['label'] ?? ($option['label'] ?? null);
                 $value = new RecipientsFieldValue($this->displayType, $selectedValue, $label, $valid, [], $options);
-            } else if ($this->displayType === 'checkboxes') {
+            } elseif ($this->displayType === 'checkboxes') {
                 $selectedOptions = [];
 
                 foreach ($selectedRecipients as $selection) {
@@ -221,7 +221,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
 
                 $value = new RecipientsFieldValue($this->displayType, null, null, true, $selectedOptions, $options);
             }
-        } else if ($value !== null) {
+        } elseif ($value !== null) {
             // Ensure we're always dealing with real values. Fake values are used on front-end render.
             // Fake values will exist here if validation for the element fails.
             $value = $this->_resolveRecipientInput($value);
@@ -237,6 +237,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         if ($value === null) {
             return null;
         }
+
         if ($this->displayType === 'hidden') {
             return RecipientTokenHelper::encodeHidden($value->rawValue());
         }
@@ -244,11 +245,13 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         $selections = $this->displayType === 'checkboxes'
             ? array_map(static fn($option) => ['value' => $option->value, 'label' => $option->label], $value->selectedOptions())
             : [['value' => $value->rawValue(), 'label' => $value->label()]];
+
         foreach ($selections as $selection) {
             if ($selection['value'] === null || $selection['value'] === '') {
                 continue;
             }
             $token = $selection['value'];
+
             foreach ($this->_getResolvedRecipientOptionRows() as $option) {
                 if ($option['value'] === $selection['value'] && ($selection['label'] === null || $option['label'] === $selection['label'])) {
                     $token = RecipientTokenHelper::encodeOption($option);
@@ -487,14 +490,17 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         if (is_array($value)) {
             return array_map(fn($item) => $this->_resolveRecipientInput($item), $value);
         }
+
         if (!is_string($value)) {
             return $value;
         }
+
         foreach ($this->_getResolvedRecipientOptionRows() as $option) {
             if (hash_equals(RecipientTokenHelper::encodeOption($option), $value)) {
                 return ['id' => $option['id'], 'label' => $option['label'], 'value' => $option['value']];
             }
         }
+
         if ($this->displayType === 'hidden' && hash_equals(RecipientTokenHelper::encodeHidden($this->defaultValue), $value)) {
             return $this->defaultValue;
         }
@@ -504,6 +510,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
     public function getRealValue($value)
     {
         $resolved = $this->_resolveRecipientInput($value);
+
         if (is_array($resolved) && array_key_exists('value', $resolved)) {
             return $resolved['value'];
         }
@@ -775,6 +782,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         // CP field partials expect plain scalars/arrays: Craft's `select` and `text` macros cast `value` to string;
         // `checkboxGroup` expects an iterable list of selected option values (not a field value object).
         $templateValue = $value;
+
         if ($value instanceof RecipientsFieldValue) {
             $templateValue = match ($this->displayType) {
                 'checkboxes' => $value->values(),
@@ -847,11 +855,11 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
     {
         if ($this->displayType === 'checkboxes') {
             $values = $faker->randomElement($this->options)['value'] ?? '';
-            
+
             return [$values];
-        } else if ($this->displayType === 'dropdown' || $this->displayType === 'radio') {
+        } elseif ($this->displayType === 'dropdown' || $this->displayType === 'radio') {
             return $faker->randomElement($this->options)['value'] ?? '';
-        } else if ($this->displayType === 'hidden') {
+        } elseif ($this->displayType === 'hidden') {
             return $faker->email;
         }
     }

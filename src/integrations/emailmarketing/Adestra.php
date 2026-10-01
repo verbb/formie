@@ -30,7 +30,7 @@ class Adestra extends EmailMarketing
     // Properties
     // =========================================================================
 
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     public ?string $coreTableId = null;
@@ -89,6 +89,7 @@ class Adestra extends EmailMarketing
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
             $contactData = [];
@@ -139,7 +140,7 @@ class Adestra extends EmailMarketing
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

@@ -291,7 +291,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
                         // Handle conditions by parsing the rules and applying to query
                         $sourceCondition = $conditionsService->createCondition($elementSource['condition']);
                         $sourceCondition->modifyQuery($query);
-                    } else if (str_contains($sourceKey, 'type:')) {
+                    } elseif (str_contains($sourceKey, 'type:')) {
                         // Special-case for entries, maybe redactor?
                         $entryTypeUid = str_replace('type:', '', $sourceKey);
                         $entryType = EntryTypeRecord::find()->where(['uid' => $entryTypeUid])->one();
@@ -315,7 +315,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
 
             // Apply the criteria on our query
             Craft::configure($query, $criteria);
-        } else if ($this->sourceType === 'elements') {
+        } elseif ($this->sourceType === 'elements') {
             $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
         }
 
@@ -723,7 +723,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
     {
         if ($this->_selectionCondition !== null && !$this->_selectionCondition instanceof ConditionInterface) {
             $condition = Craft::$app->getConditions()->createCondition($this->_selectionCondition);
-            
+
             if (!empty($condition->getConditionRules())) {
                 $this->_selectionCondition = $condition;
             } else {

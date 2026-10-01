@@ -7,7 +7,7 @@ class CalculationsHelper
 {
     // Static Methods
     // =========================================================================
-    
+
     public static function getEvaluator(): ExpressionLanguage
     {
         $expressionLanguage = new ExpressionLanguage();

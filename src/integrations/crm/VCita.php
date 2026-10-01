@@ -29,11 +29,11 @@ class VCita extends Crm
     {
         return 'vCita';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     #[FormIntegrationSetting]
@@ -121,6 +121,7 @@ class VCita extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $clientValues = $this->getFieldMappingValues($submission, $this->clientFieldMapping, 'client');
 
@@ -178,7 +179,7 @@ class VCita extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

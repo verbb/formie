@@ -106,6 +106,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
     public function getRows(string|int|null $rowKey = null): array
     {
         $rows = $this->getFieldLayout()->getRows();
+
         if ($rowKey === null) {
             foreach ($rows as $row) {
                 foreach ($row->getFields() as $field) {
@@ -142,6 +143,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
     public function getFields(string|int|null $rowKey = null): array
     {
         $fields = [];
+
         foreach ($this->getRows($rowKey) as $row) {
             array_push($fields, ...$row->getFields());
         }
@@ -367,7 +369,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
         foreach ($fields as $field) {
             $uid = $field->uid;
             $handle = $field->handle;
-            
+
             // Prefix with dot-notation for nested fields
             $fullHandle = $handlePrefix ? $handlePrefix . '.' . $handle : $handle;
             $fullUid = $uidPrefix ? $uidPrefix . '.' . $uid : $uid;
@@ -555,6 +557,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
                     $field->rowId = null;
                     $field->reference ??= \craft\helpers\StringHelper::UUID();
                     $field->uid ??= \craft\helpers\StringHelper::UUID();
+
                     // A new parent needs new field instances, but explicitly linked
                     // child fields must keep their shared definition.
                     if (!$field->getIsSynced()) {

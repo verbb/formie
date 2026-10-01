@@ -33,7 +33,8 @@ class MigrationsController extends SettingsAccessController
         // Backup!
         try {
             Craft::$app->getDb()->backup();
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+        }
 
         $formIds = $this->request->getParam('formIds');
         $forms = SproutFormsForm::find()->id($formIds)->all();
@@ -75,7 +76,8 @@ class MigrationsController extends SettingsAccessController
         // Backup!
         try {
             Craft::$app->getDb()->backup();
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+        }
 
         $formIds = $this->request->getParam('formIds');
 
@@ -123,7 +125,8 @@ class MigrationsController extends SettingsAccessController
         // Backup!
         try {
             Craft::$app->getDb()->backup();
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+        }
 
         $formIds = $this->request->getParam('formIds');
 

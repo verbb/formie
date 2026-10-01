@@ -82,8 +82,6 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 Payment fields often depend on provider JavaScript, Ajax submission, redirects or webhook reconciliation. If you customise rendering, keep the provider’s required front-end assets and submission flow intact.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
-
 - [Payment](https://docs.verbb.io/formie/browser/ui-reference/fields/payment)
 
 ## Related Fields

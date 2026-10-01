@@ -19,5 +19,5 @@ class ModifyFieldEmailValueEvent extends Event
     public ?Submission $submission = null;
     public ?Notification $notification = null;
     public ?FakerFactory $faker = null;
-    
+
 }

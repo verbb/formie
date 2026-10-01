@@ -59,6 +59,7 @@ class ClientFormResolver
         if (!\Craft::$app->getRequest()->getIsPost()) {
             throw new \yii\web\MethodNotAllowedHttpException('POST request required.');
         }
+
         if (\Craft::$app->getRequest()->getHeaders()->get('X-Formie-Profile', 'same-origin-browser') === 'same-origin-browser'
             && !\Craft::$app->getRequest()->validateCsrfToken($payload['session']['tokens']['csrf']['value'] ?? null)) {
             throw new \yii\web\BadRequestHttpException('Unable to verify your data submission.');
@@ -90,6 +91,7 @@ class ClientFormResolver
         if (!\Craft::$app->getRequest()->getIsPost()) {
             throw new \yii\web\MethodNotAllowedHttpException('POST request required.');
         }
+
         if (\Craft::$app->getRequest()->getHeaders()->get('X-Formie-Profile', 'same-origin-browser') === 'same-origin-browser'
             && !\Craft::$app->getRequest()->validateCsrfToken($payload['session']['tokens']['csrf']['value'] ?? null)) {
             throw new \yii\web\BadRequestHttpException('Unable to verify your data submission.');
@@ -125,6 +127,7 @@ class ClientFormResolver
         if (!\Craft::$app->getRequest()->getIsPost()) {
             throw new \yii\web\MethodNotAllowedHttpException('POST request required.');
         }
+
         if (\Craft::$app->getRequest()->getHeaders()->get('X-Formie-Profile', 'same-origin-browser') === 'same-origin-browser'
             && !\Craft::$app->getRequest()->validateCsrfToken($payload['session']['tokens']['csrf']['value'] ?? null)) {
             throw new \yii\web\BadRequestHttpException('Unable to verify your data submission.');

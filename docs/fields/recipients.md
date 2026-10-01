@@ -48,12 +48,9 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 ## Front-End Reference
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
-
 - [Recipients](https://docs.verbb.io/formie/browser/ui-reference/fields/recipients)
 
 ## Related Fields
 
 - Use [Dropdown](/fields/dropdown), [Radio](/fields/radio) or [Checkboxes](/fields/checkboxes) when the selected value is normal submitted content.
 - Use [Email Address](/fields/email-address) when the user should enter their own email address.
-

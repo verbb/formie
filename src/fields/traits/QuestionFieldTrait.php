@@ -129,7 +129,7 @@ trait QuestionFieldTrait
             $this->addError('question', Craft::t('formie', 'Question cannot be blank.'));
         }
     }
-    
+
 
     // Protected Methods
     // =========================================================================

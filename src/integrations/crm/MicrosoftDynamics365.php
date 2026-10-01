@@ -32,7 +32,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
     public const EVENT_MODIFY_REQUIRED_LEVELS = 'modifyRequiredLevels';
     public const EVENT_MODIFY_TARGET_SCHEMAS = 'modifyTargetSchemas';
-    
+
 
 
     // Static Methods
@@ -81,11 +81,11 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
             ],
         ];
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     public ?string $apiDomain = null;
     public bool $impersonateUser = false;
     public string $impersonateHeader = 'CallerObjectId';
@@ -170,7 +170,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
             'offline_access',
             'user.read',
         ];
-        
+
         return $options;
     }
 
@@ -212,6 +212,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');

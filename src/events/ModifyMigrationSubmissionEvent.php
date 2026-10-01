@@ -13,5 +13,5 @@ class ModifyMigrationSubmissionEvent extends CancelableEvent
 
     public ?Form $form = null;
     public ?Submission $submission = null;
-    
+
 }

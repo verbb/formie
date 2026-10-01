@@ -26,6 +26,7 @@ class SchemaHelper
 
             if (isset($node['children'])) {
                 $children = $node['children'];
+
                 if (!is_array($children) || !array_is_list($children)) {
                     $children = [$children];
                 }
@@ -34,6 +35,7 @@ class SchemaHelper
 
             if (isset($node['schema'])) {
                 $schemaChildren = $node['schema'];
+
                 if (!is_array($schemaChildren) || !array_is_list($schemaChildren)) {
                     $schemaChildren = [$schemaChildren];
                 }
@@ -59,7 +61,7 @@ class SchemaHelper
                 }
             }
 
-            $node = self::applyPluginKitReactDefaults($node);
+            $node = self::_applyPluginKitReactDefaults($node);
             $node = SchemaCompatibility::normalizeLegacyNode($node);
 
             return $node;
@@ -72,7 +74,7 @@ class SchemaHelper
     {
         $normalized = self::normalizeSchema($schema);
         $entries = [];
-        self::collectSchemaFields($normalized, '', $entries);
+        self::_collectSchemaFields($normalized, '', $entries);
 
         return [
             'schema' => $normalized,
@@ -266,7 +268,7 @@ class SchemaHelper
             $preview = [$preview];
         }
 
-        return array_values(array_map([self::class, 'normalizePreviewNode'], $preview));
+        return array_values(array_map([self::class, '_normalizePreviewNode'], $preview));
     }
 
     public static function previewNode(string $componentName, array $config = []): array
@@ -1152,9 +1154,11 @@ class SchemaHelper
 
         $tabSchema = array_merge(...array_map(function($tab) {
             $content = $tab['content'] ?? [];
+
             if (!is_array($content)) {
                 return [];
             }
+
             if (array_is_list($content)) {
                 return $content;
             }
@@ -1263,12 +1267,12 @@ class SchemaHelper
     //     ];
     // }
 
-    private static function collectSchemaFields($node, string $prefix, array &$entries): void
+    private static function _collectSchemaFields($node, string $prefix, array &$entries): void
     {
         if (is_array($node)) {
             if (array_is_list($node)) {
                 foreach ($node as $child) {
-                    self::collectSchemaFields($child, $prefix, $entries);
+                    self::_collectSchemaFields($child, $prefix, $entries);
                 }
                 return;
             }
@@ -1276,21 +1280,21 @@ class SchemaHelper
             if (isset($node['$field']) && isset($node['name'])) {
                 $entries[] = [
                     'path' => $prefix . $node['name'],
-                    'field' => self::sanitizeFieldEntryNode($node),
+                    'field' => self::_sanitizeFieldEntryNode($node),
                 ];
             }
 
             if (isset($node['schema'])) {
                 $childPrefix = $node['schemaChildPrefix'] ?? '';
-                self::collectSchemaFields($node['schema'], $prefix . $childPrefix, $entries);
-            } else if (isset($node['children'])) {
+                self::_collectSchemaFields($node['schema'], $prefix . $childPrefix, $entries);
+            } elseif (isset($node['children'])) {
                 $childPrefix = $node['schemaChildPrefix'] ?? '';
-                self::collectSchemaFields($node['children'], $prefix . $childPrefix, $entries);
+                self::_collectSchemaFields($node['children'], $prefix . $childPrefix, $entries);
             }
         }
     }
 
-    private static function applyPluginKitReactDefaults(array $node): array
+    private static function _applyPluginKitReactDefaults(array $node): array
     {
         $fieldType = $node['$field'] ?? null;
 
@@ -1334,6 +1338,7 @@ class SchemaHelper
             $node['$cmp'] = 'Separator';
 
             $attrs = $node['attrs'] ?? null;
+
             if (is_array($attrs)) {
                 if (!isset($node['className']) && isset($attrs['class'])) {
                     $node['className'] = $attrs['class'];
@@ -1345,7 +1350,7 @@ class SchemaHelper
         return $node;
     }
 
-    private static function sanitizeFieldEntryNode(array $node): array
+    private static function _sanitizeFieldEntryNode(array $node): array
     {
         $allowedKeys = [
             '$field',
@@ -1372,7 +1377,7 @@ class SchemaHelper
         return $sanitized;
     }
 
-    private static function normalizePreviewNode(array $node): array
+    private static function _normalizePreviewNode(array $node): array
     {
         if (isset($node['children']) && is_array($node['children'])) {
             $node['children'] = self::normalizePreviewSchema($node['children']);

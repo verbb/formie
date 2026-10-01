@@ -31,7 +31,7 @@ class m231202_000000_auth_module extends Migration
             ->select(['*'])
             ->from(['{{%formie_tokens}}'])
             ->all();
-        
+
         $integrationIdMap = (new Query())
             ->select(['tokenId', 'id'])
             ->from([Table::FORMIE_INTEGRATIONS])

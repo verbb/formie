@@ -84,7 +84,7 @@ class Snaptcha extends Captcha
             ],
         ]);
     }
-    
+
     public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
     {
         return $this->getRefreshJsVariables($form, $page);

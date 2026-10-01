@@ -25,7 +25,6 @@ use Throwable;
 
 class Stencils extends Component
 {
-
     // Static Methods
     // =========================================================================
 

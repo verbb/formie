@@ -66,7 +66,7 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
     {
         return false;
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -114,7 +114,7 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
                     // Check for some cases where it's options data
                     if ($event->rawValue instanceof SingleOptionFieldValue) {
                         $event->value = $event->rawValue->value;
-                    } else if ($event->rawValue instanceof MultiOptionFieldValue) {
+                    } elseif ($event->rawValue instanceof MultiOptionFieldValue) {
                         $event->value = $event->rawValue->values();
                     } else {
                         $event->value = $event->rawValue;
@@ -356,8 +356,10 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
     {
         if ($uid = $this->getDeliveryAttemptUid()) {
             $resource = Formie::$plugin->getDeliveryAttempts()->resource($uid);
+
             if (($resource['elementType'] ?? null) === $elementType && !empty($resource['elementId'])) {
                 $saved = Craft::$app->getElements()->getElementById((int)$resource['elementId'], $elementType);
+
                 if ($saved) {
                     return $saved;
                 }
@@ -413,6 +415,7 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
             'elementId' => (int)$element->id,
             'url' => method_exists($element, 'getUrl') ? (string)$element->getUrl() : null,
         ];
+
         if ($uid = $this->getDeliveryAttemptUid()) {
             Formie::$plugin->getDeliveryAttempts()->recordResource($uid, $this->_deliveryState->outputs);
         }

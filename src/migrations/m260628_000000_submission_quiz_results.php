@@ -9,7 +9,7 @@ class m260628_000000_submission_quiz_results extends Migration
 {
     // Public Methods
     // =========================================================================
-    
+
     public function safeUp(): bool
     {
         if ($this->db->tableExists(Table::FORMIE_SUBMISSION_QUIZ_RESULTS)) {

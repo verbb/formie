@@ -92,7 +92,7 @@ class Gql extends GqlHelper
 
         // ValuesOfCorrectType: `Expected type …; Did you mean …`
         $message = preg_replace('/;\s*Did you mean.*$/s', '.', $message) ?? $message;
-        
+
         // KnownArgumentNames, KnownArgumentNamesOnDirectives, FieldsOnCorrectType (when debug rules run), etc.
         $message = preg_replace('/\s+Did you mean.*$/s', '', $message) ?? $message;
         $message = rtrim($message);

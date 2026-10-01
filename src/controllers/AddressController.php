@@ -43,10 +43,12 @@ class AddressController extends Controller
     {
         $profile = \verbb\formie\helpers\BrowserRequestProfile::enter();
         \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders($this->request, $this->response, ['GET', 'POST', 'OPTIONS']);
+
         if ($this->request->getIsOptions()) {
             $this->response->setStatusCode(204);
             return false;
         }
+
         if (in_array($action->id, ['google-places-geocode', 'subdivisions', 'country-from-ip'], true)) {
             $this->enableCsrfValidation = false;
         }

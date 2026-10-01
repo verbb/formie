@@ -21,6 +21,7 @@ class ResolveTransitionTask implements TaskInterface
         $form = $command->form;
         $submission = $command->submission;
         $current = $form->getCurrentPage();
+
         // Page visibility is optimistic in the browser; an invalid route must never become completion.
         if (in_array($command->navigation, [NavigationIntent::ADVANCE, NavigationIntent::TARGET], true)) {
             foreach ($form->getPages() as $page) {

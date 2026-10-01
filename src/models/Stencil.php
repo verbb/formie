@@ -69,6 +69,7 @@ class Stencil extends Model implements FormInterface
             for ($layer = 0; $layer < 2 && is_string($config['data']); $layer++) {
                 $config['data'] = Json::decodeIfJson($config['data']);
             }
+
             if (is_array($config['data'])) {
                 $config['data'] = new StencilData($config['data']);
             }

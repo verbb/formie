@@ -26,6 +26,7 @@ final class SchemaSnapshot
         $this->_schema = clone $schema;
         $uids = [];
         $all = false;
+
         foreach ($schema->scope as $scope) {
             if (preg_match('/^formie(?:Forms|Submissions)\.([^:]+):[^:]+$/iD', $scope, $match)) {
                 if (strtolower($match[1]) === 'all') {

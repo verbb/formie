@@ -75,6 +75,7 @@ class Payment extends Model
     public function __construct($config = [])
     {
         $this->currency = $config['currency'] ?? null;
+
         if (isset($config['amountMinor'])) {
             unset($config['amount']);
         } else {
@@ -85,7 +86,10 @@ class Payment extends Model
 
     public function getIntegration(): ?IntegrationInterface
     {
-        if (!$this->integrationId) { return null; }
+        if (!$this->integrationId) {
+            return null;
+        }
+
         if (!isset($this->_integration)) {
             $this->_integration = Formie::$plugin->getIntegrations()->getIntegrationById($this->integrationId);
         }
@@ -120,7 +124,10 @@ class Payment extends Model
 
     public function getSubmission(): ?Submission
     {
-        if (!$this->submissionId) { return null; }
+        if (!$this->submissionId) {
+            return null;
+        }
+
         if (!isset($this->_submission)) {
             $this->_submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId);
         }
@@ -130,7 +137,10 @@ class Payment extends Model
 
     public function getField(): ?PaymentField
     {
-        if (!$this->fieldId) { return null; }
+        if (!$this->fieldId) {
+            return null;
+        }
+
         if (!isset($this->_field)) {
             $this->_field = Formie::$plugin->getFields()->getFieldById($this->fieldId);
         }
@@ -140,7 +150,10 @@ class Payment extends Model
 
     public function getSubscription(): ?Subscription
     {
-        if (!$this->subscriptionId) { return null; }
+        if (!$this->subscriptionId) {
+            return null;
+        }
+
         if (!isset($this->_subscription)) {
             $this->_subscription = Formie::$plugin->getSubscriptions()->getSubscriptionById($this->subscriptionId);
         }

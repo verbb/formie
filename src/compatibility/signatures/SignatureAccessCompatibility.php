@@ -15,16 +15,19 @@ trait SignatureAccessCompatibility
     public static function resolveLegacySignedToken(string $accessToken, array $legacyContext): ?array
     {
         $context = self::_normalizeContext($legacyContext, false);
+
         if (!$context) {
             return null;
         }
 
         $submission = self::_findSubmission($context['submissionUid'], null, $context['siteId']);
+
         if (!$submission) {
             return null;
         }
 
         $accessKey = self::_getAccessState($submission)['accessKey'] ?? null;
+
         if (!$accessKey) {
             return null;
         }

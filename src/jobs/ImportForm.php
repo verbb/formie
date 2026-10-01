@@ -1,5 +1,4 @@
 <?php
-
 namespace verbb\formie\jobs;
 
 use craft\queue\BaseJob;
@@ -49,7 +48,7 @@ class ImportForm extends BaseJob
     protected function defaultDescription(): string
     {
         $fileName = basename($this->fileLocation);
-        
+
         return "Import of JSON '$fileName'.";
     }
 }

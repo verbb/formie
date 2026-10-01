@@ -53,7 +53,8 @@ class m240130_000000_permissions extends Migration
         // Lowercase everything
         $toUpdate = array_combine(
             array_map('strtolower', array_keys($toUpdate)),
-            array_map(fn($newPermissions) => array_map('strtolower', $newPermissions), array_values($toUpdate)));
+            array_map(fn($newPermissions) => array_map('strtolower', $newPermissions), array_values($toUpdate))
+        );
 
         // Snapshot both direct and inherited grants before changing names: the old
         // submissions navigation permission now has the meaning "view every form".

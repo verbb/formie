@@ -66,7 +66,7 @@ abstract class Payment extends Integration
 
     public const PAYMENT_TYPE_SINGLE = 'single';
     public const PAYMENT_TYPE_SUBSCRIPTION = 'subscription';
-    
+
     public const VALUE_TYPE_FIXED = 'fixed';
     public const VALUE_TYPE_DYNAMIC = 'dynamic';
 
@@ -171,6 +171,7 @@ abstract class Payment extends Integration
     {
         $lock = 'formie.payment-execution.' . $submission->id . '.' . $this->id . '.' . $this->getField()?->id;
         $mutex = Craft::$app->getMutex();
+
         if (!$mutex->acquire($lock, 10)) {
             return PaymentDecision::pending('Payment is already being processed.', $this->handle);
         }
@@ -178,6 +179,7 @@ abstract class Payment extends Integration
         $db = Craft::$app->getDb();
         $enableSlaves = $db->enableSlaves;
         $db->enableSlaves = false;
+
         try {
             if (Craft::$app->getDb()->getTransaction()?->getIsActive()) {
                 throw new RuntimeException('Commit the submission before provider execution.');
@@ -190,17 +192,21 @@ abstract class Payment extends Integration
                 !$isSubscription,
                 $isSubscription ? 'subscriptionSetup' : 'payment',
             );
+
             if ($payment->status === PaymentModel::STATUS_SUCCEEDED || ($payment->scope['providerOutcome']['status'] ?? null) === PaymentModel::STATUS_SUCCEEDED) {
                 return PaymentDecision::succeeded($this->handle, $payment->reference);
             }
+
             if (!($payment->scope['initial'] ?? false)) {
                 $payment->status = PaymentModel::STATUS_UNKNOWN;
                 $payments->savePayment($payment);
                 return PaymentDecision::unknown('The provider outcome requires reconciliation.', $this->handle, $payment->reference);
             }
+
             if ($payment->status === PaymentModel::STATUS_CANCELLED) {
                 return PaymentDecision::cancelled($payment->message, $this->handle, $payment->reference);
             }
+
             if ($isSubscription) {
                 $payments->prepareSubscription($this, $submission);
             }
@@ -287,7 +293,7 @@ abstract class Payment extends Integration
             'field' => $field,
             'integration' => $this,
         ]);
-        
+
         return Template::raw($notification->renderTemplate("integrations/payments/{$handle}/field", $inputOptions));
     }
 
@@ -468,7 +474,7 @@ abstract class Payment extends Integration
 
         if ($amountType === Payment::VALUE_TYPE_FIXED) {
             $amount = PaymentAmountHelper::parseAmount($amountFixed);
-        } else if ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
+        } elseif ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
             $amount = PaymentAmountHelper::parseAmount(References::resolveValue($amountVariable, ReferenceContext::forSubmission($submission))->requireValue());
         }
 
@@ -483,7 +489,7 @@ abstract class Payment extends Integration
 
         if ($currencyType === Payment::VALUE_TYPE_FIXED) {
             return (string)$currencyFixed;
-        } else if ($currencyType === Payment::VALUE_TYPE_DYNAMIC) {
+        } elseif ($currencyType === Payment::VALUE_TYPE_DYNAMIC) {
             return (string)References::resolveValue($currencyVariable, ReferenceContext::forSubmission($submission))->requireValue();
         }
 
@@ -542,10 +548,12 @@ abstract class Payment extends Integration
     public function getPaymentAccountFingerprint(): string
     {
         $identity = $this->getPaymentAccountIdentity();
+
         if ($identity === null) {
             // Providers without an account identifier remain conservatively bound to credentials.
             $credentials = [];
             $attributes = array_unique([...IntegrationSecrets::sensitiveAttributes($this), ...$this->getLegacyPaymentCredentialAttributes()]);
+
             foreach ($attributes as $attribute) {
                 if (str_contains(strtolower($attribute), 'webhook')) {
                     continue;
@@ -623,12 +631,12 @@ abstract class Payment extends Integration
     {
         return null;
     }
-    
+
     protected function getIntegrationHandle(): string
     {
         return StringHelper::toKebabCase(static::className());
     }
-    
+
     protected function getPaymentFieldValue(Submission $submission): array
     {
         return $this->getPaymentFieldPayload($submission)->all();

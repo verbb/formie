@@ -35,7 +35,7 @@ class Settings extends Model
     public const ERROR_ARIA_LIVE_POLITE = 'polite';
     public const ERROR_ARIA_LIVE_ASSERTIVE = 'assertive';
     public const ERROR_ARIA_LIVE_OFF = 'off';
-    
+
     public const SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC = 'dateCreatedDesc';
     public const SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_ASC = 'dateCreatedAsc';
     public const SUBMISSION_SIDEBAR_FORM_ORDER_TITLE_ASC = 'titleAsc';
@@ -425,10 +425,10 @@ class Settings extends Model
 
     public function getAbsoluteDefaultExportFolder(): ?string
     {
-        $path = Craft::getAlias( $this->defaultExportFolder );
+        $path = Craft::getAlias($this->defaultExportFolder);
         $exportFolder = FileHelper::normalizePath($path);
         FileHelper::createDirectory($exportFolder);
-     
+
         return $exportFolder;
     }
 

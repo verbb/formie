@@ -31,11 +31,11 @@ class Flowlu extends Crm
     {
         return 'Flowlu';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     public ?string $apiDomain = null;
@@ -142,6 +142,7 @@ class Flowlu extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             if ($this->mapToContact) {
                 $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
@@ -187,7 +188,7 @@ class Flowlu extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -237,7 +238,7 @@ class Flowlu extends Crm
         return $schema;
     }
 
-    
+
     // Private Methods
     // =========================================================================
 

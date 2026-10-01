@@ -17,11 +17,19 @@ final readonly class IntegrationRunContext
     public static function forIntegration(Integration $integration, Submission $submission): self
     {
         $execution = $integration->getDeliveryExecutionContext() ?? new IntegrationExecutionContext(
-            (int)$submission->id, (int)$submission->formId, (string)$integration->handle,
-            DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID(), 'synchronous', 'direct',
+            (int)$submission->id,
+            (int)$submission->formId,
+            (string)$integration->handle,
+            DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID(),
+            'synchronous',
+            'direct',
         );
-        return new self($submission, $execution, $integration->getDeliveryAttemptUid(),
-            Formie::$plugin->getIntegrationDispatcher()->loadContext($submission, $execution->executionUid));
+        return new self(
+            $submission,
+            $execution,
+            $integration->getDeliveryAttemptUid(),
+            Formie::$plugin->getIntegrationDispatcher()->loadContext($submission, $execution->executionUid)
+        );
     }
 
 

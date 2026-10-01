@@ -41,9 +41,11 @@ class SubmissionDispatches extends Component
     {
         $command = $context->command;
         $submission = $command->submission;
+
         if ($submission->isIncomplete || $command->operation === SubmissionOperation::SAVE_DRAFT || $command->policy === SubmissionPolicy::ADMINISTRATIVE_CREATE) {
             return null;
         }
+
         if (!Craft::$app->getDb()->getTransaction()?->isActive) {
             throw new RuntimeException('Dispatch intent must share the submission transaction.');
         }
@@ -66,13 +68,16 @@ class SubmissionDispatches extends Component
             'dateCreated' => $now, 'dateUpdated' => $now,
         ], false)->execute();
         $uid = (new Query())->select('uid')->from(self::TABLE)->where(['identity' => $identity])->scalar();
+
         if (!$uid) {
             throw new RuntimeException('Unable to persist submission dispatch intent.');
         }
         $context->taskState['dispatch.created'] ??= $uid === $newUid;
         $context->taskState['dispatch.uid'] = $uid;
+
         if (!isset($context->taskState['dispatch.lock']) && !$this->get((int)$submission->id, $uid)->schedulingComplete) {
             $lock = $this->_lock((int)$submission->id, $uid);
+
             if (!Craft::$app->getMutex()->acquire($lock, 10)) {
                 throw new RuntimeException('Submission dispatch is already running.');
             }
@@ -95,6 +100,7 @@ class SubmissionDispatches extends Component
     public function get(int $submissionId, string $uid): ?SubmissionDispatch
     {
         $row = Craft::$app->getDb()->useMaster(fn() => (new Query())->from(self::TABLE)->where(['submissionId' => $submissionId, 'uid' => $uid])->one());
+
         if (!$row) {
             return null;
         }
@@ -124,19 +130,23 @@ class SubmissionDispatches extends Component
     {
         $uid = $context->taskState['dispatch.uid'] ?? null;
         $submission = $context->command->submission;
+
         if (!$uid) {
             return false;
         }
         $lock = $this->_lock((int)$submission->id, $uid);
+
         if (($context->taskState['dispatch.lock'] ?? null) !== $lock && !Craft::$app->getMutex()->acquire($lock, 10)) {
             throw new RuntimeException('Submission dispatch is already running.');
         }
         $run = $this->get((int)$submission->id, $uid);
+
         if (!$run || $run->schedulingComplete || $run->failureCode !== null) {
             unset($context->taskState['dispatch.lock']);
             Craft::$app->getMutex()->release($lock);
             return false;
         }
+
         if ($run->submissionVersion !== $submission->stateVersion) {
             Db::update(self::TABLE, ['status' => 'needs-attention', 'failureCode' => 'submission_changed'], ['submissionId' => $submission->id, 'uid' => $uid]);
             unset($context->taskState['dispatch.lock']);
@@ -153,6 +163,7 @@ class SubmissionDispatches extends Component
         if (!($lock = $context->taskState['dispatch.lock'] ?? null)) {
             return;
         }
+
         try {
             $where = ['submissionId' => $context->command->submission->id, 'uid' => $context->taskState['dispatch.uid']];
             Db::update(self::TABLE, ['schedulingComplete' => $complete, 'status' => $complete ? 'scheduled' : 'ready', 'scheduledAt' => null, 'dateUpdated' => gmdate('Y-m-d H:i:s')], $where + ['failureCode' => null]);
@@ -166,9 +177,11 @@ class SubmissionDispatches extends Component
     public function refresh(int $submissionId, string $uid): void
     {
         $lock = 'formie.dispatch-status.' . hash('sha256', $submissionId . ':' . $uid);
+
         if (!Craft::$app->getMutex()->acquire($lock, 10)) {
             throw new RuntimeException('Unable to update submission dispatch status.');
         }
+
         try {
             $this->_refresh($submissionId, $uid);
         } finally {
@@ -187,13 +200,17 @@ class SubmissionDispatches extends Component
             ->where(['schedulingComplete' => false, 'failureCode' => null, 'status' => ['ready', 'scheduled', 'running']])
             ->andWhere(['or', ['scheduledAt' => null], ['<', 'scheduledAt', gmdate('Y-m-d H:i:s', time() - 600)]])
             ->orderBy(['id' => SORT_ASC])->limit(max(1, min(500, $limit)))->all();
+
         foreach ($rows as $row) {
             $lock = $this->_lock((int)$row['submissionId'], $row['uid']);
+
             if (!Craft::$app->getMutex()->acquire($lock, 0)) {
                 continue;
             }
+
             try {
                 $current = Craft::$app->getDb()->useMaster(fn() => (new Query())->from(self::TABLE)->where($row)->one());
+
                 if (!$current || $current['schedulingComplete'] || $current['failureCode'] !== null || ($current['scheduledAt'] && strtotime($current['scheduledAt'] . ' UTC') > time() - 600)) {
                     continue;
                 }
@@ -211,30 +228,38 @@ class SubmissionDispatches extends Component
     {
         // Match the processor's resource lock before claiming the dispatch itself.
         $lock = 'formie.resource.' . hash('sha256', 'submission:' . $submissionId);
+
         if (!Craft::$app->getMutex()->acquire($lock, 10)) {
             throw new RuntimeException('Submission is being updated. Retry dispatch recovery.');
         }
         $runLock = $this->_lock($submissionId, $uid);
         $claimed = false;
+
         try {
             $claimed = Craft::$app->getMutex()->acquire($runLock, 10);
+
             if (!$claimed) {
                 throw new RuntimeException('Submission dispatch is already running.');
             }
             $run = $this->get($submissionId, $uid);
+
             if (!$run || $run->schedulingComplete || $run->failureCode !== null) {
                 return;
             }
             $submission = Craft::$app->getDb()->useMaster(fn() => Submission::find()->id($submissionId)->siteId($run->command['siteId'])->status(null)->isIncomplete(null)->isSpam(null)->one());
+
             if (!$submission || $submission->isIncomplete || $submission->stateVersion !== $run->submissionVersion) {
                 Db::update(self::TABLE, ['status' => 'needs-attention', 'failureCode' => 'submission_changed'], ['submissionId' => $submissionId, 'uid' => $uid]);
                 return;
             }
             $form = $submission->getForm();
             $command = new SubmissionCommand(
-                SubmissionOperation::from($run->command['operation']), NavigationIntent::STAY,
+                SubmissionOperation::from($run->command['operation']),
+                NavigationIntent::STAY,
                 new SubmissionAuthority(SubmissionAuthorityType::from($run->command['authority']), (int)$form->id, $submissionId, 'dispatch:' . $uid),
-                $form, $submission, $submission->stateVersion,
+                $form,
+                $submission,
+                $submission->stateVersion,
                 sendNotificationsOnSpamUnmark: $run->command['sendNotificationsOnSpamUnmark'],
                 triggerIntegrationsOnSpamUnmark: $run->command['triggerIntegrationsOnSpamUnmark'],
             );
@@ -254,6 +279,7 @@ class SubmissionDispatches extends Component
     private function _refresh(int $submissionId, string $uid): void
     {
         $run = $this->get($submissionId, $uid);
+
         if (!$run || $run->failureCode !== null) {
             return;
         }

@@ -14,7 +14,7 @@ class SubmissionsAsset extends AssetBundle
     public function init(): void
     {
         $this->sourcePath = '@verbb/formie/web/assets/cp/dist';
-        
+
         $this->jsOptions = [
             'type' => 'module',
         ];

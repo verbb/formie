@@ -109,12 +109,9 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 Autocomplete and current-location behaviour depend on the configured address provider and Formie’s browser assets. Custom rendering should preserve the autocomplete sub-field and the manual address sub-fields that need to be populated.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
-
 - [Address](https://docs.verbb.io/formie/browser/ui-reference/fields/address)
 
 ## Related Fields
 
 - Use [Single-Line Text](/fields/single-line-text) for informal location answers.
 - Use [Group](/fields/group) if you need a different custom set of structured fields.
-

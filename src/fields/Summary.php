@@ -218,7 +218,7 @@ class Summary extends CosmeticField
     protected function defineBrowserModules(): array
     {
         $modules = parent::defineBrowserModules();
-        
+
         $modules[] = new BrowserModule([
             'moduleId' => 'formie:summary',
             'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],

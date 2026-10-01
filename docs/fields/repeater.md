@@ -64,12 +64,9 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 Repeater relies on Formie’s front-end JavaScript to add, remove and index rows correctly. If you override templates, preserve the row containers and controls Formie uses for those actions.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
-
 - [Repeater](https://docs.verbb.io/formie/browser/ui-reference/fields/repeater)
 
 ## Related Fields
 
 - Use [Group](/fields/group) when the nested fields appear only once.
 - Use [Table](/fields/table) when each repeated item is a simple row of column values.
-

@@ -59,11 +59,8 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 Hidden fields are still rendered into the page HTML. Do not place secrets, trusted prices, permission flags or other security-sensitive values in a hidden field without server-side validation.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
-
 - [Hidden](https://docs.verbb.io/formie/browser/ui-reference/fields/hidden)
 
 ## Related Fields
 
 - Use [Single-Line Text](/fields/single-line-text) when the user should see and edit the value.
-

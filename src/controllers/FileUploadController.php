@@ -41,7 +41,7 @@ class FileUploadController extends Controller
     ];
 
     private string $_requestProfile = \verbb\formie\helpers\BrowserRequestProfile::SAME_ORIGIN;
-    
+
 
     // Public Methods
     // =========================================================================
@@ -56,10 +56,12 @@ class FileUploadController extends Controller
 
         $profile = \verbb\formie\helpers\BrowserRequestProfile::enter();
         $this->_requestProfile = $profile;
+
         if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         }
         \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders($this->request, $this->response);
+
         if ($this->request->getIsOptions()) {
             $this->response->setStatusCode(204);
             return false;
@@ -194,6 +196,7 @@ class FileUploadController extends Controller
         }
         $upload = UploadAccess::resolveToken((string)$this->request->getQueryParam('token', ''), 'view');
         $asset = $upload ? Asset::find()->id((int)$upload['assetId'])->status(null)->one() : null;
+
         if (!$asset) {
             throw new NotFoundHttpException('Upload is unavailable.');
         }
@@ -371,6 +374,7 @@ class FileUploadController extends Controller
         }
 
         $purpose = $submission->isIncomplete ? SubmissionGrants::CONTINUE : SubmissionGrants::REVISE;
+
         if (Formie::$plugin->getSubmissionGrants()->bound($form, $purpose, (int)$submission->id)) {
             return true;
         }
@@ -401,7 +405,8 @@ class FileUploadController extends Controller
         }
 
         $contextToken = $this->request->getBodyParam('draftContextToken');
-        Formie::$plugin->getSubmissionRequests()->applyFormRequestContext($form,
+        Formie::$plugin->getSubmissionRequests()->applyFormRequestContext(
+            $form,
             $this->request->getBodyParam('renderId'),
             $contextToken ? $form->resolveDraftContextToken($contextToken) : $this->request->getBodyParam('draftContext'),
         );

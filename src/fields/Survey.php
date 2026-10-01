@@ -924,6 +924,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         if (!$this->usesOptions()) {
             return $this->getDisplayTypeField()->valueType();
         }
+
         if ($this->displayType === self::DISPLAY_LIKERT && $this->usesLikertMultipleRows()) {
             return FieldValueType::object(LikertMultipleRowsFieldValue::class);
         }

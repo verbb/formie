@@ -41,6 +41,7 @@ final readonly class ReferenceDefinition
                 throw new InvalidArgumentException('Reference definition types must use ReferenceType cases.');
             }
         }
+
         foreach ($this->usages ?? [] as $usage) {
             if (!$usage instanceof ReferenceUsage) {
                 throw new InvalidArgumentException('Reference usages must use ReferenceUsage cases.');
@@ -51,6 +52,7 @@ final readonly class ReferenceDefinition
     public function assertAvailable(ReferenceContext $context): void
     {
         $usage = $context->usage ?? ReferenceUsage::forOutput($context->outputContext);
+
         if (($this->usages !== null && !in_array($usage, $this->usages, true)) || ($this->shape === ReferenceShape::Block && $usage !== ReferenceUsage::RichText)) {
             throw new ReferenceException(ReferenceDiagnostic::ForbiddenSource);
         }

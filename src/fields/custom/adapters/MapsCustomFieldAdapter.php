@@ -366,7 +366,8 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
 
         // Keep this markup transport-first: the JS module upgrades it to an
         // interactive picker, while no-JS submissions still send useful values.
-        return Html::tag('div',
+        return Html::tag(
+            'div',
             $searchInput .
             $addressInput .
             $currentLocationButton .

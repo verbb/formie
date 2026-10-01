@@ -58,28 +58,28 @@ class m260418_000000_field_definitions_and_form_fields extends Migration
             $this->addColumn(Table::FORMIE_FORM_FIELDS, 'fieldId', $this->integer()->after('id'));
         }
 
-        $this->tryCreateIndex('formie_fields_handle_idx', Table::FORMIE_FIELDS, 'handle', false);
-        $this->tryCreateIndex('formie_form_fields_fieldId_idx', Table::FORMIE_FORM_FIELDS, 'fieldId', false);
-        $this->tryCreateIndex('formie_form_fields_reference_unq', Table::FORMIE_FORM_FIELDS, 'reference', true);
+        $this->_tryCreateIndex('formie_fields_handle_idx', Table::FORMIE_FIELDS, 'handle', false);
+        $this->_tryCreateIndex('formie_form_fields_fieldId_idx', Table::FORMIE_FORM_FIELDS, 'fieldId', false);
+        $this->_tryCreateIndex('formie_form_fields_reference_unq', Table::FORMIE_FORM_FIELDS, 'reference', true);
 
         if ($this->db->columnExists(Table::FORMIE_FORM_FIELDS, 'layoutId')) {
-            $this->tryCreateIndex('formie_form_fields_layoutId_idx', Table::FORMIE_FORM_FIELDS, 'layoutId', false);
+            $this->_tryCreateIndex('formie_form_fields_layoutId_idx', Table::FORMIE_FORM_FIELDS, 'layoutId', false);
         }
 
         if ($this->db->columnExists(Table::FORMIE_FORM_FIELDS, 'pageId')) {
-            $this->tryCreateIndex('formie_form_fields_pageId_idx', Table::FORMIE_FORM_FIELDS, 'pageId', false);
+            $this->_tryCreateIndex('formie_form_fields_pageId_idx', Table::FORMIE_FORM_FIELDS, 'pageId', false);
         }
 
         if ($this->db->columnExists(Table::FORMIE_FORM_FIELDS, 'rowId')) {
-            $this->tryCreateIndex('formie_form_fields_rowId_idx', Table::FORMIE_FORM_FIELDS, 'rowId', false);
+            $this->_tryCreateIndex('formie_form_fields_rowId_idx', Table::FORMIE_FORM_FIELDS, 'rowId', false);
         }
 
-        $this->dropAllForeignKeysToTableIfPossible(Table::FORMIE_FIELDS, ['fieldId']);
-        $this->dropAllForeignKeysToTableIfPossible(Table::FORMIE_FORM_FIELDS, ['fieldId']);
+        $this->_dropAllForeignKeysToTableIfPossible(Table::FORMIE_FIELDS, ['fieldId']);
+        $this->_dropAllForeignKeysToTableIfPossible(Table::FORMIE_FORM_FIELDS, ['fieldId']);
 
-        $this->tryAddForeignKey('formie_form_fields_fieldId_fk', Table::FORMIE_FORM_FIELDS, ['fieldId'], Table::FORMIE_FIELDS, ['id'], 'CASCADE', null);
-        $this->tryAddForeignKey('formie_payments_fieldId_fk', Table::FORMIE_PAYMENTS, ['fieldId'], Table::FORMIE_FORM_FIELDS, ['id'], 'CASCADE', null);
-        $this->tryAddForeignKey('formie_subscriptions_fieldId_fk', Table::FORMIE_SUBSCRIPTIONS, ['fieldId'], Table::FORMIE_FORM_FIELDS, ['id'], 'RESTRICT', null);
+        $this->_tryAddForeignKey('formie_form_fields_fieldId_fk', Table::FORMIE_FORM_FIELDS, ['fieldId'], Table::FORMIE_FIELDS, ['id'], 'CASCADE', null);
+        $this->_tryAddForeignKey('formie_payments_fieldId_fk', Table::FORMIE_PAYMENTS, ['fieldId'], Table::FORMIE_FORM_FIELDS, ['id'], 'CASCADE', null);
+        $this->_tryAddForeignKey('formie_subscriptions_fieldId_fk', Table::FORMIE_SUBSCRIPTIONS, ['fieldId'], Table::FORMIE_FORM_FIELDS, ['id'], 'RESTRICT', null);
 
         if ($this->db->columnExists(Table::FORMIE_FORM_FIELDS, 'syncId')) {
             $legacyRows = (new Query())
@@ -97,7 +97,7 @@ class m260418_000000_field_definitions_and_form_fields extends Migration
                 $groups = [];
 
                 foreach ($legacyRows as $row) {
-                    $groupId = $this->resolveLegacyGroupId($row, $rowsById);
+                    $groupId = $this->_resolveLegacyGroupId($row, $rowsById);
                     $groups[$groupId][] = $row;
                 }
 
@@ -147,7 +147,7 @@ class m260418_000000_field_definitions_and_form_fields extends Migration
             }
         }
 
-        $this->dropLegacyFormFieldColumns();
+        $this->_dropLegacyFormFieldColumns();
 
         return true;
     }
@@ -163,7 +163,7 @@ class m260418_000000_field_definitions_and_form_fields extends Migration
     // Private Methods
     // =========================================================================
 
-    private function resolveLegacyGroupId(array $row, array $rowsById): int
+    private function _resolveLegacyGroupId(array $row, array $rowsById): int
     {
         $rowId = (int)($row['id'] ?? 0);
         $syncId = (int)($row['syncId'] ?? 0);
@@ -197,7 +197,7 @@ class m260418_000000_field_definitions_and_form_fields extends Migration
         }
     }
 
-    private function tryCreateIndex(string $name, string $table, string|array $columns, bool $unique): void
+    private function _tryCreateIndex(string $name, string $table, string|array $columns, bool $unique): void
     {
         try {
             $this->createIndex($name, $table, $columns, $unique);
@@ -205,7 +205,7 @@ class m260418_000000_field_definitions_and_form_fields extends Migration
         }
     }
 
-    private function tryAddForeignKey(string $name, string $table, array $columns, string $refTable, array $refColumns, ?string $delete = null, ?string $update = null): void
+    private function _tryAddForeignKey(string $name, string $table, array $columns, string $refTable, array $refColumns, ?string $delete = null, ?string $update = null): void
     {
         try {
             $this->addForeignKey($name, $table, $columns, $refTable, $refColumns, $delete, $update);
@@ -213,7 +213,7 @@ class m260418_000000_field_definitions_and_form_fields extends Migration
         }
     }
 
-    private function dropAllForeignKeysToTableIfPossible(string $table, array $columns): void
+    private function _dropAllForeignKeysToTableIfPossible(string $table, array $columns): void
     {
         $schema = Craft::$app->getDb()->getSchema()->getTableSchema($table);
 
@@ -234,14 +234,14 @@ class m260418_000000_field_definitions_and_form_fields extends Migration
         }
     }
 
-    private function dropLegacyFormFieldColumns(): void
+    private function _dropLegacyFormFieldColumns(): void
     {
         if (!$this->db->tableExists(Table::FORMIE_FORM_FIELDS)) {
             return;
         }
 
         if ($this->db->columnExists(Table::FORMIE_FORM_FIELDS, 'syncId')) {
-            $this->dropAllForeignKeysToTableIfPossible(Table::FORMIE_FORM_FIELDS, ['syncId']);
+            $this->_dropAllForeignKeysToTableIfPossible(Table::FORMIE_FORM_FIELDS, ['syncId']);
         }
 
         foreach (['syncId', 'label', 'handle', 'type'] as $column) {

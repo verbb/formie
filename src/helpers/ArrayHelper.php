@@ -5,5 +5,4 @@ use verbb\base\helpers\ArrayHelper as BaseArrayHelper;
 
 class ArrayHelper extends BaseArrayHelper
 {
-
 }

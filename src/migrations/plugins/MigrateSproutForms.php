@@ -590,6 +590,7 @@ class MigrateSproutForms extends BasePluginMigrator
                 $this->_applyFieldDefaults($newField);
 
                 $newField->useMultipleFields = (bool)$field->displayMultipleFields;
+
                 if ($newField->useMultipleFields) {
                     $newField->prefixEnabled = (bool)$field->displayPrefix;
                     $newField->firstNameEnabled = true;

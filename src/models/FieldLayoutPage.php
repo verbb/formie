@@ -135,6 +135,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
     public function getFields(): array
     {
         $fields = [];
+
         foreach ($this->getRows() as $row) {
             array_push($fields, ...$row->getFields());
         }
@@ -380,6 +381,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
     public function getFieldErrors(?Submission $submission): array
     {
         $errors = [];
+
         foreach ($submission?->getSubmissionErrors()->forPage((int)$this->id) ?? [] as $item) {
             $errors[$item['valuePath']][] = $item['message'];
         }

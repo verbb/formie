@@ -6,5 +6,4 @@ use craft\base\ElementInterface;
 
 interface CosmeticFieldInterface extends ComponentInterface
 {
-
 }

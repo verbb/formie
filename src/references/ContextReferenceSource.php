@@ -16,25 +16,31 @@ final class ContextReferenceSource
     {
         $id = $expression->identifier;
         $target = $expression->target;
+
         if ($target === 'dispatch') {
             $id = str_replace(':', '.', $id);
         }
         $definition = (new ReferenceCatalogue())->definition($target, $id);
+
         if (!$definition) {
             throw new ReferenceException(ReferenceDiagnostic::UnknownSource);
         }
         $definition->assertAvailable($context);
+
         if ($target === 'custom') {
             $source = (new ReferenceCatalogue())->source($id);
+
             if (!$source->definition->server || !in_array('server', $context->permissions, true)) {
                 throw new ReferenceException(ReferenceDiagnostic::ForbiddenSource);
             }
             $value = ($source->resolver)($context);
+
             if (!$source->definition->valueType->accepts($value)) {
                 throw new ReferenceException(ReferenceDiagnostic::InvalidType);
             }
             return new ResolvedReference($expression, $value, $source->definition);
         }
+
         if ($target === 'env') {
             if (!in_array('server', $context->permissions, true) || !array_key_exists($id, $context->environment)) {
                 throw new ReferenceException(ReferenceDiagnostic::ForbiddenSource);
@@ -42,16 +48,19 @@ final class ContextReferenceSource
             $value = $context->environment[$id];
         } elseif ($target === 'metadata') {
             $parts = explode('.', $id);
+
             if (!in_array($parts[0], ['request', 'custom'], true)) {
                 throw new ReferenceException(ReferenceDiagnostic::InvalidSelector);
             }
             $value = $context->metadata;
+
             foreach ($parts as $part) {
                 if (!is_array($value) || !array_key_exists($part, $value)) {
                     throw new ReferenceException(ReferenceDiagnostic::InvalidSelector);
                 }
                 $value = $value[$part];
             }
+
             if (!FieldValueType::storageSafe()->accepts($value)) {
                 throw new ReferenceException(ReferenceDiagnostic::InvalidType);
             }
@@ -72,6 +81,7 @@ final class ContextReferenceSource
                 'dispatch' => $this->_dispatch($context->dispatch),
                 default => throw new ReferenceException(ReferenceDiagnostic::UnknownSource),
             };
+
             if (!array_key_exists($id, $values)) {
                 throw new ReferenceException(ReferenceDiagnostic::UnknownSource);
             }
@@ -86,6 +96,7 @@ final class ContextReferenceSource
     private function _dispatch(array $dispatch): array
     {
         $values = [];
+
         foreach ($dispatch as $handle => $result) {
             foreach (['id', 'url', 'success', 'type'] as $key) {
                 $values[$handle . '.' . $key] = $result[$key] ?? null;

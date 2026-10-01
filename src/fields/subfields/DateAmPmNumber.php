@@ -26,7 +26,7 @@ class DateAmPmNumber extends DateNumber implements ChildFieldInterface
     {
         return 'fields/number';
     }
-    
+
 
     // Properties
     // =========================================================================

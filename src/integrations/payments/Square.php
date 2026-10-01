@@ -43,7 +43,7 @@ class Square extends Payment
     {
         return 'Square';
     }
-    
+
 
 
     // Constants
@@ -190,7 +190,7 @@ class Square extends Payment
             Integration::apiError($this, $e, $this->throwApiError);
 
             $this->addFieldError($submission, $e->getMessage());
-            
+
             $payment = Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
@@ -285,7 +285,7 @@ class Square extends Payment
             ]),
         ];
     }
-    
+
 
 
     // Protected Methods

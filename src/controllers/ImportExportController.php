@@ -114,12 +114,12 @@ class ImportExportController extends SettingsAccessController
         ob_start();
         $title = Html::encode($json['title'] ?? '');
         $handle = Html::encode($json['handle'] ?? '');
-        $this->stdout("Form: Preparing to import form “{$title}”.");
-        $this->stdout("    > Form title is “{$title}”.", Console::FG_GREEN);
-        $this->stdout("    > Form handle is “{$handle}”.", ($existingForm ? Console::FG_RED : Console::FG_GREEN));
+        $this->_stdout("Form: Preparing to import form “{$title}”.");
+        $this->_stdout("    > Form title is “{$title}”.", Console::FG_GREEN);
+        $this->_stdout("    > Form handle is “{$handle}”.", ($existingForm ? Console::FG_RED : Console::FG_GREEN));
 
         $pageCount = Craft::t('app', '{num, number} {num, plural, =1{page} other{pages}}', ['num' => count($json['pages'])]);
-        $this->stdout("    > Form contains {$pageCount}.", Console::FG_GREEN);
+        $this->_stdout("    > Form contains {$pageCount}.", Console::FG_GREEN);
 
         $formFields = [];
 
@@ -138,7 +138,7 @@ class ImportExportController extends SettingsAccessController
         }
 
         $fieldCount = Craft::t('app', '{num, number} {num, plural, =1{field} other{fields}}', ['num' => count($formFields)]);
-        $this->stdout("    > Form contains {$fieldCount}.", Console::FG_GREEN);
+        $this->_stdout("    > Form contains {$fieldCount}.", Console::FG_GREEN);
 
         foreach ($formFields as $field) {
             $type = explode('\\', $field['type']);
@@ -148,29 +148,32 @@ class ImportExportController extends SettingsAccessController
             $label = Html::encode($field['label'] ?? $field['settings']['label'] ?? '');
             $handle = Html::encode($field['handle'] ?? $field['settings']['handle'] ?? '');
 
-            $this->stdout("        > {$type}: “{$label}” `({$handle})`.", Console::FG_GREEN);
+            $this->_stdout("        > {$type}: “{$label}” `({$handle})`.", Console::FG_GREEN);
         }
 
         $notificationCount = Craft::t('app', '{num, number} {num, plural, =1{notification} other{notifications}}', ['num' => count($json['notifications'])]);
 
         if (count($json['notifications'])) {
-            $this->stdout("Notifications: Preparing to import {$notificationCount}.");
+            $this->_stdout("Notifications: Preparing to import {$notificationCount}.");
 
             foreach ($json['notifications'] as $notification) {
                 $name = Html::encode($notification['name'] ?? '');
-                $this->stdout("    > “{$name}”.", Console::FG_GREEN);
+                $this->_stdout("    > “{$name}”.", Console::FG_GREEN);
             }
         }
 
         $plan = ImportExportHelper::planImport($json, $existingForm);
+
         foreach ($plan['warnings'] as $warning) {
-            $this->stdout(Html::encode($warning), Console::FG_YELLOW);
+            $this->_stdout(Html::encode($warning), Console::FG_YELLOW);
         }
+
         foreach ($plan['dependencies'] as $dependency) {
-            $this->stdout(Html::encode($dependency['action'] . ': ' . $dependency['kind'] . ' resource ' . $dependency['handle']));
+            $this->_stdout(Html::encode($dependency['action'] . ': ' . $dependency['kind'] . ' resource ' . $dependency['handle']));
         }
+
         foreach ($plan['changes'] as $action => $references) {
-            $this->stdout(Html::encode(ucfirst($action) . ': ' . implode(', ', $references)));
+            $this->_stdout(Html::encode(ucfirst($action) . ': ' . implode(', ', $references)));
         }
         $summary = ob_get_clean();
 
@@ -195,11 +198,11 @@ class ImportExportController extends SettingsAccessController
         }
 
         $json = Json::decode(file_get_contents($fileLocation));
-   
+
         $form = ImportExportHelper::importFormFromJson($json, $formAction);
 
         // check for errors
-        if( $form->getErrors() ){
+        if ($form->getErrors()) {
             $this->setFailFlash(Craft::t('formie', 'Unable to import form.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
@@ -251,7 +254,7 @@ class ImportExportController extends SettingsAccessController
     // Private Methods
     // =========================================================================
 
-    private function stdout(string $string, string $color = ''): void
+    private function _stdout(string $string, string $color = ''): void
     {
         $class = '';
 

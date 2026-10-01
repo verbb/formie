@@ -30,15 +30,19 @@ class DeliveryAttempt
     public static function workflowIdentity(): ?string
     {
         $context = WorkflowContext::current();
+
         if (!$context) {
             return null;
         }
+
         if (isset($context->taskState['dispatch.uid'])) {
             return $context->taskState['dispatch.uid'];
         }
+
         if ($context->command->operationId) {
             return 'workflow:' . $context->command->operationId;
         }
+
         if ($context->command->operation !== \verbb\formie\enums\SubmissionOperation::REVISE) {
             return 'completion';
         }
@@ -55,11 +59,14 @@ class DeliveryAttempt
         ];
         $mutex = Craft::$app->getMutex();
         $lock = 'formie.resource.' . hash('sha256', Json::encode($where));
+
         if (!$mutex->acquire($lock, 10)) {
             throw new RuntimeException('Payment resource is already in use. Retry later.');
         }
+
         try {
             $owner = (new Query())->select('submissionId')->from(Table::FORMIE_SUBMISSION_WORKFLOW)->where($where)->scalar();
+
             if ($owner !== false && (int)$owner !== $submissionId) {
                 throw new RuntimeException('Payment resource belongs to another submission.');
             }
@@ -137,6 +144,7 @@ class DeliveryAttempt
                 // A confirmed rejection permits a corrected, new operation.
                 $meta = ['requestKey' => StringHelper::UUID(), 'payloadHash' => $hash, 'startedAt' => time(), 'state' => 'ready'];
             }
+
             if (!hash_equals($meta['payloadHash'], $hash)) {
                 throw new RuntimeException('Delivery parameters changed. Check the previous outcome before starting a new operation.');
             }
@@ -151,6 +159,7 @@ class DeliveryAttempt
                 $this->_save($where, $meta);
                 return $result;
             }
+
             if ($meta['state'] === 'completed') {
                 return true;
             }
@@ -166,8 +175,10 @@ class DeliveryAttempt
             try {
                 $result = $send($meta['requestKey']);
                 $meta['state'] = $result === false ? 'failed' : 'completed';
+
                 if ($reference && $result !== false) {
                     $meta['reference'] = (string)$reference($result);
+
                     if ($meta['reference'] === '') {
                         throw new RuntimeException('The provider did not return a delivery reference.');
                     }
@@ -179,6 +190,7 @@ class DeliveryAttempt
                 // that the provider rejected the request.
                 $meta['state'] = $retryWindow > 0 && $this->_isDefiniteRejection($e) ? 'rejected' : 'unknown';
                 $this->_save($where, $meta);
+
                 if ($meta['state'] === 'rejected') {
                     throw $e;
                 }
@@ -196,6 +208,7 @@ class DeliveryAttempt
     private function _isDefiniteRejection(Throwable $error): bool
     {
         $status = null;
+
         if ($error instanceof RequestException) {
             $status = $error->getResponse()?->getStatusCode();
         } elseif ($error instanceof ApiErrorException) {
@@ -213,7 +226,8 @@ class DeliveryAttempt
             'dateDispatched' => $now,
             'dateUpdated' => $now,
         ];
-        Craft::$app->getDb()->createCommand()->upsert(Table::FORMIE_SUBMISSION_WORKFLOW,
+        Craft::$app->getDb()->createCommand()->upsert(
+            Table::FORMIE_SUBMISSION_WORKFLOW,
             array_merge($where, $values, ['dateCreated' => $now, 'uid' => StringHelper::UUID()]),
             $values,
         )->execute();
@@ -224,6 +238,7 @@ class DeliveryAttempt
         if (!array_is_list($value)) {
             ksort($value);
         }
+
         foreach ($value as &$item) {
             if (is_array($item)) {
                 $item = $this->_canonicalize($item);

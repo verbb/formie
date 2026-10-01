@@ -22,6 +22,7 @@ class LayoutSaveContext
     {
         $layoutId = $form->id ? (new Query())->select('layoutId')->from(Table::FORMIE_FORMS)->where(['id' => $form->id])->scalar() : null;
         $context = new self($operation);
+
         if ($layoutId) {
             $context->includeLayout((int)$layoutId);
         }
@@ -74,12 +75,14 @@ class LayoutSaveContext
         $this->layouts[$id] = true;
         $records = (new Query())->select(['ff.id', 'ff.fieldId', 'ff.layoutId', 'ff.reference', 'f.handle', 'f.settings'])->from(['ff' => Table::FORMIE_FORM_FIELDS])
             ->innerJoin(['f' => Table::FORMIE_FIELDS], '[[f.id]] = [[ff.fieldId]]')->where(['ff.layoutId' => $id])->all();
+
         foreach ($records as $record) {
             $fieldId = (int)$record['id'];
             $this->fields[$fieldId] = (int)$record['fieldId'];
             $this->_existingFieldIdsByLayout[$id][$fieldId] = true;
             $this->_existingHandlesByLayout[$id][strtolower((string)$record['handle'])][$fieldId] = true;
             $settings = Json::decodeIfJson($record['settings']) ?: [];
+
             if ($nestedId = $settings['nestedLayoutId'] ?? null) {
                 $this->includeLayout((int)$nestedId);
             }
@@ -146,6 +149,7 @@ class LayoutSaveContext
         }
 
         unset($this->_proposedHandles[$state['scope']][$state['handle']][$objectId]);
+
         if ($state['reference'] !== null) {
             unset($this->_proposedReferences[$state['reference']][$objectId]);
         }
@@ -173,6 +177,7 @@ class LayoutSaveContext
         }
 
         $layoutId = $this->_validationScopeLayoutIds[$state['scope']] ?? null;
+
         if (!$layoutId) {
             return true;
         }
@@ -324,9 +329,11 @@ class LayoutSaveContext
         if (!$field->id) {
             return;
         }
+
         if (!isset($this->fields[$field->id])) {
             throw new InvalidConfigException('The field instance does not belong to this form.');
         }
+
         // Detaching a synced instance creates an independent definition; switching to a different one is forbidden.
         if ($field->definitionId && $this->fields[$field->id] !== $field->definitionId) {
             throw new InvalidConfigException('The field definition link cannot be replaced.');
@@ -485,6 +492,7 @@ class LayoutSaveContext
             }
 
             unset($this->_proposedHandles[$scope][$state['handle']][$objectId]);
+
             if ($state['reference'] !== null) {
                 unset($this->_proposedReferences[$state['reference']][$objectId]);
             }

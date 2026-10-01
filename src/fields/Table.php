@@ -160,6 +160,7 @@ class Table extends Field
     public function referenceValues(): array
     {
         $values = [];
+
         foreach ($this->columns as $id => $column) {
             $types = match ($column['type'] ?? 'singleline') {
                 'number' => [ReferenceType::Number, ReferenceType::Text],
@@ -605,8 +606,10 @@ class Table extends Field
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
         $rows = [];
+
         foreach ($value ?? [] as $row) {
             $data = [];
+
             foreach ($this->columns ?? [] as $id => $column) {
                 $cell = $row[$id] ?? $row[$column['handle'] ?? $id] ?? null;
                 $data[$column['handle'] ?? $id] = $this->_normalizeCellValueAsString($column['type'], $cell);
@@ -1165,7 +1168,7 @@ class Table extends Field
     protected function defineBrowserModules(): array
     {
         $modules = parent::defineBrowserModules();
-        
+
         $modules[] = new BrowserModule([
             'moduleId' => 'formie:table',
             'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
@@ -1191,7 +1194,7 @@ class Table extends Field
 
         if (is_string($value) && !empty($value)) {
             $value = Json::decodeIfJson($value);
-        } else if ($value === null) {
+        } elseif ($value === null) {
             // Defaults initialize new submissions; they must not refill a
             // cleared table when an existing submission is loaded again.
             $value = $this->isFresh($element) ? $defaults : [];
@@ -1212,7 +1215,7 @@ class Table extends Field
 
             if ($valueRows < $totalRows) {
                 $value = array_pad($value, $totalRows, []);
-            } else if ($valueRows > $totalRows) {
+            } elseif ($valueRows > $totalRows) {
                 array_splice($value, $totalRows);
             }
         }
@@ -1226,9 +1229,9 @@ class Table extends Field
             foreach ($this->columns as $colId => $col) {
                 if ($col['type'] === 'heading') {
                     $cellValue = $defaults[$rowIndex][$colId] ?? '';
-                } else if (array_key_exists($colId, $row)) {
+                } elseif (array_key_exists($colId, $row)) {
                     $cellValue = $row[$colId];
-                } else if (!empty($col['handle']) && array_key_exists($col['handle'], $row)) {
+                } elseif (!empty($col['handle']) && array_key_exists($col['handle'], $row)) {
                     $cellValue = $row[$col['handle']];
                 } else {
                     $cellValue = null;

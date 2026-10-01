@@ -195,7 +195,7 @@ class MigrateFreeform4 extends BasePluginMigrator
 
         $this->migrateSubmissionBatches(
             fn() => FreeformSubmission::find()->form($formHandle),
-            function ($entry) use ($status) {
+            function($entry) use ($status) {
                 $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
 
                 /* @var FreeformSubmission $entry */
@@ -243,6 +243,7 @@ class MigrateFreeform4 extends BasePluginMigrator
 
                             case freeformfields\FileUploadField::class:
                                 $value = $field->getValue();
+
                                 if (!empty($value)) {
                                     $assets = Asset::find()->id($value)->ids();
                                     $submission->setFieldValue($handle, $assets);
@@ -493,7 +494,7 @@ class MigrateFreeform4 extends BasePluginMigrator
                 break;
 
             case freeformfields\Pro\ConfirmationField::class:
-                // We want to ensure *this* field is the same as the target field, so grab that type    
+                // We want to ensure *this* field is the same as the target field, so grab that type
                 $targetField = $field->getTargetField();
                 $targetFormieField = $this->_mapField($targetField);
 
@@ -562,7 +563,7 @@ class MigrateFreeform4 extends BasePluginMigrator
 
                 if ($source = Craft::$app->getAssets()->getRootFolderByVolumeId($source)) {
                     $newField->uploadLocationSource = "folder:{$source->getVolume()->uid}";
-                } else if ($volumes = Craft::$app->getVolumes()->getAllVolumes()) {
+                } elseif ($volumes = Craft::$app->getVolumes()->getAllVolumes()) {
                     $newField->uploadLocationSource = "folder:{$volumes[0]->uid}";
                 }
 

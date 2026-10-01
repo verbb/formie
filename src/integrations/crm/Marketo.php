@@ -105,6 +105,7 @@ class Marketo extends Crm implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
 

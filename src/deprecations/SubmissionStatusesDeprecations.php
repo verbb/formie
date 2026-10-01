@@ -10,7 +10,7 @@ trait SubmissionStatusesDeprecations
 {
     // Constants
     // =========================================================================
-   
+
     // Deprecated in 4.0.0
     public const CONFIG_STATUSES_KEY = 'formie.statuses';
 

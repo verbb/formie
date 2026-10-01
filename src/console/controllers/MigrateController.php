@@ -83,7 +83,7 @@ class MigrateController extends Controller
 
             $migration = new MigrateSproutForms(['formId' => $formId]);
             $result = $migration->run();
-            $this->renderMigrationLines($result->lines);
+            $this->_renderMigrationLines($result->lines);
         }
 
         return ExitCode::OK;
@@ -109,9 +109,9 @@ class MigrateController extends Controller
         foreach ($formIds as $formId) {
             $this->stderr('Migrating Freeform form #' . $formId . PHP_EOL, Console::FG_GREEN);
 
-            $migration = new MigrateFreeform4($this->getFreeformMigrationConfig($formId));
+            $migration = new MigrateFreeform4($this->_getFreeformMigrationConfig($formId));
             $result = $migration->run();
-            $this->renderMigrationLines($result->lines);
+            $this->_renderMigrationLines($result->lines);
         }
 
         return ExitCode::OK;
@@ -137,9 +137,9 @@ class MigrateController extends Controller
         foreach ($formIds as $formId) {
             $this->stderr('Migrating Freeform form #' . $formId . PHP_EOL, Console::FG_GREEN);
 
-            $migration = new MigrateFreeform5($this->getFreeformMigrationConfig($formId));
+            $migration = new MigrateFreeform5($this->_getFreeformMigrationConfig($formId));
             $result = $migration->run();
-            $this->renderMigrationLines($result->lines);
+            $this->_renderMigrationLines($result->lines);
         }
 
         return ExitCode::OK;
@@ -149,7 +149,7 @@ class MigrateController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function getFreeformMigrationConfig(int $formId): array
+    private function _getFreeformMigrationConfig(int $formId): array
     {
         $config = ['formId' => $formId];
 
@@ -180,7 +180,7 @@ class MigrateController extends Controller
         return $config;
     }
 
-    private function renderMigrationLines(array $lines): void
+    private function _renderMigrationLines(array $lines): void
     {
         foreach ($lines as $line) {
             $color = match ($line->level ?? 'info') {

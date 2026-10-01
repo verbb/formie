@@ -21,7 +21,7 @@ class SubmissionContentManager
     private ?SubmissionContentNormalizer $_normalizer = null;
     private ?SubmissionContentSerializer $_serializer = null;
     private ?SubmissionContentProjector $_projector = null;
-    
+
 
     // Traits
     // =========================================================================
@@ -43,7 +43,7 @@ class SubmissionContentManager
     public function getFieldCollection(Submission $submission): SubmissionFieldCollection
     {
         $state = $submission->getContentState();
-        
+
         // Cache the field lookup indexes with the submission content state so
         // handle/id/uid resolution and persisted-field filtering stay cheap once
         // a submission's field layout has been touched.
@@ -169,16 +169,19 @@ class SubmissionContentManager
             $value = $this->getPathValue($submission, $fieldPath);
             $field = $this->getFieldByHandle($submission, $handle);
             $segments = explode('.', $nestedPath);
+
             while ($field instanceof ParentFieldInterface && $segments) {
                 $row = $field instanceof RepeatableParentFieldInterface ? array_shift($segments) : null;
                 $childHandle = array_shift($segments);
                 $child = null;
+
                 foreach ($field->getFields($row) as $candidate) {
                     if ($candidate->handle === $childHandle) {
                         $child = $candidate;
                         break;
                     }
                 }
+
                 if (!$child) {
                     $field = null;
                     break;
@@ -212,6 +215,7 @@ class SubmissionContentManager
             }
 
             $typedNestedFields = [];
+
             foreach ($field->getFields() as $nestedField) {
                 if ($nestedField instanceof $type) {
                     $typedNestedFields[] = $nestedField;

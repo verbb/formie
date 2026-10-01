@@ -28,7 +28,7 @@ class Ecomail extends EmailMarketing
     {
         return 'Ecomail';
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -108,6 +108,7 @@ class Ecomail extends EmailMarketing
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -153,7 +154,7 @@ class Ecomail extends EmailMarketing
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

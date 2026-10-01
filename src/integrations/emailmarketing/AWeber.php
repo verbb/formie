@@ -60,7 +60,7 @@ class AWeber extends EmailMarketing implements OAuthProviderInterface
             'subscriber.read-extended',
             'landing-page.read',
         ];
-        
+
         return $options;
     }
 
@@ -124,6 +124,7 @@ class AWeber extends EmailMarketing implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 

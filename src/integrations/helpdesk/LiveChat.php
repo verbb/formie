@@ -66,7 +66,7 @@ class LiveChat extends HelpDesk implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Send your form content to Live Chat.');
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -106,6 +106,7 @@ class LiveChat extends HelpDesk implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $ticketValues = $this->getFieldMappingValues($submission, $this->ticketFieldMapping, 'ticket');
 
@@ -155,7 +156,7 @@ class LiveChat extends HelpDesk implements OAuthProviderInterface
         return $this->resultForPayload(true);
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -188,7 +189,7 @@ class LiveChat extends HelpDesk implements OAuthProviderInterface
 
         return $schema;
     }
-    
+
 
     // Private Methods
     // =========================================================================

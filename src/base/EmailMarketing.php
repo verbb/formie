@@ -87,7 +87,7 @@ abstract class EmailMarketing extends Integration implements DispatchableIntegra
 
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
     }
-    
+
 
     // Protected Methods
     // =========================================================================
@@ -123,7 +123,7 @@ abstract class EmailMarketing extends Integration implements DispatchableIntegra
         ];
 
         $lists = $this->getConfigValue('lists');
-        
+
         if (is_array($lists)) {
             foreach ($lists as $list) {
                 if (is_array($list)) {
@@ -160,11 +160,13 @@ abstract class EmailMarketing extends Integration implements DispatchableIntegra
         if (is_array($lists)) {
             foreach ($lists as $list) {
                 $listId = is_array($list) ? ($list['id'] ?? null) : ($list->id ?? null);
+
                 if ($listId === null || $listId === '') {
                     continue;
                 }
 
                 $fields = is_array($list) ? ($list['fields'] ?? []) : ($list->fields ?? []);
+
                 if (!is_array($fields)) {
                     $fields = [];
                 }
@@ -179,6 +181,7 @@ abstract class EmailMarketing extends Integration implements DispatchableIntegra
         if ($selectedListId !== '' && is_array($lists)) {
             foreach ($lists as $list) {
                 $listId = is_array($list) ? ($list['id'] ?? null) : ($list->id ?? null);
+
                 if ((string)$listId !== $selectedListId) {
                     continue;
                 }

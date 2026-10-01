@@ -39,7 +39,7 @@ class SubmissionCondition extends ElementCondition
         return [];
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -47,7 +47,7 @@ class SubmissionCondition extends ElementCondition
     {
         $rules = parent::defineRules();
         $rules[] = [['elementType', 'sourceKey'], 'safe'];
-        
+
         return $rules;
     }
 

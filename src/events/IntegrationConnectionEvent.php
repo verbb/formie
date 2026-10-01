@@ -12,5 +12,5 @@ class IntegrationConnectionEvent extends CancelableEvent
 
     public ?Integration $integration = null;
     public ?string $success = null;
-    
+
 }

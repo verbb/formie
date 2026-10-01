@@ -37,6 +37,7 @@ class TriggerIntegration extends BaseJob implements DeliveryJobInterface
     {
         $uid = $this->getDeliveryAttemptUid();
         $result = Formie::$plugin->getIntegrationRunner()->runQueuedAttempt($uid);
+
         if (!in_array($result->status, [IntegrationStatus::Succeeded, IntegrationStatus::Skipped], true)) {
             throw new RuntimeException('Integration delivery ' . $result->status->value . '. Open Formie delivery diagnostics.');
         }

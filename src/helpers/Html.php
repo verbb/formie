@@ -15,7 +15,7 @@ class Html extends CraftHtmlHelper
     public static function getInputNameAttribute(array $names): string
     {
         // Normalize the names first, in case items already are in name-like syntax
-        $names = self::normalizeNames($names);
+        $names = self::_normalizeNames($names);
 
         $first = array_shift($names);
 
@@ -29,7 +29,7 @@ class Html extends CraftHtmlHelper
     public static function getInputIdAttribute(array $names): string
     {
         // Normalize the names first, in case items already are in name-like syntax
-        $names = self::normalizeNames($names);
+        $names = self::_normalizeNames($names);
 
         return implode('-', array_filter($names));
     }
@@ -70,7 +70,7 @@ class Html extends CraftHtmlHelper
         $merged['aria'] = array_merge($aria, $extraAria);
 
         // Filter just `null` and `false` values
-        return ArrayHelper::filterNullFalse($merged); 
+        return ArrayHelper::filterNullFalse($merged);
     }
 
     public static function getFieldClassKey(object $class): string
@@ -110,7 +110,7 @@ class Html extends CraftHtmlHelper
             // If just a plain setting, that's easy
             if (!is_array($keyConfig) || !is_array($extraKeyConfig)) {
                 $mergedConfigs[$key] = $keyConfig ?? $extraKeyConfig;
-            } else if (in_array($key, self::getFieldClassHandles())) {
+            } elseif (in_array($key, self::getFieldClassHandles())) {
                 // Special case for field-class-specific fields, they're nested.
                 $mergedConfigs[$key] = self::mergeHtmlConfigs($keyConfig, $extraKeyConfig);
             } else {
@@ -172,7 +172,7 @@ class Html extends CraftHtmlHelper
     // Private Methods
     // =========================================================================
 
-    private static function normalizeNames($names)
+    private static function _normalizeNames($names)
     {
         $normalizedNames = [];
 

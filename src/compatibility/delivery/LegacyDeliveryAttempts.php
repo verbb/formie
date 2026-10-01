@@ -20,6 +20,7 @@ final class LegacyDeliveryAttempts
         string $attemptUid,
     ): ?IntegrationResult {
         $attempts = Formie::$plugin->getDeliveryAttempts();
+
         if ($attempts->hasReconciliation($attemptUid)) {
             return null;
         }
@@ -46,6 +47,7 @@ final class LegacyDeliveryAttempts
         string $attemptUid,
     ): ?array {
         $attempts = Formie::$plugin->getDeliveryAttempts();
+
         if ($attempts->hasReconciliation($attemptUid)) {
             return null;
         }

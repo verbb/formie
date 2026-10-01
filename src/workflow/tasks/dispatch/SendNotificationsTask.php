@@ -20,7 +20,7 @@ class SendNotificationsTask implements TaskInterface
             return TaskResult::continue();
         }
 
-        $dispatchState->runOnce(DispatchState::MARKER_NOTIFICATIONS, function () use ($context): void {
+        $dispatchState->runOnce(DispatchState::MARKER_NOTIFICATIONS, function() use ($context): void {
             $submission = $context->command->submission;
             $form = $submission->getForm();
 

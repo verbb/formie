@@ -73,7 +73,7 @@ class Emails extends Component
 
         /** @var Message $newEmail */
         $newEmail = Craft::createObject([
-            'class' => $mailer->messageClass, 
+            'class' => $mailer->messageClass,
             'mailer' => $mailer,
         ]);
 
@@ -117,7 +117,7 @@ class Emails extends Component
             }
         } catch (Throwable $e) {
             Craft::$app->getErrorHandler()->logException($e);
-            
+
             $error = Craft::t('formie', 'Notification email parse error for “To: {value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $notification->getToEmail($submission),
                 'message' => $e->getMessage(),
@@ -134,7 +134,7 @@ class Emails extends Component
             return ['error' => $error, 'email' => $newEmail];
         }
 
-        // Sender: 
+        // Sender:
         if ($notification->sender) {
             try {
                 $sender = $this->_parseNotificationEmailSetting($notification->sender, $submission, $notification);
@@ -145,7 +145,7 @@ class Emails extends Component
                 }
             } catch (Throwable $e) {
                 Craft::$app->getErrorHandler()->logException($e);
-                
+
                 $error = Craft::t('formie', 'Notification email parse error for “Sender: {value}”. Template error: “{message}” {file}:{line}', [
                     'value' => $notification->sender,
                     'message' => $e->getMessage(),
@@ -168,7 +168,7 @@ class Emails extends Component
                 }
             } catch (Throwable $e) {
                 Craft::$app->getErrorHandler()->logException($e);
-                
+
                 $error = Craft::t('formie', 'Notification email parse error for “BCC: {value}”. Template error: “{message}” {file}:{line}', [
                     'value' => $notification->bcc,
                     'message' => $e->getMessage(),
@@ -191,7 +191,7 @@ class Emails extends Component
                 }
             } catch (Throwable $e) {
                 Craft::$app->getErrorHandler()->logException($e);
-                
+
                 $error = Craft::t('formie', 'Notification email parse error for CC: {value}”. Template error: “{message}” {file}:{line}', [
                     'value' => $notification->cc,
                     'message' => $e->getMessage(),
@@ -221,7 +221,7 @@ class Emails extends Component
                 }
             } catch (Throwable $e) {
                 Craft::$app->getErrorHandler()->logException($e);
-                
+
                 $error = Craft::t('formie', 'Notification email parse error for ReplyTo: {value}”. Template error: “{message}” {file}:{line}', [
                     'value' => $notification->replyTo,
                     'message' => $e->getMessage(),
@@ -241,7 +241,7 @@ class Emails extends Component
             $newEmail->setSubject($subject);
         } catch (Throwable $e) {
             Craft::$app->getErrorHandler()->logException($e);
-            
+
             $error = Craft::t('formie', 'Notification email parse error for Subject: {value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $notification->subject,
                 'message' => $e->getMessage(),
@@ -329,7 +329,7 @@ class Emails extends Component
             $newEmail->setTextBody($plainTextBody);
         } catch (Throwable $e) {
             Craft::$app->getErrorHandler()->logException($e);
-            
+
             $error = Craft::t('formie', 'Notification email template parse error for “{value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $templatePath,
                 'message' => $e->getMessage(),
@@ -370,6 +370,7 @@ class Emails extends Component
             // Output the full exception if available
             if (isset($emailRender['exception']) && $emailRender['exception']) {
                 Formie::error($emailRender['exception']);
+
                 if ($queueJob instanceof DeliveryJobInterface) {
                     Formie::$plugin->getDeliveryAttempts()->checkpoint($queueJob->getDeliveryAttemptUid(), 'email-render-exception', DeliveryDiagnostics::exception($emailRender['exception']));
                 }
@@ -402,6 +403,7 @@ class Emails extends Component
         }
 
         $deliveryStarted = false;
+
         try {
             $event = new MailEvent([
                 'email' => $newEmail,
@@ -438,6 +440,7 @@ class Emails extends Component
             }
 
             $deliveryStarted = true;
+
             if (!Craft::$app->getMailer()->send($newEmail)) {
                 $mailerError = $this->_formatMailerError($newEmail);
 
@@ -561,7 +564,7 @@ class Emails extends Component
                 Formie::$plugin->getDeliveryAttempts()->sendAlert($submission, 'notification-alert:' . $notification->uid, $deliveryKey ?? DeliveryAttempt::workflowIdentity() ?? 'legacy-alert', $recipient['email'], fn() => $mail->send());
             } catch (Throwable $e) {
                 Craft::$app->getErrorHandler()->logException($e);
-                
+
                 $error = Craft::t('formie', 'Failure alert email could not be sent for submission “{submission}”. Error: {error} {file}:{line}', [
                     'error' => $e->getMessage(),
                     'file' => $e->getFile(),

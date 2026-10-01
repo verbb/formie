@@ -65,28 +65,35 @@ class Subscriptions extends Component
     {
         $lock = 'formie.subscription-cancel.' . $subscription->id;
         $mutex = Craft::$app->getMutex();
+
         if (!$mutex->acquire($lock, 10)) {
             throw new RuntimeException('Cancellation is already being processed.');
         }
+
         try {
             $current = $this->getSubscriptionById($subscription->id);
             $command->authorize($current);
+
             if ($current->getState()->isTerminal()) {
                 $subscription->status = $current->status;
                 return true;
             }
             $integration = $current->getIntegration();
+
             if (!$current->reference || !$integration instanceof PaymentIntegration) {
                 return false;
             }
+
             if (!$current->accountFingerprint || !hash_equals($current->accountFingerprint, $integration->getPaymentAccountFingerprint())) {
                 throw new RuntimeException('Restore the original subscription account before managing it.');
             }
             $mode = $command->resolveMode($current);
+
             if ((!empty($current->scope['cancellationPending']) || $current->cancelAt !== null)
                 && $current->cancellationMode === $mode) {
                 return false;
             }
+
             if (!in_array($mode, $integration->getSubscriptionCancellationModes(), true)) {
                 throw new RuntimeException('The payment provider does not support this cancellation mode.');
             }
@@ -104,6 +111,7 @@ class Subscriptions extends Component
             ]);
             $current->cancellationMode = $mode;
             $this->saveSubscription($current);
+
             // No database transaction spans the remote call. Unknown cancellation never retries blindly.
             try {
                 $snapshot = $integration->cancelSubscriptionSnapshot($current, $mode);
@@ -111,6 +119,7 @@ class Subscriptions extends Component
                 $snapshot = null;
             }
             $current = $this->getSubscriptionById($current->id);
+
             if (!$snapshot) {
                 $snapshot = new SubscriptionSnapshot(
                     SubscriptionStatus::UNKNOWN,
@@ -205,6 +214,7 @@ class Subscriptions extends Component
         }
 
         $previousStatus = $current->getState();
+
         if ($previousStatus->isTerminal() && $snapshot->status !== $previousStatus) {
             return $current;
         }
@@ -232,6 +242,7 @@ class Subscriptions extends Component
         $current->cancellationMode = $snapshot->cancellationMode;
 
         $scope = $current->scope ?? [];
+
         if ($snapshot->status !== SubscriptionStatus::UNKNOWN
             && ($snapshot->cancellationMode !== null || $snapshot->cancelAt !== null || $snapshot->status === SubscriptionStatus::CANCELLED)) {
             if (!empty($scope['cancellationPending'])) {
@@ -305,6 +316,7 @@ class Subscriptions extends Component
 
         $lock = 'formie.financial-row.subscription.' . ($subscription->id ?? $subscription->idempotencyKey ?? 'new');
         $mutex = Craft::$app->getMutex();
+
         if (!$mutex->acquire($lock, 10)) {
             throw new RuntimeException('Financial state is being updated.');
         }
@@ -312,9 +324,11 @@ class Subscriptions extends Component
 
         try {
             $subscriptionRecord = $this->_getSubscriptionRecord($subscription->id);
+
             if (!$subscriptionRecord->getIsNewRecord() && (int)$subscriptionRecord->version !== $subscription->version) {
                 throw new RuntimeException('Financial state changed. Reload before retrying.');
             }
+
             if (!$subscriptionRecord->getIsNewRecord()) {
                 foreach (['integrationId', 'submissionId', 'fieldId'] as $owner) {
                     if ($subscriptionRecord->$owner !== $subscription->$owner) {
@@ -324,6 +338,7 @@ class Subscriptions extends Component
             }
             $subscription->version++;
             $subscription->idempotencyKey ??= bin2hex(random_bytes(24));
+
             if (!$subscriptionRecord->getIsNewRecord()
                 && SubscriptionStatus::fromStored((string)$subscriptionRecord->status, $subscriptionRecord->providerStatus)->isTerminal()) {
                 $subscription->status = SubscriptionStatus::fromStored((string)$subscriptionRecord->status, $subscriptionRecord->providerStatus);
@@ -334,6 +349,7 @@ class Subscriptions extends Component
             $subscriptionRecord->providerUpdatedAt = $subscription->providerUpdatedAt;
             $subscriptionRecord->providerStatus = $subscription->providerStatus;
             $subscription->scope ??= ['submissionId' => $subscription->submissionId, 'integrationId' => $subscription->integrationId, 'fieldId' => $subscription->fieldId];
+
             if ($historyEntry !== null || $subscriptionRecord->getIsNewRecord() || $previousStatus !== $subscription->status) {
                 $historyEntry ??= [
                     'status' => $subscription->status,
@@ -353,10 +369,12 @@ class Subscriptions extends Component
             $subscriptionRecord->planId = $subscription->planId;
             $subscriptionRecord->reference = $subscription->reference;
             $subscription->accountFingerprint ??= $subscriptionRecord->getIsNewRecord() ? $subscription->getIntegration()?->getPaymentAccountFingerprint() : null;
+
             if (!$subscriptionRecord->getIsNewRecord() && $subscriptionRecord->accountFingerprint !== $subscription->accountFingerprint) {
                 throw new RuntimeException('Subscription account ownership cannot change.');
             }
             $subscription->terms ??= $subscription->getPlan() ? array_intersect_key($subscription->getPlan()->getAttributes(), array_flip(['amountMinor', 'currency', 'interval', 'intervalCount'])) : null;
+
             if (!$subscriptionRecord->getIsNewRecord() && $subscriptionRecord->terms !== null) {
                 $subscription->terms = Json::decodeIfJson($subscriptionRecord->terms);
             }
@@ -481,6 +499,7 @@ class Subscriptions extends Component
         if ($comparisonDate && $comparisonDate >= $paidUntil) {
             return true;
         }
+
         if ($this->hasEventHandlers(self::EVENT_RECEIVE_SUBSCRIPTION_PAYMENT)) {
             $this->trigger(self::EVENT_RECEIVE_SUBSCRIPTION_PAYMENT, new SubscriptionEvent([
                 'subscription' => $subscription,
@@ -504,10 +523,12 @@ class Subscriptions extends Component
             return;
         }
         $encoded = Json::encode($data);
+
         if (strlen($encoded) > 2097152) {
             $encoded = Json::encode(['truncated' => true, 'originalBytes' => strlen($encoded), 'preview' => mb_strcut($encoded, 0, 65536)]);
         }
         $cipher = Craft::$app->getSecurity()->encryptByKey($encoded, Formie::$plugin->getSettings()->getSecurityKey());
+
         if ($cipher === false) {
             throw new RuntimeException('Unable to retain subscription provider evidence.');
         }

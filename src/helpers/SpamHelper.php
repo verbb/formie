@@ -358,7 +358,7 @@ class SpamHelper
         $expressionLanguage = new ExpressionLanguage();
 
         $expressionLanguage->register('formieContains', function($haystack, $needle) {
-        }, function ($args, $haystack, $needle) {
+        }, function($args, $haystack, $needle) {
             // Use regex to match whole words, not `str_contains`, and ensure case-sensitive
             return preg_match('/\b' . preg_quote($needle, '/') . '\b/', $haystack) === 1;
         });
@@ -376,7 +376,7 @@ class SpamHelper
                     if (self::_ipInRange($userIp, $target)) {
                         return true;
                     }
-                } else if (strpos($target, '/') !== false) {
+                } elseif (strpos($target, '/') !== false) {
                     // CIDR
                     if (self::_ipInCidr($userIp, $target)) {
                         return true;
@@ -422,6 +422,7 @@ class SpamHelper
         $tokens = preg_split($pattern, $expr, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 
         $parts = [];
+
         foreach ($tokens as $tok) {
             $tokTrim = trim($tok);
 

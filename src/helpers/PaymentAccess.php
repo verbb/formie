@@ -27,9 +27,13 @@ final class PaymentAccess
         if (!$payment->id || !$payment->uid) {
             return null;
         }
-        return PaymentCapabilities::issue(PaymentCapabilityPurpose::STATUS, $payment->id, ['paymentUid' => $payment->uid,
+        return PaymentCapabilities::issue(
+            PaymentCapabilityPurpose::STATUS,
+            $payment->id,
+            ['paymentUid' => $payment->uid,
             'integrationId' => $payment->integrationId, 'submissionId' => $payment->submissionId],
-            (($issuedAt ?? time()) + self::STATUS_TOKEN_TTL_SECONDS - time()));
+            (($issuedAt ?? time()) + self::STATUS_TOKEN_TTL_SECONDS - time())
+        );
     }
 
     public static function resolveStatusToken(?string $token): ?array
@@ -68,7 +72,9 @@ final class PaymentAccess
 
     public static function issueProviderSessionToken(string $provider, int $integrationId, string $integrationHandle, ?int $issuedAt = null, ?int $formId = null, ?int $fieldId = null, ?int $siteId = null): ?string
     {
-        if (!$formId || !$fieldId || !$siteId || $integrationId <= 0) { return null; }
+        if (!$formId || !$fieldId || !$siteId || $integrationId <= 0) {
+            return null;
+        }
         return PaymentCapabilities::issue(PaymentCapabilityPurpose::SESSION, $integrationId, ['provider' => $provider, 'integrationHandle' => $integrationHandle,
             'formId' => $formId, 'fieldId' => $fieldId, 'siteId' => $siteId], (($issuedAt ?? time()) + self::PROVIDER_SESSION_TOKEN_TTL_SECONDS - time()));
     }
@@ -76,10 +82,17 @@ final class PaymentAccess
     public static function resolveProviderSessionToken(?string $token, string $provider): ?array
     {
         $row = $token ? PaymentCapabilities::resolve($token, PaymentCapabilityPurpose::SESSION) : null;
-        if (!$row || ($row['scope']['provider'] ?? null) !== $provider) { return null; }
+
+        if (!$row || ($row['scope']['provider'] ?? null) !== $provider) {
+            return null;
+        }
         $scope = $row['scope'];
         $form = Formie::$plugin->getForms()->getFormById((int)$scope['formId'], (int)$scope['siteId']);
-        if (!$form || !$form->enabled) { return null; }
+
+        if (!$form || !$form->enabled) {
+            return null;
+        }
+
         foreach ($form->getFields() as $field) {
             if ((int)$field->id === (int)$scope['fieldId'] && $field instanceof Payment && !$field->getIsDisabled()
                 && (int)$field->getPaymentIntegration()?->id === (int)$row['resourceId']) {

@@ -27,10 +27,12 @@ class SubmissionContentAccessor
         if ($state->uploadedDataFiles && !$state->isMergingPartialPayload) {
             $owner = $field;
             $segments = $nestedPath === null ? [] : explode('.', $nestedPath);
+
             while ($segments && $owner instanceof \verbb\formie\base\ParentFieldInterface) {
                 $row = $owner instanceof \verbb\formie\base\RepeatableParentFieldInterface ? array_shift($segments) : null;
                 $handle = array_shift($segments);
                 $child = null;
+
                 foreach ($owner->getFields($row) as $candidate) {
                     if ($candidate->handle === $handle) {
                         $child = $candidate;
@@ -39,6 +41,7 @@ class SubmissionContentAccessor
                 }
                 $owner = $child;
             }
+
             if ($owner && !$segments) {
                 $owner->discardRequestValue($submission);
             }

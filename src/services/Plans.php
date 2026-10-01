@@ -94,6 +94,7 @@ class Plans extends Component
 
         try {
             $planRecord = $this->_getPlanRecord($plan->id);
+
             if ($planRecord->getIsNewRecord()) {
                 $plan->accountFingerprint ??= $plan->getIntegration()?->getPaymentAccountFingerprint();
             } else {
@@ -101,6 +102,7 @@ class Plans extends Component
                     $plan->$attribute = $planRecord->$attribute;
                 }
             }
+
             foreach (['accountFingerprint', 'amountMinor', 'currency', 'interval', 'intervalCount', 'providerStatus'] as $attribute) {
                 $planRecord->$attribute = $plan->$attribute;
             }
@@ -198,7 +200,7 @@ class Plans extends Component
 
     // Private Methods
     // =========================================================================
-    
+
     private function _plans(): MemoizableArray
     {
         if (!isset($this->_plans)) {

@@ -22,7 +22,7 @@ class SchemaCompatibility
             $node['$field'] = $node['$formkit'];
             unset($node['$formkit']);
 
-            self::logLegacySchemaDeprecation(
+            self::_logLegacySchemaDeprecation(
                 'formkit',
                 'Schema `$formkit` nodes have been deprecated. Use `$field` instead.'
             );
@@ -32,19 +32,19 @@ class SchemaCompatibility
             $node['instructions'] = $node['help'];
             unset($node['help']);
 
-            self::logLegacySchemaDeprecation(
+            self::_logLegacySchemaDeprecation(
                 'help',
                 'Schema `help` has been deprecated. Use `instructions` instead.'
             );
         }
 
         if (isset($node['if']) && is_string($node['if'])) {
-            $normalizedCondition = self::normalizeLegacyCondition($node['if']);
+            $normalizedCondition = self::_normalizeLegacyCondition($node['if']);
 
             if ($normalizedCondition !== $node['if']) {
                 $node['if'] = $normalizedCondition;
 
-                self::logLegacySchemaDeprecation(
+                self::_logLegacySchemaDeprecation(
                     'if',
                     'Legacy schema `if` expressions using `$get(...).value` have been deprecated. Use direct field expressions instead.'
                 );
@@ -57,7 +57,7 @@ class SchemaCompatibility
     // Private Methods
     // =========================================================================
 
-    private static function normalizeLegacyCondition(string $condition): string
+    private static function _normalizeLegacyCondition(string $condition): string
     {
         $normalized = preg_replace('/\$get\(([^)]+)\)\.value/', '$1', $condition) ?? $condition;
 
@@ -75,7 +75,7 @@ class SchemaCompatibility
         return $normalized;
     }
 
-    private static function logLegacySchemaDeprecation(string $key, string $message): void
+    private static function _logLegacySchemaDeprecation(string $key, string $message): void
     {
         if (isset(self::$_legacyWarnings[$key])) {
             return;

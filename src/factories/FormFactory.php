@@ -58,6 +58,7 @@ final class FormFactory
             $counter = self::$autoHandleCounter++;
             // Grow beyond two letters instead of cycling through an exhausted namespace.
             $handle = '';
+
             do {
                 $handle = self::HANDLE_ALPHABET[$counter % 26] . $handle;
                 $counter = intdiv($counter, 26);

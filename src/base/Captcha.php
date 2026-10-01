@@ -39,7 +39,7 @@ abstract class Captcha extends Integration
 
     public static function supportsConnection(): bool
     {
-        return false; 
+        return false;
     }
 
     public static function supportsPayloadSending(): bool
@@ -156,7 +156,7 @@ abstract class Captcha extends Integration
         return StringHelper::toCamelCase($this->handle . 'Captcha');
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -215,6 +215,7 @@ abstract class Captcha extends Integration
     protected function getCaptchaValue(Submission $submission, string $name): mixed
     {
         $browserValue = $submission->getCaptchaData($name);
+
         if (is_array($browserValue)) {
             return $browserValue['value'] ?? null;
         }

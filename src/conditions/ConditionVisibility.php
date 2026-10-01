@@ -24,6 +24,7 @@ final class ConditionVisibility
     {
         $scope = [];
         $cursor = $field;
+
         while ($parent = $cursor->getParentField()) {
             if ($parent instanceof RepeatableParentFieldInterface && preg_match('/\[([0-9]+)\]$/', $cursor->getNamespace(), $match)) {
                 $scope[(string)$parent->reference] = (int)$match[1];
@@ -38,13 +39,16 @@ final class ConditionVisibility
         if (!self::followsConditions($submission)) {
             return false;
         }
+
         if ($field->hasConditions()) {
             $settings = $field->conditions();
             $effect = $settings->effect;
+
             if (!in_array($effect, ['enable', 'disable'], true) && ConditionsHelper::evaluate($settings, $submission, rows: self::rowScope($field))->hides($effect)) {
                 return true;
             }
         }
+
         if (($parent = $field->getParentField()) instanceof Field && self::hidden($parent, $submission)) {
             return true;
         }
@@ -56,11 +60,13 @@ final class ConditionVisibility
         if ($field->getIsDisabled()) {
             return true;
         }
+
         if (!self::followsConditions($submission)) {
             return false;
         }
         $settings = $field->conditions();
         $effect = $settings->effect;
+
         if ($field->hasConditions() && in_array($effect, ['enable', 'disable'], true) && ConditionsHelper::evaluate($settings, $submission, rows: self::rowScope($field))->hides($effect)) {
             return true;
         }
@@ -82,6 +88,7 @@ final class ConditionVisibility
             return;
         }
         $ordered = (new ConditionGraph())->orderedFields($submission->getForm());
+
         // Materialise row-bound field instances each pass: clearing a parent may remove rows.
         foreach ($ordered as $definition) {
             $walk = function(array $fields) use (&$walk, $definition, $submission): void {
@@ -90,6 +97,7 @@ final class ConditionVisibility
                         $submission->setFieldValue($field->valueKey(), null);
                         continue;
                     }
+
                     if ($field instanceof RepeatableParentFieldInterface) {
                         foreach ((array)$submission->getFieldValue($field->valueKey()) as $row => $value) {
                             $walk($field->getFields($row));

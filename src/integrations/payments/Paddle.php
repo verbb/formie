@@ -56,7 +56,7 @@ class Paddle extends Payment
     {
         return 'Paddle';
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -107,10 +107,16 @@ class Paddle extends Payment
             return PaymentDecision::notRequired();
         }
 
-        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $this->getFieldSetting('currency'), [
+        return PaymentAttempt::run(
+            $this,
+            $submission,
+            $this->getAmount($submission),
+            $this->getFieldSetting('currency'),
+            [
             'apiKey' => $this->apiKey,
             'useSandbox' => $this->useSandbox,
-        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processCheckout($submission, $payment, $attempt),
+        ],
+            fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processCheckout($submission, $payment, $attempt),
             allowCreate: !$this->getPaymentFieldPayload($submission)->array('paddleCheckoutData'),
         );
     }
@@ -256,7 +262,7 @@ class Paddle extends Payment
             ]),
         ];
     }
-    
+
 
     // Protected Methods
     // =========================================================================
@@ -379,7 +385,8 @@ class Paddle extends Payment
                 'collection_mode' => 'automatic',
                 'custom_data' => $payload['customData'],
             ];
-            $transaction = $attempt->request($transactionPayload,
+            $transaction = $attempt->request(
+                $transactionPayload,
                 fn() => $this->request('POST', 'transactions', ['json' => $transactionPayload])['data'] ?? [],
                 static fn(array $transaction) => $transaction['id'] ?? null,
             );
@@ -533,7 +540,8 @@ class Paddle extends Payment
     {
         $attempt = new DeliveryAttempt((int)$payment->submissionId, 'paddle.' . $this->id . '.' . $resource, (string)$payment->uid);
 
-        return $attempt->execute($payload,
+        return $attempt->execute(
+            $payload,
             fn() => $this->request('POST', $resource, ['json' => $payload]),
             reference: static fn(array $response) => $response['data']['id'] ?? '',
             reconcile: fn(string $id) => $this->request('GET', $resource . '/' . rawurlencode($id)),

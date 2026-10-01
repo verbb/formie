@@ -34,12 +34,12 @@ class SubmissionContentNormalizer
         foreach ($manager->getFieldCollection($submission)->all() as $field) {
             if (array_key_exists($field->handle, $values)) {
                 $value = $values[$field->handle];
-            } else if ($paramNamespace && isset($fileFieldsByHandle[$field->handle]) && UploadedFile::getInstancesByName("$paramNamespace.$field->handle")) {
+            } elseif ($paramNamespace && isset($fileFieldsByHandle[$field->handle]) && UploadedFile::getInstancesByName("$paramNamespace.$field->handle")) {
                 // File uploads may have no scalar body param at all; treat the
                 // field as present so `normalizeValueFromRequest()` can inspect
                 // the uploaded file instances itself.
                 $value = null;
-            } else if ($paramNamespace && $this->_shouldTreatMissingCheckboxesAsEmpty($submission, $field)) {
+            } elseif ($paramNamespace && $this->_shouldTreatMissingCheckboxesAsEmpty($submission, $field)) {
                 $value = [];
             } else {
                 continue;

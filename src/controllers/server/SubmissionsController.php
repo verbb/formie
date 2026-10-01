@@ -267,11 +267,13 @@ class SubmissionsController extends Controller
 
         $payload['completion'] = $response->outcome->data['completion'] ?? null;
         $payload['redirect'] = $response->outcome->data['redirect'] ?? null;
+
         if ($completion = $payload['completion']) {
             $payload['redirectUrl'] = $completion['url'];
             $payload['redirectTarget'] = $completion['target'];
             $payload['successMessage'] = $completion['message'];
         }
+
         if (array_key_exists('successMessage', $payload)) {
             $payload['submitActionMessage'] = $payload['successMessage'];
         }
@@ -311,6 +313,7 @@ class SubmissionsController extends Controller
     private function _appendPaymentResponsePayload(array &$payload, SubmissionResponse $response): void
     {
         $payload['payment'] = $response->payment;
+
         if (isset($payload['payment']['message'])) {
             $payload['payment']['message'] = StringHelper::sanitizeMessageHtml($payload['payment']['message']);
         }

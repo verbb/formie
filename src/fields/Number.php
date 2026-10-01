@@ -78,7 +78,7 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
             'description' => $config['instructions'] ?? null,
         ];
     }
-    
+
 
     // Constants
     // =========================================================================
@@ -142,7 +142,7 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
             if ($this->defaultValue !== null) {
                 return (string)$this->defaultValue;
             }
-            
+
             return null;
         }
 

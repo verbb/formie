@@ -80,6 +80,7 @@ class Omnisend extends EmailMarketing
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -139,7 +140,7 @@ class Omnisend extends EmailMarketing
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

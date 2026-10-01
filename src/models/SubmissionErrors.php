@@ -19,6 +19,7 @@ final class SubmissionErrors
     {
         $errors = new self();
         $fields = [];
+
         foreach ($submission->getFields() as $field) {
             foreach ([$field->handle, (string)$field->id, (string)$field->uid] as $key) {
                 $fields[$key] = $field;
@@ -27,6 +28,7 @@ final class SubmissionErrors
         $walk = function(array $raw, string $prefix = '') use (&$walk, $errors, $fields, $submission): void {
             foreach ($raw as $key => $messages) {
                 $rawKey = $prefix === '' ? (string)$key : $prefix . '.' . $key;
+
                 if (is_array($messages) && !array_is_list($messages)) {
                     $walk($messages, $rawKey);
                     continue;
@@ -36,11 +38,13 @@ final class SubmissionErrors
                 $path = preg_replace('/^fields\./', '', $path);
                 [$root, $nested] = array_pad(explode('.', $path, 2), 2, '');
                 $field = $fields[$root] ?? null;
+
                 foreach ((array)$messages as $message) {
                     if (!is_string($message)) {
                         continue;
                     }
                     $message = self::plainText($message);
+
                     if ($message === '') {
                         continue;
                     }
@@ -80,6 +84,7 @@ final class SubmissionErrors
     public function toClient(): array
     {
         $result = ['form' => [], 'fields' => []];
+
         foreach ($this->_items as $item) {
             if ($item['fieldId'] === null) {
                 $result['form'][] = $item['message'];
@@ -94,6 +99,7 @@ final class SubmissionErrors
     public function toValuePathMap(): array
     {
         $result = [];
+
         foreach ($this->_items as $item) {
             $result[$item['valuePath']][] = $item['message'];
         }

@@ -234,6 +234,7 @@ class Rendering extends Component
         }
 
         $prepareOptions = $baseOptions;
+
         if (array_key_exists('fieldNamespace', $fieldOptions)) {
             $prepareOptions['fieldNamespace'] = $fieldOptions['fieldNamespace'];
         }
@@ -254,6 +255,7 @@ class Rendering extends Component
         $value = $fieldOptions['value'] ?? null;
 
         $configValue = $value;
+
         if ($configValue === null && $element) {
             $configValue = $field->getElementValue($element);
         }
@@ -445,11 +447,13 @@ class Rendering extends Component
 
         $runtime = new \verbb\formie\services\RuntimeConfiguration();
         $mapped = [];
+
         foreach ($values as $path => $value) {
             $field = $runtime->findField($form, (string)$path);
             $mapped[$field->uid] = $runtime->populationValue($field, $value, $submission);
         }
         $form->replaceInstanceConfig($form->getInstanceConfig()->with($force ? 'forced' : 'initial', $mapped));
+
         if ($submission) {
             $submission->snapshot = \verbb\formie\models\SubmissionConfig::capture($form->getInstanceConfig());
             $submission->setForm($form);
@@ -709,7 +713,7 @@ class Rendering extends Component
             'type' => 'application/json',
             'data-formie-translations' => true,
         ]);
-        
+
         $translationsJson = Json::encode(
             $this->getBrowserJsTranslations(),
             JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
@@ -749,7 +753,7 @@ class Rendering extends Component
 
             return $form;
         }
-        
+
         if ($form && is_string($form)) {
             if ($form = Formie::$plugin->getForms()->getFormByHandle($form)) {
                 return clone $form;

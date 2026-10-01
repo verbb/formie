@@ -12,11 +12,10 @@ class RegisterDateTimeFormatOptionsEvent extends Event
 
     public ?FieldInterface $field = null;
     public array $options = [];
-    
+
 }
 
 class_alias(
     RegisterDateTimeFormatOptionsEvent::class,
     RegisterDateTimeFormatOpionsEvent::class
 );
-

@@ -26,6 +26,7 @@ class PaymentChallengesController extends Controller
     {
         $this->requirePostRequest();
         $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle((string)$this->request->getRequiredParam('handle'));
+
         if (!$integration instanceof Opayo) {
             throw new NotFoundHttpException('Payment provider not found.');
         }

@@ -112,7 +112,7 @@ class Calculations extends Field implements PreviewableFieldInterface
         $formula = preg_replace_callback('/\{field:[^}]+\}/', function($matches) use (&$variables, &$variableIdsBySourceKey, &$sourceKeyByVariableId, $fieldMap, $form) {
             $token = (string)($matches[0] ?? '');
             $expression = References::parseReferenceExpression($token);
-            
+
             if (!$expression->isValid || $expression->target !== 'field' || $expression->identifier === '') {
                 return '';
             }
@@ -382,7 +382,7 @@ class Calculations extends Field implements PreviewableFieldInterface
                 ])
                 ->instanceAttributes($this->getInputAttributes());
         }
-        
+
         return parent::defineSlotTag($key, $context);
     }
 
@@ -398,7 +398,7 @@ class Calculations extends Field implements PreviewableFieldInterface
     protected function defineBrowserModules(): array
     {
         $modules = parent::defineBrowserModules();
-        
+
         $modules[] = new BrowserModule([
             'moduleId' => 'formie:calculations',
             'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],

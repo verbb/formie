@@ -734,7 +734,7 @@ class FormSlotRegistry extends Component
 
         if ($progress <= 0) {
             $state = 'start';
-        } else if ($progress >= 100) {
+        } elseif ($progress >= 100) {
             $state = 'end';
         }
 

@@ -41,7 +41,7 @@ class OopSpam extends Captcha
     public function getSettingsHtml(): ?string
     {
         $variables = $this->getSettingsHtmlVariables();
-        
+
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/oop-spam/_plugin-settings', $variables);
     }
 

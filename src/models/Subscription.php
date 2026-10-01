@@ -86,7 +86,10 @@ class Subscription extends Model
 
     public function getIntegration(): ?IntegrationInterface
     {
-        if (!$this->integrationId) { return null; }
+        if (!$this->integrationId) {
+            return null;
+        }
+
         if (!isset($this->_integration)) {
             $this->_integration = Formie::$plugin->getIntegrations()->getIntegrationById($this->integrationId);
         }
@@ -96,7 +99,10 @@ class Subscription extends Model
 
     public function getSubmission(): ?Submission
     {
-        if (!$this->submissionId) { return null; }
+        if (!$this->submissionId) {
+            return null;
+        }
+
         if (!isset($this->_submission)) {
             $this->_submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId);
         }
@@ -106,7 +112,10 @@ class Subscription extends Model
 
     public function getField(): ?PaymentField
     {
-        if (!$this->fieldId) { return null; }
+        if (!$this->fieldId) {
+            return null;
+        }
+
         if (!isset($this->_field)) {
             $this->_field = Formie::$plugin->getFields()->getFieldById($this->fieldId);
         }
@@ -116,7 +125,10 @@ class Subscription extends Model
 
     public function getPlan(): ?SubscriptionPlan
     {
-        if (!$this->planId) { return null; }
+        if (!$this->planId) {
+            return null;
+        }
+
         if (!isset($this->_plan)) {
             $this->_plan = Formie::$plugin->getPlans()->getPlanById($this->planId);
         }

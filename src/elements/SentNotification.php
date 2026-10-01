@@ -198,7 +198,7 @@ class SentNotification extends Element
 
     // Properties
     // =========================================================================
-    
+
     public ?int $id = null;
     public ?string $title = null;
     public ?string $formId = null;
@@ -241,7 +241,7 @@ class SentNotification extends Element
         // Just in case we try and render the element before a `dateCreated` exists
         return $this->dateCreated?->format('M j, Y H:i:s A') ?? parent::__toString();
     }
-    
+
     public function canView(User $user): bool
     {
         if (parent::canView($user)) {
@@ -250,7 +250,7 @@ class SentNotification extends Element
 
         return Formie::$plugin->getPermissions()->canViewSentNotifications($user, $this->getForm());
     }
-    
+
     public function canSave(User $user): bool
     {
         return false;

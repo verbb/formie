@@ -49,11 +49,13 @@ trait LegacyDeliveryJobTrait
 
         $data = $this->_legacyDelivery;
         $submission = Submission::find()->id($data['submissionId'] ?? 0)->status(null)->isIncomplete(null)->isSpam(null)->one();
+
         if (!$submission) {
             throw new RuntimeException('Legacy delivery submission is unavailable.');
         }
 
         $notification = $this instanceof SendNotification ? Formie::$plugin->getNotifications()->getNotificationById($data['notificationId'] ?? 0) : null;
+
         if ($this instanceof SendNotification && !$notification) {
             throw new RuntimeException('Legacy notification is unavailable.');
         }
@@ -66,13 +68,16 @@ trait LegacyDeliveryJobTrait
             $binding = '@dispatch';
             $step = 'dispatch';
             $handles = $data['stepHandles'] ?? [];
+
             if (!$handles) {
                 $handle = $data['integrationHandle'] ?? null;
+
                 if (!$handle && !empty($data['integrationId'])) {
                     $handle = Formie::$plugin->getIntegrations()->getIntegrationById($data['integrationId'])?->handle;
                 }
                 $handles = $handle ? [$handle] : [];
             }
+
             if (!$handles) {
                 throw new RuntimeException('Legacy integration is unavailable.');
             }

@@ -200,6 +200,7 @@ class IntegrationOptionSourceHelper
     public static function resolveOptions(string $provider, array $params = []): OptionList
     {
         $integrationId = (int)($params['integrationId'] ?? 0);
+
         if (!$integrationId) {
             return OptionList::error(Craft::t('formie', 'Select an integration.'));
         }

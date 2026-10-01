@@ -25,6 +25,7 @@ class SubmissionContentSerializer
 
             $serializedValue = $field->serializeValueForDb($manager->getNormalizedValue($submission, $field->handle), $submission);
             $content[$field->uid] = $serializedValue;
+
             if (array_key_exists($fieldUid, $rawValues)) {
                 $presentValues[$fieldUid] = $serializedValue;
             }

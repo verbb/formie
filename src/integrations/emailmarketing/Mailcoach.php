@@ -28,7 +28,7 @@ class Mailcoach extends EmailMarketing
     {
         return 'Mailcoach';
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -86,6 +86,7 @@ class Mailcoach extends EmailMarketing
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -135,7 +136,7 @@ class Mailcoach extends EmailMarketing
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

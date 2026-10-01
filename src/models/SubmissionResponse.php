@@ -34,6 +34,7 @@ class SubmissionResponse extends Model
                 default => 200,
             },
         ]);
+
         foreach ($form->getPages() as $page) {
             if ((int)$page->id === $outcome->nextPageId) {
                 $response->nextPage = $page;
@@ -41,12 +42,15 @@ class SubmissionResponse extends Model
             }
         }
         $payment = $outcome->data['payment'] ?? null;
+
         if (is_array($payment)) {
             $response->payment = $payment;
         }
+
         if ($form->settings->quizShowScoreAfterSubmit && $submission->id) {
             $scoring = \verbb\formie\Formie::$plugin->getQuestionnaireScoring();
             $quizResult = $scoring->getQuizResultForSubmission((int)$submission->id);
+
             if ($quizResult) {
                 $response->quizResult = $scoring->getQuizResultPayload($quizResult, $form, true);
             }

@@ -73,7 +73,6 @@ use Throwable;
 
 class Integrations extends Component
 {
-
     // Static Methods
     // =========================================================================
 
@@ -295,7 +294,7 @@ class Integrations extends Component
             Integration::TYPE_PAYMENT => $event->payments,
 
             Integration::TYPE_AUTOMATION => $event->automations,
-            
+
             Integration::TYPE_MISC => $event->miscellaneous,
         ];
 
@@ -408,15 +407,18 @@ class Integrations extends Component
             'integration' => $integration,
         ]);
         $this->trigger(self::EVENT_BEFORE_TRIGGER_INTEGRATION, $event);
+
         if (!$event->isValid) {
             return IntegrationResult::skipped('event_cancelled');
         }
+
         try {
             $context = \verbb\formie\models\IntegrationRunContext::forIntegration($integration, $event->submission);
             $integration->beginRun($context);
             $result = $integration instanceof \verbb\formie\base\DispatchableIntegrationInterface
                 ? $integration->execute($context)
                 : $integration->executeLegacyPayload($context);
+
             if (!in_array($result->status, [IntegrationStatus::Succeeded, IntegrationStatus::Skipped], true)) {
                 $this->handleTriggerIntegrationFailed($integration, $submission, new IntegrationException('Integration delivery ' . $result->status->value), $integration->getLegacyIntegrationResponse() ?? $result->toStorage());
             }
@@ -425,6 +427,7 @@ class Integrations extends Component
             $this->handleTriggerIntegrationFailed($integration, $submission, new IntegrationException('Integration delivery failed; inspect delivery diagnostics.'));
             // Providers may wrap an operation exception with their own API error.
             $cause = $error;
+
             do {
                 if ($cause instanceof IntegrationStepException) {
                     return $cause->result;
@@ -453,6 +456,7 @@ class Integrations extends Component
                 // worker. Craft's typed getter throws when no job is executing.
                 try {
                     $currentJobId = (int)$queue->getJobId();
+
                     if ($currentJobId > 0) {
                         $queueJobId = $currentJobId;
                     }
@@ -599,8 +603,10 @@ class Integrations extends Component
     public function getFormIntegrationByHandle(string $handle): ?IntegrationInterface
     {
         $grouped = $this->getAllIntegrationsForForm();
+
         foreach ($grouped as $integrations) {
             $found = ArrayHelper::firstWhere($integrations, 'handle', $handle, true);
+
             if ($found !== null) {
                 return $found;
             }
@@ -682,6 +688,7 @@ class Integrations extends Component
 
         $formSettings = $form->getSettings();
         $saved = $formSettings ? ($formSettings->integrations[$handle] ?? []) : [];
+
         if (is_object($saved)) {
             if (method_exists($saved, 'getAttributes')) {
                 $saved = $saved->getAttributes() ?? [];
@@ -691,6 +698,7 @@ class Integrations extends Component
                 $saved = Json::decode(Json::encode($saved));
             }
         }
+
         if (!is_array($saved)) {
             $saved = [];
         }
@@ -699,6 +707,7 @@ class Integrations extends Component
 
         $schema = $integration->getFormSettingsSchema($form);
         $compiled = SchemaHelper::compileSchema($schema);
+
         if (Craft::$app->getConfig()->getGeneral()->devMode) {
             FormIntegration::validateSchema($integration, $compiled);
         }
@@ -760,7 +769,7 @@ class Integrations extends Component
             $integration->sortOrder = (new Query())
                     ->from([Table::FORMIE_INTEGRATIONS])
                     ->max('[[sortOrder]]') + 1;
-        } else if (!$integration->uid) {
+        } elseif (!$integration->uid) {
             $integration->uid = Db::uidById(Table::FORMIE_INTEGRATIONS, $integration->id);
         }
 
@@ -782,6 +791,7 @@ class Integrations extends Component
         }
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             $integrationRecord = $this->_getIntegrationRecord($integrationUid, true);
             $isNewIntegration = $integrationRecord->getIsNewRecord();
@@ -1075,7 +1085,7 @@ class Integrations extends Component
             }
 
             $groupName = $resolvedIntegration->typeName();
-            
+
             $summaries[$groupName][] = [
                 'handle' => $resolvedIntegration->getHandle(),
                 'name' => $resolvedIntegration->getName(),
@@ -1140,6 +1150,7 @@ class Integrations extends Component
             if ($integration && $integration->getEnabled()) {
                 // The dispatch plan supplies the lane; each runtime receives it as immutable common binding policy.
                 $plan = Formie::$plugin->getIntegrationDispatcher()->getPlan($form);
+
                 if ($plan->enabled) {
                     $formSettings['execution'] = $plan->getStepExecution((string)$handle);
                 }
@@ -1150,6 +1161,7 @@ class Integrations extends Component
         // Preserve the Formie 3 aggregate event at the compatibility boundary,
         // then restore immutable bindings before canonical callers receive them.
         $bindingsByHandle = [];
+
         foreach ($enabledIntegrations as $binding) {
             $bindingsByHandle[$binding->integration->handle] = $binding;
         }
@@ -1164,6 +1176,7 @@ class Integrations extends Component
             static function(IntegrationInterface $integration) use ($bindingsByHandle, $form): FormIntegration {
                 $settings = $integration instanceof Integration ? FormIntegration::settingsFromRuntime($integration) : ['enabled' => $integration->getEnabled()] + $integration->getAttributes();
                 $binding = $bindingsByHandle[$integration->handle] ?? null;
+
                 if ($binding !== null) {
                     $settings['execution'] = $binding->execution;
                 }

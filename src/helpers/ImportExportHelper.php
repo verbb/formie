@@ -148,6 +148,7 @@ class ImportExportHelper
         $data['schemaVersion'] = FormSerializer::SCHEMA_VERSION;
         $data['formieVersion'] = Formie::$plugin->getVersion();
         $data['dependencies'] = self::getDependencyDocuments($data);
+
         foreach (['group' => $formElement->getGroup(), 'submissionStatus' => $formElement->getDefaultStatus(), 'formStatus' => $formElement->getFormStatusModel()] as $kind => $resource) {
             if ($resource) {
                 $data['dependencies'][] = ['kind' => $kind, 'config' => array_intersect_key($resource->getAttributes(), array_flip(['uid', 'name', 'handle', 'description', 'color']))];
@@ -313,6 +314,7 @@ class ImportExportHelper
             if (!is_array($data['dependencies'])) {
                 throw new Exception('Invalid form dependency manifest.');
             }
+
             foreach ($data['dependencies'] as $dependency) {
                 if (!is_array($dependency) || !in_array($dependency['kind'] ?? null, ['form', 'email', 'pdf', 'group', 'submissionStatus', 'formStatus'], true) || !is_array($dependency['config'] ?? null)) {
                     throw new Exception('Invalid form dependency.');
@@ -322,9 +324,11 @@ class ImportExportHelper
             return $data['dependencies'];
         }
         $dependencies = [];
+
         if (!empty($data['formTemplate'])) {
             $dependencies[] = ['kind' => 'form', 'config' => $data['formTemplate']];
         }
+
         foreach ($data['notifications'] ?? [] as $notification) {
             foreach (['email', 'pdf'] as $kind) {
                 if (!empty($notification[$kind . 'Template'])) {
@@ -343,6 +347,7 @@ class ImportExportHelper
         $serializer = new FormSerializer();
         $serializer->prepareImport($data, $form);
         $resources = [];
+
         foreach (self::getDependencyDocuments($data) as $dependency) {
             $config = $dependency['config'];
             $template = self::_resolveResource($dependency['kind'], $config);
@@ -353,9 +358,11 @@ class ImportExportHelper
             ];
         }
         $warnings = $serializer->warnings;
+
         if (!empty($requested['formTemplateUid']) && empty($data['formTemplate'])) {
             $warnings[] = 'Unavailable form template dependency: ' . $requested['formTemplateUid'];
         }
+
         foreach ($requested['notifications'] ?? [] as $key => $notification) {
             foreach (['email', 'pdf'] as $kind) {
                 if (!empty($notification[$kind . 'TemplateUid']) && empty($data['notifications'][$key][$kind . 'Template'])) {
@@ -364,14 +371,17 @@ class ImportExportHelper
             }
         }
         $settings = Json::decodeIfJson($data['settings'] ?? []) ?: [];
+
         foreach ($settings['integrations'] ?? [] as $handle => $config) {
             $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle)
                 ?? Formie::$plugin->getIntegrations()->getCaptchaByHandle($handle);
+
             if (!$integration || $integration instanceof \verbb\formie\models\MissingIntegration) {
                 $warnings[] = "Unavailable integration: $handle. Settings retained.";
                 $resources[] = ['kind' => 'integration', 'handle' => $handle, 'action' => 'missing'];
             }
         }
+
         foreach ($resources as $resource) {
             if ($resource['action'] === 'reuseHandle') {
                 $warnings[] = 'Legacy handle fallback: ' . $resource['kind'] . ' resource ' . $resource['handle'];
@@ -389,12 +399,14 @@ class ImportExportHelper
             ...array_keys($data['siteOverrides'] ?? []),
             ...array_keys($data['fieldSiteOverrides'] ?? []),
         ]));
+
         foreach ($sites as $handle) {
             if (!self::_resolveSiteIdByHandle($handle)) {
                 $warnings[] = "Unavailable site: $handle. Site overrides cannot be applied.";
                 $resources[] = ['kind' => 'site', 'handle' => $handle, 'action' => 'missing'];
             }
         }
+
         if ($form && isset($data['notifications'])) {
             $incomingHandles = array_column($data['notifications'] ?? [], 'handle');
             $serializer->changes['removedNotifications'] = array_values(array_filter(
@@ -416,6 +428,7 @@ class ImportExportHelper
                 }
                 $config = $dependency['config'];
                 $key = is_array($reference) ? ($reference['uid'] ?? $reference['handle'] ?? null) : $reference;
+
                 if ($key === null || $key === ($config['uid'] ?? null) || $key === ($config['handle'] ?? null)) {
                     return $config;
                 }
@@ -424,9 +437,11 @@ class ImportExportHelper
             return is_array($reference) ? $reference : null;
         };
         $data['formTemplate'] = $resolve('form', $data['formTemplate'] ?? $data['formTemplateUid'] ?? null);
+
         foreach ($data['notifications'] ?? [] as $key => $notification) {
             foreach (['email', 'pdf'] as $kind) {
                 $reference = $notification[$kind . 'Template'] ?? $notification[$kind . 'TemplateUid'] ?? null;
+
                 if ($reference !== null) {
                     $data['notifications'][$key][$kind . 'Template'] = $resolve($kind, $reference);
                 }
@@ -439,7 +454,9 @@ class ImportExportHelper
     private static function _resolveResource(string $kind, array $config): mixed
     {
         $service = self::_resourceService($kind);
-        $method = match ($kind) { 'group' => 'getGroupBy', 'submissionStatus', 'formStatus' => 'getStatusBy', default => 'getTemplateBy' };
+        $method = match ($kind) {
+            'group' => 'getGroupBy', 'submissionStatus', 'formStatus' => 'getStatusBy', default => 'getTemplateBy'
+        };
 
         return (!empty($config['uid']) ? $service->{$method . 'Uid'}($config['uid']) : null)
             ?? (!empty($config['handle']) ? $service->{$method . 'Handle'}($config['handle']) : null);
@@ -461,16 +478,23 @@ class ImportExportHelper
     {
         foreach (self::getDependencyDocuments($data) as $dependency) {
             $kind = $dependency['kind'];
-            $property = match ($kind) { 'group' => 'groupId', 'submissionStatus' => 'defaultStatusId', 'formStatus' => 'formStatusId', default => null };
+            $property = match ($kind) {
+                'group' => 'groupId', 'submissionStatus' => 'defaultStatusId', 'formStatus' => 'formStatusId', default => null
+            };
+
             if (!$property) {
                 continue;
             }
             $resource = self::_resolveResource($kind, $dependency['config']);
+
             if (!$resource) {
-                $class = match ($kind) { 'group' => \verbb\formie\models\FormGroup::class, 'submissionStatus' => \verbb\formie\models\SubmissionStatus::class, 'formStatus' => \verbb\formie\models\FormStatus::class };
+                $class = match ($kind) {
+                    'group' => \verbb\formie\models\FormGroup::class, 'submissionStatus' => \verbb\formie\models\SubmissionStatus::class, 'formStatus' => \verbb\formie\models\FormStatus::class
+                };
                 $keys = $kind === 'group' ? ['name', 'handle'] : ['name', 'handle', 'description', 'color'];
                 $resource = new $class(array_intersect_key($dependency['config'], array_flip($keys)));
                 $save = $kind === 'group' ? 'saveGroup' : 'saveStatus';
+
                 if (!self::_resourceService($kind)->$save($resource)) {
                     throw new Exception('Unable to import dependency: ' . Json::encode($resource->getErrors()));
                 }
@@ -485,6 +509,7 @@ class ImportExportHelper
         $serializer = new FormSerializer();
         $projectConfig = Craft::$app->getProjectConfig();
         $writeYaml = $projectConfig->writeYamlAutomatically;
+
         if ($writeYaml) {
             $projectConfig->flush();
         }
@@ -492,6 +517,7 @@ class ImportExportHelper
         $projectConfig->writeYamlAutomatically = false;
         $transaction = Craft::$app->getDb()->beginTransaction();
         $previousRelaxation = Recipients::$relaxLegacyOptionValidation;
+
         try {
             if (!$existing) {
                 $handles = (new Query())->select('handle')->from(Table::FORMIE_FORMS)->column();
@@ -503,6 +529,7 @@ class ImportExportHelper
             $form->layoutSaveContext->trusted = false;
             $form->layoutSaveContext->remaps = $serializer->remaps;
             Recipients::$relaxLegacyOptionValidation = true;
+
             if (!Craft::$app->getElements()->saveElement($form)) {
                 throw new Exception('Unable to import form: ' . Json::encode($form->getErrors()));
             }
@@ -518,6 +545,7 @@ class ImportExportHelper
         } catch (\Throwable $e) {
             $transaction->rollBack();
             $projectConfig->reset();
+
             foreach (['form', 'email', 'pdf', 'group', 'submissionStatus', 'formStatus'] as $kind) {
                 self::_resourceService($kind)->invalidateCaches();
             }
@@ -526,6 +554,7 @@ class ImportExportHelper
             throw $e;
         } finally {
             $projectConfig->writeYamlAutomatically = $writeYaml;
+
             if ($writeYaml) {
                 $projectConfig->writeYamlFiles();
             }

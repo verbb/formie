@@ -90,12 +90,9 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 ## Front-End Reference
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
-
 - [Radio](https://docs.verbb.io/formie/browser/ui-reference/fields/radio)
 
 ## Related Fields
 
 - Use [Dropdown](/fields/dropdown) when the option list is long.
 - Use [Checkboxes](/fields/checkboxes) when more than one option can be selected.
-

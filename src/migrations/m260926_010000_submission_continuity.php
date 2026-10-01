@@ -30,6 +30,7 @@ class m260926_010000_submission_continuity extends Migration
             $this->addForeignKey(null, Table::FORMIE_SUBMISSION_PROGRESS, 'formId', Table::FORMIE_FORMS, 'id', 'CASCADE');
             $this->addForeignKey(null, Table::FORMIE_SUBMISSION_PROGRESS, 'siteId', '{{%sites}}', 'id', 'CASCADE');
         }
+
         if (!$this->db->tableExists(Table::FORMIE_SUBMISSION_GRANTS)) {
             $this->createTable(Table::FORMIE_SUBMISSION_GRANTS, [
                 'id' => $this->primaryKey(),
@@ -54,6 +55,7 @@ class m260926_010000_submission_continuity extends Migration
             $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, 'formId', Table::FORMIE_FORMS, 'id', 'CASCADE');
             $this->addForeignKey(null, Table::FORMIE_SUBMISSION_GRANTS, 'siteId', '{{%sites}}', 'id', 'CASCADE');
         }
+
         foreach ([
             'state' => $this->string(16)->notNull()->defaultValue('staged'),
             'siteId' => $this->integer(),
@@ -75,6 +77,7 @@ class m260926_010000_submission_continuity extends Migration
         }
         $this->update(Table::FORMIE_PENDING_UPLOADS, ['state' => 'finalized'], ['isFinalized' => true]);
         $this->update(Table::FORMIE_PENDING_UPLOADS, ['expiresAt' => time()], ['expiresAt' => null, 'state' => 'staged']);
+
         // Beta credentials cannot be migrated with trustworthy purpose or ownership.
         // Preserve canonical Submission content; deliberately expire the old links.
         foreach ([Table::FORMIE_SUBMISSION_RESUME_TOKENS, Table::FORMIE_SUBMISSION_DRAFTS] as $table) {

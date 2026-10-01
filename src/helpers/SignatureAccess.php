@@ -48,6 +48,7 @@ final class SignatureAccess
         }
 
         $accessKey = self::_ensureAccessKey($submission);
+
         if (!$accessKey) {
             return null;
         }
@@ -77,6 +78,7 @@ final class SignatureAccess
         }
 
         $parts = explode('.', $accessToken);
+
         if (count($parts) !== 2 || !preg_match('/^[A-Za-z0-9_-]+$/D', $parts[0]) || !preg_match('/^[a-f0-9]{64}$/D', $parts[1])) {
             return null;
         }
@@ -101,16 +103,19 @@ final class SignatureAccess
         }
 
         $context = self::_normalizeContext($payload, true);
+
         if (!$context) {
             return null;
         }
 
         $submission = self::_findSubmission($context['submissionUid'], $context['formId'], $context['siteId']);
+
         if (!$submission) {
             return null;
         }
 
         $accessKey = self::_getAccessState($submission)['accessKey'] ?? null;
+
         if (!$accessKey || !hash_equals(hash_hmac('sha256', $encodedPayload, $accessKey), $signature)) {
             return null;
         }
@@ -136,11 +141,13 @@ final class SignatureAccess
         }
 
         $field = self::_findSignatureField($form->getFields(), $context['fieldId'], $context['fieldKey']);
+
         if (!$field) {
             return null;
         }
 
         $resolved = self::_buildResolvedContext($submission, $form, $field, $context['fieldKey']);
+
         if (!$resolved) {
             return null;
         }
@@ -181,6 +188,7 @@ final class SignatureAccess
             }
 
             $rowKey = null;
+
             if ($field instanceof RepeatableParentFieldInterface) {
                 $prefix = $field->valueKey() . '.';
 
@@ -197,6 +205,7 @@ final class SignatureAccess
             }
 
             $nested = self::_findSignatureField($field->getFields($rowKey), $fieldId, $fieldKey);
+
             if ($nested) {
                 return $nested;
             }
@@ -243,6 +252,7 @@ final class SignatureAccess
     private static function _ensureAccessKey(Submission $submission): ?string
     {
         $state = self::_getAccessState($submission);
+
         if (!$state) {
             return null;
         }

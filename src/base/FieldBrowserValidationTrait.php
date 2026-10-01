@@ -19,6 +19,7 @@ trait FieldBrowserValidationTrait
 
             $definition = $rule;
             $params = array_intersect_key($rule, array_flip(['min', 'max', 'limit', 'value']));
+
             if ($type === 'match') {
                 $params['value'] = $this->getForm()?->getFieldByHandle($this->getMatchField())?->label ?? '';
             }
@@ -27,6 +28,7 @@ trait FieldBrowserValidationTrait
                 'minmaxOptions' => ['minOptions', 'maxOptions'],
                 default => [$type],
             };
+
             foreach ($keys as $key) {
                 $definition['messages'][$key] = \verbb\formie\models\SubmissionErrors::plainText($this->getValidationMessage($key, $params));
             }

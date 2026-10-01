@@ -50,12 +50,9 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 Signature depends on Formie’s front-end JavaScript for the drawing canvas and hidden input value. If you override templates, preserve the canvas, hidden input and clear/remove button behaviour.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
-
 - [Signature](https://docs.verbb.io/formie/browser/ui-reference/fields/signature)
 
 ## Related Fields
 
 - Use [Agree](/fields/agree) for a checkbox acknowledgement.
 - Use [Single-Line Text](/fields/single-line-text) when a typed name is enough.
-

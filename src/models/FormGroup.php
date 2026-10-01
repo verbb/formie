@@ -100,7 +100,7 @@ class FormGroup extends Model
 
         $rules[] = [['name', 'handle'], 'required'];
         $rules[] = [['name', 'handle'], 'string', 'max' => 255];
-        
+
         $rules[] = [
             ['handle'],
             HandleValidator::class,

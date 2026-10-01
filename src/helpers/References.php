@@ -55,8 +55,10 @@ class References
         // Stable URL settings allowed a whole exact reference. This bounded legacy
         // slot adapter preserves that meaning; embedded values are URL components.
         $slot = ReferenceSlot::fromStored($template);
+
         if ($slot->kind === ReferenceSlotKind::Exact) {
             $value = $slot->resolve($context);
+
             if (!is_string($value)) {
                 throw new ReferenceException(ReferenceDiagnostic::InvalidType);
             }
@@ -82,6 +84,7 @@ class References
         unset($metadata['transform']);
         $expression = new ReferenceExpression(target: $target, identifier: $identifier, selector: $selector ?? '', default: $default, transformerId: $transform, transformerParams: $metadata, isValid: true);
         $token = ReferenceParser::serialize($expression);
+
         if (!ReferenceParser::parse($token)->isValid) {
             throw new \InvalidArgumentException('Invalid reference token components.');
         }
@@ -113,8 +116,10 @@ class References
     {
         preg_match_all('/\{[^{}]+\}/', $content, $matches);
         $handles = [];
+
         foreach ($matches[0] as $token) {
             $expression = ReferenceParser::parse($token);
+
             if ($expression->isValid && $expression->target === 'field') {
                 $handles[] = $expression->identifier;
             }
@@ -125,6 +130,7 @@ class References
     public static function remapFieldReferenceToken(string $rawToken, array $referenceMap): string
     {
         $expression = ReferenceParser::parse($rawToken);
+
         if (!$expression->isValid || $expression->target !== 'field' || !isset($referenceMap[$expression->identifier])) {
             return $rawToken;
         }

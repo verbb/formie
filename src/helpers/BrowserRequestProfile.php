@@ -16,16 +16,19 @@ class BrowserRequestProfile
     {
         $request = Craft::$app->getRequest();
         CrossOriginRequestHelper::requireAllowedOrigin($request);
+
         if ($request->getIsOptions()) {
             return self::CROSS_ORIGIN;
         }
         $profile = (string)$request->getHeaders()->get('X-Formie-Profile', self::SAME_ORIGIN);
+
         if (!in_array($profile, [self::SAME_ORIGIN, self::CROSS_ORIGIN], true)) {
             throw new BadRequestHttpException('Public Formie endpoints require a browser request profile. Use administrative GraphQL mutations for trusted administrative requests.');
         }
 
         if ($profile === self::SAME_ORIGIN) {
             $origin = trim((string)$request->getOrigin());
+
             if ($origin !== '' && $origin !== $request->getHostInfo()) {
                 throw new ForbiddenHttpException('Cross-origin Formie requests must declare the cross-origin-public profile.');
             }
@@ -40,6 +43,7 @@ class BrowserRequestProfile
         $token = (string)$request->getHeaders()->get('X-Formie-Session', '');
         $cache = Craft::$app->getCache();
         $sessionId = $token !== '' ? $cache->get(['formie-public-session', hash('sha256', $token)]) : false;
+
         if (!$sessionId) {
             if (!$bootstrap || $token !== '') {
                 throw new ForbiddenHttpException('Formie public session is missing or expired. Reload the form.');
@@ -49,6 +53,7 @@ class BrowserRequestProfile
             $cache->set(['formie-public-session', hash('sha256', $token)], $sessionId, 7200);
         }
         $session = Craft::$app->getSession();
+
         if ($session->getId() !== $sessionId) {
             $session->close();
             $session->setUseCookies(false);
@@ -65,8 +70,10 @@ class BrowserRequestProfile
     public static function enterAdministrative(): void
     {
         $request = Craft::$app->getRequest();
+
         if ($request instanceof \craft\web\Request) {
             CrossOriginRequestHelper::requireAllowedOrigin($request);
+
             if ($request->getHeaders()->get('X-Formie-Profile', self::ADMINISTRATIVE) !== self::ADMINISTRATIVE) {
                 throw new ForbiddenHttpException('Administrative mutations require the trusted-administrative profile.');
             }

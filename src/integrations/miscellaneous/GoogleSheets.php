@@ -40,7 +40,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
     {
         return 'Google Sheets';
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -96,7 +96,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
             'https://www.googleapis.com/auth/drive',
             'https://www.googleapis.com/auth/spreadsheets',
         ];
-        
+
         return $options;
     }
 
@@ -116,7 +116,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Send your form content to Google Sheets.');
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -175,6 +175,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -186,6 +187,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
 
             // Just in case...
             $columns = array_values(array_filter($columns));
+
             foreach ($columns as $key => $column) {
                 $rowValues[$key] = $fieldValues[$column] ?? '';
             }
@@ -214,7 +216,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
         return $this->resultForPayload(true);
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -256,6 +258,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
             'required' => $f['required'],
             'options' => $f['options'] ?? [],
         ]), $schemaFields);
+
         if ($fieldMappingSchema) {
             $schema[] = SchemaHelper::groupField([
                 'name' => 'fieldMapping',

@@ -26,9 +26,14 @@ final class PaymentCapabilities
         $scopeJson = Json::encode($scope);
         $lock = 'formie.payment-capability.' . hash('sha256', $purpose . '|' . $resourceId . '|' . $scopeJson);
         $mutex = Craft::$app->getMutex();
-        if (!$mutex->acquire($lock, 5)) { throw new RuntimeException('Capability issuance is busy.'); }
+
+        if (!$mutex->acquire($lock, 5)) {
+            throw new RuntimeException('Capability issuance is busy.');
+        }
+
         try {
             $row = $ttl > 0 ? (new Query())->from(Table::FORMIE_PAYMENT_CAPABILITIES)->where(['purpose' => $purpose, 'resourceId' => $resourceId, 'scope' => $scopeJson, 'revokedAt' => null])->andWhere(['>', 'expiresAt', time()])->one() : null;
+
             if (!$row) {
                 $row = ['purpose' => $purpose, 'resourceId' => $resourceId, 'scope' => $scopeJson,
                     'expiresAt' => time() + $ttl, 'tokenHash' => bin2hex(random_bytes(32))];
@@ -49,6 +54,7 @@ final class PaymentCapabilities
     {
         $purpose = $purpose->value;
         $row = Craft::$app->getDb()->useMaster(fn() => (new Query())->from(Table::FORMIE_PAYMENT_CAPABILITIES)->where(['tokenHash' => self::_hash($token), 'purpose' => $purpose, 'revokedAt' => null])->andWhere(['>', 'expiresAt', time()])->one());
+
         if (!$row) {
             return null;
         }

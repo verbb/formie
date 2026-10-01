@@ -17,10 +17,12 @@ class m260926_000000_reference_slots extends Migration
     {
         foreach ((new Query())->select(['id', 'settings'])->from(Table::FORMIE_FORMS)->each() as $row) {
             $settings = Json::decode($row['settings']) ?: [];
+
             if (!isset($settings['integrations']) || !is_array($settings['integrations'])) {
                 continue;
             }
             $migrated = ReferenceMigration::integrationSlots($settings['integrations']);
+
             if ($migrated === $settings['integrations']) {
                 continue;
             }

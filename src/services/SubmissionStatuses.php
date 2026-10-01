@@ -33,7 +33,7 @@ class SubmissionStatuses extends Component
     public const EVENT_AFTER_DELETE_STATUS = 'afterDeleteStatus';
     public const CONFIG_SUBMISSION_STATUSES_KEY = 'formie.statuses';
 
-    
+
     // Traits
     // =========================================================================
 
@@ -67,6 +67,7 @@ class SubmissionStatuses extends Component
     public function getStatusesArray(): array
     {
         $statuses = [];
+
         foreach ($this->getAllStatuses() as $status) {
             $statuses[$status->handle] = [
                 'label' => $status->name,
@@ -195,6 +196,7 @@ class SubmissionStatuses extends Component
 
         // For those not in the groupBy
         $allStatuses = $this->getAllStatuses();
+
         foreach ($allStatuses as $status) {
             if (!isset($countGroupedByStatusId[$status->id])) {
                 $countGroupedByStatusId[$status->id] = [
@@ -235,7 +237,7 @@ class SubmissionStatuses extends Component
             $status->sortOrder = (new Query())
                 ->from([Table::FORMIE_SUBMISSION_STATUSES])
                 ->max('[[sortOrder]]') + 1;
-        } else if (!$status->uid) {
+        } elseif (!$status->uid) {
             $status->uid = Db::uidById(Table::FORMIE_SUBMISSION_STATUSES, $status->id);
         }
 
@@ -263,6 +265,7 @@ class SubmissionStatuses extends Component
         $data = $event->newValue;
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             $statusRecord = $this->_getStatusRecord($statusUid, true);
             $isNewStatus = $statusRecord->getIsNewRecord();
@@ -348,6 +351,7 @@ class SubmissionStatuses extends Component
         }
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             Craft::$app->getDb()->createCommand()
                 ->softDelete(Table::FORMIE_SUBMISSION_STATUSES, ['id' => $statusRecord->id])

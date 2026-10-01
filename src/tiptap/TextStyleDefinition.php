@@ -81,6 +81,7 @@ final class TextStyleDefinition
         }
 
         $safeValues = self::SAFE_VALUES[$this->cssProperty] ?? null;
+
         if ($safeValues === null) {
             throw new InvalidArgumentException("Formie TextStyle definition \"{$this->id}\" uses an unsupported CSS property.");
         }

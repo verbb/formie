@@ -14,5 +14,5 @@ class ModifyFieldValueEvent extends Event
     public mixed $value = null;
     public ?FieldInterface $field = null;
     public ?Submission $submission = null;
-    
+
 }

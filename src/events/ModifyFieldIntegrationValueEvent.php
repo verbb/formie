@@ -19,5 +19,5 @@ class ModifyFieldIntegrationValueEvent extends Event
     public ?Submission $submission = null;
     public ?IntegrationField $integrationField = null;
     public ?Integration $integration = null;
-    
+
 }

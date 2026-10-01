@@ -191,6 +191,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
         }
 
         $value = Json::decodeIfJson($value);
+
         if (!is_array($value)) {
             return new NameFieldValue(['name' => $this->sanitizePlainTextValueIfConfigured(StringHelper::normalizePlainText($value === null ? '' : (string)$value))]);
         }
@@ -200,6 +201,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
         }
 
         $parts = parent::normalizeValue($value, $element);
+
         foreach ($this->getFields() as $field) {
             if ($field->getIsDisabled()) {
                 $parts[$field->handle] = null;
@@ -376,7 +378,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
 
         return Type::string();
     }
-    
+
 
     // Protected Methods
     // =========================================================================
@@ -591,7 +593,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
                 'lastName' => $faker->lastName,
             ]);
         }
-        
+
         return $faker->name;
     }
 

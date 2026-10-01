@@ -23,8 +23,10 @@ class NameFieldValue extends BaseFieldValue
     public function __construct(array $config = [])
     {
         unset($config['isMultiple']);
+
         foreach (['prefix', 'prefixOption', 'firstName', 'middleName', 'lastName', 'name'] as $key) {
             $value = $config[$key] ?? null;
+
             if ($value instanceof SingleOptionFieldValue || $value instanceof OptionValue) {
                 if ($key === 'prefix') {
                     $config['prefixOption'] = $value->getDisplayLabel();

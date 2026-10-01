@@ -31,11 +31,11 @@ class NoCrm extends Crm
     {
         return 'noCRM';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     public ?string $apiDomain = null;
@@ -94,6 +94,7 @@ class NoCrm extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             if ($this->mapToLead) {
                 $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
@@ -139,7 +140,7 @@ class NoCrm extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

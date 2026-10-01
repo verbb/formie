@@ -123,11 +123,13 @@ class TestController extends Controller
         $settings = Formie::$plugin->getSettings();
 
         $spamKeywords = $this->request->getBodyParam('__formieSpamKeywords');
+
         if (is_string($spamKeywords)) {
             $settings->spamKeywords = $spamKeywords;
         }
 
         $spamBehaviour = $this->request->getBodyParam('__formieSpamBehaviour');
+
         if (is_string($spamBehaviour) && in_array($spamBehaviour, [Settings::SPAM_BEHAVIOUR_SUCCESS, Settings::SPAM_BEHAVIOUR_MESSAGE], true)) {
             $settings->spamBehaviour = $spamBehaviour;
         }

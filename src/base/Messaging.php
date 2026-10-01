@@ -62,7 +62,7 @@ abstract class Messaging extends Integration implements DispatchableIntegrationI
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/messaging/{$handle}/_plugin-settings", $variables);
     }
-    
+
 
     // Protected Methods
     // =========================================================================

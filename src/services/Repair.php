@@ -37,7 +37,7 @@ class Repair extends Component
         $changedValues = 0;
         $invalidJson = [];
 
-        foreach ($this->emojiShortcodeColumns() as $table => $columns) {
+        foreach ($this->_emojiShortcodeColumns() as $table => $columns) {
             if (!Craft::$app->getDb()->tableExists($table)) {
                 continue;
             }
@@ -104,7 +104,7 @@ class Repair extends Component
                 }
             }
 
-            $this->log($logger, "Checked {$table}.");
+            $this->_log($logger, "Checked {$table}.");
         }
 
         return [
@@ -128,7 +128,7 @@ class Repair extends Component
             return [];
         }
 
-        foreach ($columns ?? $this->emojiShortcodeColumns() as $table => $tableColumns) {
+        foreach ($columns ?? $this->_emojiShortcodeColumns() as $table => $tableColumns) {
             if (!Craft::$app->getDb()->tableExists($table)) {
                 continue;
             }
@@ -138,7 +138,7 @@ class Repair extends Component
                     continue;
                 }
 
-                if (!$this->columnCanStoreEmoji($table, $column)) {
+                if (!$this->_columnCanStoreEmoji($table, $column)) {
                     $unsafeColumns[] = "$table.$column";
                 }
             }
@@ -149,7 +149,7 @@ class Repair extends Component
 
     public function canStoreEmojiInLayoutTables(): bool
     {
-        return $this->getUnsafeEmojiColumns($this->layoutEmojiShortcodeColumns()) === [];
+        return $this->getUnsafeEmojiColumns($this->_layoutEmojiShortcodeColumns()) === [];
     }
 
     public function convertEmojiShortcodes(mixed $value): mixed
@@ -171,7 +171,7 @@ class Repair extends Component
     // Private Methods
     // =========================================================================
 
-    private function emojiShortcodeColumns(): array
+    private function _emojiShortcodeColumns(): array
     {
         return [
             Table::FORMIE_EMAIL_TEMPLATES => [
@@ -247,7 +247,7 @@ class Repair extends Component
         ];
     }
 
-    private function layoutEmojiShortcodeColumns(): array
+    private function _layoutEmojiShortcodeColumns(): array
     {
         return [
             Table::FORMIE_FIELD_LAYOUT_PAGES => [
@@ -261,7 +261,7 @@ class Repair extends Component
         ];
     }
 
-    private function columnCanStoreEmoji(string $table, string $column): bool
+    private function _columnCanStoreEmoji(string $table, string $column): bool
     {
         $db = Craft::$app->getDb();
         $schema = $db->getSchema();
@@ -285,7 +285,7 @@ class Repair extends Component
         return strcasecmp((string)$charset, 'utf8mb4') === 0;
     }
 
-    private function log(?callable $logger, string $message): void
+    private function _log(?callable $logger, string $message): void
     {
         if ($logger) {
             $logger($message);

@@ -49,7 +49,7 @@ class FileHelper
         // Should we be looking for a localized version of the template?
         foreach (Craft::$app->getSites()->getAllSites() as $site) {
             $sitePath = $templatesPath . DIRECTORY_SEPARATOR . $site->handle;
-            
+
             if (is_dir($sitePath)) {
                 $basePaths[] = $sitePath;
             }

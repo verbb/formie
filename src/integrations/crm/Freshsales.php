@@ -30,7 +30,7 @@ class Freshsales extends Crm
     {
         return 'Freshsales';
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -445,6 +445,7 @@ class Freshsales extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
@@ -574,7 +575,7 @@ class Freshsales extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

@@ -233,9 +233,13 @@ class FieldsController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $hydrateOnlyParam = $this->request->getBodyParam('hydrateOnly',
-            $this->request->getQueryParam('hydrateOnly',
-                $this->request->getParam('hydrateOnly', false)));
+        $hydrateOnlyParam = $this->request->getBodyParam(
+            'hydrateOnly',
+            $this->request->getQueryParam(
+                'hydrateOnly',
+                $this->request->getParam('hydrateOnly', false)
+            )
+        );
         $hydrateOnly = filter_var($hydrateOnlyParam, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
         $hydrateOnly = $hydrateOnly ?? false;
 
@@ -354,6 +358,7 @@ class FieldsController extends Controller
 
             $baseName = $variableName;
             $suffix = 1;
+
             while (isset($variables[$variableName])) {
                 $suffix++;
                 $variableName = "{$baseName}_{$suffix}";
@@ -629,6 +634,7 @@ class FieldsController extends Controller
         }
 
         $position = strrpos($formula, $needle);
+
         if ($position === false) {
             return '';
         }

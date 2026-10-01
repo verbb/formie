@@ -29,11 +29,11 @@ class Pipeliner extends Crm
     {
         return 'Pipeliner';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiToken = null;
     #[Sensitive]
@@ -160,6 +160,7 @@ class Pipeliner extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
 
@@ -203,7 +204,7 @@ class Pipeliner extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

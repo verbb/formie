@@ -30,7 +30,8 @@ class SetSubmissionSpam extends ElementAction
 
     public function getTriggerHtml(): ?string
     {
-        Craft::$app->getView()->registerJsWithVars(fn($type) => <<<JS
+        Craft::$app->getView()->registerJsWithVars(
+            fn($type) => <<<JS
 (() => {
     new Craft.ElementActionTrigger({
         type: $type + '-MarkAsNotSpam',
@@ -48,9 +49,10 @@ class SetSubmissionSpam extends ElementAction
     });
 })();
 JS,
-        [
+            [
             static::class,
-        ]);
+        ]
+        );
 
         $markSpam = Html::tag('li', Html::a(
             Html::tag('span', '', ['class' => ['status', 'off']])
@@ -63,7 +65,8 @@ JS,
             ],
         ));
 
-        $unmark = Html::tag('li', Html::tag('a',
+        $unmark = Html::tag('li', Html::tag(
+            'a',
             Html::tag('span', '', ['class' => ['status', 'on']])
             . ' ' . Html::encode(Craft::t('formie', 'Unmark as Spam')),
             [

@@ -30,7 +30,7 @@ class Ontraport extends EmailMarketing
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     public ?string $appId = null;
@@ -137,6 +137,7 @@ class Ontraport extends EmailMarketing
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -180,7 +181,7 @@ class Ontraport extends EmailMarketing
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

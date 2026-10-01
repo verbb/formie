@@ -57,7 +57,7 @@ class SubmissionsController extends Controller
 
     private const STALE_SUBMISSION_STATE_CODE = 'STALE_SUBMISSION_STATE';
     private const STALE_SUBMISSION_STATE_QUERY_PARAMS = ['pageId', 'resumeToken', 'submissionId'];
-    
+
 
     // Properties
     // =========================================================================
@@ -82,11 +82,12 @@ class SubmissionsController extends Controller
 
     // Public Methods
     // =========================================================================
-    
+
     public function beforeAction($action): bool
     {
         $settings = Formie::$plugin->getSettings();
         $publicProfile = null;
+
         if (in_array($action->id, ['submit', 'set-page', 'clear-submission'], true)) {
             $publicProfile = \verbb\formie\helpers\BrowserRequestProfile::enter();
         }
@@ -242,6 +243,7 @@ class SubmissionsController extends Controller
                 }
             }
         }
+
         if (!$variables['submission']) {
             throw new HttpException(404);
         }
@@ -590,6 +592,7 @@ class SubmissionsController extends Controller
         ]), true);
 
         $redirectBase = SetPageReturnUrlHelper::resolveLegacySetPageRedirectUrl($this->request);
+
         if ($this->request->getAcceptsJson()) {
             return $this->asJson([
                 'success' => $result->success,
@@ -684,6 +687,7 @@ class SubmissionsController extends Controller
         }
 
         $saveResumePayload = [];
+
         if ($response->submitAction === 'save') {
             $saveResumePayload = $this->_createSaveResumePayload($form, $submission);
         }
@@ -738,9 +742,11 @@ class SubmissionsController extends Controller
         }
 
         $completion = $response->outcome->data['completion'] ?? null;
+
         if (($completion['behavior'] ?? null) === 'message') {
             Formie::$plugin->getService()->setNotice($form->getFlashNamespace(), $completion['message']);
         }
+
         if (($completion['behavior'] ?? null) === 'redirect' && $completion['url']) {
             if ($completion['target'] === 'new-tab') {
                 $this->response->format = Response::FORMAT_HTML;
@@ -836,11 +842,13 @@ class SubmissionsController extends Controller
 
         $payload['completion'] = $response->outcome->data['completion'] ?? null;
         $payload['redirect'] = $response->outcome->data['redirect'] ?? null;
+
         if ($completion = $payload['completion']) {
             $payload['redirectUrl'] = $completion['url'];
             $payload['redirectTarget'] = $completion['target'];
             $payload['successMessage'] = $completion['message'];
         }
+
         if (array_key_exists('successMessage', $payload)) {
             $payload['submitActionMessage'] = $payload['successMessage'];
         }
@@ -868,6 +876,7 @@ class SubmissionsController extends Controller
     private function _appendPaymentResponsePayload(array &$payload, SubmissionResponse $response): void
     {
         $payload['payment'] = $response->payment;
+
         if (isset($payload['payment']['message'])) {
             $payload['payment']['message'] = StringHelper::sanitizeMessageHtml($payload['payment']['message']);
         }
@@ -1050,6 +1059,7 @@ class SubmissionsController extends Controller
             // Make sure they were requesting a valid site
             /** @var Site $site */
             $site = $variables['site'];
+
             if (!in_array($site->id, $variables['siteIds'], false)) {
                 throw new ForbiddenHttpException('User not permitted to edit content in this site');
             }

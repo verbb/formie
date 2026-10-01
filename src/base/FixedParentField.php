@@ -57,6 +57,7 @@ abstract class FixedParentField extends ContainerParentField implements FixedPar
     public function getChildFieldTypesByHandle(): array
     {
         $types = [];
+
         foreach ($this->getNestedLayoutBuilderLayouts() as $rows) {
             foreach ($rows as $row) {
                 foreach ($row['fields'] ?? [] as $field) {

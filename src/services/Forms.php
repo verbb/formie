@@ -414,9 +414,11 @@ class Forms extends Component
 
         $tabSchema = array_merge(...array_map(function($tab) {
             $content = $tab['content'] ?? [];
+
             if (!is_array($content)) {
                 return [];
             }
+
             if (array_is_list($content)) {
                 return $content;
             }
@@ -564,7 +566,7 @@ class Forms extends Component
                 $this->_handleNestedElement($element, $field, 0, $nestedElements);
 
                 // Sort descending by level and reassign levels.
-                usort($nestedElements, function ($a, $b) {
+                usort($nestedElements, function($a, $b) {
                     return $b['level'] <=> $a['level'];
                 });
 
@@ -701,7 +703,7 @@ class Forms extends Component
                     $form->settings->setAttributes(['integrations' => $oldIntegrationSettings], false);
                 }
             }
-        } else if ($isNewForm && $applyDefaultStencil) {
+        } elseif ($isNewForm && $applyDefaultStencil) {
             Formie::$plugin->getFormDefaults()->applyDefaultStencil($form);
         }
 
@@ -715,6 +717,7 @@ class Forms extends Component
         }
 
         $pages = Json::decodeIfJson($bodyParams['pages']);
+
         if (!is_array($pages)) {
             return;
         }
@@ -807,7 +810,7 @@ class Forms extends Component
                     if (isset($field['settings']) && is_array($field['settings'])) {
                         $field['settings']['rows'] = $field['rows'];
                     }
-                } else if (isset($field['settings']['rows'])) {
+                } elseif (isset($field['settings']['rows'])) {
                     $this->_normalizeBuilderRowReferences($field['settings']['rows'], $existingReferences, $assignedReferences, $referenceMap, $newFieldCounter);
                 }
             }
@@ -823,6 +826,7 @@ class Forms extends Component
         }
 
         $existingFieldId = (int)($existingReferences[$reference] ?? 0);
+
         if ($existingFieldId && (!$fieldId || $existingFieldId !== $fieldId)) {
             return true;
         }
@@ -839,8 +843,10 @@ class Forms extends Component
             ->all();
 
         $references = [];
+
         foreach ($rows as $row) {
             $reference = trim((string)($row['reference'] ?? ''));
+
             if ($reference !== '') {
                 $references[$reference] = (int)($row['id'] ?? 0);
             }
@@ -883,6 +889,7 @@ class Forms extends Component
             }
 
             $handle = trim((string)$integration->getHandle());
+
             if ($handle !== '') {
                 $metadata[] = [
                     'handle' => $handle,
@@ -921,7 +928,7 @@ class Forms extends Component
         if (!$fieldLayout) {
             return false;
         }
-        
+
         return count($fieldLayout->getCustomFields()) > 0;
     }
 

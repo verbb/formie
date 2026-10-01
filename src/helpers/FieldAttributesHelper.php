@@ -75,7 +75,7 @@ class FieldAttributesHelper
         }
 
         if (self::isTableFormat($attributes)) {
-            return self::normalizeTableFormat($attributes, $settingName, $throwOnInvalid);
+            return self::_normalizeTableFormat($attributes, $settingName, $throwOnInvalid);
         }
 
         if ($throwOnInvalid) {
@@ -184,7 +184,7 @@ class FieldAttributesHelper
     // Private Methods
     // =========================================================================
 
-    private static function normalizeTableFormat(array $attributes, string $settingName, bool $throwOnInvalid): array
+    private static function _normalizeTableFormat(array $attributes, string $settingName, bool $throwOnInvalid): array
     {
         $rows = [];
 

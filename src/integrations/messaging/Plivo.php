@@ -53,7 +53,7 @@ class Plivo extends Messaging
     {
         return Craft::t('formie', 'Send your form content to Plivo.');
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         return new IntegrationConfig([]);
@@ -62,6 +62,7 @@ class Plivo extends Messaging
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $chatId = App::parseEnv($this->chatId);
             $botToken = App::parseEnv($this->botToken);
@@ -117,7 +118,7 @@ class Plivo extends Messaging
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -162,7 +163,7 @@ class Plivo extends Messaging
 
         return $schema;
     }
-    
+
 
     // Private Methods
     // =========================================================================

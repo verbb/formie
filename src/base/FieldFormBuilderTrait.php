@@ -51,7 +51,7 @@ trait FieldFormBuilderTrait
 
         if ($includeSchemaIndex) {
             $config['schemaIndex'] = $compiledSchema;
-        } else if (isset($config['data']['nestedLayoutBuilder']['editorSchemaByType'])) {
+        } elseif (isset($config['data']['nestedLayoutBuilder']['editorSchemaByType'])) {
             unset($config['data']['nestedLayoutBuilder']['editorSchemaByType']);
         }
 
@@ -259,7 +259,7 @@ trait FieldFormBuilderTrait
         }
 
         // Filter out tabs with empty content
-        $tabs = array_values(array_filter($tabs, function ($tab) {
+        $tabs = array_values(array_filter($tabs, function($tab) {
             return $tab['content'];
         }));
 

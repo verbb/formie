@@ -72,6 +72,7 @@ class MailerLite extends EmailMarketing
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -130,7 +131,7 @@ class MailerLite extends EmailMarketing
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -150,7 +151,7 @@ class MailerLite extends EmailMarketing
             'headers' => ['X-MailerLite-ApiKey' => App::parseEnv($this->apiKey)],
         ]);
     }
-    
+
 
     // Private Methods
     // =========================================================================

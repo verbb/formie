@@ -194,7 +194,7 @@ class Entry extends Element
     {
         $this->beginPayloadDelivery($submission);
         $entriesService = Craft::$app->getEntries();
-        
+
         if (!$this->entryTypeSection || !str_contains($this->entryTypeSection, ':')) {
             Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `entryTypeId`.'), true);
 
@@ -280,7 +280,7 @@ class Entry extends Element
             $endpoint = '';
             $method = '';
 
-            // Allow events to cancel sending - return as success            
+            // Allow events to cancel sending - return as success
             if (!$this->beforeSendPayload($submission, $endpoint, $entry, $method)) {
                 return $this->resultForPayload(true);
             }
@@ -396,6 +396,7 @@ class Entry extends Element
     {
         $schema = parent::defineFormSettingsSchema($form);
         $selectedEntryTypeSection = (string)($this->entryTypeSection ?? '');
+
         if ($selectedEntryTypeSection === '') {
             $selectedEntryTypeSection = $this->_getFirstEntryTypeId();
         }
@@ -433,6 +434,7 @@ class Entry extends Element
         ]);
 
         $fieldMappingSchema = $this->convertIntegrationFieldsToSchema($this->_getEntryTypeSettings($selectedEntryTypeSection)->fields ?? []);
+
         if ($fieldMappingSchema) {
             $schema[] = SchemaHelper::integrationFieldMappingField([
                 'name' => 'fieldMapping',
@@ -463,6 +465,7 @@ class Entry extends Element
 
         $updateAttributes = $this->getUpdateAttributes();
         $updateMappingSchema = $this->convertIntegrationFieldsToSchema($updateAttributes[$selectedEntryTypeSection] ?? []);
+
         if ($updateMappingSchema) {
             $schema[] = SchemaHelper::integrationFieldMappingField([
                 'name' => 'updateElementMapping',
@@ -484,7 +487,7 @@ class Entry extends Element
 
         return $schema;
     }
-    
+
 
     // Private Methods
     // =========================================================================

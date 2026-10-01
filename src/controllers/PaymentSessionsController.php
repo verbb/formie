@@ -25,6 +25,7 @@ class PaymentSessionsController extends Controller
     {
         $profile = \verbb\formie\helpers\BrowserRequestProfile::enter();
         \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders($this->request, $this->response);
+
         if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         }
@@ -41,6 +42,7 @@ class PaymentSessionsController extends Controller
     {
         $this->requirePostRequest();
         $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle((string)$this->request->getRequiredBodyParam('handle'));
+
         if (!$integration instanceof Opayo) {
             throw new NotFoundHttpException('Payment provider not found.');
         }

@@ -34,11 +34,11 @@ class Maximizer extends Crm
     {
         return 'Maximizer';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     public ?string $username = null;
     #[Sensitive]
     public ?string $password = null;
@@ -108,6 +108,7 @@ class Maximizer extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
@@ -218,7 +219,7 @@ class Maximizer extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -254,6 +255,7 @@ class Maximizer extends Crm
         $baseApiUrl = trim((string)$this->requestPublicEndpoint('GET', $webAccessUrl . '?request=api'));
         $configured = new Uri($webAccessUrl);
         $discovered = new Uri($baseApiUrl);
+
         if ($configured->getScheme() !== $discovered->getScheme() || $configured->getHost() !== $discovered->getHost() || $configured->getPort() !== $discovered->getPort()) {
             throw new IntegrationException('Maximizer API discovery must remain on the configured origin.');
         }

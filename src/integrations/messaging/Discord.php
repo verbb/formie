@@ -55,7 +55,7 @@ class Discord extends Messaging
     {
         return Craft::t('formie', 'Send your form content to Discord.');
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         return new IntegrationConfig([]);
@@ -64,6 +64,7 @@ class Discord extends Messaging
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $webhookUrl = App::parseEnv($this->webhookUrl);
             $message = $this->_renderMessage($submission);
@@ -100,7 +101,7 @@ class Discord extends Messaging
 
         return true;
     }
-    
+
 
     // Protected Methods
     // =========================================================================
@@ -134,7 +135,7 @@ class Discord extends Messaging
         return $schema;
     }
 
-    
+
 
     // Private Methods
     // =========================================================================

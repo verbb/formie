@@ -38,6 +38,7 @@ class FileUploadRetentionHelper
             if ($segment === '') {
                 continue;
             }
+
             if (ctype_digit($segment)) {
                 $row = $segment;
                 continue;
@@ -59,6 +60,7 @@ class FileUploadRetentionHelper
             if ($parent) {
                 $current = $current->withParentField($parent, $row);
             }
+
             if ($current instanceof ParentFieldInterface) {
                 $scope = $current->getFields();
                 $parent = $current;

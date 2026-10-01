@@ -158,6 +158,7 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
         }
 
         $value = $this->getDefaultValue();
+
         if ($this->valueSource === 'custom' && $element instanceof Submission && is_string($value)) {
             return References::parseContent($value, $element);
         }
@@ -195,7 +196,7 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
         // when a submission context exists. Template/query prefills remain literal.
         if ($hasPrefill) {
             $inputOptions['value'] = $prefillValue;
-        } else if ($this->usesTemplateDefault()) {
+        } elseif ($this->usesTemplateDefault()) {
             $inputOptions['value'] = $this->getInitialValue($submission ?: $form);
         }
 

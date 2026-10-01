@@ -113,6 +113,7 @@ final readonly class FieldReferenceValue
         }
 
         $aliases = $meta['aliases'] ?? [];
+
         if (!is_array($aliases)) {
             throw new InvalidArgumentException('Reference selector aliases must be an array.');
         }

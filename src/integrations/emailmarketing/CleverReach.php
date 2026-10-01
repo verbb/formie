@@ -85,6 +85,7 @@ class CleverReach extends EmailMarketing implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
             $email = ArrayHelper::remove($fieldValues, 'email');
@@ -113,7 +114,7 @@ class CleverReach extends EmailMarketing implements OAuthProviderInterface
 
         return $this->resultForPayload(true);
     }
-    
+
 
     // Private Methods
     // =========================================================================

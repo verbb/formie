@@ -63,7 +63,7 @@ class User extends Element
     {
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $customFields = [];
@@ -135,14 +135,14 @@ class User extends Element
                                 $attributes[] = new IntegrationField([
                                     'handle' => $addressField->attribute . '__' . $layoutElement->attribute,
                                     'name' => Craft::t('formie', '{addressLabel}: {label}', [
-                                        'addressLabel' => $addressField->label(), 
+                                        'addressLabel' => $addressField->label(),
                                         'label' => $layoutElement->label(),
                                     ]),
                                     'type' => $this->getFieldTypeForField(get_class($layoutElement)),
                                     'sourceType' => get_class($layoutElement),
                                     'required' => $layoutElement->required,
                                 ]);
-                            } else if ($layoutElement instanceof CustomField) {
+                            } elseif ($layoutElement instanceof CustomField) {
                                 $field = $layoutElement->getField();
 
                                 $attributes[] = new IntegrationField([
@@ -218,6 +218,7 @@ class User extends Element
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $generalConfig = Craft::$app->getConfig()->getGeneral();
 
@@ -351,7 +352,7 @@ class User extends Element
                 }
 
                 if ($this->sendActivationEmail) {
-                    if (!$this->executeDeliveryWrite('MAIL', 'activation:' . $user->id, ['userId' => $user->id, 'email' => $user->email], function () use ($user) {
+                    if (!$this->executeDeliveryWrite('MAIL', 'activation:' . $user->id, ['userId' => $user->id, 'email' => $user->email], function() use ($user) {
                         if (!Craft::$app->getUsers()->sendActivationEmail($user)) {
                             throw new IntegrationStepException(IntegrationResult::unknown('activation_email_unconfirmed'));
                         }
@@ -376,7 +377,7 @@ class User extends Element
                             'error' => Json::encode($user->getErrors()),
                         ]), true);
 
-                        return $this->resultForPayload(false);
+                    return $this->resultForPayload(false);
                 }
             }
 
@@ -504,11 +505,13 @@ class User extends Element
 
         $elements = $this->getConfigValue('elements');
         $userFields = [];
+
         if (is_array($elements) && isset($elements[0])) {
             $userFields = is_array($elements[0]) ? ($elements[0]['fields'] ?? []) : ($elements[0]->fields ?? []);
         }
 
         $fieldMappingSchema = $this->convertIntegrationFieldsToSchema($userFields);
+
         if ($fieldMappingSchema) {
             $schema[] = SchemaHelper::integrationFieldMappingField([
                 'name' => 'fieldMapping',
@@ -533,6 +536,7 @@ class User extends Element
         ]);
 
         $updateMappingSchema = $this->convertIntegrationFieldsToSchema($this->getUpdateAttributes()['users'] ?? []);
+
         if ($updateMappingSchema) {
             $schema[] = SchemaHelper::integrationFieldMappingField([
                 'name' => 'updateElementMapping',
@@ -560,7 +564,7 @@ class User extends Element
 
         return $schema;
     }
-    
+
 
     // Private Methods
     // =========================================================================

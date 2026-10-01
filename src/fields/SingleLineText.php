@@ -50,7 +50,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
         ];
     }
 
-    
+
     // Constants
     // =========================================================================
 
@@ -193,7 +193,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
             SchemaHelper::conditionsField(),
         ];
     }
-    
+
 
     // Protected Methods
     // =========================================================================

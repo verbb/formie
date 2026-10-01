@@ -54,7 +54,7 @@ class Twilio extends Messaging
     {
         return Craft::t('formie', 'Send your form content to Twilio.');
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         return new IntegrationConfig([]);
@@ -63,6 +63,7 @@ class Twilio extends Messaging
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $accountSid = App::parseEnv($this->accountSid);
             $from = App::parseEnv($this->fromNumber);
@@ -89,7 +90,7 @@ class Twilio extends Messaging
                 ]);
 
                 Integration::error($this, $error, true);
-                
+
                 return $this->resultForPayload(false);
             }
         } catch (Throwable $e) {
@@ -116,7 +117,7 @@ class Twilio extends Messaging
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -161,7 +162,7 @@ class Twilio extends Messaging
 
         return $schema;
     }
-    
+
 
     // Private Methods
     // =========================================================================

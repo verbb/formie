@@ -146,12 +146,14 @@ abstract class Automation extends Integration implements DispatchableIntegration
                 throw new \verbb\formie\errors\IntegrationException('Unsupported public endpoint transport option.');
             }
         }
+
         foreach (array_keys($options['headers'] ?? []) as $header) {
             if (in_array(strtolower($header), ['host', 'proxy-authorization', 'cookie'], true)) {
                 throw new \verbb\formie\errors\IntegrationException('Unsupported public endpoint header.');
             }
         }
         $this->requirePublicHttpEndpoint($uri);
+
         if (preg_match('#^https?://#i', $uri) === 1) {
             $config = $this->getClient()->getConfig();
             $config['allow_redirects'] = false;

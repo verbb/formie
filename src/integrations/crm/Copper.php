@@ -31,7 +31,7 @@ class Copper extends Crm
     {
         return 'Copper';
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -67,6 +67,7 @@ class Copper extends Crm
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
+
         try {
             // Get Custom fields
             $fields = $this->request('GET', 'custom_field_definitions');
@@ -426,6 +427,7 @@ class Copper extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $peopleValues = $this->getFieldMappingValues($submission, $this->peopleFieldMapping, 'people');
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
@@ -575,7 +577,7 @@ class Copper extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

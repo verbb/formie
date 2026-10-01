@@ -36,6 +36,7 @@
 - Separate versionless Formie 3 submission snapshot adaptation from the strict UID-based Formie 4 snapshot contract instead of retaining intermediate beta formats.
 - Save form field layouts atomically inside Craft’s element transaction, batch persistence and identity validation at the root boundary, and add installation-scale load, save and export profiling.
 - Treat the migrated Formie 4 database schema as one required runtime contract instead of silently disabling form, submission, notification, integration, payment and spam behavior when required columns are missing.
+- Keep legacy CAPTCHA data migration inside the install and upgrade lifecycle rather than reconciling it during normal requests.
 - Use explicit completion behavior, redirect source, redirect target and success-message settings throughout Formie 4, while retaining Formie 3 setting, GraphQL and response aliases at compatibility boundaries.
 - Treat subscription setup and mandate operations as non-monetary while recording each recurring invoice as a separate payment, and prevent payment integrations with manageable subscriptions from being deleted or disconnected.
 - Make browser-module declarations immutable, project one authoritative manifest per rendering surface, reference exact occurrence keys from fields and expose stable submit hooks instead of internal pipeline stages.
@@ -80,7 +81,6 @@
 - Require `verbb/base` 3.0.17 or later.
 - Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
 
-### Fixed
 - Respect the existing last-page and query-string options when resolving completion redirect URLs, including payment-failure fallbacks.
 - Fixed authorization for connecting OAuth integrations and revalidated access when callbacks return.
 - Fixed OAuth callback transaction validation.
@@ -98,10 +98,9 @@
 - Stop manual asset resolution from rendering the full form a second time, and memoise missing browser submission progress per Form instance to prevent all-field render query amplification. ([#2637](https://github.com/verbb/formie/issues/2637))
 - Enforce field ownership and allowed field types at builder and save boundaries, preserve nested references and refresh layout lookups after descendant changes.
 - Stop invalid submissions before spam screening and CAPTCHA, and keep pending payment submissions incomplete until payment succeeds.
-- Fixed a moderate-severity information disclosure vulnerability. (GHSA-963f-vfpf-f85p)
+- Fixed a moderate-severity information disclosure vulnerability. ([GHSA-963f-vfpf-f85p](https://github.com/verbb/formie/security/advisories/GHSA-963f-vfpf-f85p))
 - Fixed a high-severity server-side request forgery vulnerability. ([GHSA-82jr-3xc8-86mr](https://github.com/verbb/formie/security/advisories/GHSA-82jr-3xc8-86mr))
-- Fixed a high-severity server-side template injection vulnerability. ([GHSA-f55h-mf7f-7wx7](https://github.com/verbb/formie/security/advisories/GHSA-f55h-mf7f-7wx7))
-- Fixed a high-severity server-side template injection vulnerability involving callable collection methods exposed to sandboxed Twig.
+- Fixed high-severity server-side template injection vulnerabilities in sandboxed Twig rendering. ([GHSA-f55h-mf7f-7wx7](https://github.com/verbb/formie/security/advisories/GHSA-f55h-mf7f-7wx7))
 - Keep stencil builder data isolated from unrelated Craft elements and forms with the same numeric ID. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ## 4.0.0-beta.16 - 2026-09-17

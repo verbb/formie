@@ -79,6 +79,7 @@ final class TaskRegistry
         }
 
         array_splice($this->_tasks, $index + ($after ? 1 : 0), 0, [$task]);
+
         if ($after) {
             $this->_afterTails[$anchor] = $task->id;
         }
@@ -89,6 +90,7 @@ final class TaskRegistry
         if (Task::tryFrom($task->id) || str_starts_with($task->id, 'persist.') || str_starts_with($task->id, 'finalize.')) {
             throw new InvalidArgumentException('Custom task IDs must use an extension namespace.');
         }
+
         foreach ($this->_tasks as $existing) {
             if ($existing->id === $task->id) {
                 throw new InvalidArgumentException('Duplicate task ID: ' . $task->id);

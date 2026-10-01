@@ -31,11 +31,11 @@ class ClickUp extends Miscellaneous
     {
         return 'ClickUp';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     public ?string $workspaceId = null;
@@ -52,7 +52,7 @@ class ClickUp extends Miscellaneous
     {
         return Craft::t('formie', 'Send your form content to ClickUp.');
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -115,6 +115,7 @@ class ClickUp extends Miscellaneous
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fields = $this->_getListSettings()['fields'] ?? [];
             $listValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
@@ -172,7 +173,7 @@ class ClickUp extends Miscellaneous
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -193,7 +194,7 @@ class ClickUp extends Miscellaneous
 
         return $rules;
     }
-    
+
     protected function defineClient(): Client
     {
         return Craft::createGuzzleClient([
@@ -215,6 +216,7 @@ class ClickUp extends Miscellaneous
             foreach ($lists as $list) {
                 $id = $list['id'] ?? $list->id ?? null;
                 $name = $list['name'] ?? $list->name ?? null;
+
                 if ($id === null || $name === null) {
                     continue;
                 }
@@ -227,9 +229,11 @@ class ClickUp extends Miscellaneous
             }
 
             $selectedListId = (string)($this->listId ?? '');
+
             if ($selectedListId !== '') {
                 foreach ($lists as $list) {
                     $id = $list['id'] ?? $list->id ?? null;
+
                     if ((string)$id !== $selectedListId) {
                         continue;
                     }

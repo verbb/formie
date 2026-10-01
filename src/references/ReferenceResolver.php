@@ -15,32 +15,39 @@ final class ReferenceResolver
     public function resolveValue(string|ReferenceExpression $expression, ReferenceContext $context): ResolvedReference
     {
         $expression = is_string($expression) ? ReferenceParser::parse($expression) : $expression;
+
         if (!$expression->isValid || $expression->version !== 1) {
             return new ResolvedReference($expression, diagnostic: ReferenceDiagnostic::InvalidExpression);
         }
+
         try {
             if ($expression->transformerId === '' && array_diff(array_keys($expression->transformerParams), ['scope', 'index', 'rows'])) {
                 throw new ReferenceException(ReferenceDiagnostic::InvalidExpression);
             }
+
             if ($expression->target !== 'field' && array_intersect(array_keys($expression->transformerParams), ['scope', 'index', 'rows'])) {
                 throw new ReferenceException(ReferenceDiagnostic::InvalidExpression);
             }
             $result = $expression->target === 'field' ? (new FieldReferenceResolver())->resolve($expression, $context) : (new ContextReferenceSource())->resolve($expression, $context);
             $value = $result->requireValue();
+
             if ($expression->transformerId !== '') {
                 if (!$result->definition->allowTransforms) {
                     throw new ReferenceException(ReferenceDiagnostic::UnknownTransform);
                 }
+
                 if ($expression->target === 'custom' && !in_array($expression->transformerId, $result->definition->transforms, true)) {
                     throw new ReferenceException(ReferenceDiagnostic::UnknownTransform);
                 }
                 $value = $this->_transform($value, $expression, $context, $result->field);
             }
+
             // A default replaces a resolved empty value; it never masks a deleted/forbidden source.
             if (($value === null || $value === '' || $value === [] || ($value instanceof \verbb\formie\fields\values\FieldValueInterface && $value->isEmpty())) && $expression->default !== '') {
                 $value = $expression->default;
             }
             $projection = $result->fieldProjection;
+
             if (in_array($expression->transformerId, ['lower', 'upper', 'title', 'capitalize', 'replace', 'truncate'], true)) {
                 // Text transforms have already applied the specialist projection.
                 $projection = 'none';
@@ -56,6 +63,7 @@ final class ReferenceResolver
     public function interpolateText(string $template, ReferenceContext $context, ReferenceOutputContext $outputContext = ReferenceOutputContext::PlainText): string
     {
         $context = $context->withOutputContext($outputContext);
+
         if ($outputContext === ReferenceOutputContext::EmailHeader && preg_match('/[\r\n\x00]/', $template)) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidOutput);
         }
@@ -65,6 +73,7 @@ final class ReferenceResolver
             }
             $result = $this->resolveValue($match[0], $context);
             $expression = $result->expression;
+
             if ($result->diagnostic !== null) {
                 $strictOutput = in_array($context->usage, [ReferenceUsage::Integration, ReferenceUsage::Url], true) || in_array($outputContext, [
                     ReferenceOutputContext::EmailHeader,
@@ -86,17 +95,20 @@ final class ReferenceResolver
 
             $value = $result->requireValue();
             $summary = in_array($expression->target, ['allFields', 'allContentFields', 'allVisibleFields'], true);
+
             if ($result->field && $result->fieldProjection !== 'none') {
                 $field = $result->field;
                 $project = static fn(mixed $item): mixed => $outputContext === ReferenceOutputContext::StructuredData
                     ? $field->getValueAsData($item, $context->submission)
                     : $field->getValueForReference($item, $context->submission);
+
                 if ($result->fieldProjection === 'value' && $field->valueType()->accepts($value)) {
                     $value = $project($value);
                 } elseif ($result->fieldProjection === 'collection' && is_array($value) && count(array_filter($value, static fn(mixed $item): bool => $field->valueType()->accepts($item))) === count($value)) {
                     $value = array_map($project, $value);
                 }
             }
+
             if ($summary && $outputContext === ReferenceOutputContext::Html) {
                 // Only registered, field-owned summary templates can produce trusted block HTML.
                 return (string)$value;
@@ -117,23 +129,28 @@ final class ReferenceResolver
     private function _transform(mixed $value, ReferenceExpression $expression, ReferenceContext $context, ?FieldInterface $field): mixed
     {
         $id = $expression->transformerId;
+
         if (in_array($expression->target, ['allFields', 'allContentFields', 'allVisibleFields'], true)) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidType);
         }
         $custom = (new ReferenceCatalogue())->transform($id);
+
         if ($custom) {
             if (!$custom->server || !in_array('server', $context->permissions, true)) {
                 throw new ReferenceException(ReferenceDiagnostic::ForbiddenSource);
             }
+
             if (!$custom->inputType->accepts($value) || array_diff(array_keys($expression->transformerParams), [...$custom->parameters, 'scope', 'index', 'rows'])) {
                 throw new ReferenceException(ReferenceDiagnostic::InvalidType);
             }
             $result = ($custom->transform)($value, $expression->transformerParams, $context);
+
             if (!$custom->outputType->accepts($result)) {
                 throw new ReferenceException(ReferenceDiagnostic::InvalidType);
             }
             return $result;
         }
+
         if (!in_array($id, ['round', 'floor', 'ceil', 'format', 'lower', 'upper', 'title', 'capitalize', 'replace', 'truncate', 'map', 'join', 'first', 'last', 'count'], true)) {
             throw new ReferenceException(ReferenceDiagnostic::UnknownTransform);
         }
@@ -145,18 +162,23 @@ final class ReferenceResolver
             'join' => ['separator'],
             default => [],
         };
+
         if (array_diff(array_keys($expression->transformerParams), [...$parameters, 'scope', 'index', 'rows'])) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidExpression);
         }
+
         if (in_array($id, ['round', 'floor', 'ceil'], true) && !is_numeric($value)) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidType);
         }
+
         if (in_array($id, ['join', 'first', 'last', 'count'], true) && !is_array($value)) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidType);
         }
+
         if (in_array($id, ['lower', 'upper', 'title', 'capitalize', 'replace', 'truncate'], true) && $field && $field->valueType()->accepts($value)) {
             $value = $field->getValueForReference($value, $context->submission);
         }
+
         if (in_array($id, ['lower', 'upper', 'title', 'capitalize', 'replace', 'truncate'], true) && !is_scalar($value) && $value !== null) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidType);
         }
@@ -194,9 +216,11 @@ final class ReferenceResolver
         if ($value === null) {
             return '';
         }
+
         if (is_scalar($value)) {
             return is_bool($value) ? ($value ? '1' : '0') : (string)$value;
         }
+
         if (is_array($value)) {
             return implode(', ', array_map($this->_text(...), $value));
         }

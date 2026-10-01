@@ -42,7 +42,7 @@ class Infusionsoft extends Crm implements OAuthProviderInterface
     {
         return 'Infusionsoft';
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -180,6 +180,7 @@ class Infusionsoft extends Crm implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
 

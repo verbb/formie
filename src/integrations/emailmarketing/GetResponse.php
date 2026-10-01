@@ -69,6 +69,7 @@ class GetResponse extends EmailMarketing
                 'fields' => $listFields,
             ]);
         }
+
         try {
 
         } catch (Throwable $e) {
@@ -81,6 +82,7 @@ class GetResponse extends EmailMarketing
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -149,7 +151,7 @@ class GetResponse extends EmailMarketing
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -169,7 +171,7 @@ class GetResponse extends EmailMarketing
             'headers' => ['X-Auth-Token' => 'api-key ' . App::parseEnv($this->apiKey)],
         ]);
     }
-    
+
 
     // Private Methods
     // =========================================================================

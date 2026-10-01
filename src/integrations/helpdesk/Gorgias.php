@@ -53,7 +53,7 @@ class Gorgias extends HelpDesk
     {
         return Craft::t('formie', 'Send your form content to Gorgias.');
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -66,35 +66,35 @@ class Gorgias extends HelpDesk
                 ],
             ]);
 
-            $fields = $response['data'] ?? [];
+                $fields = $response['data'] ?? [];
 
-            $ticketFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'message',
-                    'name' => Craft::t('formie', 'Message'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'channel',
-                    'name' => Craft::t('formie', 'Channel'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'tags',
-                    'name' => Craft::t('formie', 'Tags'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'name',
-                    'name' => Craft::t('formie', 'Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'subject',
-                    'name' => Craft::t('formie', 'Subject'),
-                ]),
-            ], $this->_getCustomFields($fields));
+                $ticketFields = array_merge([
+                    new IntegrationField([
+                        'handle' => 'message',
+                        'name' => Craft::t('formie', 'Message'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'channel',
+                        'name' => Craft::t('formie', 'Channel'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'tags',
+                        'name' => Craft::t('formie', 'Tags'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'name',
+                        'name' => Craft::t('formie', 'Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'subject',
+                        'name' => Craft::t('formie', 'Subject'),
+                    ]),
+                ], $this->_getCustomFields($fields));
 
                 $settings['ticket'] = $ticketFields;
             }
@@ -108,6 +108,7 @@ class Gorgias extends HelpDesk
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             if ($this->mapToTicket) {
                 $ticketValues = $this->getFieldMappingValues($submission, $this->ticketFieldMapping, 'ticket');
@@ -182,7 +183,7 @@ class Gorgias extends HelpDesk
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

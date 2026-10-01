@@ -18,7 +18,7 @@ class SlotTag extends Model
 
         return $slotTag;
     }
-    
+
 
     // Properties
     // =========================================================================

@@ -9,5 +9,5 @@ class PaymentReceiveWebhookEvent extends Event
     // =========================================================================
 
     public ?array $webhookData = null;
-    
+
 }

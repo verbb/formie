@@ -62,6 +62,7 @@ class FormsController extends Controller
         }
 
         $requestToken = (string)$this->request->getQueryParam('requestToken', '');
+
         if ($requestToken !== '') {
             (new \verbb\formie\services\RuntimeConfiguration())->restoreToken($form, $requestToken);
         }

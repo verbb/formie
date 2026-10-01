@@ -76,13 +76,14 @@ class CalendarEvent extends Element
     {
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $customFields = [];
 
         if (class_exists(Calendar::class)) {
             $calendars = Calendar::getInstance()->calendars->getAllAllowedCalendars();
+
             foreach ($calendars as $calendar) {
                 $fields = $this->getFieldLayoutFields($calendar->getFieldLayout());
 
@@ -233,6 +234,7 @@ class CalendarEvent extends Element
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         if (!$this->calendarId) {
             Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `calendarId`.'), true);
 
@@ -261,7 +263,7 @@ class CalendarEvent extends Element
                     if (isset($fieldValue[0])) {
                         $event->authorId = $fieldValue[0] ?? null;
                     }
-                } else if (in_array($eventFieldHandle, ['startDate', 'endDate', 'until'])) {
+                } elseif (in_array($eventFieldHandle, ['startDate', 'endDate', 'until'])) {
                     // Calendar expects dates as Carbon object, not DateTime
                     $event->{$eventFieldHandle} = new Carbon($fieldValue->format('Y-m-d H:i:s') ?? 'now', 'utc');
                 } else {
@@ -283,7 +285,7 @@ class CalendarEvent extends Element
             $endpoint = '';
             $method = '';
 
-            // Allow events to cancel sending - return as success            
+            // Allow events to cancel sending - return as success
             if (!$this->beforeSendPayload($submission, $endpoint, $event, $method)) {
                 return $this->resultForPayload(true);
             }
@@ -363,6 +365,7 @@ class CalendarEvent extends Element
     {
         $schema = parent::defineFormSettingsSchema($form);
         $selectedCalendarId = (string)($this->calendarId ?? '');
+
         if ($selectedCalendarId === '') {
             $selectedCalendarId = $this->_getFirstCalendarId();
         }
@@ -398,6 +401,7 @@ class CalendarEvent extends Element
         ]);
 
         $fieldMappingSchema = $this->convertIntegrationFieldsToSchema($this->_getCalendarSettings($selectedCalendarId)->fields ?? []);
+
         if ($fieldMappingSchema) {
             $schema[] = SchemaHelper::integrationFieldMappingField([
                 'name' => 'fieldMapping',
@@ -423,6 +427,7 @@ class CalendarEvent extends Element
 
         $updateAttributes = $this->getUpdateAttributes();
         $updateMappingSchema = $this->convertIntegrationFieldsToSchema($updateAttributes[$selectedCalendarId] ?? []);
+
         if ($updateMappingSchema) {
             $schema[] = SchemaHelper::integrationFieldMappingField([
                 'name' => 'updateElementMapping',
@@ -438,7 +443,7 @@ class CalendarEvent extends Element
 
         return $schema;
     }
-    
+
 
     // Private Methods
     // =========================================================================

@@ -9,5 +9,5 @@ class ModifyFieldSchemaEvent extends Event
     // =========================================================================
 
     public array $tabs = [];
-    
+
 }

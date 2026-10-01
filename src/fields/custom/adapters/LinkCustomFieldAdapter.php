@@ -448,7 +448,8 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
             'data-formie-custom-link-type' => true,
         ]) : Html::hiddenInput($typeName, $typeId);
 
-        $html = Html::tag('div',
+        $html = Html::tag(
+            'div',
             $typeInput .
             $this->renderValueInput($field, $form, [
                 'type' => $valueInputAttributes['type'],

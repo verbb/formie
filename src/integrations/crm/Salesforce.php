@@ -100,11 +100,11 @@ class Salesforce extends Crm implements OAuthProviderInterface
     public const GRANT_AUTHORIZATION_CODE = 'authorization_code';
     public const GRANT_CLIENT_CREDENTIALS = 'client_credentials';
     public const GRANT_PASSWORD = 'password';
-    
+
 
     // Properties
     // =========================================================================
-    
+
     public ?string $apiDomain = null;
     public ?string $authDomain = null;
     public ?string $grant = null;
@@ -169,6 +169,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
             }
 
             $formatted = self::_normalizeMappedDateTimeForSalesforce($event->rawValue, $event->value);
+
             if ($formatted !== null) {
                 $event->value = $formatted;
             }
@@ -181,6 +182,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
             foreach ($event->fieldValues as $tag => $value) {
                 $integrationField = ArrayHelper::firstWhere($event->fieldSettings, 'handle', $tag);
+
                 if ($integrationField?->getType() === IntegrationField::TYPE_ARRAY && is_array($value)) {
                     $event->fieldValues[$tag] = implode(';', $value);
                     continue;
@@ -191,6 +193,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 }
 
                 $formatted = self::_normalizeMappedDateTimeForSalesforce($value, $value);
+
                 if ($formatted !== null) {
                     $event->fieldValues[$tag] = $formatted;
                 }
@@ -319,7 +322,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
             'refresh_token',
             'offline_access',
         ];
-        
+
         return $options;
     }
 
@@ -405,6 +408,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');

@@ -11,9 +11,11 @@ final class ConditionMigration
         if (isset($data['conditions']) && is_array($data['conditions']) && isset($data['conditionRule'])) {
             $legacy = !isset($data['version']);
             $data['version'] ??= 1;
+
             foreach ($data['conditions'] as &$row) {
                 if (is_array($row)) {
                     $operator = $row['condition'] ?? '';
+
                     if (is_string($operator)) {
                         $row['condition'] = ['==' => '=', 'equals' => '=', 'notEquals' => '!='][$operator] ?? $operator;
                     }
@@ -22,6 +24,7 @@ final class ConditionMigration
             }
             unset($row);
         }
+
         foreach ($data as $key => $value) {
             if (is_array($value)) {
                 $data[$key] = self::migrate($value);

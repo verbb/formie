@@ -17,5 +17,5 @@ class ParseVariablesEvent extends Event
     public ?Form $form = null;
     public ?Notification $notification = null;
     public array $variables = [];
-    
+
 }

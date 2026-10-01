@@ -49,7 +49,7 @@ class PayPal extends Payment
     {
         return 'PayPal';
     }
-    
+
 
 
     // Properties
@@ -112,9 +112,11 @@ class PayPal extends Payment
     {
         $mutex = Craft::$app->getMutex();
         $lock = 'formie.paypal.' . hash('sha256', $submission->id . ':' . $this->getField()?->id);
+
         if (!$mutex->acquire($lock, 10)) {
             return PaymentDecision::pending('PayPal payment is already being processed.', $this->handle);
         }
+
         try {
             return $this->_processPayment($submission);
         } finally {
@@ -128,11 +130,13 @@ class PayPal extends Payment
             return;
         }
         $submission = $payment->getSubmission();
+
         if (!$submission || $payment->integrationId !== $this->id) {
             throw new Exception('Invalid PayPal payment context.');
         }
         $capture = $this->_requestApi('GET', 'v2/payments/captures/' . rawurlencode($payment->reference));
         $this->_applyCapture($payment, $capture, $submission);
+
         if (!Formie::$plugin->getPayments()->savePayment($payment)) {
             throw new DeliveryOutcomeUnknownException('Unable to save the PayPal payment status.');
         }
@@ -331,7 +335,7 @@ class PayPal extends Payment
             ]),
         ];
     }
-    
+
 
 
     // Protected Methods
@@ -408,6 +412,7 @@ class PayPal extends Payment
             ]);
             $this->_accessToken = $token['access_token'] ?? null;
             $this->_accessTokenExpires = time() + max(0, (int)($token['expires_in'] ?? 0) - 30);
+
             if (!$this->_accessToken) {
                 throw new Exception('Unable to authenticate with PayPal.');
             }
@@ -435,11 +440,13 @@ class PayPal extends Payment
     private function _verifyAmount(array $actual, array $expected): void
     {
         $value = (string)($actual['value'] ?? '');
+
         if (($actual['currency_code'] ?? '') !== $expected['currency_code'] || !preg_match('/^\d+(?:\.\d+)?$/D', $value)) {
             throw new Exception('PayPal currency or amount does not match the submission.');
         }
         $parser = new \Money\Parser\DecimalMoneyParser(new \Money\Currencies\ISOCurrencies());
         $currency = new \Money\Currency($expected['currency_code']);
+
         if (!$parser->parse($value, $currency)->equals($parser->parse($expected['value'], $currency))) {
             throw new Exception('PayPal amount does not match the submission.');
         }
@@ -460,6 +467,7 @@ class PayPal extends Payment
     {
         try {
             $this->_verifyAmount($capture['amount'] ?? [], $this->_paymentAmount($payment->amount, $payment->currency));
+
             if (empty($capture['id']) || ($capture['invoice_id'] ?? '') !== $this->_invoiceId($submission, (int)$payment->fieldId)
                 || ($payment->reference && $payment->reference !== $capture['id'])) {
                 throw new Exception('PayPal capture does not match the submission.');
@@ -485,11 +493,13 @@ class PayPal extends Payment
         }
 
         $payments = $purchaseUnits[0]['payments'] ?? [];
+
         if (!is_array($payments)) {
             return null;
         }
 
         $authorizations = $payments['authorizations'] ?? [];
+
         if (!is_array($authorizations) || !$authorizations) {
             return null;
         }
@@ -523,11 +533,13 @@ class PayPal extends Payment
             if ($orderId !== '') {
                 $order = $this->_requestApi('GET', 'v2/checkout/orders/' . rawurlencode($orderId));
                 $units = $order['purchase_units'] ?? [];
+
                 if (count($units) !== 1) {
                     throw new Exception('Expected one PayPal purchase unit.');
                 }
                 $this->_verifyAmount($units[0]['amount'] ?? [], $expected);
                 $orderAuthId = $this->_extractAuthorizationId($order);
+
                 if (!$orderAuthId && $authId === '') {
                     $order = (new DeliveryAttempt((int)$submission->id, 'paypal.authorize:' . $field->id, (string)$submission->uid))->execute(
                         ['account' => $account, 'orderId' => $orderId, 'amount' => $expected],
@@ -540,16 +552,19 @@ class PayPal extends Payment
                     );
                     $orderAuthId = $this->_extractAuthorizationId($order);
                 }
+
                 if (!$orderAuthId || ($authId !== '' && $authId !== $orderAuthId)) {
                     throw new Exception('PayPal authorization does not match the approved order.');
                 }
                 $authId = $orderAuthId;
             }
+
             if ($authId === '') {
                 throw new Exception('Missing PayPal authorization data for payment.');
             }
 
             $authorization = $this->_requestApi('GET', 'v2/payments/authorizations/' . rawurlencode($authId));
+
             if (($authorization['id'] ?? '') !== $authId) {
                 throw new Exception('Invalid PayPal authorization response.');
             }
@@ -570,9 +585,11 @@ class PayPal extends Payment
 
             $payment = $this->_paymentRecord($submission, (int)$field->id, $amount, $currency);
             $this->_applyCapture($payment, $capture, $submission);
+
             if (!Formie::$plugin->getPayments()->savePayment($payment)) {
                 throw new DeliveryOutcomeUnknownException('Unable to save the accepted PayPal payment.');
             }
+
             if ($payment->status === PaymentModel::STATUS_SUCCEEDED) {
                 $this->afterProcessPayment($submission, true);
                 return PaymentDecision::succeeded($this->handle);
@@ -584,11 +601,13 @@ class PayPal extends Payment
             Integration::apiError($this, $e, $this->throwApiError);
             $message = $this->getFriendlyPaymentErrorMessage($e);
             $this->addFieldError($submission, $message);
+
             if ($e instanceof DeliveryOutcomeUnknownException) {
                 if ($submission->id && $field?->id && $this->id) {
                     $payment ??= $this->_paymentRecord($submission, (int)$field->id, $amount, $currency);
                     $payment->status = PaymentModel::STATUS_UNKNOWN;
                     $payment->message = 'PayPal payment outcome requires confirmation.';
+
                     if (!Formie::$plugin->getPayments()->savePayment($payment)) {
                         throw $e;
                     }

@@ -40,7 +40,7 @@ class CleanTalk extends Captcha
     public function getSettingsHtml(): ?string
     {
         $variables = $this->getSettingsHtmlVariables();
-        
+
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/cleantalk/_plugin-settings', $variables);
     }
 

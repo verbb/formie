@@ -31,11 +31,11 @@ class Scoro extends Crm
     {
         return 'Scoro';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     public ?string $apiDomain = null;
@@ -151,6 +151,7 @@ class Scoro extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
 
@@ -199,7 +200,7 @@ class Scoro extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

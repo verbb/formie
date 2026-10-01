@@ -87,7 +87,7 @@ class EmailDomains extends Component
                     $domains[] = $parts[0] ?? '';
                 }
             }
-            
+
             $normalizedDomains = [];
 
             foreach ($domains as $domain) {

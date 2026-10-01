@@ -75,6 +75,7 @@ class FieldLayout extends SavableComponent
     public function getRows(): array
     {
         $rows = [];
+
         foreach ($this->getPages() as $page) {
             array_push($rows, ...$page->getRows());
         }
@@ -90,6 +91,7 @@ class FieldLayout extends SavableComponent
     public function getFields(): array
     {
         $fields = [];
+
         foreach ($this->getRows() as $row) {
             array_push($fields, ...$row->getFields());
         }
@@ -220,6 +222,7 @@ class FieldLayout extends SavableComponent
     private function _getFieldsByHandle(): array
     {
         $index = [];
+
         foreach ($this->getFields() as $field) {
             $index[$field->handle] = $field;
         }
@@ -230,6 +233,7 @@ class FieldLayout extends SavableComponent
     private function _getFieldsById(): array
     {
         $index = [];
+
         foreach ($this->getFields() as $field) {
             $index[$field->id] = $field;
         }

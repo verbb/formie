@@ -188,7 +188,7 @@ class Notification extends Model implements TranslatablePropertiesInterface
 
             if ($condition = ArrayHelper::firstWhere($conditions, 'field', '{submission:status}')) {
                 return $condition['value'];
-            };
+            }
         }
 
         return null;
@@ -197,7 +197,7 @@ class Notification extends Model implements TranslatablePropertiesInterface
     public function renderTemplate(array|string $components, array $variables = []): string
     {
         $view = Craft::$app->getView();
-        
+
         // Normalise the components to allow for a single component
         if (!is_array($components)) {
             $components = [$components];

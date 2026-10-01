@@ -43,6 +43,7 @@ class PaymentWebhooks extends Component
         if ($integration->id && $request->integrationId !== (int)$integration->id) {
             throw new RuntimeException('Webhook integration mismatch.');
         }
+
         if (Craft::$app->getDb()->getTransaction()?->getIsActive()) {
             throw new RuntimeException('Payment webhook intake requires an independent durable transaction.');
         }
@@ -180,6 +181,7 @@ class PaymentWebhooks extends Component
                 ]);
 
                 $integration = Formie::$plugin->getIntegrations()->getIntegrationByUid((string)$row['integrationUid']);
+
                 if ($integration instanceof Payment) {
                     $this->_trigger($integration, Payment::EVENT_WEBHOOK_FAILED, receipt: $this->_receipt($this->_row($receiptId)), error: $e);
                 }
@@ -299,6 +301,7 @@ class PaymentWebhooks extends Component
         if (!$integration->id || !$integration->uid) {
             throw new RuntimeException('A verified webhook requires a saved integration identity.');
         }
+
         if ($event->providerEventId === '') {
             throw new RuntimeException('A verified webhook requires a provider event identity.');
         }

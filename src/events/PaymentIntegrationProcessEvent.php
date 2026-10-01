@@ -14,5 +14,5 @@ class PaymentIntegrationProcessEvent extends CancelableEvent
     public ?Submission $submission = null;
     public ?Integration $integration = null;
     public ?bool $result = null;
-    
+
 }

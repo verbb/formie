@@ -15,13 +15,16 @@ final class ConditionSetEvaluator
         }
         $results = [];
         $diagnostics = [];
+
         foreach ($set->rules as $index => $rule) {
             $result = (new ConditionRowEvaluator())->evaluate($rule, $submission, $rows);
             $results[] = $result->value;
+
             foreach ($result->diagnostics as $diagnostic) {
                 $diagnostics[] = [...$diagnostic, 'rule' => $index];
             }
         }
+
         if ($diagnostics) {
             return new ConditionEvaluation(null, $diagnostics);
         }

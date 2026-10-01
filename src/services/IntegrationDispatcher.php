@@ -165,8 +165,10 @@ class IntegrationDispatcher extends Component
             $plan = $this->getPlan($form);
             $context = $this->loadContext($submission, $deliveryKey);
             $handles = $phase === self::PHASE_SYNCHRONOUS ? $plan->getSynchronousHandles($form) : $plan->getOrderedHandles($form);
+
             foreach ($handles as $handle) {
                 $result = $context->getResult($handle);
+
                 if (!$result || !IntegrationStatus::tryFrom($result['status'] ?? '')?->isFinalized() || ($deliveryKey !== null && ($result['executionUid'] ?? '') !== $deliveryKey)) {
                     return;
                 }
@@ -175,17 +177,19 @@ class IntegrationDispatcher extends Component
 
         if ($phase === self::PHASE_AFTER && $deliveryKey !== null) {
             $batch = new IntegrationBatchResult();
+
             foreach ($handles as $handle) {
                 $batch->record($handle, IntegrationResult::fromStorage($context->getResult($handle)));
             }
             $executionContext = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, '@finalized', $deliveryKey);
             $attempts = Formie::$plugin->getDeliveryAttempts();
             $uid = $attempts->prepare($executionContext, 'finalized');
-            $attempts->execute($uid, function () use ($executionContext, $batch, $uid) {
+            $attempts->execute($uid, function() use ($executionContext, $batch, $uid) {
                 $this->trigger(self::EVENT_FINALIZED, new IntegrationDeliveryEvent(['context' => $executionContext, 'attemptUid' => $uid, 'batch' => $batch]));
                 return IntegrationResult::succeeded();
             });
         }
+
         foreach ($form->getEnabledNotifications() as $notification) {
             if (!$this->shouldSendNotificationAtPhase($notification, $form, $phase)) {
                 continue;
@@ -227,6 +231,7 @@ class IntegrationDispatcher extends Component
             throw new InvalidArgumentException('An integration run identity is required.');
         }
         $this->_runs[] = [(int)$submission->id, $runUid];
+
         try {
             return $callback();
         } finally {
@@ -237,6 +242,7 @@ class IntegrationDispatcher extends Component
     public function loadContext(Submission $submission, ?string $runUid = null): IntegrationRunResults
     {
         $runUid ??= $this->currentRunUid($submission);
+
         if (!$submission->id || $runUid === null) {
             return new IntegrationRunResults();
         }
@@ -252,9 +258,11 @@ class IntegrationDispatcher extends Component
         }
         $mutex = Craft::$app->getMutex();
         $lock = 'formie.run-context.' . hash('sha256', $submission->id . ':' . $runUid);
+
         if (!$mutex->acquire($lock, 10)) {
             throw new RuntimeException('Unable to update integration run context.');
         }
+
         try {
             // Independent workers may finish different bindings in the same run.
             $stored = $this->loadContext($submission, $runUid);

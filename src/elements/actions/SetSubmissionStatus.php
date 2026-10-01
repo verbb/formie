@@ -127,7 +127,7 @@ JS, [static::class]);
 
         if ($failCount !== 0) {
             $this->setMessage(Craft::t('app', 'Status updated, with some failures due to validation errors.'));
-        } else if (count($elements) === 1) {
+        } elseif (count($elements) === 1) {
             $this->setMessage(Craft::t('app', 'Status updated.'));
         } else {
             $this->setMessage(Craft::t('app', 'Statuses updated.'));

@@ -3,7 +3,6 @@ namespace verbb\formie\fields\values;
 
 class DateRangeFieldValue extends BaseFieldValue
 {
-
     // Static Methods
     // =========================================================================
 

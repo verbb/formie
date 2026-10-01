@@ -45,7 +45,7 @@ class CaptchaEu extends Captcha
     public function getSettingsHtml(): ?string
     {
         $variables = $this->getSettingsHtmlVariables();
-        
+
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/captcha-eu/_plugin-settings', $variables);
     }
 
@@ -98,7 +98,7 @@ class CaptchaEu extends Captcha
 
             if (!($response['success'] ?? false)) {
                 $this->spamReason = 'Captcha.eu flagged this submission as spam. ' . ($response['detail'] ?? '');
-                
+
                 return false;
             }
         } catch (Throwable $e) {

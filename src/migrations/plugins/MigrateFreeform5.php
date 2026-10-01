@@ -132,11 +132,11 @@ class MigrateFreeform5 extends BasePluginMigrator
             if ($behaviorSettings->successBehavior === 'reload') {
                 $form->settings->successMessage = RichText::fromHtml('<p>' . $behaviorSettings->successMessage . '</p>');
                 $form->settings->completionBehavior = 'message';
-            } else if ($behaviorSettings->successBehavior === 'redirect-return-url') {
+            } elseif ($behaviorSettings->successBehavior === 'redirect-return-url') {
                 $form->settings->redirectUrl = $behaviorSettings->returnUrl;
                 $form->settings->completionBehavior = 'redirect';
-            $form->settings->completionRedirectSource = 'url';
-            } else if ($behaviorSettings->successBehavior === 'load-success-template') {
+                $form->settings->completionRedirectSource = 'url';
+            } elseif ($behaviorSettings->successBehavior === 'load-success-template') {
                 $form->settings->successMessage = RichText::fromHtml('<p>' . $behaviorSettings->successMessage . '</p>');
                 $form->settings->completionBehavior = 'message';
             }
@@ -214,7 +214,7 @@ class MigrateFreeform5 extends BasePluginMigrator
 
         $this->migrateSubmissionBatches(
             fn() => FreeformSubmission::find()->formId($this->_freeformForm->getId()),
-            function ($entry) use ($statusesService, $fallbackStatus) {
+            function($entry) use ($statusesService, $fallbackStatus) {
                 /* @var FreeformSubmission $entry */
                 $submission = new Submission();
                 $submission->title = $entry->title;
@@ -227,7 +227,7 @@ class MigrateFreeform5 extends BasePluginMigrator
 
                 if ($entryStatus) {
                     $submission->setStatus($entryStatus);
-                } else if ($fallbackStatus) {
+                } elseif ($fallbackStatus) {
                     $submission->setStatus($fallbackStatus);
                 }
 
@@ -372,7 +372,7 @@ class MigrateFreeform5 extends BasePluginMigrator
                     $newNotification = new Notification();
                     $newNotification->formId = $this->_form->id;
                     $newNotification->name = $notification->getName();
-                    $newNotification->handle = $this->getNotificationHandle($notification->getTemplate()->getHandle());
+                    $newNotification->handle = $this->_getNotificationHandle($notification->getTemplate()->getHandle());
                     $newNotification->subject = $notification->getTemplate()->getSubject();
                     $newNotification->recipients = 'email';
                     $newNotification->to = implode(',', $notification->getRecipients()->emailsToArray());
@@ -460,7 +460,7 @@ class MigrateFreeform5 extends BasePluginMigrator
         }
     }
 
-    private function getNotificationHandle($currentHandle): string
+    private function _getNotificationHandle($currentHandle): string
     {
         $newHandle = $currentHandle;
 
@@ -576,7 +576,7 @@ class MigrateFreeform5 extends BasePluginMigrator
                 break;
 
             case freeformfields\Pro\ConfirmationField::class:
-                // We want to ensure *this* field is the same as the target field, so grab that type    
+                // We want to ensure *this* field is the same as the target field, so grab that type
                 $targetField = $field->getTargetField();
                 $targetFormieField = $targetField ? $this->_mapField($targetField) : null;
 
@@ -668,7 +668,7 @@ class MigrateFreeform5 extends BasePluginMigrator
 
                 if ($sourceId && $source = Craft::$app->getAssets()->getRootFolderByVolumeId($sourceId)) {
                     $newField->uploadLocationSource = "folder:{$source->getVolume()->uid}";
-                } else if ($volumes = Craft::$app->getVolumes()->getAllVolumes()) {
+                } elseif ($volumes = Craft::$app->getVolumes()->getAllVolumes()) {
                     $newField->uploadLocationSource = "folder:{$volumes[0]->uid}";
                 }
 
@@ -909,7 +909,7 @@ class MigrateFreeform5 extends BasePluginMigrator
         // Validate the handle on it's correctness
         try {
             $reflection = new ReflectionClass(Submission::class);
-            
+
             $reserved =  array_map(function($prop) {
                 return $prop->name;
             }, $reflection->getProperties(ReflectionProperty::IS_PUBLIC));
@@ -967,6 +967,7 @@ class MigrateFreeform5 extends BasePluginMigrator
                 if (!$attrs && preg_match('/^(?P<handle>[a-zA-Z0-9_]+)(?::(?P<selector>[a-zA-Z0-9_]+))?$/', trim($matches['legacy']), $legacyMatches)) {
                     $handle = trim($legacyMatches['handle']);
                     $selector = trim($legacyMatches['selector'] ?? '');
+
                     if ($selector === 'value') {
                         $selector = '';
                     }

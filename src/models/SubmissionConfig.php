@@ -28,8 +28,10 @@ final class SubmissionConfig
         }
 
         $fields = [];
+
         foreach ((array)($data['fields'] ?? []) as $identity => $settings) {
             $field = self::_findFieldByUid($form, (string)$identity);
+
             if ($field) {
                 $fields[$field->uid] = self::_filterFieldSettings($field, (array)$settings);
             }
@@ -37,19 +39,27 @@ final class SubmissionConfig
 
         $formSettings = self::_filterFormSettings((array)($data['form'] ?? []));
 
-        return new FormInstanceConfig($formSettings, $fields, (array)($data['pages'] ?? []),
-            (array)($data['initial'] ?? []), (array)($data['forced'] ?? []),
-            (array)($data['query'] ?? []), (array)($data['prefill'] ?? []),
-            isset($data['completionRedirectOverride']) ? (string)$data['completionRedirectOverride'] : null);
+        return new FormInstanceConfig(
+            $formSettings,
+            $fields,
+            (array)($data['pages'] ?? []),
+            (array)($data['initial'] ?? []),
+            (array)($data['forced'] ?? []),
+            (array)($data['query'] ?? []),
+            (array)($data['prefill'] ?? []),
+            isset($data['completionRedirectOverride']) ? (string)$data['completionRedirectOverride'] : null
+        );
     }
 
     public static function capture(FormInstanceConfig $config): array
     {
         $data = $config->toArray();
         $data['form'] = array_intersect_key($data['form'], array_flip(RuntimeConfiguration::DURABLE_FORM_SETTINGS));
+
         foreach ($data['fields'] as $uid => $settings) {
             $data['fields'][$uid] = array_diff_key($settings, array_flip(['cssClasses', 'containerAttributes', 'inputAttributes', 'placeholder']));
         }
+
         if (!array_filter(array_diff_key($data, ['version' => true]))) {
             return [];
         }
@@ -63,8 +73,10 @@ final class SubmissionConfig
     private static function _decodeFormie3(array $data, Form $form): FormInstanceConfig
     {
         $fields = [];
+
         foreach ((array)($data['fields'] ?? []) as $handle => $settings) {
             $field = self::_findFieldByHandle($form, (string)$handle);
+
             if ($field) {
                 $settings = RuntimeConfigurationMigration::migrate((array)$settings, get_class($field));
                 $fields[$field->uid] = self::_filterFieldSettings($field, $settings);
@@ -93,6 +105,7 @@ final class SubmissionConfig
     {
         $handles = explode('.', $path);
         $handle = array_shift($handles);
+
         if (!$handle) {
             return null;
         }
@@ -118,6 +131,7 @@ final class SubmissionConfig
     private static function _filterFormSettings(array $settings): array
     {
         $formSettings = array_intersect_key($settings, array_flip(RuntimeConfiguration::FORM_SETTINGS));
+
         if (isset($settings['integrations'])) {
             $formSettings['integrations'] = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings($settings['integrations'], false);
         }

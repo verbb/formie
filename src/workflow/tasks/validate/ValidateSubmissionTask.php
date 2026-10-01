@@ -25,6 +25,7 @@ class ValidateSubmissionTask implements TaskInterface
 
         if ($context->attemptedCompletion) {
             $error = Formie::$plugin->getQuestionnaireScoring()->getRetakeError($command->form, $submission);
+
             if ($error !== null) {
                 $submission->addError('form', $error);
             }

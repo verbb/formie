@@ -103,7 +103,7 @@ class FormInterface extends Element
                 'name' => 'isAvailable',
                 'type' => Type::boolean(),
                 'description' => 'Whether the form is considered available according to user checks, scheduling and more.',
-                'resolve' => function ($source) {
+                'resolve' => function($source) {
                     return $source->isAvailable();
                 },
             ],

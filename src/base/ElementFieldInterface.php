@@ -6,5 +6,4 @@ use verbb\formie\options\OptionResolvableInterface;
 
 interface ElementFieldInterface extends ComponentInterface, OptionResolvableInterface
 {
-
 }

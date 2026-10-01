@@ -33,15 +33,15 @@ class Zapier extends Automation
     {
         return 'Zapier';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[FormIntegrationSetting]
     #[Sensitive]
     public ?string $webhook = null;
-    
+
 
     // Public Methods
     // =========================================================================
@@ -85,6 +85,7 @@ class Zapier extends Automation
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $payload = $this->generatePayloadValues($submission);
 

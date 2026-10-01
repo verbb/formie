@@ -12,5 +12,5 @@ class SubmissionRulesEvent extends Event
 
     public ?Submission $submission = null;
     public ?array $rules = null;
-    
+
 }

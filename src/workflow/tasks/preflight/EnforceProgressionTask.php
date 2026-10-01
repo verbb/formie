@@ -24,6 +24,7 @@ class EnforceProgressionTask implements TaskInterface
         }
 
         $page = $command->form->getCurrentPage();
+
         if ($command->navigation === NavigationIntent::TARGET) {
             foreach ($command->form->getPages() as $target) {
                 if ((int)$target->id === $command->targetPageId && $command->form->getPageIndex($target) <= $command->form->getPageIndex($page)) {

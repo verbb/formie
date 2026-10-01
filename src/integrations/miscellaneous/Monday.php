@@ -37,11 +37,11 @@ class Monday extends Miscellaneous
     {
         return 'Monday';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     #[FormIntegrationSetting]
@@ -57,7 +57,7 @@ class Monday extends Miscellaneous
     {
         return Craft::t('formie', 'Send your form content to Monday.');
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -92,6 +92,7 @@ class Monday extends Miscellaneous
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fields = $this->_getBoardSettings()['fields'] ?? [];
             $boardValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
@@ -218,6 +219,7 @@ class Monday extends Miscellaneous
     {
         $schema = parent::defineFormSettingsSchema($form);
         $selectedBoardId = (string)($this->boardId ?? '');
+
         if ($selectedBoardId === '') {
             $selectedBoardId = $this->_getFirstBoardId();
         }
@@ -238,6 +240,7 @@ class Monday extends Miscellaneous
             'required' => $f['required'],
             'options' => $f['options'] ?? [],
         ]), $schemaFields);
+
         if ($fieldMappingSchema) {
             $schema[] = SchemaHelper::groupField([
                 'name' => 'fieldMapping',
@@ -250,7 +253,7 @@ class Monday extends Miscellaneous
         return $schema;
     }
 
-    
+
     // Private Methods
     // =========================================================================
 
@@ -313,17 +316,17 @@ class Monday extends Miscellaneous
                     'email' => $value,
                     'text' => $value,
                 ];
-            } else if ($type === 'link') {
+            } elseif ($type === 'link') {
                 $newColumns[$handle] = [
                     'url' => $value,
                     'text' => $value,
                 ];
-            } else if ($type === 'phone') {
+            } elseif ($type === 'phone') {
                 $newColumns[$handle] = [
                     'phone' => $value,
                     'countryShortName' => '',
                 ];
-            } else if ($type === 'country') {
+            } elseif ($type === 'country') {
                 $countries = Formie::$plugin->getCountries()->getAddressCountries();
 
                 // Check if we supply either the value or label for a country
@@ -334,19 +337,19 @@ class Monday extends Miscellaneous
                     'countryCode' => $countryValue['value'] ?? $countryLabel['value'] ?? '',
                     'countryName' => $countryValue['label'] ?? $countryLabel['label'] ?? '',
                 ];
-            } else if ($type === 'color') {
+            } elseif ($type === 'color') {
                 $newColumns[$handle] = [
                     'index' => (int)$value,
                 ];
-            } else if ($type === 'boolean' || $type === 'checkbox') {
+            } elseif ($type === 'boolean' || $type === 'checkbox') {
                 $newColumns[$handle] = [
                     'checked' => StringHelper::toBoolean($value) ? 'true' : 'false',
                 ];
-            } else if ($type === 'lookup') {
+            } elseif ($type === 'lookup') {
                 // No supported in API
-            } else if ($type === 'board-relation') {
+            } elseif ($type === 'board-relation') {
                 // No supported in API
-            } else if ($type === 'date') {
+            } elseif ($type === 'date') {
                 $date = DateTimeHelper::toDateTime($value);
 
                 if ($date) {

@@ -51,6 +51,7 @@ class DeliveryController extends Controller
         $this->requireCpRequest();
         $this->requirePostRequest();
         $this->requirePermission('formie-exportSensitiveDeliveryEvidence');
+
         if ($this->request->getBodyParam('acknowledged') !== true) {
             throw new ForbiddenHttpException('Acknowledge sensitive evidence before exporting.');
         }
@@ -64,6 +65,7 @@ class DeliveryController extends Controller
     {
         $this->requireCpRequest();
         $this->requirePostRequest();
+
         if ($this->request->getBodyParam('acknowledged') !== true) {
             throw new ForbiddenHttpException('Acknowledge personal data before exporting.');
         }
@@ -83,10 +85,12 @@ class DeliveryController extends Controller
         $attempts = Formie::$plugin->getDeliveryAttempts();
         $row = $attempts->get($uid);
         $submission = $this->_requireSubmission((int)$row['submissionId']);
+
         if (!Formie::$plugin->getPermissions()->canSaveSubmissions(Craft::$app->getUser()->getIdentity(), $submission->getForm())) {
             throw new ForbiddenHttpException('Not permitted to retry this submission.');
         }
         $result = $row['result'] ? IntegrationResult::fromStorage(Json::decode($row['result'])) : null;
+
         if (!$result?->retryable || !in_array($row['step'], ['integration', 'dispatch', 'notification'], true)) {
             throw new ForbiddenHttpException('Only a definitely failed delivery can retry. Reconcile unknown operations first, then retry their parent.');
         }
@@ -103,6 +107,7 @@ class DeliveryController extends Controller
         $this->requirePermission('formie-forceIntegrations');
         $submission = $this->_requireSubmission((int)$this->request->getRequiredBodyParam('submissionId'));
         $handle = (string)$this->request->getRequiredBodyParam('handle');
+
         foreach (Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($submission->getForm()) as $integration) {
             if ($integration->handle === $handle && $integration->supportsPayloadSending()) {
                 $result = Formie::$plugin->getIntegrationTriggers()->forceIntegration($integration, $submission, (string)$this->request->getRequiredBodyParam('reason'));
@@ -136,9 +141,11 @@ class DeliveryController extends Controller
     {
         $this->requirePermission('formie-viewDeliveryDiagnostics');
         $submission = Submission::find()->id($id)->status(null)->isIncomplete(null)->isSpam(null)->one();
+
         if (!$submission) {
             throw new NotFoundHttpException('Submission not found.');
         }
+
         if (!Formie::$plugin->getPermissions()->canViewSubmissions(Craft::$app->getUser()->getIdentity(), $submission->getForm())) {
             throw new ForbiddenHttpException('Not permitted to view this submission.');
         }

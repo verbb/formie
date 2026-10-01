@@ -31,6 +31,7 @@ trait DateSubFieldValueTrait
             }
 
             $value = $element->getFieldValue($this->valueKey());
+
             if (!$this->_isMissingDateSubFieldValue($value)) {
                 return $value;
             }

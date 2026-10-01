@@ -185,7 +185,7 @@ class RecentSubmissions extends Widget
                 }
 
                 $variables['labels'][] = $form->title;
-                $variables['totalSubmissions'][] = $this->getQuery($form)->count();
+                $variables['totalSubmissions'][] = $this->_getQuery($form)->count();
             }
         }
 
@@ -204,7 +204,7 @@ class RecentSubmissions extends Widget
 
                 $formTitles[] = $form->title;
 
-                $chartData = $this->_createChartQuery($this->getQuery($form), [
+                $chartData = $this->_createChartQuery($this->_getQuery($form), [
                     new Expression('COUNT([[submissions.id]]) as total'),
                 ], [
                     'total' => 0,
@@ -277,7 +277,7 @@ class RecentSubmissions extends Widget
     // Private Methods
     // =========================================================================
 
-    private function getQuery(Form $form): Query
+    private function _getQuery(Form $form): Query
     {
         $startDate = null;
         $endDate = null;
@@ -285,12 +285,12 @@ class RecentSubmissions extends Widget
         if ($this->dateRange == self::DATE_RANGE_CUSTOM) {
             $startDate = DateTimeHelper::toDateTime($this->startDate);
             $endDate = DateTimeHelper::toDateTime($this->endDate);
-        } else if ($this->dateRange) {
+        } elseif ($this->dateRange) {
             $startDate = $this->_getStartDate($this->dateRange);
             $endDate = $this->_getEndDate($this->dateRange);
         }
 
-        $query = (new Query)
+        $query = (new Query())
             ->from(['submissions' => Table::FORMIE_SUBMISSIONS])
             ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[submissions.id]]')
             ->where(['formId' => $form->id])
@@ -388,8 +388,8 @@ class RecentSubmissions extends Widget
     {
         // Allow the passing in of a custom query in case we need to add extra logic
         $defaults = [];
-        $dateRangeInterval = $this->getDateRangeInterval();
-        $options = $this->getChartQueryOptionsByInterval($dateRangeInterval);
+        $dateRangeInterval = $this->_getDateRangeInterval();
+        $options = $this->_getChartQueryOptionsByInterval($dateRangeInterval);
 
         if (!$options) {
             return null;
@@ -434,7 +434,7 @@ class RecentSubmissions extends Widget
         return $return;
     }
 
-    private function getDateRangeInterval(): string
+    private function _getDateRangeInterval(): string
     {
         if ($this->dateRange == self::DATE_RANGE_CUSTOM) {
             $interval = date_diff(DateTimeHelper::toDateTime($this->startDate), DateTimeHelper::toDateTime($this->endDate));
@@ -444,7 +444,7 @@ class RecentSubmissions extends Widget
         return self::DATE_RANGE_INTERVAL[$this->dateRange] ?? 'day';
     }
 
-    private function getChartQueryOptionsByInterval(string $interval): ?array
+    private function _getChartQueryOptionsByInterval(string $interval): ?array
     {
         if (Craft::$app->getDb()->getIsMysql()) {
             // The fallback if timezone can't happen in sql is simply just extract the information from the UTC date stored in `dateOrdered`.
@@ -461,29 +461,29 @@ class RecentSubmissions extends Widget
 
         switch ($interval) {
             case 'month':
-            {
-                $sqlExpression = "CONCAT(EXTRACT(YEAR FROM " . $timezoneConversionSql . "), '-', EXTRACT(MONTH FROM " . $timezoneConversionSql . "))";
+                {
+                    $sqlExpression = "CONCAT(EXTRACT(YEAR FROM " . $timezoneConversionSql . "), '-', EXTRACT(MONTH FROM " . $timezoneConversionSql . "))";
 
-                return [
-                    'interval' => 'P1M',
-                    'dateKeyFormat' => 'Y-n',
-                    'dateKey' => $sqlExpression,
-                    'groupBy' => $sqlExpression,
-                    'orderBy' => $sqlExpression . ' ASC',
-                ];
-            }
+                    return [
+                        'interval' => 'P1M',
+                        'dateKeyFormat' => 'Y-n',
+                        'dateKey' => $sqlExpression,
+                        'groupBy' => $sqlExpression,
+                        'orderBy' => $sqlExpression . ' ASC',
+                    ];
+                }
             case 'day':
-            {
-                $sqlExpression = "DATE(" . $timezoneConversionSql . ")";
+                {
+                    $sqlExpression = "DATE(" . $timezoneConversionSql . ")";
 
-                return [
-                    'interval' => 'P1D',
-                    'dateKeyFormat' => 'Y-m-d',
-                    'dateKey' => $sqlExpression,
-                    'groupBy' => $sqlExpression,
-                    'orderBy' => $sqlExpression,
-                ];
-            }
+                    return [
+                        'interval' => 'P1D',
+                        'dateKeyFormat' => 'Y-m-d',
+                        'dateKey' => $sqlExpression,
+                        'groupBy' => $sqlExpression,
+                        'orderBy' => $sqlExpression,
+                    ];
+                }
         }
 
         return null;

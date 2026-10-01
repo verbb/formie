@@ -16,12 +16,15 @@ final class IntegrationConfig
         if ($depth > 16) {
             throw new InvalidArgumentException('Integration metadata is too deeply nested.');
         }
+
         if ($value instanceof IntegrationField || $value instanceof IntegrationCollection) {
             $kind = $value instanceof IntegrationField ? 'field' : 'collection';
             return ['_kind' => $kind, 'attributes' => self::encode(get_object_vars($value), $depth + 1)];
         }
+
         if (is_array($value)) {
             $result = [];
+
             foreach ($value as $key => $item) {
                 if (preg_match('/^(?:class|__class|as .+|on .+|password|clientSecret|apiKey|accessToken|refreshToken|authorization|cookie)$/i', (string)$key)) {
                     continue;
@@ -30,6 +33,7 @@ final class IntegrationConfig
             }
             return $result;
         }
+
         if (is_object($value) || is_resource($value)) {
             throw new InvalidArgumentException('Integration metadata must contain only data.');
         }
@@ -49,9 +53,11 @@ final class IntegrationConfig
             IntegrationCollection::class => 'collection',
             default => null,
         };
+
         if (array_key_exists('class', $value) && $kind === null) {
             throw new InvalidArgumentException('Unsupported legacy integration metadata. Refresh this connection.');
         }
+
         if ($kind !== null) {
             $model = match ($kind) {
                 'field' => new IntegrationField(),
@@ -59,6 +65,7 @@ final class IntegrationConfig
                 default => throw new InvalidArgumentException('Unsupported integration metadata kind.'),
             };
             $attributes = $value['attributes'] ?? $value;
+
             foreach (array_keys(get_object_vars($model)) as $property) {
                 if (array_key_exists($property, $attributes)) {
                     $model->$property = self::decode($attributes[$property], $depth + 1);
@@ -104,6 +111,7 @@ final class IntegrationConfig
         // Round-trip through the storage codec so callers always receive inert,
         // redacted metadata while retaining the known value objects they expect.
         $encoded = self::encode($data);
+
         if (strlen(json_encode($encoded, JSON_THROW_ON_ERROR)) > self::MAX_BYTES) {
             throw new InvalidArgumentException('Integration metadata exceeds the storage limit.');
         }

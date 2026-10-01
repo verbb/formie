@@ -134,6 +134,7 @@ class Campaign extends EmailMarketing
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             // Get the Campaign mailing list
             $list = CampaignPlugin::$plugin->mailingLists->getMailingListById($this->listId);
@@ -149,7 +150,7 @@ class Campaign extends EmailMarketing
             // Ensure we trigger the un-before payload manually, as this isn't the typical API request
             $endpoint = '';
             $method = '';
-            
+
             if (!$this->beforeSendPayload($submission, $endpoint, $fieldValues, $method)) {
                 return $this->resultForPayload(true);
             }
@@ -160,12 +161,12 @@ class Campaign extends EmailMarketing
             $referrer = $this->context['referrer'] ?? null;
 
             $contact = CampaignPlugin::$plugin->forms->createAndSubscribeContact($email, $fieldValues, $list, 'formie', $referrer);
-            
+
             if ($contact->hasErrors()) {
                 Integration::error($this, Craft::t('formie', 'Unable to save contact: “{errors}”.', [
                     'errors' => Json::encode($contact->getErrors()),
                 ]), true);
-                
+
                 return $this->resultForPayload(false);
             }
         } catch (Throwable $e) {
@@ -176,7 +177,7 @@ class Campaign extends EmailMarketing
 
         return $this->resultForPayload(true);
     }
-    
+
 
     // Private Methods
     // =========================================================================

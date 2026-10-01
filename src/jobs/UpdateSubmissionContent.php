@@ -61,7 +61,7 @@ class UpdateSubmissionContent extends BaseJob
                 'total' => count($submissionIds),
             ]));
 
-            $db->transaction(function () use ($db, $id, $destinations, $groupUids): void {
+            $db->transaction(function() use ($db, $id, $destinations, $groupUids): void {
                 // Lock the latest row until relocation completes so a concurrent edit cannot be overwritten.
                 $submission = $db->createCommand(
                     'SELECT [[content]] FROM ' . Table::FORMIE_SUBMISSIONS . ' WHERE [[id]] = :id AND [[formId]] = :formId FOR UPDATE',

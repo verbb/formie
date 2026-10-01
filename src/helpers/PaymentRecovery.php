@@ -161,12 +161,16 @@ class PaymentRecovery
     /** Trusted operator migration boundary: never replaces an established account identity. */
     public static function verifyLegacyAccount(string $kind, int $id, string $note): void
     {
-        $table = match ($kind) { 'payment' => Table::FORMIE_PAYMENTS, 'subscription' => Table::FORMIE_SUBSCRIPTIONS, default => throw new RuntimeException('Choose payment or subscription.') };
+        $table = match ($kind) {
+            'payment' => Table::FORMIE_PAYMENTS, 'subscription' => Table::FORMIE_SUBSCRIPTIONS, default => throw new RuntimeException('Choose payment or subscription.')
+        };
+
         if (trim($note) === '' || strlen($note) > 2000) {
             throw new RuntimeException('Record how the original provider account was independently verified.');
         }
         $row = (new Query())->from($table)->where(['id' => $id])->one();
         $integration = $row ? Formie::$plugin->getIntegrations()->getIntegrationById((int)$row['integrationId']) : null;
+
         if (!$integration instanceof PaymentIntegration || $row['accountFingerprint'] !== null) {
             throw new RuntimeException('Only an unbound historical record can have its account verified.');
         }
@@ -176,6 +180,7 @@ class PaymentRecovery
             'accountFingerprint' => $integration->getPaymentAccountFingerprint(),
             'scope' => Json::encode($scope), 'version' => (int)$row['version'] + 1,
         ], ['id' => $id, 'version' => $row['version'], 'accountFingerprint' => null])->execute();
+
         if ($changed !== 1) {
             throw new RuntimeException('The financial record changed. Reload before verifying its account.');
         }

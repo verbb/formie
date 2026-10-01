@@ -203,6 +203,7 @@ class IntegrationsController extends Controller
             if ($handle === '') {
                 throw new BadRequestHttpException('Missing required param: handle.');
             }
+
             if ($formId <= 0) {
                 throw new BadRequestHttpException('Missing or invalid param: formId.');
             }
@@ -247,6 +248,7 @@ class IntegrationsController extends Controller
         }
 
         $integration = Formie::$plugin->getIntegrations()->getIntegrationById($integrationId);
+
         if (!$integration) {
             return $this->asFailure(Craft::t('formie', 'Unknown integration: “{id}”', ['id' => $integrationId]));
         }
@@ -254,6 +256,7 @@ class IntegrationsController extends Controller
         // Build a temporary integration instance with the currently posted settings
         // so connection checks reflect unsaved values.
         $settings = $request->getParam('types.' . $type, []);
+
         if ($type && is_array($settings)) {
             $integrationData = [
                 'id' => $integration->id,
@@ -328,7 +331,7 @@ class IntegrationsController extends Controller
         }
 
         $oauth->claimAuthorizedCallback('formie', fn(User $user): bool => $user->can(Permissions::PERM_ACCESS_INTEGRATIONS));
-        
+
         // Get both the origin (failure) and redirect (success) URLs
         $origin = Session::get('origin');
         $redirect = Session::get('redirect');

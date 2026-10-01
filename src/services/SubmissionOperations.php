@@ -40,10 +40,12 @@ class SubmissionOperations extends Component
             if ($hash !== null) {
                 $this->_lock('formie.operation.' . $hash, $keys);
                 $receipt = (new Query())->from(Table::FORMIE_SUBMISSION_OPERATIONS)->where(['operationHash' => $hash])->one();
+
                 if ($receipt) {
                     if (!hash_equals((string)$receipt['fingerprint'], (string)$command->payloadFingerprint)) {
                         return $this->_conflict($command, 'operationInputChanged');
                     }
+
                     if ($receipt['state'] === 'completed') {
                         return $this->_decode($receipt['outcome']);
                     }
@@ -54,8 +56,10 @@ class SubmissionOperations extends Component
 
             $requestHash = $command->isInteractive() && $command->requestToken
                 ? hash('sha256', $command->authority->scope . '|' . $command->requestToken) : null;
+
             if ($requestHash !== null) {
                 $this->_lock('formie.request.' . $requestHash, $keys);
+
                 if ((new Query())->from(Table::FORMIE_SUBMISSION_OPERATIONS)->where(['requestHash' => $requestHash])->exists()) {
                     return $this->_conflict($command, 'requestAlreadyUsed');
                 }
@@ -68,6 +72,7 @@ class SubmissionOperations extends Component
 
             if ($command->submission->id) {
                 $version = (new Query())->select('stateVersion')->from(Table::FORMIE_SUBMISSIONS)->where(['id' => $command->submission->id])->scalar();
+
                 if ($version === false || $command->expectedVersion === null || (int)$version !== $command->expectedVersion) {
                     return $this->_conflict($command, 'staleVersion', $version === false ? null : (int)$version);
                 }
@@ -96,6 +101,7 @@ class SubmissionOperations extends Component
             } catch (StateConflict $e) {
                 $outcome = $this->_conflict($command, 'staleVersion', $e->currentVersion);
             }
+
             if (!$outcome instanceof SubmissionOutcome) {
                 throw new RuntimeException('Submission execution must produce a domain outcome.');
             }
@@ -137,10 +143,11 @@ class SubmissionOperations extends Component
 
     public function fingerprint(array $input): string
     {
-        $normalize = function (mixed $value) use (&$normalize): mixed {
+        $normalize = function(mixed $value) use (&$normalize): mixed {
             if (!is_array($value)) {
                 return $value;
             }
+
             if (!array_is_list($value)) {
                 ksort($value);
             }
@@ -161,6 +168,7 @@ class SubmissionOperations extends Component
             }
             return null;
         }
+
         if (!$command->payloadFingerprint) {
             throw new RuntimeException('Replayable operations require an input fingerprint.');
         }
@@ -185,6 +193,7 @@ class SubmissionOperations extends Component
         $data = get_object_vars($outcome);
         $data['type'] = $outcome->type->value;
         $json = Json::encode($data);
+
         if (strlen($json) > self::MAX_OUTCOME_BYTES) {
             throw new RuntimeException('Submission outcome exceeded the receipt size limit.');
         }
@@ -194,6 +203,7 @@ class SubmissionOperations extends Component
     private function _decode(string $encrypted): SubmissionOutcome
     {
         $json = Craft::$app->getSecurity()->decryptByKey(base64_decode($encrypted, true), Craft::$app->getConfig()->getGeneral()->securityKey);
+
         if ($json === false) {
             throw new RuntimeException('Unable to decrypt the operation receipt.');
         }

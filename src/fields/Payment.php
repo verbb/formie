@@ -178,7 +178,7 @@ class Payment extends Field
         if ($integration = $this->getPaymentIntegration()) {
             $this->paymentIntegrationType = get_class($integration);
         }
-        
+
         return true;
     }
 

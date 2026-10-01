@@ -12,5 +12,5 @@ class ModifyTwigEnvironmentEvent extends Event
     public array $allowedFilters = [];
     public array $allowedFunctions = [];
     public array $allowedMethods = [];
-    public array $allowedProperties = [];    
+    public array $allowedProperties = [];
 }

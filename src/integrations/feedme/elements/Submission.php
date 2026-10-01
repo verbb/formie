@@ -50,7 +50,7 @@ class Submission extends Element
         if (Formie::$plugin) {
             $forms = Formie::$plugin->getForms()->getAllForms();
 
-            usort($forms, function ($a, $b) {
+            usort($forms, function($a, $b) {
                 return strcmp($a->title, $b->title);
             });
 

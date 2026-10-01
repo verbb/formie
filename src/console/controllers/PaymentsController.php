@@ -72,6 +72,7 @@ class PaymentsController extends Controller
             'history',
         ])
             ->from(Table::FORMIE_WEBHOOK_RECEIPTS)->where(['>', 'id', $afterId])->orderBy(['id' => SORT_ASC])->limit(max(1, min(500, $limit)))->all();
+
         foreach ($rows as $row) {
             $this->stdout(Json::encode($row) . PHP_EOL);
         }
@@ -140,6 +141,7 @@ class PaymentsController extends Controller
     public function actionVerifyAccount(string $kind, int $id, string $note): int
     {
         $this->stdout("Verify the saved provider reference in the original merchant account, and confirm that the current integration connects to that same account. This does not confirm payment or send any provider request.\n");
+
         if (!$this->confirmed && (!$this->interactive || !$this->confirm('Have you independently verified the original account?', false))) {
             return ExitCode::UNSPECIFIED_ERROR;
         }

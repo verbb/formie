@@ -216,6 +216,7 @@ class ReportEditor extends Component
     private function _normalizeFilters(array $filters): array
     {
         $defaults = ReportSettings::defaultFilters();
+
         if (array_key_exists('startDate', $filters) || array_key_exists('endDate', $filters)) {
             $filters = ReportDateBoundHelper::migrateLegacyFilters($filters);
         }

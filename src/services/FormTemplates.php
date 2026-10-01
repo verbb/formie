@@ -112,7 +112,7 @@ class FormTemplates extends Component
             $template->sortOrder = (new Query())
                 ->from([Table::FORMIE_FORM_TEMPLATES])
                 ->max('[[sortOrder]]') + 1;
-        } else if (!$template->uid) {
+        } elseif (!$template->uid) {
             $template->uid = Db::uidById(Table::FORMIE_FORM_TEMPLATES, $template->id);
         }
 
@@ -144,6 +144,7 @@ class FormTemplates extends Component
         }
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             $templateRecord = $this->_getTemplateRecord($templateUid, true);
             $isNewTemplate = $templateRecord->getIsNewRecord();
@@ -165,11 +166,11 @@ class FormTemplates extends Component
                 $layout->id = $templateRecord->fieldLayoutId;
                 $layout->type = Form::class;
                 $layout->uid = key($data['fieldLayouts']);
-                
+
                 Craft::$app->getFields()->saveLayout($layout, false);
-                
+
                 $templateRecord->fieldLayoutId = $layout->id;
-            } else if ($templateRecord->fieldLayoutId) {
+            } elseif ($templateRecord->fieldLayoutId) {
                 // Delete the main field layout
                 Craft::$app->getFields()->deleteLayoutById($templateRecord->fieldLayoutId);
                 $templateRecord->fieldLayoutId = null;
@@ -242,6 +243,7 @@ class FormTemplates extends Component
         }
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             Craft::$app->getDb()->createCommand()
                 ->softDelete(Table::FORMIE_FORM_TEMPLATES, ['id' => $templateRecord->id])
@@ -282,7 +284,7 @@ class FormTemplates extends Component
 
     // Private Methods
     // =========================================================================
-    
+
     private function _templates(): MemoizableArray
     {
         if (!isset($this->_templates)) {

@@ -227,7 +227,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
             SchemaHelper::conditionsField(),
         ];
     }
-    
+
 
     // Protected Methods
     // =========================================================================

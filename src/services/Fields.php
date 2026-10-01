@@ -96,7 +96,7 @@ class Fields extends Component
     private int $_fieldSaveBatchDepth = 0;
     private bool $_fieldCachesDirty = false;
 
-    
+
 
 
     // Public Methods
@@ -799,10 +799,12 @@ class Fields extends Component
         $type = (string)($config['type'] ?? '');
         $instanceSettings = $config['instanceSettings'] ?? null;
         unset($config['instanceSettings']);
+
         if (!empty($config['syncedDefinitionUid'])) {
             $config['definitionUid'] = $config['syncedDefinitionUid'];
             $config['isSynced'] = true;
             $definition = $this->getFieldDefinitionByUid($config['syncedDefinitionUid']);
+
             if ($definition && $definition->type === $type) {
                 $config['definitionId'] = $definition->id;
                 $config['definitionUid'] = $definition->uid;
@@ -811,15 +813,18 @@ class Fields extends Component
         }
         unset($config['syncedDefinitionUid']);
         $settings = Json::decodeIfJson($config['settings'] ?? []) ?: [];
+
         if ($type === formiefields\MissingField::class) {
             $type = (string)($config['expectedType'] ?? $settings['expectedType'] ?? '');
             $settings = $settings['settings'] ?? $settings;
         }
         $recoverable = array_key_exists('__formieMissingSettings', $settings);
+
         if ($recoverable) {
             $settings = $settings['__formieMissingSettings'];
         }
         unset($config['class'], $config['syncedDefinitionHandle'], $config['syncedDefinitionId']);
+
         if (!in_array($type, $this->_getResolvedRegisteredFieldTypes(true), true)) {
             $identity = array_intersect_key($config, array_flip(['id', 'uid', 'reference', 'definitionId', 'definitionUid', 'layoutId', 'pageId', 'rowId', 'sortOrder', 'label', 'handle', 'required', 'isSynced', 'usageCount']));
             $field = new formiefields\MissingField($identity + [
@@ -942,6 +947,7 @@ class Fields extends Component
     public function getAllFieldsForForms(array $formIds): array
     {
         $fieldsByForm = [];
+
         foreach ($this->getAllFieldConfigsForForms($formIds) as $formId => $_fieldConfigs) {
             $fieldsByForm[$formId] = isset($this->_getFieldLookupCache()->fieldsForForm[$formId])
                 ? $this->_hydrateCachedFields($this->_getFieldLookupCache()->fieldsForForm[$formId])
@@ -1260,6 +1266,7 @@ class Fields extends Component
     {
         if ($context === null) {
             $context = new LayoutSaveContext();
+
             if ($layout->id) {
                 $context->includeLayout($layout->id);
             }
@@ -1304,6 +1311,7 @@ class Fields extends Component
             $layoutRecord->save(false);
             $layout->id = $layoutRecord->id;
             $context->layouts[$layout->id] = true;
+
             foreach ($layout->getPages() as $pageKey => $page) {
                 $page->layoutId = $layout->id;
                 $page->sortOrder = $pageKey;
@@ -1324,7 +1332,7 @@ class Fields extends Component
                 $transaction->commit();
                 $transactionFinished = true;
             }
-            
+
             $layout->afterSave($isNewLayout);
 
             return true;
@@ -1359,7 +1367,7 @@ class Fields extends Component
 
         return false;
     }
-    
+
     public function deleteLayoutById(int $id): bool
     {
         $layout = $this->getLayoutById($id);
@@ -1370,7 +1378,7 @@ class Fields extends Component
 
         return $this->deleteLayout($layout);
     }
-    
+
     public function deleteLayout(FieldLayout $layout): bool
     {
         if (!$layout->beforeDelete()) {
@@ -1440,7 +1448,7 @@ class Fields extends Component
 
         return true;
     }
-    
+
     public function deletePageById(int $id): bool
     {
         $page = $this->getPageById($id);
@@ -1451,7 +1459,7 @@ class Fields extends Component
 
         return $this->deletePage($page);
     }
-    
+
     public function deletePage(FieldLayoutPage $page): bool
     {
         if (!$page->beforeDelete()) {
@@ -1525,7 +1533,7 @@ class Fields extends Component
 
         return $this->deleteRow($row);
     }
-    
+
     public function deleteRow(FieldLayoutRow $row): bool
     {
         if (!$row->beforeDelete()) {
@@ -1543,6 +1551,7 @@ class Fields extends Component
     {
         if ($context === null) {
             $context = new LayoutSaveContext();
+
             if ($field->layoutId) {
                 $context->includeLayout($field->layoutId);
             }
@@ -1645,6 +1654,7 @@ class Fields extends Component
             $instanceRecord->sortOrder = $field->sortOrder;
             $instanceRecord->reference = $field->reference ?: StringHelper::UUID();
             $instanceRecord->settings = Json::encode($field->getInstanceSettings());
+
             if ($field->uid) {
                 $instanceRecord->uid = $field->uid;
             }
@@ -1681,7 +1691,7 @@ class Fields extends Component
             }
         }
     }
-    
+
     public function deleteFieldById(int $id): bool
     {
         $field = $this->getFieldById($id);
@@ -1692,7 +1702,7 @@ class Fields extends Component
 
         return $this->deleteField($field);
     }
-    
+
     public function deleteField(Field $field): bool
     {
         if (!$field->beforeDelete()) {
@@ -1706,9 +1716,9 @@ class Fields extends Component
 
             if ($definitionField) {
                 // Nested layouts are definition-owned; metadata cleanup must not create a live field.
-                    if ($nestedLayoutId = $definitionField->settings['nestedLayoutId'] ?? null) {
-                        $this->deleteLayoutById((int)$nestedLayoutId);
-                    }
+                if ($nestedLayoutId = $definitionField->settings['nestedLayoutId'] ?? null) {
+                    $this->deleteLayoutById((int)$nestedLayoutId);
+                }
             }
 
             Db::delete(Table::FORMIE_FIELDS, ['id' => $field->definitionId]);
@@ -2434,6 +2444,7 @@ class Fields extends Component
 
         // Missing Field cannot be removed
         $event->fields[] = formiefields\MissingField::class;
+
         foreach ($event->fields as $class) {
             if (!is_string($class) || !is_subclass_of($class, Field::class) || !(new ReflectionClass($class))->isInstantiable()) {
                 throw new InvalidConfigException('Registered Formie field types must be concrete subclasses of ' . Field::class . ': ' . (is_string($class) ? $class : get_debug_type($class)));

@@ -15,13 +15,13 @@ final class PhoneValueCoercer
     {
         if (is_array($value)) {
             $value = implode(', ', $value);
-        } else if (!is_scalar($value) && is_object($value)) {
+        } elseif (!is_scalar($value) && is_object($value)) {
             if (method_exists($value, '__toString')) {
                 $value = $value->__toString();
             } else {
                 $value = json_encode($value);
             }
-        } else if (!is_scalar($value)) {
+        } elseif (!is_scalar($value)) {
             $value = (string)$value;
         }
 

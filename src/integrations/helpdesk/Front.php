@@ -65,7 +65,7 @@ class Front extends HelpDesk implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Send your form content to Front.');
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -73,42 +73,42 @@ class Front extends HelpDesk implements OAuthProviderInterface
         try {
             if ($this->mapToMessage && $this->settingsContext->dataKey === 'message') {
                 $response = $this->request('GET', 'channels');
-            $channels = $response['_results'] ?? [];
+                $channels = $response['_results'] ?? [];
 
-            $channelOptions = [];
+                $channelOptions = [];
 
-            foreach ($channels as $channel) {
-                $channelOptions[] = [
-                    'label' => $channel['name'],
-                    'value' => $channel['id'],
+                foreach ($channels as $channel) {
+                    $channelOptions[] = [
+                        'label' => $channel['name'],
+                        'value' => $channel['id'],
+                    ];
+                }
+
+                $messageFields = [
+                    new IntegrationField([
+                        'handle' => 'channelId',
+                        'name' => Craft::t('formie', 'Channel'),
+                        'required' => true,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Channel'),
+                            'options' => $channelOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'subject',
+                        'name' => Craft::t('formie', 'Subject'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Sender Email'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'name',
+                        'name' => Craft::t('formie', 'Sender Name'),
+                    ]),
                 ];
-            }
-
-            $messageFields = [
-                new IntegrationField([
-                    'handle' => 'channelId',
-                    'name' => Craft::t('formie', 'Channel'),
-                    'required' => true,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Channel'),
-                        'options' => $channelOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'subject',
-                    'name' => Craft::t('formie', 'Subject'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Sender Email'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'name',
-                    'name' => Craft::t('formie', 'Sender Name'),
-                ]),
-            ];
 
                 $settings['message'] = $messageFields;
             }
@@ -122,6 +122,7 @@ class Front extends HelpDesk implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             if ($this->mapToMessage) {
                 $messageValues = $this->getFieldMappingValues($submission, $this->messageFieldMapping, 'message');
@@ -165,7 +166,7 @@ class Front extends HelpDesk implements OAuthProviderInterface
         return $this->resultForPayload(true);
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

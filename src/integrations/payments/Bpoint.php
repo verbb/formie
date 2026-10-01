@@ -58,7 +58,7 @@ class Bpoint extends Payment
     {
         return 'BPOINT';
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -256,7 +256,7 @@ class Bpoint extends Payment
 
         return $event->fields;
     }
-    
+
 
     // Protected Methods
     // =========================================================================

@@ -26,7 +26,7 @@ class DateMinuteDropdown extends DateDropdown implements ChildFieldInterface
     {
         return 'fields/dropdown';
     }
-    
+
 
     // Properties
     // =========================================================================

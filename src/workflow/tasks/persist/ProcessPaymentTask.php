@@ -44,7 +44,7 @@ class ProcessPaymentTask implements TaskInterface
         if ($requiresPayment || $context->command->operation === SubmissionOperation::PAYMENT_REPLAY) {
             $completed = in_array($decision->status, [PaymentDecision::STATUS_SUCCEEDED, PaymentDecision::STATUS_NOT_REQUIRED], true);
             $uploads = Formie::$plugin->getFileUploads();
-            $uploads->withUploadLocks($submission, function () use ($context, $completed, $uploads): void {
+            $uploads->withUploadLocks($submission, function() use ($context, $completed, $uploads): void {
                 // PaymentReplay skips the content-persistence task, so it must also
                 // finish any durable promotion intent before permitting completion.
                 if ($completed) {
@@ -85,6 +85,7 @@ class ProcessPaymentTask implements TaskInterface
         $submission->isIncomplete = !$completed;
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             // Provider requests and evidence recording have finished outside this transaction.
             // Commit payment state, submission completion and upload finalization together.
@@ -95,14 +96,17 @@ class ProcessPaymentTask implements TaskInterface
                     }
                     $payment->scope['submissionTransition'] = ['complete' => $completed, 'decision' => $context->paymentDecision->status->value,
                         'operationId' => $context->command->operationId, 'expectedVersion' => $context->command->expectedVersion];
+
                     if (!Formie::$plugin->getPayments()->commitTransition($payment)) {
                         throw new RuntimeException('Unable to persist the payment transition.');
                     }
                 }
             }
+
             if (!Craft::$app->getElements()->saveElement($submission, false)) {
                 throw new RuntimeException('Unable to persist payment/submission state.');
             }
+
             if ($completed) {
                 Formie::$plugin->getFileUploads()->finalizeSubmissionUploads((int)$submission->id);
                 Formie::$plugin->getSubmissionDispatches()->recordIntent($context);

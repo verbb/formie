@@ -82,7 +82,7 @@ class ValidationMessagesHelper
 
     public static function resolve(Field $field, string $key, array $params = []): string
     {
-        $params = self::normalizeParams($field, $params);
+        $params = self::_normalizeParams($field, $params);
         $override = self::override($field, $key);
 
         if ($override !== null) {
@@ -98,10 +98,10 @@ class ValidationMessagesHelper
         $template = self::defaultTemplate($key);
 
         if ($template === null) {
-            return self::translateDefaultTemplate(self::KEY_INVALID, $params);
+            return self::_translateDefaultTemplate(self::KEY_INVALID, $params);
         }
 
-        return self::translateDefaultTemplate($key, $params);
+        return self::_translateDefaultTemplate($key, $params);
     }
 
     public static function pluginDefault(string $key): ?string
@@ -541,7 +541,7 @@ class ValidationMessagesHelper
         ]);
     }
 
-    private static function translateDefaultTemplate(string $key, array $params): string
+    private static function _translateDefaultTemplate(string $key, array $params): string
     {
         $message = self::defaultTemplate($key) ?? self::defaultTemplate(self::KEY_INVALID) ?? '{label} is invalid.';
 
@@ -567,7 +567,7 @@ class ValidationMessagesHelper
         return $nodes;
     }
 
-    private static function normalizeParams(Field $field, array $params): array
+    private static function _normalizeParams(Field $field, array $params): array
     {
         $label = (string)$field->label;
 

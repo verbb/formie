@@ -31,9 +31,11 @@ class SubmissionProgress extends Component
     public function loadProgress(int $id): ?ProgressState
     {
         $row = (new Query())->from(Table::FORMIE_SUBMISSION_PROGRESS)->where(['id' => $id])->andWhere(['>', 'expiresAt', time()])->one();
+
         if (!$row) {
             return null;
         }
+
         foreach (['id', 'formId', 'siteId', 'submissionId', 'currentPageId', 'version', 'expiresAt'] as $key) {
             $row[$key] = $row[$key] === null ? null : (int)$row[$key];
         }
@@ -48,6 +50,7 @@ class SubmissionProgress extends Component
         }
         $id = (new Query())->select('id')->from(Table::FORMIE_SUBMISSION_PROGRESS)->where(['submissionId' => (int)$submission->id])->scalar();
         $state = $id ? $this->loadProgress((int)$id) : $this->getProgressState($form);
+
         if ($id && !$state) {
             $this->deleteProgress((int)$id);
         }
@@ -80,9 +83,11 @@ class SubmissionProgress extends Component
             'version' => $submissionVersion ?? $state->version + 1, 'expiresAt' => $state->expiresAt,
         ];
         $db = Craft::$app->getDb();
+
         if ($state->id) {
             // Compare-and-swap also protects callers outside the command's resource lock.
             $updated = $db->createCommand()->update(Table::FORMIE_SUBMISSION_PROGRESS, $values, ['id' => $state->id, 'version' => $state->version])->execute();
+
             if (!$updated) {
                 throw new StateConflict($this->loadProgress($state->id)?->version);
             }
@@ -91,6 +96,7 @@ class SubmissionProgress extends Component
             $state->id = (int)$db->getLastInsertID();
         }
         $state->version = $values['version'];
+
         if ($state->submissionId) {
             $state->content = [];
             $db->createCommand()->update(Table::FORMIE_SUBMISSION_GRANTS, ['submissionId' => $state->submissionId], ['progressId' => $state->id])->execute();

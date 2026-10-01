@@ -37,6 +37,7 @@ final class FormInstanceConfig
     public function with(string $section, array $values): self
     {
         $data = get_object_vars($this);
+
         if (!array_key_exists($section, $data)) {
             throw new \InvalidArgumentException('Unknown instance configuration section: ' . $section);
         }

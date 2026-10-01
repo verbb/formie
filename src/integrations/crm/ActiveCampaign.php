@@ -226,6 +226,7 @@ class ActiveCampaign extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
@@ -454,7 +455,7 @@ class ActiveCampaign extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

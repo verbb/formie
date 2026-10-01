@@ -199,6 +199,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             }
 
             $partSql = $qb->jsonExtract('formie_submissions.content', [$instance->uid, $partKey]);
+
             if ($partKey === 'ampm') {
                 $columnType = 'CHAR(2)';
             } else {
@@ -365,6 +366,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             }
 
             $row['fields'] = is_array($row['fields'] ?? null) ? $row['fields'] : [];
+
             foreach ($row['fields'] as &$field) {
                 if (!is_array($field)) {
                     continue;
@@ -441,7 +443,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     public const EVENT_MODIFY_TIME_FORMAT = 'modifyTimeFormat';
     public const EVENT_REGISTER_DATE_FORMAT_OPTIONS = 'registerDateFormatOptions';
     public const EVENT_REGISTER_TIME_FORMAT_OPTIONS = 'registerTimeFormatOptions';
-    
+
     public const COLLECT_SINGLE = 'single';
     public const COLLECT_RANGE = 'range';
 
@@ -492,7 +494,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 if (!($config['defaultValue'] instanceof DateTime)) {
                     $config['defaultValue'] = DateTimeHelper::toDateTime($config['defaultValue'], false, false) ?: null;
                 }
-            } else if ($config['defaultOption'] === 'today') {
+            } elseif ($config['defaultOption'] === 'today') {
                 // Resolved dynamically in getDefaultValue() so "today" reflects the
                 // current request and respects whether the field collects time.
                 $config['defaultValue'] = null;
@@ -510,6 +512,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             }
 
             $config['layouts'] = is_array($config['layouts'] ?? null) ? $config['layouts'] : [];
+
             foreach ($config['layouts'] as &$layoutRows) {
                 if (is_array($layoutRows)) {
                     self::_clearSubFieldDefaultValues($layoutRows);
@@ -594,12 +597,14 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     {
         $value = $element->getFieldValue($this->valueKey());
         $dates = $value instanceof DateRangeFieldValue ? [$value->start, $value->end] : [$value];
+
         foreach ($dates as $date) {
             if ($date instanceof DateFieldValue && !$date->isValid()) {
                 $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_INVALID));
                 return;
             }
         }
+
         if (!in_array($this->displayType, ['inputs', 'dropdowns'], true)) {
             return;
         }
@@ -736,6 +741,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         }
 
         $settings['layouts'] = is_array($settings['layouts'] ?? null) ? $settings['layouts'] : [];
+
         foreach ($settings['layouts'] as &$layoutRows) {
             if (is_array($layoutRows)) {
                 $this->_sanitizeSubFieldRowsForBuilder($layoutRows);
@@ -813,6 +819,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         if ($value instanceof DateFieldValue || $value instanceof DateRangeFieldValue) {
             return $value;
         }
+
         if ($value === null || $value === '' || $value === []) {
             return null;
         }
@@ -1046,6 +1053,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         if ($this->getCollectsRange() && preg_match('/^(start|end)(Date|Time)?$/', $handle, $match)) {
             $range = DateRangeFieldValue::fromMixed($value);
             $boundary = $range->{$match[1]};
+
             if ($boundary->getRawInput() !== null) {
                 $raw = $boundary->getRawInput();
                 $part = strtolower($match[2] ?? 'date');
@@ -1061,6 +1069,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
         if (!$this->getCollectsRange() && in_array($handle, ['date', 'time'], true)) {
             $date = $value instanceof DateFieldValue ? $value : new DateFieldValue($value);
+
             if ($date->getRawInput() === null) {
                 return $handle === 'date' ? $this->formatDatePartForDisplay($date->getParts()) : $this->formatTimePartForDisplay($date->getParts());
             }
@@ -1076,6 +1085,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         }
 
         $date = $value instanceof DateFieldValue ? $value : new DateFieldValue($value);
+
         if (in_array($path, ['date', 'time'], true) && $date->getRawInput() !== null) {
             $raw = $date->getRawInput();
             return is_array($raw) ? ($raw[$path] ?? $raw['datetime'] ?? '') : (string)$raw;
@@ -1989,6 +1999,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         $value = $this->normalizeValue($value, $element);
+
         if ($value instanceof DateRangeFieldValue) {
             return implode(' – ', array_filter([$this->formatPartsForDisplay($value->getStartParts()), $this->formatPartsForDisplay($value->getEndParts())], static fn($part) => $part !== ''));
         }
@@ -2536,6 +2547,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         if (!is_array($value)) {
             return (new DateFieldValue($value))->toArray();
         }
+
         if ($prefix !== null) {
             if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
                 $parts = [];
@@ -2579,8 +2591,10 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             return $value;
         }
         $parts = [];
+
         foreach (['datetime', 'date', 'time'] as $key) {
             $input = trim((string)($value[$key] ?? ''));
+
             if ($input === '') {
                 continue;
             }
@@ -2589,6 +2603,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 'date' => $this->_parseDateByConfiguredFormat($input),
                 'time' => $this->_parseTimeByConfiguredFormat($input),
             };
+
             if (!$parsed || !(new DateFieldValue($parsed))->isValid()) {
                 return ['_input' => $value];
             }
@@ -2704,6 +2719,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             }
 
             $row['fields'] = is_array($row['fields'] ?? null) ? $row['fields'] : [];
+
             foreach ($row['fields'] as &$field) {
                 if (!is_array($field)) {
                     continue;

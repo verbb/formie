@@ -112,7 +112,7 @@ class PaymentDecision extends Model
             'meta' => $this->meta,
         ];
     }
-    
+
 
     // Private Methods
     // =========================================================================

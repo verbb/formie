@@ -72,10 +72,14 @@ class WorkflowContext
         if ($type === SubmissionOutcomeType::COMPLETED) {
             $completion = (new \verbb\formie\services\CompletionResolver())->resolve($submission->getForm(), $submission);
             $data['completion'] = $completion->toArray();
+
             if ($submission->id) {
                 $submission->mergeMetadata(['completion' => $completion->toArray()]);
-                \Craft::$app->getDb()->createCommand()->update(\verbb\formie\helpers\Table::FORMIE_SUBMISSIONS,
-                    ['metadata' => \craft\helpers\Json::encode($submission->metadata)], ['id' => $submission->id])->execute();
+                \Craft::$app->getDb()->createCommand()->update(
+                    \verbb\formie\helpers\Table::FORMIE_SUBMISSIONS,
+                    ['metadata' => \craft\helpers\Json::encode($submission->metadata)],
+                    ['id' => $submission->id]
+                )->execute();
             }
             $data['redirect'] = $completion->url ? ['url' => $completion->url, 'target' => $completion->target->value] : null;
         }

@@ -21,6 +21,7 @@ class m260927_050000_submission_dispatches extends Migration
     public function safeUp(): bool
     {
         $table = SubmissionDispatches::TABLE;
+
         if ($this->db->tableExists($table)) {
             return true;
         }
@@ -64,6 +65,7 @@ class m260927_050000_submission_dispatches extends Migration
         // Existing completions are historical, not an invitation to deliver again.
         // Existing attempt identities and queue jobs remain untouched.
         $now = Db::prepareDateForDb(new DateTime());
+
         foreach ((new Query())->select(['id', 'stateVersion'])->from(Table::FORMIE_SUBMISSIONS)->where(['isIncomplete' => false])->each() as $row) {
             $this->db->createCommand()->upsert($table, [
                 'submissionId' => $row['id'], 'uid' => StringHelper::UUID(),
@@ -72,6 +74,7 @@ class m260927_050000_submission_dispatches extends Migration
                 'schedulingComplete' => true, 'completedAt' => $now, 'dateCreated' => $now, 'dateUpdated' => $now,
             ], false)->execute();
         }
+
         foreach ((new Query())->select(['a.submissionId', 'a.executionUid', 's.stateVersion'])->distinct()
             ->from(['a' => DeliveryAttempts::TABLE])->innerJoin(['s' => Table::FORMIE_SUBMISSIONS], '[[s.id]] = [[a.submissionId]]')->each() as $row) {
             $statuses = (new Query())->select('status')->distinct()->from(DeliveryAttempts::TABLE)->where(['submissionId' => $row['submissionId'], 'executionUid' => $row['executionUid']])->column();

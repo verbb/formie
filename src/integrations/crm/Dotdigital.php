@@ -39,11 +39,11 @@ class Dotdigital extends Crm
     {
         return 'Dotdigital';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     public ?string $username = null;
     #[Sensitive]
     public ?string $password = null;
@@ -225,6 +225,7 @@ class Dotdigital extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $contactId = null;
@@ -300,7 +301,7 @@ class Dotdigital extends Crm
                     if (str_starts_with($emailCampaignSendDate, '+')) {
                         // Preset date modify value
                         $sendDate = $dateCreated->modify($emailCampaignSendDate);
-                    } else if ($date = DateTimeHelper::toDateTime($emailCampaignSendDate, false, false)) {
+                    } elseif ($date = DateTimeHelper::toDateTime($emailCampaignSendDate, false, false)) {
                         // DateTime object/string
                         $sendDate = $date->format('c');
                     }
@@ -353,7 +354,7 @@ class Dotdigital extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -416,6 +417,7 @@ class Dotdigital extends Crm
 
         $emailCampaign = $this->getConfigValue('emailCampaign');
         $emailMappingSchema = is_array($emailCampaign) ? $this->convertIntegrationFieldsToSchema($emailCampaign) : [];
+
         if ($emailMappingSchema) {
             $schema[] = $this->getIntegrationFieldMappingField([
                 'name' => 'emailSendMapping',

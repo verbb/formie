@@ -50,7 +50,7 @@ class Brevo extends EmailMarketing
     {
         return Craft::t('formie', 'Sign up users to your {name} lists to grow your audience for campaigns.', ['name' => static::displayName()]);
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -88,6 +88,7 @@ class Brevo extends EmailMarketing
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -119,7 +120,7 @@ class Brevo extends EmailMarketing
                     'updateEnabled' => true,
                 ];
             }
-            
+
             if ($fieldValues) {
                 $payload['attributes'] = $fieldValues;
             }
@@ -157,7 +158,7 @@ class Brevo extends EmailMarketing
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -208,7 +209,7 @@ class Brevo extends EmailMarketing
 
         return $schema;
     }
-    
+
 
     // Private Methods
     // =========================================================================

@@ -16,14 +16,17 @@ final class PaymentMoney
         $currency = strtoupper($currency);
         $digits = (new ISOCurrencies())->subunitFor(new Currency($currency));
         $value = trim((string)$amount);
+
         if (!preg_match('/^([+-]?)([0-9]+)(?:\.([0-9]+))?$/D', $value, $parts)) {
             throw new InvalidArgumentException('Invalid decimal payment amount.');
         }
         $fraction = $parts[3] ?? '';
+
         if (strlen($fraction) > $digits && trim(substr($fraction, $digits), '0') !== '') {
             throw new InvalidArgumentException('Payment amount exceeds the currency precision.');
         }
         $minor = ltrim($parts[2] . str_pad(substr($fraction, 0, $digits), $digits, '0'), '0') ?: '0';
+
         if ($parts[1] === '-' && $minor !== '0') {
             $minor = '-' . $minor;
         }
@@ -33,6 +36,7 @@ final class PaymentMoney
     public static function fromMinor(string|int $amount, string $currency): self
     {
         $currency = strtoupper($currency);
+
         if (!preg_match('/^-?[0-9]+$/D', (string)$amount)) {
             throw new InvalidArgumentException('Invalid minor-unit amount.');
         }
@@ -63,6 +67,7 @@ final class PaymentMoney
     public function integer(): int
     {
         $value = (int)$this->minor;
+
         if ((string)$value !== $this->minor) {
             throw new InvalidArgumentException('Provider amount exceeds the supported integer range.');
         }

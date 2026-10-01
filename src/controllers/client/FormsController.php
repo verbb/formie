@@ -21,7 +21,7 @@ class FormsController extends Controller
 
     protected array|bool|int $allowAnonymous = ['load', 'page'];
 
-    
+
     // Traits
     // =========================================================================
 
@@ -36,9 +36,11 @@ class FormsController extends Controller
     {
         $this->forbidGuestControlPanelAnonymousActions($action->id);
         $profile = \verbb\formie\helpers\BrowserRequestProfile::enter($action->id === 'load');
+
         if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         }
+
         // Initial bootstrap supplies the token required by subsequent mutations.
         // It reads a public form and retains the endpoint's CORS policy.
         if ($action->id === 'load') {

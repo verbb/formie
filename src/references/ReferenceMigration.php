@@ -17,6 +17,7 @@ final class ReferenceMigration
             if (!is_array($value)) {
                 continue;
             }
+
             if (str_ends_with(strtolower((string)$key), 'fieldmapping') || in_array($key, ['attributeMapping', 'emailSendMapping'], true)) {
                 foreach ($value as $destination => $slot) {
                     $settings[$key][$destination] = ReferenceSlot::fromStored($slot)->toArray();
@@ -41,11 +42,13 @@ final class ReferenceMigration
 
         return preg_replace_callback('/\{field:[^{}]+\}/', static function(array $match) use ($fields): string {
             $expression = ReferenceParser::parse($match[0]);
+
             if (!$expression->isValid || $expression->target !== 'field' || $expression->selector === '') {
                 return $match[0];
             }
 
             $field = null;
+
             foreach ($fields as $candidate) {
                 if (in_array($expression->identifier, [(string)$candidate->reference, (string)$candidate->uid, (string)$candidate->handle], true)) {
                     $field = $candidate;
@@ -65,8 +68,10 @@ final class ReferenceMigration
 
             $parts = explode(':', $expression->selector);
             $migrated = false;
+
             while ($field instanceof ParentFieldInterface && $parts !== []) {
                 $child = $field->getFieldByHandle($parts[0]);
+
                 if (!$child || !$child->reference) {
                     break;
                 }

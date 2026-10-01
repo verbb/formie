@@ -85,7 +85,7 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
     {
         if ($this->useRichText && is_string($value) && $value !== '') {
             $value = StringHelper::cleanString($value);
-        } else if ($value === '') {
+        } elseif ($value === '') {
             $value = null;
         }
 
@@ -138,7 +138,7 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
 
         // Return the order of buttons as they were defined in our field
         if ($this->richTextButtons) {
-            usort($this->richTextButtons, function ($a, $b) use ($order) {
+            usort($this->richTextButtons, function($a, $b) use ($order) {
                 $pos_a = array_search($a, $order);
                 $pos_b = array_search($b, $order);
 

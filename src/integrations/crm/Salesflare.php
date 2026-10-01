@@ -31,11 +31,11 @@ class Salesflare extends Crm
     {
         return 'Salesflare';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     #[FormIntegrationSetting]
@@ -113,6 +113,7 @@ class Salesflare extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
 
@@ -157,7 +158,7 @@ class Salesflare extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

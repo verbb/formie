@@ -47,7 +47,7 @@ class Languages extends PredefinedOption
         $locale = Craft::$app->getLocale()->getLanguageID();
         $options = [];
 
-        foreach (self::languageEntries() as $entry) {
+        foreach (self::_languageEntries() as $entry) {
             $code = $entry['2-letter'];
             $name = LocaleDataHelper::languageName($code, $locale);
             $fallback = $entry['fallback'];
@@ -66,7 +66,7 @@ class Languages extends PredefinedOption
         return $options;
     }
 
-    private static function languageEntries(): array
+    private static function _languageEntries(): array
     {
         return [
             ['fallback' => 'Abkhazian', '2-letter' => 'ab', '3-letter' => 'abk'],

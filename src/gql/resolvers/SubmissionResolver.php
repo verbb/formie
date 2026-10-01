@@ -34,7 +34,7 @@ class SubmissionResolver extends ElementResolver
             return $query;
         }
 
-        self::validateDynamicFieldArguments($arguments);
+        self::_validateDynamicFieldArguments($arguments);
 
         foreach ($arguments as $key => $value) {
             $query->$key($value);
@@ -94,7 +94,7 @@ class SubmissionResolver extends ElementResolver
         return substr($fragmentName, 0, -strlen($suffix)) ?: null;
     }
 
-    private static function validateDynamicFieldArguments(array $arguments): void
+    private static function _validateDynamicFieldArguments(array $arguments): void
     {
         $dynamicFieldHandles = SubmissionArguments::getDynamicFieldArgumentHandlesFor($arguments);
 

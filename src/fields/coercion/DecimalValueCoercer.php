@@ -17,11 +17,13 @@ final class DecimalValueCoercer
         if ($value === null || $value === '') {
             return null;
         }
+
         if (!is_scalar($value)) {
             FieldStorageCodec::assertSafe($value);
             return Json::encode($value);
         }
         $value = trim((string)$value);
+
         if ($locale) {
             $formatter = new NumberFormatter($locale, NumberFormatter::DECIMAL);
             $value = str_replace($formatter->getSymbol(NumberFormatter::GROUPING_SEPARATOR_SYMBOL), '', $value);

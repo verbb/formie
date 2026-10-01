@@ -74,12 +74,9 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 Table relies on Formie’s front-end JavaScript when users can add or remove rows. If you override templates, preserve the row controls and input names needed to keep row data aligned.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
-
 - [Table](https://docs.verbb.io/formie/browser/ui-reference/fields/table)
 
 ## Related Fields
 
 - Use [Repeater](/fields/repeater) when each repeated item needs nested fields or richer layout.
 - Use [Group](/fields/group) when the structured set appears only once.
-

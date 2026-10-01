@@ -281,7 +281,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
         return self::$_svgIconCache[static::class];
     }
-    
+
     public static function getSvgIconPath(): string
     {
         return '';
@@ -390,7 +390,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     {
         return FieldValueQueryHelper::resolveCoalescedColumnType($instances, $key);
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -672,6 +672,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     {
         if ($param = $this->requestParamName($submission)) {
             $state = $submission->getContentState();
+
             foreach (array_keys($state->uploadedDataFiles) as $key) {
                 if ($key === $param || str_starts_with($key, $param . '.')) {
                     unset($state->uploadedDataFiles[$key]);
@@ -690,6 +691,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         if ($this->valueType()->kind === 'string' && !is_string($value)) {
             $value = is_scalar($value) || $value === null ? (string)$value : Json::encode(FieldStorageCodec::assertSafe($value));
         }
+
         if (is_string($value)) {
             // Preserve plain-text field values and only normalize invalid control characters.
             $value = StringHelper::normalizePlainText($value);
@@ -796,6 +798,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public function populateValue(mixed $value, ?Submission $submission): void
     {
         $form = $submission?->getForm() ?? $this->getForm();
+
         if ($form) {
             $form->replaceInstanceConfig($form->getInstanceConfig()->with('initial', [$this->uid => (new \verbb\formie\services\RuntimeConfiguration())->populationValue($this, $value, $submission)]));
         }
@@ -1000,17 +1003,20 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     {
         $form = $element instanceof Form ? $element : ($element instanceof Submission ? $element->getForm() : $this->getForm());
         $found = false;
+
         if ($form) {
             if (!$element instanceof Submission) {
                 (new \verbb\formie\services\RuntimeConfiguration())->establish($form);
             }
             $config = $form->getInstanceConfig();
+
             foreach ([$config->forced, $config->initial] as $values) {
                 if (array_key_exists($this->uid, $values)) {
                     $found = true;
                     return $this->normalizeValue($values[$this->uid], $element);
                 }
             }
+
             if (array_key_exists($this->uid, $config->prefill)) {
                 $found = true;
                 return $this->normalizeValueFromRequest($config->prefill[$this->uid], $element);
@@ -1093,7 +1099,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
         return $this->_buildReferenceBlockOptions($submission, $notification, $value, $renderOptions);
     }
-    
+
     public function includeInGqlSchema(GqlSchema $schema): bool
     {
         return true;
@@ -1378,7 +1384,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
         return ($namespace ? $namespace . '.' : '') . $this->valueKey();
     }
-    
+
     protected function setPrePopulatedValue(mixed $value): mixed
     {
         return $value;

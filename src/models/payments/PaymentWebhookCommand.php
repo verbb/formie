@@ -33,6 +33,7 @@ final class PaymentWebhookCommand
 
         // Capture before an adapter parses or verifies the payload.
         $headers = $request->getHeaders()->toArray();
+
         if (empty($headers['stripe-signature']) && isset($_SERVER['HTTP_STRIPE_SIGNATURE'])) {
             $headers['stripe-signature'] = [$_SERVER['HTTP_STRIPE_SIGNATURE']];
         }

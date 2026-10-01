@@ -149,32 +149,32 @@ class SubmissionResolver extends ElementMutationResolver
 
         \verbb\formie\helpers\BrowserRequestProfile::enterAdministrative();
 
-        $result = Formie::$plugin->getSubmissionRequests()->executeMutation($form, $submission, $arguments, function () use ($form, $submission, $arguments, $resolveInfo): void {
-        $this->populateElementWithData($submission, $arguments, $resolveInfo);
+        $result = Formie::$plugin->getSubmissionRequests()->executeMutation($form, $submission, $arguments, function() use ($form, $submission, $arguments, $resolveInfo): void {
+            $this->populateElementWithData($submission, $arguments, $resolveInfo);
 
-        // GraphQL coercion produces request shapes (including staged uploads). Route
-        // only submitted fields through the same request boundary as browser payloads.
-        foreach ($submission->getForm()->getFields() as $field) {
-            if (array_key_exists($field->handle, $arguments)) {
-                $raw = $submission->getContentState()->rawValuesByUid[$field->uid] ?? null;
-                $submission->getContentManager()->normalizeSingleFromRequest($submission, $field->handle, $raw);
+            // GraphQL coercion produces request shapes (including staged uploads). Route
+            // only submitted fields through the same request boundary as browser payloads.
+            foreach ($submission->getForm()->getFields() as $field) {
+                if (array_key_exists($field->handle, $arguments)) {
+                    $raw = $submission->getContentState()->rawValuesByUid[$field->uid] ?? null;
+                    $submission->getContentManager()->normalizeSingleFromRequest($submission, $field->handle, $raw);
+                }
             }
-        }
 
-        if (!empty($arguments['status'])) {
-            $submission->setStatus($arguments['status']);
-        }
-
-        // Populate captcha token payloads from GraphQL args.
-        $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
-
-        foreach ($captchas as $captcha) {
-            $handle = $captcha->getGqlHandle();
-
-            if (isset($arguments[$handle])) {
-                $submission->setCaptchaData($handle, $arguments[$handle]);
+            if (!empty($arguments['status'])) {
+                $submission->setStatus($arguments['status']);
             }
-        }
+
+            // Populate captcha token payloads from GraphQL args.
+            $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
+
+            foreach ($captchas as $captcha) {
+                $handle = $captcha->getGqlHandle();
+
+                if (isset($arguments[$handle])) {
+                    $submission->setCaptchaData($handle, $arguments[$handle]);
+                }
+            }
 
         });
         $response = $result->response;

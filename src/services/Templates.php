@@ -71,6 +71,7 @@ class Templates extends BaseTemplates
             $context = ReferenceContext::forSubmission($object, $variables['notification'] ?? null);
             $template = preg_replace_callback('/(?<!\{)\{([a-zA-Z][^{}]*)\}(?!\})/', static function(array $match) use (&$aliases, $prefix, $context, $autoescape): string {
                 $reference = $match[0];
+
                 // Bare object-template properties were stable filename/subpath syntax.
                 if (in_array($match[1], ['id', 'uid', 'title', 'url'], true)) {
                     $reference = '{submission:' . $match[1] . '}';

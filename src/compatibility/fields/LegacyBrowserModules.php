@@ -17,13 +17,16 @@ class LegacyBrowserModules
             return [];
         }
         $legacy = $field->getFrontEndJsModules();
+
         if (!$legacy) {
             return [];
         }
         Craft::$app->getDeprecator()->log(get_class($field) . '::getFrontEndJsModules', 'getFrontEndJsModules() is deprecated. Declare browserModules() with registered module IDs. Executable src URLs are not accepted.');
         $entries = [];
+
         foreach (array_is_list($legacy) ? $legacy : [$legacy] as $module) {
             $name = (string)($module['module'] ?? '');
+
             if ($name === '') {
                 continue;
             }

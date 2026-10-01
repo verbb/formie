@@ -157,6 +157,7 @@ class ColorFieldValue extends BaseFieldValue implements Serializable
                 switch ($maxRgb) {
                     case $rPct:
                         $h = 60 * fmod((($gPct - $bPct) / $d), 6);
+
                         if ($bPct > $gPct) {
                             $h += 360;
                         }

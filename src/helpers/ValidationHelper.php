@@ -101,7 +101,7 @@ class ValidationHelper
 
         if (is_string($rule)) {
             $validatorType = $rule;
-        } else if (is_array($rule) && isset($rule[0])) {
+        } elseif (is_array($rule) && isset($rule[0])) {
             $validatorType = $rule[1] ?? $rule[0];
             $attributes = isset($rule[1]) ? (array)$rule[0] : $attributes;
 
@@ -144,7 +144,7 @@ class ValidationHelper
         }
 
         if (is_string($validatorType)) {
-            $options = self::applyFormieValidatorMessages($validatorType, $field, $options);
+            $options = self::_applyFormieValidatorMessages($validatorType, $field, $options);
         }
 
         return Validator::createValidator($validatorType, $element, $attributes, $options);
@@ -160,15 +160,15 @@ class ValidationHelper
      *
      * Yii uses {attribute} against internal keys like field:handle — not field labels.
      */
-    private static function applyFormieValidatorMessages(string $validatorType, Field $field, array $options): array
+    private static function _applyFormieValidatorMessages(string $validatorType, Field $field, array $options): array
     {
-        $messageKey = self::validatorMessageKey($validatorType);
+        $messageKey = self::_validatorMessageKey($validatorType);
 
         if ($messageKey !== null && !array_key_exists('message', $options)) {
             $options['message'] = ValidationMessagesHelper::resolve($field, $messageKey);
         }
 
-        if (self::isNumberValidator($validatorType)) {
+        if (self::_isNumberValidator($validatorType)) {
             $min = $options['min'] ?? null;
             $max = $options['max'] ?? null;
 
@@ -188,7 +188,7 @@ class ValidationHelper
         return $options;
     }
 
-    private static function validatorMessageKey(string $validatorType): ?string
+    private static function _validatorMessageKey(string $validatorType): ?string
     {
         return match ($validatorType) {
             'email', EmailValidator::class => ValidationMessagesHelper::KEY_EMAIL,
@@ -198,7 +198,7 @@ class ValidationHelper
         };
     }
 
-    private static function isNumberValidator(string $validatorType): bool
+    private static function _isNumberValidator(string $validatorType): bool
     {
         return in_array($validatorType, ['number', NumberValidator::class], true);
     }

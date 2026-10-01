@@ -31,14 +31,14 @@ class DateDate extends SingleLineText implements ChildFieldInterface
     {
         return 'fields/single-line-text';
     }
-    
+
 
     // Traits
     // =========================================================================
-    
+
     use DateSubFieldValueTrait;
-    
-    
+
+
     // Protected Methods
     // =========================================================================
 

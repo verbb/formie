@@ -14,9 +14,11 @@ final class IntegrationResultCompatibility
         if ($value instanceof IntegrationResult) {
             return $value;
         }
+
         if ($uncertain) {
             return IntegrationResult::unknown();
         }
+
         if ($value instanceof IntegrationResponse) {
             $value = $value->success;
         }

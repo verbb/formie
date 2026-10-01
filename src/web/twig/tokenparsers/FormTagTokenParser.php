@@ -33,7 +33,7 @@ class FormTagTokenParser extends AbstractTokenParser
         $nodes['content'] = $this->parser->subparse(function(Token $token) {
             return $token->test('endformtag');
         }, true);
-        
+
         $stream->expect(Token::BLOCK_END_TYPE);
 
         return new FormTagNode($nodes, [], $lineno, $this->getTag());

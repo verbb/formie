@@ -16,6 +16,7 @@ class m260929_000000_encrypt_delivery_diagnostics extends Migration
     public function safeUp(): bool
     {
         $table = '{{%formie_delivery_diagnostics}}';
+
         if (!$this->db->tableExists($table)) {
             return true;
         }
@@ -24,6 +25,7 @@ class m260929_000000_encrypt_delivery_diagnostics extends Migration
 
         foreach ((new Query())->select(['id', 'data'])->from($table)->each() as $row) {
             $data = Json::decodeIfJson($row['data']);
+
             if (!is_array($data)) {
                 continue;
             }

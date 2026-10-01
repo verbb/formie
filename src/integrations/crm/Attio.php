@@ -35,7 +35,7 @@ class Attio extends Crm
     {
         return 'Attio';
     }
-    
+
 
     // Constants
     // =========================================================================
@@ -56,7 +56,7 @@ class Attio extends Crm
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     #[FormIntegrationSetting]
@@ -141,6 +141,7 @@ class Attio extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             if ($this->mapToPeople) {
                 $peopleValues = $this->getFieldMappingValues($submission, $this->peopleFieldMapping, 'people');
@@ -190,7 +191,7 @@ class Attio extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -238,7 +239,7 @@ class Attio extends Crm
         return $schema;
     }
 
-    
+
     // Private Methods
     // =========================================================================
 
@@ -289,7 +290,7 @@ class Attio extends Crm
                         'type' => self::TYPE_SUBFIELD,
                     ]);
                 }
-            } else if ($fieldType === self::TYPE_LOCATION) {
+            } elseif ($fieldType === self::TYPE_LOCATION) {
                 $locationParts = [
                     'line_1' => Craft::t('formie', 'Line 1'),
                     'line_2' => Craft::t('formie', 'Line 2'),

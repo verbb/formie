@@ -252,6 +252,7 @@ class GoCardless extends Payment
         }
 
         $verified = [];
+
         foreach ($events as $event) {
             $eventId = trim((string)($event['id'] ?? ''));
 
@@ -291,9 +292,9 @@ class GoCardless extends Payment
 
         if ($resourceType === 'payments') {
             $this->_processPaymentWebhookEvent($event);
-        } else if ($resourceType === 'billing_requests') {
+        } elseif ($resourceType === 'billing_requests') {
             $this->_processBillingRequestWebhookEvent($event, $action);
-        } else if ($resourceType === 'subscriptions') {
+        } elseif ($resourceType === 'subscriptions') {
             $this->_processSubscriptionWebhookEvent($event, $action);
         }
 
@@ -310,15 +311,24 @@ class GoCardless extends Payment
 
     public function getTransaction(PaymentModel $payment): void
     {
-        if ((int)$payment->integrationId !== (int)$this->id) { throw new Exception('Payment provider mismatch.'); }
-        if ($field = $payment->getField()) { $this->setField($field); }
+        if ((int)$payment->integrationId !== (int)$this->id) {
+            throw new Exception('Payment provider mismatch.');
+        }
+
+        if ($field = $payment->getField()) {
+            $this->setField($field);
+        }
+
         if ($payment->subscriptionId && $payment->reference) {
             $this->_refreshGoCardlessSubscription($payment);
         } elseif (!$payment->reference) {
             $this->_syncPaymentFromBillingRequestReturn($payment);
         } else {
             $remote = $this->request('GET', 'payments/' . rawurlencode($payment->reference))['payments'] ?? [];
-            if (!$remote) { throw new Exception('Unable to resolve GoCardless payment.'); }
+
+            if (!$remote) {
+                throw new Exception('Unable to resolve GoCardless payment.');
+            }
             $this->_updatePaymentStatus($payment, $remote);
         }
     }
@@ -903,7 +913,10 @@ class GoCardless extends Payment
         }
 
         $storedId = $payment->response['billingRequest']['id'] ?? null;
-        if ($storedId && $storedId !== $billingRequestId) { throw new Exception('Billing request ownership mismatch.'); }
+
+        if ($storedId && $storedId !== $billingRequestId) {
+            throw new Exception('Billing request ownership mismatch.');
+        }
         $payment->response = array_merge($payment->response ?? [], ['billingRequest' => $billingRequest]);
         Formie::$plugin->getPayments()->savePayment($payment);
         $this->_syncPaymentFromBillingRequestReturn($payment);
@@ -1010,7 +1023,7 @@ class GoCardless extends Payment
 
         return (new DeliveryAttempt((int)$payment->submissionId, 'gocardless:' . $resource, $key, $key))->execute(
             $payload,
-            function (string $requestKey) use ($resource, $payload, $fetch): array {
+            function(string $requestKey) use ($resource, $payload, $fetch): array {
                 try {
                     return $this->request('POST', $resource, [
                         'json' => [$resource => $payload],
@@ -1019,6 +1032,7 @@ class GoCardless extends Payment
                 } catch (\GuzzleHttp\Exception\RequestException $e) {
                     $response = $e->getResponse();
                     $body = $response ? Json::decodeIfJson((string)$response->getBody()) : null;
+
                     if ($response?->getStatusCode() === 409 && is_array($body)) {
                         foreach ($body['error']['errors'] ?? [] as $error) {
                             if (($error['reason'] ?? null) === 'idempotent_creation_conflict' && !empty($error['links']['conflicting_resource_id'])) {
@@ -1213,14 +1227,19 @@ class GoCardless extends Payment
         }
 
         $status = (string)($gcPayment['status'] ?? '');
-        Formie::$plugin->getPayments()->recordRecurring($subscription, (string)$gcPayment['id'],
+        Formie::$plugin->getPayments()->recordRecurring(
+            $subscription,
+            (string)$gcPayment['id'],
             PaymentMoney::fromMinor((string)$gcPayment['amount'], strtoupper($gcPayment['currency']))->decimal(),
-            strtoupper($gcPayment['currency']), match ($status) {
+            strtoupper($gcPayment['currency']),
+            match ($status) {
                 'confirmed', 'paid_out' => PaymentModel::STATUS_SUCCEEDED,
                 'cancelled' => PaymentModel::STATUS_CANCELLED,
                 'failed', 'charged_back', 'customer_approval_denied' => PaymentModel::STATUS_FAILED,
                 default => PaymentModel::STATUS_PENDING,
-            }, $gcPayment);
+            },
+            $gcPayment
+        );
 
 
         if (in_array($status, ['confirmed', 'paid_out'], true) && !empty($gcSubscription['upcoming_payments'][0]['charge_date'])) {
@@ -1293,8 +1312,7 @@ class GoCardless extends Payment
         string $source,
         ?string $providerEventId = null,
         ?int $providerUpdatedAt = null,
-    ): Subscription
-    {
+    ): Subscription {
         return Formie::$plugin->getSubscriptions()->applySnapshot(
             $subscription,
             $this->_subscriptionSnapshot($data, $providerEventId, $providerUpdatedAt),
@@ -1307,8 +1325,7 @@ class GoCardless extends Payment
         ?string $providerEventId = null,
         ?int $providerUpdatedAt = null,
         ?SubscriptionCancellationMode $cancellationMode = null,
-    ): SubscriptionSnapshot
-    {
+    ): SubscriptionSnapshot {
         $providerStatus = (string)($data['status'] ?? '');
         $status = match ($providerStatus) {
             'active' => SubscriptionStatus::ACTIVE,

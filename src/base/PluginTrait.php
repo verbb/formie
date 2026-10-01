@@ -121,7 +121,7 @@ trait PluginTrait
 
     use LogTrait;
     use PluginDeprecations;
-    
+
 
     // Static Methods
     // =========================================================================

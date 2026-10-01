@@ -35,6 +35,7 @@ class FinalizeTask implements TaskInterface
         }
 
         $fakeSuccess = $submission->isSpam && $settings->spamBehaviour === Settings::SPAM_BEHAVIOUR_SUCCESS;
+
         if ($submission->isSpam && !$fakeSuccess) {
             $submission->addError('form', $settings->spamBehaviourMessage ?: Craft::t('formie', 'Your submission could not be accepted.'));
         }

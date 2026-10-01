@@ -227,6 +227,7 @@ class Product extends Element
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         if (!$this->productTypeId) {
             Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `productTypeId`.'), true);
 
@@ -278,7 +279,7 @@ class Product extends Element
             $endpoint = '';
             $method = '';
 
-            // Allow events to cancel sending - return as success            
+            // Allow events to cancel sending - return as success
             if (!$this->beforeSendPayload($submission, $endpoint, $product, $method)) {
                 return $this->resultForPayload(true);
             }
@@ -334,7 +335,7 @@ class Product extends Element
         return [Craft::$app->getUser()->getIdentity()];
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -358,6 +359,7 @@ class Product extends Element
     {
         $schema = parent::defineFormSettingsSchema($form);
         $selectedProductTypeId = (string)($this->productTypeId ?? '');
+
         if ($selectedProductTypeId === '') {
             $selectedProductTypeId = $this->_getFirstProductTypeId();
         }
@@ -394,6 +396,7 @@ class Product extends Element
 
         $productTypeSettings = $this->_getProductTypeSettings();
         $fieldMappingSchema = $this->convertIntegrationFieldsToSchema(is_object($productTypeSettings) ? ($productTypeSettings->fields ?? []) : []);
+
         if ($fieldMappingSchema) {
             $schema[] = SchemaHelper::integrationFieldMappingField([
                 'name' => 'fieldMapping',
@@ -419,6 +422,7 @@ class Product extends Element
 
         $updateAttributes = $this->getUpdateAttributes();
         $updateMappingSchema = $this->convertIntegrationFieldsToSchema($updateAttributes[$selectedProductTypeId] ?? []);
+
         if ($updateMappingSchema) {
             $schema[] = SchemaHelper::integrationFieldMappingField([
                 'name' => 'updateElementMapping',
@@ -434,7 +438,7 @@ class Product extends Element
 
         return $schema;
     }
-    
+
 
     // Private Methods
     // =========================================================================
@@ -450,10 +454,12 @@ class Product extends Element
     {
         $options = [];
         $elements = $this->getConfigValue('elements');
+
         if (is_array($elements)) {
             foreach ($elements as $item) {
                 $id = $item->id ?? $item['id'] ?? null;
                 $name = $item->name ?? $item['name'] ?? null;
+
                 if ($id !== null && $name !== null) {
                     $options[] = ['label' => (string)$name, 'value' => (string)$id];
                 }
@@ -465,6 +471,7 @@ class Product extends Element
     private function _getFirstProductTypeId(): string
     {
         $elements = $this->getConfigValue('elements');
+
         if (is_array($elements) && !empty($elements)) {
             $first = reset($elements);
             $id = $first->id ?? $first['id'] ?? null;

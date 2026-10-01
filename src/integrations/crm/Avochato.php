@@ -29,7 +29,7 @@ class Avochato extends Crm
     {
         return 'Avochato';
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -122,6 +122,7 @@ class Avochato extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
 
@@ -167,7 +168,7 @@ class Avochato extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

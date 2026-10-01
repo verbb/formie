@@ -102,7 +102,7 @@ class SubmissionQuery extends ElementQuery
     {
         if ($value instanceof Form) {
             $this->formId = $value->id;
-        } else if ($value !== null) {
+        } elseif ($value !== null) {
             $this->formId = $this->_resolveFormIdValue($value);
         } else {
             $this->formId = null;
@@ -136,7 +136,7 @@ class SubmissionQuery extends ElementQuery
     {
         if ($value instanceof SubmissionStatus) {
             $this->statusId = $value->id;
-        } else if ($value !== null) {
+        } elseif ($value !== null) {
             $this->statusId = $this->_resolveStatusIdValue($value);
         } else {
             parent::status(null);
@@ -160,7 +160,7 @@ class SubmissionQuery extends ElementQuery
     {
         if ($value instanceof User) {
             $this->userId = $value->id;
-        } else if ($value !== null) {
+        } elseif ($value !== null) {
             $user = Craft::$app->getUsers()->getUserByUsernameOrEmail($value);
             $this->userId = $user ? $user->id : false;
         } else {

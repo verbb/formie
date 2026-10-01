@@ -138,7 +138,7 @@ class Section extends CosmeticField
             SchemaHelper::conditionsField(),
         ];
     }
-    
+
 
     // Protected Methods
     // =========================================================================

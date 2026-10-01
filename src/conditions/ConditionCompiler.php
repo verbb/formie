@@ -28,12 +28,15 @@ final class ConditionCompiler
         if ($field instanceof OptionsField) {
             return $field->multi ? 'collection' : 'text';
         }
+
         if ($field instanceof Recipients) {
             return in_array($field->displayType, ['checkboxes', 'multi-select'], true) ? 'collection' : 'text';
         }
+
         if ($field instanceof Date) {
             return $field->getCollectsRange() ? 'collection' : ($field->getIsTime() ? 'time' : ($field->getIsDate() ? 'date' : 'datetime'));
         }
+
         if ($field instanceof \verbb\formie\fields\Phone) {
             return 'text';
         }
@@ -60,12 +63,14 @@ final class ConditionCompiler
     public function compile(ConditionSet $set, ?Form $form = null): array
     {
         $rules = [];
+
         foreach ($set->rules as $rule) {
             $token = str_starts_with($rule->reference, '{') ? $rule->reference : References::field($rule->reference);
             $expression = References::parseReferenceExpression($token);
             $field = null;
             $path = '';
             $domPath = '';
+
             try {
                 if ($form && $expression->target === 'field') {
                     $entry = (new FieldReferenceResolver())->findField($expression->identifier, new ReferenceContext(form: $form));
@@ -77,16 +82,20 @@ final class ConditionCompiler
                 // Keep the unresolved operand in the wire model so it cannot become an empty matching set.
             }
             $browser = $expression->isValid && ($expression->target === 'field' && $field !== null);
+
             if ($expression->transformerId !== '') {
                 $browser = $browser && ((new ReferenceCatalogue())->transform($expression->transformerId)?->browser ?? false);
             }
             $type = $field instanceof Field ? self::fieldType($field) : ($expression->identifier === 'id' ? 'number' : 'text');
+
             if ($expression->selector !== '' && $field) {
                 $type = $field instanceof Date && in_array($expression->selector, ['date', 'time'], true) ? $expression->selector : 'text';
+
                 if ($field instanceof OptionsField && $field->multi) {
                     $type = 'collection';
                 }
                 $selectorAvailable = false;
+
                 foreach ($field->referenceValues() as $referenceValue) {
                     if ($referenceValue->matchesSelector($expression->selector)) {
                         $selectorAvailable = $referenceValue->supportsBrowser && $referenceValue->appliesTo($field);
@@ -95,6 +104,7 @@ final class ConditionCompiler
                 }
                 $browser = $browser && $selectorAvailable;
             }
+
             if (in_array($expression->transformerParams['scope'] ?? '', ['all', 'rows'], true)) {
                 $type = 'collection';
             } elseif (($expression->transformerParams['scope'] ?? '') === 'count') {
@@ -102,6 +112,7 @@ final class ConditionCompiler
             }
             $selector = $expression->selector;
             $params = $expression->transformerParams;
+
             if ($field instanceof RepeatableParentFieldInterface && $selector !== '' && !isset($params['scope'])) {
                 if (preg_match('/^([0-9]+):(.*)$/', $selector, $match)) {
                     $params['scope'] = 'index';

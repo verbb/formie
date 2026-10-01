@@ -54,6 +54,7 @@ class AddressFieldValue extends BaseFieldValue
         if (($config['country'] ?? null) instanceof OptionValue) {
             $config['country'] = $config['country']->value;
         }
+
         // Read legacy label-only addresses without retaining presentation policy.
         if (empty($config['country']) && !empty($config['countryOption'])) {
             $config['country'] = self::nameToCode($config['countryOption']) ?? $config['countryOption'];

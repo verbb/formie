@@ -77,7 +77,7 @@ class FieldLayoutPageSettings extends Model implements TranslatablePropertiesInt
 
         parent::__construct($config);
     }
-    
+
     public function init(): void
     {
         if (!$this->submitButtonLabel) {

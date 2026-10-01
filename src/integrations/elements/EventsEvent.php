@@ -63,7 +63,7 @@ class EventsEvent extends Element
     {
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $customFields = [];
@@ -177,6 +177,7 @@ class EventsEvent extends Element
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         if (!$this->eventTypeId) {
             Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `eventTypeId`.'), true);
 
@@ -205,7 +206,7 @@ class EventsEvent extends Element
                     if (isset($fieldValue[0])) {
                         $event->authorId = $fieldValue[0] ?? null;
                     }
-                } else if (in_array($eventFieldHandle, ['startDate', 'endDate', 'until'])) {
+                } elseif (in_array($eventFieldHandle, ['startDate', 'endDate', 'until'])) {
                     // Calendar expects dates as Carbon object, not DateTime
                     $event->{$eventFieldHandle} = new Carbon($fieldValue->format('Y-m-d H:i:s') ?? 'now', 'utc');
                 } else {
@@ -227,7 +228,7 @@ class EventsEvent extends Element
             $endpoint = '';
             $method = '';
 
-            // Allow events to cancel sending - return as success            
+            // Allow events to cancel sending - return as success
             if (!$this->beforeSendPayload($submission, $endpoint, $event, $method)) {
                 return $this->resultForPayload(true);
             }
@@ -307,6 +308,7 @@ class EventsEvent extends Element
     {
         $schema = parent::defineFormSettingsSchema($form);
         $selectedEventTypeId = (string)($this->eventTypeId ?? '');
+
         if ($selectedEventTypeId === '') {
             $selectedEventTypeId = $this->_getFirstEventTypeId();
         }
@@ -343,6 +345,7 @@ class EventsEvent extends Element
 
         $eventTypeSettings = $this->_getEventTypeSettings();
         $fieldMappingSchema = $this->convertIntegrationFieldsToSchema(is_object($eventTypeSettings) ? ($eventTypeSettings->fields ?? []) : []);
+
         if ($fieldMappingSchema) {
             $schema[] = SchemaHelper::integrationFieldMappingField([
                 'name' => 'fieldMapping',
@@ -368,6 +371,7 @@ class EventsEvent extends Element
 
         $updateAttributes = $this->getUpdateAttributes();
         $updateMappingSchema = $this->convertIntegrationFieldsToSchema($updateAttributes[$selectedEventTypeId] ?? []);
+
         if ($updateMappingSchema) {
             $schema[] = SchemaHelper::integrationFieldMappingField([
                 'name' => 'updateElementMapping',
@@ -383,7 +387,7 @@ class EventsEvent extends Element
 
         return $schema;
     }
-    
+
 
     // Private Methods
     // =========================================================================
@@ -399,10 +403,12 @@ class EventsEvent extends Element
     {
         $options = [];
         $elements = $this->getConfigValue('elements');
+
         if (is_array($elements)) {
             foreach ($elements as $item) {
                 $id = $item->id ?? $item['id'] ?? null;
                 $name = $item->name ?? $item['name'] ?? null;
+
                 if ($id !== null && $name !== null) {
                     $options[] = ['label' => (string)$name, 'value' => (string)$id];
                 }
@@ -414,6 +420,7 @@ class EventsEvent extends Element
     private function _getFirstEventTypeId(): string
     {
         $elements = $this->getConfigValue('elements');
+
         if (is_array($elements) && !empty($elements)) {
             $first = reset($elements);
             $id = $first->id ?? $first['id'] ?? null;

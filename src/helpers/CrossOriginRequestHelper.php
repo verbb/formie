@@ -31,6 +31,7 @@ class CrossOriginRequestHelper
     public static function resolveAllowedOrigin(Request $request): ?string
     {
         $origin = trim((string)$request->getOrigin());
+
         if ($origin === '') {
             return null;
         }

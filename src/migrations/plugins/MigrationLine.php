@@ -11,6 +11,6 @@ class MigrationLine
         public string $message,
         public int $depth = 0,
         public array $context = [],
-    ) {}
+    ) {
+    }
 }
-

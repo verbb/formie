@@ -11,8 +11,10 @@ class FieldTraversal
     public static function recursively(array $fields): array
     {
         $result = [];
+
         foreach ($fields as $field) {
             $result[] = $field;
+
             if ($field instanceof ParentFieldInterface) {
                 array_push($result, ...self::recursively($field->getFields()));
             }

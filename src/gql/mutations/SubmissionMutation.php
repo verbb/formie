@@ -129,12 +129,12 @@ class SubmissionMutation extends Mutation
         $resolver->setResolutionData('form', $form);
         $contentFieldConfigs = Formie::$plugin->getForms()->getGqlSchemaSnapshot()->fieldConfigs((int)$form->id);
 
-        static::prepareFormieResolver($resolver, $contentFieldConfigs);
+        static::_prepareFormieResolver($resolver, $contentFieldConfigs);
 
         return $resolver;
     }
 
-    private static function prepareFormieResolver(SubmissionResolver $resolver, array $contentFieldConfigs): void
+    private static function _prepareFormieResolver(SubmissionResolver $resolver, array $contentFieldConfigs): void
     {
         $fieldList = [];
         $fieldsService = Formie::$plugin->getFields();

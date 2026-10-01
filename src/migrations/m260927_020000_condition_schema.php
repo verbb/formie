@@ -21,22 +21,27 @@ class m260927_020000_condition_schema extends Migration
             if (!$this->db->tableExists($table)) {
                 continue;
             }
+
             foreach ((new Query())->from($table)->each() as $row) {
                 $data = Json::decodeIfJson($row[$column]);
+
                 if (!is_array($data)) {
                     continue;
                 }
                 $updated = ConditionMigration::migrate($data);
+
                 if ($updated !== $data) {
                     $this->update($table, [$column => Json::encode($updated)], ['id' => $row['id']]);
                 }
             }
         }
         $projectConfig = Craft::$app->getProjectConfig();
+
         foreach (['fields', 'stencils', 'formDefaults'] as $section) {
             $data = (array)$projectConfig->get('formie.' . $section, true);
             $unpacked = ProjectConfig::unpackAssociativeArrays($data);
             $updated = ConditionMigration::migrate($unpacked);
+
             if ($updated !== $unpacked) {
                 $projectConfig->set('formie.' . $section, ProjectConfig::packAssociativeArrays($updated), 'Version condition configuration');
             }

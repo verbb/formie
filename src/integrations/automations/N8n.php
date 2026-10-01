@@ -33,15 +33,15 @@ class N8n extends Automation
     {
         return 'n8n';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[FormIntegrationSetting]
     #[Sensitive]
     public ?string $webhook = null;
-    
+
 
     // Public Methods
     // =========================================================================
@@ -131,7 +131,7 @@ class N8n extends Automation
         ];
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

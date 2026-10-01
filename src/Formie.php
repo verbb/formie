@@ -24,7 +24,6 @@ use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\helpers\CrossOriginRequestHelper;
 use verbb\formie\helpers\Gql as GqlHelper;
 use verbb\formie\helpers\ProjectConfigHelper;
-use verbb\formie\helpers\SchemaReadiness;
 use verbb\formie\integrations\feedme\elements\Submission as FeedMeSubmission;
 use verbb\formie\integrations\link\FormLinkType;
 use verbb\formie\jobs\DebuggableJobInterface;
@@ -109,7 +108,7 @@ class Formie extends Plugin
 
     public const EVENT_MODIFY_TWIG_ENVIRONMENT = 'modifyTwigEnvironment';
 
-    
+
     // Properties
     // =========================================================================
 
@@ -133,9 +132,9 @@ class Formie extends Plugin
         parent::init();
 
         self::$plugin = $this;
-        
+
         $this->getCompatibility()->bootstrap();
-        
+
         $this->_registerTwigExtensions();
         $this->_registerFieldTypes();
         $this->_registerVariable();
@@ -147,11 +146,12 @@ class Formie extends Plugin
         $this->_registerProjectConfigEventHandlers();
         $this->_registerEmailMessages();
         $this->_registerTemplateRoots();
-        
+
         if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->_registerCpRoutes();
             $this->_registerWidgets();
             $this->_registerElementExports();
+
             if (str_starts_with(Craft::$app->getRequest()->getPathInfo(), 'utilities/queue-manager')) {
                 \verbb\formie\helpers\Plugin::registerCpAsset('src/delivery/formie-delivery.js');
             }
@@ -169,9 +169,8 @@ class Formie extends Plugin
             $this->_registerPermissions();
         }
 
-        if (SchemaReadiness::canHydrateRuntimeSettings()) {
+        if ($this->isInstalled && !Craft::$app->getPlugins()->isPluginUpdatePending($this)) {
             $this->getSpamProtection()->hydrateSettings($this->getSettings());
-            $this->getCaptchaProviders()->hydrateLegacyCaptchas($this->getSettings());
         }
     }
 
@@ -267,7 +266,7 @@ class Formie extends Plugin
 
     private function _registerTwigExtensions(): void
     {
-        Craft::$app->getView()->registerTwigExtension(new Extension);
+        Craft::$app->getView()->registerTwigExtension(new Extension());
     }
 
     private function _registerSiteRoutes(): void
@@ -293,6 +292,7 @@ class Formie extends Plugin
             // result cache must never replay another visitor's bootstrap or HTML.
             if (preg_match('/\\b(formieClientForm|formieHtmlForm)\\b/', $event->query)) {
                 Craft::$app->getConfig()->getGeneral()->enableGraphqlCaching = false;
+
                 if (Craft::$app->getResponse() instanceof WebResponse) {
                     Craft::$app->getResponse()->setNoCacheHeaders();
                 }
@@ -303,6 +303,7 @@ class Formie extends Plugin
         Event::on(\craft\controllers\GraphqlController::class, \yii\base\Controller::EVENT_BEFORE_ACTION, function() {
             $request = Craft::$app->getRequest();
             $preflightHeaders = strtolower((string)$request->getHeaders()->get('Access-Control-Request-Headers', ''));
+
             if ($request->getHeaders()->has('X-Formie-Profile') || ($request->getIsOptions() && str_contains($preflightHeaders, 'x-formie-profile'))) {
                 CrossOriginRequestHelper::applyHeaders($request, Craft::$app->getResponse());
             }
@@ -321,7 +322,7 @@ class Formie extends Plugin
             CrossOriginRequestHelper::applyHeaders($request, Craft::$app->getResponse());
         });
     }
-    
+
     private function _registerCpRoutes(): void
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
@@ -633,11 +634,13 @@ class Formie extends Plugin
                 }
 
                 $msg = $error['message'] ?? null;
+
                 if (!is_string($msg) || $msg === '') {
                     continue;
                 }
 
                 $sanitized = GqlHelper::stripGraphqlSuggestionHints($msg);
+
                 if ($sanitized !== '') {
                     $event->result['errors'][$i]['message'] = $sanitized;
                 }
@@ -656,7 +659,7 @@ class Formie extends Plugin
             $this->getForms()->invalidateFormCaches();
             DbSubmissionQuery::invalidateStaticCaches();
         });
-        
+
         Event::on(Form::class, Form::EVENT_AFTER_RESTORE, function() {
             $this->getForms()->invalidateFormCaches();
             DbSubmissionQuery::invalidateStaticCaches();
@@ -892,7 +895,7 @@ class Formie extends Plugin
             $event->actions['formie-forms'] = [
                 'action' => function(): int {
                     $controller = Craft::$app->controller;
-                    
+
                     return $controller->resaveElements(Form::class);
                 },
                 'options' => [],

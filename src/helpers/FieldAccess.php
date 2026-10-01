@@ -29,9 +29,11 @@ final class FieldAccess
         }
 
         $form = $submission->getForm();
+
         if (!$form) {
             return null;
         }
+
         if (!$form->getFieldById($fieldId) instanceof Summary) {
             return null;
         }
@@ -100,6 +102,7 @@ final class FieldAccess
             return null;
         }
         $context = ['submissionUid' => $submissionUid, 'formId' => $formId, 'siteId' => $siteId, 'fieldId' => $fieldId];
+
         if (!is_int($payload['expiresAt'] ?? null) || $payload['expiresAt'] <= time()
             || !array_key_exists('theme', $payload) || ($payload['theme'] !== null && !is_string($payload['theme']))
             || !in_array($payload['themeMode'] ?? null, ['formie', 'none'], true) || !is_string($payload['themeDigest'] ?? null)) {
@@ -109,6 +112,7 @@ final class FieldAccess
         $theme = $payload['theme'] === null
             ? ['mode' => $payload['themeMode'], 'config' => [], 'digest' => $payload['themeDigest'], 'allowsRawHtml' => false]
             : self::_loadTheme($payload['theme'], $payload['themeDigest'], $formId, $siteId);
+
         if ($theme === null) {
             return null;
         }
@@ -128,6 +132,7 @@ final class FieldAccess
         $identity = hash('sha256', Json::encode(['summary-theme', $form->id, $form->siteId, $theme->digest, $theme->allowsRawHtml]));
         $state = Json::encode(['purpose' => 'summary-theme', 'theme' => $theme->toFragmentState()]);
         $encrypted = Craft::$app->getSecurity()->encryptByKey($state, Formie::$plugin->getSettings()->getSecurityKey());
+
         if (!is_string($encrypted)) {
             throw new RuntimeException('Unable to encrypt Summary theme state.');
         }
@@ -144,6 +149,7 @@ final class FieldAccess
         $row = Craft::$app->getDb()->useMaster(fn() => (new Query())->from('{{%formie_instance_configs}}')->where([
             'tokenHash' => $identity, 'formId' => $formId, 'siteId' => $siteId,
         ])->andWhere(['>', 'expiresAt', time()])->one());
+
         if (!$row) {
             return null;
         }
@@ -152,6 +158,7 @@ final class FieldAccess
         $plain = $bytes === false ? false : Craft::$app->getSecurity()->decryptByKey($bytes, Formie::$plugin->getSettings()->getSecurityKey());
         $state = $plain === false ? null : Json::decodeIfJson($plain);
         $theme = is_array($state) ? ($state['theme'] ?? null) : null;
+
         if (!is_array($state) || ($state['purpose'] ?? null) !== 'summary-theme' || !is_array($theme)
             || !is_string($theme['digest'] ?? null) || !hash_equals($digest, $theme['digest'])) {
             return null;

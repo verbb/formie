@@ -113,8 +113,6 @@ Date range fields submit hidden start/end transport inputs in addition to the vi
 
 Use the Date Picker Options setting for Flatpickr-specific configuration, such as disabling dates or changing picker behaviour. See the [Flatpickr documentation](https://flatpickr.js.org/) for supported options.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
-
 - [Date](https://docs.verbb.io/formie/browser/ui-reference/fields/date)
 
 ## Related Fields

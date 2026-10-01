@@ -25,6 +25,7 @@ final class CancelSubscriptionCommand
     {
         $capability = PaymentCapabilities::resolve($this->token, PaymentCapabilityPurpose::CANCEL);
         $mode = $this->resolveMode($subscription);
+
         if ($this->subscriptionId !== $subscription->id || !$capability
             || (int)$capability['resourceId'] !== $subscription->id
             || ($capability['scope']['subscriptionUid'] ?? null) !== $subscription->uid

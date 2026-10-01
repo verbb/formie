@@ -54,6 +54,7 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         }
         $previous = $this->nestedValueParts($previous);
         $result = [];
+
         foreach ($this->getFields() as $field) {
             $prior = $previous[$field->handle] ?? null;
             $key = array_key_exists($field->uid, $incoming) ? $field->uid : $field->handle;
@@ -73,9 +74,11 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
     public function decodeValueFromStorage(mixed $value): mixed
     {
         $value = parent::decodeValueFromStorage($value);
+
         if (!is_array($value)) {
             $value = \craft\helpers\Json::decodeIfJson($value);
         }
+
         // Keep scalar single Name values intact. Fixed Date parts have their own storage shape.
         if (!is_array($value)) {
             return $value;
@@ -165,9 +168,11 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         $value = $this->nestedValueParts($value);
         $rows = [$value];
         $result = [];
+
         foreach ($rows as $rowKey => $row) {
             $row = is_array($row) ? $row : [];
             $result[$rowKey] = [];
+
             foreach ($this->getFields() as $field) {
                 if ($field->getIsCosmetic()) {
                     continue;

@@ -45,6 +45,7 @@ class SubmissionGuards extends Component
 
         $payload = Craft::$app->getSecurity()->validateData((string)$request->requestToken);
         $token = $payload === false ? null : \craft\helpers\Json::decodeIfJson($payload);
+
         if (!is_array($token) || ($token['form'] ?? null) !== $request->form->uid
             || (int)($token['site'] ?? 0) !== (int)$request->form->siteId
             || (int)($token['issued'] ?? 0) > time()
@@ -54,9 +55,11 @@ class SubmissionGuards extends Component
 
         Formie::$plugin->getClientSessionService()->enforceAnonymousRateLimit($request->form);
         $settings = Formie::$plugin->getSettings();
+
         if ($settings->enableGlobalSubmissionThrottling && ($reason = $this->_validateGlobalSubmissionThrottling($settings))) {
             throw new \yii\web\TooManyRequestsHttpException($reason);
         }
+
         if ($settings->enableIpSubmissionThrottling && ($reason = $this->_validateIpSubmissionThrottling($settings, $request))) {
             throw new \yii\web\TooManyRequestsHttpException($reason);
         }
@@ -66,11 +69,13 @@ class SubmissionGuards extends Component
         if ($browser && $settings->enableHoneypot && ($reason = $this->_validateHoneypot($settings))) {
             return $reason;
         }
+
         if ($browser && $request->operation === \verbb\formie\enums\SubmissionOperation::SUBMIT
             && $request->navigation === \verbb\formie\enums\NavigationIntent::ADVANCE
             && $settings->enableMinimumSubmitTime && ($reason = $this->_validateMinimumSubmitTime($settings))) {
             return $reason;
         }
+
         if ($browser && $settings->enableFormSubmitExpiration) {
             return $this->_validateFormSubmitExpiration($settings);
         }

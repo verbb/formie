@@ -13,6 +13,7 @@ trait DispatchableIntegrationTrait
     public function execute(IntegrationRunContext $context): IntegrationResult
     {
         $this->beginRun($context);
+
         if (static::hasLegacyPayloadOverride() && !$this->_executingLegacyPayload) {
             return $this->executeLegacyPayload($context);
         }

@@ -87,11 +87,13 @@ class Mailchimp extends EmailMarketing
 
             foreach ($event->fieldValues as $tag => $value) {
                 $integrationField = ArrayHelper::firstWhere($event->fieldSettings, 'handle', $tag);
+
                 if (!$integrationField || ($integrationField->sourceType ?? '') !== 'address') {
                     continue;
                 }
 
                 $slot = ReferenceSlot::fromStored($event->fieldMapping[$tag] ?? '');
+
                 if ($slot->kind !== ReferenceSlotKind::Exact) {
                     continue;
                 }
@@ -110,7 +112,7 @@ class Mailchimp extends EmailMarketing
     {
         return Craft::t('formie', 'Sign up users to your {name} lists to grow your audience for campaigns.', ['name' => static::displayName()]);
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -219,6 +221,7 @@ class Mailchimp extends EmailMarketing
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -357,7 +360,7 @@ class Mailchimp extends EmailMarketing
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -401,7 +404,7 @@ class Mailchimp extends EmailMarketing
 
         return $schema;
     }
-    
+
 
     // Private Methods
     // =========================================================================

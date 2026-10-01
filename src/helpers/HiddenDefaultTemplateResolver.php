@@ -60,7 +60,7 @@ class HiddenDefaultTemplateResolver
 
     public static function buildContext(Hidden $field, ?ElementInterface $element = null): HiddenDefaultTemplateContext
     {
-        [$form, $submission] = self::resolveFormAndSubmission($field, $element);
+        [$form, $submission] = self::_resolveFormAndSubmission($field, $element);
 
         return HiddenDefaultTemplateContext::fromFieldContext($form, $submission);
     }
@@ -82,7 +82,7 @@ class HiddenDefaultTemplateResolver
         return $event->variables;
     }
 
-    private static function resolveFormAndSubmission(Hidden $field, ?ElementInterface $element): array
+    private static function _resolveFormAndSubmission(Hidden $field, ?ElementInterface $element): array
     {
         $form = null;
         $submission = null;

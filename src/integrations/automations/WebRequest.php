@@ -36,7 +36,7 @@ class WebRequest extends Automation
     {
         return Craft::t('formie', 'Web Request');
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -163,6 +163,7 @@ class WebRequest extends Automation
         if ($this->headers) {
             foreach ($this->headers as $header) {
                 $name = IntegrationSecrets::resolveFormValue((string)$header['key']);
+
                 if (in_array(strtolower($name), ['host', 'proxy-authorization', 'cookie'], true)) {
                     throw new IntegrationException('Unsupported public endpoint header.');
                 }

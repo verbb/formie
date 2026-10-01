@@ -131,7 +131,7 @@ class OptionSources extends Component
         $this->trigger(self::EVENT_REGISTER_PREDEFINED_OPTIONS, $event);
 
         foreach ($event->options as $class) {
-            $this->_predefinedOptions[$class] = new $class;
+            $this->_predefinedOptions[$class] = new $class();
         }
 
         return $this->_predefinedOptions;

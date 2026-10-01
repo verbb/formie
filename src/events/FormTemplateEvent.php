@@ -13,5 +13,5 @@ class FormTemplateEvent extends Event
 
     public FormTemplate|EmailTemplate|null $template = null;
     public bool $isNew = false;
-    
+
 }

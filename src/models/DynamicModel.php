@@ -117,7 +117,7 @@ class DynamicModel extends Model
             foreach ($rules as $rule) {
                 if ($rule instanceof Validator) {
                     $validators->append($rule);
-                } else if (is_array($rule) && isset($rule[0], $rule[1])) {
+                } elseif (is_array($rule) && isset($rule[0], $rule[1])) {
                     $validator = Validator::createValidator($rule[1], $model, (array)$rule[0], array_slice($rule, 2));
                     $validators->append($validator);
                 } else {

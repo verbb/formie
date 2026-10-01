@@ -69,7 +69,7 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
             'write',
             'account',
         ];
-        
+
         return $options;
     }
 
@@ -123,6 +123,7 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $payload = [
                 'name' => $this->cardName,
@@ -155,7 +156,7 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
         return $this->resultForPayload(true);
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -173,6 +174,7 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
     {
         $schema = parent::defineFormSettingsSchema($form);
         $selectedBoardId = (string)($this->boardId ?? '');
+
         if ($selectedBoardId === '') {
             $selectedBoardId = $this->_getFirstBoardId();
         }
@@ -209,7 +211,7 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
         return $schema;
     }
 
-    
+
     // Private Methods
     // =========================================================================
 

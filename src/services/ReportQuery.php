@@ -34,9 +34,9 @@ class ReportQuery extends Component
             ->formId($formIds ?: false)
             ->status(null);
 
-        $this->applyStateFilters($query, $filters);
-        $this->applyStatusFilters($query, $filters);
-        $this->applyDateFilters($query, $filters);
+        $this->_applyStateFilters($query, $filters);
+        $this->_applyStatusFilters($query, $filters);
+        $this->_applyDateFilters($query, $filters);
 
         return $query;
     }
@@ -142,9 +142,9 @@ class ReportQuery extends Component
                 'elements.dateDeleted' => null,
             ]);
 
-        $this->applyDbStateFilters($query, $filters);
-        $this->applyDbStatusFilters($query, $filters);
-        $this->applyDbDateFilters($query, $filters);
+        $this->_applyDbStateFilters($query, $filters);
+        $this->_applyDbStatusFilters($query, $filters);
+        $this->_applyDbDateFilters($query, $filters);
 
         $results = $query
             ->groupBy(['bucket'])
@@ -199,7 +199,7 @@ class ReportQuery extends Component
             $query->search($search);
         }
 
-        $this->applyViewerSort($query, $sort, $sortDir);
+        $this->_applyViewerSort($query, $sort, $sortDir);
 
         $total = (int)(clone $query)->count();
         $submissions = $query
@@ -268,7 +268,7 @@ class ReportQuery extends Component
             $query->search($search);
         }
 
-        $this->applyViewerSort(
+        $this->_applyViewerSort(
             $query,
             (string)($viewer['sort'] ?? 'dateCreated'),
             (string)($viewer['sortDir'] ?? 'desc'),
@@ -328,14 +328,14 @@ class ReportQuery extends Component
     // Private Methods
     // =========================================================================
 
-    private function applyStateFilters(ElementQueryInterface $query, array $filters): void
+    private function _applyStateFilters(ElementQueryInterface $query, array $filters): void
     {
         // Use the same disjoint state categories as charts, including incomplete spam.
         $query->isIncomplete(null)->isSpam(null);
-        $this->applyDbStateFilters($query, $filters, 'formie_submissions');
+        $this->_applyDbStateFilters($query, $filters, 'formie_submissions');
     }
 
-    private function applyStatusFilters(ElementQueryInterface $query, array $filters): void
+    private function _applyStatusFilters(ElementQueryInterface $query, array $filters): void
     {
         $statusIds = $filters['statusIds'] ?? [];
 
@@ -344,7 +344,7 @@ class ReportQuery extends Component
         }
     }
 
-    private function applyDateFilters(ElementQueryInterface $query, array $filters, ?DateTime $since = null): void
+    private function _applyDateFilters(ElementQueryInterface $query, array $filters, ?DateTime $since = null): void
     {
         $startDate = DateTimeHelper::toDateTime($filters['startDate'] ?? null);
         $endDate = DateTimeHelper::toDateTime($filters['endDate'] ?? null);
@@ -419,7 +419,7 @@ class ReportQuery extends Component
 
     private function _applySummaryCountFilters(Query $query, array $filters): void
     {
-        $this->applyDbStateFilters($query, $filters);
+        $this->_applyDbStateFilters($query, $filters);
 
         $startDate = DateTimeHelper::toDateTime($filters['startDate'] ?? null);
         $endDate = DateTimeHelper::toDateTime($filters['endDate'] ?? null);
@@ -439,7 +439,7 @@ class ReportQuery extends Component
         }
     }
 
-    private function applyViewerSort(ElementQueryInterface $query, ?string $sort, string $sortDir = 'desc'): void
+    private function _applyViewerSort(ElementQueryInterface $query, ?string $sort, string $sortDir = 'desc'): void
     {
         $allowed = ['id', 'dateCreated', 'dateUpdated', 'title', 'status', 'formName'];
         $sort = in_array($sort, $allowed, true) ? $sort : 'dateCreated';
@@ -465,7 +465,7 @@ class ReportQuery extends Component
         $query->orderBy([$sort => $direction]);
     }
 
-    private function applyDbStateFilters(Query $query, array $filters, string $alias = 'submissions'): void
+    private function _applyDbStateFilters(Query $query, array $filters, string $alias = 'submissions'): void
     {
         $includeComplete = (bool)($filters['includeComplete'] ?? true);
         $includeIncomplete = (bool)($filters['includeIncomplete'] ?? true);
@@ -506,7 +506,7 @@ class ReportQuery extends Component
         $query->andWhere($conditions);
     }
 
-    private function applyDbStatusFilters(Query $query, array $filters): void
+    private function _applyDbStatusFilters(Query $query, array $filters): void
     {
         $statusIds = $filters['statusIds'] ?? [];
 
@@ -515,7 +515,7 @@ class ReportQuery extends Component
         }
     }
 
-    private function applyDbDateFilters(Query $query, array $filters): void
+    private function _applyDbDateFilters(Query $query, array $filters): void
     {
         $startDate = DateTimeHelper::toDateTime($filters['startDate'] ?? null);
         $endDate = DateTimeHelper::toDateTime($filters['endDate'] ?? null);

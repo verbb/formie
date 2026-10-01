@@ -53,7 +53,7 @@ class Moneris extends Payment
     {
         return 'Moneris';
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -204,7 +204,7 @@ class Moneris extends Payment
             ]),
         ];
     }
-    
+
 
     // Protected Methods
     // =========================================================================

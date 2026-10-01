@@ -15,6 +15,7 @@ class m260926_000000_submission_operations extends Migration
         if (!$this->db->columnExists(Table::FORMIE_SUBMISSIONS, 'stateVersion')) {
             $this->addColumn(Table::FORMIE_SUBMISSIONS, 'stateVersion', $this->integer()->notNull()->defaultValue(0));
         }
+
         if (!$this->db->tableExists(Table::FORMIE_SUBMISSION_OPERATIONS)) {
             $this->createTable(Table::FORMIE_SUBMISSION_OPERATIONS, [
                 'id' => $this->primaryKey(),

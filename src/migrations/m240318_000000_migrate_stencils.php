@@ -70,11 +70,11 @@ class m240318_000000_migrate_stencils extends Migration
                     if ($field['type'] === fields\Address::class) {
                         $field['settings']['rows'] = $this->_getAddressConfig($field['settings']);
                     }
-                    
+
                     if ($field['type'] === fields\Date::class) {
                         $field['settings']['rows'] = $this->_getDateConfig($field['settings']);
                     }
-                    
+
                     if ($field['type'] === fields\Name::class) {
                         $field['settings']['rows'] = $this->_getNameConfig($field['settings']);
                     }

@@ -42,7 +42,7 @@ class Forms extends BaseRelationField
     {
         return sprintf('\\%s|\\%s<\\%s>', FormQuery::class, ElementCollection::class, Form::class);
     }
-    
+
 
     // Constants
     // =========================================================================
@@ -51,7 +51,7 @@ class Forms extends BaseRelationField
     public const VIEW_MODE_LIST = 'list';
     public const VIEW_MODE_LIST_INLINE = 'list-inline';
 
-    
+
     // Public Methods
     // =========================================================================
 

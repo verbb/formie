@@ -50,11 +50,13 @@ class m260912_000000_completion_vocabulary extends Migration
     {
         foreach ((new Query())->select(['id', $column])->from($table)->each() as $row) {
             $decoded = Json::decodeIfJson($row[$column] ?? null);
+
             if (!is_array($decoded)) {
                 continue;
             }
 
             $migrated = $decoded;
+
             if ($nestedSettings) {
                 if (isset($migrated['settings']) && is_array($migrated['settings'])) {
                     $migrated['settings'] = $this->_migrateSettings($migrated['settings']);
@@ -62,6 +64,7 @@ class m260912_000000_completion_vocabulary extends Migration
             } else {
                 $migrated = $this->_migrateSettings($migrated);
             }
+
             if ($migrated !== $decoded) {
                 $this->update($table, [$column => Json::encode($migrated)], ['id' => $row['id']], [], false);
             }
@@ -82,9 +85,11 @@ class m260912_000000_completion_vocabulary extends Migration
 
         foreach ($aliases as $legacy => $canonical) {
             $canonicalMissing = !array_key_exists($canonical, $data);
+
             if ($legacy === 'submitActionUrl') {
                 $canonicalMissing = $canonicalMissing || $data[$canonical] === null || $data[$canonical] === '';
             }
+
             if (array_key_exists($legacy, $data) && $canonicalMissing) {
                 $data[$canonical] = $data[$legacy];
             }

@@ -136,7 +136,7 @@ class FieldValueQueryHelper
                     $scale = (int)($matches[2] ?? 0);
                     $castType .= "($precision,$scale)";
                 }
-            } else if ($length) {
+            } elseif ($length) {
                 $castType = preg_replace('/\(\d+\)/', "($length)", $castType);
             }
 

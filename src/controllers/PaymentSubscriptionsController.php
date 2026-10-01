@@ -40,12 +40,14 @@ class PaymentSubscriptionsController extends Controller
         $mode = $modeParam === null || $modeParam === ''
             ? null
             : SubscriptionCancellationMode::tryFrom((string)$modeParam);
+
         if ($modeParam !== null && $modeParam !== '' && $mode === null) {
             throw new BadRequestHttpException('Invalid cancellation mode.');
         }
         $command = new CancelSubscriptionCommand($id, $token, $mode);
         $command->authorize($subscription);
         $mode = $command->resolveMode($subscription);
+
         if (!$this->request->getIsPost()) {
             return $this->asRaw($this->_renderCancelConfirmation($id, $token, $mode));
         }
@@ -73,6 +75,7 @@ class PaymentSubscriptionsController extends Controller
         $html .= Html::beginForm($action, 'post');
         $html .= Html::hiddenInput('id', (string)$id);
         $html .= Html::hiddenInput('token', $token);
+
         if ($mode) {
             $html .= Html::hiddenInput('mode', $mode->value);
         }

@@ -37,7 +37,7 @@ class FieldClientRenderedChildren extends BaseObject
     private mixed $_partFieldResolver = null;
     private mixed $_rowResolver = null;
 
-    
+
     // Public Methods
     // =========================================================================
 

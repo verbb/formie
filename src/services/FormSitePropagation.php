@@ -308,6 +308,7 @@ class FormSitePropagation extends Component
         ));
 
         $sitesById = [];
+
         foreach ($sitesService->getAllSites() as $site) {
             $sitesById[(int)$site->id] = $site;
         }

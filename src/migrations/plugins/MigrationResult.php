@@ -73,4 +73,3 @@ class MigrationResult
         return $html;
     }
 }
-

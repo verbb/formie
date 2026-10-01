@@ -29,6 +29,7 @@ trait FieldValueTrait
             $state = $element->getContentState();
             $present = array_key_exists($this->uid, $state->rawValuesByUid) || array_key_exists($this->uid, $state->normalizedValuesByUid);
             $value = $element->getFieldValue($this->valueKey());
+
             if ($value !== null || $present) {
                 return $value;
             }
@@ -57,6 +58,7 @@ trait FieldValueTrait
         if (!$this->_projectingLegacyData && $this->_hasLegacyFieldMethodOverride('getValueAsJson')) {
             \Craft::$app->getDeprecator()->log(static::class . '::getValueAsJson', 'Implement defineValueAsData() instead of overriding getValueAsJson().');
             $this->_projectingLegacyData = true;
+
             try {
                 $value = $this->getValueAsJson($value, $element);
             } finally {
@@ -64,6 +66,7 @@ trait FieldValueTrait
             }
         } else {
             $value = $this->defineValueAsData($value, $element);
+
             if ($this->_projectingLegacyData) {
                 return $value;
             }

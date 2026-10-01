@@ -129,6 +129,7 @@ class Tags extends ElementField
         $value = array_filter($value);
 
         $tagsIds = [];
+
         foreach ($value as $tagJson) {
             if (!isset($tagJson['id'])) {
                 $tag = Tag::find()

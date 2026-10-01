@@ -95,7 +95,7 @@ trait FieldDefinitionTrait
     {
         return $this->conditions ?? [];
     }
-    
+
 
     // Protected Methods
     // =========================================================================

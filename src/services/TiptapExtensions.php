@@ -78,11 +78,13 @@ class TiptapExtensions extends Component
         $this->trigger(self::EVENT_REGISTER_EXTENSIONS, $event);
 
         $coreNames = [];
+
         foreach (EditorFactory::pluginKitExtensions() as $coreExtension) {
             $coreNames[] = $coreExtension::$name;
         }
 
         $schemaNames = [];
+
         foreach ($event->extensions as $id => $extension) {
             if (!is_string($id) || $id === '' || trim($id) !== $id) {
                 throw new InvalidArgumentException('Formie TipTap extension IDs must be non-empty, trimmed strings.');
@@ -93,6 +95,7 @@ class TiptapExtensions extends Component
             }
 
             $schemaName = $extension::$name;
+
             if (!is_string($schemaName) || $schemaName === '') {
                 throw new InvalidArgumentException("Formie TipTap extension \"{$id}\" must have a schema name.");
             }
@@ -110,6 +113,7 @@ class TiptapExtensions extends Component
 
         $styleIds = [];
         $styleAttributes = [];
+
         foreach ($event->textStyles as $definition) {
             if (!$definition instanceof TextStyleDefinition) {
                 throw new InvalidArgumentException('Formie TextStyle registrations must be TextStyleDefinition instances.');

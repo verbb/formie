@@ -156,7 +156,7 @@ class Form extends Element implements FormInterface
     {
         return Craft::createObject(FormCondition::class, [static::class]);
     }
-    
+
     public static function gqlTypeNameByContext(mixed $context): string
     {
         return $context->handle . '_Form';
@@ -535,7 +535,7 @@ class Form extends Element implements FormInterface
 
         return Formie::$plugin->getPermissions()->canManageForm($user, $this);
     }
-    
+
     public function canView(User $user): bool
     {
         if (parent::canView($user)) {
@@ -619,6 +619,7 @@ class Form extends Element implements FormInterface
     public function validateFormLayout(): void
     {
         $formLayout = $this->getFormLayout();
+
         try {
             (new \verbb\formie\conditions\ConditionGraph())->orderedFields($this);
         } catch (\RuntimeException $exception) {
@@ -1569,6 +1570,7 @@ class Form extends Element implements FormInterface
     public function getRedirectUrl(bool $checkLastPage = true, bool $includeQueryString = true): string
     {
         $submission = $this->getCurrentSubmission();
+
         if (!$submission) {
             $submission = new Submission();
             $submission->setForm(clone $this);
@@ -1624,7 +1626,7 @@ class Form extends Element implements FormInterface
     public function renderTemplate(array|string $components, array $variables = []): string
     {
         $view = Craft::$app->getView();
-        
+
         // Normalise the components to allow for a single component
         if (!is_array($components)) {
             $components = [$components];
@@ -1740,6 +1742,7 @@ class Form extends Element implements FormInterface
     public function getFrontendTemplateLocation(string $location)
     {
         $output = null;
+
         if ($location === 'outputCssLocation') {
             $output = FormTemplate::PAGE_HEADER;
         }
@@ -1803,16 +1806,20 @@ class Form extends Element implements FormInterface
         $runtime = new \verbb\formie\services\RuntimeConfiguration();
         $settings = \verbb\formie\helpers\RuntimeConfigurationMigration::migrate($settings);
         $settings = $runtime->validateSettings($this->settings, $settings, $runtime::FORM_SETTINGS, 'form');
+
         if (isset($settings['completionBehavior'])) {
             \verbb\formie\enums\CompletionBehavior::from($settings['completionBehavior']);
         }
+
         if (isset($settings['integrations'])) {
             $filtered = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings($settings['integrations'], false);
+
             foreach ($settings['integrations'] as $handle => $values) {
                 if (!isset($filtered[$handle]) || array_diff_key($values, $filtered[$handle])) {
                     throw new \Twig\Error\RuntimeError('Unknown integration or forbidden runtime settings: ' . $handle);
                 }
             }
+
             foreach ($filtered as $handle => $values) {
                 $filtered[$handle] = $runtime->validateIntegrationSettings($handle, $values);
             }
@@ -1824,12 +1831,14 @@ class Form extends Element implements FormInterface
     public function setPageSettings(int|string $handleOrIndex, array $settings): void
     {
         $target = null;
+
         foreach ($this->getPages() as $index => $page) {
             if ($index === $handleOrIndex || $page->handle === $handleOrIndex || $page->uid === $handleOrIndex) {
                 $target = $page;
                 break;
             }
         }
+
         if (!$target) {
             throw new \Twig\Error\RuntimeError('Unknown runtime page target: ' . $handleOrIndex);
         }
@@ -1845,6 +1854,7 @@ class Form extends Element implements FormInterface
         $settings = \verbb\formie\helpers\RuntimeConfigurationMigration::migrate($settings, get_class($field));
         $settings = FieldAttributesHelper::applyToFieldSettings($settings, $field->containerAttributes, $field->inputAttributes);
         $settings = $runtime->validateSettings($field, $settings, $field->runtimeOverridableSettings(), 'field ' . $handle);
+
         if ($field instanceof OptionsField) {
             $settings = OptionsField::normalizeSnapshotFieldSettings($settings);
         }
@@ -1854,6 +1864,7 @@ class Form extends Element implements FormInterface
     public function setIntegrationSettings(string $handle, array $settings): void
     {
         $filtered = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings([$handle => $settings], false);
+
         if (!isset($filtered[$handle]) || array_diff_key($settings, $filtered[$handle])) {
             throw new \Twig\Error\RuntimeError('Unknown integration or forbidden runtime settings: ' . $handle);
         }
@@ -1952,7 +1963,7 @@ class Form extends Element implements FormInterface
         if ($this->settings->scheduleForm && $this->settings->scheduleFormStart) {
             return !DateTimeHelper::isInThePast($this->settings->scheduleFormStart);
         }
-        
+
         return false;
     }
 
@@ -1961,7 +1972,7 @@ class Form extends Element implements FormInterface
         if ($this->settings->scheduleForm && $this->settings->scheduleFormEnd) {
             return DateTimeHelper::isInThePast($this->settings->scheduleFormEnd);
         }
-        
+
         return false;
     }
 
@@ -2091,6 +2102,7 @@ class Form extends Element implements FormInterface
     public function afterSave(bool $isNew): void
     {
         $context = $this->layoutSaveContext ?? LayoutSaveContext::forForm($this);
+
         if (!Formie::$plugin->getFields()->saveLayout($this->getFormLayout(), $context)) {
             $this->addErrors($this->getFormLayout()->getErrors());
 
@@ -2129,7 +2141,7 @@ class Form extends Element implements FormInterface
         $record->updatedById = $this->updatedById;
 
         $record->save(false);
-        
+
         $this->layoutId = (int)$record->layoutId;
 
         // Handle notifications
@@ -2191,6 +2203,7 @@ class Form extends Element implements FormInterface
         }
 
         $this->_uploadsToDelete = [];
+
         if ($this->hardDelete && $this->fileUploadsAction === 'delete') {
             $this->_uploadsToDelete = Formie::$plugin->getFileUploads()->getUploadsForFormDeletion(
                 (int)$this->id,
@@ -2874,7 +2887,7 @@ class Form extends Element implements FormInterface
             ? $notificationsSchema
             : SchemaHelper::compileSchema($notificationsSchema);
 
-        return SchemaHelper::schemaNode([        
+        return SchemaHelper::schemaNode([
             '$cmp' => 'Notifications',
             // Nested under `props` so SchemaFormEngine does not strip `schema` as bookkeeping
             // (top-level `schema` is reserved for nested SchemaRenderer trees).
@@ -2888,7 +2901,7 @@ class Form extends Element implements FormInterface
 
     public function defineIntegrationsSchema(): array
     {
-        return SchemaHelper::schemaNode([        
+        return SchemaHelper::schemaNode([
             [
                 '$cmp' => 'Integrations',
             ],
@@ -3543,7 +3556,7 @@ class Form extends Element implements FormInterface
         if ($user && !Formie::$plugin->getPermissions()->canManageForm($user, $this)) {
             return null;
         }
-        
+
         $params = [];
 
         if (Formie::$plugin->getFormSitePropagation()->isEnabled()) {
@@ -3556,7 +3569,7 @@ class Form extends Element implements FormInterface
 
         return UrlHelper::cpUrl("formie/forms/edit/{$this->id}", $params);
     }
-    
+
 
 
     // Private Methods
@@ -3707,12 +3720,14 @@ class Form extends Element implements FormInterface
             $this->setRequestToken($routeForm->getRequestToken());
 
             $routeDraftContext = $routeForm->getDraftContext();
+
             if (is_string($routeDraftContext) && trim($routeDraftContext) !== '') {
                 $this->setDraftContext($routeDraftContext);
             }
         }
 
         $routePageId = $params['pageId'] ?? null;
+
         if (is_numeric($routePageId)) {
             $routePageId = (int)$routePageId;
 
@@ -3754,14 +3769,17 @@ class Form extends Element implements FormInterface
         }
 
         $grant = Formie::$plugin->getSubmissionGrants()->exchange($resumeToken, SubmissionGrants::CONTINUE, $this);
+
         if (!$grant) {
             return;
         }
         $submission = Submission::find()->id($grant->submissionId)->siteId($grant->siteId)->isIncomplete(true)->status(null)->one();
+
         if (!$submission) {
             return;
         }
         $progress = Formie::$plugin->getSubmissionGrants()->resolveProgress($grant);
+
         if ($progress?->currentPageId) {
             foreach ($this->getPages() as $page) {
                 if ((int)$page->id === $progress->currentPageId) {

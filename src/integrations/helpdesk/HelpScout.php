@@ -65,76 +65,76 @@ class HelpScout extends HelpDesk implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Send your form content to Help Scout.');
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
         try {
             if ($this->mapToConversation && $this->settingsContext->dataKey === 'conversation') {
-            // Fetch mailboxes
-            $response = $this->request('GET', 'mailboxes');
-            $mailboxes = $response['_embedded']['mailboxes'] ?? [];
+                // Fetch mailboxes
+                $response = $this->request('GET', 'mailboxes');
+                $mailboxes = $response['_embedded']['mailboxes'] ?? [];
 
-            $mailboxOptions = [];
+                $mailboxOptions = [];
 
-            foreach ($mailboxes as $mailbox) {
-                $mailboxOptions[] = [
-                    'label' => $mailbox['name'],
-                    'value' => (string)$mailbox['id'],
+                foreach ($mailboxes as $mailbox) {
+                    $mailboxOptions[] = [
+                        'label' => $mailbox['name'],
+                        'value' => (string)$mailbox['id'],
+                    ];
+                }
+
+                // Fetch tags (optional, not required to build conversation)
+                $response = $this->request('GET', 'tags');
+                $tags = $response['_embedded']['tags'] ?? [];
+
+                $tagOptions = [];
+
+                foreach ($tags as $tag) {
+                    $tagOptions[] = [
+                        'label' => $tag['name'],
+                        'value' => (string)$tag['id'],
+                    ];
+                }
+
+                $conversationFields = [
+                    new IntegrationField([
+                        'handle' => 'mailboxId',
+                        'name' => Craft::t('formie', 'Mailbox'),
+                        'required' => true,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Mailbox'),
+                            'options' => $mailboxOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'subject',
+                        'name' => Craft::t('formie', 'Subject'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Sender Email'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'firstName',
+                        'name' => Craft::t('formie', 'Sender First Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'lastName',
+                        'name' => Craft::t('formie', 'Sender Last Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'tags',
+                        'name' => Craft::t('formie', 'Tags'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Tags'),
+                            'options' => $tagOptions,
+                        ],
+                    ]),
                 ];
-            }
-
-            // Fetch tags (optional, not required to build conversation)
-            $response = $this->request('GET', 'tags');
-            $tags = $response['_embedded']['tags'] ?? [];
-
-            $tagOptions = [];
-
-            foreach ($tags as $tag) {
-                $tagOptions[] = [
-                    'label' => $tag['name'],
-                    'value' => (string)$tag['id'],
-                ];
-            }
-
-            $conversationFields = [
-                new IntegrationField([
-                    'handle' => 'mailboxId',
-                    'name' => Craft::t('formie', 'Mailbox'),
-                    'required' => true,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Mailbox'),
-                        'options' => $mailboxOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'subject',
-                    'name' => Craft::t('formie', 'Subject'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Sender Email'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'firstName',
-                    'name' => Craft::t('formie', 'Sender First Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'lastName',
-                    'name' => Craft::t('formie', 'Sender Last Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'tags',
-                    'name' => Craft::t('formie', 'Tags'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Tags'),
-                        'options' => $tagOptions,
-                    ],
-                ]),
-            ];
 
                 $settings['conversation'] = $conversationFields;
             }
@@ -148,6 +148,7 @@ class HelpScout extends HelpDesk implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             if ($this->mapToConversation) {
                 $conversationValues = $this->getFieldMappingValues($submission, $this->conversationFieldMapping, 'conversation');
@@ -202,7 +203,7 @@ class HelpScout extends HelpDesk implements OAuthProviderInterface
         return $this->resultForPayload(true);
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -233,7 +234,7 @@ class HelpScout extends HelpDesk implements OAuthProviderInterface
 
         return $schema;
     }
-    
+
 
     // Private Methods
     // =========================================================================

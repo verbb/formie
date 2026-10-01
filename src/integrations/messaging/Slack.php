@@ -51,7 +51,7 @@ class Slack extends Messaging implements OAuthProviderInterface
     {
         return 'Slack';
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -85,7 +85,7 @@ class Slack extends Messaging implements OAuthProviderInterface
             'groups:write',
             'users:read',
         ];
-        
+
         return $options;
     }
 
@@ -93,7 +93,7 @@ class Slack extends Messaging implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Send your form content to Slack.');
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -127,6 +127,7 @@ class Slack extends Messaging implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             if ($this->channelType === self::TYPE_WEBHOOK) {
                 $payload = [
@@ -140,7 +141,7 @@ class Slack extends Messaging implements OAuthProviderInterface
 
                 if ($this->channelType === self::TYPE_PUBLIC) {
                     $channel = $this->channelId;
-                } else if ($this->channelType === self::TYPE_DM) {
+                } elseif ($this->channelType === self::TYPE_DM) {
                     $channel = $this->userId;
                 }
 
@@ -181,7 +182,7 @@ class Slack extends Messaging implements OAuthProviderInterface
         return $this->resultForPayload(true);
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -260,7 +261,7 @@ class Slack extends Messaging implements OAuthProviderInterface
 
         return $schema;
     }
-    
+
 
     // Private Methods
     // =========================================================================

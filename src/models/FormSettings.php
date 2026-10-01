@@ -201,7 +201,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
             $config['limitSubmissionsScope'] ?? null,
             $config['limitSubmissions'] ?? null,
         );
-        
+
         $config = $this->_normalizeRichTextAttributes($config);
 
         parent::__construct($config);
@@ -474,6 +474,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         $messages = [];
 
         $form = $this->getForm();
+
         if (!$form) {
             return [];
         }
@@ -484,6 +485,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
             }
 
             $integration = $field->getPaymentIntegration();
+
             if (!($integration instanceof PaymentIntegration)) {
                 continue;
             }
@@ -559,7 +561,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
         return $rules;
     }
-    
+
 
     // Private Methods
     // =========================================================================
@@ -681,11 +683,13 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
         foreach ($aliases as $legacy => $canonical) {
             $canonicalMissing = !array_key_exists($canonical, $config);
+
             if ($legacy === 'submitActionUrl') {
                 // Formie 3 serialized a template-only redirectUrl beside the authored
                 // submitActionUrl. A blank override must not discard the authored URL.
                 $canonicalMissing = $canonicalMissing || $config[$canonical] === null || $config[$canonical] === '';
             }
+
             if (array_key_exists($legacy, $config) && $canonicalMissing) {
                 $config[$canonical] = $config[$legacy];
             }

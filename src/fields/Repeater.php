@@ -131,7 +131,7 @@ class Repeater extends RepeatableParentField
             ],
         ]));
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -436,7 +436,7 @@ class Repeater extends RepeatableParentField
     {
         $rules = parent::defineRules();
         $rules[] = [['minRows', 'maxRows'], 'integer', 'min' => 0];
-        
+
         return $rules;
     }
 
@@ -451,7 +451,7 @@ class Repeater extends RepeatableParentField
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
-        ]);;
+        ]);
 
         $footHtml = $view->clearJsBuffer();
 

@@ -94,8 +94,6 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 Custom-rendered forms must use `multipart/form-data`; otherwise the browser will not send selected files. If you override the field markup, preserve the upload input and hidden asset inputs Formie needs to synchronize uploaded assets.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
-
 - [File Upload](https://docs.verbb.io/formie/browser/ui-reference/fields/file-upload)
 - [Upload manager module](https://docs.verbb.io/formie/browser/modules/field/upload-manager)
 

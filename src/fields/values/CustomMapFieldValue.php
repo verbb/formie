@@ -29,14 +29,14 @@ class CustomMapFieldValue extends BaseFieldValue
         foreach (['lat', 'lng'] as $key) {
             if (array_key_exists($key, $config) && $config[$key] !== '' && $config[$key] !== null) {
                 $config[$key] = (float)$config[$key];
-            } else if (array_key_exists($key, $config)) {
+            } elseif (array_key_exists($key, $config)) {
                 $config[$key] = null;
             }
         }
 
         if (array_key_exists('zoom', $config) && $config['zoom'] !== '' && $config['zoom'] !== null) {
             $config['zoom'] = (int)$config['zoom'];
-        } else if (array_key_exists('zoom', $config)) {
+        } elseif (array_key_exists('zoom', $config)) {
             $config['zoom'] = null;
         }
 

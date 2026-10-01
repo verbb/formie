@@ -113,11 +113,13 @@ class UrlHelper extends CraftUrlHelper
     {
         $allowed = Formie::$plugin->getSettings()->completionQueryAllowlist;
         $result = [];
+
         foreach ($allowed as $key) {
             // Even explicitly added keys cannot smuggle credentials or nested input.
             if (!is_string($key) || preg_match('/token|csrf|formie|craft|password|authorization|^action$|^redirect$/i', $key)) {
                 continue;
             }
+
             if (array_key_exists($key, $params) && is_scalar($params[$key]) && !preg_match('/[\x00-\x1f\x7f]/', (string)$params[$key])) {
                 $result[$key] = (string)$params[$key];
             }

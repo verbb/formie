@@ -103,7 +103,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
     {
         // We need to factor in the error message key for Repeater blocks, but at this point we don't know what they are
         // so fudge it a little, and generate 70 label keys, and hope that people aren't making more than 70 rows.
-        for ($i = 0; $i < 70; $i++) { 
+        for ($i = 0; $i < 70; $i++) {
             foreach ($this->getFields($i) as $field) {
                 $labels[$field->valueKey()] = $field->label;
             }
@@ -123,12 +123,14 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         $previous = is_array($previous) ? $previous : [];
         $rows = $incoming['rows'] ?? $incoming;
         $result = [];
+
         foreach ($rows as $index => $row) {
             if (!is_array($row)) {
                 $result[] = $row;
                 continue;
             }
             $merged = [];
+
             foreach ($this->getFields($index) as $field) {
                 $prior = $previous[$index][$field->handle] ?? null;
                 $key = array_key_exists($field->uid, $row) ? $field->uid : $field->handle;
@@ -150,9 +152,11 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
     public function decodeValueFromStorage(mixed $value): mixed
     {
         $value = parent::decodeValueFromStorage($value);
+
         if (!is_array($value)) {
             $value = \craft\helpers\Json::decodeIfJson($value);
         }
+
         // Keep scalar single Name values intact. Fixed Date parts have their own storage shape.
         if (!is_array($value)) {
             return $value;
@@ -220,7 +224,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
             }
         }
     }
-    
+
 
     // Protected Methods
     // =========================================================================
@@ -235,9 +239,11 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         $value = is_array($value) ? $value : [];
         $rows = $value['rows'] ?? $value;
         $result = [];
+
         foreach ($rows as $rowKey => $row) {
             $row = is_array($row) ? $row : [];
             $result[$rowKey] = [];
+
             foreach ($this->getFields($rowKey) as $field) {
                 if ($field->getIsCosmetic()) {
                     continue;

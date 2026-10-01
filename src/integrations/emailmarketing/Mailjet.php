@@ -87,6 +87,7 @@ class Mailjet extends EmailMarketing
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -154,7 +155,7 @@ class Mailjet extends EmailMarketing
             'auth' => [App::parseEnv($this->apiKey), App::parseEnv($this->secretKey)],
         ]);
     }
-    
+
 
     // Private Methods
     // =========================================================================
@@ -184,6 +185,7 @@ class Mailjet extends EmailMarketing
 
             // Any Boolean fields should have a true/false option to pick from
             $options = [];
+
             if ($field['Datatype'] === 'bool') {
                 $options = [
                     'label' => $field['Name'],

@@ -216,7 +216,7 @@ class AddressState extends SingleLineText implements ChildFieldInterface
                 'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
             ]);
 
-            if ($this->usesDynamicSubdivisions()) {
+            if ($this->_usesDynamicSubdivisions()) {
                 $attributes = array_merge($attributes, [
                     'data-formie-address-state-dynamic' => true,
                     'data-formie-address-state-hide-when-unused' => $this->hideWhenUnused ? true : null,
@@ -263,7 +263,7 @@ class AddressState extends SingleLineText implements ChildFieldInterface
     {
         $modules = parent::defineBrowserModules();
 
-        if (!$this->usesDynamicSubdivisions()) {
+        if (!$this->_usesDynamicSubdivisions()) {
             return $modules;
         }
 
@@ -302,7 +302,7 @@ class AddressState extends SingleLineText implements ChildFieldInterface
     // Private Methods
     // =========================================================================
 
-    private function usesDynamicSubdivisions(): bool
+    private function _usesDynamicSubdivisions(): bool
     {
         return $this->inputMode === self::INPUT_MODE_DROPDOWN_WHEN_AVAILABLE;
     }

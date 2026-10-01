@@ -28,6 +28,7 @@ final class ConditionState
         foreach ($set->rules as $rule) {
             $token = str_starts_with($rule->reference, '{') ? $rule->reference : References::field($rule->reference);
             $expression = References::parseReferenceExpression($token);
+
             if (!$expression->isValid || $expression->target !== 'field' || $expression->transformerId !== '') {
                 return (new ConditionSetEvaluator())->evaluate($set, $submission, $rows);
             }

@@ -88,9 +88,11 @@ class FileUploadInputType extends InputObjectType
 
                 continue;
             }
+
             // Translate `fileData` to `data` which the Craft Assets field natively supports. Also handle filename.
             if (!empty($value['fileData'])) {
                 $dataString = ArrayHelper::remove($value, 'fileData');
+
                 // Bound the input before regex captures or decoded copies are allocated.
                 if (!is_string($dataString) || strlen($dataString) > $maxEncodedBytes + 256) {
                     throw new UserError('Uploaded file exceeds the maximum allowed size.');
@@ -103,10 +105,12 @@ class FileUploadInputType extends InputObjectType
                     $encoded = $matches['data'];
                     $padding = str_ends_with($encoded, '==') ? 2 : (str_ends_with($encoded, '=') ? 1 : 0);
                     $decodedBytes = intdiv(strlen($encoded) * 3, 4) - $padding;
+
                     if (strlen($encoded) > $maxEncodedBytes || $decodedBytes > $maxBytes) {
                         throw new UserError('Uploaded file exceeds the maximum allowed size.');
                     }
                     $fileData = base64_decode($matches['data'], true);
+
                     if ($fileData !== false && strlen($fileData) > $maxBytes) {
                         throw new UserError('Uploaded file exceeds the maximum allowed size.');
                     }

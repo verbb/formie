@@ -31,7 +31,7 @@ class Capsule extends Crm
     {
         return 'Capsule';
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -277,6 +277,7 @@ class Capsule extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $peopleValues = $this->getFieldMappingValues($submission, $this->peopleFieldMapping, 'people');
             $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
@@ -396,7 +397,7 @@ class Capsule extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

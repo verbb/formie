@@ -26,7 +26,7 @@ class DateMinuteNumber extends DateNumber implements ChildFieldInterface
     {
         return 'fields/number';
     }
-    
+
 
     // Properties
     // =========================================================================

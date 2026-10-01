@@ -635,7 +635,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
         if (is_string($value) && Json::isJsonObject($value)) {
             $value = Json::decodeIfJson($value);
-        } else if (is_string($value) && strtolower($value) === '__blank__') {
+        } elseif (is_string($value) && strtolower($value) === '__blank__') {
             $value = '';
         } elseif ($value === null && $this->isFresh($element)) {
             $value = $this->defaultValue();
@@ -655,11 +655,11 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
         if ($value instanceof MultiOptionFieldValue) {
             $selectedValues = $value->values();
-        } else if ($value instanceof SingleOptionFieldValue) {
+        } elseif ($value instanceof SingleOptionFieldValue) {
             $selectedValues = [$value->value ?? ''];
-        } else if ($value instanceof OptionValue) {
+        } elseif ($value instanceof OptionValue) {
             $selectedValues = [$value->value ?? ''];
-        } else if (is_array($value)) {
+        } elseif (is_array($value)) {
             foreach ($value as $val) {
                 if ($val instanceof OptionValue) {
                     $selectedValues[] = (string)($val->value ?? '');
@@ -668,6 +668,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
                 if (is_array($val) && array_key_exists('value', $val)) {
                     $selectedValues[] = (string)$val['value'];
+
                     if (array_key_exists('label', $val)) {
                         $submittedLabelsByValue[(string)$val['value']] = (string)$val['label'];
                     }
@@ -678,7 +679,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
                     $selectedValues[] = (string)$val;
                 }
             }
-        } else if (is_scalar($value) || $value === null) {
+        } elseif (is_scalar($value) || $value === null) {
             $selectedValues[] = (string)$value;
         }
 
@@ -727,7 +728,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
             }
 
             $normalizedValue = new MultiOptionFieldValue($selectedOptions, $options);
-        } else if (!empty($selectedValues)) {
+        } elseif (!empty($selectedValues)) {
             $selectedValue = (string)reset($selectedValues);
             $valid = array_key_exists($selectedValue, $optionLabelsByValue);
             $label = $submittedLabelsByValue[$selectedValue]

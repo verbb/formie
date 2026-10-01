@@ -27,16 +27,19 @@ final readonly class ReferenceContext
         $mail = App::mailSettings();
         $overrides = $mail->siteOverrides[$site?->uid] ?? [];
         $system = [];
+
         foreach (['name' => 'fromName', 'email' => 'fromEmail', 'replyTo' => 'replyToEmail'] as $name => $attribute) {
             $system[$name] = $overrides[$attribute] ?? $mail->$attribute;
         }
         $dispatch = [];
+
         foreach (Formie::$plugin->getIntegrationDispatcher()->loadContext($submission)->results as $handle => $result) {
             if (is_array($result)) {
                 $dispatch[$handle] = ['id' => $result['elementId'] ?? null, 'url' => $result['url'] ?? null, 'success' => $result['success'] ?? false, 'type' => $result['type'] ?? null];
             }
         }
         $environment = [];
+
         foreach (Formie::$plugin->getSettings()->referenceEnvironmentAllowlist as $name) {
             if (is_string($name) && preg_match('/^[A-Z][A-Z0-9_]*$/D', $name)) {
                 $environment[$name] = App::env($name);

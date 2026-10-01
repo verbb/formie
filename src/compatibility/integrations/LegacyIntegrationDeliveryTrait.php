@@ -35,6 +35,7 @@ trait LegacyIntegrationDeliveryTrait
     {
         $previous = $this->_executingLegacyPayload;
         $this->_executingLegacyPayload = true;
+
         try {
             return $this instanceof DispatchableIntegrationInterface
                 ? $this->execute(IntegrationRunContext::forIntegration($this, $submission))
@@ -47,6 +48,7 @@ trait LegacyIntegrationDeliveryTrait
     public function executeLegacyPayload(IntegrationRunContext $context): IntegrationResult
     {
         $this->beginRun($context);
+
         if (!static::hasLegacyPayloadOverride()) {
             return IntegrationResult::rejected('integration_not_dispatchable');
         }
@@ -54,6 +56,7 @@ trait LegacyIntegrationDeliveryTrait
         $this->_legacyIntegrationResponse = null;
         $previous = $this->_executingLegacyPayload;
         $this->_executingLegacyPayload = true;
+
         try {
             $value = $this->sendPayload($context->submission);
         } finally {

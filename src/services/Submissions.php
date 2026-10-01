@@ -72,7 +72,7 @@ class Submissions extends Component
 
     // Traits
     // =========================================================================
-    
+
     use SubmissionsDeprecations;
 
 

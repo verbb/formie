@@ -14,5 +14,5 @@ class ModifyElementFieldQueryEvent extends Event
 
     public ?ElementQueryInterface $query = null;
     public ?FieldInterface $field = null;
-    
+
 }

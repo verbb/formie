@@ -11,5 +11,5 @@ class ModifyNestedFieldLayoutEvent extends Event
     // =========================================================================
 
     public FieldLayout $fieldLayout;
-    
+
 }

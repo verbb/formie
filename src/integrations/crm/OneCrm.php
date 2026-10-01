@@ -96,7 +96,7 @@ class OneCrm extends Crm implements OAuthProviderInterface
             'write',
             'profile',
         ];
-        
+
         return $options;
     }
 
@@ -185,6 +185,7 @@ class OneCrm extends Crm implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');

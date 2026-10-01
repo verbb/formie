@@ -32,8 +32,10 @@ class ConditionsHelper
     public static function evaluateConditions(array $conditions, Submission $submission, $callback = null): array
     {
         $results = [];
+
         foreach ($conditions as $row) {
             $result = self::evaluate(['conditions' => [$row]], $submission)->matches();
+
             if ($callback) {
                 if ($value = $callback($result, $row)) {
                     $results[] = $value;

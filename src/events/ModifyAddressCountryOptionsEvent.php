@@ -9,5 +9,5 @@ class ModifyAddressCountryOptionsEvent extends Event
     // =========================================================================
 
     public ?array $options = null;
-    
+
 }

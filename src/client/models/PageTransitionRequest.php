@@ -7,7 +7,7 @@ class PageTransitionRequest extends BaseClientModel
 {
     // Properties
     // =========================================================================
-    
+
     public string $handle = '';
     public ?string $operationId = null;
     public ?int $siteId = null;

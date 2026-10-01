@@ -8,7 +8,7 @@ final class OptionSourceValidationMode
 
     public const STRICT = 'strict';
     public const ACCEPT_SUBMITTED = 'acceptSubmitted';
-    
+
 
     // Static Method
     // =========================================================================

@@ -154,6 +154,7 @@ class IterableIntegration extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $userValues = $this->getFieldMappingValues($submission, $this->userFieldMapping, 'user');
             $messageTypeValues = $this->getFieldMappingValues($submission, $this->messageTypeFieldMapping, 'messageTypes');
@@ -228,7 +229,7 @@ class IterableIntegration extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -288,6 +289,7 @@ class IterableIntegration extends Crm
         ]);
 
         $mappingSchema = $this->defineFieldMappingSchema('messageTypes', 'messageTypeId');
+
         if ($mappingSchema) {
             $schema[] = $this->getIntegrationFieldMappingField([
                 'name' => 'messageTypeFieldMapping',
@@ -301,7 +303,7 @@ class IterableIntegration extends Crm
         return $schema;
     }
 
-    
+
     // Private Methods
     // =========================================================================
 

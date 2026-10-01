@@ -386,9 +386,11 @@ trait OtherOptionFieldTrait
             return $value;
         }
         $options = [];
+
         foreach ($value instanceof MultiOptionFieldValue ? $value->all() : [$value] as $option) {
             $options[] = new \verbb\formie\fields\values\OptionValue($option->label ?: $option->value, $option->value, $option->selected, true);
         }
+
         if ($value instanceof MultiOptionFieldValue) {
             return new MultiOptionFieldValue($options, $value->getOptions());
         }

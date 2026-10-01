@@ -20,6 +20,7 @@ class m260926_020000_payment_boundary extends Migration
         // Keep historical decimal text exactly, including values whose scale needs review.
         $this->alterColumn(Table::FORMIE_PAYMENTS, 'amount', $this->string(80));
         $this->alterColumn(Table::FORMIE_PAYMENTS, 'status', $this->string(32)->notNull());
+
         foreach ([Table::FORMIE_PAYMENTS, Table::FORMIE_SUBSCRIPTIONS] as $table) {
             foreach ([
                 'version' => $this->integer()->notNull()->defaultValue(0),
@@ -33,13 +34,16 @@ class m260926_020000_payment_boundary extends Migration
             }
             $this->createIndex(null, $table, 'idempotencyKey', true);
         }
+
         foreach ([Table::FORMIE_PAYMENTS, Table::FORMIE_SUBSCRIPTIONS] as $table) {
             foreach ((new Query())->from($table)->each() as $row) {
                 $scope = array_intersect_key($row, array_flip(['integrationId', 'submissionId', 'fieldId', 'subscriptionId', 'planId', 'reference', 'amount', 'currency']));
                 $scope['legacy'] = true;
                 $values = ['scope' => Json::encode($scope), 'idempotencyKey' => bin2hex(random_bytes(24))];
+
                 if ($table === Table::FORMIE_PAYMENTS) {
                     $values['status'] = in_array($row['status'], ['success', 'failed', 'cancelled'], true) ? $row['status'] : 'unknown';
+
                     try {
                         PaymentMoney::fromDecimal((string)$row['amount'], (string)$row['currency']);
                     } catch (Throwable) {
@@ -54,19 +58,24 @@ class m260926_020000_payment_boundary extends Migration
         $this->addColumn(Table::FORMIE_SUBSCRIPTIONS, 'archivedAt', $this->dateTime());
         $this->addColumn(Table::FORMIE_SUBSCRIPTIONS, 'providerUpdatedAt', $this->bigInteger());
         $this->alterColumn(Table::FORMIE_SUBSCRIPTIONS, 'reference', $this->string());
+
         foreach ((new Query())->from(Table::FORMIE_SUBSCRIPTIONS)->each() as $row) {
             $flags = (int)(bool)$row['isExpired'] + (int)(bool)$row['isCanceled'] + (int)(bool)$row['isSuspended'];
             $status = $flags > 1 ? 'unknown' : ($row['isExpired'] ? 'expired' : ($row['isCanceled'] ? 'cancelled' : ($row['isSuspended'] ? 'suspended' : ($row['hasStarted'] ? 'active' : 'pending'))));
             $this->update(Table::FORMIE_SUBSCRIPTIONS, ['status' => $status, 'history' => Json::encode([['status' => $status, 'reason' => 'legacy migration', 'flags' => array_intersect_key($row, array_flip(['hasStarted', 'isExpired', 'isCanceled', 'isSuspended']))]])], ['id' => $row['id']]);
         }
+
         foreach (['hasStarted', 'isSuspended', 'isCanceled', 'isExpired'] as $column) {
             $this->dropColumn(Table::FORMIE_SUBSCRIPTIONS, $column);
         }
+
         // Financial history survives deletion of its former owning configuration/content.
         foreach ([Table::FORMIE_PAYMENTS, Table::FORMIE_SUBSCRIPTIONS] as $table) {
             $schema = $this->db->getTableSchema($table, true);
+
             foreach ($schema->foreignKeys as $name => $fk) {
                 $column = array_key_first(array_diff_key($fk, [0 => true]));
+
                 if (in_array($column, ['submissionId', 'subscriptionId', 'fieldId', 'integrationId', 'planId'], true)) {
                     $this->dropForeignKey($name, $table);
                     $this->alterColumn($table, $column, $this->integer());

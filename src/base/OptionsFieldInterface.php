@@ -7,5 +7,4 @@ use craft\base\ComponentInterface;
 
 interface OptionsFieldInterface extends ComponentInterface, OptionResolvableInterface
 {
-
 }

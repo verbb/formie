@@ -32,31 +32,37 @@ final class RuntimeConfigurationMigration
         if ($completionSettings) {
             foreach ($aliases as $legacy => $canonical) {
                 $canonicalMissing = !array_key_exists($canonical, $data);
+
                 if ($legacy === 'submitActionUrl') {
                     $canonicalMissing = $canonicalMissing || $data[$canonical] === null || $data[$canonical] === '';
                 }
+
                 if (array_key_exists($legacy, $data) && $canonicalMissing) {
                     $data[$canonical] = $data[$legacy];
                 }
                 unset($data[$legacy]);
             }
         }
+
         if (array_key_exists('prePopulate', $data)) {
             if (!array_key_exists('prefillQueryParam', $data)) {
                 $data['prefillQueryParam'] = $data['prePopulate'];
             }
             unset($data['prePopulate']);
         }
+
         if ($type === \verbb\formie\fields\Hidden::class && array_key_exists('defaultOption', $data)) {
             $data['valueSource'] ??= $data['defaultOption'];
             unset($data['defaultOption']);
         }
+
         if ($completionSettings && isset($data['submitAction']) && in_array($data['submitAction'], ['message', 'entry', 'url', 'reload', 'reset'], true)) {
             $action = $data['submitAction'];
             $data['completionBehavior'] ??= in_array($action, ['entry', 'url'], true) ? 'redirect' : $action;
             $data['completionRedirectSource'] ??= $action === 'entry' ? 'entry' : 'url';
             unset($data['submitAction']);
         }
+
         foreach ($data as $key => $value) {
             if (is_array($value)) {
                 $childType = $key === 'settings' ? $type : null;

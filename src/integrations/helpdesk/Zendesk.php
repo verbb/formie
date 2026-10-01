@@ -53,7 +53,7 @@ class Zendesk extends HelpDesk
     {
         return Craft::t('formie', 'Send your form content to Zendesk.');
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -110,6 +110,7 @@ class Zendesk extends HelpDesk
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             if ($this->mapToTicket) {
                 $ticketValues = $this->getFieldMappingValues($submission, $this->ticketFieldMapping, 'ticket');
@@ -177,7 +178,7 @@ class Zendesk extends HelpDesk
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

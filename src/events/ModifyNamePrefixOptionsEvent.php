@@ -9,5 +9,5 @@ class ModifyNamePrefixOptionsEvent extends Event
     // =========================================================================
 
     public ?array $options = null;
-    
+
 }

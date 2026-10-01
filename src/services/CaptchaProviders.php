@@ -7,7 +7,6 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\events\IntegrationEvent;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\models\Settings;
 use verbb\formie\records\CaptchaProvider as CaptchaProviderRecord;
 
 use Craft;
@@ -275,15 +274,6 @@ class CaptchaProviders extends Component
 
         $this->_resetCache();
         Formie::$plugin->getIntegrations()->resetCaptchaCaches();
-    }
-
-    public function hydrateLegacyCaptchas(Settings $settings): void
-    {
-        if (empty($settings->captchas)) {
-            return;
-        }
-
-        $this->seedRegistryFromLegacySettings($settings->captchas);
     }
 
     public function stripFromPluginSettingsArray(array $settings): array

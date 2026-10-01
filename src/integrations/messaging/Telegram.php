@@ -51,7 +51,7 @@ class Telegram extends Messaging
     {
         return Craft::t('formie', 'Send your form content to Telegram.');
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         return new IntegrationConfig([]);
@@ -60,6 +60,7 @@ class Telegram extends Messaging
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $chatId = App::parseEnv($this->chatId);
             $botToken = App::parseEnv($this->botToken);
@@ -115,7 +116,7 @@ class Telegram extends Messaging
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -158,7 +159,7 @@ class Telegram extends Messaging
 
         return $schema;
     }
-    
+
 
     // Private Methods
     // =========================================================================

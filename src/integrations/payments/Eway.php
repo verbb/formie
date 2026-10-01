@@ -63,7 +63,7 @@ class Eway extends Payment
     // {
     //     return false;
     // }
-    
+
 
     // Properties
     // =========================================================================
@@ -360,7 +360,7 @@ class Eway extends Payment
 
         return $event->fields;
     }
-    
+
 
     // Protected Methods
     // =========================================================================
@@ -520,11 +520,13 @@ class Eway extends Payment
         }
 
         $responseMessage = trim((string)($response['ResponseMessage'] ?? ''));
+
         if ($responseMessage !== '') {
             return $responseMessage;
         }
 
         $errorCode = $this->_extractGatewayErrorCode($response);
+
         if (!$errorCode) {
             return 'Unknown error';
         }

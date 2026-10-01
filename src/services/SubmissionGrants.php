@@ -34,6 +34,7 @@ class SubmissionGrants extends Component
         }
         $session = Craft::$app->getSession();
         $session->open();
+
         if (!$session->has('formie:authority')) {
             $session->set('formie:authority', Craft::$app->getSecurity()->generateRandomString());
         }
@@ -47,12 +48,15 @@ class SubmissionGrants extends Component
         }
         $settings = Formie::$plugin->getSettings();
         $expiresAt = time() + max(1, $ttlSeconds ?? ((int)$settings->saveResumeTokenTtlDays ?: 14) * 86400);
+
         if ($submission->isIncomplete && $settings->maxIncompleteSubmissionAge > 0) {
             $expiresAt = min($expiresAt, $submission->dateUpdated->getTimestamp() + $settings->maxIncompleteSubmissionAge * 86400);
         }
         $expiresAt = min($expiresAt, $this->_targetDeadline($submission));
+
         if ($progressId !== null) {
             $progress = Formie::$plugin->getSubmissionProgress()->loadProgress($progressId);
+
             if (!$progress || $progress->submissionId !== (int)$submission->id || $progress->formId !== (int)$submission->formId || $progress->siteId !== (int)$submission->siteId) {
                 throw new InvalidArgumentException('Progress does not match the grant target.');
             }
@@ -71,6 +75,7 @@ class SubmissionGrants extends Component
     public function verify(string $token, string $purpose, ?Form $form = null, ?int $submissionId = null): ?SubmissionGrant
     {
         $row = (new Query())->from(Table::FORMIE_SUBMISSION_GRANTS)->where(['tokenHash' => $this->hashToken($token)])->one();
+
         if (!$row || !hash_equals($row['tokenHash'], $this->hashToken($token)) || !$this->_valid($row, $purpose, $form, $submissionId)) {
             return null;
         }
@@ -80,10 +85,12 @@ class SubmissionGrants extends Component
     public function exchange(string $token, string $purpose, Form $form, ?int $submissionId = null): ?SubmissionGrant
     {
         $grant = $this->verify($token, $purpose, $form, $submissionId);
+
         if (!$grant) {
             return null;
         }
         $bindingHash = $this->browserHash($form);
+
         if ((new Query())->from(Table::FORMIE_SUBMISSION_GRANTS)->where([
             'bindingHash' => $bindingHash, 'parentId' => $grant->id, 'revokedAt' => null,
         ])->andWhere(['>', 'expiresAt', time()])->exists()) {
@@ -104,8 +111,10 @@ class SubmissionGrants extends Component
             return;
         }
         $expiresAt = $progress->expiresAt;
+
         if ($progress->submissionId) {
             $submission = Submission::find()->id($progress->submissionId)->isIncomplete(true)->status(null)->one();
+
             if (!$submission) {
                 return;
             }
@@ -124,6 +133,7 @@ class SubmissionGrants extends Component
             'bindingHash' => $this->browserHash($form), 'formId' => (int)$form->id,
             'siteId' => (int)$form->siteId, 'purpose' => $purpose, 'revokedAt' => null,
         ])->andWhere(['>', 'expiresAt', time()])->orderBy(['id' => SORT_DESC])->all();
+
         foreach ($rows as $row) {
             if ($this->_valid($row, $purpose, $form, $submissionId)) {
                 return $this->_model($row);
@@ -164,6 +174,7 @@ class SubmissionGrants extends Component
     public function revokeSubmission(int $submissionId, ?string $purpose = null): void
     {
         $where = ['submissionId' => $submissionId];
+
         if ($purpose !== null) {
             $where['purpose'] = $purpose;
         }
@@ -173,6 +184,7 @@ class SubmissionGrants extends Component
     public function rotate(int $id, Submission $submission, string $purpose, ?int $progressId = null): SubmissionGrant
     {
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             $this->revoke($id);
             $grant = $this->issue($submission, $purpose, $progressId);
@@ -202,10 +214,12 @@ class SubmissionGrants extends Component
     {
         $deadline = PHP_INT_MAX;
         $days = (int)Formie::$plugin->getSettings()->maxIncompleteSubmissionAge;
+
         if ($submission->isIncomplete && $days > 0) {
             $deadline = $submission->dateUpdated->getTimestamp() + $days * 86400;
         }
         $form = $submission->getForm();
+
         if ((int)$form->dataRetentionValue > 0 && in_array($form->dataRetention, ['minutes', 'hours', 'days', 'weeks', 'months', 'years'], true)) {
             $retentionEnd = clone $submission->dateCreated;
             $retentionEnd->modify('+' . (int)$form->dataRetentionValue . ' ' . $form->dataRetention);
@@ -227,20 +241,25 @@ class SubmissionGrants extends Component
             || ($submissionId !== null && (int)$row['submissionId'] !== $submissionId)) {
             return false;
         }
+
         if ($row['parentId']) {
             $parent = (new Query())->from(Table::FORMIE_SUBMISSION_GRANTS)->where(['id' => $row['parentId']])->one();
+
             if (!$parent || !$this->_valid($parent, $purpose, $form, $submissionId)) {
                 return false;
             }
         }
+
         if (!$row['submissionId']) {
             // Browser-only bindings have no durable submission authority. Their
             // progress row is their target, so they end when that row disappears.
             return $purpose === self::CONTINUE && $this->resolveProgress($this->_model($row)) !== null;
         }
         $submission = Submission::find()->id((int)$row['submissionId'])->siteId((int)$row['siteId'])->isIncomplete(null)->isSpam(null)->status(null)->one();
+
         if ($submission && $submission->isIncomplete) {
             $days = (int)Formie::$plugin->getSettings()->maxIncompleteSubmissionAge;
+
             if ($days > 0 && $submission->dateUpdated->getTimestamp() + $days * 86400 <= time()) {
                 return false;
             }
@@ -251,6 +270,7 @@ class SubmissionGrants extends Component
     private function _model(array $row): SubmissionGrant
     {
         $data = array_intersect_key($row, array_flip(['id', 'formId', 'siteId', 'submissionId', 'progressId', 'purpose', 'expiresAt']));
+
         foreach (['id', 'formId', 'siteId', 'submissionId', 'progressId', 'expiresAt'] as $key) {
             $data[$key] = $data[$key] === null ? null : (int)$data[$key];
         }

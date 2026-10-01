@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\deprecations;
 
-
 use verbb\formie\Formie;
 use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Submission;

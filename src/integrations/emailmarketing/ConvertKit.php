@@ -31,7 +31,7 @@ class ConvertKit extends EmailMarketing
     // Properties
     // =========================================================================
 
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     #[Sensitive]
@@ -93,6 +93,7 @@ class ConvertKit extends EmailMarketing
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -139,7 +140,7 @@ class ConvertKit extends EmailMarketing
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

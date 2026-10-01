@@ -33,7 +33,7 @@ class CampaignMonitor extends EmailMarketing
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     public ?string $clientId = null;
@@ -127,6 +127,7 @@ class CampaignMonitor extends EmailMarketing
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -249,7 +250,7 @@ class CampaignMonitor extends EmailMarketing
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -260,7 +261,7 @@ class CampaignMonitor extends EmailMarketing
             'auth' => [App::parseEnv($this->apiKey), 'formie'],
         ]);
     }
-    
+
 
     // Private Methods
     // =========================================================================

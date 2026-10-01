@@ -27,7 +27,7 @@ class Loqate extends AddressProvider
     {
         return 'Loqate';
     }
-    
+
 
     // Properties
     // =========================================================================

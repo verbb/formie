@@ -72,9 +72,11 @@ class SubmissionWorkflow extends Component
         try {
             foreach (WorkflowManifest::stages() as $stageName => $builtIns) {
                 $stage = Stage::from($stageName);
+
                 if ($dispatchOnly && $stage !== Stage::DISPATCH) {
                     continue;
                 }
+
                 if ($context->outcome && $stage !== Stage::FINALIZE) {
                     continue;
                 }
@@ -89,9 +91,11 @@ class SubmissionWorkflow extends Component
                 if (!$tasks || ($stage === Stage::SCREEN && !$context->attemptedCompletion)) {
                     continue;
                 }
+
                 if ($stage === Stage::VALIDATE && $command->navigation === \verbb\formie\enums\NavigationIntent::TARGET && ($context->taskState['navigation.backward'] ?? false)) {
                     continue;
                 }
+
                 if ($stage === Stage::DISPATCH && !$this->_prepareDispatch($context)) {
                     continue;
                 }
@@ -108,11 +112,13 @@ class SubmissionWorkflow extends Component
                         ]));
                     }
                     $result = $task->handler->execute($context);
+
                     if ($task->publicAnchor) {
                         $this->trigger(self::EVENT_AFTER_TASK, new SubmissionWorkflowTaskEvent([
                             'context' => $context, 'command' => $command, 'stage' => $stageName, 'task' => $task->id, 'result' => $result,
                         ]));
                     }
+
                     if ($result->outcome) {
                         $context->outcome = $result->outcome;
                         break;
@@ -128,6 +134,7 @@ class SubmissionWorkflow extends Component
                 $this->trigger(self::EVENT_AFTER_STAGE, new SubmissionWorkflowStageEvent([
                     'context' => $context, 'command' => $command, 'stage' => $stageName, 'result' => $result,
                 ]));
+
                 if ($stage === Stage::VALIDATE && $command->submission->hasErrors()) {
                     $context->outcome = $context->result(SubmissionOutcomeType::VALIDATION_FAILED);
                 }
@@ -137,14 +144,17 @@ class SubmissionWorkflow extends Component
                     $this->_raisePersistenceEvents($context);
                     Formie::$plugin->getSubmissionDispatches()->updateAcceptedVersion($context);
                 }
+
                 if ($stage === Stage::DISPATCH) {
                     $state = $context->taskState['dispatch.state'];
+
                     if (($state->hasMarker(DispatchState::MARKER_NOTIFICATIONS) && $state->hasMarker(DispatchState::MARKER_INTEGRATIONS))
                         || $state->hasMarker(DispatchState::MARKER_SPAM_NOTIFICATIONS)) {
                         $state->markMarker(DispatchState::MARKER_FINALIZED);
                     }
                     Formie::$plugin->getSubmissionDispatches()->finish($context, $context->outcome === null);
                 }
+
                 if ($context->outcome && !in_array($context->outcome->type, [
                     SubmissionOutcomeType::PAYMENT_ACTION_REQUIRED,
                     SubmissionOutcomeType::PAYMENT_PENDING,
@@ -168,6 +178,7 @@ class SubmissionWorkflow extends Component
     private function _prepareDispatch(WorkflowContext $context): bool
     {
         $state = new DispatchState($context->command->submission, $context->command->operation, $context->processingSuccess, $context->taskState['dispatch.uid'] ?? null);
+
         if (!$state->isDispatchable() || !Formie::$plugin->getSubmissionDispatches()->begin($context)) {
             return false;
         }
@@ -196,6 +207,7 @@ class SubmissionWorkflow extends Component
                 'submission' => $submission, 'form' => $form, 'command' => $command, 'context' => $context,
                 'fromPage' => $form->getCurrentPage(),
             ]));
+
             if ($statusBefore !== $submission->statusId && !Craft::$app->getElements()->saveElement($submission, false)) {
                 throw new LogicException('Unable to persist the completion event status.');
             }

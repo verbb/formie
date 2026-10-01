@@ -65,7 +65,7 @@ class ConstantContact extends EmailMarketing implements OAuthProviderInterface
         // The non-array syntax here is deliberate
         // https://community.constantcontact.com/t5/Developer-Support-ask-questions/One-or-more-scopes-are-not-configured-for-the-authorization/m-p/383293#M12904
         $options['scope'] = ['contact_data', 'offline_access'];
-        
+
         return $options;
     }
 
@@ -142,6 +142,7 @@ class ConstantContact extends EmailMarketing implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -190,7 +191,7 @@ class ConstantContact extends EmailMarketing implements OAuthProviderInterface
 
         return $this->resultForPayload(true);
     }
-    
+
 
     // Private Methods
     // =========================================================================

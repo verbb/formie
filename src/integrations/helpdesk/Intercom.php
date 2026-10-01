@@ -65,7 +65,7 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Send your form content to Intercom.');
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -73,81 +73,81 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
         try {
             if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
                 $response = $this->request('GET', 'admins');
-            $admins = $response['admins'] ?? [];
+                $admins = $response['admins'] ?? [];
 
-            $ownerOptions = [];
+                $ownerOptions = [];
 
-            foreach ($admins as $admin) {
-                $ownerOptions[] = [
-                    'label' => $admin['name'] . ' (' . $admin['email'] . ')',
-                    'value' => (string)$admin['id'],
-                ];
-            }
+                foreach ($admins as $admin) {
+                    $ownerOptions[] = [
+                        'label' => $admin['name'] . ' (' . $admin['email'] . ')',
+                        'value' => (string)$admin['id'],
+                    ];
+                }
 
-            $response = $this->request('GET', 'companies');
-            $companies = $response['companies'] ?? [];
+                $response = $this->request('GET', 'companies');
+                $companies = $response['companies'] ?? [];
 
-            $companyOptions = [];
+                $companyOptions = [];
 
-            foreach ($companies as $company) {
-                $companyOptions[] = [
-                    'label' => $company['name'] . ' (' . $company['company_id'] . ')',
-                    'value' => (string)$company['company_id'],
-                ];
-            }
+                foreach ($companies as $company) {
+                    $companyOptions[] = [
+                        'label' => $company['name'] . ' (' . $company['company_id'] . ')',
+                        'value' => (string)$company['company_id'],
+                    ];
+                }
 
-            $contactFields = [
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'name',
-                    'name' => Craft::t('formie', 'Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'phone',
-                    'name' => Craft::t('formie', 'Phone'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'avatar',
-                    'name' => Craft::t('formie', 'Avatar URL'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'owner_id',
-                    'name' => Craft::t('formie', 'Owner'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Owner'),
-                        'options' => $ownerOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'role',
-                    'name' => Craft::t('formie', 'Role'),
-                    'required' => true,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Role'),
+                $contactFields = [
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'name',
+                        'name' => Craft::t('formie', 'Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'phone',
+                        'name' => Craft::t('formie', 'Phone'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'avatar',
+                        'name' => Craft::t('formie', 'Avatar URL'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'owner_id',
+                        'name' => Craft::t('formie', 'Owner'),
                         'options' => [
-                            ['label' => Craft::t('formie', 'User'), 'value' => 'user'],
-                            ['label' => Craft::t('formie', 'Lead'), 'value' => 'lead'],
-                            ['label' => Craft::t('formie', 'Visitor'), 'value' => 'visitor'],
+                            'label' => Craft::t('formie', 'Owner'),
+                            'options' => $ownerOptions,
                         ],
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'company_id',
-                    'name' => Craft::t('formie', 'Company'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Company'),
-                        'options' => $companyOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'tags',
-                    'name' => Craft::t('formie', 'Tags (comma-separated)'),
-                ]),
-            ];
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'role',
+                        'name' => Craft::t('formie', 'Role'),
+                        'required' => true,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Role'),
+                            'options' => [
+                                ['label' => Craft::t('formie', 'User'), 'value' => 'user'],
+                                ['label' => Craft::t('formie', 'Lead'), 'value' => 'lead'],
+                                ['label' => Craft::t('formie', 'Visitor'), 'value' => 'visitor'],
+                            ],
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'company_id',
+                        'name' => Craft::t('formie', 'Company'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Company'),
+                            'options' => $companyOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'tags',
+                        'name' => Craft::t('formie', 'Tags (comma-separated)'),
+                    ]),
+                ];
 
                 $settings['contact'] = $contactFields;
             }
@@ -161,6 +161,7 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             if ($this->mapToContact) {
                 $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
@@ -232,7 +233,7 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
         return $this->resultForPayload(true);
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -263,7 +264,7 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
 
         return $schema;
     }
-    
+
 
     // Private Methods
     // =========================================================================

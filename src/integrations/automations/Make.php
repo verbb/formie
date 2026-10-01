@@ -33,15 +33,15 @@ class Make extends Automation
     {
         return 'Make';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[FormIntegrationSetting]
     #[Sensitive]
     public ?string $webhook = null;
-    
+
 
     // Public Methods
     // =========================================================================
@@ -131,7 +131,7 @@ class Make extends Automation
         ];
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

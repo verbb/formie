@@ -31,7 +31,7 @@ class Google extends AddressProvider
     {
         return true;
     }
-    
+
 
     // Properties
     // =========================================================================

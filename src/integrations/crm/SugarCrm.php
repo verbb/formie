@@ -45,11 +45,11 @@ class SugarCrm extends Crm implements OAuthProviderInterface
     {
         return 'SugarCRM';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     public ?string $username = null;
     #[Sensitive]
     public ?string $password = null;
@@ -193,6 +193,7 @@ class SugarCrm extends Crm implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');

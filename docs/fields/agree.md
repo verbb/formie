@@ -82,8 +82,6 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 ## Front-End Reference
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
-
 - [Agree](https://docs.verbb.io/formie/browser/ui-reference/fields/agree)
 
 ## Related Fields

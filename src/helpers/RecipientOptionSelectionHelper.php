@@ -42,11 +42,11 @@ class RecipientOptionSelectionHelper
                     $selections[] = self::selectionFromValue($option->value, $option->label);
                 }
             }
-        } else if ($value instanceof SingleOptionFieldValue) {
+        } elseif ($value instanceof SingleOptionFieldValue) {
             $selections[] = self::selectionFromValue($value->value ?? '', $value->label ?? null);
-        } else if ($value instanceof OptionValue) {
+        } elseif ($value instanceof OptionValue) {
             $selections[] = self::selectionFromValue($value->value ?? '', $value->label ?? null);
-        } else if (is_array($value)) {
+        } elseif (is_array($value)) {
             if (array_key_exists('value', $value) && !array_is_list($value)) {
                 $selections[] = self::selectionFromValue(
                     $value['value'] ?? '',
@@ -58,7 +58,7 @@ class RecipientOptionSelectionHelper
                     array_push($selections, ...self::normalizeSelections($val));
                 }
             }
-        } else if (is_scalar($value) || $value === null) {
+        } elseif (is_scalar($value) || $value === null) {
             $selections[] = self::selectionFromValue($value);
         }
 

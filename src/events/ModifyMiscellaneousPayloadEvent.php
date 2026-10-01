@@ -12,5 +12,5 @@ class ModifyMiscellaneousPayloadEvent extends Event
 
     public ?Submission $submission = null;
     public mixed $payload = null;
-    
+
 }

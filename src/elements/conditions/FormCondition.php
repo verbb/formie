@@ -7,7 +7,7 @@ class FormCondition extends ElementCondition
 {
     // Protected Methods
     // =========================================================================
-    
+
     protected function selectableConditionRules(): array
     {
         $rules = parent::selectableConditionRules();

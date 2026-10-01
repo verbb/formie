@@ -22,7 +22,7 @@ class ClientSessionService extends Component
     private const RATE_SCOPE_BOOTSTRAP = 'bootstrap';
     private const RATE_SCOPE_REFRESH = 'refresh';
     private const RATE_SCOPE_PAGE = 'page';
-    
+
 
     // Public Methods
     // =========================================================================
@@ -41,8 +41,10 @@ class ClientSessionService extends Component
         $form = Formie::$plugin->getSubmissionRequests()->requireFormByHandle($request->handle, $request->siteId);
         Formie::$plugin->getSubmissionRequests()->applyFormRequestContext($form, null, $request->session['continuation']['draftContext'] ?? null, $request->session['tokens']['request'] ?? null);
         $form->resetRequestToken();
+
         if (($request->session['continuation']['purpose'] ?? null) === \verbb\formie\services\SubmissionGrants::REVISE) {
             $grant = Formie::$plugin->getSubmissionGrants()->bound($form, \verbb\formie\services\SubmissionGrants::REVISE, (int)($request->session['continuation']['submissionId'] ?? 0));
+
             if (!$grant) {
                 throw new \yii\web\ForbiddenHttpException('Submission is unavailable.');
             }

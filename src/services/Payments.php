@@ -64,6 +64,7 @@ class Payments extends Component
         }
         $previous = $this->_committingTransition;
         $this->_committingTransition = true;
+
         try {
             return $this->savePayment($payment);
         } finally {
@@ -74,6 +75,7 @@ class Payments extends Component
     public function observeProvider(callable $handler): mixed
     {
         $this->_providerObservationDepth++;
+
         try {
             return $handler();
         } finally {
@@ -92,12 +94,17 @@ class Payments extends Component
         $operation ??= $isSubscription ? 'subscriptionSetup' : 'payment';
         $currency = strtoupper((string)$integration->getCurrency($submission));
         $amount = PaymentMoney::fromDecimal((string)$integration->getPaymentAmount($submission), $currency);
+
         if ($amount->minor === '0' || str_starts_with($amount->minor, '-')) {
             throw new RuntimeException('The payment amount must be positive.');
         }
         $accountHash = $integration->getPaymentAccountFingerprint();
+
         foreach (array_reverse($this->getSubmissionPayments($submission)) as $payment) {
-            if ($payment->status === Payment::STATUS_FAILED) { continue; }
+            if ($payment->status === Payment::STATUS_FAILED) {
+                continue;
+            }
+
             if ($payment->integrationId === $integration->id && $payment->fieldId === $integration->getField()->id
                 && (!$payment->subscriptionId || ($payment->scope['initial'] ?? false))
                 && ($payment->scope['operation'] ?? 'payment') === $operation) {
@@ -105,6 +112,7 @@ class Payments extends Component
                     && (!$payment->accountFingerprint || !hash_equals($payment->accountFingerprint, $accountHash))) {
                     throw new \verbb\formie\errors\DeliveryOutcomeUnknownException('Payment account changed; reconcile the original account.');
                 }
+
                 if (!PaymentMoney::fromDecimal($payment->amount, (string)$payment->currency)->equals($amount)) {
                     throw new RuntimeException('The existing payment amount changed; reconcile it before retrying.');
                 }
@@ -118,6 +126,7 @@ class Payments extends Component
                 'account' => $accountHash, 'submissionId' => $submission->id, 'formId' => $submission->formId,
                 'siteId' => $submission->siteId, 'integrationId' => $integration->id, 'fieldId' => $integration->getField()->id],
         ]);
+
         if (!$this->savePayment($payment)) {
             throw new RuntimeException('Unable to persist payment intent.');
         }
@@ -127,11 +136,13 @@ class Payments extends Component
     public function prepareSubscription(PaymentIntegration $integration, Submission $submission): Subscription
     {
         $payment = $this->prepareAttempt($integration, $submission, false, 'subscriptionSetup');
+
         if ($payment->subscriptionId) {
             return Formie::$plugin->getSubscriptions()->getSubscriptionById($payment->subscriptionId);
         }
         $key = hash('sha256', 'initial-subscription|' . $payment->uid);
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             $row = (new Query())->from(Table::FORMIE_SUBSCRIPTIONS)->where(['idempotencyKey' => $key])->one();
             $subscription = $row ? new Subscription($row) : new Subscription([
@@ -143,10 +154,12 @@ class Payments extends Component
                     'intervalCount' => max(1, (int)$integration->getFieldSetting('frequencyValue', 1))],
                 'scope' => $payment->scope + ['amount' => $payment->amount, 'currency' => $payment->currency, 'provider' => get_class($integration)],
             ]);
+
             if (!$row && !Formie::$plugin->getSubscriptions()->saveSubscription($subscription)) {
                 throw new RuntimeException('Unable to persist pending subscription.');
             }
             $payment->subscriptionId = $subscription->id;
+
             if (!$this->savePayment($payment)) {
                 throw new RuntimeException('Unable to link pending subscription.');
             }
@@ -163,9 +176,11 @@ class Payments extends Component
         $key = hash('sha256', 'recurring|' . $subscription->integrationId . '|' . $subscription->accountFingerprint . '|' . $reference);
         $lock = 'formie.recurring.' . $key;
         $mutex = Craft::$app->getMutex();
+
         if (!$mutex->acquire($lock, 10)) {
             throw new RuntimeException('Recurring payment is being recorded.');
         }
+
         try {
             $row = (new Query())->from(Table::FORMIE_PAYMENTS)->where(['idempotencyKey' => $key])->one();
             $payment = $row ? new Payment($row) : new Payment(['integrationId' => $subscription->integrationId,
@@ -176,12 +191,14 @@ class Payments extends Component
                     'subscriptionId' => $subscription->id, 'subscriptionUid' => $subscription->uid,
                     'subscriptionReference' => $subscription->reference, 'formId' => $subscription->scope['formId'] ?? null,
                     'submissionId' => $subscription->submissionId, 'integrationId' => $subscription->integrationId, 'fieldId' => $subscription->fieldId]]);
+
             if ($row && ((int)$payment->subscriptionId !== (int)$subscription->id
                 || !PaymentMoney::fromDecimal($payment->amount, $payment->currency)->equals(PaymentMoney::fromDecimal($amount, $currency)))) {
                 throw new RuntimeException('Recurring payment snapshot mismatch.');
             }
             $payment->status = $status;
             $payment->response = $snapshot;
+
             if (!$this->savePayment($payment)) {
                 throw new RuntimeException('Unable to persist the recurring payment.');
             }
@@ -204,28 +221,38 @@ class Payments extends Component
         }
 
         $now = time();
+
         if (!$force && $payment->nextReconcileAt !== null && $payment->nextReconcileAt > $now) {
             return $payment;
         }
+
         if (in_array($payment->status, [Payment::STATUS_SUCCEEDED, Payment::STATUS_FAILED, Payment::STATUS_CANCELLED], true)) {
             return $payment;
         }
 
         $lock = 'formie.payment-reconciliation.' . $payment->id;
         $mutex = Craft::$app->getMutex();
-        if (!$mutex->acquire($lock, 5)) { throw new RuntimeException('Payment reconciliation is busy.'); }
+
+        if (!$mutex->acquire($lock, 5)) {
+            throw new RuntimeException('Payment reconciliation is busy.');
+        }
+
         try {
             $payment = $this->getPaymentById((int)$payment->id);
+
             if (!$force && $payment->nextReconcileAt !== null && $payment->nextReconcileAt > time()) {
                 return $payment;
             }
             $integration = $payment->getIntegration();
+
             if (!$integration instanceof PaymentIntegration) {
                 throw new RuntimeException('Payment integration not found.');
             }
+
             if (!$payment->accountFingerprint || !hash_equals($payment->accountFingerprint, $integration->getPaymentAccountFingerprint())) {
                 throw new RuntimeException('Restore the original payment account before reconciling it.');
             }
+
             if (!in_array($payment->status, [Payment::STATUS_SUCCEEDED, Payment::STATUS_CANCELLED], true) && ($payment->scope['providerOutcome']['status'] ?? null) !== Payment::STATUS_SUCCEEDED) {
                 $this->observeProvider(fn() => $integration->getTransaction($payment));
             }
@@ -359,6 +386,7 @@ class Payments extends Component
 
         $lock = 'formie.financial-row.payment.' . ($payment->id ?? $payment->idempotencyKey ?? 'new');
         $mutex = Craft::$app->getMutex();
+
         if (!$mutex->acquire($lock, 10)) {
             throw new RuntimeException('Financial state is being updated.');
         }
@@ -366,9 +394,11 @@ class Payments extends Component
 
         try {
             $paymentRecord = $this->_getPaymentRecord($payment->id);
+
             if (!$paymentRecord->getIsNewRecord() && (int)$paymentRecord->version !== $payment->version) {
                 throw new RuntimeException('Financial state changed. Reload before retrying.');
             }
+
             if (!$paymentRecord->getIsNewRecord()) {
                 foreach (['integrationId', 'submissionId', 'fieldId'] as $owner) {
                     if ($paymentRecord->$owner !== $payment->$owner) {
@@ -377,22 +407,27 @@ class Payments extends Component
                 }
             }
             $payment->version++;
+
             if ($paymentRecord->getIsNewRecord() && $payment->accountFingerprint === null && $payment->getIntegration() instanceof PaymentIntegration) {
                 $payment->accountFingerprint = $payment->getIntegration()->getPaymentAccountFingerprint();
             }
+
             if (!$paymentRecord->getIsNewRecord() && $paymentRecord->accountFingerprint !== $payment->accountFingerprint) {
                 throw new RuntimeException('Payment account ownership cannot change.');
             }
             $payment->idempotencyKey ??= bin2hex(random_bytes(24));
             $money = $payment->getMoney();
             $payment->amountMinor = $money->minor;
+
             if (!$paymentRecord->getIsNewRecord()) {
                 if ($paymentRecord->currency !== $payment->currency || !PaymentMoney::fromMinor((string)$paymentRecord->amountMinor, (string)$paymentRecord->currency)->equals($money)) {
                     throw new RuntimeException('A payment amount snapshot cannot change.');
                 }
+
                 if ((Json::decodeIfJson($paymentRecord->scope)['providerOutcome']['status'] ?? null) === Payment::STATUS_SUCCEEDED) {
                     $payment->status = Payment::STATUS_SUCCEEDED;
                 }
+
                 if (in_array($paymentRecord->status, [Payment::STATUS_SUCCEEDED, Payment::STATUS_CANCELLED], true)) {
                     $payment->status = $paymentRecord->status;
                 }
@@ -412,6 +447,7 @@ class Payments extends Component
             $paymentRecord->accountFingerprint = $payment->accountFingerprint;
             $paymentRecord->currency = $payment->currency;
             $paymentRecord->status = $payment->status;
+
             if (!$this->_committingTransition && $this->_providerObservationDepth > 0
                 && ($payment->scope['initial'] ?? false) && $payment->status === Payment::STATUS_SUCCEEDED
                 && $paymentRecord->getOldAttribute('status') !== Payment::STATUS_SUCCEEDED) {
@@ -500,6 +536,7 @@ class Payments extends Component
     private function _hydratePayment(array $row): Payment
     {
         $payment = new Payment($row);
+
         if ($this->_providerObservationDepth > 0 && ($payment->scope['providerOutcome']['status'] ?? null) === Payment::STATUS_SUCCEEDED) {
             $payment->status = Payment::STATUS_SUCCEEDED;
         }

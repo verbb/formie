@@ -105,21 +105,24 @@ class HubSpot extends Crm
         if ($value instanceof DateTime) {
             return clone $value;
         }
+
         // HubSpot-specific: numeric ms timestamps (e.g. from JS or API)
         if (is_numeric($value)) {
             $num = (float)$value;
+
             if ($num >= 1e12 && $num < 1e15) {
                 $seconds = (int)round($num / 1000);
                 $date = DateTimeHelper::toDateTime('@' . $seconds);
                 return $date ?: null;
             }
+
             if ($num < 0 || $num >= 1e15) {
                 return null;
             }
         }
         return DateFieldValue::toDateTime($value);
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -181,7 +184,7 @@ class HubSpot extends Crm
                 if (is_array($event->value)) {
                     $event->value = array_filter($event->value, static fn($value) => $value !== null && $value !== '');
 
-                    $event->value = array_map(function ($v): string {
+                    $event->value = array_map(function($v): string {
                         if (is_scalar($v)) {
                             return (string)$v;
                         }
@@ -238,9 +241,9 @@ class HubSpot extends Crm
 
                 if (is_array($event->value) && isset($event->value['FILE_UPLOAD_DATA'])) {
                     $fallbackValues = array_filter($event->value['FILE_UPLOAD_DATA']);
-                } else if (is_array($event->value)) {
+                } elseif (is_array($event->value)) {
                     $fallbackValues = array_filter($event->value);
-                } else if (is_string($event->value)) {
+                } elseif (is_string($event->value)) {
                     $fallbackValues = array_filter(array_map('trim', explode(',', $event->value)));
                 }
 
@@ -414,7 +417,7 @@ class HubSpot extends Crm
                 if ($this->mapToDeal && $this->settingsContext->dataKey === 'deal') {
                     $dealPipelinesOptions = [];
                     $dealStageOptions = [];
-                    
+
                     $response = $this->request('GET', 'crm/v3/pipelines/deals');
                     $pipelines = $response['results'] ?? [];
 
@@ -476,6 +479,7 @@ class HubSpot extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
@@ -938,6 +942,7 @@ class HubSpot extends Crm
         ]);
 
         $mappingSchema = $this->defineFieldMappingSchema('forms', 'formId');
+
         if ($mappingSchema) {
             $schema[] = $this->getIntegrationFieldMappingField([
                 'name' => 'formFieldMapping',
@@ -951,7 +956,7 @@ class HubSpot extends Crm
         return $schema;
     }
 
-    
+
     // Private Methods
     // =========================================================================
 

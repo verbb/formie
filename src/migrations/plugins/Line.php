@@ -23,4 +23,3 @@ class Line
         return new MigrationLine('error', $message, $depth, $context);
     }
 }
-

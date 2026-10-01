@@ -45,8 +45,10 @@ final class IntegrationResult
             if ($error instanceof IntegrationStepException) {
                 return $error->result;
             }
+
             if ($error instanceof RequestException) {
                 $status = $error->getResponse()?->getStatusCode();
+
                 if ($status !== null && $status >= 400 && $status < 500 && !in_array($status, [408, 409, 429], true)) {
                     return self::rejected('http_' . $status);
                 }

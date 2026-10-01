@@ -24,11 +24,13 @@ final class FormIntegration
     public static function settingAttributes(IntegrationInterface $integration): array
     {
         $class = $integration::class;
+
         if (isset(self::$_settingAttributesByClass[$class])) {
             return self::$_settingAttributesByClass[$class];
         }
 
         $attributes = [];
+
         foreach ((new ReflectionObject($integration))->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
             if (!$property->isStatic() && !$property->isReadOnly() && !in_array($property->getName(), self::POLICY_ATTRIBUTES, true) && $property->getAttributes(FormIntegrationSetting::class)) {
                 $attributes[] = $property->getName();
@@ -52,9 +54,11 @@ final class FormIntegration
     public static function validateSchema(IntegrationInterface $integration, array $compiledSchema): void
     {
         $allowed = array_fill_keys(array_merge(self::POLICY_ATTRIBUTES, self::settingAttributes($integration)), true);
+
         foreach ($compiledSchema['fieldEntries'] ?? [] as $entry) {
             $path = (string)($entry['path'] ?? '');
             $root = strtok($path, '.*[') ?: '';
+
             if ($root !== '' && !isset($allowed[$root])) {
                 throw new InvalidArgumentException(sprintf(
                     '%s form settings schema targets unannotated property “%s”. Add #[FormIntegrationSetting] or remove the persisted schema field.',
@@ -69,6 +73,7 @@ final class FormIntegration
     {
         $settings = self::filterSettings($integration, $settings);
         $execution = $settings['execution'] ?? 'queued';
+
         if (!in_array($execution, ['synchronous', 'queued'], true)) {
             throw new InvalidArgumentException('Invalid integration execution lane.');
         }
@@ -108,6 +113,7 @@ final class FormIntegration
         $this->enableConditions = (bool)($settings['enableConditions'] ?? false);
         $this->conditions = (array)($settings['conditions'] ?? []);
         $this->trigger = (array)($settings['trigger'] ?? ['policy' => 'submitOnly']);
+
         if (!in_array($this->trigger['policy'] ?? 'submitOnly', ['submitOnly', 'onEdit', 'custom'], true)) {
             throw new InvalidArgumentException('Invalid integration trigger policy.');
         }
@@ -120,6 +126,7 @@ final class FormIntegration
     {
         $runtime = clone $this->integration;
         $runtime->enabled = $this->enabled;
+
         if ($runtime instanceof Integration) {
             $runtime->setFormIntegration($this);
         }

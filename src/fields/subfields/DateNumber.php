@@ -13,10 +13,10 @@ class DateNumber extends Number implements ChildFieldInterface
 {
     // Traits
     // =========================================================================
-    
+
     use DateSubFieldValueTrait;
-    
-    
+
+
     // Public Methods
     // =========================================================================
 

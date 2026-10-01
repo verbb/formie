@@ -31,11 +31,11 @@ class Outseta extends Crm
     {
         return 'Outseta';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     #[Sensitive]
@@ -110,6 +110,7 @@ class Outseta extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             if ($this->mapToPeople) {
                 $peopleValues = $this->getFieldMappingValues($submission, $this->peopleFieldMapping, 'people');
@@ -123,7 +124,7 @@ class Outseta extends Crm
                 $personId = $response['items'][0]['Uid'] ?? null;
 
                 if ($personId) {
-                    $response = $this->deliverPayload($submission, "people/$personId" , $payload, 'PUT');
+                    $response = $this->deliverPayload($submission, "people/$personId", $payload, 'PUT');
                 } else {
                     $response = $this->deliverPayload($submission, 'people', $payload);
                 }
@@ -165,7 +166,7 @@ class Outseta extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

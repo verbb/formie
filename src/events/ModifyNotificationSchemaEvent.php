@@ -10,5 +10,5 @@ class ModifyNotificationSchemaEvent extends Event
 
     public array $tabs = [];
     public array $fields = [];
-    
+
 }

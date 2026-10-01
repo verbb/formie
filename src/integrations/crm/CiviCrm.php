@@ -31,11 +31,11 @@ class CiviCrm extends Crm
     {
         return 'CiviCRM';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     #[Sensitive]
@@ -75,6 +75,7 @@ class CiviCrm extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             if ($this->mapToContact) {
                 $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
@@ -122,7 +123,7 @@ class CiviCrm extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -175,7 +176,7 @@ class CiviCrm extends Crm
         return $schema;
     }
 
-    
+
     // Private Methods
     // =========================================================================
 

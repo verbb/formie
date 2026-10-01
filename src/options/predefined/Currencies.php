@@ -40,10 +40,10 @@ class Currencies extends PredefinedOption
 
     public static function getDataOptions(): array
     {
-        return self::currencyEntries();
+        return self::_currencyEntries();
     }
 
-    private static function currencyEntries(): array
+    private static function _currencyEntries(): array
     {
         // Deliberately not using Craft::t().
         return [

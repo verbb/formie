@@ -171,7 +171,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         if (!$this->db->columnExists(Table::FORMIE_SUBMISSIONS, 'content')) {
             $this->addColumn(Table::FORMIE_SUBMISSIONS, 'content', $this->json()->after('id'));
         }
-        
+
         // In case the migration is run again
         MigrationHelper::dropAllForeignKeysOnTable(Table::FORMIE_FIELD_LAYOUT_PAGES, $this);
         MigrationHelper::dropAllForeignKeysOnTable(Table::FORMIE_FIELD_LAYOUT_ROWS, $this);
@@ -224,50 +224,50 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
         try {
             foreach ($forms as $form) {
-            $layoutConfig = (new Query())->select('layoutConfig')->from('{{%formie_newlayout}}')->where(['formId' => $form['id']])->scalar();
+                $layoutConfig = (new Query())->select('layoutConfig')->from('{{%formie_newlayout}}')->where(['formId' => $form['id']])->scalar();
 
-            if (!$layoutConfig) {
-                echo '    > ' . $form['handle'] . ': Unable to find field layout data.' . PHP_EOL;
+                if (!$layoutConfig) {
+                    echo '    > ' . $form['handle'] . ': Unable to find field layout data.' . PHP_EOL;
 
-                continue;
-            }
-
-            $layoutConfig = Json::decode($layoutConfig);
-
-            // Check for legacy field layout format, introduced before the beta
-            $layoutConfig = $this->_processLegacyLayout($layoutConfig);
-
-            // Sub-fields also need to be processed here, before their settings are removed as being invalid
-            $layoutConfig = $this->_processLayoutSubFields($layoutConfig);
-
-            // Any extra processing (for some fields)
-            $layoutConfig = $this->_processLayoutFields($layoutConfig);
-
-            $convertedLayoutConfig = Formie::$plugin->getRepair()->convertEmojiShortcodes($layoutConfig);
-
-            if ($convertedLayoutConfig !== $layoutConfig) {
-                if ($canConvertEmojiShortcodes) {
-                    $layoutConfig = $convertedLayoutConfig;
-                } else if (!$emojiShortcodeWarningShown) {
-                    echo "    > Skipping emoji shortcode conversion because Formie layout tables cannot safely store 4-byte emoji characters.\n";
-                    echo "    > Run Craft's `db/convert-charset` command, then run `craft formie/repair/emoji-shortcodes`.\n";
-
-                    $emojiShortcodeWarningShown = true;
+                    continue;
                 }
-            }
 
-            $formLayout = new FieldLayout($layoutConfig);
+                $layoutConfig = Json::decode($layoutConfig);
 
-            if (!Formie::$plugin->getFields()->saveLayout($formLayout)) {
-                echo '    > ' . $form['handle'] . ': Unable to save field layout - ' . Json::encode($formLayout->getErrorsTree()) . PHP_EOL;
-                // echo '    > ' . Json::encode($layoutConfig);
+                // Check for legacy field layout format, introduced before the beta
+                $layoutConfig = $this->_processLegacyLayout($layoutConfig);
 
-                return false;
-            }
+                // Sub-fields also need to be processed here, before their settings are removed as being invalid
+                $layoutConfig = $this->_processLayoutSubFields($layoutConfig);
 
-            Db::update(Table::FORMIE_FORMS, ['layoutId' => $formLayout->id], ['id' => $form['id']]);
+                // Any extra processing (for some fields)
+                $layoutConfig = $this->_processLayoutFields($layoutConfig);
 
-            echo '    > Updated Form ' . $form['handle'] . ' field layout.' . PHP_EOL;
+                $convertedLayoutConfig = Formie::$plugin->getRepair()->convertEmojiShortcodes($layoutConfig);
+
+                if ($convertedLayoutConfig !== $layoutConfig) {
+                    if ($canConvertEmojiShortcodes) {
+                        $layoutConfig = $convertedLayoutConfig;
+                    } elseif (!$emojiShortcodeWarningShown) {
+                        echo "    > Skipping emoji shortcode conversion because Formie layout tables cannot safely store 4-byte emoji characters.\n";
+                        echo "    > Run Craft's `db/convert-charset` command, then run `craft formie/repair/emoji-shortcodes`.\n";
+
+                        $emojiShortcodeWarningShown = true;
+                    }
+                }
+
+                $formLayout = new FieldLayout($layoutConfig);
+
+                if (!Formie::$plugin->getFields()->saveLayout($formLayout)) {
+                    echo '    > ' . $form['handle'] . ': Unable to save field layout - ' . Json::encode($formLayout->getErrorsTree()) . PHP_EOL;
+                    // echo '    > ' . Json::encode($layoutConfig);
+
+                    return false;
+                }
+
+                Db::update(Table::FORMIE_FORMS, ['layoutId' => $formLayout->id], ['id' => $form['id']]);
+
+                echo '    > Updated Form ' . $form['handle'] . ' field layout.' . PHP_EOL;
             }
         } finally {
             Recipients::$relaxLegacyOptionValidation = false;
@@ -309,13 +309,13 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         foreach ($forms as $form) {
             if (!$form['fieldContentTable']) {
                 echo '    > ' . $form['handle'] . ': missing `fieldContentTable`.' . PHP_EOL;
-                
+
                 continue;
             }
 
             if (!$form['layoutId']) {
                 echo '    > ' . $form['handle'] . ': missing `layoutId`.' . PHP_EOL;
-                
+
                 continue;
             }
 
@@ -740,7 +740,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
                 // Don't remove the original content here, instead do at the very end
                 // $this->update('{{%content}}', ['title' => null], ['elementId' => $elementId]);
-            
+
                 echo '    > Updated form #' . $elementId . ' title to ' . $title . '.' . PHP_EOL;
             }
         }
@@ -756,7 +756,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
             if ($title) {
                 $this->update(Table::ELEMENTS_SITES, ['title' => $title], ['elementId' => $elementId]);
-            
+
                 echo '    > Updated submission #' . $elementId . ' title to ' . $title . '.' . PHP_EOL;
             }
         }

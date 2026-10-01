@@ -16,5 +16,5 @@ class ModifyFieldIntegrationValuesEvent extends Event
     public ?array $fieldMapping = null;
     public ?array $fieldSettings = null;
     public ?Integration $integration = null;
-    
+
 }

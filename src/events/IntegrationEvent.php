@@ -12,5 +12,5 @@ class IntegrationEvent extends Event
 
     public ?Integration $integration = null;
     public bool $isNew = false;
-    
+
 }

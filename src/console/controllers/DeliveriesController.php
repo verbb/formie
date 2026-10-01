@@ -19,6 +19,7 @@ class DeliveriesController extends Controller
     {
         $rows = (new Query())->select(['id', 'submissionId', 'uid', 'kind', 'status', 'schedulingComplete', 'failureCode'])
             ->from(SubmissionDispatches::TABLE)->where(['>', 'id', $afterId])->orderBy(['id' => SORT_ASC])->limit(max(1, min(500, $limit)))->all();
+
         foreach ($rows as $row) {
             $this->stdout(Json::encode($row) . PHP_EOL);
         }

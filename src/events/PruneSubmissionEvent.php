@@ -11,5 +11,5 @@ class PruneSubmissionEvent extends Event
     // =========================================================================
 
     public ?Submission $submission = null;
-    
+
 }

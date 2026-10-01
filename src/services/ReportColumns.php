@@ -27,7 +27,7 @@ class ReportColumns extends Component
 
     public const FIELD_COLUMNS_MODE_ALL = 'all';
     public const FIELD_COLUMNS_MODE_SELECTED = 'selected';
-    
+
 
     // Public Methods
     // =========================================================================
@@ -654,7 +654,7 @@ class ReportColumns extends Component
         if (is_array($value)) {
             $flat = [];
 
-            array_walk_recursive($value, function ($item) use (&$flat): void {
+            array_walk_recursive($value, function($item) use (&$flat): void {
                 if ($item !== null && $item !== '') {
                     $flat[] = (string)$item;
                 }

@@ -26,7 +26,7 @@ class DateDayNumber extends DateNumber implements ChildFieldInterface
     {
         return 'fields/number';
     }
-    
+
 
     // Properties
     // =========================================================================

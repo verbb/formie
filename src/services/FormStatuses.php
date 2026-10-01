@@ -32,7 +32,7 @@ class FormStatuses extends Component
     public const EVENT_AFTER_DELETE_STATUS = 'afterDeleteFormStatus';
     public const CONFIG_FORM_STATUSES_KEY = 'formie.formStatuses';
 
-    
+
     // Traits
     // =========================================================================
 
@@ -61,6 +61,7 @@ class FormStatuses extends Component
     public function getStatusesArray(): array
     {
         $statuses = [];
+
         foreach ($this->getAllStatuses() as $status) {
             $statuses[$status->handle] = [
                 'label' => $status->name,
@@ -227,6 +228,7 @@ class FormStatuses extends Component
             ->all();
 
         $allStatuses = $this->getAllStatuses();
+
         foreach ($allStatuses as $status) {
             if (!isset($countGroupedByStatusId[$status->id])) {
                 $countGroupedByStatusId[$status->id] = [
@@ -265,7 +267,7 @@ class FormStatuses extends Component
             $status->sortOrder = (new Query())
                 ->from([Table::FORMIE_FORM_STATUSES])
                 ->max('[[sortOrder]]') + 1;
-        } else if (!$status->uid) {
+        } elseif (!$status->uid) {
             $status->uid = Db::uidById(Table::FORMIE_FORM_STATUSES, $status->id);
         }
 
@@ -292,6 +294,7 @@ class FormStatuses extends Component
         $data = $event->newValue;
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             $statusRecord = $this->_getStatusRecord($statusUid, true);
             $isNewStatus = $statusRecord->getIsNewRecord();
@@ -372,6 +375,7 @@ class FormStatuses extends Component
         }
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             Craft::$app->getDb()->createCommand()
                 ->softDelete(Table::FORMIE_FORM_STATUSES, ['id' => $statusRecord->id])

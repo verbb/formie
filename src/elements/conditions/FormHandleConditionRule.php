@@ -51,6 +51,7 @@ class FormHandleConditionRule extends BaseMultiSelectConditionRule implements El
         usort($forms, fn(Form $a, Form $b) => strcasecmp($a->title ?? '', $b->title ?? ''));
 
         $options = [];
+
         foreach ($forms as $form) {
             if ($form->handle === null || $form->handle === '') {
                 continue;

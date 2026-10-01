@@ -17,7 +17,7 @@ class SubmissionsController extends Controller
     // =========================================================================
 
     protected array|bool|int $allowAnonymous = ['submit' => self::ALLOW_ANONYMOUS_LIVE];
-    
+
 
     // Traits
     // =========================================================================
@@ -25,7 +25,7 @@ class SubmissionsController extends Controller
     use CrossOriginRequestTrait;
     use AnonymousSiteRequestGuardTrait;
 
-    
+
     // Public Methods
     // =========================================================================
 
@@ -33,6 +33,7 @@ class SubmissionsController extends Controller
     {
         $this->forbidGuestControlPanelAnonymousActions($action->id);
         $profile = \verbb\formie\helpers\BrowserRequestProfile::enter($action->id === 'load');
+
         if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         }

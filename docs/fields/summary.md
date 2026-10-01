@@ -51,11 +51,8 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 Summary output should stay in sync with the current submission state. If you customise rendering, keep Formie’s front-end JavaScript available so dynamic values can refresh correctly.
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
-
 - [Summary](https://docs.verbb.io/formie/browser/ui-reference/fields/summary)
 
 ## Related Fields
 
 - Use [Calculations](/fields/calculations) when the form needs a derived value, not a review block.
-

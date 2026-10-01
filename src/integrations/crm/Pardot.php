@@ -400,6 +400,7 @@ class Pardot extends Crm implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $prospectValues = $this->getFieldMappingValues($submission, $this->prospectFieldMapping, 'prospect');
             $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
@@ -535,7 +536,7 @@ class Pardot extends Crm implements OAuthProviderInterface
         }
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

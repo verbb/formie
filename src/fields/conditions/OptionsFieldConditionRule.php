@@ -27,7 +27,8 @@ class OptionsFieldConditionRule extends BaseMultiSelectConditionRule implements 
         $field = $this->field();
 
         return Collection::make($field->options)
-            ->filter(fn(array $option) => (array_key_exists('value', $option) &&
+            ->filter(fn(array $option) => (
+                array_key_exists('value', $option) &&
                 $option['value'] !== null &&
                 $option['value'] !== '' &&
                 $option['label'] !== null &&
@@ -66,7 +67,7 @@ class OptionsFieldConditionRule extends BaseMultiSelectConditionRule implements 
 
         if ($value instanceof MultiOptionFieldValue) {
             $value = $value->values();
-        } else if ($value instanceof SingleOptionFieldValue) {
+        } elseif ($value instanceof SingleOptionFieldValue) {
             $value = $value->value;
         }
 

@@ -203,6 +203,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
             return $value;
         }
         $value = parent::normalizeValue(Json::decodeIfJson($value), $element);
+
         foreach ($value as $key => $part) {
             if ($part instanceof \verbb\formie\fields\values\SingleOptionFieldValue) {
                 $part = $part->value;
@@ -379,7 +380,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
         $form = $context->form;
 
         $id = $this->getHtmlId($form);
-        
+
         if ($key === 'fieldLayout') {
             return SlotTag::make('fieldset')
                 ->core([

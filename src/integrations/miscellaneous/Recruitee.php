@@ -120,6 +120,7 @@ class Recruitee extends Miscellaneous
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $candidateValues = $this->getFieldMappingValues($submission, $this->candidateFieldMapping, 'candidate');
 
@@ -173,7 +174,7 @@ class Recruitee extends Miscellaneous
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -221,6 +222,7 @@ class Recruitee extends Miscellaneous
             'required' => $f['required'],
             'options' => $f['options'] ?? [],
         ]), $schemaFields);
+
         if ($candidateMappingSchema) {
             $schema[] = SchemaHelper::groupField([
                 'name' => 'candidateFieldMapping',
@@ -234,7 +236,7 @@ class Recruitee extends Miscellaneous
         return $schema;
     }
 
-    
+
     // Private Methods
     // =========================================================================
 

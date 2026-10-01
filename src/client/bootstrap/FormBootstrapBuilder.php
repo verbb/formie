@@ -24,6 +24,7 @@ class FormBootstrapBuilder extends Component
         if ($context->draftContext !== null) {
             $form->setDraftContext($context->draftContext);
         }
+
         if ($context->grantToken) {
             Formie::$plugin->getSubmissionRequests()->exchangeGrant($form, $context->grantToken, $context->grantPurpose);
         }

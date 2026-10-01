@@ -49,7 +49,7 @@ class FormQuery extends ElementQuery
     {
         if ($value instanceof FormTemplate) {
             $this->templateId = $value->id;
-        } else if ($value !== null) {
+        } elseif ($value !== null) {
             $this->templateId = (new Query())
                 ->select(['id'])
                 ->from([Table::FORMIE_FORM_TEMPLATES])

@@ -7,7 +7,7 @@ class SubmissionQuizResult extends Model
 {
     // Properties
     // =========================================================================
-    
+
     public ?int $id = null;
     public ?int $submissionId = null;
     public float $score = 0;

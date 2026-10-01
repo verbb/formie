@@ -69,7 +69,7 @@ abstract class Miscellaneous extends Integration implements DispatchableIntegrat
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/miscellaneous/{$handle}/_plugin-settings", $variables);
     }
-    
+
 
     // Protected Methods
     // =========================================================================

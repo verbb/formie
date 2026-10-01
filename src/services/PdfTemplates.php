@@ -127,7 +127,7 @@ class PdfTemplates extends Component
             $template->sortOrder = (new Query())
                 ->from([Table::FORMIE_PDF_TEMPLATES])
                 ->max('[[sortOrder]]') + 1;
-        } else if (!$template->uid) {
+        } elseif (!$template->uid) {
             $template->uid = Db::uidById(Table::FORMIE_PDF_TEMPLATES, $template->id);
         }
 
@@ -155,6 +155,7 @@ class PdfTemplates extends Component
         $data = $event->newValue;
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             $templateRecord = $this->_getTemplateRecord($templateUid, true);
             $isNewTemplate = $templateRecord->getIsNewRecord();
@@ -233,6 +234,7 @@ class PdfTemplates extends Component
         }
 
         $transaction = Craft::$app->getDb()->beginTransaction();
+
         try {
             Craft::$app->getDb()->createCommand()
                 ->softDelete(Table::FORMIE_PDF_TEMPLATES, ['id' => $templateRecord->id])

@@ -349,6 +349,7 @@ class ReportScheduledDelivery extends Component
         if ($templatePath) {
             $oldTemplatesPath = $view->getTemplatesPath();
             $view->setTemplatesPath(Craft::$app->getPath()->getSiteTemplatesPath());
+
             try {
                 return $view->renderTemplate($templatePath, $renderVariables);
             } finally {
@@ -358,6 +359,7 @@ class ReportScheduledDelivery extends Component
 
         $oldTemplateMode = $view->getTemplateMode();
         $view->setTemplateMode($view::TEMPLATE_MODE_CP);
+
         try {
             return $view->renderTemplate('formie/_special/email-template', $renderVariables);
         } finally {

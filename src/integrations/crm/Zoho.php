@@ -73,11 +73,11 @@ class Zoho extends Crm implements OAuthProviderInterface
             ],
         ];
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     public bool|string $useDeveloper = false;
     public ?string $dataCenter = 'US';
     #[FormIntegrationSetting]
@@ -149,7 +149,7 @@ class Zoho extends Crm implements OAuthProviderInterface
             'ZohoCRM.modules.ALL',
             'ZohoCRM.settings.ALL',
         ];
-        
+
         return $options;
     }
 
@@ -208,6 +208,7 @@ class Zoho extends Crm implements OAuthProviderInterface
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
@@ -358,7 +359,7 @@ class Zoho extends Crm implements OAuthProviderInterface
         return $this->resultForPayload(true);
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

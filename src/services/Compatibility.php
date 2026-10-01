@@ -27,7 +27,7 @@ class Compatibility extends Component
     {
         return Formie::$plugin->getSettings()->compatibilityMode ?? true;
     }
-    
+
 
     // Private Methods
     // =========================================================================

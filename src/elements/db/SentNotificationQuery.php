@@ -29,7 +29,7 @@ class SentNotificationQuery extends ElementQuery
     {
         if ($value instanceof Form) {
             $this->formId = $value->id;
-        } else if ($value !== null) {
+        } elseif ($value !== null) {
             $this->formId = (new Query())
                 ->select(['id'])
                 ->from([Table::FORMIE_FORMS])

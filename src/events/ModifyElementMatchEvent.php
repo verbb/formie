@@ -13,5 +13,5 @@ class ModifyElementMatchEvent extends Event
     public mixed $submission = null;
     public mixed $criteria = null;
     public mixed $element = null;
-    
+
 }

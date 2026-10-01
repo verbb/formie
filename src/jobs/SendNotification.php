@@ -42,6 +42,7 @@ class SendNotification extends BaseJob implements DeliveryJobInterface
         $data = $attempts->data($uid);
         $submission = Submission::find()->id($row['submissionId'])->status(null)->isIncomplete(null)->isSpam(null)->one();
         $notification = Formie::$plugin->getNotifications()->getNotificationById($data['notificationId']);
+
         if (!$submission || !$notification || (int)$notification->formId !== (int)$submission->formId) {
             $attempts->execute($uid, fn() => IntegrationResult::rejected('notification_owner_unavailable'));
             throw new RuntimeException('Notification delivery owner is unavailable.');
@@ -50,6 +51,7 @@ class SendNotification extends BaseJob implements DeliveryJobInterface
         Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
         Craft::$app->getSites()->setCurrentSite($submission->getSite());
         $response = Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission, new self(['deliveryAttemptUid' => $uid]), $row['executionUid']);
+
         if ($response !== true && !($response['success'] ?? false)) {
             throw new RuntimeException('Notification delivery ' . ($response['status'] ?? 'failed') . '. Open Formie delivery diagnostics.');
         }

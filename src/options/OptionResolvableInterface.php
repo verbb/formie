@@ -11,6 +11,6 @@ interface OptionResolvableInterface
 {
     // Public Methods
     // =========================================================================
-    
+
     public function getResolvedOptions(): array;
 }

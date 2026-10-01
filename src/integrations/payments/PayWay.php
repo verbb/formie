@@ -61,7 +61,7 @@ class PayWay extends Payment
 
         return $event->currencies;
     }
-    
+
 
 
     // Constants
@@ -119,9 +119,11 @@ class PayWay extends Payment
     {
         $mutex = Craft::$app->getMutex();
         $lock = 'formie.payway.' . hash('sha256', $submission->id . ':' . $this->getField()?->id);
+
         if (!$mutex->acquire($lock, 10)) {
             return PaymentDecision::pending('PayWay payment is already being processed.', $this->handle);
         }
+
         try {
             return $this->_processPayment($submission);
         } finally {
@@ -135,11 +137,13 @@ class PayWay extends Payment
             return;
         }
         $submission = $payment->getSubmission();
+
         if (!$submission || $payment->integrationId !== $this->id) {
             throw new Exception('Invalid PayWay payment context.');
         }
         $response = $this->request('GET', 'transactions/' . rawurlencode($payment->reference));
         $this->_validateTransaction($response, $submission, (string)$payment->amount, (string)$payment->currency);
+
         if ((string)$response['transactionId'] !== $payment->reference) {
             throw new DeliveryOutcomeUnknownException('PayWay returned a different transaction.');
         }
@@ -149,6 +153,7 @@ class PayWay extends Payment
             default => PaymentModel::STATUS_PENDING,
         };
         $payment->response = $response;
+
         if (!Formie::$plugin->getPayments()->savePayment($payment)) {
             throw new DeliveryOutcomeUnknownException('Unable to save the PayWay payment outcome.');
         }
@@ -240,7 +245,7 @@ class PayWay extends Payment
             ]),
         ];
     }
-    
+
 
 
     // Protected Methods
@@ -358,6 +363,7 @@ class PayWay extends Payment
             );
             $this->_validateTransaction($response, $submission, (string)$amount, (string)$currency);
             $payment = Formie::$plugin->getPayments()->getPaymentByReference((string)$response['transactionId'], $this->id);
+
             if ($payment && ($payment->submissionId !== $submission->id || $payment->fieldId !== $field->id || $payment->integrationId !== $this->id)) {
                 throw new DeliveryOutcomeUnknownException('PayWay transaction belongs to another payment.');
             }
@@ -378,6 +384,7 @@ class PayWay extends Payment
             $payment->response = $response;
 
             $payment->status = PaymentModel::STATUS_FAILED;
+
             if ($status === 'pending') {
                 $payment->status = PaymentModel::STATUS_PENDING;
             }

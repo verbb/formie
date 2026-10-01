@@ -28,11 +28,11 @@ class Mercury extends Crm
     {
         return 'Mercury';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     #[Sensitive]
@@ -353,6 +353,7 @@ class Mercury extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
             $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
@@ -426,7 +427,7 @@ class Mercury extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

@@ -1,5 +1,4 @@
 <?php
-
 namespace verbb\formie\console\controllers;
 
 use verbb\formie\elements\Form;
@@ -124,8 +123,8 @@ class FormsController extends Controller
      */
     public function actionList($folderPath = null): int
     {
-        $path = $folderPath ?? $this->getExportPath();
-        
+        $path = $folderPath ?? $this->_getExportPath();
+
         try {
             $files = FileHelper::findFiles($path, ['only' => ['*.json']]);
         } catch (\Throwable $th) {
@@ -136,7 +135,7 @@ class FormsController extends Controller
         if (!empty($files)) {
             $listEntries[] = [
                 'title' => 'JSON to import:',
-                'entriesList' => array_map(function ($file) {
+                'entriesList' => array_map(function($file) {
                     return [
                         'name' => $file,
                         'title' => ''
@@ -150,7 +149,7 @@ class FormsController extends Controller
         if (!empty($allForms)) {
             $listEntries[] = [
                 'title' => 'Existing forms:',
-                'entriesList' => array_map(function ($form) {
+                'entriesList' => array_map(function($form) {
                     return [
                         'name' => "[$form->id] $form->handle",
                         'title' => $form->title
@@ -213,7 +212,7 @@ class FormsController extends Controller
             try {
                 $formExport = ImportExportHelper::generateFormExport($element);
                 $json = Json::encode($formExport, JSON_PRETTY_PRINT);
-                $exportPath = $this->generateExportPathByHandle($element->handle);
+                $exportPath = $this->_generateExportPathByHandle($element->handle);
                 FileHelper::writeToFile($exportPath, $json);
                 $this->stdout("Exporting form $element->id to $exportPath" . PHP_EOL, Console::FG_GREEN);
             } catch (Throwable $e) {
@@ -239,7 +238,8 @@ class FormsController extends Controller
         if (!is_file($fileLocation)) {
             // Expected absolute path
             // Try export folder
-            $fileLocation = $this->getExportPath() . DIRECTORY_SEPARATOR  . $fileLocation;
+            $fileLocation = $this->_getExportPath() . DIRECTORY_SEPARATOR  . $fileLocation;
+
             if (!is_file($fileLocation)) {
                 $this->stderr("No file exists at the given path." . PHP_EOL, Console::FG_RED);
                 return ExitCode::UNSPECIFIED_ERROR;
@@ -281,7 +281,7 @@ class FormsController extends Controller
      */
     public function actionImportAll($folderPath = null): int
     {
-        $path = $folderPath ?? $this->getExportPath();
+        $path = $folderPath ?? $this->_getExportPath();
 
         try {
             $files = FileHelper::findFiles($path, ['only' => ['*.json']]);
@@ -314,12 +314,12 @@ class FormsController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function generateExportPathByHandle($handle): string
+    private function _generateExportPathByHandle($handle): string
     {
-        return $this->getExportPath() . DIRECTORY_SEPARATOR . "formie-$handle.json";
+        return $this->_getExportPath() . DIRECTORY_SEPARATOR . "formie-$handle.json";
     }
 
-    private function getExportPath(): string
+    private function _getExportPath(): string
     {
         $settings = Formie::$plugin->getSettings();
 

@@ -12,5 +12,5 @@ class ModifySubmissionExportDataEvent extends Event
 
     public array $exportData;
     public ElementQueryInterface $query;
-    
+
 }

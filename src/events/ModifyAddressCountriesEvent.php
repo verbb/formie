@@ -9,8 +9,8 @@ class ModifyAddressCountriesEvent extends Event
 {
     // Properties
     // =========================================================================
-    
+
     public ?FieldInterface $field = null;
     public array $countries = [];
-    
+
 }

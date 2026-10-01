@@ -36,6 +36,7 @@ final readonly class BrowserModuleManifest
         }
 
         $keys = array_map(static fn(BrowserModuleEntry $entry): string => $entry->key, $entries);
+
         if (count(array_unique($keys)) !== count($entries) || in_array('', $keys, true)) {
             throw new InvalidArgumentException('Browser module entry keys must be unique and non-empty.');
         }

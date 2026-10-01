@@ -29,7 +29,7 @@ class Beehiiv extends EmailMarketing
     {
         return 'Beehiiv';
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -119,6 +119,7 @@ class Beehiiv extends EmailMarketing
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
@@ -151,7 +152,7 @@ class Beehiiv extends EmailMarketing
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -173,7 +174,7 @@ class Beehiiv extends EmailMarketing
             ],
         ]);
     }
-    
+
 
     // Private Methods
     // =========================================================================

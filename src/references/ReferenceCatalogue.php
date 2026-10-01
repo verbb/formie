@@ -33,12 +33,14 @@ final class ReferenceCatalogue
     {
         $event = new RegisterReferencesEvent();
         Event::trigger(self::class, self::EVENT_REGISTER, $event);
+
         foreach ($event->sources as $source) {
             if (!$source instanceof ReferenceSource || isset($this->_sources[$source->definition->id])) {
                 throw new InvalidArgumentException('Invalid or duplicate reference source registration.');
             }
             $this->_sources[$source->definition->id] = $source;
         }
+
         foreach ($event->transforms as $transform) {
             if (!$transform instanceof ReferenceTransform || isset($this->_transforms[$transform->id])) {
                 throw new InvalidArgumentException('Invalid or duplicate reference transform registration.');
@@ -65,6 +67,7 @@ final class ReferenceCatalogue
 
         $id = $target . ':' . $identifier;
         $definitions = $this->_builtinDefinitions();
+
         if (isset($definitions[$id])) {
             return $definitions[$id];
         }
@@ -83,6 +86,7 @@ final class ReferenceCatalogue
     public function pickerTransforms(): array
     {
         $registry = [];
+
         foreach ($this->_transforms as $transform) {
             $type = $transform->inputType->kind === 'string' ? 'text' : $transform->inputType->kind;
             $registry[$type][] = [
@@ -98,6 +102,7 @@ final class ReferenceCatalogue
     public function pickerGroups(): array
     {
         $groups = [];
+
         foreach ($this->_builtinDefinitions() as $definition) {
             $groups[$definition->category][] = $definition->toPickerSource($this->_token($definition->id));
         }
@@ -160,6 +165,7 @@ final class ReferenceCatalogue
         ];
 
         $indexed = [];
+
         foreach ($definitions as $definition) {
             $indexed[$definition->id] = $definition;
         }

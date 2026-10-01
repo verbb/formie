@@ -106,7 +106,7 @@ class StencilData extends Model
         if (array_key_exists('availabilitySubmissions', $config)) {
             unset($config['availabilitySubmissions']);
         }
-        
+
         // Normalize form layout
         if (array_key_exists('pages', $config)) {
             if (is_array($config['pages'])) {
@@ -168,7 +168,7 @@ class StencilData extends Model
     public function getSerializedData(): array
     {
         $data = $this->getAttributes();
-        
+
         $data['settings'] = static::getSerializedFormSettings($this->settings);
         $data['notifications'] = static::getSerializedNotifications($this->notifications);
         $data['pages'] = static::getSerializedLayout($this->getFieldLayout());

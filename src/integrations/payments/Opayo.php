@@ -279,6 +279,7 @@ class Opayo extends Payment
 
                 if (!empty($payment->scope['challengeSent'])) {
                     $this->getTransaction($payment);
+
                     if ($payment->status !== PaymentModel::STATUS_SUCCEEDED) {
                         throw new Exception('Challenge outcome requires reconciliation.');
                     }
@@ -883,7 +884,10 @@ class Opayo extends Payment
         $mutex = Craft::$app->getMutex();
         $now = time();
         $lockAcquired = $mutex?->acquire($mutexKey, 3) ?? false;
-        if (!$lockAcquired) { throw new \yii\web\TooManyRequestsHttpException('Payment session is busy.'); }
+
+        if (!$lockAcquired) {
+            throw new \yii\web\TooManyRequestsHttpException('Payment session is busy.');
+        }
 
         try {
             $entry = $cache->get($cacheKey);

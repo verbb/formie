@@ -11,7 +11,7 @@ final class ThemeConfigLegacyKeys
 
     public static function canonicalDottedPathIfLegacy(string $dottedKey): ?string
     {
-        $aliases = self::legacyMap();
+        $aliases = self::_legacyMap();
         $first = str_contains($dottedKey, '.') ? strstr($dottedKey, '.', true) : $dottedKey;
 
         if (!isset($aliases[$first])) {
@@ -27,7 +27,7 @@ final class ThemeConfigLegacyKeys
 
     public static function canonicalSegmentIfLegacy(string $segment): ?string
     {
-        return self::legacyMap()[$segment] ?? null;
+        return self::_legacyMap()[$segment] ?? null;
     }
 
     public static function maybeLogDeprecatedDottedPath(string $caller, string $key): ?string
@@ -74,7 +74,7 @@ final class ThemeConfigLegacyKeys
             return $value;
         }
 
-        foreach (self::semanticAliases() as $alias => $canonical) {
+        foreach (self::_semanticAliases() as $alias => $canonical) {
             if ($canonical !== $key) {
                 continue;
             }
@@ -93,7 +93,7 @@ final class ThemeConfigLegacyKeys
     // Private Methods
     // =========================================================================
 
-    private static function legacyMap(): array
+    private static function _legacyMap(): array
     {
         return [
             'radio' => 'radioButtons',
@@ -109,7 +109,7 @@ final class ThemeConfigLegacyKeys
      *
      * @return array<string, string>
      */
-    private static function semanticAliases(): array
+    private static function _semanticAliases(): array
     {
         return [
             'pageTabLinkActive' => 'tabLinkCurrent',

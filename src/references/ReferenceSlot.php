@@ -11,20 +11,24 @@ final readonly class ReferenceSlot
     {
         if (is_array($stored) && isset($stored['kind'])) {
             $kind = is_string($stored['kind']) ? ReferenceSlotKind::tryFrom($stored['kind']) : null;
+
             if (!$kind) {
                 throw new ReferenceException(ReferenceDiagnostic::InvalidExpression);
             }
             return new self($kind, $stored['value'] ?? null);
         }
+
         // Bounded migration for Formie 3/beta mappings. New writes must store kind explicitly.
         if (is_array($stored)) {
             $type = $stored['type'] ?? '';
             $value = $type === 'none' ? '' : ($stored['value'] ?? '');
+
             if (in_array($type, ['literal', 'custom'], true)) {
                 return new self(ReferenceSlotKind::Literal, $value);
             }
             $stored = $value;
         }
+
         if (is_string($stored) && str_starts_with($stored, '{providerOption:')) {
             $expression = ReferenceParser::parse($stored);
             return new self(ReferenceSlotKind::Literal, $expression->isValid ? $expression->identifier : $stored);

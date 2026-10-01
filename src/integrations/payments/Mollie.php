@@ -179,6 +179,7 @@ class Mollie extends Payment
         }
 
         $secret = (string)($request->queryParams['recoveryToken'] ?? '');
+
         if (!hash_equals($this->_webhookRecoveryToken(new PaymentModel($row)), $secret)) {
             throw new ForbiddenHttpException('Invalid webhook secret.');
         }
@@ -368,7 +369,7 @@ class Mollie extends Payment
             ]),
         ];
     }
-    
+
 
 
     // Protected Methods
@@ -403,7 +404,7 @@ class Mollie extends Payment
 
         return $defaults;
     }
-    
+
 
 
     // Private Methods

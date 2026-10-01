@@ -52,7 +52,7 @@ class MissingField extends Field implements MissingComponentInterface
 
         return $settings;
     }
-    
+
 
     // Traits
     // =========================================================================

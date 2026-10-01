@@ -22,13 +22,16 @@ class ResolveNavigationIntentTask implements TaskInterface
             $progress = \verbb\formie\Formie::$plugin->getSubmissionProgress()->getProgressState($form);
             $pages = $form->getPages();
             $authoritative = $pages[0] ?? null;
+
             foreach ($pages as $page) {
                 if ($progress && (int)$page->id === (int)$progress->currentPageId) {
                     $authoritative = $page;
                 }
             }
+
             if ($authoritative) {
                 $form->setCurrentPage($authoritative);
+
                 foreach ($pages as $page) {
                     if ($command->pageId === (int)$page->id && $form->getPageIndex($page) > $form->getPageIndex($authoritative)) {
                         $command->submission->addError('form', Craft::t('formie', 'The requested page is unavailable.'));

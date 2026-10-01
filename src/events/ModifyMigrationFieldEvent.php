@@ -15,5 +15,5 @@ class ModifyMigrationFieldEvent extends CancelableEvent
     public mixed $originForm = null;
     public mixed $field = null;
     public ?FieldInterface $newField = null;
-    
+
 }

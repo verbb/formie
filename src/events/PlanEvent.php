@@ -12,5 +12,5 @@ class PlanEvent extends Event
 
     public ?SubscriptionPlan $plan = null;
     public bool $isNew = false;
-    
+
 }

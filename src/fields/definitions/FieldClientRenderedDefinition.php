@@ -17,7 +17,7 @@ class FieldClientRenderedDefinition extends BaseObject
             'type' => $type,
         ]);
     }
-    
+
 
     // Properties
     // =========================================================================

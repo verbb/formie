@@ -34,11 +34,11 @@ class Pipedrive extends Crm
     {
         return 'Pipedrive';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     #[FormIntegrationSetting]
@@ -222,6 +222,7 @@ class Pipedrive extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $personValues = $this->getFieldMappingValues($submission, $this->personFieldMapping, 'person');
             $dealValues = $this->getFieldMappingValues($submission, $this->dealFieldMapping, 'deal');
@@ -506,7 +507,7 @@ class Pipedrive extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

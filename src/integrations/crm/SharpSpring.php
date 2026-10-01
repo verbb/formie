@@ -35,11 +35,11 @@ class SharpSpring extends Crm
     {
         return 'SharpSpring';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     public ?string $accountId = null;
     #[Sensitive]
     public ?string $secretKey = null;
@@ -203,6 +203,7 @@ class SharpSpring extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
 
@@ -249,7 +250,7 @@ class SharpSpring extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -392,13 +393,13 @@ class SharpSpring extends Crm
                 } else {
                     $serializedValues[$field->handle] = $value;
                 }
-            } else if ($field instanceof Group) {
+            } elseif ($field instanceof Group) {
                 $nestedValues = $this->_serializeValuesForForm($rawValue);
 
                 foreach ($nestedValues as $k => $v) {
                     $serializedValues[$field->handle . '.' . $k] = $v;
                 }
-            } else if ($field instanceof Repeater) {
+            } elseif ($field instanceof Repeater) {
                 // Not supported by SharpSpring
             } else {
                 $value = $field->getValueAsString($rawValue, $element);

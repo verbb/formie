@@ -127,7 +127,7 @@ class FileUpload extends ElementField
     // =========================================================================
 
     private const ACTIVE_CONTENT_EXTENSIONS = ['svg', 'svgz', 'html', 'htm', 'xhtml', 'xml'];
-    
+
 
     // Properties
     // =========================================================================
@@ -457,6 +457,7 @@ class FileUpload extends ElementField
 
         foreach ($uploadedFiles as $file) {
             $size = $this->_getUploadedFileSize($file);
+
             if ($size !== null && $size < $sizeMinLimit) {
                 $filenames[] = $file['filename'];
             }
@@ -480,6 +481,7 @@ class FileUpload extends ElementField
 
         foreach ($uploadedFiles as $file) {
             $size = $this->_getUploadedFileSize($file);
+
             if ($size !== null && $size > $sizeLimit) {
                 $filenames[] = $file['filename'];
             }
@@ -813,15 +815,19 @@ class FileUpload extends ElementField
 
         // Draft and back-navigation commands still enforce file policy before provider writes.
         $this->validateFileType($element);
+
         if ($this->limitFiles) {
             $this->validateFileLimit($element);
         }
+
         if ($this->sizeLimit) {
             $this->validateMaxFileSize($element);
         }
+
         if ($this->sizeMinLimit) {
             $this->validateMinFileSize($element);
         }
+
         if ($element->hasErrors($this->valueKey())) {
             return false;
         }
@@ -847,6 +853,7 @@ class FileUpload extends ElementField
             // GraphQL supplies the IDs to retain alongside its new mutation data.
             // Those IDs are not replacement candidates, unlike ordinary file inputs.
             $paramName = $this->requestParamName($element);
+
             if ($paramName === null || !isset($uploadedDataFiles[$paramName])) {
                 $this->_assetsToDelete = $value->ids();
             }
@@ -884,6 +891,7 @@ class FileUpload extends ElementField
         $this->_processAssets($element);
 
         parent::afterElementSave($element, $isNew);
+
         // A workflow may save again after promotion or payment. Native uploaded
         // files belong to that command, not to each individual element save.
         if (!WorkflowContext::current() && isset(self::$_stagedElements[$element])) {
@@ -954,7 +962,7 @@ class FileUpload extends ElementField
             ],
         ]);
     }
-    
+
 
     // Protected Methods
     // =========================================================================
@@ -1271,6 +1279,7 @@ class FileUpload extends ElementField
 
                 if ($saved) {
                     $assetIds[] = $asset->id;
+
                     if (!$staging) {
                         Formie::$plugin->getFileUploads()->trackFromFieldAsset($asset, $this, $element);
                     }

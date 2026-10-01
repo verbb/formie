@@ -38,6 +38,7 @@ class PaymentStatusController extends Controller
     {
         $profile = \verbb\formie\helpers\BrowserRequestProfile::enter();
         \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders($this->request, $this->response);
+
         if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         }
@@ -56,11 +57,13 @@ class PaymentStatusController extends Controller
 
         // Status token is the capability; do not require a client-supplied paymentUid.
         $paymentUid = (string)$payment->uid;
+
         if (!$integration = $payment->getIntegration()) {
             throw new NotFoundHttpException('Integration not found');
         }
 
         $integrationHandle = $integration->handle;
+
         try {
             $payment = Formie::$plugin->getPayments()->refreshIfDue($payment);
         } catch (Throwable $e) {
@@ -96,6 +99,7 @@ class PaymentStatusController extends Controller
             $submitMessage = $form->settings->getSuccessMessage($submission);
 
             Formie::$plugin->getService()->setFlash($flashNamespace, 'submitted', true);
+
             if ($submitMessage) {
                 Formie::$plugin->getService()->setNotice($flashNamespace, $submitMessage);
             }
@@ -218,7 +222,10 @@ class PaymentStatusController extends Controller
         $mutex = Craft::$app->getMutex();
         $now = time();
         $lockAcquired = $mutex?->acquire($mutexKey, 3) ?? false;
-        if (!$lockAcquired) { throw new TooManyRequestsHttpException('Payment status is busy.'); }
+
+        if (!$lockAcquired) {
+            throw new TooManyRequestsHttpException('Payment status is busy.');
+        }
 
         try {
             $entry = $cache->get($cacheKey);

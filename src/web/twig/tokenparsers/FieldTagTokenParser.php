@@ -33,7 +33,7 @@ class FieldTagTokenParser extends AbstractTokenParser
         $nodes['content'] = $this->parser->subparse(function(Token $token) {
             return $token->test('endfieldtag');
         }, true);
-        
+
         $stream->expect(Token::BLOCK_END_TYPE);
 
         return new FieldTagNode($nodes, [], $lineno, $this->getTag());

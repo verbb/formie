@@ -95,6 +95,7 @@ class FormsController extends Controller
         }
 
         $requestToken = (string)$this->request->getQueryParam('requestToken', '');
+
         if ($requestToken !== '') {
             (new \verbb\formie\services\RuntimeConfiguration())->restoreToken($form, $requestToken);
         }
@@ -253,7 +254,7 @@ class FormsController extends Controller
     public function actionTemplateFieldsSlideout(): Response
     {
         $this->requireCpRequest();
-        
+
         $formId = $this->request->getParam('formId');
         $templateId = $this->request->getParam('templateId');
 
@@ -339,7 +340,7 @@ class FormsController extends Controller
             ->docTitle(Craft::t('formie', 'Form Preview'))
             ->title(Craft::t('formie', 'Form Preview'))
             ->contentHtml(Formie::$plugin->getFormPreview()->getSlideoutContentHtml($previewKey))
-            ->prepareScreen(function (CraftResponse $response, string $containerId): void {
+            ->prepareScreen(function(CraftResponse $response, string $containerId): void {
                 Formie::$plugin->getFormPreview()->registerSlideoutPaneHeader($containerId);
             });
 
@@ -412,7 +413,7 @@ class FormsController extends Controller
     public function actionTemplateFieldsSlideoutSave(): Response
     {
         $this->requirePostRequest();
-        
+
         $formId = $this->request->getParam('formId');
         $templateId = $this->request->getParam('templateId');
 
@@ -429,7 +430,7 @@ class FormsController extends Controller
 
         $form->setTemplate($template);
         $form->setFieldValuesFromRequest('fields');
-        
+
         if (!Craft::$app->getElements()->saveElement($form)) {
             Formie::error('Couldn\'t save form - {e}.', ['e' => Json::encode($form->getErrors())]);
 
@@ -870,6 +871,7 @@ class FormsController extends Controller
         $formId = (int)$this->request->getRequiredParam('formId');
 
         $form = Formie::$plugin->getForms()->getFormById($formId);
+
         if (!$form) {
             throw new NotFoundHttpException('Form not found');
         }
@@ -898,6 +900,7 @@ class FormsController extends Controller
         $formId = $this->request->getRequiredParam('formId');
 
         $form = Formie::$plugin->getForms()->getFormById($formId);
+
         if (!$form && Formie::$plugin->getStencils()->getStencilById((int)$formId)) {
             return $this->asJson([]);
         }

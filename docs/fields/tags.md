@@ -42,12 +42,9 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 ## Front-End Reference
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
-
 - [Tags](https://docs.verbb.io/formie/browser/ui-reference/fields/tags)
 
 ## Related Fields
 
 - Use [Categories](/fields/categories) when the taxonomy should be hierarchical.
 - Use [Dropdown](/fields/dropdown), [Radio](/fields/radio) or [Checkboxes](/fields/checkboxes) for fixed option lists.
-

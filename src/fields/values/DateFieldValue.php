@@ -10,7 +10,6 @@ use DateTimeInterface;
 
 class DateFieldValue extends BaseFieldValue
 {
-
     // Static Methods
     // =========================================================================
 
@@ -31,7 +30,7 @@ class DateFieldValue extends BaseFieldValue
 
         if ($value instanceof FieldValueInterface) {
             $value = (string)$value;
-        } else if (is_object($value)) {
+        } elseif (is_object($value)) {
             if (method_exists($value, '__toString')) {
                 $value = (string)$value;
             } else {
@@ -156,7 +155,7 @@ class DateFieldValue extends BaseFieldValue
         if (($parsed['is_localtime'] ?? false) && ($parsed['zone_type'] ?? null) === 1) {
             $offset = (int)$parsed['zone'];
             $parts['timezone'] = sprintf('%s%02d:%02d', $offset < 0 ? '-' : '+', intdiv(abs($offset), 3600), intdiv(abs($offset) % 3600, 60));
-        } else if (isset($parsed['tz_id'])) {
+        } elseif (isset($parsed['tz_id'])) {
             $parts['timezone'] = $parsed['tz_id'];
         }
 
@@ -188,6 +187,7 @@ class DateFieldValue extends BaseFieldValue
             }
 
             $normalized[$partKey] = is_scalar($value) ? trim((string)$value) : \craft\helpers\Json::encode($value);
+
             if ($partKey !== 'timezone' && ctype_digit($normalized[$partKey])) {
                 $normalized[$partKey] = ltrim($normalized[$partKey], '0') ?: '0';
             }
@@ -248,6 +248,7 @@ class DateFieldValue extends BaseFieldValue
                 return null;
             }
         }
+
         if ((isset($parts['hour']) && (int)$parts['hour'] > 23) || (isset($parts['minute']) && (int)$parts['minute'] > 59) || (isset($parts['second']) && (int)$parts['second'] > 59)) {
             return null;
         }
@@ -258,13 +259,15 @@ class DateFieldValue extends BaseFieldValue
         $hour = isset($parts['hour']) && $parts['hour'] !== '' ? (int)$parts['hour'] : 0;
         $minute = isset($parts['minute']) && $parts['minute'] !== '' ? (int)$parts['minute'] : 0;
         $second = isset($parts['second']) && $parts['second'] !== '' ? (int)$parts['second'] : 0;
+
         if (isset($parts['ampm'])) {
             if (!in_array($parts['ampm'], ['AM', 'PM'], true)) {
                 return null;
             }
+
             if ($parts['ampm'] === 'AM' && $hour === 12) {
                 $hour = 0;
-            } else if ($parts['ampm'] === 'PM' && $hour < 12) {
+            } elseif ($parts['ampm'] === 'PM' && $hour < 12) {
                 $hour += 12;
             }
         }
@@ -385,13 +388,13 @@ class DateFieldValue extends BaseFieldValue
         return self::PART_KEYS;
     }
 
-    
+
     // Properties
     // =========================================================================
 
     protected array $parts = [];
     protected mixed $rawInput = null;
-    
+
 
     // Public Methods
     // =========================================================================
@@ -403,6 +406,7 @@ class DateFieldValue extends BaseFieldValue
         }
         $this->parts = self::parseParts($value);
         $this->rawInput = is_array($value) ? ($value['_input'] ?? null) : null;
+
         if ($this->rawInput === null && $this->parts === [] && $value !== null && $value !== '' && $value !== []) {
             $nonEmpty = is_array($value) ? array_filter($value, static fn($part) => $part !== null && $part !== '') : $value;
             $this->rawInput = $nonEmpty ? $value : null;
@@ -453,6 +457,7 @@ class DateFieldValue extends BaseFieldValue
         if ($this->rawInput !== null) {
             return false;
         }
+
         foreach ($this->parts as $key => $part) {
             if (!in_array($key, ['ampm', 'timezone'], true) && !ctype_digit((string)$part)) {
                 return false;

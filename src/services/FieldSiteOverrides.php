@@ -118,7 +118,7 @@ class FieldSiteOverrides extends Component
                 continue;
             }
 
-            if ($this->isSourceSiteForForm((int)$form->id, $siteId)) {
+            if ($this->_isSourceSiteForForm((int)$form->id, $siteId)) {
                 continue;
             }
 
@@ -234,7 +234,7 @@ class FieldSiteOverrides extends Component
     // Private Methods
     // =========================================================================
 
-    private function isSourceSiteForForm(int $formId, int $siteId): bool
+    private function _isSourceSiteForForm(int $formId, int $siteId): bool
     {
         return $siteId === Formie::$plugin->getFormSiteOverrides()->getSourceSiteIdForFormId($formId);
     }

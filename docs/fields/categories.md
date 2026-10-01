@@ -45,12 +45,9 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 ## Front-End Reference
 
-The front-end docs live on the separate browser UI reference site and cover rendered markup, data attributes, styling classes and JavaScript behaviour for custom front-end implementations.
-
 - [Categories](https://docs.verbb.io/formie/browser/ui-reference/fields/categories)
 
 ## Related Fields
 
 - Use [Entries](/fields/entries), [Tags](/fields/tags) or [Users](/fields/users) for other Craft element relations.
 - Use [Dropdown](/fields/dropdown), [Radio](/fields/radio) or [Checkboxes](/fields/checkboxes) for static option lists managed inside the form.
-

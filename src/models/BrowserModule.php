@@ -51,6 +51,7 @@ final readonly class BrowserModule
         if (is_array($moduleId)) {
             $configValues = $moduleId;
             $unknownKeys = array_diff(array_keys($configValues), ['moduleId', 'key', 'kind', 'targets', 'surfaces', 'config', 'required']);
+
             if ($unknownKeys !== []) {
                 throw new InvalidArgumentException('Unknown browser module declaration keys: ' . implode(', ', $unknownKeys));
             }

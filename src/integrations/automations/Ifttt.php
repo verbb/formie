@@ -34,16 +34,16 @@ class Ifttt extends Automation
     {
         return 'IFTTT';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $webhookKey = null;
     #[FormIntegrationSetting]
     public ?string $eventName = null;
-    
+
 
     // Public Methods
     // =========================================================================
@@ -88,6 +88,7 @@ class Ifttt extends Automation
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $payload = $this->generatePayloadValues($submission);
 
@@ -113,7 +114,7 @@ class Ifttt extends Automation
         return "https://maker.ifttt.com/trigger/$event/with/key/$key";
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

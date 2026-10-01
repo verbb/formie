@@ -59,11 +59,13 @@ class m260928_010000_reference_contract extends Migration
 
         foreach ((new Query())->select(['id', 'settings'])->from(Table::FORMIE_FORMS)->each() as $row) {
             $data = Json::decodeIfJson($row['settings'] ?? null);
+
             if (!is_array($data)) {
                 continue;
             }
 
             $normalized = m260929_000000_form_integration_policy::normalize($data);
+
             if ($normalized !== $data) {
                 $this->update(Table::FORMIE_FORMS, ['settings' => Json::encode($normalized)], ['id' => $row['id']], [], false);
             }
@@ -105,12 +107,14 @@ class m260928_010000_reference_contract extends Migration
     {
         foreach ((new Query())->from(Table::FORMIE_NOTIFICATIONS)->where(['formId' => $form->id])->each() as $row) {
             $changes = [];
+
             foreach ($row as $column => $value) {
                 if (!is_string($value)) {
                     continue;
                 }
 
                 $migrated = ReferenceMigration::canonicalFieldTokens($form, $value);
+
                 if ($migrated !== $value) {
                     $changes[$column] = $migrated;
                 }
@@ -127,11 +131,13 @@ class m260928_010000_reference_contract extends Migration
         if ($this->db->tableExists(Table::FORMIE_STENCILS)) {
             foreach ((new Query())->select(['id', 'data'])->from(Table::FORMIE_STENCILS)->each() as $row) {
                 $data = Json::decodeIfJson($row['data'] ?? null);
+
                 if (!is_array($data)) {
                     continue;
                 }
 
                 $migrated = $this->_migrateStencilData($data);
+
                 if ($migrated !== $data) {
                     $this->update(Table::FORMIE_STENCILS, ['data' => Json::encode($migrated)], ['id' => $row['id']], [], false);
                 }
@@ -139,9 +145,11 @@ class m260928_010000_reference_contract extends Migration
         }
 
         $projectConfig = Craft::$app->getProjectConfig();
+
         foreach ((array)$projectConfig->get('formie.stencils', true) as $uid => $config) {
             $data = ProjectConfig::unpackAssociativeArrays((array)($config['data'] ?? []));
             $migrated = $this->_migrateStencilData($data);
+
             if ($migrated !== $data) {
                 $projectConfig->set(
                     'formie.stencils.' . $uid . '.data',
@@ -175,12 +183,14 @@ class m260928_010000_reference_contract extends Migration
 
         foreach ((new Query())->select(['id', $column])->from($table)->where($where)->each() as $row) {
             $data = Json::decodeIfJson($row[$column] ?? null);
+
             if (!is_array($data)) {
                 continue;
             }
 
             $encoded = Json::encode($data);
             $migrated = ReferenceMigration::canonicalFieldTokens($form, $encoded);
+
             if ($migrated !== $encoded) {
                 $this->update($table, [$column => $migrated], ['id' => $row['id']], [], false);
             }

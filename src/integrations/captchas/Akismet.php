@@ -40,7 +40,7 @@ class Akismet extends Captcha
     public function getSettingsHtml(): ?string
     {
         $variables = $this->getSettingsHtmlVariables();
-        
+
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/akismet/_plugin-settings', $variables);
     }
 

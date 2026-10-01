@@ -37,7 +37,7 @@ class Freshdesk extends HelpDesk
     {
         return 'Freshdesk';
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -63,7 +63,7 @@ class Freshdesk extends HelpDesk
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-    
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -319,6 +319,7 @@ class Freshdesk extends HelpDesk
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             // Send Contact payload
             if ($this->mapToContact) {
@@ -403,7 +404,7 @@ class Freshdesk extends HelpDesk
             // Send Ticket payload
             if ($this->mapToTicket) {
                 $ticketValues = $this->getFieldMappingMultipartValues($submission, $this->ticketFieldMapping, 'ticket');
-                
+
                 $requiresMultipart = $this->_requiresMultipart($this->ticketFieldMapping, $submission);
 
                 if ($requiresMultipart) {
@@ -493,6 +494,7 @@ class Freshdesk extends HelpDesk
 
         foreach ($fieldMapping as $tag => $fieldKey) {
             $slot = ReferenceSlot::fromStored($fieldKey);
+
             // Don't let in un-mapped fields
             if ($slot->value === '') {
                 continue;
@@ -530,7 +532,7 @@ class Freshdesk extends HelpDesk
                                 'contents' => $contents,
                             ];
                         }
-                    } else if ($value !== '' && $value !== null) {
+                    } elseif ($value !== '' && $value !== null) {
                         $fieldValues[] = [
                             'name' => $name,
                             'contents' => $value,
@@ -627,7 +629,7 @@ class Freshdesk extends HelpDesk
         return $schema;
     }
 
-    
+
 
     // Private Methods
     // =========================================================================

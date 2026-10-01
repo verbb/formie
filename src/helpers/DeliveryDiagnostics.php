@@ -12,6 +12,7 @@ final class DeliveryDiagnostics
     public static function exception(Throwable $error): array
     {
         $chain = [];
+
         do {
             $chain[] = [
                 'type' => get_class($error),
@@ -34,8 +35,10 @@ final class DeliveryDiagnostics
         if ($depth > 8) {
             return '[depth limit]';
         }
+
         if (is_array($value)) {
             $safe = [];
+
             foreach (array_slice($value, 0, 100, true) as $key => $item) {
                 if (preg_match('/password|secret|token|authorization|cookie|api.?key|httpAuth|credential|card.?number|cvv/i', (string)$key)) {
                     $safe[$key] = '[redacted]';
@@ -45,9 +48,11 @@ final class DeliveryDiagnostics
             }
             return $safe;
         }
+
         if (is_string($value)) {
             if (strlen($value) <= 65536 && ($value[0] ?? '') === '{') {
                 $decoded = json_decode($value, true);
+
                 if (is_array($decoded)) {
                     return json_encode(self::redact($decoded, $secrets, $depth + 1), JSON_INVALID_UTF8_SUBSTITUTE);
                 }
@@ -62,8 +67,10 @@ final class DeliveryDiagnostics
         if ($depth > 32) {
             return '[depth limit]';
         }
+
         if (is_array($value)) {
             $safe = [];
+
             foreach ($value as $key => $item) {
                 if (preg_match('/password|secret|token|authorization|cookie|api.?key|httpAuth|credential|card.?number|cvv/i', (string)$key)) {
                     $safe[$key] = '[redacted]';
@@ -73,9 +80,11 @@ final class DeliveryDiagnostics
             }
             return $safe;
         }
+
         if (is_string($value)) {
             if (strlen($value) <= 2097152 && in_array($value[0] ?? '', ['{', '['], true)) {
                 $decoded = json_decode($value, true);
+
                 if (is_array($decoded)) {
                     return json_encode(self::redactComplete($decoded, $secrets, $depth + 1), JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
                 }
@@ -88,6 +97,7 @@ final class DeliveryDiagnostics
     public static function encode(mixed $value, array $secrets = []): string
     {
         $json = json_encode(self::redact($value, $secrets), JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+
         if (strlen($json) > 16384) {
             return json_encode(['truncated' => true, 'preview' => mb_strcut($json, 0, 8192)], JSON_INVALID_UTF8_SUBSTITUTE);
         }

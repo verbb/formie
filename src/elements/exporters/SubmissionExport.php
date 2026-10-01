@@ -26,7 +26,7 @@ class SubmissionExport extends ElementExporter
     // =========================================================================
 
     public const EVENT_MODIFY_EXPORT_DATA = 'modifyExportData';
-    
+
 
     // Static Methods
     // =========================================================================
@@ -39,7 +39,7 @@ class SubmissionExport extends ElementExporter
 
     // Public Methods
     // =========================================================================
-    
+
     public function getFilename(): string
     {
         return 'formie-submissions-' . (new DateTime())->format('Y-m-d-H-i');
@@ -74,7 +74,7 @@ class SubmissionExport extends ElementExporter
 
                 foreach ($attributes as $attr => $label) {
                     $value = $element->$attr;
-                    
+
                     if ($value instanceof DateTime) {
                         $value = DateTimeHelper::toIso8601($value) ?: null;
                     }
@@ -91,11 +91,11 @@ class SubmissionExport extends ElementExporter
             }
 
             // Normalise the columns. Due to repeaters/table fields, some rows might not have the correct columns.
-            // We need to have all rows have the same column definitions. 
+            // We need to have all rows have the same column definitions.
             // First, find the row with the largest columns to use as our template for all other rows
             $exportData = [];
             $counts = array_map('count', $data);
-            
+
             if ($counts) {
                 $key = array_flip($counts)[max($counts)];
                 $largestRow = $data[$key];

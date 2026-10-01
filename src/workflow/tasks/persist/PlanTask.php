@@ -35,6 +35,7 @@ class PlanTask implements TaskInterface
             && !Formie::$plugin->getSettings()->shouldSaveSpam($submission);
 
         $wasIncomplete = !$submission->id || $submission->isIncomplete;
+
         if ($command->operation === SubmissionOperation::SAVE_DRAFT) {
             $submission->isIncomplete = true;
         } elseif ($command->usesVisitorProgression()) {

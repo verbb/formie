@@ -31,11 +31,11 @@ class Salesmate extends Crm
     {
         return 'Salesmate';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     #[Sensitive]
     public ?string $apiKey = null;
     public ?string $apiDomain = null;
@@ -75,6 +75,7 @@ class Salesmate extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             if ($this->mapToContact) {
                 $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
@@ -107,7 +108,7 @@ class Salesmate extends Crm
                 $contactId = $response['Data']['data'][0]['id'] ?? null;
 
                 if ($contactId) {
-                    $response = $this->deliverPayload($submission, "contact/v4/$contactId" , $payload, 'PUT');
+                    $response = $this->deliverPayload($submission, "contact/v4/$contactId", $payload, 'PUT');
                 } else {
                     $response = $this->deliverPayload($submission, 'contact/v4', $payload);
 
@@ -149,7 +150,7 @@ class Salesmate extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
@@ -203,7 +204,7 @@ class Salesmate extends Crm
         return $schema;
     }
 
-    
+
     // Private Methods
     // =========================================================================
 
@@ -226,7 +227,7 @@ class Salesmate extends Crm
             if (($field['isInternal'] ?? false)) {
                 continue;
             }
-            
+
             if (($field['groupName'] ?? '') === 'Internal') {
                 continue;
             }
@@ -244,18 +245,18 @@ class Salesmate extends Crm
                             'value' => (string)($opt['value'] ?? ''),
                         ];
                     }
-                } else if (isset($fieldOptions['url'])) {
+                } elseif (isset($fieldOptions['url'])) {
                     $entityPath = $fieldOptions['url'];
 
                     if ($entityPath === '/lookups/companies') {
                         $options = $this->_listCompanies();
-                    } else if ($entityPath === '/lookups/contacts') {
+                    } elseif ($entityPath === '/lookups/contacts') {
                         $options = $this->_listContacts();
-                    } else if ($entityPath === '/lookups/deals') {
+                    } elseif ($entityPath === '/lookups/deals') {
                         $options = $this->_listDeals();
-                    } else if ($entityPath === '/users/active') {
+                    } elseif ($entityPath === '/users/active') {
                         $options = $this->_listUsers();
-                    } else if ($entityPath === '/lookups/active/currency') {
+                    } elseif ($entityPath === '/lookups/active/currency') {
                         $options = $this->_listCurrencies();
                     }
                 }

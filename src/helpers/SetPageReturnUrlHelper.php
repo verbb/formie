@@ -57,8 +57,10 @@ final class SetPageReturnUrlHelper
 
         if ($pathSegment === '') {
             $urlPath = parse_url((string)$request->getUrl(), PHP_URL_PATH);
+
             if (is_string($urlPath) && $urlPath !== '') {
                 $pathSegment = trim($urlPath, '/');
+
                 if (str_starts_with($pathSegment, 'index.php/')) {
                     $pathSegment = trim(substr($pathSegment, strlen('index.php/')), '/');
                 } elseif ($pathSegment === 'index.php') {

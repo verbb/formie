@@ -11,7 +11,7 @@ class HandleValidator extends Validator
     // =========================================================================
 
     public static string $handlePattern = '[a-zA-Z][a-zA-Z0-9_]*';
-    
+
     public array $reservedWords = [];
 
 
@@ -35,7 +35,7 @@ class HandleValidator extends Validator
                 if (!preg_match('/^' . static::$handlePattern . '$/', $handle)) {
                     $altMessage = Craft::t('app', '“{handle}” isn’t a valid handle.', ['handle' => $handle]);
                     $message = $this->message ?? $altMessage;
-                    
+
                     $this->addError($model, $attribute, $message);
                 }
             }

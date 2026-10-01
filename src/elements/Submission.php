@@ -153,12 +153,12 @@ class Submission extends Element
 
         $icon = null;
         $label = null;
-        
+
         // Swap out the different icons for status/spam/etc
         if ($element->isIncomplete) {
             $icon = 'draft';
             $label = Craft::t('formie', 'Incomplete');
-        } else if ($element->isSpam) {
+        } elseif ($element->isSpam) {
             $icon = 'bug';
             $label = Craft::t('formie', 'Spam');
         }
@@ -443,7 +443,7 @@ class Submission extends Element
             ],
         ];
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -582,7 +582,7 @@ class Submission extends Element
     {
         return $this->_contentState ??= new SubmissionContentState();
     }
-    
+
     public function canView(User $user): bool
     {
         if (parent::canView($user)) {
@@ -591,7 +591,7 @@ class Submission extends Element
 
         return Formie::$plugin->getPermissions()->canViewSubmissions($user, $this->getForm());
     }
-    
+
     public function canSave(User $user): bool
     {
         if (parent::canSave($user)) {
@@ -647,7 +647,7 @@ class Submission extends Element
     {
         $labels = parent::attributeLabels();
 
-        $processFields = function ($fields) use (&$processFields, &$labels) {
+        $processFields = function($fields) use (&$processFields, &$labels) {
             foreach ($fields as $field) {
                 $labels[$field->valueKey()] = $field->label;
 
@@ -703,6 +703,7 @@ class Submission extends Element
         }
 
         $command = WorkflowContext::current()?->command;
+
         if ($command?->submission === $this && $command->authority->type === \verbb\formie\enums\SubmissionAuthorityType::GRAPHQL_ADMIN) {
             return $validates && !$this->hasErrors();
         }
@@ -954,7 +955,7 @@ class Submission extends Element
                 $status = $foundStatus;
             }
         }
-        
+
         $this->_status = $status;
         $this->statusId = $status->id;
     }
@@ -1167,6 +1168,7 @@ class Submission extends Element
         // Only trigger this for site requests though
         $command = WorkflowContext::current()?->command;
         $administrative = $command?->submission === $this && $command->authority->type === \verbb\formie\enums\SubmissionAuthorityType::GRAPHQL_ADMIN;
+
         if ($this->isSpam && !$administrative && $request->getIsSiteRequest()) {
             // Always log spam submissions
             Formie::$plugin->getSubmissions()->logSpam($this);
@@ -1320,6 +1322,7 @@ class Submission extends Element
         // Delete associated file upload assets when the submission is permanently deleted
         // and the form is configured to remove files.
         $this->_uploadsToDelete = [];
+
         if ($form && $form->fileUploadsAction === 'delete' && $this->hardDelete) {
             $this->_uploadsToDelete = Formie::$plugin->getFileUploads()->getUploadsForSubmissionDeletion($this);
         }
@@ -1478,11 +1481,11 @@ class Submission extends Element
             $form = $this->getForm();
 
             return $form->title ?? '';
-        } 
+        }
 
         if ($attribute == 'userId') {
             $user = $this->getUser();
-            
+
             return $user ? Cp::elementChipHtml($user) : '';
         }
 
@@ -1663,11 +1666,13 @@ class Submission extends Element
 
         $this->_snapshotSettingsApplied = true;
         $config = $this->snapshot ? \verbb\formie\models\SubmissionConfig::decode($this->snapshot, $this->_form) : $this->_form->getInstanceConfig();
+
         if (!$this->snapshot) {
             $completion = array_intersect_key($this->_form->settings->toArray(), array_flip(\verbb\formie\services\RuntimeConfiguration::DURABLE_FORM_SETTINGS));
             // Provider connections remain globally owned; only explicit runtime
             // integration overrides belong to the durable instance config.
             unset($completion['integrations']);
+
             if ($this->_form->settings->completionRedirectSource === 'entry' && $this->_form->getRedirectEntry()) {
                 $completion['redirectUrl'] = $this->_form->getRedirectEntry()->url;
                 $completion['completionRedirectSource'] = 'url';

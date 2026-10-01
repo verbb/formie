@@ -364,7 +364,8 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
 
         // Keep the submitted shape aligned with the Google Maps Address field so
         // CP rendering and integrations can reuse the plugin's existing model.
-        return Html::tag('div',
+        return Html::tag(
+            'div',
             $searchInput .
             $subfieldInputs .
             $currentLocationButton .

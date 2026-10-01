@@ -34,6 +34,7 @@ class BrowserModuleManifestBuilder extends Component
 
         $event = new RegisterBrowserModulesEvent(['form' => $form, 'surface' => $surface]);
         $this->trigger(self::EVENT_REGISTER_MODULES, $event);
+
         foreach ($event->modules as $module) {
             if (!$module instanceof BrowserModule) {
                 throw new \InvalidArgumentException('Form module contributions must be BrowserModule declarations.');

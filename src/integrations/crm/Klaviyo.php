@@ -29,11 +29,11 @@ class Klaviyo extends Crm
     {
         return 'Klaviyo';
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     public ?string $publicApiKey = null;
     #[Sensitive]
     public ?string $privateApiKey = null;
@@ -118,6 +118,7 @@ class Klaviyo extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+
         try {
             $profileValues = $this->getFieldMappingValues($submission, $this->profileFieldMapping, 'profile');
 
@@ -169,7 +170,7 @@ class Klaviyo extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

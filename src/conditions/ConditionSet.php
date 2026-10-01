@@ -11,12 +11,15 @@ final readonly class ConditionSet
     {
         $rules = [];
         $input = $settings['conditions'] ?? $settings['rules'] ?? [];
+
         foreach (is_array($input) ? $input : [null] as $row) {
             $row = is_array($row) ? $row : [];
             $reference = $row['field'] ?? $row['fieldId'] ?? '';
+
             if (is_array($reference)) {
                 $reference = $reference['field'] ?? $reference['fieldId'] ?? '';
             }
+
             if (is_string($reference)) {
                 $reference = [
                     '{submission:formName}' => '{form:name}',

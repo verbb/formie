@@ -19,7 +19,7 @@ class Assets extends CraftAssets
 
         if ($fs instanceof LocalFsInterface) {
             $path = sprintf('%s/%s', rtrim($fs->getRootPath(), '/'), $filename);
-            
+
             return FileHelper::normalizePath($path);
         }
 

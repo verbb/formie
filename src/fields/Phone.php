@@ -179,6 +179,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
         $country = is_array($value) && array_key_exists('country', $value) ? $value['country'] : $this->countryDefaultValue;
         $country = $country === null ? null : strtoupper(trim(is_scalar($country) ? (string)$country : Json::encode(FieldStorageCodec::assertSafe($country))));
         $number = is_array($value) ? (array_key_exists('number', $value) ? $value['number'] : (isset($value['country']) || $value === [] ? '' : $value)) : $value;
+
         if ($number !== null && !is_scalar($number)) {
             FieldStorageCodec::assertSafe($number);
             $number = Json::encode($number);
@@ -186,9 +187,11 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
         $number = trim((string)$number);
         $canonicalNumber = null;
         $countryCode = null;
+
         try {
             $util = PhoneNumberUtil::getInstance();
             $parsed = $util->parse($number, $country ?: null);
+
             if ($util->isValidNumber($parsed)) {
                 $canonicalNumber = $util->format($parsed, PhoneNumberFormat::E164);
                 $countryCode = '+' . $parsed->getCountryCode();
@@ -211,6 +214,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     public function resolveNormalizedValuePath(mixed $value, string $path): mixed
     {
         $phone = $this->normalizeValue($value, null);
+
         if ($path === 'countryName') {
             // Country labels depend on the field's locale, not on the immutable value.
             foreach ($this->getCountryOptions() as $country) {
@@ -456,7 +460,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                 ])
                 ->instanceAttributes($this->getInputAttributes());
         }
-        
+
         return parent::defineSlotTag($key, $context);
     }
 
