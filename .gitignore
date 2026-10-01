@@ -52,4 +52,6 @@ node_modules
 /docs/node_modules
 /docs/.vitepress/cache
 /docs/.vitepress/dist
+/packages/docs/.vitepress/cache
+/packages/docs/.vitepress/dist
 /docs/package-lock.json
