@@ -156,24 +156,25 @@
         },
         {
             "name": "brick/math",
-            "version": "0.20.0",
+            "version": "0.13.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/brick/math.git",
-                "reference": "44d7e16e2e940d9c7dde7076598e25855026dba2"
+                "reference": "fc7ed316430118cc7836bf45faff18d5dfc8de04"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/brick/math/zipball/44d7e16e2e940d9c7dde7076598e25855026dba2",
-                "reference": "44d7e16e2e940d9c7dde7076598e25855026dba2",
+                "url": "https://api.github.com/repos/brick/math/zipball/fc7ed316430118cc7836bf45faff18d5dfc8de04",
+                "reference": "fc7ed316430118cc7836bf45faff18d5dfc8de04",
                 "shasum": ""
             },
             "require": {
-                "php": "^8.2"
+                "php": "^8.1"
             },
             "require-dev": {
-                "phpstan/phpstan": "2.1.22",
-                "phpunit/phpunit": "^11.5"
+                "php-coveralls/php-coveralls": "^2.2",
+                "phpunit/phpunit": "^10.1",
+                "vimeo/psalm": "6.8.8"
             },
             "type": "library",
             "autoload": {
@@ -203,7 +204,7 @@
             ],
             "support": {
                 "issues": "https://github.com/brick/math/issues",
-                "source": "https://github.com/brick/math/tree/0.20.0"
+                "source": "https://github.com/brick/math/tree/0.13.1"
             },
             "funding": [
                 {
@@ -211,7 +212,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-28T20:53:19+00:00"
+            "time": "2025-03-29T13:50:30+00:00"
         },
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -3241,43 +3242,6 @@
             "time": "2025-09-08T19:05:53+00:00"
         },
         {
-            "name": "jakeasmith/http_build_url",
-            "version": "1.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/jakeasmith/http_build_url.git",
-                "reference": "93c273e77cb1edead0cf8bcf8cd2003428e74e37"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/jakeasmith/http_build_url/zipball/93c273e77cb1edead0cf8bcf8cd2003428e74e37",
-                "reference": "93c273e77cb1edead0cf8bcf8cd2003428e74e37",
-                "shasum": ""
-            },
-            "type": "library",
-            "autoload": {
-                "files": [
-                    "src/http_build_url.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Jake A. Smith",
-                    "email": "theman@jakeasmith.com"
-                }
-            ],
-            "description": "Provides functionality for http_build_url() to environments without pecl_http.",
-            "support": {
-                "issues": "https://github.com/jakeasmith/http_build_url/issues",
-                "source": "https://github.com/jakeasmith/http_build_url"
-            },
-            "time": "2017-05-01T15:36:40+00:00"
-        },
-        {
             "name": "jean85/pretty-package-versions",
             "version": "2.1.1",
             "source": {
@@ -3821,6 +3785,88 @@
                 }
             ],
             "time": "2026-03-08T20:05:35+00:00"
+        },
+        {
+            "name": "league/uri-polyfill",
+            "version": "7.8.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thephpleague/uri-polyfill.git",
+                "reference": "958196d6c20840037574228b327087d48d5e18b9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thephpleague/uri-polyfill/zipball/958196d6c20840037574228b327087d48d5e18b9",
+                "reference": "958196d6c20840037574228b327087d48d5e18b9",
+                "shasum": ""
+            },
+            "require": {
+                "league/uri-interfaces": ">=7.8.1",
+                "php": ">=8.1",
+                "rowbot/url": "^4.1.0"
+            },
+            "provide": {
+                "ext-uri": "*"
+            },
+            "suggest": {
+                "ext-intl": "to handle IDN host with the best performance",
+                "jeremykendall/php-domain-parser": "to further parse the URI host and resolve its Public Suffix and Top Level Domain",
+                "league/uri-components": "to provide additional tools to manipulate URI objects components",
+                "league/uri-polyfill": "to backport the PHP URI extension for older versions of PHP",
+                "php-64bit": "to improve IPV4 host parsing",
+                "rowbot/url": "to handle URLs using the WHATWG URL Living Standard specification",
+                "symfony/polyfill-intl-idn": "to handle IDN host via the Symfony polyfill if ext-intl is not present",
+                "symfony/polyfill-php82": "to use the SensitiveParameter polyfill in PHP8.1"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "7.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "League\\Uri\\": ""
+                },
+                "classmap": [
+                    "lib"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ignace Nyamagana Butera",
+                    "email": "nyamsprod@gmail.com",
+                    "homepage": "https://github.com/nyamsprod/",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Polyfill backporting PHP 8.5+ native RFC3986/WHATWG URI features to lower PHP versions",
+            "keywords": [
+                "WHATWG",
+                "compatibiliy",
+                "equivalence",
+                "parser",
+                "polyfill",
+                "portable",
+                "resolver",
+                "rfc3986",
+                "uri",
+                "url"
+            ],
+            "support": {
+                "source": "https://github.com/thephpleague/uri-polyfill/tree/7.8.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/nyamsprod",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-03-15T20:22:25+00:00"
         },
         {
             "name": "maennchen/zipstream-php",
@@ -7382,6 +7428,185 @@
                 "source": "https://github.com/ralouphie/getallheaders/tree/develop"
             },
             "time": "2019-03-08T08:55:37+00:00"
+        },
+        {
+            "name": "rowbot/idna",
+            "version": "0.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/TRowbotham/idna.git",
+                "reference": "504900acc8e465a17668a61ae30391d1aebbb4f2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/TRowbotham/idna/zipball/504900acc8e465a17668a61ae30391d1aebbb4f2",
+                "reference": "504900acc8e465a17668a61ae30391d1aebbb4f2",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "php": ">=8.1",
+                "rowbot/punycode": "^1.0",
+                "symfony/polyfill-intl-normalizer": "^1.18"
+            },
+            "require-dev": {
+                "guzzlehttp/guzzle": "^6.5 || ^7.0",
+                "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": "^10.0 || ^11.0 || ^12.0",
+                "squizlabs/php_codesniffer": "^3.7.1",
+                "symfony/cache": "^5.0 || ^6.0 || ^7.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Rowbot\\Idna\\": "src/",
+                    "Rowbot\\Idna\\Resource\\": "resources/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Trevor Rowbotham"
+                }
+            ],
+            "description": "An implementation of UTS#46 Unicode IDNA Compatibility Processing.",
+            "keywords": [
+                "idn",
+                "idna",
+                "international domain names",
+                "iri",
+                "tr46",
+                "unicode",
+                "uts46"
+            ],
+            "support": {
+                "issues": "https://github.com/TRowbotham/idna/issues",
+                "source": "https://github.com/TRowbotham/idna/tree/0.3.0"
+            },
+            "time": "2025-09-19T00:30:13+00:00"
+        },
+        {
+            "name": "rowbot/punycode",
+            "version": "1.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/TRowbotham/punycode.git",
+                "reference": "ec116e99cb089a25d45147813d61bfa2deb29328"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/TRowbotham/punycode/zipball/ec116e99cb089a25d45147813d61bfa2deb29328",
+                "reference": "ec116e99cb089a25d45147813d61bfa2deb29328",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "ext-mbstring": "*",
+                "phpstan/phpstan": "^1.2",
+                "phpstan/phpstan-deprecation-rules": "^1.0",
+                "phpstan/phpstan-strict-rules": "^1.0",
+                "phpunit/phpunit": "^7.0 || ^8.0 || ^9.0",
+                "squizlabs/php_codesniffer": "^3.5.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Rowbot\\Punycode\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Trevor Rowbotham",
+                    "homepage": "https://trowbotham.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A Bootstring encoding of Unicode for Internationalized Domain Names in Applications (IDNA).",
+            "keywords": [
+                "punycode",
+                "rfc-3492",
+                "rfc3492"
+            ],
+            "support": {
+                "issues": "https://github.com/TRowbotham/punycode/issues",
+                "source": "https://github.com/TRowbotham/punycode/tree/1.0.4"
+            },
+            "time": "2024-05-03T00:56:10+00:00"
+        },
+        {
+            "name": "rowbot/url",
+            "version": "4.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/TRowbotham/URL-Parser.git",
+                "reference": "3087a67802a11796590e4bb9507981e48b077529"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/TRowbotham/URL-Parser/zipball/3087a67802a11796590e4bb9507981e48b077529",
+                "reference": "3087a67802a11796590e4bb9507981e48b077529",
+                "shasum": ""
+            },
+            "require": {
+                "brick/math": "^0.12 || ^0.13",
+                "ext-mbstring": "*",
+                "php": ">=8.1",
+                "psr/log": "^3.0",
+                "rowbot/idna": "^0.3.0"
+            },
+            "require-dev": {
+                "guzzlehttp/guzzle": "^7.0",
+                "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": "^10.0 || ^11.0 || ^12.0",
+                "slevomat/coding-standard": "^8.0",
+                "squizlabs/php_codesniffer": "^3.7.1",
+                "symfony/cache": "^5.0 || ^6.0 || ^7.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Rowbot\\URL\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Trevor Rowbotham",
+                    "homepage": "https://trowbotham.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A WHATWG URL spec compliant URL parser for working with URLs and their query strings.",
+            "keywords": [
+                "WHATWG",
+                "query-string",
+                "querystring",
+                "uri",
+                "url",
+                "url-parser",
+                "url-parsing"
+            ],
+            "support": {
+                "issues": "https://github.com/TRowbotham/URL-Parser/issues",
+                "source": "https://github.com/TRowbotham/URL-Parser/tree/4.1.0"
+            },
+            "time": "2025-09-19T00:44:16+00:00"
         },
         {
             "name": "sabberworm/php-css-parser",
@@ -12826,25 +13051,25 @@
         },
         {
             "name": "verbb/auth",
-            "version": "2.0.45",
+            "version": "2.0.48",
             "source": {
                 "type": "git",
                 "url": "https://github.com/verbb/auth.git",
-                "reference": "71be82b7da56742821b479839b0a4cd7e0ace112"
+                "reference": "4abddb1348e1670e8ed8fa44429f6f4d1d8527bf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/verbb/auth/zipball/71be82b7da56742821b479839b0a4cd7e0ace112",
-                "reference": "71be82b7da56742821b479839b0a4cd7e0ace112",
+                "url": "https://api.github.com/repos/verbb/auth/zipball/4abddb1348e1670e8ed8fa44429f6f4d1d8527bf",
+                "reference": "4abddb1348e1670e8ed8fa44429f6f4d1d8527bf",
                 "shasum": ""
             },
             "require": {
                 "craftcms/cms": "^5.0.0",
                 "firebase/php-jwt": "~6.0 || ~7.0",
-                "jakeasmith/http_build_url": "^1.0",
                 "lcobucci/jwt": "^4.0 || ^5.0",
                 "league/oauth1-client": "^1.9",
                 "league/oauth2-client": "^2.8.1",
+                "league/uri-polyfill": "^7.6",
                 "mollie/mollie-api-php": "^1.19 || ^2.39",
                 "php": "^8.2",
                 "psr/http-message": "^1.0 || ^2.0",
@@ -12880,7 +13105,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-25T01:44:40+00:00"
+            "time": "2026-09-28T14:14:12+00:00"
         },
         {
             "name": "verbb/base",
@@ -12938,7 +13163,7 @@
             "dist": {
                 "type": "path",
                 "url": "../../..",
-                "reference": "4856d333ca9301d122fd6a5d0ca8cc8cbca4a85a"
+                "reference": "8a9da27a6e4ddf89042077b69d4dd5bce6bf5f10"
             },
             "require": {
                 "commerceguys/addressing": "^2.1.1",
@@ -12955,7 +13180,7 @@
                 "php": "^8.2",
                 "stripe/stripe-php": "^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0 || ^12.0 || ^13.0 || ^14.0 || ^15.0 || ^16.0",
                 "symfony/expression-language": "^5.0 || ^6.0 || ^7.0",
-                "verbb/auth": "^2.0.44",
+                "verbb/auth": "^2.0.48",
                 "verbb/base": "^3.0.17",
                 "verbb/tiptap": "^1.0.1"
             },
@@ -13035,16 +13260,16 @@
         },
         {
             "name": "verbb/tiptap",
-            "version": "1.0.1",
+            "version": "1.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/verbb/tiptap.git",
-                "reference": "1514f0164cddc981c07c08df6e4a4eb872f29801"
+                "reference": "4a1f065897b115c8b57dda20ff9b7946f99101ea"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/verbb/tiptap/zipball/1514f0164cddc981c07c08df6e4a4eb872f29801",
-                "reference": "1514f0164cddc981c07c08df6e4a4eb872f29801",
+                "url": "https://api.github.com/repos/verbb/tiptap/zipball/4a1f065897b115c8b57dda20ff9b7946f99101ea",
+                "reference": "4a1f065897b115c8b57dda20ff9b7946f99101ea",
                 "shasum": ""
             },
             "require": {
@@ -13095,7 +13320,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-18T13:16:34+00:00"
+            "time": "2026-09-15T02:46:10+00:00"
         },
         {
             "name": "vlucas/phpdotenv",

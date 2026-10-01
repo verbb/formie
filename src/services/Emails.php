@@ -279,7 +279,6 @@ class Emails extends Component
             $parsedContent = References::parseContent($notification->getParsedContent(), $submission, [
                 'outputContext' => ReferenceOutputContext::Html,
                 'notification' => $notification,
-                'includeSummary' => true,
                 'parseEnvValues' => false,
             ]);
 

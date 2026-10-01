@@ -6,6 +6,7 @@ use verbb\formie\Formie;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\Variables;
 use verbb\formie\references\ReferenceShape;
+use verbb\formie\references\ReferenceOutputContext;
 
 it('keeps registry-driven field variable sources aligned with registered fields', function (): void {
     $registered = Formie::$plugin->getFields()->getRegisteredFields();
@@ -81,7 +82,7 @@ it('parses transform metadata on body-less variables', function (): void {
         'fullName' => 'Shown',
     ])->save();
 
-    $timestamp = References::parseContent('{timestamp;transform=format;preset=isoDate}', $submission, ['includeSummary' => true]);
+    $timestamp = References::parseContent('{timestamp;transform=format;preset=isoDate}', $submission);
 
     expect($timestamp)->toMatch('/^\d{4}-\d{1,2}-\d{1,2}$/');
 });
@@ -130,14 +131,17 @@ it('uses email field summary settings for all-fields style variables and normali
 
     $hiddenField = $form->getFieldByHandle('hiddenFromSummary');
     $legacyField = $form->getFieldByHandle('legacyHiddenFromSummary');
-    $allFields = References::parseContent('{allFields}', $submission, ['includeSummary' => true]);
-    $transformedAllFields = References::resolveValue('{allFields;transform=lower}', \verbb\formie\references\ReferenceContext::forSubmission($submission));
-    $allContentFields = References::parseContent('{allContentFields}', $submission, ['includeSummary' => true]);
-    $allVisibleFields = References::parseContent('{allVisibleFields}', $submission, ['includeSummary' => true]);
+    $allFields = References::parseContent('{allFields}', $submission, ['outputContext' => ReferenceOutputContext::Html]);
+    $transformedAllFields = References::resolveValue('{allFields;transform=lower}', \verbb\formie\references\ReferenceContext::forSubmission(
+        $submission,
+        outputContext: ReferenceOutputContext::Html,
+    ));
+    $allContentFields = References::parseContent('{allContentFields}', $submission, ['outputContext' => ReferenceOutputContext::Html]);
+    $allVisibleFields = References::parseContent('{allVisibleFields}', $submission, ['outputContext' => ReferenceOutputContext::Html]);
 
     expect($hiddenField?->includeInEmailFieldSummaries)->toBeFalse()
         ->and($legacyField?->includeInEmailFieldSummaries)->toBeFalse()
-        ->and($transformedAllFields->diagnostic)->toBe(\verbb\formie\references\ReferenceDiagnostic::InvalidType)
+        ->and($transformedAllFields->diagnostic)->toBe(\verbb\formie\references\ReferenceDiagnostic::UnknownTransform)
         ->and($allFields)->toContain('<strong>Public Name</strong>')
         ->and($allFields)->toContain('Shown')
         ->and($allFields)->toContain('<strong>Empty Response</strong>')
@@ -165,9 +169,9 @@ it('omits conditionally hidden fields from all-fields style variables', function
         'otherReason' => 'Should Be Hidden',
     ])->save();
 
-    $allFields = References::parseContent('{allFields}', $submission, ['includeSummary' => true]);
-    $allContentFields = References::parseContent('{allContentFields}', $submission, ['includeSummary' => true]);
-    $allVisibleFields = References::parseContent('{allVisibleFields}', $submission, ['includeSummary' => true]);
+    $allFields = References::parseContent('{allFields}', $submission, ['outputContext' => ReferenceOutputContext::Html]);
+    $allContentFields = References::parseContent('{allContentFields}', $submission, ['outputContext' => ReferenceOutputContext::Html]);
+    $allVisibleFields = References::parseContent('{allVisibleFields}', $submission, ['outputContext' => ReferenceOutputContext::Html]);
 
     expect($form->getFieldByHandle('otherReason')?->isConditionallyHidden($submission))->toBeTrue()
         ->and($allFields)->toContain('Enquiry Type')
@@ -206,7 +210,7 @@ it('includes conditionally visible summary fields when server conditions use cli
         'otherReason' => 'Visible In Email',
     ])->save();
 
-    $allFields = References::parseContent('{allFields}', $submission, ['includeSummary' => true]);
+    $allFields = References::parseContent('{allFields}', $submission, ['outputContext' => ReferenceOutputContext::Html]);
 
     expect($conditionalField->isConditionallyHidden($submission))->toBeFalse()
         ->and($allFields)->toContain('Other Reason')

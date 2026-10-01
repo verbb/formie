@@ -29,9 +29,6 @@ it('retains existing assets and saves new files when updating a submission over 
         ['filename' => 'added.txt', 'fileData' => 'data:text/plain;base64,' . base64_encode($contents)],
     ];
     $payload = $reverse ? array_reverse($payload) : $payload;
-    $mutation = $generic ? SubmissionMutation::createGenericSaveMutation() : SubmissionMutation::createSaveMutation($form);
-    $resolveInfo = $this->createMock(ResolveInfo::class);
-    $resolveInfo->fieldDefinition = FieldDefinition::create($mutation);
     $arguments = $generic
         ? ['id' => $submission->id, 'expectedVersion' => $submission->stateVersion, 'formHandle' => $form->handle, 'fields' => ['attachments' => $payload]]
         : ['id' => $submission->id, 'expectedVersion' => $submission->stateVersion, 'attachments' => $payload];
@@ -44,6 +41,9 @@ it('retains existing assets and saves new files when updating a submission over 
     }
     $gql->setActiveSchema(new GqlSchema(['name' => 'Mixed uploads', 'scope' => ['formieSubmissions.all:save']]));
     try {
+        $mutation = $generic ? SubmissionMutation::createGenericSaveMutation() : SubmissionMutation::createSaveMutation($form);
+        $resolveInfo = $this->createMock(ResolveInfo::class);
+        $resolveInfo->fieldDefinition = FieldDefinition::create($mutation);
         $saved = ($mutation['resolve'])(null, $arguments, null, $resolveInfo);
     } finally {
         $gql->setActiveSchema($previousSchema);

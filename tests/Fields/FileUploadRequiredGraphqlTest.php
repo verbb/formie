@@ -71,10 +71,6 @@ it('accepts required file upload submissions over the graphql mutation path', fu
         ->create();
 
     $initialSubmissionCount = (int)Submission::find()->formId($form->id)->status(null)->isSpam(null)->isIncomplete(null)->count();
-    $mutation = SubmissionMutation::createSaveMutation($form);
-    $resolve = $mutation['resolve'];
-    $resolveInfo = $this->createMock(ResolveInfo::class);
-    $resolveInfo->fieldDefinition = \GraphQL\Type\Definition\FieldDefinition::create(['name' => 'saveTest'] + $mutation);
     $arguments = [
         'resume' => [[
             'fileData' => FILE_UPLOAD_REQUIRED_GQL_FIXTURE,
@@ -100,6 +96,10 @@ it('accepts required file upload submissions over the graphql mutation path', fu
     ]));
 
     try {
+        $mutation = SubmissionMutation::createSaveMutation($form);
+        $resolve = $mutation['resolve'];
+        $resolveInfo = $this->createMock(ResolveInfo::class);
+        $resolveInfo->fieldDefinition = \GraphQL\Type\Definition\FieldDefinition::create(['name' => 'saveTest'] + $mutation);
         $result = call_user_func($resolve, null, $arguments, null, $resolveInfo);
     } finally {
         $gqlService->setActiveSchema($activeSchema);
@@ -130,11 +130,6 @@ it('rejects missing required file upload submissions over the graphql mutation p
         ->create();
 
     $initialSubmissionCount = (int)Submission::find()->formId($form->id)->status(null)->isSpam(null)->isIncomplete(null)->count();
-    $mutation = SubmissionMutation::createSaveMutation($form);
-    $resolve = $mutation['resolve'];
-    $resolveInfo = $this->createMock(ResolveInfo::class);
-    $resolveInfo->fieldDefinition = \GraphQL\Type\Definition\FieldDefinition::create(['name' => 'saveTest'] + $mutation);
-
     $gqlService = Craft::$app->getGql();
     $activeSchema = null;
 
@@ -155,6 +150,10 @@ it('rejects missing required file upload submissions over the graphql mutation p
     $message = '';
 
     try {
+        $mutation = SubmissionMutation::createSaveMutation($form);
+        $resolve = $mutation['resolve'];
+        $resolveInfo = $this->createMock(ResolveInfo::class);
+        $resolveInfo->fieldDefinition = \GraphQL\Type\Definition\FieldDefinition::create(['name' => 'saveTest'] + $mutation);
         call_user_func($resolve, null, [], null, $resolveInfo);
         $this->fail('Expected GraphQL mutation to throw validation error.');
     } catch (Error $error) {

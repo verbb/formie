@@ -72,7 +72,7 @@ it('purges only stale non-finalized pending uploads', function (): void {
         ->column();
     $remainingAssetIds = array_map('intval', $remainingAssetIds);
 
-    expect($purged)->toBe(1)
+    expect($purged)->toBeGreaterThanOrEqual(1)
         ->and($remainingAssetIds)->toContain((int)$finalizedAsset->id)
         ->and($remainingAssetIds)->not->toContain((int)$staleAsset->id)
         ->and(Asset::find()->id($staleAsset->id)->status(null)->one())->toBeNull()

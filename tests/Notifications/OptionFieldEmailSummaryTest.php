@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\References;
+use verbb\formie\references\ReferenceOutputContext;
 
 it('renders checkbox labels in all-fields email summary when options come from submission snapshot', function (): void {
     $form = formie()
@@ -36,7 +37,7 @@ it('renders checkbox labels in all-fields email summary when options come from s
 
     $reloaded = Submission::find()->id($submission->id)->one();
 
-    $html = References::parseContent('{allFields}', $reloaded, ['includeSummary' => true]);
+    $html = References::parseContent('{allFields}', $reloaded, ['outputContext' => ReferenceOutputContext::Html]);
 
     expect($html)->toContain('Artist Name')
         ->and($html)->not->toContain('42-Artist Name')
@@ -64,7 +65,7 @@ it('falls back to option values in all-fields email summary when labels cannot b
 
     $reloaded = Submission::find()->id($submission->id)->one();
 
-    $html = References::parseContent('{allFields}', $reloaded, ['includeSummary' => true]);
+    $html = References::parseContent('{allFields}', $reloaded, ['outputContext' => ReferenceOutputContext::Html]);
 
     expect($html)->toContain('42-Artist Name');
 });

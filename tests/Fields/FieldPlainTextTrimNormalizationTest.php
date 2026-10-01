@@ -11,6 +11,7 @@ use verbb\formie\fields\Number;
 use verbb\formie\fields\Password;
 use verbb\formie\fields\Phone;
 use verbb\formie\fields\SingleLineText;
+use verbb\formie\fields\values\PhoneFieldValue;
 use verbb\formie\helpers\IntegrationHelper;
 use verbb\formie\models\IntegrationField;
 
@@ -51,8 +52,11 @@ it('trims hidden and phone field values during normalization', function (): void
     $hidden = new Hidden(['handle' => 'token']);
     $phone = new Phone(['handle' => 'phone']);
 
+    $phoneValue = $phone->normalizeValue(' 0400000000 ', null);
+
     expect($hidden->normalizeValue(' abc ', null))->toBe('abc')
-        ->and($phone->normalizeValue(' 0400000000 ', null))->toBe('0400000000');
+        ->and($phoneValue)->toBeInstanceOf(PhoneFieldValue::class)
+        ->and($phoneValue->number)->toBe('0400000000');
 });
 
 it('trims composite name and address parts during normalization', function (): void {

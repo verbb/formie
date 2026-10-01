@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Tests\Support\MaliciousPayloads;
 use verbb\formie\helpers\References;
 use verbb\formie\models\RichText;
+use verbb\formie\references\ReferenceOutputContext;
 
 it('includes cosmetic html and rich text fields in email summaries when enabled', function (): void {
     $form = formie()
@@ -26,8 +27,8 @@ it('includes cosmetic html and rich text fields in email summaries when enabled'
         'fullName' => 'Tester',
     ])->save();
 
-    $allFields = References::parseContent('{allFields}', $submission, ['includeSummary' => true]);
-    $allContentFields = References::parseContent('{allContentFields}', $submission, ['includeSummary' => true]);
+    $allFields = References::parseContent('{allFields}', $submission, ['outputContext' => ReferenceOutputContext::Html]);
+    $allContentFields = References::parseContent('{allContentFields}', $submission, ['outputContext' => ReferenceOutputContext::Html]);
 
     expect($allFields)->toContain('<strong>Static notice</strong>')
         ->and($allFields)->toContain('Intro')
@@ -53,7 +54,7 @@ it('excludes cosmetic fields from email summaries when include setting is disabl
         ->create();
 
     $submission = formie()->submission($form)->save();
-    $allFields = References::parseContent('{allFields}', $submission, ['includeSummary' => true]);
+    $allFields = References::parseContent('{allFields}', $submission, ['outputContext' => ReferenceOutputContext::Html]);
 
     expect($allFields)->not->toContain('Should not appear')
         ->and($allFields)->not->toContain('Also hidden');
@@ -71,7 +72,7 @@ it('purifies cosmetic html field output in email summaries', function (): void {
         ->create();
 
     $submission = formie()->submission($form)->save();
-    $allFields = References::parseContent('{allFields}', $submission, ['includeSummary' => true]);
+    $allFields = References::parseContent('{allFields}', $submission, ['outputContext' => ReferenceOutputContext::Html]);
 
     expect($allFields)->toContain('safe-text')
         ->and($allFields)->not->toContain('<script')

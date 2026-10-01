@@ -849,9 +849,7 @@ class Form extends Element implements FormInterface
         $format = trim((string)($this->settings->submissionTitleFormat ?? ''));
 
         if ($submission !== null && $format !== '') {
-            $parsed = trim(References::parseContent($format, $submission, [
-                'includeSummary' => false,
-            ]));
+            $parsed = trim(References::parseContent($format, $submission));
 
             if ($parsed !== '') {
                 return $parsed;
