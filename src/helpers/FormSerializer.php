@@ -315,6 +315,12 @@ class FormSerializer
             $config = array_intersect_key($source, array_flip($keys));
             $config['type'] = $type;
 
+            // Yii applies component config in insertion order. Restore the persisted nested layout
+            // before `rows` invokes ParentField::setRows(), so existing row IDs stay with their owner.
+            if ($existing instanceof ParentFieldInterface) {
+                $config['nestedLayoutId'] = $existing->nestedLayoutId;
+            }
+
             if ($prototype instanceof FixedParentField && isset($source['layouts']) && is_array($source['layouts'])) {
                 $config['layouts'] = [];
 
@@ -344,10 +350,6 @@ class FormSerializer
         $config['id'] = $existing?->id;
         $config['definitionId'] = $existing?->definitionId;
         $config['definitionUid'] = $existing?->definitionUid;
-
-        if ($existing instanceof ParentFieldInterface) {
-            $config['nestedLayoutId'] = $existing->nestedLayoutId;
-        }
 
         if ($existing) {
             $this->changes['retained'][] = $reference;

@@ -8,10 +8,13 @@ use verbb\formie\cache\FieldGqlCache;
 use verbb\formie\cache\FieldLookupCache;
 use verbb\formie\cache\FieldRegistryCache;
 use verbb\formie\elements\Form;
+use verbb\formie\fields\Address;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\Formie;
+use verbb\formie\helpers\FormSerializer;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout;
+use verbb\formie\models\LayoutSaveContext;
 use verbb\formie\services\Fields;
 
 class LayoutSaveRecordingCommand extends Command
@@ -156,6 +159,36 @@ it('batches definition usage and cache invalidation across root and nested layou
         expect($field->usageCount)->toBe(1)
             ->and($field->isSynced)->toBeFalse();
     }
+});
+
+it('updates builder layouts containing existing address and repeater rows', function (): void {
+    $nestedRows = [[
+        'fields' => [[
+            'type' => SingleLineText::class,
+            'handle' => 'itemName',
+            'label' => 'Item Name',
+        ]],
+    ]];
+    $form = formie()
+        ->form(['title' => 'Existing Nested Builder Rows'])
+        ->addressField('address', ['rows' => (new Address())->getSubFields()])
+        ->repeaterField('items', ['rows' => $nestedRows])
+        ->create();
+    $addressLayoutId = $form->getFieldByHandle('address')->nestedLayoutId;
+    $repeaterLayoutId = $form->getFieldByHandle('items')->nestedLayoutId;
+    $serializer = new FormSerializer();
+
+    $form->getFormLayout()->setPages($serializer->hydrateBuilder(
+        $form->getFormLayout()->getFormBuilderConfig(),
+        $form,
+    ));
+    $form->layoutSaveContext = new LayoutSaveContext('builder');
+    $form->layoutSaveContext->trusted = false;
+    $form->layoutSaveContext->remaps = $serializer->remaps;
+
+    expect(Craft::$app->getElements()->saveElement($form))->toBeTrue()
+        ->and($form->getFieldByHandle('address')->nestedLayoutId)->toBe($addressLayoutId)
+        ->and($form->getFieldByHandle('items')->nestedLayoutId)->toBe($repeaterLayoutId);
 });
 
 it('keeps direct field saves atomic with their nested layout', function (): void {
