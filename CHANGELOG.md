@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Updated the required version of `verbb/base` to 3.0.19.
+
 ### Fixed
 - Fix queued integration jobs including cached provider metadata, and improve HubSpot submission performance for accounts with many forms.
 - Fix invalid HubSpot tracking-cookie values causing form submissions to be rejected.
