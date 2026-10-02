@@ -9,6 +9,7 @@
 - Fix Phone subfield variables causing notification email bodies to render empty. ([#2980](https://github.com/verbb/formie/issues/2980))
 - Fix queued integration jobs including cached provider metadata, and improve HubSpot submission performance for accounts with many forms.
 - Fix invalid HubSpot tracking-cookie values causing form submissions to be rejected.
+- Fix hidden labels remaining visible for element fields using Radio Buttons or Checkboxes display types. ([#2979](https://github.com/verbb/formie/issues/2979))
 - Fix text word and character limits disagreeing between browser and server validation for Unicode punctuation, emoji, and composed characters. ([#2977](https://github.com/verbb/formie/issues/2977))
 - Fix `{formName}`, `{formHandle}`, and `{siteHandle}` being blocked by the Twig sandbox in File Upload field subpaths. ([#2978](https://github.com/verbb/formie/issues/2978))
 

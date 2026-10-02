@@ -20,6 +20,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
@@ -281,7 +282,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
                         // Handle conditions by parsing the rules and applying to query
                         $sourceCondition = $conditionsService->createCondition($elementSource['condition']);
                         $sourceCondition->modifyQuery($query);
-                    } else if (str_contains($sourceKey, 'type:')) {
+                    } elseif (str_contains($sourceKey, 'type:')) {
                         // Special-case for entries, maybe redactor?
                         $entryTypeUid = str_replace('type:', '', $sourceKey);
                         $entryType = EntryTypeRecord::find()->where(['uid' => $entryTypeUid])->one();
@@ -305,7 +306,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
 
             // Apply the criteria on our query
             Craft::configure($query, $criteria);
-        } else if ($this->sourceType === 'elements') {
+        } elseif ($this->sourceType === 'elements') {
             $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
         }
 
@@ -646,7 +647,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
     {
         if ($this->_selectionCondition !== null && !$this->_selectionCondition instanceof ConditionInterface) {
             $condition = Craft::$app->getConditions()->createCondition($this->_selectionCondition);
-            
+
             if (!empty($condition->getConditionRules())) {
                 $this->_selectionCondition = $condition;
             } else {
