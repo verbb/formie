@@ -15,6 +15,7 @@ use verbb\formie\options\Currencies;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
@@ -144,7 +145,7 @@ class Payment extends Field
         if ($this->getPaymentIntegration()) {
             $this->paymentIntegrationType = get_class($this->getPaymentIntegration());
         }
-        
+
         return true;
     }
 
@@ -276,6 +277,51 @@ class Payment extends Field
         }
 
         return (string)$value;
+    }
+
+    protected function defineValueForExport(mixed $value, ?ElementInterface $element = null): array
+    {
+        $label = $element ? $this->getExportLabel($element) : $this->label;
+        $column = fn(string $name): string => $label . ': ' . Craft::t('formie', $name);
+
+        // Payment details are stored separately from the field value, so expose the same
+        // field-scoped transaction shown on the submission detail screen.
+        $exportValues = [
+            $column('Provider') => '',
+            $column('Type') => '',
+            $column('Status') => '',
+            $column('Amount') => '',
+            $column('Currency') => '',
+            $column('Date') => '',
+            $column('Transaction Reference') => '',
+        ];
+
+        if (!$element instanceof Submission) {
+            return $exportValues;
+        }
+
+        $payments = array_values(array_filter(
+            $element->getPayments() ?? [],
+            fn($payment): bool => (int)$payment->fieldId === (int)$this->id,
+        ));
+        $payment = $payments ? $payments[array_key_last($payments)] : null;
+
+        if (!$payment) {
+            return $exportValues;
+        }
+
+        $integration = $payment->getIntegration() ?? $this->getPaymentIntegration();
+        $type = $payment->subscriptionId ? 'Subscription' : 'Single';
+
+        return [
+            $column('Provider') => $integration ? $integration::displayName() : '',
+            $column('Type') => Craft::t('formie', $type),
+            $column('Status') => Craft::t('formie', StringHelper::toTitleCase($payment->status ?? '')),
+            $column('Amount') => $payment->amount,
+            $column('Currency') => strtoupper($payment->currency ?? ''),
+            $column('Date') => $payment->dateCreated ? DateTimeHelper::toIso8601($payment->dateCreated) : '',
+            $column('Transaction Reference') => $payment->reference ?? '',
+        ];
     }
 
     public function getValueForSummary(mixed $value, ?ElementInterface $element = null): mixed

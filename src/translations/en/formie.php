@@ -2313,6 +2313,7 @@ return [
   'total' => 'total',
   'Totally unacceptable' => 'Totally unacceptable',
   'Tracking ID' => 'Tracking ID',
+  'Transaction Reference' => 'Transaction Reference',
   'Transaction Type' => 'Transaction Type',
   'Transportation/Logistics' => 'Transportation/Logistics',
   'Trello' => 'Trello',

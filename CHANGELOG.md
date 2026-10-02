@@ -6,6 +6,7 @@
 - Updated the required version of `verbb/base` to 3.0.19.
 
 ### Fixed
+- Fix Payment field details missing from submission exports.
 - Fix Phone subfield variables causing notification email bodies to render empty. ([#2980](https://github.com/verbb/formie/issues/2980))
 - Fix Salesforce Client Credentials API requests failing after a successful connection. ([#2981](https://github.com/verbb/formie/issues/2981))
 - Fix queued integration jobs including cached provider metadata, and improve HubSpot submission performance for accounts with many forms.
