@@ -785,6 +785,12 @@ class FormsController extends Controller
             throw new NotFoundHttpException('Form not found');
         }
 
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
+        if (!Formie::$plugin->getPermissions()->canDeleteForm($currentUser, $form)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+
         if (!Craft::$app->getElements()->deleteElement($form)) {
             if ($this->request->getAcceptsJson()) {
                 return $this->asJson(['success' => false]);
