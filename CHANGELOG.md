@@ -7,6 +7,7 @@
 
 ### Fixed
 - Fix Phone subfield variables causing notification email bodies to render empty. ([#2980](https://github.com/verbb/formie/issues/2980))
+- Fix Salesforce Client Credentials API requests failing after a successful connection. ([#2981](https://github.com/verbb/formie/issues/2981))
 - Fix queued integration jobs including cached provider metadata, and improve HubSpot submission performance for accounts with many forms.
 - Fix invalid HubSpot tracking-cookie values causing form submissions to be rejected.
 - Fix hidden labels remaining visible for element fields using Radio Buttons or Checkboxes display types. ([#2979](https://github.com/verbb/formie/issues/2979))
