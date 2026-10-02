@@ -259,14 +259,17 @@ class FormsController extends Controller
         $templateId = $this->request->getParam('templateId');
 
         $form = $formId ? Formie::$plugin->getForms()->getFormById((int)$formId) : null;
-        $template = $templateId ? Formie::$plugin->getFormTemplates()->getTemplateById((int)$templateId) : null;
-
-        if (!$template && $form?->templateId) {
-            $template = Formie::$plugin->getFormTemplates()->getTemplateById((int)$form->templateId);
-        }
 
         if (!$form) {
             throw new NotFoundHttpException('Form not found');
+        }
+
+        $this->_requireFormManageAccess($form);
+
+        $template = $templateId ? Formie::$plugin->getFormTemplates()->getTemplateById((int)$templateId) : null;
+
+        if (!$template && $form->templateId) {
+            $template = Formie::$plugin->getFormTemplates()->getTemplateById((int)$form->templateId);
         }
 
         $form->setTemplate($template);
@@ -412,17 +415,21 @@ class FormsController extends Controller
 
     public function actionTemplateFieldsSlideoutSave(): Response
     {
+        $this->requireCpRequest();
         $this->requirePostRequest();
 
         $formId = $this->request->getParam('formId');
         $templateId = $this->request->getParam('templateId');
 
         $form = $formId ? Formie::$plugin->getForms()->getFormById((int)$formId) : null;
-        $template = $templateId ? Formie::$plugin->getFormTemplates()->getTemplateById((int)$templateId) : null;
 
         if (!$form) {
             throw new NotFoundHttpException('Form not found');
         }
+
+        $this->_requireFormManageAccess($form);
+
+        $template = $templateId ? Formie::$plugin->getFormTemplates()->getTemplateById((int)$templateId) : null;
 
         if (!$template) {
             throw new NotFoundHttpException('Template not found');
@@ -913,6 +920,15 @@ class FormsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _requireFormManageAccess(Form $form): void
+    {
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (!Formie::$plugin->getPermissions()->canManageForm($user, $form)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+    }
 
     private function _getExistingResourceTarget(bool $requireNotificationAccess = false): Form|Stencil|null
     {
