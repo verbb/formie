@@ -10,7 +10,9 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\models\Notification;
 use verbb\formie\models\Phone as PhoneModel;
+use verbb\formie\models\PhoneVariable;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -188,7 +190,7 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
 
         if ($value instanceof PhoneModel) {
             $phone = $value;
-        } else if (is_array($value)) {
+        } elseif (is_array($value)) {
             $phone = new PhoneModel($value);
             $phone->hasCountryCode = isset($value['country']);
         } else {
@@ -402,7 +404,7 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
                 ],
             ], $this->getInputAttributes());
         }
-        
+
         return parent::defineHtmlTag($key, $context);
     }
 
@@ -435,6 +437,21 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
         }
 
         return $faker->phoneNumber;
+    }
+
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        if (!$value instanceof PhoneModel) {
+            return parent::defineValueForVariable($value, $submission, $notification);
+        }
+
+        return new PhoneVariable(
+            formattedValue: (string)parent::defineValueForVariable($value, $submission, $notification),
+            country: $value->country,
+            countryCode: $value->getCountryCode(),
+            countryName: $value->getCountryName(),
+            number: $value->number,
+        );
     }
 
 

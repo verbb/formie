@@ -6,6 +6,7 @@
 - Updated the required version of `verbb/base` to 3.0.19.
 
 ### Fixed
+- Fix Phone subfield variables causing notification email bodies to render empty. ([#2980](https://github.com/verbb/formie/issues/2980))
 - Fix queued integration jobs including cached provider metadata, and improve HubSpot submission performance for accounts with many forms.
 - Fix invalid HubSpot tracking-cookie values causing form submissions to be rejected.
 - Fix text word and character limits disagreeing between browser and server validation for Unicode punctuation, emoji, and composed characters. ([#2977](https://github.com/verbb/formie/issues/2977))
