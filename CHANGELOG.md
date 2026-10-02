@@ -62,6 +62,7 @@
 
 ### Fixed
 - Fixed moderate-severity authorization bypass vulnerabilities across control-panel and GraphQL operations.
+- Fixed a low-severity information disclosure vulnerability.
 - Allow existing forms containing Address, Repeater and other nested fields to be updated in the form builder.
 - Fix text word and character limits disagreeing between browser and server validation for Unicode punctuation, emoji, and composed characters. ([#2977](https://github.com/verbb/formie/issues/2977))
 - Apply event-modified Phone countries to server-rendered and client-rendered browser pickers when a field has no explicit allowed-country list.

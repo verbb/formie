@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\ElementField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Payment;
@@ -55,7 +56,7 @@ class FieldsController extends Controller
         $elements = array_map(function($elementInfo) {
             $element = Craft::$app->getElements()->getElementById($elementInfo['id'], null, $elementInfo['siteId'], ['status' => null]);
 
-            if (!$element) {
+            if (!$element || !Craft::$app->getElements()->canView($element)) {
                 return null;
             }
 
@@ -69,7 +70,7 @@ class FieldsController extends Controller
             ];
         }, $elementIds);
 
-        return $this->asJson(array_filter($elements));
+        return $this->asJson(array_values(array_filter($elements)));
     }
 
     public function actionGetElementSelectPreviewOptions(): Response
@@ -78,16 +79,22 @@ class FieldsController extends Controller
 
         try {
             $fieldData = $this->request->getParam('field');
-            $type = $fieldData['type'];
+            $type = (string)$fieldData['type'];
             $fieldSettings = $fieldData['settings'];
 
-            // Create a new fieldtype, and populate the settings
-            $field = new $type();
+            $field = Formie::$plugin->getFields()->getRegisteredFieldByType($type, false);
+
+            if (!$field instanceof ElementField) {
+                throw new BadRequestHttpException('Invalid element field type.');
+            }
+
             $field->sources = $fieldSettings['sources'] ?? [];
             $field->source = $fieldSettings['source'] ?? null;
 
             // Fetch the element query for the field, so we can fetch the content (limited)
             $elements = $field->getPreviewElements();
+        } catch (BadRequestHttpException $e) {
+            throw $e;
         } catch (Throwable $e) {
             Formie::error('Unable to fetch element select options: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),

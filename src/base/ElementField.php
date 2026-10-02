@@ -404,12 +404,26 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
 
     public function getPreviewElements(): array
     {
-        $options = array_map(function($input) {
-            return ['label' => $this->getElementLabel($input), 'value' => $input->id];
-        }, $this->getElementsQuery()->limit(5)->all());
+        $elementsService = Craft::$app->getElements();
+        $currentUser = Craft::$app->getUser()->getIdentity();
+        $options = [];
+        $total = 0;
+
+        // Element authorization can depend on PHP policy, so count and sample in one batched pass.
+        foreach ($this->getElementsQuery()->each() as $element) {
+            if (!$elementsService->canView($element, $currentUser)) {
+                continue;
+            }
+
+            $total++;
+
+            if (count($options) < 5) {
+                $options[] = ['label' => $this->getElementLabel($element), 'value' => $element->id];
+            }
+        }
 
         return [
-            'total' => $this->getElementsQuery()->count(),
+            'total' => (string)$total,
             'options' => $options,
         ];
     }
