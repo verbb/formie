@@ -32,7 +32,7 @@ class FormBootstrapBuilder extends Component
         (new \verbb\formie\services\RuntimeConfiguration())->establish($form, $context->query);
 
         $definition = Formie::$plugin->getClientFormDefinitionBuilder()->build($form, $context);
-        $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form, null, true);
+        $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form, null, true, null, $context->grantToken);
 
         return new FormBootstrap([
             'definition' => $definition,

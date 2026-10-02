@@ -6,9 +6,11 @@ use verbb\formie\client\models\LoadContext;
 use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\client\models\SessionRefreshRequest;
 use verbb\formie\client\models\SubmitRequest;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\Gql as GqlHelper;
 
 use GraphQL\Error\Error;
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
 class ClientFormResolver
@@ -52,7 +54,7 @@ class ClientFormResolver
             isset($payload['siteId']) ? (int)$payload['siteId'] : null
         );
 
-        if (!GqlHelper::canReadForm($form) || !GqlHelper::canMutateSubmissionsForForm($form)) {
+        if (!GqlHelper::canReadForm($form) || !self::_canMutateSubmissionsForForm($form, $payload)) {
             throw new Error('Unable to perform the action.');
         }
 
@@ -84,7 +86,7 @@ class ClientFormResolver
             isset($payload['siteId']) ? (int)$payload['siteId'] : null
         );
 
-        if (!GqlHelper::canReadForm($form) || !GqlHelper::canMutateSubmissionsForForm($form)) {
+        if (!GqlHelper::canReadForm($form) || !self::_canMutateSubmissionsForForm($form, $payload, 'back')) {
             return \verbb\formie\client\models\SubmitResult::rejection(403)->toArrayRecursive();
         }
 
@@ -120,7 +122,7 @@ class ClientFormResolver
             isset($payload['siteId']) ? (int)$payload['siteId'] : null
         );
 
-        if (!GqlHelper::canReadForm($form) || !GqlHelper::canMutateSubmissionsForForm($form)) {
+        if (!GqlHelper::canReadForm($form) || !self::_canMutateSubmissionsForForm($form, $payload, (string)($payload['action'] ?? 'submit'))) {
             return \verbb\formie\client\models\SubmitResult::rejection(403)->toArrayRecursive();
         }
 
@@ -144,5 +146,26 @@ class ClientFormResolver
         ]), \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
 
         return $result->toArrayRecursive();
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private static function _canMutateSubmissionsForForm(Form $form, array $payload, string $action = 'submit'): bool
+    {
+        try {
+            $scope = Formie::$plugin->getSubmissionRequests()->getRequiredClientMutationScope(
+                $form,
+                (array)($payload['session'] ?? []),
+                $action,
+            );
+        } catch (ForbiddenHttpException) {
+            return false;
+        }
+
+        return $scope === 'save'
+            ? GqlHelper::canSaveSubmissionsForForm($form)
+            : GqlHelper::canCreateSubmissionsForForm($form);
     }
 }

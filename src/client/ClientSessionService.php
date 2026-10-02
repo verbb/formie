@@ -27,13 +27,13 @@ class ClientSessionService extends Component
     // Public Methods
     // =========================================================================
 
-    public function issueInitialSession(Form $form, ?string $currentPageId = null, bool $enforceAbuseLimit = false, ?bool $includeProgressContinuation = null): FormSession
+    public function issueInitialSession(Form $form, ?string $currentPageId = null, bool $enforceAbuseLimit = false, ?bool $includeProgressContinuation = null, ?string $continuationGrantToken = null): FormSession
     {
         if ($enforceAbuseLimit) {
             $this->_enforceAnonymousClientRateLimit($form, self::RATE_SCOPE_BOOTSTRAP);
         }
 
-        return $this->_buildSession($form, $currentPageId, $includeProgressContinuation);
+        return $this->_buildSession($form, $currentPageId, $includeProgressContinuation, $continuationGrantToken);
     }
 
     public function refreshSession(SessionRefreshRequest $request, bool $enforceAbuseLimit = false): FormSession
@@ -56,7 +56,17 @@ class ClientSessionService extends Component
             $this->_enforceAnonymousClientRateLimit($form, self::RATE_SCOPE_REFRESH);
         }
 
-        return $this->_buildSession($form, $currentPageId);
+        $continuation = (array)($request->session['continuation'] ?? []);
+        $purpose = ($continuation['purpose'] ?? null) === \verbb\formie\services\SubmissionGrants::REVISE
+            ? \verbb\formie\services\SubmissionGrants::REVISE
+            : \verbb\formie\services\SubmissionGrants::CONTINUE;
+        $grantToken = $continuation['grantToken'] ?? null;
+
+        if (!is_string($grantToken) || !Formie::$plugin->getSubmissionGrants()->verify($grantToken, $purpose, $form)) {
+            $grantToken = null;
+        }
+
+        return $this->_buildSession($form, $currentPageId, null, $grantToken);
     }
 
     public function persistPageState(PageTransitionRequest $request, bool $enforceAbuseLimit = false): \verbb\formie\client\models\SubmitResult
@@ -126,7 +136,7 @@ class ClientSessionService extends Component
     // Private Methods
     // =========================================================================
 
-    private function _buildSession(Form $form, ?string $currentPageId, ?bool $includeProgressContinuation = null): FormSession
+    private function _buildSession(Form $form, ?string $currentPageId, ?bool $includeProgressContinuation = null, ?string $continuationGrantToken = null): FormSession
     {
         $tokens = $this->buildTokenPayload($form);
 
@@ -144,11 +154,11 @@ class ClientSessionService extends Component
                 'uploadCreate' => $tokens['uploadCreateToken'],
                 'captchas' => $tokens['captchas'] ?? [],
             ],
-            'continuation' => $this->_buildContinuation($form, $includeProgressContinuation),
+            'continuation' => $this->_buildContinuation($form, $includeProgressContinuation, $continuationGrantToken),
         ]);
     }
 
-    private function _buildContinuation(Form $form, ?bool $includeProgressContinuation = null): ?array
+    private function _buildContinuation(Form $form, ?bool $includeProgressContinuation = null, ?string $continuationGrantToken = null): ?array
     {
         if ($form->isEditingSubmission() && ($submission = $form->getCurrentSubmission()) && !$submission->isIncomplete) {
             return [
@@ -156,6 +166,7 @@ class ClientSessionService extends Component
                 'submissionId' => (int)$submission->id,
                 'draftContext' => $form->getDraftContext(),
                 'draftContextToken' => $form->getDraftContextToken(),
+                'grantToken' => $continuationGrantToken,
             ];
         }
         $progressState = Formie::$plugin->getSubmissionProgress()->getProgressState($form);
@@ -170,6 +181,7 @@ class ClientSessionService extends Component
             'draftContext' => $form->getDraftContext(),
             'draftContextToken' => $form->getDraftContextToken(),
             'progressId' => $progressId,
+            'grantToken' => $continuationGrantToken,
         ], static function($value) {
             return $value !== null && $value !== '';
         });

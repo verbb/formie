@@ -127,12 +127,18 @@ class SubmissionGrants extends Component
         ]);
     }
 
-    public function bound(Form $form, string $purpose, ?int $submissionId = null): ?SubmissionGrant
+    public function bound(Form $form, string $purpose, ?int $submissionId = null, ?bool $portable = null): ?SubmissionGrant
     {
-        $rows = (new Query())->from(Table::FORMIE_SUBMISSION_GRANTS)->where([
+        $query = (new Query())->from(Table::FORMIE_SUBMISSION_GRANTS)->where([
             'bindingHash' => $this->browserHash($form), 'formId' => (int)$form->id,
             'siteId' => (int)$form->siteId, 'purpose' => $purpose, 'revokedAt' => null,
-        ])->andWhere(['>', 'expiresAt', time()])->orderBy(['id' => SORT_DESC])->all();
+        ])->andWhere(['>', 'expiresAt', time()]);
+
+        if ($portable !== null) {
+            $query->andWhere($portable ? ['not', ['parentId' => null]] : ['parentId' => null]);
+        }
+
+        $rows = $query->orderBy(['id' => SORT_DESC])->all();
 
         foreach ($rows as $row) {
             if ($this->_valid($row, $purpose, $form, $submissionId)) {

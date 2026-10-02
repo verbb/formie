@@ -61,13 +61,19 @@ class Gql extends GqlHelper
         return $form;
     }
 
-    public static function canMutateSubmissionsForForm(Form $form): bool
+    public static function canCreateSubmissionsForForm(Form $form): bool
     {
         $scope = 'formieSubmissions.' . $form->uid;
 
         return self::canSchema('formieSubmissions.all', 'create')
-            || self::canSchema('formieSubmissions.all', 'save')
-            || self::canSchema($scope, 'create')
+            || self::canSchema($scope, 'create');
+    }
+
+    public static function canSaveSubmissionsForForm(Form $form): bool
+    {
+        $scope = 'formieSubmissions.' . $form->uid;
+
+        return self::canSchema('formieSubmissions.all', 'save')
             || self::canSchema($scope, 'save');
     }
 

@@ -281,6 +281,75 @@ class SubmissionRequests extends Component
         return $this->_findSubmissionById($continuationSubmissionId, $isIncomplete, (int)$form->id);
     }
 
+    public function getRequiredClientMutationScope(Form $form, array $session, string $action = 'submit'): string
+    {
+        $continuation = (array)($session['continuation'] ?? []);
+        $purpose = $action === 'revise' || ($continuation['purpose'] ?? null) === SubmissionGrants::REVISE
+            ? SubmissionGrants::REVISE
+            : SubmissionGrants::CONTINUE;
+        $grantToken = $continuation['grantToken'] ?? null;
+
+        if (is_string($grantToken) && trim($grantToken) !== '') {
+            $grant = Formie::$plugin->getSubmissionGrants()->verify(trim($grantToken), $purpose, $form);
+
+            if (!$grant) {
+                throw new ForbiddenHttpException('Submission is unavailable.');
+            }
+
+            return 'save';
+        }
+
+        if ($purpose === SubmissionGrants::REVISE) {
+            $grant = Formie::$plugin->getSubmissionGrants()->bound(
+                $form,
+                SubmissionGrants::REVISE,
+                (int)($continuation['submissionId'] ?? 0),
+            );
+
+            if (!$grant) {
+                throw new ForbiddenHttpException('Submission is unavailable.');
+            }
+
+            return 'save';
+        }
+
+        $progressId = (int)($continuation['progressId'] ?? 0);
+
+        if (!$progressId) {
+            return 'create';
+        }
+
+        $progress = Formie::$plugin->getSubmissionProgress()->loadProgress($progressId);
+
+        if (!$progress || $progress->formId !== (int)$form->id || $progress->siteId !== (int)$form->siteId || !$progress->submissionId) {
+            return 'create';
+        }
+
+        if (($continuation['draftContext'] ?? null) !== null) {
+            $form->setDraftContext((string)$continuation['draftContext']);
+        }
+
+        $directGrant = Formie::$plugin->getSubmissionGrants()->bound(
+            $form,
+            SubmissionGrants::CONTINUE,
+            $progress->submissionId,
+            false,
+        );
+
+        if ($directGrant?->progressId === $progress->id) {
+            return 'create';
+        }
+
+        $portableGrant = Formie::$plugin->getSubmissionGrants()->bound(
+            $form,
+            SubmissionGrants::CONTINUE,
+            $progress->submissionId,
+            true,
+        );
+
+        return $portableGrant?->progressId === $progress->id ? 'save' : 'create';
+    }
+
     public function primeSubmission(Submission $submission, Form $form, ?ProgressState $progressState = null, ?int $siteId = null): void
     {
         $submission->setForm($form);
@@ -346,28 +415,8 @@ class SubmissionRequests extends Component
             throw new ForbiddenHttpException('This adapter requires visitor authority.');
         }
         $form = $this->requireFormByHandle($input->handle, $input->siteId);
-        $this->applyFormRequestContext($form, $input->session['tokens']['render'] ?? null, $input->session['continuation']['draftContext'] ?? null, $input->session['tokens']['request'] ?? null);
-        $progress = $this->resolveProgressState($form);
-        $revise = $input->action === 'revise' || ($input->session['continuation']['purpose'] ?? null) === SubmissionGrants::REVISE;
-
-        if ($revise) {
-            $continuation = $input->session['continuation'] ?? [];
-            $grant = !empty($continuation['grantToken'])
-                ? Formie::$plugin->getSubmissionGrants()->exchange($continuation['grantToken'], SubmissionGrants::REVISE, $form)
-                : Formie::$plugin->getSubmissionGrants()->bound($form, SubmissionGrants::REVISE, (int)($continuation['submissionId'] ?? 0));
-
-            if (!$grant) {
-                throw new ForbiddenHttpException('Submission is unavailable.');
-            }
-            $submission = $this->_findSubmissionById($grant->submissionId, false, (int)$form->id);
-
-            if (!$submission) {
-                throw new ForbiddenHttpException('Submission is unavailable.');
-            }
-            $form->setSubmission($submission);
-        } else {
-            $submission = $this->resolveClientContinuationSubmission($form, $progress, (array)($input->session['continuation'] ?? [])) ?? new Submission();
-        }
+        [$submission, $progress, $revise] = $this->_resolveClientMutationTarget($form, $input->session, $input->action);
+        $submission ??= new Submission();
         $submission->setForm($form);
         $operation = $revise ? SubmissionOperation::REVISE : ($input->action === 'save' ? SubmissionOperation::SAVE_DRAFT : SubmissionOperation::SUBMIT);
         $navigation = $revise ? NavigationIntent::STAY : $this->_navigation($input->action, $input->targetPageId);
@@ -412,6 +461,38 @@ class SubmissionRequests extends Component
         );
         $form->resetRequestToken();
         return $this->_buildClientResult($result->command, $result->response, $input);
+    }
+
+    private function _resolveClientMutationTarget(Form $form, array $session, string $action): array
+    {
+        $this->applyFormRequestContext($form, $session['tokens']['render'] ?? null, $session['continuation']['draftContext'] ?? null, $session['tokens']['request'] ?? null);
+        $progress = $this->resolveProgressState($form);
+        $revise = $action === 'revise' || ($session['continuation']['purpose'] ?? null) === SubmissionGrants::REVISE;
+
+        if (!$revise) {
+            return [
+                $this->resolveClientContinuationSubmission($form, $progress, (array)($session['continuation'] ?? [])),
+                $progress,
+                false,
+            ];
+        }
+
+        $continuation = $session['continuation'] ?? [];
+        $grant = !empty($continuation['grantToken'])
+            ? Formie::$plugin->getSubmissionGrants()->exchange($continuation['grantToken'], SubmissionGrants::REVISE, $form)
+            : Formie::$plugin->getSubmissionGrants()->bound($form, SubmissionGrants::REVISE, (int)($continuation['submissionId'] ?? 0));
+
+        if (!$grant) {
+            throw new ForbiddenHttpException('Submission is unavailable.');
+        }
+        $submission = $this->_findSubmissionById($grant->submissionId, false, (int)$form->id);
+
+        if (!$submission) {
+            throw new ForbiddenHttpException('Submission is unavailable.');
+        }
+        $form->setSubmission($submission);
+
+        return [$submission, $progress, true];
     }
 
     private function _executeResolved(
@@ -663,6 +744,7 @@ class SubmissionRequests extends Component
             $currentPageId,
             false,
             $includeProgressContinuation ? true : null,
+            $request->session['continuation']['grantToken'] ?? null,
         );
         $session->continuation = array_filter([
             ...($session->continuation ?? []),

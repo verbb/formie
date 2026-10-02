@@ -76,7 +76,7 @@ it('exchanges revision grants through REST and GraphQL with refresh and stale-ta
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission, $transport) {
         $gql = Craft::$app->getGql();
         try { $previous = $gql->getActiveSchema(); } catch (\craft\errors\GqlException) { $previous = null; }
-        $gql->setActiveSchema(new \craft\models\GqlSchema(['name' => 'Grant parity', 'scope' => ['formieForms.' . $form->uid . ':read', 'formieSubmissions.' . $form->uid . ':create']]));
+        $gql->setActiveSchema(new \craft\models\GqlSchema(['name' => 'Grant parity', 'scope' => ['formieForms.' . $form->uid . ':read', 'formieSubmissions.' . $form->uid . ':save']]));
         try {
             $grant = Formie::$plugin->getSubmissionGrants()->issue($submission, \verbb\formie\services\SubmissionGrants::REVISE);
             $arguments = ['handle' => $form->handle, 'grantToken' => $grant->token, 'grantPurpose' => 'revise-complete'];
