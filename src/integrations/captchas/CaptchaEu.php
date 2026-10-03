@@ -14,6 +14,13 @@ use craft\helpers\Json;
 
 class CaptchaEu extends Captcha
 {
+    // Constants
+    // =========================================================================
+
+    public const MODE_WIDGET = 'widget';
+    public const MODE_HIDDEN = 'hidden';
+
+
     // Properties
     // =========================================================================
 
@@ -21,6 +28,11 @@ class CaptchaEu extends Captcha
     public ?string $restKey = null;
     public ?string $publicKey = null;
     public ?string $endPoint = null;
+
+    // Widget renders a visible "I am human" checkbox. Hidden runs the
+    // challenge invisibly on form submit and never shows UI to the user.
+    // Defaults to widget for backward compatibility with existing installs.
+    public ?string $mode = self::MODE_WIDGET;
 
 
     // Public Methods
@@ -56,6 +68,7 @@ class CaptchaEu extends Captcha
         $settings = [
             'publicKey' => App::parseEnv($this->publicKey),
             'formId' => $form->getFormId(),
+            'mode' => $this->mode === self::MODE_HIDDEN ? self::MODE_HIDDEN : self::MODE_WIDGET,
         ];
 
         $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/captcha-eu.js');
