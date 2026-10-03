@@ -910,15 +910,34 @@ class FormsController extends Controller
 
     public function actionGetFormUsage(): Response
     {
-        $formId = $this->request->getRequiredParam('formId');
+        $formId = (int)$this->request->getRequiredParam('formId');
+        $isStencil = filter_var($this->request->getRequiredParam('isStencil'), FILTER_VALIDATE_BOOLEAN);
 
-        $form = Formie::$plugin->getForms()->getFormById($formId);
+        if ($isStencil) {
+            $this->requirePermission('formie-accessStencils');
 
-        if (!$form && Formie::$plugin->getStencils()->getStencilById((int)$formId)) {
+            if (!Formie::$plugin->getStencils()->getStencilById($formId)) {
+                throw new NotFoundHttpException('Stencil not found.');
+            }
+
             return $this->asJson([]);
         }
 
-        $formUsage =  Formie::$plugin->getForms()->getFormUsage($form);
+        $form = Formie::$plugin->getForms()->getFormById($formId);
+
+        if (!$form) {
+            throw new NotFoundHttpException('Form not found.');
+        }
+
+        $this->_requireFormManageAccess($form);
+
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (!Formie::$plugin->getPermissions()->canShowFormBuilderTab($user, $form, 'formie-showFormUsage')) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+
+        $formUsage = Formie::$plugin->getForms()->getFormUsage($form);
 
         return $this->asJson($formUsage);
     }

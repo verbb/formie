@@ -19,6 +19,7 @@ const FormUsage = () => {
 
         const data = {
             formId: formValues.id,
+            isStencil: Boolean(formValues.isStencil),
         };
 
         try {

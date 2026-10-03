@@ -935,6 +935,10 @@ class Forms extends Component
     private function _handleNestedElement(ElementInterface $element, ?FieldInterface $field, int $level, array &$accumulator = []): void
     {
         try {
+            if (!Craft::$app->getElements()->canView($element)) {
+                return;
+            }
+
             $accumulator[] = [
                 'element' => $element,
                 'site' => $element->site,
