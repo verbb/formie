@@ -395,6 +395,43 @@ it('rate limits anonymous google geocode proxy requests by form field and client
     ]);
 })->group('security');
 
+it('fails closed when the google geocode rate-limit lock is busy', function (): void {
+    $formHandle = 'busy-form-' . uniqid();
+    $fieldHandle = 'address';
+    $ipAddress = '198.51.100.31';
+
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($formHandle, $fieldHandle, $ipAddress): void {
+        $request->setBodyParams([
+            'latlng' => '-37.8136,144.9631',
+            'handle' => $formHandle,
+            'fieldHandle' => $fieldHandle,
+        ]);
+        $request->getHeaders()->set('Accept', 'application/json');
+
+        $fingerprint = md5($formHandle . '|' . $fieldHandle . '|' . $ipAddress);
+        $cacheKey = 'formie.google-geocode-rate.' . $fingerprint;
+        $mutexKey = 'formie.google-geocode-rate-lock.' . $fingerprint;
+        $mutex = Craft::$app->getMutex();
+        Craft::$app->getCache()->delete($cacheKey);
+
+        expect($mutex->acquire($mutexKey))->toBeTrue();
+
+        try {
+            $controller = new AddressController('formie-address-security', Craft::$app);
+
+            expect(fn() => $controller->actionGooglePlacesGeocode())
+                ->toThrow(TooManyRequestsHttpException::class)
+                ->and(Craft::$app->getCache()->get($cacheKey))->toBeFalse()
+                ->and($mutex->isAcquired($mutexKey))->toBeTrue();
+        } finally {
+            $mutex->release($mutexKey);
+        }
+    }, [
+        'method' => 'POST',
+        'remoteAddr' => $ipAddress,
+    ]);
+})->group('security');
+
 it('requires upload context for anonymous upload deletion', function (): void {
     $volume = UploadTestHelper::ensureUploadVolume();
     $form = formie()

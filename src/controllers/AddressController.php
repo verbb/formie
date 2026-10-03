@@ -265,6 +265,12 @@ class AddressController extends Controller
         $now = time();
         $lockAcquired = $mutex?->acquire($mutexKey, 3) ?? false;
 
+        if (!$lockAcquired) {
+            Craft::$app->getResponse()->getHeaders()->set('Retry-After', '3');
+
+            throw new TooManyRequestsHttpException('Too many geocode requests. Please try again shortly.');
+        }
+
         try {
             $entry = $cache->get($cacheKey);
 
