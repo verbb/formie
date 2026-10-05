@@ -660,13 +660,18 @@ class ImportExportHelper
         $pageKeyMap = self::_buildPageImportKeyMap($form);
         $fieldReferenceMap = self::_buildFieldReferenceMap($form);
         $importedFields = self::_buildFieldMap($form->getFields());
+        $fieldInstanceReferenceMap = [];
+
+        foreach (array_keys($fieldReferenceMap) as $reference) {
+            $fieldInstanceReferenceMap[$reference] = $reference;
+        }
 
         foreach ($importReferences as $reference => $path) {
             if (isset($importedFields[$path])) {
                 $fieldReferenceMap[$reference] = (int)$importedFields[$path]->definitionId;
+                $fieldInstanceReferenceMap[$reference] = (string)$importedFields[$path]->reference;
             }
         }
-
 
         if (is_array($siteOverrides)) {
             foreach ($siteOverrides as $siteHandle => $overrides) {
@@ -680,7 +685,7 @@ class ImportExportHelper
                     continue;
                 }
 
-                $payload = self::_remapFormOverrideKeysForImport($overrides, $pageKeyMap);
+                $payload = self::_remapFormOverrideKeysForImport($overrides, $pageKeyMap, $fieldInstanceReferenceMap);
 
                 if ($payload === []) {
                     $siteOverridesService->deleteOverrides((int)$form->id, $siteId);
@@ -843,10 +848,17 @@ class ImportExportHelper
         return $overrides;
     }
 
-    private static function _remapFormOverrideKeysForImport(array $overrides, array $pageKeyMap): array
+    private static function _remapFormOverrideKeysForImport(array $overrides, array $pageKeyMap, array $fieldInstanceReferenceMap): array
     {
         if (isset($overrides['pages']) && is_array($overrides['pages'])) {
             $overrides['pages'] = self::_remapKeyedOverrideSection($overrides['pages'], $pageKeyMap);
+        }
+
+        if (isset($overrides['fieldInstanceOverrides']) && is_array($overrides['fieldInstanceOverrides'])) {
+            $overrides['fieldInstanceOverrides'] = self::_remapKeyedOverrideSection(
+                $overrides['fieldInstanceOverrides'],
+                $fieldInstanceReferenceMap,
+            );
         }
 
         return Formie::$plugin->getFormSiteOverrides()->normalizeOverrides($overrides);

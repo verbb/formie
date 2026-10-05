@@ -53,6 +53,9 @@ it('stores stencil translations by site uid and exposes reference-keyed builder 
                                         'label' => 'Name',
                                         'handle' => 'name',
                                     ],
+                                    'instanceSettings' => [
+                                        'required' => true,
+                                    ],
                                 ],
                             ],
                         ],
@@ -73,6 +76,11 @@ it('stores stencil translations by site uid and exposes reference-keyed builder 
                 'label' => 'Nom',
             ],
         ],
+        'fieldInstanceOverrides' => [
+            $fieldReference => [
+                'required' => false,
+            ],
+        ],
     ]);
 
     $serialized = $stencil->data->getSerializedData();
@@ -87,12 +95,15 @@ it('stores stencil translations by site uid and exposes reference-keyed builder 
 
     expect($serialized['translations'])->toHaveKey($secondarySite->uid)
         ->and($multiSite['fieldOverrides'][(int)$secondarySite->id][$fieldReference]['label'] ?? null)->toBe('Nom')
+        ->and($multiSite['overrides'][(int)$secondarySite->id]['fieldInstanceOverrides'][$fieldReference]['required'] ?? null)->toBeFalse()
         ->and($multiSite['overrides'][(int)$secondarySite->id]['pages'][$stencil->data->pages[0]->uid]['label'] ?? null)->toBe('Page française')
-        ->and($translatedData['pages'][0]['rows'][0]['fields'][0]['label'] ?? null)->toBe('Nom');
+        ->and($translatedData['pages'][0]['rows'][0]['fields'][0]['label'] ?? null)->toBe('Nom')
+        ->and($translatedData['pages'][0]['rows'][0]['fields'][0]['required'] ?? null)->toBeFalse();
 });
 
 it('copies portable stencil bundles into a newly materialized forms normal overrides', function (): void {
     [, $secondarySite] = stencilTranslationSites();
+    $siteOverrides = Formie::$plugin->getFormSiteOverrides();
     $fieldReference = '727e265a-818c-46a9-8d1a-dd6e28f56c62';
     $stencil = new Stencil([
         'name' => 'Materialized Translation Stencil',
@@ -111,6 +122,9 @@ it('copies portable stencil bundles into a newly materialized forms normal overr
                                     'settings' => [
                                         'label' => 'Name',
                                         'handle' => 'name',
+                                    ],
+                                    'instanceSettings' => [
+                                        'required' => true,
                                     ],
                                 ],
                             ],
@@ -131,6 +145,11 @@ it('copies portable stencil bundles into a newly materialized forms normal overr
             'fieldOverrides' => [
                 $fieldReference => [
                     'label' => 'Nom',
+                ],
+            ],
+            'fieldInstanceOverrides' => [
+                $fieldReference => [
+                    'required' => false,
                 ],
             ],
         ],
@@ -160,6 +179,9 @@ it('copies portable stencil bundles into a newly materialized forms normal overr
         ->and($field?->reference)->not->toBe($fieldReference)
         ->and($page?->uid)->not->toBe($stencilPageUid)
         ->and($formOverride['pages'][$page?->uid]['label'] ?? null)->toBe('Page française')
+        ->and($formOverride['fieldInstanceOverrides'][$field?->reference]['required'] ?? null)->toBeFalse()
+        ->and($siteOverrides->applyToForm($reloaded, (int)$secondarySite->id, true)->getFieldByHandle('name')->required)->toBeFalse()
+        ->and($reloaded?->getFieldByHandle('name')->required)->toBeTrue()
         ->and($fieldOverride['label'] ?? null)->toBe('Nom');
 });
 
@@ -168,7 +190,7 @@ it('captures existing form translations when saving a form as a stencil', functi
     $siteOverrides = Formie::$plugin->getFormSiteOverrides();
     $form = formie()
         ->form(['title' => 'Source Form'])
-        ->singleLineTextField('name', ['label' => 'Name'])
+        ->singleLineTextField('name', ['label' => 'Name', 'required' => true])
         ->create();
     $form = Formie::$plugin->getForms()->getFormById(
         (int)$form->id,
@@ -192,6 +214,11 @@ it('captures existing form translations when saving a form as a stencil', functi
                 'label' => 'Nom',
             ],
         ],
+        'fieldInstanceOverrides' => [
+            $field->reference => [
+                'required' => false,
+            ],
+        ],
     ]);
 
     $stencil = new Stencil([
@@ -206,5 +233,6 @@ it('captures existing form translations when saving a form as a stencil', functi
 
     expect($bundle)->not->toHaveKey('title')
         ->and($bundle['pages'][$page->uid]['label'] ?? null)->toBe('Page française')
+        ->and($bundle['fieldInstanceOverrides'][$field->reference]['required'] ?? null)->toBeFalse()
         ->and($bundle['fieldOverrides'][$field->reference]['label'] ?? null)->toBe('Nom');
 });

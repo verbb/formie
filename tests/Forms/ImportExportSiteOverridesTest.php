@@ -31,7 +31,7 @@ it('exports and imports form and field site overrides using portable keys', func
 
     $form = formie()
         ->form(['title' => 'Import Export Site Overrides Form'])
-        ->singleLineTextField('testField', ['label' => 'Test Field'])
+        ->singleLineTextField('testField', ['label' => 'Test Field', 'required' => true])
         ->create();
 
     $canonicalForm = Formie::$plugin->getForms()->getFormById((int)$form->id, $siteOverrides->getSourceSiteId($form));
@@ -47,6 +47,11 @@ it('exports and imports form and field site overrides using portable keys', func
                 'label' => 'Translated Field Label',
             ],
         ],
+        'fieldInstanceOverrides' => [
+            $field->reference => [
+                'required' => false,
+            ],
+        ],
     ]);
 
     $export = ImportExportHelper::generateFormExport($canonicalForm);
@@ -55,6 +60,8 @@ it('exports and imports form and field site overrides using portable keys', func
         ->and($export['sourceSiteHandle'])->not->toBeEmpty()
         ->and($export['siteOverrides'][$secondarySite->handle]['title'] ?? null)
             ->toBe('Import Export Site Overrides Form (Translated)')
+        ->and($export['siteOverrides'][$secondarySite->handle]['fieldInstanceOverrides'][$field->reference]['required'] ?? null)
+            ->toBeFalse()
         ->and($export['fieldSiteOverrides'][$secondarySite->handle][$field->reference]['label'] ?? null)
             ->toBe('Translated Field Label')
         ->and($export)->not->toHaveKey('sourceSiteId');
@@ -70,7 +77,10 @@ it('exports and imports form and field site overrides using portable keys', func
         ->getFields()[0] ?? null;
 
     expect($importedOverrides['title'] ?? null)->toBe('Import Export Site Overrides Form (Translated)')
-        ->and($importedField)->not->toBeNull();
+        ->and($importedField)->not->toBeNull()
+        ->and($importedOverrides['fieldInstanceOverrides'][$importedField->reference]['required'] ?? null)->toBeFalse()
+        ->and($siteOverrides->applyToForm($importedForm, (int)$secondarySite->id, true)->getFieldByHandle('testField')->required)->toBeFalse()
+        ->and($importedForm->getFieldByHandle('testField')->required)->toBeTrue();
 
     $importedFieldOverride = Formie::$plugin->getFieldSiteOverrides()->getOverride(
         (int)$importedField->definitionId,

@@ -27,6 +27,14 @@ use yii\base\Component;
 
 class FormSiteOverrides extends Component
 {
+    // Constants
+    // =========================================================================
+
+    private const FIELD_INSTANCE_OVERRIDE_KEYS = [
+        'required',
+    ];
+
+
     // Properties
     // =========================================================================
 
@@ -52,6 +60,7 @@ class FormSiteOverrides extends Component
             'pageSettings' => FieldLayoutPageSettings::translatableProperties(),
             'notification' => Notification::translatableProperties(),
             'fieldTypes' => $fieldTypes,
+            'fieldInstance' => self::FIELD_INSTANCE_OVERRIDE_KEYS,
             'scalarKeys' => $this->_buildScalarOverrideKeys($fieldTypes),
             'nestedKeys' => ['options', 'columns'],
         ];
@@ -295,7 +304,15 @@ class FormSiteOverrides extends Component
 
         unset($overrides['fields'], $overrides['fieldOverrides']);
 
+        // The builder submits the complete placement-scoped diff, including an
+        // empty section when every override has been reset to its source value.
+        $replaceFieldInstanceOverrides = array_key_exists('fieldInstanceOverrides', $overrides);
         $existing = $this->getOverrides($formId, $siteId);
+
+        if ($replaceFieldInstanceOverrides) {
+            unset($existing['fieldInstanceOverrides']);
+        }
+
         $overrides = $this->_remapLegacyOverrideKeys($formId, $this->normalizeOverrides($overrides));
         $overrides = $this->_mergeOverridePayloads($existing, $overrides);
 
@@ -386,6 +403,16 @@ class FormSiteOverrides extends Component
             }
         }
 
+        $fieldInstanceOverrides = $overrides['fieldInstanceOverrides'] ?? [];
+
+        if (is_array($fieldInstanceOverrides) && $fieldInstanceOverrides !== []) {
+            foreach ($target->getFields() as $field) {
+                if ($field instanceof FieldInterface) {
+                    $this->_applyFieldInstanceOverridesFromPayload($field, $fieldInstanceOverrides);
+                }
+            }
+        }
+
         if ($overrides === [] && $fieldOverrides === []) {
             return $form;
         }
@@ -453,6 +480,10 @@ class FormSiteOverrides extends Component
             $merged['pages'] = $this->_mergeFieldsIntoPages($merged['pages'], $fieldOverrides);
         }
 
+        if (!empty($overrides['fieldInstanceOverrides']) && is_array($overrides['fieldInstanceOverrides']) && isset($merged['pages']) && is_array($merged['pages'])) {
+            $merged['pages'] = $this->_mergeFieldInstancesIntoPages($merged['pages'], $overrides['fieldInstanceOverrides']);
+        }
+
         return $merged;
     }
 
@@ -485,6 +516,14 @@ class FormSiteOverrides extends Component
 
             if ($notifications !== []) {
                 $normalized['notifications'] = $notifications;
+            }
+        }
+
+        if (isset($overrides['fieldInstanceOverrides']) && is_array($overrides['fieldInstanceOverrides'])) {
+            $fieldInstanceOverrides = $this->_normalizeFieldInstanceOverrides($overrides['fieldInstanceOverrides']);
+
+            if ($fieldInstanceOverrides !== []) {
+                $normalized['fieldInstanceOverrides'] = $fieldInstanceOverrides;
             }
         }
 
@@ -686,6 +725,31 @@ class FormSiteOverrides extends Component
         }
     }
 
+    private function _applyFieldInstanceOverridesFromPayload(FieldInterface $field, array $fieldInstanceOverrides): void
+    {
+        $storageKey = $this->_getFieldStorageKey([
+            'reference' => $field->reference,
+            'uid' => $field->uid,
+        ]);
+        $resolved = $storageKey !== null ? ($fieldInstanceOverrides[$storageKey] ?? null) : null;
+
+        if (is_array($resolved) && array_key_exists('required', $resolved)) {
+            $field->required = (bool)$resolved['required'];
+        }
+
+        if ($field instanceof ParentFieldInterface) {
+            foreach ($field->getFieldLayout()->getPages() as $page) {
+                foreach ($page->getRows() as $row) {
+                    foreach ($row->getFields() as $nestedField) {
+                        if ($nestedField instanceof FieldInterface) {
+                            $this->_applyFieldInstanceOverridesFromPayload($nestedField, $fieldInstanceOverrides);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private function _cloneLayout(FieldLayout $source): FieldLayout
     {
         $layout = clone $source;
@@ -848,6 +912,19 @@ class FormSiteOverrides extends Component
         }, $pages);
     }
 
+    private function _mergeFieldInstancesIntoPages(array $pages, array $fieldInstanceOverrides): array
+    {
+        return array_map(function(array $page) use ($fieldInstanceOverrides) {
+            if (!isset($page['rows']) || !is_array($page['rows'])) {
+                return $page;
+            }
+
+            $page['rows'] = $this->_mergeRowsWithFieldInstanceOverrides($page['rows'], $fieldInstanceOverrides);
+
+            return $page;
+        }, $pages);
+    }
+
     private function _mergePageFields(array $page, array $fieldOverrides): array
     {
         if (!isset($page['rows']) || !is_array($page['rows'])) {
@@ -909,6 +986,45 @@ class FormSiteOverrides extends Component
 
             return $row;
         }, $rows);
+    }
+
+    private function _mergeRowsWithFieldInstanceOverrides(array $rows, array $fieldInstanceOverrides): array
+    {
+        return array_map(function($row) use ($fieldInstanceOverrides) {
+            if (!is_array($row) || !isset($row['fields']) || !is_array($row['fields'])) {
+                return $row;
+            }
+
+            $row['fields'] = array_map(function($field) use ($fieldInstanceOverrides) {
+                if (!is_array($field)) {
+                    return $field;
+                }
+
+                return $this->_mergeFieldInstanceWithOverrides($field, $fieldInstanceOverrides);
+            }, $row['fields']);
+
+            return $row;
+        }, $rows);
+    }
+
+    private function _mergeFieldInstanceWithOverrides(array $field, array $fieldInstanceOverrides): array
+    {
+        $storageKey = $this->_getFieldStorageKey($field);
+        $override = $storageKey !== null ? ($fieldInstanceOverrides[$storageKey] ?? null) : null;
+
+        if (is_array($override) && array_key_exists('required', $override)) {
+            $field['required'] = (bool)$override['required'];
+        }
+
+        if (isset($field['rows']) && is_array($field['rows'])) {
+            $field['rows'] = $this->_mergeRowsWithFieldInstanceOverrides($field['rows'], $fieldInstanceOverrides);
+        }
+
+        if (isset($field['settings']['rows']) && is_array($field['settings']['rows'])) {
+            $field['settings']['rows'] = $this->_mergeRowsWithFieldInstanceOverrides($field['settings']['rows'], $fieldInstanceOverrides);
+        }
+
+        return $field;
     }
 
     private function _mergeFieldArray(array $field, array $override): array
@@ -1223,6 +1339,33 @@ class FormSiteOverrides extends Component
         return $normalized;
     }
 
+    private function _normalizeFieldInstanceOverrides(array $fields): array
+    {
+        $normalized = [];
+
+        foreach ($fields as $fieldReference => $fieldOverride) {
+            $fieldReference = trim((string)$fieldReference);
+
+            if ($fieldReference === '' || !is_array($fieldOverride)) {
+                continue;
+            }
+
+            $entry = [];
+
+            foreach (self::FIELD_INSTANCE_OVERRIDE_KEYS as $key) {
+                if ($key === 'required' && array_key_exists($key, $fieldOverride)) {
+                    $entry[$key] = (bool)$fieldOverride[$key];
+                }
+            }
+
+            if ($entry !== []) {
+                $normalized[$fieldReference] = $entry;
+            }
+        }
+
+        return $normalized;
+    }
+
     private function _normalizeNotificationsOverrides(array $notifications): array
     {
         $normalized = [];
@@ -1468,7 +1611,7 @@ class FormSiteOverrides extends Component
             $merged['title'] = $incoming['title'];
         }
 
-        foreach (['settings', 'pages', 'fields', 'notifications'] as $section) {
+        foreach (['settings', 'pages', 'fields', 'fieldInstanceOverrides', 'notifications'] as $section) {
             if (!isset($incoming[$section]) || !is_array($incoming[$section])) {
                 continue;
             }
@@ -1499,12 +1642,18 @@ class FormSiteOverrides extends Component
 
         $maps = $this->_buildOverrideKeyMaps($formId);
 
-        foreach (['fields', 'pages', 'notifications'] as $section) {
+        $sectionMaps = [
+            'fields' => $maps['fields'],
+            'fieldInstanceOverrides' => $maps['fields'],
+            'pages' => $maps['pages'],
+            'notifications' => $maps['notifications'],
+        ];
+
+        foreach ($sectionMaps as $section => $map) {
             if (empty($overrides[$section]) || !is_array($overrides[$section])) {
                 continue;
             }
 
-            $map = $maps[$section];
             $remapped = [];
 
             foreach ($overrides[$section] as $key => $value) {

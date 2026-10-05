@@ -6,6 +6,7 @@ const TEST_TRANSLATABLE_CONFIG = {
     page: ['label'],
     pageSettings: ['submitButtonLabel'],
     notification: ['subject', 'content', 'fromName', 'replyToName'],
+    fieldInstance: ['required'],
     fieldTypes: {
         'verbb\\formie\\fields\\SingleLineText': [
             'label',
@@ -86,17 +87,21 @@ describe('siteOverrides', () => {
                         fields: [
                             {
                                 uid: 'field-1',
+                                reference: 'name-field',
                                 fieldId: 101,
                                 type: 'verbb\\formie\\fields\\SingleLineText',
                                 label: 'Name',
                                 handle: 'name',
+                                required: true,
                             },
                             {
                                 uid: 'field-2',
+                                reference: 'choice-field',
                                 fieldId: 102,
                                 type: 'verbb\\formie\\base\\OptionsField',
                                 label: 'Choice',
                                 handle: 'choice',
+                                required: false,
                                 options: [
                                     { value: 'a', label: 'Option A' },
                                     { value: 'b', label: 'Option B' },
@@ -153,6 +158,11 @@ describe('siteOverrides', () => {
                     fromName: 'De FR',
                 },
             },
+            fieldInstanceOverrides: {
+                'name-field': {
+                    required: false,
+                },
+            },
         }, {
             101: {
                 label: 'Nom',
@@ -175,6 +185,7 @@ describe('siteOverrides', () => {
         expect(merged.pages[0].label).toBe('Page FR');
         expect(merged.pages[0].settings.submitButtonLabel).toBe('Envoyer');
         expect(merged.pages[0].rows[0].fields[0].label).toBe('Nom');
+        expect(merged.pages[0].rows[0].fields[0].required).toBe(false);
         expect(merged.pages[0].rows[0].fields[1].options[0].label).toBe('Option A FR');
         expect(merged.pages[0].rows[0].fields[1].options[1].label).toBe('Option B');
         expect(merged.pages[0].rows[0].fields[2].columns[0].heading).toBe('Colonne 1');
@@ -240,12 +251,41 @@ describe('siteOverrides', () => {
                     label: 'Nom',
                 },
             },
+            fieldInstanceOverrides: {},
             notifications: {
                 admin: {
                     subject: 'Sujet FR',
                 },
             },
         });
+    });
+
+    it('extracts and merges required overrides by field placement in both directions', () => {
+        const formData = structuredClone(canonicalData);
+        formData.pages[0].rows[0].fields[0].required = false;
+        formData.pages[0].rows[0].fields[1].required = true;
+
+        const translations = extractSiteTranslationsFromFormData(canonicalData, formData);
+
+        expect(translations.fieldInstanceOverrides).toEqual({
+            'name-field': {
+                required: false,
+            },
+            'choice-field': {
+                required: true,
+            },
+        });
+
+        const merged = mergeSiteOverridesIntoFormData(canonicalData, translations);
+
+        expect(merged.pages[0].rows[0].fields[0].required).toBe(false);
+        expect(merged.pages[0].rows[0].fields[1].required).toBe(true);
+    });
+
+    it('emits an empty placement override section when required returns to its source value', () => {
+        const translations = extractSiteTranslationsFromFormData(canonicalData, canonicalData);
+
+        expect(translations.fieldInstanceOverrides).toEqual({});
     });
 
     it('does not extract unchanged nested child fields when canonical uses settings.rows', () => {
@@ -327,6 +367,7 @@ describe('siteOverrides', () => {
                     label: 'First Name (Site 2)',
                 },
             },
+            fieldInstanceOverrides: {},
         });
     });
 
@@ -460,6 +501,7 @@ describe('siteOverrides', () => {
         expect(stripped.pages[0].label).toBe('Page 1');
         expect(stripped.pages[0].settings.submitButtonLabel).toBe('Submit');
         expect(stripped.pages[0].rows[0].fields[0].label).toBe('Name');
+        expect(stripped.pages[0].rows[0].fields[0].required).toBe(true);
         expect(stripped.notifications[0].subject).toBe('Primary subject');
     });
 

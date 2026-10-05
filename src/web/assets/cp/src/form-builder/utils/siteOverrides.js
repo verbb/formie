@@ -9,6 +9,7 @@ const EMPTY_TRANSLATABLE_CONFIG = {
     pageSettings: [],
     notification: [],
     fieldTypes: {},
+    fieldInstance: [],
     nestedKeys: ['options', 'columns'],
 };
 
@@ -233,6 +234,12 @@ const resolveFieldOverride = (fieldOverrides = {}, field) => {
     }
 
     return null;
+};
+
+const resolveFieldInstanceOverride = (fieldInstanceOverrides = {}, field) => {
+    const storageKey = getFieldStorageKey(field);
+
+    return storageKey ? fieldInstanceOverrides[storageKey] || null : null;
 };
 
 const resolvePageOverride = (pageOverrides = {}, page) => {
@@ -480,6 +487,77 @@ const mergePageFields = (page, fieldOverrides = {}) => {
     };
 };
 
+const mergeFieldInstanceTree = (field, fieldInstanceOverrides = {}) => {
+    if (!field || typeof field !== 'object') {
+        return field;
+    }
+
+    const override = resolveFieldInstanceOverride(fieldInstanceOverrides, field);
+    let mergedField = {
+        ...field,
+    };
+
+    if (override && typeof override === 'object') {
+        getTranslatableConfig().fieldInstance.forEach((key) => {
+            if (Object.prototype.hasOwnProperty.call(override, key)) {
+                mergedField[key] = override[key];
+            }
+        });
+    }
+
+    const nestedRows = getNestedLayoutRows(field);
+
+    if (nestedRows) {
+        const mergedRows = nestedRows.map((row) => {
+            if (!row || typeof row !== 'object' || !Array.isArray(row.fields)) {
+                return row;
+            }
+
+            return {
+                ...row,
+                fields: row.fields.map((nestedField) => {
+                    return mergeFieldInstanceTree(nestedField, fieldInstanceOverrides);
+                }),
+            };
+        });
+
+        mergedField.rows = mergedRows;
+
+        if (mergedField.settings && typeof mergedField.settings === 'object') {
+            mergedField.settings = {
+                ...mergedField.settings,
+                rows: mergedRows,
+            };
+        }
+    }
+
+    return mergedField;
+};
+
+const mergeFieldInstancesIntoPages = (pages = [], fieldInstanceOverrides = {}) => {
+    return pages.map((page) => {
+        if (!page || typeof page !== 'object' || !Array.isArray(page.rows)) {
+            return page;
+        }
+
+        return {
+            ...page,
+            rows: page.rows.map((row) => {
+                if (!row || typeof row !== 'object' || !Array.isArray(row.fields)) {
+                    return row;
+                }
+
+                return {
+                    ...row,
+                    fields: row.fields.map((field) => {
+                        return mergeFieldInstanceTree(field, fieldInstanceOverrides);
+                    }),
+                };
+            }),
+        };
+    });
+};
+
 const mergeSettings = (settings = {}, settingsOverrides = {}) => {
     const merged = {
         ...settings,
@@ -594,6 +672,10 @@ export const mergeSiteOverridesIntoFormData = (canonicalData = {}, overrides = {
             merged.pages,
             overrides.pages || {},
             resolvedFieldOverrides,
+        );
+        merged.pages = mergeFieldInstancesIntoPages(
+            merged.pages,
+            overrides.fieldInstanceOverrides || {},
         );
     }
 
@@ -912,6 +994,43 @@ const diffFields = (canonicalFields = {}, postedFields = {}, preferReferences = 
     return diff;
 };
 
+const diffFieldInstances = (canonicalFields = {}, postedFields = {}) => {
+    const diff = {};
+
+    Object.entries(postedFields).forEach(([fieldKey, field]) => {
+        if (!field || typeof field !== 'object') {
+            return;
+        }
+
+        const storageKey = getFieldStorageKey(field);
+
+        if (!storageKey) {
+            return;
+        }
+
+        const canonicalField = resolveCollectedField(canonicalFields, fieldKey, field);
+        const fieldDiff = {};
+
+        getTranslatableConfig().fieldInstance.forEach((key) => {
+            if (!Object.prototype.hasOwnProperty.call(field, key)) {
+                return;
+            }
+
+            if (translatableValuesAreEquivalent(canonicalField[key], field[key])) {
+                return;
+            }
+
+            fieldDiff[key] = field[key];
+        });
+
+        if (Object.keys(fieldDiff).length) {
+            diff[storageKey] = fieldDiff;
+        }
+    });
+
+    return diff;
+};
+
 const diffPages = (canonicalPages = [], postedPages = []) => {
     const pages = {};
 
@@ -1015,15 +1134,21 @@ export const extractSiteTranslationsFromFormData = (canonicalData = {}, formData
         translations.pages = pagesDiff;
     }
 
+    const canonicalFields = collectFieldsFromPages(canonicalPages);
+    const postedFields = collectFieldsFromPages(postedPages);
     const fieldsDiff = diffFields(
-        collectFieldsFromPages(canonicalPages),
-        collectFieldsFromPages(postedPages),
+        canonicalFields,
+        postedFields,
         Boolean(canonicalData.isStencil || formData.isStencil),
     );
 
     if (Object.keys(fieldsDiff).length) {
         translations.fieldOverrides = fieldsDiff;
     }
+
+    // This section is a complete diff so an empty object explicitly clears
+    // placement overrides that were reset to their source-site values.
+    translations.fieldInstanceOverrides = diffFieldInstances(canonicalFields, postedFields);
 
     const notificationsDiff = diffNotifications(
         Array.isArray(canonicalData.notifications) ? canonicalData.notifications : [],
@@ -1101,6 +1226,12 @@ const revertFieldTranslatables = (field, canonicalField) => {
             return;
         }
 
+        if (Object.prototype.hasOwnProperty.call(canonicalField, key)) {
+            reverted[key] = canonicalField[key];
+        }
+    });
+
+    getTranslatableConfig().fieldInstance.forEach((key) => {
         if (Object.prototype.hasOwnProperty.call(canonicalField, key)) {
             reverted[key] = canonicalField[key];
         }

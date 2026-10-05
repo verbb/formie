@@ -49,12 +49,13 @@ Project stencils resolve synced fields by handle, so the shared definition shoul
 
 Synced fields store their shared label, handle, and definition settings in one global field definition. Every placement on every form points at that same definition.
 
-On multi-site projects, [content translation overrides](/forms/multi-site-and-translation#content-translation) still apply per **field placement** — keyed by each placement’s reference, not by the shared definition id. That means:
+On multi-site projects, [content translation overrides](/forms/multi-site-and-translation#content-translation) for definition-owned content such as labels continue to follow the shared definition. The **Required** state is different because it belongs to the field placement. That means:
 
 - editing a synced field on the form’s **source site** updates the shared definition, which affects every form and every site that does not have a site override for that placement
-- editing a synced field on a **secondary site** saves a site override for that placement only; the shared definition stays unchanged
-- if the same synced field appears twice on one form — for example inside delivery and invoice groups — each placement has its own reference, so secondary sites can translate each placement independently even though they share one definition
+- translating definition-owned content on a **secondary site** leaves the source definition unchanged while applying that translation wherever the definition is used on that site
+- changing **Required** on a secondary site saves an override for that placement only; the shared definition and other placements stay unchanged
+- if the same synced field appears twice on one form — for example inside delivery and invoice groups — each placement has its own reference, so one can be required while the other remains optional on the same site
 
-Per-placement settings such as **required** remain local to each form field row. Site overrides can change translatable placement settings the same way as for normal fields.
+Per-placement settings such as **Required** remain local to each form field row. Their site overrides do not change the synced definition.
 
 If you need completely different labels or behaviour per site without sharing a definition, use a copied field instead of a synced one.

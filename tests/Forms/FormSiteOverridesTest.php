@@ -68,6 +68,95 @@ it('saves explicit translations payload without server-side diffing', function (
     expect($fieldOverride['label'] ?? null)->toBe('Test Field Site 2');
 });
 
+it('applies required overrides to the field placement for each site', function (): void {
+    $service = Formie::$plugin->getFormSiteOverrides();
+
+    $form = formie()
+        ->form(['title' => 'Required Site Overrides Form'])
+        ->singleLineTextField('phone', ['required' => true])
+        ->singleLineTextField('company', ['required' => false])
+        ->create();
+
+    $sourceSiteId = $service->getSourceSiteId($form);
+    $canonicalForm = Formie::$plugin->getForms()->getFormById((int)$form->id, $sourceSiteId);
+    $secondarySiteId = current(array_filter(
+        Formie::$plugin->getFormSitePropagation()->resolveSiteIdsForForm($canonicalForm),
+        static fn(int $siteId): bool => $siteId !== $sourceSiteId,
+    ));
+    $phone = $canonicalForm->getFieldByHandle('phone');
+    $company = $canonicalForm->getFieldByHandle('company');
+
+    expect($secondarySiteId)->not->toBeFalse()
+        ->and($phone?->reference)->not->toBeEmpty()
+        ->and($company?->reference)->not->toBeEmpty();
+
+    $service->saveTranslationBundle((int)$form->id, (int)$secondarySiteId, [
+        'fieldInstanceOverrides' => [
+            $phone->reference => ['required' => false],
+            $company->reference => ['required' => true],
+        ],
+    ]);
+
+    $saved = $service->getOverrides((int)$form->id, (int)$secondarySiteId);
+    $applied = $service->applyToForm($canonicalForm, (int)$secondarySiteId, true);
+    $builderData = $service->applyToBuilderData(
+        $canonicalForm->getFormBuilderConfig(),
+        (int)$secondarySiteId,
+    );
+    $submission = new \verbb\formie\elements\Submission();
+    $submission->formId = (int)$form->id;
+    $submission->siteId = (int)$secondarySiteId;
+    $submission->title = 'Required site override submission';
+    $submission->setScenario(\craft\base\Element::SCENARIO_LIVE);
+    $submission->setFieldValueFromRequest('phone', '');
+    $submission->setFieldValueFromRequest('company', '');
+
+    expect(Craft::$app->getElements()->saveElement($submission))->toBeFalse();
+
+    expect($saved['fieldInstanceOverrides'][$phone->reference]['required'] ?? null)->toBeFalse()
+        ->and($saved['fieldInstanceOverrides'][$company->reference]['required'] ?? null)->toBeTrue()
+        ->and($applied->getFieldByHandle('phone')->required)->toBeFalse()
+        ->and($applied->getFieldByHandle('company')->required)->toBeTrue()
+        ->and($canonicalForm->getFieldByHandle('phone')->required)->toBeTrue()
+        ->and($canonicalForm->getFieldByHandle('company')->required)->toBeFalse()
+        ->and($builderData['pages'][0]['rows'][0]['fields'][0]['required'])->toBeFalse()
+        ->and($builderData['pages'][0]['rows'][0]['fields'][1]['required'])->toBeTrue()
+        ->and($submission)->not->toHaveFieldError('phone')
+        ->and($submission)->toHaveFieldError('company');
+});
+
+it('clears required overrides when the placement returns to its source value', function (): void {
+    $service = Formie::$plugin->getFormSiteOverrides();
+
+    $form = formie()
+        ->form(['title' => 'Reset Required Site Override Form'])
+        ->singleLineTextField('phone', ['required' => true])
+        ->create();
+
+    $sourceSiteId = $service->getSourceSiteId($form);
+    $canonicalForm = Formie::$plugin->getForms()->getFormById((int)$form->id, $sourceSiteId);
+    $secondarySiteId = current(array_filter(
+        Formie::$plugin->getFormSitePropagation()->resolveSiteIdsForForm($canonicalForm),
+        static fn(int $siteId): bool => $siteId !== $sourceSiteId,
+    ));
+    $field = $canonicalForm->getFieldByHandle('phone');
+
+    expect($secondarySiteId)->not->toBeFalse()
+        ->and($field?->reference)->not->toBeEmpty();
+
+    $service->saveTranslationBundle((int)$form->id, (int)$secondarySiteId, [
+        'fieldInstanceOverrides' => [
+            $field->reference => ['required' => false],
+        ],
+    ]);
+    $service->saveTranslationBundle((int)$form->id, (int)$secondarySiteId, [
+        'fieldInstanceOverrides' => [],
+    ]);
+
+    expect($service->getOverrides((int)$form->id, (int)$secondarySiteId))->toBe([])
+        ->and($service->applyToForm($canonicalForm, (int)$secondarySiteId, true)->getFieldByHandle('phone')->required)->toBeTrue();
+});
+
 it('merges sparse title overrides into builder data', function (): void {
     $service = Formie::$plugin->getFormSiteOverrides();
 
@@ -539,10 +628,12 @@ it('exposes builder translatable config for client merge/extract', function (): 
         'pageSettings',
         'notification',
         'fieldTypes',
+        'fieldInstance',
         'scalarKeys',
         'nestedKeys',
     ])
         ->and($config['form'])->toContain('title')
+        ->and($config['fieldInstance'])->toBe(['required'])
         ->and($config['nestedKeys'])->toContain('options', 'columns')
         ->and($config['fieldTypes']['verbb\\formie\\fields\\SingleLineText'] ?? null)
         ->toContain('label', 'placeholder');

@@ -17,7 +17,7 @@ With **entries**, each site gets its own slice of the element. You can enable or
 **Formie forms do not work that way.** A form is closer to a shared blueprint than a bundle of independent per-site documents.
 
 - **One layout for all enabled sites.** The field tree, handles, pages, conditions, integrations, and captcha settings are canonical. Every site that has the form enabled runs the same structure. You cannot give the French site an extra field that the English site does not have, or reorder pages on one site only, using site overrides alone.
-- **Per-site differences are mostly text.** Secondary sites store sparse overrides for labels, messages, and similar copy. The database does not hold a full duplicate of the form per site.
+- **Per-site differences are mostly text.** Secondary sites store sparse overrides for labels, messages, and similar copy. A field’s **Required** state can also differ when a market has a different validation requirement. The database does not hold a full duplicate of the form per site.
 - **Handles stay consistent.** A field is always `yourName` (or whatever you set on the source site), because submissions, integrations, notifications, and templates all rely on stable handles across sites.
 - **Availability is group-level, not per form.** Whether a form exists on a site is controlled by the [form group](/forms/form-groups) **Site Policy**, not a “Sites” tab on the form itself. That part *does* line up with Craft’s mental model — Formie toggles `elements_sites` rows so a form can be enabled on Site A and disabled on Site B — but the *content* model is not entry-style.
 
@@ -41,7 +41,7 @@ This is about whether a form is enabled or disabled for a given Craft site — t
 
 **“What text should visitors see on this site?”**
 
-This is about wording — titles, labels, messages, and similar copy — while the underlying form structure stays shared. You configure it in the **form builder**, switching between sites and editing the strings that differ. Only values you change are stored, as sparse JSON in `formie_form_site_overrides`. Every site shares one canonical field layout; secondary sites can override specific text on top of it.
+This is mainly about wording — titles, labels, messages, and similar copy — while the underlying form structure stays shared. You configure it in the **form builder**, switching between sites and editing the values that differ. A secondary site can also override whether an existing field is **Required**. Only values you change are stored as sparse overrides. Every site shares one canonical field layout; secondary sites layer their local content and required-state changes on top of it.
 
 A form might be **available** on English and French sites, with **translated** labels on the French site. Or it might only be **available** on a regional site, with no translations because there is only one site to worry about.
 
@@ -120,20 +120,21 @@ On the front end, Formie merges overrides on top of the canonical form for the c
 
 Craft’s global primary site is only relevant when it is also the form’s source site. Regional forms created on non-primary sites use their creation site as the canonical reference.
 
-### What You Can Translate
+### What You Can Override
 
 Translatable content includes front-end-facing strings such as:
 
 - Form title
 - Page labels and page settings (for example, submit button label)
 - Field labels, instructions, placeholders, default values, and validation messages
+- Whether an existing field is **Required**
 - Static option labels (and values, when you intentionally override both)
 - Content shown in HTML and heading fields
 - Quiz and survey question copy
 - Form messages (error, success, limits, scheduling)
 - Notification subject and body in the builder *(see [Notifications](#notifications) below)*
 
-Structural settings are **not** stored per site — field handles, conditions, integrations, captcha choice, and the shape of the layout are shared by every enabled site. You can change them from **any** site in the builder, but those edits update the canonical form and apply everywhere, not just the site you are viewing.
+Structural settings are **not** stored per site — field handles, conditions, integrations, captcha choice, and the shape of the layout are shared by every enabled site. You can change them from **any** site in the builder, but those edits update the canonical form and apply everywhere, not just the site you are viewing. The **Required** toggle is the deliberate behavioural exception: changing it on a secondary site affects validation for that field placement on that site only.
 
 ### Working in the Form Builder
 
@@ -158,11 +159,22 @@ You can add or remove fields, reorder pages, and change conditions from **any** 
 | You are viewing | What a normal **Save** updates |
 | --- | --- |
 | **Source site** | The canonical form — structure, settings, and default translatable content |
-| **Another enabled site** | Sparse **translation overrides** for any translatable strings you changed; layout and structural edits still update the **shared** canonical form |
+| **Another enabled site** | Sparse **site overrides** for translatable strings and field required states; layout and structural edits still update the **shared** canonical form |
 
 So if you add a field while viewing a secondary site, that field appears on every site the form is enabled on. If you only change a label on a secondary site, only the override for that site is updated — the source site’s default label stays the same.
 
-Use the site switcher when you want to check how the form reads on a particular audience, or to edit translated wording. Use any site when you need to change the form’s shape — just keep in mind that structural changes are global.
+Use the site switcher when you want to check how the form reads and validates for a particular audience, or to edit translated wording. Use any site when you need to change the form’s shape — just keep in mind that structural changes are global.
+
+### Example: Making a Field Optional for One Site
+
+Suppose a shared contact form requires a phone number in every market except New Zealand.
+
+1. Open the form on its source site and make the **Phone number** field required.
+2. Use the site switcher to open **New Zealand**.
+3. Open the field actions menu and choose **Make optional**.
+4. Save the form.
+
+The field remains required on the source site and every site that inherits the source setting. On the New Zealand front end it renders as optional, and server-side validation accepts an empty phone number. Choosing **Make required** again on New Zealand resets the value to the source setting and removes the sparse override.
 
 ### Example: Translating a Contact Form
 
