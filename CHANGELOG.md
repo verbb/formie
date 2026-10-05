@@ -17,6 +17,7 @@
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
 
 ### Changed
+- Require Verbb Base 3.0.19 or later for the current control-panel asset bundle namespace.
 - Use explicit integration dispatch capability and execution-local results, with common form-integration policy separated from annotated provider settings.
 - Store canonical minor-unit payment amounts, account-scoped financial references and subscription terms; retain Formie 3 major-unit and plan projections at compatibility boundaries.
 - Separate payment states from browser actions and expose one canonical payment decision across submission transports and frontend adapters.
@@ -61,6 +62,7 @@
 - Return immutable Phone values that retain entered numbers and countries, and a consistent Name value in both input modes; replace beta Array/value-class APIs and browser validation names.
 
 ### Fixed
+- Avoid Verbb Base deprecation warnings by using its current control-panel asset bundle namespace. ([verbb-base#3](https://github.com/verbb/verbb-base/issues/3))
 - Fixed moderate-severity authorization bypass vulnerabilities across control-panel and GraphQL operations.
 - Fixed low-severity information disclosure vulnerabilities.
 - Fixed a low-severity rate-limit bypass vulnerability.

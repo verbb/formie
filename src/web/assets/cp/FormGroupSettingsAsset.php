@@ -4,7 +4,7 @@ namespace verbb\formie\web\assets\cp;
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset as CraftCpAsset;
 
-use verbb\base\assetbundles\CpAsset as VerbbCpAsset;
+use verbb\base\web\assets\cp\CpAsset as VerbbCpAsset;
 
 class FormGroupSettingsAsset extends AssetBundle
 {

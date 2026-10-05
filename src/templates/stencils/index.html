@@ -10,7 +10,7 @@
 {% set selectedSubnavItem = 'stencils' %}
 
 {% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') %}
-{% do view.registerAssetBundle('verbb\\base\\assetbundles\\CpAsset') %}
+{% do view.registerAssetBundle('verbb\\base\\web\\assets\\cp\\CpAsset') %}
 
 {% block actionButton %}
     {% if allowAdminChanges %}
