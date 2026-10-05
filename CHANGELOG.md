@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix element field previews ignoring Specific Elements and other option settings after editing a field.
+
 ## 3.1.45 - 2026-10-02
 
 ### Changed

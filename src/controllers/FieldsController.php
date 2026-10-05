@@ -68,8 +68,10 @@ class FieldsController extends Controller
         $field = $this->_getRegisteredElementField($fieldData['type']);
 
         try {
-            $field->sources = $fieldSettings['sources'] ?? [];
-            $field->source = $fieldSettings['source'] ?? null;
+            $field->setAttributes(array_intersect_key(
+                $fieldSettings,
+                array_flip($field->settingsAttributes())
+            ), false);
 
             // Fetch the element query for the field, so we can fetch the content (limited)
             $elements = $field->getPreviewElements();
@@ -100,7 +102,7 @@ class FieldsController extends Controller
 
         // Ensure things are properly escaped
         $submissionUid = Db::escapeParam($submissionUid);
-        
+
         // Use UID to prevent easy-guessing of submission to scrape data
         if ($submissionUid && $fieldId) {
             $submission = Submission::find()->uid($submissionUid)->isIncomplete(null)->one();
@@ -127,7 +129,7 @@ class FieldsController extends Controller
         $accessToken = $this->request->getParam('accessToken');
         $fieldKey = $this->request->getParam('fieldKey');
         $siteId = (int)$this->request->getParam('siteId');
-        
+
         // Ensure things are properly escaped
         $submissionUid = Db::escapeParam($submissionUid);
 
@@ -175,7 +177,7 @@ class FieldsController extends Controller
                     $response = Craft::$app->getResponse();
                     $response->setCacheHeaders();
                     $response->getHeaders()->set('Content-Type', 'image/png');
-                    
+
                     return $this->asRaw($image);
                 }
             }
