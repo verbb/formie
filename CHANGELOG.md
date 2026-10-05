@@ -15,9 +15,10 @@
 - Add one typed reference runtime and Variable Picker catalogue, with immutable field declarations, native exact values, stable nested identities, explicit row scopes and context-safe diagnostics.
 - Add versioned, atomic form imports with dependency plans, stable-reference matching and recoverable missing field types.
 - Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
+- Allow each site to override whether a shared form field is required without duplicating the form. ([#2982](https://github.com/verbb/formie/issues/2982))
 
 ### Changed
-- Require Verbb Base 3.0.19 or later for the current control-panel asset bundle namespace.
+- Require Verbb Base 3.0.20 or later so shared control-panel layouts use the current asset bundle namespace. ([verbb-base#3](https://github.com/verbb/verbb-base/issues/3))
 - Use explicit integration dispatch capability and execution-local results, with common form-integration policy separated from annotated provider settings.
 - Store canonical minor-unit payment amounts, account-scoped financial references and subscription terms; retain Formie 3 major-unit and plan projections at compatibility boundaries.
 - Separate payment states from browser actions and expose one canonical payment decision across submission transports and frontend adapters.
@@ -67,6 +68,7 @@
 - Fixed low-severity information disclosure vulnerabilities.
 - Fixed a low-severity rate-limit bypass vulnerability.
 - Allow existing forms containing Address, Repeater and other nested fields to be updated in the form builder.
+- Prevent structured Phone field defaults from being displayed as JSON in the form builder preview.
 - Fix text word and character limits disagreeing between browser and server validation for Unicode punctuation, emoji, and composed characters. ([#2977](https://github.com/verbb/formie/issues/2977))
 - Apply event-modified Phone countries to server-rendered and client-rendered browser pickers when a field has no explicit allowed-country list.
 - Allow upgrades with beta integration-policy settings to complete the reference migration before forms are loaded.
