@@ -26,6 +26,11 @@
     display: none;
 }
 
+// Conditions can target custom field and button wrappers that don't use Formie's classes.
+[data-fui-form] [data-conditionally-hidden] {
+    display: none;
+}
+
 .fui-sr-only,
 [data-fui-sr-only] {
     clip: rect(0, 0, 0, 0);
