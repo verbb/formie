@@ -186,11 +186,25 @@ class Group extends SingleNestedField
 
     protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
     {
+        return $this->_defineValueForVariable($submission, $notification, false);
+    }
+
+    protected function defineValueForVariableRaw(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        return $this->_defineValueForVariable($submission, $notification, true);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _defineValueForVariable(Submission $submission, Notification $notification, bool $rawValue): array
+    {
         $values = [];
 
         foreach ($this->getFields() as $nestedField) {
             $value = $submission->getFieldValue($nestedField->fieldKey);
-            $fieldValues = Variables::getParsedFieldValue($nestedField, $value, $submission, $notification);
+            $fieldValues = Variables::getParsedFieldValue($nestedField, $value, $submission, $notification, $rawValue);
 
             if (is_array($fieldValues)) {
                 foreach ($fieldValues as $key => $fieldValue) {
