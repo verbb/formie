@@ -202,13 +202,31 @@ abstract class SubField extends SingleNestedField implements SubFieldInterface
 
     protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
     {
+        return $this->_defineValueForVariable($value, $submission, $notification, false);
+    }
+
+    protected function defineValueForVariableRaw(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        if (!$this->hasSubFields()) {
+            return parent::defineValueForVariableRaw($value, $submission, $notification);
+        }
+
+        return $this->_defineValueForVariable($value, $submission, $notification, true);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _defineValueForVariable(mixed $value, Submission $submission, Notification $notification, bool $rawValue): array
+    {
         $values = [
             '__toString' => StringHelper::toString($value),
         ];
 
         foreach ($this->getFields() as $subField) {
             $value = $submission->getFieldValue($subField->fieldKey);
-            $fieldValues = Variables::getParsedFieldValue($subField, $value, $submission, $notification);
+            $fieldValues = Variables::getParsedFieldValue($subField, $value, $submission, $notification, $rawValue);
 
             if (is_array($fieldValues)) {
                 foreach ($fieldValues as $key => $fieldValue) {

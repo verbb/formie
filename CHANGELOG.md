@@ -6,6 +6,7 @@
 - Require Verbb Base 3.0.20 or later so shared control-panel layouts use the current asset bundle namespace. ([verbb-base#3](https://github.com/verbb/verbb-base/issues/3))
 
 ### Fixed
+- Fix composite field variables in notification email headers failing to render. ([#2985](https://github.com/verbb/formie/issues/2985))
 - Fix element field previews ignoring Specific Elements and other option settings after editing a field.
 - Fix conditionally hidden fields remaining visible when using custom field wrappers.
 
