@@ -1,4 +1,9 @@
-import { t, isEmpty, waitForElement } from './utils/utils';
+import {
+    t,
+    isEmpty,
+    waitForElement,
+    waitForElementRemoval,
+} from './utils/utils';
 
 import { FormieFormBase } from './formie-form-base';
 
@@ -323,17 +328,27 @@ export class Formie {
             return CSRF.initPromise;
         }
 
-        CSRF.initPromise = fetch(url, {
-            method: 'GET',
-            credentials: 'include', // Allow cookies to be set/read
-            headers: { Accept: 'application/json' },
-        })
-            .then((res) => {
+        let initPromise;
+
+        if (document.querySelector('craft-csrf-input')) {
+            // Craft's async CSRF request initializes the session too. Let it finish before Formie requests
+            // session-bound captcha tokens, otherwise the concurrent responses can set different session cookies.
+            initPromise = waitForElementRemoval('craft-csrf-input', document);
+        } else {
+            initPromise = fetch(url, {
+                method: 'GET',
+                credentials: 'include', // Allow cookies to be set/read
+                headers: { Accept: 'application/json' },
+            }).then((res) => {
                 if (!res.ok) {
                     throw new Error(`CSRF init failed (${res.status})`);
                 }
+            });
+        }
 
-                // We only need the cookie side-effect.
+        CSRF.initPromise = initPromise
+            .then(() => {
+                // We only need the session cookie side-effect from either initializer.
                 CSRF.initialized = true;
             })
             .then(async() => {

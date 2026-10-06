@@ -76,6 +76,26 @@ export const waitForElement = function(selector, $element) {
     });
 };
 
+export const waitForElementRemoval = function(selector, $element, timeout = 10000) {
+    $element = $element || document;
+
+    const start = Date.now();
+
+    return new Promise((resolve, reject) => {
+        const waitForRemoval = () => {
+            if (!$element.querySelector(selector)) {
+                resolve();
+            } else if (timeout && (Date.now() - start) >= timeout) {
+                reject(new Error(`Timed out waiting for "${selector}" to be removed.`));
+            } else {
+                setTimeout(waitForRemoval, 30);
+            }
+        };
+
+        waitForRemoval();
+    });
+};
+
 export const debounce = function(func, delay) {
     let timeoutId;
 
