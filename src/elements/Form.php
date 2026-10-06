@@ -130,7 +130,7 @@ class Form extends Element
         foreach ($templates as $template) {
             // TODO Change at the next breakpoint
             // https://github.com/verbb/formie/discussions/1696
-            if ($context === 'modal') {
+            if ($context === 'modal' || $context === 'field') {
                 $key = "template:{$template->uid}";
             } else {
                 $key = "template:{$template->id}";
