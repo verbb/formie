@@ -4,9 +4,11 @@ namespace verbb\formie\helpers;
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\models\Notification;
 use verbb\formie\references\ReferenceCatalogue;
 use verbb\formie\references\ReferenceContext;
+use verbb\formie\references\ReferenceDefinition;
 use verbb\formie\references\ReferenceResolver;
 
 use Craft;
@@ -82,8 +84,8 @@ class Variables
         return [
             'variableCategories' => [
                 'report' => [
-                    self::_pickerSource(Craft::t('formie', 'Report Handle'), '{handle}'),
-                    self::_pickerSource(Craft::t('formie', 'Report Name'), '{name}'),
+                    self::_reportPickerSource('handle', Craft::t('formie', 'Report Handle')),
+                    self::_reportPickerSource('name', Craft::t('formie', 'Report Name')),
                 ],
                 'general' => array_values(array_merge(
                     $staticGroups[self::GROUP_CURRENT_TIME] ?? [],
@@ -921,6 +923,20 @@ class Variables
         }
 
         return ucwords(strtolower($value));
+    }
+
+    private static function _reportPickerSource(string $identifier, string $label): array
+    {
+        $definition = new ReferenceDefinition(
+            id: 'report:' . $identifier,
+            label: $label,
+            category: 'report',
+            valueType: FieldValueType::string(),
+        );
+
+        // Report filenames retain their concise stored tokens while using the
+        // canonical picker metadata shared by the reference catalogue.
+        return $definition->toPickerSource('{' . $identifier . '}');
     }
 
 
