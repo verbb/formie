@@ -169,9 +169,13 @@ export default defineConfig(async ({ command, mode }) => {
         // published entrypoint instead of hard-coding `/dist/...`.
         base: '',
 
-        esbuild: {
-            jsx: 'automatic',
-        },
+        // Vitest 4 runs through Vite 6's esbuild transform, while the CP build
+        // and dev server use Vite 8's Oxc transform from @vitejs/plugin-react.
+        ...(mode === 'test' ? {
+            esbuild: {
+                jsx: 'automatic',
+            },
+        } : {}),
 
         build: {
             outDir: './dist',
