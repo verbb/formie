@@ -1,6 +1,7 @@
 <?php
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
 use verbb\formie\enums\NavigationIntent;
 use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\enums\SubmissionOperation;
@@ -75,4 +76,12 @@ function continuitySubmission(): array
     $submission->setFieldValue('message', 'Canonical content');
     Craft::$app->getElements()->saveElement($submission, false);
     return [$form, $submission];
+}
+
+function guardCommand($form, array $attributes = []) {
+    return submissionCommand($attributes + [
+        'form' => $form, 'submission' => new Submission(),
+        'authority' => new SubmissionAuthority(SubmissionAuthorityType::VISITOR, (int)$form->id, null, 'guard-session'),
+        'requestToken' => $form->getRequestToken(),
+    ]);
 }

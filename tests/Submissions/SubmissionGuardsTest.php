@@ -2,22 +2,11 @@
 
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\Formie;
-use verbb\formie\elements\Submission;
-use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\enums\NavigationIntent;
 use verbb\formie\models\Settings;
-use verbb\formie\models\SubmissionAuthority;
 use yii\web\ForbiddenHttpException;
 use yii\web\TooManyRequestsHttpException;
-
-function guardCommand($form, array $attributes = []) {
-    return submissionCommand($attributes + [
-        'form' => $form, 'submission' => new Submission(),
-        'authority' => new SubmissionAuthority(SubmissionAuthorityType::VISITOR, (int)$form->id, null, 'guard-session'),
-        'requestToken' => $form->getRequestToken(),
-    ]);
-}
 
 it('requires a signed form-bound token for every interactive write', function ($operation, $navigation) {
     $form = formie()->form()->create();
