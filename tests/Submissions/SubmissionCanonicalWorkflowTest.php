@@ -280,3 +280,29 @@ it('binds managed retry identity to multipart contents rather than temporary upl
         unlink($secondPath);
     }
 });
+
+it('raises completion once for an unrelated direct save nested inside a workflow', function () {
+    $form = formie()->form()->singleLineTextField('message')->create();
+    $outer = new Submission();
+    $nested = null;
+    $events = [];
+    $listener = function ($event) use ($form, $outer, &$nested, &$events) {
+        $events[] = $event->submission->id;
+        if ($event->submission === $outer) {
+            $nested = formie()->submission($form)->with(['message' => 'Nested direct save'])->save();
+        }
+    };
+    Event::on(Submission::class, Submission::EVENT_AFTER_COMPLETE, $listener);
+    try {
+        $result = Formie::$plugin->getSubmissionProcessor()->executeCommand(submissionCommand(['form' => $form, 'submission' => $outer]));
+        expect($result->type)->toBe(Outcome::COMPLETED)
+            ->and($nested->id)->not->toBeNull()
+            ->and($nested->isIncomplete)->toBeFalse()
+            ->and($events)->toBe([$outer->id, $nested->id])
+            ->and(WorkflowContext::current())->toBeNull();
+        expect(Craft::$app->getElements()->saveElement($nested, false))->toBeTrue();
+        expect($events)->toBe([$outer->id, $nested->id]);
+    } finally {
+        Event::off(Submission::class, Submission::EVENT_AFTER_COMPLETE, $listener);
+    }
+});

@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed completion events being suppressed when an event handler or workflow task directly saved a different completed submission while another submission workflow was active.
 - Fixed replayed integration deliveries reporting a different result from the stored delivery attempt when a binding was disabled, became ineligible, had invalid settings, or had legacy delivery history. Replays now preserve provider outputs and apply the stored result to dispatch failure policies.
 
 ## 4.0.0-beta.17 - 2026-10-08

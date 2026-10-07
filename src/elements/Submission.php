@@ -1293,7 +1293,7 @@ class Submission extends Element
      */
     private function _raiseAfterCompleteIfNeeded(bool $isNew): void
     {
-        if ($this->isIncomplete || WorkflowContext::current()) {
+        if ($this->isIncomplete || WorkflowContext::current()?->command->submission === $this) {
             return;
         }
 
