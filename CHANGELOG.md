@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed replayed integration deliveries reporting a different result from the stored delivery attempt when a binding was disabled, became ineligible, had invalid settings, or had legacy delivery history. Replays now preserve provider outputs and apply the stored result to dispatch failure policies.
+
 ## 4.0.0-beta.17 - 2026-10-08
 
 ### Added

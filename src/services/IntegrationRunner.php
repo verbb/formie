@@ -76,19 +76,18 @@ class IntegrationRunner extends Component
                 $context = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, $handle, $executionKey, $triggerContext['execution'] ?? 'synchronous');
                 $attempts = Formie::$plugin->getDeliveryAttempts();
                 $uid = $attempts->prepare($context, 'integration');
-                $attempts->execute($uid, fn() => $result);
+                $result = $attempts->execute($uid, fn() => $result);
                 $this->_saveProjection($handle, $submission, $result, $executionKey);
                 $this->_reportResult($context, $result, $uid);
-                $batch->record($handle, $result);
-                continue;
-            }
-            $integration = $binding->createRuntime();
+            } else {
+                $integration = $binding->createRuntime();
 
-            if (isset($triggerContext['bindings'][$handle])) {
-                $integration = FormIntegration::fromSettings($binding->integration, $triggerContext['bindings'][$handle], $form->getId(), $form->getHandle())->createRuntime();
+                if (isset($triggerContext['bindings'][$handle])) {
+                    $integration = FormIntegration::fromSettings($binding->integration, $triggerContext['bindings'][$handle], $form->getId(), $form->getHandle())->createRuntime();
+                }
+                $execution = $triggerContext['execution'] ?? 'synchronous';
+                $result = $this->runIntegration($integration, $submission, $executionKey, $execution, $triggerContext);
             }
-            $execution = $triggerContext['execution'] ?? 'synchronous';
-            $result = $this->runIntegration($integration, $submission, $executionKey, $execution, $triggerContext);
             $batch->record($handle, $result);
 
             if (!in_array($result->status, [IntegrationStatus::Succeeded, IntegrationStatus::Skipped], true) && $plan?->shouldStopOnFailure()) {
@@ -275,7 +274,7 @@ class IntegrationRunner extends Component
             $result = $invalidConditions ? new IntegrationResult(IntegrationStatus::Rejected, code: 'invalid_conditions', diagnostics: $conditionEvaluation->diagnostics) : IntegrationResult::skipped('conditions');
             $attempts = Formie::$plugin->getDeliveryAttempts();
             $uid = $attempts->prepare($context, 'integration');
-            $attempts->execute($uid, fn() => $result);
+            $result = $attempts->execute($uid, fn() => $result);
             $this->_saveProjection($integration, $submission, $result, $executionKey);
             $this->_reportResult($context, $result, $uid);
             return $result;
@@ -286,7 +285,7 @@ class IntegrationRunner extends Component
             $result = IntegrationResult::rejected('invalid_form_settings');
             $attempts = Formie::$plugin->getDeliveryAttempts();
             $uid = $attempts->prepare($context, 'integration');
-            $attempts->execute($uid, fn() => $result);
+            $result = $attempts->execute($uid, fn() => $result);
             $this->_saveProjection($integration, $submission, $result, $executionKey);
             $this->_reportResult($context, $result, $uid);
             return $result;
@@ -299,7 +298,7 @@ class IntegrationRunner extends Component
 
         if ($legacyResult) {
             $uid = $attempts->prepare($context, 'integration');
-            $attempts->execute($uid, fn() => $legacyResult);
+            $legacyResult = $attempts->execute($uid, fn() => $legacyResult);
             $this->_saveProjection($integration, $submission, $legacyResult, $executionKey);
             $this->_reportResult($context, $legacyResult, $uid);
             return $legacyResult;
