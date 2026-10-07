@@ -33,20 +33,20 @@ it('replays the durable result through every early delivery branch', function (s
     $submission = formie()->submission($form)->save();
     $handle = 'resultReplay' . uniqid();
     $connection = new ResultReplayIntegration(['name' => 'Result replay', 'handle' => $handle, 'enabled' => true]);
-    expect(Formie::$plugin->getIntegrations()->saveIntegration($connection, false))->toBeTrue();
-    $form->settings->integrations = [$handle => ['enabled' => true]];
     $runner = Formie::$plugin->getIntegrationRunner();
-    $run = 'replay-' . uniqid();
-    $first = $runner->runSteps($submission, [$handle], [], null, $run)->results()[0]['result'];
-    expect($first->isSuccessful())->toBeTrue();
     $reported = [];
     $skipped = [];
     $onResult = function ($event) use (&$reported) { $reported[] = $event->result; };
     $onSkipped = function ($event) use (&$skipped) { $skipped[] = $event->result; };
-    $runner->on(IntegrationRunner::EVENT_RESULT, $onResult);
-    $runner->on(IntegrationRunner::EVENT_SKIPPED, $onSkipped);
-
     try {
+        expect(Formie::$plugin->getIntegrations()->saveIntegration($connection, false))->toBeTrue();
+        $form->settings->integrations = [$handle => ['enabled' => true]];
+        $run = 'replay-' . uniqid();
+        $first = $runner->runSteps($submission, [$handle], [], null, $run)->results()[0]['result'];
+        expect($first->isSuccessful())->toBeTrue();
+        $runner->on(IntegrationRunner::EVENT_RESULT, $onResult);
+        $runner->on(IntegrationRunner::EVENT_SKIPPED, $onSkipped);
+
         if ($branch === 'disabled') $form->settings->integrations = [$handle => ['enabled' => false]];
         if ($branch === 'conditions') ResultReplayIntegration::$eligible = false;
         if ($branch === 'settings') ResultReplayIntegration::$validSettings = false;
@@ -67,6 +67,10 @@ it('replays the durable result through every early delivery branch', function (s
         $runner->off(IntegrationRunner::EVENT_RESULT, $onResult);
         $runner->off(IntegrationRunner::EVENT_SKIPPED, $onSkipped);
         ResultReplayIntegration::$eligible = ResultReplayIntegration::$validSettings = true;
+        if ($connection->id) {
+            expect(Formie::$plugin->getIntegrations()->deleteIntegration($connection))->toBeTrue();
+            expect(Formie::$plugin->getIntegrations()->getIntegrationById($connection->id))->toBeNull();
+        }
     }
 })->with(['disabled', 'conditions', 'settings', 'legacy']);
 
