@@ -4,12 +4,15 @@ namespace verbb\formie\workflow\tasks\finalize;
 use verbb\formie\Formie;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\enums\SubmissionOutcomeType;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\Settings;
+use verbb\formie\services\CompletionResolver;
 use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
 use verbb\formie\workflow\WorkflowContext;
 
 use Craft;
+use craft\helpers\Json;
 
 class FinalizeTask implements TaskInterface
 {
@@ -62,9 +65,26 @@ class FinalizeTask implements TaskInterface
             Formie::$plugin->getSubmissionGuards()->consumeReplayToken((string)$form->uid, $command->requestToken);
         }
 
-        return TaskResult::stop($context->result($type, [
+        $data = [
             'fakeSuccess' => $fakeSuccess,
             'quizResultId' => ($context->taskState['questionnaireScoring.result'] ?? null)?->id,
-        ]));
+        ];
+
+        if ($type === SubmissionOutcomeType::COMPLETED) {
+            $completion = (new CompletionResolver())->resolve($submission->getForm(), $submission);
+            $data['completion'] = $completion->toArray();
+
+            if ($submission->id) {
+                $submission->mergeMetadata(['completion' => $completion->toArray()]);
+                Craft::$app->getDb()->createCommand()->update(
+                    Table::FORMIE_SUBMISSIONS,
+                    ['metadata' => Json::encode($submission->metadata)],
+                    ['id' => $submission->id]
+                )->execute();
+            }
+            $data['redirect'] = $completion->url ? ['url' => $completion->url, 'target' => $completion->target->value] : null;
+        }
+
+        return TaskResult::stop($context->result($type, $data));
     }
 }

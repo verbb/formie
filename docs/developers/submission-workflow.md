@@ -81,6 +81,8 @@ return TaskResult::stop($context->result(SubmissionOutcomeType::REJECTED));
 
 Outcomes distinguish page changes, saved drafts, completed submissions, revisions, payment action required, payment pending, validation failure, payment failure, rejection and state conflict. Unexpected system failures remain exceptions. A stop does not roll back work already performed; put rejection checks before persistence.
 
+`WorkflowContext::result()` constructs an outcome from the current submission and any data you supply. It does not resolve completion settings, raise completion-resolution events, or save metadata. The built-in Finalize task resolves and stores completion details for a completed submission. Return `TaskResult::continue()` from a custom task when you want the workflow to reach that finalization; returning a completed outcome early stops the workflow at your task.
+
 Stage and task observation events carry `command`, `context`, `stage`, and, after execution, `result`. Task events also carry `task`. They are not cancellable. Use a registered task and a typed result to control execution. An after-integration task event means the dispatch intent ran; queued remote delivery may still be pending.
 
 Notification and integration queue jobs implement `verbb\formie\jobs\DeliveryJobInterface`. Queue observers can test this interface and call `getDeliveryAttemptUid()` to associate the job with durable delivery evidence. The getter does not mutate the serialized job. Keep diagnostic evidence in the delivery store, not in replacement queue payloads.

@@ -7,6 +7,7 @@ use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\SubmissionCommand;
+use verbb\formie\models\SubmissionErrors;
 use verbb\formie\models\SubmissionOutcome;
 
 class WorkflowContext
@@ -69,28 +70,13 @@ class WorkflowContext
     {
         $submission = $this->command->submission;
 
-        if ($type === SubmissionOutcomeType::COMPLETED) {
-            $completion = (new \verbb\formie\services\CompletionResolver())->resolve($submission->getForm(), $submission);
-            $data['completion'] = $completion->toArray();
-
-            if ($submission->id) {
-                $submission->mergeMetadata(['completion' => $completion->toArray()]);
-                \Craft::$app->getDb()->createCommand()->update(
-                    \verbb\formie\helpers\Table::FORMIE_SUBMISSIONS,
-                    ['metadata' => \craft\helpers\Json::encode($submission->metadata)],
-                    ['id' => $submission->id]
-                )->execute();
-            }
-            $data['redirect'] = $completion->url ? ['url' => $completion->url, 'target' => $completion->target->value] : null;
-        }
-
         return new SubmissionOutcome(
             $type,
             $submission->id ? (int)$submission->id : null,
             $submission->uid ?: null,
             $submission->id ? $submission->stateVersion : null,
             $this->nextPage?->id,
-            \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toValuePathMap(),
+            SubmissionErrors::fromSubmission($submission)->toValuePathMap(),
             array_merge(['payment' => $this->paymentDecision?->toArray()], $data),
         );
     }

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Moved completion resolution and metadata persistence into the submission workflow’s Finalize task. `WorkflowContext::result()` now only constructs an outcome, so custom tasks can create results without triggering completion events or database writes.
+
 ### Fixed
 - Fixed queued integrations and notifications leaving the worker on the submission’s site and locale. The previous site, language, and locale are now restored after delivery, including early returns and exceptions.
 - Fixed completion events being suppressed when an event handler or workflow task directly saved a different completed submission while another submission workflow was active.

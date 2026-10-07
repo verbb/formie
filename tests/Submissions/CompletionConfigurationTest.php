@@ -13,6 +13,7 @@ use verbb\formie\models\SubmissionConfig;
 use verbb\formie\services\CompletionResolver;
 use verbb\formie\services\RuntimeConfiguration;
 use verbb\formie\workflow\WorkflowContext;
+use verbb\formie\workflow\tasks\finalize\FinalizeTask;
 
 it('resolves each completion behavior only for the completed outcome', function (string $behavior): void {
     $form = formie()->form()->singleLineTextField('name')->create();
@@ -24,9 +25,11 @@ it('resolves each completion behavior only for the completed outcome', function 
         ->and((new CompletionResolver())->resolve($form, $submission, false)->behavior->value)->toBe($behavior);
     $context = new WorkflowContext(submissionCommand(['form' => $form, 'submission' => $submission]));
     foreach ([SubmissionOutcomeType::PAGE_CHANGED, SubmissionOutcomeType::DRAFT_SAVED, SubmissionOutcomeType::PAYMENT_ACTION_REQUIRED, SubmissionOutcomeType::PAYMENT_PENDING] as $type) {
-        expect($context->result($type)->data)->not->toHaveKey('completion');
+        $context->outcome = $context->result($type);
+        expect((new FinalizeTask())->execute($context)->outcome->data)->not->toHaveKey('completion');
     }
-    expect($context->result(SubmissionOutcomeType::COMPLETED)->data['completion']['behavior'])->toBe($behavior);
+    $context->outcome = null;
+    expect((new FinalizeTask())->execute($context)->outcome->data['completion']['behavior'])->toBe($behavior);
 })->with(['message', 'redirect', 'reload', 'reset']);
 
 it('rejects dangerous final redirect targets', function (string $url): void {
@@ -336,4 +339,63 @@ it('applies enforced control values before native conditional clearing', functio
         $submission->setFieldValuesFromRequest('fields');
         expect($submission->getFieldValue('control'))->toBe('show')->and($submission->getFieldValue('detail'))->toBe('retained');
     }, ['method' => 'POST', 'bodyParams' => ['fields' => ['control' => 'hide', 'detail' => 'retained']]]);
+});
+
+
+it('constructs outcomes without resolving completion or changing saved metadata', function () {
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $submission = formie()->submission($form)->save();
+    $submission->mergeMetadata(['custom' => ['value' => 'Retained metadata']]);
+    expect(Craft::$app->getElements()->saveElement($submission, false))->toBeTrue();
+    $metadata = $submission->metadata;
+    $stored = fn() => (new \craft\db\Query())->select('metadata')->from(\verbb\formie\helpers\Table::FORMIE_SUBMISSIONS)->where(['id' => $submission->id])->scalar();
+    $before = $stored();
+    $resolved = 0;
+    $listener = function () use (&$resolved) { $resolved++; };
+    \yii\base\Event::on(CompletionResolver::class, CompletionResolver::EVENT_RESOLVE_COMPLETION, $listener);
+    try {
+        $context = new WorkflowContext(submissionCommand(['form' => $form, 'submission' => $submission]));
+        $data = ['completion' => ['custom' => 'Caller supplied'], 'redirect' => null];
+        foreach (range(1, 2) as $call) {
+            $result = $context->result(SubmissionOutcomeType::COMPLETED, $data);
+            expect($result->data)->toMatchArray($data)
+                ->and($result->submissionId)->toBe($submission->id);
+        }
+        expect($resolved)->toBe(0)
+            ->and($submission->metadata)->toBe($metadata)
+            ->and($stored())->toBe($before);
+    } finally {
+        \yii\base\Event::off(CompletionResolver::class, CompletionResolver::EVENT_RESOLVE_COMPLETION, $listener);
+    }
+});
+
+it('persists completion during finalization and reuses it without repeating resolution events', function () {
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $form->settings->setAttributes(['completionBehavior' => 'redirect', 'redirectUrl' => '/thanks'], false);
+    $submission = new Submission();
+    $submission->mergeMetadata(['custom' => ['value' => 'Retained metadata']]);
+    $command = submissionCommand(['form' => $form, 'submission' => $submission]);
+    $resolved = 0;
+    $listener = function ($event) use (&$resolved) {
+        $resolved++;
+        $event->redirectUrl = '/resolved-thanks';
+    };
+    \yii\base\Event::on(CompletionResolver::class, CompletionResolver::EVENT_RESOLVE_COMPLETION, $listener);
+    try {
+        $result = Formie::$plugin->getSubmissionProcessor()->executeCommand($command);
+        $fresh = Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->one();
+        expect($result->type)->toBe(SubmissionOutcomeType::COMPLETED)
+            ->and($result->data['completion']['url'])->toBe('/resolved-thanks')
+            ->and($result->data['redirect']['url'])->toBe('/resolved-thanks')
+            ->and($fresh->getMetadata('completion'))->toBe($result->data['completion'])
+            ->and($fresh->getMetadata('custom'))->toBe(['value' => 'Retained metadata'])
+            ->and($resolved)->toBe(1);
+        $context = new WorkflowContext(submissionCommand(['form' => $form, 'submission' => $fresh]));
+        $replay = (new FinalizeTask())->execute($context)->outcome;
+        expect($replay->data['completion'])->toBe($result->data['completion'])
+            ->and($replay->data['redirect'])->toBe($result->data['redirect'])
+            ->and($resolved)->toBe(1);
+    } finally {
+        \yii\base\Event::off(CompletionResolver::class, CompletionResolver::EVENT_RESOLVE_COMPLETION, $listener);
+    }
 });
