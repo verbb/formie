@@ -59,7 +59,7 @@ $message = $submission->getFieldValueAsString('message');
 ```
 :::
 
-Formie also provides a submission-wide string projection when you need all non-cosmetic values in one pass.
+Formie also provides a method that returns string values for the whole submission when you need all non-cosmetic values in one pass.
 
 ::: code-group
 ```php [PHP]

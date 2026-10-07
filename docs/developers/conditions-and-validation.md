@@ -21,7 +21,7 @@ Always use `permits(false)` for an inverted permission. Negating `matches()` wou
 
 ## Values and Operators
 
-Operators consume normalized values through the field's condition projection and the reference runtime. References unavailable in a browser remain server-authoritative; browsers retain an unknown result instead of inventing a value.
+Conditions compare the values returned by each field's condition method, resolving reference tokens where needed. If a reference is unavailable in the browser, its result stays unknown there and the server makes the decision.
 
 | Value | Semantics |
 | --- | --- |
@@ -55,9 +55,9 @@ Preflight then enforces progression rules and resolves the visible-page transiti
 
 ## Submission Errors
 
-`$submission->getSubmissionErrors()` normalizes Yii/Craft errors once into form-local identity and full nested paths. `toClient()` returns `form` and `fields`; a field key is `<field-instance-id>.<nested-path>`, such as `123.1.email`. It never uses a shared field definition ID. `toLegacy()` returns full handle paths such as `people.1.email` for server-rendered HTML and AJAX responses. `getErrors()` returns the underlying Yii/Craft errors.
+`$submission->getSubmissionErrors()` converts Yii/Craft errors into paths that identify the affected field on this form, including nested fields. `toClient()` returns `form` and `fields`; a field key is `<field-instance-id>.<nested-path>`, such as `123.1.email`. It never uses a shared field definition ID. `toLegacy()` returns full handle paths such as `people.1.email` for server-rendered HTML and AJAX responses. `getErrors()` returns the underlying Yii/Craft errors.
 
-Messages are plain text. Rich completion/outcome messages are a separate contract. CAPTCHA, spam and provider diagnostics are private. `forPage()` and `firstPageId()` derive summaries from canonical errors and the current layout; there is no persisted page-error map.
+Validation messages are plain text; they do not support the rich text available in completion messages. CAPTCHA, spam and provider diagnostics are private. `forPage()` and `firstPageId()` build summaries from the field errors and the current layout; there is no persisted page-error map.
 
 REST-style actions return 422 for validation/progression errors, 409 for stale state, 429 for rate limits and 403 for authorization. Interactive GraphQL submit/page mutations return expected domain failures in result data, including `httpStatus`; GraphQL protocol errors remain separate. Handle-based AJAX responses may return HTTP 200 with validation errors in the response body. Page reload rerenders the submitted form and its exact controls.
 

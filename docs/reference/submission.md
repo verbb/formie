@@ -180,7 +180,7 @@ Sets a field value on the submission.
 
 **Returns:** `mixed`
 
-Returns only the normalised runtime value for the supplied field key. It takes no projection argument. Text, Email and Phone return strings; Name always returns a NameFieldValue; dates, selected options and relation queries retain their domain semantics.
+Returns the field's normalised PHP value for the supplied field key. Text and Email return strings; Name returns `NameFieldValue`; Phone returns `PhoneFieldValue`. Dates and selected options return their field value objects, and relation fields return Craft queries. This method takes no output-format argument. Use `getFieldValueAsString()` for display text or `getFieldValueAsData()` for JSON-safe data.
 :::
 
 ::: reference

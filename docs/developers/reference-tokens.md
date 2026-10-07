@@ -174,10 +174,10 @@ Do not type `{field:myFieldHandle}`. Handles are for templates and `refField()` 
 
 ## Custom Variables
 
-Register project-specific variables with `{custom:handle}` tokens. See [Custom variable sources](/developers/custom-variable-sources).
+Register project-specific variables with namespaced `{custom:vendor/name}` tokens. See [Custom variable sources](/developers/custom-variable-sources).
 
 ```twig
-{{ craft.formie.ref('custom', 'acme_campaign') }}
+{{ craft.formie.ref('custom', 'acme/campaign') }}
 ```
 
 ## Building Tokens from Twig
@@ -254,7 +254,16 @@ $name = $result->value;
 $html = References::interpolateText('Hello ' . $token, $context, ReferenceOutputContext::Html);
 ```
 
-The four immutable concepts have separate purposes: `ReferenceDefinition` describes a source for authoring, `ReferenceExpression` holds parsed syntax, `ReferenceContext` supplies evaluation inputs, and `ResolvedReference` holds the native result, field/definition metadata and any diagnostic. `requireValue()` throws `ReferenceException` when a consumer cannot continue after an error. Error messages omit submitted values and secrets.
+Four objects carry the information used to resolve a reference:
+
+| Object | Purpose |
+| --- | --- |
+| `ReferenceDefinition` | Describes the source shown to editors in the Variable Picker. |
+| `ReferenceExpression` | Holds the parsed token. |
+| `ReferenceContext` | Supplies the form, submission and other values needed to resolve it. |
+| `ResolvedReference` | Holds the result, field/definition metadata and any diagnostic. |
+
+These objects are immutable. Call `requireValue()` when your code cannot continue without a valid result; it throws `ReferenceException` on a resolution error. Error messages omit submitted values and secrets.
 
 ### Output Contexts
 
@@ -282,7 +291,7 @@ The Variable Picker's field mode stores an exact reference. Its custom value edi
 
 ## Grammar and Diagnostics
 
-Inline field interpolation uses `getValueForReference()` and its `EVENT_MODIFY_VALUE_FOR_REFERENCE` event before context-specific encoding. It does not fire `EVENT_MODIFY_VALUE_AS_STRING`. Text transforms operate on that reference projection without projecting a second time. Exact untransformed value resolution retains the native field value; structured-data interpolation uses the field's data projection.
+Inline field interpolation uses `getValueForReference()` and its `EVENT_MODIFY_VALUE_FOR_REFERENCE` event before context-specific encoding. It does not fire `EVENT_MODIFY_VALUE_AS_STRING`. Text transforms operate on the returned reference value without asking the field to convert it again. Exact untransformed value resolution retains the native field value; structured-data interpolation uses the field's data projection.
 
 The grammar uses `{source:identifier:selector;key=value|default}`. The selector applies to fields. `transform` names a registered transform; `scope`, `index` and `rows` select collection values. Metadata values and defaults are percent-encoded by the serializer, so `;`, `|`, braces, plus signs and percent signs round-trip. Version 1 is implicit; `;v=1` is accepted and unsupported versions produce an invalid-expression diagnostic. Use `References::token()` or `ReferenceParser::serialize()` instead of concatenating untrusted strings.
 
@@ -290,4 +299,4 @@ Exact field references identify one persisted form-field instance. Handles are s
 
 Deleted fields produce `missingField`; unscoped repeater children produce `missingRowScope`; undeclared selectors produce `invalidSelector`. Unknown sources and transforms produce `unknownSource` and `unknownTransform`. A default replaces a successfully resolved empty value (null, an empty string or list, or a field value that declares itself empty). Zero and false remain values. It does not hide a deleted field, missing extension or forbidden source.
 
-Plain-text and HTML interpolation leave an unknown, non-Formie brace token unchanged. An unresolved token for a known Formie source records a warning on `ReferenceContext::diagnostics` and contributes its authored default or an empty string. Exact-value resolution and strict `EmailHeader`, `UrlComponent` and `StructuredData` output contexts throw instead of silently weakening the consumer contract.
+Plain-text and HTML interpolation leave an unknown, non-Formie brace token unchanged. An unresolved token for a known Formie source records a warning on `ReferenceContext::diagnostics` and contributes its authored default or an empty string. Exact-value resolution and strict `EmailHeader`, `UrlComponent` and `StructuredData` output contexts throw when the reference cannot be resolved.

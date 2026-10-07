@@ -1,6 +1,6 @@
 # Theme and Rendering Architecture
 
-Formie resolves presentation per render. It does not save per-form theme config or mutate a shared `Form` element with render-specific state.
+A form can be rendered more than once with different themes or settings. Formie keeps those choices separate for each render, so customising one instance does not change another instance or the saved `Form` element. This page explains how that works when you are extending the rendering code; start with [Theme Config](/theming/theme-config) if you want to style a form.
 
 ## Four Customisation Layers
 
@@ -36,7 +36,7 @@ Web nodes must share the database and Formie security key. Scheduled progress cl
 
 Theme and render-option attributes merge first. Formie’s required submission, JavaScript and accessibility attributes merge last, so theme config cannot remove them.
 
-`Form::EVENT_MODIFY_SLOT_TAG`, `Field::EVENT_MODIFY_SLOT_TAG` and the equivalent integration event run after that merge. They are trusted expert escape hatches and may deliberately replace or remove core attributes.
+`Form::EVENT_MODIFY_SLOT_TAG`, `Field::EVENT_MODIFY_SLOT_TAG` and the equivalent integration event run after that merge. These PHP events can replace or remove required attributes, so your handler is responsible for preserving submission behaviour and accessibility.
 
 ## Browser State and Assets
 

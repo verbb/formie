@@ -1,10 +1,10 @@
 # TipTap Extensions
 
-Formie exposes two extension lanes for the rich-text editors used throughout the form builder. Both keep editing, read-only previews, frontend output, and email rendering on the same document schema.
+You can add text styles or custom editor features to the rich-text editors used throughout the form builder. Matching server and browser definitions let Formie display the saved content consistently in the editor, previews, front-end pages and emails.
 
 Formie does not register any project-specific extensions itself. The controls and TextStyle capabilities listed below are provided by Plugin Kit; your module or plugin can add to that shared schema through Formie's registration event.
 
-- Use a declarative TextStyle definition for a constrained visual attribute.
+- Use a TextStyle definition for a visual setting with a fixed list of allowed values.
 - Use matching PHP and JavaScript extensions for custom nodes, semantic marks, node views, ProseMirror plugins, or other advanced behavior.
 
 Registrations must be installed during application bootstrap, before the form builder creates an editor. Existing editor instances are not rebuilt dynamically.
@@ -138,6 +138,6 @@ Ship the JavaScript registration in a Craft AssetBundle and depend on `verbb\for
 
 Client-only behavior extensions may omit the PHP registration when they cannot change stored content. Any node, mark, or attribute that can be persisted must be registered on both sides and should target both Plugin Kit document surfaces.
 
-Formie's bridge delegates to Plugin Kit's application registry. It does not use Vizy's product-specific manifest system; Vizy remains free to provide its larger editor experience while sharing the same underlying stored TipTap schema.
+Formie uses Plugin Kit's shared extension registry. Register extensions through the Formie event above so they are available to its editors and rendering code.
 
 For the underlying APIs and schema rules, see Plugin Kit's [Extending TipTap](https://docs.verbb.io/plugin-kit/web/guides/tiptap-extensibility) guide, the [`verbb/tiptap` PHP package](https://github.com/verbb/tiptap), and TipTap's [TextStyleKit documentation](https://tiptap.dev/docs/editor/extensions/functionality/text-style-kit).

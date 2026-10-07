@@ -33,7 +33,7 @@ Event::on(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER, functio
 });
 ```
 
-Editors can insert `{custom:acme/campaign}`. The picker receives its label, semantic `types`, inline or block `shape` and availability, never the resolved value or resolver. IDs use `vendor/name`; duplicate IDs and invalid registrations fail explicitly. Use translations for labels when your project supports multiple languages.
+Editors can insert `{custom:acme/campaign}`. The picker receives its label, value categories (`types`), inline or block `shape` and permitted uses, never the resolved value or resolver. IDs use `vendor/name`; duplicate IDs and invalid registrations fail explicitly. Use translations for labels when your project supports multiple languages.
 
 `usages` optionally restricts a source to `Text`, `RichText`, `EmailHeader`, `Integration`, `Url` or `Condition`. Omitting it allows any usage compatible with its shape; an empty list allows none. The picker filters this metadata and the resolver checks it before calling your source. A block-shaped source is only available to rich-text consumers, never a subject, address, mapping or redirect. Output encoding remains separate: an integration text template still produces text, while an exact integration reference retains its native value. Custom callers should provide `usage` on `ReferenceContext`; interpolation derives text, rich-text, header or URL usage from the selected output context when no explicit usage was supplied.
 
@@ -41,7 +41,9 @@ Editors can insert `{custom:acme/campaign}`. The picker receives its label, sema
 
 `ReferenceContext` carries the form, submission, site, user, row selections, permissions and output context. The submission factory captures its own site and submitting user; resolution does not switch Craft's current site or borrow the currently logged-in CP operator. Read these context properties instead of mutable global request state. A source can check the context's permissions before returning sensitive application data.
 
-Return the declared `FieldValueType`. Numeric domain values use decimal strings through `FieldValueType::string()` and declare `types: [ReferenceType::Number]` on their reference definition. Runtime PHP types and semantic picker types are separate. Rich objects must declare their class and provide deliberate string/data behaviour at their owning field boundary. A mismatched return value produces `invalidType`. Missing registrations produce `unknownSource`; denied availability produces `forbiddenSource`.
+Return a value that matches the declared `FieldValueType`. This describes the PHP return type; `types` describes how the Variable Picker can use the value. For example, a numeric value uses a decimal string to preserve precision: declare `FieldValueType::string()` and `types: [ReferenceType::Number]`.
+
+For a rich value object, declare its class and define its string and data output on the field that owns it. A mismatched return value produces `invalidType`. Missing registrations produce `unknownSource`; denied availability produces `forbiddenSource`.
 
 `browser: false` is the default. A declaration of browser availability does not copy server values or PHP callbacks to the browser. Browser code must supply an explicit browser implementation and its permitted values. Never register credentials as picker values.
 
@@ -64,4 +66,4 @@ $event->transforms[] = new ReferenceTransform(
 
 This snippet belongs inside the listener above. List its ID in the source definition’s `transforms` array to allow it for that source. `{custom:acme/campaign;transform=acme%2Fshout}` returns `SPRING-SALE`. The picker groups the transform by its input type. Declare supported parameter names with `parameters: ['suffix']`; the callback receives the value, parameter map and context. Parameter names outside that declaration are rejected. Input/output type failures remain typed diagnostics and do not silently preserve the original value.
 
-See [Reference Tokens](/developers/reference-tokens) for exact resolution, output contexts and handling diagnostics in a consumer.
+See [Reference Tokens](/developers/reference-tokens) for exact resolution, output contexts and handling resolution errors in your code.

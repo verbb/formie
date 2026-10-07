@@ -272,6 +272,8 @@ Refer to the [Field](/reference/field) object documentation for more.
 
 ## Normalised Values and Projections
 
+A field first normalises input into a consistent PHP value. It then converts that value for each use: display text, JSON data, database storage, exports or integration requests. These conversions are called **projections**. Keep them separate so, for example, changing a date’s display format does not change how it is stored.
+
 Choose a runtime value that is useful to a template author. Text and Email return strings; Agree returns a boolean; Number retains a decimal string so PHP floats cannot round large values. Null is accepted as input, but each field defines its own empty result. Name always returns `NameFieldValue`. Phone returns `PhoneFieldValue` with the entered number, country, canonical E.164 number when valid, and dialling code. Date and option fields preserve their domain objects. Group and Repeater compose their actual child fields, and relation fields return Craft queries.
 
 Declare the runtime contract with `FieldValueType::string()`, `boolean()`, `object(MyValue::class)`, `array()` or `relationQuery(MyElement::class)`. Use `none()` for cosmetic fields. Every declaration accepts `null` as the universal absent value; the type describes the non-null result of normalization, while requiredness remains a validation concern. Number and Calculations declare `string()` and expose `ReferenceType::Number` in their reference definitions. Their invalid text remains available to the validator. A type mismatch names the field, actual type and expected declaration.
@@ -292,19 +294,19 @@ public function normalizeValue(mixed $value, ?\craft\base\ElementInterface $elem
 }
 ```
 
-A rich value should expose read-only domain parts and an explicit property-path allowlist. Construct it once during normalisation. Keep field presentation settings, submission objects and service lookups outside the value. Repeated normalisation and every projection must leave the original unchanged.
+A structured value object should expose read-only properties and explicitly declare which property paths references may access. Construct it once during normalisation. Keep field presentation settings, submission objects and service lookups outside the value. Repeated normalisation and every projection must leave the original unchanged.
 
 Implement `verbb\formie\fields\values\FieldValueInterface` directly, or extend `BaseFieldValue` when an intrinsic `toArray()` representation is useful for domain parts. The interface deliberately contains only `Stringable`, `isEmpty()`, `canResolvePath()` and `getPathValue()`; browser, storage and public-data conversion belong to the owning field rather than the value object. The legacy `verbb\formie\base\FieldValueInterface` remains an empty Formie 3 compatibility marker, not the Formie 4 authoring contract.
 
-Keep these boundaries separate:
+Use the method intended for each operation:
 
 | Method | Purpose |
 |---|---|
 | `normalizeValueFromRequest()` | Adapt browser and multipart input, then normalise; never decrypt or discard malformed input before validation |
-| `normalizeValue()` | Produce the declared runtime value idempotently |
+| `normalizeValue()` | Produce the declared PHP value; passing an already normalised value must not change it |
 | `defineValueForDb()` | Return a deliberate, lossless scalar/array storage representation |
 | `serializeValueForDb()` | Final persistence entry point; applies whole-value encryption after the owning storage hook |
-| `defineValueAsData()` | Return natural JSON-safe data for application consumers |
+| `defineValueAsData()` | Return JSON-safe data for templates and application code |
 | `serializeValueForClientInput()` | Return the browser input shape, which may differ from natural data |
 | `defineValueForCondition()` | Return comparable values without using database serialisation |
 
