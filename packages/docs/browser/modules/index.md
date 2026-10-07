@@ -2,7 +2,7 @@
 
 Browser modules add features such as date pickers, CAPTCHA widgets and file uploads. Formie includes the modules each form needs. Use this reference when declaring modules for a custom field or building a custom client.
 
-A `BrowserModuleDefinition` describes trusted executable code registered in your JavaScript bundle. Its namespaced `moduleId`, such as `formie:date-picker` or `acme:rating`, identifies that code. A `BrowserModuleEntry` configures one occurrence. A `BrowserModuleInstance` holds one mounted occurrence and its cleanup. `BrowserModuleManifest` names the complete wire collection.
+A `BrowserModuleDefinition` describes trusted executable code registered in your JavaScript bundle. Its namespaced `moduleId`, such as `formie:date-picker` or `acme:rating`, identifies that code. A `BrowserModuleEntry` configures one occurrence. A `BrowserModuleInstance` holds one mounted occurrence and its cleanup. A `BrowserModuleManifest` lists the module entries sent to the browser.
 
 ## Manifest Contract
 
@@ -27,7 +27,7 @@ The entry key identifies the declaration, independently of its configuration. De
 
 Field targets use form-field instance UIDs. Other discriminated targets address the form, a page ID, a form action or an explicit selector. Targets are scoped to the mounted form, and executable URLs are not accepted. Register custom code in your trusted bundle as shown in [Build a custom module](/browser/modules/build-a-custom-module).
 
-Each manifest contains exactly one `surface`: `server-rendered`, `client-rendered` or `cp-edit`. PHP declarations list their supported surfaces; Formie filters and completes those declarations when it projects a manifest. A declaration that omits surfaces applies to server-rendered forms. CP configuration stays separate from the public field definition.
+Each manifest contains exactly one `surface`, identifying where the modules will run: `server-rendered`, `client-rendered` or `cp-edit`. PHP declarations list their supported surfaces; Formie filters and completes those declarations when it builds a manifest. A declaration that omits surfaces applies to server-rendered forms. CP configuration stays separate from the public field definition.
 
 The runtime passes that exact `surface` to both `match(context)` and `setup(context)`. Use it when one trusted module supports multiple rendering products but needs to account for their different markup. It is distinct from the server-rendered form client's transport and navigation mode.
 
@@ -39,6 +39,6 @@ The runtime tracks each entry key and matching DOM element. Repeater rows and co
 
 A required module failure blocks submission and displays an actionable message. An optional failure emits a diagnostic and lets unrelated fields continue. Diagnostics include the entry key, module ID, surface and failure code, without publishing secret configuration. Unsupported manifest versions fail before module execution. Use matching Formie and npm package versions when deploying.
 
-The hydration host exposes a structured report through `instances` and `failures`. These are live read-only views: `instances` contains successfully mounted occurrences, and `failures` describes unavailable entries with their key, module ID, surface, required flag, code and message. Neither list includes an artificial lifecycle-controller instance. Read the properties again after `update()` or DOM reconciliation to inspect the current state. Required failures also remain enforced by the host's submission guard; inspecting the report is not a substitute for that guard.
+The object returned by `await hydrateFormieModules()` reports module status through `instances` and `failures`. These are live read-only views: `instances` contains successfully mounted occurrences, and `failures` describes unavailable entries with their key, module ID, surface, required flag, code and message. Neither list includes an artificial lifecycle-controller instance. Read the properties again after `update()` or DOM reconciliation to inspect the current state. Required failures also remain enforced by the host's submission guard; inspecting the report is not a substitute for that guard.
 
 Framework adapters preserve every entry and its occurrence identity. Modules can expose stable `beforeSubmit` and `afterSubmit` hooks without depending on Formie's internal submission-stage names. `beforeSubmit` can stop dispatch through its abort helpers; `afterSubmit` observes a result already returned to the browser and cannot retroactively abort it. Native browser submissions run `beforeSubmit`, then navigate without a browser-visible result, so `afterSubmit` applies to Ajax and client-rendered submissions. Other declarations pass through the same trusted browser registry and lifecycle.

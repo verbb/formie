@@ -1,10 +1,10 @@
 # Submission Handling
 
-Submission handling covers the browser-side flow around validation, stage processing, page submits, final submits, loading state, and provider follow-up work. This page is about understanding where Formie's submit lifecycle gives you extension points before you move down to lower-level API control.
+When a visitor submits a form, Formie's browser code validates the inputs, updates loading indicators and handles the response. This page explains that sequence and where you can add custom code, including page changes and payment follow-up actions.
 
 ## Submit Flow
 
-Formie intercepts the normal browser submit flow and wraps it in a structured lifecycle.
+Formie handles the browser’s submit event and runs the checks needed before sending the form.
 
 On every submit attempt, Formie can:
 
@@ -27,7 +27,7 @@ The most common events are:
 - `formie:stage:validate:before` and `formie:stage:validate:after` around validation
 - `formie:submit:result` after Formie has applied the result back into the form
 
-For example, to react to the final result:
+For example, to react to a submission result (including an intermediate page submit):
 
 ```js
 document.addEventListener('formie:submit:result', (event) => {
@@ -97,14 +97,3 @@ Those flows surface through the payment events documented on [JavaScript events]
 ## JavaScript API
 
 If you need to mount, unmount, update, or re-initialise forms programmatically, move from event handling to [JavaScript API](/browser/).
-
-## Start Here
-
-- Use [JavaScript events](/browser/behavior/javascript-events) to understand which submit lifecycle event to hook into.
-- Use [JavaScript API](/browser/) if you need to submit or manage mounted forms programmatically.
-
-## Related Pages
-
-- [Validation](/browser/validation/)
-- [JavaScript events](/browser/behavior/javascript-events)
-- [Manual initialisation](/browser/behavior/manual-initialization)

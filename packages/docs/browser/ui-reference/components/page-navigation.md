@@ -1,6 +1,6 @@
 # Page Navigation
 
-Page navigation is the shared multipage UI surface for page tabs, current step treatment, completed-step treatment, hidden future pages, and page-level navigation actions.
+Page navigation shows the current and completed pages of a multi-page form and lets visitors move between available pages.
 
 Use this page to preserve the tab and page-state hooks that multipage forms rely on as users move through steps.
 
@@ -37,7 +37,7 @@ Useful hooks include:
 
 ## Behaviour
 
-These surfaces are updated by the broader multipage submit and page-navigation flow:
+As visitors submit pages and move through the form:
 
 - the active page receives current-state treatment
 - completed steps receive `formie-tab-complete`
@@ -45,9 +45,3 @@ These surfaces are updated by the broader multipage submit and page-navigation f
 - inactive pages are hidden with `data-formie-page-hidden`
 
 For the lifecycle side of these transitions, use [JavaScript events](/browser/behavior/javascript-events) and [Submission handling](/browser/behavior/submission-handling).
-
-## Related Pages
-
-- [Progress](/browser/ui-reference/components/progress)
-- [Buttons](/browser/ui-reference/components/buttons)
-- [Submission handling](/browser/behavior/submission-handling)

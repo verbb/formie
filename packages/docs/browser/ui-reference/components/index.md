@@ -1,8 +1,8 @@
 # Components
 
-Component pages document shared UI surfaces that appear across many forms and fields.
+These pages describe the shared parts of a form, such as buttons, messages and progress indicators.
 
-Use them for structural and visual contracts that are not owned by a single field type, such as:
+Use them when styling or overriding:
 
 - button groups and actions
 - loading indicators
@@ -18,17 +18,14 @@ Use them for structural and visual contracts that are not owned by a single fiel
 - [Page Navigation](/browser/ui-reference/components/page-navigation)
 - [Progress](/browser/ui-reference/components/progress)
 
-## Component Contract Focus
+<span id="component-contract-focus"></span>
 
-Each component page should document:
+## Markup and Styling
+
+Each page includes:
 
 - default visual examples
 - required browser attributes where applicable
 - optional style classes
 - CSS variables
 - accessibility and interaction notes
-
-## Related Pages
-
-- [Fields](/browser/ui-reference/fields/)
-- [CSS variables](/browser/ui-reference/css-variables)

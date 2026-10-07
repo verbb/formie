@@ -1,17 +1,17 @@
 # UI Reference
 
-This section is the canonical visual and structural reference for the browser-owned Formie UI surface.
+Use this reference when styling Formie’s default markup or writing a template override.
 
 Use it to inspect how fields and shared components look, which classes and `data-formie-*` hooks they expose, and which CSS variables are intended for styling overrides.
 
-This area is owned by `@verbb/formie-browser` because that package owns:
+The pages cover the HTML and styles used with `@verbb/formie-browser`:
 
 - the default rendered HTML structure
 - the shared CSS bundles and theme classes
 - browser state attributes such as loading, error, page, and tab markers
-- field and component contracts used across Craft-rendered and browser-managed forms
+- field and component markup required for browser behaviour
 
-Framework package docs should link back here when they are using the same browser-owned markup and styling contracts.
+These styles also apply to server-rendered forms loaded through the React, Vue and Web Components packages.
 
 ## In This Section
 

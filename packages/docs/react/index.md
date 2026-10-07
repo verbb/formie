@@ -1,6 +1,6 @@
 # React
 
-Use `@verbb/formie-react` when React owns the form surface.
+Use `@verbb/formie-react` to load and submit Formie forms in your React application.
 
 If you want to see the full React integration in action, use the [React starter](https://formie-starters.verbb.io/react) as a complete example app.
 

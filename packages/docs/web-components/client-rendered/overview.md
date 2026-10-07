@@ -1,6 +1,6 @@
 # Overview
 
-Choose client-rendered forms when you want **`<formie-client-form>`** to load Formie’s client definition envelope and render the form UI inside the element, instead of mounting server-rendered HTML like `<formie-form>`.
+Choose client-rendered forms when you want **`<formie-client-form>`** to build the form in the browser from Formie's field and page definitions. It loads these definitions and the submission session together in a response called the **envelope**. For a component that displays HTML rendered by Craft, use `<formie-form>` instead.
 
 If you want to see client-rendered forms in a fuller app setup, use the [Web Components starter](https://formie-starters.verbb.io/web-components) as a working example.
 
@@ -142,9 +142,9 @@ When you use `<formie-client-form transport="graphql">`, the built-in transport 
 
 ## Preloaded Envelope
 
-`<formie-client-form>` always loads the envelope from the network using `endpoint`, `form-handle`, and `transport`. To hydrate from a payload you already have, instantiate the form engine with `@verbb/formie-core` in your own module instead of this element, or keep using [server-rendered forms](/web-components/server-rendered/overview) with a preloaded `payload` on `<formie-form>` where that fits.
+`<formie-client-form>` always loads the envelope from the network using `endpoint`, `form-handle`, and `transport`. To start with form data you have already loaded, instantiate the form engine with `@verbb/formie-core` in your own module instead of this element, or keep using [server-rendered forms](/web-components/server-rendered/overview) with a preloaded `payload` on `<formie-form>` where that fits.
 
-## Completion and query prefill
+## Completion and Query Prefill
 
 A successful final submission returns `completion` with `behavior` (`message`, `redirect`, `reload` or `reset`), `url`, `target`, `message` and `hideForm`. The standard adapter applies it. Page navigation and save-for-later results have no completion action. Payment continuation remains a separate result. Custom renderers should use this result rather than infer completion from an absent next page.
 

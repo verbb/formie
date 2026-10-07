@@ -1,6 +1,6 @@
 # JavaScript Events
 
-JavaScript events are the main extension surface for browser-managed forms. If Formie is already rendering and booting itself on the page, this is usually the first page to reach for: it covers lifecycle hooks, submit flow, field-module events, payment events, and the points where you can adjust behaviour before modules initialise. For DOM replacement, manual re-initialisation, or SPA-style transitions, pair this page with [Manual initialisation](/browser/behavior/manual-initialization).
+Listen for JavaScript events to run your own code when a browser-managed form loads, validates, submits or changes page. This reference also covers field and payment events, including hooks that let you change settings before modules initialise. If your site replaces form HTML during navigation, see [Manual initialisation](/browser/behavior/manual-initialization) for mounting the replacement form.
 
 ## Mounted Forms
 

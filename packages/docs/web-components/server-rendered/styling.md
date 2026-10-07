@@ -2,7 +2,7 @@
 
 If you are using **client-rendered forms** (`<formie-client-form>`), the element owns the visible structure, so style it with your own CSS; you do not need the browser theme unless you want shared tokens. See [Client-rendered forms](/web-components/client-rendered/overview).
 
-Web Components **server-rendered forms** (`<formie-form>`) mount the browser-owned Formie UI, so the styling surface is the same browser theme surface used by `@verbb/formie-browser`.
+Web Components **server-rendered forms** (`<formie-form>`) use Formie’s default HTML and the same theme as `@verbb/formie-browser`.
 
 ## Import the Browser CSS
 
@@ -21,7 +21,7 @@ import '@verbb/formie-browser/css/formie-theme.css';
 
 ## Use Tokens First
 
-The safest customisation layer is the same `--formie-*` token surface used by the browser package.
+Start with the `--formie-*` CSS variables provided by the browser package to change colours, spacing and other styles.
 
 Use [Browser → CSS variables](/browser/ui-reference/css-variables) for the full token reference.
 

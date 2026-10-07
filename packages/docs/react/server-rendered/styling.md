@@ -19,7 +19,7 @@ import '@verbb/formie-browser/css/formie-theme.css';
 
 ## Use Tokens First
 
-The safest customisation layer is the same `--formie-*` token surface used by the browser package.
+Start with the `--formie-*` CSS variables provided by the browser package to change colours, spacing and other styles.
 
 Use [Browser → CSS variables](/browser/ui-reference/css-variables) for the full token reference.
 

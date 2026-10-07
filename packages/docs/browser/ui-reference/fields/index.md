@@ -1,6 +1,6 @@
 # Fields
 
-Field pages document the browser-owned contract for rendered Formie fields.
+Use these pages to inspect the markup, styling and browser behaviour of each field type.
 
 That includes:
 
@@ -12,9 +12,9 @@ That includes:
 
 For full Twig overrides, start with [Form](/browser/ui-reference/components/form) and [Field](/browser/ui-reference/components/field) before drilling into the field-specific pages.
 
-Normal server-rendered output already includes these hooks for you. The attribute tables on these pages matter most when you are overriding templates, auditing generated markup, or mapping the default UI into another rendering surface.
+Normal server-rendered output already includes these hooks for you. The attribute tables on these pages matter most when you are overriding templates, auditing generated markup, or recreating the default markup in your own renderer.
 
-Those requirements often span more than one element: a field wrapper, one or more form controls, and sometimes supporting nodes such as hidden inputs, error containers, or subfield rows. The field pages should call out that ownership explicitly rather than imply everything belongs on a single element.
+Those requirements often span more than one element: a field wrapper, one or more form controls, and sometimes supporting nodes such as hidden inputs, error containers, or subfield rows. Check which element each attribute belongs to when writing an override.
 
 ## Field Reference Pages
 
@@ -41,7 +41,7 @@ Those requirements often span more than one element: a field wrapper, one or mor
 
 ## Field Categories
 
-The browser package field surface broadly falls into these groups:
+Fields are grouped by their main behaviour:
 
 - core inputs such as single-line text, multi-line text, radio, checkboxes, and agree
 - element-backed choice fields such as categories, entries, and recipients
@@ -49,14 +49,3 @@ The browser package field surface broadly falls into these groups:
 - structural fields such as repeater and table
 - derived fields such as summary, calculations, and hidden values
 - provider-backed fields such as address and payment
-
-As more field pages are promoted into the public reference set, they should follow the same structure and stay owned by the Browser docs rather than a separate “core” docs area.
-
-## Related Pages
-
-- [Form](/browser/ui-reference/components/form)
-- [Field](/browser/ui-reference/components/field)
-- [Buttons](/browser/ui-reference/components/buttons)
-- [Loading](/browser/ui-reference/components/loading)
-- [CSS variables](/browser/ui-reference/css-variables)
-- [JavaScript events](/browser/behavior/javascript-events)

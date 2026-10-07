@@ -1,6 +1,6 @@
 # Vue
 
-Use `@verbb/formie-vue` when Vue owns the form surface.
+Use `@verbb/formie-vue` to load and submit Formie forms in your Vue application.
 
 If you want to see the full Vue integration in action, use the [Vue starter](https://formie-starters.verbb.io/vue) as a complete example app.
 

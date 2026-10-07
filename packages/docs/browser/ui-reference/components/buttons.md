@@ -1,8 +1,8 @@
 # Buttons
 
-Buttons are the shared action surface for submit, back, save, and related form actions.
+Buttons let visitors submit a form, move between pages or save their progress.
 
-Use this page to inspect default button treatment, alignment behaviour, and loading-state hooks.
+Use this page to inspect default button styles, alignment behaviour, and loading-state hooks.
 
 ## Preview
 
@@ -67,9 +67,3 @@ During an active submit cycle, Formie sets loading state on the active form and 
 - Buttons use `:focus-visible` styling from the theme token set.
 - Loading buttons remain visually active but should continue to communicate action state clearly.
 - Disabled buttons rely on reduced opacity plus disabled semantics.
-
-## Related Pages
-
-- [Loading](/browser/ui-reference/components/loading)
-- [CSS variables](/browser/ui-reference/css-variables)
-- [Submission handling](/browser/behavior/submission-handling)

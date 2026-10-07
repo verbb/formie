@@ -9,7 +9,7 @@ There are two common paths:
 - **Server-rendered forms** - Craft renders the form HTML and Formie’s normal browser assets enhance it. Use these docs to find events, CSS hooks, module behaviour, and markup contracts.
 - **Your own browser bundle** - You import `@verbb/formie-browser`, decide when forms mount, and choose whether to load Formie’s CSS or provide your own. Use this path when you disable Formie’s automatic JavaScript, load forms from an endpoint, or need lower-level client control.
 
-If React, Vue, or Web Components owns the form surface, use those package docs instead. They build on the same browser concepts, but the integration point is the framework component rather than a Craft-rendered form already on the page.
+If you want to load and display a form through a React, Vue or Web Components component, start with that package’s docs. Those packages provide components for both server-rendered and client-rendered forms.
 
 ## Installation
 

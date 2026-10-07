@@ -1,6 +1,6 @@
 # Messages
 
-Messages are the shared form-level feedback surfaces for success, error, and follow-up guidance outside individual field controls.
+Form messages show success, errors and follow-up instructions outside individual fields.
 
 Use this page to preserve the message containers, semantics, and status variants that appear across submit handling and server-side validation flows.
 
@@ -38,9 +38,4 @@ Useful message-level hooks include:
 
 - Error messages should use alert-like semantics such as `role="alert"` and assertive live-region behaviour when they need immediate attention.
 - Success messages should prefer polite live-region semantics such as `role="status"`.
-- Long form-level guidance should remain outside field controls so it is easy to scan as one message surface.
-
-## Related Pages
-
-- [Submission handling](/browser/behavior/submission-handling)
-- [CSS variables](/browser/ui-reference/css-variables)
+- Long form-level guidance should remain outside field controls so visitors can read it in one place.

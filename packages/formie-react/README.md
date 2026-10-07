@@ -76,5 +76,5 @@ CSS continues to come from `@verbb/formie-browser`.
 
 ## Recommended Starters
 
-- `formie-starters-repo/react` is the primary review surface for the public React API.
-- `formie-starters-repo/next` is a lighter Next.js companion that exercises the same four HTML/component and REST/GraphQL transport stories.
+- The [React starter](https://formie-starters.verbb.io/react) demonstrates server-rendered and client-rendered forms using REST and GraphQL.
+- The [Next.js starter](https://formie-starters.verbb.io/next) shows those same options in a Next.js application.
