@@ -162,40 +162,51 @@ class IntegrationRunner extends Component
             }
             return $result;
         }
-        Craft::$app->language = $submission->getSite()->language;
-        Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
-        Craft::$app->getSites()->setCurrentSite($submission->getSite());
+        $sites = Craft::$app->getSites();
+        $previousSite = $sites->getCurrentSite();
+        $previousLanguage = Craft::$app->language;
+        $previousLocale = Craft::$app->getLocale();
 
-        if ($row['step'] === 'integration') {
-            foreach (Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($submission->getForm()) as $binding) {
-                if ($binding->integration->handle === $row['binding']) {
-                    $integration = FormIntegration::fromSettings($binding->integration, $data['settings'] ?? [], $submission->formId, $submission->getForm()->handle)->createRuntime();
-                    $result = $this->runIntegration($integration, $submission, $row['executionUid'], $row['execution'], ['triggerEvent' => IntegrationTriggerEvents::SUBMIT, 'operatorInitiated' => true, 'retryAttemptUid' => $uid]);
-                    $this->finalizeDelivery($uid, $result);
-                    return $result;
+        try {
+            Craft::$app->language = $submission->getSite()->language;
+            Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
+            Craft::$app->getSites()->setCurrentSite($submission->getSite());
+
+            if ($row['step'] === 'integration') {
+                foreach (Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($submission->getForm()) as $binding) {
+                    if ($binding->integration->handle === $row['binding']) {
+                        $integration = FormIntegration::fromSettings($binding->integration, $data['settings'] ?? [], $submission->formId, $submission->getForm()->handle)->createRuntime();
+                        $result = $this->runIntegration($integration, $submission, $row['executionUid'], $row['execution'], ['triggerEvent' => IntegrationTriggerEvents::SUBMIT, 'operatorInitiated' => true, 'retryAttemptUid' => $uid]);
+                        $this->finalizeDelivery($uid, $result);
+                        return $result;
+                    }
                 }
+                $result = $attempts->execute($uid, fn() => IntegrationResult::skipped('disabled_or_missing'));
+                $this->_reportResult($attempts->context($uid), $result, $uid);
+                return $result;
             }
-            $result = $attempts->execute($uid, fn() => IntegrationResult::skipped('disabled_or_missing'));
-            $this->_reportResult($attempts->context($uid), $result, $uid);
-            return $result;
+            return $attempts->executePrepared($uid, $this->dispatchFingerprint($submission, $data['handles']), function() use ($submission, $data, $row): IntegrationResult {
+                $triggerContext = $data['triggerContext'];
+                $triggerContext['execution'] = 'queued';
+                $batch = $this->runSteps($submission, $data['handles'], $triggerContext, Formie::$plugin->getIntegrationDispatcher()->getPlan($submission->getForm()), $row['executionUid']);
+                Formie::$plugin->getIntegrationDispatcher()->sendNotifications($submission, IntegrationDispatcher::PHASE_AFTER, $row['executionUid']);
+
+                if ($batch->accepts()) {
+                    return IntegrationResult::succeeded();
+                }
+
+                foreach ($batch->results() as $item) {
+                    if ($item['result']->requiresReconciliation()) {
+                        return $item['result'];
+                    }
+                }
+                return IntegrationResult::failed('batch_failed', true);
+            });
+        } finally {
+            $sites->setCurrentSite($previousSite);
+            Craft::$app->language = $previousLanguage;
+            Craft::$app->set('locale', $previousLocale);
         }
-        return $attempts->executePrepared($uid, $this->dispatchFingerprint($submission, $data['handles']), function() use ($submission, $data, $row): IntegrationResult {
-            $triggerContext = $data['triggerContext'];
-            $triggerContext['execution'] = 'queued';
-            $batch = $this->runSteps($submission, $data['handles'], $triggerContext, Formie::$plugin->getIntegrationDispatcher()->getPlan($submission->getForm()), $row['executionUid']);
-            Formie::$plugin->getIntegrationDispatcher()->sendNotifications($submission, IntegrationDispatcher::PHASE_AFTER, $row['executionUid']);
-
-            if ($batch->accepts()) {
-                return IntegrationResult::succeeded();
-            }
-
-            foreach ($batch->results() as $item) {
-                if ($item['result']->requiresReconciliation()) {
-                    return $item['result'];
-                }
-            }
-            return IntegrationResult::failed('batch_failed', true);
-        });
     }
 
     public function finalizeDelivery(string $uid, IntegrationResult $result): void

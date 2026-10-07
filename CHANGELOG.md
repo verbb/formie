@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed queued integrations and notifications leaving the worker on the submission’s site and locale. The previous site, language, and locale are now restored after delivery, including early returns and exceptions.
 - Fixed completion events being suppressed when an event handler or workflow task directly saved a different completed submission while another submission workflow was active.
 - Fixed replayed integration deliveries reporting a different result from the stored delivery attempt when a binding was disabled, became ineligible, had invalid settings, or had legacy delivery history. Replays now preserve provider outputs and apply the stored result to dispatch failure policies.
 

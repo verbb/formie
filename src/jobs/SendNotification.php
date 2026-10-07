@@ -47,15 +47,26 @@ class SendNotification extends BaseJob implements DeliveryJobInterface
             $attempts->execute($uid, fn() => IntegrationResult::rejected('notification_owner_unavailable'));
             throw new RuntimeException('Notification delivery owner is unavailable.');
         }
-        Craft::$app->language = $submission->getSite()->language;
-        Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
-        Craft::$app->getSites()->setCurrentSite($submission->getSite());
-        $response = Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission, new self(['deliveryAttemptUid' => $uid]), $row['executionUid']);
+        $sites = Craft::$app->getSites();
+        $previousSite = $sites->getCurrentSite();
+        $previousLanguage = Craft::$app->language;
+        $previousLocale = Craft::$app->getLocale();
 
-        if ($response !== true && !($response['success'] ?? false)) {
-            throw new RuntimeException('Notification delivery ' . ($response['status'] ?? 'failed') . '. Open Formie delivery diagnostics.');
+        try {
+            Craft::$app->language = $submission->getSite()->language;
+            Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
+            Craft::$app->getSites()->setCurrentSite($submission->getSite());
+            $response = Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission, new self(['deliveryAttemptUid' => $uid]), $row['executionUid']);
+
+            if ($response !== true && !($response['success'] ?? false)) {
+                throw new RuntimeException('Notification delivery ' . ($response['status'] ?? 'failed') . '. Open Formie delivery diagnostics.');
+            }
+            $this->setProgress($queue, 1);
+        } finally {
+            $sites->setCurrentSite($previousSite);
+            Craft::$app->language = $previousLanguage;
+            Craft::$app->set('locale', $previousLocale);
         }
-        $this->setProgress($queue, 1);
     }
 
 
