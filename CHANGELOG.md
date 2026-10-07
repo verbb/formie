@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.0-beta.17 - 2026-10-08
 
 ### Added
 - Add a surface-aware form-level browser-module contribution event and expose structured hydration reports to module hosts.
