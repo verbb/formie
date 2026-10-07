@@ -1,13 +1,10 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\elements\Form;
 use verbb\formie\fields\Date;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 

@@ -1,12 +1,12 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
+use verbb\formie\fields\Name as NameField;
+
+use Cake\Utility\Hash;
 use craft\feedme\base\Field;
 use craft\feedme\base\FieldInterface;
 use craft\feedme\helpers\DataHelper;
-
-use Cake\Utility\Hash;
-use verbb\formie\fields\Name as NameField;
 
 class Name extends Field implements FieldInterface
 {
@@ -23,6 +23,9 @@ class Name extends Field implements FieldInterface
     public static string $name = 'Name';
 
 
+    // Public Methods
+    // =========================================================================
+
     // Templates
     // =========================================================================
 
@@ -30,10 +33,6 @@ class Name extends Field implements FieldInterface
     {
         return 'formie/integrations/feedme/fields/name';
     }
-
-
-    // Public Methods
-    // =========================================================================
 
     public function parseField(): mixed
     {

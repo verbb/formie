@@ -2,12 +2,13 @@
 namespace verbb\formie\deprecations;
 
 use verbb\formie\Formie;
+use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Submission;
-use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\events\ModifyFieldEmailValueEvent;
 use verbb\formie\events\ModifyFieldHtmlTagEvent;
 use verbb\formie\events\ModifyFieldSlotTagEvent;
+use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -41,7 +42,7 @@ trait FieldDeprecations
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `getValueAsJson()` has been deprecated. Use `getValueAsData()` instead.');
 
         if (!$this->_projectingLegacyData && $this->_hasLegacyFieldMethodOverride('getValueAsJson')) {
-            $event = new \verbb\formie\events\ModifyFieldValueEvent([
+            $event = new ModifyFieldValueEvent([
                 'value' => $this->defineValueAsData($value, $element),
                 'field' => $this,
                 'submission' => $element,

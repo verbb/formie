@@ -2,6 +2,9 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
+use verbb\formie\enums\NavigationIntent;
+use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SubmissionCommand;
@@ -10,6 +13,12 @@ use Craft;
 use craft\base\Component;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
+use craft\helpers\Json;
+
+use yii\web\ForbiddenHttpException;
+use yii\web\TooManyRequestsHttpException;
+
+use DateTimeImmutable;
 
 class SubmissionGuards extends Component
 {
@@ -26,9 +35,9 @@ class SubmissionGuards extends Component
     // Public Methods
     // =========================================================================
 
-    public function issueRequestToken(\verbb\formie\elements\Form $form): string
+    public function issueRequestToken(Form $form): string
     {
-        return Craft::$app->getSecurity()->hashData(\craft\helpers\Json::encode([
+        return Craft::$app->getSecurity()->hashData(Json::encode([
             'form' => $form->uid,
             'site' => $form->siteId,
             'issued' => time(),
@@ -44,24 +53,24 @@ class SubmissionGuards extends Component
         }
 
         $payload = Craft::$app->getSecurity()->validateData((string)$request->requestToken);
-        $token = $payload === false ? null : \craft\helpers\Json::decodeIfJson($payload);
+        $token = $payload === false ? null : Json::decodeIfJson($payload);
 
         if (!is_array($token) || ($token['form'] ?? null) !== $request->form->uid
             || (int)($token['site'] ?? 0) !== (int)$request->form->siteId
             || (int)($token['issued'] ?? 0) > time()
             || (int)($token['issued'] ?? 0) < time() - SubmissionOperations::RETENTION_SECONDS) {
-            throw new \yii\web\ForbiddenHttpException('Invalid or expired submission request.');
+            throw new ForbiddenHttpException('Invalid or expired submission request.');
         }
 
         Formie::$plugin->getClientSessionService()->enforceAnonymousRateLimit($request->form);
         $settings = Formie::$plugin->getSettings();
 
         if ($settings->enableGlobalSubmissionThrottling && ($reason = $this->_validateGlobalSubmissionThrottling($settings))) {
-            throw new \yii\web\TooManyRequestsHttpException($reason);
+            throw new TooManyRequestsHttpException($reason);
         }
 
         if ($settings->enableIpSubmissionThrottling && ($reason = $this->_validateIpSubmissionThrottling($settings, $request))) {
-            throw new \yii\web\TooManyRequestsHttpException($reason);
+            throw new TooManyRequestsHttpException($reason);
         }
 
         // Browser honeypots protect every write. Minimum elapsed time applies to
@@ -70,8 +79,8 @@ class SubmissionGuards extends Component
             return $reason;
         }
 
-        if ($browser && $request->operation === \verbb\formie\enums\SubmissionOperation::SUBMIT
-            && $request->navigation === \verbb\formie\enums\NavigationIntent::ADVANCE
+        if ($browser && $request->operation === SubmissionOperation::SUBMIT
+            && $request->navigation === NavigationIntent::ADVANCE
             && $settings->enableMinimumSubmitTime && ($reason = $this->_validateMinimumSubmitTime($settings))) {
             return $reason;
         }
@@ -129,6 +138,7 @@ class SubmissionGuards extends Component
         );
     }
 
+
     // Private Methods
     // =========================================================================
 
@@ -143,7 +153,7 @@ class SubmissionGuards extends Component
         $lockAcquired = $mutex?->acquire($mutexKey, 3) ?? false;
 
         if (!$lockAcquired) {
-            throw new \yii\web\TooManyRequestsHttpException('Please retry shortly.');
+            throw new TooManyRequestsHttpException('Please retry shortly.');
         }
 
         try {
@@ -189,7 +199,7 @@ class SubmissionGuards extends Component
             return null;
         }
 
-        $since = (new \DateTimeImmutable("-{$minutes} minutes"))->format('Y-m-d H:i:s');
+        $since = (new DateTimeImmutable("-{$minutes} minutes"))->format('Y-m-d H:i:s');
         $query = (new Query())
             ->from(['s' => Table::FORMIE_SUBMISSIONS])
             ->innerJoin(

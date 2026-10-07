@@ -5,7 +5,7 @@ use craft\helpers\Json;
 
 final class PaymentFieldPayload
 {
-    // Public Properties
+    // Properties
     // =========================================================================
 
     public string $provider = '';

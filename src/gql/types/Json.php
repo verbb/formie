@@ -9,6 +9,9 @@ use GraphQL\Utils\AST;
 
 class Json extends ScalarType
 {
+    // Static Methods
+    // =========================================================================
+
     public static function getType()
     {
         return GqlEntityRegistry::getOrCreate(self::getName(), fn() => new self());
@@ -18,6 +21,10 @@ class Json extends ScalarType
     {
         return 'Json';
     }
+
+
+    // Public Methods
+    // =========================================================================
 
     public function serialize($value): string
     {

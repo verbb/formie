@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\integrations\emailmarketing;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -12,11 +12,10 @@ use verbb\formie\fields\values\AddressFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 use verbb\formie\references\ReferenceSlot;
 use verbb\formie\references\ReferenceSlotKind;
@@ -63,6 +62,25 @@ class Mailchimp extends EmailMarketing
         ];
     }
 
+    private static function _formatAddressMergeField(AddressFieldValue $address): array
+    {
+        $country = trim((string)($address->country ?? ''));
+
+        if ($country !== '' && strlen($country) !== 2) {
+            $country = AddressFieldValue::nameToCode($country) ?? $country;
+        }
+
+        return ArrayHelper::filterEmptyStringsFromArray([
+            'addr1' => trim((string)($address->address1 ?? '')),
+            'addr2' => trim((string)($address->address2 ?? '')),
+            'city' => trim((string)($address->city ?? '')),
+            'state' => trim((string)($address->state ?? '')),
+            'zip' => trim((string)($address->zip ?? '')),
+            'country' => $country,
+        ]);
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -72,6 +90,7 @@ class Mailchimp extends EmailMarketing
     public bool $appendTags = false;
     #[FormIntegrationSetting]
     public bool $useDoubleOptIn = false;
+
 
     // Public Methods
     // =========================================================================
@@ -218,6 +237,65 @@ class Mailchimp extends EmailMarketing
         return new IntegrationConfig($settings);
     }
 
+    public function supportsIntegrationApiErrorSeverity(): bool
+    {
+        return true;
+    }
+
+    public function classifyIntegrationApiError(Throwable $exception): ?string
+    {
+        if (!$exception instanceof RequestException || !$exception->getResponse()) {
+            return null;
+        }
+
+        $statusCode = $exception->getResponse()->getStatusCode();
+        $body = strtolower((string)$exception->getResponse()->getBody());
+
+        if ($statusCode === 429) {
+            return IntegrationApiErrors::SEVERITY_RATE_LIMITED;
+        }
+
+        if ($statusCode === 400 && (
+            str_contains($body, 'invalid') ||
+            str_contains($body, 'merge') ||
+            str_contains($body, 'looks fake') ||
+            str_contains($body, 'provide a valid')
+        )) {
+            return IntegrationApiErrors::SEVERITY_REJECTED;
+        }
+
+        return null;
+    }
+
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('GET', '/');
+            $error = $response['error'] ?? '';
+            $accountId = $response['account_id'] ?? '';
+
+            if ($error) {
+                Integration::error($this, $error, true);
+                return false;
+            }
+
+            if (!$accountId) {
+                Integration::error($this, 'Unable to find “{account_id}” in response.', true);
+                return false;
+            }
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -305,65 +383,6 @@ class Mailchimp extends EmailMarketing
         return $this->resultForPayload(true);
     }
 
-    public function supportsIntegrationApiErrorSeverity(): bool
-    {
-        return true;
-    }
-
-    public function classifyIntegrationApiError(Throwable $exception): ?string
-    {
-        if (!$exception instanceof RequestException || !$exception->getResponse()) {
-            return null;
-        }
-
-        $statusCode = $exception->getResponse()->getStatusCode();
-        $body = strtolower((string)$exception->getResponse()->getBody());
-
-        if ($statusCode === 429) {
-            return IntegrationApiErrors::SEVERITY_RATE_LIMITED;
-        }
-
-        if ($statusCode === 400 && (
-            str_contains($body, 'invalid') ||
-            str_contains($body, 'merge') ||
-            str_contains($body, 'looks fake') ||
-            str_contains($body, 'provide a valid')
-        )) {
-            return IntegrationApiErrors::SEVERITY_REJECTED;
-        }
-
-        return null;
-    }
-
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('GET', '/');
-            $error = $response['error'] ?? '';
-            $accountId = $response['account_id'] ?? '';
-
-            if ($error) {
-                Integration::error($this, $error, true);
-                return false;
-            }
-
-            if (!$accountId) {
-                Integration::error($this, 'Unable to find “{account_id}” in response.', true);
-                return false;
-            }
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -384,7 +403,6 @@ class Mailchimp extends EmailMarketing
             'auth' => ['apikey', App::parseEnv($this->apiKey)],
         ]);
     }
-
 
     protected function defineFormSettingsSchema(FormInterface $form): array
     {
@@ -478,24 +496,6 @@ class Mailchimp extends EmailMarketing
         return array_map(function($tag) {
             return $tag['name'];
         }, $response['tags']);
-    }
-
-    private static function _formatAddressMergeField(AddressFieldValue $address): array
-    {
-        $country = trim((string)($address->country ?? ''));
-
-        if ($country !== '' && strlen($country) !== 2) {
-            $country = AddressFieldValue::nameToCode($country) ?? $country;
-        }
-
-        return ArrayHelper::filterEmptyStringsFromArray([
-            'addr1' => trim((string)($address->address1 ?? '')),
-            'addr2' => trim((string)($address->address2 ?? '')),
-            'city' => trim((string)($address->city ?? '')),
-            'state' => trim((string)($address->state ?? '')),
-            'zip' => trim((string)($address->zip ?? '')),
-            'country' => $country,
-        ]);
     }
 
     private function _getTagOptions(string $listId): array

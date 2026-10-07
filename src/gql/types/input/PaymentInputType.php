@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\gql\types\input;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\fields\Payment as PaymentField;
-use verbb\formie\Formie;
 
 use craft\gql\GqlEntityRegistry;
 
@@ -59,10 +59,6 @@ class PaymentInputType extends InputObjectType
             return $item !== null && $item !== '';
         });
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private static function _buildFields(PaymentField $field): array
     {

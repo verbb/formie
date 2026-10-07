@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -11,8 +11,8 @@ use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -64,6 +64,7 @@ class Maximizer extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -104,6 +105,57 @@ class Maximizer extends Crm
 
         return new IntegrationConfig($settings);
     }
+
+    public function request(string $method, string $uri, array $options = [], bool $decodeJson = true): mixed
+    {
+        // Fetch and merge the token in for each request, which isn't a header, but part of every request
+        if ($method === 'POST') {
+            $options['json']['Token'] = $this->getClient()->getConfig()['headers']['X-Token'] ?? null;
+        }
+
+        return parent::request($method, $uri, $options, $decodeJson);
+    }
+
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('POST', 'AbEntryRead', [
+                'json' => [
+                    'AbEntry' => [
+                        'Criteria' => [
+                            'SearchQuery' => [
+                                'CompanyName' => [
+                                    '$LIKE' => '%',
+                                ],
+                            ],
+                        ],
+                        'Scope' => [
+                            'Fields' => [
+                                'Key' => 1,
+                                'CompanyName' => 1,
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+
+            $errorMessage = $response['Msg'][0]['Message'] ?? '';
+
+            if ($errorMessage) {
+                throw new Exception(Json::encode($response));
+            }
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
 
     protected function executePayload(Submission $submission): IntegrationResult
     {
@@ -171,57 +223,6 @@ class Maximizer extends Crm
 
         return $this->resultForPayload(true);
     }
-
-    public function request(string $method, string $uri, array $options = [], bool $decodeJson = true): mixed
-    {
-        // Fetch and merge the token in for each request, which isn't a header, but part of every request
-        if ($method === 'POST') {
-            $options['json']['Token'] = $this->getClient()->getConfig()['headers']['X-Token'] ?? null;
-        }
-
-        return parent::request($method, $uri, $options, $decodeJson);
-    }
-
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('POST', 'AbEntryRead', [
-                'json' => [
-                    'AbEntry' => [
-                        'Criteria' => [
-                            'SearchQuery' => [
-                                'CompanyName' => [
-                                    '$LIKE' => '%',
-                                ],
-                            ],
-                        ],
-                        'Scope' => [
-                            'Fields' => [
-                                'Key' => 1,
-                                'CompanyName' => 1,
-                            ],
-                        ],
-                    ],
-                ],
-            ]);
-
-            $errorMessage = $response['Msg'][0]['Message'] ?? '';
-
-            if ($errorMessage) {
-                throw new Exception(Json::encode($response));
-            }
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

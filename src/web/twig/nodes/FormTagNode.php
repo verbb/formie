@@ -9,6 +9,9 @@ use Twig\Node\Node;
 
 class FormTagNode extends Node
 {
+    // Public Methods
+    // =========================================================================
+
     public function compile(Compiler $compiler): void
     {
         $compiler->addDebugInfo($this);

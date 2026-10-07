@@ -77,5 +77,4 @@ trait RenderingDeprecations
 
         return $this->formAssets($form, $renderOptions);
     }
-
 }

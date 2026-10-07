@@ -3,7 +3,6 @@ namespace verbb\formie\fields\subfields;
 
 use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\SingleLineText;
-use verbb\formie\helpers\Html;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 

@@ -1,24 +1,24 @@
 <?php
 namespace verbb\formie\helpers;
 
-use Craft;
-use craft\base\ElementInterface;
-
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\DefineHiddenDefaultTemplateContextEvent;
 use verbb\formie\fields\Hidden;
-use verbb\formie\Formie;
 use verbb\formie\models\HiddenDefaultTemplateContext;
+
+use Craft;
+use craft\base\ElementInterface;
 
 use yii\base\Event;
 
+use Throwable;
+
 class HiddenDefaultTemplateResolver
 {
-    public const EVENT_DEFINE_CONTEXT = 'defineHiddenDefaultTemplateContext';
-
-    /** @var array<string, string> */
-    private static array $_cache = [];
+    // Static Methods
+    // =========================================================================
 
     public static function resolve(Hidden $field, ?ElementInterface $element = null): string
     {
@@ -44,7 +44,7 @@ class HiddenDefaultTemplateResolver
                 $variables,
                 autoescape: false,
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Craft::error(
                 'Could not resolve hidden field default template for `' . $field->handle . '`: ' . $e->getMessage(),
                 __METHOD__,
@@ -112,4 +112,17 @@ class HiddenDefaultTemplateResolver
 
         return md5(implode('|', [$fieldUid, $elementId, $submissionId, $template]));
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_DEFINE_CONTEXT = 'defineHiddenDefaultTemplateContext';
+
+
+    // Properties
+    // =========================================================================
+
+    /** @var array<string, string> */
+    private static array $_cache = [];
 }

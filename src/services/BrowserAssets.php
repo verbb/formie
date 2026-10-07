@@ -1,10 +1,11 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\web\assets\frontend\FrontendAsset;
+
 use Craft;
 use craft\base\Component;
 use craft\helpers\App;
-use verbb\formie\web\assets\frontend\FrontendAsset;
 
 class BrowserAssets extends Component
 {

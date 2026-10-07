@@ -4,10 +4,14 @@ namespace verbb\formie\migrations;
 use verbb\formie\helpers\Table;
 
 use craft\db\Migration;
+
 use Throwable;
 
 class m260224_000005_submission_resume_tokens extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         if (!$this->db->tableExists(Table::FORMIE_SUBMISSION_RESUME_TOKENS)) {

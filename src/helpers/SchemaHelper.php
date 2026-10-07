@@ -1,10 +1,9 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\compatibility\schema\SchemaCompatibility;
-use verbb\formie\Formie;
-use verbb\formie\helpers\RichTextHelper;
 
 use Craft;
 use craft\helpers\Html;
@@ -651,7 +650,6 @@ class SchemaHelper
         ], $config);
     }
 
-
     // Reusable
     // =========================================================================
 
@@ -1203,6 +1201,108 @@ class SchemaHelper
         ]);
     }
 
+    public static function extractSettingsSchema(mixed $schema, array $names): array
+    {
+        if ($names === []) {
+            return [];
+        }
+
+        $normalized = self::normalizeSchema($schema);
+        $found = [];
+        self::_collectExtractableSettingsFields($normalized, $names, $found, null);
+
+        $extracted = [];
+
+        foreach ($names as $name) {
+            if (!isset($found[$name])) {
+                continue;
+            }
+
+            $extracted[] = self::_prepareDefaultsSchemaNode($found[$name]);
+        }
+
+        return $extracted;
+    }
+
+    public static function extractDefaultsSchema(mixed $schema, array $fields): array
+    {
+        if ($fields === []) {
+            return [];
+        }
+
+        $schemaNames = array_values($fields);
+        $normalized = self::normalizeSchema($schema);
+        $found = [];
+        self::_collectExtractableSettingsFields($normalized, $schemaNames, $found, null);
+
+        $extracted = [];
+
+        foreach ($fields as $outputName => $schemaName) {
+            if (!isset($found[$schemaName])) {
+                continue;
+            }
+
+            $node = $found[$schemaName];
+            $node['name'] = $outputName;
+            $extracted[] = self::_prepareDefaultsSchemaNode($node);
+        }
+
+        return $extracted;
+    }
+
+    /**
+     * Patch defaults schema nodes so blank values can inherit global defaults in form group settings.
+     */
+    public static function patchGroupInheritSchema(mixed $schema, ?string $inheritLabel = null): mixed
+    {
+        $inheritLabel ??= Craft::t('formie', 'Inherit global default');
+
+        if (!is_array($schema)) {
+            return $schema;
+        }
+
+        if (array_is_list($schema)) {
+            return array_map(function(mixed $node) use ($inheritLabel) {
+                return self::patchGroupInheritSchema($node, $inheritLabel);
+            }, $schema);
+        }
+
+        $node = self::_patchGroupInheritSchemaNode($schema, $inheritLabel);
+
+        foreach (['schema', 'children'] as $key) {
+            if (isset($node[$key])) {
+                $node[$key] = self::patchGroupInheritSchema($node[$key], $inheritLabel);
+            }
+        }
+
+        return $node;
+    }
+
+    public static function propertyNameFromFieldName(string $name): string
+    {
+        if (!str_contains($name, '.')) {
+            return $name;
+        }
+
+        return substr($name, (int)strrpos($name, '.') + 1);
+    }
+
+    public static function applyTranslatableToSchema(array $schema, array $properties): array
+    {
+        if (!Craft::$app->getIsMultiSite() || $properties === []) {
+            return $schema;
+        }
+
+        $normalized = self::normalizeSchema($schema);
+
+        // Field/modal schemas are often a single component node (e.g. ModalTabs), not a list.
+        if (!array_is_list($normalized)) {
+            return self::_applyTranslatableToSchemaNode($normalized, $properties);
+        }
+
+        return self::_applyTranslatableToSchemaNodes($normalized, $properties);
+    }
+
     // public static function customSettingsField(array $children = []): array
     // {
     //     return [
@@ -1386,55 +1486,6 @@ class SchemaHelper
         return $node;
     }
 
-    public static function extractSettingsSchema(mixed $schema, array $names): array
-    {
-        if ($names === []) {
-            return [];
-        }
-
-        $normalized = self::normalizeSchema($schema);
-        $found = [];
-        self::_collectExtractableSettingsFields($normalized, $names, $found, null);
-
-        $extracted = [];
-
-        foreach ($names as $name) {
-            if (!isset($found[$name])) {
-                continue;
-            }
-
-            $extracted[] = self::_prepareDefaultsSchemaNode($found[$name]);
-        }
-
-        return $extracted;
-    }
-
-    public static function extractDefaultsSchema(mixed $schema, array $fields): array
-    {
-        if ($fields === []) {
-            return [];
-        }
-
-        $schemaNames = array_values($fields);
-        $normalized = self::normalizeSchema($schema);
-        $found = [];
-        self::_collectExtractableSettingsFields($normalized, $schemaNames, $found, null);
-
-        $extracted = [];
-
-        foreach ($fields as $outputName => $schemaName) {
-            if (!isset($found[$schemaName])) {
-                continue;
-            }
-
-            $node = $found[$schemaName];
-            $node['name'] = $outputName;
-            $extracted[] = self::_prepareDefaultsSchemaNode($node);
-        }
-
-        return $extracted;
-    }
-
     private static function _collectExtractableSettingsFields(mixed $node, array $names, array &$found, ?array $fieldWrap): void
     {
         if (!is_array($node)) {
@@ -1498,34 +1549,6 @@ class SchemaHelper
         return $node;
     }
 
-    /**
-     * Patch defaults schema nodes so blank values can inherit global defaults in form group settings.
-     */
-    public static function patchGroupInheritSchema(mixed $schema, ?string $inheritLabel = null): mixed
-    {
-        $inheritLabel ??= Craft::t('formie', 'Inherit global default');
-
-        if (!is_array($schema)) {
-            return $schema;
-        }
-
-        if (array_is_list($schema)) {
-            return array_map(function(mixed $node) use ($inheritLabel) {
-                return self::patchGroupInheritSchema($node, $inheritLabel);
-            }, $schema);
-        }
-
-        $node = self::_patchGroupInheritSchemaNode($schema, $inheritLabel);
-
-        foreach (['schema', 'children'] as $key) {
-            if (isset($node[$key])) {
-                $node[$key] = self::patchGroupInheritSchema($node[$key], $inheritLabel);
-            }
-        }
-
-        return $node;
-    }
-
     private static function _patchGroupInheritSchemaNode(array $node, string $inheritLabel): array
     {
         $field = $node['$field'] ?? null;
@@ -1570,31 +1593,6 @@ class SchemaHelper
         ]);
 
         return $options;
-    }
-
-    public static function propertyNameFromFieldName(string $name): string
-    {
-        if (!str_contains($name, '.')) {
-            return $name;
-        }
-
-        return substr($name, (int)strrpos($name, '.') + 1);
-    }
-
-    public static function applyTranslatableToSchema(array $schema, array $properties): array
-    {
-        if (!Craft::$app->getIsMultiSite() || $properties === []) {
-            return $schema;
-        }
-
-        $normalized = self::normalizeSchema($schema);
-
-        // Field/modal schemas are often a single component node (e.g. ModalTabs), not a list.
-        if (!array_is_list($normalized)) {
-            return self::_applyTranslatableToSchemaNode($normalized, $properties);
-        }
-
-        return self::_applyTranslatableToSchemaNodes($normalized, $properties);
     }
 
     private static function _applyTranslatableToSchemaNodes(array $schema, array $properties): array

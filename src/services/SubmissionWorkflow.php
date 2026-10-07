@@ -3,6 +3,7 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\NavigationIntent;
 use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\enums\workflow\Stage;
 use verbb\formie\events\RegisterStageTasksEvent;
@@ -92,7 +93,7 @@ class SubmissionWorkflow extends Component
                     continue;
                 }
 
-                if ($stage === Stage::VALIDATE && $command->navigation === \verbb\formie\enums\NavigationIntent::TARGET && ($context->taskState['navigation.backward'] ?? false)) {
+                if ($stage === Stage::VALIDATE && $command->navigation === NavigationIntent::TARGET && ($context->taskState['navigation.backward'] ?? false)) {
                     continue;
                 }
 

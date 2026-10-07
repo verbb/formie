@@ -21,6 +21,10 @@ class PageSettingsType extends ObjectType
         parent::__construct($config);
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function resolve(mixed $source, array $arguments, mixed $context, ResolveInfo $resolveInfo): mixed
     {
         return $source[$resolveInfo->fieldName];

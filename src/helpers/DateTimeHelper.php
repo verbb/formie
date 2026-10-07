@@ -11,29 +11,6 @@ use craft\helpers\DateTimeHelper as CraftDateTimeHelper;
  */
 class DateTimeHelper extends CraftDateTimeHelper
 {
-    // Constants
-    // =========================================================================
-
-    public const FORMAT_HANDLE_MAP = [
-        'Y' => 'year',
-        'y' => 'year',
-        'm' => 'month',
-        'n' => 'month',
-        'M' => 'month',
-        'F' => 'month',
-        'd' => 'day',
-        'j' => 'day',
-        'H' => 'hour',
-        'h' => 'hour',
-        'G' => 'hour',
-        'g' => 'hour',
-        'i' => 'minute',
-        's' => 'second',
-        'A' => 'ampm',
-        'a' => 'ampm',
-    ];
-
-
     // Static Methods
     // =========================================================================
 
@@ -83,4 +60,27 @@ class DateTimeHelper extends CraftDateTimeHelper
 
         return $fields;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const FORMAT_HANDLE_MAP = [
+        'Y' => 'year',
+        'y' => 'year',
+        'm' => 'month',
+        'n' => 'month',
+        'M' => 'month',
+        'F' => 'month',
+        'd' => 'day',
+        'j' => 'day',
+        'H' => 'hour',
+        'h' => 'hour',
+        'G' => 'hour',
+        'g' => 'hour',
+        'i' => 'minute',
+        's' => 'second',
+        'A' => 'ampm',
+        'a' => 'ampm',
+    ];
 }

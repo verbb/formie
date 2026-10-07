@@ -3,43 +3,35 @@ namespace verbb\formie\base;
 
 use verbb\formie\Formie;
 use verbb\formie\compatibility\fields\FieldRuntimeCompatibility;
+use verbb\formie\conditions\ConditionVisibility;
 use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\deprecations\FieldDeprecations;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\FieldElementEvent;
-use verbb\formie\events\ModifyFieldConfigEvent;
-use verbb\formie\events\ModifyFieldEmailValueEvent;
-use verbb\formie\events\ModifyFieldIntegrationValueEvent;
-use verbb\formie\events\ModifyFieldSchemaEvent;
 use verbb\formie\events\ModifyFieldUniqueQueryEvent;
 use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\fields;
 use verbb\formie\fields\coercion\EmptyValueCoercer;
-use verbb\formie\fields\values\FieldValueInterface;
-use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\FileHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\References;
-use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutRow;
 use verbb\formie\models\FieldPath;
-use verbb\formie\models\IntegrationField;
+use verbb\formie\models\LayoutSaveContext;
 use verbb\formie\models\Notification;
 use verbb\formie\models\RichText;
 use verbb\formie\models\Settings;
-use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\query\FieldValueQueryHelper;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\references\ReferenceResolver;
+use verbb\formie\services\RuntimeConfiguration;
 use verbb\formie\validators\FieldReferenceUniqueValidator;
 use verbb\formie\validators\HandleValidator;
 use verbb\formie\validators\LayoutHandleUniqueValidator;
@@ -49,109 +41,26 @@ use craft\base\ElementInterface;
 use craft\base\SavableComponent;
 use craft\db\Query;
 use craft\elements\db\ElementQueryInterface;
-use craft\fieldlayoutelements\CustomField;
-use craft\fields\BaseRelationField;
-use craft\gql\types\DateTime as DateTimeType;
 use craft\gql\types\QueryArgument;
-use craft\helpers\Cp;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\ElementHelper;
-use craft\helpers\Html as CraftHtml;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\models\GqlSchema;
 use craft\web\View;
 
-use GraphQL\Type\Definition\Type;
-
-use Faker\Generator as FakerFactory;
-
-use Twig\Markup;
-
+use yii\db\ExpressionInterface;
+use yii\db\Schema;
 use yii\helpers\Markdown;
 
 use DateTime;
-use ReflectionException;
-use ReflectionNamedType;
-use ReflectionUnionType;
+use DateTimeInterface;
 
-use yii\db\ExpressionInterface;
-use yii\db\Schema;
+use GraphQL\Type\Definition\Type;
+use Twig\Markup;
 
 abstract class Field extends SavableComponent implements FieldInterface, SearchableFieldInterface
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_BEFORE_ELEMENT_SAVE = 'beforeElementSave';
-    public const EVENT_AFTER_ELEMENT_SAVE = 'afterElementSave';
-    public const EVENT_AFTER_ELEMENT_PROPAGATE = 'afterElementPropagate';
-    public const EVENT_BEFORE_ELEMENT_DELETE = 'beforeElementDelete';
-    public const EVENT_AFTER_ELEMENT_DELETE = 'afterElementDelete';
-    public const EVENT_BEFORE_ELEMENT_RESTORE = 'beforeElementRestore';
-    public const EVENT_AFTER_ELEMENT_RESTORE = 'afterElementRestore';
-
-    public const EVENT_MODIFY_DEFAULT_VALUE = 'modifyDefaultValue';
-    public const EVENT_MODIFY_FIELD_CONFIG = 'modifyFieldConfig';
-    public const EVENT_MODIFY_SLOT_TAG = 'modifySlotTag';
-    public const EVENT_MODIFY_HTML_TAG = 'modifyHtmlTag';
-    public const EVENT_MODIFY_VALUE_AS_STRING = 'modifyValueAsString';
-    public const EVENT_MODIFY_VALUE_AS_DATA = 'modifyValueAsData';
-    public const EVENT_MODIFY_VALUE_FOR_EXPORT = 'modifyValueForExport';
-    public const EVENT_MODIFY_VALUE_FOR_INTEGRATION = 'modifyValueForIntegration';
-    public const EVENT_MODIFY_VALUE_FOR_REFERENCE = 'modifyValueForReference';
-    public const EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK = 'modifyValueForReferenceBlock';
-    public const EVENT_MODIFY_VALUE_FOR_SUMMARY = 'modifyValueForSummary';
-    public const EVENT_MODIFY_VALUE_FOR_EMAIL_PREVIEW = 'modifyValueForEmailPreview';
-    public const EVENT_MODIFY_UNIQUE_QUERY = 'modifyUniqueQuery';
-    public const EVENT_MODIFY_FIELD_SCHEMA = 'modifyFieldSchema';
-
-    public const TRANSLATION_METHOD_NONE = 'none';
-    public const TRANSLATION_METHOD_SITE = 'site';
-    public const TRANSLATION_METHOD_SITE_GROUP = 'siteGroup';
-    public const TRANSLATION_METHOD_LANGUAGE = 'language';
-    public const TRANSLATION_METHOD_CUSTOM = 'custom';
-
-    public const KIND_CUSTOM = 'custom';
-    public const KIND_TEXT = 'text';
-    public const KIND_TEXTAREA = 'textarea';
-    public const KIND_BOOLEAN = 'boolean';
-    public const KIND_PHONE = 'phone';
-    public const KIND_FILE = 'file';
-    public const KIND_HIDDEN = 'hidden';
-    public const KIND_DATE = 'date';
-    public const KIND_ADDRESS = 'address';
-    public const KIND_NAME = 'name';
-    public const KIND_PAYMENT = 'payment';
-    public const KIND_REPEATER = 'repeater';
-    public const KIND_TABLE = 'table';
-    public const KIND_SIGNATURE = 'signature';
-    public const KIND_SELECT = 'select';
-    public const KIND_RADIO_GROUP = 'radio-group';
-    public const KIND_CHECKBOX_GROUP = 'checkbox-group';
-
-    // Deprecated
-    public const EVENT_MODIFY_VALUE_AS_JSON = self::EVENT_MODIFY_VALUE_AS_DATA;
-    public const EVENT_MODIFY_VALUE_FOR_EMAIL = self::EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK;
-
-
-    // Traits
-    // =========================================================================
-
-    use FieldDeprecations;
-    use FieldDefinitionTrait;
-    use FieldRuntimeCompatibility;
-    use FieldBrowserValidationTrait;
-    use FieldBrowserConditionTrait;
-    use FieldClientRenderedDefinitionTrait;
-    use FieldCpEditConfigTrait;
-    use FieldServerRenderTrait;
-    use FieldValueTrait;
-    use FieldFormBuilderTrait;
-    use FieldSubmissionTrait;
-
-
     // Static Methods
     // =========================================================================
 
@@ -326,6 +235,24 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         ];
     }
 
+    public static function gqlContentQueryArgumentTypeFromConfig(array $config): Type|array
+    {
+        return [
+            'name' => $config['handle'] ?? '',
+            'type' => Type::listOf(QueryArgument::getType()),
+        ];
+    }
+
+    protected static function valueSql(array $instances, string $key = null): ?string
+    {
+        return FieldValueQueryHelper::resolveCoalescedValueSql($instances, $key);
+    }
+
+    protected static function valueColumnType(array $instances, string $key = null): ?string
+    {
+        return FieldValueQueryHelper::resolveCoalescedColumnType($instances, $key);
+    }
+
     private static function _gqlInstructionsDescription(mixed $instructions): ?string
     {
         $richText = self::_instructionsFrom($instructions);
@@ -373,36 +300,90 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         return RichText::from(self::_normalizeInstructionsValue($value));
     }
 
-    public static function gqlContentQueryArgumentTypeFromConfig(array $config): Type|array
+    private static function _getDefaultReferenceBlockTemplatePath(): string
     {
-        return [
-            'name' => $config['handle'] ?? '',
-            'type' => Type::listOf(QueryArgument::getType()),
-        ];
+        return 'fields/' . static::kebabClassName();
     }
 
-    protected static function valueSql(array $instances, string $key = null): ?string
-    {
-        return FieldValueQueryHelper::resolveCoalescedValueSql($instances, $key);
-    }
 
-    protected static function valueColumnType(array $instances, string $key = null): ?string
-    {
-        return FieldValueQueryHelper::resolveCoalescedColumnType($instances, $key);
-    }
+    // Constants
+    // =========================================================================
+
+    public const EVENT_BEFORE_ELEMENT_SAVE = 'beforeElementSave';
+    public const EVENT_AFTER_ELEMENT_SAVE = 'afterElementSave';
+    public const EVENT_AFTER_ELEMENT_PROPAGATE = 'afterElementPropagate';
+    public const EVENT_BEFORE_ELEMENT_DELETE = 'beforeElementDelete';
+    public const EVENT_AFTER_ELEMENT_DELETE = 'afterElementDelete';
+    public const EVENT_BEFORE_ELEMENT_RESTORE = 'beforeElementRestore';
+    public const EVENT_AFTER_ELEMENT_RESTORE = 'afterElementRestore';
+
+    public const EVENT_MODIFY_DEFAULT_VALUE = 'modifyDefaultValue';
+    public const EVENT_MODIFY_FIELD_CONFIG = 'modifyFieldConfig';
+    public const EVENT_MODIFY_SLOT_TAG = 'modifySlotTag';
+    public const EVENT_MODIFY_HTML_TAG = 'modifyHtmlTag';
+    public const EVENT_MODIFY_VALUE_AS_STRING = 'modifyValueAsString';
+    public const EVENT_MODIFY_VALUE_AS_DATA = 'modifyValueAsData';
+    public const EVENT_MODIFY_VALUE_FOR_EXPORT = 'modifyValueForExport';
+    public const EVENT_MODIFY_VALUE_FOR_INTEGRATION = 'modifyValueForIntegration';
+    public const EVENT_MODIFY_VALUE_FOR_REFERENCE = 'modifyValueForReference';
+    public const EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK = 'modifyValueForReferenceBlock';
+    public const EVENT_MODIFY_VALUE_FOR_SUMMARY = 'modifyValueForSummary';
+    public const EVENT_MODIFY_VALUE_FOR_EMAIL_PREVIEW = 'modifyValueForEmailPreview';
+    public const EVENT_MODIFY_UNIQUE_QUERY = 'modifyUniqueQuery';
+    public const EVENT_MODIFY_FIELD_SCHEMA = 'modifyFieldSchema';
+
+    public const TRANSLATION_METHOD_NONE = 'none';
+    public const TRANSLATION_METHOD_SITE = 'site';
+    public const TRANSLATION_METHOD_SITE_GROUP = 'siteGroup';
+    public const TRANSLATION_METHOD_LANGUAGE = 'language';
+    public const TRANSLATION_METHOD_CUSTOM = 'custom';
+
+    public const KIND_CUSTOM = 'custom';
+    public const KIND_TEXT = 'text';
+    public const KIND_TEXTAREA = 'textarea';
+    public const KIND_BOOLEAN = 'boolean';
+    public const KIND_PHONE = 'phone';
+    public const KIND_FILE = 'file';
+    public const KIND_HIDDEN = 'hidden';
+    public const KIND_DATE = 'date';
+    public const KIND_ADDRESS = 'address';
+    public const KIND_NAME = 'name';
+    public const KIND_PAYMENT = 'payment';
+    public const KIND_REPEATER = 'repeater';
+    public const KIND_TABLE = 'table';
+    public const KIND_SIGNATURE = 'signature';
+    public const KIND_SELECT = 'select';
+    public const KIND_RADIO_GROUP = 'radio-group';
+    public const KIND_CHECKBOX_GROUP = 'checkbox-group';
+
+    // Deprecated
+    public const EVENT_MODIFY_VALUE_AS_JSON = self::EVENT_MODIFY_VALUE_AS_DATA;
+    public const EVENT_MODIFY_VALUE_FOR_EMAIL = self::EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK;
+
+
+    // Traits
+    // =========================================================================
+
+    use FieldDeprecations;
+    use FieldDefinitionTrait;
+    use FieldRuntimeCompatibility;
+    use FieldBrowserValidationTrait;
+    use FieldBrowserConditionTrait;
+    use FieldClientRenderedDefinitionTrait;
+    use FieldCpEditConfigTrait;
+    use FieldServerRenderTrait;
+    use FieldValueTrait;
+    use FieldFormBuilderTrait;
+    use FieldSubmissionTrait;
 
 
     // Properties
     // =========================================================================
 
-    private static array $_fieldTypeDefinitionCache = [];
-    private static array $_svgIconCache = [];
-    private static array $_previewTemplateCache = [];
-
     public ?int $layoutId = null;
     public ?int $pageId = null;
     public ?int $rowId = null;
-    public ?\verbb\formie\models\LayoutSaveContext $layoutSaveContext = null;
+    public ?LayoutSaveContext $layoutSaveContext = null;
     public ?int $definitionId = null;
     public ?string $definitionUid = null;
     public ?int $usageCount = null;
@@ -414,7 +395,6 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public ?DateTime $dateUpdated = null;
     public ?string $uid = null;
     public bool $isSynced = false;
-
     public RichText $instructions;
     public bool $required = false;
     public bool $enabled = true;
@@ -439,6 +419,9 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public RichText $builderNote;
     public bool $builderLocked = false;
 
+    private static array $_fieldTypeDefinitionCache = [];
+    private static array $_svgIconCache = [];
+    private static array $_previewTemplateCache = [];
     private ?Form $_form = null;
     private ?FieldLayout $_layout = null;
     private ?FieldLayoutPage $_page = null;
@@ -739,7 +722,6 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         return $this->defineValueForDb($value, $element);
     }
 
-
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
         return EmptyValueCoercer::isEmpty($value);
@@ -749,7 +731,6 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     {
         return null;
     }
-
 
     public function getValueSql(?string $key = null): ?string
     {
@@ -800,7 +781,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         $form = $submission?->getForm() ?? $this->getForm();
 
         if ($form) {
-            $form->replaceInstanceConfig($form->getInstanceConfig()->with('initial', [$this->uid => (new \verbb\formie\services\RuntimeConfiguration())->populationValue($this, $value, $submission)]));
+            $form->replaceInstanceConfig($form->getInstanceConfig()->with('initial', [$this->uid => (new RuntimeConfiguration())->populationValue($this, $value, $submission)]));
         }
     }
 
@@ -1006,7 +987,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
         if ($form) {
             if (!$element instanceof Submission) {
-                (new \verbb\formie\services\RuntimeConfiguration())->establish($form);
+                (new RuntimeConfiguration())->establish($form);
             }
             $config = $form->getInstanceConfig();
 
@@ -1079,7 +1060,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function isConditionallyHidden(Submission $submission): bool
     {
-        return \verbb\formie\conditions\ConditionVisibility::hidden($this, $submission);
+        return ConditionVisibility::hidden($this, $submission);
     }
 
     public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
@@ -1290,7 +1271,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {
-        if ($value instanceof \DateTimeInterface) {
+        if ($value instanceof DateTimeInterface) {
             return Db::prepareDateForDb($value);
         }
 
@@ -1450,13 +1431,6 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         return FieldValueQueryHelper::resolveValueColumnType(static::class, $this->dbTypeForValueSql(), $key);
     }
 
-
-    private static function _getDefaultReferenceBlockTemplatePath(): string
-    {
-        return 'fields/' . static::kebabClassName();
-    }
-
-
     private function _renderReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         // Reference-block rendering is the canonical rich/looped field output,
@@ -1479,5 +1453,4 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             'renderOptions' => $renderOptions,
         ];
     }
-
 }

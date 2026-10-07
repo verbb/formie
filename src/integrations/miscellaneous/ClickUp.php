@@ -1,15 +1,15 @@
 <?php
 namespace verbb\formie\integrations\miscellaneous;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -112,6 +112,25 @@ class ClickUp extends Miscellaneous
         return new IntegrationConfig($settings);
     }
 
+    public function fetchConnection(): bool
+    {
+        try {
+            $workspaceId = App::parseEnv($this->workspaceId);
+
+            $response = $this->request('GET', "team/$workspaceId/space");
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -157,25 +176,6 @@ class ClickUp extends Miscellaneous
 
         return $this->resultForPayload(true);
     }
-
-    public function fetchConnection(): bool
-    {
-        try {
-            $workspaceId = App::parseEnv($this->workspaceId);
-
-            $response = $this->request('GET', "team/$workspaceId/space");
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

@@ -31,7 +31,6 @@ class MultiOptionFieldValue implements FieldValueInterface, IteratorAggregate, C
         return $this->_options;
     }
 
-
     public function all(): array
     {
         return $this->_selectedOptions;

@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\integrations\elements;
 
-use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Element;
 use verbb\formie\base\FormInterface;
@@ -14,8 +13,8 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 use verbb\formie\references\ReferenceSlot;
 use verbb\formie\references\ReferenceSlotKind;
@@ -214,6 +213,24 @@ class User extends Element
 
         return $attributes;
     }
+
+    public function getGroupOptions(): array
+    {
+        $userGroups = [];
+
+        foreach (Craft::$app->getUserGroups()->getAllGroups() as $key => $group) {
+            $userGroups[] = [
+                'label' => $group->name,
+                'value' => $group->uid,
+            ];
+        }
+
+        return $userGroups;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
 
     protected function executePayload(Submission $submission): IntegrationResult
     {
@@ -440,24 +457,6 @@ class User extends Element
 
         return $this->resultForPayload(true);
     }
-
-    public function getGroupOptions(): array
-    {
-        $userGroups = [];
-
-        foreach (Craft::$app->getUserGroups()->getAllGroups() as $key => $group) {
-            $userGroups[] = [
-                'label' => $group->name,
-                'value' => $group->uid,
-            ];
-        }
-
-        return $userGroups;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

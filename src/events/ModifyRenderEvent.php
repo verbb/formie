@@ -9,5 +9,4 @@ class ModifyRenderEvent extends Event
     // =========================================================================
 
     public ?string $html = null;
-
 }

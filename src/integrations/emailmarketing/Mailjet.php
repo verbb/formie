@@ -6,10 +6,9 @@ use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -21,6 +20,15 @@ use GuzzleHttp\Client;
 
 class Mailjet extends EmailMarketing
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function displayName(): string
+    {
+        return 'Mailjet';
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -29,13 +37,9 @@ class Mailjet extends EmailMarketing
     #[Sensitive]
     public ?string $secretKey = null;
 
+
     // Public Methods
     // =========================================================================
-
-    public static function displayName(): string
-    {
-        return 'Mailjet';
-    }
 
     public function getDescription(): string
     {
@@ -84,6 +88,29 @@ class Mailjet extends EmailMarketing
         return new IntegrationConfig($settings);
     }
 
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('GET', 'user');
+            $accountId = $response['Data'][0]['ID'] ?? '';
+
+            if (!$accountId) {
+                Integration::error('Unable to find “{ID}” in response.', true);
+                return false;
+            }
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -116,28 +143,6 @@ class Mailjet extends EmailMarketing
 
         return $this->resultForPayload(true);
     }
-
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('GET', 'user');
-            $accountId = $response['Data'][0]['ID'] ?? '';
-
-            if (!$accountId) {
-                Integration::error('Unable to find “{ID}” in response.', true);
-                return false;
-            }
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

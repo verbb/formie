@@ -1,15 +1,14 @@
 <?php
 namespace verbb\formie\controllers;
 
-use verbb\formie\Formie;
 use verbb\formie\helpers\Plugin;
 
 use Craft;
 use craft\web\Controller;
 
-use craft\commerce\Plugin as Commerce;
-
 use yii\web\Response;
+
+use craft\commerce\Plugin as Commerce;
 
 class ElementsController extends Controller
 {
@@ -73,5 +72,4 @@ class ElementsController extends Controller
 
         return $this->asJson(['success' => true, 'productTypes' => $productTypes]);
     }
-
 }

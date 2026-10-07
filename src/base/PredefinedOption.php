@@ -7,14 +7,7 @@ use craft\base\Component;
 
 abstract class PredefinedOption extends Component implements PredefinedOptionInterface
 {
-    // Properties
-    // =========================================================================
-
-    public static ?string $defaultLabelOption = null;
-    public static ?string $defaultValueOption = null;
-
-
-    // Static Method
+    // Static Methods
     // =========================================================================
 
     public static function getLabelOptions(): array
@@ -52,6 +45,16 @@ abstract class PredefinedOption extends Component implements PredefinedOptionInt
         return $options;
     }
 
+
+    // Properties
+    // =========================================================================
+
+    public static ?string $defaultLabelOption = null;
+    public static ?string $defaultValueOption = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     // Public Method
     // =========================================================================

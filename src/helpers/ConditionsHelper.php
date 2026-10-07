@@ -1,15 +1,17 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\Formie;
+use verbb\formie\conditions\ConditionCompiler;
+use verbb\formie\conditions\ConditionEvaluation;
 use verbb\formie\conditions\ConditionOperator;
+use verbb\formie\conditions\ConditionSet;
 use verbb\formie\conditions\ConditionSetEvaluator;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\Formie;
 use verbb\formie\models\SubmissionStatus;
 
 use Craft;
-
 use craft\models\Site;
 
 class ConditionsHelper
@@ -17,15 +19,15 @@ class ConditionsHelper
     // Static Methods
     // =========================================================================
 
-    public static function evaluate(array|\verbb\formie\conditions\ConditionSet $settings, Submission $submission, string $purpose = 'visibility', array $rows = []): \verbb\formie\conditions\ConditionEvaluation
+    public static function evaluate(array|ConditionSet $settings, Submission $submission, string $purpose = 'visibility', array $rows = []): ConditionEvaluation
     {
-        $set = $settings instanceof \verbb\formie\conditions\ConditionSet ? $settings : \verbb\formie\conditions\ConditionSet::fromArray($settings, $purpose);
+        $set = $settings instanceof ConditionSet ? $settings : ConditionSet::fromArray($settings, $purpose);
         return $submission->getContentState()->conditions->evaluate($set, $submission, $rows);
     }
 
     public static function matchingRules(array $rules, Submission $submission): array
     {
-        return array_map(static fn($rule): array => $rule->metadata, (new ConditionSetEvaluator())->matchingRules(\verbb\formie\conditions\ConditionSet::fromArray(['conditions' => $rules], 'recipients'), $submission));
+        return array_map(static fn($rule): array => $rule->metadata, (new ConditionSetEvaluator())->matchingRules(ConditionSet::fromArray(['conditions' => $rules], 'recipients'), $submission));
     }
 
     // Stable Formie 3 callback compatibility lives at the boundary, never in predicate evaluation.
@@ -177,7 +179,7 @@ class ConditionsHelper
 
     public static function normalizeClientConditions(array $conditions, Form $form): array
     {
-        return (new \verbb\formie\conditions\ConditionCompiler())->compile(\verbb\formie\conditions\ConditionSet::fromArray($conditions), $form);
+        return (new ConditionCompiler())->compile(ConditionSet::fromArray($conditions), $form);
     }
 
     /**
@@ -217,7 +219,7 @@ class ConditionsHelper
         if (!$conditions) {
             return null;
         }
-        return isset($conditions['version'], $conditions['rules']) ? $conditions : (new \verbb\formie\conditions\ConditionCompiler())->compile(\verbb\formie\conditions\ConditionSet::fromArray($conditions));
+        return isset($conditions['version'], $conditions['rules']) ? $conditions : (new ConditionCompiler())->compile(ConditionSet::fromArray($conditions));
     }
 
     private static function _selectOptionsWithPlaceholder(array $options): array
@@ -226,5 +228,4 @@ class ConditionsHelper
             ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
         ], $options);
     }
-
 }

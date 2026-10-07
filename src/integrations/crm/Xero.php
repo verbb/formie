@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
-use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
@@ -9,13 +8,11 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
-use craft\helpers\App;
-use craft\helpers\Json;
 
 use Throwable;
 
@@ -103,6 +100,7 @@ class Xero extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -168,6 +166,10 @@ class Xero extends Crm implements OAuthProviderInterface
         return new IntegrationConfig($settings);
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -208,10 +210,6 @@ class Xero extends Crm implements OAuthProviderInterface
         return $this->resultForPayload(true);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -245,6 +243,4 @@ class Xero extends Crm implements OAuthProviderInterface
 
         return $schema;
     }
-
-
 }

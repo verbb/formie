@@ -12,5 +12,4 @@ class SubmissionMarkedAsSpamEvent extends CancelableEvent
 
     public ?Submission $submission = null;
     public bool $isNew = false;
-
 }

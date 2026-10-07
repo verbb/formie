@@ -8,6 +8,9 @@ use Twig\TokenParser\AbstractTokenParser;
 
 class FieldTagTokenParser extends AbstractTokenParser
 {
+    // Public Methods
+    // =========================================================================
+
     public function getTag(): string
     {
         return 'fieldtag';

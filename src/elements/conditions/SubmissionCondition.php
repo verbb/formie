@@ -2,16 +2,15 @@
 namespace verbb\formie\elements\conditions;
 
 use verbb\formie\Formie;
+use verbb\formie\fields\conditions\FieldConditionRuleInterface;
 
-use Craft;
-use craft\elements\conditions\ElementCondition;
-use craft\errors\InvalidTypeException;
 use craft\elements\conditions\DateCreatedConditionRule;
 use craft\elements\conditions\DateUpdatedConditionRule;
+use craft\elements\conditions\ElementCondition;
 use craft\elements\conditions\IdConditionRule;
 use craft\elements\conditions\StatusConditionRule;
 use craft\elements\conditions\TitleConditionRule;
-use verbb\formie\fields\conditions\FieldConditionRuleInterface;
+use craft\errors\InvalidTypeException;
 
 class SubmissionCondition extends ElementCondition
 {

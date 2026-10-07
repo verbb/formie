@@ -2,36 +2,20 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ElementField;
-use verbb\formie\base\RelationFieldTrait;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\fields\definitions\FieldReferenceValue;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\SlotTag;
-use verbb\formie\models\Notification;
-use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\references\ReferenceType;
 
 use Craft;
-use craft\elements\db\ElementQueryInterface;
-use craft\errors\SiteNotFoundException;
-use craft\helpers\Gql as GqlHelper;
-use craft\helpers\Json;
 use craft\helpers\UrlHelper;
-use craft\services\Gql as GqlService;
 
-use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Product;
 use craft\commerce\fields\Products as CommerceProducts;
 use craft\commerce\gql\arguments\elements\Product as ProductArguments;
 use craft\commerce\gql\interfaces\elements\Product as ProductInterface;
-use craft\commerce\gql\resolvers\elements\Product as ProductResolver;
-
+use craft\commerce\Plugin as Commerce;
 use GraphQL\Type\Definition\Type;
 
 // Prevent a fatal error if the Commerce class doesn't exist. This is because fields are used
@@ -66,6 +50,7 @@ class Products extends ElementField
             ['handle' => 'commerce', 'version' => '4.0.0'],
         ];
     }
+
 
     // Public Methods
     // =========================================================================
@@ -276,6 +261,10 @@ class Products extends ElementField
             SchemaHelper::conditionsField(),
         ];
     }
+
+
+    // Protected Methods
+    // =========================================================================
 
     protected function definePrimaryOptionVariableSourceTypes(): array
     {

@@ -14,5 +14,4 @@ class ModifyFieldUniqueQueryEvent extends Event
 
     public ?Query $query = null;
     public ?FieldInterface $field = null;
-
 }

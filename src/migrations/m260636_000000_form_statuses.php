@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\elements\Form;
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FormStatus;
 use verbb\formie\services\FormStatuses;

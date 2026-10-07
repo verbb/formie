@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\elements\Form;
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 
 use Craft;
 use craft\db\Migration;

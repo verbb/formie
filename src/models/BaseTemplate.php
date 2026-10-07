@@ -2,7 +2,6 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FileHelper;
 
 use Craft;
@@ -17,6 +16,9 @@ use DateTime;
 
 abstract class BaseTemplate extends Model
 {
+    // Traits
+    // =========================================================================
+
     use SoftDeleteTrait {
         behaviors as softDeleteBehaviors;
     }
@@ -32,7 +34,6 @@ abstract class BaseTemplate extends Model
     public ?int $sortOrder = null;
     public ?DateTime $dateDeleted = null;
     public ?string $uid = null;
-
     public bool $copyTemplates = false;
     public bool $hasSingleTemplate = false;
 

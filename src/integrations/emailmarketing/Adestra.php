@@ -6,8 +6,8 @@ use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -27,14 +27,15 @@ class Adestra extends EmailMarketing
         return 'Adestra';
     }
 
+
     // Properties
     // =========================================================================
-
 
     #[Sensitive]
     public ?string $apiKey = null;
     public ?string $coreTableId = null;
     public ?string $workspaceId = null;
+
 
     // Public Methods
     // =========================================================================
@@ -86,6 +87,29 @@ class Adestra extends EmailMarketing
         return new IntegrationConfig($settings);
     }
 
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('GET', '/workspaces/' . App::parseEnv($this->workspaceId));
+            $workspaceName = $response['name'] ?? '';
+
+            if (!$workspaceName) {
+                Integration::error($this, 'Unable to find “{name}” in response.', true);
+                return false;
+            }
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -121,29 +145,6 @@ class Adestra extends EmailMarketing
         return $this->resultForPayload(true);
     }
 
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('GET', '/workspaces/' . App::parseEnv($this->workspaceId));
-            $workspaceName = $response['name'] ?? '';
-
-            if (!$workspaceName) {
-                Integration::error($this, 'Unable to find “{name}” in response.', true);
-                return false;
-            }
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -162,5 +163,4 @@ class Adestra extends EmailMarketing
             ],
         ]);
     }
-
 }

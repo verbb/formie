@@ -7,13 +7,17 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\services\Integrations;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
 use craft\helpers\Db;
 
+use DateTime;
+
 class m260619_000000_spam_settings extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         if (!$this->db->tableExists(Table::FORMIE_SPAM_SETTINGS)) {
@@ -35,7 +39,7 @@ class m260619_000000_spam_settings extends Migration
         $settings = Formie::$plugin->getSettings();
 
         if (!(new Query())->from(Table::FORMIE_SPAM_SETTINGS)->exists()) {
-            $now = Db::prepareDateForDb(new \DateTime());
+            $now = Db::prepareDateForDb(new DateTime());
 
             $this->insert(Table::FORMIE_SPAM_SETTINGS, [
                 'scope' => Integrations::SCOPE_PROJECT,

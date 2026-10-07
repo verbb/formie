@@ -10,6 +10,9 @@ use GraphQL\Type\Definition\Type;
 
 class ServerRenderPayloadInputType extends InputObjectType
 {
+    // Static Methods
+    // =========================================================================
+
     public static function getType(): mixed
     {
         $typeName = 'ServerRenderPayloadInput';

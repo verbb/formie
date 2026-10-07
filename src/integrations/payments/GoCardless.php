@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
@@ -12,7 +12,12 @@ use verbb\formie\enums\SubscriptionStatus;
 use verbb\formie\errors\DeliveryOutcomeUnknownException;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
-use verbb\formie\fields;
+use verbb\formie\fields\Calculations;
+use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\Hidden;
+use verbb\formie\fields\Number;
+use verbb\formie\fields\Radio;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\PaymentAccess;
@@ -24,18 +29,19 @@ use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
-use verbb\formie\models\Subscription;
 use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\payments\PaymentWebhookReceipt;
 use verbb\formie\models\payments\SubscriptionSnapshot;
 use verbb\formie\models\payments\VerifiedWebhook;
 use verbb\formie\models\payments\VerifiedWebhookBatch;
+use verbb\formie\models\Subscription;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
+
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
@@ -44,6 +50,7 @@ use Exception;
 use Throwable;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use Money\Currencies\ISOCurrencies;
 use Money\Currency;
 
@@ -123,108 +130,6 @@ class GoCardless extends Payment
                 'waitForValueMs' => 2500,
             ],
         ]);
-    }
-
-    protected function executePayment(Submission $submission): PaymentDecision
-    {
-        $response = null;
-        $field = $this->getField();
-        $amount = $this->getAmount($submission);
-        $currency = (string)$this->getFieldSetting('currency');
-
-        $payment = Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
-        $payment->integrationId = $this->id;
-        $payment->submissionId = $submission->id;
-        $payment->fieldId = $field->id;
-        $payment->amount = $amount;
-        $payment->currency = $currency;
-
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
-
-        try {
-            $payment->status = PaymentModel::STATUS_REQUIRES_ACTION;
-            $payment->redirectUrl = Craft::$app->getRequest()->getReferrer();
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            $returnUrl = $this->getReturnUrl([
-                'returnToken' => PaymentAccess::issueReturnToken($payment),
-            ]);
-
-            $billingRequestPayload = $this->_buildBillingRequestPayload($payment, $submission);
-
-            $event = new ModifyPaymentPayloadEvent([
-                'integration' => $this,
-                'submission' => $submission,
-                'payload' => $billingRequestPayload,
-            ]);
-            $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
-
-            $response = $this->_createResourceOnce($payment, 'billing_requests', $event->payload, '-billing-request');
-            $billingRequest = $response['billing_requests'] ?? [];
-
-            if (empty($billingRequest['id'])) {
-                throw new Exception(Craft::t('formie', 'GoCardless did not return a billing request.'));
-            }
-
-            $this->_collectBillingCustomerDetails((string)$billingRequest['id'], $submission);
-
-            $flowResponse = $this->_createResourceOnce($payment, 'billing_request_flows', [
-                'redirect_uri' => $returnUrl, 'exit_uri' => $returnUrl,
-                'links' => ['billing_request' => $billingRequest['id']],
-            ], '-billing-flow');
-            $flow = $flowResponse['billing_request_flows'] ?? [];
-            $authorisationUrl = (string)($flow['authorisation_url'] ?? '');
-
-            if ($authorisationUrl === '') {
-                throw new Exception(Craft::t('formie', 'GoCardless did not return an authorisation URL.'));
-            }
-
-            $payment->response = [
-                'billingRequest' => $billingRequest,
-                'billingRequestFlow' => $flow,
-            ];
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-
-            if (!$this->afterProcessPayment($submission, false)) {
-                return PaymentDecision::succeeded($this->handle);
-            }
-
-            return PaymentDecision::requiresAction(
-                $payment->reference,
-                PaymentAction::redirect(
-                    provider: $this->handle,
-                    event: 'formie:payment:go-cardless:redirect',
-                    message: Craft::t('formie', 'Please wait while you are redirected to GoCardless.'),
-                    url: $authorisationUrl,
-                    payload: ['redirectUrl' => $authorisationUrl],
-                    resumeMode: PaymentResumeMode::RETURN,
-                    resumeUrl: $returnUrl,
-                )
-            );
-        } catch (Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
-                'message' => Integration::getExceptionLogMessage($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'response' => Json::encode($response),
-            ]));
-
-            Integration::apiError($this, $e, $this->throwApiError);
-
-            $userMessage = Craft::t('formie', 'Unable to process your payment right now. Please try again.');
-            $this->addFieldError($submission, $userMessage);
-
-            $payment->status = PaymentModel::STATUS_UNKNOWN;
-            $payment->response = ['message' => $userMessage];
-
-            Formie::$plugin->getPayments()->savePayment($payment);
-
-            return PaymentDecision::unknown($userMessage, $this->handle, $payment->reference);
-        }
     }
 
     public function verifyWebhook(PaymentWebhookCommand $request): VerifiedWebhookBatch
@@ -462,12 +367,12 @@ class GoCardless extends Payment
                         'topLevelOnly' => true,
                         'required' => true,
                         'fieldTypes' => [
-                            fields\Calculations::class,
-                            fields\Dropdown::class,
-                            fields\Hidden::class,
-                            fields\Number::class,
-                            fields\Radio::class,
-                            fields\SingleLineText::class,
+                            Calculations::class,
+                            Dropdown::class,
+                            Hidden::class,
+                            Number::class,
+                            Radio::class,
+                            SingleLineText::class,
                         ],
                         'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
                     ]),
@@ -572,6 +477,108 @@ class GoCardless extends Payment
 
     // Protected Methods
     // =========================================================================
+
+    protected function executePayment(Submission $submission): PaymentDecision
+    {
+        $response = null;
+        $field = $this->getField();
+        $amount = $this->getAmount($submission);
+        $currency = (string)$this->getFieldSetting('currency');
+
+        $payment = Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
+        $payment->integrationId = $this->id;
+        $payment->submissionId = $submission->id;
+        $payment->fieldId = $field->id;
+        $payment->amount = $amount;
+        $payment->currency = $currency;
+
+        if (!$this->beforeProcessPayment($submission)) {
+            return PaymentDecision::notRequired();
+        }
+
+        try {
+            $payment->status = PaymentModel::STATUS_REQUIRES_ACTION;
+            $payment->redirectUrl = Craft::$app->getRequest()->getReferrer();
+
+            Formie::$plugin->getPayments()->savePayment($payment);
+
+            $returnUrl = $this->getReturnUrl([
+                'returnToken' => PaymentAccess::issueReturnToken($payment),
+            ]);
+
+            $billingRequestPayload = $this->_buildBillingRequestPayload($payment, $submission);
+
+            $event = new ModifyPaymentPayloadEvent([
+                'integration' => $this,
+                'submission' => $submission,
+                'payload' => $billingRequestPayload,
+            ]);
+            $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
+
+            $response = $this->_createResourceOnce($payment, 'billing_requests', $event->payload, '-billing-request');
+            $billingRequest = $response['billing_requests'] ?? [];
+
+            if (empty($billingRequest['id'])) {
+                throw new Exception(Craft::t('formie', 'GoCardless did not return a billing request.'));
+            }
+
+            $this->_collectBillingCustomerDetails((string)$billingRequest['id'], $submission);
+
+            $flowResponse = $this->_createResourceOnce($payment, 'billing_request_flows', [
+                'redirect_uri' => $returnUrl, 'exit_uri' => $returnUrl,
+                'links' => ['billing_request' => $billingRequest['id']],
+            ], '-billing-flow');
+            $flow = $flowResponse['billing_request_flows'] ?? [];
+            $authorisationUrl = (string)($flow['authorisation_url'] ?? '');
+
+            if ($authorisationUrl === '') {
+                throw new Exception(Craft::t('formie', 'GoCardless did not return an authorisation URL.'));
+            }
+
+            $payment->response = [
+                'billingRequest' => $billingRequest,
+                'billingRequestFlow' => $flow,
+            ];
+            Formie::$plugin->getPayments()->savePayment($payment);
+
+
+            if (!$this->afterProcessPayment($submission, false)) {
+                return PaymentDecision::succeeded($this->handle);
+            }
+
+            return PaymentDecision::requiresAction(
+                $payment->reference,
+                PaymentAction::redirect(
+                    provider: $this->handle,
+                    event: 'formie:payment:go-cardless:redirect',
+                    message: Craft::t('formie', 'Please wait while you are redirected to GoCardless.'),
+                    url: $authorisationUrl,
+                    payload: ['redirectUrl' => $authorisationUrl],
+                    resumeMode: PaymentResumeMode::RETURN,
+                    resumeUrl: $returnUrl,
+                )
+            );
+        } catch (Throwable $e) {
+            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
+                'message' => Integration::getExceptionLogMessage($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'response' => Json::encode($response),
+            ]));
+
+            Integration::apiError($this, $e, $this->throwApiError);
+
+            $userMessage = Craft::t('formie', 'Unable to process your payment right now. Please try again.');
+            $this->addFieldError($submission, $userMessage);
+
+            $payment->status = PaymentModel::STATUS_UNKNOWN;
+            $payment->response = ['message' => $userMessage];
+
+            Formie::$plugin->getPayments()->savePayment($payment);
+
+            return PaymentDecision::unknown($userMessage, $this->handle, $payment->reference);
+        }
+    }
 
     protected function defineRules(): array
     {
@@ -1029,7 +1036,7 @@ class GoCardless extends Payment
                         'json' => [$resource => $payload],
                         'headers' => ['Idempotency-Key' => $requestKey],
                     ]);
-                } catch (\GuzzleHttp\Exception\RequestException $e) {
+                } catch (RequestException $e) {
                     $response = $e->getResponse();
                     $body = $response ? Json::decodeIfJson((string)$response->getBody()) : null;
 

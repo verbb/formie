@@ -10,6 +10,7 @@ use verbb\formie\enums\SubmissionUploadStatus;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\helpers\DataRetentionHelper;
 use verbb\formie\helpers\FileUploadRetentionHelper;
+use verbb\formie\helpers\References;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\UploadAccess;
 use verbb\formie\helpers\UploadLimits;
@@ -21,17 +22,20 @@ use Craft;
 use craft\db\Query;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
+use craft\helpers\Assets;
 use craft\helpers\Console;
 use craft\helpers\Db;
 use craft\models\VolumeFolder;
-
-use DateTime;
-use Throwable;
 
 use yii\base\Component;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\TooManyRequestsHttpException;
+
+use DateTime;
+use InvalidArgumentException;
+use RuntimeException;
+use Throwable;
 
 class FileUploads extends Component
 {
@@ -49,7 +53,7 @@ class FileUploads extends Component
         $assets = Craft::$app->getAssets();
 
         if ($assets->getTempAssetUploadFs()->getRootUrl() !== null) {
-            throw new \RuntimeException('Formie uploads require a private temporary asset filesystem without public URLs.');
+            throw new RuntimeException('Formie uploads require a private temporary asset filesystem without public URLs.');
         }
 
         return $assets->getUserTemporaryUploadFolder();
@@ -102,7 +106,7 @@ class FileUploads extends Component
         $form ??= Form::find()->id($formId)->site('*')->status(null)->one();
 
         if (!$form) {
-            throw new \InvalidArgumentException('Upload form is unavailable.');
+            throw new InvalidArgumentException('Upload form is unavailable.');
         }
         $now = gmdate('Y-m-d H:i:s');
         $existing = (new Query())
@@ -206,7 +210,7 @@ class FileUploads extends Component
         if ((new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where([
             'submissionId' => $submissionId, 'assetId' => $accepted, 'state' => SubmissionUploadStatus::BOUND->value,
         ])->andWhere(['or', ['promotionState' => null], ['not', ['promotionState' => 'moved']]])->exists()) {
-            throw new \RuntimeException('Accepted uploads must finish promotion before finalization.');
+            throw new RuntimeException('Accepted uploads must finish promotion before finalization.');
         }
         Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
             'state' => SubmissionUploadStatus::FINALIZED->value, 'isFinalized' => true, 'dateUpdated' => gmdate('Y-m-d H:i:s'),
@@ -418,7 +422,7 @@ class FileUploads extends Component
         try {
             foreach ($ids as $id) {
                 if (!$mutex->acquire('formie.upload.' . $id, 5)) {
-                    throw new \RuntimeException('Upload is busy. Please retry.');
+                    throw new RuntimeException('Upload is busy. Please retry.');
                 }
                 $acquired[] = $id;
                 $this->_lockedUploads[$id] = true;
@@ -495,7 +499,7 @@ class FileUploads extends Component
             $ids = $this->_extractAssetIds($value);
 
             if ($field->limitFiles && count($ids) > (int)$field->limitFiles) {
-                throw new \yii\web\ForbiddenHttpException('Upload count limit exceeded.');
+                throw new ForbiddenHttpException('Upload count limit exceeded.');
             }
             $retained = $existing ? $this->_extractAssetIds($existing->getFieldValue($contentKey)) : [];
 
@@ -648,8 +652,8 @@ class FileUploads extends Component
                 }
                 $filename = null;
 
-                if ($field->filenameFormat && ($format = \verbb\formie\helpers\References::parseContent($field->filenameFormat, $submission))) {
-                    $filename = \craft\helpers\Assets::prepareAssetName($format . ($index ? '_' . $index : '') . '.' . $asset->getExtension());
+                if ($field->filenameFormat && ($format = References::parseContent($field->filenameFormat, $submission))) {
+                    $filename = Assets::prepareAssetName($format . ($index ? '_' . $index : '') . '.' . $asset->getExtension());
                 }
                 $this->promote($asset, $folder, $filename);
             }
@@ -668,13 +672,13 @@ class FileUploads extends Component
             $folder = Craft::$app->getAssets()->getFolderById((int)$row['promotionFolderId']);
 
             if (!$asset || !$folder || !$this->isReferenced((int)$row['assetId'])) {
-                throw new \RuntimeException('Upload promotion requires reconciliation.');
+                throw new RuntimeException('Upload promotion requires reconciliation.');
             }
             $this->promote($asset, $folder);
         }
     }
 
-    public function promote(Asset $asset, \craft\models\VolumeFolder $folder, ?string $filename = null): void
+    public function promote(Asset $asset, VolumeFolder $folder, ?string $filename = null): void
     {
         $id = (int)$asset->id;
 
@@ -686,7 +690,7 @@ class FileUploads extends Component
         $key = 'formie.upload.' . $id;
 
         if (!$mutex->acquire($key, 5)) {
-            throw new \RuntimeException('Upload promotion is busy.');
+            throw new RuntimeException('Upload promotion is busy.');
         }
         $this->_lockedUploads[$id] = true;
 
@@ -778,6 +782,7 @@ class FileUploads extends Component
         return false;
     }
 
+
     // Private Methods
     // =========================================================================
 
@@ -863,12 +868,12 @@ class FileUploads extends Component
         return time() + 86400 * min(30, $days > 0 ? $days : 30);
     }
 
-    private function _promote(Asset $asset, \craft\models\VolumeFolder $folder, ?string $filename = null): void
+    private function _promote(Asset $asset, VolumeFolder $folder, ?string $filename = null): void
     {
         $row = $this->getTrackedUploadByAssetId((int)$asset->id);
 
         if (!$row || !in_array($row['state'], [SubmissionUploadStatus::BOUND->value, SubmissionUploadStatus::FINALIZED->value], true)) {
-            throw new \RuntimeException('Upload must be bound before promotion.');
+            throw new RuntimeException('Upload must be bound before promotion.');
         }
         $db = Craft::$app->getDb();
         $targetVolume = $folder->getVolume();
@@ -882,7 +887,7 @@ class FileUploads extends Component
             // Preserve the complete stable suffix even when the original name fills 255 bytes.
             $suffix = '_' . substr(hash('sha256', $row['uid']), 0, 12);
             $basename = mb_strcut(pathinfo($filename, PATHINFO_FILENAME), 0, 255 - strlen($suffix . $extension));
-            $filename = \craft\helpers\Assets::prepareAssetName($basename . $suffix . $extension);
+            $filename = Assets::prepareAssetName($basename . $suffix . $extension);
             $targetPath = ($folder->path ? rtrim($folder->path, '/') . '/' : '') . $filename;
         }
         $contentHash = $row['promotionState'] === 'moving' ? $row['contentHash'] : hash_file('sha256', $asset->getCopyOfFile());
@@ -897,13 +902,13 @@ class FileUploads extends Component
         try {
             if ((int)$asset->folderId !== (int)$folder->id || $asset->filename !== $filename) {
                 if ($targetVolume->fileExists($targetPath)) {
-                    $copy = \craft\helpers\Assets::tempFilePath($filename);
+                    $copy = Assets::tempFilePath($filename);
 
                     try {
-                        \craft\helpers\Assets::downloadFile($targetVolume, $targetPath, $copy);
+                        Assets::downloadFile($targetVolume, $targetPath, $copy);
 
                         if (!hash_equals((string)$contentHash, hash_file('sha256', $copy))) {
-                            throw new \RuntimeException('Upload destination requires reconciliation.');
+                            throw new RuntimeException('Upload destination requires reconciliation.');
                         }
                     } finally {
                         if (is_file($copy)) {
@@ -917,7 +922,7 @@ class FileUploads extends Component
                         $sourceVolume->deleteFile($sourcePath);
 
                         if ($sourceVolume->fileExists($sourcePath)) {
-                            throw new \RuntimeException('Upload source cleanup did not complete.');
+                            throw new RuntimeException('Upload source cleanup did not complete.');
                         }
                     }
                     // Keep the old filename in durable asset metadata until source cleanup
@@ -933,13 +938,13 @@ class FileUploads extends Component
                     $asset->avoidFilenameConflicts = false;
 
                     if (!Craft::$app->getAssets()->moveAsset($asset, $folder, $filename)) {
-                        throw new \RuntimeException('Upload promotion could not be persisted.');
+                        throw new RuntimeException('Upload promotion could not be persisted.');
                     }
                 }
             }
 
             if (!$targetVolume->fileExists($targetPath)) {
-                throw new \RuntimeException('Upload destination is unavailable.');
+                throw new RuntimeException('Upload destination is unavailable.');
             }
             $db->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
                 'promotionState' => 'moved',
@@ -1039,12 +1044,12 @@ class FileUploads extends Component
                 }
 
                 if (!Craft::$app->getElements()->deleteElement($asset, true)) {
-                    throw new \RuntimeException('Asset deletion did not complete.');
+                    throw new RuntimeException('Asset deletion did not complete.');
                 }
                 $this->_deletePromotionDestination($upload, $asset);
 
                 if ($volume->fileExists($path)) {
-                    throw new \RuntimeException('Asset deletion did not complete.');
+                    throw new RuntimeException('Asset deletion did not complete.');
                 }
             }
             $db->createCommand()->delete(Table::FORMIE_PENDING_UPLOADS, ['id' => $upload['id']])->execute();
@@ -1072,7 +1077,7 @@ class FileUploads extends Component
         $folder = Craft::$app->getAssets()->getFolderById((int)$upload['promotionFolderId']);
 
         if (!$folder || !$upload['promotionFilename'] || !$upload['contentHash']) {
-            throw new \RuntimeException('Upload promotion requires reconciliation.');
+            throw new RuntimeException('Upload promotion requires reconciliation.');
         }
         $volume = $folder->getVolume();
         $path = ($folder->path ? rtrim($folder->path, '/') . '/' : '') . $upload['promotionFilename'];
@@ -1087,7 +1092,7 @@ class FileUploads extends Component
             hash_update_stream($hash, $stream);
 
             if (!hash_equals((string)$upload['contentHash'], hash_final($hash))) {
-                throw new \RuntimeException('Upload destination requires reconciliation.');
+                throw new RuntimeException('Upload destination requires reconciliation.');
             }
         } finally {
             fclose($stream);
@@ -1099,7 +1104,7 @@ class FileUploads extends Component
         $volume->deleteFile($path);
 
         if ($volume->fileExists($path)) {
-            throw new \RuntimeException('Upload destination deletion did not complete.');
+            throw new RuntimeException('Upload destination deletion did not complete.');
         }
     }
 
@@ -1153,5 +1158,4 @@ class FileUploads extends Component
 
         return [];
     }
-
 }

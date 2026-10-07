@@ -1,29 +1,17 @@
 <?php
 namespace verbb\formie\fields;
 
-use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ElementField;
-use verbb\formie\base\RelationFieldTrait;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyElementFieldQueryEvent;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\SlotTag;
-use verbb\formie\models\Notification;
-use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
-use craft\elements\User;
 use craft\elements\db\ElementQueryInterface;
-use craft\fields\Users as CraftUsers;
+use craft\elements\User;
 use craft\gql\arguments\elements\User as UserArguments;
 use craft\gql\interfaces\elements\User as UserInterface;
 use craft\gql\resolvers\elements\User as UserResolver;
 use craft\helpers\Gql as GqlHelper;
-use craft\helpers\Json;
 use craft\helpers\UrlHelper;
-use craft\models\UserGroup;
 use craft\services\Gql as GqlService;
 
 use GraphQL\Type\Definition\Type;

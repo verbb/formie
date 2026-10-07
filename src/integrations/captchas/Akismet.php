@@ -3,14 +3,11 @@ namespace verbb\formie\integrations\captchas;
 
 use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Captcha;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
-use craft\helpers\Html;
 use craft\helpers\Json;
-use craft\web\View;
 
 use Throwable;
 
@@ -87,5 +84,4 @@ class Akismet extends Captcha
     {
         return $this->apiKey;
     }
-
 }

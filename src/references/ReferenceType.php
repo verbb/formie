@@ -3,6 +3,9 @@ namespace verbb\formie\references;
 
 enum ReferenceType: string
 {
+    // Cases
+    // =========================================================================
+
     case Text = 'text';
     case Email = 'email';
     case Number = 'number';

@@ -55,7 +55,6 @@ class RecipientsFieldValue implements FieldValueInterface
         return $this->_valid;
     }
 
-
     public function getOptions(): array
     {
         return $this->_options;

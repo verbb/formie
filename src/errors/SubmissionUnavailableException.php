@@ -5,6 +5,8 @@ use verbb\formie\elements\Form;
 
 use yii\base\Exception;
 
+use Throwable;
+
 class SubmissionUnavailableException extends Exception
 {
     // Properties
@@ -18,7 +20,7 @@ class SubmissionUnavailableException extends Exception
     // Public Methods
     // =========================================================================
 
-    public function __construct(Form $form, string $source, string $value, ?string $message = null, int $code = 0, ?\Throwable $previous = null)
+    public function __construct(Form $form, string $source, string $value, ?string $message = null, int $code = 0, ?Throwable $previous = null)
     {
         $this->form = $form;
         $this->source = $source;

@@ -9,6 +9,8 @@ use craft\helpers\Console;
 
 use yii\console\ExitCode;
 
+use Throwable;
+
 /**
  * Runs Formie tasks that are intended to be scheduled on cron.
  */
@@ -21,14 +23,11 @@ class CronController extends Controller
      * @var bool Whether cleanup tasks should be skipped.
      */
     public bool $skipGc = false;
-
     /**
      * @var bool Whether scheduled report delivery should be skipped.
      */
     public bool $skipReports = false;
-
     public bool $skipDeliveries = false;
-
     /**
      * @var string|null Comma-separated task groups to run: `gc`, `reports`, `deliveries`. Omit to run all groups.
      */
@@ -98,6 +97,10 @@ class CronController extends Controller
         return $exitCode;
     }
 
+
+    // Private Methods
+    // =========================================================================
+
     private function _runScheduledReports(): int
     {
         $scheduledReports = Formie::$plugin->getScheduledReports()->getDueScheduledReports();
@@ -123,7 +126,7 @@ class CronController extends Controller
 
                 $sent++;
                 $this->stdout("Sent.\n", Console::FG_GREEN);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $failed++;
                 $this->stderr("Failed: {$e->getMessage()}\n", Console::FG_RED);
                 Craft::error('Scheduled report delivery failed: ' . $e->getMessage(), __METHOD__);
@@ -134,10 +137,6 @@ class CronController extends Controller
 
         return $failed > 0 ? ExitCode::UNSPECIFIED_ERROR : ExitCode::OK;
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     /**
      * @return string[]|null

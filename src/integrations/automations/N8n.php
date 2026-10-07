@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\integrations\automations;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Automation;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -16,8 +16,6 @@ use Craft;
 use craft\helpers\Json;
 
 use Throwable;
-
-use GuzzleHttp\Client;
 
 class N8n extends Automation
 {
@@ -92,6 +90,17 @@ class N8n extends Automation
         return new IntegrationConfig($settings);
     }
 
+    public function allowedGqlSettings(): array
+    {
+        return [
+            'webhook' => $this->webhook,
+        ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -123,17 +132,6 @@ class N8n extends Automation
 
         return $this->resultForPayload(true);
     }
-
-    public function allowedGqlSettings(): array
-    {
-        return [
-            'webhook' => $this->webhook,
-        ];
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

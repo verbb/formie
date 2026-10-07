@@ -3,21 +3,21 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\base\OptionsField;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\fields;
 use verbb\formie\fields\Recipients;
-use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\FieldOptionHelper;
-use verbb\formie\helpers\Plugin;
 use verbb\formie\models\EmailTemplate;
-use verbb\formie\models\FieldLayout;
+use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormSettings;
+use verbb\formie\models\FormStatus;
 use verbb\formie\models\FormTemplate;
-use verbb\formie\models\Notification;
 use verbb\formie\models\ImportResult;
+use verbb\formie\models\LayoutSaveContext;
+use verbb\formie\models\MissingIntegration;
+use verbb\formie\models\Notification;
 use verbb\formie\models\PdfTemplate;
+use verbb\formie\models\SubmissionStatus;
 use verbb\formie\records\EmailTemplate as EmailTemplateRecord;
 use verbb\formie\records\Form as FormRecord;
 use verbb\formie\records\FormTemplate as FormTemplateRecord;
@@ -32,6 +32,8 @@ use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
 
 use yii\base\Exception;
+
+use Throwable;
 
 class ImportExportHelper
 {
@@ -376,7 +378,7 @@ class ImportExportHelper
             $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle)
                 ?? Formie::$plugin->getIntegrations()->getCaptchaByHandle($handle);
 
-            if (!$integration || $integration instanceof \verbb\formie\models\MissingIntegration) {
+            if (!$integration || $integration instanceof MissingIntegration) {
                 $warnings[] = "Unavailable integration: $handle. Settings retained.";
                 $resources[] = ['kind' => 'integration', 'handle' => $handle, 'action' => 'missing'];
             }
@@ -489,7 +491,7 @@ class ImportExportHelper
 
             if (!$resource) {
                 $class = match ($kind) {
-                    'group' => \verbb\formie\models\FormGroup::class, 'submissionStatus' => \verbb\formie\models\SubmissionStatus::class, 'formStatus' => \verbb\formie\models\FormStatus::class
+                    'group' => FormGroup::class, 'submissionStatus' => SubmissionStatus::class, 'formStatus' => FormStatus::class
                 };
                 $keys = $kind === 'group' ? ['name', 'handle'] : ['name', 'handle', 'description', 'color'];
                 $resource = new $class(array_intersect_key($dependency['config'], array_flip($keys)));
@@ -525,7 +527,7 @@ class ImportExportHelper
             }
             $form = self::createFormFromImport($data, $existing, $serializer);
             self::_applyPortableResources($form, $data);
-            $form->layoutSaveContext = new \verbb\formie\models\LayoutSaveContext($existing ? 'updateImport' : 'createImport');
+            $form->layoutSaveContext = new LayoutSaveContext($existing ? 'updateImport' : 'createImport');
             $form->layoutSaveContext->trusted = false;
             $form->layoutSaveContext->remaps = $serializer->remaps;
             Recipients::$relaxLegacyOptionValidation = true;
@@ -542,7 +544,7 @@ class ImportExportHelper
             $transaction->commit();
 
             return new ImportResult($form, $plan['warnings'], $plan['missingTypes'], $plan['dependencies'], array_merge($plan['changes'], $serializer->changes), $serializer->remaps);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $transaction->rollBack();
             $projectConfig->reset();
 

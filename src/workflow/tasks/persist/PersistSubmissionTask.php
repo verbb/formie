@@ -3,6 +3,7 @@ namespace verbb\formie\workflow\tasks\persist;
 
 use verbb\formie\Formie;
 use verbb\formie\enums\SubmissionOutcomeType;
+use verbb\formie\services\SubmissionPersistence;
 use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
 use verbb\formie\workflow\WorkflowContext;
@@ -22,7 +23,7 @@ class PersistSubmissionTask implements TaskInterface
             return TaskResult::continue();
         }
 
-        if (!(new \verbb\formie\services\SubmissionPersistence())->persist($context->command, $context->becameComplete, static function() use ($context): void {
+        if (!(new SubmissionPersistence())->persist($context->command, $context->becameComplete, static function() use ($context): void {
             Formie::$plugin->getSubmissionDispatches()->recordIntent($context);
         })) {
             return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));

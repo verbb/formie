@@ -5,6 +5,9 @@ use yii\base\Event;
 
 class PdfEvent extends Event
 {
+    // Properties
+    // =========================================================================
+
     public ?string $template = null;
     public ?array $variables = null;
     public mixed $pdf = null;

@@ -3,6 +3,8 @@ namespace verbb\formie\references;
 
 use verbb\formie\models\ReferenceExpression;
 
+use InvalidArgumentException;
+
 final class ReferenceParser
 {
     // Static Methods
@@ -70,7 +72,7 @@ final class ReferenceParser
     public static function serialize(ReferenceExpression $expression): string
     {
         if (!$expression->isValid || $expression->version !== 1) {
-            throw new \InvalidArgumentException('Cannot serialize an invalid reference expression.');
+            throw new InvalidArgumentException('Cannot serialize an invalid reference expression.');
         }
         $encode = static fn(string $value): string => strtr(rawurlencode($value), ['%2F' => '/', '%2E' => '.']);
         $body = $expression->target;

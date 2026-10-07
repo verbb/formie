@@ -4,6 +4,7 @@ namespace verbb\formie\migrations;
 use verbb\formie\helpers\Table;
 
 use craft\db\Migration;
+
 use Throwable;
 
 class m260222_000001_submission_workflow extends Migration

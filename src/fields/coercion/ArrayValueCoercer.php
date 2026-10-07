@@ -6,7 +6,6 @@ use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\RecipientsFieldValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
-use verbb\formie\helpers\ArrayHelper;
 
 use Traversable;
 
@@ -45,6 +44,4 @@ final class ArrayValueCoercer
 
         return [$value];
     }
-
-
 }

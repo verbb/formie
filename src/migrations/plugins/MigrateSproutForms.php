@@ -10,29 +10,69 @@ use verbb\formie\events\ModifyMigrationFieldEvent;
 use verbb\formie\events\ModifyMigrationFormEvent;
 use verbb\formie\events\ModifyMigrationNotificationEvent;
 use verbb\formie\events\ModifyMigrationSubmissionEvent;
-use verbb\formie\fields;
 use verbb\formie\fields\values\AddressFieldValue;
 use verbb\formie\fields\values\NameFieldValue;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\Variables;
+use verbb\formie\migrations\plugins\formfields\Address as FormieAddress;
+use verbb\formie\migrations\plugins\formfields\Agree;
+use verbb\formie\migrations\plugins\formfields\Categories as FormieCategories;
+use verbb\formie\migrations\plugins\formfields\Checkboxes as FormieCheckboxes;
+use verbb\formie\migrations\plugins\formfields\Date as FormieDate;
+use verbb\formie\migrations\plugins\formfields\Dropdown as FormieDropdown;
+use verbb\formie\migrations\plugins\formfields\Email as FormieEmail;
+use verbb\formie\migrations\plugins\formfields\Entries as FormieEntries;
+use verbb\formie\migrations\plugins\formfields\FileUpload as FormieFileUpload;
+use verbb\formie\migrations\plugins\formfields\Heading;
+use verbb\formie\migrations\plugins\formfields\Hidden as FormieHidden;
+use verbb\formie\migrations\plugins\formfields\Html;
+use verbb\formie\migrations\plugins\formfields\MultiLineText;
+use verbb\formie\migrations\plugins\formfields\Name as FormieName;
+use verbb\formie\migrations\plugins\formfields\Number as FormieNumber;
+use verbb\formie\migrations\plugins\formfields\Phone as FormiePhone;
+use verbb\formie\migrations\plugins\formfields\Radio;
+use verbb\formie\migrations\plugins\formfields\SingleLineText;
+use verbb\formie\migrations\plugins\formfields\Tags as FormieTags;
+use verbb\formie\migrations\plugins\formfields\Users as FormieUsers;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Notification;
-use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\models\RichText;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
-use craft\base\FieldInterface as CraftFieldInterface;
-use craft\fields\BaseRelationField;
-
-use yii\helpers\Markdown;
 
 use Throwable;
 
-use barrelstrength\sproutforms\elements\Form as SproutFormsForm;
-use barrelstrength\sproutforms\elements\Entry as SproutFormsEntry;
-use barrelstrength\sproutforms\fields as sproutfields;
-use barrelstrength\sproutbaseemail\elements\NotificationEmail;
 use barrelstrength\sproutbaseemail\SproutBaseEmail;
+use barrelstrength\sproutforms\elements\Entry as SproutFormsEntry;
+use barrelstrength\sproutforms\elements\Form as SproutFormsForm;
+use barrelstrength\sproutforms\fields as sproutfields;
+use barrelstrength\sproutforms\fields\Address;
+use barrelstrength\sproutforms\fields\Categories;
+use barrelstrength\sproutforms\fields\Checkboxes;
+use barrelstrength\sproutforms\fields\CustomHtml;
+use barrelstrength\sproutforms\fields\Date;
+use barrelstrength\sproutforms\fields\Dropdown;
+use barrelstrength\sproutforms\fields\Email;
+use barrelstrength\sproutforms\fields\EmailDropdown;
+use barrelstrength\sproutforms\fields\Entries;
+use barrelstrength\sproutforms\fields\FileUpload;
+use barrelstrength\sproutforms\fields\Hidden;
+use barrelstrength\sproutforms\fields\Invisible;
+use barrelstrength\sproutforms\fields\MultipleChoice;
+use barrelstrength\sproutforms\fields\MultiSelect;
+use barrelstrength\sproutforms\fields\Name;
+use barrelstrength\sproutforms\fields\Number;
+use barrelstrength\sproutforms\fields\OptIn;
+use barrelstrength\sproutforms\fields\Paragraph;
+use barrelstrength\sproutforms\fields\Phone;
+use barrelstrength\sproutforms\fields\PrivateNotes;
+use barrelstrength\sproutforms\fields\RegularExpression;
+use barrelstrength\sproutforms\fields\SectionHeading;
+use barrelstrength\sproutforms\fields\SingleLine;
+use barrelstrength\sproutforms\fields\Tags;
+use barrelstrength\sproutforms\fields\Url;
+use barrelstrength\sproutforms\fields\Users;
 use barrelstrength\sproutforms\SproutForms;
 
 class MigrateSproutForms extends BasePluginMigrator
@@ -78,6 +118,10 @@ class MigrateSproutForms extends BasePluginMigrator
     {
         return false;
     }
+
+
+    // Private Methods
+    // =========================================================================
 
     private function _migrateForm(): ?Form
     {
@@ -199,7 +243,7 @@ class MigrateSproutForms extends BasePluginMigrator
 
                 try {
                     switch (get_class($field)) {
-                        case sproutfields\Address::class:
+                        case Address::class:
                             /* @var \barrelstrength\sproutbasefields\models\Address $value */
                             $value = $entry->getFieldValue($field->handle);
 
@@ -213,7 +257,7 @@ class MigrateSproutForms extends BasePluginMigrator
                             ]);
                             $submission->setFieldValue($handle, $address);
                             break;
-                        case sproutfields\Name::class:
+                        case Name::class:
                             /* @var \barrelstrength\sproutbasefields\models\Name $value */
                             $value = $entry->getFieldValue($field->handle);
 
@@ -225,7 +269,7 @@ class MigrateSproutForms extends BasePluginMigrator
                             ]);
                             $submission->setFieldValue($handle, $name);
                             break;
-                        case sproutfields\Phone::class:
+                        case Phone::class:
                             /* @var \barrelstrength\sproutbasefields\models\Phone $value */
                             $value = $entry->getFieldValue($field->handle);
 
@@ -465,9 +509,9 @@ class MigrateSproutForms extends BasePluginMigrator
     private function _mapField(FieldInterface $field): ?FieldInterface
     {
         switch (get_class($field)) {
-            case sproutfields\Address::class:
+            case Address::class:
                 /* @var sproutfields\Address $field */
-                $newField = new formfields\Address();
+                $newField = new FormieAddress();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->countryEnabled = (bool)$field->showCountryDropdown;
@@ -482,9 +526,9 @@ class MigrateSproutForms extends BasePluginMigrator
                     $newField->countryRequired = (bool)$field->required;
                 }
                 break;
-            case sproutfields\Categories::class:
+            case Categories::class:
                 /* @var formfields\Categories $field */
-                $newField = new formfields\Categories();
+                $newField = new FormieCategories();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->placeholder = $field->selectionLabel;
@@ -493,50 +537,50 @@ class MigrateSproutForms extends BasePluginMigrator
                 $newField->source = $field->source;
                 $newField->sources = $field->sources;
                 break;
-            case sproutfields\Checkboxes::class:
+            case Checkboxes::class:
                 /* @var sproutfields\Checkboxes $field */
-                $newField = new formfields\Checkboxes();
+                $newField = new FormieCheckboxes();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->options = $this->_mapOptions($field->options);
                 break;
-            case sproutfields\CustomHtml::class:
+            case CustomHtml::class:
                 /* @var sproutfields\CustomHtml $field */
-                $newField = new formfields\Html();
+                $newField = new Html();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->htmlContent = $field->customHtml;
                 $newField->labelPosition = $field->hideLabel ? HiddenPosition::class : '';
                 break;
-            case sproutfields\Date::class:
+            case Date::class:
                 /* @var sproutfields\Date $field */
-                $newField = new formfields\Date();
+                $newField = new FormieDate();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->displayType = 'calendar';
                 break;
-            case sproutfields\Dropdown::class:
+            case Dropdown::class:
                 /* @var sproutfields\Dropdown $field */
-                $newField = new formfields\Dropdown();
+                $newField = new FormieDropdown();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->options = $field->options;
                 break;
-            case sproutfields\Email::class:
+            case Email::class:
                 /* @var sproutfields\Email $field */
-                $newField = new formfields\Email();
+                $newField = new FormieEmail();
                 $this->_applyFieldDefaults($newField);
                 break;
-            case sproutfields\EmailDropdown::class:
+            case EmailDropdown::class:
                 /* @var sproutfields\Dropdown $field */
-                $newField = new formfields\Dropdown();
+                $newField = new FormieDropdown();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->options = $field->options;
                 break;
-            case sproutfields\Entries::class:
+            case Entries::class:
                 /* @var ElementFieldInterface $field */
-                $newField = new formfields\Entries();
+                $newField = new FormieEntries();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->placeholder = $field->selectionLabel;
@@ -545,9 +589,9 @@ class MigrateSproutForms extends BasePluginMigrator
                 $newField->source = $field->source;
                 $newField->sources = $field->sources;
                 break;
-            case sproutfields\FileUpload::class:
+            case FileUpload::class:
                 /* @var sproutfields\FileUpload $field */
-                $newField = new formfields\FileUpload();
+                $newField = new FormieFileUpload();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->uploadLocationSource = str_replace('volume', 'folder', $field->defaultUploadLocationSource);
@@ -555,38 +599,38 @@ class MigrateSproutForms extends BasePluginMigrator
                 $newField->restrictFiles = !empty($field->allowedKinds);
                 $newField->allowedKinds = $field->allowedKinds ?? [];
                 break;
-            case sproutfields\Hidden::class:
+            case Hidden::class:
                 /* @var sproutfields\Hidden $field */
-                $newField = new formfields\Hidden();
+                $newField = new FormieHidden();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->defaultValue = $field->value;
                 break;
-            case sproutfields\Invisible::class:
+            case Invisible::class:
                 /* @var sproutfields\Hidden $field */
-                $newField = new formfields\Hidden();
+                $newField = new FormieHidden();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->defaultValue = $field->value;
                 return null;
-            case sproutfields\MultipleChoice::class:
+            case MultipleChoice::class:
                 /* @var sproutfields\MultipleChoice $field */
-                $newField = new formfields\Radio();
+                $newField = new Radio();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->options = $this->_mapOptions($field->options);
                 break;
-            case sproutfields\MultiSelect::class:
+            case MultiSelect::class:
                 /* @var sproutfields\MultiSelect $field */
-                $newField = new formfields\Dropdown();
+                $newField = new FormieDropdown();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->setMultiple(true);
                 $newField->options = $this->_mapOptions($field->options);
                 break;
-            case sproutfields\Name::class:
+            case Name::class:
                 /* @var sproutfields\Name $field */
-                $newField = new formfields\Name();
+                $newField = new FormieName();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->useMultipleFields = (bool)$field->displayMultipleFields;
@@ -609,57 +653,57 @@ class MigrateSproutForms extends BasePluginMigrator
                     }
                 }
                 break;
-            case sproutfields\Number::class:
+            case Number::class:
                 /* @var sproutfields\Number $field */
-                $newField = new formfields\Number();
+                $newField = new FormieNumber();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->min = $field->min;
                 $newField->max = $field->max;
                 $newField->decimals = $field->decimals;
                 break;
-            case sproutfields\OptIn::class:
+            case OptIn::class:
                 /* @var sproutfields\OptIn $field */
-                $newField = new formfields\Agree();
+                $newField = new Agree();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->description = RichText::fromHtml('<p>' . $field->optInMessage . '</p>');
                 $newField->checkedValue = $field->optInValueWhenTrue;
                 $newField->uncheckedValue = $field->optInValueWhenFalse;
                 break;
-            case sproutfields\Paragraph::class:
+            case Paragraph::class:
                 /* @var sproutfields\Paragraph $field */
-                $newField = new formfields\MultiLineText();
+                $newField = new MultiLineText();
                 $this->_applyFieldDefaults($newField);
                 break;
-            case sproutfields\Phone::class:
+            case Phone::class:
                 /* @var sproutfields\Phone $field */
-                $newField = new formfields\Phone();
+                $newField = new FormiePhone();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->countryEnabled = !$field->limitToSingleCountry;
                 $newField->countryDefaultValue = $field->country;
                 break;
-            case sproutfields\PrivateNotes::class:
+            case PrivateNotes::class:
                 // Not implemented
                 return null;
-            case sproutfields\RegularExpression::class:
+            case RegularExpression::class:
                 // Not implemented
                 return null;
-            case sproutfields\SectionHeading::class:
-                $newField = new formfields\Heading();
+            case SectionHeading::class:
+                $newField = new Heading();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->labelPosition = $field->hideLabel ? HiddenPosition::class : '';
                 break;
-            case sproutfields\SingleLine::class:
-                $newField = new formfields\SingleLineText();
+            case SingleLine::class:
+                $newField = new SingleLineText();
                 $this->_applyFieldDefaults($newField);
 
                 break;
-            case sproutfields\Tags::class:
+            case Tags::class:
                 /* @var ElementFieldInterface $field */
-                $newField = new formfields\Tags();
+                $newField = new FormieTags();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->placeholder = $field->selectionLabel;
@@ -668,14 +712,14 @@ class MigrateSproutForms extends BasePluginMigrator
                 $newField->source = $field->source;
                 $newField->sources = $field->sources;
                 break;
-            case sproutfields\Url::class:
-                $newField = new formfields\SingleLineText();
+            case Url::class:
+                $newField = new SingleLineText();
                 $this->_applyFieldDefaults($newField);
 
                 break;
-            case sproutfields\Users::class:
+            case Users::class:
                 /* @var ElementFieldInterface $field */
-                $newField = new formfields\Users();
+                $newField = new FormieUsers();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->placeholder = $field->selectionLabel;
@@ -696,7 +740,7 @@ class MigrateSproutForms extends BasePluginMigrator
         // Parse the handle for a few things just in case
         $newField->handle = $this->_getFieldHandle($newField->handle);
 
-        if (!$newField instanceof formfields\Address and !$newField instanceof formfields\Name) {
+        if (!$newField instanceof FormieAddress and !$newField instanceof FormieName) {
             $newField->required = (bool)$field->required;
         }
 
@@ -801,5 +845,4 @@ class MigrateSproutForms extends BasePluginMigrator
             ],
         ];
     }
-
 }

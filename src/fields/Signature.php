@@ -3,8 +3,6 @@ namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
-use verbb\formie\base\Integration;
-use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldReferenceValue;
@@ -12,11 +10,8 @@ use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\SignatureAccess;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
-use verbb\formie\models\IntegrationField;
-use verbb\formie\models\Notification;
 use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
@@ -49,6 +44,7 @@ class Signature extends Field implements PreviewableFieldInterface
     {
         return Schema::TYPE_MEDIUMTEXT;
     }
+
 
     // Properties
     // =========================================================================
@@ -210,6 +206,7 @@ class Signature extends Field implements PreviewableFieldInterface
             SchemaHelper::conditionsField(),
         ];
     }
+
 
     // Protected Methods
     // =========================================================================

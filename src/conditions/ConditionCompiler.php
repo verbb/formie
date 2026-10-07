@@ -3,11 +3,11 @@ namespace verbb\formie\conditions;
 
 use verbb\formie\base\Field;
 use verbb\formie\base\OptionsField;
-use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\Date;
 use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\Phone;
 use verbb\formie\fields\Recipients;
 use verbb\formie\helpers\References;
 use verbb\formie\references\FieldReferenceResolver;
@@ -37,7 +37,7 @@ final class ConditionCompiler
             return $field->getCollectsRange() ? 'collection' : ($field->getIsTime() ? 'time' : ($field->getIsDate() ? 'date' : 'datetime'));
         }
 
-        if ($field instanceof \verbb\formie\fields\Phone) {
+        if ($field instanceof Phone) {
             return 'text';
         }
         $fallback = match ($field->valueType()->kind) {
@@ -51,6 +51,27 @@ final class ConditionCompiler
             if ($referenceValue->isPrimary() && $referenceValue->appliesTo($field)) {
                 return self::_referenceValueType($referenceValue, $fallback);
             }
+        }
+
+        return $fallback;
+    }
+
+    private static function _referenceValueType(FieldReferenceValue $referenceValue, string $fallback): string
+    {
+        if (in_array(ReferenceType::List, $referenceValue->types, true)) {
+            return 'collection';
+        }
+
+        if (in_array(ReferenceType::Number, $referenceValue->types, true)) {
+            return 'number';
+        }
+
+        if (in_array(ReferenceType::Boolean, $referenceValue->types, true)) {
+            return 'boolean';
+        }
+
+        if (in_array(ReferenceType::Date, $referenceValue->types, true)) {
+            return 'date';
         }
 
         return $fallback;
@@ -135,30 +156,5 @@ final class ConditionCompiler
             ];
         }
         return ['version' => $set->version, 'purpose' => $set->purpose, 'mode' => $set->mode, 'effect' => $set->effect, 'clearOnHide' => true, 'rules' => $rules];
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    private static function _referenceValueType(FieldReferenceValue $referenceValue, string $fallback): string
-    {
-        if (in_array(ReferenceType::List, $referenceValue->types, true)) {
-            return 'collection';
-        }
-
-        if (in_array(ReferenceType::Number, $referenceValue->types, true)) {
-            return 'number';
-        }
-
-        if (in_array(ReferenceType::Boolean, $referenceValue->types, true)) {
-            return 'boolean';
-        }
-
-        if (in_array(ReferenceType::Date, $referenceValue->types, true)) {
-            return 'date';
-        }
-
-        return $fallback;
     }
 }

@@ -1,30 +1,22 @@
 <?php
 namespace verbb\formie\integrations\elements;
 
-use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Element;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
-use craft\base\Element as CraftElement;
 use craft\elements\User;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\helpers\Template;
-use craft\web\View;
-
-use yii\base\Event;
 
 use Throwable;
 
@@ -174,6 +166,21 @@ class EventsEvent extends Element
         return $attributes;
     }
 
+    public function getAuthor($form): array
+    {
+        $defaultAuthorId = $this->defaultAuthorId;
+
+        if ($defaultAuthorId) {
+            return User::find()->id($defaultAuthorId)->all();
+        }
+
+        return [Craft::$app->getUser()->getIdentity()];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -272,21 +279,6 @@ class EventsEvent extends Element
 
         return $this->resultForPayload(true);
     }
-
-    public function getAuthor($form): array
-    {
-        $defaultAuthorId = $this->defaultAuthorId;
-
-        if ($defaultAuthorId) {
-            return User::find()->id($defaultAuthorId)->all();
-        }
-
-        return [Craft::$app->getUser()->getIdentity()];
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

@@ -6,6 +6,9 @@ use verbb\formie\base\ParentFieldInterface;
 
 class FieldReferenceHelper
 {
+    // Static Methods
+    // =========================================================================
+
     public static function resolveClientFieldKey(string $reference, array $fieldMap = []): string
     {
         $trimmedReference = trim($reference);

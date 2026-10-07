@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
@@ -10,10 +10,14 @@ use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\PaymentCapabilityPurpose;
 use verbb\formie\enums\PaymentResumeMode;
-use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
-use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
+use verbb\formie\fields\Calculations;
+use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\Hidden;
+use verbb\formie\fields\Number;
+use verbb\formie\fields\Radio;
+use verbb\formie\fields\SingleLineText as FormieSingleLineText;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\helpers\PaymentAttempt;
@@ -28,7 +32,6 @@ use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
 use verbb\formie\models\payments\PaymentSessionCommand;
-use verbb\formie\models\Plan;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
@@ -36,7 +39,6 @@ use Craft;
 use craft\db\Query;
 use craft\helpers\App;
 use craft\helpers\Component;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Response;
@@ -51,34 +53,15 @@ use Throwable;
 use CommerceGuys\Addressing\Country\CountryRepository;
 use CommerceGuys\Addressing\Subdivision\SubdivisionRepository;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
 
 class Opayo extends Payment
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
-    public const CHECKOUT_MODE_OWN_FORM = 'ownForm';
-    public const CHECKOUT_MODE_DROP_IN = 'dropIn';
-
-    // https://stripe.com/docs/currencies#zero-decimal
-    private const ZERO_DECIMAL_CURRENCIES = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'];
-    private const MERCHANT_SESSION_RATE_LIMIT = 20;
-    private const MERCHANT_SESSION_RATE_WINDOW_SECONDS = 60;
-
-
     // Static Methods
     // =========================================================================
 
     public static function displayName(): string
     {
         return 'Opayo';
-    }
-
-    public function requiresAjaxSubmission(): bool
-    {
-        return true;
     }
 
     public static function toOpayoAmount(string|int|float $amount, string $currency): int
@@ -90,6 +73,19 @@ class Opayo extends Payment
     {
         return PaymentMoney::fromMinor((string)$amount, $currency)->decimal();
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
+    public const CHECKOUT_MODE_OWN_FORM = 'ownForm';
+    public const CHECKOUT_MODE_DROP_IN = 'dropIn';
+
+    // https://stripe.com/docs/currencies#zero-decimal
+    private const ZERO_DECIMAL_CURRENCIES = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'];
+    private const MERCHANT_SESSION_RATE_LIMIT = 20;
+    private const MERCHANT_SESSION_RATE_WINDOW_SECONDS = 60;
 
 
     // Properties
@@ -106,6 +102,11 @@ class Opayo extends Payment
 
     // Public Methods
     // =========================================================================
+
+    public function requiresAjaxSubmission(): bool
+    {
+        return true;
+    }
 
     public function getDescription(): string
     {
@@ -158,18 +159,13 @@ class Opayo extends Payment
                 'amountType' => $this->getFieldSetting('amountType'),
                 'amountFixed' => $this->getFieldSetting('amountFixed'),
                 'amountVariable' => $this->normalizeClientFieldReference($this->getFieldSetting('amountVariable')),
-                'sessionEndpoint' => \craft\helpers\UrlHelper::actionUrl('formie/payment-sessions/initialize'),
+                'sessionEndpoint' => UrlHelper::actionUrl('formie/payment-sessions/initialize'),
                 'sessionToken' => PaymentAccess::issueProviderSessionToken('opayo', (int)$this->id, (string)$this->handle, formId: $context->form?->id, fieldId: $context->field?->id, siteId: $context->form?->siteId),
                 'checkoutMode' => $this->getCheckoutMode(),
                 'requiredInputSuffixes' => ['opayoTokenId'],
                 'waitForValueMs' => 2500,
             ],
         ]);
-    }
-
-    protected function getOptionalGraphqlPaymentInputFieldKeys(): array
-    {
-        return ['opayoSessionKey', 'opayo3DSComplete'];
     }
 
     public function getAmount(Submission $submission): string|int|float
@@ -186,22 +182,6 @@ class Opayo extends Payment
     public function getCurrency(Submission $submission): ?string
     {
         return (string)$this->getFieldSetting('currency');
-    }
-
-    protected function executePayment(Submission $submission): PaymentDecision
-    {
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
-
-        $currency = $this->getCurrency($submission);
-
-        return PaymentAttempt::run($this, $submission, self::fromOpayoAmount($this->getAmount($submission), (string)$currency), $currency, [
-            'vendorName' => $this->vendorName,
-            'integrationKey' => $this->integrationKey,
-            'integrationPassword' => $this->integrationPassword,
-            'useSandbox' => $this->useSandbox,
-        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
     }
 
     public function initializeSession(?PaymentSessionCommand $command = null): Response
@@ -326,11 +306,6 @@ class Opayo extends Payment
         return $challengeResponse;
     }
 
-    protected function getPaymentAccountIdentity(): ?string
-    {
-        return App::parseEnv($this->vendorName) ?: null;
-    }
-
     public function fetchConnection(): bool
     {
         try {
@@ -383,12 +358,12 @@ class Opayo extends Payment
                         'topLevelOnly' => true,
                         'required' => true,
                         'fieldTypes' => [
-                            fields\Calculations::class,
-                            fields\Dropdown::class,
-                            fields\Hidden::class,
-                            fields\Number::class,
-                            fields\Radio::class,
-                            fields\SingleLineText::class,
+                            Calculations::class,
+                            Dropdown::class,
+                            Hidden::class,
+                            Number::class,
+                            Radio::class,
+                            FormieSingleLineText::class,
                         ],
                         'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
                     ]),
@@ -542,6 +517,36 @@ class Opayo extends Payment
         return $subFields;
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function getOptionalGraphqlPaymentInputFieldKeys(): array
+    {
+        return ['opayoSessionKey', 'opayo3DSComplete'];
+    }
+
+    protected function executePayment(Submission $submission): PaymentDecision
+    {
+        if (!$this->beforeProcessPayment($submission)) {
+            return PaymentDecision::notRequired();
+        }
+
+        $currency = $this->getCurrency($submission);
+
+        return PaymentAttempt::run($this, $submission, self::fromOpayoAmount($this->getAmount($submission), (string)$currency), $currency, [
+            'vendorName' => $this->vendorName,
+            'integrationKey' => $this->integrationKey,
+            'integrationPassword' => $this->integrationPassword,
+            'useSandbox' => $this->useSandbox,
+        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
+    }
+
+    protected function getPaymentAccountIdentity(): ?string
+    {
+        return App::parseEnv($this->vendorName) ?: null;
+    }
+
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         if ($key === 'opayoDropIn' && $this->isDropInCheckoutMode()) {
@@ -556,10 +561,6 @@ class Opayo extends Payment
 
         return null;
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {
@@ -886,7 +887,7 @@ class Opayo extends Payment
         $lockAcquired = $mutex?->acquire($mutexKey, 3) ?? false;
 
         if (!$lockAcquired) {
-            throw new \yii\web\TooManyRequestsHttpException('Payment session is busy.');
+            throw new TooManyRequestsHttpException('Payment session is busy.');
         }
 
         try {

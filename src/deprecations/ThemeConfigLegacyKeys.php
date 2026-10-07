@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\deprecations;
 
-use Craft;
 use verbb\formie\helpers\ArrayHelper;
+
+use Craft;
 
 final class ThemeConfigLegacyKeys
 {
@@ -88,10 +89,6 @@ final class ThemeConfigLegacyKeys
 
         return [];
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private static function _legacyMap(): array
     {

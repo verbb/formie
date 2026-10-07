@@ -9,16 +9,9 @@ use verbb\formie\models\BrowserModuleContext;
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
-use craft\helpers\Template;
 
 class AddressFinder extends AddressProvider
 {
-    // Constants
-    // =========================================================================
-
-    public const AF_INPUT_NAME = 'formie-af-autocomplete';
-
-
     // Static Methods
     // =========================================================================
 
@@ -26,6 +19,12 @@ class AddressFinder extends AddressProvider
     {
         return 'Address Finder';
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const AF_INPUT_NAME = 'formie-af-autocomplete';
 
 
     // Properties

@@ -1,36 +1,32 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Field;
-use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\DeliveryOutcomeUnknownException;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
-use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\fields\Calculations;
+use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\Hidden;
+use verbb\formie\fields\Number;
+use verbb\formie\fields\Radio;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
-use verbb\formie\models\Plan;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\DateTimeHelper;
-use craft\helpers\Json;
-use craft\helpers\UrlHelper;
 use craft\web\Response;
 
 use yii\base\Event;
@@ -61,7 +57,6 @@ class PayWay extends Payment
 
         return $event->currencies;
     }
-
 
 
     // Constants
@@ -115,22 +110,6 @@ class PayWay extends Payment
         ]);
     }
 
-    protected function executePayment(Submission $submission): PaymentDecision
-    {
-        $mutex = Craft::$app->getMutex();
-        $lock = 'formie.payway.' . hash('sha256', $submission->id . ':' . $this->getField()?->id);
-
-        if (!$mutex->acquire($lock, 10)) {
-            return PaymentDecision::pending('PayWay payment is already being processed.', $this->handle);
-        }
-
-        try {
-            return $this->_processPayment($submission);
-        } finally {
-            $mutex->release($lock);
-        }
-    }
-
     public function getTransaction(PaymentModel $payment): void
     {
         if (!$payment->reference || in_array($payment->status, [PaymentModel::STATUS_SUCCEEDED, PaymentModel::STATUS_FAILED], true)) {
@@ -163,11 +142,6 @@ class PayWay extends Payment
     public function getTransactionStatus(PaymentModel $payment): void
     {
         $this->getTransaction($payment);
-    }
-
-    protected function getPaymentAccountIdentity(): ?string
-    {
-        return App::parseEnv($this->merchantId) ?: null;
     }
 
     public function fetchConnection(): bool
@@ -232,12 +206,12 @@ class PayWay extends Payment
                         'topLevelOnly' => true,
                         'required' => true,
                         'fieldTypes' => [
-                            fields\Calculations::class,
-                            fields\Dropdown::class,
-                            fields\Hidden::class,
-                            fields\Number::class,
-                            fields\Radio::class,
-                            fields\SingleLineText::class,
+                            Calculations::class,
+                            Dropdown::class,
+                            Hidden::class,
+                            Number::class,
+                            Radio::class,
+                            SingleLineText::class,
                         ],
                         'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
                     ]),
@@ -247,9 +221,29 @@ class PayWay extends Payment
     }
 
 
-
     // Protected Methods
     // =========================================================================
+
+    protected function executePayment(Submission $submission): PaymentDecision
+    {
+        $mutex = Craft::$app->getMutex();
+        $lock = 'formie.payway.' . hash('sha256', $submission->id . ':' . $this->getField()?->id);
+
+        if (!$mutex->acquire($lock, 10)) {
+            return PaymentDecision::pending('PayWay payment is already being processed.', $this->handle);
+        }
+
+        try {
+            return $this->_processPayment($submission);
+        } finally {
+            $mutex->release($lock);
+        }
+    }
+
+    protected function getPaymentAccountIdentity(): ?string
+    {
+        return App::parseEnv($this->merchantId) ?: null;
+    }
 
     protected function getIntegrationHandle(): string
     {
@@ -436,5 +430,4 @@ class PayWay extends Payment
             throw new DeliveryOutcomeUnknownException('Unable to verify the PayWay amount, currency or submission association.');
         }
     }
-
 }

@@ -10,11 +10,10 @@ use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldValueEvent;
-use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\custom\CustomFieldAdapterInterface;
+use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\references\ReferenceType;
@@ -23,9 +22,9 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\Json;
 
-use GraphQL\Type\Definition\Type;
-
 use yii\db\Schema;
+
+use GraphQL\Type\Definition\Type;
 
 class CustomField extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
@@ -127,7 +126,6 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
 
         return $this->getAdapter()->normalizeValue($value, $this, $element);
     }
-
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
@@ -297,7 +295,6 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
         return $rules;
     }
 
-
     protected function defineClientRenderedInput(): array
     {
         return array_merge(parent::defineClientRenderedInput(), [
@@ -315,7 +312,6 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
     {
         return $this->getAdapter()->getValueAsString($value, $this, $element);
     }
-
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {

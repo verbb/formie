@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\Formie;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Settings;
@@ -12,8 +11,9 @@ use craft\base\Component;
 use craft\db\Query;
 use craft\events\ConfigEvent;
 use craft\helpers\Db;
-use craft\helpers\ProjectConfig;
 
+use DateTime;
+use Exception;
 use Throwable;
 
 class SpamProtection extends Component
@@ -282,7 +282,7 @@ class SpamProtection extends Component
                 $record = SpamSettingsRecord::findOne((int)$row['id']);
 
                 if (!$record) {
-                    throw new \Exception('Invalid spam settings ID: ' . $row['id']);
+                    throw new Exception('Invalid spam settings ID: ' . $row['id']);
                 }
             }
 
@@ -324,7 +324,7 @@ class SpamProtection extends Component
             $values[$key] = array_key_exists($key, $legacy) ? $legacy[$key] : $defaults[$key];
         }
 
-        $now = Db::prepareDateForDb(new \DateTime());
+        $now = Db::prepareDateForDb(new DateTime());
         $insert = [
             'scope' => Integrations::SCOPE_PROJECT,
             'saveSpam' => (bool)$values['saveSpam'],
@@ -408,7 +408,7 @@ class SpamProtection extends Component
                 $record = SpamSettingsRecord::findOne((int)$row['id']);
 
                 if (!$record) {
-                    throw new \Exception('Invalid spam settings ID: ' . $row['id']);
+                    throw new Exception('Invalid spam settings ID: ' . $row['id']);
                 }
             }
 
@@ -589,7 +589,7 @@ class SpamProtection extends Component
                 $record = SpamSettingsRecord::findOne((int)$row['id']);
 
                 if (!$record) {
-                    throw new \Exception('Invalid spam settings ID: ' . $row['id']);
+                    throw new Exception('Invalid spam settings ID: ' . $row['id']);
                 }
             }
 

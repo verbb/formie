@@ -2,32 +2,28 @@
 namespace verbb\formie\integrations\payments;
 
 use verbb\formie\attributes\Sensitive;
-use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
-use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\fields\Calculations;
+use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\Hidden;
+use verbb\formie\fields\Number;
+use verbb\formie\fields\Radio;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\PaymentAttempt;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
-use verbb\formie\models\Plan;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
-use craft\helpers\UrlHelper;
 use craft\web\Response;
 
 use yii\base\Event;
@@ -40,12 +36,6 @@ use GuzzleHttp\Client;
 
 class Moneris extends Payment
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
-
-
     // Static Methods
     // =========================================================================
 
@@ -53,6 +43,12 @@ class Moneris extends Payment
     {
         return 'Moneris';
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
 
 
     // Properties
@@ -103,26 +99,6 @@ class Moneris extends Payment
                 'waitForValueMs' => 2500,
             ],
         ]);
-    }
-
-    protected function executePayment(Submission $submission): PaymentDecision
-    {
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
-
-        $currency = $this->getFieldSetting('currency');
-
-        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $currency, [
-            'storeId' => $this->storeId,
-            'apiToken' => $this->apiToken,
-            'useSandbox' => $this->useSandbox,
-        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
-    }
-
-    protected function getPaymentAccountIdentity(): ?string
-    {
-        return App::parseEnv($this->storeId) ?: null;
     }
 
     public function fetchConnection(): bool
@@ -191,12 +167,12 @@ class Moneris extends Payment
                         'topLevelOnly' => true,
                         'required' => true,
                         'fieldTypes' => [
-                            fields\Calculations::class,
-                            fields\Dropdown::class,
-                            fields\Hidden::class,
-                            fields\Number::class,
-                            fields\Radio::class,
-                            fields\SingleLineText::class,
+                            Calculations::class,
+                            Dropdown::class,
+                            Hidden::class,
+                            Number::class,
+                            Radio::class,
+                            SingleLineText::class,
                         ],
                         'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
                     ]),
@@ -208,6 +184,26 @@ class Moneris extends Payment
 
     // Protected Methods
     // =========================================================================
+
+    protected function executePayment(Submission $submission): PaymentDecision
+    {
+        if (!$this->beforeProcessPayment($submission)) {
+            return PaymentDecision::notRequired();
+        }
+
+        $currency = $this->getFieldSetting('currency');
+
+        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $currency, [
+            'storeId' => $this->storeId,
+            'apiToken' => $this->apiToken,
+            'useSandbox' => $this->useSandbox,
+        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
+    }
+
+    protected function getPaymentAccountIdentity(): ?string
+    {
+        return App::parseEnv($this->storeId) ?: null;
+    }
 
     protected function defineRules(): array
     {
@@ -347,5 +343,4 @@ class Moneris extends Payment
 
         return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
     }
-
 }

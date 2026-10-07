@@ -8,12 +8,6 @@ use craft\db\SoftDeleteTrait;
 
 class EmailTemplate extends ActiveRecord
 {
-    // Traits
-    // =========================================================================
-
-    use SoftDeleteTrait;
-
-
     // Static Methods
     // =========================================================================
 
@@ -21,4 +15,10 @@ class EmailTemplate extends ActiveRecord
     {
         return Table::FORMIE_EMAIL_TEMPLATES;
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use SoftDeleteTrait;
 }

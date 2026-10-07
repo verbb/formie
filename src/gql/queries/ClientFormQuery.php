@@ -3,6 +3,7 @@ namespace verbb\formie\gql\queries;
 
 use verbb\formie\gql\resolvers\ClientFormResolver;
 use verbb\formie\gql\types\ClientFormBootstrapType;
+use verbb\formie\gql\types\Json;
 use verbb\formie\helpers\Gql as GqlHelper;
 
 use craft\gql\base\Query;
@@ -27,7 +28,7 @@ class ClientFormQuery extends Query
                     'handle' => Type::nonNull(Type::string()),
                     'siteId' => Type::int(),
                     'locale' => Type::string(),
-                    'query' => \verbb\formie\gql\types\Json::getType(),
+                    'query' => Json::getType(),
                     'grantToken' => Type::string(),
                     'grantPurpose' => Type::string(),
                     'draftContext' => Type::string(),

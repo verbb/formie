@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\fields\values;
 
+use verbb\formie\content\FieldStorageCodec;
+
 use craft\helpers\Json;
 
 class CustomMapFieldValue extends BaseFieldValue
@@ -40,7 +42,7 @@ class CustomMapFieldValue extends BaseFieldValue
             $config['zoom'] = null;
         }
 
-        \verbb\formie\content\FieldStorageCodec::assertSafe($config);
+        FieldStorageCodec::assertSafe($config);
         $this->address = isset($config['address']) ? (string)$config['address'] : null;
         $this->lat = $config['lat'] ?? null;
         $this->lng = $config['lng'] ?? null;

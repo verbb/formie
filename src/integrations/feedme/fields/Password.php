@@ -16,5 +16,4 @@ class Password extends DefaultField
 
     public static string $class = PasswordField::class;
     public static string $name = 'Password';
-
 }

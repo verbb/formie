@@ -1,14 +1,12 @@
 <?php
 namespace verbb\formie\fields;
 
-use verbb\formie\base\FieldInterface;
 use verbb\formie\base\OptionsField;
 use verbb\formie\base\SortableFieldInterface;
-use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\fields\traits\OtherOptionFieldTrait;
+use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
@@ -40,11 +38,6 @@ class Radio extends OptionsField implements SortableFieldInterface
         return sprintf('\\%s', SingleOptionFieldValue::class);
     }
 
-    public function themeConfigKey(): string
-    {
-        return 'radioButtons';
-    }
-
 
     // Traits
     // =========================================================================
@@ -60,6 +53,11 @@ class Radio extends OptionsField implements SortableFieldInterface
 
     // Public Methods
     // =========================================================================
+
+    public function themeConfigKey(): string
+    {
+        return 'radioButtons';
+    }
 
     public function defineFormBuilderPreviewSchema(): array
     {
@@ -180,6 +178,7 @@ class Radio extends OptionsField implements SortableFieldInterface
             SchemaHelper::conditionsField(),
         ];
     }
+
 
     // Protected Methods
     // =========================================================================

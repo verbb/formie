@@ -4,10 +4,14 @@ namespace verbb\formie\migrations;
 use verbb\formie\helpers\Table;
 
 use craft\db\Migration;
+
 use Throwable;
 
 class m260224_000004_submission_drafts extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         if (!$this->db->tableExists(Table::FORMIE_SUBMISSION_DRAFTS)) {

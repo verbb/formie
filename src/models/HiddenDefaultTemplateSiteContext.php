@@ -5,6 +5,9 @@ use craft\base\Model;
 
 class HiddenDefaultTemplateSiteContext extends Model
 {
+    // Properties
+    // =========================================================================
+
     public int $id = 0;
     public string $handle = '';
     public string $name = '';

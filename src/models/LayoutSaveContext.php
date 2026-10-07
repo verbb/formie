@@ -324,7 +324,7 @@ class LayoutSaveContext
         }
     }
 
-    public function assertField(\verbb\formie\base\Field $field): void
+    public function assertField(Field $field): void
     {
         if (!$field->id) {
             return;

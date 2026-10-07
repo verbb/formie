@@ -8,9 +8,8 @@ use verbb\formie\helpers\FieldAccess;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\BrowserModule;
-use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
-
+use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -114,6 +113,7 @@ class Summary extends CosmeticField
             SchemaHelper::conditionsField(),
         ];
     }
+
 
     // Protected Methods
     // =========================================================================

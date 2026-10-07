@@ -3,6 +3,9 @@ namespace verbb\formie\references;
 
 enum ReferenceDiagnostic: string
 {
+    // Cases
+    // =========================================================================
+
     case InvalidExpression = 'invalidExpression';
     case UnknownSource = 'unknownSource';
     case UnknownTransform = 'unknownTransform';

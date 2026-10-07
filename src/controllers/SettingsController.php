@@ -14,6 +14,8 @@ use craft\helpers\Json;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
+use Throwable;
+
 class SettingsController extends SettingsAccessController
 {
     // Constants
@@ -112,7 +114,7 @@ class SettingsController extends SettingsAccessController
 
         try {
             $palette = Json::decode($paletteJson);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $this->setFailFlash(Craft::t('formie', 'Invalid field palette payload.'));
 
             return null;
@@ -148,7 +150,7 @@ class SettingsController extends SettingsAccessController
 
         try {
             $settings = Json::decode($settingsJson);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $this->setFailFlash(Craft::t('formie', 'Invalid defaults settings payload.'));
 
             return null;
@@ -302,6 +304,10 @@ class SettingsController extends SettingsAccessController
         return $this->redirectToPostedUrl();
     }
 
+
+    // Private Methods
+    // =========================================================================
+
     private function _saveCaptchaIntegrations(mixed $integrations): bool
     {
         $saved = Formie::$plugin->getIntegrations()->savePostedCaptchaConfigs($integrations);
@@ -359,5 +365,4 @@ class SettingsController extends SettingsAccessController
 
         return true;
     }
-
 }

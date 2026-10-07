@@ -9,5 +9,4 @@ class MicrosoftDynamics365RequiredLevelsEvent extends Event
     // =========================================================================
 
     public array $requiredLevels;
-
 }

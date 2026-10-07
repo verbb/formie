@@ -4,17 +4,17 @@ namespace verbb\formie\fields;
 use verbb\formie\base\Field;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
+use verbb\formie\fields\coercion\DecimalValueCoercer;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
-use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\FieldReferenceHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
-use verbb\formie\models\SlotTag;
 use verbb\formie\models\RichText;
+use verbb\formie\models\SlotTag;
 use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
@@ -55,9 +55,9 @@ class Calculations extends Field implements PreviewableFieldInterface
     // Public Methods
     // =========================================================================
 
-    public function normalizeValue(mixed $value, ?\craft\base\ElementInterface $element): mixed
+    public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        return \verbb\formie\fields\coercion\DecimalValueCoercer::normalize($value);
+        return DecimalValueCoercer::normalize($value);
     }
 
     public function __construct(array $config = [])
@@ -344,6 +344,7 @@ class Calculations extends Field implements PreviewableFieldInterface
         ];
     }
 
+
     // Protected Methods
     // =========================================================================
 
@@ -420,8 +421,4 @@ class Calculations extends Field implements PreviewableFieldInterface
             FieldReferenceValue::primary(types: [ReferenceType::Number, ReferenceType::Text]),
         ];
     }
-
-
-
-
 }

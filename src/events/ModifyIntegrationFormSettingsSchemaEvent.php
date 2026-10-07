@@ -8,6 +8,9 @@ use yii\base\Event;
 
 class ModifyIntegrationFormSettingsSchemaEvent extends Event
 {
+    // Properties
+    // =========================================================================
+
     public array $schema = [];
     public Integration $integration;
     public FormInterface $form;

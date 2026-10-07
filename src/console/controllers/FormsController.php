@@ -1,22 +1,23 @@
 <?php
 namespace verbb\formie\console\controllers;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\ImportExportHelper;
 use verbb\formie\jobs\ImportForm;
-use verbb\formie\Formie;
 
 use Craft;
 use craft\console\Controller;
-use craft\helpers\Db;
 use craft\helpers\Console;
+use craft\helpers\Db;
+use craft\helpers\FileHelper;
 use craft\helpers\Json;
 use craft\helpers\Queue;
-use craft\helpers\FileHelper;
-
-use Throwable;
 
 use yii\console\ExitCode;
+
+use Exception;
+use Throwable;
 
 /**
  * Manages Formie Forms.
@@ -30,12 +31,10 @@ class FormsController extends Controller
      * @var string form ID as a comma-separated list
      */
     public ?string $formId = null;
-
     /**
      * @var string form handle as a comma-separated list
      */
     public ?string $formHandle = null;
-
     /**
      * @var bool Create a new form, prevent updating an existing form
      */
@@ -127,7 +126,7 @@ class FormsController extends Controller
 
         try {
             $files = FileHelper::findFiles($path, ['only' => ['*.json']]);
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             $this->stderr("The export directory is empty or does not exist." . PHP_EOL, Console::FG_RED);
             return ExitCode::UNSPECIFIED_ERROR;
         }
@@ -253,7 +252,7 @@ class FormsController extends Controller
 
         try {
             $json = Json::decode(file_get_contents($fileLocation));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->stderr("Failed to decode JSON from the file." . PHP_EOL, Console::FG_RED);
             return ExitCode::UNSPECIFIED_ERROR;
         }
@@ -285,7 +284,7 @@ class FormsController extends Controller
 
         try {
             $files = FileHelper::findFiles($path, ['only' => ['*.json']]);
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             $this->stderr("The export directory is empty or does not exist." . PHP_EOL, Console::FG_RED);
             return ExitCode::UNSPECIFIED_ERROR;
         }

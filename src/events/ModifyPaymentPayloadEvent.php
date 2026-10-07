@@ -14,5 +14,4 @@ class ModifyPaymentPayloadEvent extends Event
     public ?Submission $submission = null;
     public ?Integration $integration = null;
     public mixed $payload = null;
-
 }

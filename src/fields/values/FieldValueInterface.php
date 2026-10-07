@@ -1,7 +1,11 @@
 <?php
 namespace verbb\formie\fields\values;
 
-interface FieldValueInterface extends \Stringable, \verbb\formie\base\FieldValueInterface
+use verbb\formie\base\FieldValueInterface as BaseFieldValueInterface;
+
+use Stringable;
+
+interface FieldValueInterface extends Stringable, BaseFieldValueInterface
 {
     // Public Methods
     // =========================================================================

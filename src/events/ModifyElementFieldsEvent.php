@@ -12,5 +12,4 @@ class ModifyElementFieldsEvent extends Event
 
     public ?FieldLayout $fieldLayout = null;
     public array $fields = [];
-
 }

@@ -12,5 +12,4 @@ class PaymentEvent extends Event
 
     public ?Payment $payment = null;
     public bool $isNew = false;
-
 }

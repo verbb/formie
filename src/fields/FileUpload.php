@@ -4,20 +4,16 @@ namespace verbb\formie\fields;
 use verbb\formie\Formie;
 use verbb\formie\base\Element;
 use verbb\formie\base\ElementField;
-use verbb\formie\base\FieldInterface;
-use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionUploadStatus;
-use verbb\formie\fields\Repeater;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\Table;
 use verbb\formie\helpers\UploadAccess;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
@@ -34,20 +30,15 @@ use verbb\formie\workflow\WorkflowContext;
 use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Asset;
-use craft\elements\ElementCollection;
 use craft\elements\db\AssetQuery;
 use craft\elements\db\ElementQueryInterface;
-use craft\errors\FsObjectNotFoundException;
+use craft\elements\ElementCollection;
 use craft\errors\InvalidFsException;
 use craft\errors\InvalidSubpathException;
-use craft\events\LocateUploadedFilesEvent;
-use craft\fields\Assets as CraftAssets;
 use craft\gql\arguments\elements\Asset as AssetArguments;
 use craft\gql\interfaces\elements\Asset as AssetInterface;
 use craft\gql\resolvers\elements\Asset as AssetResolver;
 use craft\helpers\Assets;
-use craft\helpers\Db;
-use craft\helpers\ElementHelper;
 use craft\helpers\FileHelper;
 use craft\helpers\Gql as GqlHelper;
 use craft\helpers\Html;
@@ -60,14 +51,14 @@ use craft\services\ElementSources;
 use craft\services\Gql as GqlService;
 use craft\web\UploadedFile;
 
-use Faker\Generator as FakerFactory;
-
-use GraphQL\Type\Definition\Type;
-
 use yii\base\Event;
 use yii\base\InvalidConfigException;
 use yii\web\ForbiddenHttpException;
 
+use WeakMap;
+
+use Faker\Generator as FakerFactory;
+use GraphQL\Type\Definition\Type;
 use Twig\Error\Error as TwigError;
 
 class FileUpload extends ElementField
@@ -150,7 +141,7 @@ class FileUpload extends ElementField
 
     private array $_assetsToDelete = [];
     private array $_uploadedDataFiles = [];
-    private static ?\WeakMap $_stagedElements = null;
+    private static ?WeakMap $_stagedElements = null;
 
 
     // Public Methods
@@ -879,7 +870,7 @@ class FileUpload extends ElementField
     public function stageUploads(ElementInterface $element): void
     {
         $this->_processAssets($element, true);
-        self::$_stagedElements ??= new \WeakMap();
+        self::$_stagedElements ??= new WeakMap();
         $keys = self::$_stagedElements[$element] ?? [];
         $keys[$this->valueKey()] = true;
         self::$_stagedElements[$element] = $keys;
@@ -961,6 +952,19 @@ class FileUpload extends ElementField
                 'type' => Type::string(),
             ],
         ]);
+    }
+
+    public function validateUploadLocationSource(string $attribute): void
+    {
+        if ($message = $this->_getUploadLocationError(null)) {
+            // Prefer a builder-specific message for Temporary Uploads when configuring the field.
+            if ($this->_getEffectiveUploadLocationSource() === 'temp') {
+                $this->addError($attribute, Craft::t('formie', 'Temporary Uploads cannot be used as a form upload location. Choose an asset volume instead.'));
+                return;
+            }
+
+            $this->addError($attribute, $message);
+        }
     }
 
 
@@ -1209,6 +1213,26 @@ class FileUpload extends ElementField
         ];
     }
 
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [
+            ['uploadLocationSource'],
+            'required',
+            'when' => fn() => empty(Formie::$plugin->getFormDefaults()->resolveFieldTypeDefaults(self::class)['uploadLocationSource'] ?? null),
+            'message' => Craft::t('formie', 'Upload Location must be selected.'),
+        ];
+
+        $rules[] = [
+            ['uploadLocationSource'],
+            'validateUploadLocationSource',
+            'skipOnEmpty' => true,
+        ];
+
+        return $rules;
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -1353,39 +1377,6 @@ class FileUpload extends ElementField
 
                 $record->save(false);
             }
-        }
-    }
-
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [
-            ['uploadLocationSource'],
-            'required',
-            'when' => fn() => empty(Formie::$plugin->getFormDefaults()->resolveFieldTypeDefaults(self::class)['uploadLocationSource'] ?? null),
-            'message' => Craft::t('formie', 'Upload Location must be selected.'),
-        ];
-
-        $rules[] = [
-            ['uploadLocationSource'],
-            'validateUploadLocationSource',
-            'skipOnEmpty' => true,
-        ];
-
-        return $rules;
-    }
-
-    public function validateUploadLocationSource(string $attribute): void
-    {
-        if ($message = $this->_getUploadLocationError(null)) {
-            // Prefer a builder-specific message for Temporary Uploads when configuring the field.
-            if ($this->_getEffectiveUploadLocationSource() === 'temp') {
-                $this->addError($attribute, Craft::t('formie', 'Temporary Uploads cannot be used as a form upload location. Choose an asset volume instead.'));
-                return;
-            }
-
-            $this->addError($attribute, $message);
         }
     }
 
@@ -1907,5 +1898,4 @@ class FileUpload extends ElementField
 
         return null;
     }
-
 }

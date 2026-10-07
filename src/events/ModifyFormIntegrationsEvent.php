@@ -13,5 +13,4 @@ class ModifyFormIntegrationsEvent extends Event
     public ?array $allIntegrations = null;
     public ?array $integrations = null;
     public ?Form $form = null;
-
 }

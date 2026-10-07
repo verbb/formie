@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\models\FormSettings;
 
 use Craft;
@@ -13,20 +13,6 @@ use DateTime;
 
 class SubmissionLimitHelper
 {
-    // Constants
-    // =========================================================================
-
-    public const SCOPE_FORM = 'form';
-    public const SCOPE_IP = 'ipAddress';
-    public const SCOPE_USER = 'user';
-
-    public const PERIOD_TOTAL = 'total';
-    public const PERIOD_DAY = 'day';
-    public const PERIOD_WEEK = 'week';
-    public const PERIOD_MONTH = 'month';
-    public const PERIOD_YEAR = 'year';
-
-
     // Static Methods
     // =========================================================================
 
@@ -239,4 +225,18 @@ class SubmissionLimitHelper
             self::PERIOD_YEAR,
         ], true);
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const SCOPE_FORM = 'form';
+    public const SCOPE_IP = 'ipAddress';
+    public const SCOPE_USER = 'user';
+
+    public const PERIOD_TOTAL = 'total';
+    public const PERIOD_DAY = 'day';
+    public const PERIOD_WEEK = 'week';
+    public const PERIOD_MONTH = 'month';
+    public const PERIOD_YEAR = 'year';
 }

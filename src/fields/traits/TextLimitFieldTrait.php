@@ -6,7 +6,6 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
-
 use verbb\formie\theme\context\RenderContext;
 
 use craft\base\ElementInterface;

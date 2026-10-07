@@ -4,6 +4,7 @@ namespace verbb\formie\compatibility\integrations;
 use verbb\formie\base\DispatchableIntegrationInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\IntegrationResult;
 use verbb\formie\models\IntegrationRunContext;
 
@@ -11,13 +12,6 @@ use ReflectionMethod;
 
 trait LegacyIntegrationDeliveryTrait
 {
-    // Properties
-    // =========================================================================
-
-    protected bool $_executingLegacyPayload = false;
-    private ?\verbb\formie\models\IntegrationResponse $_legacyIntegrationResponse = null;
-
-
     // Static Methods
     // =========================================================================
 
@@ -25,6 +19,14 @@ trait LegacyIntegrationDeliveryTrait
     {
         return (new ReflectionMethod(static::class, 'sendPayload'))->getDeclaringClass()->getName() !== Integration::class;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    protected bool $_executingLegacyPayload = false;
+
+    private ?IntegrationResponse $_legacyIntegrationResponse = null;
 
 
     // Public Methods
@@ -62,7 +64,7 @@ trait LegacyIntegrationDeliveryTrait
         } finally {
             $this->_executingLegacyPayload = $previous;
         }
-        $this->_legacyIntegrationResponse = $value instanceof \verbb\formie\models\IntegrationResponse ? $value : null;
+        $this->_legacyIntegrationResponse = $value instanceof IntegrationResponse ? $value : null;
         // Only stable third-party adapters may import the old mutable channels.
         $state = $context->state;
         $state->error ??= $this->context['deliveryErrorResult'] ?? null;
@@ -73,7 +75,7 @@ trait LegacyIntegrationDeliveryTrait
         return $this->resultForPayload($value);
     }
 
-    public function getLegacyIntegrationResponse(): ?\verbb\formie\models\IntegrationResponse
+    public function getLegacyIntegrationResponse(): ?IntegrationResponse
     {
         return $this->_legacyIntegrationResponse;
     }

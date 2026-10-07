@@ -8,8 +8,8 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -172,6 +172,10 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
         return new IntegrationConfig($settings);
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -215,10 +219,6 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
 
         return $this->resultForPayload(true);
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

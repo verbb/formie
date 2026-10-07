@@ -12,6 +12,20 @@ use craft\helpers\Json;
 
 class m260929_010000_payment_contracts extends Migration
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function normalizeStatus(array $value): array
+    {
+        foreach ($value as $key => $item) {
+            $value[$key] = is_array($item) ? self::normalizeStatus($item) : ($key === 'status' ? match ($item) {
+                'success' => 'succeeded', 'redirect' => 'requiresAction', default => $item
+            } : $item);
+        }
+        return $value;
+    }
+
+
     // Public Methods
     // =========================================================================
 
@@ -107,19 +121,5 @@ class m260929_010000_payment_contracts extends Migration
     public function safeDown(): bool
     {
         return false;
-    }
-
-
-    // Static Methods
-    // =========================================================================
-
-    public static function normalizeStatus(array $value): array
-    {
-        foreach ($value as $key => $item) {
-            $value[$key] = is_array($item) ? self::normalizeStatus($item) : ($key === 'status' ? match ($item) {
-                'success' => 'succeeded', 'redirect' => 'requiresAction', default => $item
-            } : $item);
-        }
-        return $value;
     }
 }

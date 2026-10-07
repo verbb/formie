@@ -12,6 +12,8 @@ use craft\web\Response;
 
 use yii\web\NotFoundHttpException;
 
+use Throwable;
+
 class ScheduledReportsController extends SettingsAccessController
 {
     // Properties
@@ -158,7 +160,7 @@ class ScheduledReportsController extends SettingsAccessController
                 true,
                 Craft::$app->getUser()->getIdentity(),
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->setFailFlash($e->getMessage());
 
             return $this->redirectToPostedUrl($scheduledReport);

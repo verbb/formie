@@ -1,17 +1,12 @@
 <?php
 namespace verbb\formie\positions;
 
-use Craft;
 use verbb\formie\base\Position;
+
+use Craft;
 
 class AboveInput extends Position
 {
-    // Protected Properties
-    // =========================================================================
-
-    protected static ?string $position = 'above';
-
-
     // Static Methods
     // =========================================================================
 
@@ -19,4 +14,10 @@ class AboveInput extends Position
     {
         return Craft::t('formie', 'Above Input');
     }
+
+
+    // Properties
+    // =========================================================================
+
+    protected static ?string $position = 'above';
 }

@@ -8,9 +8,9 @@ use Craft;
 use craft\db\Query;
 use craft\helpers\Json;
 
-use Throwable;
-
 use yii\base\Component;
+
+use Throwable;
 
 class Repair extends Component
 {

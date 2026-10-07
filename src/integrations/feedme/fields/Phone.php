@@ -16,5 +16,4 @@ class Phone extends DefaultField
 
     public static string $class = PhoneField::class;
     public static string $name = 'Phone';
-
 }

@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\gql\types\input;
 
-use verbb\formie\fields\Group as GroupField;
 use verbb\formie\Formie;
+use verbb\formie\fields\Group as GroupField;
 
 use craft\gql\GqlEntityRegistry;
 

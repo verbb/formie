@@ -13,7 +13,14 @@ use ReflectionProperty;
 
 trait DisplayTypeFieldTrait
 {
+    // Traits
+    // =========================================================================
+
     use PresentationFieldConfigTrait;
+
+
+    // Properties
+    // =========================================================================
 
     // Delegated presentation settings persisted on wrapper fields (Survey, Quiz, etc.).
     public ?string $toggleCheckbox = null;
@@ -29,6 +36,9 @@ trait DisplayTypeFieldTrait
     public ?array $richTextButtons = ['bold', 'italic'];
     public bool $plainTextPaste = false;
 
+
+    // Public Methods
+    // =========================================================================
 
     public function getDisplayTypeField(): ?FieldInterface
     {
@@ -87,6 +97,10 @@ trait DisplayTypeFieldTrait
 
         return $config;
     }
+
+
+    // Protected Methods
+    // =========================================================================
 
     protected function definePresentationFieldClassMap(): array
     {

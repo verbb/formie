@@ -2,31 +2,22 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FieldInterface;
 use verbb\formie\compatibility\fields\ParentFieldCompatibility;
+use verbb\formie\conditions\ConditionVisibility;
 use verbb\formie\events\ModifyNestedFieldLayoutEvent;
 use verbb\formie\fields\MissingField;
 use verbb\formie\gql\interfaces\FieldInterface as GqlFieldInterface;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\FieldTraversal;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutRow;
 use verbb\formie\query\NestedFieldQueryHelper;
 
-use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
-use craft\base\Field as CraftField;
-use craft\base\FieldInterface as CraftFieldInterface;
-use craft\db\Query;
-use craft\elements\db\ElementQuery;
-use craft\elements\db\ElementQueryInterface;
-use craft\elements\ElementCollection;
-use craft\helpers\ElementHelper;
-use craft\helpers\Template;
-use craft\services\Elements;
+use craft\helpers\StringHelper as CraftStringHelper;
 
 use yii\db\ExpressionInterface;
 
@@ -153,7 +144,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
 
     public function getFieldsRecursively(): array
     {
-        return \verbb\formie\helpers\FieldTraversal::recursively($this->getFields());
+        return FieldTraversal::recursively($this->getFields());
     }
 
     public function getFieldByHandle(string $handle): ?FieldInterface
@@ -172,7 +163,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
         $fields = [];
 
         foreach ($this->getFields() as $field) {
-            if ($field->getIsHidden() || \verbb\formie\conditions\ConditionVisibility::unavailable($field, $element) || $field->getIsDisabled()) {
+            if ($field->getIsHidden() || ConditionVisibility::unavailable($field, $element) || $field->getIsDisabled()) {
                 continue;
             }
 
@@ -202,7 +193,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
         $fields = [];
 
         foreach ($this->getFields() as $field) {
-            if ($field->getIsCosmetic() || $field->getIsHidden() || \verbb\formie\conditions\ConditionVisibility::unavailable($field, $element) || $field->getIsDisabled()) {
+            if ($field->getIsCosmetic() || $field->getIsHidden() || ConditionVisibility::unavailable($field, $element) || $field->getIsDisabled()) {
                 continue;
             }
 
@@ -386,6 +377,32 @@ abstract class ParentField extends Field implements ParentFieldInterface
         return $fieldMap;
     }
 
+    public function getNestedLayoutBuilderAllowedFieldTypes(): array
+    {
+        $registeredFieldTypes = Formie::$plugin->getFields()->getResolvedRegisteredFieldTypes();
+        $fieldTypeDefinitions = Formie::$plugin->getFields()->getFieldTypeDefinitions($registeredFieldTypes);
+        $allowedTypes = [];
+        $disallowedTypes = $this->getNestedLayoutBuilderDisallowedFieldTypes();
+
+        foreach ($fieldTypeDefinitions as $type => $fieldTypeDefinition) {
+            if ($type === MissingField::class) {
+                continue;
+            }
+
+            if (($fieldTypeDefinition['isChildField'] ?? false) === true) {
+                continue;
+            }
+
+            if (in_array($type, $disallowedTypes, true)) {
+                continue;
+            }
+
+            $allowedTypes[] = $type;
+        }
+
+        return array_values(array_unique($allowedTypes));
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -472,32 +489,6 @@ abstract class ParentField extends Field implements ParentFieldInterface
         ];
     }
 
-    public function getNestedLayoutBuilderAllowedFieldTypes(): array
-    {
-        $registeredFieldTypes = Formie::$plugin->getFields()->getResolvedRegisteredFieldTypes();
-        $fieldTypeDefinitions = Formie::$plugin->getFields()->getFieldTypeDefinitions($registeredFieldTypes);
-        $allowedTypes = [];
-        $disallowedTypes = $this->getNestedLayoutBuilderDisallowedFieldTypes();
-
-        foreach ($fieldTypeDefinitions as $type => $fieldTypeDefinition) {
-            if ($type === MissingField::class) {
-                continue;
-            }
-
-            if (($fieldTypeDefinition['isChildField'] ?? false) === true) {
-                continue;
-            }
-
-            if (in_array($type, $disallowedTypes, true)) {
-                continue;
-            }
-
-            $allowedTypes[] = $type;
-        }
-
-        return array_values(array_unique($allowedTypes));
-    }
-
     protected function getNestedLayoutBuilderDisallowedFieldTypes(): array
     {
         return [];
@@ -555,8 +546,8 @@ abstract class ParentField extends Field implements ParentFieldInterface
                     $field->layoutId = null;
                     $field->pageId = null;
                     $field->rowId = null;
-                    $field->reference ??= \craft\helpers\StringHelper::UUID();
-                    $field->uid ??= \craft\helpers\StringHelper::UUID();
+                    $field->reference ??= CraftStringHelper::UUID();
+                    $field->uid ??= CraftStringHelper::UUID();
 
                     // A new parent needs new field instances, but explicitly linked
                     // child fields must keep their shared definition.
@@ -575,5 +566,4 @@ abstract class ParentField extends Field implements ParentFieldInterface
             }
         }
     }
-
 }

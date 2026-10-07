@@ -3,12 +3,6 @@ namespace verbb\formie\web;
 
 final class FieldRenderCallContext
 {
-    // Properties
-    // =========================================================================
-
-    private static array $stack = [];
-
-
     // Static Methods
     // =========================================================================
 
@@ -35,4 +29,10 @@ final class FieldRenderCallContext
     {
         return self::current()[$key] ?? $default;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    private static array $stack = [];
 }

@@ -6,12 +6,25 @@ use verbb\formie\enums\SubmissionOperation as Operation;
 use verbb\formie\enums\SubmissionPolicy;
 use verbb\formie\enums\workflow\Stage;
 use verbb\formie\models\SubmissionCommand;
-use verbb\formie\workflow\tasks\dispatch;
-use verbb\formie\workflow\tasks\finalize;
-use verbb\formie\workflow\tasks\persist;
-use verbb\formie\workflow\tasks\preflight;
-use verbb\formie\workflow\tasks\screen;
-use verbb\formie\workflow\tasks\validate;
+use verbb\formie\workflow\tasks\dispatch\RevisionFollowUpsTask;
+use verbb\formie\workflow\tasks\dispatch\SendNotificationsTask;
+use verbb\formie\workflow\tasks\dispatch\SendSpamNotificationsTask;
+use verbb\formie\workflow\tasks\dispatch\TriggerIntegrationsTask;
+use verbb\formie\workflow\tasks\finalize\FinalizeTask;
+use verbb\formie\workflow\tasks\persist\PersistSubmissionTask;
+use verbb\formie\workflow\tasks\persist\PlanTask;
+use verbb\formie\workflow\tasks\persist\ProcessPaymentTask;
+use verbb\formie\workflow\tasks\persist\QuestionnaireResultTask;
+use verbb\formie\workflow\tasks\preflight\ApplyStatusRulesTask;
+use verbb\formie\workflow\tasks\preflight\ApplySubmissionDefaultsTask;
+use verbb\formie\workflow\tasks\preflight\CaptureMetadataTask;
+use verbb\formie\workflow\tasks\preflight\ClearHiddenValuesTask;
+use verbb\formie\workflow\tasks\preflight\EnforceProgressionTask;
+use verbb\formie\workflow\tasks\preflight\ResolveNavigationIntentTask;
+use verbb\formie\workflow\tasks\preflight\ResolveTransitionTask;
+use verbb\formie\workflow\tasks\screen\EvaluateSpamTask;
+use verbb\formie\workflow\tasks\screen\VerifyCaptchaTask;
+use verbb\formie\workflow\tasks\validate\ValidateSubmissionTask;
 
 /** The sole stage order, built-in task order, operation policy and anchor catalogue. */
 final class WorkflowManifest
@@ -29,35 +42,35 @@ final class WorkflowManifest
 
         return [
             Stage::PREFLIGHT->value => [
-                new TaskDefinition('preflight.resolveNavigationIntent', new preflight\ResolveNavigationIntentTask(), $journey, false, true),
-                new TaskDefinition('preflight.applySubmissionDefaults', new preflight\ApplySubmissionDefaultsTask(), $writes),
-                new TaskDefinition('preflight.clearHiddenValues', new preflight\ClearHiddenValuesTask(), $writes),
-                new TaskDefinition('preflight.enforceProgression', new preflight\EnforceProgressionTask(), $submit, false, true),
-                new TaskDefinition('preflight.resolveTransition', new preflight\ResolveTransitionTask(), $journey, true, true),
-                new TaskDefinition('preflight.captureMetadata', new preflight\CaptureMetadataTask(), $writes),
-                new TaskDefinition('preflight.applyStatusRules', new preflight\ApplyStatusRulesTask(), $submit, true, true),
+                new TaskDefinition('preflight.resolveNavigationIntent', new ResolveNavigationIntentTask(), $journey, false, true),
+                new TaskDefinition('preflight.applySubmissionDefaults', new ApplySubmissionDefaultsTask(), $writes),
+                new TaskDefinition('preflight.clearHiddenValues', new ClearHiddenValuesTask(), $writes),
+                new TaskDefinition('preflight.enforceProgression', new EnforceProgressionTask(), $submit, false, true),
+                new TaskDefinition('preflight.resolveTransition', new ResolveTransitionTask(), $journey, true, true),
+                new TaskDefinition('preflight.captureMetadata', new CaptureMetadataTask(), $writes),
+                new TaskDefinition('preflight.applyStatusRules', new ApplyStatusRulesTask(), $submit, true, true),
             ],
             Stage::VALIDATE->value => [
-                new TaskDefinition('validate.submission', new validate\ValidateSubmissionTask(), [Operation::SUBMIT, Operation::REVISE]),
+                new TaskDefinition('validate.submission', new ValidateSubmissionTask(), [Operation::SUBMIT, Operation::REVISE]),
             ],
             Stage::SCREEN->value => [
-                new TaskDefinition('screen.evaluateSpam', new screen\EvaluateSpamTask(), $submit),
-                new TaskDefinition('screen.verifyCaptcha', new screen\VerifyCaptchaTask(), $submit),
+                new TaskDefinition('screen.evaluateSpam', new EvaluateSpamTask(), $submit),
+                new TaskDefinition('screen.verifyCaptcha', new VerifyCaptchaTask(), $submit),
             ],
             Stage::PERSIST->value => [
-                new TaskDefinition('persist.plan', new persist\PlanTask(), $all, false),
-                new TaskDefinition('persist.submission', new persist\PersistSubmissionTask(), $writes),
-                new TaskDefinition('persist.processPayment', new persist\ProcessPaymentTask(), $completion),
-                new TaskDefinition('persist.questionnaireResult', new persist\QuestionnaireResultTask(), [Operation::SUBMIT, Operation::REVISE, Operation::PAYMENT_REPLAY]),
+                new TaskDefinition('persist.plan', new PlanTask(), $all, false),
+                new TaskDefinition('persist.submission', new PersistSubmissionTask(), $writes),
+                new TaskDefinition('persist.processPayment', new ProcessPaymentTask(), $completion),
+                new TaskDefinition('persist.questionnaireResult', new QuestionnaireResultTask(), [Operation::SUBMIT, Operation::REVISE, Operation::PAYMENT_REPLAY]),
             ],
             Stage::DISPATCH->value => [
-                new TaskDefinition('dispatch.sendNotifications', new dispatch\SendNotificationsTask(), $completion),
-                new TaskDefinition('dispatch.revision', new dispatch\RevisionFollowUpsTask(), [Operation::REVISE], false),
-                new TaskDefinition('dispatch.triggerIntegrations', new dispatch\TriggerIntegrationsTask(), [Operation::SUBMIT, Operation::REVISE, Operation::PAYMENT_REPLAY]),
-                new TaskDefinition('dispatch.sendSpamNotifications', new dispatch\SendSpamNotificationsTask(), $completion),
+                new TaskDefinition('dispatch.sendNotifications', new SendNotificationsTask(), $completion),
+                new TaskDefinition('dispatch.revision', new RevisionFollowUpsTask(), [Operation::REVISE], false),
+                new TaskDefinition('dispatch.triggerIntegrations', new TriggerIntegrationsTask(), [Operation::SUBMIT, Operation::REVISE, Operation::PAYMENT_REPLAY]),
+                new TaskDefinition('dispatch.sendSpamNotifications', new SendSpamNotificationsTask(), $completion),
             ],
             Stage::FINALIZE->value => [
-                new TaskDefinition('finalize.internal', new finalize\FinalizeTask(), $all, false),
+                new TaskDefinition('finalize.internal', new FinalizeTask(), $all, false),
             ],
         ];
     }

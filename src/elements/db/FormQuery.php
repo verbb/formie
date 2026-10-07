@@ -266,6 +266,10 @@ class FormQuery extends ElementQuery
         return parent::statusCondition($status);
     }
 
+
+    // Private Methods
+    // =========================================================================
+
     private function _resolveIndexSiteId(): ?int
     {
         $requestedSite = Cp::requestedSite();

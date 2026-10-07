@@ -1,17 +1,16 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -55,6 +54,7 @@ class Insightly extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -228,6 +228,23 @@ class Insightly extends Crm
         return new IntegrationConfig($settings);
     }
 
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('GET', 'Instance');
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -289,23 +306,6 @@ class Insightly extends Crm
 
         return $this->resultForPayload(true);
     }
-
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('GET', 'Instance');
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

@@ -4,23 +4,26 @@ namespace verbb\formie\fields;
 use verbb\formie\Formie;
 use verbb\formie\base\AddressProvider;
 use verbb\formie\base\Field;
-use verbb\formie\base\FieldInterface;
-use verbb\formie\base\IntegrationInterface;
-use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\base\FixedParentField;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
-use verbb\formie\gql\types\AddressType;
-use verbb\formie\gql\types\generators\FieldAttributeGenerator;
-use verbb\formie\gql\types\input\AddressInputType;
-use verbb\formie\fields\values\AddressFieldValue;
-use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Table;
-use verbb\formie\helpers\Variables;
-use verbb\formie\integrations\addressproviders\Google;
+use verbb\formie\fields\subfields\Address1;
+use verbb\formie\fields\subfields\Address2;
+use verbb\formie\fields\subfields\Address3;
+use verbb\formie\fields\subfields\AddressAutoComplete;
+use verbb\formie\fields\subfields\AddressCity;
 use verbb\formie\fields\subfields\AddressCountry;
+use verbb\formie\fields\subfields\AddressState;
+use verbb\formie\fields\subfields\AddressZip;
+use verbb\formie\fields\values\AddressFieldValue;
+use verbb\formie\fields\values\SingleOptionFieldValue;
+use verbb\formie\gql\types\AddressType;
+use verbb\formie\gql\types\input\AddressInputType;
+use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\Table;
+use verbb\formie\integrations\addressproviders\Google;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\SlotTag;
@@ -30,17 +33,14 @@ use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\errors\InvalidFieldException;
 use craft\db\Query;
-use craft\helpers\Component;
 use craft\helpers\Json;
+use craft\helpers\UrlHelper;
+
+use yii\db\Schema;
 
 use Faker\Generator as FakerFactory;
-
 use GraphQL\Type\Definition\Type;
-
-use yii\base\Event;
-use yii\db\Schema;
 
 class Address extends FixedParentField implements PreviewableFieldInterface
 {
@@ -205,7 +205,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
         $value = parent::normalizeValue(Json::decodeIfJson($value), $element);
 
         foreach ($value as $key => $part) {
-            if ($part instanceof \verbb\formie\fields\values\SingleOptionFieldValue) {
+            if ($part instanceof SingleOptionFieldValue) {
                 $part = $part->value;
             }
             $value[$key] = $part === null ? null : trim((string)$part);
@@ -213,7 +213,6 @@ class Address extends FixedParentField implements PreviewableFieldInterface
         $address = new AddressFieldValue($value);
         return $address->isEmpty() ? null : $address;
     }
-
 
     public function defineFormBuilderPreviewSchema(): array
     {
@@ -427,7 +426,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
             [
                 'fields' => [
                     [
-                        'type' => subfields\Address1::class,
+                        'type' => Address1::class,
                         'label' => Craft::t('formie', 'Address 1'),
                         'handle' => 'address1',
                         'labelPosition' => $this->subFieldLabelPosition,
@@ -447,7 +446,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
             [
                 'fields' => [
                     [
-                        'type' => subfields\Address2::class,
+                        'type' => Address2::class,
                         'label' => Craft::t('formie', 'Address 2'),
                         'handle' => 'address2',
                         'enabled' => false,
@@ -468,7 +467,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
             [
                 'fields' => [
                     [
-                        'type' => subfields\Address3::class,
+                        'type' => Address3::class,
                         'label' => Craft::t('formie', 'Address 3'),
                         'handle' => 'address3',
                         'enabled' => false,
@@ -489,7 +488,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
             [
                 'fields' => [
                     [
-                        'type' => subfields\AddressCity::class,
+                        'type' => AddressCity::class,
                         'label' =>  Craft::t('formie', 'City'),
                         'handle' => 'city',
                         'enabled' => true,
@@ -506,7 +505,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                         ],
                     ],
                     [
-                        'type' => subfields\AddressZip::class,
+                        'type' => AddressZip::class,
                         'label' => Craft::t('formie', 'ZIP / Postal Code'),
                         'handle' => 'zip',
                         'enabled' => true,
@@ -527,7 +526,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
             [
                 'fields' => [
                     [
-                        'type' => subfields\AddressCountry::class,
+                        'type' => AddressCountry::class,
                         'label' => Craft::t('formie', 'Country'),
                         'handle' => 'country',
                         'enabled' => true,
@@ -545,7 +544,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                         ],
                     ],
                     [
-                        'type' => subfields\AddressState::class,
+                        'type' => AddressState::class,
                         'label' => Craft::t('formie', 'State / Province'),
                         'handle' => 'state',
                         'enabled' => true,
@@ -569,7 +568,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
             array_unshift($fields, [
                 'fields' => [
                     [
-                        'type' => subfields\AddressAutoComplete::class,
+                        'type' => AddressAutoComplete::class,
                         'label' => Craft::t('formie', 'Auto-Complete'),
                         'handle' => 'autoComplete',
                         'enabled' => false,
@@ -651,7 +650,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                     'countryPreselectFromIp' => true,
                     'countryAllowed' => $this->countryAllowed,
                     'countryOptionValue' => $countrySubfield->optionValue ?? 'short',
-                    'countryFromIpAction' => \craft\helpers\UrlHelper::actionUrl('formie/address/country-from-ip'),
+                    'countryFromIpAction' => UrlHelper::actionUrl('formie/address/country-from-ip'),
                 ],
             ]);
         }
@@ -727,6 +726,4 @@ class Address extends FixedParentField implements PreviewableFieldInterface
 
         return $addressProviderOptions;
     }
-
-
 }

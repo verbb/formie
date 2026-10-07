@@ -20,5 +20,4 @@ class SubmissionEvent extends CancelableEvent
     public ?bool $success = null;
     public ?string $redirectUrl = null;
     public ?Response $response = null;
-
 }

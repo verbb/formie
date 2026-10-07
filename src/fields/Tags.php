@@ -2,26 +2,18 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ElementField;
-use verbb\formie\base\RelationFieldTrait;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Tag as FormieTag;
-use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Tag;
-use craft\elements\db\ElementQueryInterface;
-use craft\fields\Tags as CraftTags;
 use craft\gql\arguments\elements\Tag as TagArguments;
 use craft\gql\interfaces\elements\Tag as TagInterface;
 use craft\gql\resolvers\elements\Tag as TagResolver;
@@ -31,9 +23,9 @@ use craft\helpers\UrlHelper;
 use craft\models\TagGroup;
 use craft\services\Gql as GqlService;
 
-use GraphQL\Type\Definition\Type;
-
 use Throwable;
+
+use GraphQL\Type\Definition\Type;
 
 class Tags extends ElementField
 {

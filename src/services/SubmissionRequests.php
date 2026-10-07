@@ -12,6 +12,7 @@ use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\enums\SubmissionPolicy;
 use verbb\formie\errors\SubmissionUnavailableException;
+use verbb\formie\fields\Payment;
 use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\FieldLayoutPage;
@@ -21,6 +22,7 @@ use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SubmissionAuthority;
 use verbb\formie\models\SubmissionCommand;
+use verbb\formie\models\SubmissionErrors;
 use verbb\formie\models\SubmissionExecutionResult;
 use verbb\formie\models\SubmissionOutcome;
 use verbb\formie\models\SubmissionProgress as ProgressState;
@@ -28,11 +30,13 @@ use verbb\formie\models\SubmissionResponse;
 use verbb\formie\models\SubmissionUploadClaims;
 
 use Craft;
+use craft\helpers\Gql;
 use craft\helpers\UrlHelper;
 
 use yii\base\Component;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
+use yii\web\HttpException;
 
 class SubmissionRequests extends Component
 {
@@ -43,7 +47,7 @@ class SubmissionRequests extends Component
     {
         try {
             return $this->_executeClient($input, $authorityType);
-        } catch (\yii\web\HttpException $exception) {
+        } catch (HttpException $exception) {
             if (!in_array($exception->statusCode, [403, 429], true)) {
                 throw $exception;
             }
@@ -124,7 +128,7 @@ class SubmissionRequests extends Component
     {
         $permission = $submission->id ? 'save' : 'create';
 
-        if (!\craft\helpers\Gql::canSchema('formieSubmissions.all', $permission) && !\craft\helpers\Gql::canSchema('formieSubmissions.' . $form->uid, $permission)) {
+        if (!Gql::canSchema('formieSubmissions.all', $permission) && !Gql::canSchema('formieSubmissions.' . $form->uid, $permission)) {
             throw new ForbiddenHttpException('Unable to perform the action.');
         }
         $submission->setForm($form);
@@ -445,7 +449,7 @@ class SubmissionRequests extends Component
                 parse_str(http_build_query($input->browserData), $moduleInputs);
 
                 foreach (($moduleInputs['fields'] ?? []) as $handle => $value) {
-                    if ($form->getFieldByHandle($handle) instanceof \verbb\formie\fields\Payment) {
+                    if ($form->getFieldByHandle($handle) instanceof Payment) {
                         $values[$handle] = $value;
                     }
                 }
@@ -723,7 +727,7 @@ class SubmissionRequests extends Component
         $form = $submissionRequest->form;
         $submission = $response->submission;
         $submitAction = $response->submitAction;
-        $domainErrors = \verbb\formie\models\SubmissionErrors::fromSubmission($submission);
+        $domainErrors = SubmissionErrors::fromSubmission($submission);
         $canonicalErrors = $domainErrors->toClient();
         $rawErrors = ['form' => $canonicalErrors['form']];
         $fieldErrors = $canonicalErrors['fields'];
@@ -781,7 +785,7 @@ class SubmissionRequests extends Component
                 $error = $errorMessages
                     ? StringHelper::sanitizeMessageHtml(implode(' ', $errorMessages))
                     : StringHelper::sanitizeMessageHtml($form->settings->getErrorMessage());
-                $rawErrors['form'] = array_map([\verbb\formie\models\SubmissionErrors::class, 'plainText'], $rawErrors['form'] ?? []);
+                $rawErrors['form'] = array_map([SubmissionErrors::class, 'plainText'], $rawErrors['form'] ?? []);
             }
         }
 

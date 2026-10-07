@@ -2,8 +2,9 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
-use verbb\formie\elements\Form;
 use verbb\formie\fields\Address as AddressField;
+use verbb\formie\helpers\BrowserRequestProfile;
+use verbb\formie\helpers\CrossOriginRequestHelper;
 use verbb\formie\integrations\addressproviders\Google;
 
 use Craft;
@@ -11,11 +12,11 @@ use craft\helpers\App;
 use craft\helpers\Json;
 use craft\web\Controller;
 
-use Throwable;
-
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
 use yii\web\TooManyRequestsHttpException;
+
+use Throwable;
 
 class AddressController extends Controller
 {
@@ -41,8 +42,8 @@ class AddressController extends Controller
 
     public function beforeAction($action): bool
     {
-        $profile = \verbb\formie\helpers\BrowserRequestProfile::enter();
-        \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders($this->request, $this->response, ['GET', 'POST', 'OPTIONS']);
+        $profile = BrowserRequestProfile::enter();
+        CrossOriginRequestHelper::applyHeaders($this->request, $this->response, ['GET', 'POST', 'OPTIONS']);
 
         if ($this->request->getIsOptions()) {
             $this->response->setStatusCode(204);
@@ -53,7 +54,7 @@ class AddressController extends Controller
             $this->enableCsrfValidation = false;
         }
 
-        if ($profile === \verbb\formie\helpers\BrowserRequestProfile::SAME_ORIGIN && $this->request->getHeaders()->has('X-Formie-Profile')) {
+        if ($profile === BrowserRequestProfile::SAME_ORIGIN && $this->request->getHeaders()->has('X-Formie-Profile')) {
             $this->enableCsrfValidation = true;
         }
 

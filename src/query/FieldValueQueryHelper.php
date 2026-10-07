@@ -8,6 +8,7 @@ use craft\helpers\Db;
 
 use yii\db\ExpressionInterface;
 use yii\db\Schema;
+
 use InvalidArgumentException;
 
 class FieldValueQueryHelper
@@ -156,9 +157,6 @@ class FieldValueQueryHelper
 
         return Db::parseColumnType($resolvedDbType);
     }
-
-    // Private Methods
-    // =========================================================================
 
     private static function _resolveDbTypeForKey(string $fieldClass, array|string $dbType, ?string $key = null): array
     {

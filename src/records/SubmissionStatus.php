@@ -8,12 +8,6 @@ use craft\db\SoftDeleteTrait;
 
 class SubmissionStatus extends ActiveRecord
 {
-    // Traits
-    // =========================================================================
-
-    use SoftDeleteTrait;
-
-
     // Static Methods
     // =========================================================================
 
@@ -21,4 +15,10 @@ class SubmissionStatus extends ActiveRecord
     {
         return Table::FORMIE_SUBMISSION_STATUSES;
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use SoftDeleteTrait;
 }

@@ -8,8 +8,6 @@ use verbb\formie\migrations\plugins\MigrateSproutForms;
 use craft\console\Controller;
 use craft\helpers\Console;
 
-use Throwable;
-
 use yii\console\ExitCode;
 
 use barrelstrength\sproutforms\elements\Form as SproutFormsForm;

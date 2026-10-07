@@ -4,7 +4,6 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\cache\FieldGqlCache;
 use verbb\formie\cache\FieldLookupCache;
@@ -13,19 +12,106 @@ use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyExistingFieldsEvent;
-use verbb\formie\events\ModifyFieldConfigEvent;
-use verbb\formie\events\ModifyFieldRowConfigEvent;
 use verbb\formie\events\RegisterFieldOptionsEvent;
 use verbb\formie\events\RegisterFieldsEvent;
-use verbb\formie\fields as formiefields;
+use verbb\formie\fields\Address;
+use verbb\formie\fields\Agree;
+use verbb\formie\fields\Calculations;
+use verbb\formie\fields\Categories;
+use verbb\formie\fields\Checkboxes;
+use verbb\formie\fields\Content;
+use verbb\formie\fields\CustomField;
+use verbb\formie\fields\Date;
+use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\Email;
+use verbb\formie\fields\Entries;
+use verbb\formie\fields\FileUpload;
+use verbb\formie\fields\Group;
+use verbb\formie\fields\Heading;
+use verbb\formie\fields\Hidden;
+use verbb\formie\fields\Html;
+use verbb\formie\fields\MissingField;
+use verbb\formie\fields\MultiLineText;
+use verbb\formie\fields\Name;
+use verbb\formie\fields\Note;
+use verbb\formie\fields\Number;
+use verbb\formie\fields\Password;
+use verbb\formie\fields\Payment;
+use verbb\formie\fields\Phone;
+use verbb\formie\fields\Products;
+use verbb\formie\fields\Quiz;
+use verbb\formie\fields\Radio;
+use verbb\formie\fields\Recipients;
+use verbb\formie\fields\Repeater;
+use verbb\formie\fields\Section;
+use verbb\formie\fields\Signature;
+use verbb\formie\fields\SingleLineText;
+use verbb\formie\fields\subfields\Address1;
+use verbb\formie\fields\subfields\Address2;
+use verbb\formie\fields\subfields\Address3;
+use verbb\formie\fields\subfields\AddressAutoComplete;
+use verbb\formie\fields\subfields\AddressCity;
+use verbb\formie\fields\subfields\AddressCountry;
+use verbb\formie\fields\subfields\AddressState;
+use verbb\formie\fields\subfields\AddressZip;
+use verbb\formie\fields\subfields\DateAmPmDropdown;
+use verbb\formie\fields\subfields\DateAmPmNumber;
+use verbb\formie\fields\subfields\DateDate;
+use verbb\formie\fields\subfields\DateDayDropdown;
+use verbb\formie\fields\subfields\DateDayNumber;
+use verbb\formie\fields\subfields\DateHourDropdown;
+use verbb\formie\fields\subfields\DateHourNumber;
+use verbb\formie\fields\subfields\DateMinuteDropdown;
+use verbb\formie\fields\subfields\DateMinuteNumber;
+use verbb\formie\fields\subfields\DateMonthDropdown;
+use verbb\formie\fields\subfields\DateMonthNumber;
+use verbb\formie\fields\subfields\DateSecondDropdown;
+use verbb\formie\fields\subfields\DateSecondNumber;
+use verbb\formie\fields\subfields\DateTime;
+use verbb\formie\fields\subfields\DateYearDropdown;
+use verbb\formie\fields\subfields\DateYearNumber;
+use verbb\formie\fields\subfields\NameFirst;
+use verbb\formie\fields\subfields\NameLast;
+use verbb\formie\fields\subfields\NameMiddle;
+use verbb\formie\fields\subfields\NamePrefix;
+use verbb\formie\fields\Summary;
+use verbb\formie\fields\Survey;
+use verbb\formie\fields\Table as FormieTable;
+use verbb\formie\fields\Tags;
+use verbb\formie\fields\Users;
+use verbb\formie\fields\Variants;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldTraversal;
+use verbb\formie\helpers\FormSerializer;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\ValidationHelper;
-use verbb\formie\integrations\feedme\elementfields as FeedMeElementField;
-use verbb\formie\integrations\feedme\fields as FeedMeField;
+use verbb\formie\integrations\feedme\elementfields\Forms;
+use verbb\formie\integrations\feedme\fields\Address as FeedMeAddress;
+use verbb\formie\integrations\feedme\fields\Agree as FeedMeAgree;
+use verbb\formie\integrations\feedme\fields\Categories as FeedMeCategories;
+use verbb\formie\integrations\feedme\fields\Checkboxes as FeedMeCheckboxes;
+use verbb\formie\integrations\feedme\fields\Date as FeedMeDate;
+use verbb\formie\integrations\feedme\fields\Dropdown as FeedMeDropdown;
+use verbb\formie\integrations\feedme\fields\Email as FeedMeEmail;
+use verbb\formie\integrations\feedme\fields\Entries as FeedMeEntries;
+use verbb\formie\integrations\feedme\fields\FileUpload as FeedMeFileUpload;
+use verbb\formie\integrations\feedme\fields\Group as FeedMeGroup;
+use verbb\formie\integrations\feedme\fields\Hidden as FeedMeHidden;
+use verbb\formie\integrations\feedme\fields\MultiLineText as FeedMeMultiLineText;
+use verbb\formie\integrations\feedme\fields\Name as FeedMeName;
+use verbb\formie\integrations\feedme\fields\Number as FeedMeNumber;
+use verbb\formie\integrations\feedme\fields\Password as FeedMePassword;
+use verbb\formie\integrations\feedme\fields\Phone as FeedMePhone;
+use verbb\formie\integrations\feedme\fields\Products as FeedMeProducts;
+use verbb\formie\integrations\feedme\fields\Radio as FeedMeRadio;
+use verbb\formie\integrations\feedme\fields\Repeater as FeedMeRepeater;
+use verbb\formie\integrations\feedme\fields\SingleLineText as FeedMeSingleLineText;
+use verbb\formie\integrations\feedme\fields\Table as FeedMeTable;
+use verbb\formie\integrations\feedme\fields\Tags as FeedMeTags;
+use verbb\formie\integrations\feedme\fields\Users as FeedMeUsers;
+use verbb\formie\integrations\feedme\fields\Variants as FeedMeVariants;
 use verbb\formie\models\FieldDefinition;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
@@ -44,25 +130,19 @@ use verbb\formie\records\FieldLayoutRow as FieldLayoutRowRecord;
 
 use Craft;
 use craft\base\Component;
-use craft\base\Field as CraftField;
-use craft\base\FieldInterface as CraftFieldInterface;
 use craft\db\Query;
 use craft\errors\MissingComponentException;
-use craft\fields\BaseRelationField;
-use craft\fields\PlainText;
 use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\GqlSchema;
-use craft\validators\HandleValidator;
 
 use yii\base\InvalidConfigException;
 use yii\db\Expression;
 
 use Exception;
 use ReflectionClass;
-use ReflectionException;
 use ReflectionProperty;
 use Throwable;
 
@@ -97,8 +177,6 @@ class Fields extends Component
     private bool $_fieldCachesDirty = false;
 
 
-
-
     // Public Methods
     // =========================================================================
 
@@ -111,83 +189,83 @@ class Fields extends Component
         }
 
         $fieldTypes = [
-            formiefields\Address::class,
-            formiefields\Agree::class,
-            formiefields\Calculations::class,
-            formiefields\Categories::class,
-            formiefields\Checkboxes::class,
-            formiefields\CustomField::class,
-            formiefields\Date::class,
-            formiefields\Dropdown::class,
-            formiefields\Email::class,
-            formiefields\Entries::class,
-            formiefields\FileUpload::class,
-            formiefields\Group::class,
-            formiefields\Heading::class,
-            formiefields\Hidden::class,
-            formiefields\Html::class,
-            formiefields\Content::class,
-            formiefields\MissingField::class,
-            formiefields\MultiLineText::class,
-            formiefields\Name::class,
-            formiefields\Note::class,
-            formiefields\Number::class,
-            formiefields\Payment::class,
-            formiefields\Password::class,
-            formiefields\Phone::class,
-            formiefields\Quiz::class,
-            formiefields\Radio::class,
-            formiefields\Recipients::class,
-            formiefields\Repeater::class,
-            formiefields\Section::class,
-            formiefields\Signature::class,
-            formiefields\SingleLineText::class,
-            formiefields\Summary::class,
-            formiefields\Survey::class,
-            formiefields\Table::class,
-            formiefields\Tags::class,
+            Address::class,
+            Agree::class,
+            Calculations::class,
+            Categories::class,
+            Checkboxes::class,
+            CustomField::class,
+            Date::class,
+            Dropdown::class,
+            Email::class,
+            Entries::class,
+            FileUpload::class,
+            Group::class,
+            Heading::class,
+            Hidden::class,
+            Html::class,
+            Content::class,
+            MissingField::class,
+            MultiLineText::class,
+            Name::class,
+            Note::class,
+            Number::class,
+            Payment::class,
+            Password::class,
+            Phone::class,
+            Quiz::class,
+            Radio::class,
+            Recipients::class,
+            Repeater::class,
+            Section::class,
+            Signature::class,
+            SingleLineText::class,
+            Summary::class,
+            Survey::class,
+            FormieTable::class,
+            Tags::class,
 
             // Include sub-fields, despite them not being able to be added at top-level
-            formiefields\subfields\AddressAutoComplete::class,
-            formiefields\subfields\Address1::class,
-            formiefields\subfields\Address2::class,
-            formiefields\subfields\Address3::class,
-            formiefields\subfields\AddressCity::class,
-            formiefields\subfields\DateDate::class,
-            formiefields\subfields\DateTime::class,
-            formiefields\subfields\AddressZip::class,
-            formiefields\subfields\AddressState::class,
-            formiefields\subfields\AddressCountry::class,
-            formiefields\subfields\DateYearDropdown::class,
-            formiefields\subfields\DateMonthDropdown::class,
-            formiefields\subfields\DateDayDropdown::class,
-            formiefields\subfields\DateHourDropdown::class,
-            formiefields\subfields\DateMinuteDropdown::class,
-            formiefields\subfields\DateSecondDropdown::class,
-            formiefields\subfields\DateAmPmDropdown::class,
-            formiefields\subfields\DateYearNumber::class,
-            formiefields\subfields\DateMonthNumber::class,
-            formiefields\subfields\DateDayNumber::class,
-            formiefields\subfields\DateHourNumber::class,
-            formiefields\subfields\DateMinuteNumber::class,
-            formiefields\subfields\DateSecondNumber::class,
-            formiefields\subfields\DateAmPmNumber::class,
-            formiefields\subfields\NamePrefix::class,
-            formiefields\subfields\NameFirst::class,
-            formiefields\subfields\NameMiddle::class,
-            formiefields\subfields\NameLast::class,
+            AddressAutoComplete::class,
+            Address1::class,
+            Address2::class,
+            Address3::class,
+            AddressCity::class,
+            DateDate::class,
+            DateTime::class,
+            AddressZip::class,
+            AddressState::class,
+            AddressCountry::class,
+            DateYearDropdown::class,
+            DateMonthDropdown::class,
+            DateDayDropdown::class,
+            DateHourDropdown::class,
+            DateMinuteDropdown::class,
+            DateSecondDropdown::class,
+            DateAmPmDropdown::class,
+            DateYearNumber::class,
+            DateMonthNumber::class,
+            DateDayNumber::class,
+            DateHourNumber::class,
+            DateMinuteNumber::class,
+            DateSecondNumber::class,
+            DateAmPmNumber::class,
+            NamePrefix::class,
+            NameFirst::class,
+            NameMiddle::class,
+            NameLast::class,
         ];
 
         if (Craft::$app->getEdition() !== Craft::Solo) {
             $fieldTypes = array_merge($fieldTypes, [
-                formiefields\Users::class,
+                Users::class,
             ]);
         }
 
         if (Plugin::isPluginInstalledAndEnabled('commerce')) {
             $fieldTypes = array_merge($fieldTypes, [
-                formiefields\Products::class,
-                formiefields\Variants::class,
+                Products::class,
+                Variants::class,
             ]);
         }
 
@@ -290,39 +368,39 @@ class Fields extends Component
     {
         $fields = [];
 
-        $fields[] = FeedMeField\Address::class;
-        $fields[] = FeedMeField\Agree::class;
-        $fields[] = FeedMeField\Categories::class;
-        $fields[] = FeedMeField\Checkboxes::class;
-        $fields[] = FeedMeField\Date::class;
-        $fields[] = FeedMeField\Dropdown::class;
-        $fields[] = FeedMeField\Email::class;
-        $fields[] = FeedMeField\Entries::class;
-        $fields[] = FeedMeField\FileUpload::class;
-        $fields[] = FeedMeField\Group::class;
-        $fields[] = FeedMeField\Hidden::class;
-        $fields[] = FeedMeField\MultiLineText::class;
-        $fields[] = FeedMeField\Name::class;
-        $fields[] = FeedMeField\Number::class;
-        $fields[] = FeedMeField\Password::class;
-        $fields[] = FeedMeField\Phone::class;
-        $fields[] = FeedMeField\Radio::class;
-        $fields[] = FeedMeField\Repeater::class;
-        $fields[] = FeedMeField\SingleLineText::class;
-        $fields[] = FeedMeField\Table::class;
-        $fields[] = FeedMeField\Tags::class;
+        $fields[] = FeedMeAddress::class;
+        $fields[] = FeedMeAgree::class;
+        $fields[] = FeedMeCategories::class;
+        $fields[] = FeedMeCheckboxes::class;
+        $fields[] = FeedMeDate::class;
+        $fields[] = FeedMeDropdown::class;
+        $fields[] = FeedMeEmail::class;
+        $fields[] = FeedMeEntries::class;
+        $fields[] = FeedMeFileUpload::class;
+        $fields[] = FeedMeGroup::class;
+        $fields[] = FeedMeHidden::class;
+        $fields[] = FeedMeMultiLineText::class;
+        $fields[] = FeedMeName::class;
+        $fields[] = FeedMeNumber::class;
+        $fields[] = FeedMePassword::class;
+        $fields[] = FeedMePhone::class;
+        $fields[] = FeedMeRadio::class;
+        $fields[] = FeedMeRepeater::class;
+        $fields[] = FeedMeSingleLineText::class;
+        $fields[] = FeedMeTable::class;
+        $fields[] = FeedMeTags::class;
 
         if (Craft::$app->getEdition() !== Craft::Solo) {
-            $fields[] = FeedMeField\Users::class;
+            $fields[] = FeedMeUsers::class;
         }
 
         if (Plugin::isPluginInstalledAndEnabled('commerce')) {
-            $fields[] = FeedMeField\Products::class;
-            $fields[] = FeedMeField\Variants::class;
+            $fields[] = FeedMeProducts::class;
+            $fields[] = FeedMeVariants::class;
         }
 
         // Include Formie's element fields
-        $fields[] = FeedMeElementField\Forms::class;
+        $fields[] = Forms::class;
 
         return $fields;
     }
@@ -814,7 +892,7 @@ class Fields extends Component
         unset($config['syncedDefinitionUid']);
         $settings = Json::decodeIfJson($config['settings'] ?? []) ?: [];
 
-        if ($type === formiefields\MissingField::class) {
+        if ($type === MissingField::class) {
             $type = (string)($config['expectedType'] ?? $settings['expectedType'] ?? '');
             $settings = $settings['settings'] ?? $settings;
         }
@@ -827,7 +905,7 @@ class Fields extends Component
 
         if (!in_array($type, $this->_getResolvedRegisteredFieldTypes(true), true)) {
             $identity = array_intersect_key($config, array_flip(['id', 'uid', 'reference', 'definitionId', 'definitionUid', 'layoutId', 'pageId', 'rowId', 'sortOrder', 'label', 'handle', 'required', 'isSynced', 'usageCount']));
-            $field = new formiefields\MissingField($identity + [
+            $field = new MissingField($identity + [
                 'expectedType' => $type,
                 'settings' => $settings,
                 'errorMessage' => "Unavailable field type: $type",
@@ -835,7 +913,7 @@ class Fields extends Component
         } else {
             unset($config['expectedType']);
             $config['type'] = $type;
-            $config['settings'] = $recoverable ? (new \verbb\formie\helpers\FormSerializer())->recoverSettings($type, $settings) : $settings;
+            $config['settings'] = $recoverable ? (new FormSerializer())->recoverSettings($type, $settings) : $settings;
             $field = ComponentHelper::createComponent($config, Field::class);
         }
         $field->applyInstanceSettings($instanceSettings);
@@ -1584,7 +1662,7 @@ class Fields extends Component
                 throw new Exception('Invalid field definition ID: ' . $definitionId);
             }
 
-            if ($definitionId && !($field instanceof formiefields\MissingField) && $definitionRecord->type !== $field->type) {
+            if ($definitionId && !($field instanceof MissingField) && $definitionRecord->type !== $field->type) {
                 if ($existingDefinitionUsageCount > 1) {
                     $field->addError('type', Craft::t('formie', 'Synced fields cannot change field type.'));
 
@@ -1626,7 +1704,7 @@ class Fields extends Component
 
                 // Check if this is a missing field, and swap back its type.
                 // This can commonly happen during a migration, not really from normal use.
-                if ($field instanceof formiefields\MissingField) {
+                if ($field instanceof MissingField) {
                     $definitionRecord->type = $field->expectedType;
                     // Keep unavailable configuration inert until the registered type can validate its schema.
                     $definitionRecord->settings = Json::encode(['__formieMissingSettings' => $field->getSettings()]);
@@ -2443,7 +2521,7 @@ class Fields extends Component
         $this->trigger(self::EVENT_REGISTER_FIELDS, $event);
 
         // Missing Field cannot be removed
-        $event->fields[] = formiefields\MissingField::class;
+        $event->fields[] = MissingField::class;
 
         foreach ($event->fields as $class) {
             if (!is_string($class) || !is_subclass_of($class, Field::class) || !(new ReflectionClass($class))->isInstantiable()) {
@@ -2804,5 +2882,4 @@ class Fields extends Component
 
         return $type;
     }
-
 }

@@ -69,10 +69,6 @@ class HtmlAutocomplete
         return (bool)preg_match('/^[\w\- ]+$/', $value);
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     private static function _translateGroupLabel(string $groupLabel): string
     {
         return match ($groupLabel) {

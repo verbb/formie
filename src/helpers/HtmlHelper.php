@@ -27,10 +27,6 @@ class HtmlHelper
         return ArrayHelper::getValue($config, $key, []);
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     private static function _getDefaultConfig(): array
     {
         return [

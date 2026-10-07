@@ -2,8 +2,6 @@
 namespace verbb\formie\fields\subfields;
 
 use verbb\formie\base\ChildFieldInterface;
-use verbb\formie\fields\Dropdown;
-use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 

@@ -1,12 +1,14 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\CompletionBehavior;
 use verbb\formie\enums\RedirectSource;
 use verbb\formie\enums\RedirectTarget;
+use verbb\formie\events\PaymentSuccessRedirectEvent;
 use verbb\formie\events\SubmissionEvent;
 use verbb\formie\helpers\CompletionRedirectPolicy;
 use verbb\formie\helpers\References;
@@ -14,6 +16,8 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 use verbb\formie\helpers\UrlHelper;
 use verbb\formie\models\CompletionOutcome;
+use verbb\formie\models\Payment;
+use verbb\formie\references\ReferenceException;
 
 use Craft;
 
@@ -48,7 +52,7 @@ final class CompletionResolver extends Component
         if ($rule) {
             try {
                 $url = SubmissionRedirectRulesHelper::resolveRuleUrl($rule, $form, $submission);
-            } catch (\verbb\formie\references\ReferenceException $e) {
+            } catch (ReferenceException $e) {
                 $url = '';
             }
             $resolved = true;
@@ -69,19 +73,19 @@ final class CompletionResolver extends Component
         if ($url !== '' && !$resolved) {
             try {
                 $url = References::resolveUrl($url, $submission);
-            } catch (\verbb\formie\references\ReferenceException $e) {
+            } catch (ReferenceException $e) {
                 $url = '';
             }
         }
 
         if ($raiseEvents) {
             foreach ($submission->getPayments() ?? [] as $payment) {
-                if ($payment->status !== \verbb\formie\models\Payment::STATUS_SUCCEEDED) {
+                if ($payment->status !== Payment::STATUS_SUCCEEDED) {
                     continue;
                 }
                 $candidate = $behavior === CompletionBehavior::Redirect ? $url : '';
-                $paymentEvent = new \verbb\formie\events\PaymentSuccessRedirectEvent(['payment' => $payment, 'submission' => $submission, 'form' => $form, 'redirectUrl' => $candidate]);
-                \verbb\formie\Formie::$plugin->getPayments()->trigger(Payments::EVENT_DEFINE_PAYMENT_SUCCESS_REDIRECT_URL, $paymentEvent);
+                $paymentEvent = new PaymentSuccessRedirectEvent(['payment' => $payment, 'submission' => $submission, 'form' => $form, 'redirectUrl' => $candidate]);
+                Formie::$plugin->getPayments()->trigger(Payments::EVENT_DEFINE_PAYMENT_SUCCESS_REDIRECT_URL, $paymentEvent);
                 $paymentUrl = $paymentEvent->redirectUrl;
 
                 if ($paymentUrl !== $candidate) {
@@ -96,7 +100,7 @@ final class CompletionResolver extends Component
         if ($raiseEvents) {
             $this->trigger(self::EVENT_RESOLVE_COMPLETION, $event);
             // Keep the source-verified Formie 3 PHP event, across every transport.
-            $adapter = new SubmissionsController('submissions', \verbb\formie\Formie::$plugin);
+            $adapter = new SubmissionsController('submissions', Formie::$plugin);
             $adapter->trigger(SubmissionsController::EVENT_AFTER_SUBMISSION_REQUEST, $event);
         }
 

@@ -6,7 +6,10 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionUploadStatus;
 use verbb\formie\fields\FileUpload;
+use verbb\formie\helpers\BrowserRequestProfile;
+use verbb\formie\helpers\CrossOriginRequestHelper;
 use verbb\formie\helpers\FileUploadRetentionHelper;
+use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\UploadAccess;
 use verbb\formie\services\SubmissionGrants;
 
@@ -15,6 +18,7 @@ use craft\elements\Asset;
 use craft\helpers\Assets;
 use craft\web\Controller;
 use craft\web\UploadedFile;
+
 use yii\web\BadRequestHttpException;
 use yii\web\MethodNotAllowedHttpException;
 use yii\web\NotFoundHttpException;
@@ -40,7 +44,7 @@ class FileUploadController extends Controller
         'view' => self::ALLOW_ANONYMOUS_LIVE,
     ];
 
-    private string $_requestProfile = \verbb\formie\helpers\BrowserRequestProfile::SAME_ORIGIN;
+    private string $_requestProfile = BrowserRequestProfile::SAME_ORIGIN;
 
 
     // Public Methods
@@ -54,13 +58,13 @@ class FileUploadController extends Controller
             return parent::beforeAction($action);
         }
 
-        $profile = \verbb\formie\helpers\BrowserRequestProfile::enter();
+        $profile = BrowserRequestProfile::enter();
         $this->_requestProfile = $profile;
 
-        if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+        if ($profile === BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         }
-        \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders($this->request, $this->response);
+        CrossOriginRequestHelper::applyHeaders($this->request, $this->response);
 
         if ($this->request->getIsOptions()) {
             $this->response->setStatusCode(204);
@@ -89,7 +93,7 @@ class FileUploadController extends Controller
             throw new BadRequestHttpException('Missing handle or fieldHandle.');
         }
 
-        $form = Formie::$plugin->getForms()->getFormByHandle($formHandle, \verbb\formie\helpers\SiteHelper::resolveSiteIdFromRequest());
+        $form = Formie::$plugin->getForms()->getFormByHandle($formHandle, SiteHelper::resolveSiteIdFromRequest());
 
         if (!$form) {
             throw new BadRequestHttpException('Invalid form handle.');
@@ -109,7 +113,7 @@ class FileUploadController extends Controller
             $form->setDraftContext($draftContext);
         }
 
-        if ($this->_requestProfile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN
+        if ($this->_requestProfile === BrowserRequestProfile::CROSS_ORIGIN
             && !UploadAccess::validateCreateToken($form, $this->request->getBodyParam('uploadCreateToken'))
         ) {
             throw new BadRequestHttpException('Invalid upload creation capability.');
@@ -398,7 +402,7 @@ class FileUploadController extends Controller
             throw new BadRequestHttpException('Invalid upload context.');
         }
 
-        $form = Formie::$plugin->getForms()->getFormByHandle($formHandle, \verbb\formie\helpers\SiteHelper::resolveSiteIdFromRequest());
+        $form = Formie::$plugin->getForms()->getFormByHandle($formHandle, SiteHelper::resolveSiteIdFromRequest());
 
         if (!$form) {
             throw new BadRequestHttpException('Invalid upload context.');
@@ -514,5 +518,4 @@ class FileUploadController extends Controller
 
         throw new BadRequestHttpException('Unable to move uploaded file.');
     }
-
 }

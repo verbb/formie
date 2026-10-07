@@ -2,8 +2,8 @@
 namespace verbb\formie\events;
 
 use verbb\formie\enums\SubscriptionStatus;
-use verbb\formie\models\Subscription;
 use verbb\formie\models\payments\SubscriptionSnapshot;
+use verbb\formie\models\Subscription;
 
 use yii\base\Event;
 

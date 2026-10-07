@@ -11,10 +11,6 @@ use HTMLPurifier_Config;
 
 class StringHelper extends CraftStringHelper
 {
-    private const GRAPHEME_PATTERN = '/\X/u';
-    private const WORD_PATTERN = '/[^\p{Z}\x{0009}-\x{000D}\x{0085}\x{FEFF}]+/u';
-    private const ALLOWED_URL_PROTOCOLS = ['http', 'https', 'mailto', 'tel', 'ftp'];
-
     // Static Methods
     // =========================================================================
 
@@ -186,4 +182,12 @@ class StringHelper extends CraftStringHelper
         // applying Unicode-aware patterns so invalid input cannot bypass a limit.
         return mb_scrub($text, 'UTF-8');
     }
+
+
+    // Constants
+    // =========================================================================
+
+    private const GRAPHEME_PATTERN = '/\X/u';
+    private const WORD_PATTERN = '/[^\p{Z}\x{0009}-\x{000D}\x{0085}\x{FEFF}]+/u';
+    private const ALLOWED_URL_PROTOCOLS = ['http', 'https', 'mailto', 'tel', 'ftp'];
 }

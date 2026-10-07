@@ -1,13 +1,11 @@
 <?php
 namespace verbb\formie\fields;
 
-use verbb\formie\base\FieldInterface;
 use verbb\formie\base\OptionsField;
-use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\traits\OptionsLimitFieldTrait;
+use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
@@ -17,11 +15,10 @@ use verbb\formie\theme\context\RenderContext;
 use Craft;
 use craft\base\ElementInterface;
 
-use Faker\Generator as FakerFactory;
-
-use GraphQL\Type\Definition\Type;
-
 use yii\db\Schema;
+
+use Faker\Generator as FakerFactory;
+use GraphQL\Type\Definition\Type;
 
 class Checkboxes extends OptionsField
 {
@@ -223,6 +220,7 @@ class Checkboxes extends OptionsField
             SchemaHelper::conditionsField(),
         ];
     }
+
 
     // Protected Methods
     // =========================================================================

@@ -16,12 +16,6 @@ use Twig\Markup;
 
 trait QuestionFieldTrait
 {
-    // Constants
-    // =========================================================================
-
-    private const QUESTION_LABEL_MAX_LENGTH = 80;
-
-
     // Static Methods
     // =========================================================================
 
@@ -45,6 +39,12 @@ trait QuestionFieldTrait
     {
         return null;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    private const QUESTION_LABEL_MAX_LENGTH = 80;
 
 
     // Public Methods

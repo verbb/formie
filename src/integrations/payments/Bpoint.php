@@ -2,35 +2,30 @@
 namespace verbb\formie\integrations\payments;
 
 use verbb\formie\attributes\Sensitive;
-use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\ModifySubFieldsEvent;
-use verbb\formie\events\PaymentReceiveWebhookEvent;
-use verbb\formie\fields;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\fields\Calculations;
+use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\Hidden;
+use verbb\formie\fields\Number;
+use verbb\formie\fields\Radio;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\PaymentAttempt;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
-use verbb\formie\models\Plan;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Component;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
-use craft\helpers\UrlHelper;
 use craft\web\Response;
 
 use yii\base\Event;
@@ -39,18 +34,9 @@ use Exception;
 use Throwable;
 
 use GuzzleHttp\Client;
-use Money\Currencies\ISOCurrencies;
-use Money\Currency;
 
 class Bpoint extends Payment
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
-    public const EVENT_MODIFY_PAYMENT_SUBFIELDS = 'modifyPaymentSubfields';
-
-
     // Static Methods
     // =========================================================================
 
@@ -58,6 +44,13 @@ class Bpoint extends Payment
     {
         return 'BPOINT';
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
+    public const EVENT_MODIFY_PAYMENT_SUBFIELDS = 'modifyPaymentSubfields';
 
 
     // Properties
@@ -80,26 +73,6 @@ class Bpoint extends Payment
     public function hasValidSettings(): bool
     {
         return App::parseEnv($this->username) && App::parseEnv($this->password) && App::parseEnv($this->merchantNumber);
-    }
-
-    protected function executePayment(Submission $submission): PaymentDecision
-    {
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
-
-        $currency = strtoupper((string)($this->getFieldSetting('currency') ?: 'AUD'));
-
-        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $currency, [
-            'merchantNumber' => $this->merchantNumber,
-            'username' => $this->username,
-            'password' => $this->password,
-        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
-    }
-
-    protected function getPaymentAccountIdentity(): ?string
-    {
-        return App::parseEnv($this->merchantNumber) ?: null;
     }
 
     public function fetchConnection(): bool
@@ -170,12 +143,12 @@ class Bpoint extends Payment
                         'topLevelOnly' => true,
                         'required' => true,
                         'fieldTypes' => [
-                            fields\Calculations::class,
-                            fields\Dropdown::class,
-                            fields\Hidden::class,
-                            fields\Number::class,
-                            fields\Radio::class,
-                            fields\SingleLineText::class,
+                            Calculations::class,
+                            Dropdown::class,
+                            Hidden::class,
+                            Number::class,
+                            Radio::class,
+                            SingleLineText::class,
                         ],
                         'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
                     ]),
@@ -190,7 +163,7 @@ class Bpoint extends Payment
         $rowConfigs = [
             [
                 [
-                    'type' => fields\SingleLineText::class,
+                    'type' => SingleLineText::class,
                     'name' => Craft::t('formie', 'Cardholder Name'),
                     'handle' => 'cardName',
                     'required' => true,
@@ -203,7 +176,7 @@ class Bpoint extends Payment
             ],
             [
                 [
-                    'type' => fields\SingleLineText::class,
+                    'type' => SingleLineText::class,
                     'name' => Craft::t('formie', 'Card Number'),
                     'handle' => 'cardNumber',
                     'required' => true,
@@ -215,7 +188,7 @@ class Bpoint extends Payment
                     ],
                 ],
                 [
-                    'type' => fields\SingleLineText::class,
+                    'type' => SingleLineText::class,
                     'name' => Craft::t('formie', 'Expiry'),
                     'handle' => 'cardExpiry',
                     'required' => true,
@@ -227,7 +200,7 @@ class Bpoint extends Payment
                     ],
                 ],
                 [
-                    'type' => fields\SingleLineText::class,
+                    'type' => SingleLineText::class,
                     'name' => Craft::t('formie', 'CVC'),
                     'handle' => 'cardCvc',
                     'required' => true,
@@ -260,6 +233,26 @@ class Bpoint extends Payment
 
     // Protected Methods
     // =========================================================================
+
+    protected function executePayment(Submission $submission): PaymentDecision
+    {
+        if (!$this->beforeProcessPayment($submission)) {
+            return PaymentDecision::notRequired();
+        }
+
+        $currency = strtoupper((string)($this->getFieldSetting('currency') ?: 'AUD'));
+
+        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $currency, [
+            'merchantNumber' => $this->merchantNumber,
+            'username' => $this->username,
+            'password' => $this->password,
+        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
+    }
+
+    protected function getPaymentAccountIdentity(): ?string
+    {
+        return App::parseEnv($this->merchantNumber) ?: null;
+    }
 
     protected function defineRules(): array
     {

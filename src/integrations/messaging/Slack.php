@@ -1,9 +1,8 @@
 <?php
 namespace verbb\formie\integrations\messaging;
 
-use verbb\formie\attributes\Sensitive;
-use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Messaging;
@@ -14,26 +13,16 @@ use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
-use craft\helpers\App;
 use craft\helpers\Json;
 
 use Throwable;
 
 use League\HTMLToMarkdown\HtmlConverter;
 use verbb\auth\base\OAuthProviderInterface;
-use verbb\auth\models\Token;
 use verbb\auth\providers\Slack as SlackProvider;
 
 class Slack extends Messaging implements OAuthProviderInterface
 {
-    // Constants
-    // =========================================================================
-
-    public const TYPE_PUBLIC = 'public';
-    public const TYPE_DM = 'directMessage';
-    public const TYPE_WEBHOOK = 'webhook';
-
-
     // Static Methods
     // =========================================================================
 
@@ -51,6 +40,14 @@ class Slack extends Messaging implements OAuthProviderInterface
     {
         return 'Slack';
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const TYPE_PUBLIC = 'public';
+    public const TYPE_DM = 'directMessage';
+    public const TYPE_WEBHOOK = 'webhook';
 
 
     // Properties
@@ -124,6 +121,10 @@ class Slack extends Messaging implements OAuthProviderInterface
         return new IntegrationConfig($settings);
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -181,10 +182,6 @@ class Slack extends Messaging implements OAuthProviderInterface
 
         return $this->resultForPayload(true);
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

@@ -1,13 +1,13 @@
 <?php
 namespace verbb\formie\gql\types;
 
-use verbb\formie\helpers\Gql as FormieGql;
 use verbb\formie\gql\types\Json as JsonType;
+use verbb\formie\helpers\Gql as FormieGql;
 
+use craft\gql\arguments\elements\Entry as EntryArguments;
 use craft\gql\base\ObjectType;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\interfaces\elements\Entry as EntryInterface;
-use craft\gql\arguments\elements\Entry as EntryArguments;
 
 use GraphQL\Type\Definition\Type;
 

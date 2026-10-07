@@ -8,6 +8,9 @@ use craft\db\Migration;
 
 class m260613_000000_integration_scopes extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         if (!$this->db->columnExists(Table::FORMIE_INTEGRATIONS, 'scope')) {

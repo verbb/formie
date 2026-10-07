@@ -3,31 +3,25 @@ namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
-use verbb\formie\base\FieldInterface;
-use verbb\formie\base\Integration;
-use verbb\formie\base\IntegrationInterface;
-use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\base\FixedParentField;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
-use verbb\formie\gql\types\NameType;
-use verbb\formie\gql\types\generators\FieldAttributeGenerator;
-use verbb\formie\gql\types\input\NameInputType;
-use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Variables;
+use verbb\formie\fields\subfields\NameFirst;
+use verbb\formie\fields\subfields\NameLast;
+use verbb\formie\fields\subfields\NameMiddle;
+use verbb\formie\fields\subfields\NamePrefix;
 use verbb\formie\fields\values\NameFieldValue;
-use verbb\formie\models\FieldLayout;
+use verbb\formie\gql\types\input\NameInputType;
+use verbb\formie\gql\types\NameType;
+use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\ValidationMessagesHelper;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
-use verbb\formie\models\IntegrationField;
-use verbb\formie\models\Notification;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\query\NestedFieldQueryHelper;
@@ -36,17 +30,13 @@ use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\Component;
-use craft\helpers\Html;
 use craft\helpers\Json;
 
-use Faker\Generator as FakerFactory;
-
-use GraphQL\Type\Definition\Type;
-
-use yii\base\Event;
 use yii\db\ExpressionInterface;
 use yii\db\Schema;
+
+use Faker\Generator as FakerFactory;
+use GraphQL\Type\Definition\Type;
 
 class Name extends FixedParentField implements SortableFieldInterface, PreviewableFieldInterface
 {
@@ -229,7 +219,6 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
         return $this->useMultipleFields ? parent::decodeValueFromStorage($value) : FieldStorageCodec::decode($value);
     }
 
-
     public function defineFormBuilderPreviewSchema(): array
     {
         return [
@@ -322,22 +311,6 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
         ];
     }
 
-    /**
-     * Multi-name validates on sub-fields; the Validation tab has no visible fields.
-     * Hide the tab with the same condition instead of leaving an empty panel.
-     */
-    protected function modifyFormBuilderTabs(array $tabs): array
-    {
-        foreach ($tabs as &$tab) {
-            if (($tab['handle'] ?? null) === 'validation') {
-                $tab['if'] = 'useMultipleFields != true';
-            }
-        }
-        unset($tab);
-
-        return $tabs;
-    }
-
     public function defineFormBuilderAppearanceSchema(): array
     {
         return [
@@ -382,6 +355,22 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
 
     // Protected Methods
     // =========================================================================
+
+    /**
+     * Multi-name validates on sub-fields; the Validation tab has no visible fields.
+     * Hide the tab with the same condition instead of leaving an empty panel.
+     */
+    protected function modifyFormBuilderTabs(array $tabs): array
+    {
+        foreach ($tabs as &$tab) {
+            if (($tab['handle'] ?? null) === 'validation') {
+                $tab['if'] = 'useMultipleFields != true';
+            }
+        }
+        unset($tab);
+
+        return $tabs;
+    }
 
     protected function defineValueType(): FieldValueType
     {
@@ -475,7 +464,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
             [
                 'fields' => [
                     [
-                        'type' => subfields\NamePrefix::class,
+                        'type' => NamePrefix::class,
                         'label' => Craft::t('formie', 'Prefix'),
                         'handle' => 'prefix',
                         'enabled' => false,
@@ -488,7 +477,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
                         ],
                     ],
                     [
-                        'type' => subfields\NameFirst::class,
+                        'type' => NameFirst::class,
                         'label' => Craft::t('formie', 'First Name'),
                         'handle' => 'firstName',
                         'enabled' => true,
@@ -501,7 +490,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
                         ],
                     ],
                     [
-                        'type' => subfields\NameMiddle::class,
+                        'type' => NameMiddle::class,
                         'label' => Craft::t('formie', 'Middle Name'),
                         'handle' => 'middleName',
                         'enabled' => false,
@@ -514,7 +503,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
                         ],
                     ],
                     [
-                        'type' => subfields\NameLast::class,
+                        'type' => NameLast::class,
                         'label' => Craft::t('formie', 'Last Name'),
                         'handle' => 'lastName',
                         'enabled' => true,
@@ -551,7 +540,6 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
     {
         return $this->normalizeValue($value, $element)->toArray();
     }
-
 
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
@@ -616,7 +604,6 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
         return $this->useMultipleFields ? parent::dbTypeForValueSql() : Schema::TYPE_STRING;
     }
 
-
     protected function defineReferenceValues(): array
     {
         return [
@@ -627,6 +614,4 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
             FieldReferenceValue::selector('lastName', Craft::t('formie', 'Last Name'), when: ReferenceCondition::equals('useMultipleFields', true)),
         ];
     }
-
-
 }

@@ -2,27 +2,25 @@
 namespace verbb\formie\elements;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Crm;
-use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\FormDefaultableTrait;
 use verbb\formie\base\FormInterface;
-use verbb\formie\base\Miscellaneous;
 use verbb\formie\base\OptionsField;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\QuestionnaireFieldInterface;
 use verbb\formie\client\bootstrap\models\FormDefinition;
 use verbb\formie\client\models\LoadContext;
+use verbb\formie\conditions\ConditionGraph;
 use verbb\formie\deprecations\FormDeprecations;
 use verbb\formie\elements\actions\DuplicateForm;
 use verbb\formie\elements\actions\MoveFormToGroup;
 use verbb\formie\elements\actions\SetFormStatus;
 use verbb\formie\elements\conditions\FormCondition;
 use verbb\formie\elements\db\FormQuery;
+use verbb\formie\enums\CompletionBehavior;
 use verbb\formie\events\ModifyFormSlotTagEvent;
 use verbb\formie\fields\Group;
 use verbb\formie\fields\Quiz;
-use verbb\formie\gql\interfaces\FieldInterface as GqlFieldInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\CpSubmissionFieldConditions;
@@ -31,13 +29,12 @@ use verbb\formie\helpers\FormSerializer;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\IntegrationSecrets;
-use verbb\formie\helpers\OptionsMode;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\helpers\RuntimeConfigurationMigration;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\SubmissionLimitHelper;
-use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\ValidationHelper;
 use verbb\formie\helpers\Variables;
@@ -47,6 +44,7 @@ use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutPageSettings;
 use verbb\formie\models\FormGroup;
+use verbb\formie\models\FormInstanceConfig;
 use verbb\formie\models\FormSettings;
 use verbb\formie\models\FormStatus;
 use verbb\formie\models\FormTemplate;
@@ -55,11 +53,13 @@ use verbb\formie\models\Notification;
 use verbb\formie\models\ResolvedTheme;
 use verbb\formie\models\SlotTag;
 use verbb\formie\models\StencilData;
+use verbb\formie\models\SubmissionConfig;
 use verbb\formie\models\SubmissionStatus;
-use verbb\formie\options\OptionSourceFieldInterface;
 use verbb\formie\records\Form as FormRecord;
 use verbb\formie\references\ReferenceMigration;
+use verbb\formie\services\CompletionResolver;
 use verbb\formie\services\Permissions;
+use verbb\formie\services\RuntimeConfiguration;
 use verbb\formie\services\SubmissionGrants;
 use verbb\formie\services\SubmissionStatuses;
 use verbb\formie\theme\context\RenderContext;
@@ -71,10 +71,8 @@ use craft\elements\actions\Delete;
 use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
 use craft\elements\conditions\ElementConditionInterface;
-use craft\elements\db\ElementQueryInterface;
 use craft\elements\Entry;
 use craft\elements\User;
-use craft\errors\MissingComponentException;
 use craft\events\DefineElementHtmlEvent;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
@@ -90,13 +88,14 @@ use craft\web\View;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\validators\Validator;
+use yii\web\View as YiiView;
 
 use DateTime;
 use DateTimeZone;
+use RuntimeException;
 use Throwable;
 
-use Twig\Error\LoaderError;
-use Twig\Error\SyntaxError;
+use Twig\Error\RuntimeError;
 
 class Form extends Element implements FormInterface
 {
@@ -380,64 +379,6 @@ class Form extends Element implements FormInterface
         ];
     }
 
-
-    //  Properties
-    // =========================================================================
-
-    public ?string $handle = null;
-    public ?int $layoutId = null;
-    public ?int $templateId = null;
-    public ?int $groupId = null;
-    public ?int $formStatusId = null;
-    public ?int $sourceSiteId = null;
-    public ?int $redirectEntryId = null;
-    public ?int $redirectEntrySiteId = null;
-    public ?int $defaultStatusId = null;
-    public string $dataRetention = 'forever';
-    public ?string $dataRetentionValue = null;
-    public string $userDeletedAction = 'retain';
-    public string $fileUploadsAction = 'retain';
-    public ?int $createdById = null;
-    public ?int $updatedById = null;
-    public ?FormSettings $settings = null;
-    public string $builderEntityType = self::BUILDER_ENTITY_TYPE_FORM;
-
-    public ?int $pageCount = null;
-    public ?LayoutSaveContext $layoutSaveContext = null;
-
-    private ?\verbb\formie\models\FormInstanceConfig $_instanceConfig = null;
-    private bool $_instanceEstablished = false;
-    private ?FieldLayout $_fieldLayout = null;
-    private ?FormLayout $_formLayout = null;
-    private ?FormTemplate $_template = null;
-    private ?FormGroup $_group = null;
-    private ?FormStatus $_formStatus = null;
-    private ?SubmissionStatus $_defaultStatus = null;
-    private ?Entry $_redirectEntry = null;
-    private ?array $_notifications = null;
-    private ?FieldLayoutPage $_currentPage = null;
-    private ?Submission $_currentSubmission = null;
-    private ?Submission $_editingSubmission = null;
-    private ?string $_formId = null;
-    private ?int $_renderSequence = null;
-    private array $_relations = [];
-    private ?string $_actionUrl = null;
-    private ?string $_draftContext = null;
-    private ?string $_requestToken = null;
-    private ?string $_submissionEditToken = null;
-    private bool $_resumeTokenHydrated = false;
-    private bool $_routeContextHydrated = false;
-    private bool $_submissionStorageHydrated = false;
-    private array $_submitData = [];
-    private array $_pendingSubmissionMetadata = [];
-    private array $_previousGroupFieldUids = [];
-    private array $_pendingStencilTranslations = [];
-    private array $_submissionsToDelete = [];
-    private array $_uploadsToDelete = [];
-
-    private ?string $_sessionKey = null;
-    private static array $_renderSequenceCounters = [];
-
     private static function _isFormStatusSidebarSource(array $source): bool
     {
         if (str_starts_with($source['key'] ?? '', 'formStatus:')) {
@@ -467,6 +408,65 @@ class Form extends Element implements FormInterface
 
     use FormDefaultableTrait;
     use FormDeprecations;
+
+
+    // Properties
+    // =========================================================================
+
+    //  Properties
+    // =========================================================================
+
+    public ?string $handle = null;
+    public ?int $layoutId = null;
+    public ?int $templateId = null;
+    public ?int $groupId = null;
+    public ?int $formStatusId = null;
+    public ?int $sourceSiteId = null;
+    public ?int $redirectEntryId = null;
+    public ?int $redirectEntrySiteId = null;
+    public ?int $defaultStatusId = null;
+    public string $dataRetention = 'forever';
+    public ?string $dataRetentionValue = null;
+    public string $userDeletedAction = 'retain';
+    public string $fileUploadsAction = 'retain';
+    public ?int $createdById = null;
+    public ?int $updatedById = null;
+    public ?FormSettings $settings = null;
+    public string $builderEntityType = self::BUILDER_ENTITY_TYPE_FORM;
+    public ?int $pageCount = null;
+    public ?LayoutSaveContext $layoutSaveContext = null;
+
+    private ?FormInstanceConfig $_instanceConfig = null;
+    private bool $_instanceEstablished = false;
+    private ?FieldLayout $_fieldLayout = null;
+    private ?FormLayout $_formLayout = null;
+    private ?FormTemplate $_template = null;
+    private ?FormGroup $_group = null;
+    private ?FormStatus $_formStatus = null;
+    private ?SubmissionStatus $_defaultStatus = null;
+    private ?Entry $_redirectEntry = null;
+    private ?array $_notifications = null;
+    private ?FieldLayoutPage $_currentPage = null;
+    private ?Submission $_currentSubmission = null;
+    private ?Submission $_editingSubmission = null;
+    private ?string $_formId = null;
+    private ?int $_renderSequence = null;
+    private array $_relations = [];
+    private ?string $_actionUrl = null;
+    private ?string $_draftContext = null;
+    private ?string $_requestToken = null;
+    private ?string $_submissionEditToken = null;
+    private bool $_resumeTokenHydrated = false;
+    private bool $_routeContextHydrated = false;
+    private bool $_submissionStorageHydrated = false;
+    private array $_submitData = [];
+    private array $_pendingSubmissionMetadata = [];
+    private array $_previousGroupFieldUids = [];
+    private array $_pendingStencilTranslations = [];
+    private array $_submissionsToDelete = [];
+    private array $_uploadsToDelete = [];
+    private ?string $_sessionKey = null;
+    private static array $_renderSequenceCounters = [];
 
 
     // Public Methods
@@ -621,8 +621,8 @@ class Form extends Element implements FormInterface
         $formLayout = $this->getFormLayout();
 
         try {
-            (new \verbb\formie\conditions\ConditionGraph())->orderedFields($this);
-        } catch (\RuntimeException $exception) {
+            (new ConditionGraph())->orderedFields($this);
+        } catch (RuntimeException $exception) {
             $this->addError('formLayout', $exception->getMessage());
         }
 
@@ -1580,7 +1580,7 @@ class Form extends Element implements FormInterface
             return '';
         }
 
-        return (new \verbb\formie\services\CompletionResolver())
+        return (new CompletionResolver())
             ->resolve($this, $submission, false, $includeQueryString)
             ->url ?? '';
     }
@@ -1774,12 +1774,12 @@ class Form extends Element implements FormInterface
     {
         parent::__clone();
         $this->_requestToken = null;
-        (new \verbb\formie\services\RuntimeConfiguration())->isolate($this);
+        (new RuntimeConfiguration())->isolate($this);
     }
 
-    public function getInstanceConfig(): \verbb\formie\models\FormInstanceConfig
+    public function getInstanceConfig(): FormInstanceConfig
     {
-        return $this->_instanceConfig ??= new \verbb\formie\models\FormInstanceConfig();
+        return $this->_instanceConfig ??= new FormInstanceConfig();
     }
 
     public function isInstanceEstablished(): bool
@@ -1792,21 +1792,21 @@ class Form extends Element implements FormInterface
         $this->_instanceEstablished = true;
     }
 
-    public function replaceInstanceConfig(\verbb\formie\models\FormInstanceConfig $config): void
+    public function replaceInstanceConfig(FormInstanceConfig $config): void
     {
         $this->_requestToken = null;
         $this->_instanceConfig = $config;
-        (new \verbb\formie\services\RuntimeConfiguration())->apply($this, $config);
+        (new RuntimeConfiguration())->apply($this, $config);
     }
 
     public function setSettings(array $settings): void
     {
-        $runtime = new \verbb\formie\services\RuntimeConfiguration();
-        $settings = \verbb\formie\helpers\RuntimeConfigurationMigration::migrate($settings);
+        $runtime = new RuntimeConfiguration();
+        $settings = RuntimeConfigurationMigration::migrate($settings);
         $settings = $runtime->validateSettings($this->settings, $settings, $runtime::FORM_SETTINGS, 'form');
 
         if (isset($settings['completionBehavior'])) {
-            \verbb\formie\enums\CompletionBehavior::from($settings['completionBehavior']);
+            CompletionBehavior::from($settings['completionBehavior']);
         }
 
         if (isset($settings['integrations'])) {
@@ -1814,7 +1814,7 @@ class Form extends Element implements FormInterface
 
             foreach ($settings['integrations'] as $handle => $values) {
                 if (!isset($filtered[$handle]) || array_diff_key($values, $filtered[$handle])) {
-                    throw new \Twig\Error\RuntimeError('Unknown integration or forbidden runtime settings: ' . $handle);
+                    throw new RuntimeError('Unknown integration or forbidden runtime settings: ' . $handle);
                 }
             }
 
@@ -1838,18 +1838,18 @@ class Form extends Element implements FormInterface
         }
 
         if (!$target) {
-            throw new \Twig\Error\RuntimeError('Unknown runtime page target: ' . $handleOrIndex);
+            throw new RuntimeError('Unknown runtime page target: ' . $handleOrIndex);
         }
-        $runtime = new \verbb\formie\services\RuntimeConfiguration();
+        $runtime = new RuntimeConfiguration();
         $settings = $runtime->validateSettings($target->getPageSettings(), $settings, $runtime::PAGE_SETTINGS, 'page ' . $handleOrIndex);
         $this->replaceInstanceConfig($this->getInstanceConfig()->with('pages', [$target->uid => $settings]));
     }
 
     public function setFieldSettings(string $handle, array $settings): void
     {
-        $runtime = new \verbb\formie\services\RuntimeConfiguration();
+        $runtime = new RuntimeConfiguration();
         $field = $runtime->findField($this, $handle);
-        $settings = \verbb\formie\helpers\RuntimeConfigurationMigration::migrate($settings, get_class($field));
+        $settings = RuntimeConfigurationMigration::migrate($settings, get_class($field));
         $settings = FieldAttributesHelper::applyToFieldSettings($settings, $field->containerAttributes, $field->inputAttributes);
         $settings = $runtime->validateSettings($field, $settings, $field->runtimeOverridableSettings(), 'field ' . $handle);
 
@@ -1864,15 +1864,15 @@ class Form extends Element implements FormInterface
         $filtered = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings([$handle => $settings], false);
 
         if (!isset($filtered[$handle]) || array_diff_key($settings, $filtered[$handle])) {
-            throw new \Twig\Error\RuntimeError('Unknown integration or forbidden runtime settings: ' . $handle);
+            throw new RuntimeError('Unknown integration or forbidden runtime settings: ' . $handle);
         }
-        $filtered[$handle] = (new \verbb\formie\services\RuntimeConfiguration())->validateIntegrationSettings($handle, $filtered[$handle]);
+        $filtered[$handle] = (new RuntimeConfiguration())->validateIntegrationSettings($handle, $filtered[$handle]);
         $this->replaceInstanceConfig($this->getInstanceConfig()->with('form', ['integrations' => $filtered]));
     }
 
     public function getSnapshotData(?string $key = null): array
     {
-        $data = \verbb\formie\models\SubmissionConfig::capture($this->getInstanceConfig());
+        $data = SubmissionConfig::capture($this->getInstanceConfig());
         return $key === null ? $data : ($data[$key] ?? []);
     }
 
@@ -3569,7 +3569,6 @@ class Form extends Element implements FormInterface
     }
 
 
-
     // Private Methods
     // =========================================================================
 
@@ -3787,7 +3786,7 @@ class Form extends Element implements FormInterface
             }
         }
         // The exchanged credential must not remain in address bars or referrers.
-        Craft::$app->getView()->registerJs("const u = new URL(window.location.href); u.searchParams.delete('resumeToken'); history.replaceState(history.state, '', u);", \yii\web\View::POS_END);
+        Craft::$app->getView()->registerJs("const u = new URL(window.location.href); u.searchParams.delete('resumeToken'); history.replaceState(history.state, '', u);", YiiView::POS_END);
         $this->_currentSubmission = $submission;
     }
 
@@ -3826,7 +3825,6 @@ class Form extends Element implements FormInterface
 
         return $errors;
     }
-
 
     /**
      * Ensures the cached default status is allowed for this form's status policy.
@@ -3937,5 +3935,4 @@ class Form extends Element implements FormInterface
             return $label ? Html::encode($label) : '';
         }
     }
-
 }

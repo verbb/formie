@@ -1,11 +1,14 @@
 <?php
 namespace verbb\formie\fields\values;
 
+use yii\base\UnknownPropertyException;
+
+use DateTimeInterface;
+
 class DateRangeFieldValue extends BaseFieldValue
 {
     // Static Methods
     // =========================================================================
-
 
     public static function partKeys(): array
     {
@@ -23,7 +26,7 @@ class DateRangeFieldValue extends BaseFieldValue
             return $value->getParts();
         }
 
-        if ($value instanceof \DateTimeInterface) {
+        if ($value instanceof DateTimeInterface) {
             return DateFieldValue::fromDateTime($value);
         }
 
@@ -33,6 +36,31 @@ class DateRangeFieldValue extends BaseFieldValue
     public static function fromMixed(mixed $value): self
     {
         return $value instanceof self ? $value : new self($value);
+    }
+
+    private static function _parseFlatSideParts(array $value, string $side): array
+    {
+        $parts = [];
+
+        foreach (self::partKeys() as $partKey) {
+            $prefixedKey = $side . ucfirst($partKey);
+
+            if (array_key_exists($prefixedKey, $value)) {
+                $parts[$partKey] = $value[$prefixedKey];
+            }
+        }
+
+        $datePart = trim((string)($value[$side . 'Date'] ?? ''));
+        $timePart = trim((string)($value[$side . 'Time'] ?? ''));
+
+        if ($datePart !== '' || $timePart !== '') {
+            return DateFieldValue::parseParts([
+                'date' => $datePart,
+                'time' => $timePart,
+            ]);
+        }
+
+        return DateFieldValue::normalizeParts($parts);
     }
 
 
@@ -98,7 +126,6 @@ class DateRangeFieldValue extends BaseFieldValue
         return $this->end->getParts();
     }
 
-
     /**
      * Virtual start/end (and side-part) keys for ArrayHelper property access.
      * Same contract as DateFieldValue — range sides are projections, not stored props.
@@ -111,7 +138,7 @@ class DateRangeFieldValue extends BaseFieldValue
     public function __get(string $name): mixed
     {
         if (!$this->canResolvePath($name)) {
-            throw new \yii\base\UnknownPropertyException('Getting unknown property: ' . static::class . '::' . $name);
+            throw new UnknownPropertyException('Getting unknown property: ' . static::class . '::' . $name);
         }
 
         return $this->getPathValue($name);
@@ -159,31 +186,6 @@ class DateRangeFieldValue extends BaseFieldValue
 
     // Private Methods
     // =========================================================================
-
-    private static function _parseFlatSideParts(array $value, string $side): array
-    {
-        $parts = [];
-
-        foreach (self::partKeys() as $partKey) {
-            $prefixedKey = $side . ucfirst($partKey);
-
-            if (array_key_exists($prefixedKey, $value)) {
-                $parts[$partKey] = $value[$prefixedKey];
-            }
-        }
-
-        $datePart = trim((string)($value[$side . 'Date'] ?? ''));
-        $timePart = trim((string)($value[$side . 'Time'] ?? ''));
-
-        if ($datePart !== '' || $timePart !== '') {
-            return DateFieldValue::parseParts([
-                'date' => $datePart,
-                'time' => $timePart,
-            ]);
-        }
-
-        return DateFieldValue::normalizeParts($parts);
-    }
 
     private function _resolveSidePartKey(string $path): ?array
     {

@@ -9,7 +9,6 @@ use verbb\formie\fields\Quiz;
 use verbb\formie\fields\Survey;
 use verbb\formie\helpers\Table;
 
-use Craft;
 use craft\base\Component;
 use craft\db\Query;
 use craft\helpers\Json;

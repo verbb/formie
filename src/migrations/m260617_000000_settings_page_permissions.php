@@ -11,6 +11,9 @@ use craft\db\Query;
 
 class m260617_000000_settings_page_permissions extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         $permissions = Formie::$plugin->getPermissions();

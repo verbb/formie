@@ -6,7 +6,9 @@ use verbb\formie\compatibility\client\RefreshTokensCompatibility;
 use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\elements\Form;
+use verbb\formie\helpers\BrowserRequestProfile;
 use verbb\formie\helpers\SiteHelper;
+use verbb\formie\services\RuntimeConfiguration;
 
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
@@ -35,7 +37,7 @@ class FormsController extends Controller
 
     public function beforeAction($action): bool
     {
-        \verbb\formie\helpers\BrowserRequestProfile::enter(true);
+        BrowserRequestProfile::enter(true);
         $this->forbidGuestControlPanelAnonymousActions($action->id);
 
         if (in_array($action->id, ['refresh-tokens', 'render'], true)) {
@@ -64,7 +66,7 @@ class FormsController extends Controller
         $requestToken = (string)$this->request->getQueryParam('requestToken', '');
 
         if ($requestToken !== '') {
-            (new \verbb\formie\services\RuntimeConfiguration())->restoreToken($form, $requestToken);
+            (new RuntimeConfiguration())->restoreToken($form, $requestToken);
         }
 
         $renderId = trim((string)$this->request->getParam('renderId', ''));

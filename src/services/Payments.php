@@ -5,9 +5,10 @@ use verbb\formie\Formie;
 use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\DeliveryOutcomeUnknownException;
 use verbb\formie\events\PaymentEvent;
 use verbb\formie\events\PaymentSuccessRedirectEvent;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\CompletionRedirectPolicy;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
@@ -20,16 +21,8 @@ use verbb\formie\records\Payment as PaymentRecord;
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
-use craft\events\ConfigEvent;
-use craft\helpers\App;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\models\FieldLayout;
-
-use yii\base\ErrorException;
-use yii\base\Exception;
-use yii\base\NotSupportedException;
-use yii\web\ServerErrorHttpException;
 
 use RuntimeException;
 use Throwable;
@@ -110,7 +103,7 @@ class Payments extends Component
                 && ($payment->scope['operation'] ?? 'payment') === $operation) {
                 if ($payment->status !== Payment::STATUS_SUCCEEDED && ($payment->scope['initial'] ?? false)
                     && (!$payment->accountFingerprint || !hash_equals($payment->accountFingerprint, $accountHash))) {
-                    throw new \verbb\formie\errors\DeliveryOutcomeUnknownException('Payment account changed; reconcile the original account.');
+                    throw new DeliveryOutcomeUnknownException('Payment account changed; reconcile the original account.');
                 }
 
                 if (!PaymentMoney::fromDecimal($payment->amount, (string)$payment->currency)->equals($amount)) {
@@ -344,7 +337,7 @@ class Payments extends Component
 
         $this->trigger(self::EVENT_DEFINE_PAYMENT_SUCCESS_REDIRECT_URL, $event);
 
-        return \verbb\formie\helpers\CompletionRedirectPolicy::validate($event->redirectUrl);
+        return CompletionRedirectPolicy::validate($event->redirectUrl);
     }
 
     public function resolvePaymentFailureRedirectUrl(Payment $payment, Submission $submission, Form $form): string

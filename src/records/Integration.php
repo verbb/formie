@@ -8,12 +8,6 @@ use craft\db\SoftDeleteTrait;
 
 class Integration extends ActiveRecord
 {
-    // Traits
-    // =========================================================================
-
-    use SoftDeleteTrait;
-
-
     // Static Methods
     // =========================================================================
 
@@ -21,4 +15,10 @@ class Integration extends ActiveRecord
     {
         return Table::FORMIE_INTEGRATIONS;
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use SoftDeleteTrait;
 }

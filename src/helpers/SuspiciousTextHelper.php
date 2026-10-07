@@ -3,34 +3,7 @@ namespace verbb\formie\helpers;
 
 class SuspiciousTextHelper
 {
-    // Constants
-    // =========================================================================
-
-    private const SUSPICIOUS_SCORE_THRESHOLD = 2;
-
-    private const KEYBOARD_WHOLE_WORDS = [
-        'qwe', 'wer', 'ert', 'rty', 'tyu', 'yui', 'uio', 'iop',
-        'asd', 'sdf', 'dfg', 'fgh', 'ghj', 'hjk', 'jkl',
-        'zxc', 'xcv', 'cvb', 'vbn', 'bnm',
-        'qwer', 'asdf', 'zxcv',
-    ];
-
-    private const KEYBOARD_SUBSTRINGS = [
-        'qwerty', 'qwertyuiop', 'asdfgh', 'asdfghjkl', 'zxcvbn', 'zxcvbnm',
-    ];
-
-    private const BUILTIN_ALLOWED_TERMS = [
-        'a', 'i',
-        'am', 'an', 'as', 'at', 'be', 'by', 'do', 'go', 'he', 'if', 'in', 'is', 'it', 'me', 'my',
-        'no', 'of', 'on', 'or', 'so', 'to', 'up', 'us', 'we',
-        'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'had', 'her', 'was', 'one',
-        'our', 'out', 'get', 'has', 'him', 'his', 'how', 'its', 'may', 'new', 'now', 'old', 'see',
-        'two', 'way', 'who', 'yes', 'yet', 'she', 'too', 'use', 'any', 'day', 'did', 'let', 'put',
-        'say', 'man', 'men', 'run', 'set', 'try', 'why', 'own', 'per', 'via',
-    ];
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function analyze(string $value, array $allowedTerms = []): array
@@ -99,10 +72,6 @@ class SuspiciousTextHelper
             'hits' => $hits,
         ];
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private static function _emptyResult(): array
     {
@@ -267,4 +236,31 @@ class SuspiciousTextHelper
             'token' => $token,
         ];
     }
+
+
+    // Constants
+    // =========================================================================
+
+    private const SUSPICIOUS_SCORE_THRESHOLD = 2;
+
+    private const KEYBOARD_WHOLE_WORDS = [
+        'qwe', 'wer', 'ert', 'rty', 'tyu', 'yui', 'uio', 'iop',
+        'asd', 'sdf', 'dfg', 'fgh', 'ghj', 'hjk', 'jkl',
+        'zxc', 'xcv', 'cvb', 'vbn', 'bnm',
+        'qwer', 'asdf', 'zxcv',
+    ];
+
+    private const KEYBOARD_SUBSTRINGS = [
+        'qwerty', 'qwertyuiop', 'asdfgh', 'asdfghjkl', 'zxcvbn', 'zxcvbnm',
+    ];
+
+    private const BUILTIN_ALLOWED_TERMS = [
+        'a', 'i',
+        'am', 'an', 'as', 'at', 'be', 'by', 'do', 'go', 'he', 'if', 'in', 'is', 'it', 'me', 'my',
+        'no', 'of', 'on', 'or', 'so', 'to', 'up', 'us', 'we',
+        'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'had', 'her', 'was', 'one',
+        'our', 'out', 'get', 'has', 'him', 'his', 'how', 'its', 'may', 'new', 'now', 'old', 'see',
+        'two', 'way', 'who', 'yes', 'yet', 'she', 'too', 'use', 'any', 'day', 'did', 'let', 'put',
+        'say', 'man', 'men', 'run', 'set', 'try', 'why', 'own', 'per', 'via',
+    ];
 }

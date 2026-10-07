@@ -8,12 +8,6 @@ use craft\db\SoftDeleteTrait;
 
 class Stencil extends ActiveRecord
 {
-    // Traits
-    // =========================================================================
-
-    use SoftDeleteTrait;
-
-
     // Static Methods
     // =========================================================================
 
@@ -21,4 +15,10 @@ class Stencil extends ActiveRecord
     {
         return Table::FORMIE_STENCILS;
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use SoftDeleteTrait;
 }

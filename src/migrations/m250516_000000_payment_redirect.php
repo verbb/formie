@@ -2,11 +2,12 @@
 namespace verbb\formie\migrations;
 
 use craft\db\Migration;
-use craft\db\Query;
-use craft\helpers\StringHelper;
 
 class m250516_000000_payment_redirect extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         if (!$this->db->columnExists('{{%formie_payments}}', 'redirectUrl')) {

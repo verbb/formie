@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
-use craft\feedme\fields\Lightswitch as FeedMeLightswitch;
 use verbb\formie\fields\Agree as AgreeField;
+
+use craft\feedme\fields\Lightswitch as FeedMeLightswitch;
 
 class Agree extends FeedMeLightswitch
 {
@@ -17,5 +18,4 @@ class Agree extends FeedMeLightswitch
 
     public static string $class = AgreeField::class;
     public static string $name = 'Agree';
-
 }

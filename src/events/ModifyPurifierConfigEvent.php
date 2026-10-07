@@ -11,5 +11,4 @@ class ModifyPurifierConfigEvent extends Event
     // =========================================================================
 
     public ?HTMLPurifier_Config $config = null;
-
 }

@@ -9,6 +9,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\enums\IntegrationStatus;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\events\IntegrationDeliveryEvent;
+use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\jobs\TriggerIntegration;
@@ -27,7 +28,6 @@ use craft\helpers\StringHelper;
 use yii\base\Component;
 
 use RuntimeException;
-use Throwable;
 
 class IntegrationRunner extends Component
 {
@@ -255,7 +255,7 @@ class IntegrationRunner extends Component
     {
         $integration = clone $connection;
         $integration->populateContext($submission);
-        $conditionEvaluation = $integration->enableConditions ? \verbb\formie\helpers\ConditionsHelper::evaluate($integration->conditions ?? [], $submission, 'integration') : null;
+        $conditionEvaluation = $integration->enableConditions ? ConditionsHelper::evaluate($integration->conditions ?? [], $submission, 'integration') : null;
         $invalidConditions = $conditionEvaluation && $conditionEvaluation->value === null;
         $eligible = $integration->shouldTrigger($submission, $triggerContext) && $integration->enforceOptInField($submission);
         $overrides = [];
@@ -343,7 +343,6 @@ class IntegrationRunner extends Component
         }
         $this->trigger(self::EVENT_RESULT, new IntegrationDeliveryEvent(['context' => $context, 'result' => $result, 'attemptUid' => $uid]));
     }
-
 
     private function _saveProjection(Integration|string $integration, Submission $submission, IntegrationResult $result, string $executionKey): void
     {

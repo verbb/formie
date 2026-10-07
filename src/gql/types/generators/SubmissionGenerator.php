@@ -57,10 +57,6 @@ class SubmissionGenerator extends Generator implements GeneratorInterface, Singl
         ]));
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     protected static function getContentFields($context): array
     {
         try {

@@ -9,13 +9,15 @@ use craft\base\SavableComponentInterface;
 
 interface IntegrationInterface extends SavableComponentInterface
 {
+    // Public Methods
+    // =========================================================================
+
     public function getFormSettingAttributes(): array;
     public function getFormSettingsSchema(FormInterface $form): array;
     public function getConfig(bool $useCache = true): IntegrationConfig;
     public function refreshConfig(): IntegrationConfig;
     public function supportsConfigRefresh(): bool;
     public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule;
-
     /**
      * Returns the CP icon URL for use in builder summaries/lists.
      * Implementations may internally cache published dist URLs.

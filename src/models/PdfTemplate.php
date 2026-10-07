@@ -43,14 +43,14 @@ class PdfTemplate extends BaseTemplate
         ];
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function getRecordClass(): string
     {
         return PdfTemplateRecord::class;
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

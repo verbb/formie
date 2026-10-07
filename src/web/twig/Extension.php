@@ -15,15 +15,97 @@ use verbb\formie\web\twig\tokenparsers\FormTagTokenParser;
 
 use Craft;
 
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFunction;
-use Twig\TwigFilter;
-use Twig\Environment;
-
 use yii\helpers\Inflector;
+
+use Twig\Environment;
+use Twig\Extension\AbstractExtension;
+use Twig\TwigFilter;
+use Twig\TwigFunction;
 
 class Extension extends AbstractExtension
 {
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * Build opening/closing HTML for a resolved field slot (same rules as the `fieldtag` Twig function).
+     *
+     * @param array<string, mixed> $twigContext
+     * @param array<string, mixed> $options
+     */
+    public static function formatSlotTagHtml(string $key, SlotTag $htmlTag, array $twigContext, array $options = []): string
+    {
+        $attributes = $htmlTag->attributesForRender($options);
+        $attributes = self::applyContextTagDefaults($key, $htmlTag->tag, $attributes, $twigContext);
+
+        $text = ArrayHelper::remove($attributes, 'text');
+        $content = $htmlTag->composeContent($text);
+
+        return Html::tag($htmlTag->tag, $content, $attributes);
+    }
+
+    public static function createRenderContext(array $context): RenderContext
+    {
+        return RenderContext::from($context, [
+            'form' => $context['form'] ?? null,
+            'field' => $context['field'] ?? null,
+        ]);
+    }
+
+    public static function mergeTagAttributes(array $attributes, array $options = []): array
+    {
+        if (!$options) {
+            return $attributes;
+        }
+
+        $reset = ArrayHelper::remove($options, 'reset', false);
+        $mergeOptions = [];
+
+        if ($reset) {
+            $mergeOptions['resetClassA'] = true;
+        }
+
+        return Html::mergeAttributes($attributes, $options, $mergeOptions);
+    }
+
+    public static function applyContextTagDefaults(string $key, string $tagName, array $attributes, array $context): array
+    {
+        if (!in_array($key, ['fieldInput', 'fieldOtherOptionText'], true)) {
+            return $attributes;
+        }
+
+        $value = $context['value'] ?? null;
+
+        if ($tagName === 'textarea' && !array_key_exists('text', $attributes) && $value !== null) {
+            $attributes['text'] = $value;
+        }
+
+        if ($tagName === 'input' && !array_key_exists('value', $attributes) && $value !== null) {
+            $attributes['value'] = $value;
+        }
+
+        $errors = $context['errors'] ?? [];
+
+        if (!empty($errors)) {
+            $attributes['aria-invalid'] = 'true';
+
+            $field = $context['field'] ?? null;
+            $form = $context['form'] ?? null;
+
+            if ($field instanceof Field && $form instanceof Form) {
+                $errorsId = $field->getHtmlId($form) . '-errors';
+                $describedBy = array_filter([
+                    $attributes['aria-describedby'] ?? null,
+                    $errorsId,
+                ]);
+                $attributes['aria-describedby'] = implode(' ', $describedBy);
+            }
+        }
+
+        return $attributes;
+    }
+
+
     // Public Methods
     // =========================================================================
 
@@ -152,83 +234,5 @@ class Extension extends AbstractExtension
         }
 
         return null;
-    }
-
-    /**
-     * Build opening/closing HTML for a resolved field slot (same rules as the `fieldtag` Twig function).
-     *
-     * @param array<string, mixed> $twigContext
-     * @param array<string, mixed> $options
-     */
-    public static function formatSlotTagHtml(string $key, SlotTag $htmlTag, array $twigContext, array $options = []): string
-    {
-        $attributes = $htmlTag->attributesForRender($options);
-        $attributes = self::applyContextTagDefaults($key, $htmlTag->tag, $attributes, $twigContext);
-
-        $text = ArrayHelper::remove($attributes, 'text');
-        $content = $htmlTag->composeContent($text);
-
-        return Html::tag($htmlTag->tag, $content, $attributes);
-    }
-
-    public static function createRenderContext(array $context): RenderContext
-    {
-        return RenderContext::from($context, [
-            'form' => $context['form'] ?? null,
-            'field' => $context['field'] ?? null,
-        ]);
-    }
-
-    public static function mergeTagAttributes(array $attributes, array $options = []): array
-    {
-        if (!$options) {
-            return $attributes;
-        }
-
-        $reset = ArrayHelper::remove($options, 'reset', false);
-        $mergeOptions = [];
-
-        if ($reset) {
-            $mergeOptions['resetClassA'] = true;
-        }
-
-        return Html::mergeAttributes($attributes, $options, $mergeOptions);
-    }
-
-    public static function applyContextTagDefaults(string $key, string $tagName, array $attributes, array $context): array
-    {
-        if (!in_array($key, ['fieldInput', 'fieldOtherOptionText'], true)) {
-            return $attributes;
-        }
-
-        $value = $context['value'] ?? null;
-
-        if ($tagName === 'textarea' && !array_key_exists('text', $attributes) && $value !== null) {
-            $attributes['text'] = $value;
-        }
-
-        if ($tagName === 'input' && !array_key_exists('value', $attributes) && $value !== null) {
-            $attributes['value'] = $value;
-        }
-
-        $errors = $context['errors'] ?? [];
-
-        if (!empty($errors)) {
-            $attributes['aria-invalid'] = 'true';
-
-            $field = $context['field'] ?? null;
-            $form = $context['form'] ?? null;
-
-            if ($field instanceof Field && $form instanceof Form) {
-                $errorsId = $field->getHtmlId($form) . '-errors';
-                $describedBy = array_filter([
-                    $attributes['aria-describedby'] ?? null,
-                    $errorsId,
-                ]);
-                $attributes['aria-describedby'] = implode(' ', $describedBy);
-            }
-        }
-
-        return $attributes;
     }
 }

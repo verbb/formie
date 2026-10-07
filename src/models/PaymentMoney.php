@@ -79,6 +79,7 @@ final class PaymentMoney
         return $this->currency === $other->currency && $this->minor === $other->minor;
     }
 
+
     // Private Methods
     // =========================================================================
 
@@ -88,5 +89,4 @@ final class PaymentMoney
         $this->currency = $currency;
         $this->digits = $digits;
     }
-
 }

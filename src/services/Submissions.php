@@ -2,28 +2,19 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FixedParentFieldInterface;
-use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SearchableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
-use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\deprecations\SubmissionsDeprecations;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\PruneSubmissionEvent;
-use verbb\formie\fields as formiefields;
-use verbb\formie\fields\values\AddressFieldValue;
-use verbb\formie\fields\values\MultiOptionFieldValue;
-use verbb\formie\fields\values\NameFieldValue;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\fields\Group;
 use verbb\formie\helpers\DataRetentionHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\UpdateSubmissionContent;
-use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 
@@ -31,8 +22,6 @@ use Craft;
 use craft\base\Element;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
-use craft\elements\Asset;
-use craft\elements\db\ElementQuery;
 use craft\elements\User;
 use craft\events\DefineSourceSortOptionsEvent;
 use craft\events\DefineSourceTableAttributesEvent;
@@ -43,7 +32,6 @@ use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\Queue;
 use craft\helpers\Search as SearchHelper;
-use craft\helpers\Session;
 use craft\helpers\UrlHelper;
 
 use yii\base\Component;
@@ -51,12 +39,9 @@ use yii\base\Event;
 
 use DateInterval;
 use DateTime;
-use DateTimeZone;
-use Exception;
 use Throwable;
 
-use Faker;
-use libphonenumber\PhoneNumberUtil;
+use Faker\Factory;
 
 class Submissions extends Component
 {
@@ -482,7 +467,7 @@ class Submissions extends Component
         // Include removed groups: their stored children still need moving to the current layout.
         // More performant if we don't spin up the queue job unless we need to
         $hasGroupField = array_filter($form->getFields(), function($field) {
-            return $field instanceof formiefields\Group;
+            return $field instanceof Group;
         });
 
         if ($hasGroupField || $previousGroupFieldUids) {
@@ -557,7 +542,7 @@ class Submissions extends Component
     {
         $fieldContent = [];
 
-        $faker = Faker\Factory::create();
+        $faker = Factory::create();
 
         foreach ($fields as $key => $field) {
             // Notification tokens use stable field references; keep handle support
@@ -595,5 +580,4 @@ class Submissions extends Component
 
         return array_values(array_unique($handles));
     }
-
 }

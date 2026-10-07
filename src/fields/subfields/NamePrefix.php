@@ -2,14 +2,11 @@
 namespace verbb\formie\fields\subfields;
 
 use verbb\formie\base\ChildFieldInterface;
-use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyNamePrefixOptionsEvent;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\Html;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\SlotTag;
-use verbb\formie\models\Notification;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -19,12 +16,6 @@ use yii\base\Event;
 
 class NamePrefix extends Dropdown implements ChildFieldInterface
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_PREFIX_OPTIONS = 'modifyPrefixOptions';
-
-
     // Static Methods
     // =========================================================================
 
@@ -42,6 +33,12 @@ class NamePrefix extends Dropdown implements ChildFieldInterface
     {
         return 'fields/dropdown';
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_PREFIX_OPTIONS = 'modifyPrefixOptions';
 
 
     // Public Methods

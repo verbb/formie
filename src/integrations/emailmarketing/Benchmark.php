@@ -6,8 +6,8 @@ use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -28,11 +28,13 @@ class Benchmark extends EmailMarketing
         return 'Benchmark';
     }
 
+
     // Properties
     // =========================================================================
 
     #[Sensitive]
     public ?string $apiKey = null;
+
 
     // Public Methods
     // =========================================================================
@@ -93,6 +95,29 @@ class Benchmark extends EmailMarketing
 
         return new IntegrationConfig($settings);
     }
+
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('GET', 'Client/ProfileDetails');
+            $accountId = $response['Response']['email'] ?? '';
+
+            if (!$accountId) {
+                Integration::error($this, 'Unable to find “{email}” in response.', true);
+                return false;
+            }
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
 
     protected function executePayload(Submission $submission): IntegrationResult
     {
@@ -159,29 +184,6 @@ class Benchmark extends EmailMarketing
         return $this->resultForPayload(true);
     }
 
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('GET', 'Client/ProfileDetails');
-            $accountId = $response['Response']['email'] ?? '';
-
-            if (!$accountId) {
-                Integration::error($this, 'Unable to find “{email}” in response.', true);
-                return false;
-            }
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -198,5 +200,4 @@ class Benchmark extends EmailMarketing
             'headers' => ['AuthToken' => App::parseEnv($this->apiKey)],
         ]);
     }
-
 }

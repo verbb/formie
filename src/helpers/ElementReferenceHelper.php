@@ -107,10 +107,6 @@ class ElementReferenceHelper
         return [implode('.', $parts), $index];
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     /**
      * @return ElementInterface[]
      */

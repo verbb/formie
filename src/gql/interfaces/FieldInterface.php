@@ -1,17 +1,15 @@
 <?php
 namespace verbb\formie\gql\interfaces;
 
-use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Table;
-use verbb\formie\helpers\Gql as FormieGql;
-use verbb\formie\gql\types\generators\FieldGenerator;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
+use verbb\formie\gql\types\generators\FieldGenerator;
 use verbb\formie\gql\types\Json as JsonType;
+use verbb\formie\helpers\Gql as FormieGql;
 
 use Craft;
 use craft\gql\base\InterfaceType as BaseInterfaceType;
 use craft\gql\GqlEntityRegistry;
-use craft\helpers\Json;
 
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;

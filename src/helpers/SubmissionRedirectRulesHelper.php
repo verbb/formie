@@ -1,14 +1,16 @@
 <?php
 namespace verbb\formie\helpers;
 
-use craft\elements\Entry;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\FormSettings;
 
+use Craft;
+use craft\elements\Entry;
+
 class SubmissionRedirectRulesHelper
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getMatchedRule(Form $form, Submission $submission): ?array
@@ -74,10 +76,6 @@ class SubmissionRedirectRulesHelper
         return is_string($url) ? $url : '';
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     private static function _getRuleEntry(array $rule): ?Entry
     {
         $entryRef = $rule['redirectEntry'] ?? null;
@@ -99,6 +97,6 @@ class SubmissionRedirectRulesHelper
             return null;
         }
 
-        return \Craft::$app->getEntries()->getEntryById($entryId, $siteId);
+        return Craft::$app->getEntries()->getEntryById($entryId, $siteId);
     }
 }

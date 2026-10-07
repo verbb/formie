@@ -9,6 +9,26 @@ use DateTime;
 
 class ReportExportFile extends Model
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function buildDownloadUrl(string $uid, string $downloadToken, ?int $siteId = null): string
+    {
+        return UrlHelper::actionUrl('formie/reports/download-export', [
+            'uid' => $uid,
+            'downloadToken' => $downloadToken,
+        ], null, $siteId);
+    }
+
+    /**
+     * Craft 5.9+ validates the `token` query param before routing; rewrite legacy export links.
+     */
+    public static function normalizeDownloadUrl(string $url): string
+    {
+        return (string)preg_replace('/([?&])token=/', '$1downloadToken=', $url, 1);
+    }
+
+
     // Constants
     // =========================================================================
 
@@ -72,22 +92,6 @@ class ReportExportFile extends Model
         return UrlHelper::cpUrl('formie/reports/download-queued-export/' . $this->uid);
     }
 
-    public static function buildDownloadUrl(string $uid, string $downloadToken, ?int $siteId = null): string
-    {
-        return UrlHelper::actionUrl('formie/reports/download-export', [
-            'uid' => $uid,
-            'downloadToken' => $downloadToken,
-        ], null, $siteId);
-    }
-
-    /**
-     * Craft 5.9+ validates the `token` query param before routing; rewrite legacy export links.
-     */
-    public static function normalizeDownloadUrl(string $url): string
-    {
-        return (string)preg_replace('/([?&])token=/', '$1downloadToken=', $url, 1);
-    }
-
     public function isExpired(): bool
     {
         if (!$this->dateExpires) {
@@ -110,6 +114,15 @@ class ReportExportFile extends Model
             && $this->downloadTokenHash !== '';
     }
 
+    public function attributeLabels(): array
+    {
+        return [
+            'reportId' => Craft::t('formie', 'Report'),
+            'format' => Craft::t('formie', 'Format'),
+            'status' => Craft::t('formie', 'Status'),
+        ];
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -124,15 +137,6 @@ class ReportExportFile extends Model
             [['context'], 'safe'],
             [['dateExpires', 'dateDownloaded'], 'safe'],
             [['error'], 'string'],
-        ];
-    }
-
-    public function attributeLabels(): array
-    {
-        return [
-            'reportId' => Craft::t('formie', 'Report'),
-            'format' => Craft::t('formie', 'Format'),
-            'status' => Craft::t('formie', 'Status'),
         ];
     }
 }

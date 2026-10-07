@@ -16,11 +16,11 @@ use Craft;
 use craft\db\Query;
 use craft\events\ConfigEvent;
 use craft\helpers\Db;
-use craft\helpers\Json;
 use craft\models\Site;
 
 use yii\base\Component;
 
+use Exception;
 use Throwable;
 
 class Stencils extends Component
@@ -636,7 +636,7 @@ class Stencils extends Component
                 $stencilRecord = StencilRecord::findOne($stencil->id);
 
                 if (!$stencilRecord) {
-                    throw new \Exception('Invalid stencil ID: ' . $stencil->id);
+                    throw new Exception('Invalid stencil ID: ' . $stencil->id);
                 }
             }
 

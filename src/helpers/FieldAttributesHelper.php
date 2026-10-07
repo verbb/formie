@@ -7,11 +7,6 @@ use InvalidArgumentException;
 
 class FieldAttributesHelper
 {
-    public const SETTING_CONTAINER = 'containerAttributes';
-    public const SETTING_INPUT = 'inputAttributes';
-    public const MERGE_SETTING_CONTAINER = 'mergeContainerAttributes';
-    public const MERGE_SETTING_INPUT = 'mergeInputAttributes';
-
     // Static Methods
     // =========================================================================
 
@@ -180,10 +175,6 @@ class FieldAttributesHelper
         return $flat;
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     private static function _normalizeTableFormat(array $attributes, string $settingName, bool $throwOnInvalid): array
     {
         $rows = [];
@@ -223,4 +214,13 @@ class FieldAttributesHelper
             $settingName,
         );
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const SETTING_CONTAINER = 'containerAttributes';
+    public const SETTING_INPUT = 'inputAttributes';
+    public const MERGE_SETTING_CONTAINER = 'mergeContainerAttributes';
+    public const MERGE_SETTING_INPUT = 'mergeInputAttributes';
 }

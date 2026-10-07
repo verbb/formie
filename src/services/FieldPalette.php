@@ -12,6 +12,8 @@ use Craft;
 use craft\base\Component;
 use craft\validators\HandleValidator;
 
+use Generator;
+
 class FieldPalette extends Component
 {
     // Constants
@@ -914,7 +916,7 @@ class FieldPalette extends Component
         return $fields;
     }
 
-    private function _iteratePaletteEntries(array $palette): \Generator
+    private function _iteratePaletteEntries(array $palette): Generator
     {
         foreach ($palette['groups'] ?? [] as $group) {
             foreach ($group['fields'] ?? [] as $entry) {

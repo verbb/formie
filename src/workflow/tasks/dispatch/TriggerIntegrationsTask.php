@@ -2,6 +2,7 @@
 namespace verbb\formie\workflow\tasks\dispatch;
 
 use verbb\formie\Formie;
+use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
@@ -26,7 +27,7 @@ class TriggerIntegrationsTask implements TaskInterface
             Formie::$plugin->getIntegrationTriggers()->dispatchFromWorkflow(
                 $context->command->submission,
                 $context->command->operation,
-                IntegrationTriggerEvents::resolveFromOperation($context->command->operation, $context->command->authority->type === \verbb\formie\enums\SubmissionAuthorityType::CONTROL_PANEL),
+                IntegrationTriggerEvents::resolveFromOperation($context->command->operation, $context->command->authority->type === SubmissionAuthorityType::CONTROL_PANEL),
             );
         };
 

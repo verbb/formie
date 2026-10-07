@@ -2,6 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
@@ -12,19 +13,6 @@ use Throwable;
 
 final class IntegrationApiErrors
 {
-    // Constants
-    // =========================================================================
-
-    public const SEVERITY_FAILURE = 'failure';
-    public const SEVERITY_REJECTED = 'rejected';
-    public const SEVERITY_RATE_LIMITED = 'rate_limited';
-
-    public const ACTION_FAIL_QUEUE = 'failQueue';
-    public const ACTION_LOG_WARNING = 'logWarning';
-    public const ACTION_LOG_INFO = 'logInfo';
-    public const ACTION_IGNORE = 'ignore';
-
-
     // Static Methods
     // =========================================================================
 
@@ -85,8 +73,8 @@ final class IntegrationApiErrors
         Submission $submission,
         string $severity,
     ): string {
-        $messageText = \verbb\formie\base\Integration::getExceptionLogMessage($exception);
-        $context = \verbb\formie\base\Integration::formatSubmissionLogContext($submission);
+        $messageText = Integration::getExceptionLogMessage($exception);
+        $context = Integration::formatSubmissionLogContext($submission);
 
         return Craft::t('formie', 'API {severity} (handled): “{message}”{context}', [
             'severity' => $severity,
@@ -94,4 +82,17 @@ final class IntegrationApiErrors
             'context' => $context !== '' ? ' ' . $context : '',
         ]);
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const SEVERITY_FAILURE = 'failure';
+    public const SEVERITY_REJECTED = 'rejected';
+    public const SEVERITY_RATE_LIMITED = 'rate_limited';
+
+    public const ACTION_FAIL_QUEUE = 'failQueue';
+    public const ACTION_LOG_WARNING = 'logWarning';
+    public const ACTION_LOG_INFO = 'logInfo';
+    public const ACTION_IGNORE = 'ignore';
 }

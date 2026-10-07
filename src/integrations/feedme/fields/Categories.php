@@ -20,6 +20,9 @@ class Categories extends FeedMeCategories
     public static string $name = 'Categories';
 
 
+    // Public Methods
+    // =========================================================================
+
     // Templates
     // =========================================================================
 
@@ -27,5 +30,4 @@ class Categories extends FeedMeCategories
     {
         return 'formie/integrations/feedme/fields/categories';
     }
-
 }

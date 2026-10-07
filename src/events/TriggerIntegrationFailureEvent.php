@@ -6,6 +6,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationResponse;
 
 use yii\base\Event;
+
 use Throwable;
 
 class TriggerIntegrationFailureEvent extends Event

@@ -38,6 +38,24 @@ class FormSitePolicy extends Model
         ];
     }
 
+    private static function _normalizeSiteIds(mixed $value): ?array
+    {
+        if ($value === null || $value === '' || $value === '*' || $value === []) {
+            return null;
+        }
+
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        if (in_array('*', $value, true)) {
+            return null;
+        }
+
+        $ids = array_values(array_unique(array_filter(array_map('intval', $value))));
+
+        return $ids === [] ? null : $ids;
+    }
 
 
     // Constants
@@ -72,20 +90,6 @@ class FormSitePolicy extends Model
         return $data;
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['propagation'], 'in', 'range' => array_keys(self::propagationOptions())];
-        $rules[] = [['enabledSiteIds'], 'validateEnabledSiteIds'];
-
-        return $rules;
-    }
-
     public function validateEnabledSiteIds(): void
     {
         if ($this->enabledSiteIds === null) {
@@ -110,25 +114,16 @@ class FormSitePolicy extends Model
     }
 
 
-    // Private Methods
+    // Protected Methods
     // =========================================================================
 
-    private static function _normalizeSiteIds(mixed $value): ?array
+    protected function defineRules(): array
     {
-        if ($value === null || $value === '' || $value === '*' || $value === []) {
-            return null;
-        }
+        $rules = parent::defineRules();
 
-        if (!is_array($value)) {
-            $value = [$value];
-        }
+        $rules[] = [['propagation'], 'in', 'range' => array_keys(self::propagationOptions())];
+        $rules[] = [['enabledSiteIds'], 'validateEnabledSiteIds'];
 
-        if (in_array('*', $value, true)) {
-            return null;
-        }
-
-        $ids = array_values(array_unique(array_filter(array_map('intval', $value))));
-
-        return $ids === [] ? null : $ids;
+        return $rules;
     }
 }

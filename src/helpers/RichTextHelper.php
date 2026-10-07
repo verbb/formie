@@ -2,7 +2,6 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\elements\Submission;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\RichText;
 
 use Craft;
@@ -10,7 +9,6 @@ use craft\base\ElementInterface;
 use craft\elements\Asset;
 use craft\elements\Category;
 use craft\elements\Entry;
-use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\models\Section;
 
@@ -48,10 +46,6 @@ class RichTextHelper
     {
         return RichText::normalizeNodes($content);
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private static function _getDefaultConfig(): array
     {

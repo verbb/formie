@@ -12,12 +12,6 @@ use ReflectionProperty;
 /** Formie owns binding state; extensions only annotate their existing properties. */
 final class FormIntegration
 {
-    // Constants
-    // =========================================================================
-
-    public const POLICY_ATTRIBUTES = ['enabled', 'execution', 'optInField', 'enableConditions', 'conditions', 'trigger'];
-
-
     // Static Methods
     // =========================================================================
 
@@ -82,6 +76,12 @@ final class FormIntegration
 
         return new self($integration, $enabled, $execution, $settings, $formId, $formHandle);
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const POLICY_ATTRIBUTES = ['enabled', 'execution', 'optInField', 'enableConditions', 'conditions', 'trigger'];
 
 
     // Properties

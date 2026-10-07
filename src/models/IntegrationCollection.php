@@ -11,5 +11,4 @@ class IntegrationCollection extends Model
     public ?string $id = null;
     public ?string $name = null;
     public array $fields = [];
-
 }

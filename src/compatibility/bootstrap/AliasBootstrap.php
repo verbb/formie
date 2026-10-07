@@ -3,12 +3,6 @@ namespace verbb\formie\compatibility\bootstrap;
 
 class AliasBootstrap
 {
-    // Properties
-    // =========================================================================
-
-    private static bool $registered = false;
-
-
     // Static Methods
     // =========================================================================
 
@@ -130,4 +124,10 @@ class AliasBootstrap
         class_exists($class);
         class_alias($class, $alias);
     }
+
+
+    // Properties
+    // =========================================================================
+
+    private static bool $registered = false;
 }

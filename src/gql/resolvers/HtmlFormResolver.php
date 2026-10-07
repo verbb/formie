@@ -2,16 +2,23 @@
 namespace verbb\formie\gql\resolvers;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\BrowserRequestProfile;
+use verbb\formie\helpers\CrossOriginRequestHelper;
 use verbb\formie\helpers\Gql as GqlHelper;
+
+use Craft;
 
 use yii\web\NotFoundHttpException;
 
 class HtmlFormResolver
 {
+    // Static Methods
+    // =========================================================================
+
     public static function resolve(mixed $source, array $arguments): array
     {
-        \verbb\formie\helpers\BrowserRequestProfile::enter(true);
-        \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders(\Craft::$app->getRequest(), \Craft::$app->getResponse());
+        BrowserRequestProfile::enter(true);
+        CrossOriginRequestHelper::applyHeaders(Craft::$app->getRequest(), Craft::$app->getResponse());
         $form = GqlHelper::findReadableFormByHandle(
             (string)($arguments['handle'] ?? ''),
             isset($arguments['siteId']) ? (int)$arguments['siteId'] : null

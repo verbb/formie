@@ -7,7 +7,7 @@ use craft\web\Request;
 
 class RefreshTokensCompatibility
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function resolveRequestedHandle(Request $request): string

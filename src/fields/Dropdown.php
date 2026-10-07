@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\fields;
 
-use verbb\formie\base\FieldInterface;
 use verbb\formie\base\OptionsField;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\traits\AutocompleteFieldTrait;
@@ -10,10 +9,8 @@ use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
 use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;

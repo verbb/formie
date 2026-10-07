@@ -7,8 +7,8 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -28,11 +28,13 @@ class GetResponse extends EmailMarketing
         return 'GetResponse';
     }
 
+
     // Properties
     // =========================================================================
 
     #[Sensitive]
     public ?string $apiKey = null;
+
 
     // Public Methods
     // =========================================================================
@@ -78,6 +80,29 @@ class GetResponse extends EmailMarketing
 
         return new IntegrationConfig($settings);
     }
+
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('GET', 'accounts');
+            $accountId = $response['accountId'] ?? '';
+
+            if (!$accountId) {
+                Integration::error($this, 'Unable to find “{accountId}” in response.', true);
+                return false;
+            }
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
 
     protected function executePayload(Submission $submission): IntegrationResult
     {
@@ -131,29 +156,6 @@ class GetResponse extends EmailMarketing
 
         return $this->resultForPayload(true);
     }
-
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('GET', 'accounts');
-            $accountId = $response['accountId'] ?? '';
-
-            if (!$accountId) {
-                Integration::error($this, 'Unable to find “{accountId}” in response.', true);
-                return false;
-            }
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

@@ -2,41 +2,24 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
+use verbb\formie\base\ContainerParentField;
 use verbb\formie\base\ContainerParentFieldInterface;
 use verbb\formie\base\Field;
-use verbb\formie\base\Integration;
-use verbb\formie\base\IntegrationInterface;
-use verbb\formie\base\ContainerParentField;
-use verbb\formie\base\ParentFieldInterface;
-use verbb\formie\elements\Submission;
-use verbb\formie\gql\resolvers\elements\NestedFieldRowResolver;
 use verbb\formie\gql\types\generators\NestedFieldGenerator;
 use verbb\formie\gql\types\input\GroupInputType;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\DynamicModel;
 use verbb\formie\models\SlotTag;
-use verbb\formie\models\IntegrationField;
-use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
-use craft\base\EagerLoadingFieldInterface;
 use craft\base\Element;
 use craft\base\ElementInterface;
-use craft\gql\GqlEntityRegistry;
 use craft\helpers\Gql;
-use craft\helpers\Template;
 
 use Faker\Generator as FakerFactory;
-
-use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
-
-use yii\validators\Validator;
 
 class Group extends ContainerParentField implements ContainerParentFieldInterface
 {
@@ -160,6 +143,7 @@ class Group extends ContainerParentField implements ContainerParentFieldInterfac
         ];
     }
 
+
     // Protected Methods
     // =========================================================================
 
@@ -248,5 +232,4 @@ class Group extends ContainerParentField implements ContainerParentFieldInterfac
     {
         return false;
     }
-
 }

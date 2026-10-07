@@ -1,33 +1,14 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\base\FormInterface;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMiscellaneousPayloadEvent;
-use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\Stencil;
 
 use Craft;
-use craft\helpers\Html;
-use craft\helpers\Json;
 use craft\helpers\UrlHelper;
-
-use yii\helpers\Markdown;
 
 abstract class Miscellaneous extends Integration implements DispatchableIntegrationInterface
 {
-    // Traits
-    // =========================================================================
-
-    use DispatchableIntegrationTrait;
-
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_MISCELLANEOUS_PAYLOAD = 'modifyMiscellaneousPayload';
-
-
     // Static Methods
     // =========================================================================
 
@@ -35,6 +16,18 @@ abstract class Miscellaneous extends Integration implements DispatchableIntegrat
     {
         return Craft::t('formie', 'Miscellaneous');
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_MISCELLANEOUS_PAYLOAD = 'modifyMiscellaneousPayload';
+
+
+    // Traits
+    // =========================================================================
+
+    use DispatchableIntegrationTrait;
 
 
     // Public Methods

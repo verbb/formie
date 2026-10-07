@@ -4,7 +4,6 @@ namespace verbb\formie\elements\db;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\Table;
-use verbb\formie\models\FieldLayout;
 use verbb\formie\models\SubmissionStatus;
 
 use Craft;
@@ -69,6 +68,7 @@ class SubmissionQuery extends ElementQuery
     public mixed $updateTitle = null;
 
     protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
+
     private static array $_fieldHandleCacheByScope = [];
     private static array $_customFieldsByHandleScope = [];
     private array $_fieldCriteriaByHandle = [];
@@ -325,10 +325,6 @@ class SubmissionQuery extends ElementQuery
         // Formie fields are not Craft fields; their criteria are applied in afterPrepare().
         return [];
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
 
     // Private Methods
@@ -709,5 +705,4 @@ class SubmissionQuery extends ElementQuery
 
         return array_values(array_unique($attributes));
     }
-
 }

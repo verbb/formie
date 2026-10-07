@@ -6,8 +6,8 @@ use verbb\formie\gql\types\FormSettingsType;
 use verbb\formie\gql\types\generators\FormGenerator;
 
 use Craft;
-use craft\gql\interfaces\Element;
 use craft\gql\GqlEntityRegistry;
+use craft\gql\interfaces\Element;
 
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;

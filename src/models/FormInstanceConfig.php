@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\models;
 
+use InvalidArgumentException;
+
 final class FormInstanceConfig
 {
     // Static Methods
@@ -39,7 +41,7 @@ final class FormInstanceConfig
         $data = get_object_vars($this);
 
         if (!array_key_exists($section, $data)) {
-            throw new \InvalidArgumentException('Unknown instance configuration section: ' . $section);
+            throw new InvalidArgumentException('Unknown instance configuration section: ' . $section);
         }
         $data[$section] = self::merge($data[$section], $values);
         return new self(...$data);

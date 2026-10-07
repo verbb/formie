@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Content;
 use verbb\formie\fields\Heading;
@@ -8,7 +9,6 @@ use verbb\formie\fields\Html;
 use verbb\formie\fields\Note;
 use verbb\formie\fields\Section;
 use verbb\formie\fields\Summary;
-use verbb\formie\Formie;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Report;
 

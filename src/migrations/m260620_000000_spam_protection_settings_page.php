@@ -9,6 +9,9 @@ use craft\db\Query;
 
 class m260620_000000_spam_protection_settings_page extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         // Craft stores permission names lowercased and matches them case-sensitively when

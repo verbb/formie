@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
-use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
@@ -15,8 +14,8 @@ use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -31,12 +30,6 @@ use verbb\auth\providers\Salesforce as SalesforceProvider;
 
 class Pardot extends Crm implements OAuthProviderInterface
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_FORM_HANDLER_PAYLOAD = 'modifyFormHandlerPayload';
-
-
     // Static Methods
     // =========================================================================
 
@@ -54,6 +47,29 @@ class Pardot extends Crm implements OAuthProviderInterface
     {
         return 'Pardot';
     }
+
+    private static function _getApiCompatibilityError(mixed $response): ?string
+    {
+        if (!is_array($response)) {
+            return null;
+        }
+
+        $attributes = $response['@attributes'] ?? [];
+        $errCode = (int)($attributes['err_code'] ?? $response['err_code'] ?? 0);
+        $err = strtolower((string)($response['err'] ?? ''));
+
+        if ($errCode === 89 || str_contains($err, 'unable to use version 4')) {
+            return Craft::t('formie', 'Your Pardot account does not support API v4. Formie requires Account Engagement (Salesforce Pardot). The legacy Pardot Classic app (pi.pardot.com) is not supported.');
+        }
+
+        return null;
+    }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_FORM_HANDLER_PAYLOAD = 'modifyFormHandlerPayload';
 
 
     // Properties
@@ -124,6 +140,7 @@ class Pardot extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
+
     public function getAuthorizationUrlOptions(): array
     {
         $options = parent::getAuthorizationUrlOptions();
@@ -397,6 +414,28 @@ class Pardot extends Crm implements OAuthProviderInterface
         return new IntegrationConfig($settings);
     }
 
+    public function populateContext(?Submission $submission = null): void
+    {
+        parent::populateContext($submission);
+
+        if (!isset($this->context['pardot_tracking']) || !$this->context['pardot_tracking']) {
+            $trackingData = [];
+            $pattern = '/^visitor_id[0-9]+(-hash)?$/';
+
+            foreach ($_COOKIE as $key => $value) {
+                if (preg_match($pattern, $key)) {
+                    $trackingData[$key] = $value;
+                }
+            }
+
+            $this->context['pardot_tracking'] = $trackingData;
+        }
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -518,28 +557,6 @@ class Pardot extends Crm implements OAuthProviderInterface
         return $this->resultForPayload(true);
     }
 
-    public function populateContext(?Submission $submission = null): void
-    {
-        parent::populateContext($submission);
-
-        if (!isset($this->context['pardot_tracking']) || !$this->context['pardot_tracking']) {
-            $trackingData = [];
-            $pattern = '/^visitor_id[0-9]+(-hash)?$/';
-
-            foreach ($_COOKIE as $key => $value) {
-                if (preg_match($pattern, $key)) {
-                    $trackingData[$key] = $value;
-                }
-            }
-
-            $this->context['pardot_tracking'] = $trackingData;
-        }
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -611,7 +628,6 @@ class Pardot extends Crm implements OAuthProviderInterface
 
         return $schema;
     }
-
 
     protected function generatePayloadValues(Submission $submission): array
     {
@@ -727,22 +743,5 @@ class Pardot extends Crm implements OAuthProviderInterface
         }
 
         return $customFields;
-    }
-
-    private static function _getApiCompatibilityError(mixed $response): ?string
-    {
-        if (!is_array($response)) {
-            return null;
-        }
-
-        $attributes = $response['@attributes'] ?? [];
-        $errCode = (int)($attributes['err_code'] ?? $response['err_code'] ?? 0);
-        $err = strtolower((string)($response['err'] ?? ''));
-
-        if ($errCode === 89 || str_contains($err, 'unable to use version 4')) {
-            return Craft::t('formie', 'Your Pardot account does not support API v4. Formie requires Account Engagement (Salesforce Pardot). The legacy Pardot Classic app (pi.pardot.com) is not supported.');
-        }
-
-        return null;
     }
 }

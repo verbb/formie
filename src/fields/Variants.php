@@ -2,37 +2,19 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ElementField;
-use verbb\formie\base\RelationFieldTrait;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyElementFieldQueryEvent;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\SlotTag;
-use verbb\formie\models\Notification;
-use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
-use craft\elements\db\ElementQueryInterface;
-use craft\errors\SiteNotFoundException;
-use craft\helpers\Gql as GqlHelper;
-use craft\helpers\Json;
 use craft\helpers\UrlHelper;
-use craft\services\Gql as GqlService;
 
-use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Variant;
 use craft\commerce\fields\Variants as CommerceVariants;
 use craft\commerce\gql\arguments\elements\Variant as VariantArguments;
 use craft\commerce\gql\interfaces\elements\Variant as VariantInterface;
-use craft\commerce\gql\resolvers\elements\Variant as VariantResolver;
 use craft\commerce\models\ProductType;
-
+use craft\commerce\Plugin as Commerce;
 use GraphQL\Type\Definition\Type;
-
-use yii\base\InvalidConfigException;
 
 // Prevent a fatal error if the Commerce class doesn't exist. This is because fields are used
 // at very low-level Craft calls, which can mess things up when encountered.

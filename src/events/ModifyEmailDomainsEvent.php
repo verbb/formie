@@ -9,5 +9,4 @@ class ModifyEmailDomainsEvent extends Event
     // =========================================================================
 
     public array $domains = [];
-
 }

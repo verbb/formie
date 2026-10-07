@@ -10,13 +10,6 @@ use Throwable;
 
 class OptionSourceProviderHelper
 {
-    // Constants
-    // =========================================================================
-
-    public const USAGE_OPTIONS = 'options';
-    public const USAGE_RECIPIENTS = 'recipients';
-
-
     // Static Methods
     // =========================================================================
 
@@ -110,10 +103,6 @@ class OptionSourceProviderHelper
         }
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     private static function _normalizeRows(array $rows, ?string $usage): array
     {
         $normalized = [];
@@ -205,4 +194,11 @@ class OptionSourceProviderHelper
 
         return $definitions;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const USAGE_OPTIONS = 'options';
+    public const USAGE_RECIPIENTS = 'recipients';
 }

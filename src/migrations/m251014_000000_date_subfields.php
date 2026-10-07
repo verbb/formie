@@ -2,14 +2,14 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\Formie;
-use verbb\formie\elements\Form;
 use verbb\formie\fields;
-use verbb\formie\fields\subfields;
-use verbb\formie\models\FieldLayout;
-use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\fields\Date;
+use verbb\formie\fields\SingleLineText;
+use verbb\formie\fields\subfields\DateDate;
+use verbb\formie\fields\subfields\DateTime;
 use verbb\formie\helpers\Table;
+use verbb\formie\models\FieldLayout;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
 use craft\helpers\Json;
@@ -31,7 +31,7 @@ class m251014_000000_date_subfields extends Migration
             $fieldLayout = null;
             $settings = Json::decode($field['settings']);
 
-            if ($field['type'] === fields\Date::class) {
+            if ($field['type'] === Date::class) {
                 $displayType = $settings['displayType'] ?? 'calendar';
 
                 if ($displayType == 'calendar' || $displayType == 'datePicker') {
@@ -40,13 +40,13 @@ class m251014_000000_date_subfields extends Migration
                     $fields = $fieldLayout->getFields();
 
                     foreach ($fields as $subField) {
-                        if ($subField instanceof fields\SingleLineText) {
+                        if ($subField instanceof SingleLineText) {
                             if ($subField->handle === 'date') {
-                                $this->update(Table::FORMIE_FIELDS, ['type' => subfields\DateDate::class], ['id' => $subField->id], [], false);
+                                $this->update(Table::FORMIE_FIELDS, ['type' => DateDate::class], ['id' => $subField->id], [], false);
                             }
 
                             if ($subField->handle === 'time') {
-                                $this->update(Table::FORMIE_FIELDS, ['type' => subfields\DateTime::class], ['id' => $subField->id], [], false);
+                                $this->update(Table::FORMIE_FIELDS, ['type' => DateTime::class], ['id' => $subField->id], [], false);
                             }
                         }
                     }

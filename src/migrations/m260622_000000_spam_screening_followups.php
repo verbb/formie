@@ -7,6 +7,9 @@ use craft\db\Migration;
 
 class m260622_000000_spam_screening_followups extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         if (!$this->db->tableExists(Table::FORMIE_SPAM_SETTINGS)) {

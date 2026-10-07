@@ -10,8 +10,8 @@ use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\MissingComponentTrait;
 use craft\base\MissingComponentInterface;
+use craft\base\MissingComponentTrait;
 
 use Throwable;
 
@@ -29,6 +29,16 @@ class MissingField extends Field implements MissingComponentInterface
     {
         return '';
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use MissingComponentTrait;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getFormBuilderSettings(): array
     {
@@ -52,16 +62,6 @@ class MissingField extends Field implements MissingComponentInterface
 
         return $settings;
     }
-
-
-    // Traits
-    // =========================================================================
-
-    use MissingComponentTrait;
-
-
-    // Public Methods
-    // =========================================================================
 
     public function getSettings(): array
     {
@@ -100,6 +100,11 @@ class MissingField extends Field implements MissingComponentInterface
         return false;
     }
 
+    public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
+    {
+        return $value;
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -116,11 +121,5 @@ class MissingField extends Field implements MissingComponentInterface
         return Craft::$app->getView()->renderTemplate('formie/_formfields/missing/input', [
             'error' => $error,
         ]);
-    }
-
-
-    public function normalizeValue(mixed $value, ?\craft\base\ElementInterface $element): mixed
-    {
-        return $value;
     }
 }

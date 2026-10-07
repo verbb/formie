@@ -17,6 +17,7 @@ use verbb\formie\models\HiddenDefaultTemplateFormContext;
 use verbb\formie\models\HiddenDefaultTemplateRequestContext;
 use verbb\formie\models\HiddenDefaultTemplateSiteContext;
 use verbb\formie\server\ServerRenderPayloadBuilder;
+use verbb\formie\services\BrowserAssets;
 use verbb\formie\services\CaptchaProviders;
 use verbb\formie\services\Cleanup;
 use verbb\formie\services\ClientEventTemplates;
@@ -43,7 +44,6 @@ use verbb\formie\services\FormSiteOverrides;
 use verbb\formie\services\FormSitePropagation;
 use verbb\formie\services\FormStatuses;
 use verbb\formie\services\FormTemplates;
-use verbb\formie\services\BrowserAssets;
 use verbb\formie\services\IntegrationDispatcher;
 use verbb\formie\services\IntegrationRunner;
 use verbb\formie\services\Integrations;
@@ -81,8 +81,8 @@ use verbb\formie\services\SubmissionGuards;
 use verbb\formie\services\SubmissionMetadata;
 use verbb\formie\services\SubmissionOperations;
 use verbb\formie\services\SubmissionProcessor;
-use verbb\formie\services\SubmissionRequests;
 use verbb\formie\services\SubmissionProgress;
+use verbb\formie\services\SubmissionRequests;
 use verbb\formie\services\Submissions;
 use verbb\formie\services\SubmissionStatuses;
 use verbb\formie\services\SubmissionWorkflow;
@@ -100,7 +100,6 @@ use craft\helpers\App;
 
 use yii\base\Event;
 use yii\base\Model;
-use yii\log\Logger;
 
 use ArrayAccess;
 
@@ -110,19 +109,6 @@ use verbb\base\LogTrait;
 
 trait PluginTrait
 {
-    // Properties
-    // =========================================================================
-
-    public static ?Formie $plugin = null;
-
-
-    // Traits
-    // =========================================================================
-
-    use LogTrait;
-    use PluginDeprecations;
-
-
     // Static Methods
     // =========================================================================
 
@@ -298,6 +284,19 @@ trait PluginTrait
             ],
         ];
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use LogTrait;
+    use PluginDeprecations;
+
+
+    // Properties
+    // =========================================================================
+
+    public static ?Formie $plugin = null;
 
 
     // Public Methods

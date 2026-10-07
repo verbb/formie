@@ -8,7 +8,6 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\PreviewableFieldInterface;
-use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\content\FieldValueProjectionContext;
 use verbb\formie\content\SubmissionContentManager;
 use verbb\formie\content\SubmissionContentNormalizer;
@@ -18,10 +17,10 @@ use verbb\formie\elements\actions\SetSubmissionSpam;
 use verbb\formie\elements\actions\SetSubmissionStatus;
 use verbb\formie\elements\conditions\SubmissionCondition;
 use verbb\formie\elements\db\SubmissionQuery;
+use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\events\SubmissionCompleteEvent;
 use verbb\formie\events\SubmissionMarkedAsSpamEvent;
 use verbb\formie\events\SubmissionRulesEvent;
-use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Payment;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\References;
@@ -31,22 +30,26 @@ use verbb\formie\helpers\Table;
 use verbb\formie\helpers\ValidationHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\FieldLayout as FormLayout;
+use verbb\formie\models\FormInstanceConfig;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
+use verbb\formie\models\SubmissionConfig;
+use verbb\formie\models\SubmissionErrors;
 use verbb\formie\models\SubmissionStatus;
 use verbb\formie\records\Submission as SubmissionRecord;
+use verbb\formie\services\RuntimeConfiguration;
 use verbb\formie\workflow\WorkflowContext;
+
 use Craft;
 use craft\base\Component;
 use craft\base\Element;
-use craft\db\Table as CraftTable;
 use craft\db\Query;
-use craft\elements\User;
+use craft\db\Table as CraftTable;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
 use craft\elements\conditions\ElementConditionInterface;
-use craft\elements\db\ElementQueryInterface;
+use craft\elements\User;
 use craft\events\DefineElementHtmlEvent;
 use craft\helpers\Cp;
 use craft\helpers\Db;
@@ -54,12 +57,12 @@ use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
-use craft\models\FieldLayout;
 use craft\validators\SiteIdValidator;
 
 use yii\base\Exception;
 use yii\base\InvalidCallException;
 use yii\base\UnknownPropertyException;
+use yii\db\Expression;
 
 use Throwable;
 
@@ -67,21 +70,6 @@ use Twig\Markup;
 
 class Submission extends Element
 {
-    use SubmissionValueDeprecations;
-
-    // Constants
-    // =========================================================================
-
-    public const EVENT_DEFINE_RULES = 'defineSubmissionRules';
-    public const EVENT_BEFORE_MARKED_AS_SPAM = 'beforeMarkedAsSpam';
-
-    /**
-     * Fired when a submission becomes complete: last reachable page submitted,
-     * payment replay that finishes the form, or a control-panel mark-complete.
-     * Does not fire on intermediate page steps or later edits of a complete submission.
-     */
-    public const EVENT_AFTER_COMPLETE = 'afterComplete';
-
     // Static Methods
     // =========================================================================
 
@@ -445,6 +433,26 @@ class Submission extends Element
     }
 
 
+    // Constants
+    // =========================================================================
+
+    public const EVENT_DEFINE_RULES = 'defineSubmissionRules';
+    public const EVENT_BEFORE_MARKED_AS_SPAM = 'beforeMarkedAsSpam';
+
+    /**
+     * Fired when a submission becomes complete: last reachable page submitted,
+     * payment replay that finishes the form, or a control-panel mark-complete.
+     * Does not fire on intermediate page steps or later edits of a complete submission.
+     */
+    public const EVENT_AFTER_COMPLETE = 'afterComplete';
+
+
+    // Traits
+    // =========================================================================
+
+    use SubmissionValueDeprecations;
+
+
     // Properties
     // =========================================================================
 
@@ -687,9 +695,9 @@ class Submission extends Element
         }
     }
 
-    public function getSubmissionErrors(): \verbb\formie\models\SubmissionErrors
+    public function getSubmissionErrors(): SubmissionErrors
     {
-        return \verbb\formie\models\SubmissionErrors::fromSubmission($this);
+        return SubmissionErrors::fromSubmission($this);
     }
 
     public function validate($attributeNames = null, $clearErrors = true): bool
@@ -704,7 +712,7 @@ class Submission extends Element
 
         $command = WorkflowContext::current()?->command;
 
-        if ($command?->submission === $this && $command->authority->type === \verbb\formie\enums\SubmissionAuthorityType::GRAPHQL_ADMIN) {
+        if ($command?->submission === $this && $command->authority->type === SubmissionAuthorityType::GRAPHQL_ADMIN) {
             return $validates && !$this->hasErrors();
         }
 
@@ -886,7 +894,7 @@ class Submission extends Element
     {
         $form = $this->getForm();
         $form->setFieldSettings($handle, $settings);
-        $this->snapshot = \verbb\formie\models\SubmissionConfig::capture($form->getInstanceConfig());
+        $this->snapshot = SubmissionConfig::capture($form->getInstanceConfig());
         $this->setForm($form);
     }
 
@@ -1167,7 +1175,7 @@ class Submission extends Element
         // Check if this is a spam submission and if we should save it
         // Only trigger this for site requests though
         $command = WorkflowContext::current()?->command;
-        $administrative = $command?->submission === $this && $command->authority->type === \verbb\formie\enums\SubmissionAuthorityType::GRAPHQL_ADMIN;
+        $administrative = $command?->submission === $this && $command->authority->type === SubmissionAuthorityType::GRAPHQL_ADMIN;
 
         if ($this->isSpam && !$administrative && $request->getIsSiteRequest()) {
             // Always log spam submissions
@@ -1261,9 +1269,9 @@ class Submission extends Element
 
         $record->save(false);
         Craft::$app->getDb()->createCommand()->update(Table::FORMIE_SUBMISSIONS, [
-            'stateVersion' => new \yii\db\Expression('[[stateVersion]] + 1'),
+            'stateVersion' => new Expression('[[stateVersion]] + 1'),
         ], ['id' => $this->id])->execute();
-        $this->stateVersion = (int)(new \craft\db\Query())->select('stateVersion')->from(Table::FORMIE_SUBMISSIONS)->where(['id' => $this->id])->scalar();
+        $this->stateVersion = (int)(new Query())->select('stateVersion')->from(Table::FORMIE_SUBMISSIONS)->where(['id' => $this->id])->scalar();
 
         // Reset cache as we might be acting on statuses below
         $this->_status = null;
@@ -1284,29 +1292,6 @@ class Submission extends Element
         parent::afterSave($isNew);
 
         $this->_raiseAfterCompleteIfNeeded($isNew);
-    }
-
-    /**
-     * Direct element saves (CP mark-complete, imports) that flip incomplete →
-     * complete. Workflow persist skips this path so `EVENT_AFTER_COMPLETE`
-     * waits until the save stage finishes (payment may still fail).
-     */
-    private function _raiseAfterCompleteIfNeeded(bool $isNew): void
-    {
-        if ($this->isIncomplete || WorkflowContext::current()?->command->submission === $this) {
-            return;
-        }
-
-        $becameComplete = $isNew || $this->_previousIsIncomplete;
-
-        if (!$becameComplete) {
-            return;
-        }
-
-        $this->trigger(self::EVENT_AFTER_COMPLETE, new SubmissionCompleteEvent([
-            'submission' => $this,
-            'form' => $this->getForm(),
-        ]));
     }
 
     public function beforeDelete(): bool
@@ -1631,6 +1616,33 @@ class Submission extends Element
         return $this->attributeHtml($attribute);
     }
 
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * Direct element saves (CP mark-complete, imports) that flip incomplete →
+     * complete. Workflow persist skips this path so `EVENT_AFTER_COMPLETE`
+     * waits until the save stage finishes (payment may still fail).
+     */
+    private function _raiseAfterCompleteIfNeeded(bool $isNew): void
+    {
+        if ($this->isIncomplete || WorkflowContext::current()?->command->submission === $this) {
+            return;
+        }
+
+        $becameComplete = $isNew || $this->_previousIsIncomplete;
+
+        if (!$becameComplete) {
+            return;
+        }
+
+        $this->trigger(self::EVENT_AFTER_COMPLETE, new SubmissionCompleteEvent([
+            'submission' => $this,
+            'form' => $this->getForm(),
+        ]));
+    }
+
     private function _getFieldValidationAttribute(Field $field): string
     {
         return ValidationHelper::fieldValidationAttribute($field);
@@ -1665,10 +1677,10 @@ class Submission extends Element
         }
 
         $this->_snapshotSettingsApplied = true;
-        $config = $this->snapshot ? \verbb\formie\models\SubmissionConfig::decode($this->snapshot, $this->_form) : $this->_form->getInstanceConfig();
+        $config = $this->snapshot ? SubmissionConfig::decode($this->snapshot, $this->_form) : $this->_form->getInstanceConfig();
 
         if (!$this->snapshot) {
-            $completion = array_intersect_key($this->_form->settings->toArray(), array_flip(\verbb\formie\services\RuntimeConfiguration::DURABLE_FORM_SETTINGS));
+            $completion = array_intersect_key($this->_form->settings->toArray(), array_flip(RuntimeConfiguration::DURABLE_FORM_SETTINGS));
             // Provider connections remain globally owned; only explicit runtime
             // integration overrides belong to the durable instance config.
             unset($completion['integrations']);
@@ -1677,12 +1689,12 @@ class Submission extends Element
                 $completion['redirectUrl'] = $this->_form->getRedirectEntry()->url;
                 $completion['completionRedirectSource'] = 'url';
             }
-            $config = new \verbb\formie\models\FormInstanceConfig(...array_replace(get_object_vars($config), [
-                'form' => \verbb\formie\models\FormInstanceConfig::merge($completion, $config->form),
+            $config = new FormInstanceConfig(...array_replace(get_object_vars($config), [
+                'form' => FormInstanceConfig::merge($completion, $config->form),
             ]));
         }
         $this->_form->markInstanceEstablished();
         $this->_form->replaceInstanceConfig($config);
-        $this->snapshot = \verbb\formie\models\SubmissionConfig::capture($config);
+        $this->snapshot = SubmissionConfig::capture($config);
     }
 }

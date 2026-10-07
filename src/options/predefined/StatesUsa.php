@@ -9,13 +9,6 @@ use CommerceGuys\Addressing\Subdivision\SubdivisionRepository;
 
 class StatesUsa extends PredefinedOption
 {
-    // Protected Properties
-    // =========================================================================
-
-    public static ?string $defaultLabelOption = 'name';
-    public static ?string $defaultValueOption = 'name';
-
-
     // Static Methods
     // =========================================================================
 
@@ -57,4 +50,11 @@ class StatesUsa extends PredefinedOption
 
         return $states;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public static ?string $defaultLabelOption = 'name';
+    public static ?string $defaultValueOption = 'name';
 }

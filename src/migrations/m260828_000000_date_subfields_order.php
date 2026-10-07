@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\fields;
+use verbb\formie\fields\Date;
 use verbb\formie\fields\subfields;
+use verbb\formie\fields\subfields\DateYearDropdown;
 use verbb\formie\helpers\DateTimeHelper;
 use verbb\formie\helpers\Table;
 
@@ -26,7 +27,7 @@ class m260828_000000_date_subfields_order extends Migration
         $fields = (new Query())
             ->select(['*'])
             ->from([Table::FORMIE_FIELDS])
-            ->where(['type' => fields\Date::class])
+            ->where(['type' => Date::class])
             ->all();
 
         foreach ($fields as $field) {
@@ -150,7 +151,7 @@ class m260828_000000_date_subfields_order extends Migration
         // The year range was stored on the parent field historically, but lives on the nested Year
         // subfield now — earlier migrations didn't carry it across, leaving an invalid `100` to `100` range.
         foreach ($subFields as $subField) {
-            if ($subField['type'] !== subfields\DateYearDropdown::class) {
+            if ($subField['type'] !== DateYearDropdown::class) {
                 continue;
             }
 

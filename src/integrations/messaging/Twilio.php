@@ -1,9 +1,8 @@
 <?php
 namespace verbb\formie\integrations\messaging;
 
-use verbb\formie\attributes\Sensitive;
-use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Messaging;
@@ -16,7 +15,6 @@ use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\Json;
 
 use Throwable;
 
@@ -60,6 +58,25 @@ class Twilio extends Messaging
         return new IntegrationConfig([]);
     }
 
+    public function fetchConnection(): bool
+    {
+        try {
+            $accountSid = App::parseEnv($this->accountSid);
+
+            $response = $this->request('GET', "Accounts/$accountSid.json");
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -101,25 +118,6 @@ class Twilio extends Messaging
 
         return $this->resultForPayload(true);
     }
-
-    public function fetchConnection(): bool
-    {
-        try {
-            $accountSid = App::parseEnv($this->accountSid);
-
-            $response = $this->request('GET', "Accounts/$accountSid.json");
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

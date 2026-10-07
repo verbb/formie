@@ -16,5 +16,4 @@ class MultiLineText extends DefaultField
 
     public static string $class = MultiLineTextField::class;
     public static string $name = 'MultiLineText';
-
 }

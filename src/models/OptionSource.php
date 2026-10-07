@@ -6,6 +6,28 @@ use craft\helpers\Json;
 
 class OptionSource extends Model
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function fromConfig(mixed $config): ?self
+    {
+        if (is_string($config)) {
+            $config = Json::decodeIfJson($config);
+        }
+
+        if (!is_array($config) || $config === []) {
+            return null;
+        }
+
+        return new self([
+            'type' => isset($config['type']) ? (string)$config['type'] : null,
+            'provider' => isset($config['provider']) ? (string)$config['provider'] : null,
+            'params' => is_array($config['params'] ?? null) ? $config['params'] : [],
+            'cache' => is_array($config['cache'] ?? null) ? $config['cache'] : [],
+        ]);
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -24,24 +46,6 @@ class OptionSource extends Model
             [['type', 'provider'], 'string'],
             [['params', 'cache'], 'safe'],
         ];
-    }
-
-    public static function fromConfig(mixed $config): ?self
-    {
-        if (is_string($config)) {
-            $config = Json::decodeIfJson($config);
-        }
-
-        if (!is_array($config) || $config === []) {
-            return null;
-        }
-
-        return new self([
-            'type' => isset($config['type']) ? (string)$config['type'] : null,
-            'provider' => isset($config['provider']) ? (string)$config['provider'] : null,
-            'params' => is_array($config['params'] ?? null) ? $config['params'] : [],
-            'cache' => is_array($config['cache'] ?? null) ? $config['cache'] : [],
-        ]);
     }
 
     public function toConfig(): array

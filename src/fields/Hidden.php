@@ -13,19 +13,17 @@ use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
-use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\models\SlotTag;
-use verbb\formie\models\Notification;
+use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\UrlHelper;
 
-use GraphQL\Type\Definition\Type;
-
 use DateTime;
+
+use GraphQL\Type\Definition\Type;
 
 class Hidden extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
@@ -42,16 +40,15 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
         return 'formie/_formfields/hidden-field/icon.svg';
     }
 
-    public function themeConfigKey(): string
-    {
-        return 'hiddenField';
-    }
+
+    // Constants
+    // =========================================================================
+
+    public const DEFAULT_OPTION_TEMPLATE = 'template';
 
 
     // Properties
     // =========================================================================
-
-    public const DEFAULT_OPTION_TEMPLATE = 'template';
 
     public ?string $valueSource = 'custom';
     public ?string $defaultTemplate = null;
@@ -61,6 +58,11 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
 
     // Public Methods
     // =========================================================================
+
+    public function themeConfigKey(): string
+    {
+        return 'hiddenField';
+    }
 
     public function __construct(array $config = [])
     {
@@ -173,7 +175,6 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
 
         return parent::normalizeValueFromRequest($value, $element);
     }
-
 
     public function defineFormBuilderPreviewSchema(): array
     {
@@ -306,6 +307,7 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
             SchemaHelper::enableContentEncryptionField(),
         ];
     }
+
 
     // Protected Methods
     // =========================================================================

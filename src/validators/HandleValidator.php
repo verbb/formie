@@ -11,7 +11,6 @@ class HandleValidator extends Validator
     // =========================================================================
 
     public static string $handlePattern = '[a-zA-Z][a-zA-Z0-9_]*';
-
     public array $reservedWords = [];
 
 

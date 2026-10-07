@@ -11,7 +11,7 @@ use Throwable;
 
 class ElementOptionSourceHelper
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getProviderOptions(): array
@@ -153,10 +153,6 @@ class ElementOptionSourceHelper
             return OptionList::error(Craft::t('formie', 'Unable to resolve element options.'));
         }
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private static function _validateSourceSelection(ElementField $field, array $params): ?string
     {

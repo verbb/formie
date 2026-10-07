@@ -3,11 +3,8 @@ namespace verbb\formie\migrations;
 
 use verbb\formie\helpers\Table;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
-use craft\helpers\Db;
-use craft\helpers\Json;
 
 use verbb\auth\Auth;
 

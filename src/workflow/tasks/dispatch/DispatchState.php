@@ -2,16 +2,17 @@
 namespace verbb\formie\workflow\tasks\dispatch;
 
 use verbb\formie\Formie;
-use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Table;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionOperation;
+use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 
 use Craft;
 use craft\db\Query;
 use craft\helpers\Db;
 
 use DateTime;
+use RuntimeException;
 use Throwable;
 
 class DispatchState
@@ -58,7 +59,6 @@ class DispatchState
         return $this->operation === SubmissionOperation::REVISE;
     }
 
-
     public function applySpamFailureIfNeeded(): void
     {
         if ($this->submission->isSpam) {
@@ -102,7 +102,7 @@ class DispatchState
         $mutex = Craft::$app->getMutex();
 
         if (!$mutex->acquire($key, 10)) {
-            throw new \RuntimeException('Submission delivery is already in progress. Retry later.');
+            throw new RuntimeException('Submission delivery is already in progress. Retry later.');
         }
 
         try {

@@ -7,6 +7,9 @@ use DateTimeInterface;
 
 class DataRetentionHelper
 {
+    // Static Methods
+    // =========================================================================
+
     public static function isActive(string $unit, mixed $value): bool
     {
         return $unit !== 'forever' && (int)$value > 0;

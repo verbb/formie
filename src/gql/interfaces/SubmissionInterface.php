@@ -5,8 +5,8 @@ use verbb\formie\elements\Submission;
 use verbb\formie\gql\types\generators\SubmissionGenerator;
 
 use Craft;
-use craft\gql\interfaces\Element;
 use craft\gql\GqlEntityRegistry;
+use craft\gql\interfaces\Element;
 
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;

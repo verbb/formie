@@ -90,6 +90,7 @@ final class ContextReferenceSource
         return new ResolvedReference($expression, $value, $definition);
     }
 
+
     // Private Methods
     // =========================================================================
 
@@ -104,5 +105,4 @@ final class ContextReferenceSource
         }
         return $values;
     }
-
 }

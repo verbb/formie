@@ -3,6 +3,7 @@ namespace verbb\formie\references;
 
 use verbb\formie\base\FieldInterface;
 use verbb\formie\fields\definitions\FieldValueType;
+use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\ReferenceExpression;
 
@@ -43,7 +44,7 @@ final class ReferenceResolver
             }
 
             // A default replaces a resolved empty value; it never masks a deleted/forbidden source.
-            if (($value === null || $value === '' || $value === [] || ($value instanceof \verbb\formie\fields\values\FieldValueInterface && $value->isEmpty())) && $expression->default !== '') {
+            if (($value === null || $value === '' || $value === [] || ($value instanceof FieldValueInterface && $value->isEmpty())) && $expression->default !== '') {
                 $value = $expression->default;
             }
             $projection = $result->fieldProjection;

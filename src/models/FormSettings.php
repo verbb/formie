@@ -24,9 +24,6 @@ use craft\helpers\Json;
 use DateTime;
 use DateTimeZone;
 
-use Twig\Error\LoaderError;
-use Twig\Error\SyntaxError;
-
 class FormSettings extends Model implements TranslatablePropertiesInterface
 {
     // Static Methods
@@ -49,6 +46,102 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         return self::translatableProperties();
     }
 
+    private static function _normalizeScheduleDateTimeValue(mixed $value): ?DateTime
+    {
+        if ($value instanceof DateTime) {
+            return $value;
+        }
+
+        if (is_array($value)) {
+            return DateTimeHelper::toDateTime($value, true, true) ?: null;
+        }
+
+        $stringValue = trim((string)$value);
+
+        if ($stringValue === '') {
+            return null;
+        }
+
+        // Builder payloads and stored schedule values without an explicit offset are wall-clock
+        // datetimes in the Craft app timezone, not UTC.
+        if (preg_match('/^\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}(?::\d{2})?)?$/', $stringValue)) {
+            return DateTimeHelper::toDateTime($stringValue, true, true) ?: null;
+        }
+
+        return DateTimeHelper::toDateTime($stringValue) ?: null;
+    }
+
+    private static function _normalizeCompletionAttributes(array $config, bool $withDefaults = true): array
+    {
+        $aliases = [
+            'submitActionUrl' => 'redirectUrl',
+            'submitActionTab' => 'redirectTarget',
+            'submitActionFormHide' => 'hideFormAfterSubmit',
+            'submitActionMessage' => 'successMessage',
+            'submitActionMessageTimeout' => 'successMessageTimeout',
+            'submitActionMessagePosition' => 'successMessagePosition',
+        ];
+
+        foreach ($aliases as $legacy => $canonical) {
+            $canonicalMissing = !array_key_exists($canonical, $config);
+
+            if ($legacy === 'submitActionUrl') {
+                // Formie 3 serialized a template-only redirectUrl beside the authored
+                // submitActionUrl. A blank override must not discard the authored URL.
+                $canonicalMissing = $canonicalMissing || $config[$canonical] === null || $config[$canonical] === '';
+            }
+
+            if (array_key_exists($legacy, $config) && $canonicalMissing) {
+                $config[$canonical] = $config[$legacy];
+            }
+            unset($config[$legacy]);
+        }
+
+        if (array_key_exists('submitAction', $config) && !array_key_exists('completionBehavior', $config)) {
+            $action = $config['submitAction'];
+            $config['completionBehavior'] = in_array($action, ['entry', 'url'], true) ? 'redirect' : $action;
+            $config['completionRedirectSource'] = $action === 'entry' ? 'entry' : 'url';
+        }
+        unset($config['submitAction']);
+
+        if ($withDefaults) {
+            $config['completionBehavior'] ??= CompletionBehavior::Message->value;
+            $config['completionRedirectSource'] ??= RedirectSource::Url->value;
+            $config['redirectTarget'] ??= RedirectTarget::SameTab->value;
+        }
+
+        return $config;
+    }
+
+    private static function _normalizeAllowedStatusIds(mixed $value): ?array
+    {
+        if ($value === null || $value === '' || $value === []) {
+            return null;
+        }
+
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        $ids = array_values(array_unique(array_filter(array_map('intval', $value))));
+
+        return $ids === [] ? null : $ids;
+    }
+
+    private static function _normalizeLimitSubmissionsScope(?string $scope, mixed $limitSubmissions): string
+    {
+        if ($limitSubmissions === 'ipAddress') {
+            return 'ipAddress';
+        }
+
+        $scope = trim((string)($scope ?? ''));
+
+        if (in_array($scope, ['form', 'ipAddress', 'user'], true)) {
+            return $scope;
+        }
+
+        return 'form';
+    }
 
 
     // Properties
@@ -67,7 +160,6 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     public ?string $defaultInstructionsPosition = null;
     public ?string $defaultErrorMessagePosition = null;
     public string $requiredIndicator = 'asterisk';
-
     // Behaviour
     public ?string $submitMethod = 'page-reload';
     public string $completionBehavior = 'message';
@@ -83,14 +175,12 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     public string $successMessagePosition = 'top-form';
     public ?string $loadingIndicator = null;
     public ?string $loadingIndicatorText = null;
-
     // Behaviour - Validation
     public bool $validationOnSubmit = true;
     public bool $validationOnFocus = false;
     public bool $disableSubmitButtonUntilValid = false;
     public RichText $errorMessage;
     public string $errorMessagePosition = 'top-form';
-
     // Behaviour - Restrictions
     public bool $requireUser = false;
     public RichText $requireUserMessage;
@@ -107,43 +197,33 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     public ?int $limitSubmissionsIpAddressNumber = null;
     public ?string $limitSubmissionsIpAddressType = null;
     public RichText $limitSubmissionsIpAddressMessage;
-
     // Integrations
     public array $integrations = [];
     public array $integrationDispatch = [];
-
     // Settings
     public ?string $submissionTitleFormat = '{timestamp}';
-
     // Settings - Privacy
     public bool $collectIp = false;
     public bool $collectUser = false;
     public ?string $cpSubmissionFieldConditions = null;
     public bool $enableStatusRules = false;
     public array $statusRules = [];
-
     public bool $enableDefaultClientEvents = false;
     public array $defaultClientEvents = [];
-
     public ?array $allowedStatusIds = null;
-
     public ?string $dataRetention = null;
     public ?string $dataRetentionValue = null;
     public ?string $fileUploadsAction = null;
-
     // Settings - Permissions
     public bool $usePerFormPermissions = false;
-
     // Settings - Quiz scoring
     public bool $scoringEnabled = false;
     public float $quizPassPercentage = 70;
     public bool $quizAllowRetakes = true;
     public bool $quizShowScoreAfterSubmit = true;
-
     // Other
     public ?string $pageRedirectUrl = null;
     public ?string $defaultEmailTemplateId = null;
-
     // Private (template-only)
     public bool $disableCaptchas = false;
 
@@ -607,31 +687,6 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         return $config;
     }
 
-    private static function _normalizeScheduleDateTimeValue(mixed $value): ?DateTime
-    {
-        if ($value instanceof DateTime) {
-            return $value;
-        }
-
-        if (is_array($value)) {
-            return DateTimeHelper::toDateTime($value, true, true) ?: null;
-        }
-
-        $stringValue = trim((string)$value);
-
-        if ($stringValue === '') {
-            return null;
-        }
-
-        // Builder payloads and stored schedule values without an explicit offset are wall-clock
-        // datetimes in the Craft app timezone, not UTC.
-        if (preg_match('/^\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}(?::\d{2})?)?$/', $stringValue)) {
-            return DateTimeHelper::toDateTime($stringValue, true, true) ?: null;
-        }
-
-        return DateTimeHelper::toDateTime($stringValue) ?: null;
-    }
-
     private function _serializeRichTextAttributes(array $config): array
     {
         foreach ([
@@ -668,77 +723,5 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         }
 
         return $config;
-    }
-
-    private static function _normalizeCompletionAttributes(array $config, bool $withDefaults = true): array
-    {
-        $aliases = [
-            'submitActionUrl' => 'redirectUrl',
-            'submitActionTab' => 'redirectTarget',
-            'submitActionFormHide' => 'hideFormAfterSubmit',
-            'submitActionMessage' => 'successMessage',
-            'submitActionMessageTimeout' => 'successMessageTimeout',
-            'submitActionMessagePosition' => 'successMessagePosition',
-        ];
-
-        foreach ($aliases as $legacy => $canonical) {
-            $canonicalMissing = !array_key_exists($canonical, $config);
-
-            if ($legacy === 'submitActionUrl') {
-                // Formie 3 serialized a template-only redirectUrl beside the authored
-                // submitActionUrl. A blank override must not discard the authored URL.
-                $canonicalMissing = $canonicalMissing || $config[$canonical] === null || $config[$canonical] === '';
-            }
-
-            if (array_key_exists($legacy, $config) && $canonicalMissing) {
-                $config[$canonical] = $config[$legacy];
-            }
-            unset($config[$legacy]);
-        }
-
-        if (array_key_exists('submitAction', $config) && !array_key_exists('completionBehavior', $config)) {
-            $action = $config['submitAction'];
-            $config['completionBehavior'] = in_array($action, ['entry', 'url'], true) ? 'redirect' : $action;
-            $config['completionRedirectSource'] = $action === 'entry' ? 'entry' : 'url';
-        }
-        unset($config['submitAction']);
-
-        if ($withDefaults) {
-            $config['completionBehavior'] ??= CompletionBehavior::Message->value;
-            $config['completionRedirectSource'] ??= RedirectSource::Url->value;
-            $config['redirectTarget'] ??= RedirectTarget::SameTab->value;
-        }
-
-        return $config;
-    }
-
-    private static function _normalizeAllowedStatusIds(mixed $value): ?array
-    {
-        if ($value === null || $value === '' || $value === []) {
-            return null;
-        }
-
-        if (!is_array($value)) {
-            $value = [$value];
-        }
-
-        $ids = array_values(array_unique(array_filter(array_map('intval', $value))));
-
-        return $ids === [] ? null : $ids;
-    }
-
-    private static function _normalizeLimitSubmissionsScope(?string $scope, mixed $limitSubmissions): string
-    {
-        if ($limitSubmissions === 'ipAddress') {
-            return 'ipAddress';
-        }
-
-        $scope = trim((string)($scope ?? ''));
-
-        if (in_array($scope, ['form', 'ipAddress', 'user'], true)) {
-            return $scope;
-        }
-
-        return 'form';
     }
 }

@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\deprecations\FormGroupPolicyDeprecations;
 use verbb\formie\elements\Form;
-use verbb\formie\Formie;
 use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormGroupSettings;
 use verbb\formie\models\SubmissionStatus;

@@ -7,13 +7,7 @@ use craft\base\Component;
 
 abstract class Position extends Component implements PositionInterface
 {
-    // Properties
-    // =========================================================================
-
-    protected static ?string $position = null;
-
-
-    // Static Method
+    // Static Methods
     // =========================================================================
 
     public static function supports(FieldInterface $field = null): bool
@@ -26,6 +20,15 @@ abstract class Position extends Component implements PositionInterface
         return null;
     }
 
+
+    // Properties
+    // =========================================================================
+
+    protected static ?string $position = null;
+
+
+    // Public Methods
+    // =========================================================================
 
     // Public Method
     // =========================================================================

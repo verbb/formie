@@ -2,7 +2,6 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
-use verbb\formie\services\Permissions;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\helpers\ArrayHelper;
@@ -10,9 +9,9 @@ use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\MissingIntegration;
 use verbb\formie\services\Integrations as IntegrationsService;
+use verbb\formie\services\Permissions;
 
 use Craft;
-use craft\helpers\Json;
 use craft\web\Controller;
 
 use yii\web\ForbiddenHttpException;
@@ -177,10 +176,6 @@ class IntegrationSettingsController extends Controller
         return $this->_editIntegration($integrationId, $integration, 'Miscellaneous', Integration::TYPE_MISC);
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     public function _editIntegration(?int $integrationId, ?IntegrationInterface $integration, string $typeName, string $typeHandle): Response
     {
         $integrations = Formie::$plugin->getIntegrations();
@@ -267,6 +262,10 @@ class IntegrationSettingsController extends Controller
         ]);
     }
 
+
+    // Private Methods
+    // =========================================================================
+
     private function _enforceAccessPermission(): void
     {
         $request = Craft::$app->getRequest();
@@ -324,5 +323,4 @@ class IntegrationSettingsController extends Controller
             throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
     }
-
 }

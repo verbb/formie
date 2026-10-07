@@ -3,7 +3,6 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\events\EmailTemplateEvent;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\EmailTemplate;
@@ -15,11 +14,6 @@ use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\events\ConfigEvent;
 use craft\helpers\Db;
-
-use yii\base\ErrorException;
-use yii\base\Exception;
-use yii\base\NotSupportedException;
-use yii\web\ServerErrorHttpException;
 
 use Throwable;
 

@@ -8,19 +8,16 @@ use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
-use craft\helpers\App;
 use craft\helpers\Json;
 
 use Throwable;
 
 use League\HTMLToMarkdown\HtmlConverter;
 use verbb\auth\base\OAuthProviderInterface;
-use verbb\auth\models\Token;
 use verbb\auth\providers\Trello as TrelloProvider;
 
 class Trello extends Miscellaneous implements OAuthProviderInterface
@@ -120,6 +117,10 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
         return new IntegrationConfig($settings);
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -155,10 +156,6 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
 
         return $this->resultForPayload(true);
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

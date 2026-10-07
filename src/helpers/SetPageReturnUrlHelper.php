@@ -7,7 +7,8 @@ use craft\web\Request;
 
 final class SetPageReturnUrlHelper
 {
-    public const QUERY_PARAM = 'setPageReturnToken';
+    // Static Methods
+    // =========================================================================
 
     /**
      * Build a signed token for the current site request path + query (root-relative).
@@ -141,4 +142,10 @@ final class SetPageReturnUrlHelper
 
         return $url;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const QUERY_PARAM = 'setPageReturnToken';
 }

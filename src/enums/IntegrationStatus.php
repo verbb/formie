@@ -3,6 +3,9 @@ namespace verbb\formie\enums;
 
 enum IntegrationStatus: string
 {
+    // Cases
+    // =========================================================================
+
     case Succeeded = 'succeeded';
     case Skipped = 'skipped';
     case Rejected = 'rejected';

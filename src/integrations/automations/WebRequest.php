@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\integrations\automations;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Automation;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -15,7 +15,6 @@ use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
-use craft\helpers\App;
 use craft\helpers\Json;
 
 use Throwable;
@@ -104,6 +103,17 @@ class WebRequest extends Automation
         return new IntegrationConfig($settings);
     }
 
+    public function allowedGqlSettings(): array
+    {
+        return [
+            'url' => $this->url,
+        ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -135,17 +145,6 @@ class WebRequest extends Automation
 
         return $this->resultForPayload(true);
     }
-
-    public function allowedGqlSettings(): array
-    {
-        return [
-            'url' => $this->url,
-        ];
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {
@@ -243,5 +242,4 @@ class WebRequest extends Automation
 
         return $schema;
     }
-
 }

@@ -4,21 +4,46 @@ namespace verbb\formie\services;
 use verbb\formie\events\RegisterOptionSourceProvidersEvent;
 use verbb\formie\events\RegisterOptionSourceResolversEvent;
 use verbb\formie\events\RegisterPredefinedOptionsEvent;
-use verbb\formie\Formie;
 use verbb\formie\helpers\OptionsMode;
 use verbb\formie\models\OptionSource;
-use verbb\formie\options\predefined;
+use verbb\formie\options\ElementOptionSourceHelper;
+use verbb\formie\options\IntegrationOptionSourceHelper;
 use verbb\formie\options\OptionList;
 use verbb\formie\options\OptionSourceContext;
 use verbb\formie\options\OptionSourceFieldInterface;
+use verbb\formie\options\OptionSourceProviderHelper;
 use verbb\formie\options\OptionSourceResolverInterface;
 use verbb\formie\options\OptionSourceValidationMode;
-use verbb\formie\options\ElementOptionSourceHelper;
-use verbb\formie\options\IntegrationOptionSourceHelper;
-use verbb\formie\options\OptionSourceProviderHelper;
-use verbb\formie\options\resolvers\PredefinedOptionSourceResolver;
+use verbb\formie\options\predefined\Acceptability;
+use verbb\formie\options\predefined\Age;
+use verbb\formie\options\predefined\Agreement;
+use verbb\formie\options\predefined\Comparison;
+use verbb\formie\options\predefined\Continents;
+use verbb\formie\options\predefined\Countries;
+use verbb\formie\options\predefined\Currencies;
+use verbb\formie\options\predefined\Days;
+use verbb\formie\options\predefined\Difficulty;
+use verbb\formie\options\predefined\Education;
+use verbb\formie\options\predefined\Employment;
+use verbb\formie\options\predefined\Gender;
+use verbb\formie\options\predefined\HowLong;
+use verbb\formie\options\predefined\HowOften;
+use verbb\formie\options\predefined\Importance;
+use verbb\formie\options\predefined\Industry;
+use verbb\formie\options\predefined\Languages;
+use verbb\formie\options\predefined\LikertScale;
+use verbb\formie\options\predefined\MaritalStatus;
+use verbb\formie\options\predefined\Months;
+use verbb\formie\options\predefined\Satisfaction;
+use verbb\formie\options\predefined\Size;
+use verbb\formie\options\predefined\StarRating;
+use verbb\formie\options\predefined\StatesAustralia;
+use verbb\formie\options\predefined\StatesCanada;
+use verbb\formie\options\predefined\StatesUsa;
+use verbb\formie\options\predefined\WouldYou;
 use verbb\formie\options\resolvers\ElementOptionSourceResolver;
 use verbb\formie\options\resolvers\IntegrationOptionSourceResolver;
+use verbb\formie\options\resolvers\PredefinedOptionSourceResolver;
 use verbb\formie\options\resolvers\RegisteredOptionSourceResolver;
 
 use Craft;
@@ -91,37 +116,37 @@ class OptionSources extends Component
         }
 
         $options = [
-            predefined\Countries::class,
-            predefined\StatesAustralia::class,
-            predefined\StatesCanada::class,
-            predefined\StatesUsa::class,
-            predefined\Continents::class,
+            Countries::class,
+            StatesAustralia::class,
+            StatesCanada::class,
+            StatesUsa::class,
+            Continents::class,
 
-            predefined\Days::class,
-            predefined\Months::class,
+            Days::class,
+            Months::class,
 
-            predefined\Currencies::class,
-            predefined\Languages::class,
+            Currencies::class,
+            Languages::class,
 
-            predefined\Industry::class,
-            predefined\Education::class,
-            predefined\Employment::class,
-            predefined\MaritalStatus::class,
-            predefined\Age::class,
-            predefined\Gender::class,
-            predefined\Size::class,
+            Industry::class,
+            Education::class,
+            Employment::class,
+            MaritalStatus::class,
+            Age::class,
+            Gender::class,
+            Size::class,
 
-            predefined\Acceptability::class,
-            predefined\Agreement::class,
-            predefined\LikertScale::class,
-            predefined\StarRating::class,
-            predefined\Comparison::class,
-            predefined\Difficulty::class,
-            predefined\HowLong::class,
-            predefined\HowOften::class,
-            predefined\Importance::class,
-            predefined\Satisfaction::class,
-            predefined\WouldYou::class,
+            Acceptability::class,
+            Agreement::class,
+            LikertScale::class,
+            StarRating::class,
+            Comparison::class,
+            Difficulty::class,
+            HowLong::class,
+            HowOften::class,
+            Importance::class,
+            Satisfaction::class,
+            WouldYou::class,
         ];
 
         $event = new RegisterPredefinedOptionsEvent([

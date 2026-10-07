@@ -8,6 +8,34 @@ use yii\validators\Validator;
 
 class DynamicModel extends Model
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function validateData(array $data, $rules = []): static
+    {
+        $model = new static($data);
+
+        if (!empty($rules)) {
+            $validators = $model->getValidators();
+
+            foreach ($rules as $rule) {
+                if ($rule instanceof Validator) {
+                    $validators->append($rule);
+                } elseif (is_array($rule) && isset($rule[0], $rule[1])) {
+                    $validator = Validator::createValidator($rule[1], $model, (array)$rule[0], array_slice($rule, 2));
+                    $validators->append($validator);
+                } else {
+                    throw new InvalidConfigException('Invalid validation rule: a rule must specify both attribute names and validator type.');
+                }
+            }
+        }
+
+        $model->validate();
+
+        return $model;
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -107,30 +135,6 @@ class DynamicModel extends Model
         return $this;
     }
 
-    public static function validateData(array $data, $rules = []): static
-    {
-        $model = new static($data);
-
-        if (!empty($rules)) {
-            $validators = $model->getValidators();
-
-            foreach ($rules as $rule) {
-                if ($rule instanceof Validator) {
-                    $validators->append($rule);
-                } elseif (is_array($rule) && isset($rule[0], $rule[1])) {
-                    $validator = Validator::createValidator($rule[1], $model, (array)$rule[0], array_slice($rule, 2));
-                    $validators->append($validator);
-                } else {
-                    throw new InvalidConfigException('Invalid validation rule: a rule must specify both attribute names and validator type.');
-                }
-            }
-        }
-
-        $model->validate();
-
-        return $model;
-    }
-
     public function attributes(): array
     {
         return array_keys($this->_attributes);
@@ -154,5 +158,4 @@ class DynamicModel extends Model
     {
         return $this->_attributeLabels;
     }
-
 }

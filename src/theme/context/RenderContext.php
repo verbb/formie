@@ -71,6 +71,19 @@ final class RenderContext
         return $renderContext;
     }
 
+    private static function _getContextValue(array $context, array $defaults, string $key): mixed
+    {
+        if (array_key_exists($key, $context)) {
+            return $context[$key];
+        }
+
+        if (array_key_exists($key, $defaults)) {
+            return $defaults[$key];
+        }
+
+        return null;
+    }
+
 
     // Properties
     // =========================================================================
@@ -187,22 +200,5 @@ final class RenderContext
         $inputId = $this->inputId();
 
         return $inputId ? "{$inputId}-instructions" : null;
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    private static function _getContextValue(array $context, array $defaults, string $key): mixed
-    {
-        if (array_key_exists($key, $context)) {
-            return $context[$key];
-        }
-
-        if (array_key_exists($key, $defaults)) {
-            return $defaults[$key];
-        }
-
-        return null;
     }
 }

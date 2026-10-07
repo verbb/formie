@@ -7,6 +7,8 @@ use verbb\formie\elements\Form;
 use craft\helpers\Gql;
 use craft\models\GqlSchema;
 
+use InvalidArgumentException;
+
 /** Request-local schema metadata. Layout graphs are never loaded to enumerate types. */
 final class SchemaSnapshot
 {
@@ -42,7 +44,7 @@ final class SchemaSnapshot
     public function forms(string $namespace): array
     {
         if (!in_array($namespace, ['formieForms', 'formieSubmissions'], true)) {
-            throw new \InvalidArgumentException('Unknown Formie schema namespace.');
+            throw new InvalidArgumentException('Unknown Formie schema namespace.');
         }
         return array_values(array_filter($this->_forms, fn(Form $form): bool => Gql::isSchemaAwareOf($namespace . '.all', $this->_schema) || Gql::isSchemaAwareOf($namespace . '.' . $form->uid, $this->_schema)));
     }

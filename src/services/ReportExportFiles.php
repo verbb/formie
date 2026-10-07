@@ -15,6 +15,7 @@ use craft\helpers\StringHelper;
 
 use DateInterval;
 use DateTime;
+use RuntimeException;
 use Throwable;
 
 class ReportExportFiles extends Component
@@ -47,7 +48,7 @@ class ReportExportFiles extends Component
         ]);
 
         if (!$this->saveExportFile($exportFile)) {
-            throw new \RuntimeException(Craft::t('formie', 'Unable to create report export.'));
+            throw new RuntimeException(Craft::t('formie', 'Unable to create report export.'));
         }
 
         return $exportFile;
@@ -156,7 +157,7 @@ class ReportExportFiles extends Component
     public function markReady(ReportExportFile $exportFile, string $path, string $filename, string $mimeType): ReportExportFile
     {
         if (!is_file($path) || !is_readable($path) || filesize($path) === false) {
-            throw new \RuntimeException('The report export file is unavailable.');
+            throw new RuntimeException('The report export file is unavailable.');
         }
 
         $exportFile->status = ReportExportFile::STATUS_READY;
@@ -223,7 +224,7 @@ class ReportExportFiles extends Component
     public function getWorkingDirectory(ReportExportFile $exportFile): string
     {
         if (!$exportFile->id) {
-            throw new \RuntimeException('An export must be saved before creating its workspace.');
+            throw new RuntimeException('An export must be saved before creating its workspace.');
         }
 
         return Craft::$app->getPath()->getTempPath() . '/formie-report-exports/' . (int)$exportFile->id;
@@ -302,7 +303,7 @@ class ReportExportFiles extends Component
     private function _saveOrFail(ReportExportFile $exportFile): void
     {
         if (!$this->saveExportFile($exportFile)) {
-            throw new \RuntimeException('Unable to save report export status.');
+            throw new RuntimeException('Unable to save report export status.');
         }
     }
 

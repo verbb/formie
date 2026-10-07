@@ -10,7 +10,6 @@ use craft\helpers\Html;
 use craft\web\Controller;
 
 use yii\web\BadRequestHttpException;
-use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 class PaymentSubscriptionsController extends Controller
@@ -62,6 +61,10 @@ class PaymentSubscriptionsController extends Controller
             'status' => $subscription->status,
         ]);
     }
+
+
+    // Private Methods
+    // =========================================================================
 
     private function _renderCancelConfirmation(int $id, string $token, ?SubscriptionCancellationMode $mode): string
     {

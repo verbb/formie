@@ -14,6 +14,8 @@ use verbb\formie\references\ReferenceSlotKind;
 use verbb\formie\references\ReferenceUsage;
 use verbb\formie\references\ResolvedReference;
 
+use InvalidArgumentException;
+
 /** Public bridge; all parsing and evaluation live in the shared reference runtime. */
 class References
 {
@@ -86,7 +88,7 @@ class References
         $token = ReferenceParser::serialize($expression);
 
         if (!ReferenceParser::parse($token)->isValid) {
-            throw new \InvalidArgumentException('Invalid reference token components.');
+            throw new InvalidArgumentException('Invalid reference token components.');
         }
         return $token;
     }

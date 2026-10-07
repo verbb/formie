@@ -1,11 +1,19 @@
 <?php
 namespace verbb\formie\content;
 
-use verbb\formie\fields\values\FieldValueInterface;
+use verbb\formie\base\ParentFieldInterface;
+use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\Date;
+use verbb\formie\fields\Phone;
+use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\helpers\ArrayHelper;
 
 use craft\errors\InvalidFieldException;
+
+use ArrayAccess;
+use stdClass;
+use UnitEnum;
 
 class SubmissionContentAccessor
 {
@@ -28,8 +36,8 @@ class SubmissionContentAccessor
             $owner = $field;
             $segments = $nestedPath === null ? [] : explode('.', $nestedPath);
 
-            while ($segments && $owner instanceof \verbb\formie\base\ParentFieldInterface) {
-                $row = $owner instanceof \verbb\formie\base\RepeatableParentFieldInterface ? array_shift($segments) : null;
+            while ($segments && $owner instanceof ParentFieldInterface) {
+                $row = $owner instanceof RepeatableParentFieldInterface ? array_shift($segments) : null;
                 $handle = array_shift($segments);
                 $child = null;
 
@@ -64,7 +72,7 @@ class SubmissionContentAccessor
             $rootValue = $field->serializeValueForClientInput($rootValue, $submission);
         }
 
-        if (!is_array($rootValue) && !$rootValue instanceof \ArrayAccess && !$rootValue instanceof \stdClass) {
+        if (!is_array($rootValue) && !$rootValue instanceof ArrayAccess && !$rootValue instanceof stdClass) {
             $rootValue = [];
         }
 
@@ -100,7 +108,7 @@ class SubmissionContentAccessor
 
         $field = $submission->getContentManager()->getFieldByHandle($submission, $rootHandle);
 
-        if ($field instanceof \verbb\formie\fields\Date || $field instanceof \verbb\formie\fields\Phone) {
+        if ($field instanceof Date || $field instanceof Phone) {
             return $field->resolveNormalizedValuePath($rootValue, $nestedPath);
         }
 
@@ -111,7 +119,7 @@ class SubmissionContentAccessor
     {
         $value = $this->getNormalizedValue($submission, $fieldPath);
 
-        if (is_object($value) && !$value instanceof \UnitEnum) {
+        if (is_object($value) && !$value instanceof UnitEnum) {
             return clone $value;
         }
 
@@ -151,7 +159,7 @@ class SubmissionContentAccessor
             return $fieldValue->getPathValue($path);
         }
 
-        if (!is_array($fieldValue) && !$fieldValue instanceof \ArrayAccess && !$fieldValue instanceof \stdClass) {
+        if (!is_array($fieldValue) && !$fieldValue instanceof ArrayAccess && !$fieldValue instanceof stdClass) {
             return $fieldValue;
         }
 
@@ -175,7 +183,7 @@ class SubmissionContentAccessor
                 continue;
             }
 
-            if ($current instanceof \ArrayAccess) {
+            if ($current instanceof ArrayAccess) {
                 if (!isset($current[$segment])) {
                     return null;
                 }
@@ -184,7 +192,7 @@ class SubmissionContentAccessor
                 continue;
             }
 
-            if ($current instanceof \stdClass) {
+            if ($current instanceof stdClass) {
                 if (!property_exists($current, $segment)) {
                     return null;
                 }
@@ -237,5 +245,4 @@ class SubmissionContentAccessor
 
         return $normalizedValue;
     }
-
 }

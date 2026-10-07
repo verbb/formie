@@ -16,5 +16,4 @@ class SingleLineText extends DefaultField
 
     public static string $class = SingleLineTextField::class;
     public static string $name = 'SingleLineText';
-
 }

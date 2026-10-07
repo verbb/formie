@@ -56,7 +56,6 @@ class TableReferenceHelper
         return $columnId;
     }
 
-
     private static function _findFieldByReference(Submission $submission, string $reference): ?FieldInterface
     {
         $reference = trim($reference);

@@ -7,7 +7,7 @@ use GraphQL\Type\Definition\ResolveInfo;
 
 class KeyValueType extends ObjectType
 {
-    // Public Methods
+    // Protected Methods
     // =========================================================================
 
     protected function resolve(mixed $source, array $arguments, mixed $context, ResolveInfo $resolveInfo): mixed

@@ -12,5 +12,4 @@ class ModifyPhoneCountriesEvent extends Event
 
     public ?FieldInterface $field = null;
     public array $countries = [];
-
 }

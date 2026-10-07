@@ -3,17 +3,6 @@ namespace verbb\formie\helpers;
 
 class RepeaterReferenceHelper
 {
-    // Constants
-    // =========================================================================
-
-    public const SCOPE_FIRST = 'first';
-    public const SCOPE_LAST = 'last';
-    public const SCOPE_INDEX = 'index';
-    public const SCOPE_ALL = 'all';
-    public const SCOPE_COUNT = 'count';
-    public const SCOPE_ROWS = 'rows';
-
-
     // Static Methods
     // =========================================================================
 
@@ -143,4 +132,15 @@ class RepeaterReferenceHelper
             self::SCOPE_ROWS,
         ], true) ? $scope : null;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const SCOPE_FIRST = 'first';
+    public const SCOPE_LAST = 'last';
+    public const SCOPE_INDEX = 'index';
+    public const SCOPE_ALL = 'all';
+    public const SCOPE_COUNT = 'count';
+    public const SCOPE_ROWS = 'rows';
 }

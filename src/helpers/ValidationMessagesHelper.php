@@ -1,43 +1,15 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\compatibility\messages\ValidationMessageCompatibility;
-use verbb\formie\Formie;
 
 use Craft;
 use craft\helpers\StringHelper;
 
 class ValidationMessagesHelper
 {
-    // Constants
-    // =========================================================================
-
-    public const KEY_REQUIRED = 'required';
-    public const KEY_UNIQUE = 'unique';
-    public const KEY_UNIQUE_USER_EMAIL = 'uniqueUserEmail';
-    public const KEY_MATCH = 'match';
-    public const KEY_MIN_CHARACTERS = 'minCharacters';
-    public const KEY_MAX_CHARACTERS = 'maxCharacters';
-    public const KEY_MIN_WORDS = 'minWords';
-    public const KEY_MAX_WORDS = 'maxWords';
-    public const KEY_EMAIL = 'email';
-    public const KEY_URL = 'url';
-    public const KEY_NUMBER = 'number';
-    public const KEY_NUMBER_MIN = 'numberMin';
-    public const KEY_NUMBER_MAX = 'numberMax';
-    public const KEY_BLOCKED_DOMAIN = 'blockedDomain';
-    public const KEY_MIN_OPTIONS = 'minOptions';
-    public const KEY_MAX_OPTIONS = 'maxOptions';
-    public const KEY_MAX_FILES = 'maxFiles';
-    public const KEY_MIN_FILE_SIZE = 'minFileSize';
-    public const KEY_MAX_FILE_SIZE = 'maxFileSize';
-    public const KEY_INVALID = 'invalid';
-    public const KEY_PASSWORD_UPPERCASE = 'passwordUppercase';
-    public const KEY_PASSWORD_LOWERCASE = 'passwordLowercase';
-    public const KEY_PASSWORD_SPECIAL_CHARACTER = 'passwordSpecialCharacter';
-
-
     // Static Methods
     // =========================================================================
 
@@ -594,4 +566,32 @@ class ValidationMessagesHelper
 
         return $params;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const KEY_REQUIRED = 'required';
+    public const KEY_UNIQUE = 'unique';
+    public const KEY_UNIQUE_USER_EMAIL = 'uniqueUserEmail';
+    public const KEY_MATCH = 'match';
+    public const KEY_MIN_CHARACTERS = 'minCharacters';
+    public const KEY_MAX_CHARACTERS = 'maxCharacters';
+    public const KEY_MIN_WORDS = 'minWords';
+    public const KEY_MAX_WORDS = 'maxWords';
+    public const KEY_EMAIL = 'email';
+    public const KEY_URL = 'url';
+    public const KEY_NUMBER = 'number';
+    public const KEY_NUMBER_MIN = 'numberMin';
+    public const KEY_NUMBER_MAX = 'numberMax';
+    public const KEY_BLOCKED_DOMAIN = 'blockedDomain';
+    public const KEY_MIN_OPTIONS = 'minOptions';
+    public const KEY_MAX_OPTIONS = 'maxOptions';
+    public const KEY_MAX_FILES = 'maxFiles';
+    public const KEY_MIN_FILE_SIZE = 'minFileSize';
+    public const KEY_MAX_FILE_SIZE = 'maxFileSize';
+    public const KEY_INVALID = 'invalid';
+    public const KEY_PASSWORD_UPPERCASE = 'passwordUppercase';
+    public const KEY_PASSWORD_LOWERCASE = 'passwordLowercase';
+    public const KEY_PASSWORD_SPECIAL_CHARACTER = 'passwordSpecialCharacter';
 }

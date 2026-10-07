@@ -5,18 +5,10 @@ use verbb\formie\Formie;
 use verbb\formie\models\PdfTemplate;
 
 use Craft;
-use craft\errors\MissingComponentException;
 use craft\helpers\Json;
 
-use yii\base\ErrorException;
-use yii\base\Exception;
-use yii\base\NotSupportedException;
-use yii\web\BadRequestHttpException;
 use yii\web\HttpException;
 use yii\web\Response;
-use yii\web\ServerErrorHttpException;
-
-use Throwable;
 
 class PdfTemplatesController extends SettingsAccessController
 {

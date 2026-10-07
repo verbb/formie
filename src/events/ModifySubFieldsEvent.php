@@ -9,5 +9,4 @@ class ModifySubFieldsEvent extends Event
     // =========================================================================
 
     public array $fields = [];
-
 }

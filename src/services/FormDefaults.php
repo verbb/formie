@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\base\Field;
 use verbb\formie\Formie;
+use verbb\formie\base\Field;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\Date;
 use verbb\formie\fields\FileUpload;
@@ -503,21 +503,6 @@ class FormDefaults extends Component
         }
     }
 
-    private function _applySurveyFieldDefaultsToConfig(array &$config, array $defaults): void
-    {
-        if (($config['options'] ?? []) !== []) {
-            return;
-        }
-
-        $displayType = (string)($config['displayType'] ?? $defaults['displayType'] ?? Survey::DISPLAY_RADIO);
-
-        if (!in_array($displayType, [Survey::DISPLAY_LIKERT, Survey::DISPLAY_RATING], true)) {
-            return;
-        }
-
-        $config['options'] = SurveyPresentationDefaults::resolveOptionsForDisplayType($displayType, $defaults);
-    }
-
     public function applyToNewNotification(Notification $notification, array $postedValues = []): void
     {
         $settings = Formie::$plugin->getSettings();
@@ -663,6 +648,21 @@ class FormDefaults extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _applySurveyFieldDefaultsToConfig(array &$config, array $defaults): void
+    {
+        if (($config['options'] ?? []) !== []) {
+            return;
+        }
+
+        $displayType = (string)($config['displayType'] ?? $defaults['displayType'] ?? Survey::DISPLAY_RADIO);
+
+        if (!in_array($displayType, [Survey::DISPLAY_LIKERT, Survey::DISPLAY_RATING], true)) {
+            return;
+        }
+
+        $config['options'] = SurveyPresentationDefaults::resolveOptionsForDisplayType($displayType, $defaults);
+    }
 
     private function _editorSettingKeys(): array
     {

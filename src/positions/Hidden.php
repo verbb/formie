@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\positions;
 
-use Craft;
 use verbb\formie\base\Position;
+
+use Craft;
 
 class Hidden extends Position
 {

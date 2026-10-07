@@ -11,6 +11,8 @@ use craft\helpers\Json;
 use yii\web\HttpException;
 use yii\web\Response;
 
+use Throwable;
+
 class FormGroupsController extends SettingsAccessController
 {
     // Public Methods
@@ -164,7 +166,7 @@ class FormGroupsController extends SettingsAccessController
 
         try {
             $payload = Json::decode($settingsJson);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
 

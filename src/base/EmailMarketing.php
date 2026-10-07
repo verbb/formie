@@ -2,28 +2,16 @@
 namespace verbb\formie\base;
 
 use verbb\formie\attributes\FormIntegrationSetting;
-use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\Stencil;
 
 use Craft;
-use craft\helpers\Html;
 use craft\helpers\UrlHelper;
-
-use yii\helpers\Markdown;
 
 abstract class EmailMarketing extends Integration implements DispatchableIntegrationInterface
 {
-    // Traits
-    // =========================================================================
-
-    use DispatchableIntegrationTrait;
-
     // Static Methods
     // =========================================================================
 
@@ -31,6 +19,12 @@ abstract class EmailMarketing extends Integration implements DispatchableIntegra
     {
         return Craft::t('formie', 'Email Marketing');
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use DispatchableIntegrationTrait;
 
 
     // Properties

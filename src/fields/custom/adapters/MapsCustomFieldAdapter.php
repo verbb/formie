@@ -1,10 +1,10 @@
 <?php
 namespace verbb\formie\fields\custom\adapters;
 
-use verbb\formie\elements\Form;
 use verbb\formie\Formie;
-use verbb\formie\fields\CustomField;
+use verbb\formie\elements\Form;
 use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
+use verbb\formie\fields\CustomField;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\CustomMapFieldValue;
 use verbb\formie\helpers\SchemaHelper;
@@ -15,15 +15,14 @@ use verbb\formie\web\twig\Extension as FormieTwigExtension;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\gql\GqlEntityRegistry;
 use craft\helpers\Html;
 use craft\helpers\Json;
-use craft\gql\GqlEntityRegistry;
 
 use ether\simplemap\enums\MapTiles;
 use ether\simplemap\fields\MapField as CraftMapsField;
 use ether\simplemap\models\Map as CraftMapsValue;
 use ether\simplemap\SimpleMap;
-
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\Type;
 

@@ -5,12 +5,6 @@ use verbb\formie\helpers\StringHelper;
 
 trait ParentFieldCompatibility
 {
-    // Properties
-    // =========================================================================
-
-    public mixed $contentTable = null;
-
-
     // Static Methods
     // =========================================================================
 
@@ -23,6 +17,12 @@ trait ParentFieldCompatibility
     {
         return [];
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public mixed $contentTable = null;
 
 
     // Protected Methods

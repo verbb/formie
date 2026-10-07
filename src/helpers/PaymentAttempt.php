@@ -11,13 +11,9 @@ use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
 
 use Craft;
-use craft\helpers\App;
 
 use RuntimeException;
 use Throwable;
-
-use Money\Currencies\ISOCurrencies;
-use Money\Currency;
 
 class PaymentAttempt
 {

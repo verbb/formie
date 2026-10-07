@@ -53,10 +53,6 @@ class FormGenerator extends Generator implements GeneratorInterface, SingleGener
         ]));
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     protected static function getContentFields($context): array
     {
         try {

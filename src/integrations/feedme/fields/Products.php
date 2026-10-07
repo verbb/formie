@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
-use craft\feedme\fields\CommerceProducts as FeedMeProducts;
 use verbb\formie\fields\Products as ProductsField;
+
+use craft\feedme\fields\CommerceProducts as FeedMeProducts;
 
 class Products extends FeedMeProducts
 {
@@ -19,6 +20,9 @@ class Products extends FeedMeProducts
     public static string $name = 'Products';
 
 
+    // Public Methods
+    // =========================================================================
+
     // Templates
     // =========================================================================
 
@@ -26,5 +30,4 @@ class Products extends FeedMeProducts
     {
         return 'formie/integrations/feedme/fields/products';
     }
-
 }

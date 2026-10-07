@@ -1,37 +1,21 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\fields\definitions\FieldValueType;
-use verbb\formie\base\Field;
-use verbb\formie\base\Integration;
-use verbb\formie\base\IntegrationInterface;
-use verbb\formie\base\RepeatableParentFieldInterface;
+use verbb\formie\conditions\ConditionVisibility;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldClientRenderedChildren;
-use verbb\formie\gql\interfaces\RowInterface;
-use verbb\formie\gql\types\input\RepeaterInputType;
-use verbb\formie\gql\types\RowType;
-use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\ValidationHelper;
-use verbb\formie\models\SlotTag;
-use verbb\formie\models\IntegrationField;
-use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
-use craft\base\EagerLoadingFieldInterface;
 use craft\base\Element;
 use craft\base\ElementInterface;
-use craft\gql\GqlEntityRegistry;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\validators\ArrayValidator;
 
-use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Type\Definition\Type;
-
-use Throwable;
+use Twig\Markup;
 
 abstract class RepeatableParentField extends ParentField implements RepeatableParentFieldInterface
 {
@@ -57,7 +41,6 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
 
         return $rules;
     }
-
 
     public function validateBlocks(ElementInterface $element): void
     {
@@ -90,7 +73,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
                 $subValue = $element->getFieldValue($fieldKey);
 
                 // No need to validate if the field is conditionally hidden or disabled
-                if (\verbb\formie\conditions\ConditionVisibility::unavailable($field, $element) || $field->getIsDisabled()) {
+                if (ConditionVisibility::unavailable($field, $element) || $field->getIsDisabled()) {
                     continue;
                 }
 
@@ -154,7 +137,7 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         $value = parent::decodeValueFromStorage($value);
 
         if (!is_array($value)) {
-            $value = \craft\helpers\Json::decodeIfJson($value);
+            $value = Json::decodeIfJson($value);
         }
 
         // Keep scalar single Name values intact. Fixed Date parts have their own storage shape.
@@ -163,7 +146,6 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         }
         return $this->projectChildValues($value, null, fn($field, $child) => $field->decodeValueFromStorage($child));
     }
-
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
@@ -193,7 +175,6 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
 
         return $values;
     }
-
 
     public function beforeElementSave(ElementInterface $element, bool $isNew): bool
     {
@@ -343,13 +324,13 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
 
         foreach ($value as $rowKey => $row) {
             foreach ($this->getFields($rowKey) as $field) {
-                if ($field->getIsCosmetic() || $field->getIsHidden() || \verbb\formie\conditions\ConditionVisibility::unavailable($field, $element) || $field->getIsDisabled()) {
+                if ($field->getIsCosmetic() || $field->getIsHidden() || ConditionVisibility::unavailable($field, $element) || $field->getIsDisabled()) {
                     continue;
                 }
 
                 $subValue = $field->normalizeFieldValue($row[$field->handle] ?? $row[$field->uid] ?? null, $element);
                 $summary = $field->getValueForSummary($subValue, $element);
-                $summaryHtml = $summary instanceof \Twig\Markup ? (string)$summary : Html::encode((string)$summary);
+                $summaryHtml = $summary instanceof Markup ? (string)$summary : Html::encode((string)$summary);
 
                 $values .= Html::tag('strong', $field->label) . ' ' . $summaryHtml . Html::tag('br');
             }
@@ -369,5 +350,4 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
             ->withChildren(FieldClientRenderedChildren::MODE_ROWS)
             ->withRowResolver(fn() => $this->getEnabledRows());
     }
-
 }

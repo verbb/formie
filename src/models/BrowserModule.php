@@ -11,6 +11,69 @@ use InvalidArgumentException;
  */
 final readonly class BrowserModule
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function validateModuleId(string $moduleId): void
+    {
+        if (!preg_match('/^[a-z][a-z0-9.-]*:[a-z][a-z0-9.-]*$/', $moduleId)) {
+            throw new InvalidArgumentException('Browser module IDs must be namespaced registry identifiers: ' . $moduleId);
+        }
+    }
+
+    public static function validateSurface(string $surface): void
+    {
+        if (!in_array($surface, [self::SURFACE_SERVER_RENDERED, self::SURFACE_CLIENT_RENDERED, self::SURFACE_CP_EDIT], true)) {
+            throw new InvalidArgumentException('Invalid browser module surface.');
+        }
+    }
+
+    public static function validateSurfaces(array $surfaces): void
+    {
+        if ($surfaces === []) {
+            throw new InvalidArgumentException('Browser module declarations require at least one surface.');
+        }
+
+        foreach ($surfaces as $surface) {
+            if (!is_string($surface)) {
+                throw new InvalidArgumentException('Invalid browser module surface.');
+            }
+
+            self::validateSurface($surface);
+        }
+    }
+
+    public static function validateKind(string $kind): void
+    {
+        if (!in_array($kind, [self::KIND_FIELD, self::KIND_CAPTCHA, self::KIND_PAYMENT, self::KIND_ADDRESS, self::KIND_CORE], true)) {
+            throw new InvalidArgumentException('Invalid browser module kind.');
+        }
+    }
+
+    public static function validateTargets(array $targets): void
+    {
+        foreach ($targets as $target) {
+            if (!is_array($target)) {
+                throw new InvalidArgumentException('Invalid browser module target.');
+            }
+
+            $type = $target['type'] ?? null;
+            $valid = match ($type) {
+                'form' => count($target) === 1,
+                'field' => count($target) === 2 && is_string($target['uid'] ?? null) && $target['uid'] !== '',
+                'page' => count($target) === 2 && is_string($target['id'] ?? null) && $target['id'] !== '',
+                'action' => count($target) === 2 && is_string($target['action'] ?? null) && $target['action'] !== '',
+                'selector' => count($target) === 2 && is_string($target['selector'] ?? null) && $target['selector'] !== '',
+                default => false,
+            };
+
+            if (!$valid) {
+                throw new InvalidArgumentException('Invalid browser module target.');
+            }
+        }
+    }
+
+
     // Constants
     // =========================================================================
 
@@ -111,64 +174,5 @@ final readonly class BrowserModule
             config: $config,
             required: $this->required,
         );
-    }
-
-    public static function validateModuleId(string $moduleId): void
-    {
-        if (!preg_match('/^[a-z][a-z0-9.-]*:[a-z][a-z0-9.-]*$/', $moduleId)) {
-            throw new InvalidArgumentException('Browser module IDs must be namespaced registry identifiers: ' . $moduleId);
-        }
-    }
-
-    public static function validateSurface(string $surface): void
-    {
-        if (!in_array($surface, [self::SURFACE_SERVER_RENDERED, self::SURFACE_CLIENT_RENDERED, self::SURFACE_CP_EDIT], true)) {
-            throw new InvalidArgumentException('Invalid browser module surface.');
-        }
-    }
-
-    public static function validateSurfaces(array $surfaces): void
-    {
-        if ($surfaces === []) {
-            throw new InvalidArgumentException('Browser module declarations require at least one surface.');
-        }
-
-        foreach ($surfaces as $surface) {
-            if (!is_string($surface)) {
-                throw new InvalidArgumentException('Invalid browser module surface.');
-            }
-
-            self::validateSurface($surface);
-        }
-    }
-
-    public static function validateKind(string $kind): void
-    {
-        if (!in_array($kind, [self::KIND_FIELD, self::KIND_CAPTCHA, self::KIND_PAYMENT, self::KIND_ADDRESS, self::KIND_CORE], true)) {
-            throw new InvalidArgumentException('Invalid browser module kind.');
-        }
-    }
-
-    public static function validateTargets(array $targets): void
-    {
-        foreach ($targets as $target) {
-            if (!is_array($target)) {
-                throw new InvalidArgumentException('Invalid browser module target.');
-            }
-
-            $type = $target['type'] ?? null;
-            $valid = match ($type) {
-                'form' => count($target) === 1,
-                'field' => count($target) === 2 && is_string($target['uid'] ?? null) && $target['uid'] !== '',
-                'page' => count($target) === 2 && is_string($target['id'] ?? null) && $target['id'] !== '',
-                'action' => count($target) === 2 && is_string($target['action'] ?? null) && $target['action'] !== '',
-                'selector' => count($target) === 2 && is_string($target['selector'] ?? null) && $target['selector'] !== '',
-                default => false,
-            };
-
-            if (!$valid) {
-                throw new InvalidArgumentException('Invalid browser module target.');
-            }
-        }
     }
 }

@@ -6,11 +6,9 @@ use verbb\formie\base\Captcha;
 use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\FieldLayoutPage;
-use verbb\formie\models\Stencil;
 
 use Craft;
 use craft\helpers\App;
@@ -150,6 +148,10 @@ class Turnstile extends Captcha
         return parent::defineFormSettingsSchema($form);
     }
 
+
+    // Private Methods
+    // =========================================================================
+
     private function _getExecutionSetting(): string
     {
         if ($this->execution) {
@@ -158,5 +160,4 @@ class Turnstile extends Captcha
 
         return $this->appearance === 'execute' ? 'execute' : 'render';
     }
-
 }

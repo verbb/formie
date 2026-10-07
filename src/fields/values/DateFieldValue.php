@@ -4,15 +4,19 @@ namespace verbb\formie\fields\values;
 use verbb\formie\content\FieldStorageCodec;
 
 use craft\helpers\DateTimeHelper;
+use craft\helpers\Json;
+
+use yii\base\UnknownPropertyException;
 
 use DateTime;
 use DateTimeInterface;
+use DateTimeZone;
+use Throwable;
 
 class DateFieldValue extends BaseFieldValue
 {
     // Static Methods
     // =========================================================================
-
 
     /**
      * Convert a mixed value (DateTime, FieldValueInterface, object, string, numeric) to a DateTime instance.
@@ -61,7 +65,7 @@ class DateFieldValue extends BaseFieldValue
         return $date ? $date->format('Y-m-d H:i:s') : null;
     }
 
-    public static function fromDateTime(\DateTimeInterface $dateTime): array
+    public static function fromDateTime(DateTimeInterface $dateTime): array
     {
         return [
             'year' => $dateTime->format('Y'),
@@ -186,7 +190,7 @@ class DateFieldValue extends BaseFieldValue
                 continue;
             }
 
-            $normalized[$partKey] = is_scalar($value) ? trim((string)$value) : \craft\helpers\Json::encode($value);
+            $normalized[$partKey] = is_scalar($value) ? trim((string)$value) : Json::encode($value);
 
             if ($partKey !== 'timezone' && ctype_digit($normalized[$partKey])) {
                 $normalized[$partKey] = ltrim($normalized[$partKey], '0') ?: '0';
@@ -273,12 +277,12 @@ class DateFieldValue extends BaseFieldValue
         }
 
         try {
-            $dateTime = new DateTime('now', new \DateTimeZone($parts['timezone'] ?? 'UTC'));
+            $dateTime = new DateTime('now', new DateTimeZone($parts['timezone'] ?? 'UTC'));
             $dateTime->setDate($year, $month, $day);
             $dateTime->setTime($hour, $minute, $second);
 
             return $dateTime;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }
@@ -337,6 +341,21 @@ class DateFieldValue extends BaseFieldValue
         return implode(' ', $segments);
     }
 
+    public static function partKeys(): array
+    {
+        return self::PART_KEYS;
+    }
+
+    public static function formatDateInputValue(array $parts, string $dateFormat = 'Y-m-d'): string
+    {
+        return self::formatDateWithSettings($parts, $dateFormat);
+    }
+
+    public static function formatTimeInputValue(array $parts, string $timeFormat = 'H:i:s'): string
+    {
+        return self::formatTimeWithSettings($parts, $timeFormat);
+    }
+
     private static function _parseDatePart(string $value): array
     {
         $parsed = date_parse($value);
@@ -382,11 +401,6 @@ class DateFieldValue extends BaseFieldValue
     // =========================================================================
 
     private const PART_KEYS = ['year', 'month', 'day', 'hour', 'minute', 'second', 'ampm', 'timezone'];
-
-    public static function partKeys(): array
-    {
-        return self::PART_KEYS;
-    }
 
 
     // Properties
@@ -436,7 +450,7 @@ class DateFieldValue extends BaseFieldValue
     public function __get(string $name): mixed
     {
         if (!$this->canResolvePath($name)) {
-            throw new \yii\base\UnknownPropertyException('Getting unknown property: ' . static::class . '::' . $name);
+            throw new UnknownPropertyException('Getting unknown property: ' . static::class . '::' . $name);
         }
 
         return $this->getPathValue($name);
@@ -465,7 +479,6 @@ class DateFieldValue extends BaseFieldValue
         }
         return !self::hasCompleteDateParts($this->parts) && !isset($this->parts['hour']) || self::partsToDateTime($this->parts) !== null;
     }
-
 
     public function getParts(): array
     {
@@ -499,16 +512,6 @@ class DateFieldValue extends BaseFieldValue
         }
 
         return parent::getPathValue($path);
-    }
-
-    public static function formatDateInputValue(array $parts, string $dateFormat = 'Y-m-d'): string
-    {
-        return self::formatDateWithSettings($parts, $dateFormat);
-    }
-
-    public static function formatTimeInputValue(array $parts, string $timeFormat = 'H:i:s'): string
-    {
-        return self::formatTimeWithSettings($parts, $timeFormat);
     }
 
 

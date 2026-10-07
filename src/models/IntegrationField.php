@@ -43,5 +43,4 @@ class IntegrationField extends Model
 
         return self::TYPE_STRING;
     }
-
 }

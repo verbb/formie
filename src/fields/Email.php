@@ -5,17 +5,15 @@ use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
-use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyFieldUniqueUserQueryEvent;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
-use verbb\formie\gql\types\generators\FieldAttributeGenerator;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\fields\traits\UniqueValueFieldTrait;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
-use verbb\formie\events\ModifyFieldUniqueUserQueryEvent;
 use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
@@ -23,20 +21,13 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\elements\User;
 
-use Faker\Generator as FakerFactory;
-
-use GraphQL\Type\Definition\Type;
-
 use yii\validators\EmailValidator;
+
+use Faker\Generator as FakerFactory;
+use GraphQL\Type\Definition\Type;
 
 class Email extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_UNIQUE_USER_QUERY = 'modifyUniqueUserQuery';
-
-
     // Static Methods
     // =========================================================================
 
@@ -66,6 +57,13 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
             SingleLineText::class,
         ];
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_UNIQUE_USER_QUERY = 'modifyUniqueUserQuery';
+
 
     // Traits
     // =========================================================================
@@ -340,6 +338,7 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
         ];
     }
 
+
     // Protected Methods
     // =========================================================================
 
@@ -443,6 +442,4 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
             'inputType' => 'email',
         ]);
     }
-
-
 }

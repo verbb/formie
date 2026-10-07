@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -13,8 +13,8 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -31,19 +31,6 @@ use GuzzleHttp\Client;
 
 class HubSpot extends Crm
 {
-    // Constants
-    // =========================================================================
-
-    private const STANDARD_OBJECT_TYPE_IDS = [
-        'CONTACT' => '0-1',
-        'COMPANY' => '0-2',
-        'DEAL' => '0-3',
-        'TICKET' => '0-5',
-    ];
-
-    private const MARKETING_CONSENT_HANDLE = 'legalConsentOptionsMarketing';
-    private const MARKETING_CONSENT_HANDLE_PREFIX = self::MARKETING_CONSENT_HANDLE . '__';
-
     // Static Methods
     // =========================================================================
 
@@ -122,6 +109,20 @@ class HubSpot extends Crm
         }
         return DateFieldValue::toDateTime($value);
     }
+
+
+    // Constants
+    // =========================================================================
+
+    private const STANDARD_OBJECT_TYPE_IDS = [
+        'CONTACT' => '0-1',
+        'COMPANY' => '0-2',
+        'DEAL' => '0-3',
+        'TICKET' => '0-5',
+    ];
+
+    private const MARKETING_CONSENT_HANDLE = 'legalConsentOptionsMarketing';
+    private const MARKETING_CONSENT_HANDLE_PREFIX = self::MARKETING_CONSENT_HANDLE . '__';
 
 
     // Properties
@@ -476,6 +477,84 @@ class HubSpot extends Crm
 
         return new IntegrationConfig($settings);
     }
+
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('GET', 'crm/v3/properties/contacts');
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public function __clone(): void
+    {
+        parent::__clone();
+        $this->_formsClient = null;
+        $this->_uploadClient = null;
+    }
+
+    public function getFormsClient(): Client
+    {
+        if ($this->_formsClient) {
+            return $this->_formsClient;
+        }
+
+        return $this->_formsClient = Craft::createGuzzleClient([
+            'base_uri' => 'https://api.hsforms.com/',
+        ]);
+    }
+
+    public function getUploadClient(): Client
+    {
+        if ($this->_uploadClient) {
+            return $this->_uploadClient;
+        }
+
+        $accessToken = App::parseEnv($this->accessToken);
+
+        return $this->_uploadClient = Craft::createGuzzleClient([
+            'base_uri' => 'https://api.hubapi.com/',
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken,
+            ],
+        ]);
+    }
+
+    public function populateContext(?Submission $submission = null): void
+    {
+        parent::populateContext($submission);
+
+        if (!array_key_exists('hubspotutk', $this->context) || $this->context['hubspotutk'] === null) {
+            $this->context['hubspotutk'] = $_COOKIE['hubspotutk'] ?? null;
+        }
+    }
+
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
+    {
+        // When mapping to forms, the field settings will be an array of `IntegrationCollection` objects.
+        // So we need to select the form's settings that we're mapping to and return just the field.
+        if ($fieldSettings === 'forms') {
+            $collections = $this->getConfigValue($fieldSettings);
+
+            foreach ($collections as $collection) {
+                if ($collection->id === $this->formId) {
+                    $fieldSettings =  $collection->fields;
+                }
+            }
+        }
+
+        return parent::getFieldMappingValues($submission, $fieldMapping, $fieldSettings);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -771,83 +850,6 @@ class HubSpot extends Crm
 
         return $this->resultForPayload(true);
     }
-
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('GET', 'crm/v3/properties/contacts');
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    public function __clone(): void
-    {
-        parent::__clone();
-        $this->_formsClient = null;
-        $this->_uploadClient = null;
-    }
-
-    public function getFormsClient(): Client
-    {
-        if ($this->_formsClient) {
-            return $this->_formsClient;
-        }
-
-        return $this->_formsClient = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.hsforms.com/',
-        ]);
-    }
-
-    public function getUploadClient(): Client
-    {
-        if ($this->_uploadClient) {
-            return $this->_uploadClient;
-        }
-
-        $accessToken = App::parseEnv($this->accessToken);
-
-        return $this->_uploadClient = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.hubapi.com/',
-            'headers' => [
-                'Authorization' => 'Bearer ' . $accessToken,
-            ],
-        ]);
-    }
-
-    public function populateContext(?Submission $submission = null): void
-    {
-        parent::populateContext($submission);
-
-        if (!array_key_exists('hubspotutk', $this->context) || $this->context['hubspotutk'] === null) {
-            $this->context['hubspotutk'] = $_COOKIE['hubspotutk'] ?? null;
-        }
-    }
-
-    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
-    {
-        // When mapping to forms, the field settings will be an array of `IntegrationCollection` objects.
-        // So we need to select the form's settings that we're mapping to and return just the field.
-        if ($fieldSettings === 'forms') {
-            $collections = $this->getConfigValue($fieldSettings);
-
-            foreach ($collections as $collection) {
-                if ($collection->id === $this->formId) {
-                    $fieldSettings =  $collection->fields;
-                }
-            }
-        }
-
-        return parent::getFieldMappingValues($submission, $fieldMapping, $fieldSettings);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

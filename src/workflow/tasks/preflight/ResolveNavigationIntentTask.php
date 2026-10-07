@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\workflow\tasks\preflight;
 
+use verbb\formie\Formie;
 use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
@@ -19,7 +20,7 @@ class ResolveNavigationIntentTask implements TaskInterface
         $form = $command->form;
 
         if ($command->isInteractive()) {
-            $progress = \verbb\formie\Formie::$plugin->getSubmissionProgress()->getProgressState($form);
+            $progress = Formie::$plugin->getSubmissionProgress()->getProgressState($form);
             $pages = $form->getPages();
             $authoritative = $pages[0] ?? null;
 

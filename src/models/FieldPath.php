@@ -8,15 +8,7 @@ use verbb\formie\helpers\Html;
 
 class FieldPath
 {
-    // Properties
-    // =========================================================================
-
-    private array $_handlePath = [];
-    private array $_namespacePath = [];
-    private string $_fieldHandle = '';
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function fromField(Field $field): self
@@ -37,6 +29,18 @@ class FieldPath
 
         return $instance;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    private array $_handlePath = [];
+    private array $_namespacePath = [];
+    private string $_fieldHandle = '';
+
+
+    // Public Methods
+    // =========================================================================
 
     // Returns normalized path segments for submission content lookup.
     // Examples: ['singleName'] or ['multiName', 'firstName'] or ['repeater', '0', 'text'].

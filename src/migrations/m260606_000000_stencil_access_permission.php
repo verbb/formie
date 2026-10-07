@@ -8,6 +8,9 @@ use craft\db\Query;
 
 class m260606_000000_stencil_access_permission extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         // Craft stores permission names lowercased and matches them case-sensitively when

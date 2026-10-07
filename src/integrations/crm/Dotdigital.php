@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -10,8 +10,8 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\DotdigitalAddressBooksEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -26,12 +26,6 @@ use GuzzleHttp\Client;
 
 class Dotdigital extends Crm
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_ADDRESS_BOOKS = 'modifyAddressBooks';
-
-
     // Static Methods
     // =========================================================================
 
@@ -39,6 +33,12 @@ class Dotdigital extends Crm
     {
         return 'Dotdigital';
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_ADDRESS_BOOKS = 'modifyAddressBooks';
 
 
     // Properties
@@ -65,6 +65,7 @@ class Dotdigital extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -222,6 +223,23 @@ class Dotdigital extends Crm
         return new IntegrationConfig($settings);
     }
 
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('GET', 'account-info');
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -340,23 +358,6 @@ class Dotdigital extends Crm
 
         return $this->resultForPayload(true);
     }
-
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('GET', 'account-info');
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

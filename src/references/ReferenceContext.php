@@ -13,6 +13,7 @@ use craft\models\Site;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use InvalidArgumentException;
 
 /** Captures evaluation inputs at the boundary; the resolver never changes Craft's current site/user. */
 final readonly class ReferenceContext
@@ -49,10 +50,14 @@ final readonly class ReferenceContext
     }
 
 
-    // Public Methods
+    // Properties
     // =========================================================================
 
     public ReferenceDiagnostics $diagnostics;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function __construct(
         public ?Form $form = null,
@@ -75,7 +80,7 @@ final readonly class ReferenceContext
         $this->diagnostics = $diagnostics ?? new ReferenceDiagnostics();
 
         if ($submission && $form && $submission->formId !== $form->id) {
-            throw new \InvalidArgumentException('Reference form and submission must share an owner.');
+            throw new InvalidArgumentException('Reference form and submission must share an owner.');
         }
     }
 

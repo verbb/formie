@@ -3,6 +3,9 @@ namespace verbb\formie\helpers;
 
 class FieldOptionHelper
 {
+    // Static Methods
+    // =========================================================================
+
     public static function isOptionDefault(array $option): bool
     {
         return !empty($option['default']) || !empty($option['isDefault']);

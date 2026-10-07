@@ -9,16 +9,10 @@ use verbb\formie\models\BrowserModuleContext;
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
-use craft\helpers\Template;
+use craft\helpers\UrlHelper;
 
 class Google extends AddressProvider
 {
-    // Constants
-    // =========================================================================
-
-    public const GOOGLE_INPUT_NAME = 'formie-google-autocomplete';
-
-
     // Static Methods
     // =========================================================================
 
@@ -31,6 +25,12 @@ class Google extends AddressProvider
     {
         return true;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const GOOGLE_INPUT_NAME = 'formie-google-autocomplete';
 
 
     // Properties
@@ -68,7 +68,7 @@ class Google extends AddressProvider
             'config' => [
                 'apiKey' => App::parseEnv($this->apiKey),
                 'options' => $this->_getOptions(),
-                'geocodeEndpoint' => \craft\helpers\UrlHelper::actionUrl('formie/address/google-places-geocode'),
+                'geocodeEndpoint' => UrlHelper::actionUrl('formie/address/google-places-geocode'),
             ],
         ]);
     }

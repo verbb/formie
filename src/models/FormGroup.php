@@ -1,16 +1,14 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\records\FormGroup as FormGroupRecord;
+
 use Craft;
 use craft\base\Model;
 use craft\db\SoftDeleteTrait;
 use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
-
-use verbb\formie\records\FormGroup as FormGroupRecord;
-
-use verbb\formie\models\FormGroupSettings;
 
 use DateTime;
 
@@ -33,7 +31,6 @@ class FormGroup extends Model
     public ?int $sortOrder = null;
     public ?DateTime $dateDeleted = null;
     public ?string $uid = null;
-
     // Optional group policy and defaults payload from project config.
     public ?array $settings = null;
 

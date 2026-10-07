@@ -9,5 +9,4 @@ class ModifyExistingFieldsEvent extends Event
     // =========================================================================
 
     public ?array $fields = null;
-
 }

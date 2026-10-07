@@ -2,21 +2,19 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\base\Field;
-use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
+use verbb\formie\gql\types\Json as JsonType;
 use verbb\formie\helpers\Gql as FormieGql;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\helpers\Variables;
-use verbb\formie\gql\types\Json as JsonType;
-use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\RichText;
+use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
@@ -28,7 +26,6 @@ use craft\helpers\Template;
 use yii\db\Schema;
 
 use GraphQL\Type\Definition\Type;
-
 use Twig\Markup;
 
 class Agree extends Field implements SortableFieldInterface, PreviewableFieldInterface

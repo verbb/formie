@@ -2,13 +2,14 @@
 namespace verbb\formie\theme\slots;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\Html;
-use verbb\formie\models\Settings;
 use verbb\formie\helpers\SetPageReturnUrlHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutRow;
+use verbb\formie\models\Settings;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
@@ -159,7 +160,7 @@ class FormSlotRegistry extends Component
         }
 
         $rows = is_array($settings->clientEventFields) ? $settings->clientEventFields : [];
-        $events = \verbb\formie\helpers\ClientEventsHelper::normalizeStoredEvents($settings);
+        $events = ClientEventsHelper::normalizeStoredEvents($settings);
 
         if ($events !== []) {
             $firstEvent = $events[0];

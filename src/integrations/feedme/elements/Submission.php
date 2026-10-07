@@ -6,11 +6,9 @@ use verbb\formie\elements\Submission as SubmissionElement;
 
 use Craft;
 use craft\base\Element as CraftBaseElement;
-use craft\base\ElementInterface;
-
-use craft\feedme\base\Element;
 
 use Cake\Utility\Hash;
+use craft\feedme\base\Element;
 
 class Submission extends Element
 {
@@ -19,9 +17,11 @@ class Submission extends Element
 
     public static string $class = SubmissionElement::class;
     public static string $name = 'Submission';
-
     public $element = null;
 
+
+    // Public Methods
+    // =========================================================================
 
     // Templates
     // =========================================================================
@@ -40,10 +40,6 @@ class Submission extends Element
     {
         return 'formie/integrations/feedme/elements/map';
     }
-
-
-    // Public Methods
-    // =========================================================================
 
     public function getGroups(): array
     {
@@ -91,5 +87,4 @@ class Submission extends Element
 
         return Formie::$plugin->getSubmissionStatuses()->getStatusByHandle($value)->id;
     }
-
 }

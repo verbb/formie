@@ -1,14 +1,11 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
-use verbb\formie\Formie;
 use verbb\formie\base\ChildFieldInterface;
-use verbb\formie\base\Integration;
-use verbb\formie\models\SlotTag;
-use verbb\formie\theme\context\RenderContext;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\fields\subfields\traits\DateSubFieldValueTrait;
-use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\SlotTag;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 
@@ -69,5 +66,4 @@ class DateDate extends SingleLineText implements ChildFieldInterface
             'inputType' => 'date',
         ]);
     }
-
 }

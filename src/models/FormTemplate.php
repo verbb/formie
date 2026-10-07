@@ -1,14 +1,13 @@
 <?php
 namespace verbb\formie\models;
 
-use Craft;
-use craft\behaviors\FieldLayoutBehavior;
-use craft\helpers\UrlHelper;
-use craft\models\FieldLayout;
-
 use verbb\formie\deprecations\FormTemplateDeprecations;
 use verbb\formie\elements\Form;
 use verbb\formie\records\FormTemplate as FormTemplateRecord;
+
+use craft\behaviors\FieldLayoutBehavior;
+use craft\helpers\UrlHelper;
+use craft\models\FieldLayout;
 
 class FormTemplate extends BaseTemplate
 {

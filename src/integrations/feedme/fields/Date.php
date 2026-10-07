@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
-use craft\feedme\fields\Date as FeedMeDate;
 use verbb\formie\fields\Date as DateField;
+
+use craft\feedme\fields\Date as FeedMeDate;
 
 class Date extends FeedMeDate
 {
@@ -17,5 +18,4 @@ class Date extends FeedMeDate
 
     public static string $class = DateField::class;
     public static string $name = 'Date';
-
 }

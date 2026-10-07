@@ -14,7 +14,6 @@ class FieldGqlCache
         'queryArgumentType' => [],
         'mutationArgumentType' => [],
     ];
-
     private array $_config = [
         'includeInSchema' => [],
         'contentType' => [],

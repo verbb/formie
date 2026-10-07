@@ -1,10 +1,11 @@
 <?php
 namespace verbb\formie\services;
 
-use craft\base\Component;
 use verbb\formie\elements\Form;
 use verbb\formie\factories\FormFactory;
 use verbb\formie\factories\SubmissionFactory;
+
+use craft\base\Component;
 
 class Factories extends Component
 {

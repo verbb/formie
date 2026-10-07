@@ -8,6 +8,9 @@ use yii\base\Event;
 
 class ModifyIntegrationSlotTagEvent extends Event
 {
+    // Properties
+    // =========================================================================
+
     public ?Integration $integration = null;
     public ?SlotTag $tag = null;
     public ?string $key = null;

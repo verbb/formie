@@ -8,13 +8,6 @@ use Craft;
 
 class IntegrationOptionSourceHelper
 {
-    // Constants
-    // =========================================================================
-
-    public const USAGE_OPTIONS = 'options';
-    public const USAGE_RECIPIENTS = 'recipients';
-
-
     // Static Methods
     // =========================================================================
 
@@ -404,4 +397,11 @@ class IntegrationOptionSourceHelper
 
         return [];
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const USAGE_OPTIONS = 'options';
+    public const USAGE_RECIPIENTS = 'recipients';
 }

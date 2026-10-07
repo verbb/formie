@@ -14,6 +14,7 @@ use craft\db\Query;
 use yii\base\Component;
 
 use InvalidArgumentException;
+use Throwable;
 
 class SubmissionGrants extends Component
 {
@@ -196,7 +197,7 @@ class SubmissionGrants extends Component
             $grant = $this->issue($submission, $purpose, $progressId);
             $transaction->commit();
             return $grant;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $transaction->rollBack();
             throw $e;
         }

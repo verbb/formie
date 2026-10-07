@@ -1,10 +1,11 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\Formie;
 use verbb\formie\models\FormTemplate;
+
 use Craft;
 use craft\base\Component;
 use craft\helpers\Html;
@@ -232,6 +233,7 @@ JS,
 
         Craft::$app->getView()->registerCss(file_get_contents($path));
     }
+
 
     // Private Methods
     // =========================================================================

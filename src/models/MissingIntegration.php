@@ -9,6 +9,15 @@ use craft\base\MissingComponentTrait;
 
 class MissingIntegration extends Integration implements MissingComponentInterface
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function typeName(): string
+    {
+        return Craft::t('formie', 'Missing Integration');
+    }
+
+
     // Traits
     // =========================================================================
 
@@ -17,11 +26,6 @@ class MissingIntegration extends Integration implements MissingComponentInterfac
 
     // Public Methods
     // =========================================================================
-
-    public static function typeName(): string
-    {
-        return Craft::t('formie', 'Missing Integration');
-    }
 
     public function getDescription(): string
     {

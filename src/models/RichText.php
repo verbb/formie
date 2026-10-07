@@ -6,15 +6,16 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\References;
 use verbb\formie\references\ReferenceOutputContext;
 
-use verbb\tiptap\Normalizer;
-use verbb\tiptap\RichText as TiptapRichText;
-
 use JsonSerializable;
 use Stringable;
 
+use verbb\tiptap\Normalizer;
+use verbb\tiptap\RichText as TiptapRichText;
+
 class RichText implements JsonSerializable, Stringable
 {
-    private TiptapRichText $_content;
+    // Static Methods
+    // =========================================================================
 
     public static function from(mixed $value = null): self
     {
@@ -38,6 +39,21 @@ class RichText implements JsonSerializable, Stringable
 
         return Normalizer::normalize($content);
     }
+
+    private static function _getAdditionalExtensions(): array
+    {
+        return Formie::$plugin?->getTiptapExtensions()->getPhpExtensions() ?? [];
+    }
+
+
+    // Properties
+    // =========================================================================
+
+    private TiptapRichText $_content;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function __construct(mixed $value = null)
     {
@@ -112,14 +128,5 @@ class RichText implements JsonSerializable, Stringable
     public function jsonSerialize(): array
     {
         return $this->_content->jsonSerialize();
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    private static function _getAdditionalExtensions(): array
-    {
-        return Formie::$plugin?->getTiptapExtensions()->getPhpExtensions() ?? [];
     }
 }

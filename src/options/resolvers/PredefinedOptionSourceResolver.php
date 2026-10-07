@@ -1,16 +1,15 @@
 <?php
 namespace verbb\formie\options\resolvers;
 
-use verbb\formie\base\PredefinedOption;
 use verbb\formie\Formie;
+use verbb\formie\base\PredefinedOption;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\OptionSource;
 use verbb\formie\options\OptionList;
 use verbb\formie\options\OptionSourceContext;
 use verbb\formie\options\OptionSourceFieldInterface;
 use verbb\formie\options\OptionSourceResolverInterface;
 use verbb\formie\options\OptionSourceValidationMode;
-
-use verbb\formie\helpers\StringHelper;
 
 class PredefinedOptionSourceResolver implements OptionSourceResolverInterface
 {

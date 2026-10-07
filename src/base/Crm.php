@@ -1,27 +1,13 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\base\FormInterface;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\Stencil;
 
 use Craft;
-use craft\helpers\Html;
 use craft\helpers\UrlHelper;
-
-use yii\helpers\Markdown;
 
 abstract class Crm extends Integration implements DispatchableIntegrationInterface
 {
-    // Traits
-    // =========================================================================
-
-    use DispatchableIntegrationTrait;
-
     // Static Methods
     // =========================================================================
 
@@ -29,6 +15,12 @@ abstract class Crm extends Integration implements DispatchableIntegrationInterfa
     {
         return Craft::t('formie', 'CRM');
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use DispatchableIntegrationTrait;
 
 
     // Public Methods

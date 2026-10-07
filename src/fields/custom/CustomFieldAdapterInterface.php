@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\fields\custom;
 
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\base\IntegrationInterface;
 use verbb\formie\fields\CustomField;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\models\IntegrationField;

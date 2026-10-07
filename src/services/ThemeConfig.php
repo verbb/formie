@@ -4,13 +4,14 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Form;
-use verbb\formie\theme\context\RenderContext;
 use verbb\formie\helpers\Html;
 use verbb\formie\models\ResolvedTheme;
 use verbb\formie\models\SlotTag;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\helpers\Json;
+
 use yii\base\Component;
 use yii\base\InvalidArgumentException;
 
@@ -30,6 +31,7 @@ class ThemeConfig extends Component
         'currentPage.id', 'currentPage.index', 'row.isHidden',
         'submission.id', 'submission.uid', 'submission.hasErrors',
     ];
+
 
     // Public Methods
     // =========================================================================
@@ -131,33 +133,6 @@ class ThemeConfig extends Component
         return $this->_resolvedTheme($form)->browserClassMap;
     }
 
-    private function _buildBrowserClassMap(Form $form, ResolvedTheme $theme): array
-    {
-        $context = RenderContext::from([
-            'form' => $form,
-            'page' => $form->getPages()[0] ?? null,
-            'currentPage' => $form->getCurrentPage(),
-        ]);
-        $evaluationContext = $this->_buildEvaluationContext($context);
-        $themeClasses = [];
-
-        foreach ($this->_browserClassDefaults() as $key => $fallbackClasses) {
-            $config = $this->_normalizePublicSlotConfig($theme->getConfigItem($key));
-
-            if ($theme->isNone()) {
-                $fallbackClasses = [];
-            }
-
-            $classes = $this->_resolveBrowserThemeClasses($config, $fallbackClasses, $evaluationContext);
-
-            if ($classes !== []) {
-                $themeClasses[$key] = $classes;
-            }
-        }
-
-        return $themeClasses;
-    }
-
     public function mergeConfigLayers(array $baseConfig, array $overrideConfig): array
     {
         $merged = $baseConfig;
@@ -249,6 +224,33 @@ class ThemeConfig extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _buildBrowserClassMap(Form $form, ResolvedTheme $theme): array
+    {
+        $context = RenderContext::from([
+            'form' => $form,
+            'page' => $form->getPages()[0] ?? null,
+            'currentPage' => $form->getCurrentPage(),
+        ]);
+        $evaluationContext = $this->_buildEvaluationContext($context);
+        $themeClasses = [];
+
+        foreach ($this->_browserClassDefaults() as $key => $fallbackClasses) {
+            $config = $this->_normalizePublicSlotConfig($theme->getConfigItem($key));
+
+            if ($theme->isNone()) {
+                $fallbackClasses = [];
+            }
+
+            $classes = $this->_resolveBrowserThemeClasses($config, $fallbackClasses, $evaluationContext);
+
+            if ($classes !== []) {
+                $themeClasses[$key] = $classes;
+            }
+        }
+
+        return $themeClasses;
+    }
 
     private function _applyConfigToTag(SlotTag $tag, array|bool|null $config, RenderContext $context, bool $unstyled = false, bool $allowsRawHtml = false): ?SlotTag
     {
@@ -983,5 +985,4 @@ class ThemeConfig extends Component
 
         return $defaults;
     }
-
 }

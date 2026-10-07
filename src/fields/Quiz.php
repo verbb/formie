@@ -365,6 +365,10 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
         return $this->fieldType;
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function defineBrowserModules(): array
     {
         $modules = parent::defineBrowserModules();
@@ -375,10 +379,6 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
 
         return $modules;
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function optionsSettingLabel(): string
     {

@@ -18,6 +18,8 @@ use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\ProjectConfig;
 
+use DateTime;
+use Exception;
 use Throwable;
 
 class CaptchaProviders extends Component
@@ -165,7 +167,7 @@ class CaptchaProviders extends Component
     public function seedRegistryFromLegacySettings(array $legacyCaptchas = []): void
     {
         $integrations = Formie::$plugin->getIntegrations();
-        $now = Db::prepareDateForDb(new \DateTime());
+        $now = Db::prepareDateForDb(new DateTime());
 
         foreach ($integrations->getIntegrationTypes(Integration::TYPE_CAPTCHA) as $captchaClass) {
             $class = new $captchaClass();
@@ -360,7 +362,7 @@ class CaptchaProviders extends Component
                 $record = CaptchaProviderRecord::findOne($integration->id);
 
                 if (!$record) {
-                    throw new \Exception('Invalid captcha provider ID: ' . $integration->id);
+                    throw new Exception('Invalid captcha provider ID: ' . $integration->id);
                 }
             }
 

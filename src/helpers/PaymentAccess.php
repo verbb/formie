@@ -6,19 +6,8 @@ use verbb\formie\enums\PaymentCapabilityPurpose;
 use verbb\formie\fields\Payment;
 use verbb\formie\models\Payment as PaymentModel;
 
-use Craft;
-use craft\helpers\Json;
-
 final class PaymentAccess
 {
-    // Constants
-    // =========================================================================
-
-    private const STATUS_TOKEN_TTL_SECONDS = 86400;
-    private const RETURN_TOKEN_TTL_SECONDS = 3600;
-    private const PROVIDER_SESSION_TOKEN_TTL_SECONDS = 1800;
-
-
     // Static Methods
     // =========================================================================
 
@@ -102,10 +91,6 @@ final class PaymentAccess
         return null;
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     private static function _resolvePaymentCapability(array $row): ?array
     {
         $payment = Formie::$plugin->getPayments()->getPaymentById((int)$row['resourceId']);
@@ -124,4 +109,12 @@ final class PaymentAccess
 
         return null;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    private const STATUS_TOKEN_TTL_SECONDS = 86400;
+    private const RETURN_TOKEN_TTL_SECONDS = 3600;
+    private const PROVIDER_SESSION_TOKEN_TTL_SECONDS = 1800;
 }

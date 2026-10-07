@@ -1,10 +1,12 @@
 <?php
 namespace verbb\formie\factories;
 
-use Craft;
-use RuntimeException;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+
+use Craft;
+
+use RuntimeException;
 
 final class SubmissionFactory
 {

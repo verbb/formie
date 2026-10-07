@@ -4,7 +4,6 @@ namespace verbb\formie\models;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
-use verbb\formie\models\FieldLayoutPage;
 
 use yii\base\BaseObject;
 
@@ -22,6 +21,7 @@ class BrowserModuleContext extends BaseObject
 
     // Public Methods
     // =========================================================================
+
     public function getTargets(): array
     {
         if ($this->field) {

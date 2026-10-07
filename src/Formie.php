@@ -23,6 +23,7 @@ use verbb\formie\gql\queries\HtmlFormQuery;
 use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\helpers\CrossOriginRequestHelper;
 use verbb\formie\helpers\Gql as GqlHelper;
+use verbb\formie\helpers\Plugin as PluginHelper;
 use verbb\formie\helpers\ProjectConfigHelper;
 use verbb\formie\integrations\feedme\elements\Submission as FeedMeSubmission;
 use verbb\formie\integrations\link\FormLinkType;
@@ -46,19 +47,17 @@ use verbb\formie\web\twig\Extension;
 use verbb\formie\widgets\RecentSubmissions;
 
 use Craft;
-use craft\base\Model;
 use craft\base\Plugin;
 use craft\console\Application as ConsoleApplication;
 use craft\console\Controller as ConsoleController;
 use craft\console\controllers\ResaveController;
+use craft\controllers\GraphqlController;
 use craft\controllers\UsersController;
 use craft\elements\exporters\Expanded;
 use craft\elements\exporters\Raw;
 use craft\elements\User as UserElement;
-use craft\enums\CmsEdition;
 use craft\events\DefineConsoleActionsEvent;
 use craft\events\ExecuteGqlQueryEvent;
-use craft\events\FieldLayoutEvent;
 use craft\events\PluginEvent;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
@@ -72,13 +71,7 @@ use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
-use craft\feedme\events\RegisterFeedMeElementsEvent;
-use craft\feedme\events\RegisterFeedMeFieldsEvent;
-use craft\feedme\services\Elements as FeedMeElements;
-use craft\feedme\services\Fields as FeedMeFields;
 use craft\fields\Link;
-use craft\gatsbyhelper\events\RegisterSourceNodeTypesEvent;
-use craft\gatsbyhelper\services\SourceNodes;
 use craft\helpers\Cp;
 use craft\helpers\UrlHelper;
 use craft\queue\Queue;
@@ -97,9 +90,17 @@ use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use craft\web\View;
 
+use yii\base\Controller;
 use yii\base\Event;
 use yii\queue\ExecEvent;
 use yii\web\Response as WebResponse;
+
+use craft\feedme\events\RegisterFeedMeElementsEvent;
+use craft\feedme\events\RegisterFeedMeFieldsEvent;
+use craft\feedme\services\Elements as FeedMeElements;
+use craft\feedme\services\Fields as FeedMeFields;
+use craft\gatsbyhelper\events\RegisterSourceNodeTypesEvent;
+use craft\gatsbyhelper\services\SourceNodes;
 
 class Formie extends Plugin
 {
@@ -109,6 +110,12 @@ class Formie extends Plugin
     public const EVENT_MODIFY_TWIG_ENVIRONMENT = 'modifyTwigEnvironment';
 
 
+    // Traits
+    // =========================================================================
+
+    use PluginTrait;
+
+
     // Properties
     // =========================================================================
 
@@ -116,12 +123,6 @@ class Formie extends Plugin
     public bool $hasCpSettings = true;
     public string $schemaVersion = '4.0.77';
     public string $minVersionRequired = '2.1.5';
-
-
-    // Traits
-    // =========================================================================
-
-    use PluginTrait;
 
 
     // Public Methods
@@ -153,7 +154,7 @@ class Formie extends Plugin
             $this->_registerElementExports();
 
             if (str_starts_with(Craft::$app->getRequest()->getPathInfo(), 'utilities/queue-manager')) {
-                \verbb\formie\helpers\Plugin::registerCpAsset('src/delivery/formie-delivery.js');
+                PluginHelper::registerCpAsset('src/delivery/formie-delivery.js');
             }
         }
 
@@ -287,7 +288,7 @@ class Formie extends Plugin
 
     private function _registerClientCorsHandler(): void
     {
-        Event::on(\craft\services\Gql::class, \craft\services\Gql::EVENT_BEFORE_EXECUTE_GQL_QUERY, function(\craft\events\ExecuteGqlQueryEvent $event) {
+        Event::on(Gql::class, Gql::EVENT_BEFORE_EXECUTE_GQL_QUERY, function(ExecuteGqlQueryEvent $event) {
             // These queries issue visitor-bound credentials. A shared GraphQL
             // result cache must never replay another visitor's bootstrap or HTML.
             if (preg_match('/\\b(formieClientForm|formieHtmlForm)\\b/', $event->query)) {
@@ -300,7 +301,7 @@ class Formie extends Plugin
         });
         // Formie public GraphQL adapters declare their profile header. Their CORS
         // policy belongs to Formie rather than Craft's administrative API defaults.
-        Event::on(\craft\controllers\GraphqlController::class, \yii\base\Controller::EVENT_BEFORE_ACTION, function() {
+        Event::on(GraphqlController::class, Controller::EVENT_BEFORE_ACTION, function() {
             $request = Craft::$app->getRequest();
             $preflightHeaders = strtolower((string)$request->getHeaders()->get('Access-Control-Request-Headers', ''));
 
@@ -936,5 +937,4 @@ class Formie extends Plugin
             ];
         });
     }
-
 }

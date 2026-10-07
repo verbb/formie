@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
-use craft\feedme\fields\Tags as FeedMeTags;
 use verbb\formie\fields\Tags as TagsField;
+
+use craft\feedme\fields\Tags as FeedMeTags;
 
 class Tags extends FeedMeTags
 {
@@ -19,6 +20,9 @@ class Tags extends FeedMeTags
     public static string $name = 'Tags';
 
 
+    // Public Methods
+    // =========================================================================
+
     // Templates
     // =========================================================================
 
@@ -26,5 +30,4 @@ class Tags extends FeedMeTags
     {
         return 'formie/integrations/feedme/fields/tags';
     }
-
 }

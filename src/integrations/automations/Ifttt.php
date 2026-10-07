@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\integrations\automations;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Automation;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -17,8 +17,6 @@ use craft\helpers\App;
 use craft\helpers\Json;
 
 use Throwable;
-
-use GuzzleHttp\Client;
 
 class Ifttt extends Automation
 {
@@ -85,6 +83,18 @@ class Ifttt extends Automation
         return new IntegrationConfig($settings);
     }
 
+    public function getUrl(): string
+    {
+        $event = App::parseEnv($this->eventName);
+        $key = App::parseEnv($this->webhookKey);
+
+        return "https://maker.ifttt.com/trigger/$event/with/key/$key";
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -105,18 +115,6 @@ class Ifttt extends Automation
 
         return $this->resultForPayload(true);
     }
-
-    public function getUrl(): string
-    {
-        $event = App::parseEnv($this->eventName);
-        $key = App::parseEnv($this->webhookKey);
-
-        return "https://maker.ifttt.com/trigger/$event/with/key/$key";
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

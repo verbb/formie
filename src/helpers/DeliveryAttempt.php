@@ -2,8 +2,8 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\errors\DeliveryOutcomeUnknownException;
-use verbb\formie\services\SubmissionWorkflow;
 use verbb\formie\workflow\WorkflowContext;
 
 use Craft;
@@ -43,7 +43,7 @@ class DeliveryAttempt
             return 'workflow:' . $context->command->operationId;
         }
 
-        if ($context->command->operation !== \verbb\formie\enums\SubmissionOperation::REVISE) {
+        if ($context->command->operation !== SubmissionOperation::REVISE) {
             return 'completion';
         }
         return $context->taskState['delivery.identity'] ??= StringHelper::UUID();

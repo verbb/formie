@@ -1,10 +1,10 @@
 <?php
 namespace verbb\formie\helpers;
 
-use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldValueType;
+use verbb\formie\fields\values\DateFieldValue;
 use verbb\formie\models\Notification;
 use verbb\formie\references\ReferenceCatalogue;
 use verbb\formie\references\ReferenceContext;
@@ -14,8 +14,7 @@ use verbb\formie\references\ReferenceResolver;
 use Craft;
 use craft\helpers\Json;
 
-use yii\base\Event;
-
+use Stringable;
 use Throwable;
 
 class Variables
@@ -102,7 +101,6 @@ class Variables
             'variableTransformerRegistry' => $categoryConfig['transformerRegistry'] ?? [],
         ];
     }
-
 
     /**
      * Returns variable picker configuration used by variableConfig:
@@ -213,7 +211,7 @@ class Variables
                 }
 
                 try {
-                    $date = \verbb\formie\fields\values\DateFieldValue::toDateTime($value);
+                    $date = DateFieldValue::toDateTime($value);
                     return $date ? $date->format($pattern) : $value;
                 } catch (Throwable) {
                     return $value;
@@ -327,6 +325,38 @@ class Variables
         }
 
         return $value;
+    }
+
+    public static function getSummaryVariables(Submission $submission, Notification $notification): array
+    {
+        $allFields = [];
+        $allContentFields = [];
+        $allVisibleFields = [];
+
+        // Build expensive summary variables used by multi-line content references.
+        foreach ($submission->getFields() as $field) {
+            if (!$field->includeInEmailFieldSummaries || $field->isConditionallyHidden($submission)) {
+                continue;
+            }
+
+            $value = $submission->getFieldValue($field->valueKey());
+
+            $allFields[] = $field;
+
+            if (!$field->isValueEmpty($value, $submission)) {
+                $allContentFields[] = $field;
+            }
+
+            if (!$field->getIsHidden()) {
+                $allVisibleFields[] = $field;
+            }
+        }
+
+        return [
+            'allFields' => self::_renderSummaryTemplate($notification, $submission, 'all-fields', $allFields),
+            'allContentFields' => self::_renderSummaryTemplate($notification, $submission, 'all-content-fields', $allContentFields),
+            'allVisibleFields' => self::_renderSummaryTemplate($notification, $submission, 'all-visible-fields', $allVisibleFields),
+        ];
     }
 
     private static function _getTransformerRegistry(): array
@@ -803,39 +833,6 @@ class Variables
         Craft::warning($message . $contextSuffix, __METHOD__);
     }
 
-
-    public static function getSummaryVariables(Submission $submission, Notification $notification): array
-    {
-        $allFields = [];
-        $allContentFields = [];
-        $allVisibleFields = [];
-
-        // Build expensive summary variables used by multi-line content references.
-        foreach ($submission->getFields() as $field) {
-            if (!$field->includeInEmailFieldSummaries || $field->isConditionallyHidden($submission)) {
-                continue;
-            }
-
-            $value = $submission->getFieldValue($field->valueKey());
-
-            $allFields[] = $field;
-
-            if (!$field->isValueEmpty($value, $submission)) {
-                $allContentFields[] = $field;
-            }
-
-            if (!$field->getIsHidden()) {
-                $allVisibleFields[] = $field;
-            }
-        }
-
-        return [
-            'allFields' => self::_renderSummaryTemplate($notification, $submission, 'all-fields', $allFields),
-            'allContentFields' => self::_renderSummaryTemplate($notification, $submission, 'all-content-fields', $allContentFields),
-            'allVisibleFields' => self::_renderSummaryTemplate($notification, $submission, 'all-visible-fields', $allVisibleFields),
-        ];
-    }
-
     private static function _renderSummaryTemplate(Notification $notification, Submission $submission, string $template, array $fields): string
     {
         if (!$fields) {
@@ -882,7 +879,7 @@ class Variables
             return (string)$value;
         }
 
-        if ($value instanceof \Stringable) {
+        if ($value instanceof Stringable) {
             return (string)$value;
         }
 
@@ -970,5 +967,4 @@ class Variables
     public const STATIC_SITE = 'staticSiteVariables';
     public const STATIC_DISPATCH = 'staticDispatchVariables';
     public const STATIC_CUSTOM = 'staticCustomVariables';
-
 }

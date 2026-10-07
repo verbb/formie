@@ -4,6 +4,7 @@
 
 ### Changed
 - Moved completion resolution and metadata persistence into the submission workflow’s Finalize task. `WorkflowContext::result()` now only constructs an outcome, so custom tasks can create results without triggering completion events or database writes.
+- Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
 - Fixed queued integrations and notifications leaving the worker on the submission’s site and locale. The previous site, language, and locale are now restored after delivery, including early returns and exceptions.

@@ -5,6 +5,8 @@ use verbb\formie\content\FieldStorageCodec;
 
 use craft\helpers\Json;
 
+use LogicException;
+
 class PaymentFieldValue extends BaseFieldValue
 {
     // Static Methods
@@ -60,7 +62,7 @@ class PaymentFieldValue extends BaseFieldValue
 
     public function __set(string $name, mixed $value): void
     {
-        throw new \LogicException('Payment field values are immutable.');
+        throw new LogicException('Payment field values are immutable.');
     }
 
     public function __isset(string $name): bool
@@ -77,6 +79,4 @@ class PaymentFieldValue extends BaseFieldValue
     {
         return $this->parts;
     }
-
-
 }

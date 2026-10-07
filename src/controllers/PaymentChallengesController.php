@@ -16,6 +16,7 @@ class PaymentChallengesController extends Controller
 
     // Cross-origin provider POST, authenticated by a challenge-only capability and provider API.
     public $enableCsrfValidation = false;
+
     protected array|bool|int $allowAnonymous = ['complete'];
 
 

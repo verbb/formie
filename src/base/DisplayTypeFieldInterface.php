@@ -3,6 +3,9 @@ namespace verbb\formie\base;
 
 interface DisplayTypeFieldInterface
 {
+    // Public Methods
+    // =========================================================================
+
     /**
      * Returns a real Formie field instance matching the current presentation mode.
      *
@@ -11,7 +14,6 @@ interface DisplayTypeFieldInterface
      * properties, slot tags, and browser modules.
      */
     public function getDisplayTypeField(): ?FieldInterface;
-
     /**
      * Returns the active presentation mode key (e.g. `radio`, `dropdown`, `hidden`).
      */

@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -15,8 +15,8 @@ use verbb\formie\fields\FileUpload;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Assets;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -24,7 +24,6 @@ use craft\base\LocalFsInterface;
 use craft\elements\db\AssetQuery;
 use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
-use craft\helpers\FileHelper;
 use craft\helpers\Json;
 
 use yii\base\Event;
@@ -32,7 +31,6 @@ use yii\base\Event;
 use DateTime;
 use DateTimeInterface;
 use DateTimeZone;
-use Exception;
 use Throwable;
 
 use GuzzleHttp\Exception\RequestException;
@@ -91,6 +89,34 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 'emptySourcesWarning' => Craft::t('formie', 'No picklist fields are available. Refresh the integration field mapping first.'),
             ],
         ];
+    }
+
+    /**
+     * Salesforce REST expects ISO-8601 datetimes (e.g. with "T" and timezone), not `Y-m-d H:i:s`.
+     */
+    private static function _normalizeMappedDateTimeForSalesforce(mixed $rawValue, mixed $value): ?string
+    {
+        foreach ([$rawValue, $value] as $candidate) {
+            if ($candidate instanceof DateTimeInterface) {
+                return self::_dateTimeInterfaceToSalesforceUtc($candidate);
+            }
+        }
+
+        foreach ([$value, $rawValue] as $candidate) {
+            if (is_string($candidate) && $candidate !== '' && ($dt = DateTimeHelper::toDateTime($candidate))) {
+                return self::_dateTimeInterfaceToSalesforceUtc($dt);
+            }
+        }
+
+        return null;
+    }
+
+    private static function _dateTimeInterfaceToSalesforceUtc(DateTimeInterface $date): string
+    {
+        $dt = $date instanceof DateTime ? clone $date : DateTime::createFromInterface($date);
+        $dt->setTimezone(new DateTimeZone('UTC'));
+
+        return $dt->format('Y-m-d\TH:i:s') . '.000Z';
     }
 
 
@@ -349,6 +375,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -404,6 +431,10 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
         return $value;
     }
+
+
+    // Protected Methods
+    // =========================================================================
 
     protected function executePayload(Submission $submission): IntegrationResult
     {
@@ -722,10 +753,6 @@ class Salesforce extends Crm implements OAuthProviderInterface
         return $this->resultForPayload(true);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -896,7 +923,6 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
         return $schema;
     }
-
 
     protected function processAttachments(Submission $submission, string $id): void
     {
@@ -1212,34 +1238,6 @@ class Salesforce extends Crm implements OAuthProviderInterface
         }
 
         return $payload;
-    }
-
-    /**
-     * Salesforce REST expects ISO-8601 datetimes (e.g. with "T" and timezone), not `Y-m-d H:i:s`.
-     */
-    private static function _normalizeMappedDateTimeForSalesforce(mixed $rawValue, mixed $value): ?string
-    {
-        foreach ([$rawValue, $value] as $candidate) {
-            if ($candidate instanceof DateTimeInterface) {
-                return self::_dateTimeInterfaceToSalesforceUtc($candidate);
-            }
-        }
-
-        foreach ([$value, $rawValue] as $candidate) {
-            if (is_string($candidate) && $candidate !== '' && ($dt = DateTimeHelper::toDateTime($candidate))) {
-                return self::_dateTimeInterfaceToSalesforceUtc($dt);
-            }
-        }
-
-        return null;
-    }
-
-    private static function _dateTimeInterfaceToSalesforceUtc(DateTimeInterface $date): string
-    {
-        $dt = $date instanceof DateTime ? clone $date : DateTime::createFromInterface($date);
-        $dt->setTimezone(new DateTimeZone('UTC'));
-
-        return $dt->format('Y-m-d\TH:i:s') . '.000Z';
     }
 
     private function _getAssetsForSubmission(Submission $submission): array

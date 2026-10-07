@@ -1,10 +1,10 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
-use verbb\formie\Formie;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;

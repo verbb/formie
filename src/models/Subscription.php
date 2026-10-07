@@ -23,11 +23,6 @@ use InvalidArgumentException;
 
 class Subscription extends Model
 {
-    // Traits
-    // =========================================================================
-
-    use LegacySubscriptionData;
-
     // Constants
     // =========================================================================
 
@@ -35,6 +30,12 @@ class Subscription extends Model
     public const STATUS_EXPIRED = 'expired';
     public const STATUS_SUSPENDED = 'suspended';
     public const STATUS_CANCELLED = 'cancelled';
+
+
+    // Traits
+    // =========================================================================
+
+    use LegacySubscriptionData;
 
 
     // Properties
@@ -48,7 +49,6 @@ class Subscription extends Model
     public ?DateTime $archivedAt = null;
     public ?int $providerUpdatedAt = null;
     public ?string $providerStatus = null;
-
     public ?int $integrationId = null;
     public ?int $submissionId = null;
     public ?int $fieldId = null;

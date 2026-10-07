@@ -5,15 +5,6 @@ use InvalidArgumentException;
 
 class TypeHelper
 {
-    // Constants
-    // =========================================================================
-
-    public const TYPE_STRING = 'string';
-    public const TYPE_BOOLEAN = 'boolean';
-    public const TYPE_INT = 'int';
-    public const TYPE_ID = 'id';
-
-
     // Static Methods
     // =========================================================================
 
@@ -61,4 +52,13 @@ class TypeHelper
 
         return $value;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const TYPE_STRING = 'string';
+    public const TYPE_BOOLEAN = 'boolean';
+    public const TYPE_INT = 'int';
+    public const TYPE_ID = 'id';
 }

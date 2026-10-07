@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\theme\slots;
 
-use verbb\formie\base\FieldInterface;
 use verbb\formie\Formie;
 use verbb\formie\helpers\Html;
 use verbb\formie\models\Settings;

@@ -16,18 +16,15 @@ class SubmissionCompleteEvent extends Event
 
     public ?Submission $submission = null;
     public ?Form $form = null;
-
     /**
      * Present when completion happened through the submission workflow.
      * Null for control-panel / direct element saves that mark a submission complete.
      */
     public ?SubmissionCommand $command = null;
-
     /**
      * Present when completion happened through the submission workflow.
      */
     public ?WorkflowContext $context = null;
-
     /**
      * The page that was submitted when the form became complete, if known.
      */

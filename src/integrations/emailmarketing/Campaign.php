@@ -11,12 +11,23 @@ use verbb\formie\fields\Table;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\fields;
+use craft\fields\Assets;
+use craft\fields\Categories;
+use craft\fields\Checkboxes;
+use craft\fields\Date;
+use craft\fields\Entries;
+use craft\fields\Lightswitch;
+use craft\fields\MultiSelect;
+use craft\fields\Number;
+use craft\fields\Table as CraftTable;
+use craft\fields\Tags;
+use craft\fields\Users;
 use craft\helpers\Json;
 
 use yii\base\Event;
@@ -28,9 +39,6 @@ use Throwable;
 use putyourlightson\campaign\Campaign as CampaignPlugin;
 use putyourlightson\campaign\elements\ContactElement;
 use putyourlightson\campaign\elements\MailingListElement;
-use putyourlightson\campaign\models\PendingContactModel;
-use putyourlightson\campaign\records\MailingListRecord;
-use putyourlightson\campaign\records\MailingListTypeRecord;
 
 class Campaign extends EmailMarketing
 {
@@ -51,6 +59,7 @@ class Campaign extends EmailMarketing
     {
         return ['campaign'];
     }
+
 
     // Public Methods
     // =========================================================================
@@ -131,6 +140,10 @@ class Campaign extends EmailMarketing
         return new IntegrationConfig($settings);
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -185,17 +198,17 @@ class Campaign extends EmailMarketing
     private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
-            fields\Assets::class => IntegrationField::TYPE_ARRAY,
-            fields\Categories::class => IntegrationField::TYPE_ARRAY,
-            fields\Checkboxes::class => IntegrationField::TYPE_ARRAY,
-            fields\Date::class => IntegrationField::TYPE_DATECLASS,
-            fields\Entries::class => IntegrationField::TYPE_ARRAY,
-            fields\Lightswitch::class => IntegrationField::TYPE_BOOLEAN,
-            fields\MultiSelect::class => IntegrationField::TYPE_ARRAY,
-            fields\Number::class => IntegrationField::TYPE_FLOAT,
-            fields\Table::class => IntegrationField::TYPE_ARRAY,
-            fields\Tags::class => IntegrationField::TYPE_ARRAY,
-            fields\Users::class => IntegrationField::TYPE_ARRAY,
+            Assets::class => IntegrationField::TYPE_ARRAY,
+            Categories::class => IntegrationField::TYPE_ARRAY,
+            Checkboxes::class => IntegrationField::TYPE_ARRAY,
+            Date::class => IntegrationField::TYPE_DATECLASS,
+            Entries::class => IntegrationField::TYPE_ARRAY,
+            Lightswitch::class => IntegrationField::TYPE_BOOLEAN,
+            MultiSelect::class => IntegrationField::TYPE_ARRAY,
+            Number::class => IntegrationField::TYPE_FLOAT,
+            CraftTable::class => IntegrationField::TYPE_ARRAY,
+            Tags::class => IntegrationField::TYPE_ARRAY,
+            Users::class => IntegrationField::TYPE_ARRAY,
         ];
 
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;

@@ -5,19 +5,16 @@ use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentField;
+use verbb\formie\conditions\ConditionVisibility;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\FieldTraversal;
 use verbb\formie\helpers\ValidationHelper;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\FieldLayoutElement;
 use craft\base\SavableComponent;
-use craft\fieldlayoutelements\CustomField;
-use craft\helpers\Json;
-
-use DateTime;
 
 class FieldLayout extends SavableComponent
 {
@@ -106,7 +103,7 @@ class FieldLayout extends SavableComponent
 
     public function getFieldsRecursively(): array
     {
-        return \verbb\formie\helpers\FieldTraversal::recursively($this->getFields());
+        return FieldTraversal::recursively($this->getFields());
     }
 
     public function getFieldByHandle(string $handle): ?FieldInterface
@@ -155,7 +152,7 @@ class FieldLayout extends SavableComponent
                 return false;
             }
 
-            if (\verbb\formie\conditions\ConditionVisibility::unavailable($field, $element)) {
+            if (ConditionVisibility::unavailable($field, $element)) {
                 return false;
             }
 
@@ -240,5 +237,4 @@ class FieldLayout extends SavableComponent
 
         return $index;
     }
-
 }

@@ -8,6 +8,9 @@ use GraphQL\Type\Definition\Type;
 
 class FormServerRenderedPayloadType extends ObjectType
 {
+    // Static Methods
+    // =========================================================================
+
     public static function getName(): string
     {
         return 'FormieServerRenderedPayloadType';

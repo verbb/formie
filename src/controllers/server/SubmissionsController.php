@@ -10,20 +10,19 @@ use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\errors\SubmissionUnavailableException;
+use verbb\formie\helpers\BrowserRequestProfile;
 use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\ManagedSubmissionRequest;
-use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\SubmissionCommand;
+use verbb\formie\models\SubmissionErrors;
 use verbb\formie\models\SubmissionResponse;
-use verbb\formie\services\SubmissionWorkflow;
 
 use Craft;
 use craft\web\Controller;
 
 use yii\web\BadRequestHttpException;
-use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 class SubmissionsController extends Controller
@@ -32,6 +31,13 @@ class SubmissionsController extends Controller
     // =========================================================================
 
     private const STALE_SUBMISSION_STATE_CODE = 'STALE_SUBMISSION_STATE';
+
+
+    // Traits
+    // =========================================================================
+
+    use CrossOriginRequestTrait;
+    use AnonymousSiteRequestGuardTrait;
 
 
     // Properties
@@ -43,19 +49,13 @@ class SubmissionsController extends Controller
         'clear-submission' => self::ALLOW_ANONYMOUS_LIVE,
     ];
 
-    // Traits
-    // =========================================================================
-
-    use CrossOriginRequestTrait;
-    use AnonymousSiteRequestGuardTrait;
-
 
     // Public Methods
     // =========================================================================
 
     public function beforeAction($action): bool
     {
-        $profile = \verbb\formie\helpers\BrowserRequestProfile::enter();
+        $profile = BrowserRequestProfile::enter();
         $this->forbidGuestControlPanelAnonymousActions($action->id);
 
         if (in_array($action->id, ['submit', 'set-page', 'clear-submission'], true)) {
@@ -70,7 +70,7 @@ class SubmissionsController extends Controller
             $this->enableCsrfValidation = false;
         }
 
-        if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+        if ($profile === BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         } elseif ($this->request->getHeaders()->has('X-Formie-Profile')) {
             $this->enableCsrfValidation = true;
@@ -178,7 +178,7 @@ class SubmissionsController extends Controller
         return $this->asJson([
             'success' => $result->success,
             'pageId' => $result->currentPageId,
-            'errors' => \verbb\formie\models\SubmissionErrors::fromClient($result->errors, Formie::$plugin->getForms()->getFormByHandle($handle))->toValuePathMap(),
+            'errors' => SubmissionErrors::fromClient($result->errors, Formie::$plugin->getForms()->getFormByHandle($handle))->toValuePathMap(),
             'session' => $result->session?->toArrayRecursive(),
         ]);
     }
@@ -248,7 +248,7 @@ class SubmissionsController extends Controller
         }
 
         if (!$response->success) {
-            $payload['errors'] = \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toValuePathMap();
+            $payload['errors'] = SubmissionErrors::fromSubmission($submission)->toValuePathMap();
             $this->_appendPaymentResponsePayload($payload, $response);
 
             return $payload;

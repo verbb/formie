@@ -28,17 +28,6 @@ class SpamHelper
         );
     }
 
-    private static function _requestUserIp(): string
-    {
-        $request = Craft::$app->getRequest();
-
-        if (!method_exists($request, 'getUserIP')) {
-            return '';
-        }
-
-        return (string)($request->getUserIP() ?? '');
-    }
-
     public static function checkGlobalEmailRules(Submission $submission): bool|array
     {
         /** @var Settings $settings */
@@ -351,6 +340,17 @@ class SpamHelper
         }
 
         return false;
+    }
+
+    private static function _requestUserIp(): string
+    {
+        $request = Craft::$app->getRequest();
+
+        if (!method_exists($request, 'getUserIP')) {
+            return '';
+        }
+
+        return (string)($request->getUserIP() ?? '');
     }
 
     private static function _getEvaluator(): ExpressionLanguage

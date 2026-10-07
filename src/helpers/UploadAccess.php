@@ -10,15 +10,11 @@ use craft\db\Query;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 
+use RuntimeException;
+
 /** Durable, purpose-bound upload capabilities. Tokens are returned once; only hashes persist. */
 final class UploadAccess
 {
-    // Constants
-    // =========================================================================
-
-    private const CREATE_TOKEN_TTL = 7200;
-
-
     // Static Methods
     // =========================================================================
 
@@ -61,7 +57,7 @@ final class UploadAccess
         $key = 'formie.upload-capability.' . $assetId;
 
         if (!$mutex->acquire($key, 5)) {
-            throw new \RuntimeException('Upload capability is busy.');
+            throw new RuntimeException('Upload capability is busy.');
         }
 
         try {
@@ -107,4 +103,10 @@ final class UploadAccess
         $row = self::resolveToken($token, $purpose);
         return $row && (int)$row['assetId'] === $assetId && (int)$row['formId'] === $formId && $row['fieldUid'] === $fieldUid;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    private const CREATE_TOKEN_TTL = 7200;
 }

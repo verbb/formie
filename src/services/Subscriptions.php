@@ -3,13 +3,10 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Payment as PaymentIntegration;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\enums\SubscriptionCancellationMode;
 use verbb\formie\enums\SubscriptionStatus;
 use verbb\formie\events\SubscriptionEvent;
-use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\SubscriptionProviderData;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\payments\CancelSubscriptionCommand;
 use verbb\formie\models\payments\SubscriptionSnapshot;
@@ -19,17 +16,11 @@ use verbb\formie\records\Subscription as SubscriptionRecord;
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
-use craft\events\ConfigEvent;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\models\FieldLayout;
-
-use yii\base\ErrorException;
-use yii\base\Exception;
-use yii\base\NotSupportedException;
-use yii\web\ServerErrorHttpException;
 
 use DateTime;
+use DateTimeImmutable;
 use DateTimeInterface;
 use RuntimeException;
 use Throwable;
@@ -227,8 +218,8 @@ class Subscriptions extends Component
         $current->status = $snapshot->status;
         $current->providerStatus = $snapshot->providerStatus;
         $current->providerUpdatedAt = $snapshot->providerUpdatedAt ?? $current->providerUpdatedAt;
-        $current->providerData = \verbb\formie\helpers\SubscriptionProviderData::project($snapshot->providerData ?: $snapshot->rawData);
-        $current->lastSyncedAt = new \DateTimeImmutable();
+        $current->providerData = SubscriptionProviderData::project($snapshot->providerData ?: $snapshot->rawData);
+        $current->lastSyncedAt = new DateTimeImmutable();
         $current->startedAt ??= $snapshot->startedAt;
         $current->trialStartsAt ??= $snapshot->trialStartsAt;
         $current->trialEndsAt ??= $snapshot->trialEndsAt;
@@ -515,7 +506,6 @@ class Subscriptions extends Component
         return $this->saveSubscription($subscription);
     }
 
-
     /** Full provider observations are encrypted outside the public aggregate. */
     public function retainProviderEvidence(string $subscriptionUid, string $status, array $data): void
     {
@@ -534,7 +524,7 @@ class Subscriptions extends Component
         }
         Craft::$app->getDb()->createCommand()->insert('{{%formie_subscription_diagnostics}}', [
             'subscriptionUid' => $subscriptionUid, 'status' => $status,
-            'evidence' => base64_encode($cipher), 'observedAt' => Db::prepareDateForDb(new \DateTimeImmutable()),
+            'evidence' => base64_encode($cipher), 'observedAt' => Db::prepareDateForDb(new DateTimeImmutable()),
         ])->execute();
     }
 

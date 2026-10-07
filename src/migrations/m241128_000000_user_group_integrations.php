@@ -1,21 +1,19 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\elements\Form;
-use verbb\formie\fields\Date;
 use verbb\formie\integrations\elements\User as UserIntegration;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
 use craft\db\Table;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 class m241128_000000_user_group_integrations extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         $userIntegrations = (new Query())

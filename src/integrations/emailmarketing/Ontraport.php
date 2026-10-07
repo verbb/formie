@@ -6,8 +6,8 @@ use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -28,12 +28,14 @@ class Ontraport extends EmailMarketing
         return 'Ontraport';
     }
 
+
     // Properties
     // =========================================================================
 
     #[Sensitive]
     public ?string $apiKey = null;
     public ?string $appId = null;
+
 
     // Public Methods
     // =========================================================================
@@ -134,6 +136,23 @@ class Ontraport extends EmailMarketing
         return new IntegrationConfig($settings);
     }
 
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('GET', 'Groups');
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -168,23 +187,6 @@ class Ontraport extends EmailMarketing
         return $this->resultForPayload(true);
     }
 
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('GET', 'Groups');
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -204,5 +206,4 @@ class Ontraport extends EmailMarketing
             ],
         ]);
     }
-
 }

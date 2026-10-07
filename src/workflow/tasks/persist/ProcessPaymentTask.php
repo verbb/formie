@@ -7,7 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\enums\NavigationIntent;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\enums\SubmissionOutcomeType;
-use verbb\formie\fields as formiefields;
+use verbb\formie\fields\Payment;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
@@ -19,9 +19,6 @@ use Craft;
 
 use RuntimeException;
 use Throwable;
-
-use Money\Currencies\ISOCurrencies;
-use Money\Currency;
 
 class ProcessPaymentTask implements TaskInterface
 {
@@ -137,7 +134,7 @@ class ProcessPaymentTask implements TaskInterface
         $paymentFields = [];
 
         foreach ($submission->getFields() as $field) {
-            if (!$field instanceof formiefields\Payment) {
+            if (!$field instanceof Payment) {
                 continue;
             }
 
@@ -191,7 +188,7 @@ class ProcessPaymentTask implements TaskInterface
         $decision = PaymentDecision::notRequired();
 
         foreach ($submission->getFields() as $field) {
-            if (!$field instanceof formiefields\Payment) {
+            if (!$field instanceof Payment) {
                 continue;
             }
 

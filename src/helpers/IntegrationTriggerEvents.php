@@ -1,36 +1,18 @@
 <?php
 namespace verbb\formie\helpers;
 
-use verbb\formie\services\SubmissionWorkflow;
+use verbb\formie\enums\SubmissionOperation;
 
 use Craft;
 
 class IntegrationTriggerEvents
 {
-    // Constants
+    // Static Methods
     // =========================================================================
 
-    public const SUBMIT = 'submit';
-    public const FRONTEND_EDIT = 'frontendEdit';
-    public const CP_SAVE = 'cpSave';
-    public const UNMARK_SPAM = 'unmarkSpam';
-    public const MANUAL = 'manual';
-
-    public const ALL = [
-        self::SUBMIT,
-        self::FRONTEND_EDIT,
-        self::CP_SAVE,
-        self::UNMARK_SPAM,
-        self::MANUAL,
-    ];
-
-
-    // Public Methods
-    // =========================================================================
-
-    public static function resolveFromOperation(\verbb\formie\enums\SubmissionOperation $operation, bool $isCpRequest = false): string
+    public static function resolveFromOperation(SubmissionOperation $operation, bool $isCpRequest = false): string
     {
-        if ($operation === \verbb\formie\enums\SubmissionOperation::REVISE) {
+        if ($operation === SubmissionOperation::REVISE) {
 
             return $isCpRequest ? self::CP_SAVE : self::FRONTEND_EDIT;
         }
@@ -48,4 +30,22 @@ class IntegrationTriggerEvents
             self::MANUAL => Craft::t('formie', 'Manual trigger'),
         ];
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const SUBMIT = 'submit';
+    public const FRONTEND_EDIT = 'frontendEdit';
+    public const CP_SAVE = 'cpSave';
+    public const UNMARK_SPAM = 'unmarkSpam';
+    public const MANUAL = 'manual';
+
+    public const ALL = [
+        self::SUBMIT,
+        self::FRONTEND_EDIT,
+        self::CP_SAVE,
+        self::UNMARK_SPAM,
+        self::MANUAL,
+    ];
 }

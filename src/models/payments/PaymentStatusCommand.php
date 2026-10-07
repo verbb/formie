@@ -18,5 +18,4 @@ final class PaymentStatusCommand
     {
         return PaymentAccess::resolveStatusToken($this->token) ?? throw new NotFoundHttpException('Payment not found.');
     }
-
 }

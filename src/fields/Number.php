@@ -11,7 +11,6 @@ use verbb\formie\fields\traits\UniqueValueFieldTrait;
 use verbb\formie\gql\types\Decimal as NumberType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
 use verbb\formie\query\NumericValueQueryHelper;
 use verbb\formie\references\ReferenceType;
@@ -19,18 +18,13 @@ use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\Db;
-use craft\helpers\Localization;
 use craft\i18n\Locale;
-
-use Faker\Generator as FakerFactory;
-
-use GraphQL\Type\Definition\Type;
 
 use yii\db\ExpressionInterface;
 use yii\db\Schema;
 
-use Throwable;
+use Faker\Generator as FakerFactory;
+use GraphQL\Type\Definition\Type;
 
 class Number extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
@@ -386,6 +380,7 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
         ]);
     }
 
+
     // Protected Methods
     // =========================================================================
 
@@ -507,6 +502,4 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
             'inputType' => 'number',
         ]);
     }
-
-
 }

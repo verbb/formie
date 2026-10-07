@@ -5,23 +5,16 @@ use verbb\formie\Formie;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\compatibility\payments\LegacyPaymentAmount;
 use verbb\formie\compatibility\payments\LegacyPaymentStatus;
-use verbb\formie\enums\PaymentStatus;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\PaymentStatus;
 use verbb\formie\fields\Payment as PaymentField;
 
-use Craft;
 use craft\base\Model;
 
 use DateTime;
 
 class Payment extends Model
 {
-    // Traits
-    // =========================================================================
-
-    use LegacyPaymentAmount;
-    use LegacyPaymentStatus;
-
     // Constants
     // =========================================================================
 
@@ -32,6 +25,13 @@ class Payment extends Model
     public const STATUS_PROCESSING = 'processing';
     public const STATUS_UNKNOWN = 'unknown';
     public const STATUS_CANCELLED = 'cancelled';
+
+
+    // Traits
+    // =========================================================================
+
+    use LegacyPaymentAmount;
+    use LegacyPaymentStatus;
 
 
     // Properties
@@ -52,7 +52,6 @@ class Payment extends Model
     public ?array $history = null;
     public ?array $scope = null;
     public ?string $currency = null;
-    private PaymentStatus $_status = PaymentStatus::PENDING;
     public ?string $reference = null;
     public ?string $code = null;
     public ?string $message = null;
@@ -63,6 +62,7 @@ class Payment extends Model
     public ?DateTime $dateUpdated = null;
     public ?string $uid = null;
 
+    private PaymentStatus $_status = PaymentStatus::PENDING;
     private ?IntegrationInterface $_integration = null;
     private ?Submission $_submission = null;
     private ?PaymentField $_field = null;

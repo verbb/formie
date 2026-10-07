@@ -1,12 +1,40 @@
 <?php
 namespace verbb\formie\fields\values;
 
+use verbb\formie\content\FieldStorageCodec;
+
 use craft\helpers\Json;
 
 use doublesecretagency\googlemaps\models\Address as GoogleMapsAddress;
 
 class CustomGoogleMapsAddressFieldValue extends BaseFieldValue
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function fromGoogleMapsAddress(GoogleMapsAddress $address): self
+    {
+        return new self([
+            'formatted' => $address->formatted,
+            'raw' => $address->raw,
+            'name' => $address->name,
+            'street1' => $address->street1,
+            'street2' => $address->street2,
+            'city' => $address->city,
+            'state' => $address->state,
+            'zip' => $address->zip,
+            'neighborhood' => $address->neighborhood,
+            'county' => $address->county,
+            'country' => $address->country,
+            'countryCode' => $address->countryCode,
+            'placeId' => $address->placeId,
+            'lat' => $address->lat,
+            'lng' => $address->lng,
+            'zoom' => $address->zoom,
+        ]);
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -52,7 +80,7 @@ class CustomGoogleMapsAddressFieldValue extends BaseFieldValue
             $config['zoom'] = null;
         }
 
-        \verbb\formie\content\FieldStorageCodec::assertSafe($config);
+        FieldStorageCodec::assertSafe($config);
 
         foreach (['formatted', 'name', 'street1', 'street2', 'city', 'state', 'zip', 'neighborhood', 'county', 'country', 'countryCode', 'placeId'] as $key) {
             $value = $config[$key] ?? null;
@@ -63,28 +91,6 @@ class CustomGoogleMapsAddressFieldValue extends BaseFieldValue
         $this->lat = $config['lat'] ?? null;
         $this->lng = $config['lng'] ?? null;
         $this->zoom = $config['zoom'] ?? null;
-    }
-
-    public static function fromGoogleMapsAddress(GoogleMapsAddress $address): self
-    {
-        return new self([
-            'formatted' => $address->formatted,
-            'raw' => $address->raw,
-            'name' => $address->name,
-            'street1' => $address->street1,
-            'street2' => $address->street2,
-            'city' => $address->city,
-            'state' => $address->state,
-            'zip' => $address->zip,
-            'neighborhood' => $address->neighborhood,
-            'county' => $address->county,
-            'country' => $address->country,
-            'countryCode' => $address->countryCode,
-            'placeId' => $address->placeId,
-            'lat' => $address->lat,
-            'lng' => $address->lng,
-            'zoom' => $address->zoom,
-        ]);
     }
 
     public function __toString(): string

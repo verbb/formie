@@ -9,6 +9,8 @@ use verbb\formie\models\BrowserModuleManifest;
 
 use yii\base\Component;
 
+use InvalidArgumentException;
+
 class BrowserModuleManifestBuilder extends Component
 {
     // Constants
@@ -37,7 +39,7 @@ class BrowserModuleManifestBuilder extends Component
 
         foreach ($event->modules as $module) {
             if (!$module instanceof BrowserModule) {
-                throw new \InvalidArgumentException('Form module contributions must be BrowserModule declarations.');
+                throw new InvalidArgumentException('Form module contributions must be BrowserModule declarations.');
             }
             $modules[] = $module->withProjectionDefaults(BrowserModule::KIND_CORE, [['type' => 'form']]);
         }
@@ -48,7 +50,7 @@ class BrowserModuleManifestBuilder extends Component
             }
 
             if (!$module->kind || !$module->targets) {
-                throw new \InvalidArgumentException('Browser module declarations must resolve kind and targets before manifest projection.');
+                throw new InvalidArgumentException('Browser module declarations must resolve kind and targets before manifest projection.');
             }
 
             $identity = $this->_entryIdentity($module);

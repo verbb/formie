@@ -1,10 +1,10 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\integrations\emailmarketing\Klaviyo as KlaviyoEM;
-use verbb\formie\integrations\emailmarketing\KlaviyoLegacy as KlaviyoEMLegacy;
 use verbb\formie\integrations\crm\Klaviyo as KlaviyoCRM;
 use verbb\formie\integrations\crm\KlaviyoLegacy as KlaviyoCRMLegacy;
+use verbb\formie\integrations\emailmarketing\Klaviyo as KlaviyoEM;
+use verbb\formie\integrations\emailmarketing\KlaviyoLegacy as KlaviyoEMLegacy;
 
 use craft\db\Migration;
 

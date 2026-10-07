@@ -2,12 +2,12 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Integration;
 use verbb\formie\compatibility\payments\LegacyPaymentCredentials;
 use verbb\formie\compatibility\payments\LegacyPaymentWebhooks;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubscriptionCancellationMode;
 use verbb\formie\enums\SubscriptionStatus;
+use verbb\formie\errors\DeliveryOutcomeUnknownException;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\PaymentIntegrationProcessEvent;
 use verbb\formie\fields\Payment as PaymentField;
@@ -23,12 +23,12 @@ use verbb\formie\models\Notification;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentFieldPayload;
-use verbb\formie\models\SlotTag;
-use verbb\formie\models\Subscription;
 use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\payments\PaymentWebhookReceipt;
 use verbb\formie\models\payments\SubscriptionSnapshot;
 use verbb\formie\models\payments\VerifiedWebhookBatch;
+use verbb\formie\models\SlotTag;
+use verbb\formie\models\Subscription;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\theme\context\RenderContext;
 
@@ -37,6 +37,7 @@ use craft\helpers\App;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
+use craft\web\Response as CraftResponse;
 
 use yii\base\Event;
 use yii\web\BadRequestHttpException;
@@ -52,32 +53,6 @@ use Twig\Markup;
 
 abstract class Payment extends Integration
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_BEFORE_PROCESS_PAYMENT = 'beforeProcessPayment';
-    public const EVENT_AFTER_PROCESS_PAYMENT = 'afterProcessPayment';
-    public const EVENT_BEFORE_PROCESS_WEBHOOK = 'beforeProcessWebhook';
-    public const EVENT_AFTER_PROCESS_WEBHOOK = 'afterProcessWebhook';
-    public const EVENT_BEFORE_VERIFY_WEBHOOK = 'beforeVerifyWebhook';
-    public const EVENT_AFTER_VERIFY_WEBHOOK = 'afterVerifyWebhook';
-    public const EVENT_WEBHOOK_FAILED = 'webhookFailed';
-    public const EVENT_MODIFY_CURRENCY_OPTIONS = 'modifyCurrencyOptions';
-
-    public const PAYMENT_TYPE_SINGLE = 'single';
-    public const PAYMENT_TYPE_SUBSCRIPTION = 'subscription';
-
-    public const VALUE_TYPE_FIXED = 'fixed';
-    public const VALUE_TYPE_DYNAMIC = 'dynamic';
-
-
-    // Traits
-    // =========================================================================
-
-    use LegacyPaymentWebhooks;
-    use LegacyPaymentCredentials;
-
-
     // Static Methods
     // =========================================================================
 
@@ -130,6 +105,71 @@ abstract class Payment extends Integration
         return $currency !== '' ? $currency : 'USD';
     }
 
+    public static function applyPaymentWebhookProxy(string $url): string
+    {
+        $proxyBase = App::parseEnv(Formie::$plugin->getSettings()->paymentWebhookProxyUrl);
+
+        return self::applyDevAccessibleUrl($url, App::devMode(), $proxyBase);
+    }
+
+    public static function applyDevAccessibleUrl(string $url, bool $devMode, mixed $proxyBase): string
+    {
+        if (!$devMode) {
+            return $url;
+        }
+
+        // An explicit empty string disables the dev proxy and uses the local URL as-is.
+        if ($proxyBase === '') {
+            return $url;
+        }
+
+        if (!is_string($proxyBase) || trim($proxyBase) === '') {
+            $proxyBase = 'https://proxy.verbb.io';
+        } else {
+            $proxyBase = rtrim(trim($proxyBase), '/');
+        }
+
+        return $proxyBase . '?return=' . $url;
+    }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_BEFORE_PROCESS_PAYMENT = 'beforeProcessPayment';
+    public const EVENT_AFTER_PROCESS_PAYMENT = 'afterProcessPayment';
+    public const EVENT_BEFORE_PROCESS_WEBHOOK = 'beforeProcessWebhook';
+    public const EVENT_AFTER_PROCESS_WEBHOOK = 'afterProcessWebhook';
+    public const EVENT_BEFORE_VERIFY_WEBHOOK = 'beforeVerifyWebhook';
+    public const EVENT_AFTER_VERIFY_WEBHOOK = 'afterVerifyWebhook';
+    public const EVENT_WEBHOOK_FAILED = 'webhookFailed';
+    public const EVENT_MODIFY_CURRENCY_OPTIONS = 'modifyCurrencyOptions';
+
+    public const PAYMENT_TYPE_SINGLE = 'single';
+    public const PAYMENT_TYPE_SUBSCRIPTION = 'subscription';
+
+    public const VALUE_TYPE_FIXED = 'fixed';
+    public const VALUE_TYPE_DYNAMIC = 'dynamic';
+
+
+    // Traits
+    // =========================================================================
+
+    use LegacyPaymentWebhooks;
+    use LegacyPaymentCredentials;
+
+
+    // Properties
+    // =========================================================================
+
+    public ?bool $throwApiError = false;
+
+    private ?PaymentField $_field = null;
+
+
+    // Public Methods
+    // =========================================================================
+
     public function supportsWebhooks(): bool
     {
         return false;
@@ -155,17 +195,6 @@ abstract class Payment extends Integration
 
         return $defaults;
     }
-
-    // Properties
-    // =========================================================================
-
-    public ?bool $throwApiError = false;
-
-    private ?PaymentField $_field = null;
-
-
-    // Public Methods
-    // =========================================================================
 
     public function processPayment(Submission $submission): PaymentDecision
     {
@@ -229,14 +258,13 @@ abstract class Payment extends Integration
                 $payment->message = 'Provider outcome requires reconciliation.';
                 Formie::$plugin->getPayments()->savePayment($payment);
             }
-            return $payment || $e instanceof \verbb\formie\errors\DeliveryOutcomeUnknownException ? PaymentDecision::unknown('Unable to confirm the payment outcome.', $this->handle, $payment?->reference)
+            return $payment || $e instanceof DeliveryOutcomeUnknownException ? PaymentDecision::unknown('Unable to confirm the payment outcome.', $this->handle, $payment?->reference)
                 : PaymentDecision::failed('Unable to establish the payment amount and ownership.', $this->handle);
         } finally {
             $db->enableSlaves = $enableSlaves;
             $mutex->release($lock);
         }
     }
-
 
     public function resolvePaymentDecision(Submission $submission): PaymentDecision
     {
@@ -370,11 +398,6 @@ abstract class Payment extends Integration
         return array_values(array_unique(array_merge($required, $this->getOptionalGraphqlPaymentInputFieldKeys())));
     }
 
-    protected function getOptionalGraphqlPaymentInputFieldKeys(): array
-    {
-        return [];
-    }
-
     public function getWebhookUrl(): string
     {
         if (!$this->uid) {
@@ -431,33 +454,6 @@ abstract class Payment extends Integration
             cancellationMode: $mode,
             rawData: $data,
         );
-    }
-
-    public static function applyPaymentWebhookProxy(string $url): string
-    {
-        $proxyBase = App::parseEnv(Formie::$plugin->getSettings()->paymentWebhookProxyUrl);
-
-        return self::applyDevAccessibleUrl($url, App::devMode(), $proxyBase);
-    }
-
-    public static function applyDevAccessibleUrl(string $url, bool $devMode, mixed $proxyBase): string
-    {
-        if (!$devMode) {
-            return $url;
-        }
-
-        // An explicit empty string disables the dev proxy and uses the local URL as-is.
-        if ($proxyBase === '') {
-            return $url;
-        }
-
-        if (!is_string($proxyBase) || trim($proxyBase) === '') {
-            $proxyBase = 'https://proxy.verbb.io';
-        } else {
-            $proxyBase = rtrim(trim($proxyBase), '/');
-        }
-
-        return $proxyBase . '?return=' . $url;
     }
 
     public function getGqlHandle(): string
@@ -530,7 +526,7 @@ abstract class Payment extends Integration
     public function getWebhookAcknowledgement(): Response
     {
         $response = Craft::$app->getRequest()->getIsConsoleRequest()
-            ? new \craft\web\Response()
+            ? new CraftResponse()
             : Craft::$app->getResponse();
         $response->format = Response::FORMAT_RAW;
         $response->setStatusCode(200);
@@ -570,11 +566,6 @@ abstract class Payment extends Integration
     public function getPaymentEnvironment(): string
     {
         return property_exists($this, 'useSandbox') && App::parseBooleanEnv($this->useSandbox) ? 'test' : 'live';
-    }
-
-    protected function getPaymentAccountIdentity(): ?string
-    {
-        return null;
     }
 
     public function getReconciliationInterval(PaymentModel $payment): int
@@ -621,6 +612,16 @@ abstract class Payment extends Integration
 
     // Protected Methods
     // =========================================================================
+
+    protected function getOptionalGraphqlPaymentInputFieldKeys(): array
+    {
+        return [];
+    }
+
+    protected function getPaymentAccountIdentity(): ?string
+    {
+        return null;
+    }
 
     protected function executePayment(Submission $submission): PaymentDecision
     {
@@ -753,5 +754,4 @@ abstract class Payment extends Integration
 
         return $raw;
     }
-
 }

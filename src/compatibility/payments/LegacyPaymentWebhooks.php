@@ -8,6 +8,7 @@ use verbb\formie\events\PaymentWebhookEvent;
 use verbb\formie\models\payments\PaymentWebhookCommand;
 
 use Craft;
+use craft\web\Response as CraftResponse;
 
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
@@ -119,7 +120,7 @@ trait LegacyPaymentWebhooks
     protected function createWebhookErrorResponse(Throwable $error): Response
     {
         $response = Craft::$app->getRequest()->getIsConsoleRequest()
-            ? new \craft\web\Response()
+            ? new CraftResponse()
             : Craft::$app->getResponse();
         $response->setStatusCodeByException($error);
         $response->format = Response::FORMAT_RAW;

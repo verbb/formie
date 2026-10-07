@@ -2,18 +2,14 @@
 namespace verbb\formie\gql\types\generators;
 
 use verbb\formie\Formie;
-use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\fields\MissingField;
 use verbb\formie\gql\interfaces\FieldInterface;
-use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\FieldType;
 
 use Craft;
 use craft\errors\GqlException;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\GqlEntityRegistry;
-
-use GraphQL\Type\Definition\Type;
 
 class FieldGenerator implements GeneratorInterface
 {

@@ -1,38 +1,33 @@
 <?php
 namespace verbb\formie\controllers;
 
-use verbb\formie\compatibility\client\RefreshTokensCompatibility;
 use verbb\formie\Formie;
-use verbb\formie\controllers\CrossOriginRequestTrait;
+use verbb\formie\compatibility\client\RefreshTokensCompatibility;
 use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\BrowserRequestProfile;
+use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
-use verbb\formie\models\FormTemplate;
+use verbb\formie\services\RuntimeConfiguration;
+use verbb\formie\services\Stencils;
 
 use Craft;
 use craft\db\Query;
-use craft\errors\InvalidElementException;
 use craft\enums\CmsEdition;
+use craft\errors\InvalidElementException;
 use craft\helpers\Cp;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
-use craft\helpers\Session;
 use craft\helpers\UrlHelper;
-use craft\models\Site;
 use craft\web\Controller;
 use craft\web\CpScreenResponseBehavior;
 use craft\web\Response as CraftResponse;
 
-use yii\base\Exception;
 use yii\web\ForbiddenHttpException;
 use yii\web\MethodNotAllowedHttpException;
 use yii\web\NotFoundHttpException;
@@ -42,6 +37,12 @@ use Throwable;
 
 class FormsController extends Controller
 {
+    // Traits
+    // =========================================================================
+
+    use CrossOriginRequestTrait;
+
+
     // Properties
     // =========================================================================
 
@@ -49,12 +50,6 @@ class FormsController extends Controller
         'render' => self::ALLOW_ANONYMOUS_LIVE,
         'refresh-tokens' => self::ALLOW_ANONYMOUS_LIVE,
     ];
-
-
-    // Traits
-    // =========================================================================
-
-    use CrossOriginRequestTrait;
 
 
     // Public Methods
@@ -71,7 +66,7 @@ class FormsController extends Controller
         }
 
         if (in_array($action->id, ['render', 'refresh-tokens'], true)) {
-            \verbb\formie\helpers\BrowserRequestProfile::enter(true);
+            BrowserRequestProfile::enter(true);
             $this->enableCsrfValidation = false;
         }
 
@@ -97,7 +92,7 @@ class FormsController extends Controller
         $requestToken = (string)$this->request->getQueryParam('requestToken', '');
 
         if ($requestToken !== '') {
-            (new \verbb\formie\services\RuntimeConfiguration())->restoreToken($form, $requestToken);
+            (new RuntimeConfiguration())->restoreToken($form, $requestToken);
         }
 
         $renderId = trim((string)$this->request->getParam('renderId', ''));
@@ -699,7 +694,7 @@ class FormsController extends Controller
         $handle = $this->request->getParam('handle');
 
         $stencil = new Stencil([
-            'scope' => \verbb\formie\services\Stencils::SCOPE_SITE,
+            'scope' => Stencils::SCOPE_SITE,
         ]);
         $stencil->name = $this->request->getParam('title');
 
@@ -1096,5 +1091,4 @@ class FormsController extends Controller
 
         return Craft::t('formie', 'This form group is not available for the selected site.');
     }
-
 }

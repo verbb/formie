@@ -1,9 +1,8 @@
 <?php
 namespace verbb\formie\jobs;
 
-use verbb\formie\Formie;
 use verbb\formie\elements\Form;
-use verbb\formie\fields as formiefields;
+use verbb\formie\fields\Group;
 use verbb\formie\helpers\Table;
 
 use Craft;
@@ -38,7 +37,7 @@ class UpdateSubmissionContent extends BaseJob
         $groupUids = $this->previousGroupFieldUids;
 
         foreach ($form->getFields() as $field) {
-            if ($field instanceof formiefields\Group) {
+            if ($field instanceof Group) {
                 $groupUids[] = $field->uid;
 
                 foreach ($field->getFields() as $child) {

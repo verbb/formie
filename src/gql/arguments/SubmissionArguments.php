@@ -5,7 +5,6 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 
-use Craft;
 use craft\gql\base\ElementArguments;
 use craft\helpers\Gql as GqlHelper;
 
@@ -110,10 +109,6 @@ class SubmissionArguments extends ElementArguments
 
         return array_values(array_filter($handles));
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private static function _getSchemaScopedForms(): array
     {

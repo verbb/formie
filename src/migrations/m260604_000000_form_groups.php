@@ -7,6 +7,9 @@ use craft\db\Migration;
 
 class m260604_000000_form_groups extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         if (!$this->db->tableExists(Table::FORMIE_FORM_GROUPS)) {

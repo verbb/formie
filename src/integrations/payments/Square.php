@@ -1,16 +1,20 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\DeliveryOutcomeUnknownException;
-use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
-use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
+use verbb\formie\fields\Calculations;
+use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\Hidden;
+use verbb\formie\fields\Number;
+use verbb\formie\fields\Radio;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\BrowserModule;
@@ -18,13 +22,10 @@ use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
-use verbb\formie\models\Plan;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\helpers\UrlHelper;
 use craft\web\Response;
 
 use yii\base\Event;
@@ -43,7 +44,6 @@ class Square extends Payment
     {
         return 'Square';
     }
-
 
 
     // Constants
@@ -95,6 +95,74 @@ class Square extends Payment
             ],
         ]);
     }
+
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('GET', 'locations');
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public function defineFormBuilderGeneralSchema(): array
+    {
+        return [
+            SchemaHelper::comboboxField([
+                'label' => Craft::t('formie', 'Payment Currency'),
+                'instructions' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
+                'name' => 'currency',
+                'required' => true,
+                'placeholder' => Craft::t('formie', 'Select an option'),
+                'options' => static::getCurrencyOptions(),
+            ]),
+            SchemaHelper::fieldWrap([
+                'label' => Craft::t('formie', 'Payment Amount'),
+                'instructions' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'required' => true,
+                'children' => [
+                    SchemaHelper::selectField([
+                        'name' => 'amountType',
+                        'required' => true,
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
+                            ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
+                        ],
+                    ]),
+                    SchemaHelper::numberField([
+                        'name' => 'amountFixed',
+                        'required' => true,
+                        'size' => 6,
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_FIXED . '"',
+                    ]),
+                    SchemaHelper::fieldSelectField([
+                        'name' => 'amountVariable',
+                        'referenceContext' => 'client',
+                        'includeSelectors' => false,
+                        'topLevelOnly' => true,
+                        'required' => true,
+                        'fieldTypes' => [
+                            Calculations::class,
+                            Dropdown::class,
+                            Hidden::class,
+                            Number::class,
+                            Radio::class,
+                            SingleLineText::class,
+                        ],
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
+                    ]),
+                ],
+            ]),
+        ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
 
     protected function executePayment(Submission $submission): PaymentDecision
     {
@@ -222,75 +290,6 @@ class Square extends Payment
         return App::parseEnv($this->locationId) ?: null;
     }
 
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('GET', 'locations');
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    public function defineFormBuilderGeneralSchema(): array
-    {
-        return [
-            SchemaHelper::comboboxField([
-                'label' => Craft::t('formie', 'Payment Currency'),
-                'instructions' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
-                'name' => 'currency',
-                'required' => true,
-                'placeholder' => Craft::t('formie', 'Select an option'),
-                'options' => static::getCurrencyOptions(),
-            ]),
-            SchemaHelper::fieldWrap([
-                'label' => Craft::t('formie', 'Payment Amount'),
-                'instructions' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
-                'required' => true,
-                'children' => [
-                    SchemaHelper::selectField([
-                        'name' => 'amountType',
-                        'required' => true,
-                        'options' => [
-                            ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
-                            ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
-                        ],
-                    ]),
-                    SchemaHelper::numberField([
-                        'name' => 'amountFixed',
-                        'required' => true,
-                        'size' => 6,
-                        'if' => 'amountType == "' . Payment::VALUE_TYPE_FIXED . '"',
-                    ]),
-                    SchemaHelper::fieldSelectField([
-                        'name' => 'amountVariable',
-                        'referenceContext' => 'client',
-                        'includeSelectors' => false,
-                        'topLevelOnly' => true,
-                        'required' => true,
-                        'fieldTypes' => [
-                            fields\Calculations::class,
-                            fields\Dropdown::class,
-                            fields\Hidden::class,
-                            fields\Number::class,
-                            fields\Radio::class,
-                            fields\SingleLineText::class,
-                        ],
-                        'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
-                    ]),
-                ],
-            ]),
-        ];
-    }
-
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -322,5 +321,4 @@ class Square extends Payment
 
         return $defaults;
     }
-
 }

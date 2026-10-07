@@ -8,32 +8,7 @@ use craft\base\Model;
 
 class IntegrationDispatchPlan extends Model
 {
-    // Constants
-    // =========================================================================
-
-    public const NOTIFICATION_TIMING_BEFORE = 'beforeIntegrations';
-    public const NOTIFICATION_TIMING_AFTER = 'afterFinalizedDeliveryAttempts';
-    public const NOTIFICATION_TIMING_SYNCHRONOUS = 'afterSynchronousIntegrations';
-
-    public const EXECUTION_SYNCHRONOUS = 'synchronous';
-    public const EXECUTION_QUEUED = 'queued';
-
-    public const FAILURE_CONTINUE = 'continue';
-    public const FAILURE_STOP = 'stop';
-
-
-    // Properties
-    // =========================================================================
-
-    public bool $enabled = false;
-    public string $notificationTiming = self::NOTIFICATION_TIMING_BEFORE;
-    public string $failurePolicy = self::FAILURE_CONTINUE;
-
-    /** @var array<int, array{handle: string, execution: string}> */
-    public array $steps = [];
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function fromFormSettings(mixed $settings): self
@@ -80,6 +55,34 @@ class IntegrationDispatchPlan extends Model
             }, $steps))),
         ]);
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const NOTIFICATION_TIMING_BEFORE = 'beforeIntegrations';
+    public const NOTIFICATION_TIMING_AFTER = 'afterFinalizedDeliveryAttempts';
+    public const NOTIFICATION_TIMING_SYNCHRONOUS = 'afterSynchronousIntegrations';
+
+    public const EXECUTION_SYNCHRONOUS = 'synchronous';
+    public const EXECUTION_QUEUED = 'queued';
+
+    public const FAILURE_CONTINUE = 'continue';
+    public const FAILURE_STOP = 'stop';
+
+
+    // Properties
+    // =========================================================================
+
+    public bool $enabled = false;
+    public string $notificationTiming = self::NOTIFICATION_TIMING_BEFORE;
+    public string $failurePolicy = self::FAILURE_CONTINUE;
+    /** @var array<int, array{handle: string, execution: string}> */
+    public array $steps = [];
+
+
+    // Public Methods
+    // =========================================================================
 
     public function shouldOrchestrate(): bool
     {

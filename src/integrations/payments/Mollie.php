@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
@@ -10,7 +10,12 @@ use verbb\formie\enums\PaymentResumeMode;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\fields\Calculations;
+use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\Hidden;
+use verbb\formie\fields\Number;
+use verbb\formie\fields\Radio;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\helpers\PaymentAttempt;
@@ -20,7 +25,6 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
@@ -29,14 +33,13 @@ use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\payments\PaymentWebhookReceipt;
 use verbb\formie\models\payments\VerifiedWebhook;
 use verbb\formie\models\payments\VerifiedWebhookBatch;
-use verbb\formie\models\Plan;
 
 use Craft;
 use craft\db\Query;
 use craft\helpers\App;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
+
 use yii\base\Event;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
@@ -47,8 +50,6 @@ use Throwable;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-use Money\Currencies\ISOCurrencies;
-use Money\Currency;
 
 class Mollie extends Payment
 {
@@ -127,19 +128,6 @@ class Mollie extends Payment
                 'waitForValueMs' => 2500,
             ],
         ]);
-    }
-
-    protected function executePayment(Submission $submission): PaymentDecision
-    {
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
-
-        $currency = $this->getFieldSetting('currency');
-
-        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $currency, [
-            'apiKey' => $this->apiKey,
-        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
     }
 
     public function verifyWebhook(PaymentWebhookCommand $request): VerifiedWebhookBatch
@@ -327,12 +315,12 @@ class Mollie extends Payment
                         'topLevelOnly' => true,
                         'required' => true,
                         'fieldTypes' => [
-                            fields\Calculations::class,
-                            fields\Dropdown::class,
-                            fields\Hidden::class,
-                            fields\Number::class,
-                            fields\Radio::class,
-                            fields\SingleLineText::class,
+                            Calculations::class,
+                            Dropdown::class,
+                            Hidden::class,
+                            Number::class,
+                            Radio::class,
+                            SingleLineText::class,
                         ],
                         'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
                     ]),
@@ -371,9 +359,21 @@ class Mollie extends Payment
     }
 
 
-
     // Protected Methods
     // =========================================================================
+
+    protected function executePayment(Submission $submission): PaymentDecision
+    {
+        if (!$this->beforeProcessPayment($submission)) {
+            return PaymentDecision::notRequired();
+        }
+
+        $currency = $this->getFieldSetting('currency');
+
+        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $currency, [
+            'apiKey' => $this->apiKey,
+        ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
+    }
 
     protected function defineRules(): array
     {
@@ -404,7 +404,6 @@ class Mollie extends Payment
 
         return $defaults;
     }
-
 
 
     // Private Methods

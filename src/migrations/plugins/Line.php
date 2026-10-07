@@ -3,6 +3,9 @@ namespace verbb\formie\migrations\plugins;
 
 class Line
 {
+    // Static Methods
+    // =========================================================================
+
     public static function info(string $message, int $depth = 0, array $context = []): MigrationLine
     {
         return new MigrationLine('info', $message, $depth, $context);

@@ -3,12 +3,19 @@ namespace verbb\formie\references;
 
 enum ReferenceUsage: string
 {
+    // Cases
+    // =========================================================================
+
     case Text = 'text';
     case RichText = 'richText';
     case EmailHeader = 'emailHeader';
     case Integration = 'integration';
     case Url = 'url';
     case Condition = 'condition';
+
+
+    // Static Methods
+    // =========================================================================
 
     public static function forOutput(ReferenceOutputContext $output): self
     {

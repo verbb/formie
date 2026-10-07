@@ -4,7 +4,6 @@ namespace verbb\formie\fields;
 use verbb\formie\base\CosmeticField;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\SlotTag;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -103,6 +102,7 @@ class Heading extends CosmeticField
     {
         return trim((string)$this->label) === '';
     }
+
 
     // Protected Methods
     // =========================================================================

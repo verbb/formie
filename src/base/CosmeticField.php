@@ -3,6 +3,8 @@ namespace verbb\formie\base;
 
 use verbb\formie\fields\definitions\FieldValueType;
 
+use craft\base\ElementInterface;
+
 abstract class CosmeticField extends Field implements CosmeticFieldInterface
 {
     // Static Methods
@@ -42,7 +44,7 @@ abstract class CosmeticField extends Field implements CosmeticFieldInterface
         return false;
     }
 
-    public function normalizeValue(mixed $value, ?\craft\base\ElementInterface $element): mixed
+    public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         return null;
     }

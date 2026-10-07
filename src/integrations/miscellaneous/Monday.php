@@ -1,28 +1,24 @@
 <?php
 namespace verbb\formie\integrations\miscellaneous;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyFieldIntegrationValueEvent;
-use verbb\formie\fields\Address;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-
-use yii\base\Event;
 
 use Throwable;
 
@@ -88,6 +84,34 @@ class Monday extends Miscellaneous
 
         return new IntegrationConfig($settings);
     }
+
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('POST', '/', [
+                'json' => [
+                    'query' => '
+                        query {
+                            me {
+                                is_guest
+                                join_date
+                            }
+                        }
+                    ',
+                ],
+            ]);
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
 
     protected function executePayload(Submission $submission): IntegrationResult
     {
@@ -157,34 +181,6 @@ class Monday extends Miscellaneous
 
         return $this->resultForPayload(true);
     }
-
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('POST', '/', [
-                'json' => [
-                    'query' => '
-                        query {
-                            me {
-                                is_guest
-                                join_date
-                            }
-                        }
-                    ',
-                ],
-            ]);
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

@@ -8,7 +8,6 @@ class LikertMultipleRowsFieldValue implements FieldValueInterface
 
     /** @var array<string, SingleOptionFieldValue> */
     private array $_selections = [];
-
     /** @var array<string, string> */
     private array $_rowLabels = [];
 
@@ -30,7 +29,6 @@ class LikertMultipleRowsFieldValue implements FieldValueInterface
             }
         }
     }
-
 
     public function getSelection(string $rowKey): ?SingleOptionFieldValue
     {

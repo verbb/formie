@@ -23,6 +23,10 @@ class RowType extends ObjectType
         parent::__construct($config);
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function resolve(mixed $source, array $arguments, mixed $context, ResolveInfo $resolveInfo): mixed
     {
         $fieldName = Gql::getFieldNameWithAlias($resolveInfo, $source, $context);
@@ -32,6 +36,10 @@ class RowType extends ObjectType
             default => $source[$resolveInfo->fieldName],
         };
     }
+
+
+    // Private Methods
+    // =========================================================================
 
     private function _resolveFields(array $fields, bool $includeDisabled): array
     {

@@ -6,8 +6,9 @@ use verbb\formie\client\models\LoadContext;
 use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
-use verbb\formie\helpers\SiteHelper;
 use verbb\formie\elements\Form;
+use verbb\formie\helpers\BrowserRequestProfile;
+use verbb\formie\helpers\SiteHelper;
 
 use craft\web\Controller;
 
@@ -16,17 +17,17 @@ use yii\web\Response;
 
 class FormsController extends Controller
 {
-    // Properties
-    // =========================================================================
-
-    protected array|bool|int $allowAnonymous = ['load', 'page'];
-
-
     // Traits
     // =========================================================================
 
     use CrossOriginRequestTrait;
     use AnonymousSiteRequestGuardTrait;
+
+
+    // Properties
+    // =========================================================================
+
+    protected array|bool|int $allowAnonymous = ['load', 'page'];
 
 
     // Public Methods
@@ -35,9 +36,9 @@ class FormsController extends Controller
     public function beforeAction($action): bool
     {
         $this->forbidGuestControlPanelAnonymousActions($action->id);
-        $profile = \verbb\formie\helpers\BrowserRequestProfile::enter($action->id === 'load');
+        $profile = BrowserRequestProfile::enter($action->id === 'load');
 
-        if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+        if ($profile === BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         }
 
@@ -46,7 +47,7 @@ class FormsController extends Controller
         if ($action->id === 'load') {
             $this->enableCsrfValidation = false;
         } else {
-            $this->enableCsrfValidation = $profile === \verbb\formie\helpers\BrowserRequestProfile::SAME_ORIGIN;
+            $this->enableCsrfValidation = $profile === BrowserRequestProfile::SAME_ORIGIN;
         }
 
         return parent::beforeAction($action);

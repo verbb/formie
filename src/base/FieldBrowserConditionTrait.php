@@ -1,6 +1,11 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\conditions\ConditionCompiler;
+use verbb\formie\conditions\ConditionOperator;
+
+use craft\helpers\Json;
+
 trait FieldBrowserConditionTrait
 {
     // Public Methods
@@ -8,19 +13,19 @@ trait FieldBrowserConditionTrait
 
     public function getConditionValueType(): string
     {
-        return \verbb\formie\conditions\ConditionCompiler::fieldType($this);
+        return ConditionCompiler::fieldType($this);
     }
 
     public function getConditionOperators(): array
     {
-        return \verbb\formie\conditions\ConditionOperator::forType($this->getConditionValueType());
+        return ConditionOperator::forType($this->getConditionValueType());
     }
 
     public function getBrowserConditions(): array
     {
         $set = $this->conditions();
         return $set->rules ? [
-            ...(new \verbb\formie\conditions\ConditionCompiler())->compile($set, $this->getForm()),
+            ...(new ConditionCompiler())->compile($set, $this->getForm()),
             'isNested' => (bool)$this->getParentField(),
         ] : [];
     }
@@ -28,6 +33,6 @@ trait FieldBrowserConditionTrait
     public function getConditionsJson(): ?string
     {
         $conditions = $this->getBrowserConditions();
-        return $conditions ? \craft\helpers\Json::encode($conditions) : null;
+        return $conditions ? Json::encode($conditions) : null;
     }
 }

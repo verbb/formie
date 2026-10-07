@@ -6,6 +6,8 @@ use verbb\formie\models\ReportExportFile;
 
 use Craft;
 use craft\queue\BaseJob as CraftBaseJob;
+
+use RuntimeException;
 use Throwable;
 
 class ExportReport extends CraftBaseJob
@@ -25,7 +27,7 @@ class ExportReport extends CraftBaseJob
         $lock = 'formie-report-export:' . (int)$this->exportFileId;
 
         if (!$mutex->acquire($lock)) {
-            throw new \RuntimeException('This report export is already running.');
+            throw new RuntimeException('This report export is already running.');
         }
 
         try {
@@ -39,7 +41,7 @@ class ExportReport extends CraftBaseJob
 
             if (in_array($exportFile->status, [ReportExportFile::STATUS_READY, ReportExportFile::STATUS_CONSUMED], true)) {
                 if (!$exportFile->filePath || !is_file($exportFile->filePath)) {
-                    throw new \RuntimeException('The completed export file is unavailable. Request a new export.');
+                    throw new RuntimeException('The completed export file is unavailable. Request a new export.');
                 }
 
                 $this->setProgress($queue, 1);

@@ -8,12 +8,6 @@ use craft\db\SoftDeleteTrait;
 
 class PdfTemplate extends ActiveRecord
 {
-    // Traits
-    // =========================================================================
-
-    use SoftDeleteTrait;
-
-
     // Static Methods
     // =========================================================================
 
@@ -21,4 +15,10 @@ class PdfTemplate extends ActiveRecord
     {
         return Table::FORMIE_PDF_TEMPLATES;
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use SoftDeleteTrait;
 }

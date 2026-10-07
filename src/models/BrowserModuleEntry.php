@@ -1,6 +1,9 @@
 <?php
 namespace verbb\formie\models;
 
+use InvalidArgumentException;
+use stdClass;
+
 /** One configured manifest entry. Executable code is resolved only by a trusted registry. */
 final readonly class BrowserModuleEntry
 {
@@ -21,7 +24,7 @@ final readonly class BrowserModuleEntry
     public function __construct(string $key, string $moduleId, string $kind, array $targets, array $config = [], bool $required = true)
     {
         if ($key === '') {
-            throw new \InvalidArgumentException('Browser module entry keys must be non-empty.');
+            throw new InvalidArgumentException('Browser module entry keys must be non-empty.');
         }
 
         BrowserModule::validateModuleId($moduleId);
@@ -43,7 +46,7 @@ final readonly class BrowserModuleEntry
             'moduleId' => $this->moduleId,
             'kind' => $this->kind,
             'targets' => $this->targets,
-            'config' => $this->config === [] ? new \stdClass() : $this->config,
+            'config' => $this->config === [] ? new stdClass() : $this->config,
             'required' => $this->required,
         ];
     }

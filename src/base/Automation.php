@@ -1,38 +1,19 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\Formie;
-use verbb\formie\base\FormInterface;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\ModifyAutomationPayloadEvent;
-use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\Stencil;
+use verbb\formie\helpers\References;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\Html;
-use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 
 use GuzzleHttp\Client;
 
-use yii\helpers\Markdown;
-
 abstract class Automation extends Integration implements DispatchableIntegrationInterface
 {
-    // Traits
-    // =========================================================================
-
-    use DispatchableIntegrationTrait;
-
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_AUTOMATION_PAYLOAD = 'modifyAutomationPayload';
-
-
     // Static Methods
     // =========================================================================
 
@@ -40,6 +21,18 @@ abstract class Automation extends Integration implements DispatchableIntegration
     {
         return Craft::t('formie', 'Automations');
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_AUTOMATION_PAYLOAD = 'modifyAutomationPayload';
+
+
+    // Traits
+    // =========================================================================
+
+    use DispatchableIntegrationTrait;
 
 
     // Public Methods
@@ -75,6 +68,36 @@ abstract class Automation extends Integration implements DispatchableIntegration
         return Craft::$app->getView()->renderTemplate("formie/integrations/automations/{$handle}/_plugin-settings", $variables);
     }
 
+    /**
+     * Pin the connection to the public IPs we just validated so a DNS rebinding
+     * race between resolve-time and connect-time cannot redirect to a private host.
+     * Absolute automation URLs rebuild a pinned client per request while preserving
+     * any injected handler (tests) and subclass client config (auth headers).
+     */
+    public function request(string $method, string $uri, array $options = []): mixed
+    {
+        foreach (['proxy', 'curl', 'handler', 'base_uri', 'verify', 'cert', 'ssl_key', 'cookies'] as $option) {
+            if (array_key_exists($option, $options)) {
+                throw new IntegrationException('Unsupported public endpoint transport option.');
+            }
+        }
+
+        foreach (array_keys($options['headers'] ?? []) as $header) {
+            if (in_array(strtolower($header), ['host', 'proxy-authorization', 'cookie'], true)) {
+                throw new IntegrationException('Unsupported public endpoint header.');
+            }
+        }
+        $this->requirePublicHttpEndpoint($uri);
+
+        if (preg_match('#^https?://#i', $uri) === 1) {
+            $config = $this->getClient()->getConfig();
+            $config['allow_redirects'] = false;
+            $this->_client = $this->createPublicEndpointClient($uri, $config);
+        }
+
+        return parent::request($method, $uri, $options);
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -104,7 +127,7 @@ abstract class Automation extends Integration implements DispatchableIntegration
     protected function getEndpointUrl(string $url, Submission $submission): bool|string|null
     {
         $url = preg_replace('/^\$([A-Z][A-Z0-9_]*)$/D', '{env:$1}', $url);
-        $url = \verbb\formie\helpers\References::parseUrl($url, $submission);
+        $url = References::parseUrl($url, $submission);
 
         return $this->requirePublicHttpEndpoint($url);
     }
@@ -132,35 +155,4 @@ abstract class Automation extends Integration implements DispatchableIntegration
 
         return Craft::createGuzzleClient($config);
     }
-
-    /**
-     * Pin the connection to the public IPs we just validated so a DNS rebinding
-     * race between resolve-time and connect-time cannot redirect to a private host.
-     * Absolute automation URLs rebuild a pinned client per request while preserving
-     * any injected handler (tests) and subclass client config (auth headers).
-     */
-    public function request(string $method, string $uri, array $options = []): mixed
-    {
-        foreach (['proxy', 'curl', 'handler', 'base_uri', 'verify', 'cert', 'ssl_key', 'cookies'] as $option) {
-            if (array_key_exists($option, $options)) {
-                throw new \verbb\formie\errors\IntegrationException('Unsupported public endpoint transport option.');
-            }
-        }
-
-        foreach (array_keys($options['headers'] ?? []) as $header) {
-            if (in_array(strtolower($header), ['host', 'proxy-authorization', 'cookie'], true)) {
-                throw new \verbb\formie\errors\IntegrationException('Unsupported public endpoint header.');
-            }
-        }
-        $this->requirePublicHttpEndpoint($uri);
-
-        if (preg_match('#^https?://#i', $uri) === 1) {
-            $config = $this->getClient()->getConfig();
-            $config['allow_redirects'] = false;
-            $this->_client = $this->createPublicEndpointClient($uri, $config);
-        }
-
-        return parent::request($method, $uri, $options);
-    }
-
 }

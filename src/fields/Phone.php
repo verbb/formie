@@ -2,7 +2,6 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\base\Field;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
@@ -18,26 +17,24 @@ use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\LanguageOptions;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\Html;
 use craft\helpers\Json;
-
-use libphonenumber\PhoneNumberFormat;
-use libphonenumber\PhoneNumberUtil;
-
-use Faker\Generator as FakerFactory;
-
-use GraphQL\Type\Definition\Type;
+use craft\helpers\UrlHelper;
 
 use yii\base\Event;
 use yii\db\Schema;
+
+use Throwable;
+
+use Faker\Generator as FakerFactory;
+use GraphQL\Type\Definition\Type;
+use libphonenumber\PhoneNumberFormat;
+use libphonenumber\PhoneNumberUtil;
 
 class Phone extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
@@ -197,7 +194,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                 $countryCode = '+' . $parsed->getCountryCode();
                 $country = $country ?: ($util->getRegionCodeForNumber($parsed) ?: null);
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // Preserve malformed user input for validation and redisplay.
         }
 
@@ -371,6 +368,12 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
         ];
     }
 
+    public function getCountryLocale(): ?string
+    {
+        return $this->_getMatchedLanguageId();
+    }
+
+
     // Protected Methods
     // =========================================================================
 
@@ -479,10 +482,6 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
         return $faker->phoneNumber;
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     protected function defineClientRenderedInput(): array
     {
         return array_merge(parent::defineClientRenderedInput(), [
@@ -503,7 +502,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                     'countryDefaultValue' => $this->countryDefaultValue,
                     'countryAllowed' => $this->_getAllowedCountryCodes(),
                     'countryPreselectFromIp' => $this->countryPreselectFromIp,
-                    'countryFromIpAction' => \craft\helpers\UrlHelper::actionUrl('formie/address/country-from-ip'),
+                    'countryFromIpAction' => UrlHelper::actionUrl('formie/address/country-from-ip'),
                     'language' => $this->_getMatchedLanguageId() ?? 'en',
                 ],
             ]);
@@ -511,7 +510,6 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
 
         return $modules;
     }
-
 
     protected function defineReferenceValues(): array
     {
@@ -525,10 +523,9 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
         ];
     }
 
-    public function getCountryLocale(): ?string
-    {
-        return $this->_getMatchedLanguageId();
-    }
+
+    // Private Methods
+    // =========================================================================
 
     private function _getAllowedCountryCodes(): array
     {

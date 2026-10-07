@@ -2,10 +2,12 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\errors\StateConflict;
+use verbb\formie\events\SubmissionCompleteEvent;
 use verbb\formie\models\SubmissionCommand;
 use verbb\formie\models\SubmissionErrors;
 use verbb\formie\models\SubmissionOutcome;
@@ -87,7 +89,7 @@ class SubmissionProcessor extends Component
         // Preserve the element's completion event without entering the visitor
         // workflow, computing redirects, or scheduling a dispatch run.
         if (!$submission->isIncomplete && ($wasNew || $wasIncomplete)) {
-            $submission->trigger(\verbb\formie\elements\Submission::EVENT_AFTER_COMPLETE, new \verbb\formie\events\SubmissionCompleteEvent(['submission' => $submission, 'form' => $command->form]));
+            $submission->trigger(Submission::EVENT_AFTER_COMPLETE, new SubmissionCompleteEvent(['submission' => $submission, 'form' => $command->form]));
         }
         return new SubmissionOutcome($wasNew ? SubmissionOutcomeType::COMPLETED : SubmissionOutcomeType::REVISED, (int)$submission->id, $submission->uid, $submission->stateVersion);
     }

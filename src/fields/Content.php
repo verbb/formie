@@ -4,15 +4,14 @@ namespace verbb\formie\fields;
 use verbb\formie\base\CosmeticField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\gql\types\Json as JsonType;
 use verbb\formie\helpers\Gql as FormieGql;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\gql\types\Json as JsonType;
 use verbb\formie\models\Notification;
 use verbb\formie\models\RichText;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;

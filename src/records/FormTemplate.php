@@ -11,12 +11,6 @@ use yii\db\ActiveQueryInterface;
 
 class FormTemplate extends ActiveRecord
 {
-    // Traits
-    // =========================================================================
-
-    use SoftDeleteTrait;
-
-
     // Static Methods
     // =========================================================================
 
@@ -24,6 +18,16 @@ class FormTemplate extends ActiveRecord
     {
         return Table::FORMIE_FORM_TEMPLATES;
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use SoftDeleteTrait;
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getFieldLayout(): ActiveQueryInterface
     {

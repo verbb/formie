@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\models;
 
-use verbb\formie\services\SubmissionWorkflow;
+use verbb\formie\enums\SubmissionOperation;
 
 use craft\base\Model;
 
@@ -11,7 +11,7 @@ class ManagedSubmissionRequest extends Model
     // =========================================================================
 
     public string $handle = '';
-    public \verbb\formie\enums\SubmissionOperation $operation = \verbb\formie\enums\SubmissionOperation::SUBMIT;
+    public SubmissionOperation $operation = SubmissionOperation::SUBMIT;
     public ?int $expectedVersion = null;
     public ?string $operationId = null;
     public ?int $siteId = null;

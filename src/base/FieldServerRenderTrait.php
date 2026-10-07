@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\compatibility\fields\FieldCompatibility;
 use verbb\formie\Formie;
+use verbb\formie\compatibility\fields\FieldCompatibility;
 use verbb\formie\elements\Form;
 use verbb\formie\events\ModifyFieldSlotTagEvent;
 use verbb\formie\helpers\ArrayHelper;

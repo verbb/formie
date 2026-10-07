@@ -2,9 +2,10 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
-use verbb\formie\attributes\FormIntegrationSetting;
-use verbb\formie\base\FormInterface;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\compatibility\integrations\IntegrationResultCompatibility;
+use verbb\formie\compatibility\integrations\LegacyIntegrationDeliveryTrait;
+use verbb\formie\compatibility\integrations\LegacyIntegrationPolicyTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
@@ -17,7 +18,6 @@ use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\events\ModifyIntegrationFormSettingsSchemaEvent;
 use verbb\formie\events\ModifyIntegrationSlotTagEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\fields\Agree;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\DeliveryAttempt;
@@ -37,21 +37,21 @@ use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\FormIntegration;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationDeliveryState;
 use verbb\formie\models\IntegrationExecutionContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\models\IntegrationResult;
+use verbb\formie\models\IntegrationRunContext;
 use verbb\formie\models\IntegrationSettingsContext;
-use verbb\formie\models\Phone;
 use verbb\formie\models\SlotTag;
-use verbb\formie\models\Stencil;
 use verbb\formie\options\IntegrationOptionSourceHelper;
 use verbb\formie\options\OptionList;
 use verbb\formie\records\Integration as IntegrationRecord;
 use verbb\formie\references\ReferenceContext;
-use verbb\formie\references\ReferenceUsage;
 use verbb\formie\references\ReferenceSlot;
 use verbb\formie\references\ReferenceSlotKind;
+use verbb\formie\references\ReferenceUsage;
 use verbb\formie\references\ResolvedReference;
 use verbb\formie\services\Integrations as IntegrationsService;
 use verbb\formie\theme\context\RenderContext;
@@ -83,7 +83,6 @@ use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Psr7\UriResolver;
 use Psr\Http\Message\ResponseInterface;
 use verbb\auth\Auth;
-use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\base\OAuthProviderTrait;
 use verbb\auth\models\Token;
 
@@ -274,14 +273,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return IntegrationHelper::convertValueForIntegration($value, $integrationField);
     }
 
-    private static function _isEmpty($value): bool
-    {
-        return $value === '' || $value === [] || $value === null;
-    }
-
     protected static function defineOptionSources(): array
     {
         return [];
+    }
+
+    private static function _isEmpty($value): bool
+    {
+        return $value === '' || $value === [] || $value === null;
     }
 
     private static function _getOptionSourceDefinition(string $provider): ?array
@@ -329,7 +328,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public const EVENT_MODIFY_INTEGRATION_FORM_SETTINGS_SCHEMA = 'modifyIntegrationFormSettingsSchema';
     public const EVENT_MODIFY_SLOT_TAG = 'modifySlotTag';
 
-
     public const TYPE_ADDRESS_PROVIDER = 'addressProvider';
     public const TYPE_CAPTCHA = 'captcha';
     public const TYPE_ELEMENT = 'element';
@@ -367,8 +365,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     use OAuthProviderTrait {
         request as OAuthRequest;
     }
-    use \verbb\formie\compatibility\integrations\LegacyIntegrationDeliveryTrait;
-    use \verbb\formie\compatibility\integrations\LegacyIntegrationPolicyTrait;
+    use LegacyIntegrationDeliveryTrait;
+    use LegacyIntegrationPolicyTrait;
 
 
     // Properties
@@ -381,20 +379,18 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public ?int $sortOrder = null;
     public array $cache = [];
     public ?string $uid = null;
-    #[\verbb\formie\attributes\Sensitive]
+    #[Sensitive]
     public ?string $clientSecret = null;
-    private ?FormIntegration $_formIntegration = null;
-
     // Store extra context for when running the integration
     public array $context = [];
-
     // Store extra context when configuring the integration in the form builder
     public IntegrationSettingsContext $settingsContext;
 
     protected ?Client $_client = null;
-    protected \verbb\formie\models\IntegrationDeliveryState $_deliveryState;
-    private ?\verbb\formie\models\IntegrationRunContext $_runContext = null;
+    protected IntegrationDeliveryState $_deliveryState;
 
+    private ?FormIntegration $_formIntegration = null;
+    private ?IntegrationRunContext $_runContext = null;
     // Keep track of whether run in the context of a queue job
     private ?JobInterface $_queueJob = null;
     private ?IntegrationExecutionContext $_deliveryContext = null;
@@ -410,7 +406,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function __construct($config = [])
     {
-        $this->_deliveryState = new \verbb\formie\models\IntegrationDeliveryState();
+        $this->_deliveryState = new IntegrationDeliveryState();
 
         if (!isset($config['settingsContext'])) {
             $config['settingsContext'] = new IntegrationSettingsContext();
@@ -511,7 +507,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->_deliveryStepCounts = [];
         $this->_directDelivery = false;
         $this->_configRefreshCancelled = false;
-        $this->_deliveryState = new \verbb\formie\models\IntegrationDeliveryState();
+        $this->_deliveryState = new IntegrationDeliveryState();
         $this->_runContext = null;
         $this->context = [];
         $this->settingsContext = clone $this->settingsContext;
@@ -952,10 +948,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->_deliveryContext = $context;
         $this->_deliveryAttemptUid = $attemptUid;
         $this->_deliveryStepCounts = [];
-        $this->_deliveryState = new \verbb\formie\models\IntegrationDeliveryState();
+        $this->_deliveryState = new IntegrationDeliveryState();
     }
 
-    public function beginRun(\verbb\formie\models\IntegrationRunContext $context): void
+    public function beginRun(IntegrationRunContext $context): void
     {
         if ($this->_runContext === $context) {
             return;
@@ -981,7 +977,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function beginPayloadDelivery(Submission $submission): void
     {
         if (!$this->_deliveryContext) {
-            $this->_deliveryState = new \verbb\formie\models\IntegrationDeliveryState();
+            $this->_deliveryState = new IntegrationDeliveryState();
             $this->_directDelivery = true;
             $this->_deliveryContext = new IntegrationExecutionContext(
                 (int)$submission->id,
@@ -1531,7 +1527,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     {
         return HandlerStack::create(new CurlHandler());
     }
-
 
     protected function defineRules(): array
     {

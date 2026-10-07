@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\elements\actions;
 
-use verbb\formie\elements\Form;
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\FormGroup;
 

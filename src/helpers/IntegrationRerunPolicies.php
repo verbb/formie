@@ -1,21 +1,15 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
-use verbb\formie\Formie;
+
+use Craft;
 
 class IntegrationRerunPolicies
 {
-    // Constants
-    // =========================================================================
-
-    public const POLICY_SUBMIT_ONLY = 'submitOnly';
-    public const POLICY_ON_EDIT = 'onEdit';
-    public const POLICY_CUSTOM = 'custom';
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function getStoredConfig(Form $form, string $handle): ?array
@@ -130,15 +124,11 @@ class IntegrationRerunPolicies
     public static function policyLabels(): array
     {
         return [
-            self::POLICY_SUBMIT_ONLY => \Craft::t('formie', 'Once on submit'),
-            self::POLICY_ON_EDIT => \Craft::t('formie', 'Also when submission is edited'),
-            self::POLICY_CUSTOM => \Craft::t('formie', 'Custom…'),
+            self::POLICY_SUBMIT_ONLY => Craft::t('formie', 'Once on submit'),
+            self::POLICY_ON_EDIT => Craft::t('formie', 'Also when submission is edited'),
+            self::POLICY_CUSTOM => Craft::t('formie', 'Custom…'),
         ];
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private static function _normalizeEvents(array $events): array
     {
@@ -160,4 +150,12 @@ class IntegrationRerunPolicies
 
         return array_values(array_unique($normalized));
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const POLICY_SUBMIT_ONLY = 'submitOnly';
+    public const POLICY_ON_EDIT = 'onEdit';
+    public const POLICY_CUSTOM = 'custom';
 }

@@ -1,24 +1,21 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
-use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\base\OAuthIntegrationTrait;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use Exception;
 use Throwable;
 
 use verbb\auth\base\OAuthProviderInterface;
@@ -205,6 +202,10 @@ class Zoho extends Crm implements OAuthProviderInterface
         return new IntegrationConfig($settings);
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -358,10 +359,6 @@ class Zoho extends Crm implements OAuthProviderInterface
 
         return $this->resultForPayload(true);
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

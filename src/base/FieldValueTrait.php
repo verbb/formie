@@ -6,14 +6,14 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldEmailValueEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\ModifyFieldValueEvent;
-use verbb\formie\fields\coercion\ArrayValueCoercer;
 use verbb\formie\fields\coercion\ScalarValueCoercer;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 
+use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\Json;
+
+use UnitEnum;
 
 use Faker\Generator as FakerFactory;
 
@@ -56,7 +56,7 @@ trait FieldValueTrait
     public function getValueAsData(mixed $value, ?ElementInterface $element = null): mixed
     {
         if (!$this->_projectingLegacyData && $this->_hasLegacyFieldMethodOverride('getValueAsJson')) {
-            \Craft::$app->getDeprecator()->log(static::class . '::getValueAsJson', 'Implement defineValueAsData() instead of overriding getValueAsJson().');
+            Craft::$app->getDeprecator()->log(static::class . '::getValueAsJson', 'Implement defineValueAsData() instead of overriding getValueAsJson().');
             $this->_projectingLegacyData = true;
 
             try {
@@ -203,7 +203,7 @@ trait FieldValueTrait
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
         if ($this->_hasLegacyFieldMethodOverride('defineValueAsJson')) {
-            \Craft::$app->getDeprecator()->log(static::class . '::defineValueAsJson', 'Implement defineValueAsData() instead of defineValueAsJson().');
+            Craft::$app->getDeprecator()->log(static::class . '::defineValueAsJson', 'Implement defineValueAsData() instead of defineValueAsJson().');
             return $this->defineValueAsJson($value, $element);
         }
 
@@ -257,6 +257,7 @@ trait FieldValueTrait
         return $faker->text;
     }
 
+
     // Private Methods
     // =========================================================================
 
@@ -266,7 +267,6 @@ trait FieldValueTrait
             return array_map(fn($item) => $this->_copyProjectionValue($item), $value);
         }
 
-        return is_object($value) && !$value instanceof \UnitEnum ? clone $value : $value;
+        return is_object($value) && !$value instanceof UnitEnum ? clone $value : $value;
     }
-
 }

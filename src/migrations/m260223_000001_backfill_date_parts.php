@@ -9,6 +9,8 @@ use craft\db\Migration;
 use craft\db\Query;
 use craft\helpers\Json;
 
+use Throwable;
+
 class m260223_000001_backfill_date_parts extends Migration
 {
     // Constants
@@ -124,7 +126,7 @@ class m260223_000001_backfill_date_parts extends Migration
 
         try {
             $decoded = Json::decode($content, true);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
 

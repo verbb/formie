@@ -5,32 +5,24 @@ use verbb\formie\Formie as FormiePlugin;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\PositionInterface;
 use verbb\formie\deprecations\FormieVariableDeprecations;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
 use verbb\formie\elements\db\FormQuery;
 use verbb\formie\elements\db\SubmissionQuery;
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\References;
 use verbb\formie\models\FieldLayoutPage;
-use verbb\formie\models\FieldLayoutRow;
-use verbb\formie\models\Notification;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\errors\MissingComponentException;
 use craft\helpers\Template as TemplateHelper;
 
-use yii\base\InvalidConfigException;
+use InvalidArgumentException;
+use Throwable;
 
 use Twig\Markup;
-use Twig\Error\SyntaxError;
-use Twig\Error\RuntimeError;
-use Twig\Error\LoaderError;
-
-use Exception;
-use Throwable;
 
 class Formie
 {
@@ -228,7 +220,7 @@ class Formie
         $field = $form->getFieldByHandle($handle);
 
         if (!$field) {
-            throw new \InvalidArgumentException(sprintf('Field "%s" not found on form "%s".', $handle, $form->handle));
+            throw new InvalidArgumentException(sprintf('Field "%s" not found on form "%s".', $handle, $form->handle));
         }
 
         $default = (string)($options['default'] ?? '');
@@ -321,32 +313,6 @@ class Formie
         return $this->_filterSettingsNavItems($navItems, $permissions, $user);
     }
 
-    private function _filterSettingsNavItems(array $navItems, $permissions, $user): array
-    {
-        $filtered = [];
-        $bufferedHeading = null;
-
-        foreach ($navItems as $handle => $item) {
-            if (isset($item['heading'])) {
-                $bufferedHeading = [$handle => $item];
-                continue;
-            }
-
-            if (!$permissions->canAccessSettingsPage($user, $handle)) {
-                continue;
-            }
-
-            if ($bufferedHeading) {
-                $filtered = array_merge($filtered, $bufferedHeading);
-                $bufferedHeading = null;
-            }
-
-            $filtered[$handle] = $item;
-        }
-
-        return $filtered;
-    }
-
     public function getIntegrationsNavItems(): array
     {
         return [
@@ -372,4 +338,33 @@ class Formie
         return FormiePlugin::$plugin->getService()->getFieldNamespaceForScript($field);
     }
 
+
+    // Private Methods
+    // =========================================================================
+
+    private function _filterSettingsNavItems(array $navItems, $permissions, $user): array
+    {
+        $filtered = [];
+        $bufferedHeading = null;
+
+        foreach ($navItems as $handle => $item) {
+            if (isset($item['heading'])) {
+                $bufferedHeading = [$handle => $item];
+                continue;
+            }
+
+            if (!$permissions->canAccessSettingsPage($user, $handle)) {
+                continue;
+            }
+
+            if ($bufferedHeading) {
+                $filtered = array_merge($filtered, $bufferedHeading);
+                $bufferedHeading = null;
+            }
+
+            $filtered[$handle] = $item;
+        }
+
+        return $filtered;
+    }
 }

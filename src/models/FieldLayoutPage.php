@@ -3,25 +3,17 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\TranslatablePropertiesInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
+use verbb\formie\helpers\FieldTraversal;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationHelper;
 
-use Craft;
-use craft\base\Field as CraftField;
-use craft\base\FieldInterface as CraftFieldInterface;
 use craft\base\SavableComponent;
-use craft\fieldlayoutelements\CustomField;
 use craft\helpers\Json;
-
-use yii\base\InvalidConfigException;
-
-use DateTime;
 
 class FieldLayoutPage extends SavableComponent implements TranslatablePropertiesInterface
 {
@@ -32,7 +24,6 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
     {
         return ['label'];
     }
-
 
 
     // Properties
@@ -150,7 +141,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
 
     public function getFieldsRecursively(): array
     {
-        return \verbb\formie\helpers\FieldTraversal::recursively($this->getFields());
+        return FieldTraversal::recursively($this->getFields());
     }
 
     public function getFieldByHandle(string $handle): ?FieldInterface
@@ -402,5 +393,4 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
 
         return $rules;
     }
-
 }

@@ -2,29 +2,22 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
-use verbb\formie\fields\definitions\FieldValueType;
-use verbb\formie\helpers\FieldOptionHelper;
-use verbb\formie\helpers\OptionsMode;
-use verbb\formie\base\Field;
-use verbb\formie\base\FieldInterface;
-use verbb\formie\base\Integration;
-use verbb\formie\base\IntegrationInterface;
-use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\conditions\OptionsFieldConditionRule;
 use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\gql\arguments\OptionFieldArguments;
 use verbb\formie\gql\resolvers\OptionFieldResolver;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\FieldOptionHelper;
+use verbb\formie\helpers\OptionsMode;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables as FormieVariables;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\Notification;
 use verbb\formie\models\OptionSource;
 use verbb\formie\options\OptionSourceConfigHelper;
 use verbb\formie\options\OptionSourceContext;
@@ -40,9 +33,9 @@ use craft\helpers\Json;
 use yii\db\ExpressionInterface;
 use yii\db\Schema;
 
-use GraphQL\Type\Definition\Type;
-
 use Throwable;
+
+use GraphQL\Type\Definition\Type;
 
 abstract class OptionsField extends Field implements OptionsFieldInterface, OptionSourceFieldInterface, PreviewableFieldInterface
 {
@@ -117,6 +110,47 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
                 'values' => implode(', ', self::_getOptionConfigLabels($settings)),
             ]),
         ];
+    }
+
+    public static function normalizeSnapshotFieldSettings(array $settings): array
+    {
+        if (OptionsMode::normalize($settings['optionsMode'] ?? null) === OptionsMode::STATIC) {
+            return $settings;
+        }
+
+        unset($settings['options']);
+
+        return $settings;
+    }
+
+    /**
+     * Resolve an option row’s front-end availability.
+     *
+     * Legacy `disabled: true` rows meant “hide from form” (#824) and map to `hidden`.
+     */
+    public static function resolveOptionAvailability(array $option): ?string
+    {
+        $availability = $option['availability'] ?? null;
+
+        if ($availability === 'hidden' || $availability === 'disabled') {
+            return $availability;
+        }
+
+        if (!empty($option['disabled'])) {
+            return 'hidden';
+        }
+
+        return null;
+    }
+
+    public static function isOptionHidden(array $option): bool
+    {
+        return self::resolveOptionAvailability($option) === 'hidden';
+    }
+
+    public static function isOptionFrontEndDisabled(array $option): bool
+    {
+        return self::resolveOptionAvailability($option) === 'disabled';
     }
 
     private static function _resolveSingleOptionCriteriaValue(array $instances, mixed $value): mixed
@@ -450,47 +484,6 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         return $this->getOptionsMode() !== OptionsMode::STATIC;
     }
 
-    public static function normalizeSnapshotFieldSettings(array $settings): array
-    {
-        if (OptionsMode::normalize($settings['optionsMode'] ?? null) === OptionsMode::STATIC) {
-            return $settings;
-        }
-
-        unset($settings['options']);
-
-        return $settings;
-    }
-
-    /**
-     * Resolve an option row’s front-end availability.
-     *
-     * Legacy `disabled: true` rows meant “hide from form” (#824) and map to `hidden`.
-     */
-    public static function resolveOptionAvailability(array $option): ?string
-    {
-        $availability = $option['availability'] ?? null;
-
-        if ($availability === 'hidden' || $availability === 'disabled') {
-            return $availability;
-        }
-
-        if (!empty($option['disabled'])) {
-            return 'hidden';
-        }
-
-        return null;
-    }
-
-    public static function isOptionHidden(array $option): bool
-    {
-        return self::resolveOptionAvailability($option) === 'hidden';
-    }
-
-    public static function isOptionFrontEndDisabled(array $option): bool
-    {
-        return self::resolveOptionAvailability($option) === 'disabled';
-    }
-
     /**
      * Options exposed to the front-end form (hidden rows excluded).
      *
@@ -755,7 +748,6 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         return $value instanceof MultiOptionFieldValue ? $value->values() : $value?->value;
     }
 
-
     public function getElementConditionRuleType(): array|string|null
     {
         return OptionsFieldConditionRule::class;
@@ -867,6 +859,17 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         ];
     }
 
+    public function fieldKind(): string
+    {
+        $displayType = (string)($this->displayType ?? 'dropdown');
+
+        return match ($displayType) {
+            'radio' => self::KIND_RADIO_GROUP,
+            'checkboxes' => self::KIND_CHECKBOX_GROUP,
+            default => self::KIND_SELECT,
+        };
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -876,7 +879,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         return FieldValueType::object($this->multi ? MultiOptionFieldValue::class : SingleOptionFieldValue::class);
     }
 
-    protected function defineValueForCondition(mixed $value, \verbb\formie\elements\Submission $submission): mixed
+    protected function defineValueForCondition(mixed $value, Submission $submission): mixed
     {
         return $value instanceof MultiOptionFieldValue ? $value->values() : $value?->value;
     }
@@ -936,7 +939,6 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         return '';
     }
 
-
     protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         // If mapping to an array, extract just the values
@@ -972,18 +974,6 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
     protected function definePrimaryOptionVariableSourceTypes(): array
     {
         return [FormieVariables::TYPE_TEXT];
-    }
-
-
-    public function fieldKind(): string
-    {
-        $displayType = (string)($this->displayType ?? 'dropdown');
-
-        return match ($displayType) {
-            'radio' => self::KIND_RADIO_GROUP,
-            'checkboxes' => self::KIND_CHECKBOX_GROUP,
-            default => self::KIND_SELECT,
-        };
     }
 
     protected function defineClientRenderedInput(): array

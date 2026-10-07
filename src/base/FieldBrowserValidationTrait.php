@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\models\SubmissionErrors;
+
 use craft\helpers\Json;
 
 trait FieldBrowserValidationTrait
@@ -30,7 +32,7 @@ trait FieldBrowserValidationTrait
             };
 
             foreach ($keys as $key) {
-                $definition['messages'][$key] = \verbb\formie\models\SubmissionErrors::plainText($this->getValidationMessage($key, $params));
+                $definition['messages'][$key] = SubmissionErrors::plainText($this->getValidationMessage($key, $params));
             }
             return $definition;
         }, array_values($this->defineBrowserValidationRules()))));

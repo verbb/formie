@@ -6,6 +6,7 @@ use verbb\formie\tiptap\TextStyleDefinition;
 use yii\base\Event;
 
 use InvalidArgumentException;
+
 use Tiptap\Core\Extension;
 
 class RegisterTiptapExtensionsEvent extends Event

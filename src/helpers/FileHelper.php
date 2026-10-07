@@ -2,7 +2,6 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
-use verbb\formie\helpers\StringHelper;
 
 use Craft;
 use craft\helpers\App;

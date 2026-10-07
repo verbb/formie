@@ -16,5 +16,4 @@ class Email extends DefaultField
 
     public static string $class = EmailField::class;
     public static string $name = 'Email';
-
 }

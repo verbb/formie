@@ -2,8 +2,8 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
-use verbb\formie\elements\Submission;
 use verbb\formie\elements\SentNotification;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;

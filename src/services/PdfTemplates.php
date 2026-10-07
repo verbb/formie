@@ -6,7 +6,6 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\PdfEvent;
 use verbb\formie\events\PdfRenderOptionsEvent;
 use verbb\formie\events\PdfTemplateEvent;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
@@ -25,15 +24,14 @@ use craft\helpers\Db;
 use craft\helpers\FileHelper;
 use craft\helpers\Template;
 
-use Dompdf\Dompdf;
-use Dompdf\Options;
-
 use yii\base\ErrorException;
 use yii\base\Exception;
-use yii\base\NotSupportedException;
-use yii\web\ServerErrorHttpException;
 
+use Exception as BaseException;
 use Throwable;
+
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class PdfTemplates extends Component
 {
@@ -432,7 +430,7 @@ class PdfTemplates extends Component
 
         try {
             $html = $view->renderTemplate($template, $variables);
-        } catch (\Exception $e) {
+        } catch (BaseException $e) {
             Formie::error('An error occurred while generating this PDF: ' . $e->getMessage());
 
             // Set the pdf html to the render error.

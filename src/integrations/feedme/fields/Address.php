@@ -3,11 +3,10 @@ namespace verbb\formie\integrations\feedme\fields;
 
 use verbb\formie\fields\Address as AddressField;
 
+use Cake\Utility\Hash;
 use craft\feedme\base\Field;
 use craft\feedme\base\FieldInterface;
 use craft\feedme\helpers\DataHelper;
-
-use Cake\Utility\Hash;
 
 class Address extends Field implements FieldInterface
 {
@@ -24,6 +23,9 @@ class Address extends Field implements FieldInterface
     public static string $name = 'Address';
 
 
+    // Public Methods
+    // =========================================================================
+
     // Templates
     // =========================================================================
 
@@ -31,10 +33,6 @@ class Address extends Field implements FieldInterface
     {
         return 'formie/integrations/feedme/fields/address';
     }
-
-
-    // Public Methods
-    // =========================================================================
 
     public function parseField(): mixed
     {

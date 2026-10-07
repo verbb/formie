@@ -2,9 +2,9 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\References;
 use verbb\formie\helpers\ReportExportRows;
 use verbb\formie\helpers\ReportExportWriter;
-use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\ExportReport;
 use verbb\formie\models\Report;
 use verbb\formie\models\ReportExportFile;
@@ -14,6 +14,7 @@ use Craft;
 use craft\base\Component;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
+use craft\helpers\App;
 use craft\helpers\FileHelper;
 use craft\helpers\Queue;
 use craft\mail\Message;
@@ -21,6 +22,9 @@ use craft\mail\Message;
 use yii\helpers\Markdown;
 
 use DateTime;
+use DateTimeImmutable;
+use RuntimeException;
+use Throwable;
 
 class ReportExport extends Component
 {
@@ -83,7 +87,7 @@ class ReportExport extends Component
                     default => 'text/csv',
                 },
             ];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if (is_file($tempPath)) {
                 @unlink($tempPath);
             }
@@ -145,7 +149,7 @@ class ReportExport extends Component
         $report = Formie::$plugin->getReports()->getReportById((int)$exportFile->reportId);
 
         if (!$report) {
-            throw new \RuntimeException(Craft::t('formie', 'Report not found.'));
+            throw new RuntimeException(Craft::t('formie', 'Report not found.'));
         }
 
         $context = $exportFile->context ?? [];
@@ -155,7 +159,7 @@ class ReportExport extends Component
         // Queue workers do not inherit the requesting editor's session. Resolve
         // the owner explicitly and recheck current permissions before exporting.
         if (!$scheduled && (!$user || !$user->can(Permissions::PERM_EXPORT_SUBMISSIONS))) {
-            throw new \RuntimeException(Craft::t('formie', 'Report export permission is no longer available.'));
+            throw new RuntimeException(Craft::t('formie', 'Report export permission is no longer available.'));
         }
 
         $query = $this->_buildQueryFromContext($report, $context, $user, $scheduled);
@@ -261,11 +265,11 @@ class ReportExport extends Component
         $template = strtr($template, $replacements);
         $context = new ReferenceContext(
             site: Craft::$app->getSites()->getCurrentSite(),
-            now: \DateTimeImmutable::createFromMutable($date),
-            system: ['name' => (string)\craft\helpers\App::mailSettings()->fromName, 'email' => (string)\craft\helpers\App::mailSettings()->fromEmail, 'replyTo' => (string)\craft\helpers\App::mailSettings()->replyToEmail],
+            now: DateTimeImmutable::createFromMutable($date),
+            system: ['name' => (string)App::mailSettings()->fromName, 'email' => (string)App::mailSettings()->fromEmail, 'replyTo' => (string)App::mailSettings()->replyToEmail],
             report: ['handle' => (string)$report->handle, 'name' => (string)$report->name],
         );
-        $template = \verbb\formie\helpers\References::interpolateText($template, $context);
+        $template = References::interpolateText($template, $context);
 
         return $this->_sanitizeFilename($template);
     }

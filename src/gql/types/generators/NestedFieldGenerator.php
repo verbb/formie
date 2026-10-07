@@ -59,10 +59,6 @@ class NestedFieldGenerator extends Generator implements GeneratorInterface, Sing
         return $entity;
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     protected static function getContentFields($context): array
     {
         try {

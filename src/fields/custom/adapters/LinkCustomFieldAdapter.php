@@ -1,11 +1,11 @@
 <?php
 namespace verbb\formie\fields\custom\adapters;
 
-use verbb\formie\elements\Form;
 use verbb\formie\Formie;
-use verbb\formie\fields\CustomField;
-use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\elements\Form;
+use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
+use verbb\formie\fields\CustomField;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\CustomLinkFieldValue;
 use verbb\formie\helpers\SchemaHelper;
@@ -18,43 +18,25 @@ use verbb\formie\web\twig\Extension as FormieTwigExtension;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\fields\Link as CraftLink;
 use craft\fields\data\LinkData;
+use craft\fields\Link as CraftLink;
 use craft\fields\linktypes\BaseLinkType;
 use craft\fields\linktypes\Email;
 use craft\fields\linktypes\Phone;
 use craft\fields\linktypes\Sms;
 use craft\fields\linktypes\Url;
+use craft\gql\GqlEntityRegistry;
 use craft\helpers\Component;
 use craft\helpers\Html;
 use craft\helpers\StringHelper;
-use craft\gql\GqlEntityRegistry;
+
+use yii\validators\StringValidator;
 
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\Type;
 
-use yii\validators\StringValidator;
-
 class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
 {
-    private const TYPE_CLASSES = [
-        'url' => Url::class,
-        'email' => Email::class,
-        'tel' => Phone::class,
-        'sms' => Sms::class,
-    ];
-
-    private const ADVANCED_FIELDS = [
-        'urlSuffix',
-        'target',
-        'title',
-        'class',
-        'id',
-        'rel',
-        'ariaLabel',
-        'download',
-    ];
-
     // Static Methods
     // =========================================================================
 
@@ -74,6 +56,28 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
             CraftLink::class,
         ];
     }
+
+
+    // Constants
+    // =========================================================================
+
+    private const TYPE_CLASSES = [
+        'url' => Url::class,
+        'email' => Email::class,
+        'tel' => Phone::class,
+        'sms' => Sms::class,
+    ];
+
+    private const ADVANCED_FIELDS = [
+        'urlSuffix',
+        'target',
+        'title',
+        'class',
+        'id',
+        'rel',
+        'ariaLabel',
+        'download',
+    ];
 
 
     // Public Methods
@@ -730,6 +734,11 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
             default => $field,
         };
     }
+
+
+    // Private Methods
+    // =========================================================================
+
     private function _toCraftValue(?CustomLinkFieldValue $value, CustomField $field): ?LinkData
     {
         if ($value === null) {
@@ -741,5 +750,4 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
         unset($parts['type'], $parts['value']);
         return new LinkData($raw, $this->createLinkType($type, $field), $parts);
     }
-
 }

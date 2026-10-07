@@ -6,8 +6,6 @@ use verbb\formie\helpers\Table;
 use craft\db\ActiveRecord;
 use craft\records\Element;
 
-use DateTime;
-
 use yii\db\ActiveQueryInterface;
 
 class Form extends ActiveRecord

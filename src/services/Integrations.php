@@ -3,11 +3,11 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Captcha;
+use verbb\formie\base\DispatchableIntegrationInterface;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\cache\IntegrationLookupCache;
-use verbb\formie\compatibility\integrations\IntegrationResultCompatibility;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\IntegrationStatus;
@@ -29,25 +29,133 @@ use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\integrations\addressproviders;
-use verbb\formie\integrations\automations;
+use verbb\formie\integrations\addressproviders\AddressFinder;
+use verbb\formie\integrations\addressproviders\Google;
+use verbb\formie\integrations\addressproviders\Loqate;
+use verbb\formie\integrations\addressproviders\PlaceKit;
+use verbb\formie\integrations\automations\Ifttt;
+use verbb\formie\integrations\automations\Make;
+use verbb\formie\integrations\automations\N8n;
+use verbb\formie\integrations\automations\WebRequest;
+use verbb\formie\integrations\automations\Zapier;
 use verbb\formie\integrations\captchas;
-use verbb\formie\integrations\crm;
-use verbb\formie\integrations\elements;
-use verbb\formie\integrations\emailmarketing;
-use verbb\formie\integrations\helpdesk;
-use verbb\formie\integrations\messaging;
-use verbb\formie\integrations\miscellaneous;
-use verbb\formie\integrations\payments;
+use verbb\formie\integrations\captchas\Akismet;
+use verbb\formie\integrations\captchas\CaptchaEu;
+use verbb\formie\integrations\captchas\CleanTalk;
+use verbb\formie\integrations\captchas\FriendlyCaptcha;
+use verbb\formie\integrations\captchas\Hcaptcha;
+use verbb\formie\integrations\captchas\OopSpam;
+use verbb\formie\integrations\captchas\Question;
+use verbb\formie\integrations\captchas\Recaptcha;
+use verbb\formie\integrations\captchas\Snaptcha;
+use verbb\formie\integrations\captchas\Turnstile;
+use verbb\formie\integrations\crm\ActiveCampaign as CrmActiveCampaign;
+use verbb\formie\integrations\crm\Agile;
+use verbb\formie\integrations\crm\Attio;
+use verbb\formie\integrations\crm\Avochato;
+use verbb\formie\integrations\crm\Capsule;
+use verbb\formie\integrations\crm\CiviCrm;
+use verbb\formie\integrations\crm\Copper;
+use verbb\formie\integrations\crm\Dotdigital;
+use verbb\formie\integrations\crm\Flowlu;
+use verbb\formie\integrations\crm\Freshsales;
+use verbb\formie\integrations\crm\HubSpot;
+use verbb\formie\integrations\crm\Infusionsoft;
+use verbb\formie\integrations\crm\Insightly;
+use verbb\formie\integrations\crm\IterableIntegration as CrmIterableIntegration;
+use verbb\formie\integrations\crm\Klaviyo as CrmKlaviyo;
+use verbb\formie\integrations\crm\Marketo;
+use verbb\formie\integrations\crm\Maximizer;
+use verbb\formie\integrations\crm\Mercury;
+use verbb\formie\integrations\crm\MicrosoftDynamics365;
+use verbb\formie\integrations\crm\NoCrm;
+use verbb\formie\integrations\crm\OneCrm;
+use verbb\formie\integrations\crm\Outseta;
+use verbb\formie\integrations\crm\Pardot;
+use verbb\formie\integrations\crm\Pipedrive;
+use verbb\formie\integrations\crm\Pipeliner;
+use verbb\formie\integrations\crm\Procurios;
+use verbb\formie\integrations\crm\Salesflare;
+use verbb\formie\integrations\crm\Salesforce;
+use verbb\formie\integrations\crm\Salesmate;
+use verbb\formie\integrations\crm\Scoro;
+use verbb\formie\integrations\crm\SharpSpring;
+use verbb\formie\integrations\crm\SugarCrm;
+use verbb\formie\integrations\crm\SuiteCrm;
+use verbb\formie\integrations\crm\VCita;
+use verbb\formie\integrations\crm\Xero;
+use verbb\formie\integrations\crm\Zoho;
+use verbb\formie\integrations\elements\CalendarEvent;
+use verbb\formie\integrations\elements\Entry;
+use verbb\formie\integrations\elements\EventsEvent;
+use verbb\formie\integrations\elements\Product;
+use verbb\formie\integrations\elements\User;
+use verbb\formie\integrations\emailmarketing\ActiveCampaign;
+use verbb\formie\integrations\emailmarketing\Adestra;
+use verbb\formie\integrations\emailmarketing\AWeber;
+use verbb\formie\integrations\emailmarketing\Beehiiv;
+use verbb\formie\integrations\emailmarketing\Benchmark;
+use verbb\formie\integrations\emailmarketing\Brevo;
+use verbb\formie\integrations\emailmarketing\Campaign;
+use verbb\formie\integrations\emailmarketing\CampaignMonitor;
+use verbb\formie\integrations\emailmarketing\CleverReach;
+use verbb\formie\integrations\emailmarketing\ConstantContact;
+use verbb\formie\integrations\emailmarketing\ConvertKit;
+use verbb\formie\integrations\emailmarketing\CustomerIo;
+use verbb\formie\integrations\emailmarketing\Drip;
+use verbb\formie\integrations\emailmarketing\Ecomail;
+use verbb\formie\integrations\emailmarketing\EmailOctopus;
+use verbb\formie\integrations\emailmarketing\GetResponse;
+use verbb\formie\integrations\emailmarketing\IContact;
+use verbb\formie\integrations\emailmarketing\IterableIntegration;
+use verbb\formie\integrations\emailmarketing\Klaviyo;
+use verbb\formie\integrations\emailmarketing\Mailchimp;
+use verbb\formie\integrations\emailmarketing\Mailcoach;
+use verbb\formie\integrations\emailmarketing\MailerLite;
+use verbb\formie\integrations\emailmarketing\Mailjet;
+use verbb\formie\integrations\emailmarketing\Moosend;
+use verbb\formie\integrations\emailmarketing\Omnisend;
+use verbb\formie\integrations\emailmarketing\Ontraport;
+use verbb\formie\integrations\emailmarketing\Ortto;
+use verbb\formie\integrations\emailmarketing\Sender;
+use verbb\formie\integrations\emailmarketing\Vero;
+use verbb\formie\integrations\helpdesk\Freshdesk;
+use verbb\formie\integrations\helpdesk\Front;
+use verbb\formie\integrations\helpdesk\Gorgias;
+use verbb\formie\integrations\helpdesk\HelpScout;
+use verbb\formie\integrations\helpdesk\Intercom;
+use verbb\formie\integrations\helpdesk\LiveChat;
+use verbb\formie\integrations\helpdesk\Zendesk;
+use verbb\formie\integrations\messaging\Discord;
+use verbb\formie\integrations\messaging\Plivo;
+use verbb\formie\integrations\messaging\Slack;
+use verbb\formie\integrations\messaging\Telegram;
+use verbb\formie\integrations\messaging\Twilio;
+use verbb\formie\integrations\miscellaneous\ClickUp;
+use verbb\formie\integrations\miscellaneous\GoogleSheets;
+use verbb\formie\integrations\miscellaneous\Monday;
+use verbb\formie\integrations\miscellaneous\Recruitee;
+use verbb\formie\integrations\miscellaneous\Trello;
+use verbb\formie\integrations\payments\Bpoint;
+use verbb\formie\integrations\payments\Eway;
+use verbb\formie\integrations\payments\GoCardless;
+use verbb\formie\integrations\payments\Mollie;
+use verbb\formie\integrations\payments\Moneris;
+use verbb\formie\integrations\payments\Opayo;
+use verbb\formie\integrations\payments\Paddle;
+use verbb\formie\integrations\payments\PayPal;
+use verbb\formie\integrations\payments\PayWay;
+use verbb\formie\integrations\payments\Square;
+use verbb\formie\integrations\payments\Stripe;
 use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormIntegration;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\IntegrationResult;
+use verbb\formie\models\IntegrationRunContext;
 use verbb\formie\models\MissingIntegration;
 use verbb\formie\models\Settings;
 use verbb\formie\records\Integration as IntegrationRecord;
-use verbb\formie\services\SubmissionWorkflow;
 
 use Craft;
 use craft\base\MemoizableArray;
@@ -59,13 +167,11 @@ use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
-use craft\helpers\Queue;
 use craft\queue\Queue as CraftQueue;
 
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\base\UnknownPropertyException;
-use yii\db\ActiveRecord;
 use yii\db\Exception;
 
 use InvalidArgumentException;
@@ -122,150 +228,150 @@ class Integrations extends Component
         }
 
         $addressProviders = [
-            addressproviders\Google::class,
-            addressproviders\AddressFinder::class,
-            addressproviders\Loqate::class,
-            addressproviders\PlaceKit::class,
+            Google::class,
+            AddressFinder::class,
+            Loqate::class,
+            PlaceKit::class,
         ];
 
         $captchas = [
-            captchas\Akismet::class,
-            captchas\CaptchaEu::class,
-            captchas\CleanTalk::class,
-            captchas\Turnstile::class,
-            captchas\FriendlyCaptcha::class,
-            captchas\Hcaptcha::class,
-            captchas\OopSpam::class,
-            captchas\Question::class,
-            captchas\Recaptcha::class,
-            captchas\Snaptcha::class,
+            Akismet::class,
+            CaptchaEu::class,
+            CleanTalk::class,
+            Turnstile::class,
+            FriendlyCaptcha::class,
+            Hcaptcha::class,
+            OopSpam::class,
+            Question::class,
+            Recaptcha::class,
+            Snaptcha::class,
         ];
 
         $elements = [
-            elements\CalendarEvent::class,
-            elements\Entry::class,
-            elements\EventsEvent::class,
-            elements\Product::class,
-            elements\User::class,
+            CalendarEvent::class,
+            Entry::class,
+            EventsEvent::class,
+            Product::class,
+            User::class,
         ];
 
         $emailMarketing = [
-            emailmarketing\ActiveCampaign::class,
-            emailmarketing\Adestra::class,
-            emailmarketing\AWeber::class,
-            emailmarketing\Beehiiv::class,
-            emailmarketing\Benchmark::class,
-            emailmarketing\Brevo::class,
-            emailmarketing\Campaign::class,
-            emailmarketing\CampaignMonitor::class,
-            emailmarketing\CleverReach::class,
-            emailmarketing\ConstantContact::class,
-            emailmarketing\ConvertKit::class,
-            emailmarketing\CustomerIo::class,
-            emailmarketing\Drip::class,
-            emailmarketing\Ecomail::class,
-            emailmarketing\EmailOctopus::class,
-            emailmarketing\GetResponse::class,
-            emailmarketing\IContact::class,
-            emailmarketing\IterableIntegration::class,
-            emailmarketing\Klaviyo::class,
-            emailmarketing\Mailchimp::class,
-            emailmarketing\Mailcoach::class,
-            emailmarketing\Mailjet::class,
-            emailmarketing\MailerLite::class,
-            emailmarketing\Moosend::class,
-            emailmarketing\Omnisend::class,
-            emailmarketing\Ontraport::class,
-            emailmarketing\Ortto::class,
-            emailmarketing\Sender::class,
-            emailmarketing\Vero::class,
+            ActiveCampaign::class,
+            Adestra::class,
+            AWeber::class,
+            Beehiiv::class,
+            Benchmark::class,
+            Brevo::class,
+            Campaign::class,
+            CampaignMonitor::class,
+            CleverReach::class,
+            ConstantContact::class,
+            ConvertKit::class,
+            CustomerIo::class,
+            Drip::class,
+            Ecomail::class,
+            EmailOctopus::class,
+            GetResponse::class,
+            IContact::class,
+            IterableIntegration::class,
+            Klaviyo::class,
+            Mailchimp::class,
+            Mailcoach::class,
+            Mailjet::class,
+            MailerLite::class,
+            Moosend::class,
+            Omnisend::class,
+            Ontraport::class,
+            Ortto::class,
+            Sender::class,
+            Vero::class,
         ];
 
         $crm = [
-            crm\ActiveCampaign::class,
-            crm\Agile::class,
-            crm\Attio::class,
-            crm\Avochato::class,
-            crm\Capsule::class,
-            crm\CiviCrm::class,
-            crm\Copper::class,
-            crm\Dotdigital::class,
-            crm\Flowlu::class,
-            crm\Freshsales::class,
-            crm\HubSpot::class,
-            crm\Infusionsoft::class,
-            crm\Insightly::class,
-            crm\IterableIntegration::class,
-            crm\Klaviyo::class,
-            crm\Marketo::class,
-            crm\Maximizer::class,
-            crm\Mercury::class,
-            crm\MicrosoftDynamics365::class,
-            crm\NoCrm::class,
-            crm\OneCrm::class,
-            crm\Outseta::class,
-            crm\Pardot::class,
-            crm\Pipedrive::class,
-            crm\Pipeliner::class,
-            crm\Procurios::class,
-            crm\Salesflare::class,
-            crm\Salesforce::class,
-            crm\Salesmate::class,
-            crm\Scoro::class,
-            crm\SharpSpring::class,
-            crm\SugarCrm::class,
-            crm\SuiteCrm::class,
-            crm\VCita::class,
-            crm\Xero::class,
-            crm\Zoho::class,
+            CrmActiveCampaign::class,
+            Agile::class,
+            Attio::class,
+            Avochato::class,
+            Capsule::class,
+            CiviCrm::class,
+            Copper::class,
+            Dotdigital::class,
+            Flowlu::class,
+            Freshsales::class,
+            HubSpot::class,
+            Infusionsoft::class,
+            Insightly::class,
+            CrmIterableIntegration::class,
+            CrmKlaviyo::class,
+            Marketo::class,
+            Maximizer::class,
+            Mercury::class,
+            MicrosoftDynamics365::class,
+            NoCrm::class,
+            OneCrm::class,
+            Outseta::class,
+            Pardot::class,
+            Pipedrive::class,
+            Pipeliner::class,
+            Procurios::class,
+            Salesflare::class,
+            Salesforce::class,
+            Salesmate::class,
+            Scoro::class,
+            SharpSpring::class,
+            SugarCrm::class,
+            SuiteCrm::class,
+            VCita::class,
+            Xero::class,
+            Zoho::class,
         ];
 
         $helpDesk = [
-            helpdesk\Freshdesk::class,
-            helpdesk\Front::class,
-            helpdesk\Gorgias::class,
-            helpdesk\HelpScout::class,
-            helpdesk\Intercom::class,
-            helpdesk\LiveChat::class,
-            helpdesk\Zendesk::class,
+            Freshdesk::class,
+            Front::class,
+            Gorgias::class,
+            HelpScout::class,
+            Intercom::class,
+            LiveChat::class,
+            Zendesk::class,
         ];
 
         $messaging = [
-            messaging\Discord::class,
-            messaging\Plivo::class,
-            messaging\Slack::class,
-            messaging\Telegram::class,
-            messaging\Twilio::class,
+            Discord::class,
+            Plivo::class,
+            Slack::class,
+            Telegram::class,
+            Twilio::class,
         ];
 
         $payments = [
-            payments\Bpoint::class,
-            payments\Eway::class,
-            payments\GoCardless::class,
-            payments\Mollie::class,
-            payments\Moneris::class,
-            payments\Opayo::class,
-            payments\Paddle::class,
-            payments\PayPal::class,
-            payments\PayWay::class,
-            payments\Square::class,
-            payments\Stripe::class,
+            Bpoint::class,
+            Eway::class,
+            GoCardless::class,
+            Mollie::class,
+            Moneris::class,
+            Opayo::class,
+            Paddle::class,
+            PayPal::class,
+            PayWay::class,
+            Square::class,
+            Stripe::class,
         ];
 
         $automations = [
-            automations\Ifttt::class,
-            automations\Make::class,
-            automations\N8n::class,
-            automations\WebRequest::class,
-            automations\Zapier::class,
+            Ifttt::class,
+            Make::class,
+            N8n::class,
+            WebRequest::class,
+            Zapier::class,
         ];
 
         $miscellaneous = [
-            miscellaneous\ClickUp::class,
-            miscellaneous\GoogleSheets::class,
-            miscellaneous\Monday::class,
-            miscellaneous\Recruitee::class,
-            miscellaneous\Trello::class,
+            ClickUp::class,
+            GoogleSheets::class,
+            Monday::class,
+            Recruitee::class,
+            Trello::class,
         ];
 
         $event = new RegisterIntegrationsEvent([
@@ -413,9 +519,9 @@ class Integrations extends Component
         }
 
         try {
-            $context = \verbb\formie\models\IntegrationRunContext::forIntegration($integration, $event->submission);
+            $context = IntegrationRunContext::forIntegration($integration, $event->submission);
             $integration->beginRun($context);
-            $result = $integration instanceof \verbb\formie\base\DispatchableIntegrationInterface
+            $result = $integration instanceof DispatchableIntegrationInterface
                 ? $integration->execute($context)
                 : $integration->executeLegacyPayload($context);
 
@@ -1640,5 +1746,4 @@ class Integrations extends Component
             'operatorInitiated' => $operatorInitiated,
         ];
     }
-
 }

@@ -2,9 +2,9 @@
 namespace verbb\formie\gql\interfaces;
 
 use verbb\formie\compatibility\gql\PageSettingsCompatibility;
-use verbb\formie\gql\types\Json as JsonType;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\generators\PageSettingsGenerator;
+use verbb\formie\gql\types\Json as JsonType;
 use verbb\formie\models\FieldLayoutPageSettings;
 
 use Craft;

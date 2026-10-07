@@ -8,6 +8,15 @@ use yii\base\BaseObject;
  */
 class FieldClientRenderedChildren extends BaseObject
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function make(string $model = self::MODEL_SCALAR): self
+    {
+        return new self(['model' => $model]);
+    }
+
+
     // Constants
     // =========================================================================
 
@@ -20,20 +29,12 @@ class FieldClientRenderedChildren extends BaseObject
     public const MODE_ROWS = 'rows';
 
 
-    // Static Methods
-    // =========================================================================
-
-    public static function make(string $model = self::MODEL_SCALAR): self
-    {
-        return new self(['model' => $model]);
-    }
-
-
     // Properties
     // =========================================================================
 
     public string $model = self::MODEL_SCALAR;
     public ?string $mode = null;
+
     private mixed $_partFieldResolver = null;
     private mixed $_rowResolver = null;
 

@@ -10,7 +10,6 @@ use verbb\formie\helpers\LanguageOptions;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\FieldLayoutPage;
-use verbb\formie\models\Stencil;
 
 use Craft;
 use craft\helpers\App;

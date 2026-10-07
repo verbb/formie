@@ -4,8 +4,9 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\models\Report;
-use verbb\formie\services\Permissions;
 use verbb\formie\models\ReportExportFile;
+use verbb\formie\models\ReportSettings;
+use verbb\formie\services\Permissions;
 
 use Craft;
 use craft\helpers\Json;
@@ -13,8 +14,11 @@ use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\Response;
 
+use yii\db\IntegrityException;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+
+use Throwable;
 
 class ReportsController extends Controller
 {
@@ -157,7 +161,7 @@ class ReportsController extends Controller
                 return $this->_failSave($report, $postedSettings);
             }
         } else {
-            $report->setSettingsModel(new \verbb\formie\models\ReportSettings());
+            $report->setSettingsModel(new ReportSettings());
         }
 
         if (Formie::$plugin->getReports()->saveReport($report)) {
@@ -206,7 +210,7 @@ class ReportsController extends Controller
             ]);
         }
 
-        $settings = new \verbb\formie\models\ReportSettings();
+        $settings = new ReportSettings();
         $settings->filters['formIds'] = $formIds;
         $settings->columns = Formie::$plugin->getReportColumns()->getDefaultAttributeColumns();
         $report->setSettingsModel($settings);
@@ -218,7 +222,7 @@ class ReportsController extends Controller
                     'errors' => $report->getErrors(),
                 ]);
             }
-        } catch (\yii\db\IntegrityException) {
+        } catch (IntegrityException) {
             return $this->asJson([
                 'success' => false,
                 'errors' => [
@@ -572,7 +576,7 @@ class ReportsController extends Controller
 
         try {
             $decoded = Json::decode($columnsJson);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
 
@@ -593,7 +597,7 @@ class ReportsController extends Controller
 
         try {
             $payload = Json::decode($settingsJson);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
 

@@ -17,10 +17,7 @@ use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 use craft\web\View;
 
-use Exception;
 use Throwable;
-
-use Twig\Error\LoaderError;
 
 class Notification extends Model implements TranslatablePropertiesInterface
 {
@@ -42,6 +39,33 @@ class Notification extends Model implements TranslatablePropertiesInterface
         return ['content'];
     }
 
+    public static function normalizeLegacyConfig(array $config): array
+    {
+        if (array_key_exists('attachAssetsHtml', $config)) {
+            if (empty($config['attachAssets']) && is_string($config['attachAssetsHtml']) && $config['attachAssetsHtml'] !== '') {
+                $config['attachAssets'] = self::_parseAttachAssetsFromHtml($config['attachAssetsHtml']);
+            }
+
+            unset($config['attachAssetsHtml']);
+        }
+
+        return $config;
+    }
+
+    private static function _parseAttachAssetsFromHtml(string $html): array
+    {
+        if (!preg_match_all('/data-id="(\d+)"/', $html, $matches)) {
+            return [];
+        }
+
+        $assets = [];
+
+        foreach (array_unique($matches[1]) as $id) {
+            $assets[] = ['id' => $id];
+        }
+
+        return $assets;
+    }
 
 
     // Constants
@@ -307,17 +331,22 @@ class Notification extends Model implements TranslatablePropertiesInterface
         return (string)$settings->emptyValuePlaceholder;
     }
 
-    public static function normalizeLegacyConfig(array $config): array
+    public function validateAttachAssets(string $attribute): void
     {
-        if (array_key_exists('attachAssetsHtml', $config)) {
-            if (empty($config['attachAssets']) && is_string($config['attachAssetsHtml']) && $config['attachAssetsHtml'] !== '') {
-                $config['attachAssets'] = self::_parseAttachAssetsFromHtml($config['attachAssetsHtml']);
-            }
+        $maxAttachmentSize = Formie::$plugin->getSettings()->getMaxEmailAttachmentSizeBytes();
 
-            unset($config['attachAssetsHtml']);
+        if ($maxAttachmentSize === null) {
+            return;
         }
 
-        return $config;
+        foreach ($this->getAssetAttachments() as $asset) {
+            if ($asset->size > $maxAttachmentSize) {
+                $this->addError($attribute, Craft::t('formie', '“{filename}” exceeds the maximum email attachment size of {limit} MB.', [
+                    'filename' => $asset->filename,
+                    'limit' => Formie::$plugin->getSettings()->maxEmailAttachmentSizeMb,
+                ]));
+            }
+        }
     }
 
 
@@ -351,38 +380,5 @@ class Notification extends Model implements TranslatablePropertiesInterface
         ]];
 
         return $rules;
-    }
-
-    private static function _parseAttachAssetsFromHtml(string $html): array
-    {
-        if (!preg_match_all('/data-id="(\d+)"/', $html, $matches)) {
-            return [];
-        }
-
-        $assets = [];
-
-        foreach (array_unique($matches[1]) as $id) {
-            $assets[] = ['id' => $id];
-        }
-
-        return $assets;
-    }
-
-    public function validateAttachAssets(string $attribute): void
-    {
-        $maxAttachmentSize = Formie::$plugin->getSettings()->getMaxEmailAttachmentSizeBytes();
-
-        if ($maxAttachmentSize === null) {
-            return;
-        }
-
-        foreach ($this->getAssetAttachments() as $asset) {
-            if ($asset->size > $maxAttachmentSize) {
-                $this->addError($attribute, Craft::t('formie', '“{filename}” exceeds the maximum email attachment size of {limit} MB.', [
-                    'filename' => $asset->filename,
-                    'limit' => Formie::$plugin->getSettings()->maxEmailAttachmentSizeMb,
-                ]));
-            }
-        }
     }
 }

@@ -8,8 +8,8 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -31,12 +31,14 @@ class CampaignMonitor extends EmailMarketing
         return 'Campaign Monitor';
     }
 
+
     // Properties
     // =========================================================================
 
     #[Sensitive]
     public ?string $apiKey = null;
     public ?string $clientId = null;
+
 
     // Public Methods
     // =========================================================================
@@ -124,6 +126,65 @@ class CampaignMonitor extends EmailMarketing
         return new IntegrationConfig($settings);
     }
 
+    public function supportsIntegrationApiErrorSeverity(): bool
+    {
+        return true;
+    }
+
+    public function classifyIntegrationApiError(Throwable $exception): ?string
+    {
+        if (!$exception instanceof RequestException || !$exception->getResponse()) {
+            return null;
+        }
+
+        $statusCode = $exception->getResponse()->getStatusCode();
+        $body = (string)$exception->getResponse()->getBody();
+
+        if ($statusCode === 429) {
+            return IntegrationApiErrors::SEVERITY_RATE_LIMITED;
+        }
+
+        if ($statusCode === 400) {
+            $decoded = Json::decodeIfJson($body);
+
+            if (is_array($decoded) && array_key_exists('Code', $decoded)) {
+                return IntegrationApiErrors::SEVERITY_REJECTED;
+            }
+        }
+
+        return null;
+    }
+
+    public function fetchConnection(): bool
+    {
+        try {
+            $clientId = App::parseEnv($this->clientId);
+            $response = $this->request('GET', "clients/{$clientId}.json");
+            $error = $response['error'] ?? '';
+            $apiKey = $response['ApiKey'] ?? '';
+
+            if ($error) {
+                Integration::error($this, $error, true);
+                return false;
+            }
+
+            if (!$apiKey) {
+                Integration::error($this, 'Unable to find “{ApiKey}” in response.', true);
+                return false;
+            }
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -194,65 +255,6 @@ class CampaignMonitor extends EmailMarketing
 
         return $this->resultForPayload(true);
     }
-
-    public function supportsIntegrationApiErrorSeverity(): bool
-    {
-        return true;
-    }
-
-    public function classifyIntegrationApiError(Throwable $exception): ?string
-    {
-        if (!$exception instanceof RequestException || !$exception->getResponse()) {
-            return null;
-        }
-
-        $statusCode = $exception->getResponse()->getStatusCode();
-        $body = (string)$exception->getResponse()->getBody();
-
-        if ($statusCode === 429) {
-            return IntegrationApiErrors::SEVERITY_RATE_LIMITED;
-        }
-
-        if ($statusCode === 400) {
-            $decoded = Json::decodeIfJson($body);
-
-            if (is_array($decoded) && array_key_exists('Code', $decoded)) {
-                return IntegrationApiErrors::SEVERITY_REJECTED;
-            }
-        }
-
-        return null;
-    }
-
-    public function fetchConnection(): bool
-    {
-        try {
-            $clientId = App::parseEnv($this->clientId);
-            $response = $this->request('GET', "clients/{$clientId}.json");
-            $error = $response['error'] ?? '';
-            $apiKey = $response['ApiKey'] ?? '';
-
-            if ($error) {
-                Integration::error($this, $error, true);
-                return false;
-            }
-
-            if (!$apiKey) {
-                Integration::error($this, 'Unable to find “{ApiKey}” in response.', true);
-                return false;
-            }
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineClient(): Client
     {

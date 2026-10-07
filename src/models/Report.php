@@ -1,14 +1,14 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\records\Report as ReportRecord;
+
 use Craft;
 use craft\base\Model;
 use craft\db\SoftDeleteTrait;
 use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
-
-use verbb\formie\records\Report as ReportRecord;
 
 use DateTime;
 

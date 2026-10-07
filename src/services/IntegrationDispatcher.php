@@ -10,11 +10,12 @@ use verbb\formie\events\IntegrationDeliveryEvent;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\models\IntegrationBatchResult;
-use verbb\formie\models\IntegrationRunResults;
 use verbb\formie\models\IntegrationDispatchPlan;
 use verbb\formie\models\IntegrationExecutionContext;
 use verbb\formie\models\IntegrationResult;
+use verbb\formie\models\IntegrationRunResults;
 use verbb\formie\models\Notification;
+use verbb\formie\workflow\WorkflowContext;
 
 use Craft;
 use craft\db\Query;
@@ -284,7 +285,7 @@ class IntegrationDispatcher extends Component
             [$submissionId, $runUid] = $this->_runs[array_key_last($this->_runs)];
             return $submissionId === (int)$submission->id ? $runUid : null;
         }
-        $workflow = \verbb\formie\workflow\WorkflowContext::current();
+        $workflow = WorkflowContext::current();
         return $workflow?->command->submission === $submission ? DeliveryAttempt::workflowIdentity() : null;
     }
 }

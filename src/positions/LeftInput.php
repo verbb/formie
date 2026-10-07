@@ -1,17 +1,12 @@
 <?php
 namespace verbb\formie\positions;
 
-use Craft;
 use verbb\formie\base\Position;
+
+use Craft;
 
 class LeftInput extends Position
 {
-    // Protected Properties
-    // =========================================================================
-
-    protected static ?string $position = 'above';
-
-
     // Static Methods
     // =========================================================================
 
@@ -19,4 +14,10 @@ class LeftInput extends Position
     {
         return Craft::t('formie', 'Left of Input');
     }
+
+
+    // Properties
+    // =========================================================================
+
+    protected static ?string $position = 'above';
 }

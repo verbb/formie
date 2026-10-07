@@ -9,5 +9,4 @@ class ModifyFieldRowConfigEvent extends Event
     // =========================================================================
 
     public ?array $config = null;
-
 }

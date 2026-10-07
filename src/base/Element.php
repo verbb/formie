@@ -3,57 +3,61 @@ namespace verbb\formie\base;
 
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
-use verbb\formie\base\FormInterface;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationStepException;
 use verbb\formie\events\ModifyElementFieldsEvent;
 use verbb\formie\events\ModifyElementMatchEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
-use verbb\formie\fields as FormieFields;
-use verbb\formie\fields\subfields as FormieSubFields;
+use verbb\formie\fields\Date;
+use verbb\formie\fields\MultiLineText;
+use verbb\formie\fields\SingleLineText;
+use verbb\formie\fields\subfields\AddressCountry;
+use verbb\formie\fields\Table;
 use verbb\formie\fields\values\MultiOptionFieldValue;
-use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
-use verbb\formie\models\Stencil;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\FieldInterface as CraftFieldInterface;
-use craft\fields as CraftFields;
+use craft\fields\Assets;
+use craft\fields\BaseOptionsField;
+use craft\fields\BaseRelationField;
+use craft\fields\Categories;
+use craft\fields\Checkboxes;
+use craft\fields\Color;
+use craft\fields\Country;
+use craft\fields\Date as CraftDate;
+use craft\fields\Dropdown;
+use craft\fields\Email;
+use craft\fields\Entries;
+use craft\fields\Lightswitch;
+use craft\fields\MultiSelect;
+use craft\fields\Number;
+use craft\fields\PlainText;
+use craft\fields\RadioButtons;
+use craft\fields\Table as CraftTable;
+use craft\fields\Tags;
+use craft\fields\Time;
+use craft\fields\Url;
+use craft\fields\Users;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 
 use yii\base\Event;
-use yii\helpers\Markdown;
 
 use DateTime;
 use DateTimeZone;
 
 use CommerceGuys\Addressing\Country\CountryRepository;
-use CommerceGuys\Addressing\Subdivision\SubdivisionRepository;
 
 abstract class Element extends Integration implements DispatchableIntegrationInterface
 {
-    // Traits
-    // =========================================================================
-
-    use DispatchableIntegrationTrait;
-
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_ELEMENT_FIELDS = 'modifyElementFields';
-    public const EVENT_MODIFY_ELEMENT_MATCH = 'modifyElementMatch';
-
-
     // Static Methods
     // =========================================================================
 
@@ -66,6 +70,19 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
     {
         return false;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_ELEMENT_FIELDS = 'modifyElementFields';
+    public const EVENT_MODIFY_ELEMENT_MATCH = 'modifyElementMatch';
+
+
+    // Traits
+    // =========================================================================
+
+    use DispatchableIntegrationTrait;
 
 
     // Properties
@@ -101,7 +118,7 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
             }
 
             // For rich-text enabled fields, retain the HTML (safely)
-            if ($event->field instanceof FormieFields\MultiLineText || $event->field instanceof FormieFields\SingleLineText) {
+            if ($event->field instanceof MultiLineText || $event->field instanceof SingleLineText) {
                 if (is_string($event->value)) {
                     $event->value = StringHelper::htmlDecode($event->value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401);
                 }
@@ -110,7 +127,7 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
             // For options-based fields, we might be using the label, which is valid for mapping to text fields or other values
             // but if mapping to a Craft options field with the same label/value pair - it needs to be the value.
             if ($event->field instanceof OptionsFieldInterface) {
-                if (is_a($fieldClass, CraftFields\BaseOptionsField::class, true) || is_subclass_of($fieldClass, CraftFields\BaseOptionsField::class, true)) {
+                if (is_a($fieldClass, BaseOptionsField::class, true) || is_subclass_of($fieldClass, BaseOptionsField::class, true)) {
                     // Check for some cases where it's options data
                     if ($event->rawValue instanceof SingleOptionFieldValue) {
                         $event->value = $event->rawValue->value;
@@ -132,7 +149,7 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
             }
 
             // If mapping from Formie Date/Time to Craft Time
-            if (is_a($fieldClass, CraftFields\Time::class, true) && $event->field instanceof FormieFields\Date) {
+            if (is_a($fieldClass, Time::class, true) && $event->field instanceof Date) {
                 if (!($event->value instanceof DateTime)) {
                     $timezone = new DateTimeZone(Craft::$app->getTimeZone());
 
@@ -141,7 +158,7 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
             }
 
             // Check if we're mapping to a Craft relations field
-            if (is_a($fieldClass, CraftFields\BaseRelationField::class, true) || is_subclass_of($fieldClass, CraftFields\BaseRelationField::class, true)) {
+            if (is_a($fieldClass, BaseRelationField::class, true) || is_subclass_of($fieldClass, BaseRelationField::class, true)) {
 
                 if (is_string($event->rawValue) && Json::isJsonObject($event->rawValue)) {
                     $event->value = Json::decode($event->rawValue);
@@ -149,7 +166,7 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
             }
 
             // For Table fields with Date/Time destination columns, convert to UTC from system time
-            if ($event->field instanceof FormieFields\Table) {
+            if ($event->field instanceof Table) {
                 $timezone = new DateTimeZone(Craft::$app->getTimeZone());
 
                 foreach ($event->value as $rowKey => $row) {
@@ -162,7 +179,7 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
             }
 
             // Check for Formie Address Country to Craft Country fields
-            if (is_a($fieldClass, CraftFields\Country::class, true) && $event->field instanceof FormieSubFields\AddressCountry) {
+            if (is_a($fieldClass, Country::class, true) && $event->field instanceof AddressCountry) {
                 // Field requires prefix as a value, so override
                 if (is_string($event->value) && strlen($event->value) > 3) {
                     $countryRepository = new CountryRepository();
@@ -239,6 +256,23 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
         ]));
     }
 
+    public function recordDispatchElement(ElementInterface $element): void
+    {
+        if (!$element->id) {
+            return;
+        }
+
+        $this->_deliveryState->outputs = [
+            'elementType' => get_class($element),
+            'elementId' => (int)$element->id,
+            'url' => method_exists($element, 'getUrl') ? (string)$element->getUrl() : null,
+        ];
+
+        if ($uid = $this->getDeliveryAttemptUid()) {
+            Formie::$plugin->getDeliveryAttempts()->recordResource($uid, $this->_deliveryState->outputs);
+        }
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -255,20 +289,20 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
     {
         // Provide a map of all native Craft fields to the data we expect
         $fieldTypeMap = [
-            CraftFields\Assets::class => IntegrationField::TYPE_ARRAY,
-            CraftFields\Categories::class => IntegrationField::TYPE_ARRAY,
-            CraftFields\Checkboxes::class => IntegrationField::TYPE_ARRAY,
-            CraftFields\Date::class => IntegrationField::TYPE_DATECLASS,
-            CraftFields\Entries::class => IntegrationField::TYPE_ARRAY,
-            CraftFields\Lightswitch::class => IntegrationField::TYPE_BOOLEAN,
-            CraftFields\MultiSelect::class => IntegrationField::TYPE_ARRAY,
-            CraftFields\Number::class => IntegrationField::TYPE_FLOAT,
-            CraftFields\Table::class => IntegrationField::TYPE_ARRAY,
-            CraftFields\Tags::class => IntegrationField::TYPE_ARRAY,
-            CraftFields\Users::class => IntegrationField::TYPE_ARRAY,
+            Assets::class => IntegrationField::TYPE_ARRAY,
+            Categories::class => IntegrationField::TYPE_ARRAY,
+            Checkboxes::class => IntegrationField::TYPE_ARRAY,
+            CraftDate::class => IntegrationField::TYPE_DATECLASS,
+            Entries::class => IntegrationField::TYPE_ARRAY,
+            Lightswitch::class => IntegrationField::TYPE_BOOLEAN,
+            MultiSelect::class => IntegrationField::TYPE_ARRAY,
+            Number::class => IntegrationField::TYPE_FLOAT,
+            CraftTable::class => IntegrationField::TYPE_ARRAY,
+            Tags::class => IntegrationField::TYPE_ARRAY,
+            Users::class => IntegrationField::TYPE_ARRAY,
         ];
 
-        if (is_a($fieldClass, CraftFields\BaseRelationField::class, true) || is_subclass_of($fieldClass, CraftFields\BaseRelationField::class, true)) {
+        if (is_a($fieldClass, BaseRelationField::class, true) || is_subclass_of($fieldClass, BaseRelationField::class, true)) {
             return IntegrationField::TYPE_ARRAY;
         }
 
@@ -280,17 +314,17 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
         $type = $field::class;
 
         $supportedFields = [
-            CraftFields\Checkboxes::class,
-            CraftFields\Color::class,
-            CraftFields\Date::class,
-            CraftFields\Dropdown::class,
-            CraftFields\Email::class,
-            CraftFields\Lightswitch::class,
-            CraftFields\MultiSelect::class,
-            CraftFields\Number::class,
-            CraftFields\PlainText::class,
-            CraftFields\RadioButtons::class,
-            CraftFields\Url::class,
+            Checkboxes::class,
+            Color::class,
+            CraftDate::class,
+            Dropdown::class,
+            Email::class,
+            Lightswitch::class,
+            MultiSelect::class,
+            Number::class,
+            PlainText::class,
+            RadioButtons::class,
+            Url::class,
         ];
 
         if (in_array($type, $supportedFields, true)) {
@@ -402,22 +436,5 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
         }
 
         return $element;
-    }
-
-    public function recordDispatchElement(ElementInterface $element): void
-    {
-        if (!$element->id) {
-            return;
-        }
-
-        $this->_deliveryState->outputs = [
-            'elementType' => get_class($element),
-            'elementId' => (int)$element->id,
-            'url' => method_exists($element, 'getUrl') ? (string)$element->getUrl() : null,
-        ];
-
-        if ($uid = $this->getDeliveryAttemptUid()) {
-            Formie::$plugin->getDeliveryAttempts()->recordResource($uid, $this->_deliveryState->outputs);
-        }
     }
 }

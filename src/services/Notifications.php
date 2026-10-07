@@ -11,7 +11,6 @@ use verbb\formie\events\ModifyExistingNotificationsEvent;
 use verbb\formie\events\ModifyNotificationSchemaEvent;
 use verbb\formie\events\NotificationEvent;
 use verbb\formie\events\SendNotificationEvent;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\RichTextHelper;
@@ -19,8 +18,8 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
-use verbb\formie\jobs\SendNotification;
 use verbb\formie\jobs\DeliveryJobInterface;
+use verbb\formie\jobs\SendNotification;
 use verbb\formie\models\IntegrationExecutionContext;
 use verbb\formie\models\IntegrationResult;
 use verbb\formie\models\Notification;
@@ -34,16 +33,12 @@ use craft\elements\Asset;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\Queue;
+use craft\queue\Queue as CraftQueue;
 
 use yii\base\Component;
-use yii\db\Exception;
 
 use RuntimeException;
 use Throwable;
-
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class Notifications extends Component
 {
@@ -142,7 +137,7 @@ class Notifications extends Component
             // queue jobs in the same transaction; never send before it commits.
             $queue = Craft::$app->getQueue();
 
-            if (!$queue instanceof \craft\queue\Queue || $queue->db !== $db) {
+            if (!$queue instanceof CraftQueue || $queue->db !== $db) {
                 throw new RuntimeException('Transactional notification delivery requires the Craft database queue.');
             }
             $useQueue = true;
@@ -1148,7 +1143,6 @@ class Notifications extends Component
         }
         return $send();
     }
-
 
     private function _createNotificationsQuery(): Query
     {

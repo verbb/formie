@@ -9,5 +9,4 @@ class DefaultField extends FeedMeDefault
     // =========================================================================
 
     use BaseFieldTrait;
-
 }

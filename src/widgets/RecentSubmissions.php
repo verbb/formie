@@ -15,11 +15,41 @@ use craft\helpers\Db;
 
 use yii\db\Expression;
 
-use DateTime;
 use DateInterval;
+use DateTime;
 
 class RecentSubmissions extends Widget
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Recent Form Submissions');
+    }
+
+    public static function icon(): string
+    {
+        return Craft::getAlias('@verbb/formie/icon-mask.svg');
+    }
+
+    public static function isSelectable(): bool
+    {
+        // Ensure users have minimum permissions
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (!$user) {
+            return false;
+        }
+
+        if (!$user->can('accessPlugin-formie') || !$user->can('formie-accessSubmissions')) {
+            return false;
+        }
+
+        return true;
+    }
+
+
     // Constants
     // =========================================================================
 
@@ -65,36 +95,6 @@ class RecentSubmissions extends Widget
         self::DATE_RANGE_PASTYEAR => 'month',
         self::DATE_RANGE_ALL => 'month',
     ];
-
-
-    // Static Methods
-    // =========================================================================
-
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Recent Form Submissions');
-    }
-
-    public static function icon(): string
-    {
-        return Craft::getAlias('@verbb/formie/icon-mask.svg');
-    }
-
-    public static function isSelectable(): bool
-    {
-        // Ensure users have minimum permissions
-        $user = Craft::$app->getUser()->getIdentity();
-
-        if (!$user) {
-            return false;
-        }
-
-        if (!$user->can('accessPlugin-formie') || !$user->can('formie-accessSubmissions')) {
-            return false;
-        }
-
-        return true;
-    }
 
 
     // Properties

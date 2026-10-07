@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 

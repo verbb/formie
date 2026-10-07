@@ -1,25 +1,13 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyMiscellaneousPayloadEvent;
 
 use Craft;
-use craft\helpers\Html;
-use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
-
-use yii\helpers\Markdown;
 
 abstract class HelpDesk extends Integration implements DispatchableIntegrationInterface
 {
-    // Traits
-    // =========================================================================
-
-    use DispatchableIntegrationTrait;
-
     // Static Methods
     // =========================================================================
 
@@ -27,6 +15,12 @@ abstract class HelpDesk extends Integration implements DispatchableIntegrationIn
     {
         return Craft::t('formie', 'Help Desk');
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use DispatchableIntegrationTrait;
 
 
     // Public Methods

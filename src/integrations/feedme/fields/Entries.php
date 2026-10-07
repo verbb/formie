@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
-use craft\feedme\fields\Entries as FeedMeEntries;
 use verbb\formie\fields\Entries as EntriesField;
+
+use craft\feedme\fields\Entries as FeedMeEntries;
 
 class Entries extends FeedMeEntries
 {
@@ -19,6 +20,9 @@ class Entries extends FeedMeEntries
     public static string $name = 'Entries';
 
 
+    // Public Methods
+    // =========================================================================
+
     // Templates
     // =========================================================================
 
@@ -26,5 +30,4 @@ class Entries extends FeedMeEntries
     {
         return 'formie/integrations/feedme/fields/entries';
     }
-
 }

@@ -8,13 +8,6 @@ use craft\i18n\Locale;
 
 class Days extends PredefinedOption
 {
-    // Protected Properties
-    // =========================================================================
-
-    public static ?string $defaultLabelOption = 'day';
-    public static ?string $defaultValueOption = 'day';
-
-
     // Static Methods
     // =========================================================================
 
@@ -57,4 +50,11 @@ class Days extends PredefinedOption
 
         return $weekDayNames;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public static ?string $defaultLabelOption = 'day';
+    public static ?string $defaultValueOption = 'day';
 }

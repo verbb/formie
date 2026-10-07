@@ -5,15 +5,12 @@ use verbb\formie\elements\Form as FormElement;
 use verbb\formie\fields\Forms as FormsField;
 
 use Craft;
-use craft\base\Element as BaseElement;
-use craft\helpers\Db;
 use craft\helpers\Json;
 
-use craft\feedme\Plugin;
+use Cake\Utility\Hash;
 use craft\feedme\base\Field;
 use craft\feedme\base\FieldInterface;
-
-use Cake\Utility\Hash;
+use craft\feedme\Plugin;
 
 class Forms extends Field implements FieldInterface
 {
@@ -25,6 +22,9 @@ class Forms extends Field implements FieldInterface
     public static string $elementType = FormElement::class;
 
 
+    // Public Methods
+    // =========================================================================
+
     // Templates
     // =========================================================================
 
@@ -32,10 +32,6 @@ class Forms extends Field implements FieldInterface
     {
         return 'formie/integrations/feedme/elementfields/forms';
     }
-
-
-    // Public Methods
-    // =========================================================================
 
     public function parseField(): mixed
     {

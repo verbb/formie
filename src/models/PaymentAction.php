@@ -5,14 +5,6 @@ use verbb\formie\enums\PaymentResumeMode;
 
 final readonly class PaymentAction
 {
-    // Constants
-    // =========================================================================
-
-    public const TYPE_REDIRECT = 'redirect';
-    public const TYPE_CONFIRM = 'confirm';
-    public const TYPE_CHALLENGE = 'challenge';
-    public const TYPE_INITIALIZE = 'initialize';
-
     // Static Methods
     // =========================================================================
 
@@ -37,20 +29,17 @@ final readonly class PaymentAction
     }
 
 
-    // Public Methods
+    // Constants
     // =========================================================================
 
-    private function __construct(
-        public string $type,
-        public ?string $provider = null,
-        public ?string $event = null,
-        public ?string $message = null,
-        public ?string $url = null,
-        public array $payload = [],
-        public ?PaymentResumeMode $resumeMode = null,
-        public ?string $resumeUrl = null,
-    ) {
-    }
+    public const TYPE_REDIRECT = 'redirect';
+    public const TYPE_CONFIRM = 'confirm';
+    public const TYPE_CHALLENGE = 'challenge';
+    public const TYPE_INITIALIZE = 'initialize';
+
+
+    // Public Methods
+    // =========================================================================
 
     public function toArray(): array
     {
@@ -66,5 +55,21 @@ final readonly class PaymentAction
                 'url' => $this->resumeUrl,
             ] : null,
         ];
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function __construct(
+        public string $type,
+        public ?string $provider = null,
+        public ?string $event = null,
+        public ?string $message = null,
+        public ?string $url = null,
+        public array $payload = [],
+        public ?PaymentResumeMode $resumeMode = null,
+        public ?string $resumeUrl = null,
+    ) {
     }
 }

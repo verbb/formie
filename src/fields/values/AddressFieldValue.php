@@ -13,7 +13,6 @@ class AddressFieldValue extends BaseFieldValue
     // Static Methods
     // =========================================================================
 
-
     public static function getCountries(string $indexBy = 'code'): array
     {
         $locale = Craft::$app->getLocale()->getLanguageID();

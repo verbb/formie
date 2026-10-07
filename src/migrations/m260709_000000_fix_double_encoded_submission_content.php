@@ -8,6 +8,8 @@ use craft\db\Migration;
 use craft\db\Query;
 use craft\helpers\Json;
 
+use Throwable;
+
 class m260709_000000_fix_double_encoded_submission_content extends Migration
 {
     // Public Methods
@@ -77,7 +79,7 @@ class m260709_000000_fix_double_encoded_submission_content extends Migration
 
         try {
             $once = Json::decode($raw);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
 

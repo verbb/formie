@@ -4,6 +4,8 @@ namespace verbb\formie\client\bootstrap\models;
 use verbb\formie\client\BaseClientModel;
 use verbb\formie\client\models\FormSession;
 
+use InvalidArgumentException;
+
 class FormBootstrap extends BaseClientModel
 {
     // Properties
@@ -41,7 +43,7 @@ class FormBootstrap extends BaseClientModel
     private function _assertVersion(): void
     {
         if ($this->contractVersion !== 1) {
-            throw new \InvalidArgumentException('Unsupported client-rendered contractVersion. Update Formie and its browser packages together.');
+            throw new InvalidArgumentException('Unsupported client-rendered contractVersion. Update Formie and its browser packages together.');
         }
     }
 }

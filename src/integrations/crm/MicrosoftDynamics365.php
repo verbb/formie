@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
-use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
@@ -11,8 +10,8 @@ use verbb\formie\events\MicrosoftDynamics365RequiredLevelsEvent;
 use verbb\formie\events\MicrosoftDynamics365TargetSchemasEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -27,14 +26,6 @@ use verbb\auth\providers\Azure as AzureProvider;
 
 class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_REQUIRED_LEVELS = 'modifyRequiredLevels';
-    public const EVENT_MODIFY_TARGET_SCHEMAS = 'modifyTargetSchemas';
-
-
-
     // Static Methods
     // =========================================================================
 
@@ -81,6 +72,13 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
             ],
         ];
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_REQUIRED_LEVELS = 'modifyRequiredLevels';
+    public const EVENT_MODIFY_TARGET_SCHEMAS = 'modifyTargetSchemas';
 
 
     // Properties
@@ -178,6 +176,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
@@ -208,6 +207,46 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
         return new IntegrationConfig($settings);
     }
+
+    public function request(string $method, string $uri, array $options = [], bool $decodeJson = true): mixed
+    {
+        // Recommended headers to pass for all web API requests
+        // https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/compose-http-requests-handle-errors#http-headers
+        $defaultOptions = [
+            'base_uri' => $this->getBaseApiUrl(null),
+            'headers' => [
+                'Accept' => 'application/json',
+                'OData-MaxVersion' => '4.0',
+                'OData-Version' => '4.0',
+                'If-None-Match' => null
+            ],
+        ];
+
+        $options = ArrayHelper::merge($defaultOptions, $options);
+
+        // Ensure a proper response is returned on POST/PATCH operations
+        // https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/compose-http-requests-handle-errors#prefer-headers
+        if ($method === 'POST' || $method === 'PATCH') {
+            $options['headers']['Prefer'] = 'return=representation';
+        }
+
+        // Impersonate user when creating records if enabled
+        if ($this->impersonateUser && $method === 'POST') {
+            $options['headers'][$this->impersonateHeader] = $this->impersonateUserId;
+        }
+
+        // Prevent create when using upsert
+        // https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/perform-conditional-operations-using-web-api#prevent-create-in-upsert
+        if ($method === 'PATCH') {
+            $options['headers']['If-Match'] = '*';
+        }
+
+        return parent::request($method, $uri, $options, $decodeJson);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
 
     protected function executePayload(Submission $submission): IntegrationResult
     {
@@ -369,46 +408,6 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         return $this->resultForPayload(true);
     }
 
-    public function request(string $method, string $uri, array $options = [], bool $decodeJson = true): mixed
-    {
-        // Recommended headers to pass for all web API requests
-        // https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/compose-http-requests-handle-errors#http-headers
-        $defaultOptions = [
-            'base_uri' => $this->getBaseApiUrl(null),
-            'headers' => [
-                'Accept' => 'application/json',
-                'OData-MaxVersion' => '4.0',
-                'OData-Version' => '4.0',
-                'If-None-Match' => null
-            ],
-        ];
-
-        $options = ArrayHelper::merge($defaultOptions, $options);
-
-        // Ensure a proper response is returned on POST/PATCH operations
-        // https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/compose-http-requests-handle-errors#prefer-headers
-        if ($method === 'POST' || $method === 'PATCH') {
-            $options['headers']['Prefer'] = 'return=representation';
-        }
-
-        // Impersonate user when creating records if enabled
-        if ($this->impersonateUser && $method === 'POST') {
-            $options['headers'][$this->impersonateHeader] = $this->impersonateUserId;
-        }
-
-        // Prevent create when using upsert
-        // https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/perform-conditional-operations-using-web-api#prevent-create-in-upsert
-        if ($method === 'PATCH') {
-            $options['headers']['If-Match'] = '*';
-        }
-
-        return parent::request($method, $uri, $options, $decodeJson);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -514,7 +513,6 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
         return $schema;
     }
-
 
     protected function convertFieldType($fieldType)
     {

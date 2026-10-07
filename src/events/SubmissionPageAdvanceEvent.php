@@ -18,12 +18,10 @@ class SubmissionPageAdvanceEvent extends Event
     public ?Form $form = null;
     public ?SubmissionCommand $command = null;
     public ?WorkflowContext $context = null;
-
     /**
      * The page that was just accepted (page 1 when moving to page 2).
      */
     public ?FieldLayoutPage $fromPage = null;
-
     /**
      * The next reachable page Formie will show.
      */

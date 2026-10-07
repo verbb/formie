@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
-use craft\feedme\fields\RadioButtons as FeedMeRadioButtons;
 use verbb\formie\fields\Radio as RadioField;
+
+use craft\feedme\fields\RadioButtons as FeedMeRadioButtons;
 
 class Radio extends FeedMeRadioButtons
 {
@@ -17,5 +18,4 @@ class Radio extends FeedMeRadioButtons
 
     public static string $class = RadioField::class;
     public static string $name = 'Radio';
-
 }

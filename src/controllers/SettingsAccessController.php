@@ -2,7 +2,6 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
-use verbb\formie\services\Permissions;
 
 use Craft;
 use craft\web\Controller;
@@ -11,15 +10,19 @@ use yii\web\ForbiddenHttpException;
 
 class SettingsAccessController extends Controller
 {
-    // Properties
+    // Constants
     // =========================================================================
-
-    protected ?string $settingsPage = null;
 
     private const SAVE_ACTION_PAGES = [
         'save-field-palette' => 'fields',
         'save-defaults' => 'defaults',
     ];
+
+
+    // Properties
+    // =========================================================================
+
+    protected ?string $settingsPage = null;
 
 
     // Public Methods

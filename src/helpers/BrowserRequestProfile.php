@@ -2,6 +2,7 @@
 namespace verbb\formie\helpers;
 
 use Craft;
+use craft\web\Request;
 
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
@@ -66,12 +67,11 @@ class BrowserRequestProfile
         return $profile;
     }
 
-
     public static function enterAdministrative(): void
     {
         $request = Craft::$app->getRequest();
 
-        if ($request instanceof \craft\web\Request) {
+        if ($request instanceof Request) {
             CrossOriginRequestHelper::requireAllowedOrigin($request);
 
             if ($request->getHeaders()->get('X-Formie-Profile', self::ADMINISTRATIVE) !== self::ADMINISTRATIVE) {

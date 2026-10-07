@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\client\models\SessionRefreshRequest;
 use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
+use verbb\formie\helpers\BrowserRequestProfile;
 
 use craft\web\Controller;
 
@@ -12,17 +13,17 @@ use yii\web\Response;
 
 class SessionsController extends Controller
 {
-    // Properties
-    // =========================================================================
-
-    protected array|bool|int $allowAnonymous = ['refresh'];
-
-
     // Traits
     // =========================================================================
 
     use CrossOriginRequestTrait;
     use AnonymousSiteRequestGuardTrait;
+
+
+    // Properties
+    // =========================================================================
+
+    protected array|bool|int $allowAnonymous = ['refresh'];
 
 
     // Public Methods
@@ -31,12 +32,12 @@ class SessionsController extends Controller
     public function beforeAction($action): bool
     {
         $this->forbidGuestControlPanelAnonymousActions($action->id);
-        $profile = \verbb\formie\helpers\BrowserRequestProfile::enter($action->id === 'load');
+        $profile = BrowserRequestProfile::enter($action->id === 'load');
 
-        if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+        if ($profile === BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         }
-        $this->enableCsrfValidation = $profile === \verbb\formie\helpers\BrowserRequestProfile::SAME_ORIGIN;
+        $this->enableCsrfValidation = $profile === BrowserRequestProfile::SAME_ORIGIN;
 
         return parent::beforeAction($action);
     }

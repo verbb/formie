@@ -6,8 +6,8 @@ use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -30,11 +30,13 @@ class Sender extends EmailMarketing
         return 'Sender';
     }
 
+
     // Properties
     // =========================================================================
 
     #[Sensitive]
     public ?string $apiKey = null;
+
 
     // Public Methods
     // =========================================================================
@@ -90,6 +92,25 @@ class Sender extends EmailMarketing
         return new IntegrationConfig($settings);
     }
 
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('GET', 'groups', [
+                'limit' => 1,
+            ]);
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -124,24 +145,6 @@ class Sender extends EmailMarketing
 
         return $this->resultForPayload(true);
     }
-
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('GET', 'groups', [
-                'limit' => 1,
-            ]);
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

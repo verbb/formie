@@ -7,12 +7,6 @@ use yii\web\RequestEntityTooLargeHttpException;
 
 final class PaymentWebhookCommand
 {
-    // Constants
-    // =========================================================================
-
-    public const MAX_BODY_BYTES = 1048576;
-
-
     // Static Methods
     // =========================================================================
 
@@ -39,6 +33,12 @@ final class PaymentWebhookCommand
         }
         return new self($integrationId, $body, $headers, $request->getQueryParams(), $request->getBodyParams());
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const MAX_BODY_BYTES = 1048576;
 
 
     // Public Methods

@@ -2,12 +2,39 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\Formie;
-use verbb\formie\elements\Form;
 use verbb\formie\fields;
-use verbb\formie\fields\subfields;
+use verbb\formie\fields\Address;
+use verbb\formie\fields\Date;
+use verbb\formie\fields\Name;
+use verbb\formie\fields\subfields\Address1;
+use verbb\formie\fields\subfields\Address2;
+use verbb\formie\fields\subfields\Address3;
+use verbb\formie\fields\subfields\AddressCity;
+use verbb\formie\fields\subfields\AddressCountry;
+use verbb\formie\fields\subfields\AddressState;
+use verbb\formie\fields\subfields\AddressZip;
+use verbb\formie\fields\subfields\DateAmPmDropdown;
+use verbb\formie\fields\subfields\DateDate;
+use verbb\formie\fields\subfields\DateDayDropdown;
+use verbb\formie\fields\subfields\DateDayNumber;
+use verbb\formie\fields\subfields\DateHourDropdown;
+use verbb\formie\fields\subfields\DateHourNumber;
+use verbb\formie\fields\subfields\DateMinuteDropdown;
+use verbb\formie\fields\subfields\DateMinuteNumber;
+use verbb\formie\fields\subfields\DateMonthDropdown;
+use verbb\formie\fields\subfields\DateMonthNumber;
+use verbb\formie\fields\subfields\DateSecondDropdown;
+use verbb\formie\fields\subfields\DateSecondNumber;
+use verbb\formie\fields\subfields\DateTime;
+use verbb\formie\fields\subfields\DateYearDropdown;
+use verbb\formie\fields\subfields\DateYearNumber;
+use verbb\formie\fields\subfields\NameFirst;
+use verbb\formie\fields\subfields\NameLast;
+use verbb\formie\fields\subfields\NameMiddle;
+use verbb\formie\fields\subfields\NamePrefix;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\positions\Hidden as HiddenPosition;
-use verbb\formie\helpers\Table;
 
 use Craft;
 use craft\db\Migration;
@@ -30,7 +57,7 @@ class m240313_000000_subfields extends Migration
             $fieldLayout = null;
             $settings = Json::decode($field['settings']);
 
-            if ($field['type'] === fields\Address::class) {
+            if ($field['type'] === Address::class) {
                 // Get the field layout for the field, or if it already exists with fields, skip
                 $fieldLayout = $this->_getFieldLayout($settings);
 
@@ -41,7 +68,7 @@ class m240313_000000_subfields extends Migration
                 $fieldLayout->getPages()[0]->setRows($this->_getAddressConfig($settings));
             }
 
-            if ($field['type'] === fields\Date::class) {
+            if ($field['type'] === Date::class) {
                 $displayType = $settings['displayType'] ?? 'calendar';
 
                 if ($displayType == 'calendar' || $displayType == 'datePicker') {
@@ -78,7 +105,7 @@ class m240313_000000_subfields extends Migration
                 }
             }
 
-            if ($field['type'] === fields\Name::class) {
+            if ($field['type'] === Name::class) {
                 $useMultipleFields = $settings['useMultipleFields'] ?? false;
 
                 if ($useMultipleFields) {
@@ -141,7 +168,7 @@ class m240313_000000_subfields extends Migration
             [
                 'fields' => [
                     [
-                        'type' => subfields\Address1::class,
+                        'type' => Address1::class,
                         'label' => $settings['address1Label'] ?? Craft::t('formie', 'Address 1'),
                         'handle' => 'address1',
                         'enabled' => $settings['address1Enabled'] ?? true,
@@ -166,7 +193,7 @@ class m240313_000000_subfields extends Migration
             [
                 'fields' => [
                     [
-                        'type' => subfields\Address2::class,
+                        'type' => Address2::class,
                         'label' => $settings['address2Label'] ?? Craft::t('formie', 'Address 2'),
                         'handle' => 'address2',
                         'enabled' => $settings['address2Enabled'] ?? false,
@@ -191,7 +218,7 @@ class m240313_000000_subfields extends Migration
             [
                 'fields' => [
                     [
-                        'type' => subfields\Address3::class,
+                        'type' => Address3::class,
                         'label' => $settings['address3Label'] ?? Craft::t('formie', 'Address 3'),
                         'handle' => 'address3',
                         'enabled' => $settings['address3Enabled'] ?? false,
@@ -216,7 +243,7 @@ class m240313_000000_subfields extends Migration
             [
                 'fields' => [
                     [
-                        'type' => subfields\AddressCity::class,
+                        'type' => AddressCity::class,
                         'label' =>  $settings['cityLabel'] ?? Craft::t('formie', 'City'),
                         'handle' => 'city',
                         'enabled' => $settings['cityEnabled'] ?? true,
@@ -237,7 +264,7 @@ class m240313_000000_subfields extends Migration
                         ],
                     ],
                     [
-                        'type' => subfields\AddressZip::class,
+                        'type' => AddressZip::class,
                         'label' => $settings['zipLabel'] ?? Craft::t('formie', 'ZIP / Postal Code'),
                         'handle' => 'zip',
                         'enabled' => $settings['zipEnabled'] ?? true,
@@ -262,7 +289,7 @@ class m240313_000000_subfields extends Migration
             [
                 'fields' => [
                     [
-                        'type' => subfields\AddressState::class,
+                        'type' => AddressState::class,
                         'label' => $settings['stateLabel'] ?? Craft::t('formie', 'State / Province'),
                         'handle' => 'state',
                         'enabled' => $settings['stateEnabled'] ?? true,
@@ -283,7 +310,7 @@ class m240313_000000_subfields extends Migration
                         ],
                     ],
                     [
-                        'type' => subfields\AddressCountry::class,
+                        'type' => AddressCountry::class,
                         'label' => $settings['countryLabel'] ?? Craft::t('formie', 'Country'),
                         'handle' => 'country',
                         'enabled' => $settings['countryEnabled'] ?? true,
@@ -316,7 +343,7 @@ class m240313_000000_subfields extends Migration
             [
                 'fields' => [
                     [
-                        'type' => subfields\DateDate::class,
+                        'type' => DateDate::class,
                         'label' => $settings['dateLabel'] ?? Craft::t('formie', 'Date'),
                         'handle' => 'date',
                         'enabled' => $settings['includeDate'] ?? true,
@@ -337,7 +364,7 @@ class m240313_000000_subfields extends Migration
                         ],
                     ],
                     [
-                        'type' => subfields\DateTime::class,
+                        'type' => DateTime::class,
                         'label' => $settings['timeLabel'] ?? Craft::t('formie', 'Time'),
                         'handle' => 'time',
                         'enabled' => $settings['includeTime'] ?? true,
@@ -368,7 +395,7 @@ class m240313_000000_subfields extends Migration
             [
                 'fields' => [
                     [
-                        'type' => subfields\DateYearDropdown::class,
+                        'type' => DateYearDropdown::class,
                         'label' => $settings['yearLabel'] ?? Craft::t('formie', 'Year'),
                         'handle' => 'year',
                         'enabled' => true,
@@ -376,7 +403,7 @@ class m240313_000000_subfields extends Migration
                         'options' => [],
                     ],
                     [
-                        'type' => subfields\DateMonthDropdown::class,
+                        'type' => DateMonthDropdown::class,
                         'label' => $settings['monthLabel'] ?? Craft::t('formie', 'Month'),
                         'handle' => 'month',
                         'enabled' => true,
@@ -384,7 +411,7 @@ class m240313_000000_subfields extends Migration
                         'options' => $this->_getMonthOptions(),
                     ],
                     [
-                        'type' => subfields\DateDayDropdown::class,
+                        'type' => DateDayDropdown::class,
                         'label' => Craft::t('formie', 'Day'),
                         'handle' => 'day',
                         'enabled' => true,
@@ -392,7 +419,7 @@ class m240313_000000_subfields extends Migration
                         'options' => $this->_generateOptions(1, 31),
                     ],
                     [
-                        'type' => subfields\DateHourDropdown::class,
+                        'type' => DateHourDropdown::class,
                         'label' => $settings['hourLabel'] ?? Craft::t('formie', 'Hour'),
                         'handle' => 'hour',
                         'enabled' => true,
@@ -400,7 +427,7 @@ class m240313_000000_subfields extends Migration
                         'options' => $this->_generateOptions(0, 23),
                     ],
                     [
-                        'type' => subfields\DateMinuteDropdown::class,
+                        'type' => DateMinuteDropdown::class,
                         'label' => $settings['minueLabel'] ?? Craft::t('formie', 'Minute'),
                         'handle' => 'minute',
                         'enabled' => true,
@@ -408,7 +435,7 @@ class m240313_000000_subfields extends Migration
                         'options' => $this->_generateOptions(0, 59),
                     ],
                     [
-                        'type' => subfields\DateSecondDropdown::class,
+                        'type' => DateSecondDropdown::class,
                         'label' => $settings['secondLabel'] ?? Craft::t('formie', 'Second'),
                         'handle' => 'second',
                         'enabled' => false,
@@ -416,7 +443,7 @@ class m240313_000000_subfields extends Migration
                         'options' => $this->_generateOptions(0, 59),
                     ],
                     [
-                        'type' => subfields\DateAmPmDropdown::class,
+                        'type' => DateAmPmDropdown::class,
                         'label' => $settings['ampmLabel'] ?? Craft::t('formie', 'AM/PM'),
                         'handle' => 'ampm',
                         'enabled' => false,
@@ -437,7 +464,7 @@ class m240313_000000_subfields extends Migration
             [
                 'fields' => [
                     [
-                        'type' => subfields\DateYearNumber::class,
+                        'type' => DateYearNumber::class,
                         'label' => $settings['yearLabel'] ?? Craft::t('formie', 'Year'),
                         'handle' => 'year',
                         'enabled' => true,
@@ -447,7 +474,7 @@ class m240313_000000_subfields extends Migration
                         'max' => 2124,
                     ],
                     [
-                        'type' => subfields\DateMonthNumber::class,
+                        'type' => DateMonthNumber::class,
                         'label' => $settings['monthLabel'] ?? Craft::t('formie', 'Month'),
                         'handle' => 'month',
                         'enabled' => true,
@@ -457,7 +484,7 @@ class m240313_000000_subfields extends Migration
                         'max' => 12,
                     ],
                     [
-                        'type' => subfields\DateDayNumber::class,
+                        'type' => DateDayNumber::class,
                         'label' => Craft::t('formie', 'Day'),
                         'handle' => 'day',
                         'enabled' => true,
@@ -467,7 +494,7 @@ class m240313_000000_subfields extends Migration
                         'max' => 31,
                     ],
                     [
-                        'type' => subfields\DateHourNumber::class,
+                        'type' => DateHourNumber::class,
                         'label' => $settings['hourLabel'] ?? Craft::t('formie', 'Hour'),
                         'handle' => 'hour',
                         'enabled' => true,
@@ -477,7 +504,7 @@ class m240313_000000_subfields extends Migration
                         'max' => 23,
                     ],
                     [
-                        'type' => subfields\DateMinuteNumber::class,
+                        'type' => DateMinuteNumber::class,
                         'label' => $settings['minueLabel'] ?? Craft::t('formie', 'Minute'),
                         'handle' => 'minute',
                         'enabled' => true,
@@ -487,7 +514,7 @@ class m240313_000000_subfields extends Migration
                         'max' => 59,
                     ],
                     [
-                        'type' => subfields\DateSecondNumber::class,
+                        'type' => DateSecondNumber::class,
                         'label' => $settings['secondLabel'] ?? Craft::t('formie', 'Second'),
                         'handle' => 'second',
                         'enabled' => false,
@@ -497,7 +524,7 @@ class m240313_000000_subfields extends Migration
                         'max' => 59,
                     ],
                     [
-                        'type' => subfields\DateAmPmDropdown::class,
+                        'type' => DateAmPmDropdown::class,
                         'label' => $settings['ampmLabel'] ?? Craft::t('formie', 'AM/PM'),
                         'handle' => 'ampm',
                         'enabled' => false,
@@ -518,7 +545,7 @@ class m240313_000000_subfields extends Migration
             [
                 'fields' => [
                     [
-                        'type' => subfields\NamePrefix::class,
+                        'type' => NamePrefix::class,
                         'label' => $settings['prefixLabel'] ?? Craft::t('formie', 'Prefix'),
                         'handle' => 'prefix',
                         'enabled' => $settings['prefixEnabled'] ?? false,
@@ -535,7 +562,7 @@ class m240313_000000_subfields extends Migration
                         ],
                     ],
                     [
-                        'type' => subfields\NameFirst::class,
+                        'type' => NameFirst::class,
                         'label' => $settings['firstNameLabel'] ?? Craft::t('formie', 'First Name'),
                         'handle' => 'firstName',
                         'enabled' => $settings['firstNameEnabled'] ?? true,
@@ -552,7 +579,7 @@ class m240313_000000_subfields extends Migration
                         ],
                     ],
                     [
-                        'type' => subfields\NameMiddle::class,
+                        'type' => NameMiddle::class,
                         'label' => $settings['middleNameLabel'] ?? Craft::t('formie', 'Middle Name'),
                         'handle' => 'middleName',
                         'enabled' => $settings['middleNameEnabled'] ?? false,
@@ -569,7 +596,7 @@ class m240313_000000_subfields extends Migration
                         ],
                     ],
                     [
-                        'type' => subfields\NameLast::class,
+                        'type' => NameLast::class,
                         'label' => $settings['lastNameLabel'] ?? Craft::t('formie', 'Last Name'),
                         'handle' => 'lastName',
                         'enabled' => $settings['lastNameEnabled'] ?? true,

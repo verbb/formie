@@ -2,7 +2,6 @@
 namespace verbb\formie\migrations\plugins;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Field as FormieField;
 use verbb\formie\base\FieldInterface as FormieFieldInterface;
 use verbb\formie\base\ParentFieldInterface as FormieParentFieldInterface;
 use verbb\formie\elements\Form as FormieForm;
@@ -11,39 +10,72 @@ use verbb\formie\events\ModifyMigrationFieldEvent;
 use verbb\formie\events\ModifyMigrationFormEvent;
 use verbb\formie\events\ModifyMigrationNotificationEvent;
 use verbb\formie\events\ModifyMigrationSubmissionEvent;
-use verbb\formie\fields as formiefields;
+use verbb\formie\fields\Address;
+use verbb\formie\fields\Agree;
+use verbb\formie\fields\Checkboxes;
+use verbb\formie\fields\Content;
+use verbb\formie\fields\Date;
+use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\Email;
+use verbb\formie\fields\FileUpload;
+use verbb\formie\fields\Group;
+use verbb\formie\fields\Hidden;
+use verbb\formie\fields\Html;
+use verbb\formie\fields\MultiLineText;
+use verbb\formie\fields\Name;
+use verbb\formie\fields\Number;
+use verbb\formie\fields\Phone;
+use verbb\formie\fields\Radio;
+use verbb\formie\fields\SingleLineText;
+use verbb\formie\fields\Table;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayout;
-use verbb\formie\models\FieldLayoutPage;
-use verbb\formie\models\FieldLayoutRow;
 use verbb\formie\models\Notification;
+use verbb\formie\models\RichText;
 use verbb\formie\models\Settings;
 use verbb\formie\positions\Hidden as HiddenPosition;
-use verbb\formie\models\RichText;
 use verbb\formie\validators\HandleValidator;
 
 use Craft;
 use craft\elements\Asset;
 
-use DateTime;
-use DateTimeZone;
 use ReflectionClass;
 use ReflectionProperty;
 use Throwable;
 
-use yii\base\InvalidConfigException;
-use yii\helpers\Markdown;
-
-use Solspace\Freeform\Freeform;
 use Solspace\Freeform\Attributes\Property\Implementations\Options\OptionCollection;
 use Solspace\Freeform\Bundles\Notifications\Providers\NotificationsProvider;
+use Solspace\Freeform\Elements\Submission as FreeformSubmission;
 use Solspace\Freeform\Fields\FieldInterface as FreeformFieldInterfae;
 use Solspace\Freeform\Fields\Implementations as freeformfields;
+use Solspace\Freeform\Fields\Implementations\CheckboxesField;
+use Solspace\Freeform\Fields\Implementations\CheckboxField;
+use Solspace\Freeform\Fields\Implementations\DropdownField;
+use Solspace\Freeform\Fields\Implementations\EmailField;
+use Solspace\Freeform\Fields\Implementations\FileUploadField;
+use Solspace\Freeform\Fields\Implementations\HiddenField;
+use Solspace\Freeform\Fields\Implementations\HtmlField;
+use Solspace\Freeform\Fields\Implementations\MultipleSelectField;
+use Solspace\Freeform\Fields\Implementations\NumberField;
+use Solspace\Freeform\Fields\Implementations\Pro\ConfirmationField;
+use Solspace\Freeform\Fields\Implementations\Pro\DatetimeField;
+use Solspace\Freeform\Fields\Implementations\Pro\GroupField;
+use Solspace\Freeform\Fields\Implementations\Pro\InvisibleField;
+use Solspace\Freeform\Fields\Implementations\Pro\OpinionScaleField;
+use Solspace\Freeform\Fields\Implementations\Pro\PhoneField;
+use Solspace\Freeform\Fields\Implementations\Pro\RatingField;
+use Solspace\Freeform\Fields\Implementations\Pro\RichTextField;
+use Solspace\Freeform\Fields\Implementations\Pro\SignatureField;
+use Solspace\Freeform\Fields\Implementations\Pro\TableField;
+use Solspace\Freeform\Fields\Implementations\Pro\WebsiteField;
+use Solspace\Freeform\Fields\Implementations\RadiosField;
+use Solspace\Freeform\Fields\Implementations\TextareaField;
+use Solspace\Freeform\Fields\Implementations\TextField;
 use Solspace\Freeform\Form\Form as FreeformForm;
-use Solspace\Freeform\Elements\Submission as FreeformSubmission;
+use Solspace\Freeform\Freeform;
 use Solspace\Freeform\Library\Composer\Components\Fields\DataContainers\Option;
 use Solspace\Freeform\Notifications\Types\Admin\Admin;
 
@@ -110,6 +142,10 @@ class MigrateFreeform5 extends BasePluginMigrator
     {
         return false;
     }
+
+
+    // Private Methods
+    // =========================================================================
 
     private function _migrateForm(): ?FormieForm
     {
@@ -243,11 +279,11 @@ class MigrateFreeform5 extends BasePluginMigrator
 
                     try {
                         switch (get_class($field)) {
-                            case freeformfields\CheckboxField::class:
+                            case CheckboxField::class:
                                 $submission->setFieldValue($handle, $field->isChecked());
                                 break;
 
-                            case freeformfields\EmailField::class:
+                            case EmailField::class:
                                 $value = $field->getValue();
 
                                 // Handle older Freeform installs storing emails as array
@@ -259,7 +295,7 @@ class MigrateFreeform5 extends BasePluginMigrator
 
                                 break;
 
-                            case freeformfields\FileUploadField::class:
+                            case FileUploadField::class:
                                 $value = $field->getValue();
 
                                 if (!empty($value)) {
@@ -269,7 +305,7 @@ class MigrateFreeform5 extends BasePluginMigrator
 
                                 break;
 
-                            case freeformfields\Pro\GroupField::class:
+                            case GroupField::class:
                                 $values = [];
 
                                 foreach ($field->getLayout()->getAllRows() as $row) {
@@ -282,34 +318,34 @@ class MigrateFreeform5 extends BasePluginMigrator
 
                                 break;
 
-                            case freeformfields\DropdownField::class:
-                            case freeformfields\RadiosField::class:
+                            case DropdownField::class:
+                            case RadiosField::class:
                                 $submission->setFieldValue($handle, $this->_normalizeSingleOptionValue($field->getValue()));
                                 break;
 
-                            case freeformfields\CheckboxesField::class:
-                            case freeformfields\MultipleSelectField::class:
+                            case CheckboxesField::class:
+                            case MultipleSelectField::class:
                                 $submission->setFieldValue($handle, $this->_normalizeMultiOptionValue($field->getValue()));
                                 break;
 
-                            case freeformfields\HtmlField::class:
-                            case freeformfields\Pro\ConfirmationField::class:
+                            case HtmlField::class:
+                            case ConfirmationField::class:
                                 // Not implemented
                                 break;
 
-                            case freeformfields\Pro\OpinionScaleField::class:
+                            case OpinionScaleField::class:
                                 // Not implemented
                                 break;
 
-                            case freeformfields\Pro\RatingField::class:
+                            case RatingField::class:
                                 // Not implemented
                                 break;
 
-                            case freeformfields\Pro\RichTextField::class:
+                            case RichTextField::class:
                                 // Not implemented
                                 break;
 
-                            case freeformfields\Pro\SignatureField::class:
+                            case SignatureField::class:
                                 // Not implemented
                                 break;
 
@@ -564,9 +600,9 @@ class MigrateFreeform5 extends BasePluginMigrator
     private function _mapField(FreeformFieldInterfae $field): ?FormieFieldInterface
     {
         switch (get_class($field)) {
-            case freeformfields\CheckboxField::class:
+            case CheckboxField::class:
                 /* @var freeformfields\CheckboxField $field */
-                $newField = new formiefields\Agree();
+                $newField = new Agree();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->description = RichText::fromHtml('<p>' . $field->getLabel() . '</p>');
@@ -575,7 +611,7 @@ class MigrateFreeform5 extends BasePluginMigrator
                 $newField->uncheckedValue = Craft::t('app', 'No');
                 break;
 
-            case freeformfields\Pro\ConfirmationField::class:
+            case ConfirmationField::class:
                 // We want to ensure *this* field is the same as the target field, so grab that type
                 $targetField = $field->getTargetField();
                 $targetFormieField = $targetField ? $this->_mapField($targetField) : null;
@@ -588,16 +624,16 @@ class MigrateFreeform5 extends BasePluginMigrator
                 } else {
                     // Freeform confirmation fields can occasionally have no resolvable target.
                     // Fallback to email to keep migration resilient.
-                    $newField = new formiefields\Email();
+                    $newField = new Email();
                 }
 
                 $this->_applyFieldDefaults($newField);
 
                 break;
 
-            case freeformfields\CheckboxesField::class:
+            case CheckboxesField::class:
                 /* @var freeformfields\CheckboxesField $field */
-                $newField = new formiefields\Checkboxes();
+                $newField = new Checkboxes();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->options = $this->_mapOptions($field->getOptions());
@@ -606,9 +642,9 @@ class MigrateFreeform5 extends BasePluginMigrator
                 $newField->defaultValue = null;
                 break;
 
-            case freeformfields\Pro\DatetimeField::class:
+            case DatetimeField::class:
                 /* @var freeformfields\DatetimeField $field */
-                $newField = new formiefields\Date();
+                $newField = new Date();
                 $this->_applyFieldDefaults($newField);
 
                 // Formie Date is now a fixed parent field. Drive date/time behavior via child sub-fields.
@@ -642,9 +678,9 @@ class MigrateFreeform5 extends BasePluginMigrator
 
                 break;
 
-            case freeformfields\DropdownField::class:
+            case DropdownField::class:
                 /* @var freeformfields\DropdownField $field */
-                $newField = new formiefields\Dropdown();
+                $newField = new Dropdown();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->options = $this->_mapOptions($field->getOptions());
@@ -653,15 +689,15 @@ class MigrateFreeform5 extends BasePluginMigrator
                 $newField->defaultValue = null;
                 break;
 
-            case freeformfields\EmailField::class:
+            case EmailField::class:
                 /* @var freeformfields\EmailField $field */
-                $newField = new formiefields\Email();
+                $newField = new Email();
                 $this->_applyFieldDefaults($newField);
                 break;
 
-            case freeformfields\FileUploadField::class:
+            case FileUploadField::class:
                 /* @var freeformfields\FileUploadField $field */
-                $newField = new formiefields\FileUpload();
+                $newField = new FileUpload();
                 $this->_applyFieldDefaults($newField);
 
                 $sourceId = $field->getAssetSourceId();
@@ -677,9 +713,9 @@ class MigrateFreeform5 extends BasePluginMigrator
                 $newField->allowedKinds = $field->getFileKinds() ?? [];
                 break;
 
-            case freeformfields\Pro\GroupField::class:
+            case GroupField::class:
                 /* @var freeformfields\HiddenField $field */
-                $newField = new formiefields\Group();
+                $newField = new Group();
 
                 $newRows = [];
 
@@ -699,18 +735,18 @@ class MigrateFreeform5 extends BasePluginMigrator
 
                 break;
 
-            case freeformfields\HiddenField::class:
+            case HiddenField::class:
                 /* @var freeformfields\HiddenField $field */
-                $newField = new formiefields\Hidden();
+                $newField = new Hidden();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->defaultOption = 'custom';
                 $newField->defaultValue = $field->getDefaultValue();
                 break;
 
-            case freeformfields\HtmlField::class:
+            case HtmlField::class:
                 /* @var freeformfields\HtmlField $field */
-                $newField = new formiefields\Html();
+                $newField = new Html();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->label = $field->getLabel();
@@ -721,17 +757,17 @@ class MigrateFreeform5 extends BasePluginMigrator
 
                 break;
 
-            case freeformfields\Pro\InvisibleField::class:
+            case InvisibleField::class:
                 /* @var freeformfields\Pro\InvisibleField $field */
-                $newField = new formiefields\Hidden();
+                $newField = new Hidden();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->defaultValue = $field->getValue();
                 break;
 
-            case freeformfields\MultipleSelectField::class:
+            case MultipleSelectField::class:
                 /* @var freeformfields\MultipleSelectField $field */
-                $newField = new formiefields\Dropdown();
+                $newField = new Dropdown();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->multi = true;
@@ -741,9 +777,9 @@ class MigrateFreeform5 extends BasePluginMigrator
                 $newField->defaultValue = null;
                 break;
 
-            case freeformfields\NumberField::class:
+            case NumberField::class:
                 /* @var freeformfields\NumberField $field */
-                $newField = new formiefields\Number();
+                $newField = new Number();
                 $this->_applyFieldDefaults($newField);
 
                 if ($min = $field->getMinValue()) {
@@ -757,16 +793,16 @@ class MigrateFreeform5 extends BasePluginMigrator
                 $newField->decimals = $field->getDecimalCount();
                 break;
 
-            case freeformfields\Pro\PhoneField::class:
+            case PhoneField::class:
                 /* @var freeformfields\Pro\PhoneField $field */
-                $newField = new formiefields\Phone();
+                $newField = new Phone();
 
                 $this->_applyFieldDefaults($newField);
                 break;
 
-            case freeformfields\RadiosField::class:
+            case RadiosField::class:
                 /* @var freeformfields\RadiosField $field */
-                $newField = new formiefields\Radio();
+                $newField = new Radio();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->layout = $field->isOneLine() ? 'horizontal' : 'vertical';
@@ -776,21 +812,21 @@ class MigrateFreeform5 extends BasePluginMigrator
                 $newField->defaultValue = null;
                 break;
 
-            case freeformfields\Pro\RichTextField::class:
+            case RichTextField::class:
                 /* @var freeformfields\Pro\RichTextField $field */
-                $newField = new formiefields\Content();
+                $newField = new Content();
                 $this->_applyFieldDefaults($newField);
 
                 $newField->label = $field->getLabel();
                 $newField->handle = $field->getHandle();
-                $newField->content = \verbb\formie\models\RichText::from($field->getContent());
+                $newField->content = RichText::from($field->getContent());
                 $newField->labelPosition = HiddenPosition::class;
 
                 break;
 
-            case freeformfields\Pro\TableField::class:
+            case TableField::class:
                 /* @var freeformfields\TableField $field */
-                $newField = new formiefields\Table();
+                $newField = new Table();
                 $newField->addRowLabel = $field->getAddButtonLabel();
 
                 foreach ($field->getTableLayout() as $key => $row) {
@@ -804,9 +840,9 @@ class MigrateFreeform5 extends BasePluginMigrator
 
                 break;
 
-            case freeformfields\TextareaField::class:
+            case TextareaField::class:
                 /* @var freeformfields\TextareaField $field */
-                $newField = new formiefields\MultiLineText();
+                $newField = new MultiLineText();
 
                 if ($field->getMaxLength()) {
                     $newField->limit = true;
@@ -817,9 +853,9 @@ class MigrateFreeform5 extends BasePluginMigrator
                 $this->_applyFieldDefaults($newField);
                 break;
 
-            case freeformfields\TextField::class:
+            case TextField::class:
                 /* @var freeformfields\TextField $field */
-                $newField = new formiefields\SingleLineText();
+                $newField = new SingleLineText();
 
                 if ($field->getMaxLength()) {
                     $newField->limit = true;
@@ -830,9 +866,9 @@ class MigrateFreeform5 extends BasePluginMigrator
                 $this->_applyFieldDefaults($newField);
                 break;
 
-            case freeformfields\Pro\WebsiteField::class:
+            case WebsiteField::class:
                 /* @var freeformfields\Pro\WebsiteField $field */
-                $newField = new formiefields\SingleLineText();
+                $newField = new SingleLineText();
 
                 $this->_applyFieldDefaults($newField);
                 break;
@@ -867,7 +903,7 @@ class MigrateFreeform5 extends BasePluginMigrator
             }
         }
 
-        if (!$newField instanceof formiefields\Address and !$newField instanceof formiefields\Name) {
+        if (!$newField instanceof Address and !$newField instanceof Name) {
             $newField->required = (bool)($field->isRequired() ?? false);
         }
 
@@ -1053,5 +1089,4 @@ class MigrateFreeform5 extends BasePluginMigrator
 
         return array_values($values);
     }
-
 }

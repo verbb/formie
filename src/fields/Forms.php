@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\fields;
 
-use verbb\formie\elements\Form;
 use verbb\formie\elements\db\FormQuery;
+use verbb\formie\elements\Form;
 use verbb\formie\gql\arguments\FormArguments;
 use verbb\formie\gql\interfaces\FormInterface;
 use verbb\formie\gql\resolvers\FormResolver;

@@ -2,15 +2,10 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
-use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyNestedFieldLayoutEvent;
 use verbb\formie\fields\definitions\FieldClientRenderedChildren;
-use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayout;
-use verbb\formie\models\Notification;
 
-use Craft;
 use craft\base\ElementInterface;
 
 use GraphQL\Type\Definition\Type;
@@ -34,6 +29,7 @@ abstract class FixedParentField extends ContainerParentField implements FixedPar
     // =========================================================================
 
     public ?string $subFieldLabelPosition = null;
+
     private ?array $_subFields = null;
     private array $_nestedEditorSchemaByTypeCache = [];
 
@@ -122,6 +118,25 @@ abstract class FixedParentField extends ContainerParentField implements FixedPar
         ]);
     }
 
+    public function getNestedLayoutBuilderAllowedFieldTypes(): array
+    {
+        $types = [];
+
+        foreach ($this->getNestedLayoutBuilderLayouts() as $rows) {
+            foreach (($rows ?: []) as $row) {
+                foreach (($row['fields'] ?? []) as $field) {
+                    $type = $field['type'] ?? null;
+
+                    if ($type) {
+                        $types[] = $type;
+                    }
+                }
+            }
+        }
+
+        return array_values(array_unique($types));
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -172,25 +187,6 @@ abstract class FixedParentField extends ContainerParentField implements FixedPar
             'immutableFieldKeys' => ['handle', 'type'],
             'immutableSettingsKeys' => ['handle', 'type'],
         ];
-    }
-
-    public function getNestedLayoutBuilderAllowedFieldTypes(): array
-    {
-        $types = [];
-
-        foreach ($this->getNestedLayoutBuilderLayouts() as $rows) {
-            foreach (($rows ?: []) as $row) {
-                foreach (($row['fields'] ?? []) as $field) {
-                    $type = $field['type'] ?? null;
-
-                    if ($type) {
-                        $types[] = $type;
-                    }
-                }
-            }
-        }
-
-        return array_values(array_unique($types));
     }
 
     protected function getNestedLayoutBuilderEditorSchemaByType(array $types): array

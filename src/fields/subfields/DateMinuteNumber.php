@@ -2,8 +2,6 @@
 namespace verbb\formie\fields\subfields;
 
 use verbb\formie\base\ChildFieldInterface;
-use verbb\formie\fields\Number;
-use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 

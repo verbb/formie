@@ -3,8 +3,9 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionAuthorityType;
+use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\models\Settings;
-use verbb\formie\services\SubmissionWorkflow;
 
 use craft\helpers\App;
 use craft\web\Controller;
@@ -45,7 +46,7 @@ class TestController extends Controller
         $submissionsController = new SubmissionsController('submissions', Formie::$plugin);
         $submissionsController->setAllowTestOverrides(true);
 
-        return $submissionsController->processSubmissionRequest(\verbb\formie\enums\SubmissionOperation::SUBMIT, \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
+        return $submissionsController->processSubmissionRequest(SubmissionOperation::SUBMIT, SubmissionAuthorityType::VISITOR);
     }
 
     public function actionQuerySubmissions(): Response
@@ -81,6 +82,7 @@ class TestController extends Controller
             'total' => $query->count(),
         ]);
     }
+
 
     // Private Methods
     // =========================================================================

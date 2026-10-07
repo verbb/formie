@@ -104,10 +104,6 @@ final class DeliveryDiagnostics
         return $json;
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     private static function _redactString(string $value, array $secrets): string
     {
         foreach ($secrets as $secret) {

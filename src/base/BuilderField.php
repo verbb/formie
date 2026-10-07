@@ -3,18 +3,12 @@ namespace verbb\formie\base;
 
 use verbb\formie\helpers\StringHelper;
 
-use Craft;
 use craft\models\GqlSchema;
 
 abstract class BuilderField extends CosmeticField implements BuilderFieldInterface
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
-
-    public function getIsBuilderField(): bool
-    {
-        return true;
-    }
 
     public static function getFrontEndInputTemplatePath(): string
     {
@@ -24,6 +18,15 @@ abstract class BuilderField extends CosmeticField implements BuilderFieldInterfa
     public static function getInputTemplatePath(): string
     {
         return '';
+    }
+
+
+    // Public Methods
+    // =========================================================================
+
+    public function getIsBuilderField(): bool
+    {
+        return true;
     }
 
     public function includeInGqlSchema(GqlSchema $schema): bool

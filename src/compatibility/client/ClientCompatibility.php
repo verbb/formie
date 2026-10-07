@@ -12,6 +12,9 @@ use Craft;
 
 class ClientCompatibility
 {
+    // Public Methods
+    // =========================================================================
+
     public function __construct(private Formie $plugin)
     {
     }

@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\integrations\emailmarketing;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -10,8 +10,8 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -31,6 +31,7 @@ class Brevo extends EmailMarketing
         return 'Brevo';
     }
 
+
     // Properties
     // =========================================================================
 
@@ -42,6 +43,7 @@ class Brevo extends EmailMarketing
     public ?string $templateId = null;
     #[FormIntegrationSetting]
     public ?string $redirectionUrl = null;
+
 
     // Public Methods
     // =========================================================================
@@ -84,6 +86,29 @@ class Brevo extends EmailMarketing
 
         return new IntegrationConfig($settings);
     }
+
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('GET', 'account');
+            $accountId = $response['email'] ?? '';
+
+            if (!$accountId) {
+                Integration::error($this, 'Unable to find “{email}” in response.', true);
+                return false;
+            }
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
 
     protected function executePayload(Submission $submission): IntegrationResult
     {
@@ -139,29 +164,6 @@ class Brevo extends EmailMarketing
         return $this->resultForPayload(true);
     }
 
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('GET', 'account');
-            $accountId = $response['email'] ?? '';
-
-            if (!$accountId) {
-                Integration::error($this, 'Unable to find “{email}” in response.', true);
-                return false;
-            }
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -178,8 +180,6 @@ class Brevo extends EmailMarketing
             'headers' => ['api-key' => App::parseEnv($this->apiKey)],
         ]);
     }
-
-
 
     protected function defineFormSettingsSchema(FormInterface $form): array
     {

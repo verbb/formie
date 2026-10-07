@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\IntegrationStatus;
 use verbb\formie\errors\IntegrationStepException;
@@ -9,6 +10,7 @@ use verbb\formie\events\IntegrationDeliveryEvent;
 use verbb\formie\helpers\DeliveryDiagnostics;
 use verbb\formie\models\IntegrationExecutionContext;
 use verbb\formie\models\IntegrationResult;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\db\Query;
@@ -144,7 +146,7 @@ class DeliveryAttempts extends Component
         return hash_hmac('sha256', Json::encode($input), Formie::$plugin->getSettings()->getSecurityKey());
     }
 
-    public function integrationConfiguration(\verbb\formie\base\Integration $integration, array $settings): array
+    public function integrationConfiguration(Integration $integration, array $settings): array
     {
         return [
             'binding' => $settings,
@@ -152,7 +154,7 @@ class DeliveryAttempts extends Component
         ];
     }
 
-    public function notificationConfiguration(\verbb\formie\models\Notification $notification): array
+    public function notificationConfiguration(Notification $notification): array
     {
         $config = $notification->getAttributes();
         // The durable attempt already owns the notification locator. A newly

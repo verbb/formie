@@ -14,7 +14,11 @@ use Craft;
 
 class Question extends Captcha
 {
+    // Constants
+    // =========================================================================
+
     private const CAPTCHA_PARAM = 'formieCaptchaQuestion';
+
 
     // Properties
     // =========================================================================

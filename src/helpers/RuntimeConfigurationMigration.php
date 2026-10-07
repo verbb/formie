@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\fields\Hidden;
+
 final class RuntimeConfigurationMigration
 {
     // Static Methods
@@ -12,10 +14,6 @@ final class RuntimeConfigurationMigration
 
         return self::_migrate($data, $type, $type === null);
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private static function _migrate(array $data, ?string $type, bool $completionSettings): array
     {
@@ -51,7 +49,7 @@ final class RuntimeConfigurationMigration
             unset($data['prePopulate']);
         }
 
-        if ($type === \verbb\formie\fields\Hidden::class && array_key_exists('defaultOption', $data)) {
+        if ($type === Hidden::class && array_key_exists('defaultOption', $data)) {
             $data['valueSource'] ??= $data['defaultOption'];
             unset($data['defaultOption']);
         }

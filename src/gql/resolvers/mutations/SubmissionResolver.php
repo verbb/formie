@@ -5,7 +5,8 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\gql\mutations\SubmissionMutation;
-use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\BrowserRequestProfile;
+use verbb\formie\models\SubmissionErrors;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -147,7 +148,7 @@ class SubmissionResolver extends ElementMutationResolver
             throw new Error('Impossible to change the form of an existing submission');
         }
 
-        \verbb\formie\helpers\BrowserRequestProfile::enterAdministrative();
+        BrowserRequestProfile::enterAdministrative();
 
         $result = Formie::$plugin->getSubmissionRequests()->executeMutation($form, $submission, $arguments, function() use ($form, $submission, $arguments, $resolveInfo): void {
             $this->populateElementWithData($submission, $arguments, $resolveInfo);
@@ -181,7 +182,7 @@ class SubmissionResolver extends ElementMutationResolver
         $success = $response->success;
 
         if (!$success || $submission->hasErrors() || !$submission->id) {
-            $errors = \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toValuePathMap();
+            $errors = SubmissionErrors::fromSubmission($submission)->toValuePathMap();
 
             throw new Error(Json::encode($errors), null, null, [], null, null, [
                 'category' => 'validation',
@@ -219,10 +220,11 @@ class SubmissionResolver extends ElementMutationResolver
             throw new Error('Unable to perform the action.');
         }
 
-        \verbb\formie\helpers\BrowserRequestProfile::enterAdministrative();
+        BrowserRequestProfile::enterAdministrative();
 
         return $elementService->deleteElementById($submissionId, Submission::class, $siteId);
     }
+
 
     // Protected Methods
     // =========================================================================

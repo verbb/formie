@@ -1,14 +1,14 @@
 <?php
 namespace verbb\formie\helpers;
 
-use verbb\formie\fields\Survey;
 use verbb\formie\Formie;
+use verbb\formie\fields\Survey;
 use verbb\formie\options\predefined\LikertScale;
 use verbb\formie\options\predefined\StarRating;
 
 class SurveyPresentationDefaults
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function likertScaleOptions(): array
@@ -83,10 +83,6 @@ class SurveyPresentationDefaults
         return self::defaultOptionLabels(is_array($value) ? $value : [])
             === self::defaultOptionLabels(is_array($classDefault) ? $classDefault : []);
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private static function _resolveOptions(mixed $configured, array $fallback): array
     {

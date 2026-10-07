@@ -3,22 +3,19 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\Assets;
-use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\ImportExportHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Table;
 use verbb\formie\models\Settings;
 use verbb\formie\services\Permissions;
 
 use Craft;
-use craft\db\Query;
 use craft\helpers\Console;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\web\UploadedFile;
 
-use yii\web\BadRequestHttpException;
 use yii\helpers\Markdown;
+use yii\web\BadRequestHttpException;
 use yii\web\HttpException;
 use yii\web\Response;
 

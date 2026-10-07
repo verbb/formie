@@ -8,7 +8,6 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FormStatus;
 use verbb\formie\models\Stencil;
-use verbb\formie\models\StencilData;
 use verbb\formie\models\SubmissionStatus;
 use verbb\formie\services\CaptchaProviders;
 use verbb\formie\services\FormGroups;

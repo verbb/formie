@@ -4,36 +4,24 @@ namespace verbb\formie\elements;
 use verbb\formie\Formie;
 use verbb\formie\elements\actions\ResendNotifications;
 use verbb\formie\elements\db\SentNotificationQuery;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Notification;
 use verbb\formie\records\SentNotification as SentNotificationRecord;
 
 use Craft;
 use craft\base\Element;
-use craft\base\ElementInterface;
-use craft\db\Query;
-use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
+use craft\elements\User;
 use craft\helpers\ElementHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 
-use yii\base\Model;
-
 use Exception;
 
 class SentNotification extends Element
 {
-    // Constants
-    // =========================================================================
-
-    public const STATUS_SUCCESS = 'success';
-    public const STATUS_FAILED = 'failed';
-
-
     // Static Methods
     // =========================================================================
 
@@ -194,6 +182,13 @@ class SentNotification extends Element
             ],
         ];
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const STATUS_SUCCESS = 'success';
+    public const STATUS_FAILED = 'failed';
 
 
     // Properties

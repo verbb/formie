@@ -4,12 +4,12 @@ namespace verbb\formie\deprecations;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields as formiefields;
+use verbb\formie\enums\SubmissionOperation;
+use verbb\formie\fields\Payment;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\IntegrationTriggerRequest;
 use verbb\formie\models\Notification;
 use verbb\formie\services\IntegrationTriggers;
-use verbb\formie\services\SubmissionWorkflow;
 
 use Craft;
 
@@ -24,7 +24,7 @@ trait SubmissionsDeprecations
         Craft::$app->getDeprecator()->log(__METHOD__, 'Submissions `processPayments()` has been deprecated. Let Formie process submissions through the submission workflow instead.');
 
         foreach ($submission->getFields() as $field) {
-            if (!$field instanceof formiefields\Payment) {
+            if (!$field instanceof Payment) {
                 continue;
             }
 
@@ -75,7 +75,7 @@ trait SubmissionsDeprecations
 
     public function triggerIntegrations(
         Submission $submission,
-        \verbb\formie\enums\SubmissionOperation $operation = \verbb\formie\enums\SubmissionOperation::SUBMIT,
+        SubmissionOperation $operation = SubmissionOperation::SUBMIT,
         ?string $triggerEvent = null,
         bool $operatorInitiated = false,
     ): void {

@@ -12,6 +12,9 @@ use GraphQL\Type\Definition\Type;
 
 class HtmlFormQuery extends Query
 {
+    // Static Methods
+    // =========================================================================
+
     public static function getQueries(bool $checkToken = true): array
     {
         if ($checkToken && !GqlHelper::canQueryForms()) {

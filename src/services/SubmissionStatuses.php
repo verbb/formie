@@ -1,10 +1,10 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\deprecations\SubmissionStatusesDeprecations;
 use verbb\formie\Formie;
-use verbb\formie\events\SubmissionStatusEvent;
+use verbb\formie\deprecations\SubmissionStatusesDeprecations;
 use verbb\formie\elements\Form;
+use verbb\formie\events\SubmissionStatusEvent;
 use verbb\formie\helpers\StatusColorHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;

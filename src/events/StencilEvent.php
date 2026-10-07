@@ -12,5 +12,4 @@ class StencilEvent extends Event
 
     public ?Stencil $stencil = null;
     public bool $isNew = false;
-
 }

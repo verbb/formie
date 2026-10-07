@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\events\ScheduledReportEvent;
 use verbb\formie\Formie;
+use verbb\formie\events\ScheduledReportEvent;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\ScheduledReport;

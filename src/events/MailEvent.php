@@ -14,5 +14,4 @@ class MailEvent extends CancelableEvent
     public mixed $email = null;
     public ?Notification $notification = null;
     public ?Submission $submission = null;
-
 }

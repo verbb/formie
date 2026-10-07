@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\errors\StateConflict;
 use verbb\formie\helpers\Table;
@@ -153,7 +154,7 @@ class SubmissionOperations extends Component
             }
             return array_map($normalize, $value);
         };
-        return hash_hmac('sha256', Json::encode($normalize($input)), \verbb\formie\Formie::$plugin->getSettings()->getSecurityKey());
+        return hash_hmac('sha256', Json::encode($normalize($input)), Formie::$plugin->getSettings()->getSecurityKey());
     }
 
 

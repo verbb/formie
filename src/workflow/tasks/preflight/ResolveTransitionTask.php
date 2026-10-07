@@ -4,6 +4,7 @@ namespace verbb\formie\workflow\tasks\preflight;
 use verbb\formie\enums\NavigationIntent;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\enums\SubmissionOutcomeType;
+use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
 use verbb\formie\workflow\WorkflowContext;
@@ -25,7 +26,7 @@ class ResolveTransitionTask implements TaskInterface
         // Page visibility is optimistic in the browser; an invalid route must never become completion.
         if (in_array($command->navigation, [NavigationIntent::ADVANCE, NavigationIntent::TARGET], true)) {
             foreach ($form->getPages() as $page) {
-                if ($page->hasConditions() && \verbb\formie\helpers\ConditionsHelper::evaluate($page->getConditions(), $submission, 'routing')->value === null) {
+                if ($page->hasConditions() && ConditionsHelper::evaluate($page->getConditions(), $submission, 'routing')->value === null) {
                     $submission->addError('form', Craft::t('formie', 'The requested page is unavailable.'));
                     return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
                 }

@@ -5,6 +5,7 @@ use verbb\formie\base\ElementField;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
+use verbb\formie\fields\Phone;
 use verbb\formie\fields\Table;
 use verbb\formie\helpers\ElementReferenceHelper;
 use verbb\formie\helpers\RepeaterReferenceHelper;
@@ -99,6 +100,7 @@ final class FieldReferenceResolver
         return null;
     }
 
+
     // Private Methods
     // =========================================================================
 
@@ -182,7 +184,7 @@ final class FieldReferenceResolver
             return ElementReferenceHelper::resolveFromValue($field, $value, $selector, $params);
         }
 
-        if ($field instanceof \verbb\formie\fields\Phone) {
+        if ($field instanceof Phone) {
             return $field->resolveNormalizedValuePath($value, $selector);
         }
 
@@ -292,5 +294,4 @@ final class FieldReferenceResolver
         $selected = array_map(static fn(int $index) => $values[$index], $indices);
         return count($selected) === 1 ? $selected[0] : $selected;
     }
-
 }

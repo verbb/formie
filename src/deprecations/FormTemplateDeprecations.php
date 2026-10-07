@@ -1,11 +1,7 @@
 <?php
 namespace verbb\formie\deprecations;
 
-use verbb\formie\elements\Form;
-
 use Craft;
-
-use Twig\Markup;
 
 trait FormTemplateDeprecations
 {

@@ -11,6 +11,7 @@ class ColorFieldValue extends BaseFieldValue implements Serializable
     private string $_hex;
     private array $_hsl;
 
+
     // Public Methods
     // =========================================================================
 

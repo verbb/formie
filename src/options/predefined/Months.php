@@ -8,13 +8,6 @@ use craft\i18n\Locale;
 
 class Months extends PredefinedOption
 {
-    // Protected Properties
-    // =========================================================================
-
-    public static ?string $defaultLabelOption = 'month';
-    public static ?string $defaultValueOption = 'month';
-
-
     // Static Methods
     // =========================================================================
 
@@ -57,4 +50,11 @@ class Months extends PredefinedOption
 
         return $monthNames;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public static ?string $defaultLabelOption = 'month';
+    public static ?string $defaultValueOption = 'month';
 }

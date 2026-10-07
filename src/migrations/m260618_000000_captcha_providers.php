@@ -6,11 +6,13 @@ use verbb\formie\helpers\MigrationHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\services\Integrations;
 
-use Craft;
 use craft\db\Migration;
 
 class m260618_000000_captcha_providers extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         if (!$this->db->tableExists(Table::FORMIE_CAPTCHA_PROVIDERS)) {

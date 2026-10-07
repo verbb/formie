@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\gql\types\input;
 
-use verbb\formie\base\Field;
 use verbb\formie\Formie;
+use verbb\formie\base\Field;
 use verbb\formie\fields\Repeater as RepeaterField;
 
 use craft\gql\GqlEntityRegistry;

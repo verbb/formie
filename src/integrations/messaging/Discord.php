@@ -1,9 +1,8 @@
 <?php
 namespace verbb\formie\integrations\messaging;
 
-use verbb\formie\attributes\Sensitive;
-use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Messaging;
@@ -15,11 +14,9 @@ use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\Json;
 
 use Throwable;
 
-use GuzzleHttp\Client;
 use League\HTMLToMarkdown\HtmlConverter;
 
 class Discord extends Messaging
@@ -61,6 +58,25 @@ class Discord extends Messaging
         return new IntegrationConfig([]);
     }
 
+    public function fetchConnection(): bool
+    {
+        try {
+            $webhookUrl = App::parseEnv($this->webhookUrl);
+
+            $this->requestPublicEndpoint('GET', $webhookUrl);
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -86,25 +102,6 @@ class Discord extends Messaging
 
         return $this->resultForPayload(true);
     }
-
-    public function fetchConnection(): bool
-    {
-        try {
-            $webhookUrl = App::parseEnv($this->webhookUrl);
-
-            $this->requestPublicEndpoint('GET', $webhookUrl);
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {
@@ -134,7 +131,6 @@ class Discord extends Messaging
 
         return $schema;
     }
-
 
 
     // Private Methods

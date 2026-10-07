@@ -1,11 +1,11 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\deprecations\FormStatusesDeprecations;
 use verbb\formie\Formie;
+use verbb\formie\deprecations\FormStatusesDeprecations;
 use verbb\formie\events\FormStatusEvent;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\StatusColorHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FormStatus;
 use verbb\formie\records\FormStatus as FormStatusRecord;

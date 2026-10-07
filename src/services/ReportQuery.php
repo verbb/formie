@@ -1,13 +1,12 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\Formie;
 use verbb\formie\helpers\ReportDateBoundHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Report;
-use verbb\formie\models\ReportSettings;
 
 use Craft;
 use craft\base\Component;
@@ -16,6 +15,8 @@ use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
+
+use yii\db\Expression;
 
 use DateTime;
 
@@ -124,14 +125,14 @@ class ReportQuery extends Component
 
         $query = (new Query())
             ->select([
-                'bucket' => new \yii\db\Expression('DATE([[elements.dateCreated]])'),
-                'complete' => new \yii\db\Expression(
+                'bucket' => new Expression('DATE([[elements.dateCreated]])'),
+                'complete' => new Expression(
                     'SUM(CASE WHEN [[submissions.isIncomplete]] = FALSE AND [[submissions.isSpam]] = FALSE THEN 1 ELSE 0 END)',
                 ),
-                'incomplete' => new \yii\db\Expression(
+                'incomplete' => new Expression(
                     'SUM(CASE WHEN [[submissions.isIncomplete]] = TRUE AND [[submissions.isSpam]] = FALSE THEN 1 ELSE 0 END)',
                 ),
-                'spam' => new \yii\db\Expression(
+                'spam' => new Expression(
                     'SUM(CASE WHEN [[submissions.isSpam]] = TRUE THEN 1 ELSE 0 END)',
                 ),
             ])
@@ -385,13 +386,13 @@ class ReportQuery extends Component
         $query = (new Query())
             ->select([
                 'formId' => 'submissions.formId',
-                'complete' => new \yii\db\Expression(
+                'complete' => new Expression(
                     'SUM(CASE WHEN [[submissions.isIncomplete]] = FALSE AND [[submissions.isSpam]] = FALSE THEN 1 ELSE 0 END)',
                 ),
-                'incomplete' => new \yii\db\Expression(
+                'incomplete' => new Expression(
                     'SUM(CASE WHEN [[submissions.isIncomplete]] = TRUE AND [[submissions.isSpam]] = FALSE THEN 1 ELSE 0 END)',
                 ),
-                'spam' => new \yii\db\Expression(
+                'spam' => new Expression(
                     'SUM(CASE WHEN [[submissions.isSpam]] = TRUE THEN 1 ELSE 0 END)',
                 ),
             ])

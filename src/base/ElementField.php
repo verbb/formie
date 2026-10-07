@@ -1,31 +1,24 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\base\DisplayTypeFieldInterface;
 use verbb\formie\base\Element as ElementIntegration;
-use verbb\formie\base\Integration;
-use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\fields\conditions\ElementFieldConditionRule;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
+use verbb\formie\fields\traits\PresentationFieldConfigTrait;
+use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
 use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
-use verbb\formie\fields\SingleLineText;
-use verbb\formie\fields\Tags;
-use verbb\formie\fields\traits\PresentationFieldConfigTrait;
-use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Variables;
-use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\Notification;
 use verbb\formie\models\OptionSource;
+use verbb\formie\models\SlotTag;
 use verbb\formie\options\ElementOptionSourceHelper;
 use verbb\formie\options\OptionResolvableInterface;
 use verbb\formie\positions\Hidden as HiddenPosition;
@@ -33,55 +26,43 @@ use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
-use craft\base\EagerLoadingFieldInterface;
 use craft\base\Element;
 use craft\base\ElementInterface;
-use craft\base\InlineEditableFieldInterface;
-use craft\base\NestedElementInterface;
-use craft\behaviors\EventBehavior;
 use craft\db\Query;
-use craft\elements\db\ElementQuery;
-use craft\elements\db\ElementQueryInterface;
-use craft\elements\ElementCollection;
 use craft\elements\conditions\ElementCondition;
 use craft\elements\conditions\ElementConditionInterface;
-use craft\elements\db\ElementRelationParamParser;
-use craft\elements\db\OrderByPlaceholderExpression;
-use craft\errors\SiteNotFoundException;
-use craft\events\CancelableEvent;
+use craft\elements\db\ElementQuery;
+use craft\elements\db\ElementQueryInterface;
 use craft\events\ElementCriteriaEvent;
-use craft\fields as CraftFields;
+use craft\fields\Assets;
+use craft\fields\Categories;
+use craft\fields\Checkboxes;
+use craft\fields\Entries;
+use craft\fields\Matrix;
+use craft\fields\MultiSelect;
+use craft\fields\Table;
+use craft\fields\Tags as CraftTags;
+use craft\fields\Users;
 use craft\helpers\Cp;
-use craft\helpers\Db;
 use craft\helpers\Gql as CraftGqlHelper;
-use craft\helpers\ElementHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
-use craft\helpers\Queue;
-use craft\helpers\Template as TemplateHelper;
 use craft\records\EntryType as EntryTypeRecord;
-use craft\services\ElementSources;
 use craft\services\Elements;
+use craft\services\ElementSources;
 use craft\services\Gql as CraftGqlService;
 
-use DateTime;
+use yii\base\Event;
+use yii\db\ExpressionInterface;
+
+use ArrayAccess;
 use ReflectionClass;
 use ReflectionProperty;
 use Throwable;
 
 use Faker\Generator as FakerFactory;
-
-use Twig\Markup;
-
-use Illuminate\Support\Collection;
-
 use GraphQL\Type\Definition\Type;
-
-use yii\base\Event;
-use yii\base\InvalidConfigException;
-use yii\db\Expression;
-use yii\db\ExpressionInterface;
-use yii\validators\NumberValidator;
+use Illuminate\Support\Collection;
 
 abstract class ElementField extends Field implements DisplayTypeFieldInterface, ElementFieldInterface, OptionResolvableInterface
 {
@@ -135,6 +116,31 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         }
 
         return parent::queryCondition($instances, Json::encode($values), $params);
+    }
+
+    protected static function defineOptionSource(): ?array
+    {
+        return null;
+    }
+
+    protected static function gqlElementContentTypeDefinitionFromConfig(array $config, Type $elementType, array $arguments, string $resolverClass): array
+    {
+        return [
+            'name' => $config['handle'] ?? '',
+            'type' => Type::nonNull(Type::listOf($elementType)),
+            'args' => $arguments,
+            'resolve' => $resolverClass . '::resolve',
+            'complexity' => CraftGqlHelper::relatedArgumentComplexity(CraftGqlService::GRAPHQL_COMPLEXITY_EAGER_LOAD),
+        ];
+    }
+
+    protected static function gqlElementContentMutationArgumentTypeDefinitionFromConfig(array $config): array
+    {
+        return [
+            'name' => $config['handle'] ?? '',
+            'type' => Type::listOf(Type::int()),
+            'description' => $config['instructions'] ?? null,
+        ];
     }
 
 
@@ -255,7 +261,6 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
 
         return $query;
     }
-
 
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
@@ -814,7 +819,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         }
 
         // Prefer ArrayAccess so custom fields and attributes resolve the Craft way.
-        if ($element instanceof \ArrayAccess) {
+        if ($element instanceof ArrayAccess) {
             try {
                 if (isset($element[$property])) {
                     return $element[$property];
@@ -917,31 +922,6 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
     {
         $query = clone $this->normalizeValue($value, $element);
         return $query->status(null)->ids();
-    }
-
-    protected static function defineOptionSource(): ?array
-    {
-        return null;
-    }
-
-    protected static function gqlElementContentTypeDefinitionFromConfig(array $config, Type $elementType, array $arguments, string $resolverClass): array
-    {
-        return [
-            'name' => $config['handle'] ?? '',
-            'type' => Type::nonNull(Type::listOf($elementType)),
-            'args' => $arguments,
-            'resolve' => $resolverClass . '::resolve',
-            'complexity' => CraftGqlHelper::relatedArgumentComplexity(CraftGqlService::GRAPHQL_COMPLEXITY_EAGER_LOAD),
-        ];
-    }
-
-    protected static function gqlElementContentMutationArgumentTypeDefinitionFromConfig(array $config): array
-    {
-        return [
-            'name' => $config['handle'] ?? '',
-            'type' => Type::listOf(Type::int()),
-            'description' => $config['instructions'] ?? null,
-        ];
     }
 
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
@@ -1203,15 +1183,15 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
 
         // Better to opt-out fields, so we can always allow third-party ones which are impossible to check
         $excludedFields = [
-            CraftFields\Assets::class,
-            CraftFields\Categories::class,
-            CraftFields\Checkboxes::class,
-            CraftFields\Entries::class,
-            CraftFields\Matrix::class,
-            CraftFields\MultiSelect::class,
-            CraftFields\Table::class,
-            CraftFields\Tags::class,
-            CraftFields\Users::class,
+            Assets::class,
+            Categories::class,
+            Checkboxes::class,
+            Entries::class,
+            Matrix::class,
+            MultiSelect::class,
+            Table::class,
+            CraftTags::class,
+            Users::class,
         ];
 
         foreach ($fields as $field) {
@@ -1256,7 +1236,6 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         ];
     }
 
-
     protected function supportedDefaults(): array
     {
         return ['displayType', 'labelSource', 'orderBy', 'limitOptions'];
@@ -1289,5 +1268,4 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
 
         return Json::decode(Json::encode($array));
     }
-
 }

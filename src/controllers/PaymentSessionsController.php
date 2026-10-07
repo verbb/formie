@@ -2,6 +2,8 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\BrowserRequestProfile;
+use verbb\formie\helpers\CrossOriginRequestHelper;
 use verbb\formie\integrations\payments\Opayo;
 use verbb\formie\models\payments\PaymentSessionCommand;
 
@@ -23,10 +25,10 @@ class PaymentSessionsController extends Controller
 
     public function beforeAction($action): bool
     {
-        $profile = \verbb\formie\helpers\BrowserRequestProfile::enter();
-        \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders($this->request, $this->response);
+        $profile = BrowserRequestProfile::enter();
+        CrossOriginRequestHelper::applyHeaders($this->request, $this->response);
 
-        if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+        if ($profile === BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         }
 

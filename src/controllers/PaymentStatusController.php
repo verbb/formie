@@ -4,11 +4,16 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\BrowserRequestProfile;
+use verbb\formie\helpers\CompletionRedirectPolicy;
+use verbb\formie\helpers\CrossOriginRequestHelper;
 use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\models\Payment as PaymentModel;
+use verbb\formie\services\CompletionResolver;
 
 use Craft;
 use craft\web\Controller;
+use craft\web\View;
 
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -36,10 +41,10 @@ class PaymentStatusController extends Controller
 
     public function beforeAction($action): bool
     {
-        $profile = \verbb\formie\helpers\BrowserRequestProfile::enter();
-        \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders($this->request, $this->response);
+        $profile = BrowserRequestProfile::enter();
+        CrossOriginRequestHelper::applyHeaders($this->request, $this->response);
 
-        if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+        if ($profile === BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         }
 
@@ -105,9 +110,9 @@ class PaymentStatusController extends Controller
             }
             $url = '';
 
-            $completion = (new \verbb\formie\services\CompletionResolver())->resolve($form, $submission);
+            $completion = (new CompletionResolver())->resolve($form, $submission);
             $url = $completion->url;
-            $returnUrl = \verbb\formie\helpers\CompletionRedirectPolicy::validate((string)$payment->redirectUrl);
+            $returnUrl = CompletionRedirectPolicy::validate((string)$payment->redirectUrl);
 
             Formie::info('Payment poll: finalising paymentUid {paymentUid}, submissionId {submissionId}, formId {formId}', [
                 'paymentUid' => $paymentUid,
@@ -153,7 +158,7 @@ class PaymentStatusController extends Controller
         return $this->renderTemplate('formie/integrations/payments/status', [
             'payment' => $payment,
             'statusToken' => (string)$this->request->getRequiredParam('statusToken'),
-        ], \craft\web\View::TEMPLATE_MODE_CP);
+        ], View::TEMPLATE_MODE_CP);
     }
 
 
@@ -251,5 +256,4 @@ class PaymentStatusController extends Controller
             }
         }
     }
-
 }

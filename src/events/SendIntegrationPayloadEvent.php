@@ -17,5 +17,4 @@ class SendIntegrationPayloadEvent extends CancelableEvent
     public mixed $response = null;
     public ?string $endpoint = null;
     public ?string $method = null;
-
 }

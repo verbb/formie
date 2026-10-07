@@ -6,7 +6,9 @@ use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\base\Field;
 use verbb\formie\base\FixedParentField;
 use verbb\formie\base\ParentFieldInterface;
+use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\elements\Form;
+use verbb\formie\fields\Date;
 use verbb\formie\fields\MissingField;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPageSettings;
@@ -294,7 +296,7 @@ class FormSerializer
                 throw new InvalidConfigException('Fixed child instances cannot move to a different parent.');
             }
             $prototype->id = $existing?->id;
-            \verbb\formie\compatibility\fields\FieldConfigNormalizer::normalize($source, $type);
+            FieldConfigNormalizer::normalize($source, $type);
 
             if ($prototype instanceof ChildFieldInterface && !($parent instanceof FixedParentField)) {
                 throw new InvalidConfigException('Fixed child fields require their intrinsic parent.');
@@ -334,7 +336,7 @@ class FormSerializer
             if ($prototype instanceof ParentFieldInterface && isset($source['rows'])) {
                 $config['rows'] = $this->_rows($source['rows'], $operation, $prototype, $path . '.');
 
-                if ($prototype instanceof \verbb\formie\fields\Date) {
+                if ($prototype instanceof Date) {
                     $key = match ($source['displayType'] ?? 'datePicker') {
                         'dropdowns' => 'dropdowns', 'inputs' => 'inputs',
                         'datePicker' => ($source['collectMode'] ?? 'single') === 'range' ? 'calendarRange' : 'calendar',

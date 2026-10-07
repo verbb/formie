@@ -4,15 +4,12 @@ namespace verbb\formie\console\controllers;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\IntegrationResponse;
 
 use Craft;
 use craft\console\Controller;
 use craft\helpers\Console;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
-
-use Throwable;
 
 use yii\console\ExitCode;
 

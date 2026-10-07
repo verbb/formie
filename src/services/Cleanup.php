@@ -17,22 +17,7 @@ use InvalidArgumentException;
  */
 class Cleanup extends Service
 {
-    // Constants
-    // =========================================================================
-
-    public const TASK_INCOMPLETE_SUBMISSIONS = 'incomplete-submissions';
-    public const TASK_DATA_RETENTION_SUBMISSIONS = 'data-retention-submissions';
-    public const TASK_SENT_NOTIFICATIONS = 'sent-notifications';
-    public const TASK_FILE_UPLOAD_ASSET_RETENTION = 'file-upload-asset-retention';
-    public const TASK_STALE_PENDING_UPLOADS = 'stale-pending-uploads';
-    public const TASK_REPORT_EXPORTS = 'report-exports';
-    public const TASK_SUBMISSION_GRANTS = 'submission-grants';
-    public const TASK_SUBMISSION_OPERATIONS = 'submission-operations';
-    public const TASK_PAYMENT_CAPABILITIES = 'payment-capabilities';
-    public const TASK_SUBMISSION_PROGRESS = 'submission-progress';
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     /**
@@ -53,6 +38,25 @@ class Cleanup extends Service
             self::TASK_SUBMISSION_PROGRESS,
         ];
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const TASK_INCOMPLETE_SUBMISSIONS = 'incomplete-submissions';
+    public const TASK_DATA_RETENTION_SUBMISSIONS = 'data-retention-submissions';
+    public const TASK_SENT_NOTIFICATIONS = 'sent-notifications';
+    public const TASK_FILE_UPLOAD_ASSET_RETENTION = 'file-upload-asset-retention';
+    public const TASK_STALE_PENDING_UPLOADS = 'stale-pending-uploads';
+    public const TASK_REPORT_EXPORTS = 'report-exports';
+    public const TASK_SUBMISSION_GRANTS = 'submission-grants';
+    public const TASK_SUBMISSION_OPERATIONS = 'submission-operations';
+    public const TASK_PAYMENT_CAPABILITIES = 'payment-capabilities';
+    public const TASK_SUBMISSION_PROGRESS = 'submission-progress';
+
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * Runs all cleanup tasks, or a filtered subset.

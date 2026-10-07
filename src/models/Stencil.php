@@ -4,10 +4,6 @@ namespace verbb\formie\models;
 use verbb\formie\Formie;
 use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
-use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\models\FieldLayout;
-use verbb\formie\models\SubmissionStatus;
-use verbb\formie\records\Stencil as StencilRecord;
 use verbb\formie\services\Stencils as StencilsService;
 use verbb\formie\services\SubmissionStatuses;
 
@@ -18,11 +14,6 @@ use craft\elements\Entry;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;
-
-use yii\base\ErrorException;
-use yii\base\Exception;
-use yii\base\NotSupportedException;
-use yii\web\ServerErrorHttpException;
 
 use DateTime;
 
@@ -44,7 +35,6 @@ class Stencil extends Model implements FormInterface
     public ?string $handle = null;
     public string $scope = StencilsService::SCOPE_PROJECT;
     public ?StencilData $data = null;
-
     public ?int $templateId = null;
     public ?int $redirectEntryId = null;
     public ?int $redirectEntrySiteId = null;

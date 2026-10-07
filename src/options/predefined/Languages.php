@@ -8,13 +8,6 @@ use Craft;
 
 class Languages extends PredefinedOption
 {
-    // Protected Properties
-    // =========================================================================
-
-    public static ?string $defaultLabelOption = 'name';
-    public static ?string $defaultValueOption = 'name';
-
-
     // Static Methods
     // =========================================================================
 
@@ -255,4 +248,11 @@ class Languages extends PredefinedOption
             ['fallback' => 'Zulu', '2-letter' => 'zu', '3-letter' => 'zul'],
         ];
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public static ?string $defaultLabelOption = 'name';
+    public static ?string $defaultValueOption = 'name';
 }

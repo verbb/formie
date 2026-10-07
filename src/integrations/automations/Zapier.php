@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\integrations\automations;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Automation;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -16,8 +16,6 @@ use Craft;
 use craft\helpers\Json;
 
 use Throwable;
-
-use GuzzleHttp\Client;
 
 class Zapier extends Automation
 {
@@ -82,6 +80,10 @@ class Zapier extends Automation
         return new IntegrationConfig($settings);
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -102,10 +104,6 @@ class Zapier extends Automation
 
         return $this->resultForPayload(true);
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

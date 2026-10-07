@@ -9,6 +9,8 @@ use craft\db\Migration;
 use craft\db\Query;
 use craft\helpers\Json;
 
+use Throwable;
+
 class m260418_000000_field_definitions_and_form_fields extends Migration
 {
     // Public Methods
@@ -201,7 +203,7 @@ class m260418_000000_field_definitions_and_form_fields extends Migration
     {
         try {
             $this->createIndex($name, $table, $columns, $unique);
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
     }
 
@@ -209,7 +211,7 @@ class m260418_000000_field_definitions_and_form_fields extends Migration
     {
         try {
             $this->addForeignKey($name, $table, $columns, $refTable, $refColumns, $delete, $update);
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
     }
 
@@ -228,7 +230,7 @@ class m260418_000000_field_definitions_and_form_fields extends Migration
             if ($intersect) {
                 try {
                     $this->dropForeignKey($name, $table);
-                } catch (\Throwable) {
+                } catch (Throwable) {
                 }
             }
         }
@@ -251,7 +253,7 @@ class m260418_000000_field_definitions_and_form_fields extends Migration
 
             try {
                 $this->dropColumn(Table::FORMIE_FORM_FIELDS, $column);
-            } catch (\Throwable) {
+            } catch (Throwable) {
             }
         }
     }

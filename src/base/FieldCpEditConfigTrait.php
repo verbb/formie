@@ -20,5 +20,4 @@ trait FieldCpEditConfigTrait
             'settings' => $this->getSettings(),
         ];
     }
-
 }

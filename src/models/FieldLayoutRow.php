@@ -4,24 +4,11 @@ namespace verbb\formie\models;
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-use verbb\formie\fields\MissingField;
-use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\ConditionsHelper;
+use verbb\formie\helpers\FieldTraversal;
 use verbb\formie\helpers\ValidationHelper;
 
 use Craft;
-use craft\base\Field as CraftField;
-use craft\base\FieldInterface as CraftFieldInterface;
 use craft\base\SavableComponent;
-use craft\errors\MissingComponentException;
-use craft\fieldlayoutelements\CustomField;
-use craft\helpers\Component;
-use craft\helpers\Json;
-
-use yii\base\InvalidConfigException;
-
-use DateTime;
 
 class FieldLayoutRow extends SavableComponent
 {
@@ -87,7 +74,7 @@ class FieldLayoutRow extends SavableComponent
 
     public function getFieldsRecursively(): array
     {
-        return \verbb\formie\helpers\FieldTraversal::recursively($this->getFields());
+        return FieldTraversal::recursively($this->getFields());
     }
 
     public function setFields(array $fields): void
@@ -218,5 +205,4 @@ class FieldLayoutRow extends SavableComponent
 
         return $this->_fields;
     }
-
 }

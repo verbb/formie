@@ -16,5 +16,4 @@ class Hidden extends DefaultField
 
     public static string $class = HiddenField::class;
     public static string $name = 'Hidden';
-
 }

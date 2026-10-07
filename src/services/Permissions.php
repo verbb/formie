@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\elements\Form;
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FormGroup;
 

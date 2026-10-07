@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\content;
 
-use verbb\formie\models\SubmissionUploadClaims;
 use verbb\formie\conditions\ConditionState;
+use verbb\formie\models\SubmissionUploadClaims;
 
 class SubmissionContentState
 {

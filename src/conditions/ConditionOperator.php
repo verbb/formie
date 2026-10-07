@@ -3,6 +3,7 @@ namespace verbb\formie\conditions;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use Throwable;
 
 /** Closed GA operators. The schema is shared directly with the browser package. */
 final class ConditionOperator
@@ -198,7 +199,7 @@ final class ConditionOperator
                         }
                     }
                     return count($candidates) === 1 ? (float)array_key_first($candidates) : null;
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     return null;
                 }
             }

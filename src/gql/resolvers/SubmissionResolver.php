@@ -2,8 +2,8 @@
 namespace verbb\formie\gql\resolvers;
 
 use verbb\formie\Formie;
-use verbb\formie\elements\Submission;
 use verbb\formie\elements\db\SubmissionQuery;
+use verbb\formie\elements\Submission;
 use verbb\formie\gql\arguments\SubmissionArguments;
 use verbb\formie\helpers\Gql as GqlHelper;
 

@@ -2,22 +2,41 @@
 namespace verbb\formie\services;
 
 use verbb\formie\base\FieldInterface;
-use verbb\formie\fields\Phone;
 use verbb\formie\events\ModifyAddressCountriesEvent;
 use verbb\formie\events\ModifyAddressSubdivisionsEvent;
 use verbb\formie\events\ModifyPhoneCountriesEvent;
+use verbb\formie\fields\Phone;
 
 use Craft;
 use craft\base\Component;
 use craft\web\Request;
 
-use libphonenumber\PhoneNumberUtil;
 use CommerceGuys\Addressing\AddressFormat\AddressFormatRepository;
 use CommerceGuys\Addressing\Country\CountryRepository;
 use CommerceGuys\Addressing\Subdivision\SubdivisionRepository;
+use libphonenumber\PhoneNumberUtil;
 
 class Countries extends Component
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function getAdministrativeAreaLabel(?string $type): string
+    {
+        return match ($type) {
+            'state' => Craft::t('formie', 'State'),
+            'province' => Craft::t('formie', 'Province'),
+            'prefecture' => Craft::t('formie', 'Prefecture'),
+            'county' => Craft::t('formie', 'County'),
+            'district' => Craft::t('formie', 'District'),
+            'oblast' => Craft::t('formie', 'Oblast'),
+            'parish' => Craft::t('formie', 'Parish'),
+            'department' => Craft::t('formie', 'Department'),
+            default => Craft::t('formie', 'State / Province'),
+        };
+    }
+
+
     // Constants
     // =========================================================================
 
@@ -241,21 +260,6 @@ class Countries extends Component
             'administrativeAreaUsed' => in_array('administrativeArea', $usedFields, true),
             'administrativeAreaRequired' => in_array('administrativeArea', $requiredFields, true),
         ];
-    }
-
-    public static function getAdministrativeAreaLabel(?string $type): string
-    {
-        return match ($type) {
-            'state' => Craft::t('formie', 'State'),
-            'province' => Craft::t('formie', 'Province'),
-            'prefecture' => Craft::t('formie', 'Prefecture'),
-            'county' => Craft::t('formie', 'County'),
-            'district' => Craft::t('formie', 'District'),
-            'oblast' => Craft::t('formie', 'Oblast'),
-            'parish' => Craft::t('formie', 'Parish'),
-            'department' => Craft::t('formie', 'Department'),
-            default => Craft::t('formie', 'State / Province'),
-        };
     }
 
 

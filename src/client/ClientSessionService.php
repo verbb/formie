@@ -5,13 +5,18 @@ use verbb\formie\Formie;
 use verbb\formie\client\models\FormSession;
 use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\client\models\SessionRefreshRequest;
+use verbb\formie\client\models\SubmitRequest;
+use verbb\formie\client\models\SubmitResult;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\helpers\UploadAccess;
+use verbb\formie\services\SubmissionGrants;
 
 use Craft;
 
 use yii\base\Component;
+use yii\web\ForbiddenHttpException;
 use yii\web\TooManyRequestsHttpException;
 
 class ClientSessionService extends Component
@@ -42,11 +47,11 @@ class ClientSessionService extends Component
         Formie::$plugin->getSubmissionRequests()->applyFormRequestContext($form, null, $request->session['continuation']['draftContext'] ?? null, $request->session['tokens']['request'] ?? null);
         $form->resetRequestToken();
 
-        if (($request->session['continuation']['purpose'] ?? null) === \verbb\formie\services\SubmissionGrants::REVISE) {
-            $grant = Formie::$plugin->getSubmissionGrants()->bound($form, \verbb\formie\services\SubmissionGrants::REVISE, (int)($request->session['continuation']['submissionId'] ?? 0));
+        if (($request->session['continuation']['purpose'] ?? null) === SubmissionGrants::REVISE) {
+            $grant = Formie::$plugin->getSubmissionGrants()->bound($form, SubmissionGrants::REVISE, (int)($request->session['continuation']['submissionId'] ?? 0));
 
             if (!$grant) {
-                throw new \yii\web\ForbiddenHttpException('Submission is unavailable.');
+                throw new ForbiddenHttpException('Submission is unavailable.');
             }
             $form->setSubmission(Submission::find()->id($grant->submissionId)->isIncomplete(false)->status(null)->one());
         }
@@ -57,9 +62,9 @@ class ClientSessionService extends Component
         }
 
         $continuation = (array)($request->session['continuation'] ?? []);
-        $purpose = ($continuation['purpose'] ?? null) === \verbb\formie\services\SubmissionGrants::REVISE
-            ? \verbb\formie\services\SubmissionGrants::REVISE
-            : \verbb\formie\services\SubmissionGrants::CONTINUE;
+        $purpose = ($continuation['purpose'] ?? null) === SubmissionGrants::REVISE
+            ? SubmissionGrants::REVISE
+            : SubmissionGrants::CONTINUE;
         $grantToken = $continuation['grantToken'] ?? null;
 
         if (!is_string($grantToken) || !Formie::$plugin->getSubmissionGrants()->verify($grantToken, $purpose, $form)) {
@@ -69,9 +74,9 @@ class ClientSessionService extends Component
         return $this->_buildSession($form, $currentPageId, null, $grantToken);
     }
 
-    public function persistPageState(PageTransitionRequest $request, bool $enforceAbuseLimit = false): \verbb\formie\client\models\SubmitResult
+    public function persistPageState(PageTransitionRequest $request, bool $enforceAbuseLimit = false): SubmitResult
     {
-        $result = Formie::$plugin->getSubmissionRequests()->execute(new \verbb\formie\client\models\SubmitRequest([
+        $result = Formie::$plugin->getSubmissionRequests()->execute(new SubmitRequest([
             'handle' => $request->handle,
             'siteId' => $request->siteId,
             'action' => 'back',
@@ -79,10 +84,9 @@ class ClientSessionService extends Component
             'session' => $request->session,
             'values' => $request->values,
             'operationId' => $request->operationId,
-        ]), \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
+        ]), SubmissionAuthorityType::VISITOR);
         return $result;
     }
-
 
     public function enforceAnonymousRateLimit(Form $form, string $scope = self::RATE_SCOPE_REFRESH): void
     {
@@ -162,7 +166,7 @@ class ClientSessionService extends Component
     {
         if ($form->isEditingSubmission() && ($submission = $form->getCurrentSubmission()) && !$submission->isIncomplete) {
             return [
-                'purpose' => \verbb\formie\services\SubmissionGrants::REVISE,
+                'purpose' => SubmissionGrants::REVISE,
                 'submissionId' => (int)$submission->id,
                 'draftContext' => $form->getDraftContext(),
                 'draftContextToken' => $form->getDraftContextToken(),

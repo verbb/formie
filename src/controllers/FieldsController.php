@@ -3,10 +3,8 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\base\ElementField;
-use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Payment;
-use verbb\formie\fields\Signature;
 use verbb\formie\fields\Summary;
 use verbb\formie\helpers\CalculationsHelper;
 use verbb\formie\helpers\FieldAccess;
@@ -15,7 +13,6 @@ use verbb\formie\helpers\SignatureAccess;
 use verbb\formie\options\OptionSourceFieldInterface;
 
 use Craft;
-use craft\helpers\Json;
 use craft\web\Controller;
 
 use yii\web\BadRequestHttpException;
@@ -652,5 +649,4 @@ class FieldsController extends Controller
 
         return trim($excerpt);
     }
-
 }

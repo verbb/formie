@@ -1,6 +1,9 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\elements\Form;
+use verbb\formie\records\FormStatus as FormStatusRecord;
+
 use Craft;
 use craft\base\Model;
 use craft\db\SoftDeleteTrait;
@@ -9,8 +12,6 @@ use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 
-use verbb\formie\elements\Form;
-use verbb\formie\records\FormStatus as FormStatusRecord;
 use DateTime;
 
 class FormStatus extends Model

@@ -29,6 +29,10 @@ trait AnonymousSiteRequestGuardTrait
         }
     }
 
+
+    // Private Methods
+    // =========================================================================
+
     private function _isAnonymousAllowedAction(string $actionId): bool
     {
         $allowAnonymous = $this->allowAnonymous ?? false;

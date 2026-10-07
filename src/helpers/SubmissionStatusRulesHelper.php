@@ -4,13 +4,14 @@ namespace verbb\formie\helpers;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\NavigationIntent;
+use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\models\FormSettings;
 use verbb\formie\models\SubmissionCommand;
-use verbb\formie\services\SubmissionWorkflow;
 
 class SubmissionStatusRulesHelper
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function applyRules(Form $form, Submission $submission, SubmissionCommand $command, ?bool $hasNextPage): void
@@ -62,28 +63,24 @@ class SubmissionStatusRulesHelper
         }
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     private static function _shouldApplyTrigger(string $trigger, SubmissionCommand $command, ?bool $hasNextPage): bool
     {
-        if ($command->operation !== \verbb\formie\enums\SubmissionOperation::SUBMIT) {
+        if ($command->operation !== SubmissionOperation::SUBMIT) {
             return false;
         }
 
-        if ($command->navigation === \verbb\formie\enums\NavigationIntent::BACK) {
+        if ($command->navigation === NavigationIntent::BACK) {
             return false;
         }
 
         if ($trigger === 'everyPage') {
             return in_array($command->navigation, [
-                \verbb\formie\enums\NavigationIntent::ADVANCE,
-                \verbb\formie\enums\NavigationIntent::STAY,
+                NavigationIntent::ADVANCE,
+                NavigationIntent::STAY,
             ], true);
         }
 
-        if ($command->navigation !== \verbb\formie\enums\NavigationIntent::ADVANCE) {
+        if ($command->navigation !== NavigationIntent::ADVANCE) {
             return false;
         }
 

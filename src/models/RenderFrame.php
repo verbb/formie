@@ -2,7 +2,6 @@
 namespace verbb\formie\models;
 
 use verbb\formie\elements\Form;
-use verbb\formie\fields\Html;
 
 // One stack frame for the active form render context.
 class RenderFrame
@@ -57,7 +56,6 @@ class RenderFrame
 
         return in_array($key, $keys, true);
     }
-
 
 
     // Public Methods

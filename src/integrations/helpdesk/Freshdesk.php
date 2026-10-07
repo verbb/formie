@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\integrations\helpdesk;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\HelpDesk;
 use verbb\formie\base\Integration;
@@ -10,9 +10,8 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 use verbb\formie\references\ReferenceSlot;
 use verbb\formie\references\ReferenceSlotKind;
@@ -53,6 +52,7 @@ class Freshdesk extends HelpDesk
     public ?array $contactFieldMapping = null;
     #[FormIntegrationSetting]
     public ?array $ticketFieldMapping = null;
+
     private ?array $_attachments = null;
 
 
@@ -316,6 +316,102 @@ class Freshdesk extends HelpDesk
         return new IntegrationConfig($settings);
     }
 
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('GET', 'tickets');
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getFieldMappingMultipartValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
+    {
+        // Manually get field settings since we're not using parent method
+        $fieldSettings = $this->getConfigValue($fieldSettings);
+        $fieldValues = [];
+
+        if (!is_array($fieldMapping)) {
+            $fieldMapping = [];
+        }
+
+        foreach ($fieldMapping as $tag => $fieldKey) {
+            $slot = ReferenceSlot::fromStored($fieldKey);
+
+            // Don't let in un-mapped fields
+            if ($slot->value === '') {
+                continue;
+            }
+
+            // Prep custom field names for multipart
+            if (str_starts_with($tag, 'custom:')) {
+                $name = 'custom_fields[' . str_replace('custom:', '', $tag) . ']';
+            } else {
+                $name = $tag;
+            }
+
+            if ($slot->kind !== ReferenceSlotKind::Literal) {
+                // Handle attachments differently to get file contents
+                if ($tag === 'attachments') {
+                    $name .= '[]';
+
+                    foreach ($this->_attachments as $attachment) {
+                        $fieldValues[] = [
+                            'name' => $name,
+                            'contents' => Utils::tryFopen($attachment->getImageTransformSourcePath(), 'r'),
+                            'filename' => $attachment->filename,
+                        ];
+                    }
+                } else {
+                    // Get the type of field we are mapping to (for the integration)
+                    $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
+                    $value = $this->getMappedFieldValue($fieldKey, $submission, $integrationField);
+
+                    // Loop through the value if it's an array
+                    if (is_array($value)) {
+                        foreach ($value as $key => $contents) {
+                            $fieldValues[] = [
+                                'name' => is_string($key) ? "{$name}[{$key}]" : "{$name}[]",
+                                'contents' => $contents,
+                            ];
+                        }
+                    } elseif ($value !== '' && $value !== null) {
+                        $fieldValues[] = [
+                            'name' => $name,
+                            'contents' => $value,
+                        ];
+                    }
+                }
+            } else {
+                // Otherwise, might have passed in a direct, static value
+                $fieldValues[] = [
+                    'name' => $name,
+                    'contents' => $slot->value,
+                ];
+            }
+        }
+
+        $event = new ModifyFieldIntegrationValuesEvent([
+            'fieldValues' => $fieldValues,
+            'submission' => $submission,
+            'fieldMapping' => $fieldMapping,
+            'fieldSettings' => $fieldSettings,
+            'integration' => $this,
+        ]);
+
+        $this->trigger(Integration::EVENT_MODIFY_FIELD_MAPPING_VALUES, $event);
+
+        return $event->fieldValues;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -469,102 +565,6 @@ class Freshdesk extends HelpDesk
         return $this->resultForPayload(true);
     }
 
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('GET', 'tickets');
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    public function getFieldMappingMultipartValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
-    {
-        // Manually get field settings since we're not using parent method
-        $fieldSettings = $this->getConfigValue($fieldSettings);
-        $fieldValues = [];
-
-        if (!is_array($fieldMapping)) {
-            $fieldMapping = [];
-        }
-
-        foreach ($fieldMapping as $tag => $fieldKey) {
-            $slot = ReferenceSlot::fromStored($fieldKey);
-
-            // Don't let in un-mapped fields
-            if ($slot->value === '') {
-                continue;
-            }
-
-            // Prep custom field names for multipart
-            if (str_starts_with($tag, 'custom:')) {
-                $name = 'custom_fields[' . str_replace('custom:', '', $tag) . ']';
-            } else {
-                $name = $tag;
-            }
-
-            if ($slot->kind !== ReferenceSlotKind::Literal) {
-                // Handle attachments differently to get file contents
-                if ($tag === 'attachments') {
-                    $name .= '[]';
-
-                    foreach ($this->_attachments as $attachment) {
-                        $fieldValues[] = [
-                            'name' => $name,
-                            'contents' => Utils::tryFopen($attachment->getImageTransformSourcePath(), 'r'),
-                            'filename' => $attachment->filename,
-                        ];
-                    }
-                } else {
-                    // Get the type of field we are mapping to (for the integration)
-                    $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
-                    $value = $this->getMappedFieldValue($fieldKey, $submission, $integrationField);
-
-                    // Loop through the value if it's an array
-                    if (is_array($value)) {
-                        foreach ($value as $key => $contents) {
-                            $fieldValues[] = [
-                                'name' => is_string($key) ? "{$name}[{$key}]" : "{$name}[]",
-                                'contents' => $contents,
-                            ];
-                        }
-                    } elseif ($value !== '' && $value !== null) {
-                        $fieldValues[] = [
-                            'name' => $name,
-                            'contents' => $value,
-                        ];
-                    }
-                }
-            } else {
-                // Otherwise, might have passed in a direct, static value
-                $fieldValues[] = [
-                    'name' => $name,
-                    'contents' => $slot->value,
-                ];
-            }
-        }
-
-        $event = new ModifyFieldIntegrationValuesEvent([
-            'fieldValues' => $fieldValues,
-            'submission' => $submission,
-            'fieldMapping' => $fieldMapping,
-            'fieldSettings' => $fieldSettings,
-            'integration' => $this,
-        ]);
-
-        $this->trigger(Integration::EVENT_MODIFY_FIELD_MAPPING_VALUES, $event);
-
-        return $event->fieldValues;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -628,7 +628,6 @@ class Freshdesk extends HelpDesk
 
         return $schema;
     }
-
 
 
     // Private Methods

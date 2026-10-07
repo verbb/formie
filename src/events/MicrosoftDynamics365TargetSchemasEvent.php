@@ -9,5 +9,4 @@ class MicrosoftDynamics365TargetSchemasEvent extends Event
     // =========================================================================
 
     public array $targetSchemas;
-
 }

@@ -69,6 +69,7 @@ class IntegrationFormSettings extends Model
         $this->collections = $this->_classFromArray($serialized);
     }
 
+
     // Private Methods
     // =========================================================================
 

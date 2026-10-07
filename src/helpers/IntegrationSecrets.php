@@ -9,9 +9,9 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use RuntimeException;
 use ReflectionObject;
 use ReflectionProperty;
+use RuntimeException;
 
 /** Encrypt literal connection settings while leaving environment references portable. */
 final class IntegrationSecrets

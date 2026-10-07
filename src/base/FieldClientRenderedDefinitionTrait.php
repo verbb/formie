@@ -1,10 +1,8 @@
 <?php
 namespace verbb\formie\base;
 
-use verbb\formie\base\Field;
 use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\helpers\ConditionsHelper;
-use Craft;
 
 trait FieldClientRenderedDefinitionTrait
 {

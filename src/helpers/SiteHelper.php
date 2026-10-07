@@ -7,7 +7,7 @@ use yii\web\BadRequestHttpException;
 
 class SiteHelper
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function resolveRequestSiteId(

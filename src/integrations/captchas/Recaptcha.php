@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\integrations\captchas;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Captcha;
 use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
@@ -14,7 +14,6 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\FieldLayoutPage;
-use verbb\formie\models\Stencil;
 
 use Craft;
 use craft\helpers\App;
@@ -532,5 +531,4 @@ class Recaptcha extends Captcha
 
         return $options;
     }
-
 }

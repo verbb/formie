@@ -3,9 +3,6 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
 
-use Craft;
-use craft\db\Query;
-
 class ProjectConfigHelper
 {
     // Static Methods
@@ -31,10 +28,6 @@ class ProjectConfigHelper
 
         return array_filter($configData);
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private static function _getSubmissionStatusData(): array
     {

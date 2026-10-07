@@ -1,22 +1,10 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\Formie;
-use verbb\formie\elements\Form;
-use verbb\formie\fields;
-use verbb\formie\fields\SingleLineText;
-use verbb\formie\fields\subfields;
-use verbb\formie\models\FieldLayout;
-use verbb\formie\positions\Hidden as HiddenPosition;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Table;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
-use craft\helpers\Json;
-
-use Throwable;
 
 class m240318_000000_notification_fields extends Migration
 {
@@ -70,5 +58,4 @@ class m240318_000000_notification_fields extends Migration
 
         return false;
     }
-
 }

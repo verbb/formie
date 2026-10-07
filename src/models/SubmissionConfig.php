@@ -1,12 +1,14 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
-use verbb\formie\Formie;
 use verbb\formie\helpers\RuntimeConfigurationMigration;
 use verbb\formie\services\RuntimeConfiguration;
+
+use InvalidArgumentException;
 
 final class SubmissionConfig
 {
@@ -24,7 +26,7 @@ final class SubmissionConfig
         }
 
         if ($data['version'] !== 1) {
-            throw new \InvalidArgumentException('Unsupported submission configuration version.');
+            throw new InvalidArgumentException('Unsupported submission configuration version.');
         }
 
         $fields = [];
@@ -65,10 +67,6 @@ final class SubmissionConfig
         }
         return $data;
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private static function _decodeFormie3(array $data, Form $form): FormInstanceConfig
     {

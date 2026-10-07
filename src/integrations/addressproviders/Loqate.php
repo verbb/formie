@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\integrations\addressproviders;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\AddressProvider;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
@@ -10,16 +10,9 @@ use verbb\formie\models\BrowserModuleContext;
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
-use craft\helpers\Template;
 
 class Loqate extends AddressProvider
 {
-    // Constants
-    // =========================================================================
-
-    public const LOQATE_INPUT_NAME = 'formie-loqate-autocomplete';
-
-
     // Static Methods
     // =========================================================================
 
@@ -27,6 +20,12 @@ class Loqate extends AddressProvider
     {
         return 'Loqate';
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const LOQATE_INPUT_NAME = 'formie-loqate-autocomplete';
 
 
     // Properties

@@ -4,7 +4,6 @@ namespace verbb\formie\models;
 use verbb\formie\base\TranslatablePropertiesInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ClientEventsHelper;
-use verbb\formie\helpers\ConditionsHelper;
 
 use Craft;
 use craft\base\Model;
@@ -23,7 +22,6 @@ class FieldLayoutPageSettings extends Model implements TranslatablePropertiesInt
             'saveButtonLabel',
         ];
     }
-
 
 
     // Properties

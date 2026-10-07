@@ -3,7 +3,6 @@ namespace verbb\formie\gql\types;
 
 use craft\gql\base\ObjectType;
 use craft\gql\GqlEntityRegistry;
-use craft\helpers\App;
 use craft\helpers\Json;
 
 use GraphQL\Type\Definition\Type;

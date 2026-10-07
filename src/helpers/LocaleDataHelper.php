@@ -2,6 +2,7 @@
 namespace verbb\formie\helpers;
 
 use Craft;
+
 use Locale;
 
 class LocaleDataHelper

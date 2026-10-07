@@ -6,15 +6,14 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\coercion\StringValueCoercer;
+use verbb\formie\fields\conditions\TextFieldConditionRule;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
-use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Variables;
-use verbb\formie\fields\conditions\TextFieldConditionRule;
 use verbb\formie\fields\traits\AutocompleteFieldTrait;
 use verbb\formie\fields\traits\TextLimitFieldTrait;
 use verbb\formie\fields\traits\UniqueValueFieldTrait;
+use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\references\ReferenceType;
@@ -24,11 +23,10 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\Template;
 
-use Faker\Generator as FakerFactory;
-
-use GraphQL\Type\Definition\Type;
-
 use yii\db\Schema;
+
+use Faker\Generator as FakerFactory;
+use GraphQL\Type\Definition\Type;
 
 class MultiLineText extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
@@ -96,11 +94,6 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
         }
 
         return (string)$value;
-    }
-
-    protected function shouldTrimNormalizedPlainText(): bool
-    {
-        return !$this->useRichText;
     }
 
     public function getElementConditionRuleType(): ?string
@@ -289,8 +282,14 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
         ];
     }
 
+
     // Protected Methods
     // =========================================================================
+
+    protected function shouldTrimNormalizedPlainText(): bool
+    {
+        return !$this->useRichText;
+    }
 
     protected function defineValueType(): FieldValueType
     {
@@ -454,6 +453,4 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
     {
         return !$this->useRichText;
     }
-
-
 }

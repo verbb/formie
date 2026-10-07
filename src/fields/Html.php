@@ -1,17 +1,16 @@
 <?php
 namespace verbb\formie\fields;
 
-use verbb\formie\base\CosmeticField;
 use verbb\formie\Formie;
+use verbb\formie\base\CosmeticField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPurifierConfigEvent;
 use verbb\formie\helpers\HtmlHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
+use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
-
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -21,10 +20,10 @@ use craft\helpers\HtmlPurifier;
 use craft\helpers\Json;
 use craft\helpers\Template;
 
-use GraphQL\Type\Definition\Type;
-
-use HTMLPurifier_Config;
 use HTMLPurifier_AttrDef_HTML_Bool;
+use HTMLPurifier_Config;
+
+use GraphQL\Type\Definition\Type;
 use Twig\Error\Error as TwigError;
 
 class Html extends CosmeticField

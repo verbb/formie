@@ -1,11 +1,12 @@
 <?php
 namespace verbb\formie\services;
 
-use Craft;
-
-use craft\helpers\Session;
-use yii\base\Component;
 use verbb\formie\helpers\StringHelper;
+
+use Craft;
+use craft\helpers\Session;
+
+use yii\base\Component;
 
 class Service extends Component
 {

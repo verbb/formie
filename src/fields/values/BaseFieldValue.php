@@ -3,6 +3,8 @@ namespace verbb\formie\fields\values;
 
 use verbb\formie\helpers\ArrayHelper;
 
+use LogicException;
+
 abstract class BaseFieldValue implements FieldValueInterface
 {
     // Public Methods
@@ -20,7 +22,7 @@ abstract class BaseFieldValue implements FieldValueInterface
 
     public function __set(string $name, mixed $value): void
     {
-        throw new \LogicException('Normalized field values are immutable. Construct a new value instead.');
+        throw new LogicException('Normalized field values are immutable. Construct a new value instead.');
     }
 
     abstract public function toArray(): array;

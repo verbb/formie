@@ -12,5 +12,4 @@ class ModifyFormRenderOptionsEvent extends Event
 
     public Form $form;
     public array $renderOptions = [];
-
 }

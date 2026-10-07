@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\base;
 
-use craft\base\ComponentInterface;
 use verbb\formie\options\OptionResolvableInterface;
+
+use craft\base\ComponentInterface;
 
 interface ElementFieldInterface extends ComponentInterface, OptionResolvableInterface
 {

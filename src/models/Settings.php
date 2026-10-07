@@ -20,9 +20,6 @@ use yii\validators\EmailValidator;
 
 class Settings extends Model
 {
-    public array $completionRedirectAllowedOrigins = [];
-    public array $completionQueryAllowlist = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
-
     // Constants
     // =========================================================================
 
@@ -51,15 +48,17 @@ class Settings extends Model
     // Properties
     // =========================================================================
 
+    public array $completionRedirectAllowedOrigins = [];
+    public array $completionQueryAllowlist = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
     public string $pluginName = 'Formie';
     public string $defaultPage = 'forms';
     public bool $compatibilityMode = true;
     public array $referenceEnvironmentAllowlist = [];
     public bool $staticCacheRefreshOnLoad = false;
     public string $allowedSubmitMethods = self::ALLOWED_SUBMIT_METHODS_BOTH;
-
     // Forms
-    public bool $validateCustomTemplates = true; // Allow power users to handle form template path checks on their own
+    public bool $validateCustomTemplates = true;
+    // Allow power users to handle form template path checks on their own
     public string $defaultFormTemplate = '';
     public string $defaultFormStencil = '';
     public string $defaultEmailTemplate = '';
@@ -76,14 +75,12 @@ class Settings extends Model
     public bool $includeDraftElementUsage = false;
     public bool $includeRevisionElementUsage = false;
     public bool $outputConsoleMessages = true;
-
     // General Fields
     public array $disabledFields = [];
     public string $defaultLabelPosition = AboveInput::class;
     public string $defaultInstructionsPosition = AboveInput::class;
     public string $defaultErrorMessagePosition = BelowInput::class;
     public array $validationMessageDefaults = [];
-
     // Fields
     public bool $allowPublicVolumes = true;
     public bool $allowMultiSelectDropdowns = true;
@@ -91,7 +88,6 @@ class Settings extends Model
     public bool $enableLargeFieldStorage = false;
     public bool $includeFlatpickrCss = true;
     public string $plainTextHtmlSanitizationMode = self::PLAIN_TEXT_HTML_SANITIZATION_MODE_PRESERVE;
-
     // Submissions
     public int $maxIncompleteSubmissionAge = 30;
     public int $maxStagedUploadFiles = 50;
@@ -120,11 +116,9 @@ class Settings extends Model
     public int $anonymousClientBootstrapRateLimit = 30;
     public int $anonymousClientRefreshRateLimit = 120;
     public int $anonymousClientRateWindowSeconds = 60;
-
     // Sent Notifications
     public bool $sentNotifications = true;
     public int $maxSentNotificationsAge = 30;
-
     // Spam — runtime-managed via `SpamProtection` service (`formie_spam_settings`).
     public bool $saveSpam = true;
     public int $spamLimit = 500;
@@ -132,7 +126,6 @@ class Settings extends Model
     public string $spamBehaviour = self::SPAM_BEHAVIOUR_SUCCESS;
     public string $spamKeywords = '';
     public string $spamBehaviourMessage = '';
-
     public bool $enableHoneypot = true;
     public string $honeypotFieldName = 'formieHoneypot';
     public bool $enableMinimumSubmitTime = true;
@@ -154,7 +147,6 @@ class Settings extends Model
     public int $globalSubmissionThrottleWindowSeconds = 60;
     public bool $enableIpSubmissionThrottling = false;
     public int $ipSubmissionThrottleMinutes = 5;
-
     // Email Notifications
     public bool $sendEmailAlerts = false;
     public ?array $alertEmails = null;
@@ -164,18 +156,14 @@ class Settings extends Model
     public ?string $integrationAlertEmailsUserGroup = null;
     public string $emptyValuePlaceholder = 'No response.';
     public int $maxEmailAttachmentSizeMb = 15;
-
     // PDFs
     public string $pdfPaperSize = 'letter';
     public string $pdfPaperOrientation = 'portrait';
-
     // Theme
     public array $themeConfig = [];
     public bool $useCssLayers = false;
-
     // Deprecated — captcha provider credentials now live in `formie_captcha_providers`.
     public array $captchas = [];
-
     // Export
     public string $defaultExportFolder = '@storage/formie-export';
 
@@ -440,6 +428,7 @@ class Settings extends Model
 
         return $this->maxEmailAttachmentSizeMb * 1024 * 1024;
     }
+
 
     // Protected Methods
     // =========================================================================

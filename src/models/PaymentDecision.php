@@ -67,6 +67,7 @@ class PaymentDecision extends Model
         ]);
     }
 
+
     // Constants
     // =========================================================================
 
@@ -77,6 +78,7 @@ class PaymentDecision extends Model
     public const STATUS_PENDING = PaymentDecisionStatus::PENDING;
     public const STATUS_UNKNOWN = PaymentDecisionStatus::UNKNOWN;
     public const STATUS_CANCELLED = PaymentDecisionStatus::CANCELLED;
+
 
     // Properties
     // =========================================================================
@@ -129,5 +131,4 @@ class PaymentDecision extends Model
             default => 1,
         };
     }
-
 }

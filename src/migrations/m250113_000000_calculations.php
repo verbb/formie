@@ -4,7 +4,6 @@ namespace verbb\formie\migrations;
 use verbb\formie\fields\Calculations;
 use verbb\formie\helpers\Table;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
 use craft\helpers\Json;

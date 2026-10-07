@@ -6,6 +6,7 @@ use verbb\formie\helpers\Table;
 
 use craft\db\Migration;
 use craft\db\Query;
+
 use Throwable;
 
 class m260214_000000_field_references extends Migration

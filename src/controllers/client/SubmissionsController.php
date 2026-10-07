@@ -5,6 +5,8 @@ use verbb\formie\Formie;
 use verbb\formie\client\models\SubmitRequest;
 use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
+use verbb\formie\enums\SubmissionAuthorityType;
+use verbb\formie\helpers\BrowserRequestProfile;
 use verbb\formie\helpers\SiteHelper;
 
 use craft\web\Controller;
@@ -13,17 +15,17 @@ use yii\web\Response;
 
 class SubmissionsController extends Controller
 {
-    // Properties
-    // =========================================================================
-
-    protected array|bool|int $allowAnonymous = ['submit' => self::ALLOW_ANONYMOUS_LIVE];
-
-
     // Traits
     // =========================================================================
 
     use CrossOriginRequestTrait;
     use AnonymousSiteRequestGuardTrait;
+
+
+    // Properties
+    // =========================================================================
+
+    protected array|bool|int $allowAnonymous = ['submit' => self::ALLOW_ANONYMOUS_LIVE];
 
 
     // Public Methods
@@ -32,12 +34,12 @@ class SubmissionsController extends Controller
     public function beforeAction($action): bool
     {
         $this->forbidGuestControlPanelAnonymousActions($action->id);
-        $profile = \verbb\formie\helpers\BrowserRequestProfile::enter($action->id === 'load');
+        $profile = BrowserRequestProfile::enter($action->id === 'load');
 
-        if ($profile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+        if ($profile === BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         }
-        $this->enableCsrfValidation = $profile === \verbb\formie\helpers\BrowserRequestProfile::SAME_ORIGIN;
+        $this->enableCsrfValidation = $profile === BrowserRequestProfile::SAME_ORIGIN;
 
         return parent::beforeAction($action);
     }
@@ -58,7 +60,7 @@ class SubmissionsController extends Controller
             'session' => (array)$this->request->getBodyParam('session', []),
             'values' => (array)$this->request->getBodyParam('values', []),
             'browserData' => (array)$this->request->getBodyParam('browserData', []),
-        ]), \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
+        ]), SubmissionAuthorityType::VISITOR);
 
         $this->response->setNoCacheHeaders();
         $this->response->setStatusCode($result->httpStatus);

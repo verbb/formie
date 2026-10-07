@@ -6,14 +6,13 @@ use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
 
 use Throwable;
 
@@ -37,6 +36,7 @@ class CustomerIo extends EmailMarketing
     public ?string $apiKey = null;
     public ?string $siteId = null;
     public ?string $dataCenter = null;
+
 
     // Public Methods
     // =========================================================================
@@ -88,6 +88,31 @@ class CustomerIo extends EmailMarketing
         return new IntegrationConfig($settings);
     }
 
+    public function fetchConnection(): bool
+    {
+        try {
+            $response = $this->request('POST', 'entity', [
+                'json' => [
+                    'type' => 'person',
+                    'action' => 'identify',
+                    'identifiers' => [
+                        'email' => 'formie@test.com',
+                    ],
+                ],
+            ]);
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -120,31 +145,6 @@ class CustomerIo extends EmailMarketing
 
         return $this->resultForPayload(true);
     }
-
-    public function fetchConnection(): bool
-    {
-        try {
-            $response = $this->request('POST', 'entity', [
-                'json' => [
-                    'type' => 'person',
-                    'action' => 'identify',
-                    'identifiers' => [
-                        'email' => 'formie@test.com',
-                    ],
-                ],
-            ]);
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-
-            return false;
-        }
-
-        return true;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

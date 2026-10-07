@@ -8,22 +8,17 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
-use craft\helpers\App;
 use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 use Throwable;
 
-use GuzzleHttp\Client;
 use League\HTMLToMarkdown\HtmlConverter;
 use verbb\auth\base\OAuthProviderInterface;
-use verbb\auth\models\Token;
 use verbb\auth\providers\HelpScout as HelpScoutProvider;
 
 class HelpScout extends HelpDesk implements OAuthProviderInterface
@@ -145,6 +140,10 @@ class HelpScout extends HelpDesk implements OAuthProviderInterface
         return new IntegrationConfig($settings);
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
@@ -202,10 +201,6 @@ class HelpScout extends HelpDesk implements OAuthProviderInterface
 
         return $this->resultForPayload(true);
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {

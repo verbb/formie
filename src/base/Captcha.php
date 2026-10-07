@@ -3,7 +3,6 @@ namespace verbb\formie\base;
 
 use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
-use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\CaptchaValidateSubmissionEvent;
@@ -12,7 +11,6 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\FieldLayoutPage;
-use verbb\formie\models\Stencil;
 
 use Craft;
 use craft\helpers\UrlHelper;
@@ -22,13 +20,6 @@ use Throwable;
 
 abstract class Captcha extends Integration
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_BEFORE_VALIDATE_SUBMISSION = 'beforeValidateSubmission';
-    public const EVENT_AFTER_VALIDATE_SUBMISSION = 'afterValidateSubmission';
-
-
     // Static Methods
     // =========================================================================
 
@@ -46,6 +37,13 @@ abstract class Captcha extends Integration
     {
         return false;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_BEFORE_VALIDATE_SUBMISSION = 'beforeValidateSubmission';
+    public const EVENT_AFTER_VALIDATE_SUBMISSION = 'afterValidateSubmission';
 
 
     // Properties
@@ -67,7 +65,6 @@ abstract class Captcha extends Integration
         // submission exists, rather than a delivery connection's base URI.
         return $this->requestPublicEndpoint($method, $uri, $options);
     }
-
 
     public function getType(): string
     {

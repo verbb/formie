@@ -9,8 +9,6 @@ use craft\console\Controller;
 use craft\helpers\Console;
 use craft\helpers\Db;
 
-use Throwable;
-
 use yii\console\ExitCode;
 
 /**

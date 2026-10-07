@@ -1,10 +1,9 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Field;
-use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
@@ -14,28 +13,32 @@ use verbb\formie\enums\SubscriptionStatus;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
+use verbb\formie\fields\Calculations;
+use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\Hidden;
+use verbb\formie\fields\Number;
+use verbb\formie\fields\Radio;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\helpers\PaymentAmountHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
-use verbb\formie\models\SubscriptionPlan;
-use verbb\formie\models\SlotTag;
-use verbb\formie\models\Subscription;
 use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\payments\PaymentWebhookReceipt;
 use verbb\formie\models\payments\SubscriptionSnapshot;
 use verbb\formie\models\payments\VerifiedWebhook;
 use verbb\formie\models\payments\VerifiedWebhookBatch;
+use verbb\formie\models\SlotTag;
+use verbb\formie\models\Subscription;
+use verbb\formie\models\SubscriptionPlan;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\theme\context\RenderContext;
 
@@ -44,9 +47,9 @@ use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
+
 use yii\base\Event;
 use yii\web\BadRequestHttpException;
-use yii\web\NotFoundHttpException;
 
 use DateTimeImmutable;
 use Exception;
@@ -56,9 +59,10 @@ use Throwable;
 
 use Stripe\Customer;
 use Stripe\Event as StripeEvent;
-use Stripe\Exception as StripeException;
-use Stripe\Invoice as StripeInvoice;
+use Stripe\Exception\ApiErrorException;
+use Stripe\Exception\CardException;
 use Stripe\PaymentIntent;
+use Stripe\Stripe as StripeSdk;
 use Stripe\StripeClient;
 use Stripe\Subscription as StripeSubscription;
 use Stripe\Webhook as StripeWebhook;
@@ -134,6 +138,7 @@ class Stripe extends Payment
     public bool $hideIcon = false;
 
     private ?StripeClient $_stripe = null;
+    private ?PaymentAction $_confirmationAction = null;
 
 
     // Public Methods
@@ -297,97 +302,6 @@ class Stripe extends Payment
         }
 
         return self::toStripeAmount($amount, $currency);
-    }
-
-    protected function executePayment(Submission $submission): PaymentDecision
-    {
-        $this->_confirmationAction = null;
-        $result = false;
-
-        $type = $this->getFieldSetting('type');
-
-        // Allow events to cancel sending
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
-
-        if ($type === self::PAYMENT_TYPE_SINGLE) {
-            $result = $this->processSinglePayment($submission);
-        } elseif ($type === self::PAYMENT_TYPE_SUBSCRIPTION) {
-            $result = $this->processSubscriptionPayment($submission);
-        }
-
-        // Allow events to say the response is invalid
-        if (!$this->afterProcessPayment($submission, $result)) {
-            return PaymentDecision::succeeded($this->handle);
-        }
-
-        $field = $this->getField();
-
-        if (!$field) {
-            return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
-        }
-
-        $latestPayment = null;
-
-        foreach (Formie::$plugin->getPayments()->getSubmissionPayments($submission) as $payment) {
-            if ((int)$payment->fieldId === (int)$field->id) {
-                $latestPayment = $payment;
-            }
-        }
-
-        if ($type === self::PAYMENT_TYPE_SUBSCRIPTION && $latestPayment?->subscriptionId) {
-            $subscription = $latestPayment->getSubscription();
-
-            if ($subscription && in_array($subscription->getState(), [SubscriptionStatus::TRIALING, SubscriptionStatus::ACTIVE], true)) {
-                return PaymentDecision::succeeded($this->handle, $subscription->reference);
-            }
-
-            if ($subscription?->getState()->isTerminal()) {
-                return PaymentDecision::cancelled(null, $this->handle, $subscription->reference);
-            }
-
-            if ($subscription && empty($subscription->providerData['requiresAction'])) {
-                return $subscription->status === 'unknown' ? PaymentDecision::unknown(null, $this->handle, $subscription->reference)
-                    : PaymentDecision::pending(null, $this->handle, $subscription->reference);
-            }
-        }
-
-        if ($this->_confirmationAction) {
-            return PaymentDecision::requiresAction($latestPayment?->reference, $this->_confirmationAction);
-        }
-
-        if ($latestPayment) {
-            return match ((string)$latestPayment->status) {
-                PaymentModel::STATUS_SUCCEEDED => PaymentDecision::succeeded($this->handle, $latestPayment->reference),
-                PaymentModel::STATUS_REQUIRES_ACTION => PaymentDecision::requiresAction(
-                    $latestPayment->reference,
-                    PaymentAction::redirect(
-                        provider: $this->handle,
-                        event: 'formie:payment:stripe:confirm',
-                        message: $latestPayment->message ?: Craft::t('formie', 'Additional payment confirmation is required to continue.'),
-                        resumeMode: PaymentResumeMode::RETURN,
-                        resumeUrl: $this->getReturnUrl($submission),
-                    )
-                ),
-                PaymentModel::STATUS_PROCESSING => PaymentDecision::pending($latestPayment->message, $this->handle, $latestPayment->reference),
-                PaymentModel::STATUS_CANCELLED => PaymentDecision::cancelled($latestPayment->message, $this->handle, $latestPayment->reference),
-                PaymentModel::STATUS_PENDING => PaymentDecision::requiresAction(
-                    $latestPayment->reference,
-                    PaymentAction::confirm(
-                        provider: $this->handle,
-                        event: 'formie:payment:stripe:confirm',
-                        message: $latestPayment->message ?: Craft::t('formie', 'Additional payment confirmation is required to continue.'),
-                        resumeMode: PaymentResumeMode::RETURN,
-                        resumeUrl: $this->getReturnUrl($submission),
-                    )
-                ),
-                PaymentModel::STATUS_FAILED => PaymentDecision::failed($latestPayment->message, $this->handle, $latestPayment->reference),
-                default => PaymentDecision::unknown(null, $this->handle, $latestPayment->reference),
-            };
-        }
-
-        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
     }
 
     public function processSubscriptionPayment(Submission $submission): bool
@@ -735,7 +649,7 @@ class Stripe extends Payment
             ]);
 
             return false;
-        } catch (StripeException\CardException $e) {
+        } catch (CardException $e) {
             $body = $e->getJsonBody();
 
             $payment = Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
@@ -755,7 +669,7 @@ class Stripe extends Payment
             $this->addFieldError($submission, $payment->message);
 
             return false;
-        } catch (StripeException\ApiErrorException $e) {
+        } catch (ApiErrorException $e) {
             // The provider may have accepted a request before the response failed.
             // Resource receipts determine whether a later retry is safe.
             throw $e;
@@ -958,7 +872,7 @@ class Stripe extends Payment
             return $this->_stripe;
         }
 
-        \Stripe\Stripe::setAppInfo('Craft Formie', Formie::$plugin->getVersion(), 'https://verbb.io/craft-plugins/formie');
+        StripeSdk::setAppInfo('Craft Formie', Formie::$plugin->getVersion(), 'https://verbb.io/craft-plugins/formie');
 
         return $this->_stripe = new StripeClient([
             'api_key' => App::parseEnv($this->secretKey),
@@ -969,17 +883,6 @@ class Stripe extends Payment
     public function getPaymentEnvironment(): string
     {
         return str_contains((string)App::parseEnv($this->secretKey), '_test_') ? 'test' : 'live';
-    }
-
-    protected function getPaymentAccountIdentity(): ?string
-    {
-        // Connection verification resolves the stable account without a request per payment.
-        return Craft::$app->getCache()->get($this->_accountIdentityCacheKey()) ?: null;
-    }
-
-    private function _accountIdentityCacheKey(): string
-    {
-        return 'formie.stripe-account.' . hash_hmac('sha256', (string)App::parseEnv($this->secretKey), Formie::$plugin->getSettings()->getSecurityKey());
     }
 
     public function defineFormBuilderGeneralSchema(): array
@@ -1021,12 +924,12 @@ class Stripe extends Payment
                         'topLevelOnly' => true,
                         'required' => true,
                         'fieldTypes' => [
-                            fields\Calculations::class,
-                            fields\Dropdown::class,
-                            fields\Hidden::class,
-                            fields\Number::class,
-                            fields\Radio::class,
-                            fields\SingleLineText::class,
+                            Calculations::class,
+                            Dropdown::class,
+                            Hidden::class,
+                            Number::class,
+                            Radio::class,
+                            SingleLineText::class,
                         ],
                         'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
                     ]),
@@ -1118,12 +1021,12 @@ class Stripe extends Payment
                         'topLevelOnly' => true,
                         'required' => true,
                         'fieldTypes' => [
-                            fields\Calculations::class,
-                            fields\Dropdown::class,
-                            fields\Hidden::class,
-                            fields\Number::class,
-                            fields\Radio::class,
-                            fields\SingleLineText::class,
+                            Calculations::class,
+                            Dropdown::class,
+                            Hidden::class,
+                            Number::class,
+                            Radio::class,
+                            SingleLineText::class,
                         ],
                         'if' => 'subscriptionSetupFeeType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
                     ]),
@@ -1161,12 +1064,12 @@ class Stripe extends Payment
                         'topLevelOnly' => true,
                         'required' => true,
                         'fieldTypes' => [
-                            fields\Calculations::class,
-                            fields\Dropdown::class,
-                            fields\Hidden::class,
-                            fields\Number::class,
-                            fields\Radio::class,
-                            fields\SingleLineText::class,
+                            Calculations::class,
+                            Dropdown::class,
+                            Hidden::class,
+                            Number::class,
+                            Radio::class,
+                            SingleLineText::class,
                         ],
                         'if' => 'subscriptionLimitType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
                     ]),
@@ -1274,6 +1177,103 @@ class Stripe extends Payment
 
     // Protected Methods
     // =========================================================================
+
+    protected function executePayment(Submission $submission): PaymentDecision
+    {
+        $this->_confirmationAction = null;
+        $result = false;
+
+        $type = $this->getFieldSetting('type');
+
+        // Allow events to cancel sending
+        if (!$this->beforeProcessPayment($submission)) {
+            return PaymentDecision::notRequired();
+        }
+
+        if ($type === self::PAYMENT_TYPE_SINGLE) {
+            $result = $this->processSinglePayment($submission);
+        } elseif ($type === self::PAYMENT_TYPE_SUBSCRIPTION) {
+            $result = $this->processSubscriptionPayment($submission);
+        }
+
+        // Allow events to say the response is invalid
+        if (!$this->afterProcessPayment($submission, $result)) {
+            return PaymentDecision::succeeded($this->handle);
+        }
+
+        $field = $this->getField();
+
+        if (!$field) {
+            return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
+        }
+
+        $latestPayment = null;
+
+        foreach (Formie::$plugin->getPayments()->getSubmissionPayments($submission) as $payment) {
+            if ((int)$payment->fieldId === (int)$field->id) {
+                $latestPayment = $payment;
+            }
+        }
+
+        if ($type === self::PAYMENT_TYPE_SUBSCRIPTION && $latestPayment?->subscriptionId) {
+            $subscription = $latestPayment->getSubscription();
+
+            if ($subscription && in_array($subscription->getState(), [SubscriptionStatus::TRIALING, SubscriptionStatus::ACTIVE], true)) {
+                return PaymentDecision::succeeded($this->handle, $subscription->reference);
+            }
+
+            if ($subscription?->getState()->isTerminal()) {
+                return PaymentDecision::cancelled(null, $this->handle, $subscription->reference);
+            }
+
+            if ($subscription && empty($subscription->providerData['requiresAction'])) {
+                return $subscription->status === 'unknown' ? PaymentDecision::unknown(null, $this->handle, $subscription->reference)
+                    : PaymentDecision::pending(null, $this->handle, $subscription->reference);
+            }
+        }
+
+        if ($this->_confirmationAction) {
+            return PaymentDecision::requiresAction($latestPayment?->reference, $this->_confirmationAction);
+        }
+
+        if ($latestPayment) {
+            return match ((string)$latestPayment->status) {
+                PaymentModel::STATUS_SUCCEEDED => PaymentDecision::succeeded($this->handle, $latestPayment->reference),
+                PaymentModel::STATUS_REQUIRES_ACTION => PaymentDecision::requiresAction(
+                    $latestPayment->reference,
+                    PaymentAction::redirect(
+                        provider: $this->handle,
+                        event: 'formie:payment:stripe:confirm',
+                        message: $latestPayment->message ?: Craft::t('formie', 'Additional payment confirmation is required to continue.'),
+                        resumeMode: PaymentResumeMode::RETURN,
+                        resumeUrl: $this->getReturnUrl($submission),
+                    )
+                ),
+                PaymentModel::STATUS_PROCESSING => PaymentDecision::pending($latestPayment->message, $this->handle, $latestPayment->reference),
+                PaymentModel::STATUS_CANCELLED => PaymentDecision::cancelled($latestPayment->message, $this->handle, $latestPayment->reference),
+                PaymentModel::STATUS_PENDING => PaymentDecision::requiresAction(
+                    $latestPayment->reference,
+                    PaymentAction::confirm(
+                        provider: $this->handle,
+                        event: 'formie:payment:stripe:confirm',
+                        message: $latestPayment->message ?: Craft::t('formie', 'Additional payment confirmation is required to continue.'),
+                        resumeMode: PaymentResumeMode::RETURN,
+                        resumeUrl: $this->getReturnUrl($submission),
+                    )
+                ),
+                PaymentModel::STATUS_FAILED => PaymentDecision::failed($latestPayment->message, $this->handle, $latestPayment->reference),
+                default => PaymentDecision::unknown(null, $this->handle, $latestPayment->reference),
+            };
+        }
+
+        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
+    }
+
+    protected function getPaymentAccountIdentity(): ?string
+    {
+        // Connection verification resolves the stable account without a request per payment.
+        return Craft::$app->getCache()->get($this->_accountIdentityCacheKey()) ?: null;
+    }
 
     protected function defineRules(): array
     {
@@ -1566,6 +1566,11 @@ class Stripe extends Payment
     // Private Methods
     // =========================================================================
 
+    private function _accountIdentityCacheKey(): string
+    {
+        return 'formie.stripe-account.' . hash_hmac('sha256', (string)App::parseEnv($this->secretKey), Formie::$plugin->getSettings()->getSecurityKey());
+    }
+
     private function _isProcessablePaymentIntentStatus(?string $status): bool
     {
         return in_array($status, [
@@ -1657,7 +1662,7 @@ class Stripe extends Payment
             Formie::$plugin->getPlans()->savePlan($plan);
 
             return $plan;
-        } catch (StripeException\ApiErrorException $e) {
+        } catch (ApiErrorException $e) {
             // Totally fine if there's an error here, just ignore
             return null;
         } catch (Throwable $e) {
@@ -1846,8 +1851,6 @@ class Stripe extends Payment
 
         throw new Exception('Unable to resolve subscription from Stripe schedule.');
     }
-
-    private ?PaymentAction $_confirmationAction = null;
 
     private function _setConfirmationAction(array $data): void
     {

@@ -9,13 +9,6 @@ use CommerceGuys\Addressing\Country\CountryRepository;
 
 class Countries extends PredefinedOption
 {
-    // Protected Properties
-    // =========================================================================
-
-    public static ?string $defaultLabelOption = 'name';
-    public static ?string $defaultValueOption = 'name';
-
-
     // Static Methods
     // =========================================================================
 
@@ -61,4 +54,11 @@ class Countries extends PredefinedOption
 
         return $countries;
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public static ?string $defaultLabelOption = 'name';
+    public static ?string $defaultValueOption = 'name';
 }

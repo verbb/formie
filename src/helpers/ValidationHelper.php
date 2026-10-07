@@ -8,13 +8,13 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\validators\UrlValidator as CraftUrlValidator;
 
+use yii\base\InvalidConfigException;
 use yii\validators\EmailValidator;
 use yii\validators\InlineValidator;
 use yii\validators\NumberValidator;
 use yii\validators\RequiredValidator;
 use yii\validators\UrlValidator as YiiUrlValidator;
 use yii\validators\Validator;
-use yii\base\InvalidConfigException;
 
 class ValidationHelper
 {

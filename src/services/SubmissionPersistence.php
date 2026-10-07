@@ -6,7 +6,10 @@ use verbb\formie\models\SubmissionCommand;
 
 use Craft;
 
+use yii\web\ForbiddenHttpException;
+
 use RuntimeException;
+use Throwable;
 
 /** Shared atomic content and upload persistence, independent of submission dispatch. */
 final class SubmissionPersistence
@@ -25,7 +28,7 @@ final class SubmissionPersistence
         return $uploads->withUploadLocks($submission, function() use ($uploads, $submission, $command, $becameComplete, $afterSave): bool {
             try {
                 $bound = $uploads->bindAccepted($command);
-            } catch (\yii\web\ForbiddenHttpException $e) {
+            } catch (ForbiddenHttpException $e) {
                 $submission->addError('form', $e->getMessage());
                 return false;
             }
@@ -56,7 +59,7 @@ final class SubmissionPersistence
                     $afterSave();
                 }
                 $saveTransaction->commit();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $saveTransaction->rollBack();
                 $uploads->releaseUnpersistedBindings($bound);
                 throw $e;
@@ -87,7 +90,7 @@ final class SubmissionPersistence
                     }
                 }
                 $transaction->commit();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $transaction->rollBack();
 
                 if ($completeAfterPromotion) {

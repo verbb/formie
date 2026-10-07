@@ -13,5 +13,4 @@ class SendNotificationEvent extends CancelableEvent
 
     public ?Submission $submission = null;
     public ?Notification $notification = null;
-
 }

@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\elements\Form;
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\models\FormGroup;
 use verbb\formie\models\FormSitePolicy;
 
@@ -13,6 +13,7 @@ use craft\elements\User;
 use craft\helpers\Cp;
 use craft\helpers\Db;
 use craft\models\Site;
+use craft\web\Request;
 
 use yii\base\Component;
 
@@ -164,7 +165,7 @@ class FormSitePropagation extends Component
 
         $request = Craft::$app->getRequest();
         $requestedSite = Cp::requestedSite();
-        $requestedSiteId = $request instanceof \craft\web\Request ? $request->getParam('siteId') : null;
+        $requestedSiteId = $request instanceof Request ? $request->getParam('siteId') : null;
         $candidateIds = array_filter([
             $requestedSiteId,
             $requestedSite?->id,

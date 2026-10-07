@@ -7,7 +7,6 @@ use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
 use verbb\formie\models\FieldLayoutPage;
 
-use Craft;
 use craft\helpers\Html;
 
 use putyourlightson\snaptcha\models\SnaptchaModel;
@@ -89,5 +88,4 @@ class Snaptcha extends Captcha
     {
         return $this->getRefreshJsVariables($form, $page);
     }
-
 }

@@ -4,11 +4,13 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\client\models\PageTransitionRequest;
+use verbb\formie\compatibility\payments\LegacyPaymentSubmitResponse;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\errors\SubmissionUnavailableException;
+use verbb\formie\helpers\BrowserRequestProfile;
 use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\References;
@@ -17,16 +19,11 @@ use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\TypeHelper;
-use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
-use verbb\formie\models\FieldLayoutPage;
-use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\ManagedSubmissionRequest;
-use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SubmissionCommand;
+use verbb\formie\models\SubmissionErrors;
 use verbb\formie\models\SubmissionResponse;
-use verbb\formie\services\SubmissionProgress;
-use verbb\formie\services\SubmissionWorkflow;
 
 use Craft;
 use craft\db\Query;
@@ -45,10 +42,32 @@ use InvalidArgumentException;
 
 class SubmissionsController extends Controller
 {
-    // Traits
+    // Static Methods
     // =========================================================================
 
-    use \verbb\formie\compatibility\payments\LegacyPaymentSubmitResponse;
+    private static function _resolveSubmittedPageId(
+        Form $form,
+        Submission $submission,
+        SubmissionCommand $submissionRequest,
+        SubmissionResponse $response,
+    ): ?int {
+        $pageId = (int)($submissionRequest->pageId ?? 0);
+
+        if ($pageId > 0) {
+            return $pageId;
+        }
+
+        if ($response->nextPage) {
+            $previousPage = $form->getPreviousPage($response->nextPage, $submission);
+
+            return $previousPage?->id ? (int)$previousPage->id : null;
+        }
+
+        $pages = $form->getPages();
+
+        return $pages ? (int)$pages[0]->id : null;
+    }
+
 
     // Constants
     // =========================================================================
@@ -57,6 +76,14 @@ class SubmissionsController extends Controller
 
     private const STALE_SUBMISSION_STATE_CODE = 'STALE_SUBMISSION_STATE';
     private const STALE_SUBMISSION_STATE_QUERY_PARAMS = ['pageId', 'resumeToken', 'submissionId'];
+
+
+    // Traits
+    // =========================================================================
+
+    use LegacyPaymentSubmitResponse;
+    use CrossOriginRequestTrait;
+    use AnonymousSiteRequestGuardTrait;
 
 
     // Properties
@@ -73,13 +100,6 @@ class SubmissionsController extends Controller
     private bool $_allowTestOverrides = false;
 
 
-    // Traits
-    // =========================================================================
-
-    use CrossOriginRequestTrait;
-    use AnonymousSiteRequestGuardTrait;
-
-
     // Public Methods
     // =========================================================================
 
@@ -89,7 +109,7 @@ class SubmissionsController extends Controller
         $publicProfile = null;
 
         if (in_array($action->id, ['submit', 'set-page', 'clear-submission'], true)) {
-            $publicProfile = \verbb\formie\helpers\BrowserRequestProfile::enter();
+            $publicProfile = BrowserRequestProfile::enter();
         }
 
         $this->forbidGuestControlPanelAnonymousActions($action->id);
@@ -111,7 +131,7 @@ class SubmissionsController extends Controller
             $this->enableCsrfValidation = false;
         }
 
-        if ($publicProfile === \verbb\formie\helpers\BrowserRequestProfile::CROSS_ORIGIN) {
+        if ($publicProfile === BrowserRequestProfile::CROSS_ORIGIN) {
             $this->enableCsrfValidation = false;
         } elseif ($publicProfile && $this->request->getHeaders()->has('X-Formie-Profile')) {
             $this->enableCsrfValidation = true;
@@ -597,7 +617,7 @@ class SubmissionsController extends Controller
             return $this->asJson([
                 'success' => $result->success,
                 'pageId' => $result->currentPageId,
-                'errors' => \verbb\formie\models\SubmissionErrors::fromClient($result->errors, $form)->toValuePathMap(),
+                'errors' => SubmissionErrors::fromClient($result->errors, $form)->toValuePathMap(),
                 'session' => $result->session?->toArrayRecursive(),
             ]);
         }
@@ -820,7 +840,7 @@ class SubmissionsController extends Controller
         }
 
         if (!$response->success) {
-            $payload['errors'] = \verbb\formie\models\SubmissionErrors::fromSubmission($submission)->toValuePathMap();
+            $payload['errors'] = SubmissionErrors::fromSubmission($submission)->toValuePathMap();
             $this->_appendPaymentResponsePayload($payload, $response);
 
             return $payload;
@@ -903,29 +923,6 @@ class SubmissionsController extends Controller
         if ($clientEvents) {
             Formie::$plugin->getService()->setFlash($form->getFlashNamespace(), 'clientEvents', $clientEvents);
         }
-    }
-
-    private static function _resolveSubmittedPageId(
-        Form $form,
-        Submission $submission,
-        SubmissionCommand $submissionRequest,
-        SubmissionResponse $response,
-    ): ?int {
-        $pageId = (int)($submissionRequest->pageId ?? 0);
-
-        if ($pageId > 0) {
-            return $pageId;
-        }
-
-        if ($response->nextPage) {
-            $previousPage = $form->getPreviousPage($response->nextPage, $submission);
-
-            return $previousPage?->id ? (int)$previousPage->id : null;
-        }
-
-        $pages = $form->getPages();
-
-        return $pages ? (int)$pages[0]->id : null;
     }
 
     private function _handleStaleSubmissionState(Form $form, string $source, int|string $value): Response
@@ -1112,5 +1109,4 @@ class SubmissionsController extends Controller
 
         return TypeHelper::getEnumParam($action, ['submit', 'save', 'back'], 'submit');
     }
-
 }

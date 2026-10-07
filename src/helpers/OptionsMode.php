@@ -3,14 +3,6 @@ namespace verbb\formie\helpers;
 
 final class OptionsMode
 {
-    // Constants
-    // =========================================================================
-
-    public const STATIC = 'static';
-    public const DYNAMIC = 'dynamic';
-    public const TEMPLATE = 'template';
-
-
     // Static Methods
     // =========================================================================
 
@@ -36,4 +28,12 @@ final class OptionsMode
     {
         return in_array($mode, [self::STATIC, self::DYNAMIC], true);
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const STATIC = 'static';
+    public const DYNAMIC = 'dynamic';
+    public const TEMPLATE = 'template';
 }

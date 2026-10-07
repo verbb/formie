@@ -8,11 +8,8 @@ use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\helpers\IntegrationRerunPolicies;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\IntegrationResult;
 use verbb\formie\models\IntegrationTriggerRequest;
-
-use Craft;
 
 use yii\base\Component;
 

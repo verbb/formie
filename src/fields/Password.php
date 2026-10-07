@@ -2,8 +2,6 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\base\Field;
-use verbb\formie\base\Integration;
-use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
@@ -12,7 +10,6 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\BrowserModule;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
@@ -168,7 +165,6 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
             $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_PASSWORD_SPECIAL_CHARACTER));
         }
     }
-
 
     public function defineFormBuilderPreviewSchema(): array
     {
@@ -428,10 +424,8 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
             || $this->passwordRequireSpecialCharacter;
     }
 
-
     protected function shouldTrimNormalizedPlainText(): bool
     {
         return false;
     }
-
 }

@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\elements\Submission;
+use verbb\formie\helpers\References;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\references\ReferenceOutputContext;
 
@@ -20,6 +22,7 @@ class Templates extends BaseTemplates
     public array $additionalAllowedFunctions = [];
     public array $additionalAllowedMethods = [];
     public array $additionalAllowedProperties = [];
+
 
     // Public Methods
     // =========================================================================
@@ -67,7 +70,7 @@ class Templates extends BaseTemplates
             return $token;
         }, $template);
 
-        if ($object instanceof \verbb\formie\elements\Submission) {
+        if ($object instanceof Submission) {
             $context = ReferenceContext::forSubmission($object, $variables['notification'] ?? null);
             $template = preg_replace_callback('/(?<!\{)\{([a-zA-Z][^{}]*)\}(?!\})/', static function(array $match) use (&$aliases, $prefix, $context, $autoescape): string {
                 $reference = $match[0];
@@ -79,7 +82,7 @@ class Templates extends BaseTemplates
                     $reference = '{field:' . $match[1] . '}';
                 }
                 $token = $prefix . count($aliases) . '__';
-                $aliases[$token] = \verbb\formie\helpers\References::interpolateText($reference, $context, $autoescape === false ? ReferenceOutputContext::PlainText : ReferenceOutputContext::Html);
+                $aliases[$token] = References::interpolateText($reference, $context, $autoescape === false ? ReferenceOutputContext::PlainText : ReferenceOutputContext::Html);
                 return $token;
             }, $template);
         }

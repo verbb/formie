@@ -12,6 +12,7 @@ class SingleOptionFieldValue implements FieldValueInterface
     public readonly ?string $value;
     public readonly bool $selected;
     public readonly bool $valid;
+
     private array $_options = [];
 
 
@@ -31,7 +32,6 @@ class SingleOptionFieldValue implements FieldValueInterface
     {
         return $this->_options;
     }
-
 
     public function getPathValue(string $path): mixed
     {

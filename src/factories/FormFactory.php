@@ -43,6 +43,7 @@ use verbb\formie\fields\Variants;
 use verbb\formie\models\FieldLayout;
 
 use Craft;
+use craft\validators\HandleValidator;
 
 use InvalidArgumentException;
 use RuntimeException;
@@ -66,7 +67,7 @@ final class FormFactory
             $handle = str_pad($handle, 2, 'a', STR_PAD_LEFT);
         } while (
             isset(self::$autoHandlesIssued[$handle]) ||
-            in_array(strtolower($handle), array_map('strtolower', array_merge(self::RESERVED_HANDLES, \craft\validators\HandleValidator::$baseReservedWords)), true) ||
+            in_array(strtolower($handle), array_map('strtolower', array_merge(self::RESERVED_HANDLES, HandleValidator::$baseReservedWords)), true) ||
             Form::find()->withoutCpIndexScope()->handle($handle)->site('*')->unique()->status(null)->exists()
         );
 
@@ -88,7 +89,6 @@ final class FormFactory
 
     private static int $autoHandleCounter = 0;
     private static array $autoHandlesIssued = [];
-
     private array $formConfig;
     private array $settingsConfig = [];
     private array $pages = [];
@@ -522,5 +522,4 @@ final class FormFactory
             ];
         }
     }
-
 }

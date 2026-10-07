@@ -4,9 +4,12 @@ namespace verbb\formie\workflow\tasks\persist;
 use verbb\formie\Formie;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\fields\Payment;
+use verbb\formie\helpers\Table;
 use verbb\formie\workflow\tasks\TaskInterface;
 use verbb\formie\workflow\tasks\TaskResult;
 use verbb\formie\workflow\WorkflowContext;
+
+use craft\db\Query;
 
 class PlanTask implements TaskInterface
 {
@@ -44,8 +47,8 @@ class PlanTask implements TaskInterface
         }
 
         if ($command->operation === SubmissionOperation::REVISE && !$submission->isIncomplete) {
-            $context->becameComplete = (bool)(new \craft\db\Query())->select('isIncomplete')
-                ->from(\verbb\formie\helpers\Table::FORMIE_SUBMISSIONS)->where(['id' => $submission->id])->scalar();
+            $context->becameComplete = (bool)(new Query())->select('isIncomplete')
+                ->from(Table::FORMIE_SUBMISSIONS)->where(['id' => $submission->id])->scalar();
         }
 
         return TaskResult::continue();

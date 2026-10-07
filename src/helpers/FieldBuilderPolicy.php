@@ -1,10 +1,10 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\Formie;
 use verbb\formie\base\ElementField;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\fields\Phone;
-use verbb\formie\Formie;
 
 use Craft;
 

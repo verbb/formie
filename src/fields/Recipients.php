@@ -12,24 +12,22 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
-use verbb\formie\fields\values\OptionValue;
-use verbb\formie\fields\values\RecipientsFieldValue;
 use verbb\formie\fields\Hidden as HiddenField;
 use verbb\formie\fields\traits\PresentationFieldConfigTrait;
 use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
+use verbb\formie\fields\values\OptionValue;
+use verbb\formie\fields\values\RecipientsFieldValue;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
 use verbb\formie\helpers\FieldOptionHelper;
 use verbb\formie\helpers\OptionsMode;
 use verbb\formie\helpers\RecipientOptionSelectionHelper;
 use verbb\formie\helpers\RecipientTokenHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\OptionSource;
 use verbb\formie\models\SlotTag;
-use verbb\formie\models\Notification;
-use verbb\formie\options\OptionResolvableInterface;
 use verbb\formie\options\IntegrationOptionSourceHelper;
+use verbb\formie\options\OptionResolvableInterface;
 use verbb\formie\options\OptionSourceConfigHelper;
 use verbb\formie\options\OptionSourceContext;
 use verbb\formie\options\OptionSourceFieldInterface;
@@ -42,25 +40,18 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\Json;
 
-use Faker\Generator as FakerFactory;
-
-use GraphQL\Type\Definition\Type;
+use yii\validators\EmailValidator;
 
 use ReflectionClass;
 use ReflectionProperty;
 
-use yii\validators\EmailValidator;
+use Faker\Generator as FakerFactory;
+use GraphQL\Type\Definition\Type;
 
 class Recipients extends Field implements DisplayTypeFieldInterface, PreviewableFieldInterface, OptionResolvableInterface, OptionSourceFieldInterface
 {
     // Static Methods
     // =========================================================================
-
-    /**
-     * When true, static recipient options may keep legacy Formie 2 values where the
-     * label and value were the same non-email string (e.g. enquiry routing labels).
-     */
-    public static bool $relaxLegacyOptionValidation = false;
 
     public static function displayName(): string
     {
@@ -97,6 +88,11 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
     // Properties
     // =========================================================================
 
+    /**
+     * When true, static recipient options may keep legacy Formie 2 values where the
+     * label and value were the same non-email string (e.g. enquiry routing labels).
+     */
+    public static bool $relaxLegacyOptionValidation = false;
     public ?string $emailFieldSummaryValue = 'value';
     public string $displayType = 'hidden';
     public ?string $layout = 'vertical';
@@ -231,7 +227,6 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         return $value;
     }
 
-
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value === null) {
@@ -262,7 +257,6 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         }
         return $this->displayType === 'checkboxes' ? $tokens : ($tokens[0] ?? null);
     }
-
 
     public function defineFormBuilderPreviewSchema(): array
     {
@@ -408,14 +402,6 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         return $this->displayType;
     }
 
-    protected function definePresentationFieldClassMap(): array
-    {
-        $config = $this->defaultPresentationFieldClassMap();
-        $config['hidden'] = HiddenField::class;
-
-        return $config;
-    }
-
     public function getDisplayTypeField(): ?FieldInterface
     {
         return $this->resolvePresentationField(
@@ -483,28 +469,6 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
                 return;
             }
         }
-    }
-
-    private function _resolveRecipientInput($value)
-    {
-        if (is_array($value)) {
-            return array_map(fn($item) => $this->_resolveRecipientInput($item), $value);
-        }
-
-        if (!is_string($value)) {
-            return $value;
-        }
-
-        foreach ($this->_getResolvedRecipientOptionRows() as $option) {
-            if (hash_equals(RecipientTokenHelper::encodeOption($option), $value)) {
-                return ['id' => $option['id'], 'label' => $option['label'], 'value' => $option['value']];
-            }
-        }
-
-        if ($this->displayType === 'hidden' && hash_equals(RecipientTokenHelper::encodeHidden($this->defaultValue), $value)) {
-            return $this->defaultValue;
-        }
-        return $value;
     }
 
     public function getRealValue($value)
@@ -686,8 +650,77 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         ];
     }
 
+    public function validateOptions(): void
+    {
+        if ($this->getIsHidden() || $this->getOptionsMode() !== OptionsMode::STATIC) {
+            return;
+        }
+
+        $labels = [];
+        $hasDuplicateLabels = false;
+        $emailValidator = new EmailValidator();
+
+        foreach ($this->options as &$option) {
+            if (OptionsField::isOptionHidden($option)) {
+                continue;
+            }
+
+            $label = (string)($option['label'] ?? '');
+            $value = (string)($option['value'] ?? '');
+
+            if ($value === '') {
+                continue;
+            }
+
+            if (isset($labels[$label])) {
+                $option['label'] = [
+                    'value' => $label,
+                    'hasErrors' => true,
+                ];
+
+                $hasDuplicateLabels = true;
+            }
+
+            $labels[$label] = true;
+
+            foreach ($this->_parseRecipientEmails($value) as $email) {
+                if ($emailValidator->validate($email)) {
+                    continue;
+                }
+
+                if (static::$relaxLegacyOptionValidation && $value === $label) {
+                    continue 2;
+                }
+
+                $option['value'] = [
+                    'value' => $value,
+                    'hasErrors' => true,
+                ];
+                $this->addError('options', Craft::t('formie', '“{email}” is not a valid email address.', [
+                    'email' => $email,
+                ]));
+
+                break;
+            }
+        }
+        unset($option);
+
+        if ($hasDuplicateLabels) {
+            $this->addError('options', Craft::t('app', 'All option labels must be unique.'));
+        }
+    }
+
+
     // Protected Methods
     // =========================================================================
+
+    protected function definePresentationFieldClassMap(): array
+    {
+        $config = $this->defaultPresentationFieldClassMap();
+        $config['hidden'] = HiddenField::class;
+
+        return $config;
+    }
 
     protected function defineValueType(): FieldValueType
     {
@@ -864,7 +897,6 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         }
     }
 
-
     protected function defineReferenceValues(): array
     {
         return [
@@ -922,66 +954,6 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         return $modules;
     }
 
-    public function validateOptions(): void
-    {
-        if ($this->getIsHidden() || $this->getOptionsMode() !== OptionsMode::STATIC) {
-            return;
-        }
-
-        $labels = [];
-        $hasDuplicateLabels = false;
-        $emailValidator = new EmailValidator();
-
-        foreach ($this->options as &$option) {
-            if (OptionsField::isOptionHidden($option)) {
-                continue;
-            }
-
-            $label = (string)($option['label'] ?? '');
-            $value = (string)($option['value'] ?? '');
-
-            if ($value === '') {
-                continue;
-            }
-
-            if (isset($labels[$label])) {
-                $option['label'] = [
-                    'value' => $label,
-                    'hasErrors' => true,
-                ];
-
-                $hasDuplicateLabels = true;
-            }
-
-            $labels[$label] = true;
-
-            foreach ($this->_parseRecipientEmails($value) as $email) {
-                if ($emailValidator->validate($email)) {
-                    continue;
-                }
-
-                if (static::$relaxLegacyOptionValidation && $value === $label) {
-                    continue 2;
-                }
-
-                $option['value'] = [
-                    'value' => $value,
-                    'hasErrors' => true,
-                ];
-                $this->addError('options', Craft::t('formie', '“{email}” is not a valid email address.', [
-                    'email' => $email,
-                ]));
-
-                break;
-            }
-        }
-        unset($option);
-
-        if ($hasDuplicateLabels) {
-            $this->addError('options', Craft::t('app', 'All option labels must be unique.'));
-        }
-    }
-
     protected function setPrePopulatedValue(mixed $value): mixed
     {
         // Allow populating via label to keep things private
@@ -994,6 +966,32 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         }
 
         return parent::setPrePopulatedValue($value);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _resolveRecipientInput($value)
+    {
+        if (is_array($value)) {
+            return array_map(fn($item) => $this->_resolveRecipientInput($item), $value);
+        }
+
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        foreach ($this->_getResolvedRecipientOptionRows() as $option) {
+            if (hash_equals(RecipientTokenHelper::encodeOption($option), $value)) {
+                return ['id' => $option['id'], 'label' => $option['label'], 'value' => $option['value']];
+            }
+        }
+
+        if ($this->displayType === 'hidden' && hash_equals(RecipientTokenHelper::encodeHidden($this->defaultValue), $value)) {
+            return $this->defaultValue;
+        }
+        return $value;
     }
 
     private function _getResolvedRecipientOptionRows(): array

@@ -1,17 +1,12 @@
 <?php
 namespace verbb\formie\positions;
 
-use Craft;
 use verbb\formie\base\Position;
+
+use Craft;
 
 class RightInput extends Position
 {
-    // Protected Properties
-    // =========================================================================
-
-    protected static ?string $position = 'below';
-
-
     // Static Methods
     // =========================================================================
 
@@ -19,4 +14,10 @@ class RightInput extends Position
     {
         return Craft::t('formie', 'Right of Input');
     }
+
+
+    // Properties
+    // =========================================================================
+
+    protected static ?string $position = 'below';
 }

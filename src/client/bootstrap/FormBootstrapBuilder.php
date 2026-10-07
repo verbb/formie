@@ -2,9 +2,10 @@
 namespace verbb\formie\client\bootstrap;
 
 use verbb\formie\Formie;
-use verbb\formie\elements\Form;
 use verbb\formie\client\bootstrap\models\FormBootstrap;
 use verbb\formie\client\models\LoadContext;
+use verbb\formie\elements\Form;
+use verbb\formie\services\RuntimeConfiguration;
 
 use yii\base\Component;
 
@@ -29,7 +30,7 @@ class FormBootstrapBuilder extends Component
             Formie::$plugin->getSubmissionRequests()->exchangeGrant($form, $context->grantToken, $context->grantPurpose);
         }
 
-        (new \verbb\formie\services\RuntimeConfiguration())->establish($form, $context->query);
+        (new RuntimeConfiguration())->establish($form, $context->query);
 
         $definition = Formie::$plugin->getClientFormDefinitionBuilder()->build($form, $context);
         $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form, null, true, null, $context->grantToken);

@@ -5,9 +5,9 @@ use verbb\formie\models\RichText;
 
 use Craft;
 
-use Throwable;
-
 use yii\base\Component;
+
+use Throwable;
 
 abstract class BasePluginMigrator extends Component
 {

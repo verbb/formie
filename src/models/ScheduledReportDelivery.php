@@ -97,6 +97,10 @@ class ScheduledReportDelivery extends Model
         ];
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function defineRules(): array
     {
         return [

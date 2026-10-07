@@ -2,7 +2,6 @@
 namespace verbb\formie\services;
 
 use verbb\formie\events\RegisterClientEventTemplatesEvent;
-use verbb\formie\Formie;
 
 use Craft;
 use craft\base\Component;

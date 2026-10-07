@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\helpers;
 
-use verbb\formie\Formie;
 use verbb\formie\base\ParentField;
 use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\compatibility\signatures\SignatureAccessCompatibility;
@@ -17,26 +16,7 @@ use Throwable;
 
 final class SignatureAccess
 {
-    // Constants
-    // =========================================================================
-
-    private const TOKEN_PURPOSE = 'signature-image';
-    private const TOKEN_VERSION = 2;
-
-
-    // Traits
-    // =========================================================================
-
-    use SignatureAccessCompatibility;
-
-
-    // Properties
-    // =========================================================================
-
-    private static array $_accessStates = [];
-
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function issueAccessToken(Submission $submission, int $fieldId, string $fieldKey, mixed $value): ?string
@@ -127,10 +107,6 @@ final class SignatureAccess
     {
         return trim((string)$value);
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private static function _resolveSignedContext(Submission $submission, array $context, bool $checkValueHash): ?array
     {
@@ -331,4 +307,23 @@ final class SignatureAccess
 
         return is_string($decoded) && $decoded !== '' ? $decoded : null;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    private const TOKEN_PURPOSE = 'signature-image';
+    private const TOKEN_VERSION = 2;
+
+
+    // Traits
+    // =========================================================================
+
+    use SignatureAccessCompatibility;
+
+
+    // Properties
+    // =========================================================================
+
+    private static array $_accessStates = [];
 }

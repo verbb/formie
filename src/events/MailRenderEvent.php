@@ -15,5 +15,4 @@ class MailRenderEvent extends Event
     public ?Notification $notification = null;
     public ?Submission $submission = null;
     public ?array $renderVariables = null;
-
 }

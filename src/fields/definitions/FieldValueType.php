@@ -46,7 +46,6 @@ final class FieldValueType
         return new self('storageSafe');
     }
 
-
     private static function _isStorageSafe(mixed $value): bool
     {
         if ($value === null || is_scalar($value)) {
@@ -65,6 +64,7 @@ final class FieldValueType
 
         return true;
     }
+
 
     // Properties
     // =========================================================================

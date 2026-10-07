@@ -1,19 +1,17 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\elements\Form;
 use verbb\formie\fields\Date;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
-use craft\helpers\ArrayHelper;
-use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 class m250117_000000_date_year_min extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         $fields = (new Query())

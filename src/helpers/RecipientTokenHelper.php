@@ -1,23 +1,18 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\Formie;
+
 use craft\helpers\Json;
 
 class RecipientTokenHelper
 {
-    // Constants
-    // =========================================================================
-
-    public const TYPE_OPTION = 'recipient-option';
-    public const TYPE_HIDDEN = 'recipient-hidden';
-
-
     // Static Methods
     // =========================================================================
 
     public static function encode(mixed $value, string $type): string
     {
-        return 'recipient:v1:' . hash_hmac('sha256', $type . "\0" . Json::encode($value), \verbb\formie\Formie::$plugin->getSettings()->getSecurityKey());
+        return 'recipient:v1:' . hash_hmac('sha256', $type . "\0" . Json::encode($value), Formie::$plugin->getSettings()->getSecurityKey());
     }
 
     public static function encodeOption(array $option, int|string|null $index = null): string
@@ -68,4 +63,11 @@ class RecipientTokenHelper
         // while still allowing several labels to route to the same email target.
         return hash('sha256', $label . "\0" . $value);
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const TYPE_OPTION = 'recipient-option';
+    public const TYPE_HIDDEN = 'recipient-hidden';
 }

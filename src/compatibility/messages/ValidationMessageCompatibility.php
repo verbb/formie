@@ -8,6 +8,9 @@ use Craft;
 
 class ValidationMessageCompatibility
 {
+    // Static Methods
+    // =========================================================================
+
     /**
      * Legacy English source keys grouped by validation message key.
      *

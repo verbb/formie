@@ -9,6 +9,8 @@ use craft\db\Query;
 use craft\helpers\Db;
 use craft\helpers\Json;
 
+use DateTime;
+
 class m260612_000000_salesforce_oauth_instance_url extends Migration
 {
     // Public Methods
@@ -75,7 +77,7 @@ class m260612_000000_salesforce_oauth_instance_url extends Migration
 
             $this->update('{{%auth_oauth_tokens}}', [
                 'values' => Json::encode($values),
-                'dateUpdated' => Db::prepareDateForDb(new \DateTime()),
+                'dateUpdated' => Db::prepareDateForDb(new DateTime()),
             ], [
                 'id' => $token['id'],
             ], [], false);

@@ -5,14 +5,9 @@ use verbb\formie\Formie;
 use verbb\formie\events\ModifySubmissionExportDataEvent;
 
 use Craft;
-use craft\base\EagerLoadingFieldInterface;
 use craft\base\ElementExporter;
-use craft\base\ElementInterface;
-use craft\db\Query;
-use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
 use craft\helpers\DateTimeHelper;
-use craft\helpers\ElementHelper;
 
 use DateTime;
 use Throwable;
@@ -22,12 +17,6 @@ use Throwable;
  */
 class SubmissionExport extends ElementExporter
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_EXPORT_DATA = 'modifyExportData';
-
-
     // Static Methods
     // =========================================================================
 
@@ -35,6 +24,12 @@ class SubmissionExport extends ElementExporter
     {
         return Craft::t('formie', 'Default');
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_EXPORT_DATA = 'modifyExportData';
 
 
     // Public Methods

@@ -9,11 +9,16 @@ use verbb\formie\deprecations\SubmissionContentManagerDeprecations;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Variables;
-
-use Throwable;
+use verbb\formie\services\RuntimeConfiguration;
 
 class SubmissionContentManager
 {
+    // Traits
+    // =========================================================================
+
+    use SubmissionContentManagerDeprecations;
+
+
     // Properties
     // =========================================================================
 
@@ -21,12 +26,6 @@ class SubmissionContentManager
     private ?SubmissionContentNormalizer $_normalizer = null;
     private ?SubmissionContentSerializer $_serializer = null;
     private ?SubmissionContentProjector $_projector = null;
-
-
-    // Traits
-    // =========================================================================
-
-    use SubmissionContentManagerDeprecations;
 
 
     // Public Methods
@@ -323,7 +322,7 @@ class SubmissionContentManager
     public function setFieldValuesFromRequest(Submission $submission, string $paramNamespace = ''): void
     {
         $this->normalizeFromRequest($submission, $paramNamespace);
-        (new \verbb\formie\services\RuntimeConfiguration())->applyValues($submission);
+        (new RuntimeConfiguration())->applyValues($submission);
 
         // Authoritative clearing occurs after all values are applied in the workflow.
     }
@@ -430,6 +429,4 @@ class SubmissionContentManager
 
         return $values;
     }
-
-
 }

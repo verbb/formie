@@ -7,9 +7,7 @@ use Craft;
 
 class SchemaCompatibility
 {
-    private static array $_legacyWarnings = [];
-
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function normalizeLegacyNode(array $node): array
@@ -54,9 +52,6 @@ class SchemaCompatibility
         return $node;
     }
 
-    // Private Methods
-    // =========================================================================
-
     private static function _normalizeLegacyCondition(string $condition): string
     {
         $normalized = preg_replace('/\$get\(([^)]+)\)\.value/', '$1', $condition) ?? $condition;
@@ -85,4 +80,10 @@ class SchemaCompatibility
 
         Craft::$app->getDeprecator()->log(__METHOD__ . ':' . $key, $message);
     }
+
+
+    // Properties
+    // =========================================================================
+
+    private static array $_legacyWarnings = [];
 }

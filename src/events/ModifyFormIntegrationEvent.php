@@ -11,5 +11,4 @@ class ModifyFormIntegrationEvent extends Event
     // =========================================================================
 
     public ?IntegrationInterface $integration = null;
-
 }

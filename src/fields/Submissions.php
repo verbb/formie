@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\fields;
 
-use verbb\formie\elements\Submission;
 use verbb\formie\elements\db\SubmissionQuery;
+use verbb\formie\elements\Submission;
 use verbb\formie\gql\arguments\SubmissionArguments;
 use verbb\formie\gql\interfaces\SubmissionInterface;
 use verbb\formie\gql\resolvers\SubmissionResolver;
@@ -15,7 +15,7 @@ use GraphQL\Type\Definition\Type;
 
 class Submissions extends BaseRelationField
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function displayName(): string
@@ -43,6 +43,18 @@ class Submissions extends BaseRelationField
         return sprintf('\\%s|\\%s<\\%s>', SubmissionQuery::class, ElementCollection::class, Submission::class);
     }
 
+
+    // Constants
+    // =========================================================================
+
+    // Added here to back-support Craft <5.9.
+    public const VIEW_MODE_LIST = 'list';
+    public const VIEW_MODE_LIST_INLINE = 'list-inline';
+
+
+    // Public Methods
+    // =========================================================================
+
     public function getContentGqlType(): array|Type
     {
         return [
@@ -52,14 +64,6 @@ class Submissions extends BaseRelationField
             'resolve' => SubmissionResolver::class . '::resolve',
         ];
     }
-
-
-    // Constants
-    // =========================================================================
-
-    // Added here to back-support Craft <5.9.
-    public const VIEW_MODE_LIST = 'list';
-    public const VIEW_MODE_LIST_INLINE = 'list-inline';
 
 
     // Protected Methods

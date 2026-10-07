@@ -3,9 +3,13 @@ namespace verbb\formie\fields;
 
 use verbb\formie\base\DisplayTypeFieldInterface;
 use verbb\formie\base\Field as FormieField;
+use verbb\formie\base\Integration;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\OptionsField;
 use verbb\formie\base\QuestionnaireFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\traits\DisplayTypeFieldTrait;
 use verbb\formie\fields\traits\QuestionFieldTrait;
@@ -17,10 +21,9 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\SurveyPresentationDefaults;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\BrowserModule;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\RichText;
 use verbb\formie\models\SlotTag;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -60,6 +63,28 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
     public static function defineFieldType(): array
     {
         return array_merge(parent::defineFieldType(), static::defineQuestionFieldTypeConfig());
+    }
+
+    public static function defineQuestionnaireResultsWhen(): ?array
+    {
+        return [
+            'property' => 'displayType',
+            'values' => [
+                self::DISPLAY_LIKERT,
+                self::DISPLAY_RANK,
+                self::DISPLAY_RATING,
+                self::DISPLAY_DROPDOWN,
+                self::DISPLAY_RADIO,
+                self::DISPLAY_CHECKBOXES,
+            ],
+        ];
+    }
+
+    protected static function defaultDisplayOptions(string $displayType): ?array
+    {
+        $options = SurveyPresentationDefaults::resolveOptionsForDisplayType($displayType);
+
+        return $options !== [] ? $options : null;
     }
 
 
@@ -237,13 +262,6 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         ];
     }
 
-    protected function _syncMultiFromDisplayType(?string $displayType = null): void
-    {
-        $displayType ??= $this->displayType;
-
-        $this->multi = in_array($displayType, [self::DISPLAY_CHECKBOXES, self::DISPLAY_RANK], true);
-    }
-
     public function usesOptions(): bool
     {
         return in_array($this->displayType, [
@@ -268,21 +286,6 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
     public function supportsQuestionnaireResults(): bool
     {
         return $this->usesOptions();
-    }
-
-    public static function defineQuestionnaireResultsWhen(): ?array
-    {
-        return [
-            'property' => 'displayType',
-            'values' => [
-                self::DISPLAY_LIKERT,
-                self::DISPLAY_RANK,
-                self::DISPLAY_RATING,
-                self::DISPLAY_DROPDOWN,
-                self::DISPLAY_RADIO,
-                self::DISPLAY_CHECKBOXES,
-            ],
-        ];
     }
 
     public function themeConfigKey(): string
@@ -527,19 +530,6 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         return $values;
     }
 
-    protected function _syncOptionValuesFromLabels(): void
-    {
-        if ($this->displayType === self::DISPLAY_LIKERT) {
-            $this->_syncLikertColumnValues();
-
-            return;
-        }
-
-        if ($this->usesOptions()) {
-            $this->_syncQuestionOptionValuesFromLabels();
-        }
-    }
-
     public function beforeValidate(): bool
     {
         $this->_syncLabelFromQuestion();
@@ -695,36 +685,6 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         return !$this->usesOptions() ? $this->getDisplayTypeField()->serializeValueForClientInput($value, $element) : parent::serializeValueForClientInput($value, $element);
     }
 
-    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
-    {
-        if ($value instanceof LikertMultipleRowsFieldValue) {
-            return (string)$value;
-        }
-        return !$this->usesOptions() ? $this->getDisplayTypeField()->defineValueAsString($value, $element) : parent::defineValueAsString($value, $element);
-    }
-
-    protected function defineValueForIntegration(mixed $value, \verbb\formie\models\IntegrationField $integrationField, \verbb\formie\base\IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
-    {
-        if ($value instanceof LikertMultipleRowsFieldValue) {
-            return \verbb\formie\base\Integration::convertValueForIntegration(
-                $integrationField->getType() === \verbb\formie\models\IntegrationField::TYPE_ARRAY ? $value->values() : (string)$value,
-                $integrationField,
-            );
-        }
-        return !$this->usesOptions()
-            ? $this->getDisplayTypeField()->defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey)
-            : parent::defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
-    }
-
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
-    {
-        if (!$this->usesOptions() || $value instanceof LikertMultipleRowsFieldValue) {
-            return $this->defineValueAsString($value, $element);
-        }
-        return parent::defineValueForSummary($value, $element);
-    }
-
-
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
         if (!$this->usesOptions()) {
@@ -786,6 +746,83 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         }
 
         return parent::getPreviewHtml($value, $element);
+    }
+
+    public function getElementValidationRules(): array
+    {
+        $rules = parent::getElementValidationRules();
+
+        if (!$this->usesOptions()) {
+            return array_values(array_filter($rules, static function(mixed $rule): bool {
+                return !is_array($rule) || ($rule[1] ?? null) !== 'in';
+            }));
+        }
+
+        if ($this->displayType === self::DISPLAY_LIKERT && $this->usesLikertMultipleRows()) {
+            return array_values(array_filter($rules, static function(mixed $rule): bool {
+                return !is_array($rule) || ($rule[1] ?? null) !== 'in';
+            }));
+        }
+
+        return $rules;
+    }
+
+    public function getPresentationDisplayType(): string
+    {
+        return $this->displayType;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function _syncMultiFromDisplayType(?string $displayType = null): void
+    {
+        $displayType ??= $this->displayType;
+
+        $this->multi = in_array($displayType, [self::DISPLAY_CHECKBOXES, self::DISPLAY_RANK], true);
+    }
+
+    protected function _syncOptionValuesFromLabels(): void
+    {
+        if ($this->displayType === self::DISPLAY_LIKERT) {
+            $this->_syncLikertColumnValues();
+
+            return;
+        }
+
+        if ($this->usesOptions()) {
+            $this->_syncQuestionOptionValuesFromLabels();
+        }
+    }
+
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    {
+        if ($value instanceof LikertMultipleRowsFieldValue) {
+            return (string)$value;
+        }
+        return !$this->usesOptions() ? $this->getDisplayTypeField()->defineValueAsString($value, $element) : parent::defineValueAsString($value, $element);
+    }
+
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
+    {
+        if ($value instanceof LikertMultipleRowsFieldValue) {
+            return Integration::convertValueForIntegration(
+                $integrationField->getType() === IntegrationField::TYPE_ARRAY ? $value->values() : (string)$value,
+                $integrationField,
+            );
+        }
+        return !$this->usesOptions()
+            ? $this->getDisplayTypeField()->defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey)
+            : parent::defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
+    }
+
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    {
+        if (!$this->usesOptions() || $value instanceof LikertMultipleRowsFieldValue) {
+            return $this->defineValueAsString($value, $element);
+        }
+        return parent::defineValueForSummary($value, $element);
     }
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
@@ -863,30 +900,6 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         return $value;
     }
 
-    public function getElementValidationRules(): array
-    {
-        $rules = parent::getElementValidationRules();
-
-        if (!$this->usesOptions()) {
-            return array_values(array_filter($rules, static function(mixed $rule): bool {
-                return !is_array($rule) || ($rule[1] ?? null) !== 'in';
-            }));
-        }
-
-        if ($this->displayType === self::DISPLAY_LIKERT && $this->usesLikertMultipleRows()) {
-            return array_values(array_filter($rules, static function(mixed $rule): bool {
-                return !is_array($rule) || ($rule[1] ?? null) !== 'in';
-            }));
-        }
-
-        return $rules;
-    }
-
-    public function getPresentationDisplayType(): string
-    {
-        return $this->displayType;
-    }
-
     protected function defineBrowserModules(): array
     {
         $modules = parent::defineBrowserModules();
@@ -914,10 +927,6 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
 
         return parent::defineSlotTag($key, $context);
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineValueType(): FieldValueType
     {
@@ -961,13 +970,6 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         }
 
         return parent::defineValueForDb($value, $element);
-    }
-
-    protected static function defaultDisplayOptions(string $displayType): ?array
-    {
-        $options = SurveyPresentationDefaults::resolveOptionsForDisplayType($displayType);
-
-        return $options !== [] ? $options : null;
     }
 
     protected function optionsSettingLabel(): string
@@ -1232,6 +1234,10 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
             default => [],
         };
     }
+
+
+    // Private Methods
+    // =========================================================================
 
     private function _presentationFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {

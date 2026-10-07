@@ -3,25 +3,20 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormInterface;
-use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Form;
-use verbb\formie\errors\IntegrationException;
 use verbb\formie\models\IntegrationSettingsContext;
 use verbb\formie\services\Permissions;
 
 use Craft;
 use craft\elements\User;
 use craft\helpers\Json;
-use craft\helpers\UrlHelper;
 use craft\web\Controller;
 
-use yii\base\UnknownPropertyException;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
-use Exception;
 use Throwable;
 
 use verbb\auth\Auth;
@@ -286,7 +281,6 @@ class IntegrationsController extends Controller
         }
     }
 
-
     // OAuth Methods
     // =========================================================================
 
@@ -444,5 +438,4 @@ class IntegrationsController extends Controller
             throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
     }
-
 }

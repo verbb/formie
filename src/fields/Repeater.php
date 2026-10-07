@@ -2,41 +2,27 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
-use verbb\formie\base\Field;
-use verbb\formie\base\Integration;
-use verbb\formie\base\IntegrationInterface;
-use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\base\RepeatableParentField;
-use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\input\RepeaterInputType;
 use verbb\formie\gql\types\RowType;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\DynamicModel;
 use verbb\formie\models\SlotTag;
-use verbb\formie\models\IntegrationField;
-use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
-use craft\base\EagerLoadingFieldInterface;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\errors\GqlException;
 use craft\gql\GqlEntityRegistry;
-use craft\helpers\Template;
-use craft\validators\ArrayValidator;
 
 use Faker\Generator as FakerFactory;
-
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
-
-use Throwable;
 
 class Repeater extends RepeatableParentField
 {
@@ -291,6 +277,7 @@ class Repeater extends RepeatableParentField
         ]));
     }
 
+
     // Protected Methods
     // =========================================================================
 
@@ -504,6 +491,4 @@ class Repeater extends RepeatableParentField
 
         return $modules;
     }
-
-
 }

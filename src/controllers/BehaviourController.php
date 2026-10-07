@@ -12,5 +12,4 @@ class BehaviourController extends SettingsAccessController
     {
         return $this->renderTemplate('formie/settings/behaviour', []);
     }
-
 }

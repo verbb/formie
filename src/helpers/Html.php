@@ -2,7 +2,6 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\deprecations\ThemeConfigLegacyKeys;
 
 use craft\helpers\Html as CraftHtmlHelper;
@@ -168,10 +167,6 @@ class Html extends CraftHtmlHelper
         return $tagAttributes;
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     private static function _normalizeNames($names)
     {
         $normalizedNames = [];
@@ -190,5 +185,4 @@ class Html extends CraftHtmlHelper
 
         return $normalizedNames;
     }
-
 }

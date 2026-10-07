@@ -2,8 +2,8 @@
 namespace verbb\formie\events;
 
 use verbb\formie\models\SubmissionCommand;
-use verbb\formie\workflow\WorkflowContext;
 use verbb\formie\workflow\tasks\TaskResult;
+use verbb\formie\workflow\WorkflowContext;
 
 use yii\base\Event;
 

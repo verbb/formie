@@ -1,16 +1,20 @@
 <?php
 namespace verbb\formie\integrations\payments;
 
-use verbb\formie\attributes\Sensitive;
 use verbb\formie\Formie;
+use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\PaymentResumeMode;
-use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
-use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
+use verbb\formie\fields\Calculations;
+use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\Hidden;
+use verbb\formie\fields\Number;
+use verbb\formie\fields\Radio;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\PaymentAttempt;
@@ -22,14 +26,9 @@ use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
-use verbb\formie\models\Plan;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\DateTimeHelper;
-use craft\helpers\Json;
-use craft\helpers\StringHelper;
-use craft\helpers\UrlHelper;
 use craft\web\Response;
 
 use yii\base\Event;
@@ -43,12 +42,6 @@ use Money\Currency;
 
 class Paddle extends Payment
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
-
-
     // Static Methods
     // =========================================================================
 
@@ -56,6 +49,12 @@ class Paddle extends Payment
     {
         return 'Paddle';
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
 
 
     // Properties
@@ -99,26 +98,6 @@ class Paddle extends Payment
                 'waitForValueMs' => 2500,
             ],
         ]);
-    }
-
-    protected function executePayment(Submission $submission): PaymentDecision
-    {
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
-
-        return PaymentAttempt::run(
-            $this,
-            $submission,
-            $this->getAmount($submission),
-            $this->getFieldSetting('currency'),
-            [
-            'apiKey' => $this->apiKey,
-            'useSandbox' => $this->useSandbox,
-        ],
-            fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processCheckout($submission, $payment, $attempt),
-            allowCreate: !$this->getPaymentFieldPayload($submission)->array('paddleCheckoutData'),
-        );
     }
 
     public function getTransaction(PaymentModel $payment): void
@@ -192,12 +171,12 @@ class Paddle extends Payment
                         'topLevelOnly' => true,
                         'required' => true,
                         'fieldTypes' => [
-                            fields\Calculations::class,
-                            fields\Dropdown::class,
-                            fields\Hidden::class,
-                            fields\Number::class,
-                            fields\Radio::class,
-                            fields\SingleLineText::class,
+                            Calculations::class,
+                            Dropdown::class,
+                            Hidden::class,
+                            Number::class,
+                            Radio::class,
+                            SingleLineText::class,
                         ],
                         'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
                     ]),
@@ -266,6 +245,26 @@ class Paddle extends Payment
 
     // Protected Methods
     // =========================================================================
+
+    protected function executePayment(Submission $submission): PaymentDecision
+    {
+        if (!$this->beforeProcessPayment($submission)) {
+            return PaymentDecision::notRequired();
+        }
+
+        return PaymentAttempt::run(
+            $this,
+            $submission,
+            $this->getAmount($submission),
+            $this->getFieldSetting('currency'),
+            [
+            'apiKey' => $this->apiKey,
+            'useSandbox' => $this->useSandbox,
+        ],
+            fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processCheckout($submission, $payment, $attempt),
+            allowCreate: !$this->getPaymentFieldPayload($submission)->array('paddleCheckoutData'),
+        );
+    }
 
     protected function defineRules(): array
     {
@@ -453,7 +452,6 @@ class Paddle extends Payment
         return PaymentMoney::fromDecimal((string)$amount, $currency)->minor;
     }
 
-
     private function _setPayloadDetails(array &$payload, Submission $submission): void
     {
         $field = $this->getField();
@@ -583,5 +581,4 @@ class Paddle extends Payment
 
         return $price['id'];
     }
-
 }

@@ -1,14 +1,16 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\compatibility\fields\LegacyBrowserModules;
+use verbb\formie\conditions\ConditionSet;
 use verbb\formie\fields\definitions\FieldClientRenderedChildren;
 use verbb\formie\fields\definitions\FieldClientRenderedDefinition;
-use verbb\formie\conditions\ConditionSet;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
-use Craft;
+
+use UnexpectedValueException;
 
 trait FieldDefinitionTrait
 {
@@ -54,7 +56,7 @@ trait FieldDefinitionTrait
         }, array_merge(
             $this->defineBrowserModules(),
             $this->defineContextualBrowserModules($context),
-            \verbb\formie\compatibility\fields\LegacyBrowserModules::fromField($this),
+            LegacyBrowserModules::fromField($this),
         ));
     }
 
@@ -70,7 +72,7 @@ trait FieldDefinitionTrait
 
         foreach ($this->defineReferenceValues() as $value) {
             if (!$value instanceof FieldReferenceValue) {
-                throw new \UnexpectedValueException(sprintf('%s::defineReferenceValues() must return FieldReferenceValue objects.', static::class));
+                throw new UnexpectedValueException(sprintf('%s::defineReferenceValues() must return FieldReferenceValue objects.', static::class));
             }
 
             $key = $value->isPrimary() ? '__primary' : $value->selector;
@@ -94,6 +96,11 @@ trait FieldDefinitionTrait
     public function getConditions(): array
     {
         return $this->conditions ?? [];
+    }
+
+    public function collectBrowserModules(): array
+    {
+        return $this->defineBrowserModules();
     }
 
 
@@ -147,11 +154,6 @@ trait FieldDefinitionTrait
         return [];
     }
 
-    public function collectBrowserModules(): array
-    {
-        return $this->defineBrowserModules();
-    }
-
     protected function defineAllowPrimaryReference(): bool
     {
         return true;
@@ -171,5 +173,4 @@ trait FieldDefinitionTrait
     {
         return null;
     }
-
 }

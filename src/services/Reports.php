@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\events\ReportEvent;
 use verbb\formie\Formie;
+use verbb\formie\events\ReportEvent;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Report;
@@ -15,7 +15,6 @@ use craft\db\Query;
 use craft\events\ConfigEvent;
 use craft\helpers\Db;
 
-use DateTime;
 use Throwable;
 
 class Reports extends Component

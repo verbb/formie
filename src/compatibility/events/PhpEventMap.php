@@ -9,8 +9,8 @@ use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\Notifications;
 use verbb\formie\services\OptionSources;
-use verbb\formie\services\SubmissionStatuses;
 use verbb\formie\services\Submissions;
+use verbb\formie\services\SubmissionStatuses;
 
 use Craft;
 
@@ -18,15 +18,6 @@ use yii\base\Event;
 
 class PhpEventMap
 {
-    // Properties
-    // =========================================================================
-
-    private static bool $registered = false;
-
-    private const LEGACY_PREDEFINED_OPTIONS_CLASS = 'verbb\\formie\\services\\PredefinedOptions';
-    private const LEGACY_STATUSES_CLASS = 'verbb\\formie\\services\\Statuses';
-
-
     // Static Methods
     // =========================================================================
 
@@ -121,4 +112,17 @@ class PhpEventMap
         $event->name = $originalName;
         $event->sender = $originalSender;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    private const LEGACY_PREDEFINED_OPTIONS_CLASS = 'verbb\\formie\\services\\PredefinedOptions';
+    private const LEGACY_STATUSES_CLASS = 'verbb\\formie\\services\\Statuses';
+
+
+    // Properties
+    // =========================================================================
+
+    private static bool $registered = false;
 }

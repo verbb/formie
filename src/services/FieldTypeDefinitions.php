@@ -1,9 +1,46 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\cache\FieldTypeDefinitionCache;
 use verbb\formie\base\Field;
-use verbb\formie\fields as formiefields;
+use verbb\formie\cache\FieldTypeDefinitionCache;
+use verbb\formie\fields\Address;
+use verbb\formie\fields\Agree;
+use verbb\formie\fields\Calculations;
+use verbb\formie\fields\Categories;
+use verbb\formie\fields\Checkboxes;
+use verbb\formie\fields\Content;
+use verbb\formie\fields\CustomField;
+use verbb\formie\fields\Date;
+use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\Email;
+use verbb\formie\fields\Entries;
+use verbb\formie\fields\FileUpload;
+use verbb\formie\fields\Group;
+use verbb\formie\fields\Heading;
+use verbb\formie\fields\Hidden;
+use verbb\formie\fields\Html;
+use verbb\formie\fields\MissingField;
+use verbb\formie\fields\MultiLineText;
+use verbb\formie\fields\Name;
+use verbb\formie\fields\Note;
+use verbb\formie\fields\Number;
+use verbb\formie\fields\Password;
+use verbb\formie\fields\Payment;
+use verbb\formie\fields\Phone;
+use verbb\formie\fields\Products;
+use verbb\formie\fields\Quiz;
+use verbb\formie\fields\Radio;
+use verbb\formie\fields\Recipients;
+use verbb\formie\fields\Repeater;
+use verbb\formie\fields\Section;
+use verbb\formie\fields\Signature;
+use verbb\formie\fields\SingleLineText;
+use verbb\formie\fields\Summary;
+use verbb\formie\fields\Survey;
+use verbb\formie\fields\Table;
+use verbb\formie\fields\Tags;
+use verbb\formie\fields\Users;
+use verbb\formie\fields\Variants;
 
 use Craft;
 use craft\base\Component;
@@ -18,60 +55,64 @@ class FieldTypeDefinitions extends Component
 
     private const GROUP_CLASSES = [
         'internal' => [
-            formiefields\MissingField::class,
+            MissingField::class,
         ],
         'basic' => [
-            formiefields\SingleLineText::class,
-            formiefields\MultiLineText::class,
-            formiefields\Name::class,
-            formiefields\Email::class,
-            formiefields\Phone::class,
-            formiefields\Number::class,
+            SingleLineText::class,
+            MultiLineText::class,
+            Name::class,
+            Email::class,
+            Phone::class,
+            Number::class,
         ],
         'option' => [
-            formiefields\Radio::class,
-            formiefields\Checkboxes::class,
-            formiefields\Dropdown::class,
-            formiefields\Agree::class,
-            formiefields\Quiz::class,
-            formiefields\Survey::class,
+            Radio::class,
+            Checkboxes::class,
+            Dropdown::class,
+            Agree::class,
+            Quiz::class,
+            Survey::class,
         ],
         'advanced' => [
-            formiefields\Date::class,
-            formiefields\Address::class,
-            formiefields\FileUpload::class,
-            formiefields\Password::class,
-            formiefields\Hidden::class,
-            formiefields\Recipients::class,
-            formiefields\Signature::class,
-            formiefields\Calculations::class,
-            formiefields\Payment::class,
+            Date::class,
+            Address::class,
+            FileUpload::class,
+            Password::class,
+            Hidden::class,
+            Recipients::class,
+            Signature::class,
+            Calculations::class,
+            Payment::class,
         ],
         'dynamic' => [
-            formiefields\Repeater::class,
-            formiefields\Group::class,
-            formiefields\Table::class,
+            Repeater::class,
+            Group::class,
+            Table::class,
         ],
         'cosmetic' => [
-            formiefields\Heading::class,
-            formiefields\Section::class,
-            formiefields\Html::class,
-            formiefields\Content::class,
-            formiefields\Note::class,
-            formiefields\Summary::class,
+            Heading::class,
+            Section::class,
+            Html::class,
+            Content::class,
+            Note::class,
+            Summary::class,
         ],
         'element' => [
-            formiefields\Entries::class,
-            formiefields\Categories::class,
-            formiefields\Tags::class,
-            formiefields\Users::class,
-            formiefields\Products::class,
-            formiefields\Variants::class,
+            Entries::class,
+            Categories::class,
+            Tags::class,
+            Users::class,
+            Products::class,
+            Variants::class,
         ],
         'custom' => [
-            formiefields\CustomField::class,
+            CustomField::class,
         ],
     ];
+
+
+    // Properties
+    // =========================================================================
 
     private ?FieldTypeDefinitionCache $_cache = null;
 
@@ -183,6 +224,10 @@ class FieldTypeDefinitions extends Component
 
         return $this->_getCache()->groupedDefinitionsBySet[$cacheKey] = $groupedFieldDefinitions;
     }
+
+
+    // Private Methods
+    // =========================================================================
 
     private function _getCache(): FieldTypeDefinitionCache
     {

@@ -6,22 +6,17 @@ use verbb\formie\base\Field;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\Payment as PaymentIntegration;
-use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\PaymentFieldValue;
 use verbb\formie\gql\types\input\PaymentInputType;
 use verbb\formie\gql\types\Json as GqlJson;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\BrowserModuleContext;
-use verbb\formie\models\Notification;
 use verbb\formie\models\SlotTag;
-use verbb\formie\options\predefined\Currencies;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
 
@@ -56,6 +51,7 @@ class Payment extends Field
     public ?string $paymentIntegration = null;
     public ?string $paymentIntegrationType = null;
     public ?array $providerSettings = [];
+
     private static ?array $_paymentIntegrationsCache = null;
     private static ?array $_paymentProviderOptionsCache = null;
 
@@ -117,12 +113,10 @@ class Payment extends Field
         return PaymentInputType::getType($this);
     }
 
-
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
         return $this->normalizeValue($value, $element)->getAttributes();
     }
-
 
     public function defineFormBuilderPreviewSchema(): array
     {
@@ -356,7 +350,6 @@ class Payment extends Field
         return (string)$value;
     }
 
-
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
         // Payment fields can't really be previewed without real payment data
@@ -464,5 +457,4 @@ class Payment extends Field
         $providerSettings[$handle] = array_merge($defaults, $existing);
         $this->providerSettings = $providerSettings;
     }
-
 }

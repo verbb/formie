@@ -18,11 +18,10 @@ use yii\base\ErrorException;
 use yii\base\Exception;
 use yii\web\Response;
 
+use Throwable;
 use ZipArchive;
 
 use GuzzleHttp\Exception\RequestException;
-
-use Throwable;
 
 class SupportController extends SettingsAccessController
 {

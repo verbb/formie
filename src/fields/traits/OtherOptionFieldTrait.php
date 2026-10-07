@@ -2,6 +2,7 @@
 namespace verbb\formie\fields\traits;
 
 use verbb\formie\fields\values\MultiOptionFieldValue;
+use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
@@ -10,6 +11,7 @@ use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\web\Request;
 
 use GraphQL\Type\Definition\Type;
 
@@ -333,7 +335,7 @@ trait OtherOptionFieldTrait
 
         if (!$this->multi) {
             $request = Craft::$app->getRequest();
-            $fields = $request instanceof \craft\web\Request ? $request->getBodyParam('fields', []) : [];
+            $fields = $request instanceof Request ? $request->getBodyParam('fields', []) : [];
 
             if (is_array($fields) && array_key_exists($this->handle . 'Other', $fields)) {
                 return (string)$fields[$this->handle . 'Other'];
@@ -388,7 +390,7 @@ trait OtherOptionFieldTrait
         $options = [];
 
         foreach ($value instanceof MultiOptionFieldValue ? $value->all() : [$value] as $option) {
-            $options[] = new \verbb\formie\fields\values\OptionValue($option->label ?: $option->value, $option->value, $option->selected, true);
+            $options[] = new OptionValue($option->label ?: $option->value, $option->value, $option->selected, true);
         }
 
         if ($value instanceof MultiOptionFieldValue) {

@@ -13,5 +13,4 @@ class ModifyDateTimeFormatEvent extends Event
     public ?FieldInterface $field = null;
     public ?string $dateFormat = null;
     public ?string $timeFormat = null;
-
 }

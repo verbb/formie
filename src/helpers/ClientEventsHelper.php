@@ -3,13 +3,13 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutPageSettings;
 use verbb\formie\models\FormSettings;
-use verbb\formie\services\SubmissionWorkflow;
 
 class ClientEventsHelper
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function migrateLegacyEventFields(array $legacyRows): array
@@ -163,10 +163,6 @@ class ClientEventsHelper
         return self::resolveEvents($eventDefinitions, $submission);
     }
 
-
-    // Private Methods
-    // =========================================================================
-
     private static function _resolveEventDefinitionsForPage(Form $form, FieldLayoutPageSettings $settings): array
     {
         if (!$settings->enableClientEvents) {
@@ -266,7 +262,7 @@ class ClientEventsHelper
         return $sanitized;
     }
 
-    private static function _findPageById(Form $form, ?int $pageId): ?\verbb\formie\models\FieldLayoutPage
+    private static function _findPageById(Form $form, ?int $pageId): ?FieldLayoutPage
     {
         if (!$pageId) {
             return null;

@@ -9,7 +9,6 @@ use verbb\formie\models\BrowserModuleContext;
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
-use craft\helpers\Template;
 
 class PlaceKit extends AddressProvider
 {

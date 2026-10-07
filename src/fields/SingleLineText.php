@@ -1,27 +1,26 @@
 <?php
 namespace verbb\formie\fields;
 
-use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
+use verbb\formie\elements\Submission;
 use verbb\formie\fields\coercion\StringValueCoercer;
+use verbb\formie\fields\conditions\TextFieldConditionRule;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
-use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\helpers\Variables;
-use verbb\formie\fields\conditions\TextFieldConditionRule;
 use verbb\formie\fields\traits\AutocompleteFieldTrait;
 use verbb\formie\fields\traits\TextLimitFieldTrait;
 use verbb\formie\fields\traits\UniqueValueFieldTrait;
-use verbb\formie\elements\Submission;
+use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
 use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\helpers\Json;
 
 class SingleLineText extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
@@ -75,7 +74,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        return (string)parent::normalizeValue(is_scalar($value) || $value === null ? $value : \craft\helpers\Json::encode($value), $element);
+        return (string)parent::normalizeValue(is_scalar($value) || $value === null ? $value : Json::encode($value), $element);
     }
 
     public function getElementConditionRuleType(): ?string
@@ -325,6 +324,4 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
 
         return $modules;
     }
-
-
 }

@@ -3,7 +3,6 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\base\IntegrationInterface;
-use verbb\formie\elements\Submission;
 
 use Craft;
 use craft\base\Model;

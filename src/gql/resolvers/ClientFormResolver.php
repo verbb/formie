@@ -6,12 +6,21 @@ use verbb\formie\client\models\LoadContext;
 use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\client\models\SessionRefreshRequest;
 use verbb\formie\client\models\SubmitRequest;
+use verbb\formie\client\models\SubmitResult;
 use verbb\formie\elements\Form;
+use verbb\formie\enums\SubmissionAuthorityType;
+use verbb\formie\helpers\BrowserRequestProfile;
+use verbb\formie\helpers\CrossOriginRequestHelper;
 use verbb\formie\helpers\Gql as GqlHelper;
 
-use GraphQL\Error\Error;
+use Craft;
+
+use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
+use yii\web\MethodNotAllowedHttpException;
 use yii\web\NotFoundHttpException;
+
+use GraphQL\Error\Error;
 
 class ClientFormResolver
 {
@@ -20,8 +29,8 @@ class ClientFormResolver
 
     public static function resolveForm(mixed $source, array $arguments): array
     {
-        \verbb\formie\helpers\BrowserRequestProfile::enter(true);
-        \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders(\Craft::$app->getRequest(), \Craft::$app->getResponse());
+        BrowserRequestProfile::enter(true);
+        CrossOriginRequestHelper::applyHeaders(Craft::$app->getRequest(), Craft::$app->getResponse());
         $form = GqlHelper::findReadableFormByHandle(
             (string)($arguments['handle'] ?? ''),
             isset($arguments['siteId']) ? (int)$arguments['siteId'] : null
@@ -46,8 +55,8 @@ class ClientFormResolver
 
     public static function refreshSession(mixed $source, array $arguments): array
     {
-        \verbb\formie\helpers\BrowserRequestProfile::enter(false);
-        \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders(\Craft::$app->getRequest(), \Craft::$app->getResponse());
+        BrowserRequestProfile::enter(false);
+        CrossOriginRequestHelper::applyHeaders(Craft::$app->getRequest(), Craft::$app->getResponse());
         $payload = $arguments['input'];
         $form = Formie::$plugin->getSubmissionRequests()->requireFormByHandle(
             (string)($payload['handle'] ?? ''),
@@ -58,13 +67,13 @@ class ClientFormResolver
             throw new Error('Unable to perform the action.');
         }
 
-        if (!\Craft::$app->getRequest()->getIsPost()) {
-            throw new \yii\web\MethodNotAllowedHttpException('POST request required.');
+        if (!Craft::$app->getRequest()->getIsPost()) {
+            throw new MethodNotAllowedHttpException('POST request required.');
         }
 
-        if (\Craft::$app->getRequest()->getHeaders()->get('X-Formie-Profile', 'same-origin-browser') === 'same-origin-browser'
-            && !\Craft::$app->getRequest()->validateCsrfToken($payload['session']['tokens']['csrf']['value'] ?? null)) {
-            throw new \yii\web\BadRequestHttpException('Unable to verify your data submission.');
+        if (Craft::$app->getRequest()->getHeaders()->get('X-Formie-Profile', 'same-origin-browser') === 'same-origin-browser'
+            && !Craft::$app->getRequest()->validateCsrfToken($payload['session']['tokens']['csrf']['value'] ?? null)) {
+            throw new BadRequestHttpException('Unable to verify your data submission.');
         }
 
         $session = Formie::$plugin->getClientSessionService()->refreshSession(new SessionRefreshRequest([
@@ -78,8 +87,8 @@ class ClientFormResolver
 
     public static function setPage(mixed $source, array $arguments): array
     {
-        \verbb\formie\helpers\BrowserRequestProfile::enter(false);
-        \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders(\Craft::$app->getRequest(), \Craft::$app->getResponse());
+        BrowserRequestProfile::enter(false);
+        CrossOriginRequestHelper::applyHeaders(Craft::$app->getRequest(), Craft::$app->getResponse());
         $payload = $arguments['input'];
         $form = Formie::$plugin->getSubmissionRequests()->requireFormByHandle(
             (string)($payload['handle'] ?? ''),
@@ -87,16 +96,16 @@ class ClientFormResolver
         );
 
         if (!GqlHelper::canReadForm($form) || !self::_canMutateSubmissionsForForm($form, $payload, 'back')) {
-            return \verbb\formie\client\models\SubmitResult::rejection(403)->toArrayRecursive();
+            return SubmitResult::rejection(403)->toArrayRecursive();
         }
 
-        if (!\Craft::$app->getRequest()->getIsPost()) {
-            throw new \yii\web\MethodNotAllowedHttpException('POST request required.');
+        if (!Craft::$app->getRequest()->getIsPost()) {
+            throw new MethodNotAllowedHttpException('POST request required.');
         }
 
-        if (\Craft::$app->getRequest()->getHeaders()->get('X-Formie-Profile', 'same-origin-browser') === 'same-origin-browser'
-            && !\Craft::$app->getRequest()->validateCsrfToken($payload['session']['tokens']['csrf']['value'] ?? null)) {
-            throw new \yii\web\BadRequestHttpException('Unable to verify your data submission.');
+        if (Craft::$app->getRequest()->getHeaders()->get('X-Formie-Profile', 'same-origin-browser') === 'same-origin-browser'
+            && !Craft::$app->getRequest()->validateCsrfToken($payload['session']['tokens']['csrf']['value'] ?? null)) {
+            throw new BadRequestHttpException('Unable to verify your data submission.');
         }
 
         $session = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
@@ -114,8 +123,8 @@ class ClientFormResolver
 
     public static function submitForm(mixed $source, array $arguments): array
     {
-        \verbb\formie\helpers\BrowserRequestProfile::enter(false);
-        \verbb\formie\helpers\CrossOriginRequestHelper::applyHeaders(\Craft::$app->getRequest(), \Craft::$app->getResponse());
+        BrowserRequestProfile::enter(false);
+        CrossOriginRequestHelper::applyHeaders(Craft::$app->getRequest(), Craft::$app->getResponse());
         $payload = $arguments['input'];
         $form = Formie::$plugin->getSubmissionRequests()->requireFormByHandle(
             (string)($payload['handle'] ?? ''),
@@ -123,16 +132,16 @@ class ClientFormResolver
         );
 
         if (!GqlHelper::canReadForm($form) || !self::_canMutateSubmissionsForForm($form, $payload, (string)($payload['action'] ?? 'submit'))) {
-            return \verbb\formie\client\models\SubmitResult::rejection(403)->toArrayRecursive();
+            return SubmitResult::rejection(403)->toArrayRecursive();
         }
 
-        if (!\Craft::$app->getRequest()->getIsPost()) {
-            throw new \yii\web\MethodNotAllowedHttpException('POST request required.');
+        if (!Craft::$app->getRequest()->getIsPost()) {
+            throw new MethodNotAllowedHttpException('POST request required.');
         }
 
-        if (\Craft::$app->getRequest()->getHeaders()->get('X-Formie-Profile', 'same-origin-browser') === 'same-origin-browser'
-            && !\Craft::$app->getRequest()->validateCsrfToken($payload['session']['tokens']['csrf']['value'] ?? null)) {
-            throw new \yii\web\BadRequestHttpException('Unable to verify your data submission.');
+        if (Craft::$app->getRequest()->getHeaders()->get('X-Formie-Profile', 'same-origin-browser') === 'same-origin-browser'
+            && !Craft::$app->getRequest()->validateCsrfToken($payload['session']['tokens']['csrf']['value'] ?? null)) {
+            throw new BadRequestHttpException('Unable to verify your data submission.');
         }
 
         $result = Formie::$plugin->getSubmissionRequests()->execute(new SubmitRequest([
@@ -143,14 +152,10 @@ class ClientFormResolver
             'session' => (array)($payload['session'] ?? []),
             'operationId' => $payload['operationId'] ?? null,
             'values' => (array)($payload['values'] ?? []),
-        ]), \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
+        ]), SubmissionAuthorityType::VISITOR);
 
         return $result->toArrayRecursive();
     }
-
-
-    // Private Methods
-    // =========================================================================
 
     private static function _canMutateSubmissionsForForm(Form $form, array $payload, string $action = 'submit'): bool
     {

@@ -11,6 +11,9 @@ use ReflectionProperty;
 
 trait PresentationFieldConfigTrait
 {
+    // Protected Methods
+    // =========================================================================
+
     protected function resolvePresentationField(string $displayType, array $config): ?FieldInterface
     {
         $fieldClass = $this->definePresentationFieldClassMap()[$displayType] ?? null;

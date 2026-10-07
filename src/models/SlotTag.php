@@ -30,6 +30,7 @@ class SlotTag extends Model
     public array $instanceAttributes = [];
     public array $prependContent = [];
     public array $appendContent = [];
+
     private array $_trustedAttributeOverrides = [];
     private array $_trustedAttributeRemovals = [];
 
@@ -146,6 +147,7 @@ class SlotTag extends Model
 
         return $this;
     }
+
 
     // Private Methods
     // =========================================================================

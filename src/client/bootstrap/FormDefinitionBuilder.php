@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\client\bootstrap;
 
-use verbb\formie\elements\Form;
 use verbb\formie\client\bootstrap\models\FormDefinition;
 use verbb\formie\client\models\LoadContext;
+use verbb\formie\elements\Form;
 
 use yii\base\Component;
 

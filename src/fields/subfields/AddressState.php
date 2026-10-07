@@ -11,29 +11,12 @@ use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
+use craft\helpers\UrlHelper;
 
 use GraphQL\Type\Definition\Type;
 
 class AddressState extends SingleLineText implements ChildFieldInterface
 {
-    // Constants
-    // =========================================================================
-
-    public const INPUT_MODE_TEXT = 'text';
-    public const INPUT_MODE_DROPDOWN_WHEN_AVAILABLE = 'dropdownWhenAvailable';
-
-
-    // Properties
-    // =========================================================================
-
-    public string $inputMode = self::INPUT_MODE_TEXT;
-    public bool $hideWhenUnused = true;
-    public bool $useSearchable = true;
-    public bool $useDatalist = true;
-    public string $optionLabel = 'name';
-    public string $optionValue = 'name';
-
-
     // Static Methods
     // =========================================================================
 
@@ -51,6 +34,24 @@ class AddressState extends SingleLineText implements ChildFieldInterface
     {
         return 'fields/single-line-text';
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const INPUT_MODE_TEXT = 'text';
+    public const INPUT_MODE_DROPDOWN_WHEN_AVAILABLE = 'dropdownWhenAvailable';
+
+
+    // Properties
+    // =========================================================================
+
+    public string $inputMode = self::INPUT_MODE_TEXT;
+    public bool $hideWhenUnused = true;
+    public bool $useSearchable = true;
+    public bool $useDatalist = true;
+    public string $optionLabel = 'name';
+    public string $optionValue = 'name';
 
 
     // Public Methods
@@ -291,7 +292,7 @@ class AddressState extends SingleLineText implements ChildFieldInterface
                 'optionValue' => $this->optionValue,
                 'countryOptionValue' => $countryOptionValue,
                 'placeholder' => $this->placeholder ?: null,
-                'subdivisionsAction' => \craft\helpers\UrlHelper::actionUrl('formie/address/subdivisions'),
+                'subdivisionsAction' => UrlHelper::actionUrl('formie/address/subdivisions'),
             ],
         ]);
 

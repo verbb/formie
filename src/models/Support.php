@@ -3,7 +3,6 @@ namespace verbb\formie\models;
 
 use Craft;
 use craft\base\Model;
-use craft\web\UploadedFile;
 
 class Support extends Model
 {
@@ -39,5 +38,4 @@ class Support extends Model
             [['fromEmail'], 'string', 'min' => 5, 'max' => 255],
         ];
     }
-
 }

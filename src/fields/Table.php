@@ -3,52 +3,44 @@ namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
-use verbb\formie\base\FieldInterface;
-use verbb\formie\base\Integration;
-use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
+use verbb\formie\fields\values\ColorFieldValue;
+use verbb\formie\gql\types\generators\KeyValueGenerator;
+use verbb\formie\gql\types\generators\TableRowTypeGenerator;
+use verbb\formie\gql\types\TableRowType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\fields\values\ColorFieldValue;
-use verbb\formie\gql\types\TableRowType;
-use verbb\formie\gql\types\generators\KeyValueGenerator;
-use verbb\formie\gql\types\generators\TableRowTypeGenerator;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
-use verbb\formie\models\IntegrationField;
-use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
-use craft\base\Element;
 use craft\base\ElementInterface;
-use craft\fields\Table as CraftTable;
 use craft\gql\GqlEntityRegistry;
-use craft\helpers\Component;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
-use craft\validators\ArrayValidator;
 use craft\validators\ColorValidator;
 use craft\validators\HandleValidator;
 use craft\validators\UrlValidator;
 use craft\web\assets\timepicker\TimepickerAsset;
 
-use DateTime;
+use yii\db\Schema;
+use yii\validators\EmailValidator;
+
+use DateTimeImmutable;
+use DateTimeInterface;
 
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\Type;
-
-use yii\db\Schema;
-use yii\validators\EmailValidator;
 
 class Table extends Field
 {
@@ -142,7 +134,6 @@ class Table extends Field
     public ?int $maxRows = null;
     public ?int $minRows = null;
     public bool $static = false;
-
     public array $columns = [
         'col1' => [
             'heading' => '',
@@ -150,7 +141,6 @@ class Table extends Field
             'type' => 'singleline',
         ],
     ];
-
     public ?array $defaults = [[]];
 
 
@@ -377,7 +367,6 @@ class Table extends Field
     {
         return $this->_normalizeValueInternal($value, $element, true);
     }
-
 
     public function getContentGqlType(): Type|array
     {
@@ -1298,11 +1287,10 @@ class Table extends Field
     {
         return match ($type) {
             'color' => $value instanceof ColorFieldValue ? $value->getHex() : ($value ?? ''),
-            'date', 'time' => $value instanceof \DateTimeInterface ? $value->format($type === 'date' ? 'Y-m-d' : 'H:i:s') : $value,
+            'date', 'time' => $value instanceof DateTimeInterface ? $value->format($type === 'date' ? 'Y-m-d' : 'H:i:s') : $value,
             default => $value,
         };
     }
-
 
     private function _serializeCellValue(string $type, mixed $value): mixed
     {
@@ -1349,11 +1337,11 @@ class Table extends Field
                 // no break
             case 'date':
             case 'time':
-                if ($value instanceof \DateTimeInterface) {
-                    return \DateTimeImmutable::createFromInterface($value);
+                if ($value instanceof DateTimeInterface) {
+                    return DateTimeImmutable::createFromInterface($value);
                 }
                 $parsed = DateTimeHelper::toDateTime($value, false, false);
-                return $parsed ? \DateTimeImmutable::createFromInterface($parsed) : $value;
+                return $parsed ? DateTimeImmutable::createFromInterface($parsed) : $value;
         }
 
         return $value;

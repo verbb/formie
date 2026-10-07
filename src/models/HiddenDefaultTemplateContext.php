@@ -1,29 +1,17 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
+
 use Craft;
 use craft\base\Model;
 use craft\elements\User;
 
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-
 class HiddenDefaultTemplateContext extends Model
 {
-    public HiddenDefaultTemplateFormContext $form;
-    public ?Submission $submission = null;
-    public ?User $currentUser = null;
-    public HiddenDefaultTemplateSiteContext $site;
-    public HiddenDefaultTemplateRequestContext $request;
-
-    public function init(): void
-    {
-        parent::init();
-
-        $this->form ??= new HiddenDefaultTemplateFormContext();
-        $this->site ??= new HiddenDefaultTemplateSiteContext();
-        $this->request ??= new HiddenDefaultTemplateRequestContext();
-    }
+    // Static Methods
+    // =========================================================================
 
     public static function fromFieldContext(?Form $form, ?Submission $submission = null): self
     {
@@ -51,5 +39,28 @@ class HiddenDefaultTemplateContext extends Model
         }
 
         return $context;
+    }
+
+
+    // Properties
+    // =========================================================================
+
+    public HiddenDefaultTemplateFormContext $form;
+    public ?Submission $submission = null;
+    public ?User $currentUser = null;
+    public HiddenDefaultTemplateSiteContext $site;
+    public HiddenDefaultTemplateRequestContext $request;
+
+
+    // Public Methods
+    // =========================================================================
+
+    public function init(): void
+    {
+        parent::init();
+
+        $this->form ??= new HiddenDefaultTemplateFormContext();
+        $this->site ??= new HiddenDefaultTemplateSiteContext();
+        $this->request ??= new HiddenDefaultTemplateRequestContext();
     }
 }

@@ -4,6 +4,8 @@ namespace verbb\formie\fields\values;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 
+use craft\helpers\Json;
+
 class NameFieldValue extends BaseFieldValue
 {
     // Properties
@@ -33,7 +35,7 @@ class NameFieldValue extends BaseFieldValue
                 }
                 $value = $value->value;
             }
-            $config[$key] = $value === null ? null : trim(is_scalar($value) ? (string)$value : \craft\helpers\Json::encode($value));
+            $config[$key] = $value === null ? null : trim(is_scalar($value) ? (string)$value : Json::encode($value));
         }
         $this->prefix = $config['prefix'];
         $this->prefixOption = $config['prefixOption'];

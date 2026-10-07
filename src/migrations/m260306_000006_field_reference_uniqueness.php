@@ -6,6 +6,8 @@ use verbb\formie\helpers\Table;
 use craft\db\Migration;
 use craft\db\Query;
 
+use RuntimeException;
+
 class m260306_000006_field_reference_uniqueness extends Migration
 {
     // Public Methods
@@ -35,7 +37,7 @@ class m260306_000006_field_reference_uniqueness extends Migration
                 $message .= ' Additional duplicate references exist.';
             }
 
-            throw new \RuntimeException($message);
+            throw new RuntimeException($message);
         }
 
         $this->createIndex(

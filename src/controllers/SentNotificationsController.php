@@ -4,6 +4,7 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\elements\SentNotification;
 use verbb\formie\models\Settings;
+
 use Craft;
 use craft\mail\Message;
 use craft\web\Controller;
@@ -333,5 +334,4 @@ class SentNotificationsController extends Controller
 
         return $newEmail;
     }
-
 }

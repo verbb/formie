@@ -1,13 +1,13 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\records\ScheduledReport as ScheduledReportRecord;
+
 use Craft;
 use craft\base\Model;
 use craft\db\SoftDeleteTrait;
 use craft\helpers\UrlHelper;
 use craft\validators\UniqueValidator;
-
-use verbb\formie\records\ScheduledReport as ScheduledReportRecord;
 
 use DateTime;
 

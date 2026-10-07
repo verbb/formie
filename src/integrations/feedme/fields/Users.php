@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
-use craft\feedme\fields\Users as FeedMeUsers;
 use verbb\formie\fields\Users as UsersField;
+
+use craft\feedme\fields\Users as FeedMeUsers;
 
 class Users extends FeedMeUsers
 {
@@ -19,6 +20,9 @@ class Users extends FeedMeUsers
     public static string $name = 'Users';
 
 
+    // Public Methods
+    // =========================================================================
+
     // Templates
     // =========================================================================
 
@@ -26,5 +30,4 @@ class Users extends FeedMeUsers
     {
         return 'formie/integrations/feedme/fields/users';
     }
-
 }

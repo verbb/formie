@@ -23,5 +23,4 @@ class IntegrationResponse extends Model
         $this->success = $success;
         $this->message = $message;
     }
-
 }

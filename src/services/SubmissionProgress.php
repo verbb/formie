@@ -4,8 +4,8 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\helpers\Table;
 use verbb\formie\errors\StateConflict;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\SubmissionProgress as ProgressState;
 
 use Craft;

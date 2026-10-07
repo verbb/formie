@@ -391,7 +391,6 @@ trait FieldFormBuilderTrait
         ]);
     }
 
-
     private function _isLegacyVuePreviewTemplate(string $template): bool
     {
         return str_contains($template, '${ ')

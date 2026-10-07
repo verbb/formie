@@ -8,12 +8,6 @@ use craft\db\SoftDeleteTrait;
 
 class FormStatus extends ActiveRecord
 {
-    // Traits
-    // =========================================================================
-
-    use SoftDeleteTrait;
-
-
     // Static Methods
     // =========================================================================
 
@@ -21,4 +15,10 @@ class FormStatus extends ActiveRecord
     {
         return Table::FORMIE_FORM_STATUSES;
     }
+
+
+    // Traits
+    // =========================================================================
+
+    use SoftDeleteTrait;
 }

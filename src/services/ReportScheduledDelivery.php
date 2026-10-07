@@ -17,6 +17,8 @@ use craft\helpers\Template;
 use craft\mail\Message;
 
 use DateTime;
+use InvalidArgumentException;
+use RuntimeException;
 
 class ReportScheduledDelivery extends Component
 {
@@ -26,7 +28,7 @@ class ReportScheduledDelivery extends Component
     public function sendIfDue(ScheduledReport $scheduledReport): bool
     {
         if (!$scheduledReport->id) {
-            throw new \InvalidArgumentException('Scheduled report must be saved before delivery.');
+            throw new InvalidArgumentException('Scheduled report must be saved before delivery.');
         }
 
         $mutex = Craft::$app->getMutex();
@@ -56,7 +58,7 @@ class ReportScheduledDelivery extends Component
         $report = Formie::$plugin->getReports()->getReportById((int)$scheduledReport->reportId);
 
         if (!$report) {
-            throw new \RuntimeException(Craft::t('formie', 'Scheduled report references a missing report.'));
+            throw new RuntimeException(Craft::t('formie', 'Scheduled report references a missing report.'));
         }
 
         $delivery = $scheduledReport->getDeliveryModel();
@@ -65,7 +67,7 @@ class ReportScheduledDelivery extends Component
             : $this->resolveRecipients($delivery);
 
         if (!$recipients) {
-            throw new \RuntimeException(Craft::t('formie', 'Scheduled report has no recipients.'));
+            throw new RuntimeException(Craft::t('formie', 'Scheduled report has no recipients.'));
         }
 
         $startedAt = new DateTime();
@@ -104,7 +106,7 @@ class ReportScheduledDelivery extends Component
             }
 
             if (!$mailer->send($message)) {
-                throw new \RuntimeException(Craft::t('formie', 'Couldn’t send scheduled report email.'));
+                throw new RuntimeException(Craft::t('formie', 'Couldn’t send scheduled report email.'));
             }
 
             $sent = true;
@@ -240,7 +242,7 @@ class ReportScheduledDelivery extends Component
         $path = $export['path'] ?? null;
 
         if (!$path || !is_file($path)) {
-            throw new \RuntimeException(Craft::t('formie', 'Scheduled report export file is missing.'));
+            throw new RuntimeException(Craft::t('formie', 'Scheduled report export file is missing.'));
         }
 
         if (!Formie::$plugin->getReportExport()->exceedsEmailAttachmentLimit($path)) {

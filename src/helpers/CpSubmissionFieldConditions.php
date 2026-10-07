@@ -5,17 +5,6 @@ use Craft;
 
 class CpSubmissionFieldConditions
 {
-    // Constants
-    // =========================================================================
-
-    public const FOLLOW = 'follow';
-    public const MUTED = 'muted';
-    public const SHOW_ALL = 'show-all';
-
-    /** Client-side conditions module display mode when fields should be hidden in CP. */
-    public const CLIENT_DISPLAY_HIDE = 'hide';
-
-
     // Static Methods
     // =========================================================================
 
@@ -71,4 +60,15 @@ class CpSubmissionFieldConditions
     {
         return $mode === self::MUTED ? self::MUTED : self::CLIENT_DISPLAY_HIDE;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    public const FOLLOW = 'follow';
+    public const MUTED = 'muted';
+    public const SHOW_ALL = 'show-all';
+
+    /** Client-side conditions module display mode when fields should be hidden in CP. */
+    public const CLIENT_DISPLAY_HIDE = 'hide';
 }

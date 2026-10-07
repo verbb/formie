@@ -19,6 +19,8 @@ use craft\db\Query;
 use craft\helpers\Db;
 use craft\helpers\Json;
 
+use yii\db\Expression;
+
 class QuestionnaireScoring extends Component
 {
     // Public Methods
@@ -214,10 +216,10 @@ class QuestionnaireScoring extends Component
 
         $totals = (new Query())
             ->select([
-                'attemptCount' => new \yii\db\Expression('COUNT(*)'),
-                'totalScore' => new \yii\db\Expression('SUM([[results.score]])'),
-                'totalPercentage' => new \yii\db\Expression('SUM([[results.percentage]])'),
-                'passCount' => new \yii\db\Expression('SUM(CASE WHEN [[results.passed]] THEN 1 ELSE 0 END)'),
+                'attemptCount' => new Expression('COUNT(*)'),
+                'totalScore' => new Expression('SUM([[results.score]])'),
+                'totalPercentage' => new Expression('SUM([[results.percentage]])'),
+                'passCount' => new Expression('SUM(CASE WHEN [[results.passed]] THEN 1 ELSE 0 END)'),
             ])
             ->from(['results' => Table::FORMIE_SUBMISSION_QUIZ_RESULTS])
             ->innerJoin(['submissions' => Table::FORMIE_SUBMISSIONS], '[[submissions.id]] = [[results.submissionId]]')

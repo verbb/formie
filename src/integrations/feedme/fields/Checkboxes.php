@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
-use craft\feedme\fields\Checkboxes as FeedMeCheckboxes;
 use verbb\formie\fields\Checkboxes as CheckboxesField;
+
+use craft\feedme\fields\Checkboxes as FeedMeCheckboxes;
 
 class Checkboxes extends FeedMeCheckboxes
 {
@@ -17,5 +18,4 @@ class Checkboxes extends FeedMeCheckboxes
 
     public static string $class = CheckboxesField::class;
     public static string $name = 'Checkboxes';
-
 }

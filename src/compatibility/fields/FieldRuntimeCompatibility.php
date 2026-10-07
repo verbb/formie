@@ -3,6 +3,10 @@ namespace verbb\formie\compatibility\fields;
 
 use verbb\formie\fields\definitions\FieldValueType;
 
+use Craft;
+
+use ReflectionMethod;
+
 trait FieldRuntimeCompatibility
 {
     // Static Methods
@@ -10,7 +14,7 @@ trait FieldRuntimeCompatibility
 
     private static function _hasLegacyStaticMethodOverride(string $method): bool
     {
-        $reflection = new \ReflectionMethod(static::class, $method);
+        $reflection = new ReflectionMethod(static::class, $method);
 
         return $reflection->getDeclaringClass()->getName() !== self::class;
     }
@@ -27,14 +31,14 @@ trait FieldRuntimeCompatibility
 
     public function getSyncId(): ?int
     {
-        \Craft::$app->getDeprecator()->log(static::class . '::syncId', 'The `syncId` field property has been deprecated. Use `definitionId` and `isSynced` instead.');
+        Craft::$app->getDeprecator()->log(static::class . '::syncId', 'The `syncId` field property has been deprecated. Use `definitionId` and `isSynced` instead.');
 
         return $this->getIsSynced() ? $this->definitionId : null;
     }
 
     public function setSyncId(?int $value): void
     {
-        \Craft::$app->getDeprecator()->log(static::class . '::syncId', 'The `syncId` field property has been deprecated. Use `definitionId` and `isSynced` instead.');
+        Craft::$app->getDeprecator()->log(static::class . '::syncId', 'The `syncId` field property has been deprecated. Use `definitionId` and `isSynced` instead.');
 
         if ($value) {
             $this->definitionId = $value;
@@ -52,7 +56,7 @@ trait FieldRuntimeCompatibility
         $class = $this->defineValueClass();
 
         if ($class || !in_array($type, ['mixed', 'string'], true)) {
-            \Craft::$app->getDeprecator()->log(static::class . '::valueType', 'Declare defineValueType() for the post-normalization runtime value. Legacy phpType()/defineValueClass() is deprecated.');
+            Craft::$app->getDeprecator()->log(static::class . '::valueType', 'Declare defineValueType() for the post-normalization runtime value. Legacy phpType()/defineValueClass() is deprecated.');
         }
 
         if ($class && class_exists($class)) {
@@ -75,7 +79,7 @@ trait FieldRuntimeCompatibility
 
     private function _hasLegacyFieldMethodOverride(string $method): bool
     {
-        $reflection = new \ReflectionMethod(static::class, $method);
+        $reflection = new ReflectionMethod(static::class, $method);
 
         return $reflection->getDeclaringClass()->getName() !== self::class;
     }

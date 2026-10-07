@@ -7,6 +7,9 @@ use craft\db\Migration;
 
 class m260621_000000_submission_guards extends Migration
 {
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         if (!$this->db->tableExists(Table::FORMIE_SPAM_SETTINGS)) {

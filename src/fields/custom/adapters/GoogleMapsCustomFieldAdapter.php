@@ -2,8 +2,8 @@
 namespace verbb\formie\fields\custom\adapters;
 
 use verbb\formie\elements\Form;
-use verbb\formie\fields\CustomField;
 use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
+use verbb\formie\fields\CustomField;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\CustomGoogleMapsAddressFieldValue;
 use verbb\formie\helpers\SchemaHelper;
@@ -11,15 +11,14 @@ use verbb\formie\models\BrowserModule;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\gql\GqlEntityRegistry;
 use craft\helpers\Html;
 use craft\helpers\Json;
-use craft\gql\GqlEntityRegistry;
 
 use doublesecretagency\googlemaps\enums\Defaults as GoogleMapsDefaults;
 use doublesecretagency\googlemaps\fields\AddressField as CraftGoogleMapsAddressField;
 use doublesecretagency\googlemaps\helpers\GoogleMaps;
 use doublesecretagency\googlemaps\models\Address as CraftGoogleMapsAddressValue;
-
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\Type;
 

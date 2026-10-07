@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\compatibility\fields;
 
-use verbb\formie\base\Field;
 use verbb\formie\Formie;
+use verbb\formie\base\Field;
 use verbb\formie\helpers\Html;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\SlotTag;
@@ -10,9 +10,11 @@ use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 
+use ReflectionMethod;
+
 class FieldCompatibility
 {
-    // Public Methods
+    // Static Methods
     // =========================================================================
 
     public static function resolveLegacySchema(object $field, string $legacyMethod, string $newMethod): array
@@ -25,7 +27,7 @@ class FieldCompatibility
             return [];
         }
 
-        if ((new \ReflectionMethod($field, $legacyMethod))->getDeclaringClass()->getName() === Field::class) {
+        if ((new ReflectionMethod($field, $legacyMethod))->getDeclaringClass()->getName() === Field::class) {
             return [];
         }
 
@@ -44,7 +46,7 @@ class FieldCompatibility
             return null;
         }
 
-        if ((new \ReflectionMethod($field, 'defineHtmlTag'))->getDeclaringClass()->getName() === Field::class) {
+        if ((new ReflectionMethod($field, 'defineHtmlTag'))->getDeclaringClass()->getName() === Field::class) {
             return null;
         }
 

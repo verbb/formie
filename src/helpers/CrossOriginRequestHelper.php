@@ -6,10 +6,14 @@ use verbb\formie\Formie;
 use Craft;
 use craft\web\Request;
 
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 class CrossOriginRequestHelper
 {
+    // Static Methods
+    // =========================================================================
+
     public static function applyHeaders(Request $request, Response $response, array|string|null $allowedMethods = null): ?string
     {
         self::requireAllowedOrigin($request);
@@ -46,7 +50,7 @@ class CrossOriginRequestHelper
     public static function requireAllowedOrigin(Request $request): void
     {
         if (trim((string)$request->getOrigin()) !== '' && self::resolveAllowedOrigin($request) === null) {
-            throw new \yii\web\ForbiddenHttpException('This origin is not allowed to access Formie. Configure Formie allowedOrigins for this application.');
+            throw new ForbiddenHttpException('This origin is not allowed to access Formie. Configure Formie allowedOrigins for this application.');
         }
     }
 
@@ -80,5 +84,4 @@ class CrossOriginRequestHelper
 
         return 'GET, POST, OPTIONS';
     }
-
 }

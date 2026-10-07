@@ -1,24 +1,21 @@
 <?php
 namespace verbb\formie\integrations\emailmarketing;
 
-use verbb\formie\Formie;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
-use craft\helpers\App;
 use craft\helpers\Json;
 
 use Throwable;
 
 use verbb\auth\base\OAuthProviderInterface;
-use verbb\auth\models\Token;
 use verbb\auth\providers\Drip as DripProvider;
 
 class Drip extends EmailMarketing implements OAuthProviderInterface
@@ -40,6 +37,7 @@ class Drip extends EmailMarketing implements OAuthProviderInterface
     {
         return 'Drip';
     }
+
 
     // Public Methods
     // =========================================================================
@@ -123,6 +121,10 @@ class Drip extends EmailMarketing implements OAuthProviderInterface
 
         return new IntegrationConfig($settings);
     }
+
+
+    // Protected Methods
+    // =========================================================================
 
     protected function executePayload(Submission $submission): IntegrationResult
     {
