@@ -36,7 +36,12 @@ it('filters frontend-only field modules out of cp edit manifests and config', fu
             'defaultOption' => 'cookie',
             'cookieName' => 'utm_source',
         ])
+        ->summaryField('summary')
         ->create();
+
+    // A single CP picker is still module-owned; paired date/time fields use
+    // Craft's native controls and should not declare the browser module.
+    $form->getFieldByHandle('eventDate')->getFieldByHandle('time')->enabled = false;
 
     $builder = Formie::$plugin->getBrowserModuleManifestBuilder();
     $frontendModules = $builder->buildForSurface($form, BrowserModule::SURFACE_SERVER_RENDERED)->toArray()['entries'];
@@ -53,7 +58,8 @@ it('filters frontend-only field modules out of cp edit manifests and config', fu
         ->toContain('formie:date-picker')
         ->toContain('formie:table')
         ->toContain('formie:checkbox-radio')
-        ->toContain('formie:hidden');
+        ->toContain('formie:hidden')
+        ->toContain('formie:summary');
 
     expect($cpModuleIds)
         ->toContain('formie:rich-text')
@@ -61,9 +67,27 @@ it('filters frontend-only field modules out of cp edit manifests and config', fu
         ->not->toContain('formie:table')
         ->not->toContain('formie:checkbox-radio')
         ->not->toContain('formie:hidden')
+        ->not->toContain('formie:summary')
         ->and($cpConfigModuleIds)->toBe($cpModuleIds)
         ->and($frontendTextLimit['config']['allowOvertype'] ?? false)->toBeFalse()
         ->and($cpTextLimit['config']['allowOvertype'] ?? false)->toBeTrue();
+});
+
+it('does not declare the date picker for paired cp date and time controls', function (): void {
+    $form = formie()
+        ->form(['title' => 'CP Date Time Render Target'])
+        ->dateField('eventDate', [
+            'displayType' => 'datePicker',
+        ])
+        ->create();
+
+    $cpModuleIds = array_column(
+        Formie::$plugin->getBrowserModuleManifestBuilder()->buildForSurface($form, BrowserModule::SURFACE_CP_EDIT)->toArray()['entries'],
+        'moduleId',
+    );
+
+    expect($form->getFieldByHandle('eventDate')->getIsDateTime())->toBeTrue()
+        ->and($cpModuleIds)->not->toContain('formie:date-picker');
 });
 
 it('filters conditions out of cp edit manifests when the form shows all fields', function (): void {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Button, Dialog, Spinner } from '@verbb/plugin-kit-react/components';
+import { Button, Dialog, Spinner, StatePanel } from '@verbb/plugin-kit-react/components';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
 
 /**
@@ -240,9 +240,15 @@ export function CraftElementIndexDialog({
                 ) : null}
 
                 {loadError ? (
-                    <div className="formie-craft-element-index-status text-rose-600" role="alert">
+                    <StatePanel
+                        variant="error"
+                        size="sm"
+                        heading={t('Unable to load elements')}
+                        announce="assertive"
+                        className="h-full [--pk-state-panel-min-height:0]"
+                    >
                         {loadError}
-                    </div>
+                    </StatePanel>
                 ) : null}
 
                 {/* Craft injects `.element-index` HTML here (light DOM → CP CSS applies). */}

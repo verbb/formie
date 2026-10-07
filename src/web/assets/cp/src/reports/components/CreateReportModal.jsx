@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { buildUniqueHandleFromSource, getErrorMessage } from '@verbb/plugin-kit-core';
-import { Button, Dialog, Icon, Input } from '@verbb/plugin-kit-react/components';
+import { Alert, Button, Dialog, Icon, Input } from '@verbb/plugin-kit-react/components';
 import { FieldLayout } from '@verbb/plugin-kit-react/forms';
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { ReportFormsSelect } from '@reports/components/ReportFormsSelect';
@@ -304,7 +304,9 @@ export const CreateReportModal = ({
                 </div>
 
                 {formError ? (
-                    <p className="text-sm text-rose-600">{formError}</p>
+                    <Alert variant="error" announce="assertive" size="sm">
+                        {formError}
+                    </Alert>
                 ) : null}
             </form>
 

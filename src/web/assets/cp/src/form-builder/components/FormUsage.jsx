@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { takeAtLeast } from '@verbb/plugin-kit-core';
-import { Spinner } from '@verbb/plugin-kit-react/components';
+import { Spinner, StatePanel } from '@verbb/plugin-kit-react/components';
+import { ErrorState } from '@verbb/plugin-kit-react/utils';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
-import { LargeErrorState, StatePanel } from '@utils';
 
 const FormUsage = () => {
     const formValues = useFormValues();
@@ -53,8 +53,9 @@ const FormUsage = () => {
 
     if (error) {
         return (
-            <LargeErrorState
+            <ErrorState
                 error={error}
+                size="lg"
                 message={Craft.t('formie', 'Unable to load usage for this form.')}
                 detailsLabel={Craft.t('formie', 'Show error details')}
                 actionLabel={Craft.t('formie', 'Try Again')}
@@ -67,11 +68,12 @@ const FormUsage = () => {
         return (
             <StatePanel
                 variant="empty"
-                title={Craft.t('formie', 'No usage found')}
-                message={Craft.t('formie', 'This form is not currently being used by any entries, users, or other elements.')}
-                containerClassName="p-8 text-center"
-                contentClassName="flex w-[90%] max-w-[560px] flex-col items-center text-center mx-auto"
-            />
+                size="lg"
+                heading={Craft.t('formie', 'No usage found')}
+                className="p-8"
+            >
+                {Craft.t('formie', 'This form is not currently being used by any entries, users, or other elements.')}
+            </StatePanel>
         );
     }
 

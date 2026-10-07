@@ -86,6 +86,80 @@ test('module match and setup hooks receive the exact rendering surface', async({
     ]);
 });
 
+test('required CP module failures render aligned copyable diagnostics', async({ page }) => {
+    await page.goto('/browser-fixture');
+    await page.waitForFunction(() => !!(window as any).browserModules);
+    const result = await page.evaluate(async() => {
+        const { hydrateFormieModules, ModuleRegistry } = (window as any).browserModules;
+        const form = document.createElement('form');
+        const root = document.createElement('div');
+        form.append(root);
+        document.body.append(form);
+
+        const registry = new ModuleRegistry();
+        registry.register({
+            moduleId: 'test:diagnostics',
+            version: 2,
+            surfaces: ['cp-edit'],
+            kind: 'core',
+            match: () => true,
+            setup: async() => {
+                throw new Error('Provider failed to initialize.');
+            },
+        });
+
+        let copied = '';
+        Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: { writeText: async(value: string) => { copied = value; } },
+        });
+
+        const entry = { key: 'diagnostic-entry', moduleId: 'test:diagnostics', kind: 'core', targets: [{ type: 'form' }], config: {}, required: true };
+        const host = await hydrateFormieModules({ root, form, registry, surface: 'cp-edit', modules: { contractVersion: 2, surface: 'cp-edit', entries: [entry] } });
+        const alert = form.querySelector<HTMLElement>('[data-formie-module-error]')!;
+        await (alert as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
+        const disclosure = alert.shadowRoot!.querySelector('details')!;
+        const report = alert.querySelector<HTMLElement>('[data-formie-module-error-details]')!;
+        const initiallyOpen = disclosure.open;
+        const copiedEvent = new Promise((resolve) => alert.addEventListener('pk-copy', resolve, { once: true }));
+        alert.shadowRoot!.querySelector<HTMLButtonElement>('[part="copy-button"]')!.click();
+        await copiedEvent;
+        await (alert as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
+
+        const rendered = {
+            tagName: alert.localName,
+            parentIsRootSibling: alert.nextElementSibling === root,
+            role: alert.shadowRoot!.querySelector('[part="base"]')?.getAttribute('role'),
+            description: alert.querySelector('p')?.textContent,
+            summary: alert.shadowRoot!.querySelector('summary')?.textContent,
+            initiallyOpen,
+            report: report.textContent,
+            copied,
+            copyStatus: alert.shadowRoot!.querySelector('[part="copy-status"]')?.textContent,
+        };
+
+        await host.destroy();
+        const removedOnDestroy = !form.querySelector('[data-formie-module-error]');
+        form.remove();
+        return { ...rendered, removedOnDestroy };
+    });
+
+    expect(result.tagName).toBe('pk-alert');
+    expect(result.parentIsRootSibling).toBe(true);
+    expect(result.role).toBe('alert');
+    expect(result.description).toBe('Reload the page. If the problem continues, copy the technical details below.');
+    expect(result.summary).toBe('Details');
+    expect(result.initiallyOpen).toBe(false);
+    expect(result.report).toContain('Surface: cp-edit');
+    expect(result.report).toContain('Module: test:diagnostics');
+    expect(result.report).toContain('Key: diagnostic-entry');
+    expect(result.report).toContain('Error: Error: Provider failed to initialize.');
+    expect(result.report).toContain('Stack:');
+    expect(result.copied).toBe(result.report);
+    expect(result.copyStatus).toBe('Details copied.');
+    expect(result.removedOnDestroy).toBe(true);
+});
+
 for (const adapter of ['react', 'vue', 'web-components']) {
     test(`${adapter}: canonical entries and unsupported bootstrap versions`, async({ page, request }) => {
         const parity = await (await request.get('/browser-module-parity')).json();

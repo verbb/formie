@@ -7,6 +7,8 @@
 
 // CSS needs to be imported here as it's treated as a module
 import '../scss/formie-submissions.scss';
+import '@verbb/plugin-kit-web/plugin-kit.css';
+import '@verbb/plugin-kit-web/components/alert.js';
 
 import { hydrateFormieModules } from '@verbb/formie-browser';
 import { getTextLimitMetrics } from '@verbb/formie-core';

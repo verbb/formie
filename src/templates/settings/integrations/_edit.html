@@ -60,7 +60,15 @@
 {% set message = craft.app.session.getFlash('formie-error') %}
 
 {% if message %}
-    <div class="code error" style="margin-bottom: 24px;">{{ message }}</div>
+    <pk-alert
+        variant="error"
+        size="lg"
+        heading="{{ 'Connection error' | t('formie') }}"
+        announce="assertive"
+        style="margin-bottom: 24px;"
+    >
+        <span class="code">{{ message }}</span>
+    </pk-alert>
 {% endif %}
 
 <div id="integration">

@@ -18,6 +18,8 @@
 - Allow each site to override whether a shared form field is required without duplicating the form. ([#2982](https://github.com/verbb/formie/issues/2982))
 
 ### Changed
+- Standardize control-panel notices, replacement states and React crash fallbacks on Plugin Kit Alert, StatePanel, ErrorState and AppErrorBoundary.
+- Use large shared surfaces for prominent builder states and integration connection failures, compact replacement states for notification previews, and shared Alerts for dynamic-option feedback.
 - Require Verbb Base 3.0.20 or later so shared control-panel layouts use the current asset bundle namespace. ([verbb-base#3](https://github.com/verbb/verbb-base/issues/3))
 - Use explicit integration dispatch capability and execution-local results, with common form-integration policy separated from annotated provider settings.
 - Store canonical minor-unit payment amounts, account-scoped financial references and subscription terms; retain Formie 3 major-unit and plan projections at compatibility boundaries.
@@ -63,6 +65,8 @@
 - Return immutable Phone values that retain entered numbers and countries, and a consistent Name value in both input modes; replace beta Array/value-class APIs and browser validation names.
 
 ### Fixed
+- Present required form-feature failures as aligned alerts with collapsed, copyable technical details, prevent lazy control-panel chunks from re-running submission initialization, and skip browser modules where Craft owns the editing control.
+- Allow report editor pages to load when configuring export filename variables.
 - Avoid Verbb Base deprecation warnings by using its current control-panel asset bundle namespace. ([verbb-base#3](https://github.com/verbb/verbb-base/issues/3))
 - Fixed moderate-severity authorization bypass vulnerabilities across control-panel and GraphQL operations.
 - Fixed low-severity information disclosure vulnerabilities.

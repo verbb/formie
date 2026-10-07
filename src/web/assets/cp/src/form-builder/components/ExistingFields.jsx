@@ -4,17 +4,16 @@ import React, {
 } from 'react';
 
 import {
-    Button, ButtonGroup, Checkbox, Dialog, DropdownItem, DropdownMenu, Icon, Input, Spinner,
+    Alert, Button, ButtonGroup, Checkbox, Dialog, DropdownItem, DropdownMenu, Icon, Input, Spinner, StatePanel,
 } from '@verbb/plugin-kit-react/components';
 
-import { cn } from '@verbb/plugin-kit-react/utils';
+import { cn, ErrorState } from '@verbb/plugin-kit-react/utils';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
 import { useBuilderActions } from '@form-builder/builder/useBuilderActions';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
 import { collectFieldHandlesFromRows } from '@form-builder/utils/duplicateField';
 import { getDevToolsConfig } from '@form-builder/dev/config';
 import { createMockExistingFieldsData } from '@form-builder/dev/scenarios/existingFieldsStressScenario';
-import { LargeErrorState, StatePanel } from '@utils';
 
 const getExistingFieldSettings = (field = {}) => {
     if (field?.settings && typeof field.settings === 'object') {
@@ -830,13 +829,14 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
             */}
             <div className="flex h-full min-h-0 flex-col overflow-hidden">
                 {loadError && (
-                    <LargeErrorState
+                    <ErrorState
                         error={loadError}
+                        size="lg"
                         message={Craft.t('formie', 'Unable to load existing fields.')}
                         detailsLabel={Craft.t('formie', 'Show error details')}
                         actionLabel={Craft.t('formie', 'Try Again')}
                         onAction={handleOpen}
-                        containerClassName="absolute inset-0 z-10 flex items-center justify-center bg-white"
+                        className="absolute inset-0 z-10 bg-white"
                     />
                 )}
 
@@ -909,21 +909,21 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
                                 ) : (!shouldMockExistingFields && selectedForm?.key === '*' && !hasSearch) ? (
                                     <StatePanel
                                         variant="info"
-                                        showIcon={false}
-                                        message={Craft.t('formie', 'Search to browse fields across all forms.')}
-                                        containerClassName="py-4"
-                                        contentClassName="flex flex-col items-center text-center"
-                                        messageClassName="mb-0 text-sm text-gray-500"
-                                    />
+                                        size="sm"
+                                        hideIcon
+                                        className="py-4 [--pk-state-panel-min-height:0]"
+                                    >
+                                        {Craft.t('formie', 'Search to browse fields across all forms.')}
+                                    </StatePanel>
                                 ) : (!shouldMockExistingFields && selectedForm?.key === '*' && hasSearch && !meetsSearchMinimum) ? (
                                     <StatePanel
                                         variant="info"
-                                        showIcon={false}
-                                        message={Craft.t('formie', 'Type at least 3 characters to search all forms.')}
-                                        containerClassName="py-4"
-                                        contentClassName="flex flex-col items-center text-center"
-                                        messageClassName="mb-0 text-sm text-gray-500"
-                                    />
+                                        size="sm"
+                                        hideIcon
+                                        className="py-4 [--pk-state-panel-min-height:0]"
+                                    >
+                                        {Craft.t('formie', 'Type at least 3 characters to search all forms.')}
+                                    </StatePanel>
                                 ) : (hasFilteredSelectedFields) ? (
                                     <div className="space-y-4">
                                         {filteredSelectedForm.pages.map((page, pIndex) => {
@@ -961,12 +961,12 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
                                 ) : (
                                     <StatePanel
                                         variant="empty"
-                                        showIcon={false}
-                                        message={Craft.t('formie', 'No fields found.')}
-                                        containerClassName="py-4"
-                                        contentClassName="flex flex-col items-center text-center"
-                                        messageClassName="mb-0 text-sm text-gray-500"
-                                    />
+                                        size="lg"
+                                        hideIcon
+                                        className="py-4 [--pk-state-panel-min-height:0]"
+                                    >
+                                        {Craft.t('formie', 'No fields found.')}
+                                    </StatePanel>
                                 )}
                             </div>
                         </div>
@@ -976,24 +976,24 @@ const ExistingFields = ({ onClose, nestedPlacement = null }) => {
                 {!loading && !loadError && !mounted && (
                     <StatePanel
                         variant="empty"
-                        showIcon={false}
-                        message={Craft.t('formie', 'No existing fields to select.')}
-                        containerClassName="h-full flex items-center justify-center"
-                        contentClassName="flex flex-col items-center text-center"
-                        messageClassName="mb-0 text-sm text-gray-500"
-                    />
+                        size="lg"
+                        hideIcon
+                        className="h-full"
+                    >
+                        {Craft.t('formie', 'No existing fields to select.')}
+                    </StatePanel>
                 )}
             </div>
 
             {submitError && (
-                <div className="border-t border-rose-100 bg-rose-50/40 px-6 py-3 text-sm text-rose-600">
-                    <div className="font-medium">
-                        {submitError.heading || Craft.t('formie', 'Unable to add fields')}
-                    </div>
-
-                    <div className="mt-1">
+                <div className="border-t border-gray-200 p-3">
+                    <Alert
+                        variant="error"
+                        heading={submitError.heading || Craft.t('formie', 'Unable to add fields')}
+                        announce="assertive"
+                    >
                         {submitError.text || submitError.message || Craft.t('formie', 'An error has occurred.')}
-                    </div>
+                    </Alert>
                 </div>
             )}
 

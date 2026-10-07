@@ -1,1 +1,0 @@
-function e(e,t){return`formie:field:${e}:${t}`}function t(e,t){return`formie:address:${e}:${t}`}function n(e){return`formie:file-upload:${e}`}function r(e,t){return`formie:payment:${e}:${t}`}function i(e){return`formie:state:${e}`}export{r as a,e as i,i as n,n as r,t};

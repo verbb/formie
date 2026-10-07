@@ -2115,6 +2115,14 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         $modules = parent::defineBrowserModules();
 
         if ($this->displayType === 'datePicker') {
+            $surfaces = [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED];
+
+            // CP date/time fields use Craft's paired date and time controls. The
+            // browser module only owns the CP input when it renders one picker.
+            if (!$this->getIsDateTime()) {
+                $surfaces[] = BrowserModule::SURFACE_CP_EDIT;
+            }
+
             $locale = Craft::$app->getLocale()->id;
 
             if (preg_match('/^([a-z]{2})-/', $locale, $matches)) {
@@ -2156,7 +2164,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
             $modules[] = new BrowserModule([
                 'moduleId' => 'formie:date-picker',
-                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
+                'surfaces' => $surfaces,
                 'config' => [
                     'includeFlatpickrCss' => Formie::$plugin->getSettings()->includeFlatpickrCss,
                     'datePickerOptions' => $datePickerOptions,

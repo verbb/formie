@@ -4,7 +4,7 @@ import {
 import { isEqual } from 'lodash-es';
 
 import { SchemaFormEngine, useSchemaFormEngine, useEngineField, FieldLayout } from '@verbb/plugin-kit-react/forms';
-import { Spinner } from '@verbb/plugin-kit-react/components';
+import { Spinner, StatePanel } from '@verbb/plugin-kit-react/components';
 import { fetchPaymentProviderSettingsSchema } from '@form-builder/hooks/useFormTools';
 
 const paymentProviderSchemaCache = {};
@@ -254,7 +254,15 @@ function PaymentProviderSettingsField({ field, form }) {
             )}
 
             {providerHandle && !configLoading && configError && (
-                <p className="text-sm text-red-600">{configError}</p>
+                <StatePanel
+                    variant="error"
+                    size="sm"
+                    heading={Craft.t('formie', 'Unable to load provider settings')}
+                    announce="assertive"
+                    className="[--pk-state-panel-min-height:0]"
+                >
+                    {configError}
+                </StatePanel>
             )}
 
             {providerHandle && !configLoading && !configError && (schemaConfig?.schema || []).length > 0 && (

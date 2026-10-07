@@ -6,7 +6,7 @@ import {
     useState,
 } from 'react';
 
-import { Button, ButtonGroup } from '@verbb/plugin-kit-react/components';
+import { Alert, Button, ButtonGroup } from '@verbb/plugin-kit-react/components';
 
 import { ReportDataLoadingOverlay } from '@reports/components/ReportDataLoadingOverlay';
 import { ReportSubmissionsChart } from '@reports/components/ReportSubmissionsChart';
@@ -436,7 +436,11 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
                 ) : null}
 
                 {tableError ? (
-                    <p className="px-4 py-3 text-sm text-rose-600">{tableError}</p>
+                    <div className="px-4 py-3">
+                        <Alert variant="error" size="lg" announce="assertive">
+                            {tableError}
+                        </Alert>
+                    </div>
                 ) : null}
 
                 <ReportSubmissionsTable

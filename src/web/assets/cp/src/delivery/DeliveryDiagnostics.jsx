@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Dialog, Textarea } from '@verbb/plugin-kit-react/components';
+import { Alert, Button, Dialog, Textarea } from '@verbb/plugin-kit-react/components';
 
 import { diagnosticSummary } from './deliveryDiagnostics';
 
@@ -166,7 +166,7 @@ export function DeliveryDiagnostics({ uid, submissionId = null, onClose }) {
 
     return (
         <>
-            {!selected && error && <p role="alert">{error}</p>}
+            {!selected && error && <Alert variant="error" size="sm" announce="assertive">{error}</Alert>}
             {submissionId && <section><h3>{Craft.t('formie', 'Submission Delivery History')}</h3>
                 {attempts.length === 0 && <p>{Craft.t('formie', 'No delivery attempts recorded.')}</p>}
                 {attempts.map((attempt) => <p key={attempt.uid}><Button type="button" onClick={() => setSelected(attempt.uid)}>{attempt.binding}: {attempt.step} ({attempt.status})</Button></p>)}
@@ -174,7 +174,7 @@ export function DeliveryDiagnostics({ uid, submissionId = null, onClose }) {
             <Dialog open={Boolean(selected)} label={Craft.t('formie', 'Formie Delivery Diagnostics')} size="wide" onPkOpenChange={(event) => {
                 if (!(event.detail?.open ?? event.target?.open)) { setSelected(null); onClose?.(); }
             }}>
-                {error && <p role="alert">{error}</p>}
+                {error && <Alert variant="error" size="sm" announce="assertive">{error}</Alert>}
                 {!error && !bundle && <p>{Craft.t('formie', 'Loading diagnostics…')}</p>}
                 {bundle && <>
                     <p>{Craft.t('formie', 'Credentials are redacted from this view. Retained evidence can still contain personal submission data. Completed delivery evidence is retained for {days} days; unresolved evidence remains available for reconciliation.', { days: bundle.retentionDays })}</p>
@@ -216,7 +216,7 @@ export function DeliveryDiagnostics({ uid, submissionId = null, onClose }) {
                         <Textarea label={Craft.t('formie', 'Force run reason')} value={reason} onInput={(event) => setReason(event.target.value)} />
                         <Button type="button" disabled={busy || !reason.trim()} onClick={() => act('force', { submissionId: bundle.submissionId, handle: bundle.binding, reason })}>{Craft.t('formie', 'Force new run')}</Button>
                     </div>}
-                    <p role="status">{notice}</p>
+                    {notice && <Alert variant="success" size="sm" announce="polite">{notice}</Alert>}
                 </>}
             </Dialog>
         </>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Alert } from '@verbb/plugin-kit-react/components';
 import { ContainerFieldPreview } from './preview/ContainerFieldPreview';
 import { renderFieldPreviewSchema } from './preview/renderFieldPreviewTemplate';
 
@@ -49,9 +50,9 @@ const FieldPreview = ({
         console.error('Failed to render field preview:', error);
 
         return (
-            <div className="text-error mt-2">
-                <p>{Craft.t('formie', 'Unable to render field preview.')}</p>
-            </div>
+            <Alert variant="error" size="sm" className="mt-2">
+                {Craft.t('formie', 'Unable to render field preview.')}
+            </Alert>
         );
     }
 };

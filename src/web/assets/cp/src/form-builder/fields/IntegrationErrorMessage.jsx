@@ -1,55 +1,26 @@
-import { useEffect, useState } from 'react';
-import { cn } from '@verbb/plugin-kit-react/utils';
-import { Icon } from '@verbb/plugin-kit-react/components';
+import { Alert } from '@verbb/plugin-kit-react/components';
 
 function IntegrationErrorMessage({ error, className = '' }) {
-    const [showDetails, setShowDetails] = useState(false);
-
-    useEffect(() => {
-        setShowDetails(false);
-    }, [error]);
-
     if (!error) {
         return null;
     }
 
     return (
-        <div className={cn('text-error', className)}>
-            <div className="flex items-center gap-1">
-                <Icon icon="triangle-exclamation" className="size-3 shrink-0" />
-                <p className="text-sm font-semibold">{error.heading}</p>
-            </div>
-
-            <p className="mt-1 text-xs font-mono">{error.text}</p>
-
+        <Alert
+            variant="error"
+            size="sm"
+            heading={error.heading}
+            announce="assertive"
+            detailsLabel={Craft.t('formie', 'Show details')}
+            copyLabel={Craft.t('formie', 'Copy error details')}
+            copyable={Boolean(error.traceAsString)}
+            className={className}
+        >
+            {error.text}
             {error.traceAsString && (
-                <div className="w-full">
-                    <button
-                        type="button"
-                        className="mt-1 flex cursor-pointer items-center gap-1 text-xs"
-                        onClick={() => {
-                            setShowDetails((value) => {
-                                return !value;
-                            });
-                        }}
-                    >
-                        <Icon
-                            icon="chevron-right"
-                            className={cn('size-3 transition-transform', showDetails && 'rotate-90')}
-                        />
-                        {Craft.t('formie', showDetails ? 'Hide details' : 'Show details')}
-                    </button>
-
-                    {showDetails ? (
-                        <div
-                            className="mt-2 max-h-[180px] overflow-auto whitespace-pre-wrap rounded-md bg-slate-50 p-2 text-left text-xs"
-                        >
-                            {error.traceAsString.replace(/<br\s*\/?>/gi, '\n')}
-                        </div>
-                    ) : null}
-                </div>
+                <pre slot="details">{error.traceAsString.replace(/<br\s*\/?>/gi, '\n')}</pre>
             )}
-        </div>
+        </Alert>
     );
 }
 

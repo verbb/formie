@@ -1,1 +1,0 @@
-var e=new WeakMap;function t(t){return t&&e.get(t)||{profile:t?.dataset.formieRequestProfile}}export{t};

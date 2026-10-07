@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 
 import { takeAtLeast } from '@verbb/plugin-kit-core';
-import { Spinner } from '@verbb/plugin-kit-react/components';
+import { Spinner, StatePanel } from '@verbb/plugin-kit-react/components';
+import { ErrorState } from '@verbb/plugin-kit-react/utils';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
-import { LargeErrorState, StatePanel } from '@utils';
 import { QuestionnaireResultsBar } from '@form-builder/components/QuestionnaireResultsBar';
 
 const QuestionCard = ({ question }) => {
@@ -122,11 +122,12 @@ const QuestionnaireResults = () => {
         return (
             <StatePanel
                 variant="empty"
-                title={Craft.t('formie', 'Save this form first')}
-                message={Craft.t('formie', 'Response results will appear here once this form has been saved and submissions are received.')}
-                containerClassName="p-8 text-center"
-                contentClassName="flex w-[90%] max-w-[560px] flex-col items-center text-center mx-auto"
-            />
+                size="lg"
+                heading={Craft.t('formie', 'Save this form first')}
+                className="p-8"
+            >
+                {Craft.t('formie', 'Response results will appear here once this form has been saved and submissions are received.')}
+            </StatePanel>
         );
     }
 
@@ -140,8 +141,9 @@ const QuestionnaireResults = () => {
 
     if (error) {
         return (
-            <LargeErrorState
+            <ErrorState
                 error={error}
+                size="lg"
                 message={Craft.t('formie', 'Unable to load questionnaire results.')}
                 detailsLabel={Craft.t('formie', 'Show error details')}
                 actionLabel={Craft.t('formie', 'Try Again')}
@@ -156,11 +158,12 @@ const QuestionnaireResults = () => {
         return (
             <StatePanel
                 variant="empty"
-                title={Craft.t('formie', 'No questions configured')}
-                message={Craft.t('formie', 'Add Quiz or Survey fields on the Fields tab to start collecting responses.')}
-                containerClassName="py-8 text-center"
-                contentClassName="flex w-[90%] max-w-[560px] flex-col items-center text-center mx-auto"
-            />
+                size="lg"
+                heading={Craft.t('formie', 'No questions configured')}
+                className="py-8"
+            >
+                {Craft.t('formie', 'Add Quiz or Survey fields on the Fields tab to start collecting responses.')}
+            </StatePanel>
         );
     }
 
@@ -170,11 +173,12 @@ const QuestionnaireResults = () => {
         return (
             <StatePanel
                 variant="empty"
-                title={Craft.t('formie', 'No responses yet')}
-                message={Craft.t('formie', 'Results will appear here once people submit this form.')}
-                containerClassName="p-8 text-center"
-                contentClassName="flex w-[90%] max-w-[560px] flex-col items-center text-center mx-auto"
-            />
+                size="lg"
+                heading={Craft.t('formie', 'No responses yet')}
+                className="p-8"
+            >
+                {Craft.t('formie', 'Results will appear here once people submit this form.')}
+            </StatePanel>
         );
     }
 

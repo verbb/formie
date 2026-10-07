@@ -3,10 +3,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, expect, it, vi } from 'vitest';
 
 vi.mock('@verbb/plugin-kit-react/components', () => {
-    return { Icon: () => { return null; } };
-});
-vi.mock('@verbb/plugin-kit-react/utils', () => {
-    return { cn: (...values) => { return values.filter(Boolean).join(' '); } };
+    return {
+        Alert: ({ children }) => { return children; },
+    };
 });
 
 import { FormieErrorsPane } from './FormieErrorsPane';

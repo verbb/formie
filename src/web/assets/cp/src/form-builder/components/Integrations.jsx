@@ -12,9 +12,11 @@ import {
     Option,
     OptionGroup,
     Select,
+    StatePanel,
     Status,
     Spinner,
 } from '@verbb/plugin-kit-react/components';
+import { ErrorState } from '@verbb/plugin-kit-react/utils';
 import useUrlRouter from '@form-builder/hooks/useUrlRouter';
 import {
     useIntegrations,
@@ -23,7 +25,6 @@ import {
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
 import useAppStore from '@form-builder/hooks/useAppStore';
-import { LargeErrorState, StatePanel } from '@utils';
 import { IntegrationDispatchSettings } from '@form-builder/components/IntegrationDispatchSettings';
 
 const integrationConfigCache = {};
@@ -278,11 +279,12 @@ function Integrations({ schema }) {
         return (
             <StatePanel
                 variant="empty"
-                title={Craft.t('formie', 'No integrations found')}
-                message={Craft.t('formie', 'No integrations are available for this form.')}
-                containerClassName="p-8 py-26 text-center"
-                contentClassName="flex w-[90%] max-w-[560px] flex-col items-center text-center mx-auto"
-            />
+                size="lg"
+                heading={Craft.t('formie', 'No integrations found')}
+                className="p-8 py-26"
+            >
+                {Craft.t('formie', 'No integrations are available for this form.')}
+            </StatePanel>
         );
     }
 
@@ -478,13 +480,14 @@ function Integrations({ schema }) {
                             </div>
                         )}
                         {configError && (
-                            <LargeErrorState
+                            <ErrorState
                                 error={configError}
+                                size="lg"
                                 message={Craft.t('formie', 'Failed to load integration settings.')}
                                 detailsLabel={Craft.t('formie', 'Show error details')}
                                 actionLabel={Craft.t('formie', 'Try Again')}
                                 onAction={() => { return loadIntegrationConfig(activeIntegrationHandle, { force: true }); }}
-                                containerClassName="flex min-h-[320px] items-center justify-center py-6"
+                                className="min-h-[320px] py-6"
                             />
                         )}
                         {!configLoading && !configError && integrationConfig && integrationConfigHandle === activeIntegrationHandle && (

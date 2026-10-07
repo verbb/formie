@@ -1,4 +1,5 @@
 import React, { createElement } from 'react';
+import { Alert } from '@verbb/plugin-kit-react/components';
 import { getFormComponentRegistry, normalizeAttrs } from '@verbb/plugin-kit-react/forms';
 import { PreviewSchemaProvider } from './PreviewSchemaContext';
 import {
@@ -85,9 +86,9 @@ export const renderFieldPreviewSchema = (previewSchema, field, fieldType = null)
         console.error('Preview schema was:', previewSchema);
 
         return (
-            <div className="text-error mt-2">
-                <p>{Craft.t('formie', 'Unable to render field preview.')}</p>
-            </div>
+            <Alert variant="error" size="sm" className="mt-2">
+                {Craft.t('formie', 'Unable to render field preview.')}
+            </Alert>
         );
     }
 };

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { getErrorMessage } from '@verbb/plugin-kit-core';
 import { hostRequest } from '@verbb/plugin-kit-react/utils';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
-import { Button, Dialog, ToggleGroup, Toggle, SelectInput, Textarea, Spinner } from '@verbb/plugin-kit-react/components';
+import { Alert, Button, Dialog, ToggleGroup, Toggle, SelectInput, Textarea, Spinner } from '@verbb/plugin-kit-react/components';
 import { FieldLayout } from '@verbb/plugin-kit-react/forms';
 import { buildBulkPreview, parseBulkPreviewRows, countBulkPreviewRows } from './bulkOptions.utils';
 
@@ -148,21 +148,20 @@ function FormieBulkOptionsDialog({
                         {bulkLoading && <Spinner className="p-4 mt-8" />}
 
                         {bulkError && (
-                            <div className="text-sm text-rose-600 space-y-1">
-                                {bulkError.heading && <div className="font-semibold">{bulkError.heading}</div>}
-                                {bulkError.text && <div>{bulkError.text}</div>}
+                            <Alert
+                                variant="error"
+                                size="sm"
+                                heading={bulkError.heading}
+                                announce="assertive"
+                                detailsLabel={t('Show error details')}
+                                copyLabel={t('Copy error details')}
+                                copyable={Boolean(bulkError.traceAsArray?.length)}
+                            >
+                                {bulkError.text}
                                 {bulkError.traceAsArray?.length > 0 && (
-                                    <div className="text-[10px] font-mono mt-2 opacity-80">
-                                        {bulkError.traceAsArray.map((line, index) => {
-                                            return (
-                                                <div key={index} className="whitespace-pre-wrap">
-                                                    {line}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                                    <pre slot="details">{bulkError.traceAsArray.join('\n\n')}</pre>
                                 )}
-                            </div>
+                            </Alert>
                         )}
 
                         {!bulkLoading && bulkLabelOptions.length > 0 && (

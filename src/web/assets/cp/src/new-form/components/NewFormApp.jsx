@@ -3,7 +3,7 @@ import {
     useEffect, useMemo, useRef, useState,
 } from 'react';
 
-import { Button, Icon, Input, SelectInput, Separator } from '@verbb/plugin-kit-react/components';
+import { Alert, Button, Icon, Input, SelectInput, Separator } from '@verbb/plugin-kit-react/components';
 
 import { FieldLayout } from '@verbb/plugin-kit-react/forms';
 import { cn } from '@verbb/plugin-kit-react/utils';
@@ -339,22 +339,20 @@ export const NewFormApp = ({ settings }) => {
                     </div>
 
                     {formError ? (
-                        <div className="mt-4 rounded border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                            <p className="m-0">
-                                <span className="font-semibold">{formError.heading}</span>
-                                {': '}
-                                {formError.text}
-                            </p>
-
+                        <Alert
+                            variant="error"
+                            heading={formError.heading}
+                            announce="assertive"
+                            size="sm"
+                            detailsLabel={Craft.t('formie', 'Show error details')}
+                            copyLabel={Craft.t('formie', 'Copy error details')}
+                            copyable={Boolean(formError.traceAsString)}
+                        >
+                            {formError.text}
                             {formError.traceAsString ? (
-                                <details className="mt-2 text-xs">
-                                    <summary className="cursor-pointer">{Craft.t('formie', 'Show error details')}</summary>
-                                    <div className="mt-2 whitespace-pre-wrap">
-                                        {formError.traceAsString.replace(/<br\s*\/?>/gi, '\n')}
-                                    </div>
-                                </details>
+                                <pre slot="details">{formError.traceAsString.replace(/<br\s*\/?>/gi, '\n')}</pre>
                             ) : null}
-                        </div>
+                        </Alert>
                     ) : null}
 
                     <Separator className="my-5" />

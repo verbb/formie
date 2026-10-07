@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getErrorMessage } from '@verbb/plugin-kit-core';
-import { Button, Icon, SelectInput } from '@verbb/plugin-kit-react/components';
-
-import { StatePanel } from '@utils';
+import { Button, Icon, SelectInput, StatePanel } from '@verbb/plugin-kit-react/components';
+import { ErrorState } from '@verbb/plugin-kit-react/utils';
 import { CreateReportModal } from '@reports/components/CreateReportModal';
 import { ReportViewApp } from '@reports/components/ReportViewApp';
 
@@ -159,15 +158,15 @@ export const ReportsDashboardApp = ({ settings }) => {
             <div className="w-full">
                 <StatePanel
                     variant="empty"
+                    size="lg"
                     icon="empty-set"
-                    title={Craft.t('formie', 'No reports created')}
-                    message={Craft.t('formie', 'Create a report to filter, chart, and export submission data across your forms. Reports are saved views you can open any time, download as CSV, or schedule by email.')}
-                    containerClassName="py-20"
-                    contentClassName="mx-auto flex w-[90%] max-w-[560px] flex-col items-center text-center"
-                    messageClassName="mb-5 text-sm text-gray-500"
+                    heading={Craft.t('formie', 'No reports created')}
+                    className="py-20"
                 >
+                    {Craft.t('formie', 'Create a report to filter, chart, and export submission data across your forms. Reports are saved views you can open any time, download as CSV, or schedule by email.')}
+
                     {settings.canManageReports ? (
-                        <Button type="button" variant="primary" onClick={openCreateModal}>
+                        <Button slot="actions" type="button" variant="primary" onClick={openCreateModal}>
                             <Icon slot="start" icon="plus" className="size-3" />
                             {Craft.t('formie', 'New report')}
                         </Button>
@@ -226,7 +225,14 @@ export const ReportsDashboardApp = ({ settings }) => {
                 </header>
 
                 {viewError ? (
-                    <p className="text-sm text-rose-600">{viewError}</p>
+                    <ErrorState
+                        heading={Craft.t('formie', 'Unable to load report')}
+                        message={viewError}
+                        actionLabel={Craft.t('formie', 'Try Again')}
+                        onAction={() => { loadViewConfig(selectedReportId); }}
+                        showDetails={false}
+                        size="sm"
+                    />
                 ) : null}
 
                 {isLoadingView && !viewConfig ? (

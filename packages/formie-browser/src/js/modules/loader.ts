@@ -17,8 +17,96 @@ type ModuleLoadContext = {
     setupContext: ModuleSetupContext;
     matchContext: Pick<ModuleMatchContext, 'root' | 'form' | 'surface'>;
 };
+
+type ModuleFailureDetails = {
+    name: string;
+    message: string;
+    stack?: string;
+};
+
 const builtinLoaders = { ...builtinFieldModuleLoaders, ...builtinAddressModuleLoaders, ...builtinCaptchaModuleLoaders, ...builtinPaymentModuleLoaders };
 const pendingDefinitions = new Map<string, Promise<BrowserModuleDefinition>>();
+
+function normalizeFailureDetails(error: unknown): ModuleFailureDetails {
+    if (error instanceof Error) {
+        return {
+            name: error.name || 'Error',
+            message: error.message || 'No error message was provided.',
+            stack: error.stack,
+        };
+    }
+
+    if (typeof error === 'string') {
+        return { name: 'Error', message: error };
+    }
+
+    try {
+        return { name: 'Error', message: JSON.stringify(error) || String(error) };
+    } catch {
+        return { name: 'Error', message: String(error) };
+    }
+}
+
+function buildTechnicalDetails(surface: BrowserModuleManifest['surface'], failures: Iterable<BrowserModuleFailure>, details: Map<string, ModuleFailureDetails>): string {
+    const requiredFailures = [...failures].filter((failure) => failure.required);
+    const lines = [
+        'Formie browser module diagnostics',
+        `Surface: ${surface}`,
+        `Browser: ${typeof navigator === 'undefined' ? 'Unavailable' : navigator.userAgent}`,
+    ];
+
+    // Query parameters can contain resume or edit capabilities. Keep the useful
+    // CP path without copying those credentials into the diagnostic output.
+    if (surface === 'cp-edit' && typeof location !== 'undefined') {
+        lines.push(`Page: ${location.origin}${location.pathname}`);
+    }
+
+    requiredFailures.forEach((failure, index) => {
+        const failureDetails = details.get(failure.key);
+        lines.push(
+            '',
+            `Failure ${index + 1}`,
+            `Module: ${failure.moduleId}`,
+            `Key: ${failure.key}`,
+            `Code: ${failure.code}`,
+        );
+
+        // Raw exceptions can disclose implementation details, so only expose
+        // them in Craft's authenticated submission-editing surface.
+        if (surface === 'cp-edit' && failureDetails) {
+            lines.push(`Error: ${failureDetails.name}: ${failureDetails.message}`);
+
+            if (failureDetails.stack) {
+                lines.push('Stack:', failureDetails.stack);
+            }
+        }
+    });
+
+    return lines.join('\n');
+}
+
+async function copyTechnicalDetails(value: string): Promise<void> {
+    if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+        return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = value;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    try {
+        if (!document.execCommand('copy')) {
+            throw new Error('The browser did not allow clipboard access.');
+        }
+    } finally {
+        textarea.remove();
+    }
+}
 
 async function resolveDefinition(moduleId: string, registry: ModuleRegistry): Promise<BrowserModuleDefinition> {
     const registered = registry.get(moduleId);
@@ -58,6 +146,7 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
     const { root, form } = ctx.setupContext;
     const mounted = new Map<string, Map<Element, { instance: BrowserModuleInstance; config: string; moduleId: string; required: boolean }>>();
     const failures = new Map<string, BrowserModuleFailure>();
+    const failureDetails = new Map<string, ModuleFailureDetails>();
     const instances: BrowserModuleInstance[] = [];
     let disposed = false;
     let running: Promise<void> = Promise.resolve();
@@ -65,6 +154,7 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
     const diagnose = async(entry: BrowserModuleEntry, error: unknown) => {
         const diagnostic: BrowserModuleFailure = { key: entry.key, moduleId: entry.moduleId, required: entry.required, surface, code: 'MODULE_UNAVAILABLE', message: 'A form feature could not start. Reload the page or contact the site administrator.' };
         failures.set(entry.key, diagnostic);
+        failureDetails.set(entry.key, normalizeFailureDetails(error));
         console.error('[formie] Browser module failure', diagnostic, error);
         await ctx.setupContext.emit('formie:browser:module:error', diagnostic);
     };
@@ -77,12 +167,104 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
     };
     const blocked = () => [...failures.values()].some((entry) => entry.required);
     const showFailure = () => {
-        if (!form || form.querySelector('[data-formie-module-error]')) return;
-        const message = document.createElement('div');
-        message.dataset.formieModuleError = 'true';
-        message.setAttribute('role', 'alert');
-        message.textContent = 'A required form feature could not start. Reload the page or contact the site administrator.';
-        form.prepend(message);
+        if (!form) return;
+        let message = form.querySelector<HTMLElement>('[data-formie-module-error]');
+
+        if (!message) {
+            const description = document.createElement('p');
+            description.textContent = surface === 'cp-edit'
+                ? 'Reload the page. If the problem continues, copy the technical details below.'
+                : 'Reload the page or contact the site administrator.';
+
+            const report = document.createElement('pre');
+            report.dataset.formieModuleErrorDetails = 'true';
+            report.tabIndex = 0;
+
+            if (surface === 'cp-edit') {
+                message = document.createElement('pk-alert');
+                message.className = 'formie-module-error';
+                message.setAttribute('variant', 'error');
+                message.setAttribute('announce', 'assertive');
+                message.setAttribute('heading', 'A required form feature could not start.');
+                message.setAttribute('details-label', 'Details');
+                message.setAttribute('copy-label', 'Copy details');
+                message.setAttribute('copied-label', 'Details copied.');
+                message.setAttribute('copyable', '');
+                report.slot = 'details';
+                message.append(description, report);
+            } else {
+                message = document.createElement('div');
+                message.className = 'formie-module-error formie-module-error--fallback';
+
+                const notice = document.createElement('div');
+                notice.className = 'formie-module-error__notice';
+                notice.setAttribute('role', 'alert');
+
+                const indicator = document.createElement('span');
+                indicator.className = 'formie-module-error__indicator';
+                indicator.setAttribute('aria-hidden', 'true');
+                indicator.textContent = '!';
+
+                const content = document.createElement('div');
+                content.className = 'formie-module-error__content';
+
+                const title = document.createElement('strong');
+                title.className = 'formie-module-error__title';
+                title.textContent = 'A required form feature could not start.';
+
+                content.append(title, description);
+                notice.append(indicator, content);
+
+                const disclosure = document.createElement('details');
+                disclosure.className = 'formie-module-error__details';
+
+                const summary = document.createElement('summary');
+                summary.textContent = 'Details';
+
+                const actions = document.createElement('div');
+                actions.className = 'formie-module-error__actions';
+
+                const copyButton = document.createElement('button');
+                copyButton.className = 'formie-module-error__copy';
+                copyButton.type = 'button';
+                copyButton.textContent = 'Copy details';
+
+                const copyStatus = document.createElement('span');
+                copyStatus.className = 'formie-module-error__copy-status';
+                copyStatus.setAttribute('role', 'status');
+                copyStatus.setAttribute('aria-live', 'polite');
+
+                copyButton.addEventListener('click', async() => {
+                    try {
+                        await copyTechnicalDetails(report.textContent || '');
+                        copyStatus.textContent = 'Details copied.';
+                    } catch {
+                        copyStatus.textContent = 'Copy failed. Select the details above and copy them manually.';
+                        const range = document.createRange();
+                        range.selectNodeContents(report);
+                        window.getSelection()?.removeAllRanges();
+                        window.getSelection()?.addRange(range);
+                    }
+                });
+
+                actions.append(copyButton, copyStatus);
+                disclosure.append(summary, report, actions);
+                message.append(notice, disclosure);
+            }
+
+            message.dataset.formieModuleError = 'true';
+
+            // CP edit roots live inside Craft's padded content pane. Insert beside
+            // that root so the alert follows the same alignment as the fields.
+            if (root !== form && form.contains(root)) {
+                root.before(message);
+            } else {
+                form.prepend(message);
+            }
+        }
+
+        const report = message.querySelector<HTMLElement>('[data-formie-module-error-details]');
+        if (report) report.textContent = buildTechnicalDetails(surface, failures.values(), failureDetails);
     };
     const guard = (event: Event) => {
         if (!blocked()) return;
@@ -90,13 +272,18 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
     };
     const reconcile = async() => {
         const activeKeys = new Set(manifest.entries.map((entry) => entry.key));
-        for (const key of failures.keys()) if (!activeKeys.has(key)) failures.delete(key);
+        for (const key of failures.keys()) {
+            if (activeKeys.has(key)) continue;
+            failures.delete(key);
+            failureDetails.delete(key);
+        }
         const inactiveInstances: BrowserModuleInstance[] = [];
         for (const [key, records] of mounted) {
             if (activeKeys.has(key)) continue;
             inactiveInstances.push(...Array.from(records.values(), ({ instance }) => instance));
             mounted.delete(key);
             failures.delete(key);
+            failureDetails.delete(key);
         }
         for (const instance of inactiveInstances.reverse()) {
             await dispose(instance);
@@ -163,7 +350,10 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
                     await ctx.setupContext.emit('formie:browser:module:mount', { key: entry.key, moduleId: entry.moduleId, target });
                 } catch (error) { entryFailed = true; if (!failures.has(entry.key)) await diagnose(entry, error); }
             }
-            if (!entryFailed && (recovered || targets.length === 0)) failures.delete(entry.key);
+            if (!entryFailed && (recovered || targets.length === 0)) {
+                failures.delete(entry.key);
+                failureDetails.delete(entry.key);
+            }
         }
         if (blocked()) showFailure(); else form?.querySelector('[data-formie-module-error]')?.remove();
     };
@@ -184,7 +374,8 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
             for (const records of Array.from(mounted.values()).reverse()) {
                 for (const { instance } of Array.from(records.values()).reverse()) await dispose(instance);
             }
-            mounted.clear(); instances.splice(0); failures.clear();
+            mounted.clear(); instances.splice(0); failures.clear(); failureDetails.clear();
+            form?.querySelector('[data-formie-module-error]')?.remove();
         },
         updateManifest: async(next) => {
             assertBrowserModuleManifest(next);

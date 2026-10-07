@@ -1,6 +1,7 @@
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createApp, h } from 'vue';
+import '@verbb/plugin-kit-web/components/alert.js';
 import { FormieForm as ReactServerForm, FormieClientForm as ReactForm } from '../../packages/formie-react/src/index';
 import { FormieForm as VueServerForm, FormieClientForm as VueForm } from '../../packages/formie-vue/src/index';
 import { registerFormieWebComponents } from '../../packages/formie-web-components/src/index';

@@ -5,7 +5,7 @@ import {
 } from 'react';
 
 import {
-    Button, ButtonGroup, DropdownItem, DropdownMenu, Icon, Status, TiptapInput,
+    Button, ButtonGroup, DropdownItem, DropdownMenu, Icon, StatePanel, Status, TiptapInput,
 } from '@verbb/plugin-kit-react/components';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
 import useAppStore from '@form-builder/hooks/useAppStore';
@@ -16,7 +16,6 @@ import { getDevToolsConfig } from '@form-builder/dev/config';
 import { collectNotificationReservedHandles } from '@form-builder/utils/handleValidation';
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { useVariableCategories } from '@form-builder/hooks/useVariableCategories';
-import { StatePanel } from '@utils';
 import { announceFormBuilderStatus } from '@form-builder/utils/accessibility';
 
 const getHandleSourceText = (value) => {
@@ -216,13 +215,15 @@ function Notifications({ schema, schemaIndex }) {
             {notifications.length === 0 ? (
                 <StatePanel
                     variant="empty"
-                    title={Craft.t('formie', 'No notifications created')}
-                    message={Craft.t('formie', 'Create a notification to email users when this form is submitted.')}
-                    containerClassName="py-20"
-                    contentClassName="flex w-[90%] max-w-[560px] flex-col items-center text-center mx-auto"
-                    messageClassName="mb-5 text-sm text-gray-500"
+                    size="lg"
+                    heading={Craft.t('formie', 'No notifications created')}
+                    className="py-20"
                 >
-                    {newNotificationActions}
+                    {Craft.t('formie', 'Create a notification to email users when this form is submitted.')}
+
+                    <div slot="actions">
+                        {newNotificationActions}
+                    </div>
                 </StatePanel>
             ) : (
                 <>

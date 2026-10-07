@@ -69,14 +69,19 @@ const parseServerPort = (value, fallback) => {
     return Number.isInteger(port) ? port : fallback;
 };
 
-const createManualChunkName = (id) => {
+export const createManualChunkName = (id) => {
+    // Workspace packages resolve to their real source path rather than their
+    // node_modules symlink. Keep both forms in the shared browser chunk so lazy
+    // field modules never import an application entry back into itself.
+    const isFormieBrowserPackagePath = id.includes('/node_modules/@verbb/formie-browser/')
+        || id.includes('/packages/formie-browser/');
     const isKitPackagePath = id.includes('plugin-kit-repo/') || id.includes('@verbb/plugin-kit-');
 
-    if (!id.includes('node_modules') && !isKitPackagePath) {
+    if (!id.includes('node_modules') && !isFormieBrowserPackagePath && !isKitPackagePath) {
         return null;
     }
 
-    if (id.includes('/node_modules/@verbb/formie-browser/')) {
+    if (isFormieBrowserPackagePath) {
         return 'formie-browser';
     }
 

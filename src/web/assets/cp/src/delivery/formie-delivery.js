@@ -1,11 +1,23 @@
 import { createElement } from 'react';
+import { AppErrorBoundary } from '@verbb/plugin-kit-react/utils';
 import { bootstrapShadowReactApp, mountFormieReactApp } from '@utils';
 import { DeliveryDiagnostics } from './DeliveryDiagnostics.jsx';
 
 function mount(container, settings) {
     container.id ||= `formie-delivery-${crypto.randomUUID()}`;
     const boot = bootstrapShadowReactApp({ containerSelector: `#${container.id}`, pluginHandle: 'formie', styleTexts: [], styleNamespace: 'delivery' });
-    return mountFormieReactApp({ ...boot, children: createElement(DeliveryDiagnostics, settings) });
+    return mountFormieReactApp({
+        ...boot,
+        children: createElement(AppErrorBoundary, {
+            consoleLabel: 'Formie Delivery Diagnostics crashed:',
+            heading: Craft.t('formie', 'Something went wrong'),
+            message: Craft.t('formie', 'Delivery diagnostics failed to load. Please refresh the page or try again.'),
+            detailsLabel: Craft.t('formie', 'Show error details'),
+            reloadLabel: Craft.t('formie', 'Reload'),
+            size: 'lg',
+            className: 'min-h-[240px] py-8',
+        }, createElement(DeliveryDiagnostics, settings)),
+    });
 }
 
 function bootstrap() {

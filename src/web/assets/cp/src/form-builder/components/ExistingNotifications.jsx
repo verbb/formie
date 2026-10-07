@@ -4,13 +4,12 @@ import React, {
     useEffect, useRef, useState,
 } from 'react';
 
-import { Button, Checkbox, Dialog, Icon, Input, Spinner, TiptapInput } from '@verbb/plugin-kit-react/components';
+import { Button, Checkbox, Dialog, Icon, Input, Spinner, StatePanel, TiptapInput } from '@verbb/plugin-kit-react/components';
 
-import { cn } from '@verbb/plugin-kit-react/utils';
+import { cn, ErrorState } from '@verbb/plugin-kit-react/utils';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
 import { useBuilderActions } from '@form-builder/builder/useBuilderActions';
 import { useVariableCategories } from '@form-builder/hooks/useVariableCategories';
-import { LargeErrorState, StatePanel } from '@utils';
 
 const getHandleSourceText = (value) => {
     return getRichTextText(value)
@@ -461,13 +460,14 @@ const ExistingNotifications = ({ onClose }) => {
         >
             <div className="flex h-full min-h-0 flex-col overflow-hidden">
                 {error && (
-                    <LargeErrorState
+                    <ErrorState
                         error={error}
+                        size="lg"
                         message={Craft.t('formie', 'Unable to load existing notifications.')}
                         detailsLabel={Craft.t('formie', 'Show error details')}
                         actionLabel={Craft.t('formie', 'Try Again')}
                         onAction={handleOpen}
-                        containerClassName="absolute inset-0 z-10 flex items-center justify-center bg-white"
+                        className="absolute inset-0 z-10 bg-white"
                     />
                 )}
 
@@ -540,21 +540,21 @@ const ExistingNotifications = ({ onClose }) => {
                                 ) : (selectedForm?.key === '*' && !hasSearch) ? (
                                     <StatePanel
                                         variant="info"
-                                        showIcon={false}
-                                        message={Craft.t('formie', 'Search to browse notifications across all forms and stencils.')}
-                                        containerClassName="py-4"
-                                        contentClassName="flex flex-col items-center text-center"
-                                        messageClassName="mb-0 text-sm text-gray-500"
-                                    />
+                                        size="sm"
+                                        hideIcon
+                                        className="py-4 [--pk-state-panel-min-height:0]"
+                                    >
+                                        {Craft.t('formie', 'Search to browse notifications across all forms and stencils.')}
+                                    </StatePanel>
                                 ) : (selectedForm?.key === '*' && hasSearch && !meetsSearchMinimum) ? (
                                     <StatePanel
                                         variant="info"
-                                        showIcon={false}
-                                        message={Craft.t('formie', 'Type at least 3 characters to search all notifications.')}
-                                        containerClassName="py-4"
-                                        contentClassName="flex flex-col items-center text-center"
-                                        messageClassName="mb-0 text-sm text-gray-500"
-                                    />
+                                        size="sm"
+                                        hideIcon
+                                        className="py-4 [--pk-state-panel-min-height:0]"
+                                    >
+                                        {Craft.t('formie', 'Type at least 3 characters to search all notifications.')}
+                                    </StatePanel>
                                 ) : (selectedForm && (selectedForm.notifications || []).length > 0) ? (
                                     <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                                         {(selectedForm.notifications || []).map((notification, notificationIndex) => {
@@ -572,12 +572,12 @@ const ExistingNotifications = ({ onClose }) => {
                                 ) : (
                                     <StatePanel
                                         variant="empty"
-                                        showIcon={false}
-                                        message={Craft.t('formie', 'No notifications found.')}
-                                        containerClassName="py-4"
-                                        contentClassName="flex flex-col items-center text-center"
-                                        messageClassName="mb-0 text-sm text-gray-500"
-                                    />
+                                        size="lg"
+                                        hideIcon
+                                        className="py-4 [--pk-state-panel-min-height:0]"
+                                    >
+                                        {Craft.t('formie', 'No notifications found.')}
+                                    </StatePanel>
                                 )}
                             </div>
                         </div>
@@ -587,12 +587,12 @@ const ExistingNotifications = ({ onClose }) => {
                 {!loading && !error && !mounted && (
                     <StatePanel
                         variant="empty"
-                        showIcon={false}
-                        message={Craft.t('formie', 'No existing notifications to select.')}
-                        containerClassName="h-full flex items-center justify-center"
-                        contentClassName="flex flex-col items-center text-center"
-                        messageClassName="mb-0 text-sm text-gray-500"
-                    />
+                        size="lg"
+                        hideIcon
+                        className="h-full"
+                    >
+                        {Craft.t('formie', 'No existing notifications to select.')}
+                    </StatePanel>
                 )}
             </div>
 

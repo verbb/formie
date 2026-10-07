@@ -3,7 +3,7 @@ import { cn } from '@verbb/plugin-kit-react/utils';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
 import { Button, Icon } from '@verbb/plugin-kit-react/components';
 import { FieldLayout, useSchemaEngineContext } from '@verbb/plugin-kit-react/forms';
-import { LargeErrorState } from '@utils';
+import { ErrorState } from '@verbb/plugin-kit-react/utils';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
 import { takeAtLeast } from '@verbb/plugin-kit-core';
 
@@ -221,13 +221,14 @@ function NotificationPreview() {
                         'bg-white/70',
                         'flex items-center justify-center',
                     )}>
-                        <LargeErrorState
+                        <ErrorState
                             error={error}
+                            size="sm"
                             message={t('Unable to generate email preview.')}
                             detailsLabel={t('Show error details')}
                             actionLabel={t('Try Again')}
                             onAction={updatePreview}
-                            containerClassName="flex w-full h-full items-center justify-center"
+                            className="w-full h-full"
                         />
                     </div>
                 )}

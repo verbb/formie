@@ -4,12 +4,24 @@ declare(strict_types=1);
 
 use craft\elements\User;
 use verbb\formie\Formie;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\Report;
 use verbb\formie\models\ReportExportFile;
 use verbb\formie\models\ReportSettings;
 use verbb\formie\services\ReportColumns;
 
 use DateTime;
+
+it('builds report export filename variable picker config', function (): void {
+    $config = Variables::getReportExportFilenameVariableConfig();
+    $reportVariables = $config['variableCategories']['report'];
+
+    expect(array_column($reportVariables, 'value'))->toBe(['{handle}', '{name}'])
+        ->and(array_column($reportVariables, 'label'))->toBe(['Report Handle', 'Report Name'])
+        ->and($reportVariables[0]['category'])->toBe('report')
+        ->and($reportVariables[0]['shape'])->toBe('inline')
+        ->and($reportVariables[0]['valueType'])->toBe(['kind' => 'string']);
+});
 
 it('allows saving an existing report without changing its handle', function (): void {
     $handle = 'existingReport' . uniqid();

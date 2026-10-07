@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { Button, Combobox, ComboboxInput, Dialog, DropdownItem, DropdownMenu, Icon, Option, Popover, SelectInput, Spinner } from '@verbb/plugin-kit-react/components';
+import { Alert, Button, Combobox, ComboboxInput, Dialog, DropdownItem, DropdownMenu, Icon, Option, Popover, SelectInput, Spinner } from '@verbb/plugin-kit-react/components';
 import { FieldLayout, useEngineField } from '@verbb/plugin-kit-react/forms';
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { refreshIntegrationFormSettings } from '@form-builder/hooks/useFormTools';
@@ -432,7 +432,9 @@ function DynamicOptionsPreview({
                     )}
 
                     {previewError && (
-                        <p className="mt-2 text-sm text-red-600">{previewError}</p>
+                        <Alert variant="error" size="sm" announce="polite" className="mt-2">
+                            {previewError}
+                        </Alert>
                     )}
                 </div>
             )}
@@ -473,7 +475,9 @@ function DynamicOptionsPreview({
                     )}
 
                     {previewError && (
-                        <p className="mt-2 text-sm text-red-600">{previewError}</p>
+                        <Alert variant="error" size="sm" announce="polite" className="mt-2">
+                            {previewError}
+                        </Alert>
                     )}
                 </div>
             )}
@@ -2308,7 +2312,9 @@ function OptionDynamicSettingsField({ field, form }) {
                                         <IntegrationSourceChain steps={integrationChainSteps} />
 
                                         {integrationConfigError && !loadingIntegrationConfig && integrationId && (
-                                            <p className="text-sm text-red-600">{integrationConfigError}</p>
+                                            <Alert variant="error" size="sm" announce="polite">
+                                                {integrationConfigError}
+                                            </Alert>
                                         )}
 
                                         {refreshingIntegrationDetails && (
@@ -2319,13 +2325,15 @@ function OptionDynamicSettingsField({ field, form }) {
                                         )}
 
                                         {!loadingIntegrationList && integrationOptions.length === 0 && !integrationId && (
-                                            <p className="text-sm text-amber-700">
+                                            <Alert variant="warning" size="sm" announce="polite">
                                                 {Craft.t('formie', 'No enabled integrations are available for dynamic options.')}
-                                            </p>
+                                            </Alert>
                                         )}
 
                                         {integrationConfig?.warning && !loadingIntegrationDetails && (
-                                            <p className="text-sm text-amber-700">{integrationConfig.warning}</p>
+                                            <Alert variant="warning" size="sm" announce="polite">
+                                                {integrationConfig.warning}
+                                            </Alert>
                                         )}
                                     </>
                                 )}
@@ -2352,7 +2360,9 @@ function OptionDynamicSettingsField({ field, form }) {
                                         ) : null}
 
                                         {registeredConfigError && !loadingRegisteredConfig && registeredProvider && (
-                                            <p className="text-sm text-red-600">{registeredConfigError}</p>
+                                            <Alert variant="error" size="sm" announce="polite">
+                                                {registeredConfigError}
+                                            </Alert>
                                         )}
 
                                         {loadingRegisteredDetails && hasCurrentRegisteredDetails && (
@@ -2363,13 +2373,15 @@ function OptionDynamicSettingsField({ field, form }) {
                                         )}
 
                                         {!loadingRegisteredList && registeredProviderOptions.length === 0 && (
-                                            <p className="text-sm text-amber-700">
+                                            <Alert variant="warning" size="sm" announce="polite">
                                                 {Craft.t('formie', 'No custom providers are registered for this field type.')}
-                                            </p>
+                                            </Alert>
                                         )}
 
                                         {registeredConfig?.warning && !loadingRegisteredDetails && (
-                                            <p className="text-sm text-amber-700">{registeredConfig.warning}</p>
+                                            <Alert variant="warning" size="sm" announce="polite">
+                                                {registeredConfig.warning}
+                                            </Alert>
                                         )}
                                     </>
                                 )}

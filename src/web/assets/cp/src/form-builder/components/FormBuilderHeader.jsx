@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-    Button, ButtonGroup, DropdownItem, DropdownMenu, DropdownSeparator, Icon,
+    Alert, Button, ButtonGroup, DropdownItem, DropdownMenu, DropdownSeparator, Icon,
 } from '@verbb/plugin-kit-react/components';
 
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
@@ -142,9 +142,9 @@ function FormBuilderHeader({ formRef }) {
     return (
         <>
             {readOnlyMessage && (
-                <div className="mb-4 rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                <Alert variant="warning" className="mb-4">
                     {readOnlyMessage}
-                </div>
+                </Alert>
             )}
 
             <header className={cn('form-builder-header flex justify-between items-center mt-1 mb-5')}>

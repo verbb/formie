@@ -4,7 +4,7 @@ import React, {
 import { useDragOperation, useDraggable, useDroppable } from '@dnd-kit/react';
 import { CollisionPriority, CollisionType } from '@dnd-kit/abstract';
 
-import { Button, Dialog, DropdownItem, DropdownMenu, DropdownSeparator, Icon, TiptapContent } from '@verbb/plugin-kit-react/components';
+import { Button, Dialog, DropdownItem, DropdownMenu, DropdownSeparator, Icon, StatePanel, TiptapContent } from '@verbb/plugin-kit-react/components';
 
 import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
 import { cn } from '@verbb/plugin-kit-react/utils';
@@ -490,11 +490,13 @@ const NestedFieldEditModal = ({
                         )}
                     </div>
                 ) : (
-                    <div className="flex h-full items-center justify-center">
-                        <div className="flex max-w-[640px] flex-col items-center gap-3 text-sm text-rose-600">
-                            <div>{Craft.t('formie', 'Field settings are unavailable. Please reload the builder.')}</div>
-                        </div>
-                    </div>
+                    <StatePanel
+                        variant="error"
+                        heading={Craft.t('formie', 'Field settings are unavailable')}
+                        className="h-full"
+                    >
+                        {Craft.t('formie', 'Please reload the builder and try again.')}
+                    </StatePanel>
                 )}
             </div>
 

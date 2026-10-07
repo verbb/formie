@@ -221,7 +221,9 @@ class Summary extends CosmeticField
 
         $modules[] = new BrowserModule([
             'moduleId' => 'formie:summary',
-            'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
+            // Submission editing intentionally renders no Summary input. The
+            // module only applies where the summary container is present.
+            'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
             'config' => [
                 'fieldId' => (string)$this->id,
             ],

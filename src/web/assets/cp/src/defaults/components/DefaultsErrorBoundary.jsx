@@ -1,13 +1,14 @@
-import { AppErrorBoundary } from '@utils';
+import { AppErrorBoundary } from '@verbb/plugin-kit-react/utils';
 
 const DefaultsErrorBoundary = ({ children }) => {
     return (
         <AppErrorBoundary
             consoleLabel="Formie Defaults crashed:"
-            title={Craft.t('formie', 'Something went wrong')}
+            heading={Craft.t('formie', 'Something went wrong')}
             message={Craft.t('formie', 'The defaults settings failed to load. Please refresh the page or try again.')}
             detailsLabel={Craft.t('formie', 'Show error details')}
             reloadLabel={Craft.t('formie', 'Reload')}
+            size="lg"
         >
             {children}
         </AppErrorBoundary>

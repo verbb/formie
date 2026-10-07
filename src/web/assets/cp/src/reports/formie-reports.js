@@ -1,4 +1,5 @@
 import { createElement } from 'react';
+import { AppErrorBoundary } from '@verbb/plugin-kit-react/utils';
 
 import { ReportEditorApp, reportEditorStyles } from '@reports/components/ReportEditorApp';
 import { ReportsDashboardApp, reportsDashboardStyles } from '@reports/components/ReportsDashboardApp';
@@ -52,7 +53,15 @@ defineFormieCpConstructor('Reports', async (settings = {}) => {
         shadowRootSelectors: boot.shadowRootSelectors,
         portalClassName: boot.portalClassName,
         translationCategory: boot.translationCategory,
-        children: createElement(config.App, { settings }),
+        children: createElement(AppErrorBoundary, {
+            consoleLabel: `Formie Reports ${mode} crashed:`,
+            heading: Craft.t('formie', 'Something went wrong'),
+            message: Craft.t('formie', 'The reports screen failed to load. Please refresh the page or try again.'),
+            detailsLabel: Craft.t('formie', 'Show error details'),
+            reloadLabel: Craft.t('formie', 'Reload'),
+            size: 'lg',
+            className: 'min-h-[320px] py-12',
+        }, createElement(config.App, { settings })),
     });
 
     markContainerReady(targetContainer, config.readyClass);

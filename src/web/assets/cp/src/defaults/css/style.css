@@ -1,4 +1,4 @@
-/* Kit tokens/FOUCE + Tailwind — needed for AppErrorBoundary / StatePanel utilities. */
+/* Kit tokens/FOUCE + Tailwind — needed for AppErrorBoundary and StatePanel surfaces. */
 @import "@verbb/plugin-kit-react/style.css";
 @import "@verbb/plugin-kit-react/tailwind-theme.css";
 @import "tailwindcss";

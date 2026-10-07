@@ -17,7 +17,7 @@ import {
 import { PointerActivationConstraints, Cursor } from '@dnd-kit/dom';
 import { CollisionPriority, CollisionType } from '@dnd-kit/abstract';
 
-import { Button, Dialog, DropdownItem, DropdownMenu, DropdownSeparator, Icon, Lightswitch, Option, OptionGroup, Select, Spinner } from '@verbb/plugin-kit-react/components';
+import { Button, Dialog, DropdownItem, DropdownMenu, DropdownSeparator, Icon, Lightswitch, Option, OptionGroup, Select, Spinner, StatePanel } from '@verbb/plugin-kit-react/components';
 
 import {
     SchemaFormEngine,
@@ -765,9 +765,14 @@ const SubFieldEditModal = ({
                         {isLoadingFieldType ? (
                             <Spinner size="lg" />
                         ) : (
-                            <div className="text-sm text-rose-600">
+                            <StatePanel
+                                variant="error"
+                                size="sm"
+                                heading={Craft.t('formie', 'Field settings are unavailable')}
+                                className="h-full w-full [--pk-state-panel-min-height:0]"
+                            >
                                 {fieldTypeLoadError || Craft.t('formie', 'Field settings are unavailable. Please reload the builder.')}
-                            </div>
+                            </StatePanel>
                         )}
                     </div>
                 )}

@@ -1,47 +1,10 @@
 import { useState, useEffect } from 'react';
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
-import { Button, Icon, Input } from '@verbb/plugin-kit-react/components';
+import { Alert, Button, Input } from '@verbb/plugin-kit-react/components';
 import { FieldLayout, useSchemaEngineContext } from '@verbb/plugin-kit-react/forms';
 import { useFormValues } from '@form-builder/hooks/useFormTools';
 import { takeAtLeast, getErrorMessage } from '@verbb/plugin-kit-core';
-
-function ErrorDisplay({ error, className }) {
-    const { heading, text, traceAsArray } = error;
-
-    return (
-        <div className={cn(
-            'text-error',
-            'leading-[1.5]',
-        )}>
-            <div className={cn('flex flex-col gap-1', className)}>
-                {heading && (
-                    <div className="flex items-center gap-1">
-                        <Icon icon="triangle-exclamation" className="size-3" />
-
-                        <div className="font-bold">{heading}</div>
-                    </div>
-                )}
-
-                {text && (
-                    <div className="text-[11px]">{text}</div>
-                )}
-
-                {traceAsArray && traceAsArray.length > 0 && (
-                    <div className="text-[9px] font-mono">
-                        {traceAsArray.map((line, index) => {
-                            return (
-                                <div key={index} className="whitespace-pre-wrap">
-                                    {line}
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
 
 function NotificationTest({ userEmail }) {
     const form = useSchemaEngineContext();
@@ -120,18 +83,25 @@ function NotificationTest({ userEmail }) {
             </div>
 
             {error && (
-                <div className="mt-2.5">
-                    <ErrorDisplay
-                        error={error}
-                        className="text-error"
-                    />
-                </div>
+                <Alert
+                    variant="error"
+                    size="sm"
+                    heading={error.heading}
+                    announce="assertive"
+                    detailsLabel={t('Show error details')}
+                    copyLabel={t('Copy error details')}
+                    copyable={Boolean(error.traceAsArray?.length)}
+                    className="mt-2.5"
+                >
+                    {error.text}
+                    {error.traceAsArray?.length ? <pre slot="details">{error.traceAsArray.join('\n\n')}</pre> : null}
+                </Alert>
             )}
 
             {success && (
-                <div className="mt-2.5">
-                    <div className="text-success">{successMessage}</div>
-                </div>
+                <Alert variant="success" size="sm" announce="polite" className="mt-2.5">
+                    {successMessage}
+                </Alert>
             )}
         </FieldLayout>
     );
