@@ -25,4 +25,4 @@ This walkthrough follows a contact form from GraphQL bootstrap through page navi
 
 ## [Vue and Web Components Starter Walkthrough](/guides/frontend-headless/vue-and-web-components-starter-walkthrough)
 
-Formie ships first-class packages for Vue and Web Components alongside React. This walkthrough covers the same four integration stories — server-rendered HTML vs client-rendered UI, REST vs GraphQL — using the official starters as the reference implementation.
+Formie provides packages for Vue and Web Components alongside React. This walkthrough uses the official starters to show server-rendered and client-rendered forms, each loading data through REST or GraphQL.

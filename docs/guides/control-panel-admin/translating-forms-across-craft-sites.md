@@ -1,6 +1,6 @@
 # Translating Forms Across Craft Sites
 
-Multi-site Craft projects usually need the same form structure everywhere with different wording per site — not a completely different form per language. Formie stores one canonical layout and sparse per-site overrides for translatable text. This walkthrough takes a contact form from English source copy to French overrides without duplicating forms or fighting translation files.
+You can use the same contact form on English and French sites, with labels and messages in each language. Formie shares the field layout across sites and lets you change the wording for each one. This walkthrough creates the English defaults, adds French translations in the form builder and checks what visitors see.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ Keep these distinct:
 
 A form can be available on English and French with translated labels. Or available on one regional site only with no translations needed.
 
-Formie forms are **not** entry-style per-site documents. One field layout, handles, conditions, and integrations are shared. Per-site differences are mostly text.
+Fields, handles, conditions and integrations are shared across sites. Adding a field on the French site adds it to the English site too; changing its French label affects only French.
 
 ## Step 1 — Scope the Form to the Right Sites
 
@@ -38,7 +38,9 @@ Example — Australia-only form:
 
 Ungrouped forms are treated as available on all sites you can edit.
 
-## Step 2 — Build Canonical Copy on the Source Site
+<span id="step-2-—-build-canonical-copy-on-the-source-site"></span>
+
+## Step 2 — Write Default Content on the Source Site
 
 Each form has a **source site** — where it was created. That site holds default translatable content.
 
@@ -47,7 +49,7 @@ Each form has a **source site** — where it was created. That site holds defaul
 3. Set title `Contact us`, field label `Your name`, success message, button labels
 4. Save
 
-Structural work (adding fields, conditions, integrations) updates the **shared canonical form** regardless of which site you are viewing when you save.
+Structural work (adding fields, conditions, integrations) updates the **shared form** regardless of which site you are viewing when you save.
 
 ## Step 3 — Add French Overrides
 
@@ -56,7 +58,7 @@ Structural work (adding fields, conditions, integrations) updates the **shared c
 3. Change title to `Contactez-nous`, field label to `Votre nom`, and other French copy
 4. Save
 
-Only changed keys are stored in `formie_form_site_overrides`. The English source site defaults stay untouched.
+These changes apply only to the French site. The English defaults stay unchanged, and any text you leave unchanged on French continues to use them.
 
 Translation icons beside field labels indicate overridable values. On the source site you edit the default; on other sites you edit overrides.
 
@@ -64,7 +66,7 @@ Translation icons beside field labels indicate overridable values. On the source
 
 **Name, Address, Group, Repeater** — child field labels translate the same way as top-level fields. Override only the children that change.
 
-**Dropdown, radio, checkbox** — override option **labels** and **values** per site when both need to differ. Leave unchanged options inherited from the canonical form.
+**Dropdown, radio, checkbox** — override option **labels** and **values** per site when both need to differ. Leave unchanged options inherited from the source site.
 
 **Page settings** — submit, back, and save button labels on each page are translatable.
 
@@ -84,7 +86,7 @@ This applies to:
 - [GraphQL](/graphql/query-forms) and headless packages (`siteId`, `locale` props)
 - React/Vue bootstrap
 
-Submissions store `siteId` so you know which site they came from.
+Open the form on both sites. Confirm that French shows `Contactez-nous` and `Votre nom`, while English still shows `Contact us` and `Your name`. Submit a test on each site and check the success message. The saved submission’s `siteId` identifies the site it came from.
 
 ## Step 6 — What Not to Put in Translation Files
 
@@ -138,4 +140,4 @@ Use CP site overrides. A single `translations/en/formie.php` cannot distinguish 
 
 **Field added on French site appeared on English too**
 
-Structural changes are global. Only text overrides are per-site.
+Fields and layout are shared across sites. Wording and whether an existing field is required can differ per site.

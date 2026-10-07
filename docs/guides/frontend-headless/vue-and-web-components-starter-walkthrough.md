@@ -1,6 +1,6 @@
 # Vue and Web Components Starter Walkthrough
 
-Formie ships first-class packages for Vue and Web Components alongside React. This walkthrough covers the same four integration stories — server-rendered HTML vs client-rendered UI, REST vs GraphQL — using the official starters as the reference implementation.
+Formie provides packages for Vue and Web Components alongside React. This walkthrough uses the official starters to show server-rendered and client-rendered forms, each loading data through REST or GraphQL.
 
 Use the [Vue package documentation](https://docs.verbb.io/formie/vue/) or [Web Components package documentation](https://docs.verbb.io/formie/web-components/) for the options supported by the frontend you choose.
 
@@ -182,7 +182,7 @@ See [Cached forms in production](/guides/frontend-headless/cached-forms-in-produ
 
 ## Starter Repos
 
-Clone and run the official starters — they are the canonical review surface for each package:
+Clone and run the official starters to try each package in a working application:
 
 - [Vue starter](https://formie-starters.verbb.io/vue)
 - [Web Components starter](https://formie-starters.verbb.io/web-components)

@@ -1,6 +1,6 @@
 # Saved Reports and Scheduled Delivery
 
-Reports are saved analytical views over submissions. When you need the same export every week — not a one-off download from the submissions index — save a report and optionally attach scheduled email delivery.
+Reports save your choice of submission filters, columns and charts so you can run them again. When you need the same export every week — not a one-off download from the submissions index — save a report and optionally attach scheduled email delivery.
 
 This guide is a **getting-started walkthrough**. For export formats, large-export behaviour, permissions, project config, cron details, incremental windows, and troubleshooting, see [Reports overview](/reports/reports) and [Scheduled reports](/reports/scheduled-reports).
 

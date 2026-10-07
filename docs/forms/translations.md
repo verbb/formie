@@ -77,7 +77,7 @@ For multi-site forms, prefer CP overrides. Static `formie.php` files remain the 
 
 When a form is rendered — via Twig, GraphQL, or the React bootstrap — Formie:
 
-1. Loads the canonical form from the form’s source site.
+1. Loads the shared form and default content from its source site.
 2. Merges [site overrides](/forms/multi-site-and-translation#content-translation) for the current site when multi-site is enabled.
 3. Outputs user-authored strings without passing them through `Craft::t()`.
 
@@ -93,7 +93,7 @@ You need French [site overrides](/forms/multi-site-and-translation#example-trans
 
 **German source site shows English labels**
 
-Check the canonical labels on the source site in the builder. Form content is stored and output as written.
+Check the default labels on the source site in the builder. Form content is stored and output as written.
 
 **Validation messages stay in English**
 

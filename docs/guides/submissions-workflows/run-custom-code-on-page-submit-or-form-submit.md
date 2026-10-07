@@ -1,6 +1,6 @@
 # Run Custom Code on Page Submit or Form Submit
 
-Every page POST walks the same submission pipeline. Submitting a page is not a different stage from submitting the form — both use the Submit operation, and both post `submitAction=submit`. Page flow determines whether completion can be attempted; required payment must also succeed: if there is another reachable page, the submission stays incomplete; if this was the last **visible** page (later pages may be hidden by conditions), it becomes complete.
+Formie uses the same submission workflow when a visitor clicks **Next** or submits the last page. Both use the Submit operation and post `submitAction=submit`. If another visible page remains, the submission stays incomplete. On the last visible page, it can complete once validation and other required checks pass; any required payment must also succeed.
 
 Use the two public hooks below. You do not need `EVENT_AFTER_TASK` or a custom task for these cases.
 

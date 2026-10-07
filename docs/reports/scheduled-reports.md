@@ -1,6 +1,6 @@
 # Scheduled Reports
 
-Scheduled reports email a saved report on a daily or weekly cadence. Each delivery sends:
+Scheduled reports email a saved report on a daily or weekly schedule. Each delivery sends:
 
 - a **summary email** with submission counts (and per-form breakdown when multiple forms match)
 - an **export attachment** in the file type you choose, using the report’s filters, columns, and export filename setting

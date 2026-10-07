@@ -97,8 +97,8 @@ Resume links point at your Craft front-end URL with a token query parameter — 
 
 ## Step 8 — Security and Privacy
 
-- Resume links are capability URLs — do not log them in analytics or expose them in referrer headers to third parties
-- Set TTL short enough for your compliance requirements
+- Anyone with a resume link can use it to continue the submission. Keep these links out of analytics and third-party referrer headers
+- Choose a link expiry that meets your retention requirements
 - On GDPR-sensitive forms, document save-and-continue in your privacy notice
 - Hiding the save button does not prevent partial storage: multi-page navigation still saves incomplete submissions. Automatic restoration controls whether progress is loaded again, not whether it is stored. If answers must only be stored on final submission, use a single-page form without a save button and test its actual submission workflow, including any custom tasks.
 

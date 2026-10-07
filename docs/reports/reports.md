@@ -4,7 +4,7 @@
 For a getting-started walkthrough, see [Saved reports and scheduled delivery](/guides/submissions-workflows/saved-reports-and-scheduled-delivery).
 :::
 
-Reports are saved analytical views over Formie submissions. Use them when the submissions index is too operational — review, edit, change status — and you need answers like “how many enquiries came in last week, by form, excluding spam?” without exporting by hand each time.
+Reports let you save a set of submission filters, columns and charts so you can review the same information again. For example, you can track how many enquiries arrived last week, grouped by form and excluding spam, then export the results without setting up the filters each time.
 
 Open **Formie → Reports** to create and run reports. Report definitions sync through [project config](https://craftcms.com/docs/5.x/system/project-config.html), so filters, columns, and display settings deploy with your Craft project.
 

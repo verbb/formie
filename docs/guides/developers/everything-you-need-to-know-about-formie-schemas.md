@@ -1,6 +1,6 @@
 # Everything You Need to Know About Formie Schemas
 
-Formie schemas are PHP arrays that describe control panel UI — field settings tabs, integration form settings, notification editors, and page button panels. They replace ad-hoc Twig/Vue templates in the form builder with a structured, normalizable format built on [SchemaForm](https://verbb.io/plugin-kit/forms/overview). This guide explains **when and why** to use schemas, and patterns for fields and integrations.
+Formie schemas are PHP arrays that describe settings controls in the form builder, including field tabs, integrations, notifications and page buttons. You define the inputs, defaults and validation rules, and [SchemaForm](https://verbb.io/plugin-kit/forms/overview) renders them. This guide shows how to build settings interfaces for your own fields and integrations.
 
 For node anatomy, `SchemaHelper` method tables, conditions, layout nodes, table fields, and preview schema, see [Schema](/developers/schema).
 
@@ -10,7 +10,7 @@ For node anatomy, `SchemaHelper` method tables, conditions, layout nodes, table 
 - [Custom Field](/developers/custom-field) or [Custom Integration](/developers/custom-integration/overview) docs open for your use case
 - [SchemaForm overview](https://verbb.io/plugin-kit/forms/overview) — the shared form engine Formie builds on
 
-This guide covers **CP builder schemas** — not headless React consumer docs or GraphQL types.
+The schemas here define **control panel settings interfaces**. For data queried through GraphQL, see [Query Forms](/graphql/query-forms).
 
 ## Like Craft's Twig Form Macros, but in PHP
 

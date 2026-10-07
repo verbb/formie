@@ -17,4 +17,4 @@ Stencils are reusable starter forms — layout, notifications, integrations, and
 
 ## [Translating Forms Across Craft Sites](/guides/control-panel-admin/translating-forms-across-craft-sites)
 
-Multi-site Craft projects usually need the same form structure everywhere with different wording per site — not a completely different form per language. Formie stores one canonical layout and sparse per-site overrides for translatable text. This walkthrough takes a contact form from English source copy to French overrides without duplicating forms or fighting translation files.
+You can use the same contact form on English and French sites, with labels and messages in each language. Formie shares the field layout across sites and lets you change the wording for each one. This walkthrough creates the English defaults, adds French translations in the form builder and checks what visitors see.
