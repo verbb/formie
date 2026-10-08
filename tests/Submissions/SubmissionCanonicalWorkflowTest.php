@@ -306,3 +306,31 @@ it('raises completion once for an unrelated direct save nested inside a workflow
         Event::off(Submission::class, Submission::EVENT_AFTER_COMPLETE, $listener);
     }
 });
+
+it('preserves an explicit validation task rejection with explanatory errors before persistence', function () {
+    $form = formie()->form()->singleLineTextField('message', ['required' => true])->create();
+    $submission = new Submission();
+    $submission->setForm($form);
+    $submission->setFieldValue('message', 'Needs manual review');
+    $register = function (RegisterStageTasksEvent $event) {
+        if ($event->stage !== Stage::VALIDATE) {
+            return;
+        }
+        $event->insertTaskAfter(Task::VALIDATE_SUBMISSION, new TaskDefinition('test.reviewOrder', new class implements TaskInterface {
+            public function execute(WorkflowContext $context): TaskResult {
+                $context->command->submission->addError('form', 'This order needs review.');
+                return TaskResult::stop($context->result(Outcome::REJECTED));
+            }
+        }, [Operation::SUBMIT]));
+    };
+    Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_STAGE_TASKS, $register);
+    try {
+        $result = runSubmissionCommand(submissionCommand(['form' => $form, 'submission' => $submission]));
+        expect($result->outcome->type)->toBe(Outcome::REJECTED)
+            ->and($submission->getErrors('form'))->toBe(['This order needs review.'])
+            ->and($submission->id)->toBeNull()
+            ->and((int)Submission::find()->formId($form->id)->status(null)->count())->toBe(0);
+    } finally {
+        Event::off(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_STAGE_TASKS, $register);
+    }
+});

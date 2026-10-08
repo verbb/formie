@@ -127,7 +127,8 @@ class SubmissionWorkflow extends Component
                 }
 
                 // Invalid input never reaches content spam or a one-time external CAPTCHA.
-                if ($stage === Stage::VALIDATE && $command->submission->hasErrors()) {
+                // Preserve explicit task outcomes, including rejections with explanatory errors.
+                if ($stage === Stage::VALIDATE && !$context->outcome && $command->submission->hasErrors()) {
                     $result = TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
                     $context->outcome = $result->outcome;
                 }
@@ -136,7 +137,7 @@ class SubmissionWorkflow extends Component
                     'context' => $context, 'command' => $command, 'stage' => $stageName, 'result' => $result,
                 ]));
 
-                if ($stage === Stage::VALIDATE && $command->submission->hasErrors()) {
+                if ($stage === Stage::VALIDATE && !$context->outcome && $command->submission->hasErrors()) {
                     $context->outcome = $context->result(SubmissionOutcomeType::VALIDATION_FAILED);
                 }
                 $context->stages[] = $stageName;
