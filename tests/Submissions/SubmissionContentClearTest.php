@@ -3,7 +3,41 @@
 declare(strict_types=1);
 
 use verbb\formie\elements\Submission;
+use verbb\formie\conditions\ConditionVisibility;
+use verbb\formie\fields\Name;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\Table;
+
+it('preserves rich child values when clearing disabled parts inside containers', function (string $method, bool $repeated): void {
+    $rows = [['fields' => [
+        ['type' => Name::class, 'handle' => 'name', 'label' => 'Name', 'useMultipleFields' => true, 'rows' => (new Name(['useMultipleFields' => true]))->getSubFields()],
+        ['type' => SingleLineText::class, 'handle' => 'message', 'label' => 'Message'],
+    ]]];
+    $form = formie()->form()->$method('people', ['rows' => $rows])->create();
+    $person = ['name' => ['firstName' => 'Jane', 'lastName' => 'Doe'], 'message' => 'Keep'];
+    $submission = new Submission();
+    $submission->setForm($form);
+    $submission->title = 'Nested name edit';
+    $submission->setFieldValueFromRequest('people', $repeated ? [$person, $person] : $person);
+
+    // Disabled prefix/middle-name parts are cleared during ordinary submission.
+    (new ConditionVisibility())->clear($submission);
+    $path = $repeated ? 'people.0' : 'people';
+    expect($submission->getFieldValue($path . '.name.firstName'))->toBe('Jane')
+        ->and($submission->getFieldValue($path . '.name.lastName'))->toBe('Doe');
+
+    $submission->setFieldValue($path . '.name.firstName', 'Janet');
+    expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
+    $saved = Submission::find()->id($submission->id)->status(null)->one();
+    expect($saved->getFieldValue($path . '.name.firstName'))->toBe('Janet')
+        ->and($saved->getFieldValue($path . '.name.lastName'))->toBe('Doe')
+        ->and($saved->getFieldValue($path . '.message'))->toBe('Keep');
+
+    if ($repeated) {
+        expect($saved->getFieldValue('people.1.name.firstName'))->toBe('Jane')
+            ->and($saved->getFieldValue('people.1.message'))->toBe('Keep');
+    }
+})->with(['group' => ['groupField', false], 'repeater' => ['repeaterField', true]]);
 
 it('applies nested handle edits over stored UID values while retaining siblings', function (mixed $replacement): void {
     $form = formie()->form()->groupField('group', ['rows' => [['fields' => [

@@ -76,6 +76,36 @@ class SubmissionContentAccessor
             $rootValue = [];
         }
 
+        // A rich value can also sit inside a Group or Repeater. Convert only the
+        // edited branch; projecting the whole parent would change untouched uploads.
+        $owner = $field;
+        $segments = explode('.', $nestedPath);
+        $path = [];
+
+        while ($segments && $owner instanceof ParentFieldInterface) {
+            $row = $owner instanceof RepeatableParentFieldInterface ? array_shift($segments) : null;
+
+            if ($row !== null) {
+                $path[] = $row;
+            }
+            $handle = array_shift($segments);
+            $path[] = $handle;
+            $child = null;
+
+            foreach ($owner->getFields($row) as $candidate) {
+                if ($candidate->handle === $handle) {
+                    $child = $candidate;
+                    break;
+                }
+            }
+            $owner = $child;
+            $childValue = ArrayHelper::getValue($rootValue, $path);
+
+            if ($child && $childValue instanceof FieldValueInterface) {
+                ArrayHelper::setValue($rootValue, $path, $child->serializeValueForClientInput($childValue, $submission));
+            }
+        }
+
         ArrayHelper::setValue($rootValue, $nestedPath, $value);
         $state->conditions->invalidate();
         $state->rawValuesByUid[$uid] = $rootValue;

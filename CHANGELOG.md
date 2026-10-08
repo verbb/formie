@@ -7,6 +7,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed multipart Name fields inside Groups or Repeaters losing values when disabled name parts were cleared during submission.
 - Fixed explicit outcomes returned by custom validation tasks being overwritten when the task also added submission errors.
 - Fixed queued integrations and notifications leaving the worker on the submission’s site and locale. The previous site, language, and locale are now restored after delivery, including early returns and exceptions.
 - Fixed completion events being suppressed when an event handler or workflow task directly saved a different completed submission while another submission workflow was active.
