@@ -7,6 +7,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed variable configuration being invisible and unclickable in integration mappings and conditions.
 - Fixed duplicating forms with Date fields across multiple sites.
 - Fixed variable configuration stripping spaces from transform parameters such as list separators.
 - Fixed variable transform choices ignoring All rows and Row count selections.
