@@ -95,7 +95,8 @@ it('imports a form on a valid POST', function (): void {
         }, ['method' => 'POST']);
         $imported = \verbb\formie\elements\Form::find()->handle($payload['handle'])->one();
         expect($imported)->not->toBeNull()
-            ->and($imported?->getFieldByHandle('message'))->not->toBeNull();
+            ->and($imported?->getFieldByHandle('message'))->not->toBeNull()
+            ->and(Craft::$app->getInfo()->configVersion)->toBe((new \craft\db\Query())->select('configVersion')->from(\craft\db\Table::INFO)->scalar());
     } finally {
         if (is_file($location)) { unlink($location); }
     }

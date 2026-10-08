@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use Craft;
-use craft\db\Query;
 use verbb\formie\Formie;
 use verbb\formie\helpers\Table;
 use verbb\formie\services\Cleanup;
@@ -17,12 +15,14 @@ it('does not purge pending uploads when incomplete submission age is disabled', 
     Formie::$plugin->getFileUploads()->trackSubmissionAsset($asset, (int)$form->id, null, 'retention');
     Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS,
         ['dateUpdated' => '2000-01-01 00:00:00'], ['assetId' => $asset->id])->execute();
-    $purged = Formie::$plugin->getFileUploads()->purgeStalePendingUploads();
-    expect(\craft\elements\Asset::find()->id($asset->id)->status(null)->one())->not->toBeNull();
-
-    expect($purged)->toBe(0);
-    // The stale fixture must not become another test's purge candidate.
-    Craft::$app->getElements()->deleteElement($asset, true);
+    try {
+        Formie::$plugin->getFileUploads()->purgeStalePendingUploads();
+        expect(\craft\elements\Asset::find()->id($asset->id)->status(null)->one())->not->toBeNull()
+            ->and(Formie::$plugin->getFileUploads()->getTrackedUploadByAssetId($asset->id))->not->toBeNull();
+    } finally {
+        // The stale fixture must not become another test's purge candidate.
+        Craft::$app->getElements()->deleteElement($asset, true);
+    }
 })->group('cleanup');
 
 it('prunes expired canonical progress rows', function (): void {

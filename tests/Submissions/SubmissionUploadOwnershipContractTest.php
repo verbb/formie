@@ -486,8 +486,11 @@ it('does not reclaim an expired claim while its submission persistence lock is a
     $submission->setForm($form);
     $submission->setFieldValue('document', [$asset->id]);
     $uploads->withUploadLocks($submission, function () use ($uploads, $asset) {
-        expect($uploads->purgeStalePendingUploads())->toBe(0)
-            ->and(\craft\elements\Asset::find()->id($asset->id)->status(null)->one())->not->toBeNull();
+        $uploads->purgeStalePendingUploads();
+        expect(\craft\elements\Asset::find()->id($asset->id)->status(null)->one())->not->toBeNull()
+            ->and($uploads->getTrackedUploadByAssetId($asset->id))->not->toBeNull();
     });
-    expect($uploads->purgeStalePendingUploads())->toBe(1);
+    $uploads->purgeStalePendingUploads();
+    expect(\craft\elements\Asset::find()->id($asset->id)->status(null)->one())->toBeNull()
+        ->and($uploads->getTrackedUploadByAssetId($asset->id))->toBeNull();
 });

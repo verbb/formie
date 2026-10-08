@@ -76,6 +76,12 @@ final class WebRequestTestHelper
             }
 
             if (isset($app)) {
+                // Some controller tests reuse the console app's project config and
+                // listeners. Keep its cached version in step with that shared state.
+                if ($app->getProjectConfig() === $originalApp->getProjectConfig()) {
+                    $originalApp->getInfo()->configVersion = $app->getInfo()->configVersion;
+                }
+
                 $app->getErrorHandler()->unregister();
                 // Craft uses db2 for database locks. Retained web application
                 // listeners must not keep either request-owned connection open.
