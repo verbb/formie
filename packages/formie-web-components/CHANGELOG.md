@@ -12,6 +12,7 @@
 - Consume the canonical versioned client-rendered bootstrap and shared browser-module host with explicit request profiles and staged uploads.
 
 ### Fixed
+- Fix the package type build treating the web component's default server-rendered mode as potentially undefined.
 - Render Formie-sanitized rich completion messages as HTML instead of showing their markup as text.
 - Keep field error regions mounted without reserving empty layout space, respect Formie's announcement preference, and associate invalid controls with their messages. ([#2954](https://github.com/verbb/formie/issues/2954))
 - Give default text controls accessible names and focus the first invalid input after submission.

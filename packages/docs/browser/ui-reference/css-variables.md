@@ -85,28 +85,28 @@ The shipped root variable surface covers:
 | `--formie-primary-800` | `#0b1a5b` | Primary scale 800 |
 | `--formie-primary-900` | `#060d2d` | Primary scale 900 |
 | `--formie-primary-950` | `#040920` | Primary scale 950 |
-| `--formie-danger-50` | `#fef2f2` | Danger scale 50 |
-| `--formie-danger-100` | `#fee2e2` | Danger scale 100 |
-| `--formie-danger-200` | `#fecaca` | Danger scale 200 |
-| `--formie-danger-300` | `#fca5a5` | Danger scale 300 |
-| `--formie-danger-400` | `#f87171` | Danger scale 400 |
-| `--formie-danger-500` | `#ef4444` | Danger scale 500 |
-| `--formie-danger-600` | `#dc2626` | Danger scale 600 |
-| `--formie-danger-700` | `#b91c1c` | Danger scale 700 |
-| `--formie-danger-800` | `#991b1b` | Danger scale 800 |
-| `--formie-danger-900` | `#7f1d1d` | Danger scale 900 |
-| `--formie-danger-950` | `#450a0a` | Danger scale 950 |
-| `--formie-success-50` | `#f0fdf4` | Success scale 50 |
-| `--formie-success-100` | `#dcfce7` | Success scale 100 |
-| `--formie-success-200` | `#bbf7d0` | Success scale 200 |
-| `--formie-success-300` | `#86efac` | Success scale 300 |
-| `--formie-success-400` | `#4ade80` | Success scale 400 |
-| `--formie-success-500` | `#22c55e` | Success scale 500 |
-| `--formie-success-600` | `#16a34a` | Success scale 600 |
-| `--formie-success-700` | `#15803d` | Success scale 700 |
-| `--formie-success-800` | `#166534` | Success scale 800 |
-| `--formie-success-900` | `#14532d` | Success scale 900 |
-| `--formie-success-950` | `#052e16` | Success scale 950 |
+| `--formie-danger-50` | `#fff1f2` | Danger scale 50 |
+| `--formie-danger-100` | `#ffe4e6` | Danger scale 100 |
+| `--formie-danger-200` | `#fecdd3` | Danger scale 200 |
+| `--formie-danger-300` | `#fda4af` | Danger scale 300 |
+| `--formie-danger-400` | `#fb7185` | Danger scale 400 |
+| `--formie-danger-500` | `#f43f5e` | Danger scale 500 |
+| `--formie-danger-600` | `#e11d48` | Danger scale 600 |
+| `--formie-danger-700` | `#be123c` | Danger scale 700 |
+| `--formie-danger-800` | `#9f1239` | Danger scale 800 |
+| `--formie-danger-900` | `#881337` | Danger scale 900 |
+| `--formie-danger-950` | `#4c0519` | Danger scale 950 |
+| `--formie-success-50` | `#ecfdf5` | Success scale 50 |
+| `--formie-success-100` | `#d1fae5` | Success scale 100 |
+| `--formie-success-200` | `#a7f3d0` | Success scale 200 |
+| `--formie-success-300` | `#6ee7b7` | Success scale 300 |
+| `--formie-success-400` | `#34d399` | Success scale 400 |
+| `--formie-success-500` | `#10b981` | Success scale 500 |
+| `--formie-success-600` | `#059669` | Success scale 600 |
+| `--formie-success-700` | `#047857` | Success scale 700 |
+| `--formie-success-800` | `#065f46` | Success scale 800 |
+| `--formie-success-900` | `#064e3b` | Success scale 900 |
+| `--formie-success-950` | `#022c22` | Success scale 950 |
 
 ## Semantic Colours and Focus
 
@@ -117,7 +117,7 @@ The shipped root variable surface covers:
 | `--formie-color-surface-subtle` | `var(--formie-neutral-50)` | Subtle surface fill |
 | `--formie-color-surface-muted` | `var(--formie-neutral-100)` | Muted surface fill |
 | `--formie-color-text` | `var(--formie-neutral-700)` | Default text colour |
-| `--formie-color-text-muted` | `var(--formie-neutral-500)` | Muted text colour |
+| `--formie-color-text-muted` | `var(--formie-neutral-600)` | Muted text colour |
 | `--formie-color-heading` | `var(--formie-neutral-900)` | Heading/high-emphasis colour |
 | `--formie-color-border` | `var(--formie-neutral-300)` | Default border colour |
 | `--formie-color-border-soft` | `var(--formie-neutral-200)` | Soft border colour |
@@ -126,16 +126,18 @@ The shipped root variable surface covers:
 | `--formie-color-primary-border` | `var(--formie-primary-500)` | Primary border colour |
 | `--formie-color-primary-soft` | `var(--formie-primary-100)` | Soft primary tint |
 | `--formie-color-focus-ring` | `var(--formie-primary-300)` | Focus-ring colour |
-| `--formie-color-danger` | `var(--formie-danger-500)` | Error/danger colour |
+| `--formie-color-danger` | `var(--formie-danger-600)` | Error/danger colour |
+| `--formie-color-danger-border` | `var(--formie-danger-200)` | Error-message border colour |
 | `--formie-color-danger-soft` | `var(--formie-danger-50)` | Soft danger tint |
 | `--formie-color-danger-dark` | `var(--formie-danger-900)` | Dark danger text/accent |
 | `--formie-color-success` | `var(--formie-success-500)` | Success colour |
+| `--formie-color-success-border` | `var(--formie-success-200)` | Success-message border colour |
 | `--formie-color-success-soft` | `var(--formie-success-50)` | Soft success tint |
 | `--formie-color-success-dark` | `var(--formie-success-900)` | Dark success text/accent |
 | `--formie-color-button-text` | `var(--formie-color-surface)` | High-contrast button text alias |
 | `--formie-focus-ring-border-color` | `var(--formie-color-focus-ring)` | Focus border alias |
 | `--formie-shadow-focus` | `0 0 0 3px rgba(119, 141, 238, 0.45)` | Default focus ring shadow |
-| `--formie-shadow-danger-focus` | `0 0 0 3px rgba(248, 180, 180, 0.45)` | Error focus ring shadow |
+| `--formie-shadow-danger-focus` | `0 0 0 3px rgba(253, 164, 175, 0.45)` | Error focus ring shadow |
 
 ## Form and Messages
 

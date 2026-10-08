@@ -280,10 +280,10 @@ export declare const FormieForm: import("vue").DefineComponent<import("vue").Ext
     readonly onSubmitSuccess: (result: FormSubmitResult) => void;
     readonly onSubmitError: (result: FormSubmitResult) => void;
     readonly onEvent: (event: FormieVueEvent) => void;
-    readonly profile: FormMountOptions;
-    readonly theme: any;
-    readonly themeConfig: any;
-    readonly transport: any;
+    readonly profile: "same-origin-browser" | "cross-origin-public";
+    readonly theme: "none" | "formie";
+    readonly themeConfig: Record<string, unknown>;
+    readonly transport: FormTransport;
     readonly staticCache: boolean;
     readonly refreshTokens: boolean;
     readonly locale: string;
@@ -483,8 +483,8 @@ export declare const FormieClientForm: import("vue").DefineComponent<import("vue
     readonly onSubmitSuccess: (result: ClientSubmitResult) => void;
     readonly onSubmitError: (result: ClientSubmitResult) => void;
     readonly onEvent: (event: FormieVueEvent) => void;
-    readonly profile: FormMountOptions;
-    readonly transport: any;
+    readonly profile: "same-origin-browser" | "cross-origin-public";
+    readonly transport: FormTransport;
 }, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
 export type { FormAction, FormEventUnsubscribe, FormEndpointPayload, FormieClient, FormieFormInstance, FormMountOptions, FormSubmitResult, } from '@verbb/formie-browser';
 export type { ClientFieldDefinition, ClientFieldType, ClientFormDefinition, ClientFormBootstrap, ClientFormSession, ClientFormInstance, ClientFormState, ClientSubmitResult, } from '@verbb/formie-core';

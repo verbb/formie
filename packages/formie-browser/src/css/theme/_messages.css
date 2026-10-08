@@ -24,6 +24,7 @@
     }
 
     .formie-message-error {
+        border: var(--formie-border-width) solid var(--formie-color-danger-border);
         background: var(--formie-color-danger-soft);
         color: var(--formie-color-danger-dark);
     }
@@ -33,6 +34,7 @@
     }
 
     .formie-message-success {
+        border: var(--formie-border-width) solid var(--formie-color-success-border);
         background: var(--formie-color-success-soft);
         color: var(--formie-color-success-dark);
     }

@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Changed
+- Updated the default danger theme colors to use Tailwind's Rose palette.
+- Updated the default success theme colors to use Tailwind's Emerald palette.
+- Added themeable borders to success and error form messages.
 - Moved completion resolution and metadata persistence into the submission workflow’s Finalize task. `WorkflowContext::result()` now only constructs an outcome, so custom tasks can create results without triggering completion events or database writes.
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
@@ -19,7 +22,7 @@
 - Fixed reading condition values from multi-row Likert Survey fields throwing an error.
 - Fixed variable configuration being invisible and unclickable in integration mappings and conditions.
 - Fixed duplicating forms with Date fields across multiple sites.
-- Fixed variable configuration stripping spaces from transform parameters such as list separators.
+- Fixed variable transform parameters such as list separators being stripped when saved or ignored in HTML output.
 - Fixed variable transform choices ignoring All rows and Row count selections.
 - Fixed adding Table rows overwriting existing default or saved rows.
 - Fixed conditional Date/Time fields failing to initialize when shown again.

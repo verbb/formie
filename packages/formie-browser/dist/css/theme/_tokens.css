@@ -47,6 +47,7 @@
         --formie-black: #000000;
         --formie-white: #ffffff;
 
+        /* Matches Tailwind CSS's Slate color palette, with a custom 450 accessibility step. */
         --formie-neutral-50: #f8fafc;
         --formie-neutral-100: #f1f5f9;
         --formie-neutral-200: #e2e8f0;
@@ -61,6 +62,7 @@
         --formie-neutral-900: #0f172a;
         --formie-neutral-950: #020617;
 
+        /* Custom tonal scale based on #1c41e3. */
         --formie-primary-50: #e8ecfc;
         --formie-primary-100: #d2d9f9;
         --formie-primary-200: #a4b3f4;
@@ -73,29 +75,31 @@
         --formie-primary-900: #060d2d;
         --formie-primary-950: #040920;
 
-        --formie-danger-50: #fef2f2;
-        --formie-danger-100: #fee2e2;
-        --formie-danger-200: #fecaca;
-        --formie-danger-300: #fca5a5;
-        --formie-danger-400: #f87171;
-        --formie-danger-500: #ef4444;
-        --formie-danger-600: #dc2626;
-        --formie-danger-700: #b91c1c;
-        --formie-danger-800: #991b1b;
-        --formie-danger-900: #7f1d1d;
-        --formie-danger-950: #450a0a;
+        /* Matches Tailwind CSS's Rose color palette. */
+        --formie-danger-50: #fff1f2;
+        --formie-danger-100: #ffe4e6;
+        --formie-danger-200: #fecdd3;
+        --formie-danger-300: #fda4af;
+        --formie-danger-400: #fb7185;
+        --formie-danger-500: #f43f5e;
+        --formie-danger-600: #e11d48;
+        --formie-danger-700: #be123c;
+        --formie-danger-800: #9f1239;
+        --formie-danger-900: #881337;
+        --formie-danger-950: #4c0519;
 
-        --formie-success-50: #f0fdf4;
-        --formie-success-100: #dcfce7;
-        --formie-success-200: #bbf7d0;
-        --formie-success-300: #86efac;
-        --formie-success-400: #4ade80;
-        --formie-success-500: #22c55e;
-        --formie-success-600: #16a34a;
-        --formie-success-700: #15803d;
-        --formie-success-800: #166534;
-        --formie-success-900: #14532d;
-        --formie-success-950: #052e16;
+        /* Matches Tailwind CSS's Emerald color palette. */
+        --formie-success-50: #ecfdf5;
+        --formie-success-100: #d1fae5;
+        --formie-success-200: #a7f3d0;
+        --formie-success-300: #6ee7b7;
+        --formie-success-400: #34d399;
+        --formie-success-500: #10b981;
+        --formie-success-600: #059669;
+        --formie-success-700: #047857;
+        --formie-success-800: #065f46;
+        --formie-success-900: #064e3b;
+        --formie-success-950: #022c22;
 
         /* Semantic color aliases */
         --formie-color-background: var(--formie-white);
@@ -116,16 +120,18 @@
         --formie-color-primary-soft: var(--formie-primary-100);
         --formie-color-focus-ring: var(--formie-primary-300);
         --formie-color-danger: var(--formie-danger-600);
+        --formie-color-danger-border: var(--formie-danger-200);
         --formie-color-danger-soft: var(--formie-danger-50);
         --formie-color-danger-dark: var(--formie-danger-900);
         --formie-color-success: var(--formie-success-500);
+        --formie-color-success-border: var(--formie-success-200);
         --formie-color-success-soft: var(--formie-success-50);
         --formie-color-success-dark: var(--formie-success-900);
         --formie-color-button-text: var(--formie-color-surface);
 
         --formie-focus-ring-border-color: var(--formie-color-focus-ring);
         --formie-shadow-focus: 0 0 0 3px rgba(119, 141, 238, 0.45);
-        --formie-shadow-danger-focus: 0 0 0 3px rgba(248, 180, 180, 0.45);
+        --formie-shadow-danger-focus: 0 0 0 3px rgba(253, 164, 175, 0.45);
 
         /* Form */
         --formie-title-form-size: 1.4rem;

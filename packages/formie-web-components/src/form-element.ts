@@ -252,7 +252,7 @@ export class FormieFormElement extends HTMLElement {
         void this.scheduleMount();
     }
 
-    get mode() {
+    get mode(): FormMountOptions['mode'] {
         const attributeValue = this.getAttribute('mode') as FormMountOptions['mode'] | null;
 
         return this.optionState.mode ?? attributeValue ?? 'server-rendered';

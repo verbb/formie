@@ -40,7 +40,7 @@ export declare class FormieFormElement extends HTMLElement {
     set siteId(value: number | undefined);
     get autoVisible(): boolean | undefined;
     set autoVisible(value: boolean | undefined);
-    get mode(): FormMountOptions["mode"] | undefined;
+    get mode(): FormMountOptions['mode'];
     set mode(value: FormMountOptions['mode'] | undefined);
     getInstance(): FormieFormInstance | null;
     submit(action?: FormAction): Promise<FormSubmitResult | null>;

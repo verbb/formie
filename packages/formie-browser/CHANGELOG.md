@@ -8,6 +8,9 @@
 - Add `data-formie-validation-skip` so helper controls (such as the Upload Manager browse input) can opt out of client-side validation.
 
 ### Changed
+- Use Tailwind's Rose palette for the default danger theme colors.
+- Use Tailwind's Emerald palette for the default success theme colors.
+- Add themeable borders to success and error form messages.
 - Consume canonical payment actions and domain status independently from completion redirects, retaining the Formie 3 response facade.
 - Expose mounted instances and current failures as a structured hydration report, separately from runtime lifecycle controls.
 - Consume canonical completion data attributes and response fields while retaining Formie 3 markup and response fallbacks.
