@@ -17,6 +17,7 @@
         {% fieldtag 'fieldTableBody' %}
             {% if value %}
                 {% for rowId, row in value %}
+                    {% set index = rowId %}
                     {% fieldtag 'fieldTableBodyRow' %}
                         {{ formieInclude('fields/table/_row', {
                             index: rowId,
@@ -26,6 +27,7 @@
                 {% endfor %}
             {% elseif field.defaults %}
                 {% for default in field.defaults %}
+                    {% set index = loop.index0 %}
                     {% fieldtag 'fieldTableBodyRow' %}
                         {{ formieInclude('fields/table/_row', {
                             index: loop.index0,
@@ -35,6 +37,7 @@
                 {% endfor %}
             {% elseif field.minRows > 0 %}
                 {% for i in 1..field.minRows %}
+                    {% set index = loop.index0 %}
                     {% fieldtag 'fieldTableBodyRow' %}
                         {{ formieInclude('fields/table/_row', {
                             index: loop.index0,
