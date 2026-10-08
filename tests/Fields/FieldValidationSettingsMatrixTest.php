@@ -6,6 +6,7 @@ use Craft;
 use DateTimeInterface;
 use yii\validators\EmailValidator;
 use Faker\Factory as FakerFactory;
+use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\References;
@@ -265,3 +266,23 @@ function assertRepresentativeIntegrationContract(string $integrationType, mixed 
             throw new \RuntimeException("Unhandled IntegrationField type in assertRepresentativeIntegrationContract: {$integrationType}");
     }
 }
+
+
+it('preserves validated password pairs when editing other saved submission values', function (): void {
+    $form = formie()->form()->passwordField('password', ['passwordMinLength' => 70])
+        ->passwordField('confirmation')->singleLineTextField('answer')->create();
+    $form->getFieldByHandle('confirmation')->matchField = References::field($form->getFieldByHandle('password')->reference);
+    expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
+    $password = str_repeat('Correct!', 10);
+    $submission = formie()->submission($form)->with(['password' => $password, 'confirmation' => $password, 'answer' => 'Original'])->save();
+    $saved = Formie::$plugin->getSubmissions()->getSubmissionById($submission->id);
+    $original = $saved->getFieldValue('password');
+    expect($original)->not->toBe($saved->getFieldValue('confirmation'));
+    $saved->setFieldValue('answer', 'Edited');
+    expect(Craft::$app->getElements()->saveElement($saved))->toBeTrue()
+        ->and($saved->getFieldValue('password'))->toBe($original);
+    $saved->setFieldValue('confirmation', 'Different');
+    expect($saved->validate())->toBeFalse()->and($saved)->toHaveFieldError('confirmation');
+    $saved->setFieldValue('password', 'short');
+    expect($saved->validate())->toBeFalse()->and($saved)->toHaveFieldError('password');
+});

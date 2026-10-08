@@ -81,7 +81,7 @@ trait SearchableDropdownFieldTrait
         return [
             new BrowserModule([
                 'moduleId' => 'formie:combobox',
-                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
+                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
                 'config' => $this->getSearchableDropdownBrowserModuleConfig(),
             ]),
         ];

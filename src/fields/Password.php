@@ -93,6 +93,19 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         return $rules;
     }
 
+    public function validateMatchField(ElementInterface $element): void
+    {
+        $sourceHandle = $this->getMatchField();
+
+        // Stored passwords are independently salted hashes, so their equality
+        // can only be checked while the visitor is entering the raw values.
+        if ($sourceHandle && $this->_isUnchangedStoredPassword($element, $this->valueKey()) && $this->_isUnchangedStoredPassword($element, $sourceHandle)) {
+            return;
+        }
+
+        parent::validateMatchField($element);
+    }
+
     public function validatePasswordMinLength(ElementInterface $element): void
     {
         $min = $this->passwordMinLength ?? 0;
@@ -103,7 +116,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
 
         $value = (string)$element->getFieldValue($this->valueKey());
 
-        if (parent::isValueEmpty($value, $element)) {
+        if (parent::isValueEmpty($value, $element) || $this->_isUnchangedStoredPassword($element, $this->valueKey())) {
             return;
         }
 
@@ -123,7 +136,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
 
         $value = (string)$element->getFieldValue($this->valueKey());
 
-        if (parent::isValueEmpty($value, $element)) {
+        if (parent::isValueEmpty($value, $element) || $this->_isUnchangedStoredPassword($element, $this->valueKey())) {
             return;
         }
 
@@ -140,7 +153,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
 
         $value = (string)$element->getFieldValue($this->valueKey());
 
-        if (parent::isValueEmpty($value, $element)) {
+        if (parent::isValueEmpty($value, $element) || $this->_isUnchangedStoredPassword($element, $this->valueKey())) {
             return;
         }
 
@@ -157,7 +170,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
 
         $value = (string)$element->getFieldValue($this->valueKey());
 
-        if (parent::isValueEmpty($value, $element)) {
+        if (parent::isValueEmpty($value, $element) || $this->_isUnchangedStoredPassword($element, $this->valueKey())) {
             return;
         }
 
@@ -409,7 +422,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         if ($this->hasPasswordValidationRules()) {
             $modules[] = new BrowserModule([
                 'moduleId' => 'formie:password-validation',
-                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
+                'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
             ]);
         }
 
@@ -427,5 +440,22 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
     protected function shouldTrimNormalizedPlainText(): bool
     {
         return false;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _isUnchangedStoredPassword(ElementInterface $element, string $handle): bool
+    {
+        $value = $element->getFieldValue($handle);
+
+        if (!$element->id || !is_string($value) || password_get_info($value)['algo'] === null) {
+            return false;
+        }
+
+        $saved = Craft::$app->getElements()->getElementById($element->id, Submission::class);
+
+        return $saved && $saved->getFieldValue($handle) === $value;
     }
 }

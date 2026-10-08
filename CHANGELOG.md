@@ -7,6 +7,9 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed editing saved submissions failing password confirmation and length validation against stored password hashes.
+- Fixed submission editing showing browser module errors for password rules and searchable dropdowns.
+- Fixed submission editing offering a nonfunctional “Save as draft” action.
 - Fixed resending notifications failing after sending when the original submission was incomplete, spam, or deleted, or the notification had been deleted.
 - Fixed sent notification history showing incomplete and spam submissions as deleted.
 - Fixed successful front-end submission edits showing an unsaved-changes warning when leaving the page.

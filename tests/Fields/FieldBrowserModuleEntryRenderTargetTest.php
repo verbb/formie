@@ -36,6 +36,8 @@ it('filters frontend-only field modules out of cp edit manifests and config', fu
             'defaultOption' => 'cookie',
             'cookieName' => 'utm_source',
         ])
+        ->passwordField('password', ['passwordMinLength' => 8])
+        ->dropdownField('choice', ['useSearchable' => true])
         ->summaryField('summary')
         ->create();
 
@@ -59,7 +61,9 @@ it('filters frontend-only field modules out of cp edit manifests and config', fu
         ->toContain('formie:table')
         ->toContain('formie:checkbox-radio')
         ->toContain('formie:hidden')
-        ->toContain('formie:summary');
+        ->toContain('formie:summary')
+        ->toContain('formie:password-validation')
+        ->toContain('formie:combobox');
 
     expect($cpModuleIds)
         ->toContain('formie:rich-text')
@@ -68,6 +72,8 @@ it('filters frontend-only field modules out of cp edit manifests and config', fu
         ->not->toContain('formie:checkbox-radio')
         ->not->toContain('formie:hidden')
         ->not->toContain('formie:summary')
+        ->not->toContain('formie:password-validation')
+        ->not->toContain('formie:combobox')
         ->and($cpConfigModuleIds)->toBe($cpModuleIds)
         ->and($frontendTextLimit['config']['allowOvertype'] ?? false)->toBeFalse()
         ->and($cpTextLimit['config']['allowOvertype'] ?? false)->toBeTrue();
