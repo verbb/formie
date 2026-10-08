@@ -25,7 +25,7 @@ function p(e) {
 		let n = Array.from(t.querySelectorAll(o)).indexOf(e);
 		n >= 0 && t.setAttribute("data-formie-rating-hover", String(n + 1));
 	};
-	return t.querySelectorAll(o).forEach((e) => {
+	t.querySelectorAll(o).forEach((e) => {
 		if (!(e instanceof HTMLElement)) return;
 		let t = e.querySelector(s), n = () => {
 			if (t instanceof HTMLInputElement) {
@@ -62,8 +62,14 @@ function p(e) {
 		i.addEventListener("click", a), r.push(() => {
 			i.removeEventListener("click", a), i.removeAttribute(c);
 		});
-	}), f(t), () => {
-		r.forEach((e) => {
+	});
+	let m = e.closest("form"), h = (e) => {
+		queueMicrotask(() => {
+			e.defaultPrevented || (i(), d(t).forEach((e) => e.removeAttribute(c)), f(t));
+		});
+	};
+	return m?.addEventListener("reset", h), f(t), () => {
+		m?.removeEventListener("reset", h), r.forEach((e) => {
 			e();
 		}), i(), t.removeAttribute("data-formie-rating-value");
 	};

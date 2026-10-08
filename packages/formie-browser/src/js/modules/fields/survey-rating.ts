@@ -124,9 +124,21 @@ function bindRatingField(field: HTMLElement): () => void {
         });
     });
 
+    const form = field.closest('form');
+    const onReset = (event: Event) => {
+        queueMicrotask(() => {
+            if (!event.defaultPrevented) {
+                clearHover();
+                getRatingInputs(stars).forEach((input) => input.removeAttribute(PRESSED_WHILE_CHECKED));
+                updateRatingValue(stars);
+            }
+        });
+    };
+    form?.addEventListener('reset', onReset);
     updateRatingValue(stars);
 
     return () => {
+        form?.removeEventListener('reset', onReset);
         cleanups.forEach((cleanup) => {
             cleanup();
         });

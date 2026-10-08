@@ -168,6 +168,17 @@ function initRichTextField(container: HTMLElement, input: RichTextInput, options
     input.richText = editor;
     editor.content.innerHTML = input.value || '';
 
+    const form = input.form;
+    const onReset = (event: Event) => {
+        // Wait for the textarea to regain its default value before updating Pell.
+        queueMicrotask(() => {
+            if (!event.defaultPrevented) {
+                editor.content.innerHTML = input.value || '';
+            }
+        });
+    };
+    form?.addEventListener('reset', onReset);
+
     if (input.placeholder) {
         editor.content.setAttribute('data-placeholder', input.placeholder);
     }
@@ -177,6 +188,7 @@ function initRichTextField(container: HTMLElement, input: RichTextInput, options
     });
 
     return () => {
+        form?.removeEventListener('reset', onReset);
         container.innerHTML = '';
         delete input.richText;
     };

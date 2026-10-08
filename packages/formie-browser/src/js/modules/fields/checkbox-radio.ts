@@ -1,5 +1,5 @@
 import type { BrowserModuleDefinition } from '#contracts/modules';
-import { dispatchFieldEvent, escapeSelectorValue, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';
+import { dispatchFieldEvent, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';
 import { createDebug } from '#utils/debug';
 
 const FIELD_SELECTOR = '[data-formie-checkboxes-field-layout], [data-formie-radio-field-layout]';
@@ -213,19 +213,7 @@ function unregisterValidators(form: HTMLFormElement | null): void {
     releaseFormValidators(form, VALIDATOR_SCOPE, [CHECKBOX_MINMAX_VALIDATOR, OTHER_OPTION_TEXT_VALIDATOR]);
 }
 
-function syncCheckedAttribute(input: HTMLInputElement): void {
-    if (input.checked) {
-        input.setAttribute('checked', '');
-    } else {
-        input.removeAttribute('checked');
-    }
-}
-
-function syncRequiredCheckboxes(field: HTMLElement): void {
-    const requiredCheckboxes = Array.from(field.querySelectorAll('input[type="checkbox"][required][data-formie-checkbox-input]')).filter((input): input is HTMLInputElement => {
-        return input instanceof HTMLInputElement;
-    });
-
+function syncRequiredCheckboxes(requiredCheckboxes: HTMLInputElement[]): void {
     if (!requiredCheckboxes.length) {
         return;
     }
@@ -299,24 +287,8 @@ function toggleCheckboxGroup(field: HTMLElement, toggle: HTMLInputElement): void
         // Re-emit change/input so downstream modules (conditions, calculations,
         // validation) react exactly as if the user toggled each box manually.
         input.checked = toggle.checked;
-        syncCheckedAttribute(input);
         input.dispatchEvent(new Event('change', { bubbles: true }));
         input.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-}
-
-function syncRadioGroup(input: HTMLInputElement, field: HTMLElement): void {
-    if (!input.checked || !input.name) {
-        syncCheckedAttribute(input);
-        return;
-    }
-
-    const group = Array.from(field.querySelectorAll(`input[type="radio"][name="${escapeSelectorValue(input.name)}"]`)).filter((radio): radio is HTMLInputElement => {
-        return radio instanceof HTMLInputElement;
-    });
-
-    group.forEach((radio) => {
-        syncCheckedAttribute(radio);
     });
 }
 
@@ -330,20 +302,28 @@ function bindField(field: HTMLElement): () => void {
         return () => {};
     }
 
+    const requiredCheckboxes = inputs.filter((input) => input.type === 'checkbox' && input.required);
+    const form = field.closest('form');
+    const onReset = (event: Event) => {
+        // Native reset restores checked properties after the reset event returns.
+        queueMicrotask(() => {
+            if (!event.defaultPrevented) {
+                syncRequiredCheckboxes(requiredCheckboxes);
+                enforceMaxOptions(field);
+                syncOtherOptionField(field);
+            }
+        });
+    };
+    form?.addEventListener('reset', onReset);
+
     const listeners = inputs.map((input) => {
         const eventName = input.type === 'radio' ? 'change' : 'click';
         const handler = () => {
-            syncCheckedAttribute(input);
-
             if (input.type === 'checkbox' && isToggleCheckbox(input)) {
                 toggleCheckboxGroup(field, input);
             }
 
-            if (input.type === 'radio') {
-                syncRadioGroup(input, field);
-            }
-
-            syncRequiredCheckboxes(field);
+            syncRequiredCheckboxes(requiredCheckboxes);
             enforceMaxOptions(field);
             queueMicrotask(() => {
                 syncOtherOptionField(field);
@@ -356,7 +336,6 @@ function bindField(field: HTMLElement): () => void {
         };
 
         input.addEventListener(eventName, handler);
-        syncCheckedAttribute(input);
 
         return () => {
             input.removeEventListener(eventName, handler);
@@ -365,7 +344,7 @@ function bindField(field: HTMLElement): () => void {
 
     const destroyOtherOptionBinding = bindOtherOptionField(field);
 
-    syncRequiredCheckboxes(field);
+    syncRequiredCheckboxes(requiredCheckboxes);
     enforceMaxOptions(field);
     syncOtherOptionField(field);
     dispatchFieldEvent(field, MODULE_ID, 'init', {
@@ -376,6 +355,7 @@ function bindField(field: HTMLElement): () => void {
         listeners.forEach((unbind) => {
             unbind();
         });
+        form?.removeEventListener('reset', onReset);
         destroyOtherOptionBinding();
     };
 }

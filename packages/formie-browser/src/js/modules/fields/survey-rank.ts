@@ -183,6 +183,8 @@ function bindRankField(field: HTMLElement): () => void {
         return () => {};
     }
 
+    const initialItems = getRankItems(list);
+    const form = field.closest('form');
     let draggedItem: HTMLElement | null = null;
     let placeholder: HTMLElement | null = null;
     let ghostStyleSnapshot: GhostStyleSnapshot | null = null;
@@ -325,9 +327,23 @@ function bindRankField(field: HTMLElement): () => void {
         });
     });
 
+    const onReset = (event: Event) => {
+        queueMicrotask(() => {
+            if (!event.defaultPrevented) {
+                document.removeEventListener('pointermove', onPointerMove);
+                document.removeEventListener('pointerup', onPointerUp);
+                document.removeEventListener('pointercancel', onPointerUp);
+                finishDrag();
+                initialItems.forEach((item) => list.appendChild(item));
+                syncRankInputs(list);
+            }
+        });
+    };
+    form?.addEventListener('reset', onReset);
     syncRankInputs(list);
 
     return () => {
+        form?.removeEventListener('reset', onReset);
         document.removeEventListener('pointermove', onPointerMove);
         document.removeEventListener('pointerup', onPointerUp);
         document.removeEventListener('pointercancel', onPointerUp);

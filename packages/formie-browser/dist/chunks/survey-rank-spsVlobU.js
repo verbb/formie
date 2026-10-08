@@ -72,39 +72,45 @@ function w(e, t) {
 function T(e) {
 	let t = e.querySelector(a);
 	if (!(t instanceof HTMLElement)) return d.warn("Missing rank list; skipping field."), () => {};
-	let r = null, i = null, o = null, c = null, l = null, h = null, g = null, T = null, E = null, D = !1, O = [], k = () => {
-		if (r && i ? (t.insertBefore(r, i), i.remove()) : i && i.remove(), r && o && (w(r, o), r.removeAttribute("data-formie-rank-dragging")), l && h !== null) try {
-			l.releasePointerCapture(h);
+	let r = p(t), i = e.closest("form"), o = null, c = null, l = null, h = null, g = null, T = null, E = null, D = null, O = null, k = !1, A = [], j = () => {
+		if (o && c ? (t.insertBefore(o, c), c.remove()) : c && c.remove(), o && l && (w(o, l), o.removeAttribute("data-formie-rank-dragging")), g && T !== null) try {
+			g.releasePointerCapture(T);
 		} catch {}
-		r = null, i = null, o = null, c = null, l = null, h = null, g = null, T = null, E = null, t.removeAttribute("data-formie-rank-sorting"), D && (f(t), n(e, u, "reorder", { rankField: e })), D = !1;
-	}, A = (e) => {
-		if (!r || !i || !c || e.pointerId !== h) return;
-		e.preventDefault(), C(r, e, c);
-		let n = _(r), a = E === null || n >= E;
-		E = n;
-		let o = v(r, t, i, a);
-		o !== g && (g = o, y(t, i, r, o));
-	}, j = (e) => {
-		e.pointerId === h && (document.removeEventListener("pointermove", A), document.removeEventListener("pointerup", j), document.removeEventListener("pointercancel", j), i && T !== null && (D = m(t, i) !== T), k());
+		o = null, c = null, l = null, h = null, g = null, T = null, E = null, D = null, O = null, t.removeAttribute("data-formie-rank-sorting"), k && (f(t), n(e, u, "reorder", { rankField: e })), k = !1;
+	}, M = (e) => {
+		if (!o || !c || !h || e.pointerId !== T) return;
+		e.preventDefault(), C(o, e, h);
+		let n = _(o), r = O === null || n >= O;
+		O = n;
+		let i = v(o, t, c, r);
+		i !== E && (E = i, y(t, c, o, i));
+	}, N = (e) => {
+		e.pointerId === T && (document.removeEventListener("pointermove", M), document.removeEventListener("pointerup", N), document.removeEventListener("pointercancel", N), c && D !== null && (k = m(t, c) !== D), j());
 	};
-	return p(t).forEach((e) => {
+	p(t).forEach((e) => {
 		if (!e.querySelector(s)) return;
 		let n = (n) => {
 			if (n.button !== 0 || n.target instanceof HTMLInputElement) return;
 			n.preventDefault();
-			let a = e.getBoundingClientRect();
-			r = e, l = e, h = n.pointerId, c = {
-				x: n.clientX - a.left,
-				y: n.clientY - a.top
-			}, o = x(e), i = b(t, e), T = m(t, i), D = !1, S(e, a), e.setAttribute("data-formie-rank-dragging", "true"), t.setAttribute("data-formie-rank-sorting", "true"), e.setPointerCapture(n.pointerId), E = _(e), g = v(e, t, i, !0), document.addEventListener("pointermove", A), document.addEventListener("pointerup", j), document.addEventListener("pointercancel", j);
+			let r = e.getBoundingClientRect();
+			o = e, g = e, T = n.pointerId, h = {
+				x: n.clientX - r.left,
+				y: n.clientY - r.top
+			}, l = x(e), c = b(t, e), D = m(t, c), k = !1, S(e, r), e.setAttribute("data-formie-rank-dragging", "true"), t.setAttribute("data-formie-rank-sorting", "true"), e.setPointerCapture(n.pointerId), O = _(e), E = v(e, t, c, !0), document.addEventListener("pointermove", M), document.addEventListener("pointerup", N), document.addEventListener("pointercancel", N);
 		};
-		e.addEventListener("pointerdown", n), O.push(() => {
+		e.addEventListener("pointerdown", n), A.push(() => {
 			e.removeEventListener("pointerdown", n);
 		});
-	}), f(t), () => {
-		document.removeEventListener("pointermove", A), document.removeEventListener("pointerup", j), document.removeEventListener("pointercancel", j), O.forEach((e) => {
+	});
+	let P = (e) => {
+		queueMicrotask(() => {
+			e.defaultPrevented || (document.removeEventListener("pointermove", M), document.removeEventListener("pointerup", N), document.removeEventListener("pointercancel", N), j(), r.forEach((e) => t.appendChild(e)), f(t));
+		});
+	};
+	return i?.addEventListener("reset", P), f(t), () => {
+		i?.removeEventListener("reset", P), document.removeEventListener("pointermove", M), document.removeEventListener("pointerup", N), document.removeEventListener("pointercancel", N), A.forEach((e) => {
 			e();
-		}), k();
+		}), j();
 	};
 }
 var E = {

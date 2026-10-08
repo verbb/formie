@@ -325,8 +325,14 @@ function P(e, t, n) {
 		options: a
 	});
 	let o = (0, i.init)(a);
-	return t.richText = o, o.content.innerHTML = t.value || "", t.placeholder && o.content.setAttribute("data-placeholder", t.placeholder), r(t, k, "after-init", { richText: o }), () => {
-		e.innerHTML = "", delete t.richText;
+	t.richText = o, o.content.innerHTML = t.value || "";
+	let s = t.form, c = (e) => {
+		queueMicrotask(() => {
+			e.defaultPrevented || (o.content.innerHTML = t.value || "");
+		});
+	};
+	return s?.addEventListener("reset", c), t.placeholder && o.content.setAttribute("data-placeholder", t.placeholder), r(t, k, "after-init", { richText: o }), () => {
+		s?.removeEventListener("reset", c), e.innerHTML = "", delete t.richText;
 	};
 }
 var F = {

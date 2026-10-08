@@ -23,6 +23,7 @@
 - Carry expected submission versions and signed request tokens through submit and page-state requests.
 
 ### Fixed
+- Fixed checkbox, radio, rich-text, rating, and rank fields retaining stale values or display state after a form reset.
 - Fixed “Disable Submit Button Until Valid” being ignored on server-rendered forms and repeatedly updating disabled buttons.
 - Fixed successful AJAX redirects triggering an unsaved-changes warning.
 - Fixed refreshed upload tokens triggering an unsaved-changes warning after a successful form submission.
