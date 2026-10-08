@@ -16,6 +16,7 @@ use Craft;
 use craft\db\Query;
 use craft\events\ConfigEvent;
 use craft\helpers\Db;
+use craft\helpers\ProjectConfig as ProjectConfigHelper;
 use craft\models\Site;
 
 use yii\base\Component;
@@ -361,7 +362,7 @@ class Stencils extends Component
     public function handleChangedStencil(ConfigEvent $event): void
     {
         $stencilUid = $event->tokenMatches[0];
-        $data = $event->newValue;
+        $data = ProjectConfigHelper::unpackAssociativeArray($event->newValue);
 
         $projectConfig = Craft::$app->getProjectConfig();
         $formTemplates = $projectConfig->get(FormTemplates::CONFIG_TEMPLATES_KEY, true) ?? [];
