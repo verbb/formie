@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Require Verbb Auth 2.0.50 or later for OAuth password-grant callback support.
+
 ### Fixed
 - Fix SugarCRM connections failing to authenticate. ([#2988](https://github.com/verbb/formie/issues/2988))
 
