@@ -1420,6 +1420,7 @@ var $t = /* @__PURE__ */ new Set([
 	"action",
 	"redirect",
 	"requestToken",
+	"uploadCreateToken",
 	"renderId",
 	"formStartedAt",
 	"submitAction",

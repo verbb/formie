@@ -4,6 +4,7 @@ const DIRTY_TRACKING_IGNORED_FIELD_NAMES = new Set([
     'action',
     'redirect',
     'requestToken',
+    'uploadCreateToken',
     'renderId',
     'formStartedAt',
     'submitAction',

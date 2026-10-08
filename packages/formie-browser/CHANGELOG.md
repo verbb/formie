@@ -23,6 +23,7 @@
 - Carry expected submission versions and signed request tokens through submit and page-state requests.
 
 ### Fixed
+- Fixed refreshed upload tokens triggering an unsaved-changes warning after a successful form submission.
 - Fix TypeScript declaration imports when the npm packages are installed outside the Formie workspace.
 - Present required browser-module failures as accessible alerts with collapsed, copyable technical details, while keeping raw exception details restricted to Craft's authenticated submission editor.
 - Let the persistent field error region own announcements without reserving empty layout space or overriding its configured priority with nested assertive alerts. ([#2954](https://github.com/verbb/formie/issues/2954))

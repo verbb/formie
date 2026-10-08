@@ -61,11 +61,24 @@ for (const mode of ['ajax', 'native', 'cached']) {
             const started = Number((document.querySelector('input[name="formStartedAt"]') as HTMLInputElement)?.value);
             return started > 0 && Date.now() - started >= 3500;
         });
+        const uploadToken = await page.locator('input[name="uploadCreateToken"]').inputValue();
         const navigation = mode === 'native' ? page.waitForNavigation({ waitUntil: 'domcontentloaded' }) : null;
         await page.getByRole('button', { name: 'Submit', exact: true }).click();
         if (navigation) { await navigation; }
         await expect(page.getByText('Submission saved.', { exact: true })).toBeVisible();
         await expect.poll(async () => (await (await request.get('/browser-rendered-saved')).json()).filter(row => row.name === name)).toEqual([{ name, details: '', total: '28' }]);
+        if (mode !== 'native') {
+            await expect(page.locator('input[name="uploadCreateToken"]')).not.toHaveValue(uploadToken);
+        }
         expect(pageErrors).toEqual([]);
+        // Completion refreshes upload credentials after resetting the form. Those
+        // protocol-only changes must not trigger an unsaved visitor input warning.
+        const leaveWarnings: string[] = [];
+        page.on('dialog', async dialog => {
+            leaveWarnings.push(dialog.type());
+            await dialog.accept();
+        });
+        await page.goto('/browser-completion-done');
+        expect(leaveWarnings).toEqual([]);
     });
 }
