@@ -159,6 +159,9 @@ const assertStandaloneLockfile = () => {
         const pluginKitPackage = path.match(
             /(?:^|\/)node_modules\/(@verbb\/plugin-kit-[^/]+)$/,
         )?.[1];
+        const nestedFormiePackage = path.match(
+            /^.+\/node_modules\/(@verbb\/formie-[^/]+)$/,
+        )?.[1];
 
         if (
             pluginKitPackage &&
@@ -171,6 +174,12 @@ const assertStandaloneLockfile = () => {
                 `${path}: ${pluginKitPackage} is not pinned to an npm registry artifact`,
             );
         }
+
+        if (nestedFormiePackage && packages.includes(nestedFormiePackage)) {
+            invalid.push(
+                `${path}: ${nestedFormiePackage} must resolve through the root workspace link`,
+            );
+        }
     }
 
     if (invalid.length > 0) {
@@ -181,17 +190,21 @@ const assertStandaloneLockfile = () => {
     }
 };
 
-/** Remove only dependency records that point outside the Formie repository. */
-const removeExternalWorkspaceEntries = (lockfile) => {
+/** Remove external links and stale nested copies of local Formie workspaces. */
+const sanitizeLockfile = (lockfile) => {
     for (const [path, entry] of Object.entries(lockfile.packages ?? {})) {
         const pluginKitLink =
             path.match(/(?:^|\/)node_modules\/@verbb\/plugin-kit-[^/]+$/) &&
             entry.link;
+        const nestedFormiePackage = path.match(
+            /^.+\/node_modules\/(@verbb\/formie-[^/]+)$/,
+        )?.[1];
 
         if (
             path.startsWith('../') ||
             entry.resolved?.startsWith('../') ||
-            pluginKitLink
+            pluginKitLink ||
+            (nestedFormiePackage && packages.includes(nestedFormiePackage))
         ) {
             delete lockfile.packages[path];
         }
@@ -246,7 +259,7 @@ const refreshLockfile = () => {
 
         const temporaryLockfile = join(temporaryRoot, 'package-lock.json');
         const input = JSON.parse(readFileSync(temporaryLockfile, 'utf8'));
-        removeExternalWorkspaceEntries(input);
+        sanitizeLockfile(input);
         writeFileSync(
             temporaryLockfile,
             `${JSON.stringify(input, null, 2)}\n`,
@@ -267,7 +280,7 @@ const refreshLockfile = () => {
         );
 
         const resolved = JSON.parse(readFileSync(temporaryLockfile, 'utf8'));
-        removeExternalWorkspaceEntries(resolved);
+        sanitizeLockfile(resolved);
         writeFileSync(
             temporaryLockfile,
             `${JSON.stringify(resolved, null, 2)}\n`,
@@ -372,7 +385,7 @@ const packDryRunAll = () => {
 if (checkLockfileOnly) {
     assertStandaloneLockfile();
     console.log(
-        'package-lock.json is standalone and uses npm registry artifacts for Plugin Kit.',
+        'package-lock.json is standalone and resolves local Formie packages through root workspace links.',
     );
     process.exit(0);
 }
