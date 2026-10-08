@@ -1098,7 +1098,7 @@ var Rt = class {
 	"address-country": () => import("./chunks/address-country-Dn71jroa.js").then((e) => e.addressCountryModule),
 	"address-state": () => import("./chunks/address-state-ByYatUur.js").then((e) => e.addressStateModule),
 	repeater: () => import("./chunks/repeater-DwE27jI1.js").then((e) => e.repeaterModule),
-	"rich-text": () => import("./chunks/rich-text-DqsLd5nn.js").then((e) => e.richTextModule),
+	"rich-text": () => import("./chunks/rich-text-uV4o_pGk.js").then((e) => e.richTextModule),
 	signature: () => import("./chunks/signature-7cldFbqj.js").then((e) => e.signatureModule),
 	summary: () => import("./chunks/summary-BF_8mrXI.js").then((e) => e.summaryModule),
 	"survey-likert": () => import("./chunks/survey-likert-fk1hUPff.js").then((e) => e.surveyLikertModule),
