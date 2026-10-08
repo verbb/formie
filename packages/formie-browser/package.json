@@ -28,19 +28,49 @@
     "**/*.css"
   ],
   "imports": {
-    "#theme/*": "./src/js/theme/*",
+    "#theme/*": {
+      "types": "./dist/js/theme/*.d.ts",
+      "default": "./src/js/theme/*"
+    },
     "#theme-css/*": "./src/css/theme/*",
     "#theme-base/*": "./src/css/theme-base/*",
     "#icons/*": "./src/icons/*",
-    "#contracts/*": "./src/js/contracts/*",
-    "#compatibility/*": "./src/js/compatibility/*",
-    "#core/*": "./src/js/core/*",
-    "#events/*": "./src/js/events/*",
-    "#modules/*": "./src/js/modules/*",
-    "#submit/*": "./src/js/submit/*",
-    "#transport/*": "./src/js/transport/*",
-    "#utils/*": "./src/js/utils/*",
-    "#validation/*": "./src/js/validation/*"
+    "#contracts/*": {
+      "types": "./dist/js/contracts/*.d.ts",
+      "default": "./src/js/contracts/*"
+    },
+    "#compatibility/*": {
+      "types": "./dist/js/compatibility/*.d.ts",
+      "default": "./src/js/compatibility/*"
+    },
+    "#core/*": {
+      "types": "./dist/js/core/*.d.ts",
+      "default": "./src/js/core/*"
+    },
+    "#events/*": {
+      "types": "./dist/js/events/*.d.ts",
+      "default": "./src/js/events/*"
+    },
+    "#modules/*": {
+      "types": "./dist/js/modules/*.d.ts",
+      "default": "./src/js/modules/*"
+    },
+    "#submit/*": {
+      "types": "./dist/js/submit/*.d.ts",
+      "default": "./src/js/submit/*"
+    },
+    "#transport/*": {
+      "types": "./dist/js/transport/*.d.ts",
+      "default": "./src/js/transport/*"
+    },
+    "#utils/*": {
+      "types": "./dist/js/utils/*.d.ts",
+      "default": "./src/js/utils/*"
+    },
+    "#validation/*": {
+      "types": "./dist/js/validation/*.d.ts",
+      "default": "./src/js/validation/*"
+    }
   },
   "exports": {
     ".": {
