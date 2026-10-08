@@ -1,0 +1,159 @@
+name: Publish Formie Packages
+
+# GitHub requires workflow_dispatch definitions on the repository's default
+# branch. Keep this file on craft-5 as well as beta; Manager dispatches the
+# reviewed beta release SHA and the run checks out that exact commit.
+
+on:
+    workflow_dispatch:
+        inputs:
+            release_sha:
+                description: Full reviewed release commit SHA on beta
+                required: true
+                type: string
+            release_version:
+                description: Exact lockstep package version (for example, 1.0.14)
+                required: true
+                type: string
+
+# Never let two attempts race over the same lockstep package release.
+concurrency:
+    group: formie-npm-publish
+    cancel-in-progress: false
+
+jobs:
+    validate:
+        if: github.ref == 'refs/heads/beta'
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        permissions:
+            contents: read
+        steps:
+            - name: Check out reviewed commit
+              uses: actions/checkout@v6
+              with:
+                  ref: ${{ inputs.release_sha }}
+                  fetch-depth: 0
+
+            - name: Verify commit belongs to beta
+              env:
+                  RELEASE_SHA: ${{ inputs.release_sha }}
+              run: |
+                  if [[ ! "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+                    echo 'A full lowercase commit SHA is required.' >&2
+                    exit 1
+                  fi
+                  test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+                  git fetch origin beta
+                  git merge-base --is-ancestor "$RELEASE_SHA" origin/beta
+
+            - name: Set up Node
+              uses: actions/setup-node@v6
+              with:
+                  node-version: '24'
+                  package-manager-cache: false
+
+            - name: Check Node and npm versions
+              run: |
+                  node --version
+                  npm --version
+                  node -e 'const version = require("node:child_process").execFileSync("npm", ["--version"], { encoding: "utf8" }).trim(); const [major, minor, patch] = version.split(".").map(Number); if (major < 11 || (major === 11 && (minor < 5 || (minor === 5 && patch < 1)))) process.exit(1)'
+
+            - name: Verify standalone dependency lockfile
+              run: npm run release:check-lockfile
+
+            - name: Install dependencies
+              run: npm ci --legacy-peer-deps
+
+            - name: Build publishable packages
+              run: npm run build:packages
+
+            - name: Run package tests
+              run: npm test -w @verbb/formie-core
+
+            - name: Inspect all package tarballs
+              run: |
+                  for package in \
+                    @verbb/formie-core \
+                    @verbb/formie-browser \
+                    @verbb/formie-react \
+                    @verbb/formie-vue \
+                    @verbb/formie-web-components; do
+                    echo "::group::Pack $package"
+                    npm pack --dry-run -w "$package"
+                    echo '::endgroup::'
+                  done
+
+            - name: Reject regenerated repository files
+              run: |
+                  if [[ -n "$(git status --porcelain)" ]]; then
+                    echo 'Build or pack regenerated repository files:' >&2
+                    git status --short
+                    git diff --stat
+                    git diff --
+                    exit 1
+                  fi
+
+            - name: Create reviewed package tarballs
+              run: |
+                  mkdir -p "$RUNNER_TEMP/formie-tarballs"
+                  for package in \
+                    @verbb/formie-core \
+                    @verbb/formie-browser \
+                    @verbb/formie-react \
+                    @verbb/formie-vue \
+                    @verbb/formie-web-components; do
+                    echo "::group::Build tarball $package"
+                    npm pack -w "$package" --pack-destination "$RUNNER_TEMP/formie-tarballs"
+                    echo '::endgroup::'
+                  done
+                  test -z "$(git status --porcelain)"
+                  test "$(find "$RUNNER_TEMP/formie-tarballs" -maxdepth 1 -name '*.tgz' | wc -l | tr -d ' ')" = 5
+
+            - name: Transfer validated tarballs to publish job
+              uses: actions/upload-artifact@v4
+              with:
+                  name: formie-release-tarballs
+                  path: ${{ runner.temp }}/formie-tarballs/*.tgz
+                  if-no-files-found: error
+                  retention-days: 7
+
+    publish:
+        needs: validate
+        if: github.ref == 'refs/heads/beta'
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        environment: npm-publish
+        permissions:
+            contents: read
+            id-token: write
+        steps:
+            - name: Check out reviewed commit without dependencies
+              uses: actions/checkout@v6
+              with:
+                  ref: ${{ inputs.release_sha }}
+
+            - name: Set up Node
+              uses: actions/setup-node@v6
+              with:
+                  node-version: '24'
+                  package-manager-cache: false
+
+            - name: Check supported npm CLI
+              run: |
+                  node --version
+                  npm --version
+                  node -e 'const version = require("node:child_process").execFileSync("npm", ["--version"], { encoding: "utf8" }).trim(); const [major, minor, patch] = version.split(".").map(Number); if (major < 11 || (major === 11 && (minor < 5 || (minor === 5 && patch < 1)))) process.exit(1)'
+
+            - name: Receive validated tarballs
+              uses: actions/download-artifact@v4
+              with:
+                  name: formie-release-tarballs
+                  path: ${{ runner.temp }}/formie-tarballs
+
+            - name: Publish missing package versions with npm OIDC
+              env:
+                  RELEASE_SHA: ${{ inputs.release_sha }}
+                  RELEASE_VERSION: ${{ inputs.release_version }}
+                  PACKAGE_TARBALL_DIR: ${{ runner.temp }}/formie-tarballs
+              run: npm run release:publish-prepared
