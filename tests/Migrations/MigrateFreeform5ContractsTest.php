@@ -63,7 +63,7 @@ it('normalizes migrated field handles for reserved words and invalid characters'
 it('normalizes notification handles by replacing dashes', function (): void {
     $migration = new MigrateFreeform5();
 
-    $method = new ReflectionMethod(MigrateFreeform5::class, 'getNotificationHandle');
+    $method = new ReflectionMethod(MigrateFreeform5::class, '_getNotificationHandle');
     $method->setAccessible(true);
 
     $normalized = $method->invoke($migration, 'notify-admin');
