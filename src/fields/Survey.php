@@ -1623,7 +1623,6 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
                 ->core([
                     'type' => 'hidden',
                     'name' => $this->getHtmlName('[]'),
-                    'value' => $optionValue ?? false,
                     'data-formie-input' => true,
                     'data-formie-rank-input' => true,
                     'data-formie-input-id' => $this->getHtmlDataId($form, $optionValue),
