@@ -8,6 +8,8 @@
 
 ### Fixed
 - Fixed duplicating forms with Date fields across multiple sites.
+- Fixed variable configuration stripping spaces from transform parameters such as list separators.
+- Fixed variable transform choices ignoring All rows and Row count selections.
 - Fixed adding Table rows overwriting existing default or saved rows.
 - Fixed conditional Date/Time fields failing to initialize when shown again.
 - Fixed conditionally hidden date and signature fields retaining their previous values.

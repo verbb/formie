@@ -416,12 +416,19 @@ export const buildVariablePickerGroups = ({
     }, ...groupedByPage];
 };
 
-export const buildTransformOptions = (selectedVariableOption, registry = {}) => {
+export const buildTransformOptions = (selectedVariableOption, registry = {}, tokenValue = selectedVariableOption?.value) => {
     if (!selectedVariableOption || selectedVariableOption.allowTransforms === false) {
         return [];
     }
 
-    const optionTypes = Array.isArray(selectedVariableOption?.types) ? selectedVariableOption.types : [];
+    let optionTypes = Array.isArray(selectedVariableOption?.types) ? selectedVariableOption.types : [];
+    // Row selection changes the value passed to a transform, independently of
+    // the selected column/child field's scalar type.
+    if (isRepeaterSubFieldOption(selectedVariableOption) || isRepeaterScopedFieldToken(tokenValue)) {
+        const { preset } = parseRepeaterRowTargeting(tokenValue);
+        if (preset === 'all') optionTypes = ['array'];
+        if (preset === 'count') optionTypes = ['number'];
+    }
     const allowedTypes = new Set();
 
     optionTypes.forEach((type) => {

@@ -144,8 +144,8 @@ export function VariableTagConfigureOverlay({
     }, [pendingTokenValue, resolveVariableMetaForToken]);
 
     const transformOptions = useMemo(() => {
-        return buildTransformOptions(selectedVariableMeta, variableTransformerRegistry || {});
-    }, [selectedVariableMeta, variableTransformerRegistry]);
+        return buildTransformOptions(selectedVariableMeta, variableTransformerRegistry || {}, pendingTokenValue);
+    }, [selectedVariableMeta, variableTransformerRegistry, pendingTokenValue]);
 
     const selectedTransformer = useMemo(() => {
         return transformOptions.find((option) => option.value === transformerId) || null;
@@ -226,9 +226,9 @@ export function VariableTagConfigureOverlay({
         const trimmedTransformerId = transformerId.trim();
         const normalizedParams = trimmedTransformerId
             ? Object.entries(transformerParams).reduce((acc, [key, value]) => {
-                const trimmed = String(value ?? '').trim();
-                if (trimmed !== '') {
-                    acc[key] = trimmed;
+                const parameterValue = String(value ?? '');
+                if (parameterValue !== '') {
+                    acc[key] = parameterValue;
                 }
                 return acc;
             }, {})

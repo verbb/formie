@@ -147,9 +147,21 @@ export function FormBuilderVariablePickerControl({
         }) || resolvedNoneOptionLabel;
     }, [variableCategories, variableOptionIndex, comparableValue, resolvedNoneOptionLabel, includeParentLabel, selectedVariableOption, settingsOpen, targetingRevision, t]);
 
+    const settingsTokenValue = useMemo(() => {
+        if (!settingsOpen) {
+            return comparableValue;
+        }
+
+        if (!shouldShowRepeaterRowTargeting(comparableValue, selectedVariableOption)) {
+            return comparableValue;
+        }
+
+        return applyRepeaterRowTargetingToToken(comparableValue, rowTargetingRef.current);
+    }, [comparableValue, selectedVariableOption, settingsOpen, targetingRevision]);
+
     const transformOptions = useMemo(() => {
-        return buildTransformOptions(selectedVariableOption, variableTransformerRegistry || {});
-    }, [selectedVariableOption, variableTransformerRegistry]);
+        return buildTransformOptions(selectedVariableOption, variableTransformerRegistry || {}, settingsTokenValue);
+    }, [selectedVariableOption, variableTransformerRegistry, settingsTokenValue]);
 
     const selectedTransformer = useMemo(() => {
         return transformOptions.find((option) => { return option.value === transformerId; }) || null;
@@ -189,17 +201,6 @@ export function FormBuilderVariablePickerControl({
     }, [includeNoneOptionInPicker, resolvedNoneOptionLabel, picker.groups, picker.page, picker.search, t]);
 
     const canShowSettings = Boolean(comparableValue && selectedVariableOption);
-    const settingsTokenValue = useMemo(() => {
-        if (!settingsOpen) {
-            return comparableValue;
-        }
-
-        if (!shouldShowRepeaterRowTargeting(comparableValue, selectedVariableOption)) {
-            return comparableValue;
-        }
-
-        return applyRepeaterRowTargetingToToken(comparableValue, rowTargetingRef.current);
-    }, [comparableValue, selectedVariableOption, settingsOpen, targetingRevision]);
     const hasDefaultIndicator = Boolean(String(selectedTokenMeta.defaultIfEmpty || '').trim());
     const hasTransformIndicator = Boolean(String(selectedTokenMeta.transformerId || '').trim());
     const hasSelectedValue = Boolean(String(comparableValue || '').trim());

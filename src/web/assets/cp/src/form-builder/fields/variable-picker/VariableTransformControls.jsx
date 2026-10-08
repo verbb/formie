@@ -117,12 +117,13 @@ export function VariableTransformControls({
         groups[typeKey].push(option);
         return groups;
     }, {});
-    const groupOrder = ['text', 'number', 'date', 'boolean', 'other'];
+    const groupOrder = ['text', 'number', 'date', 'boolean', 'array', 'other'];
     const groupLabelByType = {
         text: t('Text'),
         number: t('Number'),
         date: t('Date'),
         boolean: t('Boolean'),
+        array: t('List'),
         other: t('Other'),
     };
 
