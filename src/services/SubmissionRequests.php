@@ -635,6 +635,18 @@ class SubmissionRequests extends Component
         $submissionId = $this->_normalizeNullableInt($submissionId)
             ?? $this->_resolveSubmissionIdFromSubmissionGrant($form, $resumeToken);
 
+        // Rendered edit forms identify the saved record by UID. Resolve that target
+        // before looking for draft progress; the caller still verifies its edit grant.
+        if (!$submissionId && $submissionUid) {
+            $submission = $this->_findSubmissionByUid($submissionUid, $isIncomplete, (int)$form->id);
+
+            if (!$submission) {
+                throw new SubmissionUnavailableException($form, 'submissionUid', $submissionUid);
+            }
+
+            return $submission;
+        }
+
         if (!$submissionId && $progressState?->submissionId) {
             $progressSubmissionId = (int)$progressState->submissionId;
 

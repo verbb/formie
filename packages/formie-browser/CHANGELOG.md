@@ -24,6 +24,8 @@
 - Carry expected submission versions and signed request tokens through submit and page-state requests.
 
 ### Fixed
+- Fixed successful front-end submission edits showing an unsaved-changes warning when leaving the page.
+- Fixed saved uploads being cleared when opening a submission for editing or resuming.
 - Fixed conditional Date/Time fields failing to initialize when shown again.
 - Fixed conditionally hidden date and signature fields retaining their previous values.
 - Fixed browser module errors repeatedly updating the page and making forms unresponsive.

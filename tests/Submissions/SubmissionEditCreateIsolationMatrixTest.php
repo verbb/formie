@@ -79,7 +79,7 @@ it('isolates draft state keys between edit-existing and create-new contexts for 
 
 });
 
-it('uses explicit managed submission ids when saving existing submissions', function (): void {
+it('uses explicit managed submission identities when saving existing submissions', function (string $identity): void {
     $form = formie()
         ->form(['title' => 'Managed Edit Existing Id'])
         ->singleLineTextField('fullName')
@@ -97,14 +97,15 @@ it('uses explicit managed submission ids when saving existing submissions', func
         ->isSpam(null)
         ->ids();
 
-    WebRequestTestHelper::withWebRequestContext(function () use ($form, $existing): void {
+    WebRequestTestHelper::withWebRequestContext(function () use ($form, $existing, $identity): void {
         $form->setSubmission($existing);
 
         $result = runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,
             'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'siteId' => (int)$existing->siteId,
-            'submissionId' => (int)$existing->id,
+            'submissionId' => $identity === 'id' ? (int)$existing->id : null,
+            'submissionUid' => $identity === 'uid' ? $existing->uid : null,
             'expectedVersion' => $existing->stateVersion,
             'submissionEditToken' => $form->getSubmissionEditToken(),
             'submitAction' => 'submit',
@@ -131,9 +132,9 @@ it('uses explicit managed submission ids when saving existing submissions', func
     expect($afterIds)->toBe($beforeIds)
         ->and($reloaded)->not->toBeNull()
         ->and($reloaded->getFieldValue('fullName'))->toBe('Managed After');
-});
+})->with(['id', 'uid']);
 
-it('rejects anonymous site edits that identify a completed submission by id only', function (): void {
+it('rejects anonymous site edits that identify a completed submission by identity only', function (string $identity): void {
     $form = formie()
         ->form(['title' => 'Managed Edit Existing Token Required'])
         ->singleLineTextField('fullName')
@@ -145,12 +146,13 @@ it('rejects anonymous site edits that identify a completed submission by id only
         ->with(['fullName' => 'Token Before'])
         ->save();
 
-    WebRequestTestHelper::withWebRequestContext(function () use ($form, $existing): void {
+    WebRequestTestHelper::withWebRequestContext(function () use ($form, $existing, $identity): void {
         expect(fn() => runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,
             'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'siteId' => (int)$existing->siteId,
-            'submissionId' => (int)$existing->id,
+            'submissionId' => $identity === 'id' ? (int)$existing->id : null,
+            'submissionUid' => $identity === 'uid' ? $existing->uid : null,
             'expectedVersion' => $existing->stateVersion,
             'submitAction' => 'submit',
             'fieldParamNamespace' => 'fields',
@@ -168,7 +170,7 @@ it('rejects anonymous site edits that identify a completed submission by id only
 
     expect($reloaded)->not->toBeNull()
         ->and($reloaded->getFieldValue('fullName'))->toBe('Token Before');
-});
+})->with(['id', 'uid']);
 
 it('normalizes CP submission redirects that lost the control panel trigger', function (): void {
     WebRequestTestHelper::withWebRequestContext(function (): void {

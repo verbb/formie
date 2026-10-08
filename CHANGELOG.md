@@ -7,6 +7,9 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed successful front-end submission edits showing an unsaved-changes warning when leaving the page.
+- Fixed front-end edits failing to find completed submissions identified by their UID.
+- Fixed saved uploads being cleared when opening a submission for editing or resuming.
 - Fixed reports set to include all form fields omitting field values from the table and downloaded exports.
 - Fixed reading condition values from multi-row Likert Survey fields throwing an error.
 - Fixed variable configuration being invisible and unclickable in integration mappings and conditions.

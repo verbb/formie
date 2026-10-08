@@ -2049,8 +2049,9 @@ async function tr(e, t, n) {
 	$n(n, i), y(e, "formie:refresh-tokens:refreshed", i);
 }
 function nr(e, t, n, r, i, a) {
+	let o = () => {};
 	t.dataset.formieRequestProfile = n.profile ?? "same-origin-browser", n.profile === "cross-origin-public" && (t.dataset.formieSubmitMethod = "ajax");
-	let o = String(t.dataset.formieSubmitMethod || "").trim().toLowerCase(), s = zn(n, e, t), c = !1, l = t.querySelectorAll("[data-formie-action]"), u = (e) => {
+	let s = String(t.dataset.formieSubmitMethod || "").trim().toLowerCase(), c = zn(n, e, t), l = !1, u = t.querySelectorAll("[data-formie-action]"), d = (e) => {
 		if (e) {
 			t.setAttribute("data-formie-pending-action", e);
 			return;
@@ -2058,10 +2059,12 @@ function nr(e, t, n, r, i, a) {
 		t.removeAttribute("data-formie-pending-action");
 	};
 	if (Bn(t)) {
-		let n = rn(t, { shouldWarn: () => !Un(t) }), r = (e) => {
+		let n = rn(t, { shouldWarn: () => !Un(t) });
+		o = n.scheduleBaselineCapture;
+		let r = (e) => {
 			if (!(e instanceof CustomEvent)) return;
 			let t = e.detail;
-			t?.ok && t.action === "save" && n.scheduleBaselineCapture();
+			t?.ok && (t.action === "save" || t.outcome === "revised") && n.scheduleBaselineCapture();
 		}, i = () => {
 			n.scheduleBaselineCapture();
 		};
@@ -2069,17 +2072,17 @@ function nr(e, t, n, r, i, a) {
 			e.removeEventListener("formie:submit:result", r), t.removeEventListener("formie:state:reset", i), n.destroy();
 		});
 	}
-	if (l.forEach((e) => {
+	if (u.forEach((e) => {
 		let n = (e) => {
 			let n = e.currentTarget.getAttribute("data-formie-action"), r = t.querySelector("input[name=\"submitAction\"]");
-			u(n), n && r && (r.value = n);
+			d(n), n && r && (r.value = n);
 		};
 		e.addEventListener("click", n), a.push(() => {
 			e.removeEventListener("click", n);
 		});
 	}), t.querySelectorAll("[data-formie-tab-link]").forEach((n) => {
 		let r = async (n) => {
-			if (o !== "ajax") {
+			if (s !== "ajax") {
 				Kn(n) && Vn(t, "set-page");
 				return;
 			}
@@ -2116,29 +2119,29 @@ function nr(e, t, n, r, i, a) {
 		});
 	}), !Rn(t)) {
 		let e = !1, n = () => {
-			e || Un(t) || Gn(t) || (e = !0, Je(s, t));
+			e || Un(t) || Gn(t) || (e = !0, Je(c, t));
 		};
 		window.addEventListener("pagehide", n), window.addEventListener("beforeunload", n), a.push(() => {
 			window.removeEventListener("pagehide", n), window.removeEventListener("beforeunload", n);
 		});
 	}
-	let d = async (a) => {
-		if (c) return;
-		let s = o === "ajax";
+	let f = async (a) => {
+		if (l) return;
+		let o = s === "ajax";
 		if (a.preventDefault(), t.getAttribute("data-formie-loading") === "true") {
 			if (t.getAttribute("data-formie-internal-resubmit") !== "true") return;
 			t.removeAttribute("data-formie-internal-resubmit");
 		} else t.removeAttribute("data-formie-internal-resubmit");
-		let l = a.submitter, d = l?.getAttribute("data-formie-action"), f = t.getAttribute("data-formie-pending-action"), m = t.querySelector("input[name=\"submitAction\"]"), _ = d || f || m?.value || "submit", b = null, x = !1;
+		let c = a.submitter, u = c?.getAttribute("data-formie-action"), f = t.getAttribute("data-formie-pending-action"), m = t.querySelector("input[name=\"submitAction\"]"), _ = u || f || m?.value || "submit", b = null, x = !1;
 		try {
-			if (s) b = await Lt({
+			if (o) b = await Lt({
 				target: e,
 				form: t,
 				bus: r,
 				validator: i,
 				validateOnSubmit: X(t),
 				action: _,
-				submitter: l,
+				submitter: c,
 				waitForSubmitDelay: Yn,
 				onRefreshTokensAfterSubmit: async () => {
 					await tr(e, n, t);
@@ -2148,14 +2151,14 @@ function nr(e, t, n, r, i, a) {
 				}
 			});
 			else {
-				if (z(t), v(t, l), await Yn(t), b = await st(t, _, r, {
+				if (z(t), v(t, c), await Yn(t), b = await st(t, _, r, {
 					validator: i,
 					validateOnSubmit: X(t),
 					preflightOnly: !0
 				}), b.ok) {
-					p(t, _), c = !0, Vn(t, "submit"), u(null);
+					p(t, _), l = !0, Vn(t, "submit"), d(null);
 					let e = !1, n = () => {
-						if (e = !0, c = !1, Hn(t), h(t), i && X(t)) {
+						if (e = !0, l = !1, Hn(t), h(t), i && X(t)) {
 							let { scope: e, final: n } = g(t), r = i.submit(n ? t : e, { final: n });
 							r.length > 0 && R(t, {
 								ok: !1,
@@ -2182,19 +2185,19 @@ function nr(e, t, n, r, i, a) {
 				R(t, b), y(e, "formie:submit:result", b), Hn(t);
 			}
 		} catch (n) {
-			c = !1, b = {
+			l = !1, b = {
 				ok: !1,
 				code: "SUBMIT_ERROR",
 				message: n instanceof Error ? n.message : "Submission failed.",
 				formErrors: [n instanceof Error ? n.message : "Submission failed."]
 			}, R(t, b), y(e, "formie:submit:result", b), Hn(t);
 		} finally {
-			u(null), !s && !x && !It(b) && h(t);
+			d(null), !o && !x && !It(b) && h(t);
 		}
 	};
-	t.addEventListener("submit", d), a.push(() => {
-		t.removeEventListener("submit", d);
-	});
+	return t.addEventListener("submit", f), a.push(() => {
+		t.removeEventListener("submit", f);
+	}), o;
 }
 async function rr(e, t, n) {
 	if (t.refreshTokens === !1 || !t.staticCache) return;
@@ -2383,7 +2386,7 @@ function ir() {
 			},
 			on: (e, t) => d.on(e, t)
 		};
-		b && (ke({
+		if (b && (ke({
 			target: a,
 			form: b,
 			validatorDetail: E ? {
@@ -2399,9 +2402,13 @@ function ir() {
 			instance: O,
 			options: _,
 			unbinds: f
-		})), b && (nr(a, b, g, d, E, f), E && (f.push(x(b, E, a)), f.push(gn(b))), await rr(a, g, b), b.dispatchEvent(new CustomEvent("formie:state:reset")), window.setTimeout(() => {
-			b.dispatchEvent(new CustomEvent("formie:state:reset"));
-		}, 350)), o.forEach((e) => {
+		})), b) {
+			let e = nr(a, b, g, d, E, f);
+			E && (f.push(x(b, E, a)), f.push(gn(b))), await rr(a, g, b), e();
+			let t = window.setTimeout(e, 350);
+			f.push(() => window.clearTimeout(t));
+		}
+		o.forEach((e) => {
 			let t = d.on(`formie:stage:${e}:before`, async (t) => {
 				y(a, `formie:stage:${e}:before`, t);
 			}), n = d.on(`formie:stage:${e}:before`, async (t) => {

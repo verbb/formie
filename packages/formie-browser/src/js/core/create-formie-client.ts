@@ -560,7 +560,8 @@ function bindFormEvents(
     bus: EventBus,
     validator: FormieValidator | null,
     unbinds: Array<() => void>,
-): void {
+): () => void {
+    let captureBaseline = () => {};
     form.dataset.formieRequestProfile = options.profile ?? 'same-origin-browser';
     if (options.profile === 'cross-origin-public') form.dataset.formieSubmitMethod = 'ajax';
     const submitMethod = String(
@@ -586,6 +587,7 @@ function bindFormEvents(
                 return !hasInternalNavigation(form);
             },
         });
+        captureBaseline = unloadWarning.scheduleBaselineCapture;
         const handleSubmitResult = (event: Event): void => {
             if (!(event instanceof CustomEvent)) {
                 return;
@@ -597,7 +599,7 @@ function bindFormEvents(
                 return;
             }
 
-            if (result.action === 'save') {
+            if (result.action === 'save' || result.outcome === 'revised') {
                 unloadWarning.scheduleBaselineCapture();
             }
         };
@@ -855,6 +857,8 @@ function bindFormEvents(
     unbinds.push(() => {
         form.removeEventListener('submit', submitHandler);
     });
+
+    return captureBaseline;
 }
 
 async function refreshTokensIfNeeded(target: Element, options: FormMountOptions, form: HTMLFormElement | null): Promise<void> {
@@ -1216,7 +1220,7 @@ export function createFormieClient(): FormieClient {
         }
 
         if (form) {
-            bindFormEvents(target, form, normalizedOptions, bus, validator, unbinds);
+            const captureBaseline = bindFormEvents(target, form, normalizedOptions, bus, validator, unbinds);
 
             if (validator) {
                 unbinds.push(bindSubmitReadiness(form, validator, target));
@@ -1227,10 +1231,9 @@ export function createFormieClient(): FormieClient {
 
             // Recapture after captcha/token hydration and field-module init settle so
             // programmatic post-mount value changes do not leave a false dirty state.
-            form.dispatchEvent(new CustomEvent('formie:state:reset'));
-            window.setTimeout(() => {
-                form.dispatchEvent(new CustomEvent('formie:state:reset'));
-            }, 350);
+            captureBaseline();
+            const baselineTimer = window.setTimeout(captureBaseline, 350);
+            unbinds.push(() => window.clearTimeout(baselineTimer));
         }
 
         stageNames.forEach((stageName) => {
