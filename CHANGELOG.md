@@ -7,6 +7,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed unchecked checkbox groups being treated as nonempty by browser conditions.
 - Fixed empty searchable multi-select fields being treated as filled by conditions.
 - Fixed date pickers retaining a submitted date after their visible input reset.
 - Fixed signatures carrying over into a new submission after a form reset.

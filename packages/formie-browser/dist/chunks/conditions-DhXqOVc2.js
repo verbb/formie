@@ -292,7 +292,7 @@ function Z(e, n, r, i) {
 		if (Object.keys(t).length) return t;
 	}
 	let a = X(e, n);
-	return r === "collection" ? a : a[0] ?? null;
+	return r === "collection" ? a.filter((e) => e !== "") : a[0] ?? null;
 }
 //#endregion
 //#region src/js/modules/fields/conditions/evaluator.ts

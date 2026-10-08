@@ -23,6 +23,7 @@
 - Carry expected submission versions and signed request tokens through submit and page-state requests.
 
 ### Fixed
+- Fixed unchecked checkbox groups being treated as nonempty by browser conditions.
 - Fixed empty searchable multi-select fields being treated as filled by conditions.
 - Fixed date pickers retaining a submitted date after their visible input reset.
 - Fixed signatures carrying over into a new submission after a form reset.

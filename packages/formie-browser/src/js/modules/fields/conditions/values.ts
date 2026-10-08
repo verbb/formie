@@ -134,5 +134,7 @@ export function readConditionProjection(inputs: ConditionInput[], source: Condit
         if (Object.keys(parts).length) return parts;
     }
     const values = readConditionValues(inputs, source);
-    return type === 'collection' ? values : values[0] ?? null;
+    // Empty hidden companions let unchecked groups post a value, but are not
+    // selected answers in the server's normalized collection.
+    return type === 'collection' ? values.filter((value) => value !== '') : values[0] ?? null;
 }
