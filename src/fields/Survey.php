@@ -921,7 +921,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
 
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        if ($tag = $this->_presentationFieldSlotTag($key, $context)) {
+        if ($tag = $this->_presentationFieldSlotTag($key, $context) ?? $this->definePresentationFieldSlotTag($key, $context)) {
             return $tag;
         }
 

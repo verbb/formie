@@ -7,6 +7,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed radio and checkbox Quiz and Survey fields preventing browser features from starting.
 - Fixed empty Phone fields displaying their structured value instead of a blank number.
 - Fixed multipart Name fields inside Groups or Repeaters losing values when disabled name parts were cleared during submission.
 - Fixed page-tab navigation failing when returning to a saved server-rendered submission.

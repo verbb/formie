@@ -5,6 +5,8 @@ use verbb\formie\base\Field as FormieField;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\fields\MultiLineText;
 use verbb\formie\fields\SingleLineText;
+use verbb\formie\models\SlotTag;
+use verbb\formie\theme\context\RenderContext;
 
 use craft\helpers\Localization;
 
@@ -141,6 +143,18 @@ trait DisplayTypeFieldTrait
                 $config[$name] = Localization::normalizeNumber($config[$name]['value'], $config[$name]['locale']);
             }
         }
+    }
+
+    protected function definePresentationFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        // Choice modules and labels need the presentation field's outer layout too.
+        if (!in_array($key, ['fieldLayout', 'fieldLabel'], true)) {
+            return null;
+        }
+
+        $field = $this->getDisplayTypeField();
+
+        return $field instanceof FormieField ? $field->defineSlotTag($key, $context) : null;
     }
 
     protected function definePresentationFieldBrowserModules(): array

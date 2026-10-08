@@ -13,6 +13,8 @@ use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\RichText;
+use verbb\formie\models\SlotTag;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -368,6 +370,11 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        return $this->definePresentationFieldSlotTag($key, $context) ?? parent::defineSlotTag($key, $context);
+    }
 
     protected function defineBrowserModules(): array
     {
