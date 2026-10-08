@@ -942,6 +942,10 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
 
     protected function defineValueForCondition(mixed $value, Submission $submission): mixed
     {
+        if ($value instanceof LikertMultipleRowsFieldValue) {
+            return $value->values();
+        }
+
         return !$this->usesOptions() ? $this->getDisplayTypeField()->getValueForCondition($value, $submission) : parent::defineValueForCondition($value, $submission);
     }
 
