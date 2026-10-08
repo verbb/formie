@@ -57,10 +57,6 @@
     "src/web/assets/frontend"
   ],
   "scripts": {
-    "release": "node ./scripts/release.mjs",
-    "release:patch": "node ./scripts/release.mjs patch",
-    "release:minor": "node ./scripts/release.mjs minor",
-    "release:major": "node ./scripts/release.mjs major",
     "release:prepare": "node ./scripts/prepare-release.mjs",
     "release:prepare:patch": "node ./scripts/prepare-release.mjs patch",
     "release:prepare:minor": "node ./scripts/prepare-release.mjs minor",

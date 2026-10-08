@@ -6,7 +6,7 @@
  * Run after publishing Formie npm packages and Plugin Kit npm packages.
  * Does not commit, bump composer.json, or edit the plugin CHANGELOG.
  *
- * Usage (from formie-plugin-repo/):
+ * Usage (from the Formie repository root):
  *   npm run rebuild:assets
  *   npm run rebuild:assets -- --formie-version 1.0.5 --plugin-kit-version 1.0.5
  *   npm run rebuild:assets -- --dry-run
