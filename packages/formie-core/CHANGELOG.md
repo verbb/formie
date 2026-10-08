@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.14 - 2026-10-08
+
 ### Added
 - Add the shared, versioned reference grammar and typed browser source diagnostics.
 

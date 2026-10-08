@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.14 - 2026-10-08
+
 ### Added
 - Add a `formie:field:clear` event for custom controls to clear their values when conditions hide a field or page.
 - Add one generated browser-theme state manifest and canonical state classes for browser-created controls.

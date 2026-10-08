@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.14 - 2026-10-08
+
 ### Changed
 - Report browser-module instances and failures through the shared hydration contract.
 - Resolve field browser modules through exact manifest entry references rather than inferred capabilities.
