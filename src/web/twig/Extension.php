@@ -36,7 +36,7 @@ class Extension extends AbstractExtension
     public static function formatSlotTagHtml(string $key, SlotTag $htmlTag, array $twigContext, array $options = []): string
     {
         $attributes = $htmlTag->attributesForRender($options);
-        $attributes = self::applyContextTagDefaults($key, $htmlTag->tag, $attributes, $twigContext);
+        $attributes = self::applyContextTagDefaults($key, $htmlTag->tag, $attributes, $twigContext, $options);
 
         $text = ArrayHelper::remove($attributes, 'text');
         $content = $htmlTag->composeContent($text);
@@ -68,19 +68,20 @@ class Extension extends AbstractExtension
         return Html::mergeAttributes($attributes, $options, $mergeOptions);
     }
 
-    public static function applyContextTagDefaults(string $key, string $tagName, array $attributes, array $context): array
+    public static function applyContextTagDefaults(string $key, string $tagName, array $attributes, array $context, array $options = []): array
     {
         if (!in_array($key, ['fieldInput', 'fieldOtherOptionText'], true)) {
             return $attributes;
         }
 
+        // Explicit empty template values must not fall back to the full field value.
         $value = $context['value'] ?? null;
 
-        if ($tagName === 'textarea' && !array_key_exists('text', $attributes) && $value !== null) {
+        if ($tagName === 'textarea' && !array_key_exists('text', $attributes) && !array_key_exists('text', $options) && $value !== null) {
             $attributes['text'] = $value;
         }
 
-        if ($tagName === 'input' && !array_key_exists('value', $attributes) && $value !== null) {
+        if ($tagName === 'input' && !array_key_exists('value', $attributes) && !array_key_exists('value', $options) && $value !== null) {
             $attributes['value'] = $value;
         }
 
@@ -207,7 +208,7 @@ class Extension extends AbstractExtension
 
             if ($htmlTag) {
                 $attributes = $htmlTag->attributesForRender($options);
-                $attributes = self::applyContextTagDefaults($key, $htmlTag->tag, $attributes, $context);
+                $attributes = self::applyContextTagDefaults($key, $htmlTag->tag, $attributes, $context, $options);
 
                 // Grab a `text` attribute to use
                 $text = ArrayHelper::remove($attributes, 'text');

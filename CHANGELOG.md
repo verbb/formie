@@ -7,6 +7,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed empty Phone fields displaying their structured value instead of a blank number.
 - Fixed multipart Name fields inside Groups or Repeaters losing values when disabled name parts were cleared during submission.
 - Fixed page-tab navigation failing when returning to a saved server-rendered submission.
 - Fixed “Disable Submit Button Until Valid” being ignored on server-rendered forms and repeatedly updating disabled buttons.
