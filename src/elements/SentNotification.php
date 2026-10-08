@@ -300,7 +300,7 @@ class SentNotification extends Element
     public function getSubmission(): ?Submission
     {
         if (!$this->_submission && $this->submissionId) {
-            $this->_submission = Submission::find()->id($this->submissionId)->one();
+            $this->_submission = Formie::$plugin->getSubmissions()->getSubmissionById((int)$this->submissionId);
         }
 
         return $this->_submission;

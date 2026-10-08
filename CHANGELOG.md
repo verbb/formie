@@ -7,6 +7,8 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed resending notifications failing after sending when the original submission was incomplete, spam, or deleted, or the notification had been deleted.
+- Fixed sent notification history showing incomplete and spam submissions as deleted.
 - Fixed successful front-end submission edits showing an unsaved-changes warning when leaving the page.
 - Fixed front-end edits failing to find completed submissions identified by their UID.
 - Fixed saved uploads being cleared when opening a submission for editing or resuming.

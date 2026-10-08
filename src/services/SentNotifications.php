@@ -29,82 +29,23 @@ class SentNotifications extends Component
 
     public function saveSentNotification(Submission $submission, Notification $notification, mixed $email, mixed $success = true, mixed $error = null): void
     {
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
-
-        if (!$settings->sentNotifications) {
-            return;
-        }
-
-        $fromEmail = '';
-        $fromName = '';
-        $replyToEmail = '';
-        $replyToName = '';
-        $toEmail = '';
-
-        if ($from = $email->getFrom()) {
-            $fromEmail = ($result = array_keys($from)) ? $result[0] : '';
-            $fromName = ($result = array_values($from)) ? $result[0] : '';
-        }
-
-        if ($to = $email->getTo()) {
-            $toEmail = implode(',', array_keys($to));
-        }
-
-        if ($replyTo = $email->getReplyTo()) {
-            $replyToEmail = ($result = array_keys($replyTo)) ? $result[0] : '';
-            $replyToName = ($result = array_values($replyTo)) ? $result[0] : '';
-        }
-
-        // Make sure to truncate values
-        $subject = StringHelper::safeTruncate((string)$email->getSubject(), 255);
-        $replyToName = StringHelper::safeTruncate((string)$replyToName, 255);
-        $fromName = StringHelper::safeTruncate((string)$fromName, 255);
-
         $sentNotification = new SentNotification();
         $sentNotification->title = $notification->name;
         $sentNotification->formId = $submission->formId;
         $sentNotification->submissionId = $submission->id;
         $sentNotification->notificationId = $notification->id;
-        $sentNotification->subject = $subject;
-        $sentNotification->to = $toEmail;
-        $sentNotification->replyTo = $replyToEmail;
-        $sentNotification->replyToName = $replyToName;
-        $sentNotification->from = $fromEmail;
-        $sentNotification->fromName = $fromName;
+        $this->_saveSentNotification($sentNotification, $email, $success, $error);
+    }
 
-        // Store state and any errors
-        $sentNotification->success = (bool)$success;
-        $sentNotification->message = $error;
-
-        if ($cc = $email->getCc()) {
-            $sentNotification->cc = implode(',', array_keys($cc));
-        }
-
-        if ($bcc = $email->getBcc()) {
-            $sentNotification->bcc = implode(',', array_keys($bcc));
-        }
-
-        if ($sender = $email->getSender()) {
-            if (is_array($sender)) {
-                $sentNotification->sender = implode(',', array_keys($sender));
-            } else {
-                $sentNotification->sender = $sender;
-            }
-        }
-
-        $sentNotification->htmlBody = $email->getSymfonyEmail()->getHtmlBody();
-        $sentNotification->body = $email->getSymfonyEmail()->getTextBody();
-
-        $sentNotification->info = $this->getDeliveryInfo($email);
-
-        if (!Craft::$app->getElements()->saveElement($sentNotification)) {
-            $error = Craft::t('formie', 'Unable to save sent notification - {errors}.', [
-                'errors' => Json::encode($sentNotification->getErrors()),
-            ]);
-
-            Formie::error($error);
-        }
+    public function saveResentNotification(SentNotification $source, mixed $email): void
+    {
+        // Resends use the saved message even when its original records are gone.
+        $sentNotification = new SentNotification();
+        $sentNotification->title = $source->title;
+        $sentNotification->formId = $source->formId;
+        $sentNotification->submissionId = $source->submissionId;
+        $sentNotification->notificationId = $source->notificationId;
+        $this->_saveSentNotification($sentNotification, $email);
     }
 
     public function getDeliveryInfo($email): array
@@ -182,6 +123,85 @@ class SentNotifications extends Component
                     $consoleInstance->stdout("Failed to prune sent notification with ID: #{$sentNotification->id}." . PHP_EOL, Console::FG_RED);
                 }
             }
+        }
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _saveSentNotification(SentNotification $sentNotification, mixed $email, mixed $success = true, mixed $error = null): void
+    {
+        /* @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+
+        if (!$settings->sentNotifications) {
+            return;
+        }
+
+        $fromEmail = '';
+        $fromName = '';
+        $replyToEmail = '';
+        $replyToName = '';
+        $toEmail = '';
+
+        if ($from = $email->getFrom()) {
+            $fromEmail = ($result = array_keys($from)) ? $result[0] : '';
+            $fromName = ($result = array_values($from)) ? $result[0] : '';
+        }
+
+        if ($to = $email->getTo()) {
+            $toEmail = implode(',', array_keys($to));
+        }
+
+        if ($replyTo = $email->getReplyTo()) {
+            $replyToEmail = ($result = array_keys($replyTo)) ? $result[0] : '';
+            $replyToName = ($result = array_values($replyTo)) ? $result[0] : '';
+        }
+
+        // Make sure to truncate values
+        $subject = StringHelper::safeTruncate((string)$email->getSubject(), 255);
+        $replyToName = StringHelper::safeTruncate((string)$replyToName, 255);
+        $fromName = StringHelper::safeTruncate((string)$fromName, 255);
+
+        $sentNotification->subject = $subject;
+        $sentNotification->to = $toEmail;
+        $sentNotification->replyTo = $replyToEmail;
+        $sentNotification->replyToName = $replyToName;
+        $sentNotification->from = $fromEmail;
+        $sentNotification->fromName = $fromName;
+
+        // Store state and any errors
+        $sentNotification->success = (bool)$success;
+        $sentNotification->message = $error;
+
+        if ($cc = $email->getCc()) {
+            $sentNotification->cc = implode(',', array_keys($cc));
+        }
+
+        if ($bcc = $email->getBcc()) {
+            $sentNotification->bcc = implode(',', array_keys($bcc));
+        }
+
+        if ($sender = $email->getSender()) {
+            if (is_array($sender)) {
+                $sentNotification->sender = implode(',', array_keys($sender));
+            } else {
+                $sentNotification->sender = $sender;
+            }
+        }
+
+        $sentNotification->htmlBody = $email->getSymfonyEmail()->getHtmlBody();
+        $sentNotification->body = $email->getSymfonyEmail()->getTextBody();
+
+        $sentNotification->info = $this->getDeliveryInfo($email);
+
+        if (!Craft::$app->getElements()->saveElement($sentNotification)) {
+            $error = Craft::t('formie', 'Unable to save sent notification - {errors}.', [
+                'errors' => Json::encode($sentNotification->getErrors()),
+            ]);
+
+            Formie::error($error);
         }
     }
 }
