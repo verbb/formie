@@ -78,6 +78,8 @@ function removeEmptyOptionFromCombobox(instance: TomSelectInstance): void {
 export function initFormieCombobox(select: SelectElement, options: FormieComboboxOptions = {}): () => void {
     select._formieTomSelect?.destroy();
 
+    const initialValues = Array.from(select.selectedOptions, (option) => option.value).filter(Boolean);
+    const form = select.form;
     const multiple = options.multiple === true;
     const restoredClasses = stripNativeThemeClasses(select);
     const placeholder = resolvePlaceholder(select, options.placeholder);
@@ -127,6 +129,17 @@ export function initFormieCombobox(select: SelectElement, options: FormieCombobo
 
     select._formieTomSelect = instance;
 
+    const onReset = (event: Event) => {
+        // Tom Select replaces native options, so retain the original selection
+        // and restore its display after the browser resets the backing select.
+        queueMicrotask(() => {
+            if (!event.defaultPrevented) {
+                instance.setValue(initialValues);
+            }
+        });
+    };
+    form?.addEventListener('reset', onReset);
+
     debug.log('Initialized.', {
         inputName: select.name,
         multiple,
@@ -138,6 +151,7 @@ export function initFormieCombobox(select: SelectElement, options: FormieCombobo
     });
 
     return () => {
+        form?.removeEventListener('reset', onReset);
         instance.destroy();
         select.style.removeProperty('display');
         restoreNativeThemeClasses(select, restoredClasses);

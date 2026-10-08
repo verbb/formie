@@ -1902,14 +1902,14 @@ function Ut(e) {
 }
 function Wt(e, t = {}) {
 	e._formieTomSelect?.destroy();
-	let n = t.multiple === !0, r = zt(e), a = Ht(e, t.placeholder), o = {
+	let n = Array.from(e.selectedOptions, (e) => e.value).filter(Boolean), r = e.form, a = t.multiple === !0, o = zt(e), s = Ht(e, t.placeholder), c = {
 		create: !1,
-		maxItems: n ? null : 1,
-		plugins: n ? ["remove_button"] : [],
-		hideSelected: n ? !0 : null,
-		clearAfterSelect: n,
-		closeAfterSelect: !n,
-		allowEmptyOption: !n,
+		maxItems: a ? null : 1,
+		plugins: a ? ["remove_button"] : [],
+		hideSelected: a ? !0 : null,
+		clearAfterSelect: a,
+		closeAfterSelect: !a,
+		allowEmptyOption: !a,
 		openOnFocus: !0,
 		diacritics: !0,
 		copyClassesToDropdown: !1,
@@ -1918,19 +1918,25 @@ function Wt(e, t = {}) {
 			e.dispatchEvent(new Event("input", { bubbles: !0 })), e.dispatchEvent(new Event("change", { bubbles: !0 }));
 		}
 	};
-	a && (o.placeholder = a), i(e, Q, "before-init", {
+	s && (c.placeholder = s), i(e, Q, "before-init", {
 		select: e,
-		options: o
+		options: c
 	});
-	let s = new Ft(e, o);
-	return Ut(s), Vt(s.wrapper, e), s.dropdown && Vt(s.dropdown, e), e.style.display = "none", e._formieTomSelect = s, $.log("Initialized.", {
+	let l = new Ft(e, c);
+	Ut(l), Vt(l.wrapper, e), l.dropdown && Vt(l.dropdown, e), e.style.display = "none", e._formieTomSelect = l;
+	let u = (e) => {
+		queueMicrotask(() => {
+			e.defaultPrevented || l.setValue(n);
+		});
+	};
+	return r?.addEventListener("reset", u), $.log("Initialized.", {
 		inputName: e.name,
-		multiple: n
+		multiple: a
 	}), i(e, Q, "after-init", {
-		combobox: s,
-		options: o
+		combobox: l,
+		options: c
 	}), () => {
-		s.destroy(), e.style.removeProperty("display"), Bt(e, r), delete e._formieTomSelect, $.log("Destroyed.", { inputName: e.name });
+		r?.removeEventListener("reset", u), l.destroy(), e.style.removeProperty("display"), Bt(e, o), delete e._formieTomSelect, $.log("Destroyed.", { inputName: e.name });
 	};
 }
 var Gt = {

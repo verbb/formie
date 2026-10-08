@@ -7,6 +7,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed searchable Dropdown fields showing a stale selection after a form reset.
 - Fixed checkbox, radio, rich-text, rating, and rank fields retaining stale values or display state after a form reset.
 - Fixed ranked Survey fields rejecting valid answers.
 - Fixed radio and checkbox Quiz and Survey fields preventing browser features from starting.
