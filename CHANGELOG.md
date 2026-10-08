@@ -7,6 +7,8 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed duplicating forms with Date fields across multiple sites.
+- Fixed adding Table rows overwriting existing default or saved rows.
 - Fixed conditional Date/Time fields failing to initialize when shown again.
 - Fixed conditionally hidden date and signature fields retaining their previous values.
 - Fixed browser module errors repeatedly updating the page and making forms unresponsive.

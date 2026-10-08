@@ -38,6 +38,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\models\BrowserModule;
+use verbb\formie\models\FieldLayoutRow;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
@@ -1186,7 +1187,22 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             $this->maxDate = Db::prepareDateForDb($this->maxDate);
         }
 
-        return parent::beforeSave($isNew);
+        if (!parent::beforeSave($isNew)) {
+            return false;
+        }
+
+        // Propagation can save this field again before reloading it. Keep the active
+        // variant aligned with the child identities assigned by the nested layout save.
+        if ($layoutKey = $this->_getActiveLayoutKey()) {
+            $this->layouts[$layoutKey] = array_map(function(FieldLayoutRow $row) {
+                $config = $row->getFormBuilderConfig();
+                unset($config['errors']);
+
+                return $config;
+            }, $this->getRows());
+        }
+
+        return true;
     }
 
     public function defineFormBuilderGeneralSchema(): array

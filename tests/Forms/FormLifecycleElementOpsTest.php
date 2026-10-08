@@ -70,3 +70,18 @@ it('duplicates nested layouts without changing the source field identities or la
     $reloadedCopy = Form::find()->id($duplicate->id)->one();
     expect($reloadedCopy->getFieldByHandle('contact')->getFieldByHandle('name')->label)->toBe('Edited copy');
 });
+
+it('duplicates date layout variants and saves the copied child identities consistently', function (): void {
+    $source = formie()->form(['handle' => duplicateFriendlySourceHandle()])
+        ->dateField('appointment', ['displayType' => 'datePicker'])
+        ->create();
+    $sourceField = $source->getFieldByHandle('appointment');
+    $copy = Craft::$app->getElements()->duplicateElement($source, $source->getDuplicateAttributes());
+    $copiedField = $copy->getFieldByHandle('appointment');
+    $childReferences = array_map(fn($field) => $field->reference, $copiedField->getFields());
+
+    expect(Craft::$app->getElements()->saveElement($copy))->toBeTrue();
+    $reloaded = Form::find()->id($copy->id)->one()->getFieldByHandle('appointment');
+    expect(array_map(fn($field) => $field->reference, $reloaded->getFields()))->toBe($childReferences)
+        ->and($reloaded->nestedLayoutId)->not->toBe($sourceField->nestedLayoutId);
+});
