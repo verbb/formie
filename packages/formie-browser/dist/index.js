@@ -1099,7 +1099,7 @@ var Rt = class {
 	"address-state": () => import("./chunks/address-state-Crury0xG.js").then((e) => e.addressStateModule),
 	repeater: () => import("./chunks/repeater-BWRKp9I7.js").then((e) => e.repeaterModule),
 	"rich-text": () => import("./chunks/rich-text-C5Io0b0M.js").then((e) => e.richTextModule),
-	signature: () => import("./chunks/signature-BH8wwtRd.js").then((e) => e.signatureModule),
+	signature: () => import("./chunks/signature-BGgdaHm4.js").then((e) => e.signatureModule),
 	summary: () => import("./chunks/summary-Btgf9fVc.js").then((e) => e.summaryModule),
 	"survey-likert": () => import("./chunks/survey-likert-fk1hUPff.js").then((e) => e.surveyLikertModule),
 	"survey-rank": () => import("./chunks/survey-rank-spsVlobU.js").then((e) => e.surveyRankModule),

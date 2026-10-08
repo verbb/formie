@@ -480,74 +480,78 @@ async function E(e, t, n) {
 	}
 }
 function D(e, t, r, i, a, o) {
-	let c = b(t);
-	if (!v()) return x(t, i, c.noCanvas), () => {};
-	let l = parseFloat(o.penWeight || "2") || 2, u = i.parentElement instanceof HTMLElement ? i.parentElement : t, d = 0, f = null, y = !1, C = !1, w = new s(i, {
+	let c = r.value, l = r.form, u = b(t);
+	if (!v()) return x(t, i, u.noCanvas), () => {};
+	let d = parseFloat(o.penWeight || "2") || 2, f = i.parentElement instanceof HTMLElement ? i.parentElement : t, y = 0, C = null, w = !1, D = !1, O = new s(i, {
 		backgroundColor: o.backgroundColor || "rgba(255, 255, 255, 0)",
 		penColor: o.penColor || "#000000",
-		dotSize: l,
-		minWidth: l,
-		maxWidth: l
-	}), D = () => {
-		f !== null && (window.clearTimeout(f), f = null);
-	}, O = () => {
-		y || (y = !0, C = !1, x(t, i, null), n(t, p, "init", { signature: w }));
-	}, k = () => {
-		y || C || (C = !0, x(t, i, c.initFailed));
-	}, A = async () => {
-		let e = r.value || (w.isEmpty() ? "" : w.toDataURL());
+		dotSize: d,
+		minWidth: d,
+		maxWidth: d
+	}), k = () => {
+		C !== null && (window.clearTimeout(C), C = null);
+	}, A = () => {
+		w || (w = !0, D = !1, x(t, i, null), n(t, p, "init", { signature: O }));
+	}, j = () => {
+		w || D || (D = !0, x(t, i, u.initFailed));
+	}, M = async () => {
+		let e = r.value || (O.isEmpty() ? "" : O.toDataURL());
 		e && await T(i, e);
 		let { width: t, height: n } = _(i);
 		if (!(t > 0) || !(n > 0)) return !1;
 		let a = Math.max(window.devicePixelRatio || 1, 1), o = i.getContext("2d");
-		return o ? (i.width = t * a, i.height = n * a, o.setTransform(1, 0, 0, 1, 0, 0), o.scale(a, a), w.clear(), await E(w, i, e), O(), !0) : !1;
-	}, j = () => {
-		if (!(y || C)) {
-			if (d >= m) {
-				k();
+		return o ? (i.width = t * a, i.height = n * a, o.setTransform(1, 0, 0, 1, 0, 0), o.scale(a, a), O.clear(), await E(O, i, e), A(), !0) : !1;
+	}, N = () => {
+		if (!(w || D)) {
+			if (y >= m) {
+				j();
 				return;
 			}
-			D(), f = window.setTimeout(() => {
-				f = null, d += 1, M();
+			k(), C = window.setTimeout(() => {
+				C = null, y += 1, P();
 			}, h);
 		}
-	}, M = async () => {
-		if (!await A()) {
-			j();
+	}, P = async () => {
+		if (!await M()) {
+			N();
 			return;
 		}
-		D(), d = 0;
-	}, N = (e = 0) => {
+		k(), y = 0;
+	}, F = (e = 0) => {
 		window.setTimeout(() => {
 			window.requestAnimationFrame(() => {
-				M();
+				P();
 			});
 		}, e);
-	}, P = () => {
-		S(t) && !y && (C = !1), N();
-	}, F = () => {
-		P();
 	}, I = () => {
-		S(t) && (d = 0, C = !1, N(100));
+		S(t) && !w && (D = !1), F();
 	}, L = () => {
-		S(t) && (d = 0, C = !1, P());
-	}, R = typeof ResizeObserver > "u" ? null : new ResizeObserver(() => {
-		P();
-	}), z = new MutationObserver(() => {
-		L();
-	}), B = (e) => {
+		I();
+	}, R = () => {
+		S(t) && (y = 0, D = !1, F(100));
+	}, z = () => {
+		S(t) && (y = 0, D = !1, I());
+	}, B = typeof ResizeObserver > "u" ? null : new ResizeObserver(() => {
+		I();
+	}), V = new MutationObserver(() => {
+		z();
+	}), H = (e) => {
 		let t = r.value !== e;
 		r.value = e, t && (r.dispatchEvent(new Event("input", { bubbles: !0 })), r.dispatchEvent(new Event("change", { bubbles: !0 })));
-	}, V = () => {
-		B(w.isEmpty() ? "" : w.toDataURL());
-	}, H = () => {
-		w.clear(), B("");
+	}, U = () => {
+		H(O.isEmpty() ? "" : O.toDataURL());
+	}, W = () => {
+		O.clear(), H("");
+	}, G = (e) => {
+		queueMicrotask(() => {
+			e.defaultPrevented || (O.clear(), H(c), E(O, i, c));
+		});
 	};
-	return w.addEventListener("endStroke", V), window.addEventListener("resize", F), e.addEventListener("formie:page:navigate:after", I), R?.observe(u), z.observe(t, {
+	return l?.addEventListener("reset", G), O.addEventListener("endStroke", U), window.addEventListener("resize", L), e.addEventListener("formie:page:navigate:after", R), B?.observe(f), V.observe(t, {
 		attributes: !0,
 		attributeFilter: [...g]
-	}), N(), a && a.addEventListener("click", H), () => {
-		D(), w.removeEventListener("endStroke", V), window.removeEventListener("resize", F), e.removeEventListener("formie:page:navigate:after", I), R?.disconnect(), z.disconnect(), a && a.removeEventListener("click", H), w.clear();
+	}), F(), a && a.addEventListener("click", W), () => {
+		k(), l?.removeEventListener("reset", G), O.removeEventListener("endStroke", U), window.removeEventListener("resize", L), e.removeEventListener("formie:page:navigate:after", R), B?.disconnect(), V.disconnect(), a && a.removeEventListener("click", W), O.clear();
 	};
 }
 var O = {

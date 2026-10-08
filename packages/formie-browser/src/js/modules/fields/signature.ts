@@ -165,6 +165,8 @@ function initSignatureField(
     clearButton: HTMLElement | null,
     options: SignatureOptions,
 ): () => void {
+    const initialValue = input.value;
+    const form = input.form;
     const messages = getSignatureMessages(field);
 
     if (!supportsCanvas()) {
@@ -349,6 +351,19 @@ function initSignatureField(
         syncInputValue('');
     };
 
+    const onReset = (event: Event) => {
+        // Hidden inputs do not restore an earlier value through native reset.
+        // Reset both the submitted signature and the pad to their initial state.
+        queueMicrotask(() => {
+            if (!event.defaultPrevented) {
+                signaturePad.clear();
+                syncInputValue(initialValue);
+                void restoreSignatureValue(signaturePad, canvas, initialValue);
+            }
+        });
+    };
+    form?.addEventListener('reset', onReset);
+
     signaturePad.addEventListener('endStroke', syncValue);
     window.addEventListener('resize', resizeHandler);
     root.addEventListener('formie:page:navigate:after', pageNavigateHandler as EventListener);
@@ -365,6 +380,7 @@ function initSignatureField(
 
     return () => {
         clearSizeRetry();
+        form?.removeEventListener('reset', onReset);
         signaturePad.removeEventListener('endStroke', syncValue);
         window.removeEventListener('resize', resizeHandler);
         root.removeEventListener('formie:page:navigate:after', pageNavigateHandler as EventListener);
