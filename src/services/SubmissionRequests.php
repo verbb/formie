@@ -469,7 +469,11 @@ class SubmissionRequests extends Component
 
     private function _resolveClientMutationTarget(Form $form, array $session, string $action): array
     {
-        $this->applyFormRequestContext($form, $session['tokens']['render'] ?? null, $session['continuation']['draftContext'] ?? null, $session['tokens']['request'] ?? null);
+        $continuation = $session['continuation'] ?? [];
+        $draftContext = !empty($continuation['draftContextToken'])
+            ? $form->resolveDraftContextToken($continuation['draftContextToken'])
+            : ($continuation['draftContext'] ?? null);
+        $this->applyFormRequestContext($form, $session['tokens']['render'] ?? null, $draftContext, $session['tokens']['request'] ?? null);
         $progress = $this->resolveProgressState($form);
         $revise = $action === 'revise' || ($session['continuation']['purpose'] ?? null) === SubmissionGrants::REVISE;
 
@@ -481,7 +485,6 @@ class SubmissionRequests extends Component
             ];
         }
 
-        $continuation = $session['continuation'] ?? [];
         $grant = !empty($continuation['grantToken'])
             ? Formie::$plugin->getSubmissionGrants()->exchange($continuation['grantToken'], SubmissionGrants::REVISE, $form)
             : Formie::$plugin->getSubmissionGrants()->bound($form, SubmissionGrants::REVISE, (int)($continuation['submissionId'] ?? 0));

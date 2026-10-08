@@ -7,9 +7,44 @@ use Tests\Support\UploadTestHelper;
 use verbb\formie\Formie;
 use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\client\models\SessionRefreshRequest;
+use verbb\formie\client\models\SubmitRequest;
 use verbb\formie\helpers\UploadAccess;
 
 use yii\web\BadRequestHttpException;
+
+it('resolves signed draft context when navigating a saved server-rendered form', function(): void {
+    $form = formie()->form()->multiPage(2)
+        ->onPage(1)->singleLineTextField('firstName')
+        ->onPage(2)->singleLineTextField('lastName')->create();
+    $pages = $form->getPages();
+
+    withSubmissionGuardsPostContext(function () use ($form, $pages): void {
+        $form->setDraftContext('custom:signed-page-navigation');
+        $initial = Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive();
+        $saved = runClientSubmission(new SubmitRequest([
+            'handle' => $form->handle,
+            'action' => 'save',
+            'session' => $initial,
+            'values' => ['firstName' => 'Retained'],
+        ]));
+        expect($saved->success)->toBeTrue();
+        $session = $saved->session->toArrayRecursive();
+        // Server-rendered forms carry the signed token, not the raw context.
+        unset($session['continuation']['draftContext']);
+        Formie::$plugin->getForms()->invalidateFormCaches();
+        $result = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
+            'handle' => $form->handle,
+            'targetPageId' => (string)$pages[1]->id,
+            'session' => $session,
+            'values' => ['lastName' => 'Updated'],
+        ]));
+
+        expect($result->success)->toBeTrue()
+            ->and($result->submissionUid)->toBe($saved->submissionUid)
+            ->and($result->currentPageId)->toBe((string)$pages[1]->id)
+            ->and($result->session->continuation['draftContext'])->toBe('custom:signed-page-navigation');
+    });
+});
 
 it('builds draft-aware frontend sessions', function(): void {
     $form = formie()
