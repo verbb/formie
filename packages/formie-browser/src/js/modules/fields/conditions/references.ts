@@ -33,7 +33,8 @@ function getRowScope(node: Element): Element | null {
 
 function getFieldInputs(fieldNode: Element): ConditionInput[] {
     return Array.from(fieldNode.querySelectorAll(CONDITION_INPUT_SELECTOR)).filter((element): element is ConditionInput => {
-        return isConditionInput(element);
+        // Enhanced controls add unnamed search/display inputs that are not field values.
+        return isConditionInput(element) && Boolean(element.name);
     });
 }
 

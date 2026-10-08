@@ -5281,14 +5281,20 @@ function H(e, t) {
 		options: l
 	});
 	let u = k(e, l);
-	return e._formieFlatpickr = u, F.log("Initialized.", {
+	e._formieFlatpickr = u;
+	let d = u.selectedDates.map((e) => new Date(e.getTime())), f = e.form, p = (e) => {
+		queueMicrotask(() => {
+			e.defaultPrevented || u.setDate(d, !0);
+		});
+	};
+	return f?.addEventListener("reset", p), F.log("Initialized.", {
 		inputName: e.name,
 		isRange: r
 	}), a(e, P, "after-init", {
 		datepicker: u,
 		options: l
 	}), () => {
-		u.destroy(), delete e._formieFlatpickr, F.log("Destroyed.", { inputName: e.name });
+		f?.removeEventListener("reset", p), u.destroy(), delete e._formieFlatpickr, F.log("Destroyed.", { inputName: e.name });
 	};
 }
 var U = {

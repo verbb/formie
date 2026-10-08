@@ -30,6 +30,8 @@ type DatePickerOptions = {
 
 type FlatpickrInstanceLike = {
     destroy: () => void;
+    selectedDates: Date[];
+    setDate: (dates: Date[], triggerChange?: boolean) => void;
 };
 
 type FlatpickrInput = HTMLInputElement & {
@@ -309,6 +311,18 @@ function initDatePicker(input: FlatpickrInput, options: DatePickerOptions): () =
 
     const instance = flatpickr(input, mergedOptions) as FlatpickrInstanceLike;
     input._formieFlatpickr = instance;
+    const initialDates = instance.selectedDates.map((date) => new Date(date.getTime()));
+    const form = input.form;
+    const onReset = (event: Event) => {
+        // Flatpickr uses hidden transport inputs, whose values survive native reset.
+        // Restore the picker and its range inputs together after the native controls.
+        queueMicrotask(() => {
+            if (!event.defaultPrevented) {
+                instance.setDate(initialDates, true);
+            }
+        });
+    };
+    form?.addEventListener('reset', onReset);
     debug.log('Initialized.', {
         inputName: input.name,
         isRange,
@@ -320,6 +334,7 @@ function initDatePicker(input: FlatpickrInput, options: DatePickerOptions): () =
     });
 
     return () => {
+        form?.removeEventListener('reset', onReset);
         instance.destroy();
         delete input._formieFlatpickr;
         debug.log('Destroyed.', {

@@ -23,6 +23,8 @@
 - Carry expected submission versions and signed request tokens through submit and page-state requests.
 
 ### Fixed
+- Fixed empty searchable multi-select fields being treated as filled by conditions.
+- Fixed date pickers retaining a submitted date after their visible input reset.
 - Fixed signatures carrying over into a new submission after a form reset.
 - Fixed searchable Dropdown fields showing a stale selection after a form reset.
 - Fixed checkbox, radio, rich-text, rating, and rank fields retaining stale values or display state after a form reset.

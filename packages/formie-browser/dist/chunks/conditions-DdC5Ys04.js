@@ -159,7 +159,7 @@ function L(e) {
 	return e.closest(P);
 }
 function te(e) {
-	return Array.from(e.querySelectorAll(N)).filter((e) => F(e));
+	return Array.from(e.querySelectorAll(N)).filter((e) => F(e) && !!e.name);
 }
 function ne(e) {
 	let t = e.getAttribute("name") || "";
