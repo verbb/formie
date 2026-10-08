@@ -42,6 +42,8 @@ function clearConditionNodeValues(node: Element): void {
             element.value = '';
         }
     });
+
+    node.dispatchEvent(new CustomEvent('formie:field:clear', { bubbles: true }));
 }
 
 function setVisibilityState(node: Element, hidden: boolean): boolean {

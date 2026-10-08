@@ -3,7 +3,7 @@ import * as flatpickrLocales from 'flatpickr/dist/l10n/index.js';
 import flatpickrCss from 'flatpickr/dist/flatpickr.css?inline';
 
 import type { BrowserModuleDefinition } from '#contracts/modules';
-import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
+import { bindConditionalClear, dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 import { createDebug } from '#utils/debug';
 
@@ -45,6 +45,7 @@ type FlatpickrChangeInstance = {
 
 function attributesPlugin() {
     return (instance: { input: HTMLInputElement; altInput?: HTMLInputElement | undefined; loadedPlugins: string[] }) => {
+        const originalAttributes = new Map<string, string>();
         return {
             onReady: () => {
                 if (!instance.altInput) {
@@ -62,6 +63,7 @@ function attributesPlugin() {
 
                     const value = instance.input.getAttribute(attribute);
                     if (value !== null) {
+                        originalAttributes.set(attribute, value);
                         instance.altInput?.setAttribute(attribute, value);
                     }
 
@@ -69,6 +71,15 @@ function attributesPlugin() {
                 });
 
                 instance.loadedPlugins.push('formie-attributes');
+            },
+            onDestroy: () => {
+                // Conditional fields and page navigation can mount this input again.
+                // Restore the markers and labels moved onto the temporary alt input.
+                originalAttributes.forEach((value, attribute) => {
+                    if (!instance.input.hasAttribute(attribute)) {
+                        instance.input.setAttribute(attribute, value);
+                    }
+                });
             },
         };
     };
@@ -323,6 +334,7 @@ function initDatePicker(input: FlatpickrInput, options: DatePickerOptions): () =
         });
     };
     form?.addEventListener('reset', onReset);
+    const unbindConditionalClear = bindConditionalClear(input, () => instance.setDate([], true));
     debug.log('Initialized.', {
         inputName: input.name,
         isRange,
@@ -334,6 +346,7 @@ function initDatePicker(input: FlatpickrInput, options: DatePickerOptions): () =
     });
 
     return () => {
+        unbindConditionalClear();
         form?.removeEventListener('reset', onReset);
         instance.destroy();
         delete input._formieFlatpickr;

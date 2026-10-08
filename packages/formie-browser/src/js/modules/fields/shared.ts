@@ -17,6 +17,19 @@ const fallbackCssEscape = (value: string): string => {
 };
 const validatorRegistrations = new WeakMap<HTMLFormElement, Map<string, number>>();
 
+// Conditions clear ordinary controls directly. Enhanced controls also need to
+// clear their hidden transport values before their modules are unmounted.
+export function bindConditionalClear(input: HTMLElement, clear: () => void): () => void {
+    const root = input.getRootNode();
+    const handler = (event: Event) => {
+        if (event.target instanceof Element && event.target.contains(input)) {
+            clear();
+        }
+    };
+    root.addEventListener('formie:field:clear', handler);
+    return () => root.removeEventListener('formie:field:clear', handler);
+}
+
 export function escapeSelectorValue(value: string): string {
     if (typeof window.CSS?.escape === 'function') {
         return window.CSS.escape(value);

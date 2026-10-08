@@ -5,6 +5,7 @@ type ValidatorApi = {
     addValidator: (name: string, validatorFunction: (ctx: ValidationContext) => boolean, errorMessage?: (ctx: ValidationContext) => string) => void;
     removeValidator: (name: string) => void;
 };
+export declare function bindConditionalClear(input: HTMLElement, clear: () => void): () => void;
 export declare function escapeSelectorValue(value: string): string;
 export declare function getFieldContainers(root: Element, fieldHandle?: string): HTMLElement[];
 export declare function getModuleFieldContainers(ctx: ModuleSetupContext): HTMLElement[];

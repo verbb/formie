@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add a `formie:field:clear` event for custom controls to clear their values when conditions hide a field or page.
 - Add one generated browser-theme state manifest and canonical state classes for browser-created controls.
 - Add `data-formie-validation-skip` so helper controls (such as the Upload Manager browse input) can opt out of client-side validation.
 
@@ -23,6 +24,9 @@
 - Carry expected submission versions and signed request tokens through submit and page-state requests.
 
 ### Fixed
+- Fixed conditional Date/Time fields failing to initialize when shown again.
+- Fixed conditionally hidden date and signature fields retaining their previous values.
+- Fixed browser module errors repeatedly updating the page and making forms unresponsive.
 - Fixed unchecked checkbox groups being treated as nonempty by browser conditions.
 - Fixed empty searchable multi-select fields being treated as filled by conditions.
 - Fixed date pickers retaining a submitted date after their visible input reset.

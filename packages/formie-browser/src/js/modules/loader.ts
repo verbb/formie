@@ -264,7 +264,10 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
         }
 
         const report = message.querySelector<HTMLElement>('[data-formie-module-error-details]');
-        if (report) report.textContent = buildTechnicalDetails(surface, failures.values(), failureDetails);
+        const details = buildTechnicalDetails(surface, failures.values(), failureDetails);
+        // This report lives inside the observed root; unchanged text must not
+        // schedule another reconciliation while a module remains unavailable.
+        if (report && report.textContent !== details) report.textContent = details;
     };
     const guard = (event: Event) => {
         if (!blocked()) return;

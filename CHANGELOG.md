@@ -7,6 +7,9 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed conditional Date/Time fields failing to initialize when shown again.
+- Fixed conditionally hidden date and signature fields retaining their previous values.
+- Fixed browser module errors repeatedly updating the page and making forms unresponsive.
 - Fixed unchecked checkbox groups being treated as nonempty by browser conditions.
 - Fixed empty searchable multi-select fields being treated as filled by conditions.
 - Fixed date pickers retaining a submitted date after their visible input reset.

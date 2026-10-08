@@ -2,7 +2,7 @@ import SignaturePad from 'signature_pad';
 import signatureCss from '#theme-css/fields/_signature.css?inline';
 
 import type { BrowserModuleDefinition } from '#contracts/modules';
-import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
+import { bindConditionalClear, dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 
 const INPUT_SELECTOR = 'input[data-formie-signature-input]';
@@ -364,6 +364,7 @@ function initSignatureField(
     };
     form?.addEventListener('reset', onReset);
 
+    const unbindConditionalClear = bindConditionalClear(input, clearSignature);
     signaturePad.addEventListener('endStroke', syncValue);
     window.addEventListener('resize', resizeHandler);
     root.addEventListener('formie:page:navigate:after', pageNavigateHandler as EventListener);
@@ -380,6 +381,7 @@ function initSignatureField(
 
     return () => {
         clearSizeRetry();
+        unbindConditionalClear();
         form?.removeEventListener('reset', onReset);
         signaturePad.removeEventListener('endStroke', syncValue);
         window.removeEventListener('resize', resizeHandler);
