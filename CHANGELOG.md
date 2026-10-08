@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix SugarCRM connections failing to authenticate. ([#2988](https://github.com/verbb/formie/issues/2988))
+
 ## 3.1.46 - 2026-10-07
 
 ### Changed

@@ -41,11 +41,11 @@ class SugarCrm extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'SugarCRM');
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     public ?string $username = null;
     public ?string $password = null;
     public ?string $apiDomain = null;
@@ -86,6 +86,11 @@ class SugarCrm extends Crm implements OAuthProviderInterface
         return App::parseEnv($this->apiDomain);
     }
 
+    public function getGrant(): string
+    {
+        return 'password';
+    }
+
     public function getOAuthProviderConfig(): array
     {
         $config = parent::getOAuthProviderConfig();
@@ -105,7 +110,7 @@ class SugarCrm extends Crm implements OAuthProviderInterface
         $oauthProvider = $this->getOAuthProvider();
 
         // SugarCRM doesn't support `authorization_code` grant
-        $token = $oauthProvider->getAccessToken('password', [
+        $token = $oauthProvider->getAccessToken($this->getGrant(), [
             'username' => $this->getUsername(),
             'password' => $this->getPassword(),
             'platform' => 'formie',
