@@ -7,6 +7,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed reports set to include all form fields omitting field values from the table and downloaded exports.
 - Fixed reading condition values from multi-row Likert Survey fields throwing an error.
 - Fixed variable configuration being invisible and unclickable in integration mappings and conditions.
 - Fixed duplicating forms with Date fields across multiple sites.
