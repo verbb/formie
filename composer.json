@@ -41,7 +41,7 @@
         "symfony/expression-language": "^5.0 || ^6.0 || ^7.0",
         "verbb/auth": "^2.0.48",
         "verbb/base": "^3.0.20",
-        "verbb/tiptap": "^1.0.1"
+        "verbb/tiptap": "^1.0.3"
     },
     "require-dev": {
         "craftcms/cms": "^5.9",
