@@ -6,7 +6,10 @@ const PRESERVED_DISABLED_ATTR = 'data-formie-preserve-disabled';
 const SUBMIT_READY_ATTR = 'data-formie-submit-ready';
 
 function isSubmitReadinessEnabled(form: HTMLFormElement): boolean {
-    return form.dataset.formieDisableSubmitUntilValid === 'true';
+    const value = form.dataset.formieDisableSubmitUntilValid?.trim().toLowerCase();
+
+    // Twig renders enabled boolean data attributes without a value.
+    return value === '' || value === 'true' || value === '1';
 }
 
 function getPrimarySubmitButtons(form: HTMLFormElement): HTMLButtonElement[] {
@@ -65,7 +68,11 @@ export function syncSubmitReadiness(form: HTMLFormElement, validator: FormieVali
             button.setAttribute(SUBMIT_VALIDATION_DISABLED_ATTR, 'true');
         }
 
-        button.disabled = true;
+        // Observing `disabled` also catches external changes. Avoid scheduling
+        // another observer pass when the button already has the required state.
+        if (!button.disabled) {
+            button.disabled = true;
+        }
     });
 }
 

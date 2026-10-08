@@ -1,7 +1,7 @@
 import { n as e } from "./chunks/request-profile-DhwkeCpS.js";
 import { i as t, m as n, t as r } from "./chunks/dist-ZLeW0zZ3.js";
 import { c as i, d as a, l as o, o as s, r as c, t as l, u } from "./chunks/event-names-BCI2FLD8.js";
-import { a as d, c as f, d as p, f as m, i as h, l as g, n as _, o as v, p as y, r as b, s as x, t as S, u as C } from "./chunks/api-CBnjN24r.js";
+import { a as d, c as f, d as p, f as m, i as h, l as g, n as _, o as v, p as y, r as b, s as x, t as S, u as C } from "./chunks/api-D6kJ7kXZ.js";
 import { a as ee, i as te, n as ne, r as w, t as T } from "./chunks/debug-BV0DvdHx.js";
 import { i as E, r as re, t as D } from "./chunks/theme-classes-DAQuEqdP.js";
 import { i as O, t as ie } from "./chunks/csrf-DxHg_ZYt.js";
@@ -632,7 +632,7 @@ async function st(e, t, n, r = {}) {
 			let t = await Ye(e.form, e.formData);
 			return o = t, t;
 		},
-		result: async (e) => (o && o.ok && o.redirect?.url && (o.redirect.target === "new-tab" ? window.open(o.redirect.url, "_blank", "noopener,noreferrer") : window.location.href = o.redirect.url), null)
+		result: async (e) => (o && o.ok && o.redirect?.url && (o.redirect.target === "new-tab" ? window.open(o.redirect.url, "_blank", "noopener,noreferrer") : (e.form.setAttribute("data-formie-internal-navigation", "redirect"), window.location.href = o.redirect.url)), null)
 	};
 	{
 		let e = await n.emitSafe("formie:submit:before", c);
@@ -1107,17 +1107,17 @@ var Rt = class {
 	table: () => import("./chunks/table-9RF567j5.js").then((e) => e.tableModule),
 	"text-limit": () => import("./chunks/text-limit-BbbkikKF.js").then((e) => e.textLimitModule)
 }, Ut = {
-	bpoint: () => import("./chunks/bpoint-o0gcnIRz.js").then((e) => e.bpointModule),
-	eway: () => import("./chunks/eway-RWNGJA7o.js").then((e) => e.ewayModule),
-	"go-cardless": () => import("./chunks/go-cardless-Bh-KsQgy.js").then((e) => e.goCardlessModule),
-	mollie: () => import("./chunks/mollie-BWkCYZ1H.js").then((e) => e.mollieModule),
-	moneris: () => import("./chunks/moneris-Brk9_PJ5.js").then((e) => e.monerisModule),
-	opayo: () => import("./chunks/opayo-Dn1PQkRb.js").then((e) => e.opayoModule),
-	paddle: () => import("./chunks/paddle-BBIuogaF.js").then((e) => e.paddleModule),
-	paypal: () => import("./chunks/paypal-CSZ2ZQe0.js").then((e) => e.paypalModule),
-	payway: () => import("./chunks/payway-CMo3-xlV.js").then((e) => e.paywayModule),
-	square: () => import("./chunks/square-fVc_ozDN.js").then((e) => e.squareModule),
-	stripe: () => import("./chunks/stripe-BeFhlAWw.js").then((e) => e.stripeModule)
+	bpoint: () => import("./chunks/bpoint-D0RKFM4F.js").then((e) => e.bpointModule),
+	eway: () => import("./chunks/eway-or6dtjoT.js").then((e) => e.ewayModule),
+	"go-cardless": () => import("./chunks/go-cardless-DzJ-0FKg.js").then((e) => e.goCardlessModule),
+	mollie: () => import("./chunks/mollie-DG8Ju83x.js").then((e) => e.mollieModule),
+	moneris: () => import("./chunks/moneris-C8m3Fvqu.js").then((e) => e.monerisModule),
+	opayo: () => import("./chunks/opayo-B3EvrVxw.js").then((e) => e.opayoModule),
+	paddle: () => import("./chunks/paddle-BIYR9Um3.js").then((e) => e.paddleModule),
+	paypal: () => import("./chunks/paypal-B_yxIo2d.js").then((e) => e.paypalModule),
+	payway: () => import("./chunks/payway-CeOzS0sL.js").then((e) => e.paywayModule),
+	square: () => import("./chunks/square-DEzxv9D9.js").then((e) => e.squareModule),
+	stripe: () => import("./chunks/stripe-CVPQGDz3.js").then((e) => e.stripeModule)
 }, Wt = {
 	...Ht,
 	...Bt,

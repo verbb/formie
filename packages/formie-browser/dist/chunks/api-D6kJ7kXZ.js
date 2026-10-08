@@ -136,7 +136,8 @@ function S(e) {
 //#region src/js/validation/submit-readiness.ts
 var C = "data-formie-submit-validation-disabled", w = "data-formie-preserve-disabled", se = "data-formie-submit-ready";
 function T(e) {
-	return e.dataset.formieDisableSubmitUntilValid === "true";
+	let t = e.dataset.formieDisableSubmitUntilValid?.trim().toLowerCase();
+	return t === "" || t === "true" || t === "1";
 }
 function ce(e) {
 	return Array.from(e.querySelectorAll("button[data-formie-action=\"submit\"]")).filter((e) => e instanceof HTMLButtonElement);
@@ -154,7 +155,7 @@ function E(e, t) {
 				e.hasAttribute(w) ? (e.disabled = !0, e.removeAttribute(w)) : e.disabled = !1, e.removeAttribute(C);
 				return;
 			}
-			e.hasAttribute(C) || (e.disabled && e.setAttribute(w, "true"), e.setAttribute(C, "true")), e.disabled = !0;
+			e.hasAttribute(C) || (e.disabled && e.setAttribute(w, "true"), e.setAttribute(C, "true")), e.disabled ||= !0;
 		}
 	});
 }
@@ -308,30 +309,28 @@ function xe(e, t) {
 	}), t && (t.setAttribute("data-formie-loading", "true"), be(e, t)));
 }
 function B(e) {
-	if (e.removeAttribute("data-formie-loading"), z(e).forEach((t) => {
+	e.removeAttribute("data-formie-loading"), z(e).forEach((t) => {
 		if ("disabled" in t) {
 			let e = t;
 			e.disabled = e.getAttribute("data-formie-was-disabled") === "true";
 		}
 		R(t), t.removeAttribute("data-formie-was-disabled"), t.removeAttribute("data-formie-loading"), i(t, e, "loading", !1), t.removeAttribute("data-formie-loading-indicator"), t.removeAttribute("data-formie-loading-text");
-	}), e.dataset.formieDisableSubmitUntilValid === "true") {
-		let t = e;
-		t.formieValidation && E(e, t.formieValidation);
-	}
+	});
+	let t = e;
+	t.formieValidation && E(e, t.formieValidation);
 }
 function V(e, t) {
 	let n = N(e), r = me(e), s = n.findIndex((e) => e.getAttribute("data-formie-page-id") === t);
-	if (n.forEach((n) => {
+	n.forEach((n) => {
 		n.getAttribute("data-formie-page-id") === t ? (n.removeAttribute("data-formie-page-hidden"), a(n, e, "pageHidden")) : (n.setAttribute("data-formie-page-hidden", "true"), o(n, e, "pageHidden"));
 	}), r.forEach((n, r) => {
 		let c = n.getAttribute("data-formie-page-id") === t, l = s > -1 && r < s;
 		i(n, e, "tabCurrent", c), i(n, e, "tabComplete", l);
 		let u = n.querySelector("[data-formie-tab-link]");
 		u && (i(u, e, "tabLinkCurrent", c), c ? a(u, e, "tabLinkInactive") : o(u, e, "tabLinkInactive")), c ? n.setAttribute("aria-current", "page") : n.removeAttribute("aria-current"), l ? n.setAttribute("data-formie-tab-complete", "true") : n.removeAttribute("data-formie-tab-complete");
-	}), s > -1 && n.length > 0 && ye(e, he(e, s, n.length)), A(e, "pageId", t), b(e), e.dataset.formieDisableSubmitUntilValid === "true") {
-		let t = e;
-		t.formieValidation && E(e, t.formieValidation);
-	}
+	}), s > -1 && n.length > 0 && ye(e, he(e, s, n.length)), A(e, "pageId", t), b(e);
+	let c = e;
+	c.formieValidation && E(e, c.formieValidation);
 }
 function H(e, t) {
 	let n = t.meta?.session?.version ?? t.meta?.version;

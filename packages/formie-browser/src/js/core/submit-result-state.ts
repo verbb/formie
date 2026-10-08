@@ -295,12 +295,10 @@ export function clearSubmitLoading(form: HTMLFormElement): void {
         button.removeAttribute('data-formie-loading-text');
     });
 
-    if (form.dataset.formieDisableSubmitUntilValid === 'true') {
-        const formWithValidation = form as FormWithValidationApi;
+    const formWithValidation = form as FormWithValidationApi;
 
-        if (formWithValidation.formieValidation) {
-            syncSubmitReadiness(form, formWithValidation.formieValidation);
-        }
+    if (formWithValidation.formieValidation) {
+        syncSubmitReadiness(form, formWithValidation.formieValidation);
     }
 }
 
@@ -365,12 +363,10 @@ export function applyPageState(form: HTMLFormElement, nextPageId: string): void 
     setHiddenInputValue(form, 'pageId', nextPageId);
     syncPageTabErrors(form);
 
-    if (form.dataset.formieDisableSubmitUntilValid === 'true') {
-        const formWithValidation = form as FormWithValidationApi;
+    const formWithValidation = form as FormWithValidationApi;
 
-        if (formWithValidation.formieValidation) {
-            syncSubmitReadiness(form, formWithValidation.formieValidation);
-        }
+    if (formWithValidation.formieValidation) {
+        syncSubmitReadiness(form, formWithValidation.formieValidation);
     }
 }
 

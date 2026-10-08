@@ -314,6 +314,7 @@ export async function runSubmitPipeline(
                 if (dispatchResult.redirect.target === 'new-tab') {
                     window.open(dispatchResult.redirect.url, '_blank', 'noopener,noreferrer');
                 } else {
+                    resultCtx.form.setAttribute('data-formie-internal-navigation', 'redirect');
                     window.location.href = dispatchResult.redirect.url;
                 }
             }
