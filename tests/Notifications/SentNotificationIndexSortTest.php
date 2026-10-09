@@ -13,7 +13,13 @@ it('sorts sent notification index sources newest first by default', function ():
 
     try {
         $sources = (new ReflectionMethod(SentNotification::class, 'defineSources'))->invoke(null, 'index');
-        $indexSources = array_filter($sources, fn(array $source): bool => isset($source['key']));
+        $indexSources = [];
+
+        foreach ($sources as $source) {
+            if (isset($source['key'])) {
+                $indexSources[] = $source;
+            }
+        }
 
         expect($indexSources)->not->toBeEmpty();
 

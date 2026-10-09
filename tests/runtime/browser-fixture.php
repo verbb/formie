@@ -21,6 +21,29 @@ $form->setNotifications([new \verbb\formie\models\Notification([
 if (!Craft::$app->getElements()->saveElement($form)) {
     throw new RuntimeException('Cannot save browser notification picker fixture.');
 }
+$sentSubmission = \verbb\formie\Formie::$plugin->getFactories()->submission($form)
+    ->with(['visitorName' => 'Sent notification browser fixture', 'visitorEmail' => 'recipient@example.test'])
+    ->save();
+$sentNotification = new \verbb\formie\elements\SentNotification([
+    'title' => 'Browser sent notification',
+    'formId' => (string)$form->id,
+    'submissionId' => (string)$sentSubmission->id,
+    'notificationId' => (string)$form->getNotifications()[0]->id,
+    'subject' => 'Browser sent notification subject',
+    'to' => 'recipient@example.test',
+    'from' => 'sender@example.test',
+    'fromName' => 'Browser Sender',
+    'body' => 'Browser sent notification body',
+    'htmlBody' => '<p>Browser sent notification body</p>',
+    'success' => true,
+]);
+if (!Craft::$app->getElements()->saveElement($sentNotification)) {
+    throw new RuntimeException('Cannot save browser sent notification fixture.');
+}
+file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/sent-notification-browser.json', json_encode([
+    'id' => $sentNotification->id,
+    'editUrl' => $sentNotification->getCpEditUrl(),
+]));
 \Tests\Support\UploadTestHelper::ensureUploadVolume();
 $journey = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Browser journey', 'handle' => 'browserJourney'])
     ->multiPage(2)->onPage(1)

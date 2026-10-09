@@ -227,6 +227,10 @@ it('enforces persisted user permissions for one form through the notification mo
         $request->setBodyParams($csrf + ['id' => $allowed['submission']->id]);
         $result = (new SubmissionsController('submissions', Formie::$plugin))->runAction('get-send-notification-modal-content');
         expect($result->data['success'])->toBeTrue()
-            ->and($result->data['modalHtml'])->toContain('Send Email Notification', 'value="' . $allowed['submission']->id . '"');
+            ->and($result->data['submissionId'])->toBe((string)$allowed['submission']->id)
+            ->and($result->data['notifications'])->toContain([
+                'label' => $allowed['notification']->name,
+                'value' => (string)$allowed['notification']->id,
+            ]);
     }, ['method' => 'POST', 'headers' => ['Accept' => 'application/json']]);
 })->group('security');

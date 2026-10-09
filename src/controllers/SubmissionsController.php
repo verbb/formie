@@ -341,8 +341,6 @@ class SubmissionsController extends Controller
         $this->requirePostRequest();
         $this->requireAcceptsJson();
 
-        $view = $this->getView();
-
         $submission = Submission::find()
             ->id($this->request->getParam('id'))
             ->isIncomplete(null)
@@ -355,18 +353,21 @@ class SubmissionsController extends Controller
 
         $this->_requireSubmissionPermission($submission);
 
-        $notifications = $submission->getForm()?->getNotifications() ?? [];
-
-        $modalHtml = $view->renderTemplate('formie/submissions/_includes/send-notification-modal', [
-            'submission' => $submission,
-            'notifications' => $notifications,
-        ]);
+        $notifications = array_values(array_map(
+            static fn($notification): array => [
+                'label' => (string)$notification->name,
+                'value' => (string)$notification->id,
+            ],
+            array_filter(
+                $submission->getForm()?->getNotifications() ?? [],
+                static fn($notification): bool => (bool)$notification->id,
+            ),
+        ));
 
         return $this->asJson([
             'success' => true,
-            'modalHtml' => $modalHtml,
-            'headHtml' => $view->getHeadHtml(),
-            'footHtml' => $view->getBodyHtml(),
+            'submissionId' => (string)$submission->id,
+            'notifications' => $notifications,
         ]);
     }
 

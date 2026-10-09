@@ -4,6 +4,7 @@
 
 ### Changed
 - Simplified delivery diagnostics with a wider modal, plain-language status, tabbed evidence (including queued integration operations), and prominent submission and export actions.
+- Updated sent notification resend dialogs, the submission email notification dialog, and the unmark-spam action dialog to use Plugin Kit, including stable loading-state sizing.
 - Updated the default danger theme colors to use Tailwind's Rose palette.
 - Updated the default success theme colors to use Tailwind's Emerald palette.
 - Added themeable borders to success and error form messages.

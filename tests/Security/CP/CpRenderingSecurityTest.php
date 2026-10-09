@@ -12,7 +12,6 @@ use verbb\formie\elements\SentNotification;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Recipients;
 use verbb\formie\fields\values\RecipientsFieldValue;
-use verbb\formie\models\Notification;
 
 function renderCpTemplate(string $template, array $variables): string
 {
@@ -26,60 +25,6 @@ function renderCpTemplate(string $template, array $variables): string
         $view->setTemplateMode($oldTemplateMode);
     }
 }
-
-it('renders the send notification modal with the submission id and notification options', function (): void {
-    $form = formie()
-        ->form(['title' => 'CP Send Notification Security'])
-        ->singleLineTextField('fullName')
-        ->create();
-
-    $submission = formie()
-        ->submission($form)
-        ->with(['fullName' => 'Security Tester'])
-        ->save();
-
-    $notification = new Notification([
-        'name' => 'Admin Notification',
-        'handle' => 'adminNotification' . uniqid(),
-        'enabled' => true,
-        'subject' => 'Security Subject',
-        'to' => 'admin@example.test',
-    ]);
-
-    $form->setNotifications([$notification]);
-    expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
-
-    $html = renderCpTemplate('formie/submissions/_includes/send-notification-modal', [
-        'submission' => $submission,
-        'notifications' => $form->getNotifications(),
-    ]);
-
-    expect($html)
-        ->toContain('<h2>Send Email Notification</h2>')
-        ->toContain('name="submissionId" value="' . $submission->id . '"')
-        ->toContain('name="notificationId"')
-        ->toContain('Admin Notification');
-})->group('security');
-
-it('renders the resend notification modal with stored recipients and preview chrome', function (): void {
-    $sentNotification = new SentNotification([
-        'id' => 123,
-        'to' => 'alerts@example.test',
-        'htmlBody' => '<p>Preview body</p>',
-    ]);
-
-    $html = renderCpTemplate('formie/sent-notifications/_includes/resend-modal', [
-        'sentNotification' => $sentNotification,
-    ]);
-
-    expect($html)
-        ->toContain('<h2>Resend Email Notification</h2>')
-        ->toContain('name="to"')
-        ->toContain('value="alerts@example.test"')
-        ->toContain('name="id" value="123"')
-        ->toContain('fui-email-preview')
-        ->toContain('id="fui-email-meta-to"');
-})->group('security');
 
 it('escapes hostile sent notification html when embedding iframe srcdoc previews', function (): void {
     $payload = '<img src=x onerror=alert("xss")>" autofocus="autofocus';
@@ -99,7 +44,7 @@ it('escapes hostile sent notification html when embedding iframe srcdoc previews
         ->and($html)->not->toContain('autofocus="autofocus"');
 })->group('security');
 
-it('requires sent notification access permission before returning resend modal content', function (): void {
+it('requires sent notification access permission before returning resend modal data', function (): void {
     $originalUser = Craft::$app->getUser()->getIdentity();
     Craft::$app->getUser()->setIdentity(null);
 
@@ -107,7 +52,7 @@ it('requires sent notification access permission before returning resend modal c
         WebRequestTestHelper::withWebRequestContext(function (): void {
             $controller = new SentNotificationsController('formie-sent-notifications-security', Craft::$app);
 
-            expect(fn() => $controller->actionGetResendModalContent())
+            expect(fn() => $controller->actionGetResendModalData())
                 ->toThrow(ForbiddenHttpException::class);
         }, [
             'method' => 'POST',

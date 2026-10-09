@@ -72,13 +72,12 @@ class SentNotificationsController extends Controller
         return $this->renderTemplate('formie/sent-notifications/_edit', $variables);
     }
 
-    public function actionGetResendModalContent(): Response
+    public function actionGetResendModalData(): Response
     {
         $this->requireAcceptsJson();
         $this->requirePermission('formie-accessSentNotifications');
 
         $request = $this->request;
-        $view = $this->getView();
         $currentUser = Craft::$app->getUser()->getIdentity();
 
         $sentNotification = SentNotification::find()
@@ -93,15 +92,21 @@ class SentNotificationsController extends Controller
             throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 
-        $modalHtml = $view->renderTemplate('formie/sent-notifications/_includes/resend-modal', [
-            'sentNotification' => $sentNotification,
-        ]);
-
         return $this->asJson([
             'success' => true,
-            'modalHtml' => $modalHtml,
-            'headHtml' => $view->getHeadHtml(),
-            'footHtml' => $view->getBodyHtml(),
+            'notification' => [
+                'id' => (int)$sentNotification->id,
+                'to' => (string)$sentNotification->to,
+                'cc' => (string)$sentNotification->cc,
+                'bcc' => (string)$sentNotification->bcc,
+                'subject' => (string)$sentNotification->subject,
+                'replyTo' => (string)$sentNotification->replyTo,
+                'from' => (string)$sentNotification->from,
+                'fromName' => (string)$sentNotification->fromName,
+                'sender' => (string)$sentNotification->sender,
+                'body' => (string)$sentNotification->body,
+                'htmlBody' => (string)$sentNotification->htmlBody,
+            ],
         ]);
     }
 

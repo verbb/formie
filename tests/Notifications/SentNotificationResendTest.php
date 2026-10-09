@@ -9,6 +9,46 @@ use verbb\formie\elements\SentNotification;
 use verbb\formie\Formie;
 use verbb\formie\models\Notification;
 
+it('returns structured resend dialog data for the Plugin Kit modal', function (): void {
+    $form = formie()->form()->create();
+    $source = new SentNotification([
+        'title' => 'Stored notice',
+        'formId' => (string)$form->id,
+        'subject' => 'Stored subject',
+        'to' => 'alerts@example.test',
+        'cc' => 'copy@example.test',
+        'from' => 'sender@example.test',
+        'fromName' => 'Sender',
+        'body' => 'Stored content',
+        'htmlBody' => '<p>Stored content</p>',
+        'success' => true,
+    ]);
+    expect(Craft::$app->getElements()->saveElement($source))->toBeTrue();
+
+    WebRequestTestHelper::withWebRequestContext(function () use ($source): void {
+        Craft::$app->getUser()->setIdentity(User::find()->admin(true)->one());
+        $controller = new SentNotificationsController('sent-notifications', Formie::$plugin);
+        $response = $controller->actionGetResendModalData();
+
+        expect($response->data)
+            ->success->toBeTrue()
+            ->notification->toMatchArray([
+                'id' => $source->id,
+                'to' => 'alerts@example.test',
+                'cc' => 'copy@example.test',
+                'subject' => 'Stored subject',
+                'from' => 'sender@example.test',
+                'fromName' => 'Sender',
+                'body' => 'Stored content',
+                'htmlBody' => '<p>Stored content</p>',
+            ]);
+    }, [
+        'method' => 'POST',
+        'headers' => ['Accept' => 'application/json'],
+        'bodyParams' => ['id' => $source->id],
+    ]);
+});
+
 it('resends stored messages independently of the current source records', function (string $state, bool $bulk): void {
     $form = formie()->form()->singleLineTextField('answer')->create();
     $submission = formie()->submission($form)->with(['answer' => 'Original'])->save();

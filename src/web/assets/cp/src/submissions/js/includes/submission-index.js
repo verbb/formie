@@ -1,3 +1,9 @@
+import { createElement } from 'react';
+import { AppErrorBoundary } from '@verbb/plugin-kit-react/utils';
+
+import { bootstrapShadowReactApp, mountFormieReactApp } from '@utils';
+import { SendNotificationDialog } from '../../SendNotificationDialog.jsx';
+
 if (typeof Craft.Formie === typeof undefined) {
     Craft.Formie = {};
 }
@@ -339,70 +345,63 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
     },
 });
 
-(function($) {
-    $(document).on('click', '.js-fui-submission-modal-send-btn', function(e) {
-        e.preventDefault();
+let activeSendNotificationDialogCleanup = null;
 
-        new Craft.Formie.SendNotificationModal($(this).data('id'));
+Craft.Formie.SendNotificationModal = function SendNotificationModal(id, trigger = null) {
+    activeSendNotificationDialogCleanup?.();
+
+    const container = document.createElement('div');
+    container.id = `formie-send-notification-${crypto.randomUUID()}`;
+    document.body.append(container);
+
+    const boot = bootstrapShadowReactApp({
+        containerSelector: `#${container.id}`,
+        pluginHandle: 'formie',
+        styleNamespace: 'submissions',
     });
-})(jQuery);
 
-Craft.Formie.SendNotificationModal = Garnish.Modal.extend({
-    init(id) {
-        this.$form = $('<form class="modal fui-send-notification-modal" method="post" accept-charset="UTF-8"/>').appendTo(Garnish.$bod);
-        this.$body = $('<div class="body"><div class="spinner big"></div></div>').appendTo(this.$form);
+    let app = null;
+    let closed = false;
+    const cleanup = () => {
+        if (closed) {
+            return;
+        }
 
-        const $footer = $('<div class="footer"/>').appendTo(this.$form);
-        const $mainBtnGroup = $('<div class="buttons right"/>').appendTo($footer);
-        this.$cancelBtn = $(`<button type="button" class="btn">${Craft.t('formie', 'Cancel')}</button>`).appendTo($mainBtnGroup);
-        this.$updateBtn = $(`<button type="submit" class="btn submit">${Craft.t('formie', 'Send Email Notification')}</button>`).appendTo($mainBtnGroup);
-        this.$footerSpinner = $('<div class="spinner right hidden"/>').appendTo($footer);
+        closed = true;
+        app?.unmount();
+        container.remove();
+        trigger?.focus();
 
-        Craft.initUiElements(this.$form);
+        if (activeSendNotificationDialogCleanup === cleanup) {
+            activeSendNotificationDialogCleanup = null;
+        }
+    };
 
-        this.addListener(this.$cancelBtn, 'click', 'onFadeOut');
-        this.addListener(this.$updateBtn, 'click', 'onSend');
+    app = mountFormieReactApp({
+        ...boot,
+        children: createElement(AppErrorBoundary, {
+            consoleLabel: 'Formie send notification dialog crashed:',
+            heading: Craft.t('formie', 'Something went wrong'),
+            message: Craft.t('formie', 'The send notification dialog could not be opened. Please refresh the page and try again.'),
+            detailsLabel: Craft.t('formie', 'Show error details'),
+            reloadLabel: Craft.t('formie', 'Reload'),
+        }, createElement(SendNotificationDialog, {
+            submissionId: String(id),
+            onClose: cleanup,
+        })),
+    });
+    activeSendNotificationDialogCleanup = cleanup;
+};
 
-        this.base(this.$form);
+document.addEventListener('click', (event) => {
+    const trigger = event.target.closest?.('.js-fui-submission-modal-send-btn');
 
-        const data = { id };
+    if (!trigger) {
+        return;
+    }
 
-        Craft.sendActionRequest('POST', 'formie/submissions/get-send-notification-modal-content', { data })
-            .then((response) => {
-                this.$body.html(response.data.modalHtml);
-                Craft.appendHeadHtml(response.data.headHtml);
-                Craft.appendBodyHtml(response.data.footHtml);
-            });
-    },
-
-    onFadeOut() {
-        this.$form.remove();
-        this.$shade.remove();
-    },
-
-    onSend(e) {
-        e.preventDefault();
-
-        this.$footerSpinner.removeClass('hidden');
-
-        const data = this.$form.serialize();
-
-        // Save everything through the normal update-cart action, just like we were doing it on the front-end
-        Craft.sendActionRequest('POST', 'formie/submissions/send-notification', { data })
-            .then((response) => {
-                location.reload();
-            })
-            .catch(({ response }) => {
-                if (response && response.data && response.data.message) {
-                    Craft.cp.displayError(response.data.message);
-                } else {
-                    Craft.cp.displayError();
-                }
-            })
-            .finally(() => {
-                this.$footerSpinner.addClass('hidden');
-            });
-    },
+    event.preventDefault();
+    new Craft.Formie.SendNotificationModal(trigger.dataset.id, trigger);
 });
 
 Craft.registerElementIndexClass('verbb\\formie\\elements\\Submission', Craft.Formie.SubmissionIndex);

@@ -5,77 +5,78 @@
 
 // ==========================================================================
 
-// CSS needs to be imported here as it's treated as a module
+import { createElement } from 'react';
+import { AppErrorBoundary } from '@verbb/plugin-kit-react/utils';
+
+// Keep a production CSS artifact for the legacy AssetBundle and inject the same
+// screen-specific rules into the Plugin Kit shadow root.
 import '../scss/formie-sent-notifications.scss';
+import resendStyles from '../scss/formie-sent-notifications.scss?inline';
 
-if (typeof Craft.Formie === typeof undefined) {
-    Craft.Formie = {};
-}
+import { bootstrapShadowReactApp, mountFormieReactApp } from '@utils';
+import { ResendNotificationDialog } from '../ResendNotificationDialog.jsx';
 
-(function($) {
-    $(document).on('click', '.js-fui-notification-modal-resend-btn', function(e) {
-        e.preventDefault();
+Craft.Formie ||= {};
 
-        new Craft.Formie.ResendNotificationModal($(this).data('id'));
+let activeDialogCleanup = null;
+
+const openResendDialog = ({ mode, ids }, trigger = null) => {
+    activeDialogCleanup?.();
+
+    const container = document.createElement('div');
+    container.id = `formie-resend-${crypto.randomUUID()}`;
+    document.body.append(container);
+
+    const boot = bootstrapShadowReactApp({
+        containerSelector: `#${container.id}`,
+        pluginHandle: 'formie',
+        styleTexts: [resendStyles],
+        styleNamespace: 'sent-notifications',
     });
-})(jQuery);
 
-Craft.Formie.ResendNotificationModal = Garnish.Modal.extend({
-    init(id) {
-        this.$form = $('<form class="modal fui-resend-modal" method="post" accept-charset="UTF-8"/>').appendTo(Garnish.$bod);
-        this.$body = $('<div class="body"><div class="spinner big"></div></div>').appendTo(this.$form);
+    let app = null;
+    let closed = false;
+    const cleanup = () => {
+        if (closed) {
+            return;
+        }
 
-        const $footer = $('<div class="footer"/>').appendTo(this.$form);
-        const $mainBtnGroup = $('<div class="buttons right"/>').appendTo($footer);
-        this.$cancelBtn = $(`<button type="button" class="btn">${Craft.t('formie', 'Cancel')}</button>`).appendTo($mainBtnGroup);
-        this.$updateBtn = $(`<button type="submit" class="btn submit">${Craft.t('formie', 'Resend Email Notification')}</button>`).appendTo($mainBtnGroup);
-        this.$footerSpinner = $('<div class="spinner right hidden"/>').appendTo($footer);
+        closed = true;
+        app?.unmount();
+        container.remove();
+        trigger?.focus();
 
-        Craft.initUiElements(this.$form);
+        if (activeDialogCleanup === cleanup) {
+            activeDialogCleanup = null;
+        }
+    };
 
-        this.addListener(this.$cancelBtn, 'click', 'onFadeOut');
-        this.addListener(this.$updateBtn, 'click', 'onResend');
+    app = mountFormieReactApp({
+        ...boot,
+        children: createElement(AppErrorBoundary, {
+            consoleLabel: 'Formie sent notification resend dialog crashed:',
+            heading: Craft.t('formie', 'Something went wrong'),
+            message: Craft.t('formie', 'The resend dialog could not be opened. Please refresh the page and try again.'),
+            detailsLabel: Craft.t('formie', 'Show error details'),
+            reloadLabel: Craft.t('formie', 'Reload'),
+        }, createElement(ResendNotificationDialog, { mode, ids, onClose: cleanup })),
+    });
+    activeDialogCleanup = cleanup;
+};
 
-        this.base(this.$form);
+Craft.Formie.ResendNotificationModal = function ResendNotificationModal(id, trigger = null) {
+    openResendDialog({ mode: 'single', ids: [String(id)] }, trigger);
+};
 
-        const data = { id };
+document.addEventListener('click', (event) => {
+    const trigger = event.target.closest?.('.js-fui-notification-modal-resend-btn');
 
-        Craft.sendActionRequest('POST', 'formie/sent-notifications/get-resend-modal-content', { data })
-            .then((response) => {
-                this.$body.html(response.data.modalHtml);
-                Craft.appendHeadHtml(response.data.headHtml);
-                Craft.appendBodyHtml(response.data.footHtml);
-            });
-    },
+    if (!trigger) {
+        return;
+    }
 
-    onFadeOut() {
-        this.$form.remove();
-        this.$shade.remove();
-    },
-
-    onResend(e) {
-        e.preventDefault();
-
-        this.$footerSpinner.removeClass('hidden');
-
-        const data = this.$form.serialize();
-
-        // Save everything through the normal update-cart action, just like we were doing it on the front-end
-        Craft.sendActionRequest('POST', 'formie/sent-notifications/resend', { data })
-            .then((response) => {
-                location.reload();
-            })
-            .catch(({ response }) => {
-                if (response && response.data && response.data.message) {
-                    Craft.cp.displayError(response.data.message);
-                } else {
-                    Craft.cp.displayError();
-                }
-            })
-            .finally(() => {
-                this.$footerSpinner.addClass('hidden');
-            });
-    },
+    event.preventDefault();
+    new Craft.Formie.ResendNotificationModal(trigger.dataset.id, trigger);
 });
 
 Craft.Formie.BulkResendElementAction = Garnish.Base.extend({
@@ -84,102 +85,16 @@ Craft.Formie.BulkResendElementAction = Garnish.Base.extend({
             type,
             batch: true,
             activate($selectedItems) {
-                new Craft.Formie.BulkResendModal($selectedItems.find('.element'), $selectedItems);
+                const ids = $selectedItems.find('.element').map((index, element) => {
+                    return String($(element).data('id'));
+                }).get();
+
+                new Craft.Formie.BulkResendModal(ids);
             },
         });
     },
 });
 
-Craft.Formie.BulkResendModal = Garnish.Modal.extend({
-    init($element, $selectedItems) {
-        this.$element = $element;
-        this.$selectedItems = $selectedItems;
-
-        const plural = ($selectedItems.length == 1) ? '' : 's';
-        const actionDescription = `<strong>${$selectedItems.length}</strong> notification${plural}`;
-
-        this.$form = $('<form class="modal fitted" method="post" accept-charset="UTF-8"/>').appendTo(Garnish.$bod);
-
-        this.$body = $('<div class="body" style="max-width: 560px;">' +
-            `<h2>${Craft.t('formie', 'Bulk Resend Email Notification')}</h2>` +
-            `<p>${Craft.t('formie', 'You are about to resend {desc}. You can resend each notification to their original recipients, or choose specific recipients.', { desc: actionDescription })}</p>` +
-            '</div>').appendTo(this.$form);
-
-        const $select = Craft.ui.createSelectField({
-            label: Craft.t('formie', 'Recipients'),
-            name: 'recipientsType',
-            options: [
-                { label: Craft.t('formie', 'Original Recipients'), value: 'original' },
-                { label: Craft.t('formie', 'Custom Recipients'), value: 'custom' },
-            ],
-            toggle: true,
-            targetPrefix: 'type-',
-        }).appendTo(this.$body);
-
-        const $customContainer = $('<div/>', {
-            id: 'type-custom',
-            class: 'hidden',
-        }).appendTo(this.$body);
-
-        Craft.ui.createTextField({
-            label: Craft.t('formie', 'Custom Recipients'),
-            instructions: Craft.t('formie', 'Provide recipients for each email notification to be sent to. For multiple recipients, separate each with a comma.'),
-            name: 'to',
-            required: true,
-        }).appendTo($customContainer);
-
-        this.$selectedItems.each((index, element) => {
-            $('<input/>', {
-                type: 'hidden',
-                name: 'ids[]',
-                value: $(element).data('id'),
-            }).appendTo(this.$body);
-        });
-
-        const $footer = $('<div class="footer"/>').appendTo(this.$form);
-        const $mainBtnGroup = $('<div class="buttons right"/>').appendTo($footer);
-        this.$cancelBtn = $(`<button type="button" class="btn">${Craft.t('formie', 'Cancel')}</button>`).appendTo($mainBtnGroup);
-        this.$updateBtn = $(`<button type="submit" class="btn submit">${Craft.t('formie', 'Resend Email Notifications')}</button>`).appendTo($mainBtnGroup);
-        this.$footerSpinner = $('<div class="spinner right hidden"/>').appendTo($footer);
-
-        this.addListener(this.$cancelBtn, 'click', 'onFadeOut');
-        this.addListener(this.$updateBtn, 'click', 'onResend');
-        this.addListener($select, 'change', 'onSelectChange');
-
-        this.base(this.$form);
-    },
-
-    onSelectChange() {
-        this.updateSizeAndPosition();
-    },
-
-    onFadeOut() {
-        this.$form.remove();
-        this.$shade.remove();
-    },
-
-    onResend(e) {
-        e.preventDefault();
-
-        this.$footerSpinner.removeClass('hidden');
-
-        const data = this.$form.serialize();
-
-        // Save everything through the normal update-cart action, just like we were doing it on the front-end
-        Craft.sendActionRequest('POST', 'formie/sent-notifications/bulk-resend', { data })
-            .then((response) => {
-                location.reload();
-            })
-            .catch(({ response }) => {
-                if (response && response.data && response.data.message) {
-                    Craft.cp.displayError(response.data.message);
-                } else {
-                    Craft.cp.displayError();
-                }
-            })
-            .finally(() => {
-                this.$footerSpinner.addClass('hidden');
-            });
-    },
-
-});
+Craft.Formie.BulkResendModal = function BulkResendModal(ids) {
+    openResendDialog({ mode: 'bulk', ids });
+};

@@ -37,12 +37,9 @@ class SetSubmissionSpam extends ElementAction
         type: $type + '-MarkAsNotSpam',
         bulk: true,
         activate: function(selectedItems, elementIndex) {
-            const modal = new Craft.Formie.UnmarkSpamUserModal({
-                onSubmit: () => {
-                    elementIndex.submitAction($type, Garnish.getPostData(modal.\$container));
-                    modal.hide();
-
-                    return false;
+            new Craft.Formie.UnmarkSpamUserModal({
+                onSubmit: (values) => {
+                    elementIndex.submitAction($type, values);
                 },
             });
         },
