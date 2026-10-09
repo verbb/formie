@@ -187,7 +187,7 @@ class Variables
 
         if ($submission && $submission->id) {
             $cacheKey = 'submission' . $submission->id;
-        } else if ($form && $form->id) {
+        } elseif ($form && $form->id) {
             $cacheKey = 'form' . $form->id;
         }
 
@@ -219,9 +219,9 @@ class Variables
             }
 
             $craftMailSettings = App::mailSettings();
-            $systemEmail = $craftMailSettings->fromEmail;
-            $systemReplyTo = $craftMailSettings->replyToEmail;
-            $systemName = $craftMailSettings->fromName;
+            $systemEmail = App::parseEnv($craftMailSettings->fromEmail);
+            $systemReplyTo = App::parseEnv($craftMailSettings->replyToEmail);
+            $systemName = App::parseEnv($craftMailSettings->fromName);
 
             // Date Info
             $timeZone = Craft::$app->getTimeZone();
@@ -476,7 +476,7 @@ class Variables
                     $values["{$prefix}{$field->handle}.{$k}"] = $formattedValue;
                 }
             }
-        } else if ($field instanceof SubfieldInterface && $field->hasSubfields()) {
+        } elseif ($field instanceof SubfieldInterface && $field->hasSubfields()) {
             foreach ($field->getSubfieldOptions() as $subfield) {
                 $handle = "{$prefix}{$field->handle}.{$subfield['handle']}";
 
@@ -493,7 +493,7 @@ class Variables
                     $values[$handle] = $prefixOption['label'] ?? '';
                 }
             }
-        } else if ($field instanceof formfields\Group) {
+        } elseif ($field instanceof formfields\Group) {
             $row = $submissionValue?->one();
 
             // Preserve the nested variable shape when conditional logic leaves the group without a row.
@@ -510,7 +510,7 @@ class Variables
                     }
                 }
             }
-        } else if ($field instanceof formfields\MultiLineText && !$field->useRichText) {
+        } elseif ($field instanceof formfields\MultiLineText && !$field->useRichText) {
             // Use `htmlspecialchars` to ensure that values are encoded. Removed in Formie 3, which uses Twig rendering.
             $values["{$prefix}{$field->handle}"] = htmlspecialchars(nl2br($field->getValueAsString($submissionValue, $submission)));
 
@@ -520,23 +520,23 @@ class Variables
             }
         }
 
-        // Some fields use the email template for the field, due to their complexity. 
+        // Some fields use the email template for the field, due to their complexity.
         // Also good for performance rendering only when we need to here.
         if (
-            $field instanceof BaseRelationField || 
-            $field instanceof formfields\Table || 
-            ($field instanceof formfields\MultiLineText && $field->useRichText) || 
-            $field instanceof formfields\Repeater || 
-            $field instanceof formfields\Signature || 
+            $field instanceof BaseRelationField ||
+            $field instanceof formfields\Table ||
+            ($field instanceof formfields\MultiLineText && $field->useRichText) ||
+            $field instanceof formfields\Repeater ||
+            $field instanceof formfields\Signature ||
             $field instanceof formfields\Payment
         ) {
-            // There are some circumstances where we're rendering email content, but not for an email. 
+            // There are some circumstances where we're rendering email content, but not for an email.
             // Slack integration rich text is one of them, there are likely more.
             $notification = $notification ?? new Notification();
             $parsedContent = (string)$field->getEmailHtml($submission, $notification, $submissionValue, ['hideName' => true]);
 
             $values["{$prefix}{$field->handle}"] = $parsedContent;
-        }     
+        }
 
         return $values;
     }

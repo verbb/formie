@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix `{systemEmail}`, `{systemReplyTo}`, and `{systemName}` resolving to literal environment variable names in email notifications. ([#2997](https://github.com/verbb/formie/issues/2997))
+
 ## 2.2.38 - 2026-10-02
 
 ### Fixed
