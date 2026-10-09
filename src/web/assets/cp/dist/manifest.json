@@ -1,365 +1,23 @@
 {
-  "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/AutocompleteField.js": {
-    "file": "assets/AutocompleteField-eHQGNePT.js",
-    "name": "AutocompleteField",
-    "src": "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/AutocompleteField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_Spinner-vI9AkEM1.js",
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_pk-state-panel-BTo2xiug-40Dks_zl.js",
-      "_Field-D1GCLJtF.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js",
-      "_pk-alert-BQAb4lJc-KYGPWJEN.js",
-      "_Input-BZ2ppwXm.js",
-      "_scroll-lock-DE1pElMQ-CZNRN1HD.js"
-    ]
-  },
-  "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js": {
-    "file": "assets/CheckboxSelectField-BunARDlm.js",
-    "name": "CheckboxSelectField",
-    "src": "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_Field-D1GCLJtF.js",
-      "_CheckboxSelect-C_GjrdEp.js"
-    ]
-  },
-  "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/ColorField.js": {
-    "file": "assets/ColorField-CesPzwQp.js",
-    "name": "ColorField",
-    "src": "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/ColorField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_Field-D1GCLJtF.js",
-      "_pk-color-input-Csbm4ROT-BDoX_IYN.js"
-    ]
-  },
-  "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/ComboboxField.js": {
-    "file": "assets/ComboboxField-Bfkikre2.js",
-    "name": "ComboboxField",
-    "src": "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/ComboboxField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_Field-D1GCLJtF.js"
-    ]
-  },
-  "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/DateTimeField.js": {
-    "file": "assets/DateTimeField-C9Fb7S5C.js",
-    "name": "DateTimeField",
-    "src": "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/DateTimeField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_Field-D1GCLJtF.js",
-      "_TimePicker-Du0BrFSF.js"
-    ]
-  },
-  "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/GroupField.js": {
-    "file": "assets/GroupField-51lIpkWY.js",
-    "name": "GroupField",
-    "src": "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/GroupField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_Field-D1GCLJtF.js"
-    ]
-  },
-  "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/LightswitchField.js": {
-    "file": "assets/LightswitchField-CBOy5wTY.js",
-    "name": "LightswitchField",
-    "src": "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/LightswitchField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_Field-D1GCLJtF.js",
-      "_Lightswitch-_p85W6vh.js"
-    ]
-  },
-  "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/NumberField.js": {
-    "file": "assets/NumberField-BRxVISrw.js",
-    "name": "NumberField",
-    "src": "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/NumberField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_Field-D1GCLJtF.js",
-      "_Input-BZ2ppwXm.js"
-    ]
-  },
-  "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/RadioGroupField.js": {
-    "file": "assets/RadioGroupField-wk9L2vjI.js",
-    "name": "RadioGroupField",
-    "src": "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/RadioGroupField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_Field-D1GCLJtF.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js",
-      "_pk-change-BMLA71i0.js"
-    ]
-  },
-  "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/SelectField.js": {
-    "file": "assets/SelectField-4U3qDMZ8.js",
-    "name": "SelectField",
-    "src": "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/SelectField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_Field-D1GCLJtF.js",
-      "_SelectInput-Djb6HSzQ.js"
-    ]
-  },
-  "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/TextField.js": {
-    "file": "assets/TextField-C-_2GAaA.js",
-    "name": "TextField",
-    "src": "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/TextField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_Field-D1GCLJtF.js",
-      "_Input-BZ2ppwXm.js"
-    ]
-  },
-  "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/TextareaField.js": {
-    "file": "assets/TextareaField-WvhiBl6q.js",
-    "name": "TextareaField",
-    "src": "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/TextareaField.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_Field-D1GCLJtF.js",
-      "_Textarea-BDb0Z_CV.js"
-    ]
-  },
-  "_Checkbox-AyOdDdgb.js": {
-    "file": "assets/Checkbox-AyOdDdgb.js",
-    "name": "Checkbox",
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_Spinner-vI9AkEM1.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js",
-      "_pk-alert-BQAb4lJc-KYGPWJEN.js",
-      "_pk-change-BMLA71i0.js"
-    ]
-  },
-  "_CheckboxSelect-C_GjrdEp.js": {
-    "file": "assets/CheckboxSelect-C_GjrdEp.js",
-    "name": "CheckboxSelect",
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_Spinner-vI9AkEM1.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js"
-    ]
-  },
-  "_Dialog-CTU6vMlg.js": {
-    "file": "assets/Dialog-CTU6vMlg.js",
-    "name": "Dialog",
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_pk-dialog-C7KZGpQs-CJVfZvKs.js"
-    ]
-  },
-  "_DragHandle-Df7KdsOd.js": {
-    "file": "assets/DragHandle-Df7KdsOd.js",
+  "_DragHandle-Bd6fEJWG.js": {
+    "file": "assets/DragHandle-Bd6fEJWG.js",
     "name": "DragHandle",
     "imports": [
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_Input-BZ2ppwXm.js"
+      "_plugin-kit-O0hqY6DE.js",
+      "_dndkit-Tbq_EQgB.js"
     ]
-  },
-  "_DropdownMenu-G8Pm7sYg.js": {
-    "file": "assets/DropdownMenu-G8Pm7sYg.js",
-    "name": "DropdownMenu",
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_pk-dropdown-separator-febrInnt.js"
-    ]
-  },
-  "_Field-D1GCLJtF.js": {
-    "file": "assets/Field-D1GCLJtF.js",
-    "name": "Field",
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_pk-state-panel-BTo2xiug-40Dks_zl.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js",
-      "_pk-alert-BQAb4lJc-KYGPWJEN.js",
-      "_Input-BZ2ppwXm.js",
-      "_scroll-lock-DE1pElMQ-CZNRN1HD.js"
-    ]
-  },
-  "_Input-BZ2ppwXm.js": {
-    "file": "assets/Input-BZ2ppwXm.js",
-    "name": "Input",
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_pk-state-panel-BTo2xiug-40Dks_zl.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js",
-      "_pk-alert-BQAb4lJc-KYGPWJEN.js"
-    ]
-  },
-  "_Lightswitch-_p85W6vh.js": {
-    "file": "assets/Lightswitch-_p85W6vh.js",
-    "name": "Lightswitch",
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js",
-      "_pk-change-BMLA71i0.js"
-    ]
-  },
-  "_SelectInput-Djb6HSzQ.js": {
-    "file": "assets/SelectInput-Djb6HSzQ.js",
-    "name": "SelectInput",
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_Field-D1GCLJtF.js",
-      "_pk-status-CdiRBRyh-B00V6K__.js"
-    ]
-  },
-  "_Separator-Dlt-WX0a.js": {
-    "file": "assets/Separator-Dlt-WX0a.js",
-    "name": "Separator",
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js"
-    ]
-  },
-  "_Spinner-vI9AkEM1.js": {
-    "file": "assets/Spinner-vI9AkEM1.js",
-    "name": "Spinner",
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_dist-DvYzR_TC.js",
-      "_plugin-kit-DG_fDsAu.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_pk-state-panel-BTo2xiug-40Dks_zl.js",
-      "_Field-D1GCLJtF.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js",
-      "_pk-alert-BQAb4lJc-KYGPWJEN.js",
-      "_pk-dropdown-separator-febrInnt.js",
-      "_Input-BZ2ppwXm.js",
-      "_Dialog-CTU6vMlg.js",
-      "_scroll-lock-DE1pElMQ-CZNRN1HD.js",
-      "_pk-dialog-C7KZGpQs-CJVfZvKs.js"
-    ]
-  },
-  "_Textarea-BDb0Z_CV.js": {
-    "file": "assets/Textarea-BDb0Z_CV.js",
-    "name": "Textarea",
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js"
-    ]
-  },
-  "_TimePicker-Du0BrFSF.js": {
-    "file": "assets/TimePicker-Du0BrFSF.js",
-    "name": "TimePicker",
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_pk-time-picker-DnNZVwRk-CmJmGx8H.js"
-    ]
-  },
-  "_alert-BwNPRifD.js": {
-    "file": "assets/alert-BwNPRifD.js",
-    "name": "alert",
-    "imports": [
-      "_pk-alert-BQAb4lJc-KYGPWJEN.js"
-    ],
-    "css": [
-      "assets/alert-L3ZLhEvQ.css"
-    ]
-  },
-  "_alert-L3ZLhEvQ.css": {
-    "file": "assets/alert-L3ZLhEvQ.css",
-    "src": "_alert-L3ZLhEvQ.css"
-  },
-  "_animate-with-class-CjTZI0NU-BL9GK06G.js": {
-    "file": "assets/animate-with-class-CjTZI0NU-BL9GK06G.js",
-    "name": "animate-with-class-CjTZI0NU"
   },
   "_createUid-BtKO1cQV.js": {
     "file": "assets/createUid-BtKO1cQV.js",
     "name": "createUid"
   },
-  "_data-utils-BTqlV04N.js": {
-    "file": "assets/data-utils-BTqlV04N.js",
+  "_data-utils-n4oSH26Q.js": {
+    "file": "assets/data-utils-n4oSH26Q.js",
     "name": "data-utils"
   },
   "_dist-B0-K5nhv.js": {
     "file": "assets/dist-B0-K5nhv.js",
     "name": "dist"
-  },
-  "_dist-D40hekI0.js": {
-    "file": "assets/dist-D40hekI0.js",
-    "name": "dist",
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js"
-    ]
-  },
-  "_dist-DvYzR_TC.js": {
-    "file": "assets/dist-DvYzR_TC.js",
-    "name": "dist",
-    "imports": [
-      "_plugin-kit-DG_fDsAu.js"
-    ]
   },
   "_dndkit-Tbq_EQgB.js": {
     "file": "assets/dndkit-Tbq_EQgB.js",
@@ -368,105 +26,44 @@
       "_rolldown-runtime-hePW80VL.js"
     ]
   },
-  "_formie-browser-CWeoyiGH.js": {
-    "file": "assets/formie-browser-CWeoyiGH.js",
+  "_formie-browser-lEEtbOeI.js": {
+    "file": "assets/formie-browser-lEEtbOeI.js",
     "name": "formie-browser",
     "imports": [
       "_rolldown-runtime-hePW80VL.js"
     ],
     "dynamicImports": [
-      "_formie-browser-CWeoyiGH.js"
-    ]
-  },
-  "_has-slot-DJv86HKx-D2K9y9lH.js": {
-    "file": "assets/has-slot-DJv86HKx-D2K9y9lH.js",
-    "name": "has-slot-DJv86HKx",
-    "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_lit-C7H9X-yg.js"
+      "_formie-browser-lEEtbOeI.js"
     ]
   },
   "_lit-C7H9X-yg.js": {
     "file": "assets/lit-C7H9X-yg.js",
     "name": "lit"
   },
-  "_pk-alert-BQAb4lJc-KYGPWJEN.js": {
-    "file": "assets/pk-alert-BQAb4lJc-KYGPWJEN.js",
-    "name": "pk-alert-BQAb4lJc",
+  "_plugin-kit-O0hqY6DE.js": {
+    "file": "assets/plugin-kit-O0hqY6DE.js",
+    "name": "plugin-kit",
     "imports": [
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js"
-    ]
-  },
-  "_pk-change-BMLA71i0.js": {
-    "file": "assets/pk-change-BMLA71i0.js",
-    "name": "pk-change"
-  },
-  "_pk-color-input-Csbm4ROT-BDoX_IYN.js": {
-    "file": "assets/pk-color-input-Csbm4ROT-BDoX_IYN.js",
-    "name": "pk-color-input-Csbm4ROT",
-    "imports": [
-      "_utils-D_lXaCpY.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js"
-    ]
-  },
-  "_pk-dialog-C7KZGpQs-CJVfZvKs.js": {
-    "file": "assets/pk-dialog-C7KZGpQs-CJVfZvKs.js",
-    "name": "pk-dialog-C7KZGpQs",
-    "imports": [
-      "_pk-state-panel-BTo2xiug-40Dks_zl.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
+      "_rolldown-runtime-hePW80VL.js",
+      "_dndkit-Tbq_EQgB.js",
+      "_data-utils-n4oSH26Q.js",
       "_lit-C7H9X-yg.js",
-      "_scroll-lock-DE1pElMQ-CZNRN1HD.js",
-      "_animate-with-class-CjTZI0NU-BL9GK06G.js"
+      "_formie-browser-lEEtbOeI.js"
+    ],
+    "dynamicImports": [
+      "_plugin-kit-O0hqY6DE.js"
+    ],
+    "css": [
+      "assets/plugin-kit-ljnkL5gP.css"
     ]
   },
-  "_pk-dropdown-separator-febrInnt.js": {
-    "file": "assets/pk-dropdown-separator-febrInnt.js",
-    "name": "pk-dropdown-separator",
-    "imports": [
-      "_pk-state-panel-BTo2xiug-40Dks_zl.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js",
-      "_pk-alert-BQAb4lJc-KYGPWJEN.js",
-      "_Input-BZ2ppwXm.js",
-      "_animate-with-class-CjTZI0NU-BL9GK06G.js"
-    ]
+  "_plugin-kit-core-DUhJEgnO.js": {
+    "file": "assets/plugin-kit-core-DUhJEgnO.js",
+    "name": "plugin-kit-core"
   },
-  "_pk-state-panel-BTo2xiug-40Dks_zl.js": {
-    "file": "assets/pk-state-panel-BTo2xiug-40Dks_zl.js",
-    "name": "pk-state-panel-BTo2xiug",
-    "imports": [
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js",
-      "_pk-alert-BQAb4lJc-KYGPWJEN.js"
-    ]
-  },
-  "_pk-status-CdiRBRyh-B00V6K__.js": {
-    "file": "assets/pk-status-CdiRBRyh-B00V6K__.js",
-    "name": "pk-status-CdiRBRyh",
-    "imports": [
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js"
-    ]
-  },
-  "_pk-time-picker-DnNZVwRk-CmJmGx8H.js": {
-    "file": "assets/pk-time-picker-DnNZVwRk-CmJmGx8H.js",
-    "name": "pk-time-picker-DnNZVwRk",
-    "imports": [
-      "_utils-D_lXaCpY.js",
-      "_pk-state-panel-BTo2xiug-40Dks_zl.js",
-      "_Field-D1GCLJtF.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js",
-      "_pk-alert-BQAb4lJc-KYGPWJEN.js",
-      "_Input-BZ2ppwXm.js"
-    ]
-  },
-  "_plugin-kit-DG_fDsAu.js": {
-    "file": "assets/plugin-kit-DG_fDsAu.js",
-    "name": "plugin-kit"
+  "_plugin-kit-ljnkL5gP.css": {
+    "file": "assets/plugin-kit-ljnkL5gP.css",
+    "src": "_plugin-kit-ljnkL5gP.css"
   },
   "_react-vendor-BTnlI8_O.js": {
     "file": "assets/react-vendor-BTnlI8_O.js",
@@ -476,98 +73,51 @@
       "_dndkit-Tbq_EQgB.js"
     ]
   },
-  "_registerFormieOwnedSchemaFields-DuD11Iu1.js": {
-    "file": "assets/registerFormieOwnedSchemaFields-DuD11Iu1.js",
+  "_registerFormieOwnedSchemaFields-Bxjn0Vr2.js": {
+    "file": "assets/registerFormieOwnedSchemaFields-Bxjn0Vr2.js",
     "name": "registerFormieOwnedSchemaFields",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_dist-D40hekI0.js",
-      "_dist-DvYzR_TC.js",
-      "_plugin-kit-DG_fDsAu.js",
-      "_Spinner-vI9AkEM1.js",
+      "_plugin-kit-O0hqY6DE.js",
       "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_Field-D1GCLJtF.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js",
-      "_Input-BZ2ppwXm.js",
-      "_Dialog-CTU6vMlg.js",
-      "_Separator-Dlt-WX0a.js",
-      "_SelectInput-Djb6HSzQ.js",
-      "_formie-browser-CWeoyiGH.js",
+      "_plugin-kit-core-DUhJEgnO.js",
       "_dist-B0-K5nhv.js"
-    ],
-    "dynamicImports": [
-      "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/TextField.js",
-      "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/TextareaField.js",
-      "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/NumberField.js",
-      "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/SelectField.js",
-      "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/LightswitchField.js",
-      "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/ColorField.js",
-      "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/RadioGroupField.js",
-      "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/CheckboxSelectField.js",
-      "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/AutocompleteField.js",
-      "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/ComboboxField.js",
-      "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/GroupField.js",
-      "../../../../../../../plugin-kit/plugin-kit/plugin-kit-react/dist/forms/fields/DateTimeField.js",
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js"
     ]
   },
   "_rolldown-runtime-hePW80VL.js": {
     "file": "assets/rolldown-runtime-hePW80VL.js",
     "name": "rolldown-runtime"
   },
-  "_scroll-lock-DE1pElMQ-CZNRN1HD.js": {
-    "file": "assets/scroll-lock-DE1pElMQ-CZNRN1HD.js",
-    "name": "scroll-lock-DE1pElMQ"
-  },
-  "_style-CEW3iP0N.js": {
-    "file": "assets/style-CEW3iP0N.js",
+  "_style-7tw9p-WM.js": {
+    "file": "assets/style-7tw9p-WM.js",
     "name": "style",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_Spinner-vI9AkEM1.js",
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
-      "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_Field-D1GCLJtF.js",
-      "_SelectInput-Djb6HSzQ.js"
+      "_plugin-kit-O0hqY6DE.js",
+      "_registerFormieOwnedSchemaFields-Bxjn0Vr2.js",
+      "_dndkit-Tbq_EQgB.js"
     ]
   },
-  "_style-FuJ6VsX4.js": {
-    "file": "assets/style-FuJ6VsX4.js",
+  "_style-BI8WRupR.js": {
+    "file": "assets/style-BI8WRupR.js",
     "name": "style",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
+      "_plugin-kit-O0hqY6DE.js",
       "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
       "_createUid-BtKO1cQV.js",
-      "_Input-BZ2ppwXm.js",
-      "_Lightswitch-_p85W6vh.js",
-      "_DropdownMenu-G8Pm7sYg.js",
-      "_DragHandle-Df7KdsOd.js"
+      "_utils-XK4Zzw47.js",
+      "_DragHandle-Bd6fEJWG.js"
     ]
   },
-  "_utils-DNebMgsC.css": {
-    "file": "assets/utils-DNebMgsC.css",
-    "src": "_utils-DNebMgsC.css"
-  },
-  "_utils-D_lXaCpY.js": {
-    "file": "assets/utils-D_lXaCpY.js",
+  "_utils-XK4Zzw47.js": {
+    "file": "assets/utils-XK4Zzw47.js",
     "name": "utils",
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
+      "_plugin-kit-O0hqY6DE.js",
       "_dndkit-Tbq_EQgB.js",
-      "_data-utils-BTqlV04N.js",
-      "_pk-state-panel-BTo2xiug-40Dks_zl.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js",
-      "_pk-alert-BQAb4lJc-KYGPWJEN.js",
-      "_react-vendor-BTnlI8_O.js",
-      "_formie-browser-CWeoyiGH.js"
-    ],
-    "css": [
-      "assets/utils-DNebMgsC.css"
+      "_react-vendor-BTnlI8_O.js"
     ]
   },
   "src/defaults/formie-defaults.js": {
@@ -577,24 +127,23 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_Spinner-vI9AkEM1.js",
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
+      "_plugin-kit-O0hqY6DE.js",
+      "_registerFormieOwnedSchemaFields-Bxjn0Vr2.js",
       "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_style-CEW3iP0N.js"
+      "_utils-XK4Zzw47.js",
+      "_style-7tw9p-WM.js"
     ]
   },
   "src/delivery/formie-delivery.js": {
-    "file": "assets/formie-delivery-DyKk0-t5.js",
+    "file": "assets/formie-delivery-BWFQTw59.js",
     "name": "formie-delivery",
     "src": "src/delivery/formie-delivery.js",
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
+      "_plugin-kit-O0hqY6DE.js",
       "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_Dialog-CTU6vMlg.js",
-      "_Textarea-BDb0Z_CV.js"
+      "_utils-XK4Zzw47.js"
     ]
   },
   "src/field-palette/formie-field-palette.js": {
@@ -604,41 +153,28 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
+      "_plugin-kit-O0hqY6DE.js",
       "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_style-FuJ6VsX4.js"
+      "_utils-XK4Zzw47.js",
+      "_style-BI8WRupR.js"
     ]
   },
   "src/form-builder/formie-form-builder.js": {
-    "file": "assets/formie-form-builder-DdFhfuGl.js",
+    "file": "assets/formie-form-builder-BVQfd8rl.js",
     "name": "formie-form-builder",
     "src": "src/form-builder/formie-form-builder.js",
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_Spinner-vI9AkEM1.js",
+      "_plugin-kit-O0hqY6DE.js",
       "src/tiptap/formie-tiptap.js",
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
+      "src/tiptap/formie-tiptap.js",
+      "_registerFormieOwnedSchemaFields-Bxjn0Vr2.js",
       "_dndkit-Tbq_EQgB.js",
-      "_data-utils-BTqlV04N.js",
-      "_utils-D_lXaCpY.js",
+      "_data-utils-n4oSH26Q.js",
       "_createUid-BtKO1cQV.js",
-      "_pk-state-panel-BTo2xiug-40Dks_zl.js",
-      "_Field-D1GCLJtF.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js",
-      "_pk-alert-BQAb4lJc-KYGPWJEN.js",
-      "_Checkbox-AyOdDdgb.js",
-      "_pk-dropdown-separator-febrInnt.js",
-      "_Input-BZ2ppwXm.js",
-      "_Dialog-CTU6vMlg.js",
-      "_Separator-Dlt-WX0a.js",
-      "_SelectInput-Djb6HSzQ.js",
-      "_pk-time-picker-DnNZVwRk-CmJmGx8H.js",
-      "_pk-color-input-Csbm4ROT-BDoX_IYN.js",
-      "_Lightswitch-_p85W6vh.js",
-      "_Textarea-BDb0Z_CV.js",
-      "_DropdownMenu-G8Pm7sYg.js",
+      "_plugin-kit-core-DUhJEgnO.js",
+      "_utils-XK4Zzw47.js",
       "_dist-B0-K5nhv.js"
     ]
   },
@@ -649,17 +185,12 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_Spinner-vI9AkEM1.js",
-      "_registerFormieOwnedSchemaFields-DuD11Iu1.js",
+      "_plugin-kit-O0hqY6DE.js",
+      "_registerFormieOwnedSchemaFields-Bxjn0Vr2.js",
       "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_Field-D1GCLJtF.js",
-      "_Input-BZ2ppwXm.js",
-      "_SelectInput-Djb6HSzQ.js",
-      "_CheckboxSelect-C_GjrdEp.js",
-      "_Lightswitch-_p85W6vh.js",
-      "_style-CEW3iP0N.js",
-      "_style-FuJ6VsX4.js"
+      "_utils-XK4Zzw47.js",
+      "_style-7tw9p-WM.js",
+      "_style-BI8WRupR.js"
     ]
   },
   "src/forms/js/formie-forms-index.js": {
@@ -669,37 +200,25 @@
     "isEntry": true
   },
   "src/integration-connect/formie-integration-connect.js": {
-    "file": "assets/formie-integration-connect-DjKGzelN.js",
+    "file": "assets/formie-integration-connect-xISMXEuy.js",
     "name": "formie-integration-connect",
     "src": "src/integration-connect/formie-integration-connect.js",
     "isEntry": true,
     "imports": [
-      "_pk-state-panel-BTo2xiug-40Dks_zl.js",
-      "_has-slot-DJv86HKx-D2K9y9lH.js",
-      "_lit-C7H9X-yg.js",
-      "_pk-alert-BQAb4lJc-KYGPWJEN.js",
-      "_pk-status-CdiRBRyh-B00V6K__.js",
-      "_pk-dialog-C7KZGpQs-CJVfZvKs.js",
-      "_alert-BwNPRifD.js"
-    ],
-    "css": [
-      "assets/formie-integration-connect-BIiGhR7K.css"
+      "_plugin-kit-O0hqY6DE.js"
     ]
   },
   "src/new-form/formie-new-form.js": {
-    "file": "assets/formie-new-form-DBQv25_k.js",
+    "file": "assets/formie-new-form-T8aaNBwz.js",
     "name": "formie-new-form",
     "src": "src/new-form/formie-new-form.js",
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
+      "_plugin-kit-O0hqY6DE.js",
       "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_pk-state-panel-BTo2xiug-40Dks_zl.js",
-      "_Field-D1GCLJtF.js",
-      "_Input-BZ2ppwXm.js",
-      "_Separator-Dlt-WX0a.js",
-      "_SelectInput-Djb6HSzQ.js"
+      "_plugin-kit-core-DUhJEgnO.js",
+      "_utils-XK4Zzw47.js"
     ]
   },
   "src/plugin-settings/js/formie-plugin-settings.js": {
@@ -718,20 +237,11 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-hePW80VL.js",
-      "_Spinner-vI9AkEM1.js",
+      "_plugin-kit-O0hqY6DE.js",
       "_dndkit-Tbq_EQgB.js",
-      "_utils-D_lXaCpY.js",
-      "_pk-state-panel-BTo2xiug-40Dks_zl.js",
-      "_Field-D1GCLJtF.js",
-      "_Checkbox-AyOdDdgb.js",
-      "_Input-BZ2ppwXm.js",
-      "_Dialog-CTU6vMlg.js",
-      "_SelectInput-Djb6HSzQ.js",
-      "_CheckboxSelect-C_GjrdEp.js",
-      "_TimePicker-Du0BrFSF.js",
-      "_Lightswitch-_p85W6vh.js",
-      "_DropdownMenu-G8Pm7sYg.js",
-      "_DragHandle-Df7KdsOd.js"
+      "_plugin-kit-core-DUhJEgnO.js",
+      "_utils-XK4Zzw47.js",
+      "_DragHandle-Bd6fEJWG.js"
     ]
   },
   "src/sent-notifications/js/formie-sent-notifications.js": {
@@ -739,6 +249,12 @@
     "name": "formie-sent-notifications",
     "src": "src/sent-notifications/js/formie-sent-notifications.js",
     "isEntry": true,
+    "imports": [
+      "_rolldown-runtime-hePW80VL.js",
+      "_plugin-kit-O0hqY6DE.js",
+      "_dndkit-Tbq_EQgB.js",
+      "_utils-XK4Zzw47.js"
+    ],
     "css": [
       "sent-notifications/css/formie-sent-notifications.css"
     ]
@@ -749,9 +265,12 @@
     "src": "src/submissions/js/formie-submissions.js",
     "isEntry": true,
     "imports": [
-      "_formie-browser-CWeoyiGH.js",
-      "_dist-B0-K5nhv.js",
-      "_alert-BwNPRifD.js"
+      "_rolldown-runtime-hePW80VL.js",
+      "_plugin-kit-O0hqY6DE.js",
+      "_dndkit-Tbq_EQgB.js",
+      "_utils-XK4Zzw47.js",
+      "_formie-browser-lEEtbOeI.js",
+      "_dist-B0-K5nhv.js"
     ],
     "css": [
       "submissions/css/formie-submissions.css"
@@ -763,9 +282,7 @@
     "src": "src/tiptap/formie-tiptap.js",
     "isEntry": true,
     "imports": [
-      "_rolldown-runtime-hePW80VL.js",
-      "_dist-D40hekI0.js",
-      "_dist-DvYzR_TC.js"
+      "_plugin-kit-O0hqY6DE.js"
     ]
   },
   "src/widgets/js/formie-widgets.js": {
