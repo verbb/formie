@@ -12,6 +12,7 @@
 - Fixed Pardot prospect email values being interpolated into API paths without encoding.
 - Fixed form duplication and form-builder metadata endpoints bypassing their corresponding permissions.
 - Fixed notification IDs being accepted when they belonged to another form.
+- Fixed submission bulk actions applying changes outside the current user's save permissions.
 
 ## 3.1.47 - 2026-10-09
 

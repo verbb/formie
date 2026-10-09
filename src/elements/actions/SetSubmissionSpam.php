@@ -30,7 +30,8 @@ class SetSubmissionSpam extends ElementAction
 
     public function getTriggerHtml(): ?string
     {
-        Craft::$app->getView()->registerJsWithVars(fn($type) => <<<JS
+        Craft::$app->getView()->registerJsWithVars(
+            fn($type) => <<<JS
 (() => {
     new Craft.ElementActionTrigger({
         type: $type + '-MarkAsNotSpam',
@@ -48,9 +49,10 @@ class SetSubmissionSpam extends ElementAction
     });
 })();
 JS,
-        [
+            [
             static::class,
-        ]);
+        ]
+        );
 
         $markSpam = Html::tag('li', Html::a(
             Html::tag('span', '', ['class' => ['status', 'off']])
@@ -63,7 +65,8 @@ JS,
             ],
         ));
 
-        $unmark = Html::tag('li', Html::tag('a',
+        $unmark = Html::tag('li', Html::tag(
+            'a',
             Html::tag('span', '', ['class' => ['status', 'on']])
             . ' ' . Html::encode(Craft::t('formie', 'Unmark as spam')),
             [
@@ -83,48 +86,53 @@ JS,
         /** @var Submission[] $elements */
         $elements = $query->all();
         $failCount = 0;
+        $user = Craft::$app->getUser()->getIdentity();
 
         foreach ($elements as $element) {
             // Unfortunately, we need to fetch the submission _again_ to ensure custom fields are grabbed. This is because we can't query
             // across multiple content tables from the "All Forms" option.
             $element = Submission::find()->uid($element->uid)->isSpam(null)->isIncomplete(null)->one();
 
-            if ($element) {
-                $element->isSpam = $this->spam === 'markSpam';
+            if (!$element || !$elementsService->canSave($element, $user)) {
+                $failCount++;
 
-                if ($elementsService->saveElement($element) === false) {
-                    Formie::error('Unable to set spam status: {error}', ['error' => Json::encode($element->getErrors())]);
+                continue;
+            }
 
-                    // Validation error
-                    $failCount++;
+            $element->isSpam = $this->spam === 'markSpam';
 
-                    continue;
-                }
+            if ($elementsService->saveElement($element) === false) {
+                Formie::error('Unable to set spam status: {error}', ['error' => Json::encode($element->getErrors())]);
 
-                // Check if we should trigger email notifications or integrations if this was spam
-                if ($this->sendNotifications) {
-                    Formie::$plugin->getSubmissions()->sendNotifications($element);
-                }
+                // Validation error
+                $failCount++;
 
-                if ($this->triggerIntegrations) {
-                    Formie::$plugin->getSubmissions()->triggerIntegrations($element);
-                }
+                continue;
+            }
+
+            // Check if we should trigger email notifications or integrations if this was spam
+            if ($this->sendNotifications) {
+                Formie::$plugin->getSubmissions()->sendNotifications($element);
+            }
+
+            if ($this->triggerIntegrations) {
+                Formie::$plugin->getSubmissions()->triggerIntegrations($element);
             }
         }
 
         // Did all of them fail?
         if ($failCount === count($elements)) {
             if (count($elements) === 1) {
-                $this->setMessage(Craft::t('app', 'Could not update spam state due to a validation error.'));
+                $this->setMessage(Craft::t('app', 'Could not update spam state.'));
             } else {
-                $this->setMessage(Craft::t('app', 'Could not update spam state due to validation errors.'));
+                $this->setMessage(Craft::t('app', 'Could not update spam state.'));
             }
 
             return false;
         }
 
         if ($failCount !== 0) {
-            $this->setMessage(Craft::t('app', 'Spam state updated, with some failures due to validation errors.'));
+            $this->setMessage(Craft::t('app', 'Spam state updated, with some failures.'));
         } else {
             $this->setMessage(Craft::t('app', 'Spam state updated.'));
         }

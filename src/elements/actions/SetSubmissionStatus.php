@@ -92,6 +92,7 @@ JS, [static::class]);
         /** @var Submission[] $elements */
         $elements = $query->all();
         $failCount = 0;
+        $user = Craft::$app->getUser()->getIdentity();
 
         $status = Formie::$plugin->getStatuses()->getStatusById($this->statusId);
 
@@ -100,32 +101,36 @@ JS, [static::class]);
             // across multiple content tables from the "All Forms" option.
             $element = Submission::find()->uid($element->uid)->isSpam(null)->isIncomplete(null)->one();
 
-            if ($element) {
-                $element->setStatus($status);
+            if (!$element || !$elementsService->canSave($element, $user)) {
+                $failCount++;
 
-                if ($elementsService->saveElement($element) === false) {
-                    Formie::error('Unable to set status: {error}', ['error' => Json::encode($element->getErrors())]);
+                continue;
+            }
 
-                    // Validation error
-                    $failCount++;
-                }
+            $element->setStatus($status);
+
+            if ($elementsService->saveElement($element) === false) {
+                Formie::error('Unable to set status: {error}', ['error' => Json::encode($element->getErrors())]);
+
+                // Validation error
+                $failCount++;
             }
         }
 
         // Did all of them fail?
         if ($failCount === count($elements)) {
             if (count($elements) === 1) {
-                $this->setMessage(Craft::t('app', 'Could not update status due to a validation error.'));
+                $this->setMessage(Craft::t('app', 'Could not update status.'));
             } else {
-                $this->setMessage(Craft::t('app', 'Could not update statuses due to validation errors.'));
+                $this->setMessage(Craft::t('app', 'Could not update statuses.'));
             }
 
             return false;
         }
 
         if ($failCount !== 0) {
-            $this->setMessage(Craft::t('app', 'Status updated, with some failures due to validation errors.'));
-        } else if (count($elements) === 1) {
+            $this->setMessage(Craft::t('app', 'Status updated, with some failures.'));
+        } elseif (count($elements) === 1) {
             $this->setMessage(Craft::t('app', 'Status updated.'));
         } else {
             $this->setMessage(Craft::t('app', 'Statuses updated.'));
