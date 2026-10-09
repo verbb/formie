@@ -10,6 +10,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed queued integration and notification jobs reporting an error when updating progress after delivery.
 - Fixed sent notifications being sorted oldest-first by default in the control panel.
 - Fixed editing saved submissions failing password confirmation and length validation against stored password hashes.
 - Fixed submission editing showing browser module errors for password rules and searchable dropdowns.

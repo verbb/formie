@@ -23,6 +23,9 @@ trait LegacyDeliveryJobTrait
 
     public function __unserialize(array $data): void
     {
+        // PHP skips __wakeup() when __unserialize() is defined.
+        parent::__wakeup();
+
         if (isset($data['deliveryAttemptUid'])) {
             $this->deliveryAttemptUid = (string)$data['deliveryAttemptUid'];
             return;
