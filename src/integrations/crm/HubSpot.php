@@ -149,9 +149,9 @@ class HubSpot extends Crm
 
                 if (is_array($event->value) && isset($event->value['FILE_UPLOAD_DATA'])) {
                     $fallbackValues = array_filter($event->value['FILE_UPLOAD_DATA']);
-                } else if (is_array($event->value)) {
+                } elseif (is_array($event->value)) {
                     $fallbackValues = array_filter($event->value);
-                } else if (is_string($event->value)) {
+                } elseif (is_string($event->value)) {
                     $fallbackValues = array_filter(array_map('trim', explode(',', $event->value)));
                 }
 
@@ -296,7 +296,7 @@ class HubSpot extends Crm
                 if ($this->mapToDeal) {
                     $dealPipelinesOptions = [];
                     $dealStageOptions = [];
-                    
+
                     $response = $this->request('GET', 'crm/v3/pipelines/deals');
                     $pipelines = $response['results'] ?? [];
 
@@ -712,7 +712,7 @@ class HubSpot extends Crm
         $this->context['hubspotutk'] = $_COOKIE['hubspotutk'] ?? null;
     }
 
-    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = null)
     {
         // When mapping to forms, the field settings will be an array of `IntegrationCollection` objects.
         // So we need to select the form's settings that we're mapping to and return just the field.
@@ -1027,7 +1027,7 @@ class HubSpot extends Crm
                     'label' => $formField['label'],
                     'group' => StringHelper::toTitleCase($formField['propertyObjectType']),
                 ]);
-                
+
                 // Ensure that we prefix items with their correct object group
                 // While we don't need this conditional technically, removing it means all form mappings would be gone
                 // due to HubSpot treating every field as a CONTACT field by default, but we haven't included that in mapping.

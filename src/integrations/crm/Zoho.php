@@ -40,11 +40,11 @@ class Zoho extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Zoho');
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     public bool|string $useDeveloper = false;
     public ?string $dataCenter = 'US';
     public bool $mapToContact = false;
@@ -106,7 +106,7 @@ class Zoho extends Crm implements OAuthProviderInterface
             'ZohoCRM.modules.ALL',
             'ZohoCRM.settings.ALL',
         ];
-        
+
         return $options;
     }
 
@@ -115,7 +115,7 @@ class Zoho extends Crm implements OAuthProviderInterface
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
-    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = null)
     {
         $fields = is_string($fieldSettings) ? $this->getFormSettingValue($fieldSettings) : $fieldSettings;
         $fieldValues = parent::getFieldMappingValues($submission, $fieldMapping, $fields);
@@ -314,7 +314,7 @@ class Zoho extends Crm implements OAuthProviderInterface
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
