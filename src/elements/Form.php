@@ -105,7 +105,7 @@ class Form extends Element
     {
         return Craft::createObject(FormCondition::class, [static::class]);
     }
-    
+
     public static function gqlTypeNameByContext(mixed $context): string
     {
         return $context->handle . '_Form';
@@ -333,7 +333,7 @@ class Form extends Element
 
         return parent::getScenario();
     }
-    
+
     public function canView(User $user): bool
     {
         return true;
@@ -359,7 +359,7 @@ class Form extends Element
 
     public function canDuplicate(User $user): bool
     {
-        return true;
+        return $user->can('formie-createForms');
     }
 
     public function getActionMenuItems(): array
@@ -1048,9 +1048,9 @@ class Form extends Element
         // Allow settings to statically set the redirect URL (from templates)
         if ($this->settings->redirectUrl) {
             $url = $this->settings->redirectUrl;
-        } else if ($this->settings->submitAction == 'entry' && $this->getRedirectEntry()) {
+        } elseif ($this->settings->submitAction == 'entry' && $this->getRedirectEntry()) {
             $url = $this->getRedirectEntry()->url;
-        } else if ($this->settings->submitAction == 'url' && $this->settings->submitActionUrl) {
+        } elseif ($this->settings->submitAction == 'url' && $this->settings->submitActionUrl) {
             // Submission placeholders are resolved after a submission exists.
             $url = $this->settings->submitActionUrl;
         }
@@ -1140,7 +1140,7 @@ class Form extends Element
     public function renderTemplate(array|string $components, array $variables = []): string
     {
         $view = Craft::$app->getView();
-        
+
         // Normalise the components to allow for a single component
         if (!is_array($components)) {
             $components = [$components];
@@ -1228,7 +1228,7 @@ class Form extends Element
         }
 
         if ($key === 'form') {
-            $defaultLabelPosition = new $this->settings->defaultLabelPosition;
+            $defaultLabelPosition = new $this->settings->defaultLabelPosition();
 
             return new HtmlTag('form', [
                 'id' => $this->getFormId(),
@@ -1426,7 +1426,7 @@ class Form extends Element
             $page = $context['page'] ?? null;
             $inputAttributes = $page->getPageSettings()->getInputAttributes() ?? [];
             $saveButtonStyle = $page->getPageSettings()->saveButtonStyle ?? 'link';
-            
+
             return new HtmlTag('button', [
                 'class' => [
                     'fui-btn fui-save',
@@ -1525,7 +1525,7 @@ class Form extends Element
         // If set for both, `setThemeConfig()` will merge.
         if ($templateConfig) {
             $this->setThemeConfig($templateConfig);
-        } else if ($pluginConfig) {
+        } elseif ($pluginConfig) {
             // Pass in an empty array, because we already merge in plugin settings config
             $this->setThemeConfig([]);
         }
@@ -1680,7 +1680,7 @@ class Form extends Element
     {
         // Deprecated, use `addSubmitData`
         Craft::$app->getDeprecator()->log(__METHOD__, 'The `addFrontEndJsEvents` method has been deprecated. Use the `addSubmitData` method instead.');
-        
+
         $this->addSubmitData($value);
     }
 
@@ -1735,7 +1735,7 @@ class Form extends Element
 
                 $allAttributes[$configKey] = Html::getTagAttributes($tag->attributes);
                 $allAttributes[$configKey]['class'] = implode(' ', $classes);
-            } else if ($fieldTag) {
+            } elseif ($fieldTag) {
                 $classes = $fieldTag->attributes['class'] ?? $fallback;
 
                 if (!is_array($classes)) {
@@ -1768,6 +1768,7 @@ class Form extends Element
     public function getFrontEndTemplateLocation(string $location)
     {
         $output = null;
+
         if ($location === 'outputCssLocation') {
             $output = FormTemplate::PAGE_HEADER;
         }
@@ -1837,7 +1838,7 @@ class Form extends Element
     public function setFieldSettings(string $handle, array $settings, bool $updateSnapshot = true): void
     {
         $field = null;
-        
+
         // Check for nested fields so we can use `group.dropdown` or `dropdown`.
         $handles = explode('.', $handle);
 
@@ -1868,7 +1869,7 @@ class Form extends Element
     {
         // Get the integration settings so we only override what we want
         $integrationSettings = $this->settings->integrations[$handle] ?? [];
-        
+
         // Update the integration settings
         $this->settings->integrations[$handle] = array_merge($integrationSettings, $settings);
 
@@ -1972,7 +1973,7 @@ class Form extends Element
         if ($this->settings->scheduleForm && $this->settings->scheduleFormStart) {
             return !DateTimeHelper::isInThePast($this->settings->scheduleFormStart);
         }
-        
+
         return false;
     }
 
@@ -1986,7 +1987,7 @@ class Form extends Element
         if ($this->settings->scheduleForm && $this->settings->scheduleFormEnd) {
             return DateTimeHelper::isInThePast($this->settings->scheduleFormEnd);
         }
-        
+
         return false;
     }
 
@@ -2021,18 +2022,18 @@ class Form extends Element
                 $endDate = DateTimeHelper::toDateTime(new DateTime('tomorrow'));
 
                 $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
-            } else if ($limitSubmissionsType === 'week') {
+            } elseif ($limitSubmissionsType === 'week') {
                 // PHP dates start on a Monday, but we assume to backtrack to Sunday
                 $startDate = DateTimeHelper::toDateTime(new DateTime('monday this week'))->modify('-1 day');
                 $endDate = DateTimeHelper::toDateTime(new DateTime('monday next week'))->modify('-1 day');
 
                 $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
-            } else if ($limitSubmissionsType === 'month') {
+            } elseif ($limitSubmissionsType === 'month') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('first day of this month'))->setTime(0, 0, 0);
                 $endDate = DateTimeHelper::toDateTime(new DateTime('first day of next month'))->setTime(0, 0, 0);
 
                 $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
-            } else if ($limitSubmissionsType === 'year') {
+            } elseif ($limitSubmissionsType === 'year') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('first day of January'))->setTime(0, 0, 0);
                 $endDate = DateTimeHelper::toDateTime(new DateTime('first day of January next year'))->setTime(0, 0, 0);
 
@@ -2045,7 +2046,7 @@ class Form extends Element
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -2057,7 +2058,7 @@ class Form extends Element
             ->from(Table::FORMIE_FORMS)
             ->column();
 
-        // Prepare the layout/pages/rows/fields by stripping out IDs and UIDs. 
+        // Prepare the layout/pages/rows/fields by stripping out IDs and UIDs.
         // Use `unserialize/serialize` instead of `clone()` to deeply clone objects.
         $formLayout = unserialize(serialize($this->getFormLayout()));
         $this->_clearLayoutIdentifiers($formLayout);
@@ -2305,10 +2306,10 @@ class Form extends Element
                 return null;
             }
         }
-        
+
         return UrlHelper::cpUrl("formie/forms/edit/{$this->id}");
     }
-    
+
 
     // Private Methods
     // =========================================================================

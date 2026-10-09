@@ -83,6 +83,16 @@ class Notifications extends Component
     {
         $isNewNotification = !(bool)$notification->id;
 
+        if ($notification->id) {
+            $existingRecord = NotificationRecord::findOne($notification->id);
+
+            if ($existingRecord && (int)$existingRecord->formId !== (int)$notification->formId) {
+                $notification->addError('id', Craft::t('formie', 'Notification does not belong to this form.'));
+
+                return false;
+            }
+        }
+
         // Fire a 'beforeSaveNotification' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_NOTIFICATION)) {
             $this->trigger(self::EVENT_BEFORE_SAVE_NOTIFICATION, new NotificationEvent([
@@ -425,7 +435,7 @@ class Notifications extends Component
         if ($user->checkPermission('formie-showNotificationsTemplates') || $user->checkPermission("formie-showNotificationsTemplates{$suffix}")) {
             $definedTabs[] = 'Templates';
         }
-        
+
         $definedTabs[] = 'Settings';
         $definedTabs[] = 'Preview';
         $definedTabs[] = 'Conditions';

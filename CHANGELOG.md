@@ -10,6 +10,8 @@
 - Fixed support requests disabling TLS certificate verification.
 - Fixed provider secrets being included in reCAPTCHA request URLs.
 - Fixed Pardot prospect email values being interpolated into API paths without encoding.
+- Fixed form duplication and form-builder metadata endpoints bypassing their corresponding permissions.
+- Fixed notification IDs being accepted when they belonged to another form.
 
 ## 3.1.47 - 2026-10-09
 

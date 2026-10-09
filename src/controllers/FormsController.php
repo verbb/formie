@@ -129,6 +129,8 @@ class FormsController extends Controller
         }
 
         if ($duplicate) {
+            $this->requirePermission('formie-createForms');
+
             $duplicatedForm = Craft::$app->getElements()->duplicateElement($form, $form->getDuplicateAttributes());
 
             if (!$duplicatedForm) {
