@@ -82,7 +82,19 @@ class Forms extends Component
             $user->checkPermission('formie-showFormIntegrations:' . $form->uid);
     }
 
-    public function buildFormFromPost(): Form
+    public function canManageFormNotifications(Form $form): bool
+    {
+        $user = Craft::$app->getUser();
+
+        if (!$form->id) {
+            return $user->checkPermission('formie-createNotifications');
+        }
+
+        return $user->checkPermission('formie-showNotifications') ||
+            $user->checkPermission('formie-showNotifications:' . $form->uid);
+    }
+
+    public function buildFormFromPost(bool $isStencil = false): Form
     {
         $request = Craft::$app->getRequest();
         $formId = $request->getParam('formId');
@@ -120,7 +132,9 @@ class Forms extends Component
         }
 
         $oldIntegrationSettings = $form->settings->integrations ?? [];
-        $canManageFormIntegrations = $this->canManageFormIntegrations($form);
+        $canManageFormIntegrations = $isStencil || $this->canManageFormIntegrations($form);
+        $canManageFormNotifications = $isStencil || $this->canManageFormNotifications($form);
+        $oldNotifications = !$canManageFormNotifications && $form->id ? $form->getNotifications() : [];
 
         // Merge in any new settings, while retaining existing ones. Important for users with permissions.
         if ($newSettings = $request->getParam('settings')) {
@@ -143,7 +157,9 @@ class Forms extends Component
         }
 
         // Set the notifications
-        $form->setNotifications(Formie::$plugin->getNotifications()->buildNotificationsFromPost());
+        if ($canManageFormNotifications) {
+            $form->setNotifications(Formie::$plugin->getNotifications()->buildNotificationsFromPost());
+        }
 
         // Set custom field values
         $form->setFieldValuesFromRequest('fields');
@@ -169,6 +185,10 @@ class Forms extends Component
             }
 
             $form->settings->setAttributes(['integrations' => $integrationSettings], false);
+
+            if (!$canManageFormNotifications) {
+                $form->setNotifications($oldNotifications);
+            }
         }
 
         return $form;
@@ -298,7 +318,7 @@ class Forms extends Component
                 $cacheKey = $info['id'] . '_' . $info['siteId'];
                 $elementId = $info['id'];
                 $siteId = $info['siteId'];
-                
+
                 if (isset($this->_cachedElements[$cacheKey])) {
                     $element = $this->_cachedElements[$cacheKey];
                 } else {
@@ -308,7 +328,7 @@ class Forms extends Component
 
                 // Use the combined field cache.
                 $fieldId = $info['fieldId'];
-                
+
                 if (isset($this->_cachedFields[$fieldId])) {
                     $field = $this->_cachedFields[$fieldId];
                 } else {
@@ -328,7 +348,7 @@ class Forms extends Component
                 $this->_handleNestedElement($element, $field, 0, $nestedElements);
 
                 // Sort descending by level and reassign levels.
-                usort($nestedElements, function ($a, $b) {
+                usort($nestedElements, function($a, $b) {
                     return $b['level'] <=> $a['level'];
                 });
 

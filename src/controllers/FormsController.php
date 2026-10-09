@@ -226,7 +226,7 @@ class FormsController extends Controller
         $stencil->data->dataRetentionValue = $this->request->getParam('dataRetentionValue', $stencil->data->dataRetentionValue);
 
         // Build temp form for validation.
-        $form = Formie::$plugin->getForms()->buildFormFromPost();
+        $form = Formie::$plugin->getForms()->buildFormFromPost(true);
 
         // Populate the stencil data with data prepped for the form
         $stencil->data->populateFormData($form);

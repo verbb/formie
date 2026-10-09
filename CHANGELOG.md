@@ -5,6 +5,7 @@
 ### Fixed
 - Fixed element integration mappings accepting unsupported query or element attributes.
 - Fixed element field option ordering accepting unsupported query expressions.
+- Fixed form notification settings accepting changes without the corresponding form-builder permission.
 
 ## 3.1.47 - 2026-10-09
 
