@@ -64,7 +64,7 @@ class SubmissionQuery extends ElementQuery
     {
         if ($value instanceof Form) {
             $this->formId = $value->id;
-        } else if ($value !== null) {
+        } elseif ($value !== null) {
             $this->formId = (new Query())
                 ->select(['forms.id'])
                 ->from(['forms' => Table::FORMIE_FORMS])
@@ -90,7 +90,7 @@ class SubmissionQuery extends ElementQuery
     {
         if ($value instanceof Status) {
             $this->statusId = $value->id;
-        } else if ($value !== null) {
+        } elseif ($value !== null) {
             $this->statusId = (new Query())
                 ->select(['id'])
                 ->from([Table::FORMIE_STATUSES])
@@ -118,7 +118,7 @@ class SubmissionQuery extends ElementQuery
     {
         if ($value instanceof User) {
             $this->userId = $value->id;
-        } else if ($value !== null) {
+        } elseif ($value !== null) {
             $user = Craft::$app->getUsers()->getUserByUsernameOrEmail($value);
             $this->userId = $user ? $user->id : false;
         } else {
@@ -134,7 +134,7 @@ class SubmissionQuery extends ElementQuery
 
         return $this;
     }
-    
+
     public function ipAddress($value): static
     {
         $this->ipAddress = $value;
@@ -214,6 +214,8 @@ class SubmissionQuery extends ElementQuery
         if ($this->formId) {
             $this->subQuery->andWhere(Db::parseParam('formie_submissions.formId', $this->formId));
         }
+
+        $this->_applyElementIndexPermissionScope();
 
         if ($this->statusId) {
             $this->subQuery->andWhere(Db::parseParam('formie_submissions.statusId', $this->statusId));
@@ -344,6 +346,31 @@ class SubmissionQuery extends ElementQuery
                 }
             }
         }
+    }
+
+    private function _applyElementIndexPermissionScope(): void
+    {
+        if (Craft::$app->getController()?->getUniqueId() !== 'element-indexes') {
+            return;
+        }
+
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if ($user?->can('formie-viewSubmissions')) {
+            return;
+        }
+
+        $allowedFormIds = [];
+
+        if ($user) {
+            foreach (Form::find()->all() as $form) {
+                if ($user->can("formie-viewSubmissions:$form->uid")) {
+                    $allowedFormIds[] = $form->id;
+                }
+            }
+        }
+
+        $this->subQuery->andWhere(['formie_submissions.formId' => $allowedFormIds]);
     }
 
     private function _resolveFormIds(): array
