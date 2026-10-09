@@ -209,6 +209,13 @@ class Notifications extends Component
     public function saveNotification(Notification $notification, bool $runValidation = true): bool
     {
         $isNewNotification = !(bool)$notification->id;
+        $notificationRecord = $this->_getNotificationRecord($notification->id);
+
+        if (!$notificationRecord->getIsNewRecord() && (int)$notificationRecord->formId !== (int)$notification->formId) {
+            $notification->addError('id', Craft::t('formie', 'Notification does not belong to this form.'));
+
+            return false;
+        }
 
         // Fire a 'beforeSaveNotification' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_NOTIFICATION)) {
@@ -227,7 +234,6 @@ class Notifications extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
 
         try {
-            $notificationRecord = $this->_getNotificationRecord($notification->id);
             $notificationRecord->formId = $notification->formId;
             $notificationRecord->templateId = $notification->templateId;
             $notificationRecord->pdfTemplateId = $notification->pdfTemplateId;
