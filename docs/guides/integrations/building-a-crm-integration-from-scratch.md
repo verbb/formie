@@ -74,6 +74,7 @@ use Craft;
 use craft\helpers\App;
 use GuzzleHttp\Client;
 use Throwable;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
@@ -90,9 +91,14 @@ class ExampleCrm extends Crm
     }
 
     public ?string $apiKey = null;
+
+    #[FormIntegrationSetting]
     public bool $mapToContact = false;
+    #[FormIntegrationSetting]
     public bool $mapToDeal = false;
+    #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+    #[FormIntegrationSetting]
     public ?array $dealFieldMapping = null;
 
     public function getDescription(): string
@@ -273,6 +279,8 @@ class ExampleCrm extends Crm
 }
 ```
 
+Mark each setting that belongs to an individual form with `#[FormIntegrationSetting]`. This lets Formie save and reload the mapping switches and field mappings for that form. Leave connection credentials such as `apiKey` unannotated; they belong to the shared integration connection.
+
 Every provider has different API requirements, so treat the method names and payload shapes as patterns to adapt — not copy-paste values.
 
 ### Integration Settings
@@ -435,6 +443,7 @@ namespace modules\formieintegration\integrations;
 
 use Craft;
 use Throwable;
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\integrations\crm\Salesforce;
@@ -443,7 +452,9 @@ use verbb\formie\models\IntegrationConfig;
 
 class SalesforceCustom extends Salesforce
 {
+    #[FormIntegrationSetting]
     public bool $mapToPipeline = false;
+    #[FormIntegrationSetting]
     public ?array $pipelineFieldMapping = null;
 
     public function defineRules(): array
