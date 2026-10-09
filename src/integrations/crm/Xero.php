@@ -8,6 +8,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
@@ -194,7 +195,8 @@ class Xero extends Crm implements OAuthProviderInterface
 
                 // Assign to group if selected
                 if ($contactGroupId) {
-                    $this->request('PUT', "api.xro/2.0/ContactGroups/{$contactGroupId}/Contacts", [
+                    $contactGroupSegment = StringHelper::encodePathSegment($contactGroupId);
+                    $this->request('PUT', "api.xro/2.0/ContactGroups/{$contactGroupSegment}/Contacts", [
                         'json' => [
                             'Contacts' => [['ContactID' => $contactId]],
                         ],

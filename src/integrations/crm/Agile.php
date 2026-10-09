@@ -9,6 +9,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
@@ -374,7 +375,8 @@ class Agile extends Crm
                 ]);
 
                 // Check to see if this contact already exists, and update
-                $response = $this->request('GET', "contacts/search/email/{$email}");
+                $emailSegment = StringHelper::encodePathSegment($email);
+                $response = $this->request('GET', "contacts/search/email/{$emailSegment}");
                 $existingContact = $response['id'] ?? '';
 
                 if ($existingContact) {

@@ -10,6 +10,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\DotdigitalAddressBooksEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
@@ -286,7 +287,8 @@ class Dotdigital extends Crm
                         'email' => $email,
                     ];
 
-                    $response = $this->deliverPayload($submission, "address-books/{$addressBook}/contacts", $addressBookPayload);
+                    $addressBookSegment = StringHelper::encodePathSegment($addressBook);
+                    $response = $this->deliverPayload($submission, "address-books/{$addressBookSegment}/contacts", $addressBookPayload);
 
                     if ($response === false) {
                         return $this->resultForPayload(true);

@@ -14,6 +14,7 @@ use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
@@ -449,23 +450,25 @@ class Pardot extends Crm implements OAuthProviderInterface
                 $listId = ArrayHelper::remove($prospectValues, 'list_id');
 
                 $prospectPayload = $this->_prepPayload($prospectValues);
+                $emailSegment = StringHelper::encodePathSegment($prospectPayload['email']);
 
                 // It'd be great to use `upsert/email/{email}` but that always creates a new prospect - useless!!
                 // https://developer.salesforce.com/docs/marketing/pardot/guide/prospects-v4.html#prospect-upsert
                 // Even more annoying it throws an error if the email wasn't found...
                 try {
-                    $response = $this->request('GET', "prospect/version/4/do/read/email/{$prospectPayload['email']}");
+                    $response = $this->request('GET', "prospect/version/4/do/read/email/{$emailSegment}");
 
                     // This can either be a single prospect, or multiple prospects
                     $prospectId = $response['prospect']['id'] ?? $response['prospect'][0]['id'] ?? '';
 
                     if ($prospectId) {
-                        $response = $this->deliverPayload($submission, "prospect/version/4/do/update/id/{$prospectId}", $prospectPayload, 'POST', 'form_params');
+                        $prospectIdSegment = StringHelper::encodePathSegment($prospectId);
+                        $response = $this->deliverPayload($submission, "prospect/version/4/do/update/id/{$prospectIdSegment}", $prospectPayload, 'POST', 'form_params');
                     } else {
-                        $response = $this->deliverPayload($submission, "prospect/version/4/do/create/{$prospectPayload['email']}", $prospectPayload, 'POST', 'form_params');
+                        $response = $this->deliverPayload($submission, "prospect/version/4/do/create/{$emailSegment}", $prospectPayload, 'POST', 'form_params');
                     }
                 } catch (Throwable $e) {
-                    $response = $this->deliverPayload($submission, "prospect/version/4/do/create/{$prospectPayload['email']}", $prospectPayload, 'POST', 'form_params');
+                    $response = $this->deliverPayload($submission, "prospect/version/4/do/create/{$emailSegment}", $prospectPayload, 'POST', 'form_params');
                 }
 
                 if ($response === false) {
@@ -492,7 +495,9 @@ class Pardot extends Crm implements OAuthProviderInterface
                 // If there was a segmented list to add the prospect to...
                 if ($listId) {
                     try {
-                        $this->deliverPayload($submission, "listMembership/version/4/do/create/list_id/{$listId}/{$prospectId}", [
+                        $listIdSegment = StringHelper::encodePathSegment($listId);
+                        $prospectIdSegment = StringHelper::encodePathSegment($prospectId);
+                        $this->deliverPayload($submission, "listMembership/version/4/do/create/list_id/{$listIdSegment}/{$prospectIdSegment}", [
                             'list_id' => $listId,
                             'prospect_id' => $prospectId,
                         ], 'POST', 'form_params');

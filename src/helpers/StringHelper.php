@@ -102,6 +102,17 @@ class StringHelper extends CraftStringHelper
         return parse_url($decodedUrl) === false ? '' : $cleanUrl;
     }
 
+    public static function encodePathSegment(mixed $value): string
+    {
+        $segment = rawurlencode((string)$value);
+
+        return match ($segment) {
+            '.' => '%2E',
+            '..' => '%2E%2E',
+            default => $segment,
+        };
+    }
+
     public static function normalizePlainText(string $string): string
     {
         $string = self::convertToUtf8($string);

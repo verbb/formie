@@ -12,6 +12,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed mapped provider identifiers altering CRM request paths.
 - Fixed notification editors attaching assets they were not permitted to view.
 - Fixed form integration settings resolving environment variables outside the configured allowlist.
 - Fixed element field option ordering accepting undeclared query expressions.
