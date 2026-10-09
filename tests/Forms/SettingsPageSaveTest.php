@@ -6,16 +6,20 @@ use craft\elements\User;
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\controllers\SettingsController;
 use verbb\formie\Formie;
+use verbb\formie\services\Permissions;
 use yii\web\ForbiddenHttpException;
 
-it('returns the correct access decision for integration settings actions', function (bool $allowed): void {
+it('returns the correct access decision for integration settings actions', function(bool $allowed): void {
     $name = 'integrationSettings' . bin2hex(random_bytes(6));
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
     $grants = ['accessCp', 'accessPlugin-formie'];
-    if ($allowed) { $grants[] = Formie::$plugin->getPermissions()->settingsPagePermissionKey('spam-protection'); }
+
+    if ($allowed) {
+        $grants[] = Formie::$plugin->getPermissions()->settingsPagePermissionKey('spam-protection');
+    }
     expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, $grants))->toBeTrue();
-    WebRequestTestHelper::withWebRequestContext(function () use ($user, $allowed): void {
+    WebRequestTestHelper::withWebRequestContext(function() use ($user, $allowed): void {
         $request = new \craft\web\Request([
             'pathInfo' => 'formie/integration-settings/save-captchas',
             'isCpRequest' => true, 'isConsoleRequest' => false, 'cookieValidationKey' => 'integration-settings-test',
@@ -25,6 +29,7 @@ it('returns the correct access decision for integration settings actions', funct
         $request->setBodyParams([$request->csrfParam => $request->getCsrfToken()]);
         $controller = new \verbb\formie\controllers\IntegrationSettingsController('integration-settings', Formie::$plugin);
         $action = new \yii\base\Action('save-captchas', $controller);
+
         if ($allowed) {
             expect($controller->beforeAction($action))->toBeTrue();
         } else {
@@ -33,7 +38,48 @@ it('returns the correct access decision for integration settings actions', funct
     }, ['method' => 'POST']);
 })->with(['permitted' => true, 'denied' => false]);
 
-it('limits settings saves to the authorized page', function (array $settings, bool $allowed, bool $allSettings = false): void {
+it('authorizes integration settings from the resolved action rather than the request path', function(
+    string $actionId,
+    string $pathInfo,
+    string $grantedPermission
+): void {
+    $name = 'integrationActionAcl' . bin2hex(random_bytes(6));
+    $user = new User(['username' => $name, 'email' => $name . '@example.test']);
+    expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+        'accessCp',
+        'accessPlugin-formie',
+        $grantedPermission,
+    ]))->toBeTrue();
+
+    WebRequestTestHelper::withWebRequestContext(function() use ($user, $actionId, $pathInfo): void {
+        $request = new \craft\web\Request([
+            'pathInfo' => $pathInfo,
+            'isCpRequest' => true,
+            'isConsoleRequest' => false,
+            'cookieValidationKey' => 'integration-action-acl-test',
+        ]);
+        Craft::$app->set('request', $request);
+        Craft::$app->getUser()->setIdentity(User::find()->id($user->id)->status(null)->one());
+        $controller = new \verbb\formie\controllers\IntegrationSettingsController('integration-settings', Formie::$plugin);
+        $action = new \yii\base\Action($actionId, $controller);
+
+        expect(fn() => $controller->beforeAction($action))->toThrow(ForbiddenHttpException::class);
+    });
+})->with([
+    'integration action disguised as captcha route' => [
+        'edit-crm',
+        'formie/integration-settings/save-captchas',
+        Formie::$plugin->getPermissions()->settingsPagePermissionKey('spam-protection'),
+    ],
+    'captcha action disguised as integration route' => [
+        'save-captchas',
+        'formie/integrations/crm/edit',
+        Permissions::PERM_ACCESS_INTEGRATIONS,
+    ],
+]);
+
+it('limits settings saves to the authorized page', function(array $settings, bool $allowed, bool $allSettings = false): void {
     $name = 'settings' . bin2hex(random_bytes(8));
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
@@ -44,8 +90,9 @@ it('limits settings saves to the authorized page', function (array $settings, bo
     $projectConfig = Craft::$app->getProjectConfig();
     $original = Formie::$plugin->getSettings()->toArray();
     $originalConfig = $projectConfig->get('plugins.formie.settings');
+
     try {
-        WebRequestTestHelper::withWebRequestContext(function () use ($user, $settings, $allowed, $projectConfig, $originalConfig): void {
+        WebRequestTestHelper::withWebRequestContext(function() use ($user, $settings, $allowed, $projectConfig, $originalConfig): void {
             Craft::$app->set('projectConfig', $projectConfig);
             $request = new \craft\web\Request([
                 'pathInfo' => 'formie/settings/save-settings',
@@ -63,12 +110,14 @@ it('limits settings saves to the authorized page', function (array $settings, bo
                 'settings' => $settings,
             ]);
             $denied = false;
+
             try {
                 (new SettingsController('settings', Formie::$plugin))->runAction('save-settings');
             } catch (ForbiddenHttpException) {
                 $denied = true;
             }
             expect($denied)->toBe(!$allowed);
+
             if ($allowed) {
                 expect($projectConfig->get('plugins.formie.settings.ajaxTimeout'))->toBe(12345);
             } else {
@@ -86,13 +135,13 @@ it('limits settings saves to the authorized page', function (array $settings, bo
     'existing all-settings role' => [['ajaxTimeout' => 12345, 'maxIncompleteSubmissionAge' => 60], true, true],
 ]);
 
-it('authorizes direct settings actions by their controller', function (string $controllerClass, string $controllerId, string $page): void {
+it('authorizes direct settings actions by their controller', function(string $controllerClass, string $controllerId, string $page): void {
     $name = 'settingsAction' . bin2hex(random_bytes(8));
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
     $permission = Formie::$plugin->getPermissions()->settingsPagePermissionKey($page);
     expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, ['accessCp', 'accessPlugin-formie', $permission]))->toBeTrue();
-    WebRequestTestHelper::withWebRequestContext(function ($request) use ($user, $controllerClass, $controllerId, $page): void {
+    WebRequestTestHelper::withWebRequestContext(function($request) use ($user, $controllerClass, $controllerId, $page): void {
         Craft::$app->getUser()->setIdentity(User::find()->id($user->id)->status(null)->one());
         $request->setIsCpRequest(true);
         $request->setBodyParams([$request->csrfParam => $request->getCsrfToken()]);
@@ -109,17 +158,18 @@ it('authorizes direct settings actions by their controller', function (string $c
     [\verbb\formie\controllers\ScheduledReportsController::class, 'scheduled-reports', 'scheduled-reports'],
 ]);
 
-it('routes the settings landing page to the first permitted page', function (bool $allowForms): void {
+it('routes the settings landing page to the first permitted page', function(bool $allowForms): void {
     $name = 'settingsLanding' . bin2hex(random_bytes(8));
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
     expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
         'accessCp', 'accessPlugin-formie', ...($allowForms ? ['formie-settingsForms'] : []),
     ]))->toBeTrue();
-    WebRequestTestHelper::withWebRequestContext(function ($request) use ($user, $allowForms): void {
+    WebRequestTestHelper::withWebRequestContext(function($request) use ($user, $allowForms): void {
         $request->setIsCpRequest(true);
         Craft::$app->getUser()->setIdentity(User::find()->id($user->id)->status(null)->one());
         $controller = new SettingsController('settings', Formie::$plugin);
+
         if ($allowForms) {
             $response = $controller->runAction('index');
             expect($response->statusCode)->toBe(302)

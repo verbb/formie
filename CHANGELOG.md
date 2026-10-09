@@ -12,6 +12,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed integration settings permissions being selected from spoofable request paths.
 - Fixed unsafe form import values being rendered as control panel markup.
 - Fixed import completion pages exposing forms the current user could not view.
 - Fixed element integrations accepting mapped attributes that were not declared by their destination schema.

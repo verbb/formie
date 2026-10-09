@@ -29,7 +29,7 @@ class IntegrationSettingsController extends Controller
             return false;
         }
 
-        $this->_enforceAccessPermission();
+        $this->_enforceAccessPermission($action->id);
 
         return true;
     }
@@ -266,61 +266,19 @@ class IntegrationSettingsController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function _enforceAccessPermission(): void
+    private function _enforceAccessPermission(string $actionId): void
     {
-        $request = Craft::$app->getRequest();
         $permissions = Formie::$plugin->getPermissions();
         $user = Craft::$app->getUser()->getIdentity();
 
-        if ($request->getSegment(2) === 'integrations') {
-            $this->requirePermission(Permissions::PERM_ACCESS_INTEGRATIONS);
-
-            return;
-        }
-
-        if ($request->getSegment(2) === 'integration-settings') {
-            $section = $request->getSegment(3);
-
-            if ($section === 'save-captchas') {
-                $section = 'spam-protection';
-            }
-
-            if (in_array($section, ['spam', 'captchas'], true)) {
-                $section = 'spam-protection';
-            }
-
-            if (!$permissions->canAccessSettingsPage($user, $section ?? 'spam-protection')) {
+        if (in_array($actionId, ['captcha-index', 'save-captchas'], true)) {
+            if (!$permissions->canAccessSettingsPage($user, 'spam-protection')) {
                 throw new ForbiddenHttpException('User is not permitted to perform this action');
             }
 
             return;
         }
 
-        $section = $request->getSegment(3) ?: 'general';
-        $legacyIntegrationSections = [
-            'address-providers',
-            'elements',
-            'email-marketing',
-            'crm',
-            'help-desk',
-            'messaging',
-            'payments',
-            'automations',
-            'miscellaneous',
-        ];
-
-        if (in_array($section, ['spam', 'captchas'], true)) {
-            $section = 'spam-protection';
-        }
-
-        if (in_array($section, $legacyIntegrationSections, true)) {
-            $this->requirePermission(Permissions::PERM_ACCESS_INTEGRATIONS);
-
-            return;
-        }
-
-        if (!$permissions->canAccessSettingsPage($user, $section)) {
-            throw new ForbiddenHttpException('User is not permitted to perform this action');
-        }
+        $this->requirePermission(Permissions::PERM_ACCESS_INTEGRATIONS);
     }
 }
