@@ -1681,7 +1681,7 @@ A direct fixed child reference is valid. A direct repeater-child reference needs
 
 Back up the database, finish pending integration and notification jobs, and retain the Formie security key before upgrading. The upgrade encrypts literal persisted connection and per-form secrets. Environment references remain portable. Formie 3 providers returning `bool` or `IntegrationResponse` remain callable through a compatibility adapter. A `false` result is a non-retryable failure unless the provider supplies more precise evidence through a guarded request. Update providers to return `IntegrationResult` and wrap each remote write in a named child operation; see [Custom Integrations](/developers/custom-integration/overview#results-and-safe-retries).
 
-After upgrading, use Submission Delivery History to inspect delivery attempts and reconcile uncertain results before retrying. Downgrading requires the matching pre-upgrade database and code backup.
+After upgrading, use **Formie delivery diagnostics** on failed Formie jobs in **Utilities → Queue Manager** to inspect retained delivery evidence and reconcile uncertain results before retrying. Downgrading requires the matching pre-upgrade database and code backup.
 
 ## Browser module declarations
 

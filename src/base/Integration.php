@@ -1318,7 +1318,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function beforeSendPayload(Submission $submission, string &$endpoint, mixed &$payload, string &$method, string $contentType = 'json'): bool
     {
-        // If in the context of a queue. save the payload for debugging
+        // Record request evidence against the durable delivery attempt, when present.
         $this->populateQueueJobContext($submission, $endpoint, $payload, $method, $contentType);
 
         $event = new SendIntegrationPayloadEvent([

@@ -88,7 +88,7 @@ it('preserves legacy queue locators without restoring their debug payloads', fun
     expect(serialize(unserialize($serialized)))->toBe($serialized);
 });
 
-it('denies reconciliation and sensitive export without authority', function () {
+it('denies reconciliation without authority', function () {
     $form = formie()->form()->singleLineTextField('name')->create();
     $submission = formie()->submission($form)->save();
     $attempts = Formie::$plugin->getDeliveryAttempts();
@@ -98,7 +98,6 @@ it('denies reconciliation and sensitive export without authority', function () {
     Craft::$app->getUser()->setIdentity(null);
     try {
         expect(fn() => $attempts->reconcile($uid, IntegrationResult::succeeded(), 'Confirmed externally'))->toThrow(RuntimeException::class);
-        expect(fn() => $attempts->sensitiveEvidence($uid))->toThrow(RuntimeException::class);
     } finally { Craft::$app->getUser()->setIdentity($identity); }
     expect($attempts->get($uid)['status'])->toBe('unknown');
 });

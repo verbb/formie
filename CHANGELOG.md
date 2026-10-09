@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Changed
+- Simplified delivery diagnostics with a wider modal, plain-language status, tabbed evidence (including queued integration operations), and prominent submission and export actions.
 - Updated the default danger theme colors to use Tailwind's Rose palette.
 - Updated the default success theme colors to use Tailwind's Emerald palette.
 - Added themeable borders to success and error form messages.
@@ -13,6 +14,8 @@
 - Fixed queued integration and notification jobs reporting an error when updating progress after delivery.
 - Fixed `initJs: false` being ignored when rendering forms, allowing automatic startup to duplicate custom JavaScript initialization.
 - Fixed sent notifications being sorted oldest-first by default in the control panel.
+- Fixed delivery diagnostics appearing on submission edit pages and moved the diagnostic action to the far-right of the failed Formie queue job toolbar.
+- Fixed code-block copy controls obscuring scrollbars in delivery diagnostics.
 - Fixed editing saved submissions failing password confirmation and length validation against stored password hashes.
 - Fixed submission editing showing browser module errors for password rules and searchable dropdowns.
 - Fixed submission editing offering a nonfunctional “Save as draft” action.

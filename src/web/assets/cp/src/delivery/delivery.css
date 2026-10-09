@@ -1,0 +1,75 @@
+.formie-delivery-diagnostics-dialog::part(body) {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.formie-delivery-diagnostics-layout {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    width: 100%;
+}
+
+.formie-delivery-diagnostics-header {
+    flex: none;
+}
+
+.formie-delivery-diagnostics-tabs {
+    flex: 1 1 0%;
+    height: auto;
+    min-height: 0;
+}
+
+.formie-delivery-json-block {
+    overflow: hidden;
+    background: var(--gray-050);
+    border-radius: 6px;
+}
+
+.formie-delivery-json-block-scroll {
+    position: relative;
+    max-height: 16rem;
+    overflow: auto;
+}
+
+.formie-delivery-json-block-copy-overlay {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    display: flex;
+    justify-content: flex-end;
+    height: 0;
+    pointer-events: none;
+}
+
+.formie-delivery-json-block-copy {
+    flex: none;
+    margin-block-start: 6px;
+    margin-inline-end: 6px;
+    pointer-events: auto;
+    --pk-btn-height-default: 1.75rem;
+    --pk-btn-icon-size-default: 0.75rem;
+    --pk-btn-radius-default: var(--pk-radius-md);
+    --pk-copy-button-background: var(--gray-050);
+    --pk-copy-button-border-color: transparent;
+    --pk-copy-button-hover-border-color: transparent;
+    --pk-copy-button-color: var(--gray-400);
+    --pk-copy-button-hover-color: var(--gray-700);
+    --pk-copy-button-hover-background: var(--gray-100);
+}
+
+.formie-delivery-json-block-content {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    padding: 12px;
+    padding-inline-end: calc(12px + 1.75rem + 6px);
+    overflow-wrap: anywhere;
+    font-family: var(--font-monospace);
+    font-size: 12px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+}

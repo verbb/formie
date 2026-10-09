@@ -371,25 +371,6 @@ class DeliveryAttempts extends Component
         return $row;
     }
 
-    public function sensitiveEvidence(string $uid): array
-    {
-        if (!Craft::$app->getUser()->checkPermission('formie-exportSensitiveDeliveryEvidence')) {
-            throw new RuntimeException('Sensitive evidence permission is required.');
-        }
-        $row = $this->get($uid);
-        $this->checkpoint($uid, 'sensitive-export', ['actorId' => Craft::$app->getUser()->getId()]);
-        $attempt = $row;
-        unset($attempt['response'], $attempt['payloadHash'], $attempt['requestKey'], $attempt['identity']);
-        $attempt['data'] = $row['data'] ? DeliveryDiagnostics::redactComplete($this->_decrypt($row['data'])) : null;
-        $attempt['result'] = $row['result'] ? Json::decode($row['result']) : null;
-
-        return [
-            'uid' => $uid,
-            'attempt' => $attempt,
-            'checkpoints' => $this->_evidenceCheckpoints((int)$row['id'], 200),
-        ];
-    }
-
     public function reconcile(string $uid, IntegrationResult $result, string $reason): void
     {
         if (!Craft::$app->getUser()->checkPermission('formie-reconcileDeliveries') || trim($reason) === '') {

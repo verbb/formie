@@ -33,7 +33,7 @@ For the registration example, put the User integration in the synchronous lane a
 
 ## Results and Recovery
 
-Open **Submission Delivery History** on the submission to see what ran and whether it finished.
+For a failed queued delivery, open **Utilities → Queue Manager**, select the failed Formie job and choose **Formie delivery diagnostics** to see what ran and whether it finished.
 
 | Result | Meaning | What to Do |
 | --- | --- | --- |
@@ -61,9 +61,9 @@ A force run can override conditions and opt-in. It requires additional permissio
 
 ## Queue Diagnostics
 
-Craft's queue detail screen includes **Formie delivery diagnostics** for supported Formie jobs. It shows an overview, delivery timeline, grouped mapped values, provider requests and responses, errors, and child operations. If the link is unavailable, open **Submission Delivery History** instead.
+Craft's queue detail screen includes **Formie delivery diagnostics** for failed Formie jobs with retained attempt data. It shows a plain-language delivery status, a delivery timeline, and tabbed evidence for errors, provider requests and responses, submission data, and other recorded activity.
 
-Copy the value-free diagnostic summary for an initial support request. Download the full redacted bundle when support needs mapped values or provider evidence; credentials are removed, but the bundle can still contain personal submission data. Viewing diagnostics requires access to both diagnostics and the form's submissions. Both downloads require acknowledgement of that personal data. Exporting sensitive evidence additionally requires a separate permission; treat those downloads as private customer data.
+Use **Export** to download the redacted support bundle when requesting support. Credentials are removed, but the bundle can still contain mapped submission values, provider evidence, child-operation details, and other personal data. Viewing diagnostics requires access to both diagnostics and the form's submissions.
 
 Evidence records the stored and normalized submission values used at delivery time. Notification evidence includes the rendered subject, HTML and text, addressing, headers and attachment names before the mail transport runs. Error evidence includes the exception chain and stack locations without function arguments. Support does not need to reconstruct these details from a submission or notification that may have changed since delivery. Large checkpoints and export limits are marked explicitly when truncated; attachment binaries are not included.
 

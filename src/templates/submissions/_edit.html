@@ -60,10 +60,6 @@
 
 {% block content %}
 
-{% if submission.id and currentUser.can('formie-viewDeliveryDiagnostics') %}
-    <div class="formie-delivery-history" data-submission-id="{{ submission.id }}"></div>
-{% endif %}
-
 {# Snapshot for client conditions that use `{submission:*}` (status, title, …). #}
 {% set attributes = {
     id: form.getRenderId(),

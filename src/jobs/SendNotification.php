@@ -59,7 +59,7 @@ class SendNotification extends BaseJob implements DeliveryJobInterface
             $response = Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission, new self(['deliveryAttemptUid' => $uid]), $row['executionUid']);
 
             if ($response !== true && !($response['success'] ?? false)) {
-                throw new RuntimeException('Notification delivery ' . ($response['status'] ?? 'failed') . '. Open Formie delivery diagnostics.');
+                throw new RuntimeException('Notification delivery ' . ($response['status'] ?? 'failed') . '. Open the Diagnostics panel for more information.');
             }
             $this->setProgress($queue, 1);
         } finally {

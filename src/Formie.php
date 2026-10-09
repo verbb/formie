@@ -683,7 +683,7 @@ class Formie extends Plugin
         // Fix lack of support for submission-specific fields to index
         Event::on(Search::class, Search::EVENT_BEFORE_INDEX_KEYWORDS, [$this->getSubmissions(), 'beforeIndexKeywords']);
 
-        // Add additional error information to queue jobs when there's an error
+        // Record queue failures in the separate delivery diagnostics store.
         Event::on(Queue::class, Queue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
             if ($event->error && $event->job instanceof DebuggableJobInterface) {
                 $event->job->onError($event);
