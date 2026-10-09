@@ -73,12 +73,20 @@ class Notifications extends Component
     /**
      * Returns a form notification by its ID.
      *
+     * Query directly so long-running queue workers do not reuse notification settings cached by an earlier job.
+     *
      * @param int $id
      * @return Notification|null
      */
     public function getNotificationById(int $id): ?Notification
     {
-        return $this->_notifications()->firstWhere('id', $id);
+        $result = $this->_createNotificationsQuery()->where(['id' => $id])->one();
+
+        if (!$result) {
+            return null;
+        }
+
+        return new Notification($result);
     }
 
     public function getFormNotificationByHandle(Form $form, string $handle): ?Notification
@@ -155,6 +163,8 @@ class Notifications extends Component
             $notification->id = $notificationRecord->id;
             $notification->to = $notificationRecord->to;
 
+            $this->_notifications = null;
+
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
@@ -209,6 +219,8 @@ class Notifications extends Component
         Db::delete('{{%formie_notifications}}', [
             'uid' => $notification->uid,
         ]);
+
+        $this->_notifications = null;
 
         // Fire a 'afterDeleteNotification' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_NOTIFICATION)) {
