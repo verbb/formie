@@ -30,7 +30,7 @@ final readonly class ReferenceContext
         $system = [];
 
         foreach (['name' => 'fromName', 'email' => 'fromEmail', 'replyTo' => 'replyToEmail'] as $name => $attribute) {
-            $system[$name] = $overrides[$attribute] ?? $mail->$attribute;
+            $system[$name] = App::parseEnv($overrides[$attribute] ?? $mail->$attribute);
         }
         $dispatch = [];
 

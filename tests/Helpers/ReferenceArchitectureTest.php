@@ -7,6 +7,40 @@ use verbb\formie\references\ReferenceException;
 use verbb\formie\references\ReferenceOutputContext;
 use verbb\formie\references\ReferenceParser;
 
+it('resolves trusted system mail aliases without expanding submitted values', function() {
+    $form = formie()->form()->singleLineTextField('value')->create();
+    $submission = formie()->submission($form)->with(['value' => '$FORMIE_REFERENCE_SYSTEM_EMAIL'])->save();
+    $projectConfig = Craft::$app->getProjectConfig();
+    $workingConfigProperty = new ReflectionProperty($projectConfig, '_currentWorkingConfig');
+    $originalWorkingConfig = $workingConfigProperty->getValue($projectConfig);
+    $config = $projectConfig->get();
+    $config['email']['fromEmail'] = '$FORMIE_REFERENCE_SYSTEM_EMAIL';
+    $config['email']['replyToEmail'] = '$FORMIE_REFERENCE_SYSTEM_REPLY_TO';
+    $config['email']['fromName'] = '$FORMIE_REFERENCE_SYSTEM_NAME';
+    $config['email']['siteOverrides'] = [];
+    $_SERVER['FORMIE_REFERENCE_SYSTEM_EMAIL'] = 'notifications@example.test';
+    $_SERVER['FORMIE_REFERENCE_SYSTEM_REPLY_TO'] = 'replies@example.test';
+    $_SERVER['FORMIE_REFERENCE_SYSTEM_NAME'] = 'Formie Test';
+
+    try {
+        $workingConfigProperty->setValue($projectConfig, new craft\models\ProjectConfigData($config, $projectConfig));
+        $context = ReferenceContext::forSubmission($submission);
+        $fieldToken = References::field((string)$form->getFieldByHandle('value')->reference);
+
+        expect(References::resolveValue('{system:email}', $context)->requireValue())->toBe('notifications@example.test')
+            ->and(References::resolveValue('{system:replyTo}', $context)->requireValue())->toBe('replies@example.test')
+            ->and(References::resolveValue('{system:name}', $context)->requireValue())->toBe('Formie Test')
+            ->and(References::resolveValue($fieldToken, $context)->requireValue())->toBe('$FORMIE_REFERENCE_SYSTEM_EMAIL');
+    } finally {
+        $workingConfigProperty->setValue($projectConfig, $originalWorkingConfig);
+        unset(
+            $_SERVER['FORMIE_REFERENCE_SYSTEM_EMAIL'],
+            $_SERVER['FORMIE_REFERENCE_SYSTEM_REPLY_TO'],
+            $_SERVER['FORMIE_REFERENCE_SYSTEM_NAME'],
+        );
+    }
+});
+
 it('round trips reserved characters without executing expressions', function() {
     $token = References::token('field', 'abc', 'firstName', ['scope' => 'all', 'transform' => 'replace', 'search' => 'a;b|c', 'replace' => '+{}%'], 'A|B}');
     $expression = ReferenceParser::parse($token);

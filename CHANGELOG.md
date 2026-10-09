@@ -28,6 +28,7 @@
 - Fixed custom element fields being omitted from option-source discovery and custom condition value types being ignored.
 - Fixed Help Desk integration icons and custom integration icon overrides.
 - Fixed legacy status access returning a separate service instance and payment field relations targeting Craft fields.
+- Fixed system email references resolving to literal environment variable names in notifications and report filenames. ([#2997](https://github.com/verbb/formie/issues/2997))
 - Fixed form imports updating forms the importing user was not permitted to manage.
 - Fixed form saves accepting notification changes from users without access to the Notifications tab.
 - Fixed Ecomail and Moosend sending credentials and subscriber data over unencrypted HTTP.

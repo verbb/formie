@@ -263,10 +263,15 @@ class ReportExport extends Component
         ];
 
         $template = strtr($template, $replacements);
+        $mailSettings = App::mailSettings();
         $context = new ReferenceContext(
             site: Craft::$app->getSites()->getCurrentSite(),
             now: DateTimeImmutable::createFromMutable($date),
-            system: ['name' => (string)App::mailSettings()->fromName, 'email' => (string)App::mailSettings()->fromEmail, 'replyTo' => (string)App::mailSettings()->replyToEmail],
+            system: [
+                'name' => (string)App::parseEnv($mailSettings->fromName),
+                'email' => (string)App::parseEnv($mailSettings->fromEmail),
+                'replyTo' => (string)App::parseEnv($mailSettings->replyToEmail),
+            ],
             report: ['handle' => (string)$report->handle, 'name' => (string)$report->name],
         );
         $template = References::interpolateText($template, $context);
