@@ -14,7 +14,6 @@ use Craft;
 use craft\base\Component;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
-use craft\helpers\App;
 use craft\helpers\FileHelper;
 use craft\helpers\Queue;
 use craft\mail\Message;
@@ -263,15 +262,9 @@ class ReportExport extends Component
         ];
 
         $template = strtr($template, $replacements);
-        $mailSettings = App::mailSettings();
-        $context = new ReferenceContext(
+        $context = ReferenceContext::forReport(
             site: Craft::$app->getSites()->getCurrentSite(),
             now: DateTimeImmutable::createFromMutable($date),
-            system: [
-                'name' => (string)App::parseEnv($mailSettings->fromName),
-                'email' => (string)App::parseEnv($mailSettings->fromEmail),
-                'replyTo' => (string)App::parseEnv($mailSettings->replyToEmail),
-            ],
             report: ['handle' => (string)$report->handle, 'name' => (string)$report->name],
         );
         $template = References::interpolateText($template, $context);

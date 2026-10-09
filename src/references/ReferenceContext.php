@@ -25,13 +25,6 @@ final readonly class ReferenceContext
     {
         $site = Craft::$app->getSites()->getSiteById($submission->siteId);
         $user = $submission->getUser();
-        $mail = App::mailSettings();
-        $overrides = $mail->siteOverrides[$site?->uid] ?? [];
-        $system = [];
-
-        foreach (['name' => 'fromName', 'email' => 'fromEmail', 'replyTo' => 'replyToEmail'] as $name => $attribute) {
-            $system[$name] = App::parseEnv($overrides[$attribute] ?? $mail->$attribute);
-        }
         $dispatch = [];
 
         foreach (Formie::$plugin->getIntegrationDispatcher()->loadContext($submission)->results as $handle => $result) {
@@ -46,7 +39,12 @@ final readonly class ReferenceContext
                 $environment[$name] = App::env($name);
             }
         }
-        return new self($submission->getForm(), $submission, $site, $user, $rows, $permissions, $outputContext, $notification, new DateTimeImmutable('now', new DateTimeZone(Craft::$app->getTimeZone())), $system, $environment, $dispatch, metadata: $submission->metadata ?? [], usage: $usage);
+        return new self($submission->getForm(), $submission, $site, $user, $rows, $permissions, $outputContext, $notification, new DateTimeImmutable('now', new DateTimeZone(Craft::$app->getTimeZone())), self::_system($site), $environment, $dispatch, metadata: $submission->metadata ?? [], usage: $usage);
+    }
+
+    public static function forReport(?Site $site, DateTimeImmutable $now, array $report): self
+    {
+        return new self(site: $site, now: $now, system: self::_system($site), report: $report);
     }
 
 
@@ -87,5 +85,22 @@ final readonly class ReferenceContext
     public function withOutputContext(ReferenceOutputContext $outputContext): self
     {
         return new self($this->form, $this->submission, $this->site, $this->user, $this->rows, $this->permissions, $outputContext, $this->notification, $this->now, $this->system, $this->environment, $this->dispatch, $this->report, $this->metadata, $this->diagnostics, $this->usage);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private static function _system(?Site $site): array
+    {
+        $mail = App::mailSettings();
+        $overrides = $mail->siteOverrides[$site?->uid] ?? [];
+        $system = [];
+
+        foreach (['name' => 'fromName', 'email' => 'fromEmail', 'replyTo' => 'replyToEmail'] as $name => $attribute) {
+            $system[$name] = App::parseEnv($overrides[$attribute] ?? $mail->$attribute);
+        }
+
+        return $system;
     }
 }

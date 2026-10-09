@@ -509,6 +509,32 @@ it('resolves general export filename variables for reports', function (): void {
     expect($filename)->toBe('siteExport-2026-06-17-143000.csv');
 });
 
+it('resolves environment-backed site mail overrides in export filenames', function (): void {
+    $site = Craft::$app->getSites()->getCurrentSite();
+    $projectConfig = Craft::$app->getProjectConfig();
+    $workingConfigProperty = new ReflectionProperty($projectConfig, '_currentWorkingConfig');
+    $originalWorkingConfig = $workingConfigProperty->getValue($projectConfig);
+    $config = $projectConfig->get();
+    $config['email']['siteOverrides'] = [
+        $site->uid => ['fromName' => '$FORMIE_REPORT_SYSTEM_NAME'],
+    ];
+    $_SERVER['FORMIE_REPORT_SYSTEM_NAME'] = 'Regional Sender';
+
+    $settings = new ReportSettings();
+    $settings->export = ['filename' => '{system:name}-report'];
+    $report = new Report(['name' => 'Regional Export', 'handle' => 'regionalExport']);
+    $report->setSettingsModel($settings);
+
+    try {
+        $workingConfigProperty->setValue($projectConfig, new craft\models\ProjectConfigData($config, $projectConfig));
+
+        expect(Formie::$plugin->getReportExport()->resolveFilename($report, 'csv'))->toBe('Regional-Sender-report.csv');
+    } finally {
+        $workingConfigProperty->setValue($projectConfig, $originalWorkingConfig);
+        unset($_SERVER['FORMIE_REPORT_SYSTEM_NAME']);
+    }
+});
+
 it('fills chart buckets across the resolved date range', function (): void {
     $form = formie()
         ->form(['title' => 'Chart Range Form'])
