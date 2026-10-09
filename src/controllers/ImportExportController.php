@@ -13,6 +13,7 @@ use Craft;
 use craft\db\Query;
 use craft\helpers\Console;
 use craft\helpers\Html;
+use craft\helpers\HtmlPurifier;
 use craft\helpers\Json;
 use craft\web\UploadedFile;
 
@@ -117,7 +118,7 @@ class ImportExportController extends SettingsAccessController
 
         foreach ($formFields as $field) {
             $type = explode('\\', $field['type']);
-            $type = array_pop($type);
+            $type = Html::encode((string)array_pop($type));
 
             // Handle Formie v2 exports
             $label = Html::encode($field['label'] ?? $field['settings']['label'] ?? '');
@@ -158,11 +159,11 @@ class ImportExportController extends SettingsAccessController
         }
 
         $json = Json::decode(file_get_contents($fileLocation));
-   
+
         $form = ImportExportHelper::importFormFromJson($json, $formAction);
 
         // check for errors
-        if( $form->getConsolidatedErrors() ){
+        if ($form->getConsolidatedErrors()) {
 
             $this->setFailFlash(Craft::t('formie', 'Unable to import form.'));
 
@@ -223,6 +224,6 @@ class ImportExportController extends SettingsAccessController
             $class = 'color-' . $color;
         }
 
-        echo '<div class="log-label ' . $class . '">' . Markdown::processParagraph($string) . '</div>';
+        echo '<div class="log-label ' . $class . '">' . HtmlPurifier::process(Markdown::processParagraph($string)) . '</div>';
     }
 }

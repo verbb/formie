@@ -197,7 +197,7 @@ class SentNotification extends Element
 
     // Properties
     // =========================================================================
-    
+
     public ?int $id = null;
     public ?string $title = null;
     public ?string $formId = null;
@@ -240,7 +240,7 @@ class SentNotification extends Element
         // Just in case we try and render the element before a `dateCreated` exists
         return $this->dateCreated?->format('M j, Y H:i:s A') ?? parent::__toString();
     }
-    
+
     public function canView(User $user): bool
     {
         if (parent::canView($user)) {
@@ -264,7 +264,7 @@ class SentNotification extends Element
 
         return true;
     }
-    
+
     public function canSave(User $user): bool
     {
         return false;
@@ -396,16 +396,16 @@ class SentNotification extends Element
         $currentUser = Craft::$app->getUser()->getIdentity();
 
         return match ($attribute) {
-            'form' => $this->getForm()->title ?? '-',
-            'submission' => $this->getSubmission()->title ?? '-',
-            'notification' => $this->getNotification()->title ?? '-',
+            'form' => Html::encode($this->getForm()->title ?? '-'),
+            'submission' => Html::encode($this->getSubmission()->title ?? '-'),
+            'notification' => Html::encode($this->getNotification()->title ?? '-'),
             'resend' => $this->canResend($currentUser) ? Html::a(Craft::t('formie', 'Resend'), '#', [
                 'class' => 'btn small formsubmit js-fui-notification-modal-resend-btn',
                 'data-id' => $this->id,
                 'title' => Craft::t('formie', 'Resend'),
             ]) : '-',
-            'preview' => $this->body ? StringHelper::safeTruncate($this->body, 50) : '',
-            'status' => '<span class="status ' . $this->status . '"></span>',
+            'preview' => $this->body ? Html::encode(StringHelper::safeTruncate($this->body, 50)) : '',
+            'status' => Html::tag('span', '', ['class' => ['status', $this->status]]),
             default => parent::attributeHtml($attribute),
         };
     }

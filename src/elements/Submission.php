@@ -306,7 +306,7 @@ class Submission extends CustomElement
             ],
         ];
     }
-    
+
 
     // Properties
     // =========================================================================
@@ -344,7 +344,7 @@ class Submission extends CustomElement
     {
         return (string)$this->title;
     }
-    
+
     public function canView(User $user): bool
     {
         if (parent::canView($user)) {
@@ -368,7 +368,7 @@ class Submission extends CustomElement
 
         return true;
     }
-    
+
     public function canSave(User $user): bool
     {
         if (parent::canView($user)) {
@@ -445,7 +445,7 @@ class Submission extends CustomElement
     {
         $labels = parent::attributeLabels();
 
-        $processFields = function ($fields) use (&$processFields, &$labels) {
+        $processFields = function($fields) use (&$processFields, &$labels) {
             foreach ($fields as $field) {
                 $labels[$field->fieldKey] = $field->label;
 
@@ -483,12 +483,12 @@ class Submission extends CustomElement
 
         $icon = null;
         $label = null;
-        
+
         // Swap out the different icons for status/spam/etc
         if ($element->isIncomplete) {
             $icon = 'draft';
             $label = Craft::t('formie', 'Incomplete');
-        } else if ($element->isSpam) {
+        } elseif ($element->isSpam) {
             $icon = 'bug';
             $label = Craft::t('formie', 'Spam');
         }
@@ -752,7 +752,7 @@ class Submission extends CustomElement
     public function setFieldSettings(string $handle, array $settings): void
     {
         $field = null;
-        
+
         // Check for nested fields so we can use `group.dropdown` or `dropdown`.
         $handles = explode('.', $handle);
 
@@ -844,7 +844,7 @@ class Submission extends CustomElement
             'color' => 'green',
             'sortOrder' => 1,
             'isDefault' => 1,
-        ]);;
+        ]);
     }
 
     public function setStatus(Status|string $status): void
@@ -854,7 +854,7 @@ class Submission extends CustomElement
                 $status = $foundStatus;
             }
         }
-        
+
         $this->_status = $status;
         $this->statusId = $status->id;
     }
@@ -1276,7 +1276,7 @@ class Submission extends CustomElement
         // Check to see if we need to save any relations
         Formie::$plugin->getRelations()->saveRelations($this);
 
-        // If the status has changed, fire any applicable email notifications. 
+        // If the status has changed, fire any applicable email notifications.
         // Also check for `isNewSubmission` to see whether we're submitting something new, or just resaving.
         if (!$this->isNewSubmission && $this->hasStatusChanged()) {
             // Only send notifications that match a status-change condition
@@ -1368,6 +1368,7 @@ class Submission extends CustomElement
 
                 foreach ($field->getElementValidationRules() as $rule) {
                     $validator = $this->_callPrivateMethod('_normalizeFieldValidator', $attribute, $rule, $field, $isEmpty);
+
                     if (
                         in_array($scenario, $validator->on) ||
                         (empty($validator->on) && !in_array($scenario, $validator->except))
@@ -1423,12 +1424,12 @@ class Submission extends CustomElement
         if ($attribute == 'form') {
             $form = $this->getForm();
 
-            return $form->title ?? '';
-        } 
+            return Html::encode($form->title ?? '');
+        }
 
         if ($attribute == 'userId') {
             $user = $this->getUser();
-            
+
             return $user ? Cp::elementChipHtml($user) : '';
         }
 
@@ -1441,7 +1442,7 @@ class Submission extends CustomElement
                         $status->handle ?? null,
                         $status->color ?? null,
                     ]),
-                ]) . ($status->name ?? null), [
+                ]) . Html::encode($status->name ?? ''), [
                 'style' => [
                     'display' => 'flex',
                     'align-items' => 'center',

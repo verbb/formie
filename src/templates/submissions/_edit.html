@@ -389,8 +389,9 @@ $(function () {
             var color = $(data).data('color');
             $('#statusId').val(val);
 
-            var html = '<span class="status ' + color + '"></span>' + label;
-            $statusSelect.html(html);
+            $statusSelect.empty()
+                .append($('<span>').addClass('status').addClass(color))
+                .append($('<span>').addClass('menu-btn-text').text(label));
         }
     });
 

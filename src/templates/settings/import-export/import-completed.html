@@ -10,8 +10,8 @@
 
 
 <p>{{ 'Your form “{title}” has been imported. <a href="{cpEditUrl}">Edit Form</a>' | t('formie', {
-    title: form.title,
-    cpEditUrl: form.getCpEditUrl(),
+    title: form.title | e,
+    cpEditUrl: form.getCpEditUrl() | e('html_attr'),
 }) | raw }}</p>
 
 {% endblock %}
