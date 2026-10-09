@@ -37,6 +37,7 @@ use craft\helpers\App;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
+use craft\web\Request as CraftRequest;
 use craft\web\Response as CraftResponse;
 
 use yii\base\Event;
@@ -328,6 +329,15 @@ abstract class Payment extends Integration
     public function getSubmissionSummaryHtml(Submission $submission, ?PaymentField $field = null): ?string
     {
         $handle = $this->getIntegrationHandle();
+        $request = Craft::$app->getRequest();
+        $canManagePayments = true;
+
+        if ($request instanceof CraftRequest && $request->getIsCpRequest()) {
+            $canManagePayments = Formie::$plugin->getPermissions()->canSaveSubmissions(
+                Craft::$app->getUser()->getIdentity(),
+                $submission->getForm(),
+            );
+        }
 
         // Only show if there's payments for a submission
         $payments = $submission->getPayments();
@@ -348,6 +358,7 @@ abstract class Payment extends Integration
             'payments' => $payments,
             'monetaryPayments' => array_values(array_filter($payments, fn(PaymentModel $payment) => $payment->getIsMonetary())),
             'subscriptions' => $subscriptions,
+            'canManagePayments' => $canManagePayments,
         ]);
     }
 

@@ -23,7 +23,7 @@
                 <span class="status {{ subscription.getStatus() | kebab }}"></span>
                 {{ subscription.getStatusLabel() }}
 
-                {% if subscription.canCancel %}
+                {% if subscription.canCancel and (canManagePayments ?? true) %}
                     <a class="btn small" href="{{ subscription.cancelUrl }}" style="margin-left: 0.5rem;">{{ 'Cancel' | t('formie') }}</a>
                 {% endif %}
             </div>
