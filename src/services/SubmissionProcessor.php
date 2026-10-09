@@ -79,7 +79,7 @@ class SubmissionProcessor extends Component
             $submission->setScenario(Element::SCENARIO_LIVE);
             $submission->validateCurrentPageOnly = false;
 
-            if (!$submission->validate() || !(new SubmissionPersistence())->persist($command)) {
+            if (!$submission->validate() || !(new SubmissionPersistence())->persist($command, afterSave: fn() => Formie::$plugin->getQuestionnaireScoring()->scoreSubmission($submission))) {
                 return new SubmissionOutcome(SubmissionOutcomeType::VALIDATION_FAILED, errors: SubmissionErrors::fromSubmission($submission)->toValuePathMap());
             }
         } finally {

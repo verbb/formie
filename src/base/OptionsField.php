@@ -570,7 +570,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         $hasDuplicateValues = false;
         $optgroup = '__root__';
 
-        foreach ($this->options() as &$option) {
+        foreach ($this->options as &$option) {
             // Ignore optgroups
             if (array_key_exists('optgroup', $option)) {
                 $optgroup = $option['optgroup'];
@@ -1047,7 +1047,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
     protected function setPrePopulatedValue(mixed $value): mixed
     {
-        if ($this->multi) {
+        if ($this->multi && is_string($value)) {
             return explode(',', $value);
         }
 

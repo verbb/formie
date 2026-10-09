@@ -1000,7 +1000,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
             if (array_key_exists($this->uid, $config->prefill)) {
                 $found = true;
-                return $this->normalizeValueFromRequest($config->prefill[$this->uid], $element);
+                return $this->normalizeValueFromRequest($this->setPrePopulatedValue($config->prefill[$this->uid]), $element);
             }
         }
         return null;

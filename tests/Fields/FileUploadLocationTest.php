@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Craft;
 use craft\errors\InvalidSubpathException;
 use Tests\Support\UploadTestHelper;
 use verbb\formie\elements\Submission;

@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use Craft;
-use DateTimeInterface;
 use yii\validators\EmailValidator;
 use Faker\Factory as FakerFactory;
 use verbb\formie\Formie;

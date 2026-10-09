@@ -325,3 +325,22 @@ it('clears optional nested fields through GraphQL submission updates', function 
     });
     expect($form->getFieldByHandle($fieldHandle)->isValueEmpty($saved->getFieldValue($fieldHandle), $saved))->toBeTrue();
 })->with(['person', 'details', 'items'])->with([true, false]);
+
+it('rescores completed quiz answers after administrative GraphQL edits', function (): void {
+    $form = formie()->form()->settings(['scoringEnabled' => true, 'disableCaptchas' => true])
+        ->addField(\verbb\formie\fields\Quiz::class, 'answer', ['options' => [
+            ['label' => 'Right', 'value' => 'right', 'isCorrect' => true],
+            ['label' => 'Wrong', 'value' => 'wrong', 'isCorrect' => false],
+        ]])->create();
+    $submission = formie()->submission($form)->with(['answer' => 'right'])->save();
+    $submission->isIncomplete = false;
+    expect(Craft::$app->getElements()->saveElement($submission, false))->toBeTrue();
+    $scoring = \verbb\formie\Formie::$plugin->getQuestionnaireScoring();
+    expect($scoring->scoreSubmission($submission)->score)->toBe(1.0);
+    withSaveSubmissionGraphqlScope(['formieSubmissions.all:save'], function () use ($form, $submission): void {
+        $result = \verbb\formie\Formie::$plugin->getSubmissionRequests()->executeMutation($form, $submission,
+            ['expectedVersion' => $submission->stateVersion], fn() => $submission->setFieldValue('answer', 'wrong'));
+        expect($result->response->outcome->type->value)->toBe('revised');
+    });
+    expect($scoring->getQuizResultForSubmission($submission->id)->score)->toBe(0.0);
+});

@@ -272,7 +272,7 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {
-        $value = $this->getAdapter()->serializeValue($value, $this, $element);
+        $value = $this->getAdapter()->serializeValueForDb($value, $this, $element);
 
         return parent::defineValueForDb($value, $element);
     }

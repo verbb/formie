@@ -139,7 +139,7 @@ abstract class AbstractCustomFieldAdapter implements CustomFieldAdapterInterface
         return $value;
     }
 
-    public function serializeValue(mixed $value, CustomField $field, ?ElementInterface $element): mixed
+    public function serializeValueForDb(mixed $value, CustomField $field, ?ElementInterface $element): mixed
     {
         return $value;
     }

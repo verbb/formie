@@ -308,7 +308,7 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
         return new CustomLinkFieldValue(new LinkData($value['value'], $this->createLinkType($value['type'], $field), $config));
     }
 
-    public function serializeValue(mixed $value, CustomField $field, ?ElementInterface $element): mixed
+    public function serializeValueForDb(mixed $value, CustomField $field, ?ElementInterface $element): mixed
     {
         $value = $this->normalizeValue($value, $field, $element);
 

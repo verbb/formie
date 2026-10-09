@@ -28,7 +28,7 @@ final class ConditionRowEvaluator
 
             if ($result->field && $result->fieldProjection === 'value' && $result->expression->transformerId === '') {
                 $value = $result->field->getValueForCondition($value, $submission);
-                $type = ConditionCompiler::fieldType($result->field);
+                $type = $result->field->getConditionValueType();
             }
 
             if ($result->field instanceof Date && in_array($result->expression->selector, ['date', 'time'], true)) {

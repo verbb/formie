@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Craft;
 use craft\db\Query;
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\Formie;

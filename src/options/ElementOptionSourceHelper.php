@@ -38,15 +38,21 @@ class ElementOptionSourceHelper
 
     public static function getProviderForFieldClass(string $fieldClass): ?string
     {
+        $inheritedProvider = null;
+
         foreach (self::_getProviderDefinitions() as $definition) {
             $providerFieldClass = $definition['fieldClass'];
 
-            if ($fieldClass === $providerFieldClass || is_subclass_of($fieldClass, $providerFieldClass)) {
+            if ($fieldClass === $providerFieldClass) {
                 return $definition['handle'];
+            }
+
+            if ($inheritedProvider === null && is_subclass_of($fieldClass, $providerFieldClass)) {
+                $inheritedProvider = $definition['handle'];
             }
         }
 
-        return null;
+        return $inheritedProvider;
     }
 
     public static function buildParamsFromElementField(ElementField $field): array
@@ -199,7 +205,7 @@ class ElementOptionSourceHelper
             return $definitions;
         }
 
-        foreach (Formie::$plugin->getFields()->getRegisteredFieldTypes(false) as $fieldClass) {
+        foreach (Formie::$plugin->getFields()->getResolvedRegisteredFieldTypes(false) as $fieldClass) {
             if (!is_subclass_of($fieldClass, ElementField::class)) {
                 continue;
             }

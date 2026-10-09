@@ -39,7 +39,7 @@ interface CustomFieldAdapterInterface
     public function getDefaultValue(CustomField $field): mixed;
     public function valueType(CustomField $field): FieldValueType;
     public function normalizeValue(mixed $value, CustomField $field, ?ElementInterface $element): mixed;
-    public function serializeValue(mixed $value, CustomField $field, ?ElementInterface $element): mixed;
+    public function serializeValueForDb(mixed $value, CustomField $field, ?ElementInterface $element): mixed;
     public function isValueEmpty(mixed $value, CustomField $field, ?ElementInterface $element): bool;
     public function validateValue(ElementInterface $element, CustomField $field): void;
     public function getInputHtml(CustomField $field, Form $form, mixed $value): string;
