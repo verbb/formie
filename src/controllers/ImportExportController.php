@@ -2,10 +2,10 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
-use verbb\formie\helpers\Assets;
 use verbb\formie\helpers\ImportExportHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Settings;
+use verbb\formie\services\FormImportFiles;
 use verbb\formie\services\Permissions;
 
 use Craft;
@@ -19,7 +19,9 @@ use yii\web\BadRequestHttpException;
 use yii\web\HttpException;
 use yii\web\Response;
 
+use InvalidArgumentException;
 use stdClass;
+use Throwable;
 
 class ImportExportController extends SettingsAccessController
 {
@@ -72,10 +74,17 @@ class ImportExportController extends SettingsAccessController
             return null;
         }
 
-        $filename = 'formie-import-' . gmdate('ymd_His') . '.json';
-        $fileLocation = $this->_resolveImportFileLocation($filename);
+        $stream = fopen($uploadedFile->tempName, 'rb');
 
-        move_uploaded_file($uploadedFile->tempName, $fileLocation);
+        if ($stream === false) {
+            throw new HttpException(500, Craft::t('formie', 'Unable to read the uploaded form import file.'));
+        }
+
+        try {
+            $filename = $this->_getImportFiles()->store($stream, $this->_getCurrentUserId());
+        } finally {
+            fclose($stream);
+        }
 
         $object = new stdClass();
         $object->filename = $filename;
@@ -87,13 +96,7 @@ class ImportExportController extends SettingsAccessController
     {
         $request = $this->request;
 
-        $fileLocation = $this->_resolveImportFileLocation($filename);
-
-        if (!file_exists($fileLocation)) {
-            throw new HttpException(404);
-        }
-
-        $json = Json::decode(file_get_contents($fileLocation));
+        $json = $this->_readImport($filename);
 
         // Check if this is multiple forms exports (from Forms index) - just use the one
         if (isset($json[0])) {
@@ -188,13 +191,7 @@ class ImportExportController extends SettingsAccessController
         $filename = $request->getParam('filename');
         $formAction = $request->getParam('formAction');
 
-        $fileLocation = $this->_resolveImportFileLocation($filename);
-
-        if (!file_exists($fileLocation)) {
-            throw new HttpException(404);
-        }
-
-        $json = Json::decode(file_get_contents($fileLocation));
+        $json = $this->_readImport($filename);
 
         $form = ImportExportHelper::importFormFromJson($json, $formAction);
 
@@ -208,6 +205,15 @@ class ImportExportController extends SettingsAccessController
             ]);
 
             return null;
+        }
+
+        try {
+            $this->_getImportFiles()->delete($filename, $this->_getCurrentUserId());
+        } catch (Throwable $e) {
+            // The form is already imported, so failed temporary-file cleanup is non-fatal.
+            Formie::warning('Unable to delete completed form import file: {message}', [
+                'message' => $e->getMessage(),
+            ]);
         }
 
         $this->setSuccessFlash(Craft::t('formie', 'Form imported.'));
@@ -262,12 +268,28 @@ class ImportExportController extends SettingsAccessController
         echo '<div class="log-label ' . $class . '">' . Markdown::processParagraph($string) . '</div>';
     }
 
-    private function _resolveImportFileLocation(mixed $filename): string
+    private function _getImportFiles(): FormImportFiles
     {
-        if (!is_string($filename) || !preg_match('/^formie-import-\d{6}_\d{6}\.json$/', $filename)) {
+        return new FormImportFiles(Craft::$app->getAssets()->getTempAssetUploadFs());
+    }
+
+    private function _getCurrentUserId(): int
+    {
+        return (int)Craft::$app->getUser()->getId();
+    }
+
+    private function _readImport(mixed $filename): mixed
+    {
+        try {
+            $contents = $this->_getImportFiles()->read($filename, $this->_getCurrentUserId());
+        } catch (InvalidArgumentException) {
             throw new BadRequestHttpException('Invalid import filename.');
         }
 
-        return Assets::getTempPath($filename);
+        if ($contents === null) {
+            throw new HttpException(404, Craft::t('formie', 'This form import has expired or is no longer available. Upload the JSON file again.'));
+        }
+
+        return Json::decode($contents);
     }
 }

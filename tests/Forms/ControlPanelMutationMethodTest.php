@@ -72,18 +72,21 @@ it('imports a form on a valid POST', function (): void {
     $form = Formie::$plugin->getFactories()->form()->singleLineTextField('message')->create();
     $payload = \verbb\formie\helpers\ImportExportHelper::generateFormExport($form);
     $payload['handle'] = 'postedImport' . bin2hex(random_bytes(5));
-    $filename = 'formie-import-' . gmdate('ymd_His') . '.json';
-    $controller = new \verbb\formie\controllers\ImportExportController('import-export', Formie::$plugin);
-    $location = (new ReflectionMethod($controller, '_resolveImportFileLocation'))->invoke($controller, $filename);
-    file_put_contents($location, json_encode($payload, JSON_THROW_ON_ERROR));
+    $user = \craft\elements\User::find()->admin(true)->one();
+    $importFiles = new \verbb\formie\services\FormImportFiles(Craft::$app->getAssets()->getTempAssetUploadFs());
+    $stream = fopen('php://temp', 'w+b');
+    fwrite($stream, json_encode($payload, JSON_THROW_ON_ERROR));
+    rewind($stream);
+    $filename = $importFiles->store($stream, (int)$user->id);
+    fclose($stream);
     $projectConfig = Craft::$app->getProjectConfig();
     // Finish the fixture request before reusing its config in a different web application's mutex context.
     $projectConfig->flush();
     try {
-        WebRequestTestHelper::withWebRequestContext(function ($request) use ($filename, $projectConfig): void {
+        WebRequestTestHelper::withWebRequestContext(function ($request) use ($filename, $projectConfig, $user): void {
             Craft::$app->set('projectConfig', $projectConfig);
             $request->setIsCpRequest(true);
-            Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
+            Craft::$app->getUser()->setIdentity($user);
             $request->setBodyParams([
                 $request->csrfParam => $request->getCsrfToken(),
                 'filename' => $filename,
@@ -98,6 +101,6 @@ it('imports a form on a valid POST', function (): void {
             ->and($imported?->getFieldByHandle('message'))->not->toBeNull()
             ->and(Craft::$app->getInfo()->configVersion)->toBe((new \craft\db\Query())->select('configVersion')->from(\craft\db\Table::INFO)->scalar());
     } finally {
-        if (is_file($location)) { unlink($location); }
+        $importFiles->delete($filename, (int)$user->id);
     }
 });

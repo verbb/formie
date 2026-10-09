@@ -12,6 +12,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed form imports failing between requests on load-balanced environments when Craft uses a remote temporary-upload filesystem.
 - Fixed queued integration and notification jobs reporting an error when updating progress after delivery.
 - Fixed `initJs: false` being ignored when rendering forms, allowing automatic startup to duplicate custom JavaScript initialization.
 - Fixed sent notifications being sorted oldest-first by default in the control panel.
