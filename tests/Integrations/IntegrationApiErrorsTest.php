@@ -127,3 +127,28 @@ it('resolves integration API error actions from plugin settings', function (): v
         ->and($settings->getIntegrationApiErrorAction(IntegrationApiErrors::SEVERITY_FAILURE))
         ->toBe(IntegrationApiErrors::ACTION_FAIL_QUEUE);
 });
+
+it('preserves rejection while acknowledging a downgraded queue failure', function (): void {
+    $integration = new class(['name' => 'Mailchimp', 'handle' => 'mailchimp']) extends Mailchimp {
+        protected function createDeliveryHttpHandler(): callable {
+            return \GuzzleHttp\HandlerStack::create(new \GuzzleHttp\Handler\MockHandler([
+                new Response(400, [], '{"title":"Invalid Resource","detail":"looks fake"}'),
+            ]));
+        }
+    };
+    $integration->setClient(new \GuzzleHttp\Client(['base_uri' => 'https://8.8.8.8']));
+    try {
+        $integration->request('POST', '/');
+        test()->fail('Expected the mocked rejection.');
+    } catch (RequestException $exception) {
+        $result = $integration->resultForPayload($integration->handleSubmissionApiError($exception, new Submission()));
+    }
+    expect($result->status)->toBe(\verbb\formie\enums\IntegrationStatus::Rejected)
+        ->and($result->shouldFailQueue())->toBeFalse();
+    $restored = \verbb\formie\models\IntegrationResult::fromStorage($result->withOutputs(['id' => 1])->toStorage());
+    expect($restored->status)->toBe($result->status)->and($restored->shouldFailQueue())->toBeFalse();
+});
+
+it('never suppresses queue failures for unknown delivery outcomes', function (): void {
+    expect(\verbb\formie\models\IntegrationResult::unknown()->withQueueFailure(false)->shouldFailQueue())->toBeTrue();
+});

@@ -23,7 +23,6 @@ use verbb\formie\references\ReferenceSlotKind;
 use Craft;
 use craft\helpers\App;
 
-use yii\base\Event;
 
 use Throwable;
 
@@ -94,38 +93,6 @@ class Mailchimp extends EmailMarketing
 
     // Public Methods
     // =========================================================================
-
-    public function init(): void
-    {
-        parent::init();
-
-        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUES, function(ModifyFieldIntegrationValuesEvent $event) {
-            if (!is_array($event->fieldValues) || !is_array($event->fieldSettings) || !is_array($event->fieldMapping)) {
-                return;
-            }
-
-            foreach ($event->fieldValues as $tag => $value) {
-                $integrationField = ArrayHelper::firstWhere($event->fieldSettings, 'handle', $tag);
-
-                if (!$integrationField || ($integrationField->sourceType ?? '') !== 'address') {
-                    continue;
-                }
-
-                $slot = ReferenceSlot::fromStored($event->fieldMapping[$tag] ?? '');
-
-                if ($slot->kind !== ReferenceSlotKind::Exact) {
-                    continue;
-                }
-
-                $resolved = Variables::getFieldAndValueForReference((string)$slot->value, $event->submission);
-                $rawValue = $resolved['value'];
-
-                if ($rawValue instanceof AddressFieldValue) {
-                    $event->fieldValues[$tag] = self::_formatAddressMergeField($rawValue);
-                }
-            }
-        });
-    }
 
     public function getDescription(): string
     {
@@ -295,6 +262,35 @@ class Mailchimp extends EmailMarketing
 
     // Protected Methods
     // =========================================================================
+
+
+    protected function modifyFieldMappingValues(ModifyFieldIntegrationValuesEvent $event): void
+    {
+        if (!is_array($event->fieldValues) || !is_array($event->fieldSettings) || !is_array($event->fieldMapping)) {
+            return;
+        }
+
+        foreach ($event->fieldValues as $tag => $value) {
+            $integrationField = ArrayHelper::firstWhere($event->fieldSettings, 'handle', $tag);
+
+            if (!$integrationField || ($integrationField->sourceType ?? '') !== 'address') {
+                continue;
+            }
+
+            $slot = ReferenceSlot::fromStored($event->fieldMapping[$tag] ?? '');
+
+            if ($slot->kind !== ReferenceSlotKind::Exact) {
+                continue;
+            }
+
+            $resolved = Variables::getFieldAndValueForReference((string)$slot->value, $event->submission);
+            $rawValue = $resolved['value'];
+
+            if ($rawValue instanceof AddressFieldValue) {
+                $event->fieldValues[$tag] = self::_formatAddressMergeField($rawValue);
+            }
+        }
+    }
 
     protected function executePayload(Submission $submission): IntegrationResult
     {

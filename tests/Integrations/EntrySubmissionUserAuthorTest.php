@@ -94,3 +94,22 @@ it('falls back to the default entry author when no submission user is available'
     expect($entry)->not->toBeNull()
         ->and($entry->authorId)->toBe($fallbackUser->id);
 });
+
+it('creates an entry with a thin queue job and stores prepared element evidence', function (): void {
+    $author = User::find()->status(null)->admin(true)->one();
+    $title = 'Queued Entry ' . uniqid();
+    $integration = entryAuthorIntegrationConfig($title, $author->id);
+    $form = formie()->form()->create();
+    $submission = formie()->submission($form)->save();
+    $attempts = \verbb\formie\Formie::$plugin->getDeliveryAttempts();
+    $uid = $attempts->prepare(new \verbb\formie\models\IntegrationExecutionContext($submission->id, $form->id, 'entry', StringHelper::UUID()), 'dispatch');
+    $integration->setDeliveryContext($attempts->context($uid), $uid);
+    $integration->setQueueJob(new \verbb\formie\jobs\TriggerIntegration(['deliveryAttemptUid' => $uid]));
+    $result = $integration->sendPayload($submission);
+    expect($result->status)->toBe(\verbb\formie\enums\IntegrationStatus::Succeeded);
+    $entry = EntryElement::find()->status(null)->slug(StringHelper::slugify($title))->one();
+    expect($entry)->not->toBeNull();
+    $attempt = $attempts->get($uid);
+    expect((new \craft\db\Query())->from($attempts::DIAGNOSTICS)->where(['attemptId' => $attempt['id'], 'checkpoint' => 'request-prepared'])->exists())->toBeTrue();
+    Craft::$app->getElements()->deleteElement($entry);
+});

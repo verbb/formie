@@ -19,7 +19,6 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use yii\base\Event;
 
 use Throwable;
 
@@ -67,54 +66,6 @@ class Attio extends Crm
     // Public Methods
     // =========================================================================
 
-    public function init(): void
-    {
-        parent::init();
-
-        // Handle our custom field types for this integration
-        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUES, function(ModifyFieldIntegrationValuesEvent $event) {
-            $subFieldValues = [];
-
-            // First check against all sub-fields that actually have a value
-            foreach ($event->fieldValues as $fieldKey => $field) {
-                if (str_contains($fieldKey, '.')) {
-                    $subFieldValues[] = explode('.', $fieldKey)[0] ?? null;
-                }
-            }
-
-            $subFieldValues = array_unique($subFieldValues);
-
-            // We have to ensure all sub-fields have a value, even if `null`.
-            foreach ($event->fieldSettings as $field) {
-                if ($field->type === self::TYPE_SUBFIELD) {
-                    if (!array_key_exists($field->handle, $event->fieldMapping)) {
-                        $mappingValue = false;
-
-                        // Ensure that we're actually mapping other items for this sub-field
-                        foreach ($subFieldValues as $subFieldValue) {
-                            if (str_starts_with($field->handle, $subFieldValue . '.')) {
-                                $mappingValue = true;
-                            }
-                        }
-
-                        if ($mappingValue) {
-                            $event->fieldValues[$field->handle] = '';
-                        }
-                    }
-                }
-            }
-
-        });
-
-        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
-            if ($event->integrationField->getType() === self::TYPE_EMAIL_ADDRESS) {
-                if (!is_array($event->value)) {
-                    $event->value = [$event->value];
-                }
-            }
-        });
-    }
-
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
@@ -154,6 +105,50 @@ class Attio extends Crm
 
     // Protected Methods
     // =========================================================================
+
+
+    protected function modifyFieldMappingValues(ModifyFieldIntegrationValuesEvent $event): void
+    {
+        $subFieldValues = [];
+
+        // First check against all sub-fields that actually have a value
+        foreach ($event->fieldValues as $fieldKey => $field) {
+            if (str_contains($fieldKey, '.')) {
+                $subFieldValues[] = explode('.', $fieldKey)[0] ?? null;
+            }
+        }
+
+        $subFieldValues = array_unique($subFieldValues);
+
+        // We have to ensure all sub-fields have a value, even if `null`.
+        foreach ($event->fieldSettings as $field) {
+            if ($field->type === self::TYPE_SUBFIELD) {
+                if (!array_key_exists($field->handle, $event->fieldMapping)) {
+                    $mappingValue = false;
+
+                    // Ensure that we're actually mapping other items for this sub-field
+                    foreach ($subFieldValues as $subFieldValue) {
+                        if (str_starts_with($field->handle, $subFieldValue . '.')) {
+                            $mappingValue = true;
+                        }
+                    }
+
+                    if ($mappingValue) {
+                        $event->fieldValues[$field->handle] = '';
+                    }
+                }
+            }
+        }
+    }
+
+    protected function modifyFieldMappingValue(ModifyFieldIntegrationValueEvent $event): void
+    {
+        if ($event->integrationField->getType() === self::TYPE_EMAIL_ADDRESS) {
+            if (!is_array($event->value)) {
+                $event->value = [$event->value];
+            }
+        }
+    }
 
     protected function executePayload(Submission $submission): IntegrationResult
     {

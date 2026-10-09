@@ -40,7 +40,7 @@ it('registers the documented CRM and delivers saved nested mappings through a qu
     $previousService = Formie::$plugin->getIntegrations();
     Formie::$plugin->set('integrations', $service);
     $history = [];
-    $stack = HandlerStack::create(new MockHandler([new Response(200, [], '{"id":"contact-123"}')]));
+    $stack = HandlerStack::create(new MockHandler([new Response(200, [], '{}'), new Response(200, [], '{"id":"contact-123"}')]));
     $stack->push(Middleware::history($history));
     DocumentedCrmHttpFixture::$handler = $stack;
     $connection = new DocumentedCrmHttpFixture([
@@ -52,6 +52,9 @@ it('registers the documented CRM and delivers saved nested mappings through a qu
     try {
         expect($service->getAllIntegrationTypes()['crm'])->toContain(DocumentedCrmHttpFixture::class);
         expect($service->saveIntegration($connection))->toBeTrue();
+        expect($connection->checkConnection(false))->toBeTrue();
+        $connection->refreshConfig();
+        $history = [];
         $form = formie()->form()->groupField('contact', ['rows' => [['fields' => [[
             'type' => SingleLineText::class, 'handle' => 'email', 'label' => 'Email',
         ]]]]])->create();

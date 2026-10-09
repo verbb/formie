@@ -19,7 +19,6 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use yii\base\Event;
 
 use Throwable;
 
@@ -67,31 +66,6 @@ class Pipedrive extends Crm
 
     // Public Methods
     // =========================================================================
-
-    public function init(): void
-    {
-        parent::init();
-
-        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
-            // Special handling for phone fields which need to be supplied as an array, but for country dropdown enabled
-            // fields, this will produce an array, but with extra info. Just simplify the value.
-            if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY && $event->field instanceof Phone) {
-                // Skip when the field is a plain phone number field, or mapping the "number" directly
-                if (is_array($event->value) && isset($event->value['number'])) {
-                    $event->value = [$event->value['number']];
-                }
-            }
-
-            // Special handling for "Multiple Options" (set) Pipedrive fields, which expect an ID of the option as a numeric value
-            if ($event->integrationField->sourceType === 'set') {
-                if (is_array($event->value)) {
-                    foreach ($event->value as $key => $value) {
-                        $event->value[$key] = (int)$value;
-                    }
-                }
-            }
-        });
-    }
 
     public function getDescription(): string
     {
@@ -245,6 +219,28 @@ class Pipedrive extends Crm
 
     // Protected Methods
     // =========================================================================
+
+
+    protected function modifyFieldMappingValue(ModifyFieldIntegrationValueEvent $event): void
+    {
+        // Special handling for phone fields which need to be supplied as an array, but for country dropdown enabled
+        // fields, this will produce an array, but with extra info. Just simplify the value.
+        if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY && $event->field instanceof Phone) {
+            // Skip when the field is a plain phone number field, or mapping the "number" directly
+            if (is_array($event->value) && isset($event->value['number'])) {
+                $event->value = [$event->value['number']];
+            }
+        }
+
+        // Special handling for "Multiple Options" (set) Pipedrive fields, which expect an ID of the option as a numeric value
+        if ($event->integrationField->sourceType === 'set') {
+            if (is_array($event->value)) {
+                foreach ($event->value as $key => $value) {
+                    $event->value[$key] = (int)$value;
+                }
+            }
+        }
+    }
 
     protected function executePayload(Submission $submission): IntegrationResult
     {

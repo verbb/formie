@@ -30,7 +30,6 @@ use craft\fields\Tags;
 use craft\fields\Users;
 use craft\helpers\Json;
 
-use yii\base\Event;
 
 use DateTime;
 use DateTimeZone;
@@ -63,45 +62,6 @@ class Campaign extends EmailMarketing
 
     // Public Methods
     // =========================================================================
-
-    public function init(): void
-    {
-        parent::init();
-
-        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
-            // For rich-text enabled fields, retain the HTML (safely)
-            if ($event->field instanceof MultiLineText) {
-                $event->value = StringHelper::htmlDecode($event->value);
-            }
-
-            // For Date fields as a destination, convert to UTC from system time
-            if ($event->integrationField->getType() === IntegrationField::TYPE_DATECLASS) {
-                if ($event->value instanceof DateTime) {
-                    $timezone = new DateTimeZone(Craft::$app->getTimeZone());
-
-                    $event->value = DateTime::createFromFormat('Y-m-d H:i:s', $event->value->format('Y-m-d H:i:s'), $timezone);
-                }
-            }
-
-            // Element fields should map 1-for-1, but not as arrays of titles
-            if ($event->field instanceof ElementFieldInterface) {
-                $event->value = $event->submission->getFieldValue($event->field->handle)->ids();
-            }
-
-            // For Table fields with Date/Time destination columns, convert to UTC from system time
-            if ($event->field instanceof Table) {
-                $timezone = new DateTimeZone(Craft::$app->getTimeZone());
-
-                foreach ($event->value as $rowKey => $row) {
-                    foreach ($row as $colKey => $column) {
-                        if (is_array($column) && isset($column['date'])) {
-                            $event->value[$rowKey][$colKey] = (new DateTime($column['date'], $timezone));
-                        }
-                    }
-                }
-            }
-        });
-    }
 
     public function getDescription(): string
     {
@@ -143,6 +103,42 @@ class Campaign extends EmailMarketing
 
     // Protected Methods
     // =========================================================================
+
+
+    protected function modifyFieldMappingValue(ModifyFieldIntegrationValueEvent $event): void
+    {
+        // For rich-text enabled fields, retain the HTML (safely)
+        if ($event->field instanceof MultiLineText) {
+            $event->value = StringHelper::htmlDecode($event->value);
+        }
+
+        // For Date fields as a destination, convert to UTC from system time
+        if ($event->integrationField->getType() === IntegrationField::TYPE_DATECLASS) {
+            if ($event->value instanceof DateTime) {
+                $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+
+                $event->value = DateTime::createFromFormat('Y-m-d H:i:s', $event->value->format('Y-m-d H:i:s'), $timezone);
+            }
+        }
+
+        // Element fields should map 1-for-1, but not as arrays of titles
+        if ($event->field instanceof ElementFieldInterface) {
+            $event->value = $event->submission->getFieldValue($event->field->handle)->ids();
+        }
+
+        // For Table fields with Date/Time destination columns, convert to UTC from system time
+        if ($event->field instanceof Table) {
+            $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+
+            foreach ($event->value as $rowKey => $row) {
+                foreach ($row as $colKey => $column) {
+                    if (is_array($column) && isset($column['date'])) {
+                        $event->value[$rowKey][$colKey] = (new DateTime($column['date'], $timezone));
+                    }
+                }
+            }
+        }
+    }
 
     protected function executePayload(Submission $submission): IntegrationResult
     {

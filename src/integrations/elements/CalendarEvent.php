@@ -19,7 +19,6 @@ use Craft;
 use craft\elements\User;
 use craft\helpers\Json;
 
-use yii\base\Event;
 
 use Throwable;
 
@@ -54,18 +53,6 @@ class CalendarEvent extends Element
 
     // Public Methods
     // =========================================================================
-
-    public function init(): void
-    {
-        parent::init();
-
-        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
-            // Calendar expects dates as Carbon object, not DateTime
-            if (in_array($event->integrationField->handle, ['startDate', 'endDate', 'until'])) {
-                $event->value = new Carbon($event->value->format('Y-m-d H:i:s') ?? 'now', 'utc');
-            }
-        });
-    }
 
     public function getDescription(): string
     {
@@ -240,6 +227,17 @@ class CalendarEvent extends Element
 
     // Protected Methods
     // =========================================================================
+
+
+    protected function modifyFieldMappingValue(ModifyFieldIntegrationValueEvent $event): void
+    {
+        // Calendar expects dates as Carbon object, not DateTime
+        if (in_array($event->integrationField->handle, ['startDate', 'endDate', 'until'])) {
+            $event->value = new Carbon($event->value->format('Y-m-d H:i:s') ?? 'now', 'utc');
+        }
+
+        parent::modifyFieldMappingValue($event);
+    }
 
     protected function executePayload(Submission $submission): IntegrationResult
     {

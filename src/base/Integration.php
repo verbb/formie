@@ -531,7 +531,18 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         $severity = $this->classifyIntegrationApiError($exception) ?? IntegrationApiErrors::SEVERITY_FAILURE;
 
-        return IntegrationApiErrors::applySubmissionErrorAction($this, $exception, $submission, $severity);
+        $handled = IntegrationApiErrors::applySubmissionErrorAction($this, $exception, $submission, $severity);
+        $result = $this->_deliveryState->error ?? IntegrationResult::fromException($exception);
+
+        if ($severity === IntegrationApiErrors::SEVERITY_RATE_LIMITED) {
+            $result = IntegrationResult::failed('rate_limited', true);
+        }
+
+        // Logging policy may acknowledge the queue job, but cannot turn rejection into success.
+        $this->_deliveryState->error = $result->withQueueFailure(false);
+        $this->_deliveryState->handledError = true;
+
+        return $handled;
     }
 
     public function getName(): string
@@ -574,7 +585,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function getCpIconPath(): string
     {
+        // External providers own their icon URLs, even when they extend a built-in category.
+        if (!str_starts_with(static::class, 'verbb\\formie\\integrations\\') || str_contains(static::class, '@anonymous')) {
+            return '';
+        }
+
         $category = trim((string)$this->getCategoryHandle());
+        $category = $category === 'help-desk' ? 'helpdesk' : $category;
         $handle = trim((string)$this->getClassHandle());
 
         if ($category === '' || $handle === '') {
@@ -993,7 +1010,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function resultForPayload(mixed $value): IntegrationResult
     {
         $errorResult = $this->_deliveryState->error ?? null;
-        $errorResult = $value === false || $errorResult?->requiresReconciliation() ? $errorResult : null;
+        $errorResult = $value === false || $this->_deliveryState->handledError || $errorResult?->requiresReconciliation() ? $errorResult : null;
         $result = $errorResult ?? (!empty($this->_deliveryState->skipped) && empty($this->_deliveryState->writeAccepted)
             ? IntegrationResult::skipped('event_or_opt_in')
             : IntegrationResultCompatibility::normalize(
@@ -1243,6 +1260,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             }
 
             $event = new ModifyFieldIntegrationValueEvent($eventConfig);
+            $this->modifyFieldMappingValue($event);
             $this->trigger(static::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
             $fieldValues[$tag] = $event->value;
         }
@@ -1255,6 +1273,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             'integration' => $this,
         ]);
 
+        $this->modifyFieldMappingValues($event);
         $this->trigger(static::EVENT_MODIFY_FIELD_MAPPING_VALUES, $event);
 
         return $event->fieldValues;
@@ -1450,6 +1469,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             'integrationField' => $integrationField,
             'integration' => $this,
         ]);
+        $this->modifyFieldMappingValue($event);
         $this->trigger(static::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
 
         return $event->value;
@@ -1529,6 +1549,17 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     // Protected Methods
     // =========================================================================
+
+
+    protected function modifyFieldMappingValue(ModifyFieldIntegrationValueEvent $event): void
+    {
+
+    }
+
+    protected function modifyFieldMappingValues(ModifyFieldIntegrationValuesEvent $event): void
+    {
+
+    }
 
     protected function createDeliveryHttpHandler(): callable
     {

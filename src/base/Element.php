@@ -49,7 +49,6 @@ use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 
-use yii\base\Event;
 
 use DateTime;
 use DateTimeZone;
@@ -105,95 +104,6 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
     // Public Methods
     // =========================================================================
 
-    public function init(): void
-    {
-        parent::init();
-
-        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
-            $fieldClass = $event->integrationField->sourceType;
-
-            // When mapping to an array field (e.g. Submission ID to Formie Submission field), ensure value is an array
-            if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY && !is_array($event->value)) {
-                $event->value = [$event->value];
-            }
-
-            // For rich-text enabled fields, retain the HTML (safely)
-            if ($event->field instanceof MultiLineText || $event->field instanceof SingleLineText) {
-                if (is_string($event->value)) {
-                    $event->value = StringHelper::htmlDecode($event->value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401);
-                }
-            }
-
-            // For options-based fields, we might be using the label, which is valid for mapping to text fields or other values
-            // but if mapping to a Craft options field with the same label/value pair - it needs to be the value.
-            if ($event->field instanceof OptionsFieldInterface) {
-                if (is_a($fieldClass, BaseOptionsField::class, true) || is_subclass_of($fieldClass, BaseOptionsField::class, true)) {
-                    // Check for some cases where it's options data
-                    if ($event->rawValue instanceof SingleOptionFieldValue) {
-                        $event->value = $event->rawValue->value;
-                    } elseif ($event->rawValue instanceof MultiOptionFieldValue) {
-                        $event->value = $event->rawValue->values();
-                    } else {
-                        $event->value = $event->rawValue;
-                    }
-                }
-            }
-
-            // For Date fields as a destination, convert to UTC from system time
-            if ($event->integrationField->getType() === IntegrationField::TYPE_DATECLASS) {
-                if ($event->value instanceof DateTime) {
-                    $timezone = new DateTimeZone(Craft::$app->getTimeZone());
-
-                    $event->value = DateTime::createFromFormat('Y-m-d H:i:s', $event->value->format('Y-m-d H:i:s'), $timezone);
-                }
-            }
-
-            // If mapping from Formie Date/Time to Craft Time
-            if (is_a($fieldClass, Time::class, true) && $event->field instanceof Date) {
-                if (!($event->value instanceof DateTime)) {
-                    $timezone = new DateTimeZone(Craft::$app->getTimeZone());
-
-                    $event->value = new DateTime($event->value, $timezone);
-                }
-            }
-
-            // Check if we're mapping to a Craft relations field
-            if (is_a($fieldClass, BaseRelationField::class, true) || is_subclass_of($fieldClass, BaseRelationField::class, true)) {
-
-                if (is_string($event->rawValue) && Json::isJsonObject($event->rawValue)) {
-                    $event->value = Json::decode($event->rawValue);
-                }
-            }
-
-            // For Table fields with Date/Time destination columns, convert to UTC from system time
-            if ($event->field instanceof Table) {
-                $timezone = new DateTimeZone(Craft::$app->getTimeZone());
-
-                foreach ($event->value as $rowKey => $row) {
-                    foreach ($row as $colKey => $column) {
-                        if (is_array($column) && isset($column['date'])) {
-                            $event->value[$rowKey][$colKey] = (new DateTime($column['date'], $timezone));
-                        }
-                    }
-                }
-            }
-
-            // Check for Formie Address Country to Craft Country fields
-            if (is_a($fieldClass, Country::class, true) && $event->field instanceof AddressCountry) {
-                // Field requires prefix as a value, so override
-                if (is_string($event->value) && strlen($event->value) > 3) {
-                    $countryRepository = new CountryRepository();
-
-                    foreach ($countryRepository->getAll() as $country) {
-                        if ($country->getName() === $event->value) {
-                            $event->value = $country->getCountryCode();
-                        }
-                    }
-                }
-            }
-        });
-    }
-
     public function getType(): string
     {
         return self::TYPE_ELEMENT;
@@ -232,7 +142,7 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
 
     public function populateQueueJobContext($submission, $endpoint, $payload, $method, $contentType): void
     {
-        if (!$this->getQueueJob()) {
+        if (!$this->getDeliveryAttemptUid()) {
             return;
         }
 
@@ -249,11 +159,12 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
             }
         }
 
-        // Ensure that we JSON-serialize element/field content to not upset the queue.
-        $this->getQueueJob()->payload = Json::decode(Json::encode([
-            'element' => $payload,
+        // Keep prepared element evidence on the attempt; queue jobs only carry its UID.
+        parent::populateQueueJobContext($submission, $endpoint, [
+            'elementType' => get_class($payload),
+            'attributes' => $payload->getAttributes(),
             'fields' => $fields,
-        ]));
+        ], $method, $contentType);
     }
 
     public function recordDispatchElement(ElementInterface $element): void
@@ -276,6 +187,92 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
 
     // Protected Methods
     // =========================================================================
+
+
+    protected function modifyFieldMappingValue(ModifyFieldIntegrationValueEvent $event): void
+    {
+        $fieldClass = $event->integrationField->sourceType;
+
+        // When mapping to an array field (e.g. Submission ID to Formie Submission field), ensure value is an array
+        if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY && !is_array($event->value)) {
+            $event->value = [$event->value];
+        }
+
+        // For rich-text enabled fields, retain the HTML (safely)
+        if ($event->field instanceof MultiLineText || $event->field instanceof SingleLineText) {
+            if (is_string($event->value)) {
+                $event->value = StringHelper::htmlDecode($event->value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401);
+            }
+        }
+
+        // For options-based fields, we might be using the label, which is valid for mapping to text fields or other values
+        // but if mapping to a Craft options field with the same label/value pair - it needs to be the value.
+        if ($event->field instanceof OptionsFieldInterface) {
+            if (is_a($fieldClass, BaseOptionsField::class, true) || is_subclass_of($fieldClass, BaseOptionsField::class, true)) {
+                // Check for some cases where it's options data
+                if ($event->rawValue instanceof SingleOptionFieldValue) {
+                    $event->value = $event->rawValue->value;
+                } elseif ($event->rawValue instanceof MultiOptionFieldValue) {
+                    $event->value = $event->rawValue->values();
+                } else {
+                    $event->value = $event->rawValue;
+                }
+            }
+        }
+
+        // For Date fields as a destination, convert to UTC from system time
+        if ($event->integrationField->getType() === IntegrationField::TYPE_DATECLASS) {
+            if ($event->value instanceof DateTime) {
+                $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+
+                $event->value = DateTime::createFromFormat('Y-m-d H:i:s', $event->value->format('Y-m-d H:i:s'), $timezone);
+            }
+        }
+
+        // If mapping from Formie Date/Time to Craft Time
+        if (is_a($fieldClass, Time::class, true) && $event->field instanceof Date) {
+            if (!($event->value instanceof DateTime)) {
+                $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+
+                $event->value = new DateTime($event->value, $timezone);
+            }
+        }
+
+        // Check if we're mapping to a Craft relations field
+        if (is_a($fieldClass, BaseRelationField::class, true) || is_subclass_of($fieldClass, BaseRelationField::class, true)) {
+
+            if (is_string($event->rawValue) && Json::isJsonObject($event->rawValue)) {
+                $event->value = Json::decode($event->rawValue);
+            }
+        }
+
+        // For Table fields with Date/Time destination columns, convert to UTC from system time
+        if ($event->field instanceof Table) {
+            $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+
+            foreach ($event->value as $rowKey => $row) {
+                foreach ($row as $colKey => $column) {
+                    if (is_array($column) && isset($column['date'])) {
+                        $event->value[$rowKey][$colKey] = (new DateTime($column['date'], $timezone));
+                    }
+                }
+            }
+        }
+
+        // Check for Formie Address Country to Craft Country fields
+        if (is_a($fieldClass, Country::class, true) && $event->field instanceof AddressCountry) {
+            // Field requires prefix as a value, so override
+            if (is_string($event->value) && strlen($event->value) > 3) {
+                $countryRepository = new CountryRepository();
+
+                foreach ($countryRepository->getAll() as $country) {
+                    if ($country->getName() === $event->value) {
+                        $event->value = $country->getCountryCode();
+                    }
+                }
+            }
+        }
+    }
 
     protected function defineFormSettingsSchema(FormInterface $form): array
     {

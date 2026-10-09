@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-use DateTime;
 use verbb\formie\base\Integration;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\integrations\crm\Salesforce;
 use verbb\formie\models\IntegrationField;
-use yii\base\Event;
 
 it('Salesforce getMappedFieldValue joins TYPE_ARRAY values with semicolons', function (): void {
     $form = formie()->form(['title' => 'Salesforce Array Mapping'])
@@ -30,17 +28,16 @@ it('Salesforce getMappedFieldValue joins TYPE_ARRAY values with semicolons', fun
         ->and($value)->toContain(';');
 });
 
-it('Salesforce EVENT_MODIFY_FIELD_MAPPING_VALUE formats DateTime raw values with T separator', function (): void {
+it('formats Salesforce date mappings before dispatching extension events', function (): void {
+    $form = formie()->form()->dateField('appointment', ['timeFormat' => 'H:i:s'])->create();
+    $submission = formie()->submission($form)->with(['appointment' => '2026-01-15T12:34:56+00:00'])->save();
     $integration = new Salesforce(['name' => 'Salesforce', 'handle' => 'salesforce']);
     $integrationField = new IntegrationField(['type' => IntegrationField::TYPE_DATETIME]);
-    $event = new ModifyFieldIntegrationValueEvent([
-        'integration' => $integration,
-        'integrationField' => $integrationField,
-        'rawValue' => new DateTime('2026-01-15 12:34:56', new \DateTimeZone('UTC')),
-        'value' => '2026-01-15 12:34:56',
-    ]);
-
-    Event::trigger(Salesforce::class, Integration::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
-
-    expect($event->value)->toBe('2026-01-15T12:34:56.000Z');
+    $captured = null;
+    $integration->on(Integration::EVENT_MODIFY_FIELD_MAPPING_VALUE, function (ModifyFieldIntegrationValueEvent $event) use (&$captured): void {
+        $captured = $event->value;
+    });
+    $token = References::field($form->getFieldByHandle('appointment')->reference);
+    $value = $integration->getMappedFieldValue($token, $submission, $integrationField);
+    expect($value)->toBe('2026-01-15T12:34:56.000Z')->and($captured)->toBe($value);
 });

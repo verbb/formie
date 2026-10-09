@@ -22,7 +22,6 @@ use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 
-use yii\base\Event;
 
 use DateTime;
 use Throwable;
@@ -168,111 +167,6 @@ class HubSpot extends Crm
         }
 
         parent::__construct($config);
-    }
-
-    public function init(): void
-    {
-        parent::init();
-
-        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
-            // HubSpot-specific shaping: single place for all mapping value modifications.
-
-            if ($event->integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
-                $event->value = ($event->value === true || $event->value === 'true') ? 'true' : 'false';
-            }
-
-            if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-                if (is_array($event->value)) {
-                    $event->value = array_filter($event->value, static fn($value) => $value !== null && $value !== '');
-
-                    $event->value = array_map(function($v): string {
-                        if (is_scalar($v)) {
-                            return (string)$v;
-                        }
-
-                        if (is_array($v)) {
-                            return implode(';', array_map('strval', $v));
-                        }
-
-                        if (is_object($v)) {
-                            if (method_exists($v, '__toString')) {
-                                return $v->__toString();
-                            }
-
-                            return Json::encode($v);
-                        }
-
-                        return (string)$v;
-                    }, $event->value);
-                    $event->value = ArrayHelper::recursiveImplode($event->value, ';');
-                    $event->value = str_replace('&nbsp;', ' ', $event->value);
-                }
-            }
-
-            if ($event->integrationField->getType() === IntegrationField::TYPE_DATE) {
-                if ($event->rawValue instanceof DateTime) {
-                    $date = clone $event->rawValue;
-                    $date->setTime(0, 0, 0);
-                    $event->value = (string)($date->getTimestamp() * 1000);
-                } else {
-                    $date = self::_valueToDateTime($event->rawValue ?? $event->value);
-                    $event->value = $date ? (string)($date->getTimestamp() * 1000) : $event->rawValue;
-                }
-            }
-
-            if ($event->integrationField->getType() === IntegrationField::TYPE_DATETIME) {
-                $date = null;
-
-                if ($event->rawValue instanceof DateTime) {
-                    $date = clone $event->rawValue;
-                } elseif ($event->value instanceof DateTime) {
-                    $date = clone $event->value;
-                } else {
-                    $date = self::_valueToDateTime($event->value);
-                }
-
-                if ($date) {
-                    $event->value = (string)($date->getTimestamp() * 1000);
-                }
-            }
-
-            if ($event->integrationField->sourceType === 'file' && $event->integration->mapToForm) {
-                $fallbackValues = [];
-                $values = [];
-
-                if (is_array($event->value) && isset($event->value['FILE_UPLOAD_DATA'])) {
-                    $fallbackValues = array_filter($event->value['FILE_UPLOAD_DATA']);
-                } elseif (is_array($event->value)) {
-                    $fallbackValues = array_filter($event->value);
-                } elseif (is_string($event->value)) {
-                    $fallbackValues = array_filter(array_map('trim', explode(',', $event->value)));
-                }
-
-                if ($event->rawValue && method_exists($event->rawValue, 'all')) {
-                    foreach ($event->rawValue->all() as $asset) {
-                        if (!$asset instanceof Asset) {
-                            continue;
-                        }
-
-                        $value = $this->_getHubSpotFileValue($asset);
-
-                        if ($value) {
-                            $values[] = $value;
-                        }
-                    }
-                }
-
-                if (!$values) {
-                    $values = $fallbackValues;
-                }
-
-                // Let our form-field processing handling know about it needs to be treated differently
-                // Prevent changing multiple times, as this event is called
-                if ($values && !isset($values['FILE_UPLOAD_DATA'])) {
-                    $event->value = ['FILE_UPLOAD_DATA' => array_values(array_filter($values))];
-                }
-            }
-        });
     }
 
     public function getDescription(): string
@@ -554,6 +448,108 @@ class HubSpot extends Crm
 
     // Protected Methods
     // =========================================================================
+
+
+    protected function modifyFieldMappingValue(ModifyFieldIntegrationValueEvent $event): void
+    {
+        // HubSpot-specific shaping: single place for all mapping value modifications.
+
+        if ($event->integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
+            $event->value = ($event->value === true || $event->value === 'true') ? 'true' : 'false';
+        }
+
+        if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            if (is_array($event->value)) {
+                $event->value = array_filter($event->value, static fn($value) => $value !== null && $value !== '');
+
+                $event->value = array_map(function($v): string {
+                    if (is_scalar($v)) {
+                        return (string)$v;
+                    }
+
+                    if (is_array($v)) {
+                        return implode(';', array_map('strval', $v));
+                    }
+
+                    if (is_object($v)) {
+                        if (method_exists($v, '__toString')) {
+                            return $v->__toString();
+                        }
+
+                        return Json::encode($v);
+                    }
+
+                    return (string)$v;
+                }, $event->value);
+                $event->value = ArrayHelper::recursiveImplode($event->value, ';');
+                $event->value = str_replace('&nbsp;', ' ', $event->value);
+            }
+        }
+
+        if ($event->integrationField->getType() === IntegrationField::TYPE_DATE) {
+            if ($event->rawValue instanceof DateTime) {
+                $date = clone $event->rawValue;
+                $date->setTime(0, 0, 0);
+                $event->value = (string)($date->getTimestamp() * 1000);
+            } else {
+                $date = self::_valueToDateTime($event->rawValue ?? $event->value);
+                $event->value = $date ? (string)($date->getTimestamp() * 1000) : $event->rawValue;
+            }
+        }
+
+        if ($event->integrationField->getType() === IntegrationField::TYPE_DATETIME) {
+            $date = null;
+
+            if ($event->rawValue instanceof DateTime) {
+                $date = clone $event->rawValue;
+            } elseif ($event->value instanceof DateTime) {
+                $date = clone $event->value;
+            } else {
+                $date = self::_valueToDateTime($event->value);
+            }
+
+            if ($date) {
+                $event->value = (string)($date->getTimestamp() * 1000);
+            }
+        }
+
+        if ($event->integrationField->sourceType === 'file' && $event->integration->mapToForm) {
+            $fallbackValues = [];
+            $values = [];
+
+            if (is_array($event->value) && isset($event->value['FILE_UPLOAD_DATA'])) {
+                $fallbackValues = array_filter($event->value['FILE_UPLOAD_DATA']);
+            } elseif (is_array($event->value)) {
+                $fallbackValues = array_filter($event->value);
+            } elseif (is_string($event->value)) {
+                $fallbackValues = array_filter(array_map('trim', explode(',', $event->value)));
+            }
+
+            if ($event->rawValue && method_exists($event->rawValue, 'all')) {
+                foreach ($event->rawValue->all() as $asset) {
+                    if (!$asset instanceof Asset) {
+                        continue;
+                    }
+
+                    $value = $this->_getHubSpotFileValue($asset);
+
+                    if ($value) {
+                        $values[] = $value;
+                    }
+                }
+            }
+
+            if (!$values) {
+                $values = $fallbackValues;
+            }
+
+            // Let our form-field processing handling know about it needs to be treated differently
+            // Prevent changing multiple times, as this event is called
+            if ($values && !isset($values['FILE_UPLOAD_DATA'])) {
+                $event->value = ['FILE_UPLOAD_DATA' => array_values(array_filter($values))];
+            }
+        }
+    }
 
     protected function executePayload(Submission $submission): IntegrationResult
     {

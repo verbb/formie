@@ -26,7 +26,6 @@ use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 
-use yii\base\Event;
 
 use DateTime;
 use DateTimeInterface;
@@ -184,48 +183,6 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     // Public Methods
     // =========================================================================
-
-    public function init(): void
-    {
-        parent::init();
-
-        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
-            if ($event->integrationField->getType() !== IntegrationField::TYPE_DATETIME) {
-                return;
-            }
-
-            $formatted = self::_normalizeMappedDateTimeForSalesforce($event->rawValue, $event->value);
-
-            if ($formatted !== null) {
-                $event->value = $formatted;
-            }
-        });
-
-        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUES, function(ModifyFieldIntegrationValuesEvent $event) {
-            if (!is_array($event->fieldValues) || !is_array($event->fieldSettings)) {
-                return;
-            }
-
-            foreach ($event->fieldValues as $tag => $value) {
-                $integrationField = ArrayHelper::firstWhere($event->fieldSettings, 'handle', $tag);
-
-                if ($integrationField?->getType() === IntegrationField::TYPE_ARRAY && is_array($value)) {
-                    $event->fieldValues[$tag] = implode(';', $value);
-                    continue;
-                }
-
-                if (!$integrationField || $integrationField->getType() !== IntegrationField::TYPE_DATETIME) {
-                    continue;
-                }
-
-                $formatted = self::_normalizeMappedDateTimeForSalesforce($value, $value);
-
-                if ($formatted !== null) {
-                    $event->fieldValues[$tag] = $formatted;
-                }
-            }
-        });
-    }
 
     public function getUseSandbox(): string
     {
@@ -435,6 +392,46 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     // Protected Methods
     // =========================================================================
+
+
+    protected function modifyFieldMappingValue(ModifyFieldIntegrationValueEvent $event): void
+    {
+        if ($event->integrationField->getType() !== IntegrationField::TYPE_DATETIME) {
+            return;
+        }
+
+        $formatted = self::_normalizeMappedDateTimeForSalesforce($event->rawValue, $event->value);
+
+        if ($formatted !== null) {
+            $event->value = $formatted;
+        }
+    }
+
+    protected function modifyFieldMappingValues(ModifyFieldIntegrationValuesEvent $event): void
+    {
+        if (!is_array($event->fieldValues) || !is_array($event->fieldSettings)) {
+            return;
+        }
+
+        foreach ($event->fieldValues as $tag => $value) {
+            $integrationField = ArrayHelper::firstWhere($event->fieldSettings, 'handle', $tag);
+
+            if ($integrationField?->getType() === IntegrationField::TYPE_ARRAY && is_array($value)) {
+                $event->fieldValues[$tag] = implode(';', $value);
+                continue;
+            }
+
+            if (!$integrationField || $integrationField->getType() !== IntegrationField::TYPE_DATETIME) {
+                continue;
+            }
+
+            $formatted = self::_normalizeMappedDateTimeForSalesforce($value, $value);
+
+            if ($formatted !== null) {
+                $event->fieldValues[$tag] = $formatted;
+            }
+        }
+    }
 
     protected function executePayload(Submission $submission): IntegrationResult
     {

@@ -68,6 +68,7 @@ final class IntegrationResult
             $value['providerId'] ?? null,
             (array)($value['diagnostics'] ?? []),
             (array)($value['outputs'] ?? []),
+            (bool)($value['failQueue'] ?? true),
         );
     }
 
@@ -82,12 +83,13 @@ final class IntegrationResult
     public readonly ?string $providerId;
     public readonly array $diagnostics;
     public readonly array $outputs;
+    public readonly bool $failQueue;
 
 
     // Public Methods
     // =========================================================================
 
-    public function __construct(IntegrationStatus $status, string $message = '', string $code = '', bool $retryable = false, ?string $providerId = null, array $diagnostics = [], array $outputs = [])
+    public function __construct(IntegrationStatus $status, string $message = '', string $code = '', bool $retryable = false, ?string $providerId = null, array $diagnostics = [], array $outputs = [], bool $failQueue = true)
     {
         $this->status = $status;
         $this->message = $message;
@@ -96,11 +98,22 @@ final class IntegrationResult
         $this->providerId = $providerId;
         $this->diagnostics = $diagnostics;
         $this->outputs = $outputs;
+        $this->failQueue = $status === IntegrationStatus::Unknown || $failQueue;
     }
 
     public function withOutputs(array $outputs): self
     {
-        return new self($this->status, $this->message, $this->code, $this->retryable, $this->providerId, $this->diagnostics, $outputs + $this->outputs);
+        return new self($this->status, $this->message, $this->code, $this->retryable, $this->providerId, $this->diagnostics, $outputs + $this->outputs, $this->failQueue);
+    }
+
+    public function withQueueFailure(bool $failQueue): self
+    {
+        return new self($this->status, $this->message, $this->code, $this->retryable, $this->providerId, $this->diagnostics, $this->outputs, $failQueue);
+    }
+
+    public function shouldFailQueue(): bool
+    {
+        return $this->failQueue && !in_array($this->status, [IntegrationStatus::Succeeded, IntegrationStatus::Skipped], true);
     }
 
     public function isSuccessful(): bool
@@ -115,6 +128,6 @@ final class IntegrationResult
 
     public function toStorage(): array
     {
-        return ['status' => $this->status->value, 'message' => $this->message, 'code' => $this->code, 'retryable' => $this->retryable, 'providerId' => $this->providerId, 'diagnostics' => $this->diagnostics, 'outputs' => $this->outputs];
+        return ['status' => $this->status->value, 'message' => $this->message, 'code' => $this->code, 'retryable' => $this->retryable, 'providerId' => $this->providerId, 'diagnostics' => $this->diagnostics, 'outputs' => $this->outputs, 'failQueue' => $this->failQueue];
     }
 }
