@@ -15,6 +15,17 @@ class ElementsController extends Controller
     // Public Methods
     // =========================================================================
 
+    public function beforeAction($action): bool
+    {
+        $this->requireCpRequest();
+
+        if (!Craft::$app->getUser()->checkPermission('formie-accessStencils')) {
+            $this->requirePermission('formie-accessForms');
+        }
+
+        return parent::beforeAction($action);
+    }
+
     public function actionSections(): Response
     {
         $this->requireAcceptsJson();

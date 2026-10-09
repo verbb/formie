@@ -12,6 +12,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed element metadata endpoints being available outside authorised control panel requests.
 - Fixed view-only control panel users receiving subscription cancellation links.
 - Fixed submission and sent-notification indexes accepting client-controlled form scopes.
 - Fixed mapped provider identifiers altering CRM request paths.
