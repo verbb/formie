@@ -12,7 +12,7 @@ use Tests\Support\WebRequestTestHelper;
 
 use Craft;
 
-it('resolves failed external payment redirects back to the stored form url', function (): void {
+it('resolves failed payments back to the stored form url', function (): void {
     $integration = new Mollie([
         'name' => 'Failure Redirect Integration ' . uniqid(),
         'handle' => 'failureRedirect' . uniqid(),
@@ -43,7 +43,7 @@ it('resolves failed external payment redirects back to the stored form url', fun
         'status' => PaymentModel::STATUS_FAILED,
         'reference' => 'failure-redirect-' . uniqid(),
         'message' => 'Card declined.',
-        'redirectUrl' => 'https://example.test/checkout-form',
+        'redirectUrl' => '/checkout-form',
     ]);
     Formie::$plugin->getPayments()->savePayment($payment, false);
 
@@ -58,8 +58,75 @@ it('resolves failed external payment redirects back to the stored form url', fun
         $response = $controller->actionPollStatus();
 
         expect($response->data['status'] ?? null)->toBe('failed')
-            ->and($response->data['redirectUrl'] ?? null)->toBe('https://example.test/checkout-form')
+            ->and($response->data['redirectUrl'] ?? null)->toBe('/checkout-form')
             ->and($response->data['message'] ?? null)->toBe('Card declined.');
+    });
+});
+
+it('rejects untrusted failed payment redirects and uses the configured form url', function (): void {
+    $form = formie()
+        ->form(['title' => 'Untrusted Failure Redirect Fixture'])
+        ->singleLineTextField('fullName')
+        ->create();
+    $form->setRedirectUrl('/checkout-form');
+    $submission = formie()
+        ->submission($form)
+        ->with(['fullName' => 'Payment Fixture'])
+        ->save();
+    $payment = new PaymentModel([
+        'status' => PaymentModel::STATUS_FAILED,
+        'message' => 'Card declined.',
+        'redirectUrl' => 'https://evil.example/login',
+    ]);
+
+    expect(Formie::$plugin->getPayments()->resolvePaymentFailureRedirectUrl($payment, $submission, $form))
+        ->toBe('/checkout-form');
+});
+
+it('allows configured external failed payment redirect origins', function (): void {
+    $form = formie()
+        ->form(['title' => 'Allowlisted Failure Redirect Fixture'])
+        ->singleLineTextField('fullName')
+        ->create();
+    $submission = formie()
+        ->submission($form)
+        ->with(['fullName' => 'Payment Fixture'])
+        ->save();
+    $payment = new PaymentModel([
+        'status' => PaymentModel::STATUS_FAILED,
+        'redirectUrl' => 'https://checkout.example/return',
+    ]);
+    $settings = Formie::$plugin->getSettings();
+    $original = $settings->completionRedirectAllowedOrigins;
+    $settings->completionRedirectAllowedOrigins = ['https://checkout.example'];
+
+    try {
+        expect(Formie::$plugin->getPayments()->resolvePaymentFailureRedirectUrl($payment, $submission, $form))
+            ->toBe('https://checkout.example/return');
+    } finally {
+        $settings->completionRedirectAllowedOrigins = $original;
+    }
+});
+
+it('does not use a polling request referrer as a failed payment redirect', function (): void {
+    $form = formie()
+        ->form(['title' => 'Failure Redirect Poll Fixture'])
+        ->singleLineTextField('fullName')
+        ->create();
+    $submission = formie()
+        ->submission($form)
+        ->with(['fullName' => 'Payment Fixture'])
+        ->save();
+    $payment = new PaymentModel([
+        'status' => PaymentModel::STATUS_FAILED,
+        'redirectUrl' => 'https://evil.example/login',
+    ]);
+
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($payment, $submission, $form): void {
+        $request->getHeaders()->set('Referer', 'https://craft.example.test/payment-status');
+
+        expect(Formie::$plugin->getPayments()->resolvePaymentFailureRedirectUrl($payment, $submission, $form))
+            ->toBe('');
     });
 });
 
