@@ -4,7 +4,6 @@ namespace verbb\formie\records;
 use verbb\formie\helpers\Table;
 
 use craft\db\ActiveRecord;
-use craft\records\Field;
 
 use yii\db\ActiveQueryInterface;
 
@@ -34,7 +33,7 @@ class Subscription extends ActiveRecord
 
     public function getField(): ActiveQueryInterface
     {
-        return $this->hasOne(Field::class, ['id' => 'fieldId']);
+        return $this->hasOne(FieldInstanceRecord::class, ['id' => 'fieldId']);
     }
 
     public function getPlan(): ActiveQueryInterface

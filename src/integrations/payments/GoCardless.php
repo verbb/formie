@@ -492,9 +492,6 @@ class GoCardless extends Payment
         $payment->amount = $amount;
         $payment->currency = $currency;
 
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
 
         try {
             $payment->status = PaymentModel::STATUS_REQUIRES_ACTION;
@@ -542,9 +539,6 @@ class GoCardless extends Payment
             Formie::$plugin->getPayments()->savePayment($payment);
 
 
-            if (!$this->afterProcessPayment($submission, false)) {
-                return PaymentDecision::succeeded($this->handle);
-            }
 
             return PaymentDecision::requiresAction(
                 $payment->reference,

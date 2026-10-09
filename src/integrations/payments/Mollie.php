@@ -364,9 +364,6 @@ class Mollie extends Payment
 
     protected function executePayment(Submission $submission): PaymentDecision
     {
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
 
         $currency = $this->getFieldSetting('currency');
 
@@ -494,10 +491,6 @@ class Mollie extends Payment
 
         // Redirect via the front-end for a nicer UX than just a sudden redirect away.
 
-        // Allow events to say the response is invalid
-        if (!$this->afterProcessPayment($submission, $result)) {
-            return PaymentDecision::succeeded($this->handle);
-        }
 
         return PaymentDecision::requiresAction(
             $payment->reference,

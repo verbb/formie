@@ -10,7 +10,6 @@ use verbb\formie\integrations\payments\Mollie;
 use verbb\formie\models\Payment as PaymentModel;
 use Tests\Support\WebRequestTestHelper;
 
-use Craft;
 
 it('resolves failed payments back to the stored form url', function (): void {
     $integration = new Mollie([

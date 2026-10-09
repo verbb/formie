@@ -227,7 +227,10 @@ class ProcessPaymentTask implements TaskInterface
                 return PaymentDecision::failed($message, $paymentIntegration->handle ?? null, $storedPayment->reference);
             }
 
-            $decision = $decision->merge($this->_decisionFromStoredPayment($storedPayment, $paymentIntegration->handle ?? null));
+            $storedDecision = $this->_decisionFromStoredPayment($storedPayment, $paymentIntegration->handle ?? null);
+            $decision = $decision->merge($paymentIntegration instanceof PaymentIntegration
+                ? $paymentIntegration->validatePaymentResult($submission, $storedDecision)
+                : $storedDecision);
 
             if (in_array($decision->status, [PaymentDecision::STATUS_UNKNOWN, PaymentDecision::STATUS_CANCELLED, PaymentDecision::STATUS_FAILED, PaymentDecision::STATUS_PENDING, PaymentDecision::STATUS_ACTION_REQUIRED], true)) {
                 break;

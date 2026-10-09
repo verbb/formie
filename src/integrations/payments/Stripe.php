@@ -1185,10 +1185,6 @@ class Stripe extends Payment
 
         $type = $this->getFieldSetting('type');
 
-        // Allow events to cancel sending
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
 
         if ($type === self::PAYMENT_TYPE_SINGLE) {
             $result = $this->processSinglePayment($submission);
@@ -1196,10 +1192,6 @@ class Stripe extends Payment
             $result = $this->processSubscriptionPayment($submission);
         }
 
-        // Allow events to say the response is invalid
-        if (!$this->afterProcessPayment($submission, $result)) {
-            return PaymentDecision::succeeded($this->handle);
-        }
 
         $field = $this->getField();
 

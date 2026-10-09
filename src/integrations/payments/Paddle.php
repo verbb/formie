@@ -248,9 +248,6 @@ class Paddle extends Payment
 
     protected function executePayment(Submission $submission): PaymentDecision
     {
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
 
         return PaymentAttempt::run(
             $this,
@@ -408,10 +405,6 @@ class Paddle extends Payment
         }
 
 
-        // Allow events to say the response is invalid
-        if (!$this->afterProcessPayment($submission, false)) {
-            return PaymentDecision::succeeded($this->handle);
-        }
 
         return PaymentDecision::requiresAction(
             $payment->reference,

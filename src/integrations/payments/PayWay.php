@@ -288,10 +288,6 @@ class PayWay extends Payment
         $field = $this->getField();
         $payment = null;
 
-        // Allow events to cancel sending
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
 
         // Get the amount from the field, which handles dynamic fields
         $amount = $this->getAmount($submission);
@@ -400,10 +396,6 @@ class PayWay extends Payment
             return PaymentDecision::failed($message, $this->handle);
         }
 
-        // Allow events to say the response is invalid
-        if (!$this->afterProcessPayment($submission, $result)) {
-            return PaymentDecision::failed(null, $this->handle);
-        }
 
         if ($status === 'pending') {
             return PaymentDecision::pending(null, $this->handle);

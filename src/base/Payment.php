@@ -214,6 +214,11 @@ abstract class Payment extends Integration
             if (Craft::$app->getDb()->getTransaction()?->getIsActive()) {
                 throw new RuntimeException('Commit the submission before provider execution.');
             }
+
+            if (!$this->beforeProcessPayment($submission)) {
+                return PaymentDecision::notRequired();
+            }
+
             $payments = Formie::$plugin->getPayments();
             $isSubscription = $this->getFieldSetting('type') === self::PAYMENT_TYPE_SUBSCRIPTION;
             $payment = $payments->prepareAttempt(
@@ -224,7 +229,7 @@ abstract class Payment extends Integration
             );
 
             if ($payment->status === PaymentModel::STATUS_SUCCEEDED || ($payment->scope['providerOutcome']['status'] ?? null) === PaymentModel::STATUS_SUCCEEDED) {
-                return PaymentDecision::succeeded($this->handle, $payment->reference);
+                return $this->validatePaymentResult($submission, PaymentDecision::succeeded($this->handle, $payment->reference));
             }
 
             if (!($payment->scope['initial'] ?? false)) {
@@ -251,7 +256,8 @@ abstract class Payment extends Integration
                 default => $payment->status,
             };
             $payments->savePayment($payment);
-            return $decision;
+
+            return $this->validatePaymentResult($submission, $decision);
         } catch (Throwable $e) {
             if ($payment) {
                 $payment = Formie::$plugin->getPayments()->getPaymentById($payment->id);
@@ -265,6 +271,17 @@ abstract class Payment extends Integration
             $db->enableSlaves = $enableSlaves;
             $mutex->release($lock);
         }
+    }
+
+    /** Validate local completion without rewriting the provider's financial outcome. */
+    public function validatePaymentResult(Submission $submission, PaymentDecision $decision): PaymentDecision
+    {
+        if ($this->afterProcessPayment($submission, $decision->status === PaymentDecision::STATUS_SUCCEEDED)
+            || in_array($decision->status, [PaymentDecision::STATUS_UNKNOWN, PaymentDecision::STATUS_FAILED, PaymentDecision::STATUS_CANCELLED], true)) {
+            return $decision;
+        }
+
+        return PaymentDecision::failed(Craft::t('formie', 'Payment result was rejected by an event handler.'), $this->handle, $decision->reference);
     }
 
     public function resolvePaymentDecision(Submission $submission): PaymentDecision

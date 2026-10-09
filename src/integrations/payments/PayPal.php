@@ -501,9 +501,6 @@ class PayPal extends Payment
 
     private function _processPayment(Submission $submission): PaymentDecision
     {
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
 
         $field = $this->getField();
         $amount = $this->getAmount($submission);
@@ -581,7 +578,6 @@ class PayPal extends Payment
             }
 
             if ($payment->status === PaymentModel::STATUS_SUCCEEDED) {
-                $this->afterProcessPayment($submission, true);
                 return PaymentDecision::succeeded($this->handle);
             }
             return $payment->status === PaymentModel::STATUS_FAILED

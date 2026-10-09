@@ -169,10 +169,6 @@ class Square extends Payment
         $response = null;
         $result = false;
 
-        // Allow events to cancel sending
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
 
         // Get the amount from the field, which handles dynamic fields
         $amount = $this->getAmount($submission);
@@ -277,10 +273,6 @@ class Square extends Payment
                 : PaymentDecision::failed($e->getMessage(), $this->handle);
         }
 
-        // Allow events to say the response is invalid
-        if (!$this->afterProcessPayment($submission, $result)) {
-            return PaymentDecision::succeeded($this->handle);
-        }
 
         return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
     }

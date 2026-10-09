@@ -350,9 +350,6 @@ class Eway extends Payment
 
     protected function executePayment(Submission $submission): PaymentDecision
     {
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
 
         $currency = $this->getFieldSetting('currency');
 
@@ -468,10 +465,6 @@ class Eway extends Payment
 
         $result = true;
 
-        // Allow events to say the response is invalid
-        if (!$this->afterProcessPayment($submission, $result)) {
-            return PaymentDecision::succeeded($this->handle);
-        }
 
         return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
     }
