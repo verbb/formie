@@ -473,6 +473,6 @@ class Variables
             return App::parseEnv($overrides[$setting]);
         }
 
-        return $mail->$setting;
+        return App::parseEnv($mail->$setting);
     }
 }
