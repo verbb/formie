@@ -170,7 +170,7 @@ class Ecomail extends EmailMarketing
     protected function defineClient(): Client
     {
         return Craft::createGuzzleClient([
-            'base_uri' => 'http://api2.ecomailapp.com/',
+            'base_uri' => 'https://api2.ecomailapp.com/',
             'headers' => ['key' => App::parseEnv($this->apiKey)],
         ]);
     }

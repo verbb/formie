@@ -12,6 +12,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed Ecomail and Moosend sending credentials and subscriber data over unencrypted HTTP.
 - Fixed escaped plain field markup being reactivated in email and PDF summaries.
 - Fixed failed payment status pages accepting untrusted redirect origins.
 - Fixed captcha provider credentials appearing in request URLs and transport error logs.

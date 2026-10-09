@@ -175,7 +175,7 @@ class Moosend extends EmailMarketing
     protected function defineClient(): Client
     {
         return Craft::createGuzzleClient([
-            'base_uri' => 'http://api.moosend.com/v3/',
+            'base_uri' => 'https://api.moosend.com/v3/',
             'query' => ['apikey' => App::parseEnv($this->apiKey)],
         ]);
     }
