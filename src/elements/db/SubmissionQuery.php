@@ -19,6 +19,7 @@ use craft\elements\db\ElementQuery;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
+use craft\web\Application as WebApplication;
 
 use yii\base\UnknownMethodException;
 
@@ -350,7 +351,7 @@ class SubmissionQuery extends ElementQuery
 
     private function _applyElementIndexPermissionScope(): void
     {
-        if (Craft::$app->getController()?->getUniqueId() !== 'element-indexes') {
+        if (!(Craft::$app instanceof WebApplication) || Craft::$app->getController()?->getUniqueId() !== 'element-indexes') {
             return;
         }
 
