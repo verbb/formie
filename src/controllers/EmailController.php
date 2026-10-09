@@ -148,6 +148,11 @@ class EmailController extends Controller
             $this->_requireFormNotificationAccess($form);
         }
 
+        $notification->attachAssets = Formie::$plugin->getNotifications()->filterAuthorizedAssetAttachments(
+            $notification->attachAssets,
+            Craft::$app->getUser()->getIdentity(),
+        );
+
         // Create a fake submission for this form.
         $submission->setForm($form);
 

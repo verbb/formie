@@ -14,6 +14,7 @@
 - Fixed notification IDs being accepted when they belonged to another form.
 - Fixed submission bulk actions applying changes outside the current user's save permissions.
 - Fixed element-index requests accepting client-controlled form scopes for submissions and sent notifications.
+- Fixed notification editors being able to attach assets they are not permitted to view.
 
 ## 3.1.47 - 2026-10-09
 

@@ -21,6 +21,7 @@ use Craft;
 use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\elements\Asset;
+use craft\elements\User;
 use craft\helpers\Db;
 use craft\helpers\Json;
 
@@ -77,6 +78,37 @@ class Notifications extends Component
             $this->_notifications(),
             fn(Notification $notification) => $notification->formId === $form->id && $notification->handle === $handle,
         );
+    }
+
+    public function filterAuthorizedAssetAttachments(?array $attachments, ?User $user): array
+    {
+        if (!$attachments || !$user) {
+            return [];
+        }
+
+        $ids = array_values(array_filter(array_map(
+            static fn(mixed $attachment): ?int => is_array($attachment) && isset($attachment['id']) ? (int)$attachment['id'] : null,
+            $attachments,
+        )));
+
+        if (!$ids) {
+            return [];
+        }
+
+        $authorizedIds = [];
+
+        foreach (Asset::find()->id($ids)->all() as $asset) {
+            if (Craft::$app->getElements()->canView($asset, $user)) {
+                $authorizedIds[(int)$asset->id] = true;
+            }
+        }
+
+        return array_values(array_filter(
+            $attachments,
+            static fn(mixed $attachment): bool => is_array($attachment)
+                && isset($attachment['id'])
+                && isset($authorizedIds[(int)$attachment['id']]),
+        ));
     }
 
     public function saveNotification(Notification $notification, bool $runValidation = true): bool
@@ -242,7 +274,12 @@ class Notifications extends Component
         $notificationsData = Json::decodeIfJson($notificationsData) ?? [];
 
         foreach ($notificationsData as $notificationData) {
-            $notifications[] = new Notification($notificationData);
+            $notification = new Notification($notificationData);
+            $notification->attachAssets = $this->filterAuthorizedAssetAttachments(
+                $notification->attachAssets,
+                Craft::$app->getUser()->getIdentity(),
+            );
+            $notifications[] = $notification;
         }
 
         return $notifications;
