@@ -48,7 +48,7 @@ abstract class Payment extends Integration
 
     public const PAYMENT_TYPE_SINGLE = 'single';
     public const PAYMENT_TYPE_SUBSCRIPTION = 'subscription';
-    
+
     public const VALUE_TYPE_FIXED = 'fixed';
     public const VALUE_TYPE_DYNAMIC = 'dynamic';
 
@@ -152,7 +152,7 @@ abstract class Payment extends Integration
             'field' => $field,
             'integration' => $this,
         ]);
-        
+
         return Template::raw($notification->renderTemplate("integrations/payments/{$handle}/field", $inputOptions));
     }
 
@@ -173,11 +173,17 @@ abstract class Payment extends Integration
             return null;
         }
 
+        $user = Craft::$app->getUser()->getIdentity();
+        $canManagePayments = Craft::$app->getRequest()->getIsCpRequest()
+            && $user
+            && Craft::$app->getElements()->canSave($submission, $user);
+
         return $submission->getForm()->renderTemplate("integrations/payments/{$handle}/submission-summary", [
             'integration' => $this,
             'form' => $submission,
             'payments' => $payments,
             'subscriptions' => $subscriptions,
+            'canManagePayments' => $canManagePayments,
         ]);
     }
 
@@ -185,7 +191,7 @@ abstract class Payment extends Integration
     {
         $handle = $this->getIntegrationHandle();
         $variables = $this->getFrontEndHtmlVariables();
-        
+
         if (!$this->hasValidSettings()) {
             return '';
         }
@@ -202,7 +208,7 @@ abstract class Payment extends Integration
     {
         return [];
     }
-    
+
     public function getRedirectUri(): string
     {
         if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
@@ -233,7 +239,7 @@ abstract class Payment extends Integration
 
         if ($amountType === Payment::VALUE_TYPE_FIXED) {
             $amount = $amountFixed;
-        } else if ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
+        } elseif ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
             // Payment calculations should always use the submitted/raw field value, not the
             // formatted variable output (which can be an option label for choice fields).
             $amount = Variables::getParsedValue($amountVariable, $submission, $submission->getForm(), null, false, true);
@@ -255,7 +261,7 @@ abstract class Payment extends Integration
 
         if ($currencyType === Payment::VALUE_TYPE_FIXED) {
             return (string)$currencyFixed;
-        } else if ($currencyType === Payment::VALUE_TYPE_DYNAMIC) {
+        } elseif ($currencyType === Payment::VALUE_TYPE_DYNAMIC) {
             return (string)Variables::getParsedValue($currencyVariable, $submission, $submission->getForm(), null, false, true);
         }
 
@@ -386,12 +392,12 @@ abstract class Payment extends Integration
 
     // Protected Methods
     // =========================================================================
-    
+
     protected function getIntegrationHandle(): string
     {
         return StringHelper::toKebabCase(static::className());
     }
-    
+
     protected function getPaymentFieldValue(Submission $submission): array
     {
         if ($field = $this->getField()) {
@@ -418,7 +424,7 @@ abstract class Payment extends Integration
 
             $handle[] = $field->handle;
 
-            $submission->addError(implode('.', $handle),  $message);
+            $submission->addError(implode('.', $handle), $message);
         }
     }
 

@@ -15,6 +15,7 @@
 - Fixed submission bulk actions applying changes outside the current user's save permissions.
 - Fixed element-index requests accepting client-controlled form scopes for submissions and sent notifications.
 - Fixed notification editors being able to attach assets they are not permitted to view.
+- Fixed read-only submission viewers being offered subscription cancellation actions.
 
 ## 3.1.47 - 2026-10-09
 

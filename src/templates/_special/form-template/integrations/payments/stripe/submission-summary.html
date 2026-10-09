@@ -55,7 +55,7 @@
                 <span class="status {{ subscription.getStatus() | kebab }}"></span>
                 {{ subscription.getStatus() | title | t('formie') }}
 
-                {% if not subscription.isCanceled and not subscription.isExpired %}
+                {% if canManagePayments and not subscription.isCanceled and not subscription.isExpired %}
                     {% set params = {
                         id: subscription.id,
                         hash: craft.app.security.hashData(subscription.reference),
