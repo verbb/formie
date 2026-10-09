@@ -720,6 +720,33 @@ Event::on(Entry::class, Entry::EVENT_MODIFY_ELEMENT_MATCH, function(ModifyElemen
 
 ## Microsoft Dynamics 365 Events
 
+### The `modifyEntities` Event
+The event that is triggered when Formie defines the Microsoft Dynamics 365 entities available for field mapping and record creation. Add a custom entity here to give each form its own enable switch and field mapping interface without creating a custom integration class.
+
+Use a stable array key as the entity handle. The `logicalName` identifies the entity in the Dynamics metadata API. Formie can discover `entitySetName` and `primaryIdAttribute` when the mapping is refreshed, or you can provide them explicitly. `deliveryOrder` controls when the record is created relative to other enabled entities.
+
+```php
+use verbb\formie\events\MicrosoftDynamics365EntitiesEvent;
+use verbb\formie\integrations\crm\MicrosoftDynamics365;
+use verbb\formie\models\MicrosoftDynamics365Entity;
+use yii\base\Event;
+
+Event::on(MicrosoftDynamics365::class, MicrosoftDynamics365::EVENT_MODIFY_ENTITIES, function(MicrosoftDynamics365EntitiesEvent $event) {
+    $event->entities['event'] = new MicrosoftDynamics365Entity([
+        'label' => 'Event',
+        'pluralLabel' => 'Events',
+        'logicalName' => 'new_event',
+        'entitySetName' => 'new_events',
+        'primaryIdAttribute' => 'new_eventid',
+        'deliveryOrder' => 60,
+    ]);
+});
+```
+
+The entity set name and primary ID attribute are optional. Providing them avoids an additional metadata lookup if a form delivers before its mapping has been refreshed.
+
+For integrations with specialised delivery logic, extend `MicrosoftDynamics365` and override `defineEntities()`. Entities added there and through this event use the same mapping, validation and delivery pipeline.
+
 ### The `modifyRequiredLevels` Event
 The event that is triggered to allow modification of the fields that are marked as required during field mapping in the model.
 

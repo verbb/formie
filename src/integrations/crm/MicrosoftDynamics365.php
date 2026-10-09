@@ -6,6 +6,7 @@ use verbb\formie\base\Crm;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\MicrosoftDynamics365EntitiesEvent;
 use verbb\formie\events\MicrosoftDynamics365RequiredLevelsEvent;
 use verbb\formie\events\MicrosoftDynamics365TargetSchemasEvent;
 use verbb\formie\helpers\ArrayHelper;
@@ -13,6 +14,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
+use verbb\formie\models\MicrosoftDynamics365Entity;
 
 use Craft;
 use craft\helpers\App;
@@ -23,6 +25,8 @@ use Throwable;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\models\Token;
 use verbb\auth\providers\Azure as AzureProvider;
+
+use yii\base\InvalidConfigException;
 
 class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 {
@@ -77,8 +81,11 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     // Constants
     // =========================================================================
 
+    public const EVENT_MODIFY_ENTITIES = 'modifyEntities';
     public const EVENT_MODIFY_REQUIRED_LEVELS = 'modifyRequiredLevels';
     public const EVENT_MODIFY_TARGET_SCHEMAS = 'modifyTargetSchemas';
+
+    private const ENTITY_METADATA_CONFIG_PREFIX = '__microsoftDynamics365Entity__';
 
 
     // Properties
@@ -110,7 +117,11 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     public ?array $accountFieldMapping = null;
     #[FormIntegrationSetting]
     public ?array $incidentFieldMapping = null;
+    #[FormIntegrationSetting]
+    public array $customEntitySettings = [];
 
+    private ?array $_entities = null;
+    private array $_resolvedEntityMetadata = [];
     private array $_entityOptions = [];
     private array $_systemUsers = [];
 
@@ -177,35 +188,103 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
+    /**
+     * @return array<string, MicrosoftDynamics365Entity>
+     */
+    public function getEntities(): array
+    {
+        if ($this->_entities !== null) {
+            return $this->_entities;
+        }
+
+        $event = new MicrosoftDynamics365EntitiesEvent([
+            'entities' => $this->defineEntities(),
+        ]);
+
+        $this->trigger(self::EVENT_MODIFY_ENTITIES, $event);
+
+        $entities = [];
+        $allowedSettings = array_flip($this->getFormSettingAttributes());
+
+        foreach ($event->entities as $handle => $entity) {
+            if (is_array($entity)) {
+                $entity = new MicrosoftDynamics365Entity($entity);
+            }
+
+            if (!$entity instanceof MicrosoftDynamics365Entity) {
+                throw new InvalidConfigException('Microsoft Dynamics 365 entities must be MicrosoftDynamics365Entity models or configuration arrays.');
+            }
+
+            if (!$entity->handle && is_string($handle)) {
+                $entity->handle = $handle;
+            }
+
+            if (!$entity->validate()) {
+                throw new InvalidConfigException('Invalid Microsoft Dynamics 365 entity “' . ($entity->handle ?: (string)$handle) . '”: ' . implode(' ', $entity->getErrorSummary(true)));
+            }
+
+            foreach ([$entity->getEnabledSetting(), $entity->getMappingSetting()] as $settingPath) {
+                $settingRoot = strtok($settingPath, '.');
+
+                if (!isset($allowedSettings[$settingRoot])) {
+                    throw new InvalidConfigException("Microsoft Dynamics 365 entity “{$entity->handle}” targets unannotated form setting “{$settingRoot}”.");
+                }
+            }
+
+            if (isset($entities[$entity->handle])) {
+                throw new InvalidConfigException("Duplicate Microsoft Dynamics 365 entity handle: {$entity->handle}.");
+            }
+
+            $entities[$entity->handle] = $entity;
+        }
+
+        return $this->_entities = $entities;
+    }
+
     public function fetchConfig(): IntegrationConfig
     {
         $settings = [];
 
         try {
-            if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
-                $settings['contact'] = $this->_getEntityFields('contact');
-            }
+            $handle = (string)$this->settingsContext->dataKey;
+            $entity = $this->getEntities()[$handle] ?? null;
 
-            if ($this->mapToLead && $this->settingsContext->dataKey === 'lead') {
-                $settings['lead'] = $this->_getEntityFields('lead');
-            }
+            if ($entity && $this->_isEntityEnabled($entity)) {
+                $settings[$handle] = $this->_getEntityFields($entity->logicalName);
 
-            if ($this->mapToOpportunity && $this->settingsContext->dataKey === 'opportunity') {
-                $settings['opportunity'] = $this->_getEntityFields('opportunity');
-            }
-
-            if ($this->mapToAccount && $this->settingsContext->dataKey === 'account') {
-                $settings['account'] = $this->_getEntityFields('account');
-            }
-
-            if ($this->mapToIncident && $this->settingsContext->dataKey === 'incident') {
-                $settings['incident'] = $this->_getEntityFields('incident');
+                if ($metadata = $this->_resolvedEntityMetadata[$entity->logicalName] ?? []) {
+                    $settings[$this->_getEntityMetadataConfigKey($entity)] = $metadata;
+                }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
         return new IntegrationConfig($settings);
+    }
+
+    public function validateEntityMappings(string $attribute): void
+    {
+        foreach ($this->getEntities() as $entity) {
+            if (!$this->_isEntityEnabled($entity)) {
+                continue;
+            }
+
+            $mappingSetting = $entity->getMappingSetting();
+            $mapping = $this->_getEntityMapping($entity);
+            $fields = $this->getConfigValue($entity->handle);
+
+            if (!is_array($fields)) {
+                continue;
+            }
+
+            foreach ($fields as $field) {
+                if ($field instanceof IntegrationField && $field->required && $this->normalizeFieldMappingValue($mapping[$field->handle] ?? '') === '') {
+                    $this->addError($mappingSetting, Craft::t('formie', '{name} must be mapped.', ['name' => $field->name]));
+                    break;
+                }
+            }
+        }
     }
 
     public function request(string $method, string $uri, array $options = [], bool $decodeJson = true): mixed
@@ -248,156 +327,107 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     // Protected Methods
     // =========================================================================
 
+    /**
+     * @return array<string, MicrosoftDynamics365Entity|array>
+     */
+    protected function defineEntities(): array
+    {
+        return [
+            'contact' => new MicrosoftDynamics365Entity([
+                'label' => Craft::t('formie', 'Contact'),
+                'pluralLabel' => Craft::t('formie', 'Contacts'),
+                'logicalName' => 'contact',
+                'entitySetName' => 'contacts',
+                'primaryIdAttribute' => 'contactid',
+                'enabledSetting' => 'mapToContact',
+                'mappingSetting' => 'contactFieldMapping',
+                'deliveryOrder' => 10,
+            ]),
+            'lead' => new MicrosoftDynamics365Entity([
+                'label' => Craft::t('formie', 'Lead'),
+                'pluralLabel' => Craft::t('formie', 'Leads'),
+                'logicalName' => 'lead',
+                'entitySetName' => 'leads',
+                'primaryIdAttribute' => 'leadid',
+                'enabledSetting' => 'mapToLead',
+                'mappingSetting' => 'leadFieldMapping',
+                'deliveryOrder' => 30,
+            ]),
+            'opportunity' => new MicrosoftDynamics365Entity([
+                'label' => Craft::t('formie', 'Opportunity'),
+                'pluralLabel' => Craft::t('formie', 'Opportunities'),
+                'logicalName' => 'opportunity',
+                'entitySetName' => 'opportunities',
+                'primaryIdAttribute' => 'opportunityid',
+                'enabledSetting' => 'mapToOpportunity',
+                'mappingSetting' => 'opportunityFieldMapping',
+                'deliveryOrder' => 40,
+            ]),
+            'account' => new MicrosoftDynamics365Entity([
+                'label' => Craft::t('formie', 'Account'),
+                'pluralLabel' => Craft::t('formie', 'Accounts'),
+                'logicalName' => 'account',
+                'entitySetName' => 'accounts',
+                'primaryIdAttribute' => 'accountid',
+                'enabledSetting' => 'mapToAccount',
+                'mappingSetting' => 'accountFieldMapping',
+                'deliveryOrder' => 20,
+            ]),
+            'incident' => new MicrosoftDynamics365Entity([
+                'label' => Craft::t('formie', 'Incident'),
+                'pluralLabel' => Craft::t('formie', 'Incidents'),
+                'optionSourceLabel' => Craft::t('formie', 'Case'),
+                'logicalName' => 'incident',
+                'entitySetName' => 'incidents',
+                'primaryIdAttribute' => 'incidentid',
+                'enabledSetting' => 'mapToIncident',
+                'mappingSetting' => 'incidentFieldMapping',
+                'deliveryOrder' => 50,
+            ]),
+        ];
+    }
+
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
 
         try {
-            $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
-            $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
-            $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
-            $accountValues = $this->getFieldMappingValues($submission, $this->accountFieldMapping, 'account');
-            $incidentValues = $this->getFieldMappingValues($submission, $this->incidentFieldMapping, 'incident');
+            $entities = array_values($this->getEntities());
+            usort($entities, fn(MicrosoftDynamics365Entity $a, MicrosoftDynamics365Entity $b) => $a->deliveryOrder <=> $b->deliveryOrder);
+            $createdEntities = [];
 
-            $contactId = null;
-            $leadId = null;
-            $opportunityId = null;
-            $accountId = null;
-            $incidentId = null;
+            foreach ($entities as $entity) {
+                if (!$this->_isEntityEnabled($entity)) {
+                    continue;
+                }
 
-            if ($this->mapToContact) {
-                $contactPayload = $contactValues;
-
-                $response = $this->deliverPayload($submission, 'contacts?$select=contactid', $contactPayload);
+                $mapping = $this->_getEntityMapping($entity);
+                $payload = $this->getFieldMappingValues($submission, $mapping, $this->getConfigValue($entity->handle));
+                $metadata = $this->_getEntityMetadata($entity);
+                $payload = $this->prepareEntityPayload($entity, $payload, $createdEntities);
+                $endpoint = "{$metadata['entitySetName']}?\$select={$metadata['primaryIdAttribute']}";
+                $response = $this->deliverPayload($submission, $endpoint, $payload);
 
                 if ($response === false) {
                     return $this->resultForPayload(true);
                 }
 
-                $contactId = $response['contactid'] ?? '';
+                $entityId = $response[$metadata['primaryIdAttribute']] ?? '';
 
-                if (!$contactId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
+                if (!$entityId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “{attribute}” {response}. Sent payload {payload}', [
+                        'attribute' => $metadata['primaryIdAttribute'],
                         'response' => Json::encode($response),
-                        'payload' => Json::encode($contactPayload),
+                        'payload' => Json::encode($payload),
                     ]), true);
 
                     return $this->resultForPayload(false);
                 }
-            }
 
-            if ($this->mapToAccount) {
-                $accountPayload = $accountValues;
-
-                if ($contactId) {
-                    $accountPayload['primarycontactid@odata.bind'] = $this->_formatLookupValue('contacts', $contactId);
-                }
-
-                $response = $this->deliverPayload($submission, 'accounts?$select=accountid', $accountPayload);
-
-                if ($response === false) {
-                    return $this->resultForPayload(true);
-                }
-
-                $accountId = $response['accountid'] ?? '';
-
-                if (!$accountId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return accountid {response}. Sent payload {payload}', [
-                        'response' => Json::encode($response),
-                        'payload' => Json::encode($accountPayload),
-                    ]), true);
-
-                    return $this->resultForPayload(false);
-                }
-            }
-
-            if ($this->mapToLead) {
-                $leadPayload = $leadValues;
-
-                if ($contactId) {
-                    $contactLookupValue = $this->_formatLookupValue('contacts', $contactId);
-
-                    $leadPayload['parentcontactid@odata.bind'] = $contactLookupValue;
-                    $leadPayload['customerid_contact@odata.bind'] = $contactLookupValue;
-                }
-
-                if ($accountId) {
-                    $accountLookupValue = $this->_formatLookupValue('accounts', $accountId);
-
-                    $leadPayload['parentaccountid@odata.bind'] = $accountLookupValue;
-                    $leadPayload['customerid_account@odata.bind'] = $accountLookupValue;
-                }
-
-                $response = $this->deliverPayload($submission, 'leads?$select=leadid', $leadPayload);
-
-                if ($response === false) {
-                    return $this->resultForPayload(true);
-                }
-
-                $leadId = $response['leadid'] ?? '';
-
-                if (!$leadId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return leadid {response}. Sent payload {payload}', [
-                        'response' => Json::encode($response),
-                        'payload' => Json::encode($leadPayload),
-                    ]), true);
-
-                    return $this->resultForPayload(false);
-                }
-            }
-
-            if ($this->mapToOpportunity) {
-                $opportunityPayload = $opportunityValues;
-
-                if ($contactId) {
-                    $accountPayload['parentcontactid@odata.bind'] = $this->_formatLookupValue('contacts', $contactId);
-                }
-
-                if ($accountId) {
-                    $accountPayload['parentaccountid@odata.bind'] = $this->_formatLookupValue('accounts', $accountId);
-                }
-
-                $response = $this->deliverPayload($submission, 'opportunities?$select=opportunityid', $opportunityPayload);
-
-                if ($response === false) {
-                    return $this->resultForPayload(true);
-                }
-
-                $opportunityId = $response['opportunityid'] ?? '';
-
-                if (!$opportunityId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return opportunityid {response}. Sent payload {payload}', [
-                        'response' => Json::encode($response),
-                        'payload' => Json::encode($opportunityPayload),
-                    ]), true);
-
-                    return $this->resultForPayload(false);
-                }
-            }
-
-            if ($this->mapToIncident) {
-                $incidentPayload = $incidentValues;
-
-                if ($contactId) {
-                    $incidentPayload['customerid_contact@odata.bind'] = $this->_formatLookupValue('contacts', $contactId);
-                }
-
-                $response = $this->deliverPayload($submission, 'incidents?$select=incidentid', $incidentPayload);
-
-                if ($response === false) {
-                    return $this->resultForPayload(true);
-                }
-
-                $incidentId = $response['incidentid'] ?? '';
-
-                if (!$incidentId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return incidentid {response}. Sent payload {payload}', [
-                        'response' => Json::encode($response),
-                        'payload' => Json::encode($incidentPayload),
-                    ]), true);
-
-                    return $this->resultForPayload(false);
-                }
+                $createdEntities[$entity->handle] = [
+                    'id' => $entityId,
+                    'entitySetName' => $metadata['entitySetName'],
+                ];
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
@@ -408,45 +438,53 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         return $this->resultForPayload(true);
     }
 
+    protected function prepareEntityPayload(MicrosoftDynamics365Entity $entity, array $payload, array $createdEntities): array
+    {
+        $contact = $createdEntities['contact'] ?? null;
+        $account = $createdEntities['account'] ?? null;
+
+        if ($entity->handle === 'account' && $contact) {
+            $payload['primarycontactid@odata.bind'] = $this->_formatLookupValue($contact['entitySetName'], $contact['id']);
+        }
+
+        if ($entity->handle === 'lead') {
+            if ($contact) {
+                $contactLookupValue = $this->_formatLookupValue($contact['entitySetName'], $contact['id']);
+                $payload['parentcontactid@odata.bind'] = $contactLookupValue;
+                $payload['customerid_contact@odata.bind'] = $contactLookupValue;
+            }
+
+            if ($account) {
+                $accountLookupValue = $this->_formatLookupValue($account['entitySetName'], $account['id']);
+                $payload['parentaccountid@odata.bind'] = $accountLookupValue;
+                $payload['customerid_account@odata.bind'] = $accountLookupValue;
+            }
+        }
+
+        if ($entity->handle === 'opportunity') {
+            if ($contact) {
+                $payload['parentcontactid@odata.bind'] = $this->_formatLookupValue($contact['entitySetName'], $contact['id']);
+            }
+
+            if ($account) {
+                $payload['parentaccountid@odata.bind'] = $this->_formatLookupValue($account['entitySetName'], $account['id']);
+            }
+        }
+
+        if ($entity->handle === 'incident' && $contact) {
+            $payload['customerid_contact@odata.bind'] = $this->_formatLookupValue($contact['entitySetName'], $contact['id']);
+        }
+
+        return $payload;
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
-
-        $contact = $this->getConfigValue('contact');
-        $lead = $this->getConfigValue('lead');
-        $opportunity = $this->getConfigValue('opportunity');
-        $account = $this->getConfigValue('account');
-        $incident = $this->getConfigValue('incident');
-
-        // Validate the following when saving form settings
         $rules[] = [
-            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-                return $model->enabled && $model->mapToContact;
+            ['customEntitySettings'], 'validateEntityMappings', 'when' => function($model) {
+                return $model->enabled;
             }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
-        ];
-
-        $rules[] = [
-            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
-                return $model->enabled && $model->mapToLead;
-            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
-        ];
-
-        $rules[] = [
-            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-                return $model->enabled && $model->mapToOpportunity;
-            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
-        ];
-
-        $rules[] = [
-            ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
-                return $model->enabled && $model->mapToAccount;
-            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
-        ];
-
-        $rules[] = [
-            ['incidentFieldMapping'], 'validateFieldMapping', 'params' => $incident, 'when' => function($model) {
-                return $model->enabled && $model->mapToIncident;
-            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false
         ];
 
         return $rules;
@@ -455,63 +493,43 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     protected function defineFormSettingsSchema(FormInterface $form): array
     {
         $schema = parent::defineFormSettingsSchema($form);
-        $schema[] = SchemaHelper::lightswitchField([
-            'name' => 'mapToContact',
-            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
-            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
-        ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
-            'name' => 'contactFieldMapping',
-            'if' => 'mapToContact',
-            'dataLabel' => 'Contact',
-            'dataKey' => 'contact',
-        ]);
-        $schema[] = SchemaHelper::lightswitchField([
-            'name' => 'mapToLead',
-            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Lead']),
-            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Leads']),
-        ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
-            'name' => 'leadFieldMapping',
-            'if' => 'mapToLead',
-            'dataLabel' => 'Lead',
-            'dataKey' => 'lead',
-        ]);
-        $schema[] = SchemaHelper::lightswitchField([
-            'name' => 'mapToOpportunity',
-            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Opportunity']),
-            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Opportunities']),
-        ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
-            'name' => 'opportunityFieldMapping',
-            'if' => 'mapToOpportunity',
-            'dataLabel' => 'Opportunity',
-            'dataKey' => 'opportunity',
-        ]);
-        $schema[] = SchemaHelper::lightswitchField([
-            'name' => 'mapToAccount',
-            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Account']),
-            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Accounts']),
-        ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
-            'name' => 'accountFieldMapping',
-            'if' => 'mapToAccount',
-            'dataLabel' => 'Account',
-            'dataKey' => 'account',
-        ]);
-        $schema[] = SchemaHelper::lightswitchField([
-            'name' => 'mapToIncident',
-            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Incident']),
-            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Incidents']),
-        ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
-            'name' => 'incidentFieldMapping',
-            'if' => 'mapToIncident',
-            'dataLabel' => 'Incident',
-            'dataKey' => 'incident',
-        ]);
+
+        foreach ($this->getEntities() as $entity) {
+            $enabledSetting = $entity->getEnabledSetting();
+
+            $schema[] = SchemaHelper::lightswitchField([
+                'name' => $enabledSetting,
+                'label' => Craft::t('formie', 'Map to {name}', ['name' => $entity->label]),
+                'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => $entity->getPluralLabel()]),
+            ]);
+            $schema[] = $this->getIntegrationFieldMappingField([
+                'name' => $entity->getMappingSetting(),
+                'if' => $enabledSetting,
+                'dataLabel' => $entity->label,
+                'dataKey' => $entity->handle,
+            ]);
+        }
 
         return $schema;
+    }
+
+    protected function getOptionSourceCollections(IntegrationConfig $config, array $definition): array
+    {
+        if (($definition['handle'] ?? null) === 'dynamics365-picklists') {
+            $definition['objectKeys'] = [];
+            $definition['objectLabels'] = [];
+
+            foreach ($this->getEntities() as $entity) {
+                if (!$entity->exposePicklists) {
+                    continue;
+                }
+
+                $definition['objectKeys'][] = $entity->handle;
+                $definition['objectLabels'][$entity->handle] = $entity->getOptionSourceLabel();
+            }
+        }
+
+        return parent::getOptionSourceCollections($config, $definition);
     }
 
     protected function convertFieldType($fieldType)
@@ -533,6 +551,61 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
     // Private Methods
     // =========================================================================
+
+    private function _isEntityEnabled(MicrosoftDynamics365Entity $entity): bool
+    {
+        return (bool)ArrayHelper::getValue($this, $entity->getEnabledSetting());
+    }
+
+    private function _getEntityMapping(MicrosoftDynamics365Entity $entity): array
+    {
+        $mapping = ArrayHelper::getValue($this, $entity->getMappingSetting());
+
+        return is_array($mapping) ? $mapping : [];
+    }
+
+    private function _getEntityMetadataConfigKey(MicrosoftDynamics365Entity $entity): string
+    {
+        return self::ENTITY_METADATA_CONFIG_PREFIX . $entity->handle;
+    }
+
+    private function _getEntityMetadata(MicrosoftDynamics365Entity $entity): array
+    {
+        $metadata = $this->getConfigValue($this->_getEntityMetadataConfigKey($entity));
+        $entitySetName = $entity->entitySetName ?: ($metadata['entitySetName'] ?? null);
+        $primaryIdAttribute = $entity->primaryIdAttribute ?: ($metadata['primaryIdAttribute'] ?? null);
+
+        if (!$entitySetName || !$primaryIdAttribute) {
+            $metadata = $this->_fetchEntityMetadata($entity->logicalName);
+            $entitySetName = $entitySetName ?: ($metadata['entitySetName'] ?? null);
+            $primaryIdAttribute = $primaryIdAttribute ?: ($metadata['primaryIdAttribute'] ?? null);
+        }
+
+        foreach (['entitySetName' => $entitySetName, 'primaryIdAttribute' => $primaryIdAttribute] as $key => $value) {
+            if (!is_string($value) || !preg_match('/^[a-zA-Z][a-zA-Z0-9_]*$/', $value)) {
+                throw new InvalidConfigException("Unable to resolve a valid {$key} for Microsoft Dynamics 365 entity “{$entity->handle}”.");
+            }
+        }
+
+        return [
+            'entitySetName' => $entitySetName,
+            'primaryIdAttribute' => $primaryIdAttribute,
+        ];
+    }
+
+    private function _fetchEntityMetadata(string $logicalName): array
+    {
+        $metadata = $this->request('GET', $this->_getEntityDefinitionsUri($logicalName), [
+            'query' => [
+                '$select' => 'EntitySetName,PrimaryIdAttribute',
+            ],
+        ]);
+
+        return $this->_resolvedEntityMetadata[$logicalName] = [
+            'entitySetName' => $metadata['EntitySetName'] ?? null,
+            'primaryIdAttribute' => $metadata['PrimaryIdAttribute'] ?? null,
+        ];
+    }
 
     private function _getEntityFields($entity): array
     {
@@ -557,10 +630,15 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
             // https://docs.microsoft.com/en-us/dynamics365/customerengagement/on-premises/developer/entities/contact?view=op-9-1#BKMK_Address1_Telephone1
             $metadata = $this->request('GET', $this->_getEntityDefinitionsUri($entity), [
                 'query' => [
-                    '$select' => 'Attributes',
+                    '$select' => 'Attributes,EntitySetName,PrimaryIdAttribute',
                     '$expand' => 'Attributes($select='. implode(',', $metadataAttributesForSelect) . ')',
                 ],
             ]);
+
+            $this->_resolvedEntityMetadata[$entity] = [
+                'entitySetName' => $metadata['EntitySetName'] ?? null,
+                'primaryIdAttribute' => $metadata['PrimaryIdAttribute'] ?? null,
+            ];
 
             // We also need to query DateTime attribute data to check if any are DateOnly
             $dateTimeAttributes = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'DateTime'), [
@@ -728,7 +806,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
             }
 
             // Get unique entities used (destructure for performance)
-            $entities = array_values(array_unique(array_merge(...$entities)));
+            $entities = $entities ? array_values(array_unique(array_merge(...$entities))) : [];
 
             // Filter out some core entities, which seem to require admin priviledges
             $entities = array_values(array_filter($entities, function($entityName) {

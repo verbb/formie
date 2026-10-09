@@ -63,6 +63,8 @@ Ensure you have Azure administrator access or an Azure administrator is able to 
 
 For a contact enquiry, map the visitor’s email and name where those fields are available.
 
+Custom Dynamics entities can be added to the same form mapping interface with the [`modifyEntities` event](/developers/events/integration-events#the-modifyentities-event).
+
 ### Optional: Web API Version
 
 The Microsoft Dynamics 365 Web API provides [different versions of the Web API](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/web-api-versions). This is to both maintain compatibility or implement new breaking changes. There are no major differences between v9.0, v9.1 or v9.2 currently. This setting allows you to specify a specific API version if required. When setting a specific value, all Microsoft Dynamics 365 Web API requests will use this API version in the request URI.

@@ -24,6 +24,7 @@ import {
     collectSelectableValues,
     getComparableTokenValue,
 } from '@form-builder/fields/utils/variablePicker';
+import { updateIntegrationSettingMapping } from '@form-builder/utils/integrationSettings';
 
 // Integration destinations accept string payloads — include multi-line text
 // (`content: any`) alongside single-line/date/number sources.
@@ -453,17 +454,13 @@ const IntegrationFieldMappingField = ({ form, field }) => {
         }
 
         const currentSettings = getLiveIntegrationSettings(settingsPath);
-        const currentMapping = (currentSettings[field.name] && typeof currentSettings[field.name] === 'object' && !Array.isArray(currentSettings[field.name]))
-            ? currentSettings[field.name]
-            : fallbackMapping;
-
-        parentForm.setFieldValue(settingsPath, {
-            ...currentSettings,
-            [field.name]: {
-                ...(currentMapping || {}),
-                [handle]: nextValue,
-            },
-        });
+        parentForm.setFieldValue(settingsPath, updateIntegrationSettingMapping(
+            currentSettings,
+            field.name,
+            handle,
+            nextValue,
+            fallbackMapping,
+        ));
     }, [field.name, getIntegrationSettingsPath, getLiveIntegrationSettings, parentForm]);
 
     const integrationFields = useMemo(() => {

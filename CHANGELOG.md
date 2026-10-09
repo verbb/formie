@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Added an event-based Microsoft Dynamics 365 entity registry for mapping and creating custom entities without a custom integration subclass. ([#2995](https://github.com/verbb/formie/issues/2995))
+
 ### Changed
 - Simplified delivery diagnostics with a wider modal, plain-language status, tabbed evidence (including queued integration operations), and prominent submission and export actions.
 - Updated sent notification resend dialogs, the submission email notification dialog, and the unmark-spam action dialog to use Plugin Kit, including stable loading-state sizing.

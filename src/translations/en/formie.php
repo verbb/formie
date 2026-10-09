@@ -1719,6 +1719,7 @@ To review it please log into your control panel.
   'Missing return incidentid {response}. Sent payload {payload}' => 'Missing return incidentid {response}. Sent payload {payload}',
   'Missing return leadid {response}. Sent payload {payload}' => 'Missing return leadid {response}. Sent payload {payload}',
   'Missing return opportunityid {response}. Sent payload {payload}' => 'Missing return opportunityid {response}. Sent payload {payload}',
+  'Missing return “{attribute}” {response}. Sent payload {payload}' => 'Missing return “{attribute}” {response}. Sent payload {payload}',
   'Missing return “accountId” {response}. Sent payload {payload}' => 'Missing return “accountId” {response}. Sent payload {payload}',
   'Missing return “campaignMemberId” {response}. Sent payload {payload}' => 'Missing return “campaignMemberId” {response}. Sent payload {payload}',
   'Missing return “candidateId” {response}. Sent payload {payload}' => 'Missing return “candidateId” {response}. Sent payload {payload}',
