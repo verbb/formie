@@ -53,8 +53,14 @@ class DuplicateForm extends Duplicate
     private function _duplicateElements(ElementQueryInterface $query, array $elements, int &$successCount, int &$failCount): void
     {
         $elementsService = Craft::$app->getElements();
+        $currentUser = Craft::$app->getUser()->getIdentity();
 
         foreach ($elements as $element) {
+            if (!$elementsService->canDuplicate($element, $currentUser)) {
+                $failCount++;
+                continue;
+            }
+
             // Make sure this element wasn't already duplicated, which could
             // happen if it's the descendant of a previously duplicated element
             // and $this->deep == true.

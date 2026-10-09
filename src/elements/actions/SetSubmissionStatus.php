@@ -88,6 +88,7 @@ JS, [static::class]);
     public function performAction(ElementQueryInterface $query): bool
     {
         $elementsService = Craft::$app->getElements();
+        $currentUser = Craft::$app->getUser()->getIdentity();
 
         /** @var Submission[] $elements */
         $elements = $query->all();
@@ -100,17 +101,20 @@ JS, [static::class]);
             // across multiple content tables from the "All Forms" option.
             $element = Submission::find()->uid($element->uid)->isSpam(null)->isIncomplete(null)->one();
 
-            if ($element) {
-                $element->setStatus($status);
+            if (!$element || !$elementsService->canSave($element, $currentUser)) {
+                $failCount++;
+                continue;
+            }
 
-                if ($elementsService->saveElement($element) === false) {
-                    Formie::error('Unable to set status: {error}', ['error' => Json::encode($element->getErrors())]);
+            $element->setStatus($status);
 
-                    // Validation error
-                    $failCount++;
-                } else {
-                    Formie::$plugin->getIntegrationTriggers()->dispatchCpElementSave($element);
-                }
+            if ($elementsService->saveElement($element) === false) {
+                Formie::error('Unable to set status: {error}', ['error' => Json::encode($element->getErrors())]);
+
+                // Validation error
+                $failCount++;
+            } else {
+                Formie::$plugin->getIntegrationTriggers()->dispatchCpElementSave($element);
             }
         }
 

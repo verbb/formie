@@ -79,6 +79,7 @@ JS,
     public function performAction(ElementQueryInterface $query): bool
     {
         $elementsService = Craft::$app->getElements();
+        $currentUser = Craft::$app->getUser()->getIdentity();
 
         /** @var Submission[] $elements */
         $elements = $query->all();
@@ -89,25 +90,28 @@ JS,
             // across multiple content tables from the "All Forms" option.
             $element = Submission::find()->uid($element->uid)->isSpam(null)->isIncomplete(null)->one();
 
-            if ($element) {
-                $element->isSpam = $this->spam === 'markSpam';
+            if (!$element || !$elementsService->canSave($element, $currentUser)) {
+                $failCount++;
+                continue;
+            }
 
-                if ($elementsService->saveElement($element) === false) {
-                    Formie::error('Unable to set spam status: {error}', ['error' => Json::encode($element->getErrors())]);
+            $element->isSpam = $this->spam === 'markSpam';
 
-                    // Validation error
-                    $failCount++;
+            if ($elementsService->saveElement($element) === false) {
+                Formie::error('Unable to set spam status: {error}', ['error' => Json::encode($element->getErrors())]);
 
-                    continue;
-                }
+                // Validation error
+                $failCount++;
 
-                if ($this->spam !== 'markSpam') {
-                    Formie::$plugin->getIntegrationTriggers()->dispatchSpamUnmark(
-                        $element,
-                        $this->sendNotifications,
-                        $this->triggerIntegrations,
-                    );
-                }
+                continue;
+            }
+
+            if ($this->spam !== 'markSpam') {
+                Formie::$plugin->getIntegrationTriggers()->dispatchSpamUnmark(
+                    $element,
+                    $this->sendNotifications,
+                    $this->triggerIntegrations,
+                );
             }
         }
 

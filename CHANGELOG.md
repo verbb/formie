@@ -12,6 +12,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed bulk form and submission actions applying changes without checking access to every selected element.
 - Fixed untrusted form, submission, notification, and status labels being rendered as control panel markup.
 - Fixed integration settings permissions being selected from spoofable request paths.
 - Fixed unsafe form import values being rendered as control panel markup.
