@@ -103,7 +103,7 @@ Formie checks these rules after email rules and before spam keywords.
 
 Submission throttling is **abuse protection**, not entry caps. It limits how quickly forms can be submitted during floods or rapid repeat attempts. Configure it under **Formie → Settings → Spam Protection → Submission Throttling**.
 
-For contest, registration, or quota-style caps, use per-form **[Submission limits](/forms/submission-limits)** in the form builder instead. Throttling marks excess submissions as spam; submission limits close the form or show a validation error according to your business rules.
+For contest, registration, or quota-style caps, use per-form **[Submission limits](/forms/submission-limits)** in the form builder instead. Throttling rejects excess requests with a too-many-requests response (HTTP 429); submission limits close the form or show a validation error according to your business rules.
 
 | Setting | What it does |
 | --- | --- |
@@ -122,7 +122,7 @@ Configure them under **Formie → Settings → Spam Protection → Submission Gu
 
 | Guard | What It Does |
 | --- | --- |
-| **Honeypot** | Renders a hidden field that legitimate users should leave empty. Submissions that fill it in are marked as spam. |
+| **Honeypot** | Renders a hidden field that legitimate users should leave empty. Requests that fill it in are rejected before the submission is saved. |
 | **Minimum submit time** | Requires a minimum delay between the form loading and submission. |
 | **Form submit expiration** | Rejects submissions when too much time has passed since the form was first loaded. |
 | **Replay protection** | Prevents duplicate submissions from reusing the same `requestToken`. |
@@ -133,7 +133,7 @@ Honeypot, minimum submit time, and replay protection are enabled by default. For
 
 Guards are not captcha integrations. They do not appear in the form builder’s captcha picker, and they do not use provider credentials.
 
-Formie checks these safeguards before processing the form, including for logged-in visitors. Visitors can correct validation errors and submit again. If a connection fails after a successful submission, retrying the same request recovers its result rather than creating a duplicate.
+Formie checks these safeguards before processing the form, including for logged-in visitors. A failed honeypot or timing check can return a fake success when that spam policy is configured, but it does not create a saved submission marked as spam. Visitors can correct validation errors and submit again. If a connection fails after a successful submission, retrying the same request recovers its result rather than creating a duplicate.
 
 Custom REST and GraphQL clients must send the session tokens returned when they load the form. See [Rendering Forms](/graphql/rendering-forms) for client setup.
 
@@ -149,17 +149,17 @@ If you customise the name, make sure it does not match any field handle or name 
 
 The browser package records when a form instance was first mounted and sends that value as `formStartedAt`. Formie compares it against the configured minimum (in seconds) on the server.
 
-Very fast automated submissions are flagged as spam. Real users who submit immediately after the page loads may also be caught if the minimum is set too high, so tune this value for your forms.
+Very fast automated submissions are rejected before they are saved. Real users who submit immediately after the page loads may also be caught if the minimum is set too high, so tune this value for your forms.
 
 ### Form Submit Expiration
 
-Form submit expiration uses the same `formStartedAt` timestamp as minimum submit time. If the elapsed time exceeds the configured maximum (in seconds), the submission is marked as spam.
+Form submit expiration uses the same `formStartedAt` timestamp as minimum submit time. If the elapsed time exceeds the configured maximum (in seconds), the request is rejected before the submission is saved.
 
 Use this when you want to reject stale form sessions left open for hours or days. It is disabled by default.
 
 ### Replay Protection
 
-Replay protection uses the existing per-render `requestToken` that Formie already issues for browser forms. Formie stores a short-lived cache entry when a token is successfully consumed, and rejects reuse within 24 hours.
+Replay protection uses the existing per-render `requestToken` that Formie already issues for browser forms. Formie records the operation in the database. Retrying the same completed operation recovers its result; reusing its identity for different submitted content is rejected.
 
 This is separate from save-and-continue draft tokens and static-cache refresh behaviour. It targets repeat POST abuse, not legitimate multi-page navigation.
 

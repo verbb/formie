@@ -232,7 +232,7 @@ Event::on(Recaptcha::class, Recaptcha::EVENT_AFTER_VALIDATE_SUBMISSION, function
 ```
 
 ### The `beforeProcessPayment` Event
-The event that is triggered before a payment integration processes a payment.
+Runs before Formie creates a payment intent or calls the provider. Set `isValid` to `false` to skip payment processing.
 
 ```php
 use verbb\formie\events\PaymentIntegrationProcessEvent;
@@ -249,7 +249,7 @@ Event::on(Stripe::class, Stripe::EVENT_BEFORE_PROCESS_PAYMENT, function(PaymentI
 ```
 
 ### The `afterProcessPayment` Event
-The event that is triggered after a payment integration processes a payment.
+Runs after processing a payment, including when Formie reuses a stored success to retry submission completion. `result` is `true` for a successful payment and `false` for other outcomes. Set `isValid` to `false` to block local completion. This does not undo a charge or change the stored financial result. Failed, cancelled and uncertain payments retain their outcome.
 
 ```php
 use verbb\formie\events\PaymentIntegrationProcessEvent;

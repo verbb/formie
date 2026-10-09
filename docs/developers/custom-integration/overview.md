@@ -318,7 +318,7 @@ Annotate sensitive properties with `#[\verbb\formie\attributes\Sensitive]`, incl
 
 ## Results and Safe Retries
 
-Return `IntegrationResult` from providers. `succeeded()` confirms completion; `skipped()` records ineligibility or cancellation; `rejected()` means validation or the provider refused the operation; `failed($code, true)` permits retry only when the operation is known not to have occurred; `unknown()` requires reconciliation. An `IntegrationBatchResult` retains every step result. Returning an arbitrary array or truthy object does not establish success.
+Return `IntegrationResult` from providers. `succeeded()` confirms completion; `skipped()` records ineligibility or cancellation; `rejected()` means validation or the provider refused the operation; `failed($code, true)` permits retry only when the operation is known not to have occurred; `unknown()` requires reconciliation. An `IntegrationBatchResult` retains every step result. Returning an arbitrary array or truthy object does not establish success. A configured API-error policy can acknowledge a queue job without recording a successful delivery. The stored result still records the rejection or failure; `shouldFailQueue()` controls the job outcome. Unknown provider outcomes always require reconciliation.
 
 The inherited `execute(IntegrationRunContext $context)` method prepares the current run and calls the protected `executePayload(Submission $submission)` hook. Override `executePayload()` for most providers; implement `execute()` directly when you need the full run context. Return data that later integrations or notifications should use through `IntegrationResult::withOutputs()`. Do not put it in a provider's mutable `context` array. Earlier results are available through `IntegrationRunResults` on the run context. Raw provider responses are stored separately for diagnostics.
 
@@ -331,3 +331,7 @@ Custom SDKs that bypass these helpers receive the coarse root guard only. Before
 Payment providers extend `base\Payment` and use their separate payment state machine.
 
 Queue jobs contain an attempt UID only. Do not attach submission objects, credentials, payloads or debug data to jobs. Append bounded checkpoints through `DeliveryAttempts::checkpoint()` instead. See [Integration Dispatch and Policies](/guides/integrations/integration-dispatch-and-policies) for operator recovery and [Integration Events](/developers/events/integration-events) for events you can observe during delivery.
+
+### Provider Field Formatting
+
+Override `modifyFieldMappingValue()` or `modifyFieldMappingValues()` for formatting owned by your integration. Call the parent implementation when extending an existing provider. Formie calls these methods once for each mapping, then dispatches the public mapping events so other extensions can modify the result. Register application-wide event listeners during your plugin or module initialization, rather than each time an integration instance is constructed.

@@ -67,3 +67,5 @@ $event->transforms[] = new ReferenceTransform(
 This snippet belongs inside the listener above. List its ID in the source definition’s `transforms` array to allow it for that source. `{custom:acme/campaign;transform=acme%2Fshout}` returns `SPRING-SALE`. The picker groups the transform by its input type. Declare supported parameter names with `parameters: ['suffix']`; the callback receives the value, parameter map and context. Parameter names outside that declaration are rejected. Input/output type failures remain typed diagnostics and do not silently preserve the original value.
 
 See [Reference Tokens](/developers/reference-tokens) for exact resolution, output contexts and handling resolution errors in your code.
+
+Register sources and transforms during your module or plugin’s initialization, before references are first used. Formie builds the catalogue once per application. Source callbacks still run for each resolution with that submission’s context; their returned values are not cached.

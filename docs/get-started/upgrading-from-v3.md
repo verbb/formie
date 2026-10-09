@@ -1640,6 +1640,19 @@ Unknown, disabled or unregistered imported field types remain recoverable Missin
 
 Changing a stencil or default after creating a form does not update that form. Custom field developers should review [field definitions and instances](/developers/custom-field#definition-and-instance-identity) when adapting settings or translations.
 
+## Custom Parent Fields
+
+Update custom nested field bases to the Formie 4 classes:
+
+| Formie 3 base | Formie 4 base |
+| --- | --- |
+| `NestedField` | `ParentField` (shared parent behaviour) |
+| `SingleNestedField` with editable child fields | `ContainerParentField` |
+| `SubField` with intrinsic parts, such as Name | `FixedParentField` |
+| `MultiNestedField` | `RepeatableParentField` |
+
+See [Custom Fields](/developers/custom-field) for child definitions, storage and rendering. The custom Craft-field adapter interface uses `serializeValueForDb()` for persistence; earlier Formie 4 beta adapters should rename their `serializeValue()` implementation.
+
 ## Field Value Contracts
 
 Name values now consistently use `NameFieldValue`, including single-name mode. Text and Email return strings, Agree normalises missing input to false, and Number keeps decimal text without float conversion. Phone uses immutable `PhoneFieldValue`: `.number` and `.country` remain available, `.canonicalNumber` holds valid E.164 data, and string output uses that canonical number or retains invalid entered text. Presentation policy such as `hasCountryCode` is not part of the value. Phone's stored Formie 3 number/country shape and encrypted number parts are read through the storage compatibility boundary. Use `getFieldValueAsString()` for string output and `getFieldValueAsData()` for natural JSON-safe data.
@@ -1671,6 +1684,7 @@ Stored reference slots cannot execute arbitrary Twig filters, globals, functions
 | Formie 3 | Formie 4 |
 | --- | --- |
 | `Variables::getParsedValue()` | `References::interpolateText()` with an explicit context and output context; exact destinations use `resolveValue()` |
+| Twig `craft.formie.getParsedValue()` | `craft.formie.parseContent(text, submission)` for text containing references; `craft.formie.parseValue(reference, submission)` for one reference whose native value is needed |
 | Formie 3 `RegisterVariablesEvent::$variables` / `ParseVariablesEvent::$variables` | Register a `ReferenceSource` through `ReferenceCatalogue::EVENT_REGISTER`; declare a namespaced ID and `FieldValueType` |
 
 Register custom sources with namespaced IDs such as `vendor/name` and update their stored tokens to `{custom:vendor/name}`. Formie cannot infer third-party ownership or semantics. Formie 3 field email projection adapters remain available through reference blocks.
@@ -1724,3 +1738,7 @@ Test conditions that compare text, numbers, dates or selected options. Text comp
 Hidden and disabled public values are cleared recursively before validation, including nested and repeater values. Browser-posted page targets cannot bypass progression rules. Validation errors are plain text and retain complete nested paths. Stable Formie 3 AJAX still uses handle-based error keys and may return HTTP 200; the client-rendered APIs use form-field instance IDs and typed domain outcomes.
 
 For custom front-end validation, follow [Custom Front-End Validation](#custom-front-end-validation) and [Conditions and Validation](/developers/conditions-and-validation).
+
+### Browser Translation Event
+
+Replace `EVENT_MODIFY_FRONT_END_JS_TRANSLATIONS` with `Rendering::EVENT_MODIFY_BROWSER_JS_TRANSLATIONS`. The event still supplies the translation array for extensions to modify.

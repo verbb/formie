@@ -25,7 +25,7 @@ Fields must extend `verbb\formie\base\Field`. This gives your field the form-bui
 
 For fields that contain other fields, extend the parent field class that matches the behaviour you need:
 
-- `ParentField` for editable nested fields.
+- `ContainerParentField` for an editable group of nested fields. `ParentField` supplies shared behaviour for the parent classes listed here.
 - `FixedParentField` for fields with a fixed set of child fields, such as Name, Address or Date/Time.
 - `RepeatableParentField` for fields that repeat a group of nested fields.
 
@@ -431,7 +431,7 @@ The selected adapter’s builder settings are stored in `customFieldAdapterSetti
 When an adapter supports a structured value, implement these methods together:
 
 - `normalizeValue()`
-- `serializeValue()`
+- `serializeValueForDb()`
 - `isValueEmpty()`
 - `getValueAsString()`
 - `getValueAsData()`

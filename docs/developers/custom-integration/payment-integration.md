@@ -72,10 +72,6 @@ class ExamplePayment extends Payment
 
     protected function executePayment(Submission $submission): PaymentDecision
     {
-        if (!$this->beforeProcessPayment($submission)) {
-            return PaymentDecision::notRequired();
-        }
-
         $token = $this->getPaymentFieldPayload($submission)->string('examplePaymentToken');
         if (!$token) {
             return PaymentDecision::failed('Payment details are incomplete.', $this->handle);
@@ -103,9 +99,8 @@ class ExamplePayment extends Payment
                 }
                 $payment->reference = $response['id'];
                 $payment->response = $response;
-                $payment->status = PaymentModel::STATUS_SUCCESS;
+                $payment->status = PaymentModel::STATUS_SUCCEEDED;
                 Formie::$plugin->getPayments()->savePayment($payment);
-                $this->afterProcessPayment($submission, true);
                 return PaymentDecision::succeeded($this->handle, $payment->reference);
             },
         );
@@ -114,6 +109,8 @@ class ExamplePayment extends Payment
 ```
 
 The example uses a provider without documented idempotent retries: `PaymentAttempt` records that the request was sent, so a lost response becomes `unknown` and cannot blindly issue another charge. For an API with a documented idempotency window, use the existing `DeliveryAttempt` resource claim with a stable key, bounded retry window and authenticated lookup. Never derive a fresh key just because the response timed out.
+
+The base payment integration calls the before/after payment events. Implement `executePayment()` without calling those hooks yourself. The before event runs before creating a payment intent. The after event can block submission completion, but it cannot change a failed or uncertain payment into a success, undo a charge, or cause a successful payment to be charged again. It also runs when a stored successful payment is used to retry completion.
 
 ## Money And Outcomes
 

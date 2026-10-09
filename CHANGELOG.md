@@ -6,6 +6,9 @@
 - Added an event-based Microsoft Dynamics 365 entity registry for mapping and creating custom entities without a custom integration subclass. ([#2995](https://github.com/verbb/formie/issues/2995))
 
 ### Changed
+- Centralized reference transform declarations and register custom reference sources once per application.
+- Payment integrations now inherit before/after payment hooks from the base class. Custom providers should implement `executePayment()` without dispatching those hooks themselves.
+- Renamed custom field adapters’ persistence method to `serializeValueForDb()`.
 - Simplified delivery diagnostics with a wider modal, plain-language status, tabbed evidence (including queued integration operations), and prominent submission and export actions.
 - Updated sent notification resend dialogs, the submission email notification dialog, and the unmark-spam action dialog to use Plugin Kit, including stable loading-state sizing.
 - Updated the default danger theme colors to use Tailwind's Rose palette.
@@ -15,6 +18,16 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed payment hooks treating declined payments as successful or creating payment intents before processing was cancelled.
+- Fixed queued element integrations failing before saving their element.
+- Fixed downgraded integration API errors being recorded as successful deliveries.
+- Fixed integration field formatting running repeatedly as more provider instances were created.
+- Fixed query-string prefill for multiple choices, recipient labels, and element IDs.
+- Fixed duplicate field options losing their inline error markers.
+- Fixed quiz results becoming stale after administrative GraphQL submission edits.
+- Fixed custom element fields being omitted from option-source discovery and custom condition value types being ignored.
+- Fixed Help Desk integration icons and custom integration icon overrides.
+- Fixed legacy status access returning a separate service instance and payment field relations targeting Craft fields.
 - Fixed form imports updating forms the importing user was not permitted to manage.
 - Fixed form saves accepting notification changes from users without access to the Notifications tab.
 - Fixed Ecomail and Moosend sending credentials and subscriber data over unencrypted HTTP.
