@@ -8,6 +8,7 @@ use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\References;
 use verbb\formie\models\Notification;
+use verbb\formie\references\ReferenceOutputContext;
 use craft\web\View;
 
 function renderEmailTemplate(string $template, array $variables): string
@@ -179,6 +180,45 @@ it('sanitizes every all-fields style summary variable before it becomes an email
         ->and($body)->toContain('<strong>FullName</strong>')
         ->and($body)->toContain('safe-text');
     expectEmailHtmlToBeXssSafe($body);
+})->with([
+    '{allFields}',
+    '{allContentFields}',
+    '{allVisibleFields}',
+])->group('security');
+
+it('keeps plain field links and images inert in every html summary', function (string $summaryVariable): void {
+    $payload = '<a data-attacker-link href="https://evil.example/login">Verify account</a><img data-attacker-image src="https://evil.example/tracker.gif">';
+    $form = formie()
+        ->form(['title' => 'Email Summary Escaping Security'])
+        ->singleLineTextField('fullName')
+        ->multiLineTextField('message')
+        ->create();
+    $submission = formie()->submission($form)->with([
+        'fullName' => $payload,
+        'message' => $payload,
+    ])->save();
+    $summary = References::parseContent($summaryVariable, $submission, [
+        'outputContext' => ReferenceOutputContext::Html,
+    ]);
+    $notification = new Notification([
+        'name' => 'Security Email Escaped Summary',
+        'handle' => 'securityEmailEscapedSummary' . uniqid(),
+        'to' => 'recipient@example.test',
+        'from' => 'sender@example.test',
+        'subject' => 'Security Subject',
+        'content' => $summaryVariable,
+    ]);
+    $result = Formie::$plugin->getEmails()->renderEmail($notification, $submission);
+    $body = (string)$result['email']->getSymfonyEmail()->getHtmlBody();
+    $document = new DOMDocument();
+    @$document->loadHTML($body ?: '<html></html>');
+    $xpath = new DOMXPath($document);
+
+    expect($result)->not->toHaveKey('error')
+        ->and($summary)->toContain('&lt;a')
+        ->and($summary)->toContain('&lt;img')
+        ->and($body)->toContain('Verify account')
+        ->and($xpath->query('//a[@href="https://evil.example/login"] | //img[@src="https://evil.example/tracker.gif"]')->length)->toBe(0);
 })->with([
     '{allFields}',
     '{allContentFields}',

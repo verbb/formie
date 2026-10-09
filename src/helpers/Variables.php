@@ -845,7 +845,7 @@ class Variables
             'fields' => $fields,
         ]);
 
-        return StringHelper::cleanString(html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        return StringHelper::cleanString($html);
     }
 
     private static function _resolveDateFormatPatternFromPreset(string $preset): string
