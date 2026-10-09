@@ -241,7 +241,7 @@ class Forms extends Component
         return Craft::$app->getElements()->duplicateElement($form, array_merge($form->getDuplicateAttributes(), $attributes));
     }
 
-    public function buildFormFromPost(): Form
+    public function buildFormFromPost(bool $allowNotificationChanges = false): Form
     {
         $request = Craft::$app->getRequest();
         $formId = $request->getParam('id');
@@ -254,10 +254,10 @@ class Forms extends Component
                 throw new Exception("No form found for ID: $formId");
             }
 
-            return $this->_populateFormFromPost($form);
+            return $this->_populateFormFromPost($form, allowNotificationChanges: $allowNotificationChanges);
         }
 
-        return $this->_populateFormFromPost(new Form());
+        return $this->_populateFormFromPost(new Form(), allowNotificationChanges: $allowNotificationChanges);
     }
 
     public function buildStencilFormFromPost(): Form
@@ -620,7 +620,7 @@ class Forms extends Component
         return $element;
     }
 
-    private function _populateFormFromPost(Form $form, bool $applyDefaultStencil = true): Form
+    private function _populateFormFromPost(Form $form, bool $applyDefaultStencil = true, bool $allowNotificationChanges = false): Form
     {
         $request = Craft::$app->getRequest();
         $bodyParams = $request->getBodyParams();
@@ -660,10 +660,17 @@ class Forms extends Component
         }
 
         $user = Craft::$app->getUser()->getIdentity();
-        $canManageIntegrations = $form->getBuilderEntityType() === Form::BUILDER_ENTITY_TYPE_STENCIL
+        $isStencilForm = $form->getBuilderEntityType() === Form::BUILDER_ENTITY_TYPE_STENCIL;
+        $canManageIntegrations = $isStencilForm
             ? ($user && $user->can('formie-showFormIntegrations'))
             : Formie::$plugin->getPermissions()->canShowFormBuilderTab($user, $form, 'formie-showFormIntegrations');
+        $canManageNotifications = $isStencilForm || $allowNotificationChanges || Formie::$plugin->getPermissions()->canShowFormBuilderTab(
+            $user,
+            $form,
+            $isNewForm ? 'formie-createNotifications' : 'formie-showNotifications',
+        );
         $oldIntegrationSettings = $form->settings->integrations ?? [];
+        $oldNotifications = $canManageNotifications ? [] : $form->getNotifications();
 
         // Merge in any new settings, while retaining existing ones. Important for users with permissions.
         if ($newSettings = $request->getParam('settings')) {
@@ -678,8 +685,9 @@ class Forms extends Component
             $form->settings->setAttributes($newSettings, false);
         }
 
-        // Set the notifications
-        $form->setNotifications(Formie::$plugin->getNotifications()->buildNotificationsFromPost());
+        if ($canManageNotifications) {
+            $form->setNotifications(Formie::$plugin->getNotifications()->buildNotificationsFromPost());
+        }
 
         // Set custom field values
         $form->setFieldValuesFromRequest('fields');
@@ -699,6 +707,10 @@ class Forms extends Component
             }
         } elseif ($isNewForm && $applyDefaultStencil) {
             Formie::$plugin->getFormDefaults()->applyDefaultStencil($form);
+        }
+
+        if (!$canManageNotifications) {
+            $form->setNotifications($oldNotifications);
         }
 
         return $form;
