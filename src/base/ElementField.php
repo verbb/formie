@@ -351,7 +351,11 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         }
 
         if ($this->orderBy) {
-            $query->orderBy($this->orderBy);
+            $orderBy = $this->_resolveOrderBy();
+
+            if ($orderBy !== null) {
+                $query->orderBy($orderBy);
+            }
         }
 
         // Allow any template-defined elementQuery to override
@@ -1244,6 +1248,34 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
 
     // Private Methods
     // =========================================================================
+
+    private function _resolveOrderBy(): ?array
+    {
+        $configuredValue = trim($this->orderBy);
+        $configuredMatches = [];
+
+        if (!preg_match('/^([A-Za-z_][A-Za-z0-9_.]*)\\s+(ASC|DESC)$/i', $configuredValue, $configuredMatches)) {
+            return null;
+        }
+
+        foreach ($this->getOptionSourceOrderByOptions() as $option) {
+            $allowedValue = trim((string)($option['value'] ?? ''));
+            $allowedMatches = [];
+
+            if (!preg_match('/^([A-Za-z_][A-Za-z0-9_.]*)\\s+(ASC|DESC)$/i', $allowedValue, $allowedMatches)) {
+                continue;
+            }
+
+            if ($allowedMatches[1] === $configuredMatches[1]
+                && strtoupper($allowedMatches[2]) === strtoupper($configuredMatches[2])) {
+                return [
+                    $allowedMatches[1] => strtoupper($allowedMatches[2]) === 'DESC' ? SORT_DESC : SORT_ASC,
+                ];
+            }
+        }
+
+        return null;
+    }
 
     private function _elementToArray(ElementInterface $element)
     {
