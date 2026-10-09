@@ -2,6 +2,7 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\references\ReferenceCatalogue;
 use verbb\formie\cache\RenderCache;
 use verbb\formie\client\bootstrap\FormBootstrapBuilder;
 use verbb\formie\client\bootstrap\FormDefinitionBuilder;
@@ -55,7 +56,6 @@ use verbb\formie\services\Payments;
 use verbb\formie\services\PaymentWebhooks;
 use verbb\formie\services\PdfTemplates;
 use verbb\formie\services\Permissions;
-use verbb\formie\services\Phone;
 use verbb\formie\services\Plans;
 use verbb\formie\services\QuestionnaireResults;
 use verbb\formie\services\QuestionnaireScoring;
@@ -177,6 +177,7 @@ trait PluginTrait
         return [
             'components' => [
                 'countries' => Countries::class,
+                'referenceCatalogue' => ReferenceCatalogue::class,
                 'compatibility' => Compatibility::class,
                 'customFields' => CustomFields::class,
                 'cpAssets' => [
@@ -234,7 +235,6 @@ trait PluginTrait
                 'questionnaireResults' => QuestionnaireResults::class,
                 'questionnaireScoring' => QuestionnaireScoring::class,
                 'pdfTemplates' => PdfTemplates::class,
-                'phone' => Phone::class,
                 'plans' => Plans::class,
                 'clientEventTemplates' => ClientEventTemplates::class,
                 'optionSources' => OptionSources::class,
@@ -257,7 +257,7 @@ trait PluginTrait
                 'spamProtection' => SpamProtection::class,
                 'service' => Service::class,
                 'submissionStatuses' => SubmissionStatuses::class,
-                'statuses' => SubmissionStatuses::class,
+                'statuses' => static fn() => Formie::$plugin->getSubmissionStatuses(),
                 'formStatuses' => FormStatuses::class,
                 'stencils' => Stencils::class,
                 'submissions' => Submissions::class,
@@ -301,6 +301,11 @@ trait PluginTrait
 
     // Public Methods
     // =========================================================================
+
+    public function getReferenceCatalogue(): ReferenceCatalogue
+    {
+        return $this->get('referenceCatalogue');
+    }
 
     public function getCountries(): Countries
     {
@@ -570,11 +575,6 @@ trait PluginTrait
     public function getPdfTemplates(): PdfTemplates
     {
         return $this->get('pdfTemplates');
-    }
-
-    public function getPhone(): Phone
-    {
-        return $this->get('phone');
     }
 
     public function getPlans(): Plans

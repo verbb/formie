@@ -13,7 +13,9 @@ final class ConditionOperator
 
     public static function schema(): array
     {
-        return json_decode(file_get_contents(__DIR__ . '/schema.json'), true, flags: JSON_THROW_ON_ERROR);
+        static $schema = null;
+
+        return $schema ??= json_decode(file_get_contents(__DIR__ . '/schema.json'), true, flags: JSON_THROW_ON_ERROR);
     }
 
     public static function all(): array

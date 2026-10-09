@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\conditions;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\OptionsField;
 use verbb\formie\base\RepeatableParentFieldInterface;
@@ -11,7 +12,6 @@ use verbb\formie\fields\Phone;
 use verbb\formie\fields\Recipients;
 use verbb\formie\helpers\References;
 use verbb\formie\references\FieldReferenceResolver;
-use verbb\formie\references\ReferenceCatalogue;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\references\ReferenceType;
 
@@ -105,9 +105,9 @@ final class ConditionCompiler
             $browser = $expression->isValid && ($expression->target === 'field' && $field !== null);
 
             if ($expression->transformerId !== '') {
-                $browser = $browser && ((new ReferenceCatalogue())->transform($expression->transformerId)?->browser ?? false);
+                $browser = $browser && (Formie::$plugin->getReferenceCatalogue()->transform($expression->transformerId)?->browser ?? false);
             }
-            $type = $field instanceof Field ? self::fieldType($field) : ($expression->identifier === 'id' ? 'number' : 'text');
+            $type = $field instanceof Field ? $field->getConditionValueType() : ($expression->identifier === 'id' ? 'number' : 'text');
 
             if ($expression->selector !== '' && $field) {
                 $type = $field instanceof Date && in_array($expression->selector, ['date', 'time'], true) ? $expression->selector : 'text';

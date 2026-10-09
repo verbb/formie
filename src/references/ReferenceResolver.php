@@ -1,10 +1,10 @@
 <?php
 namespace verbb\formie\references;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\FieldValueInterface;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\ReferenceExpression;
 
 /** Coordinates grammar, explicit sources and field-owned projections. */
@@ -134,7 +134,7 @@ final class ReferenceResolver
         if (in_array($expression->target, ['allFields', 'allContentFields', 'allVisibleFields'], true)) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidType);
         }
-        $custom = (new ReferenceCatalogue())->transform($id);
+        $custom = Formie::$plugin->getReferenceCatalogue()->transform($id);
 
         if ($custom) {
             if (!$custom->server || !in_array('server', $context->permissions, true)) {
@@ -152,17 +152,11 @@ final class ReferenceResolver
             return $result;
         }
 
-        if (!in_array($id, ['round', 'floor', 'ceil', 'format', 'lower', 'upper', 'title', 'capitalize', 'replace', 'truncate', 'map', 'join', 'first', 'last', 'count'], true)) {
+        $parameters = BuiltinReferenceTransforms::parameters($id);
+
+        if ($parameters === null) {
             throw new ReferenceException(ReferenceDiagnostic::UnknownTransform);
         }
-        $parameters = match ($id) {
-            'format' => ['decimals', 'decimalPoint', 'thousandsSeparator', 'preset', 'pattern'],
-            'replace' => ['search', 'replace'],
-            'truncate' => ['length', 'suffix'],
-            'map' => ['trueLabel', 'falseLabel'],
-            'join' => ['separator'],
-            default => [],
-        };
 
         if (array_diff(array_keys($expression->transformerParams), [...$parameters, 'scope', 'index', 'rows'])) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidExpression);
@@ -183,7 +177,7 @@ final class ReferenceResolver
         if (in_array($id, ['lower', 'upper', 'title', 'capitalize', 'replace', 'truncate'], true) && !is_scalar($value) && $value !== null) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidType);
         }
-        return Variables::applyVariableTransformer($value, $id, $expression->transformerParams);
+        return BuiltinReferenceTransforms::apply($value, $id, $expression->transformerParams);
     }
 
     private function _knownTarget(string $target): bool

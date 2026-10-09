@@ -24,6 +24,6 @@ trait PluginDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Formie `getStatuses()` has been deprecated. Use `getSubmissionStatuses()` instead.');
 
-        return $this->get('statuses');
+        return $this->getSubmissionStatuses();
     }
 }

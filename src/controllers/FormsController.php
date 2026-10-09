@@ -47,7 +47,6 @@ class FormsController extends Controller
     // =========================================================================
 
     protected array|bool|int $allowAnonymous = [
-        'render' => self::ALLOW_ANONYMOUS_LIVE,
         'refresh-tokens' => self::ALLOW_ANONYMOUS_LIVE,
     ];
 
@@ -65,7 +64,7 @@ class FormsController extends Controller
             }
         }
 
-        if (in_array($action->id, ['render', 'refresh-tokens'], true)) {
+        if ($action->id === 'refresh-tokens') {
             BrowserRequestProfile::enter(true);
             $this->enableCsrfValidation = false;
         }
@@ -106,30 +105,6 @@ class FormsController extends Controller
         return $this->asJson(RefreshTokensCompatibility::applyLegacyPayload(
             Formie::$plugin->getServerRenderPayloadBuilder()->buildRefreshTokensPayload($form)
         ));
-    }
-
-    public function actionRender(): Response
-    {
-        if ($response = $this->handleCrossOriginRequest()) {
-            return $response;
-        }
-
-        $form = $this->_getFrontendRequestForm();
-
-        if (!$form) {
-            throw new NotFoundHttpException('Form not found');
-        }
-
-        $renderOptions = (array)$this->request->getParam('renderOptions', []);
-        $renderOptions['includeCss'] = false;
-        $renderOptions['includeJs'] = false;
-        $renderOptions['includeScriptsInline'] = true;
-        $renderOptions['mode'] = 'html';
-        $renderOptions['endpoint'] = $renderOptions['endpoint'] ?? UrlHelper::actionUrl('formie/forms/render');
-
-        $this->response->setNoCacheHeaders();
-
-        return $this->asJson(Formie::$plugin->getServerRenderPayloadBuilder()->buildServerRenderPayload($form, $renderOptions));
     }
 
     public function actionIndex(): Response

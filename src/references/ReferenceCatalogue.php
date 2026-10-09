@@ -8,11 +8,12 @@ use verbb\formie\helpers\Variables;
 
 use Craft;
 
+use yii\base\Component;
 use yii\base\Event;
 
 use InvalidArgumentException;
 
-final class ReferenceCatalogue
+final class ReferenceCatalogue extends Component
 {
     // Constants
     // =========================================================================
@@ -30,8 +31,9 @@ final class ReferenceCatalogue
     // Public Methods
     // =========================================================================
 
-    public function __construct()
+    public function init(): void
     {
+        parent::init();
         $event = new RegisterReferencesEvent();
         Event::trigger(self::class, self::EVENT_REGISTER, $event);
 

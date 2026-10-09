@@ -14,7 +14,11 @@ use verbb\formie\references\ReferenceSource;
 use verbb\formie\references\ReferenceTransform;
 use yii\base\Event;
 
-afterEach(fn() => Event::off(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER));
+beforeEach(fn() => \verbb\formie\Formie::$plugin->set('referenceCatalogue', ReferenceCatalogue::class));
+afterEach(function () {
+    Event::off(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER);
+    \verbb\formie\Formie::$plugin->set('referenceCatalogue', ReferenceCatalogue::class);
+});
 
 it('registers typed namespaced sources without evaluating server values in the picker', function() {
     $calls = 0;
@@ -96,4 +100,18 @@ it('enforces block shape for exact and interpolated references while retaining r
     $submission = formie()->submission($form)->with(['value' => 'Body value'])->save();
     expect(fn() => References::resolveUrl('{allFields}', $submission))->toThrow(\verbb\formie\references\ReferenceException::class);
     expect(References::parseContent('{allFields}', $submission, ['outputContext' => \verbb\formie\references\ReferenceOutputContext::Html]))->toContain('Body value');
+});
+
+it('registers once while resolving each source with its current context', function () {
+    $registrations = 0;
+    $resolutions = 0;
+    Event::on(ReferenceCatalogue::class, ReferenceCatalogue::EVENT_REGISTER, function (RegisterReferencesEvent $event) use (&$registrations, &$resolutions) {
+        $registrations++;
+        $event->sources[] = new ReferenceSource(new ReferenceDefinition('acme/each', 'Each', 'custom', FieldValueType::string()), function () use (&$resolutions) { return (string)++$resolutions; });
+    });
+    Variables::getCategoryConfig();
+    $context = new ReferenceContext(permissions: ['server']);
+    expect(References::resolveValue('{custom:acme/each}', $context)->requireValue())->toBe('1')
+        ->and(References::resolveValue('{custom:acme/each}', $context)->requireValue())->toBe('2')
+        ->and($registrations)->toBe(1);
 });

@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\references;
 
+use verbb\formie\Formie;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
@@ -20,7 +21,7 @@ final class ContextReferenceSource
         if ($target === 'dispatch') {
             $id = str_replace(':', '.', $id);
         }
-        $definition = (new ReferenceCatalogue())->definition($target, $id);
+        $definition = Formie::$plugin->getReferenceCatalogue()->definition($target, $id);
 
         if (!$definition) {
             throw new ReferenceException(ReferenceDiagnostic::UnknownSource);
@@ -28,7 +29,7 @@ final class ContextReferenceSource
         $definition->assertAvailable($context);
 
         if ($target === 'custom') {
-            $source = (new ReferenceCatalogue())->source($id);
+            $source = Formie::$plugin->getReferenceCatalogue()->source($id);
 
             if (!$source->definition->server || !in_array('server', $context->permissions, true)) {
                 throw new ReferenceException(ReferenceDiagnostic::ForbiddenSource);
