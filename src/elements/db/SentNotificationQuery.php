@@ -1,13 +1,16 @@
 <?php
 namespace verbb\formie\elements\db;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\SentNotification;
 use verbb\formie\helpers\Table;
 
+use Craft;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
+use craft\web\Application as WebApplication;
 
 class SentNotificationQuery extends ElementQuery
 {
@@ -104,6 +107,8 @@ class SentNotificationQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseParam('formie_sentnotifications.formId', $this->formId));
         }
 
+        $this->_applyElementIndexPermissionScope();
+
         if ($this->submissionId) {
             $this->subQuery->andWhere(Db::parseParam('formie_sentnotifications.submissionId', $this->submissionId));
         }
@@ -126,5 +131,22 @@ class SentNotificationQuery extends ElementQuery
             ],
             default => parent::statusCondition($status),
         };
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _applyElementIndexPermissionScope(): void
+    {
+        if (!(Craft::$app instanceof WebApplication) || Craft::$app->controller?->getUniqueId() !== 'element-indexes') {
+            return;
+        }
+
+        $allowedFormIds = Formie::$plugin->getPermissions()->getViewableSentNotificationFormIds(Craft::$app->getUser()->getIdentity());
+
+        if ($allowedFormIds !== null) {
+            $this->subQuery->andWhere(['formie_sentnotifications.formId' => $allowedFormIds ?: false]);
+        }
     }
 }

@@ -16,6 +16,7 @@ use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\search\SearchQueryTerm;
 use craft\search\SearchQueryTermGroup;
+use craft\web\Application as WebApplication;
 
 class SubmissionQuery extends ElementQuery
 {
@@ -268,6 +269,8 @@ class SubmissionQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseParam('formie_submissions.formId', $this->formId));
         }
 
+        $this->_applyElementIndexPermissionScope();
+
         if ($this->statusId) {
             $this->subQuery->andWhere(Db::parseParam('formie_submissions.statusId', $this->statusId));
         }
@@ -333,6 +336,19 @@ class SubmissionQuery extends ElementQuery
     private function _resolveStatusIdValue(array|string $value): mixed
     {
         return Formie::$plugin->getSubmissionStatuses()->resolveStatusIdParam($value);
+    }
+
+    private function _applyElementIndexPermissionScope(): void
+    {
+        if (!(Craft::$app instanceof WebApplication) || Craft::$app->controller?->getUniqueId() !== 'element-indexes') {
+            return;
+        }
+
+        $allowedFormIds = Formie::$plugin->getPermissions()->getViewableSubmissionFormIds(Craft::$app->getUser()->getIdentity());
+
+        if ($allowedFormIds !== null) {
+            $this->subQuery->andWhere(['formie_submissions.formId' => $allowedFormIds ?: false]);
+        }
     }
 
     private function _applyCustomFieldParams(): void

@@ -576,6 +576,22 @@ class Permissions extends Component
         return array_values(array_unique($accessibleIds));
     }
 
+    /**
+     * Returns null when the user can view every form's submissions, otherwise a list of allowed form IDs.
+     */
+    public function getViewableSubmissionFormIds(?User $user): ?array
+    {
+        return $this->_getFormIdsForScopedPermission($user, self::PERM_VIEW_SUBMISSIONS);
+    }
+
+    /**
+     * Returns null when the user can view every form's sent notifications, otherwise a list of allowed form IDs.
+     */
+    public function getViewableSentNotificationFormIds(?User $user): ?array
+    {
+        return $this->_getFormIdsForScopedPermission($user, self::PERM_VIEW_SENT_NOTIFICATIONS);
+    }
+
     public function userCanAccessFormRecord(?User $user, array $formRow): bool
     {
         if ($this->hasGlobalFormAccess($user)) {
@@ -849,6 +865,42 @@ class Permissions extends Component
     private function _can(?User $user, string $permission): bool
     {
         return $this->_isElevated($user) || ($user?->can($permission) ?? false);
+    }
+
+    private function _getFormIdsForScopedPermission(?User $user, string $permission): ?array
+    {
+        if ($this->_isElevated($user) || $user?->can($permission)) {
+            return null;
+        }
+
+        if (!$user) {
+            return [];
+        }
+
+        $formRows = (new Query())
+            ->select(['f.id', 'e.uid', 'g.handle AS groupHandle'])
+            ->from(['f' => Table::FORMIE_FORMS])
+            ->innerJoin(['e' => CraftTable::ELEMENTS], '[[e.id]] = [[f.id]]')
+            ->leftJoin(['g' => Table::FORMIE_FORM_GROUPS], '[[g.id]] = [[f.groupId]]')
+            ->where(['e.dateDeleted' => null])
+            ->all();
+
+        $allowedFormIds = [];
+
+        foreach ($formRows as $formRow) {
+            $formId = (int)($formRow['id'] ?? 0);
+            $formUid = (string)($formRow['uid'] ?? '');
+            $groupHandle = (string)($formRow['groupHandle'] ?? self::GROUP_UNGROUPED);
+
+            if ($formId && (
+                $user->can($this->scopedPermission($permission, $formUid))
+                || $user->can($this->scopedPermission($permission, $this->groupScope($groupHandle)))
+            )) {
+                $allowedFormIds[] = $formId;
+            }
+        }
+
+        return array_values(array_unique($allowedFormIds));
     }
 
     private function _getCreateFormTabPermissions(?string $scope = null): array
