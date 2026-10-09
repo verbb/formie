@@ -159,7 +159,7 @@ class Variables
 
         if ($submission && $submission->id) {
             $cacheKey = 'submission' . $submission->id;
-        } else if ($form && $form->id) {
+        } elseif ($form && $form->id) {
             $cacheKey = 'form' . $form->id;
         }
 
@@ -288,6 +288,10 @@ class Variables
         // Avoid falling back to a sandboxed `submission.form` traversal for form content fields.
         $variables['form'] = $form;
 
+        if ($submission) {
+            $variables = self::_setSubmissionFieldVariables($value, $submission, $variables);
+        }
+
         // Allow plugins to modify the variables
         $event = new ParseVariablesEvent([
             'submission' => $submission,
@@ -367,7 +371,7 @@ class Variables
             return $values;
         }
 
-        // There are some circumstances where we're rendering email content, but not for an email. 
+        // There are some circumstances where we're rendering email content, but not for an email.
         // Slack integration rich text is one of them, there are likely more.
         $notification = $notification ?? new Notification();
 
@@ -403,6 +407,23 @@ class Variables
 
     // Private Methods
     // =========================================================================
+
+    private static function _setSubmissionFieldVariables(string $value, Submission $submission, array $variables): array
+    {
+        // Formie fields live outside Craft's native field layout, so Base's
+        // explicit sandbox cannot discover their handles from the Submission.
+        foreach ($submission->getFields() as $field) {
+            $handle = $field->handle;
+
+            if (!$handle || array_key_exists($handle, $variables) || !str_contains($value, $handle)) {
+                continue;
+            }
+
+            $variables[$handle] = $submission->getFieldValue($handle);
+        }
+
+        return $variables;
+    }
 
     private static function _setMissingFieldVariables(string $value, array $variables): array
     {

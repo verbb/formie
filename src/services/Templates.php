@@ -4,9 +4,11 @@ namespace verbb\formie\services;
 use verbb\formie\elements\Submission;
 
 use Craft;
+use craft\elements\db\ElementQueryInterface;
 
 use yii\base\Model;
 
+use ArrayAccess;
 use Closure;
 use DateTimeInterface;
 
@@ -41,6 +43,9 @@ class Templates extends BaseTemplates
         }
 
         $this->allowedProperties = $this->getDefaultSandboxedAllowedProperties();
+        $this->allowedProperties[ElementQueryInterface::class] = static function(ElementQueryInterface $query, string $property): bool {
+            return ctype_digit($property) && $query instanceof ArrayAccess;
+        };
 
         foreach ($this->additionalAllowedProperties as $class => $additional) {
             $default = $this->allowedProperties[$class] ?? null;
@@ -129,7 +134,7 @@ class Templates extends BaseTemplates
                     $tokens[$name] = $this->_stringifyTokenValue($value);
                 }
             }
-        } else if ($object instanceof Model) {
+        } elseif ($object instanceof Model) {
             foreach ($object->getAttributes() as $name => $value) {
                 $tokens[$name] = $this->_stringifyTokenValue($value);
                 $this->_addNestedTokens($tokens, $name, $value);
