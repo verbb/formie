@@ -12,6 +12,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed notification editors attaching assets they were not permitted to view.
 - Fixed form integration settings resolving environment variables outside the configured allowlist.
 - Fixed element field option ordering accepting undeclared query expressions.
 - Fixed bulk form and submission actions applying changes without checking access to every selected element.

@@ -86,6 +86,8 @@ class EmailController extends Controller
         // Override the 'to' field
         $notification->to = $request->getParam('to');
 
+        $this->_requireAssetAttachmentAccess($notification);
+
         $sentResponse = Formie::$plugin->getEmails()->sendEmail($notification, $submission, null, false);
         $success = $sentResponse['success'] ?? false;
         $error = $sentResponse['error'] ?? false;
@@ -189,6 +191,15 @@ class EmailController extends Controller
         }
 
         if (!$permissions->canShowFormBuilderTab($user, $form, 'formie-showNotifications')) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+    }
+
+    private function _requireAssetAttachmentAccess(Notification $notification): void
+    {
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (!$notification->canViewAssetAttachments($user)) {
             throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
     }

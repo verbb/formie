@@ -12,9 +12,11 @@ use verbb\formie\records\Notification as NotificationRecord;
 use Craft;
 use craft\base\Model;
 use craft\elements\Asset;
+use craft\elements\User;
 use craft\helpers\Json;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
+use craft\web\Request;
 use craft\web\View;
 
 use Throwable;
@@ -323,6 +325,27 @@ class Notification extends Model implements TranslatablePropertiesInterface
         return [];
     }
 
+    public function canViewAssetAttachments(?User $user): bool
+    {
+        $assets = $this->getAssetAttachments();
+
+        if (!$assets) {
+            return true;
+        }
+
+        if (!$user) {
+            return false;
+        }
+
+        foreach ($assets as $asset) {
+            if (!Craft::$app->getElements()->canView($asset, $user)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function getPlaceholder(): string
     {
         /* @var Settings $settings */
@@ -333,6 +356,15 @@ class Notification extends Model implements TranslatablePropertiesInterface
 
     public function validateAttachAssets(string $attribute): void
     {
+        $request = Craft::$app->getRequest();
+        $user = $request instanceof Request ? Craft::$app->getUser()->getIdentity() : null;
+
+        if ($user && !$this->canViewAssetAttachments($user)) {
+            $this->addError($attribute, Craft::t('formie', 'User is not permitted to perform this action.'));
+
+            return;
+        }
+
         $maxAttachmentSize = Formie::$plugin->getSettings()->getMaxEmailAttachmentSizeBytes();
 
         if ($maxAttachmentSize === null) {
