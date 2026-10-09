@@ -12,6 +12,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed captcha provider credentials appearing in request URLs and transport error logs.
 - Fixed notification saves accepting record IDs owned by another form.
 - Fixed support requests disabling TLS certificate verification in development mode.
 - Fixed element metadata endpoints being available outside authorised control panel requests.

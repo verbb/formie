@@ -6,6 +6,7 @@ use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\CaptchaValidateSubmissionEvent;
+use verbb\formie\helpers\DeliveryDiagnostics;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\BrowserModule;
@@ -241,8 +242,7 @@ abstract class Captcha extends Integration
 
         Formie::error('Captcha validation failed for {captcha}: {message}', [
             'captcha' => static::displayName(),
-            'message' => self::getExceptionLogMessage($e),
-            'exception' => $e,
+            'message' => DeliveryDiagnostics::redact(self::getExceptionLogMessage($e), $this->getDiagnosticSecrets()),
         ]);
 
         $submission->addError('form', $this->spamReason);

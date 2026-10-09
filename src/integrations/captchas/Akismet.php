@@ -49,6 +49,7 @@ class Akismet extends Captcha
         $client = $this->getClient();
 
         $data = [
+            'api_key' => $apiKey,
             'blog' => $siteUrl,
             'user_ip' => Craft::$app->getRequest()->getUserIP(),
             'user_agent' => Craft::$app->getRequest()->getUserAgent(),
@@ -59,7 +60,7 @@ class Akismet extends Captcha
 
         try {
             // Lack of JSON response
-            $response = $client->post("https://$apiKey.rest.akismet.com/1.1/comment-check", [
+            $response = $client->post('https://rest.akismet.com/1.1/comment-check', [
                 'form_params' => $data,
                 'headers' => [
                     'User-Agent' => 'Formie | Akismet/1.0',

@@ -20,6 +20,8 @@ use craft\helpers\App;
 use craft\helpers\Html;
 use craft\helpers\Json;
 
+use GuzzleHttp\ClientInterface;
+
 class Recaptcha extends Captcha
 {
     // Constants
@@ -155,11 +157,7 @@ class Recaptcha extends Captcha
             return false;
         }
 
-        $client = Craft::createGuzzleClient([
-            'headers' => [
-                'Referer' => Craft::$app->getSites()->getPrimarySite()->getBaseUrl(),
-            ],
-        ]);
+        $client = $this->createValidationClient();
 
         $siteKey = App::parseEnv($this->siteKey);
         $secretKey = App::parseEnv($this->secretKey);
@@ -167,7 +165,8 @@ class Recaptcha extends Captcha
 
         if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
             $enterpriseMode = $this->_getEnterpriseMode();
-            $response = $client->post('https://recaptchaenterprise.googleapis.com/v1/projects/' . $projectId . '/assessments?key=' . $secretKey, [
+            $response = $client->post('https://recaptchaenterprise.googleapis.com/v1/projects/' . $projectId . '/assessments', [
+                'headers' => ['X-Goog-Api-Key' => $secretKey],
                 'json' => [
                     'event' => [
                         'siteKey' => $siteKey,
@@ -257,7 +256,6 @@ class Recaptcha extends Captcha
 
         return $success;
     }
-
     public function hasValidSettings(): bool
     {
         return $this->siteKey && $this->secretKey;
@@ -282,6 +280,15 @@ class Recaptcha extends Captcha
 
     // Protected Methods
     // =========================================================================
+
+    protected function createValidationClient(): ClientInterface
+    {
+        return Craft::createGuzzleClient([
+            'headers' => [
+                'Referer' => Craft::$app->getSites()->getPrimarySite()->getBaseUrl(),
+            ],
+        ]);
+    }
 
     protected function defineFormSettingsSchema(FormInterface $form): array
     {
