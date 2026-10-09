@@ -155,13 +155,13 @@ class Zoho extends Crm implements OAuthProviderInterface
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
-    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = null)
     {
         $fields = is_string($fieldSettings) ? $this->getConfigValue($fieldSettings) : $fieldSettings;
         $fieldValues = parent::getFieldMappingValues($submission, $fieldMapping, $fields);
 
         foreach ($fieldValues as $handle => $value) {
-            $integrationField = ArrayHelper::firstWhere($fields, 'handle', $handle);
+            $integrationField = is_array($fields) ? ArrayHelper::firstWhere($fields, 'handle', $handle) : null;
 
             if ($integrationField instanceof IntegrationField) {
                 $fieldValues[$handle] = $this->_getPickListPayloadValue($value, $integrationField);

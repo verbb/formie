@@ -534,7 +534,7 @@ class HubSpot extends Crm
         }
     }
 
-    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = null)
     {
         // When mapping to forms, the field settings will be an array of `IntegrationCollection` objects.
         // So we need to select the form's settings that we're mapping to and return just the field.

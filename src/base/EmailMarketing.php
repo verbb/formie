@@ -74,7 +74,7 @@ abstract class EmailMarketing extends Integration implements DispatchableIntegra
         return true;
     }
 
-    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = null)
     {
         // A quick shortcut as all email marketing integrations are the same field mapping-wise
         $fields = $this->_getListSettings()->fields ?? [];

@@ -1189,7 +1189,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $response;
     }
 
-    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = null)
     {
         $fieldValues = [];
 
@@ -1205,8 +1205,15 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 continue;
             }
 
-            // Get the type of field we are mapping to (for the integration)
-            $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
+            // Treat an explicitly supplied destination schema as an allowlist. Calls without a schema
+            // retain their open mapping contract for integrations with dynamic payloads.
+            $integrationField = is_array($fieldSettings) ? ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) : null;
+
+            if (is_array($fieldSettings) && !$integrationField) {
+                continue;
+            }
+
+            $integrationField ??= new IntegrationField();
 
             $slot = ReferenceSlot::fromStored($rawFieldKey);
             $context = ReferenceContext::forSubmission($submission, usage: ReferenceUsage::Integration);

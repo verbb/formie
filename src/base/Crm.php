@@ -61,7 +61,7 @@ abstract class Crm extends Integration implements DispatchableIntegrationInterfa
         return true;
     }
 
-    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = null)
     {
         // A quick shortcut to keep CRM's simple, just pass in a string to the namespace
         if (is_string($fieldSettings)) {

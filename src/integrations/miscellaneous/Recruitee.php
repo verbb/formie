@@ -108,10 +108,10 @@ class Recruitee extends Miscellaneous
         return new IntegrationConfig($settings);
     }
 
-    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = null)
     {
         // A quick shortcut to keep CRM's simple, just pass in a string to the namespace
-        $fields = $this->getConfigValue($fieldSettings);
+        $fields = is_string($fieldSettings) ? $this->getConfigValue($fieldSettings) : $fieldSettings;
 
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
     }

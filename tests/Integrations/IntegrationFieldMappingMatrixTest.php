@@ -7,12 +7,18 @@ use verbb\formie\helpers\References;
 use verbb\formie\integrations\crm\HubSpot;
 use verbb\formie\integrations\crm\Salesforce;
 use verbb\formie\integrations\crm\Pardot;
+use verbb\formie\integrations\elements\User as UserIntegration;
 use verbb\formie\models\IntegrationField;
 
 // Each case specifies a useful destination contract. Arbitrary cross-type casts
 // belong to smoke coverage, not a union broad enough to accept a lost value.
-it('preserves mapped values in both direct and outgoing provider payloads', function (
-    string $provider, string $method, mixed $input, string $type, mixed $expected, array $payload
+it('preserves mapped values in both direct and outgoing provider payloads', function(
+    string $provider,
+    string $method,
+    mixed $input,
+    string $type,
+    mixed $expected,
+    array $payload
 ): void {
     $form = formie()->form()->$method('answer')->create();
     $saved = formie()->submission($form)->with(['answer' => $input])->save();
@@ -33,12 +39,12 @@ it('preserves mapped values in both direct and outgoing provider payloads', func
     'empty text' => ['singleLineTextField', '', IntegrationField::TYPE_STRING, '', ['result' => '']],
 ]);
 
-it('routes native field mappings through the field-owned integration projection', function (): void {
+it('routes native field mappings through the field-owned integration projection', function(): void {
     $form = formie()->form()->singleLineTextField('answer')->create();
     $saved = formie()->submission($form)->with(['answer' => 'Original value'])->save();
     $submission = \verbb\formie\elements\Submission::find()->id($saved->id)->status(null)->one();
     $field = $form->getFieldByHandle('answer');
-    $handler = static function ($event): void {
+    $handler = static function($event): void {
         $event->value = 'Field-owned projection';
     };
     \yii\base\Event::on(Field::class, Field::EVENT_MODIFY_VALUE_FOR_INTEGRATION, $handler);
@@ -55,7 +61,7 @@ it('routes native field mappings through the field-owned integration projection'
     }
 });
 
-it('distinguishes an unset mapping from an explicitly mapped empty value', function (): void {
+it('distinguishes an unset mapping from an explicitly mapped empty value', function(): void {
     $form = formie()->form()->singleLineTextField('answer')->create();
     $saved = formie()->submission($form)->with(['answer' => ''])->save();
     $submission = \verbb\formie\elements\Submission::find()->id($saved->id)->status(null)->one();
@@ -68,8 +74,44 @@ it('distinguishes an unset mapping from an explicitly mapped empty value', funct
         ->toBe(['result' => '']);
 });
 
-it('converts static integration values without erasing zero false or valid dates', function (string $type, mixed $input, mixed $expected): void {
+it('only maps destinations declared by an explicit field schema', function(): void {
+    $form = formie()->form()->singleLineTextField('answer')->create();
+    $submission = formie()->submission($form)->with(['answer' => 'Mapped value'])->save();
+    $field = $form->getFieldByHandle('answer');
+    $integration = new HubSpot(['name' => 'Mapping contract', 'handle' => 'mappingContract']);
+    $reference = References::field($field->reference ?? $field->handle);
+    $mapping = [
+        'allowed' => $reference,
+        'forged' => $reference,
+    ];
+    $schema = [new IntegrationField(['handle' => 'allowed', 'type' => IntegrationField::TYPE_STRING])];
+
+    expect($integration->getFieldMappingValues($submission, $mapping, $schema))
+        ->toBe(['allowed' => 'Mapped value'])
+        ->and($integration->getFieldMappingValues($submission, $mapping, []))
+        ->toBe([])
+        ->and($integration->getFieldMappingValues($submission, $mapping))
+        ->toBe(['allowed' => 'Mapped value', 'forged' => 'Mapped value']);
+});
+
+it('rejects forged user attributes outside the declared element schema', function(): void {
+    $form = formie()->form()->emailField('email')->create();
+    $submission = formie()->submission($form)->with(['email' => 'person@example.test'])->save();
+    $field = $form->getFieldByHandle('email');
+    $reference = References::field($field->reference ?? $field->handle);
+    $integration = new UserIntegration(['name' => 'User mapping contract', 'handle' => 'userMappingContract']);
+
+    expect($integration->getFieldMappingValues($submission, [
+        'email' => $reference,
+        'admin' => '1',
+    ], $integration->getElementAttributes()))->toBe([
+        'email' => 'person@example.test',
+    ]);
+});
+
+it('converts static integration values without erasing zero false or valid dates', function(string $type, mixed $input, mixed $expected): void {
     $converted = HubSpot::convertValueForIntegration($input, new IntegrationField(['type' => $type]));
+
     if ($expected instanceof DateTimeInterface) {
         expect($converted)->toBeInstanceOf(DateTimeInterface::class)
             ->and($converted->format('c'))->toBe($expected->format('c'));
