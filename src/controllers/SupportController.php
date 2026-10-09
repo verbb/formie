@@ -21,6 +21,7 @@ use yii\web\Response;
 use Throwable;
 use ZipArchive;
 
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 
 class SupportController extends SettingsAccessController
@@ -249,11 +250,7 @@ class SupportController extends SettingsAccessController
             $requestParams['note'] .= "\n\nError attaching zip: `" . $e->getMessage() . ":" . $e->getLine() . "`.";
         }
 
-        $guzzleClient = Craft::createGuzzleClient([
-            'timeout' => 120,
-            'connect_timeout' => 120,
-            'verify' => !App::devMode(),
-        ]);
+        $guzzleClient = $this->_createSupportClient();
 
         try {
             $guzzleClient->post('https://support.verbb.io/api/get-help', ['json' => $requestParams]);
@@ -291,5 +288,17 @@ class SupportController extends SettingsAccessController
         $this->setSuccessFlash(Craft::t('formie', 'Support request sent successfully.'));
 
         return $this->redirectToPostedUrl();
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _createSupportClient(): ClientInterface
+    {
+        return Craft::createGuzzleClient([
+            'timeout' => 120,
+            'connect_timeout' => 120,
+        ]);
     }
 }
