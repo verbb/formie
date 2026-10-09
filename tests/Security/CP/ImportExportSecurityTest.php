@@ -6,7 +6,9 @@ use Tests\Support\WebRequestTestHelper;
 use verbb\formie\controllers\ImportExportController;
 use verbb\formie\services\FormImportFiles;
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\HttpException;
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 class SecurityImportExportControllerProbe extends ImportExportController
@@ -21,7 +23,7 @@ class SecurityImportExportControllerProbe extends ImportExportController
     }
 }
 
-it('rejects import temp filenames outside the generated import file pattern', function (string $filename): void {
+it('rejects import temp filenames outside the generated import file pattern', function(string $filename): void {
     $controller = new ImportExportController('formie-import-export-security', Craft::$app);
 
     expect(fn() => $controller->actionImportConfigure($filename))
@@ -34,10 +36,10 @@ it('rejects import temp filenames outside the generated import file pattern', fu
     'wrong extension' => ['formie-import-0199a81f-c823-7000-89e8-1c4a874a2fbb.php'],
 ])->group('security');
 
-it('reports when a form import file is no longer available', function (): void {
+it('reports when a form import file is no longer available', function(): void {
     $user = \craft\elements\User::find()->admin(true)->one();
 
-    WebRequestTestHelper::withWebRequestContext(function () use ($user): void {
+    WebRequestTestHelper::withWebRequestContext(function() use ($user): void {
         Craft::$app->getRequest()->setIsCpRequest(true);
         Craft::$app->getUser()->setIdentity($user);
 
@@ -51,16 +53,24 @@ it('reports when a form import file is no longer available', function (): void {
     ]);
 })->group('security');
 
-it('encodes hostile import preview strings before rendering the summary with raw', function (): void {
+it('encodes hostile import preview strings before rendering the summary with raw', function(): void {
     $controller = new SecurityImportExportControllerProbe('formie-import-export-security', Craft::$app);
     $importFiles = new FormImportFiles(Craft::$app->getAssets()->getTempAssetUploadFs());
     $user = \craft\elements\User::find()->admin(true)->one();
     $userId = (int)$user->id;
 
     $payload = [
-        'title' => '<img src=x onerror=alert(1)>',
+        'title' => '<img src=x onerror=alert(1)> [unsafe](javascript:alert(4))',
         'handle' => '"><script>alert(1)</script>',
-        'pages' => [],
+        'pages' => [[
+            'rows' => [[
+                'fields' => [[
+                    'type' => '<img src=x onerror=alert(2)> [unsafe](javascript:alert(2)) ![image](data:text/html,unsafe)',
+                    'label' => 'Unsafe type',
+                    'handle' => 'unsafeType',
+                ]],
+            ]],
+        ]],
         'notifications' => [
             ['name' => '<svg onload=alert(1)>'],
         ],
@@ -73,7 +83,7 @@ it('encodes hostile import preview strings before rendering the summary with raw
     fclose($stream);
 
     try {
-        WebRequestTestHelper::withWebRequestContext(function () use ($controller, $filename, $user): void {
+        WebRequestTestHelper::withWebRequestContext(function() use ($controller, $filename, $user): void {
             Craft::$app->getRequest()->setIsCpRequest(true);
             Craft::$app->getUser()->setIdentity($user);
 
@@ -83,9 +93,15 @@ it('encodes hostile import preview strings before rendering the summary with raw
 
             expect($summary)
                 ->toContain('&lt;img src=x onerror=alert(1)&gt;')
+                ->toContain('&lt;img src=x onerror=alert(2)&gt;')
                 ->toContain('&lt;svg onload=alert(1)&gt;')
                 ->and($summary)->not->toContain('<img src=x onerror=alert(1)>')
-                ->and($summary)->not->toContain('<svg onload=alert(1)>');
+                ->and($summary)->not->toContain('<img src=x onerror=alert(2)>')
+                ->and($summary)->not->toContain('<svg onload=alert(1)>')
+                ->and($summary)->not->toContain('href="javascript:')
+                ->and($summary)->not->toContain('src="data:text')
+                ->and($summary)->not->toContain('<a ')
+                ->and($summary)->not->toContain('<img ');
         }, [
             'method' => 'GET',
             'requestUri' => '/admin/formie/settings/import-export/import-configure',
@@ -93,4 +109,45 @@ it('encodes hostile import preview strings before rendering the summary with raw
     } finally {
         $importFiles->delete($filename, $userId);
     }
+})->group('security');
+
+it('requires a visible form for the import completed page', function(): void {
+    $controller = new ImportExportController('formie-import-export-security', Craft::$app);
+
+    WebRequestTestHelper::withWebRequestContext(function() use ($controller): void {
+        Craft::$app->getRequest()->setIsCpRequest(true);
+        Craft::$app->getUser()->setIdentity(null);
+        $form = formie()->form(['title' => 'Restricted completed import'])->create();
+
+        expect(fn() => $controller->actionImportCompleted((int)$form->id))
+            ->toThrow(ForbiddenHttpException::class)
+            ->and(fn() => $controller->actionImportCompleted(PHP_INT_MAX))
+            ->toThrow(NotFoundHttpException::class);
+    }, [
+        'method' => 'GET',
+        'requestUri' => '/admin/formie/settings/import-export/import-completed/1',
+    ]);
+})->group('security');
+
+it('encodes form titles in the import completed message', function(): void {
+    $html = WebRequestTestHelper::withWebRequestContext(function($request): string {
+        $request->setIsCpRequest(true);
+        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
+        $form = new \verbb\formie\elements\Form([
+            'id' => 123,
+            'title' => '<img src=x onerror=alert(3)>',
+        ]);
+        $view = Craft::$app->getView();
+        $view->setTemplateMode(\craft\web\View::TEMPLATE_MODE_CP);
+        $view->registerTwigExtension(new \verbb\base\web\twig\Extension());
+
+        return $view->renderTemplate('formie/settings/import-export/import-completed', compact('form'));
+    }, [
+        'method' => 'GET',
+        'requestUri' => '/admin/formie/settings/import-export/import-completed/123',
+    ]);
+
+    expect($html)
+        ->toContain('&lt;img src=x onerror=alert(3)&gt;')
+        ->and($html)->not->toContain('<img src=x onerror=alert(3)>');
 })->group('security');

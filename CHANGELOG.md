@@ -12,6 +12,8 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed unsafe form import values being rendered as control panel markup.
+- Fixed import completion pages exposing forms the current user could not view.
 - Fixed element integrations accepting mapped attributes that were not declared by their destination schema.
 - Fixed form saves authorizing against a request-selected group instead of the persisted form.
 - Fixed form imports failing between requests on load-balanced environments when Craft uses a remote temporary-upload filesystem.

@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\ImportExportHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Settings;
@@ -11,12 +12,15 @@ use verbb\formie\services\Permissions;
 use Craft;
 use craft\helpers\Console;
 use craft\helpers\Html;
+use craft\helpers\HtmlPurifier;
 use craft\helpers\Json;
 use craft\web\UploadedFile;
 
 use yii\helpers\Markdown;
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\HttpException;
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 use InvalidArgumentException;
@@ -41,7 +45,7 @@ class ImportExportController extends SettingsAccessController
         }
 
         match ($action->id) {
-            'import', 'import-configure', 'import-complete' => $this->requirePermission(Permissions::PERM_IMPORT_FORMS),
+            'import', 'import-configure', 'import-complete', 'import-completed' => $this->requirePermission(Permissions::PERM_IMPORT_FORMS),
             'export' => $this->requirePermission(Permissions::PERM_EXPORT_FORMS),
             default => null,
         };
@@ -142,7 +146,7 @@ class ImportExportController extends SettingsAccessController
 
         foreach ($formFields as $field) {
             $type = explode('\\', $field['type']);
-            $type = array_pop($type);
+            $type = Html::encode(array_pop($type));
 
             // Handle Formie v2 exports
             $label = Html::encode($field['label'] ?? $field['settings']['label'] ?? '');
@@ -223,7 +227,20 @@ class ImportExportController extends SettingsAccessController
 
     public function actionImportCompleted(?int $formId): Response
     {
-        $form = Formie::$plugin->getForms()->getFormById($formId);
+        $form = Form::find()
+            ->withoutCpIndexScope()
+            ->id($formId)
+            ->one();
+
+        if (!$form) {
+            throw new NotFoundHttpException('Form not found');
+        }
+
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
+        if (!Formie::$plugin->getPermissions()->canViewForm($currentUser, $form)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
 
         return $this->renderTemplate('formie/settings/import-export/import-completed', compact('form'));
     }
@@ -265,7 +282,11 @@ class ImportExportController extends SettingsAccessController
             $class = 'color-' . $color;
         }
 
-        echo '<div class="log-label ' . $class . '">' . Markdown::processParagraph($string) . '</div>';
+        $html = HtmlPurifier::process(Markdown::processParagraph($string), [
+            'HTML.Allowed' => 'p,blockquote,code,strong,em',
+        ]);
+
+        echo '<div class="log-label ' . $class . '">' . $html . '</div>';
     }
 
     private function _getImportFiles(): FormImportFiles
