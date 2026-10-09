@@ -363,9 +363,9 @@ class SentNotification extends Element
         $currentUser = Craft::$app->getUser()->getIdentity();
 
         return match ($attribute) {
-            'form' => $this->getForm()->title ?? '-',
-            'submission' => $this->getSubmission()->title ?? '-',
-            'notification' => $this->getNotification()->title ?? '-',
+            'form' => Html::encode($this->getForm()->title ?? '-'),
+            'submission' => Html::encode($this->getSubmission()->title ?? '-'),
+            'notification' => Html::encode($this->getNotification()->title ?? '-'),
             'resend' => $this->canResend($currentUser) ? Html::a(Craft::t('formie', 'Resend'), '#', [
                 'class' => 'btn small formsubmit js-fui-notification-modal-resend-btn',
                 'data-id' => $this->id,

@@ -1465,7 +1465,7 @@ class Submission extends Element
         if ($attribute == 'form') {
             $form = $this->getForm();
 
-            return $form->title ?? '';
+            return Html::encode($form->title ?? '');
         }
 
         if ($attribute == 'userId') {
@@ -1489,7 +1489,7 @@ class Submission extends Element
                         $status->handle ?? null,
                         $status->color ?? null,
                     ]),
-                ]) . ($status->name ?? null), [
+                ]) . Html::encode($status->name ?? ''), [
                 'style' => [
                     'display' => 'flex',
                     'align-items' => 'center',

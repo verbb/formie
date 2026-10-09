@@ -8,7 +8,9 @@ use Craft;
 use craft\web\View;
 use yii\web\ForbiddenHttpException;
 use verbb\formie\controllers\SentNotificationsController;
+use verbb\formie\elements\Form;
 use verbb\formie\elements\SentNotification;
+use verbb\formie\elements\Submission;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Recipients;
 use verbb\formie\fields\values\RecipientsFieldValue;
@@ -26,7 +28,7 @@ function renderCpTemplate(string $template, array $variables): string
     }
 }
 
-it('escapes hostile sent notification html when embedding iframe srcdoc previews', function (): void {
+it('escapes hostile sent notification html when embedding iframe srcdoc previews', function(): void {
     $payload = '<img src=x onerror=alert("xss")>" autofocus="autofocus';
     $sentNotification = new SentNotification([
         'htmlBody' => $payload,
@@ -44,12 +46,12 @@ it('escapes hostile sent notification html when embedding iframe srcdoc previews
         ->and($html)->not->toContain('autofocus="autofocus"');
 })->group('security');
 
-it('requires sent notification access permission before returning resend modal data', function (): void {
+it('requires sent notification access permission before returning resend modal data', function(): void {
     $originalUser = Craft::$app->getUser()->getIdentity();
     Craft::$app->getUser()->setIdentity(null);
 
     try {
-        WebRequestTestHelper::withWebRequestContext(function (): void {
+        WebRequestTestHelper::withWebRequestContext(function(): void {
             $controller = new SentNotificationsController('formie-sent-notifications-security', Craft::$app);
 
             expect(fn() => $controller->actionGetResendModalData())
@@ -65,7 +67,7 @@ it('requires sent notification access permission before returning resend modal d
     }
 })->group('security');
 
-it('escapes stored plain-text values when rendering frontend summary blocks', function (): void {
+it('escapes stored plain-text values when rendering frontend summary blocks', function(): void {
     $form = formie()
         ->form(['title' => 'Summary Sink Security'])
         ->singleLineTextField('fullName')
@@ -92,7 +94,7 @@ it('escapes stored plain-text values when rendering frontend summary blocks', fu
         ->and($html)->not->toContain('<script>alert("xss")</script>');
 })->group('security');
 
-it('renders sanitized rich-text summaries as html without executing hostile payloads', function (): void {
+it('renders sanitized rich-text summaries as html without executing hostile payloads', function(): void {
     $payload = '<p>Safe <strong>content</strong></p><script>alert("xss")</script><img src=x onerror=alert("xss")>';
     $form = formie()
         ->form(['title' => 'Rich Text Summary Sink Security'])
@@ -120,7 +122,7 @@ it('renders sanitized rich-text summaries as html without executing hostile payl
         ->and($html)->not->toContain('&lt;p&gt;Safe');
 })->group('security');
 
-it('escapes hostile stored values in the cp submission edit field sink', function (): void {
+it('escapes hostile stored values in the cp submission edit field sink', function(): void {
     $form = formie()
         ->form(['title' => 'CP Submission Edit Sink'])
         ->singleLineTextField('fullName')
@@ -140,7 +142,7 @@ it('escapes hostile stored values in the cp submission edit field sink', functio
         ->and($html)->not->toContain('data-breakout="1"');
 })->group('security');
 
-it('escapes hostile stored values in hidden cp submission edit sinks', function (): void {
+it('escapes hostile stored values in hidden cp submission edit sinks', function(): void {
     $form = formie()
         ->form(['title' => 'CP Hidden Submission Edit Sink'])
         ->hiddenField('trackingCode')
@@ -160,7 +162,7 @@ it('escapes hostile stored values in hidden cp submission edit sinks', function 
         ->and($html)->not->toContain('data-breakout="1"');
 })->group('security');
 
-it('escapes hostile stored values in the cp submission index preview sink', function (): void {
+it('escapes hostile stored values in the cp submission index preview sink', function(): void {
     $form = formie()
         ->form(['title' => 'CP Submission Index Sink'])
         ->singleLineTextField('fullName')
@@ -180,7 +182,7 @@ it('escapes hostile stored values in the cp submission index preview sink', func
         ->and($html)->not->toContain('onerror=');
 })->group('security');
 
-it('returns an empty preview for unset single-option field values in cp indexes', function (): void {
+it('returns an empty preview for unset single-option field values in cp indexes', function(): void {
     $form = formie()
         ->form(['title' => 'CP Empty Single Option Preview'])
         ->dropdownField('topic', [
@@ -202,7 +204,7 @@ it('returns an empty preview for unset single-option field values in cp indexes'
     expect($html)->toBe('');
 })->group('security');
 
-it('escapes hostile option labels in single-option cp previews', function (): void {
+it('escapes hostile option labels in single-option cp previews', function(): void {
     $form = formie()
         ->form(['title' => 'CP Single Option Label Preview'])
         ->dropdownField('topic', [
@@ -227,7 +229,7 @@ it('escapes hostile option labels in single-option cp previews', function (): vo
         ->and($html)->not->toContain('<script');
 })->group('security');
 
-it('escapes hostile recipients labels in cp previews', function (): void {
+it('escapes hostile recipients labels in cp previews', function(): void {
     $field = new Recipients([
         'displayType' => 'dropdown',
         'handle' => 'notify',
@@ -251,7 +253,7 @@ it('escapes hostile recipients labels in cp previews', function (): void {
         ->and($html)->not->toContain('<script');
 })->group('security');
 
-it('escapes hostile sent notification preview text for index columns', function (): void {
+it('escapes hostile sent notification preview text for index columns', function(): void {
     $sentNotification = new SentNotification([
         'body' => '<script>alert("xss")</script> safe-text',
     ]);
@@ -266,7 +268,27 @@ it('escapes hostile sent notification preview text for index columns', function 
         ->and($html)->not->toContain('</script>');
 })->group('security');
 
-it('escapes hostile metadata when rendering the sent notification preview metadata sink', function (): void {
+it('escapes related element titles returned to raw index columns', function(): void {
+    $payload = '<img src=x onerror=alert("xss")>Unsafe title';
+    $form = new Form(['title' => $payload]);
+    $submission = new Submission(['title' => $payload]);
+    $submission->setForm($form);
+    $sentNotification = new SentNotification();
+
+    foreach (['_form' => $form, '_submission' => $submission] as $property => $value) {
+        $reflection = new ReflectionProperty(SentNotification::class, $property);
+        $reflection->setAccessible(true);
+        $reflection->setValue($sentNotification, $value);
+    }
+
+    foreach ([$submission->getAttributeHtml('form'), $sentNotification->getAttributeHtml('form'), $sentNotification->getAttributeHtml('submission')] as $html) {
+        expect($html)
+            ->toContain('&lt;img src=x onerror=alert(&quot;xss&quot;)&gt;Unsafe title')
+            ->and($html)->not->toContain('<img ');
+    }
+})->group('security');
+
+it('escapes hostile metadata when rendering the sent notification preview metadata sink', function(): void {
     $sentNotification = new SentNotification([
         'id' => 321,
         'to' => 'victim@example.test<script>alert("xss")</script>',
@@ -288,16 +310,16 @@ it('escapes hostile metadata when rendering the sent notification preview metada
         ->and($html)->not->toContain('<script>alert("xss")</script>Subject');
 })->group('security');
 
-it('drops unsafe file metadata urls from summary links while preserving filenames', function (): void {
+it('drops unsafe file metadata urls from summary links while preserving filenames', function(): void {
     $field = new FileUpload([
         'handle' => 'documents',
     ]);
 
-    $value = new class {
+    $value = new class () {
         public function all(): array
         {
             return [
-                new class {
+                new class () {
                     public string $filename = 'invoice.pdf';
                     public string $url = 'java&#x73;cript:alert("xss")';
                 },
