@@ -107,7 +107,7 @@ abstract class Element extends Integration
                     // Check for some cases where it's options data
                     if ($event->rawValue instanceof SingleOptionFieldData) {
                         $event->value = $event->rawValue->value;
-                    } else if ($event->rawValue instanceof MultiOptionsFieldData) {
+                    } elseif ($event->rawValue instanceof MultiOptionsFieldData) {
                         $event->value = array_map(function($item) {
                             return $item->value;
                         }, (array)$event->rawValue);
@@ -170,6 +170,16 @@ abstract class Element extends Integration
                 }
             }
         });
+    }
+
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = null)
+    {
+        if (is_array($fieldSettings)) {
+            $allowedHandles = array_flip(array_filter(ArrayHelper::getColumn($fieldSettings, 'handle')));
+            $fieldMapping = array_intersect_key($fieldMapping ?? [], $allowedHandles);
+        }
+
+        return parent::getFieldMappingValues($submission, $fieldMapping, $fieldSettings ?? []);
     }
 
     public function getType(): string

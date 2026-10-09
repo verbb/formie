@@ -331,7 +331,14 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
         }
 
         if ($this->orderBy) {
-            $query->orderBy($this->orderBy);
+            $allowedOrderBy = array_column($this->getOrderByOptions(), 'value');
+            $allowedOrderBy[] = 'lft ASC';
+            $allowedOrderBy[] = 'lft DESC';
+
+            $orderBy = in_array($this->orderBy, $allowedOrderBy, true) ? $this->orderBy : 'title ASC';
+            [$attribute, $direction] = explode(' ', $orderBy, 2);
+
+            $query->orderBy([$attribute => $direction === 'DESC' ? SORT_DESC : SORT_ASC]);
         }
 
         // Allow any template-defined elementQuery to override

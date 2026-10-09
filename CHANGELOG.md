@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed element integration mappings accepting unsupported query or element attributes.
+- Fixed element field option ordering accepting unsupported query expressions.
+
 ## 3.1.47 - 2026-10-09
 
 ### Changed

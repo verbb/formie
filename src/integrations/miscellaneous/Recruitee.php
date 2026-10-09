@@ -164,7 +164,7 @@ class Recruitee extends Miscellaneous
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
