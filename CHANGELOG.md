@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.47 - 2026-10-09
 
 ### Changed
 - Require Verbb Auth 2.0.50 or later for OAuth password-grant callback support.
