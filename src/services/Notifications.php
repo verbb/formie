@@ -69,7 +69,14 @@ class Notifications extends Component
 
     public function getNotificationById(int $id): ?Notification
     {
-        return $this->_notifications()->firstWhere('id', $id);
+        // Queue workers can be long-running, so ID lookups must not reuse settings cached by an earlier job.
+        $result = $this->_createNotificationsQuery()->where(['id' => $id])->one();
+
+        if (!$result) {
+            return null;
+        }
+
+        return new Notification($result);
     }
 
     public function getFormNotificationByHandle(Form $form, string $handle): ?Notification
@@ -230,6 +237,8 @@ class Notifications extends Component
         Db::delete(Table::FORMIE_NOTIFICATIONS, [
             'uid' => $notification->uid,
         ]);
+
+        $this->_notifications = null;
 
         // Fire a 'afterDeleteNotification' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_NOTIFICATION)) {
