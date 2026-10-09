@@ -460,9 +460,21 @@ class FormsController extends Controller
 
         $request = Craft::$app->getRequest();
         $formId = (int)$request->getParam('id');
-        $isNewForm = !$formId;
         $siteOverrides = Formie::$plugin->getFormSiteOverrides();
         $siteId = (int)($request->getParam('siteId') ?: Craft::$app->getSites()->getCurrentSite()->id);
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
+        if ($formId) {
+            $persistedForm = Formie::$plugin->getForms()->getFormById($formId, $siteId);
+
+            if (!$persistedForm) {
+                throw new NotFoundHttpException('Form not found');
+            }
+
+            if (!$currentUser || !Formie::$plugin->getPermissions()->canManageForm($currentUser, $persistedForm)) {
+                throw new ForbiddenHttpException('User is not permitted to perform this action');
+            }
+        }
 
         $form = Formie::$plugin->getForms()->buildFormFromPost();
         $isNewForm = !$form->id;
@@ -474,8 +486,6 @@ class FormsController extends Controller
         if (!$form->uid) {
             $this->requirePermission('formie-createForms');
         } else {
-            $currentUser = Craft::$app->getUser()->getIdentity();
-
             if (!$currentUser || !Formie::$plugin->getPermissions()->canManageForm($currentUser, $form)) {
                 throw new ForbiddenHttpException('User is not permitted to perform this action');
             }
