@@ -96,6 +96,7 @@ class Rendering extends Component
 
             $html = $form->renderTemplate('form', [
                 'form' => $form,
+                'renderOptions' => $renderOptions,
                 'submission' => $submission,
                 'customInputs' => $renderOptions['customInputs'] ?? [],
                 'csrfInputOptions' => $this->_resolveCsrfInputOptions($renderOptions),

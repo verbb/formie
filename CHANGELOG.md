@@ -11,6 +11,7 @@
 
 ### Fixed
 - Fixed queued integration and notification jobs reporting an error when updating progress after delivery.
+- Fixed `initJs: false` being ignored when rendering forms, allowing automatic startup to duplicate custom JavaScript initialization.
 - Fixed sent notifications being sorted oldest-first by default in the control panel.
 - Fixed editing saved submissions failing password confirmation and length validation against stored password hashes.
 - Fixed submission editing showing browser module errors for password rules and searchable dropdowns.
