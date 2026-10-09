@@ -12,6 +12,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed form imports updating forms the importing user was not permitted to manage.
 - Fixed form saves accepting notification changes from users without access to the Notifications tab.
 - Fixed Ecomail and Moosend sending credentials and subscriber data over unencrypted HTTP.
 - Fixed escaped plain field markup being reactivated in email and PDF summaries.

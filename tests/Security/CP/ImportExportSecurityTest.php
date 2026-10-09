@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\controllers\ImportExportController;
+use verbb\formie\Formie;
+use verbb\formie\helpers\ImportExportHelper;
 use verbb\formie\services\FormImportFiles;
+use verbb\formie\services\Permissions;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\HttpException;
@@ -150,4 +153,58 @@ it('encodes form titles in the import completed message', function(): void {
     expect($html)
         ->toContain('&lt;img src=x onerror=alert(3)&gt;')
         ->and($html)->not->toContain('<img src=x onerror=alert(3)>');
+})->group('security');
+
+it('requires manage access before an import can update an existing form', function(): void {
+    $target = formie()->form(['title' => 'Restricted Import Target'])->create();
+    $payload = ImportExportHelper::generateFormExport($target);
+    $payload['title'] = 'Forged Import Title';
+
+    $username = 'formImportAcl' . bin2hex(random_bytes(6));
+    $user = new \craft\elements\User(['username' => $username, 'email' => $username . '@example.test']);
+
+    expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+
+    Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
+
+    $permissions = [
+        'accessCp',
+        'accessPlugin-formie',
+        Permissions::PERM_IMPORT_FORMS,
+        Formie::$plugin->getPermissions()->settingsPagePermissionKey('import-export'),
+    ];
+
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, $permissions))->toBeTrue();
+
+    $importFiles = new FormImportFiles(Craft::$app->getAssets()->getTempAssetUploadFs());
+    $stream = fopen('php://temp', 'w+b');
+    fwrite($stream, json_encode($payload, JSON_THROW_ON_ERROR));
+    rewind($stream);
+    $filename = $importFiles->store($stream, (int)$user->id);
+    fclose($stream);
+
+    try {
+        WebRequestTestHelper::withWebRequestContext(function($request) use ($filename, $target, $user): void {
+            $request->setIsCpRequest(true);
+            $identity = \craft\elements\User::find()->id($user->id)->status(null)->one();
+            Craft::$app->getUser()->setIdentity($identity);
+            $request->setBodyParams([
+                $request->csrfParam => $request->getCsrfToken(),
+                'filename' => $filename,
+                'formAction' => 'update',
+            ]);
+
+            expect(Formie::$plugin->getPermissions()->canManageForm($identity, $target))->toBeFalse()
+                ->and(fn() => (new ImportExportController('formie-import-export-security', Formie::$plugin))->actionImportComplete())
+                ->toThrow(ForbiddenHttpException::class, 'User is not permitted to update this form');
+        }, [
+            'method' => 'POST',
+            'requestUri' => '/admin/formie/settings/import-export/import-complete',
+            'headers' => ['Accept' => 'application/json'],
+        ]);
+    } finally {
+        $importFiles->delete($filename, (int)$user->id);
+    }
+
+    expect(Formie::$plugin->getForms()->getFormById((int)$target->id)?->title)->toBe('Restricted Import Target');
 })->group('security');

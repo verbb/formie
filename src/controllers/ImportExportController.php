@@ -196,8 +196,24 @@ class ImportExportController extends SettingsAccessController
         $formAction = $request->getParam('formAction');
 
         $json = $this->_readImport($filename);
+        $json = $json[0] ?? $json;
+        $existingForm = $formAction === 'update'
+            ? Formie::$plugin->getForms()->getFormByHandle($json['handle'] ?? '')
+            : null;
 
-        $form = ImportExportHelper::importFormFromJson($json, $formAction);
+        if ($existingForm) {
+            $user = Craft::$app->getUser()->getIdentity();
+
+            if (!$user || !Formie::$plugin->getPermissions()->canManageForm($user, $existingForm)) {
+                throw new ForbiddenHttpException('User is not permitted to update this form');
+            }
+        }
+
+        $form = (
+            $existingForm
+            ? ImportExportHelper::updateFromImport($json, $existingForm)
+            : ImportExportHelper::createFromImport($json)
+        )->form;
 
         // check for errors
         if ($form->getErrors()) {
