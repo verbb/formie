@@ -383,12 +383,13 @@ class Pardot extends Crm implements OAuthProviderInterface
                 $listId = ArrayHelper::remove($prospectValues, 'list_id');
 
                 $prospectPayload = $this->_prepPayload($prospectValues);
+                $prospectEmail = rawurlencode((string)$prospectPayload['email']);
 
                 // It'd be great to use `upsert/email/{email}` but that always creates a new prospect - useless!!
                 // https://developer.salesforce.com/docs/marketing/pardot/guide/prospects-v4.html#prospect-upsert
                 // Even more annoying it throws an error if the email wasn't found...
                 try {
-                    $response = $this->request('GET', "prospect/version/4/do/read/email/{$prospectPayload['email']}");
+                    $response = $this->request('GET', "prospect/version/4/do/read/email/$prospectEmail");
 
                     // This can either be a single prospect, or multiple prospects
                     $prospectId = $response['prospect']['id'] ?? $response['prospect'][0]['id'] ?? '';
@@ -396,10 +397,10 @@ class Pardot extends Crm implements OAuthProviderInterface
                     if ($prospectId) {
                         $response = $this->deliverPayload($submission, "prospect/version/4/do/update/id/{$prospectId}", $prospectPayload, 'POST', 'form_params');
                     } else {
-                        $response = $this->deliverPayload($submission, "prospect/version/4/do/create/{$prospectPayload['email']}", $prospectPayload, 'POST', 'form_params');
+                        $response = $this->deliverPayload($submission, "prospect/version/4/do/create/$prospectEmail", $prospectPayload, 'POST', 'form_params');
                     }
                 } catch (Throwable $e) {
-                    $response = $this->deliverPayload($submission, "prospect/version/4/do/create/{$prospectPayload['email']}", $prospectPayload, 'POST', 'form_params');
+                    $response = $this->deliverPayload($submission, "prospect/version/4/do/create/$prospectEmail", $prospectPayload, 'POST', 'form_params');
                 }
 
                 if ($response === false) {
@@ -511,7 +512,7 @@ class Pardot extends Crm implements OAuthProviderInterface
         $this->context['pardot_tracking'] = $trackingData;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
