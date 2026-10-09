@@ -8,6 +8,7 @@ use verbb\formie\base\Automation;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
@@ -85,7 +86,12 @@ class Ifttt extends Automation
 
     public function getUrl(): string
     {
-        $event = App::parseEnv($this->eventName);
+        $event = rawurlencode(IntegrationSecrets::resolveFormValue((string)$this->eventName));
+
+        if ($event === '.' || $event === '..') {
+            $event = str_replace('.', '%2E', $event);
+        }
+
         $key = App::parseEnv($this->webhookKey);
 
         return "https://maker.ifttt.com/trigger/$event/with/key/$key";

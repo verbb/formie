@@ -7,6 +7,7 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Messaging;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationConfig;
@@ -77,7 +78,7 @@ class Telegram extends Messaging
         $this->beginPayloadDelivery($submission);
 
         try {
-            $chatId = App::parseEnv($this->chatId);
+            $chatId = IntegrationSecrets::resolveFormValue((string)$this->chatId);
             $botToken = App::parseEnv($this->botToken);
             $message = $this->_renderMessage($submission);
 

@@ -7,6 +7,7 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationField;
@@ -68,7 +69,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
 
     public function getSheetId(): ?string
     {
-        return App::parseEnv($this->sheetId);
+        return $this->sheetId === null ? null : IntegrationSecrets::resolveFormValue($this->sheetId);
     }
 
     public function getBaseApiUrl(?Token $token): ?string
@@ -184,9 +185,10 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
             $spreadsheetId = $this->getSpreadsheetId();
+            $sheetId = $this->getSheetId();
 
             // Fetch the columns from our private stash
-            $columns = $this->getConfig()->get('columns')[$this->sheetId] ?? [];
+            $columns = $this->getConfig()->get('columns')[$sheetId] ?? [];
             $rowValues = [];
 
             // Just in case...
@@ -204,7 +206,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
             // 'table' of content to be incorrect, if there are gaps in columns. Here, we account for that.
             //
             // This does require column `A` to not be hidden, otherwise it won't append values.
-            $range = "'{$this->sheetId}'!A1";
+            $range = "'{$sheetId}'!A1";
 
             $response = $this->deliverPayload($submission, "{$spreadsheetId}/values/{$range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS", $payload);
 
@@ -236,7 +238,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
     {
         $schema = parent::defineFormSettingsSchema($form);
 
-        $selectedSheetId = (string)($this->sheetId ?? '');
+        $selectedSheetId = (string)($this->getSheetId() ?? '');
 
         if ($selectedSheetId === '') {
             $selectedSheetId = $this->_getFirstSheetId();

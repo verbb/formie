@@ -7,6 +7,7 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Messaging;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -84,7 +85,7 @@ class Twilio extends Messaging
         try {
             $accountSid = App::parseEnv($this->accountSid);
             $from = App::parseEnv($this->fromNumber);
-            $to = App::parseEnv($this->toNumber);
+            $to = IntegrationSecrets::resolveFormValue((string)$this->toNumber);
             $body = $this->_renderMessage($submission);
 
             $to = References::parseContent($to, $submission);

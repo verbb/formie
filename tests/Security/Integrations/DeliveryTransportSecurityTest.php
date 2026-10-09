@@ -8,8 +8,12 @@ use GuzzleHttp\Psr7\Response;
 use League\OAuth2\Client\Token\AccessToken;
 use verbb\auth\models\Token;
 use verbb\formie\base\Integration;
+use verbb\formie\elements\Submission;
 use verbb\formie\Formie;
 use verbb\formie\helpers\IntegrationSecrets;
+use verbb\formie\integrations\messaging\Discord;
+use verbb\formie\integrations\messaging\Telegram;
+use verbb\formie\integrations\messaging\Twilio;
 
 class GuardedOAuthProviderFixture extends \verbb\auth\providers\Generic
 {
@@ -34,6 +38,36 @@ class GuardedOAuthIntegrationFixture extends Integration
     }
     public function fetchConfig(): \verbb\formie\models\IntegrationConfig { return new \verbb\formie\models\IntegrationConfig(); }
     protected function createDeliveryHttpHandler(): callable { return self::$transport; }
+}
+
+class GuardedDiscordFormValueFixture extends Discord
+{
+    public array $deliveries = [];
+    public function deliverPayloadToPublicEndpoint(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
+    {
+        $this->deliveries[] = compact('endpoint', 'payload');
+        return [];
+    }
+}
+
+class GuardedTwilioFormValueFixture extends Twilio
+{
+    public array $deliveries = [];
+    public function deliverPayload(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
+    {
+        $this->deliveries[] = compact('endpoint', 'payload');
+        return [];
+    }
+}
+
+class GuardedTelegramFormValueFixture extends Telegram
+{
+    public array $deliveries = [];
+    public function deliverPayload(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
+    {
+        $this->deliveries[] = compact('endpoint', 'payload');
+        return new Response(200);
+    }
 }
 
 it('pins the actual OAuth HTTP transport and blocks origin overrides before credentials leave', function () {
@@ -66,6 +100,102 @@ it('does not expose unallowlisted environment secrets in per-form request header
         expect(IntegrationSecrets::reveal($sealed)['headers'][0]['value'])->toBe('literal-secret');
     } finally { Formie::$plugin->getSettings()->referenceEnvironmentAllowlist = $old; }
 });
+
+it('does not resolve unallowlisted environment secrets in native form integrations', function (string $integrationClass, array $settings) {
+    $old = Formie::$plugin->getSettings()->referenceEnvironmentAllowlist;
+    Formie::$plugin->getSettings()->referenceEnvironmentAllowlist = [];
+    try {
+        $submission = new Submission();
+        $integration = new $integrationClass(array_merge([
+            'name' => 'Guarded form value',
+            'handle' => 'guardedFormValue',
+            'message' => 'Hello',
+        ], $settings));
+
+        expect(fn() => $integration->sendPayload($submission))
+            ->toThrow(\verbb\formie\errors\IntegrationException::class)
+            ->and($integration->deliveries)->toBeEmpty();
+    } finally {
+        Formie::$plugin->getSettings()->referenceEnvironmentAllowlist = $old;
+    }
+})->with([
+    'Discord webhook' => [GuardedDiscordFormValueFixture::class, ['webhookUrl' => '$CRAFT_SECURITY_KEY']],
+    'Twilio recipient' => [GuardedTwilioFormValueFixture::class, ['toNumber' => '$CRAFT_SECURITY_KEY']],
+    'Telegram chat' => [GuardedTelegramFormValueFixture::class, ['chatId' => '$CRAFT_SECURITY_KEY']],
+]);
+
+it('preserves allowlisted environment references in native form integrations', function (string $integrationClass, string $attribute, string $value, string $deliveryKey) {
+    $old = Formie::$plugin->getSettings()->referenceEnvironmentAllowlist;
+    putenv("FORMIE_ALLOWED_DELIVERY_VALUE={$value}");
+    Formie::$plugin->getSettings()->referenceEnvironmentAllowlist = ['FORMIE_ALLOWED_DELIVERY_VALUE'];
+    try {
+        $submission = new Submission();
+        $integration = new $integrationClass([
+            'name' => 'Allowed form value',
+            'handle' => 'allowedFormValue',
+            'message' => 'Hello',
+            $attribute => '$FORMIE_ALLOWED_DELIVERY_VALUE',
+        ]);
+
+        $integration->sendPayload($submission);
+
+        expect($integration->deliveries)->toHaveCount(1)
+            ->and(\yii\helpers\ArrayHelper::getValue($integration->deliveries[0], $deliveryKey))->toBe($value);
+    } finally {
+        Formie::$plugin->getSettings()->referenceEnvironmentAllowlist = $old;
+        putenv('FORMIE_ALLOWED_DELIVERY_VALUE');
+    }
+})->with([
+    'Discord webhook' => [GuardedDiscordFormValueFixture::class, 'webhookUrl', 'https://8.8.8.8/webhook', 'endpoint'],
+    'Twilio recipient' => [GuardedTwilioFormValueFixture::class, 'toNumber', '+61400000000', 'payload.To'],
+    'Telegram chat' => [GuardedTelegramFormValueFixture::class, 'chatId', '-100123456789', 'payload.chat_id'],
+]);
+
+it('does not resolve unallowlisted environment secrets in form-level endpoint identifiers', function () {
+    $old = Formie::$plugin->getSettings()->referenceEnvironmentAllowlist;
+    Formie::$plugin->getSettings()->referenceEnvironmentAllowlist = [];
+    try {
+        $ifttt = new \verbb\formie\integrations\automations\Ifttt(['eventName' => '$CRAFT_SECURITY_KEY', 'webhookKey' => 'literal-key']);
+        $sheets = new \verbb\formie\integrations\miscellaneous\GoogleSheets(['sheetId' => '$CRAFT_SECURITY_KEY']);
+
+        expect(fn() => $ifttt->getUrl())->toThrow(RuntimeException::class)
+            ->and(fn() => $sheets->getSheetId())->toThrow(RuntimeException::class);
+    } finally {
+        Formie::$plugin->getSettings()->referenceEnvironmentAllowlist = $old;
+    }
+});
+
+it('preserves allowlisted environment references in form-level endpoint identifiers', function () {
+    $old = Formie::$plugin->getSettings()->referenceEnvironmentAllowlist;
+    putenv('FORMIE_ALLOWED_EVENT=allowed/event');
+    putenv('FORMIE_ALLOWED_SHEET=Allowed Sheet');
+    Formie::$plugin->getSettings()->referenceEnvironmentAllowlist = ['FORMIE_ALLOWED_EVENT', 'FORMIE_ALLOWED_SHEET'];
+    try {
+        $ifttt = new \verbb\formie\integrations\automations\Ifttt(['eventName' => '$FORMIE_ALLOWED_EVENT', 'webhookKey' => 'literal-key']);
+        $sheets = new \verbb\formie\integrations\miscellaneous\GoogleSheets(['sheetId' => '$FORMIE_ALLOWED_SHEET']);
+
+        expect($ifttt->getUrl())->toBe('https://maker.ifttt.com/trigger/allowed%2Fevent/with/key/literal-key')
+            ->and($sheets->getSheetId())->toBe('Allowed Sheet')
+            ->and(IntegrationSecrets::resolveFormValue('literal-$FORMIE_ALLOWED_EVENT'))->toBe('literal-$FORMIE_ALLOWED_EVENT');
+    } finally {
+        Formie::$plugin->getSettings()->referenceEnvironmentAllowlist = $old;
+        putenv('FORMIE_ALLOWED_EVENT');
+        putenv('FORMIE_ALLOWED_SHEET');
+    }
+});
+
+it('encodes IFTTT event names as one path segment', function (string $eventName, string $encodedEventName) {
+    $integration = new \verbb\formie\integrations\automations\Ifttt([
+        'eventName' => $eventName,
+        'webhookKey' => 'literal-key',
+    ]);
+
+    expect($integration->getUrl())->toBe("https://maker.ifttt.com/trigger/{$encodedEventName}/with/key/literal-key");
+})->with([
+    'path-like value' => ['submission/../../other event', 'submission%2F..%2F..%2Fother%20event'],
+    'current segment' => ['.', '%2E'],
+    'parent segment' => ['..', '%2E%2E'],
+]);
 
 it('rejects public request transport overrides and nonstandard ports', function (array $options, string $url) {
     $integration = new \verbb\formie\integrations\automations\WebRequest();

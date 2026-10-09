@@ -7,13 +7,13 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Messaging;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
-use craft\helpers\App;
 
 use Throwable;
 
@@ -61,7 +61,7 @@ class Discord extends Messaging
     public function fetchConnection(): bool
     {
         try {
-            $webhookUrl = App::parseEnv($this->webhookUrl);
+            $webhookUrl = IntegrationSecrets::resolveFormValue((string)$this->webhookUrl);
 
             $this->requestPublicEndpoint('GET', $webhookUrl);
         } catch (Throwable $e) {
@@ -82,7 +82,7 @@ class Discord extends Messaging
         $this->beginPayloadDelivery($submission);
 
         try {
-            $webhookUrl = App::parseEnv($this->webhookUrl);
+            $webhookUrl = IntegrationSecrets::resolveFormValue((string)$this->webhookUrl);
             $message = $this->_renderMessage($submission);
 
             $payload = [
