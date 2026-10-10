@@ -10,7 +10,7 @@ When encryption is enabled for a field, Formie encrypts its value before saving 
 
 The encryption key is kept separately from the database. This means someone who obtains only a copy of the database cannot read the protected field values. Anyone with access to both the database and the key can still read them, so the key must be stored securely.
 
-Formie uses a dedicated key for submission content rather than Craft’s security key. Craft’s key may need to change during the normal life of a site. Keeping field encryption separate allows Craft’s key to be changed without making encrypted submission content unreadable.
+The key belongs only to Formie submission content and should remain available for as long as encrypted content is retained.
 
 Content encryption does not replace control-panel permissions or normal server security. Users who are allowed to view a submission in Formie can still view its decrypted values.
 
