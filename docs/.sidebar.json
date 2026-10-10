@@ -78,6 +78,7 @@
         "collapsable": false,
         "children": [
             "submissions/submissions",
+            "submissions/content-encryption",
             "submissions/submission-statuses",
             "submissions/relations",
             "submissions/element-field"

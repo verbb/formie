@@ -34,4 +34,6 @@
             <p>{{ 'This environment expects key {expected}, but {actual} is configured. Add the old key to FORMIE_ENCRYPTION_PREVIOUS_KEYS before re-encrypting stored values.' | t('formie', { expected: encryptionStatus.expectedKeyId, actual: encryptionStatus.keyId }) }}</p>
         </div>
     {% endif %}
+
+    <p><a href="https://verbb.io/craft-plugins/formie/docs/submissions/content-encryption" target="_blank" rel="noopener">{{ 'Read about content encryption' | t('formie') }}</a></p>
 {% endblock %}

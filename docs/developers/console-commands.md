@@ -101,6 +101,8 @@ Option | Description
 
 ## Submission Content Encryption
 
+See [Content Encryption](/submissions/content-encryption) for setup guidance, encryption boundaries, environment planning, locked submissions, recovery and safe key rotation.
+
 Generate a dedicated field-content key and save it to the project’s configured `.env` file:
 
 ```shell

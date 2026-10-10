@@ -56,6 +56,10 @@ When a submission is saved in the control panel, Formie records the Craft user w
 
 If you need to render an existing submission back into the front end so a user can update it, see [Editing Submissions](/templates/editing-submissions).
 
+### Protect Sensitive Field Content
+
+Use [Content Encryption](/submissions/content-encryption) when selected field values should not be readable from a database or database backup without a separately stored key. The guide covers what is protected, key setup across environments, enabling fields, locked submissions, recovery and key rotation.
+
 ## Developer Access
 
 If you are working with submissions in templates or custom code:
@@ -63,5 +67,5 @@ If you are working with submissions in templates or custom code:
 - use [Submission Queries](/getting-elements/submission-queries) to fetch submissions in Twig or PHP
 - use [Submission Workflow](/developers/submission-workflow) when you need to hook into submission processing stages or tasks
 - use [Submission Content](/developers/submission-content) when you need the right value format for output, exports, summaries, emails, or integrations
+- use [Content Encryption](/submissions/content-encryption) when you need to protect selected values while they are stored
 - use [Submission](/reference/submission) for the public properties and methods available on the element itself
-

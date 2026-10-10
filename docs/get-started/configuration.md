@@ -51,7 +51,7 @@ Lists environment variables that editors may use in reference tokens and `$NAME`
 
 **Type:** `string|null` · **Default:** `null`
 
-Provides the dedicated key used only for encrypted submission field content. Prefer the `FORMIE_ENCRYPTION_KEY` environment variable so the key is not committed with project files. Generate and save a key to the project’s configured `.env` file with `php craft formie/encryption/generate-key`, or add `--stdout` when an external deployment or secrets system owns the environment. Keep a recoverable copy and use the same key in every environment that must read copied production submissions.
+Provides the dedicated key used only for encrypted submission field content. Prefer the `FORMIE_ENCRYPTION_KEY` environment variable so the key is not committed with project files. Generate and save a key to the project’s configured `.env` file with `php craft formie/encryption/generate-key`, or add `--stdout` when an external deployment or secrets system owns the environment. Keep a recoverable copy and use the same key in every environment that must read copied production submissions. See [Content Encryption](/submissions/content-encryption) for setup and environment guidance.
 :::
 
 
@@ -60,7 +60,7 @@ Provides the dedicated key used only for encrypted submission field content. Pre
 
 **Type:** `array` · **Default:** `[]`
 
-Provides read-only rescue keys while encrypted submission content is moved to the current key. Prefer `FORMIE_ENCRYPTION_PREVIOUS_KEYS`, supplied as a comma-separated list or JSON array. Remove old keys only after `php craft formie/encryption/reencrypt` reports that every readable value uses the current key.
+Provides read-only rescue keys while encrypted submission content is moved to the current key. Prefer `FORMIE_ENCRYPTION_PREVIOUS_KEYS`, supplied as a comma-separated list or JSON array. Remove old keys only after `php craft formie/encryption/reencrypt` reports that every readable value uses the current key. See [Content Encryption](/submissions/content-encryption#rotate-the-key) for the rotation sequence.
 :::
 
 
