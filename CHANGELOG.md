@@ -25,6 +25,7 @@
 - Prevent missing or changed encryption keys from displaying encrypted submission content as blank or overwriting unreadable values during saves.
 - Fixed a medium-severity privilege escalation vulnerability.
 - Fixed a medium-severity information disclosure vulnerability.
+- Fixed a medium-severity submission relation integrity vulnerability.
 - Fixed specially formatted plaintext submission values being mistaken for encrypted field content.
 - Fixed payment hooks treating declined payments as successful or creating payment intents before processing was cancelled.
 - Fixed queued element integrations failing before saving their element.

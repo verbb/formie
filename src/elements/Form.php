@@ -404,6 +404,9 @@ class Form extends Element implements FormInterface
     public const EVENT_MODIFY_SLOT_TAG = 'modifySlotTag';
     public const EVENT_MODIFY_HTML_TAG = 'modifyHtmlTag';
 
+    private const RELATIONS_TOKEN_VERSION = 1;
+    private const RELATIONS_TOKEN_PURPOSE = 'form-relations';
+
 
     // Traits
     // =========================================================================
@@ -1481,7 +1484,13 @@ class Form extends Element implements FormInterface
     public function getRelations(): string
     {
         if ($values = $this->_relations) {
-            $cipher = Craft::$app->getSecurity()->encryptByKey(Json::encode($values), Craft::$app->getConfig()->getGeneral()->securityKey);
+            $cipher = Craft::$app->getSecurity()->encryptByKey(Json::encode([
+                'version' => self::RELATIONS_TOKEN_VERSION,
+                'purpose' => self::RELATIONS_TOKEN_PURPOSE,
+                'formUid' => $this->uid,
+                'siteUid' => Craft::$app->getSites()->getCurrentSite()->uid,
+                'relations' => $values,
+            ]), Craft::$app->getConfig()->getGeneral()->securityKey);
 
             return 'base64:' . base64_encode('crypt:' . $cipher);
         }
@@ -1522,7 +1531,7 @@ class Form extends Element implements FormInterface
             $plain = Craft::$app->getSecurity()->decryptByKey(substr($decoded, 6), $key);
 
             if (is_string($plain)) {
-                return Json::decode($plain);
+                return $this->_decodeRelationsToken($plain);
             }
         }
 
@@ -3599,6 +3608,71 @@ class Form extends Element implements FormInterface
 
     // Private Methods
     // =========================================================================
+
+    private function _decodeRelationsToken(string $plain): array
+    {
+        try {
+            $payload = Json::decode($plain);
+        } catch (Throwable) {
+            throw new BadRequestHttpException('Invalid form relations token.');
+        }
+
+        if (!is_array($payload)) {
+            throw new BadRequestHttpException('Invalid form relations token.');
+        }
+
+        // Formie 3 and previously rendered Formie 4 forms contain an authenticated bare relation list.
+        if (array_is_list($payload)) {
+            return $this->_normalizeRelationsTokenRows($payload);
+        }
+
+        if (
+            ($payload['version'] ?? null) !== self::RELATIONS_TOKEN_VERSION ||
+            ($payload['purpose'] ?? null) !== self::RELATIONS_TOKEN_PURPOSE ||
+            ($payload['formUid'] ?? null) !== $this->uid ||
+            ($payload['siteUid'] ?? null) !== $this->getSite()->uid ||
+            !isset($payload['relations']) ||
+            !is_array($payload['relations'])
+        ) {
+            throw new BadRequestHttpException('Invalid form relations token.');
+        }
+
+        return $this->_normalizeRelationsTokenRows($payload['relations']);
+    }
+
+    private function _normalizeRelationsTokenRows(array $relations): array
+    {
+        if (!array_is_list($relations)) {
+            throw new BadRequestHttpException('Invalid form relations token.');
+        }
+
+        $normalized = [];
+
+        foreach ($relations as $relation) {
+            if (
+                !is_array($relation) ||
+                !array_key_exists('id', $relation) ||
+                !array_key_exists('siteId', $relation) ||
+                !array_key_exists('type', $relation) ||
+                !is_int($relation['id']) ||
+                $relation['id'] <= 0 ||
+                ($relation['siteId'] !== null && (!is_int($relation['siteId']) || $relation['siteId'] <= 0)) ||
+                !is_string($relation['type']) ||
+                $relation['type'] === '' ||
+                strlen($relation['type']) > 255
+            ) {
+                throw new BadRequestHttpException('Invalid form relations token.');
+            }
+
+            $normalized[] = [
+                'id' => $relation['id'],
+                'siteId' => $relation['siteId'],
+                'type' => $relation['type'],
+            ];
+        }
+
+        return $normalized;
+    }
 
     private function _applyBrowserModuleReferences(array $definition, BrowserModuleManifest $manifest): array
     {

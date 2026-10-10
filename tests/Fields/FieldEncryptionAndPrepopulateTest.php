@@ -275,18 +275,67 @@ it('deliberately re-encrypts readable legacy values under the active key', funct
         ->and(Submission::find()->id($plaintextSubmission->id)->status(null)->one()->getFieldValue('secretValue'))->toBe('historical plaintext');
 });
 
-it('accepts only authenticated browser relation payloads while preserving empty forms', function (): void {
+it('binds new browser relation tokens to their form and site', function (): void {
     $form = formie()->form(['title' => 'Relation Token Contract'])->create();
-    $relations = [['id' => 12, 'siteId' => 1, 'type' => \craft\elements\Entry::class]];
-    $ciphertext = Craft::$app->getSecurity()->encryptByKey(
-        Json::encode($relations),
-        Craft::$app->getConfig()->getGeneral()->securityKey,
-    );
-    $token = 'base64:' . base64_encode('crypt:' . $ciphertext);
+    $related = new \craft\elements\Entry();
+    $related->id = 12;
+    $related->siteId = $form->siteId;
+    $form->setRelations([$related]);
+
+    $relations = [['id' => 12, 'siteId' => $form->siteId, 'type' => \craft\elements\Entry::class]];
+    $token = $form->getRelations();
 
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $relations): void {
         expect($form->getRelationsFromRequest())->toBe($relations);
     }, ['method' => 'POST', 'bodyParams' => ['relations' => $token]]);
+
+    $remoteRenderForm = clone $form;
+    $remoteRenderForm->siteId = (int)$form->siteId + 1000;
+    $remoteRenderToken = $remoteRenderForm->getRelations();
+
+    WebRequestTestHelper::withWebRequestContext(function () use ($form, $relations): void {
+        expect($form->getRelationsFromRequest())->toBe($relations);
+    }, ['method' => 'POST', 'bodyParams' => ['relations' => $remoteRenderToken]]);
+
+    $otherForm = formie()->form(['title' => 'Other Relation Token Contract'])->create();
+
+    WebRequestTestHelper::withWebRequestContext(function () use ($otherForm): void {
+        expect(fn() => $otherForm->getRelationsFromRequest())->toThrow(\yii\web\BadRequestHttpException::class);
+    }, ['method' => 'POST', 'bodyParams' => ['relations' => $token]]);
+
+    $payload = [
+        'version' => 1,
+        'purpose' => 'form-relations',
+        'formUid' => $form->uid,
+        'siteUid' => 'another-site',
+        'relations' => $relations,
+    ];
+    $ciphertext = Craft::$app->getSecurity()->encryptByKey(
+        Json::encode($payload),
+        Craft::$app->getConfig()->getGeneral()->securityKey,
+    );
+    $wrongSiteToken = 'base64:' . base64_encode('crypt:' . $ciphertext);
+
+    WebRequestTestHelper::withWebRequestContext(function () use ($form): void {
+        expect(fn() => $form->getRelationsFromRequest())->toThrow(\yii\web\BadRequestHttpException::class);
+    }, ['method' => 'POST', 'bodyParams' => ['relations' => $wrongSiteToken]]);
+});
+
+it('accepts authenticated legacy relation tokens and rejects malformed rows', function (): void {
+    $form = formie()->form(['title' => 'Legacy Relation Token Contract'])->create();
+    $relations = [['id' => 12, 'siteId' => null, 'type' => \craft\elements\Entry::class]];
+    $encrypt = static function (array $payload): string {
+        $ciphertext = Craft::$app->getSecurity()->encryptByKey(
+            Json::encode($payload),
+            Craft::$app->getConfig()->getGeneral()->securityKey,
+        );
+
+        return 'base64:' . base64_encode('crypt:' . $ciphertext);
+    };
+
+    WebRequestTestHelper::withWebRequestContext(function () use ($form, $relations): void {
+        expect($form->getRelationsFromRequest())->toBe($relations);
+    }, ['method' => 'POST', 'bodyParams' => ['relations' => $encrypt($relations)]]);
 
     WebRequestTestHelper::withWebRequestContext(function () use ($form): void {
         expect($form->getRelationsFromRequest())->toBeNull();
@@ -295,6 +344,12 @@ it('accepts only authenticated browser relation payloads while preserving empty 
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $relations): void {
         expect(fn() => $form->getRelationsFromRequest())->toThrow(\yii\web\BadRequestHttpException::class);
     }, ['method' => 'POST', 'bodyParams' => ['relations' => Json::encode($relations)]]);
+
+    WebRequestTestHelper::withWebRequestContext(function () use ($form): void {
+        expect(fn() => $form->getRelationsFromRequest())->toThrow(\yii\web\BadRequestHttpException::class);
+    }, ['method' => 'POST', 'bodyParams' => [
+        'relations' => $encrypt([['id' => '12', 'siteId' => 1, 'type' => \craft\elements\Entry::class]]),
+    ]]);
 });
 
 it('stores encryption-marker-shaped plaintext without interpreting it as ciphertext', function (): void {
