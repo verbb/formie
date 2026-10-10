@@ -395,6 +395,8 @@ settings {
 
 If you were loading rendered HTML over GraphQL, switch from the old form query to the dedicated HTML query.
 
+Form integration settings returned through GraphQL contain only values needed by the browser. Make, n8n and Web Request destination URLs are server-side settings and are not returned. Custom clients should keep those destinations on the server rather than reading them from form queries.
+
 ::: code-group
 ```graphql [Formie 3]
 query FormHtml($handle: String!) {

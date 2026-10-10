@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\gql\types;
 
+use verbb\formie\helpers\IntegrationSecrets;
+
 use craft\gql\base\ObjectType;
 use craft\gql\GqlEntityRegistry;
 use craft\helpers\Json;
@@ -42,7 +44,13 @@ class FormIntegrationsType extends ObjectType
                     'type' => Type::string(),
                     'description' => 'The integration’s settings as a JSON string.',
                     'resolve' => function($source, $arguments) {
-                        if ($settings = $source->allowedGqlSettings()) {
+                        $settings = array_diff_key(
+                            $source->allowedGqlSettings(),
+                            array_flip(IntegrationSecrets::sensitiveAttributes($source)),
+                        );
+                        $settings = IntegrationSecrets::removeSensitiveValues($settings, $source);
+
+                        if ($settings) {
                             return Json::encode($settings);
                         }
 

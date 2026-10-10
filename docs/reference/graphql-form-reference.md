@@ -91,6 +91,8 @@ Field | Type | Description
 `redirectEntry` | `EntryInterface` | The redirect entry, when the form redirects to an entry.
 `integrations` | `[FormIntegrationsType]` | Enabled integrations for the form.
 
+Integration settings include only values a browser needs to render the form, such as CAPTCHA site keys and display options. Server-side credentials, webhook URLs and other integration destinations are not returned.
+
 ## Pages and Rows
 
 Pages expose their label, rows, fields and page settings.

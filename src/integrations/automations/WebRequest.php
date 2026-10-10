@@ -41,6 +41,7 @@ class WebRequest extends Automation
     // =========================================================================
 
     #[FormIntegrationSetting]
+    #[Sensitive]
     public ?string $url = null;
     #[FormIntegrationSetting]
     public string $method = 'POST';
@@ -102,14 +103,6 @@ class WebRequest extends Automation
 
         return new IntegrationConfig($settings);
     }
-
-    public function allowedGqlSettings(): array
-    {
-        return [
-            'url' => $this->url,
-        ];
-    }
-
 
     // Protected Methods
     // =========================================================================

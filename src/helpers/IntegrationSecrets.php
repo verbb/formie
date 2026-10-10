@@ -32,6 +32,17 @@ final class IntegrationSecrets
         return $attributes;
     }
 
+    public static function removeSensitiveValues(array $settings, IntegrationInterface $integration): array
+    {
+        $secrets = [];
+
+        foreach (self::sensitiveAttributes($integration) as $attribute) {
+            self::_collectSensitiveValues($integration->{$attribute} ?? null, $secrets);
+        }
+
+        return self::_removeSensitiveValues($settings, array_values(array_unique($secrets)));
+    }
+
     public static function protectBindings(array $bindings): array
     {
         return $bindings;
@@ -119,6 +130,55 @@ final class IntegrationSecrets
                 }
             }
         }
+        return $settings;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private static function _collectSensitiveValues(mixed $value, array &$secrets): void
+    {
+        if (is_array($value)) {
+            foreach ($value as $item) {
+                self::_collectSensitiveValues($item, $secrets);
+            }
+
+            return;
+        }
+
+        if (!is_string($value) || $value === '') {
+            return;
+        }
+
+        $secrets[] = $value;
+        $parsed = App::parseEnv($value);
+
+        if (is_string($parsed) && $parsed !== '') {
+            $secrets[] = $parsed;
+        }
+    }
+
+    private static function _removeSensitiveValues(array $settings, array $secrets): array
+    {
+        foreach ($settings as $key => $value) {
+            if (is_array($value)) {
+                $settings[$key] = self::_removeSensitiveValues($value, $secrets);
+                continue;
+            }
+
+            if (!is_string($value) || $value === '') {
+                continue;
+            }
+
+            foreach ($secrets as $secret) {
+                if ($value === $secret || (strlen($secret) >= 8 && str_contains($value, $secret))) {
+                    unset($settings[$key]);
+                    break;
+                }
+            }
+        }
+
         return $settings;
     }
 

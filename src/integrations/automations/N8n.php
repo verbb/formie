@@ -90,14 +90,6 @@ class N8n extends Automation
         return new IntegrationConfig($settings);
     }
 
-    public function allowedGqlSettings(): array
-    {
-        return [
-            'webhook' => $this->webhook,
-        ];
-    }
-
-
     // Protected Methods
     // =========================================================================
 
