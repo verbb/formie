@@ -23,6 +23,7 @@ use verbb\formie\models\IntegrationResult;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\FieldInterface as CraftFieldInterface;
+use craft\db\QueryParam;
 use craft\fields\Assets;
 use craft\fields\BaseOptionsField;
 use craft\fields\BaseRelationField;
@@ -44,6 +45,7 @@ use craft\fields\Tags;
 use craft\fields\Time;
 use craft\fields\Url;
 use craft\fields\Users;
+use craft\helpers\Db;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
@@ -51,6 +53,7 @@ use craft\models\FieldLayout;
 
 
 use DateTime;
+use DateTimeInterface;
 use DateTimeZone;
 
 use CommerceGuys\Addressing\Country\CountryRepository;
@@ -409,10 +412,13 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
 
         // Check if configuring update, and find an existing element, depending on mapping
         $updateElementValues = $this->getFieldMappingValues($submission, $this->updateElementMapping, $updateAttributes);
-        $updateElementValues = array_filter($updateElementValues);
+
+        // Match values come from submissions, so keep them literal rather than exposing Craft's query syntax.
+        // Every configured criterion must also remain present; silently dropping an empty value can broaden a match.
+        $updateElementValues = $this->prepareElementMatchValues($updateElementValues, $updateAttributes);
 
         // Something must be mapped in order to find an element, otherwise it'll just find any element for the criteria
-        if (!$updateElementValues) {
+        if ($updateElementValues === null || $updateElementValues === []) {
             return $element;
         }
 
@@ -433,5 +439,102 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
         }
 
         return $element;
+    }
+
+    protected function prepareElementMatchValues(array $values, array $fieldSettings): ?array
+    {
+        $fields = [];
+
+        foreach ($fieldSettings as $field) {
+            if ($field instanceof IntegrationField && $field->handle) {
+                $fields[$field->handle] = $field;
+            }
+        }
+
+        // Mapping events may adjust values, but cannot remove an administrator-configured criterion and
+        // accidentally turn an AND-style match into a broader query.
+        foreach ($this->updateElementMapping as $handle => $mapping) {
+            if ($this->normalizeFieldMappingValue($mapping) === '') {
+                continue;
+            }
+
+            if (!isset($fields[$handle]) || !array_key_exists($handle, $values)) {
+                return null;
+            }
+        }
+
+        $prepared = [];
+
+        foreach ($values as $handle => $value) {
+            $field = $fields[$handle] ?? new IntegrationField();
+            $preparedValue = $this->prepareElementMatchValue($value, $field);
+
+            if ($preparedValue === null) {
+                return null;
+            }
+
+            $prepared[$handle] = $preparedValue;
+        }
+
+        return $prepared;
+    }
+
+    protected function prepareElementMatchValue(mixed $value, IntegrationField $field): mixed
+    {
+        if ($value === null || $value === '' || $value === [] || (is_string($value) && trim($value) === '')) {
+            return null;
+        }
+
+        if (is_array($value)) {
+            if (!array_is_list($value)) {
+                return null;
+            }
+
+            $prepared = [QueryParam::OR];
+
+            foreach ($value as $item) {
+                if ($item === null || $item === '' || is_array($item) || (is_object($item) && !$item instanceof DateTimeInterface)) {
+                    return null;
+                }
+
+                if (is_string($item)) {
+                    // Multi-option fields use JSON containment rather than Db::parseParam(), so escaping would
+                    // change their literal values. An explicit OR prevents the first option becoming an operator.
+                    if ($field->getType() === IntegrationField::TYPE_ARRAY) {
+                        if (in_array(strtolower($item), [':empty:', ':notempty:', 'not :empty:'], true)) {
+                            return null;
+                        }
+                    } else {
+                        if (trim($item) === '') {
+                            return null;
+                        }
+
+                        $item = Db::escapeParam($item);
+                    }
+                }
+
+                $prepared[] = $item;
+            }
+
+            return $prepared;
+        }
+
+        if (is_object($value) && !$value instanceof DateTimeInterface) {
+            return null;
+        }
+
+        if (is_string($value)) {
+            $escaped = Db::escapeParam($value);
+
+            // QueryParam treats these bare strings as array operators. Supplying an explicit trusted operator
+            // leaves the submitted word as an ordinary value.
+            if (preg_match('/^(and|or|not)(?:\s|$)/i', trim($value))) {
+                return [QueryParam::OR, $escaped];
+            }
+
+            return $escaped;
+        }
+
+        return $value;
     }
 }
