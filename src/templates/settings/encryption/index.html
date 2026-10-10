@@ -1,0 +1,37 @@
+{% extends 'formie/_layouts/settings' %}
+
+{% set selectedTab = 'encryption' %}
+{% set pageTitle = 'Encryption' | t('formie') %}
+
+{% block content %}
+    <h2>{{ 'Encryption' | t('formie') }}</h2>
+
+    <p>{{ 'Content encryption protects the stored values of fields where encryption has been enabled. Sites that do not use encrypted fields require no setup.' | t('formie') }}</p>
+
+    {% if encryptionStatus.state == 'active' %}
+        <div class="pane">
+            <p><strong>{{ 'Active' | t('formie') }}</strong> — {{ 'New encrypted field values use the dedicated Formie key.' | t('formie') }}</p>
+            <p class="light">{{ 'Key ID: {id}' | t('formie', { id: encryptionStatus.keyId }) }}</p>
+        </div>
+    {% elseif encryptionStatus.state == 'ready' %}
+        <div class="warning with-icon">
+            <p>{{ 'A Formie encryption key is configured, but v2 writes have not been activated. Deploy this version to every web and queue process, then run `php craft formie/encryption/activate`.' | t('formie') }}</p>
+        </div>
+    {% elseif encryptionStatus.state == 'error' %}
+        <div class="error with-icon">
+            <p>{{ encryptionStatus.error }}</p>
+        </div>
+    {% elseif hasEncryptedFields %}
+        <div class="warning with-icon">
+            <p>{{ 'Existing encrypted fields are using compatibility mode. A developer should add FORMIE_ENCRYPTION_KEY before migrating stored content to the dedicated key.' | t('formie') }}</p>
+        </div>
+    {% else %}
+        <p class="light">{{ 'Encryption has not been configured because this site does not currently use encrypted fields. No action is required.' | t('formie') }}</p>
+    {% endif %}
+
+    {% if encryptionStatus.expectedKeyId and encryptionStatus.keyId and encryptionStatus.expectedKeyId != encryptionStatus.keyId %}
+        <div class="warning with-icon">
+            <p>{{ 'This environment expects key {expected}, but {actual} is configured. Add the old key to FORMIE_ENCRYPTION_PREVIOUS_KEYS before re-encrypting stored values.' | t('formie', { expected: encryptionStatus.expectedKeyId, actual: encryptionStatus.keyId }) }}</p>
+        </div>
+    {% endif %}
+{% endblock %}

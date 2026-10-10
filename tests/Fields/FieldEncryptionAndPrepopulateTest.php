@@ -3,12 +3,14 @@
 declare(strict_types=1);
 
 use craft\db\Query;
+use craft\helpers\App;
 use craft\helpers\Json;
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\Formie;
 use verbb\formie\console\controllers\EncryptionController;
 use verbb\formie\content\ContentEncryption;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Table;
 
 it('stores encrypted field values as non-plaintext payloads when encryption is enabled', function (): void {
@@ -116,6 +118,76 @@ it('distinguishes absent, malformed and valid content-encryption keys', function
     }
 });
 
+it('saves a generated encryption key to the configured dotenv file', function (): void {
+    $config = Craft::$app->getConfig();
+    $dotEnvPath = new ReflectionProperty($config, '_dotEnvPath');
+    $originalPath = $dotEnvPath->getValue($config);
+    $temporaryPath = Craft::$app->getPath()->getTempPath() . '/formie-encryption-' . bin2hex(random_bytes(6)) . '.env';
+    $configuredKey = getenv('FORMIE_ENCRYPTION_KEY');
+    $configuredEnvKey = $_ENV['FORMIE_ENCRYPTION_KEY'] ?? null;
+    $configuredServerKey = $_SERVER['FORMIE_ENCRYPTION_KEY'] ?? null;
+
+    putenv('FORMIE_ENCRYPTION_KEY');
+    unset($_ENV['FORMIE_ENCRYPTION_KEY'], $_SERVER['FORMIE_ENCRYPTION_KEY']);
+    $dotEnvPath->setValue($config, $temporaryPath);
+
+    try {
+        $controller = new class('encryption', Formie::$plugin) extends EncryptionController {
+            public array $writtenOutput = [];
+
+            public function stdout($string)
+            {
+                $this->writtenOutput[] = $string;
+
+                return strlen($string);
+            }
+        };
+        $controller->interactive = false;
+
+        expect($controller->actionGenerateKey())->toBe(\yii\console\ExitCode::OK)
+            ->and(file_exists($temporaryPath))->toBeTrue()
+            ->and(implode('', $controller->writtenOutput))->toContain("Saved FORMIE_ENCRYPTION_KEY to $temporaryPath.");
+
+        $contents = file_get_contents($temporaryPath);
+        expect($contents)->toStartWith('FORMIE_ENCRYPTION_KEY=formie-root:v1:')
+            ->and(App::env('FORMIE_ENCRYPTION_KEY'))->toStartWith('formie-root:v1:');
+
+        unlink($temporaryPath);
+        unset($_SERVER['FORMIE_ENCRYPTION_KEY']);
+        $controller->stdout = true;
+        $controller->writtenOutput = [];
+
+        expect($controller->actionGenerateKey())->toBe(\yii\console\ExitCode::OK)
+            ->and(file_exists($temporaryPath))->toBeFalse()
+            ->and($controller->writtenOutput)->toHaveCount(1)
+            ->and($controller->writtenOutput[0])->toStartWith('formie-root:v1:');
+    } finally {
+        if (file_exists($temporaryPath)) {
+            unlink($temporaryPath);
+        }
+
+        $dotEnvPath->setValue($config, $originalPath);
+
+        if ($configuredKey === false) {
+            putenv('FORMIE_ENCRYPTION_KEY');
+        } else {
+            putenv('FORMIE_ENCRYPTION_KEY=' . $configuredKey);
+        }
+
+        if ($configuredEnvKey === null) {
+            unset($_ENV['FORMIE_ENCRYPTION_KEY']);
+        } else {
+            $_ENV['FORMIE_ENCRYPTION_KEY'] = $configuredEnvKey;
+        }
+
+        if ($configuredServerKey === null) {
+            unset($_SERVER['FORMIE_ENCRYPTION_KEY']);
+        } else {
+            $_SERVER['FORMIE_ENCRYPTION_KEY'] = $configuredServerKey;
+        }
+    }
+});
+
 it('blocks newly encrypted fields without a key while grandfathering existing fields', function (): void {
     $form = formie()
         ->form(['title' => 'Encryption Toggle Contract'])
@@ -132,9 +204,13 @@ it('blocks newly encrypted fields without a key while grandfathering existing fi
             'label' => 'New Secret',
             'enableContentEncryption' => true,
         ]);
+        $schema = SchemaHelper::enableContentEncryptionField();
         expect($new->validate(['enableContentEncryption']))->toBeFalse()
             ->and($new->getErrors('enableContentEncryption'))->not->toBeEmpty()
-            ->and($existing->validate(['enableContentEncryption']))->toBeTrue();
+            ->and($existing->validate(['enableContentEncryption']))->toBeTrue()
+            ->and($schema['$field'])->toBe('contentEncryption')
+            ->and($schema['disabledWhenOff'])->toBeTrue()
+            ->and($schema['warning'])->not->toBeNull();
     } finally {
         putenv('FORMIE_ENCRYPTION_KEY=' . $configuredKey);
         $_ENV['FORMIE_ENCRYPTION_KEY'] = $_SERVER['FORMIE_ENCRYPTION_KEY'] = $configuredKey;

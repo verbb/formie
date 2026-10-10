@@ -2,6 +2,7 @@ import { registerFormFields } from '@verbb/plugin-kit-react/forms';
 import { CodeEditorField } from '@verbb/plugin-kit-react/forms/fields/CodeEditorField';
 
 import { CalculationsField } from './CalculationsField.jsx';
+import { ContentEncryptionField } from './ContentEncryptionField.jsx';
 import { HandleField } from './HandleField.jsx';
 import { ListField } from './ListField.jsx';
 import { RichTextField } from './RichTextField.jsx';
@@ -19,6 +20,7 @@ export function registerFormieOwnedSchemaFields(extraFields = {}) {
         richText: RichTextField,
         variablePicker: VariablePickerField,
         calculations: CalculationsField,
+        contentEncryption: ContentEncryptionField,
         elementSelect: ElementSelectField,
         codeEditor: CodeEditorField,
         ...extraFields,

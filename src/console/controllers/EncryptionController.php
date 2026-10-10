@@ -16,8 +16,10 @@ use craft\db\Query;
 use craft\db\Table as CraftTable;
 use craft\helpers\Console;
 use craft\helpers\Db;
+use craft\helpers\FileHelper;
 use craft\helpers\Json;
 
+use Throwable;
 use yii\console\ExitCode;
 
 /**
@@ -57,7 +59,7 @@ class EncryptionController extends Controller
     }
 
     /**
-     * Generates a new field-content encryption key without saving it.
+     * Generates a new field-content encryption key and saves it to .env.
      */
     public function actionGenerateKey(): int
     {
@@ -81,13 +83,43 @@ class EncryptionController extends Controller
 
         $key = ContentEncryption::generateKey();
 
-        if (!$this->stdout) {
-            $this->stdout('Store this key in a secrets manager or environment variable. Losing it makes encrypted submission content permanently unavailable.' . PHP_EOL, Console::FG_YELLOW);
-            $this->stdout('FORMIE_ENCRYPTION_KEY=' . $key->value . PHP_EOL, Console::FG_GREEN);
-            $this->stdout('Key ID: ' . $key->id . PHP_EOL, Console::FG_GREY);
-        } else {
+        if ($this->stdout) {
             $this->stdout($key->value . PHP_EOL);
+
+            return ExitCode::OK;
         }
+
+        $config = Craft::$app->getConfig();
+        $path = $config->getDotEnvPath();
+
+        if (!file_exists($path)) {
+            if ($this->interactive && !$this->confirm("A .env file doesn't exist at $path. Would you like to create one?", true)) {
+                $this->stdout('Action aborted.' . PHP_EOL, Console::FG_YELLOW);
+
+                return ExitCode::UNSPECIFIED_ERROR;
+            }
+
+            try {
+                FileHelper::writeToFile($path, '');
+            } catch (Throwable $exception) {
+                $this->stderr("Unable to create $path: {$exception->getMessage()}" . PHP_EOL, Console::FG_RED);
+
+                return ExitCode::UNSPECIFIED_ERROR;
+            }
+        }
+
+        try {
+            $config->setDotEnvVar('FORMIE_ENCRYPTION_KEY', $key->value);
+        } catch (Throwable $exception) {
+            $this->stderr("Unable to save FORMIE_ENCRYPTION_KEY to $path: {$exception->getMessage()}" . PHP_EOL, Console::FG_RED);
+
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+
+        $this->stdout("Saved FORMIE_ENCRYPTION_KEY to $path." . PHP_EOL, Console::FG_GREEN);
+        $this->stdout('Keep a recoverable copy of this key and deploy the same value to every environment that must read encrypted submissions. Losing it makes that content permanently unavailable.' . PHP_EOL, Console::FG_YELLOW);
+        $this->stdout('FORMIE_ENCRYPTION_KEY=' . $key->value . PHP_EOL, Console::FG_GREEN);
+        $this->stdout('Key ID: ' . $key->id . PHP_EOL, Console::FG_GREY);
 
         return ExitCode::OK;
     }

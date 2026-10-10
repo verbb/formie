@@ -856,21 +856,26 @@ class SchemaHelper
     public static function enableContentEncryptionField(array $config = []): array
     {
         $warning = null;
+        $disabledWhenOff = false;
 
         try {
             if (!ContentEncryption::currentKey()) {
+                $disabledWhenOff = true;
                 $warning = Craft::t('formie', 'A developer must configure FORMIE_ENCRYPTION_KEY before content encryption can be enabled for a new field. Existing encrypted fields remain readable in compatibility mode.');
             }
         } catch (\RuntimeException $exception) {
+            $disabledWhenOff = true;
             $warning = $exception->getMessage();
         }
 
-        return self::lightswitchField(array_merge([
+        return array_merge([
+            '$field' => 'contentEncryption',
             'label' => Craft::t('formie', 'Enable Content Encryption'),
             'instructions' => Craft::t('formie', 'Whether to encrypt the value saved for this field for data-security purposes.'),
             'name' => 'enableContentEncryption',
+            'disabledWhenOff' => $disabledWhenOff,
             'warning' => $warning,
-        ], $config));
+        ], $config);
     }
 
     public static function includeInEmailFieldSummariesField(array $config = []): array

@@ -220,6 +220,7 @@ class Permissions extends Component
     {
         return [
             'general' => Craft::t('formie', 'General Settings'),
+            'encryption' => Craft::t('formie', 'Encryption'),
             'import-export' => Craft::t('formie', 'Import/Export'),
             'forms' => Craft::t('formie', 'Forms settings'),
             'form-groups' => Craft::t('formie', 'Form Groups'),

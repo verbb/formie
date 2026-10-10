@@ -363,6 +363,7 @@ class Formie extends Plugin
 
             $event->rules['formie/settings'] = 'formie/settings/index';
             $event->rules['formie/settings/general'] = 'formie/settings/index';
+            $event->rules['formie/settings/encryption'] = 'formie/settings/encryption';
             $event->rules['formie/settings/forms'] = 'formie/settings/forms';
             $event->rules['formie/settings/defaults'] = 'formie/settings/defaults';
             $event->rules['formie/settings/fields'] = 'formie/settings/fields';

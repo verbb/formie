@@ -51,7 +51,7 @@ Lists environment variables that editors may use in reference tokens and `$NAME`
 
 **Type:** `string|null` · **Default:** `null`
 
-Provides the dedicated key used only for encrypted submission field content. Prefer the `FORMIE_ENCRYPTION_KEY` environment variable so the key is not committed with project files. Generate a key with `php craft formie/encryption/generate-key`, keep a recoverable copy in your secrets manager, and use the same key in every environment that must read copied production submissions.
+Provides the dedicated key used only for encrypted submission field content. Prefer the `FORMIE_ENCRYPTION_KEY` environment variable so the key is not committed with project files. Generate and save a key to the project’s configured `.env` file with `php craft formie/encryption/generate-key`, or add `--stdout` when an external deployment or secrets system owns the environment. Keep a recoverable copy and use the same key in every environment that must read copied production submissions.
 :::
 
 

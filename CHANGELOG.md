@@ -4,10 +4,11 @@
 
 ### Added
 - Added an event-based Microsoft Dynamics 365 entity registry for mapping and creating custom entities without a custom integration subclass. ([#2995](https://github.com/verbb/formie/issues/2995))
-- Added a dedicated optional field-content encryption key, key-status and migration commands, resumable re-encryption, previous-key recovery, and read-only handling for unavailable encrypted submission values.
+- Added a dedicated optional field-content encryption key, an Encryption settings page, `.env` key generation, key-status and migration commands, resumable re-encryption, previous-key recovery, and read-only handling for unavailable encrypted submission values.
 
 ### Changed
 - Store integration settings as literal values or environment references instead of encrypting values committed to project config, while retaining read compatibility for beta-encrypted settings.
+- Disable content encryption for new fields until its dedicated key is configured, while allowing existing encrypted fields to remain enabled or be switched off.
 - Use Craft’s security key for disposable operational evidence, unkeyed stable payment fingerprints, and random hashed payment capability tokens so field-content key rotation does not interrupt unrelated operations.
 - Centralized reference transform declarations and register custom reference sources once per application.
 - Payment integrations now inherit before/after payment hooks from the base class. Custom providers should implement `executePayment()` without dispatching those hooks themselves.

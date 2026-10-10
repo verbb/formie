@@ -18,7 +18,7 @@ Field content encryption is optional. Sites that do not enable **Enable Content 
 php craft formie/encryption/generate-key
 ```
 
-Store the printed value as `FORMIE_ENCRYPTION_KEY` in the site's environment or secrets manager. Do not commit the key to project config or a repository. Deploy the configured key and this Formie version to every web and queue process, restart long-running workers, then activate the new storage format:
+The command saves `FORMIE_ENCRYPTION_KEY` to the project’s configured `.env` file. Use `--stdout` instead when a deployment system, container platform, or secrets manager owns the environment. Do not commit the key to project config or a repository. Keep a recoverable copy, deploy the same value and this Formie version to every web and queue process, restart long-running workers, then activate the new storage format:
 
 ```shell
 php craft formie/encryption/activate

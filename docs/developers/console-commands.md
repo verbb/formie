@@ -101,13 +101,15 @@ Option | Description
 
 ## Submission Content Encryption
 
-Generate a dedicated field-content key without writing it to a file:
+Generate a dedicated field-content key and save it to the project’s configured `.env` file:
 
 ```shell
 php craft formie/encryption/generate-key
 ```
 
-Use `--stdout` when a deployment system needs only the key value. The command refuses to replace a configured key unless `--rotate` is supplied; generating a replacement does not activate it or modify stored content. After storing the key as `FORMIE_ENCRYPTION_KEY`, deploy the same key and Formie code to every web and queue process, restart long-running workers, then activate v2 writes:
+The command creates the `.env` file after confirmation if it does not exist. Use `--stdout` to print only the key without changing a file when a deployment system, container platform, or secrets manager owns the environment. The command refuses to replace a configured key unless `--rotate` is supplied; generating a replacement does not activate it or modify stored content.
+
+The local `.env` change applies only to that Craft installation. Keep a recoverable copy of the key, deploy the same value and Formie code to every web and queue process that must read the encrypted submissions, restart long-running workers, then activate v2 writes:
 
 ```shell
 php craft formie/encryption/activate

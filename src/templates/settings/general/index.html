@@ -43,32 +43,4 @@
         warning: macros.configWarning('defaultPage', 'formie'),
     }) }}
 
-    <hr>
-
-    <h2>{{ 'Submission Content Encryption' | t('formie') }}</h2>
-
-    {% if encryptionStatus.state == 'active' %}
-        <div class="pane">
-            <p><strong>{{ 'Active' | t('formie') }}</strong> — {{ 'New encrypted field values use the dedicated Formie key.' | t('formie') }}</p>
-            <p class="light">{{ 'Key ID: {id}' | t('formie', { id: encryptionStatus.keyId }) }}</p>
-        </div>
-    {% elseif encryptionStatus.state == 'ready' %}
-        <div class="warning with-icon">
-            <p>{{ 'A Formie encryption key is configured, but v2 writes have not been activated. Deploy this version to every web and queue process, then run `php craft formie/encryption/activate`.' | t('formie') }}</p>
-        </div>
-    {% elseif encryptionStatus.state == 'error' %}
-        <div class="error with-icon">
-            <p>{{ encryptionStatus.error }}</p>
-        </div>
-    {% else %}
-        <div class="notice with-icon">
-            <p>{{ 'Content encryption is optional and has not been configured. Existing encrypted fields continue in compatibility mode, but encryption cannot be enabled for new fields until a developer adds FORMIE_ENCRYPTION_KEY.' | t('formie') }}</p>
-        </div>
-    {% endif %}
-
-    {% if encryptionStatus.expectedKeyId and encryptionStatus.keyId and encryptionStatus.expectedKeyId != encryptionStatus.keyId %}
-        <div class="warning with-icon">
-            <p>{{ 'This environment expects key {expected}, but {actual} is configured. Add the old key to FORMIE_ENCRYPTION_PREVIOUS_KEYS before re-encrypting stored values.' | t('formie', { expected: encryptionStatus.expectedKeyId, actual: encryptionStatus.keyId }) }}</p>
-        </div>
-    {% endif %}
 {% endblock %}

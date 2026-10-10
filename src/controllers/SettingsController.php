@@ -3,6 +3,7 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\content\ContentEncryption;
+use verbb\formie\helpers\FieldTraversal;
 use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\helpers\Plugin;
@@ -47,7 +48,6 @@ class SettingsController extends SettingsAccessController
 
             return $this->renderTemplate('formie/settings/general', [
                 'settings' => $settings,
-                'encryptionStatus' => $this->_encryptionStatus(),
             ]);
         }
 
@@ -68,6 +68,14 @@ class SettingsController extends SettingsAccessController
         $settings = Formie::$plugin->getSettings();
 
         return $this->renderTemplate('formie/settings/forms', compact('settings'));
+    }
+
+    public function actionEncryption(): Response
+    {
+        return $this->renderTemplate('formie/settings/encryption', [
+            'encryptionStatus' => $this->_encryptionStatus(),
+            'hasEncryptedFields' => $this->_hasEncryptedFields(),
+        ]);
     }
 
     public function actionDefaults(): Response
@@ -331,6 +339,17 @@ class SettingsController extends SettingsAccessController
                 'error' => $exception->getMessage(),
             ];
         }
+    }
+
+    private function _hasEncryptedFields(): bool
+    {
+        foreach (FieldTraversal::recursively(Formie::$plugin->getFields()->getAllFields()) as $field) {
+            if ($field->enableContentEncryption) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function _saveCaptchaIntegrations(mixed $integrations): bool

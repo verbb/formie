@@ -262,6 +262,7 @@ class Formie
         if (Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             $navItems = [
                 'general' => ['title' => Craft::t('formie', 'General Settings')],
+                'encryption' => ['title' => Craft::t('formie', 'Encryption')],
                 'import-export' => ['title' => Craft::t('formie', 'Import/Export')],
                 'forms' => ['title' => Craft::t('formie', 'Forms')],
                 'form-groups' => ['title' => Craft::t('formie', 'Form Groups')],
