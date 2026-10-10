@@ -19,6 +19,7 @@
 
 ### Fixed
 - Fixed a medium-severity privilege escalation vulnerability.
+- Fixed specially formatted plaintext submission values being mistaken for encrypted field content.
 - Fixed payment hooks treating declined payments as successful or creating payment intents before processing was cancelled.
 - Fixed queued element integrations failing before saving their element.
 - Fixed downgraded integration API errors being recorded as successful deliveries.

@@ -11,6 +11,8 @@ use RuntimeException;
 
 final class FieldStorageCodec
 {
+    private const PLAIN_ENVELOPE_MARKER = 'formie:plain:v1:8d986bd501b14ae6a8de160e74b602db';
+
     // Static Methods
     // =========================================================================
 
@@ -19,6 +21,10 @@ final class FieldStorageCodec
         self::assertSafe($value);
 
         if (!$encrypted) {
+            if (self::_legacyCiphertext($value) !== null || self::_isPlainEnvelopeShape($value) || self::_isEncryptedEnvelopeShape($value)) {
+                return ['__formie_storage' => self::PLAIN_ENVELOPE_MARKER, 'value' => $value];
+            }
+
             return $value;
         }
 
@@ -28,7 +34,11 @@ final class FieldStorageCodec
     // Only trusted persisted-content hydration and field copying may call this method.
     public static function decode(mixed $value): mixed
     {
-        if (is_array($value) && count($value) === 2 && array_key_exists('__formie_encrypted', $value) && array_key_exists('ciphertext', $value)) {
+        if (self::_isPlainEnvelopeShape($value)) {
+            return $value['value'];
+        }
+
+        if (self::_isEncryptedEnvelopeShape($value)) {
             if ($value['__formie_encrypted'] !== 1 || !is_string($value['ciphertext'])) {
                 throw new RuntimeException('Unsupported or malformed stored Formie encryption envelope. Restore the original stored value before resaving.');
             }
@@ -44,18 +54,14 @@ final class FieldStorageCodec
         }
 
         // Formie 3's exact prefix and decoded marker, never a substring or a request heuristic.
-        if (is_string($value) && str_starts_with($value, 'base64:')) {
-            $bytes = base64_decode(substr($value, 7), true);
+        if (($ciphertext = self::_legacyCiphertext($value)) !== null) {
+            $plain = Craft::$app->getSecurity()->decryptByKey($ciphertext, Formie::$plugin->getSettings()->getSecurityKey());
 
-            if ($bytes !== false && str_starts_with($bytes, 'crypt:')) {
-                $plain = Craft::$app->getSecurity()->decryptByKey(substr($bytes, 6), Formie::$plugin->getSettings()->getSecurityKey());
-
-                if ($plain === false) {
-                    throw new RuntimeException('Unable to decrypt the legacy Formie field value. Restore the original security key or database backup.');
-                }
-
-                return $plain;
+            if ($plain === false) {
+                throw new RuntimeException('Unable to decrypt the legacy Formie field value. Restore the original security key or database backup.');
             }
+
+            return $plain;
         }
 
         return $value;
@@ -76,5 +82,26 @@ final class FieldStorageCodec
         }
 
         throw new LogicException('Field projection returned ' . get_debug_type($value) . '. The owning field must explicitly project objects to JSON-safe scalars/arrays.');
+    }
+
+    private static function _legacyCiphertext(mixed $value): ?string
+    {
+        if (!is_string($value) || !str_starts_with($value, 'base64:')) {
+            return null;
+        }
+
+        $bytes = base64_decode(substr($value, 7), true);
+
+        return $bytes !== false && str_starts_with($bytes, 'crypt:') ? substr($bytes, 6) : null;
+    }
+
+    private static function _isPlainEnvelopeShape(mixed $value): bool
+    {
+        return is_array($value) && count($value) === 2 && ($value['__formie_storage'] ?? null) === self::PLAIN_ENVELOPE_MARKER && array_key_exists('value', $value);
+    }
+
+    private static function _isEncryptedEnvelopeShape(mixed $value): bool
+    {
+        return is_array($value) && count($value) === 2 && array_key_exists('__formie_encrypted', $value) && array_key_exists('ciphertext', $value);
     }
 }

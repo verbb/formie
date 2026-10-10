@@ -33,6 +33,34 @@ it('stores encrypted field values as non-plaintext payloads when encryption is e
     expect($loaded->getFieldValue('secretValue'))->toBe($plainText);
 });
 
+it('stores encryption-marker-shaped plaintext without interpreting it as ciphertext', function (): void {
+    $validCiphertext = \verbb\formie\helpers\StringHelper::encenc('private');
+    $malformedCiphertext = 'base64:' . base64_encode('crypt:broken');
+
+    $form = formie()
+        ->form(['title' => 'Plaintext Marker Contract'])
+        ->singleLineTextField('validMarker')
+        ->singleLineTextField('malformedMarker')
+        ->create();
+
+    $submission = formie()->submission($form)->with([
+        'validMarker' => $validCiphertext,
+        'malformedMarker' => $malformedCiphertext,
+    ])->save();
+
+    $content = (new Query())
+        ->select(['content'])
+        ->from([Table::FORMIE_SUBMISSIONS])
+        ->where(['id' => $submission->id])
+        ->scalar();
+
+    expect($content)->toContain('formie:plain:v1:8d986bd501b14ae6a8de160e74b602db');
+
+    $loaded = \verbb\formie\elements\Submission::find()->id($submission->id)->status(null)->one();
+    expect($loaded->getFieldValue('validMarker'))->toBe($validCiphertext)
+        ->and($loaded->getFieldValue('malformedMarker'))->toBe($malformedCiphertext);
+});
+
 it('keeps pre-populate query-string feature callable in current runtime context', function (): void {
     $form = formie()
         ->form(['title' => 'PrePopulate Contract'])

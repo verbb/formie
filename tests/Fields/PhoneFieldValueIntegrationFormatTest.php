@@ -45,8 +45,13 @@ it('retains invalid input and explicit region without guessing away either', fun
 it('decodes Formie 3 encrypted phone parts only from stored content', function (): void {
     $field = new Phone();
     $legacy = ['number' => \verbb\formie\helpers\StringHelper::encenc('0400000000'), 'country' => 'AU', 'hasCountryCode' => true];
+    $requestValue = $field->normalizeValueFromRequest($legacy, null);
+    $storedRequestValue = $field->serializeValueForDb($requestValue);
+
     expect($field->normalizeValueFromStorage($legacy)->canonicalNumber)->toBe('+61400000000')
-        ->and($field->normalizeValueFromRequest($legacy, null)->number)->toBe($legacy['number']);
+        ->and($requestValue->number)->toBe($legacy['number'])
+        ->and($storedRequestValue['number'])->toBe(['__formie_storage' => 'formie:plain:v1:8d986bd501b14ae6a8de160e74b602db', 'value' => $legacy['number']])
+        ->and($field->normalizeValueFromStorage($storedRequestValue)->number)->toBe($legacy['number']);
 });
 
 it('resolves phone references and queries stored numbers without presentation state', function (): void {

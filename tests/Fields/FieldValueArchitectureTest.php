@@ -120,15 +120,45 @@ it('keeps runtime declarations protected and numeric meaning in reference metada
     expect(\verbb\formie\conditions\ConditionCompiler::fieldType(new fields\SingleLineText()))->toBe('text');
 });
 
-it('never decrypts untrusted strings and rejects tampered trusted envelopes', function () {
-    $field = new fields\SingleLineText(['handle' => 'text', 'enableContentEncryption' => true]);
+it('escapes plaintext storage markers without weakening trusted legacy decoding', function () {
+    $field = new fields\SingleLineText(['handle' => 'text']);
     $legacy = \verbb\formie\helpers\StringHelper::encenc('private');
+    $malformedLegacy = 'base64:' . base64_encode('crypt:broken');
+
     expect($field->normalizeValueFromRequest($legacy, null))->toBe($legacy);
+    expect($field->normalizeValueFromStorage($field->serializeValueForDb($legacy)))->toBe($legacy);
+    expect($field->normalizeValueFromStorage($field->serializeValueForDb($malformedLegacy)))->toBe($malformedLegacy);
     expect($field->normalizeValueFromStorage($legacy))->toBe('private');
+    expect(FieldStorageCodec::encode('base64:not-encrypted', false))->toBe('base64:not-encrypted');
+});
+
+it('escapes plaintext values that collide with reserved storage envelopes', function () {
+    $plainEnvelope = ['__formie_storage' => 'formie:plain:v1:8d986bd501b14ae6a8de160e74b602db', 'value' => 'literal'];
+    $encryptedEnvelope = ['__formie_encrypted' => 1, 'ciphertext' => 'broken'];
+    $historicalLookalike = ['__formie_plain' => 1, 'value' => 'literal'];
+
+    expect(FieldStorageCodec::decode(FieldStorageCodec::encode($plainEnvelope, false)))->toBe($plainEnvelope);
+    expect(FieldStorageCodec::decode(FieldStorageCodec::encode($encryptedEnvelope, false)))->toBe($encryptedEnvelope);
+    expect(FieldStorageCodec::decode($historicalLookalike))->toBe($historicalLookalike);
+});
+
+it('rejects malformed trusted storage envelopes', function () {
+    $field = new fields\SingleLineText(['handle' => 'text']);
+
     expect(fn() => $field->normalizeValueFromStorage(['__formie_encrypted' => 1, 'ciphertext' => 'broken']))->toThrow(RuntimeException::class);
     expect(fn() => $field->normalizeValueFromStorage('base64:' . base64_encode('crypt:broken')))->toThrow(RuntimeException::class);
     expect(fn() => $field->normalizeValueFromStorage(['__formie_encrypted' => 2, 'ciphertext' => 'future']))->toThrow(RuntimeException::class);
     expect(fn() => $field->normalizeValueFromStorage(['__formie_encrypted' => 1, 'ciphertext' => null]))->toThrow(RuntimeException::class);
+});
+
+it('reads encrypted storage after content encryption is disabled', function () {
+    $field = new fields\SingleLineText(['handle' => 'text', 'enableContentEncryption' => true]);
+    $modern = $field->serializeValueForDb('modern private');
+    $legacy = \verbb\formie\helpers\StringHelper::encenc('legacy private');
+    $field->enableContentEncryption = false;
+
+    expect($field->normalizeValueFromStorage($modern))->toBe('modern private');
+    expect($field->normalizeValueFromStorage($legacy))->toBe('legacy private');
 });
 
 it('uses immutable names in both modes and immutable payment parts without service state', function () {

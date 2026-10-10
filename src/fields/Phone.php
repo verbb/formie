@@ -386,7 +386,9 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     {
         $phone = $this->normalizeValue($value, $element);
 
-        return ['number' => $phone->number, 'country' => $phone->country];
+        // Legacy Formie values can encrypt the number independently, so protect
+        // new plaintext from being mistaken for that historical storage shape.
+        return ['number' => FieldStorageCodec::encode($phone->number, false), 'country' => $phone->country];
     }
 
     protected function defineValueAsData(mixed $value, ?ElementInterface $element = null): mixed
