@@ -16,6 +16,15 @@ Jump directly to the sections most likely to need attention:
 - [Form Content Translations](#form-content-translations) if the project mapped field labels or form messages through `formie.php` or `site.php`.
 - [Submission and form statuses](#submission-and-form-statuses) if custom PHP, Twig, or module code references status services, models, events, or database tables.
 - [Reports and submission export](#reports-and-submission-export) if editors expect an **Export** button on the submissions index.
+- [Encrypted submission fields](#encrypted-submission-fields) if any fields use **Enable Content Encryption**.
+
+## Encrypted Submission Fields
+
+Formie can still read Formie 3 encrypted field values after the upgrade, including sites that used `FORMIE_SECURITY_KEY` and older values that used Craft’s security key. Existing encrypted fields also keep writing the compatible format until you deliberately activate the dedicated Formie field-content key, so this does not block the initial upgrade.
+
+Before enabling encryption on another field, generate `FORMIE_ENCRYPTION_KEY` with `php craft formie/encryption/generate-key` and store the same key in every environment that must read copied submissions. Deploy and restart all web and queue processes before running `php craft formie/encryption/activate`. Make a verified database backup, then follow the [submission content encryption commands](/developers/console-commands#submission-content-encryption) to convert existing values.
+
+Keep `FORMIE_SECURITY_KEY` and the previous Craft security key available until conversion is complete if the site has used both. You can supply old keys temporarily through `FORMIE_ENCRYPTION_PREVIOUS_KEYS`. Formie preserves and locks any value it cannot decrypt instead of displaying it as blank or overwriting it during a resave.
 
 ## Custom Fields
 

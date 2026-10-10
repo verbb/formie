@@ -469,6 +469,7 @@ class Integrations extends Component
         ?string $triggerEvent = null,
         bool $operatorInitiated = false,
     ): void {
+        $submission->assertContentAvailable();
         $form = $submission->getForm();
 
         if (!$form) {
@@ -507,6 +508,8 @@ class Integrations extends Component
 
     public function sendIntegrationPayload(Integration $integration, Submission $submission): IntegrationResult
     {
+        $submission->assertContentAvailable();
+        IntegrationSecrets::assertAvailable($integration->getSettings());
         $event = new TriggerIntegrationEvent([
             'submission' => $submission,
             'type' => get_class($integration),
@@ -833,13 +836,19 @@ class Integrations extends Component
             'type' => get_class($integration),
             'enabled' => $integration->getEnabled(false),
             'sortOrder' => (int)$integration->sortOrder,
-            'settings' => ProjectConfigHelper::packAssociativeArrays(IntegrationSecrets::protect($integration->getSettings(), true)),
+            'settings' => ProjectConfigHelper::packAssociativeArrays($integration->getSettings()),
         ];
     }
 
     public function saveIntegration(IntegrationInterface $integration, bool $runValidation = true): bool
     {
         $isNewIntegration = $integration->getIsNew();
+
+        if (IntegrationSecrets::containsUnavailable($integration->getSettings())) {
+            $integration->addError('settings', Craft::t('formie', 'Restore the former encryption key or replace the unavailable beta-encrypted setting before saving this integration.'));
+
+            return false;
+        }
 
         // Fire a 'beforeSaveIntegration' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_INTEGRATION)) {
@@ -921,7 +930,7 @@ class Integrations extends Component
             $integrationRecord->enabled = $data['enabled'];
             $integrationRecord->sortOrder = $data['sortOrder'];
             $integrationRecord->scope = self::SCOPE_PROJECT;
-            $integrationRecord->settings = IntegrationSecrets::protect(ProjectConfigHelper::unpackAssociativeArrays($settings), true);
+            $integrationRecord->settings = ProjectConfigHelper::unpackAssociativeArrays($settings);
             $integrationRecord->cache = [];
             $integrationRecord->uid = $integrationUid;
 
@@ -1647,7 +1656,7 @@ class Integrations extends Component
             $integrationRecord->enabled = $integration->getEnabled(false);
             $integrationRecord->sortOrder = (int)$integration->sortOrder;
             $integrationRecord->scope = self::SCOPE_SITE;
-            $integrationRecord->settings = IntegrationSecrets::protect($settings, true);
+            $integrationRecord->settings = $settings;
             $integrationRecord->cache = [];
 
             if ($wasTrashed = (bool)$integrationRecord->dateDeleted) {

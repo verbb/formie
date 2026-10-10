@@ -143,7 +143,7 @@ class PaymentAttempt
 
         $fingerprint = $integration->getPaymentAccountFingerprint();
 
-        if (!$payment->accountFingerprint || !hash_equals($payment->accountFingerprint, $fingerprint)) {
+        if (!$integration->matchesPaymentAccountFingerprint($payment->accountFingerprint)) {
             throw new DeliveryOutcomeUnknownException('The original payment account could not be verified.');
         }
         $owner->execute([

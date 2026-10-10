@@ -2,8 +2,10 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\content\ContentEncryption;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\errors\DeliveryOutcomeUnknownException;
+use verbb\formie\helpers\OperationalSecurity;
 use verbb\formie\workflow\WorkflowContext;
 
 use Craft;
@@ -131,7 +133,14 @@ class DeliveryAttempt
         }
 
         try {
-            $hash = hash_hmac('sha256', Json::encode($this->_canonicalize($payload)), Formie::$plugin->getSettings()->getSecurityKey());
+            $canonical = $this->_canonicalize($payload);
+            $hash = OperationalSecurity::fingerprint('legacy-delivery-payload', $canonical);
+            $hashes = [$hash];
+
+            foreach (ContentEncryption::legacyKeys() as $key) {
+                $hashes[] = hash_hmac('sha256', Json::encode($canonical), $key);
+            }
+
             $row = (new Query())->from(Table::FORMIE_SUBMISSION_WORKFLOW)->where($where)->one();
             $meta = $row ? Json::decode($row['meta']) : [
                 'requestKey' => $this->providerKey ?? StringHelper::UUID(),
@@ -140,14 +149,19 @@ class DeliveryAttempt
                 'state' => 'ready',
             ];
 
-            if (!hash_equals($meta['payloadHash'], $hash) && $meta['state'] === 'rejected') {
+            $matchesPayload = $this->_matchesHash($meta['payloadHash'], $hashes);
+
+            if (!$matchesPayload && $meta['state'] === 'rejected') {
                 // A confirmed rejection permits a corrected, new operation.
                 $meta = ['requestKey' => StringHelper::UUID(), 'payloadHash' => $hash, 'startedAt' => time(), 'state' => 'ready'];
+                $matchesPayload = true;
             }
 
-            if (!hash_equals($meta['payloadHash'], $hash)) {
+            if (!$matchesPayload) {
                 throw new RuntimeException('Delivery parameters changed. Check the previous outcome before starting a new operation.');
             }
+
+            $meta['payloadHash'] = $hash;
 
             if ($reconcile && !empty($meta['reference'])) {
                 try {
@@ -246,5 +260,16 @@ class DeliveryAttempt
         }
         unset($item);
         return $value;
+    }
+
+    private function _matchesHash(string $stored, array $candidates): bool
+    {
+        foreach ($candidates as $candidate) {
+            if (is_string($candidate) && hash_equals($stored, $candidate)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

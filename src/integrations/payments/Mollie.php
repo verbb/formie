@@ -6,6 +6,8 @@ use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
+use verbb\formie\content\ContentEncryption;
+use verbb\formie\enums\PaymentCapabilityPurpose;
 use verbb\formie\enums\PaymentResumeMode;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
@@ -18,6 +20,7 @@ use verbb\formie\fields\Radio;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\PaymentAccess;
+use verbb\formie\helpers\PaymentCapabilities;
 use verbb\formie\helpers\PaymentAttempt;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
@@ -152,7 +155,7 @@ class Mollie extends Payment
             $localId = $request->queryParams['formiePaymentId'] ?? null;
             $token = $request->queryParams['recoveryToken'] ?? null;
 
-            if (!is_string($localId) || !ctype_digit($localId) || !is_string($token) || strlen($token) !== 64) {
+            if (!is_string($localId) || !ctype_digit($localId) || !is_string($token) || $token === '') {
                 throw new ForbiddenHttpException('Invalid Mollie recovery capability.');
             }
 
@@ -161,14 +164,14 @@ class Mollie extends Payment
                 'status' => [PaymentModel::STATUS_UNKNOWN, PaymentModel::STATUS_PENDING, PaymentModel::STATUS_REQUIRES_ACTION],
             ])->one());
 
-            if (!$row || !hash_equals($this->_webhookRecoveryToken(new PaymentModel($row)), $token)) {
+            if (!$row || !$this->_isValidWebhookRecoveryToken(new PaymentModel($row), $token)) {
                 throw new ForbiddenHttpException('Invalid Mollie recovery capability.');
             }
         }
 
         $secret = (string)($request->queryParams['recoveryToken'] ?? '');
 
-        if (!hash_equals($this->_webhookRecoveryToken(new PaymentModel($row)), $secret)) {
+        if (!$this->_isValidWebhookRecoveryToken(new PaymentModel($row), $secret)) {
             throw new ForbiddenHttpException('Invalid webhook secret.');
         }
         $payment = new PaymentModel($row);
@@ -430,7 +433,10 @@ class Mollie extends Payment
             ]),
             'webhookUrl' => UrlHelper::urlWithParams($this->getWebhookUrl(), [
                 'formiePaymentId' => $payment->id,
-                'recoveryToken' => $this->_webhookRecoveryToken($payment),
+                'recoveryToken' => PaymentCapabilities::issue(PaymentCapabilityPurpose::WEBHOOK_RECOVERY, (int)$payment->id, [
+                    'integrationId' => (int)$payment->integrationId,
+                    'paymentUid' => (string)$payment->uid,
+                ], 86400 * 7),
             ]),
             'metadata' => [
                 'formiePaymentId' => $payment->id,
@@ -534,9 +540,26 @@ class Mollie extends Payment
         }
     }
 
-    private function _webhookRecoveryToken(PaymentModel $payment): string
+    private function _isValidWebhookRecoveryToken(PaymentModel $payment, string $token): bool
     {
-        return hash_hmac('sha256', 'mollie-webhook|' . $payment->integrationId . '|' . $payment->id . '|' . $payment->uid, Formie::$plugin->getSettings()->getSecurityKey());
+        $capability = PaymentCapabilities::resolve($token, PaymentCapabilityPurpose::WEBHOOK_RECOVERY);
+
+        if ($capability
+            && (int)$capability['resourceId'] === (int)$payment->id
+            && (int)($capability['scope']['integrationId'] ?? 0) === (int)$payment->integrationId
+            && ($capability['scope']['paymentUid'] ?? null) === $payment->uid) {
+            return true;
+        }
+
+        $payload = 'mollie-webhook|' . $payment->integrationId . '|' . $payment->id . '|' . $payment->uid;
+
+        foreach (ContentEncryption::legacyKeys() as $key) {
+            if (hash_equals(hash_hmac('sha256', $payload, $key), $token)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function _updateFormiePaymentStatus(PaymentModel $payment, array $molliePayment): void

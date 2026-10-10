@@ -14,6 +14,7 @@ use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldReferenceHelper;
 use verbb\formie\helpers\IntegrationSecrets;
+use verbb\formie\content\ContentEncryption;
 use verbb\formie\helpers\PaymentAmountHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
@@ -199,6 +200,8 @@ abstract class Payment extends Integration
 
     public function processPayment(Submission $submission): PaymentDecision
     {
+        IntegrationSecrets::assertAvailable($this->getSettings());
+
         $lock = 'formie.payment-execution.' . $submission->id . '.' . $this->id . '.' . $this->getField()?->id;
         $mutex = Craft::$app->getMutex();
 
@@ -565,7 +568,7 @@ abstract class Payment extends Integration
 
     public function getWebhookAccountFingerprint(string $environment, ?string $accountIdentity = null): string
     {
-        return hash('sha256', static::class . '|' . $this->uid . '|' . $environment . '|' . ($accountIdentity ?? 'default'));
+        return hash('sha256', "formie:payment-account:v1\0" . static::class . '|' . $environment . '|' . ($accountIdentity ?? 'default'));
     }
 
     /** Account identity is independent of credential rotation whenever the provider exposes it. */
@@ -575,25 +578,70 @@ abstract class Payment extends Integration
 
         if ($identity === null) {
             // Providers without an account identifier remain conservatively bound to credentials.
-            $credentials = [];
-            $attributes = array_unique([...IntegrationSecrets::sensitiveAttributes($this), ...$this->getLegacyPaymentCredentialAttributes()]);
-
-            foreach ($attributes as $attribute) {
-                if (str_contains(strtolower($attribute), 'webhook')) {
-                    continue;
-                }
-                $value = $this->$attribute;
-                $credentials[$attribute] = is_string($value) ? App::parseEnv($value) : $value;
-            }
-            ksort($credentials);
-            $identity = 'credentials:' . hash_hmac('sha256', Json::encode($credentials), Formie::$plugin->getSettings()->getSecurityKey());
+            $identity = 'credentials:' . hash('sha256', "formie:payment-account-credentials:v1\0" . Json::encode($this->_paymentCredentialValues()));
         }
         return $this->getWebhookAccountFingerprint($this->getPaymentEnvironment(), $identity);
+    }
+
+    public function matchesPaymentAccountFingerprint(?string $fingerprint): bool
+    {
+        if (!$fingerprint) {
+            return false;
+        }
+
+        foreach ([$this->getPaymentAccountFingerprint(), ...$this->getLegacyPaymentAccountFingerprints()] as $candidate) {
+            if (hash_equals($candidate, $fingerprint)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function getLegacyPaymentAccountFingerprints(): array
+    {
+        $environment = $this->getPaymentEnvironment();
+        $identity = $this->getPaymentAccountIdentity();
+        $identities = [];
+
+        if ($identity !== null) {
+            $identities[] = $identity;
+        } else {
+            $credentials = Json::encode($this->_paymentCredentialValues());
+
+            foreach (ContentEncryption::legacyKeys() as $key) {
+                $identities[] = 'credentials:' . hash_hmac('sha256', $credentials, $key);
+            }
+        }
+
+        return array_values(array_unique(array_map(
+            fn(string $legacyIdentity): string => hash('sha256', static::class . '|' . $this->uid . '|' . $environment . '|' . $legacyIdentity),
+            $identities,
+        )));
     }
 
     public function getPaymentEnvironment(): string
     {
         return property_exists($this, 'useSandbox') && App::parseBooleanEnv($this->useSandbox) ? 'test' : 'live';
+    }
+
+    private function _paymentCredentialValues(): array
+    {
+        $credentials = [];
+        $attributes = array_unique([...IntegrationSecrets::sensitiveAttributes($this), ...$this->getLegacyPaymentCredentialAttributes()]);
+
+        foreach ($attributes as $attribute) {
+            if (str_contains(strtolower($attribute), 'webhook')) {
+                continue;
+            }
+
+            $value = $this->$attribute;
+            $credentials[$attribute] = is_string($value) ? App::parseEnv($value) : $value;
+        }
+
+        ksort($credentials);
+
+        return $credentials;
     }
 
     public function getReconciliationInterval(PaymentModel $payment): int

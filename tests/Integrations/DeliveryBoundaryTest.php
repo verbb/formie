@@ -46,17 +46,50 @@ it('retries the definitely failed second write of the actual Freshdesk provider 
     expect($bundle)->toContain('mapping-inputs', 'submission-projection', 'retry')->not->toContain('synthetic-api-secret');
 });
 
-it('encrypts literal connection and binding secrets while preserving environment references and hydration', function () {
+it('stores literal connection and binding settings while preserving environment references and hydration', function () {
     $settings = ['apiKey' => 'literal-api-secret', 'clientSecret' => '$CRM_SECRET', 'httpAuth' => ['username' => 'literal-user', 'password' => 'literal-password'], 'fieldMapping' => ['name' => 'field:name']];
     $sealed = IntegrationSecrets::protect($settings);
-    expect(Json::encode($sealed))->not->toContain('literal-api-secret', 'literal-password', 'literal-user')->toContain('$CRM_SECRET');
+    expect(Json::encode($sealed))->toContain('literal-api-secret', 'literal-password', 'literal-user', '$CRM_SECRET');
     expect(IntegrationSecrets::protect($sealed))->toBe($sealed)->and(IntegrationSecrets::reveal($sealed))->toBe($settings);
     $integration = new Freshdesk(['name' => 'Encrypted connection', 'handle' => 'encrypted' . uniqid(), 'apiDomain' => 'https://example.test', 'apiKey' => 'at-rest-secret']);
     expect(Formie::$plugin->getIntegrations()->saveIntegration($integration, false))->toBeTrue();
     $raw = (new Query())->from(Table::FORMIE_INTEGRATIONS)->where(['id' => $integration->id])->one();
-    expect($raw['settings'])->not->toContain('at-rest-secret');
+    expect($raw['settings'])->toContain('at-rest-secret');
     unset($raw['dateDeleted']);
     expect(Formie::$plugin->getIntegrations()->createIntegration($raw)->apiKey)->toBe('at-rest-secret');
+});
+
+it('converts readable beta integration ciphertext while preserving opaque values', function () {
+    $integration = new Freshdesk(['name' => 'Beta encrypted connection', 'handle' => 'betaEncrypted' . uniqid(), 'apiDomain' => 'https://example.test', 'apiKey' => 'placeholder']);
+    expect(Formie::$plugin->getIntegrations()->saveIntegration($integration, false))->toBeTrue();
+    $legacyCiphertext = 'formie-secret:v1:' . base64_encode(Craft::$app->getSecurity()->encryptByKey(
+        Json::encode('restored-secret'),
+        Formie::$plugin->getSettings()->getSecurityKey(),
+    ));
+    $opaqueCiphertext = 'formie-secret:v1:not-valid-ciphertext';
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_INTEGRATIONS, [
+        'settings' => Json::encode(['apiDomain' => 'https://example.test', 'apiKey' => $legacyCiphertext, 'clientSecret' => $opaqueCiphertext]),
+    ], ['id' => $integration->id])->execute();
+
+    $migration = new \verbb\formie\migrations\m261010_010000_plain_integration_settings();
+    expect($migration->safeUp())->toBeTrue();
+    $stored = Json::decode((string)(new Query())
+        ->select('settings')
+        ->from(Table::FORMIE_INTEGRATIONS)
+        ->where(['id' => $integration->id])
+        ->scalar());
+    expect($stored['apiKey'])->toBe('restored-secret')
+        ->and($stored['clientSecret'])->toBe($opaqueCiphertext);
+
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_INTEGRATIONS, [
+        'settings' => Json::encode(['apiDomain' => 'https://example.test', 'apiKey' => $opaqueCiphertext]),
+    ], ['id' => $integration->id])->execute();
+    $raw = (new Query())->from(Table::FORMIE_INTEGRATIONS)->where(['id' => $integration->id])->one();
+    unset($raw['dateDeleted']);
+    $locked = Formie::$plugin->getIntegrations()->createIntegration($raw);
+    expect(fn() => $locked->checkConnection(false))->toThrow(RuntimeException::class)
+        ->and(Formie::$plugin->getIntegrations()->saveIntegration($locked, false))->toBeFalse()
+        ->and($locked->getErrors('settings'))->not->toBeEmpty();
 });
 
 it('migrates persisted plans and secrets idempotently without dispatching', function () {
@@ -69,10 +102,23 @@ it('migrates persisted plans and secrets idempotently without dispatching', func
     ob_start();
     try { expect($migration->safeUp())->toBeTrue(); expect($migration->safeUp())->toBeTrue(); } finally { ob_end_clean(); }
     $stored = (new Query())->select('settings')->from(Table::FORMIE_FORMS)->where(['id' => $form->id])->scalar();
-    expect($stored)->not->toContain('legacy-plain-password', 'immediate', 'afterIntegrations');
+    expect($stored)->toContain('legacy-plain-password')->not->toContain('immediate', 'afterIntegrations');
     $hydrated = new \verbb\formie\models\FormSettings(Json::decode($stored));
     expect($hydrated->integrations['webRequest']['httpAuth']['password'])->toBe('legacy-plain-password');
     expect($hydrated->integrationDispatch['steps'][0]['execution'])->toBe('synchronous');
+});
+
+it('accepts legacy delivery fingerprints during the operational-crypto transition', function () {
+    $form = formie()->form()->singleLineTextField('name')->create();
+    $submission = formie()->submission($form)->with(['name' => 'Fingerprint transition'])->save();
+    $attempts = Formie::$plugin->getDeliveryAttempts();
+    $configuration = ['binding' => ['enabled' => true]];
+    $fingerprints = $attempts->operationFingerprints($submission, $configuration);
+    expect($fingerprints)->toHaveCount(2);
+    $context = new IntegrationExecutionContext($submission->id, $form->id, 'transition', 'transition-' . uniqid());
+    $uid = $attempts->prepare($context, 'integration', ['acceptedFingerprint' => $fingerprints[1]]);
+    $result = $attempts->executePrepared($uid, $fingerprints, static fn() => IntegrationResult::succeeded());
+    expect($result->status)->toBe(IntegrationStatus::Succeeded);
 });
 
 it('distinguishes finalized delivery from successful delivery', function (string $status, bool $finalized) {

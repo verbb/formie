@@ -350,6 +350,8 @@ class Emails extends Component
 
     public function sendEmail(Notification $notification, Submission $submission, mixed $queueJob = null, bool $createSentNotification = true): array
     {
+        $submission->assertContentAvailable();
+
         // Render the email
         $emailRender = $this->renderEmail($notification, $submission);
 

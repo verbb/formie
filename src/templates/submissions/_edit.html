@@ -70,6 +70,18 @@
 
 <div {{ attr(attributes) }}>
     <div class="fui-i">
+        {% if submission.hasLockedContent() %}
+            {% set locked = submission.getLockedContent() | first %}
+            <div class="pane" style="margin-bottom: 24px;">
+                <p class="warning with-icon">
+                    {% if locked.keyId ?? null %}
+                        {{ 'This submission was encrypted with key “{keyId}”, which is not available in this environment. Its stored values are preserved, but the submission is read-only.' | t('formie', { keyId: locked.keyId }) }}
+                    {% else %}
+                        {{ 'This submission contains encrypted values that cannot be read in this environment. Its stored values are preserved, but the submission is read-only.' | t('formie') }}
+                    {% endif %}
+                </p>
+            </div>
+        {% else %}
         <input type="hidden" name="action" value="formie/submissions/save-admin-submission">
         {{ hiddenInput("expectedVersion", submission.stateVersion) }}
         {{ hiddenInput("operationId", form.getRequestToken()) }}
@@ -121,6 +133,7 @@
                 </div>
             {% endfor %}
         </div>
+        {% endif %}
     </div>
 </div>
 

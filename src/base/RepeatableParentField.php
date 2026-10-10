@@ -42,6 +42,32 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         return $rules;
     }
 
+    public function getSearchKeywords(mixed $value, ElementInterface $element): string
+    {
+        if ($this->enableContentEncryption || !is_array($value)) {
+            return '';
+        }
+
+        $keywords = [];
+
+        foreach ($value as $rowKey => $row) {
+            foreach ($this->getFields($rowKey) as $field) {
+                if ($field->getIsCosmetic() || $field->getIsDisabled()) {
+                    continue;
+                }
+
+                $subValue = $field->normalizeFieldValue($row[$field->handle] ?? $row[$field->uid] ?? null, $element);
+                $keyword = $field->getSearchKeywords($subValue, $element);
+
+                if ($keyword !== '') {
+                    $keywords[] = $keyword;
+                }
+            }
+        }
+
+        return implode(', ', $keywords);
+    }
+
     public function validateBlocks(ElementInterface $element): void
     {
         $scenario = $element->getScenario();

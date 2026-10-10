@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubscriptionStatus;
 use verbb\formie\events\SubscriptionEvent;
 use verbb\formie\helpers\SubscriptionProviderData;
+use verbb\formie\helpers\OperationalSecurity;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\payments\CancelSubscriptionCommand;
 use verbb\formie\models\payments\SubscriptionSnapshot;
@@ -75,7 +76,7 @@ class Subscriptions extends Component
                 return false;
             }
 
-            if (!$current->accountFingerprint || !hash_equals($current->accountFingerprint, $integration->getPaymentAccountFingerprint())) {
+            if (!$integration->matchesPaymentAccountFingerprint($current->accountFingerprint)) {
                 throw new RuntimeException('Restore the original subscription account before managing it.');
             }
             $mode = $command->resolveMode($current);
@@ -158,11 +159,19 @@ class Subscriptions extends Component
             return null;
         }
 
-        if ($integrationId && $accountFingerprint === null) {
-            $integration = Formie::$plugin->getIntegrations()->getIntegrationById($integrationId);
-            $accountFingerprint = $integration instanceof PaymentIntegration ? $integration->getPaymentAccountFingerprint() : null;
+        $integration = $integrationId ? Formie::$plugin->getIntegrations()->getIntegrationById($integrationId) : null;
+        $rows = $this->_createSubscriptionsQuery()->where(array_filter(['reference' => $reference, 'integrationId' => $integrationId], static fn($value) => $value !== null))->all();
+
+        if ($integration instanceof PaymentIntegration) {
+            if ($accountFingerprint !== null && !$integration->matchesPaymentAccountFingerprint($accountFingerprint)) {
+                $rows = [];
+            } else {
+                $rows = array_values(array_filter($rows, static fn(array $row): bool => $integration->matchesPaymentAccountFingerprint($row['accountFingerprint'])));
+            }
+        } elseif ($accountFingerprint !== null) {
+            $rows = array_values(array_filter($rows, static fn(array $row): bool => hash_equals($accountFingerprint, (string)$row['accountFingerprint'])));
         }
-        $rows = $this->_createSubscriptionsQuery()->where(array_filter(['reference' => $reference, 'integrationId' => $integrationId, 'accountFingerprint' => $accountFingerprint], static fn($value) => $value !== null))->limit(2)->all();
+
         return count($rows) === 1 ? new Subscription($rows[0]) : null;
     }
 
@@ -517,14 +526,9 @@ class Subscriptions extends Component
         if (strlen($encoded) > 2097152) {
             $encoded = Json::encode(['truncated' => true, 'originalBytes' => strlen($encoded), 'preview' => mb_strcut($encoded, 0, 65536)]);
         }
-        $cipher = Craft::$app->getSecurity()->encryptByKey($encoded, Formie::$plugin->getSettings()->getSecurityKey());
-
-        if ($cipher === false) {
-            throw new RuntimeException('Unable to retain subscription provider evidence.');
-        }
         Craft::$app->getDb()->createCommand()->insert('{{%formie_subscription_diagnostics}}', [
             'subscriptionUid' => $subscriptionUid, 'status' => $status,
-            'evidence' => base64_encode($cipher), 'observedAt' => Db::prepareDateForDb(new DateTimeImmutable()),
+            'evidence' => OperationalSecurity::encrypt($encoded), 'observedAt' => Db::prepareDateForDb(new DateTimeImmutable()),
         ])->execute();
     }
 

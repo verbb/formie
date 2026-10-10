@@ -2,6 +2,7 @@
 namespace verbb\formie\elements;
 
 use verbb\formie\Formie;
+use verbb\formie\content\ContentEncryption;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\FormDefaultableTrait;
 use verbb\formie\base\FormInterface;
@@ -88,6 +89,7 @@ use craft\web\View;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\validators\Validator;
+use yii\web\BadRequestHttpException;
 use yii\web\View as YiiView;
 
 use DateTime;
@@ -1323,7 +1325,7 @@ class Form extends Element implements FormInterface
             'siteId' => (int)Craft::$app->getSites()->getCurrentSite()->id,
         ]);
 
-        $key = Formie::$plugin->getSettings()->getSecurityKey();
+        $key = Craft::$app->getConfig()->getGeneral()->securityKey;
         $encrypted = Craft::$app->getSecurity()->encryptByKey($payload, $key);
 
         if (!is_string($encrypted) || $encrypted === '') {
@@ -1345,8 +1347,15 @@ class Form extends Element implements FormInterface
             return null;
         }
 
-        $key = Formie::$plugin->getSettings()->getSecurityKey();
-        $decrypted = Craft::$app->getSecurity()->decryptByKey($decoded, $key);
+        $decrypted = false;
+
+        foreach ([Craft::$app->getConfig()->getGeneral()->securityKey, ...ContentEncryption::legacyKeys()] as $key) {
+            $decrypted = Craft::$app->getSecurity()->decryptByKey($decoded, $key);
+
+            if (is_string($decrypted)) {
+                break;
+            }
+        }
 
         if (!is_string($decrypted) || $decrypted === '') {
             return null;
@@ -1472,7 +1481,9 @@ class Form extends Element implements FormInterface
     public function getRelations(): string
     {
         if ($values = $this->_relations) {
-            return StringHelper::encenc(Json::encode($values));
+            $cipher = Craft::$app->getSecurity()->encryptByKey(Json::encode($values), Craft::$app->getConfig()->getGeneral()->securityKey);
+
+            return 'base64:' . base64_encode('crypt:' . $cipher);
         }
 
         return '';
@@ -1497,7 +1508,25 @@ class Form extends Element implements FormInterface
 
         $value = (string)Craft::$app->getRequest()->getBodyParam('relations', '');
 
-        return Json::decode(StringHelper::decdec($value));
+        if ($value === '') {
+            return null;
+        }
+
+        $decoded = str_starts_with($value, 'base64:') ? base64_decode(substr($value, 7), true) : false;
+
+        if (!is_string($decoded) || !str_starts_with($decoded, 'crypt:')) {
+            throw new BadRequestHttpException('Invalid form relations token.');
+        }
+
+        foreach ([Craft::$app->getConfig()->getGeneral()->securityKey, ...ContentEncryption::legacyKeys()] as $key) {
+            $plain = Craft::$app->getSecurity()->decryptByKey(substr($decoded, 6), $key);
+
+            if (is_string($plain)) {
+                return Json::decode($plain);
+            }
+        }
+
+        throw new BadRequestHttpException('This form has expired. Please reload the page.');
     }
 
     public function getNotifications(): ?array
@@ -2121,7 +2150,6 @@ class Form extends Element implements FormInterface
 
         $record->handle = $this->handle;
         $storedSettings = $this->getSettings()->toArray();
-        $storedSettings['integrations'] = IntegrationSecrets::protectBindings((array)($storedSettings['integrations'] ?? []));
         $record->settings = $storedSettings;
         $record->layoutId = $this->getFormLayout()->id;
         $record->templateId = $this->templateId;

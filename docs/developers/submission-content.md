@@ -10,6 +10,34 @@ That is why the same field can look different in a template, an export, a summar
 
 When a value does not look the way you expect, the first question to ask is not "is this field wrong?" but "am I reading it in the right format for this job?"
 
+## Encrypting Sensitive Field Content
+
+Field content encryption is optional. Sites that do not enable **Enable Content Encryption** on a field need no encryption setup. If a form author needs that setting, a developer must first generate a dedicated key from the Craft project root:
+
+```shell
+php craft formie/encryption/generate-key
+```
+
+Store the printed value as `FORMIE_ENCRYPTION_KEY` in the site's environment or secrets manager. Do not commit the key to project config or a repository. Deploy the configured key and this Formie version to every web and queue process, restart long-running workers, then activate the new storage format:
+
+```shell
+php craft formie/encryption/activate
+```
+
+Existing encrypted fields continue to use the compatible legacy format until activation, so the deployment can be rolled out without one node writing content that another node cannot read. Once activation is complete, convert older values deliberately:
+
+```shell
+php craft formie/encryption/reencrypt --confirm-backup --key-id=r_123456789abc
+```
+
+Replace the example key ID with the value shown by `php craft formie/encryption/status`. The command processes submissions in resumable batches and only updates a row when its submission version has not changed. It preserves values it cannot decrypt and reports the affected submission and field instead of replacing the value.
+
+Use the same key in every environment that needs to read copied submissions. If a database is copied somewhere without that key, encrypted values appear as unavailable and the submission is read-only. Add an old key temporarily through `FORMIE_ENCRYPTION_PREVIOUS_KEYS` before running the conversion command after a deliberate key rotation. Losing every copy of a key makes the content encrypted with it permanently unreadable.
+
+Craft’s security key still protects short-lived form tokens and operational evidence. Rotating it does not affect v2 encrypted field content, but existing pages, cached forms, and transient operational evidence may expire; restart workers and clear static form caches after a Craft key rotation.
+
+Content encryption covers the stored value of enabled fields, including encrypted children inside Group and Repeater values. It does not encrypt file uploads, sent email bodies, exports after they are generated, or data sent to an integration. Encrypted fields and encrypted nested children are excluded from Craft search keywords.
+
 ## Reading Submission Values
 
 The `Submission` element gives you helper methods for the most common formats.

@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\compatibility\fields\FieldRuntimeCompatibility;
 use verbb\formie\conditions\ConditionVisibility;
 use verbb\formie\content\FieldStorageCodec;
+use verbb\formie\content\ContentEncryption;
 use verbb\formie\deprecations\FieldDeprecations;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -1288,6 +1289,35 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         $rules[] = [['handle'], HandleValidator::class, 'reservedWords' => Formie::$plugin->getFields()->getReservedHandles()];
         $rules[] = [['handle'], 'string', 'max' => 64];
         $rules[] = [['reference'], 'string', 'max' => 36];
+        $rules[] = [['enableContentEncryption'], function(string $attribute): void {
+            if (!$this->$attribute) {
+                return;
+            }
+
+            $wasEnabled = false;
+
+            if ($this->definitionId) {
+                $stored = (new Query())
+                    ->select('settings')
+                    ->from(Table::FORMIE_FIELDS)
+                    ->where(['id' => $this->definitionId])
+                    ->scalar();
+                $stored = is_string($stored) ? Json::decodeIfJson($stored) : $stored;
+                $wasEnabled = is_array($stored) && !empty($stored['enableContentEncryption']);
+            }
+
+            try {
+                $hasKey = ContentEncryption::currentKey() !== null;
+            } catch (\RuntimeException $exception) {
+                $this->addError($attribute, $exception->getMessage());
+
+                return;
+            }
+
+            if (!$hasKey && !$wasEnabled) {
+                $this->addError($attribute, Craft::t('formie', 'Set FORMIE_ENCRYPTION_KEY before enabling content encryption for a new field.'));
+            }
+        }];
 
         $rules[] = [
             ['handle'],

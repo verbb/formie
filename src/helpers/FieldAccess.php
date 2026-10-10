@@ -2,6 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\content\ContentEncryption;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Summary;
@@ -58,7 +59,7 @@ final class FieldAccess
             'themeDigest' => $resolvedTheme->digest,
         ];
 
-        $key = Formie::$plugin->getSettings()->getSecurityKey();
+        $key = Craft::$app->getConfig()->getGeneral()->securityKey;
         $encrypted = Craft::$app->getSecurity()->encryptByKey(Json::encode($payload), $key);
 
         if (!is_string($encrypted) || $encrypted === '') {
@@ -80,8 +81,15 @@ final class FieldAccess
             return null;
         }
 
-        $key = Formie::$plugin->getSettings()->getSecurityKey();
-        $decrypted = Craft::$app->getSecurity()->decryptByKey($decoded, $key);
+        $decrypted = false;
+
+        foreach ([Craft::$app->getConfig()->getGeneral()->securityKey, ...ContentEncryption::legacyKeys()] as $key) {
+            $decrypted = Craft::$app->getSecurity()->decryptByKey($decoded, $key);
+
+            if (is_string($decrypted)) {
+                break;
+            }
+        }
 
         if (!is_string($decrypted) || $decrypted === '') {
             return null;
@@ -131,7 +139,7 @@ final class FieldAccess
         // node-local cache. Identical themes share one row even across Summary fields.
         $identity = hash('sha256', Json::encode(['summary-theme', $form->id, $form->siteId, $theme->digest, $theme->allowsRawHtml]));
         $state = Json::encode(['purpose' => 'summary-theme', 'theme' => $theme->toFragmentState()]);
-        $encrypted = Craft::$app->getSecurity()->encryptByKey($state, Formie::$plugin->getSettings()->getSecurityKey());
+        $encrypted = Craft::$app->getSecurity()->encryptByKey($state, Craft::$app->getConfig()->getGeneral()->securityKey);
 
         if (!is_string($encrypted)) {
             throw new RuntimeException('Unable to encrypt Summary theme state.');
@@ -155,7 +163,17 @@ final class FieldAccess
         }
 
         $bytes = base64_decode($row['config'], true);
-        $plain = $bytes === false ? false : Craft::$app->getSecurity()->decryptByKey($bytes, Formie::$plugin->getSettings()->getSecurityKey());
+        $plain = false;
+
+        if ($bytes !== false) {
+            foreach ([Craft::$app->getConfig()->getGeneral()->securityKey, ...ContentEncryption::legacyKeys()] as $key) {
+                $plain = Craft::$app->getSecurity()->decryptByKey($bytes, $key);
+
+                if (is_string($plain)) {
+                    break;
+                }
+            }
+        }
         $state = $plain === false ? null : Json::decodeIfJson($plain);
         $theme = is_array($state) ? ($state['theme'] ?? null) : null;
 

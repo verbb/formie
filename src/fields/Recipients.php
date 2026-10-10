@@ -983,12 +983,12 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         }
 
         foreach ($this->_getResolvedRecipientOptionRows() as $option) {
-            if (hash_equals(RecipientTokenHelper::encodeOption($option), $value)) {
+            if (RecipientTokenHelper::matchesOption($value, $option)) {
                 return ['id' => $option['id'], 'label' => $option['label'], 'value' => $option['value']];
             }
         }
 
-        if ($this->displayType === 'hidden' && hash_equals(RecipientTokenHelper::encodeHidden($this->defaultValue), $value)) {
+        if ($this->displayType === 'hidden' && RecipientTokenHelper::matchesHidden($value, $this->defaultValue)) {
             return $this->defaultValue;
         }
         return $value;

@@ -85,6 +85,27 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         return $rules;
     }
 
+    public function getSearchKeywords(mixed $value, ElementInterface $element): string
+    {
+        if ($this->enableContentEncryption) {
+            return '';
+        }
+
+        $parts = $this->nestedValueParts($value);
+        $keywords = [];
+
+        foreach ($this->getEnabledFields($element) as $field) {
+            $subValue = $field->normalizeFieldValue($parts[$field->handle] ?? $parts[$field->uid] ?? null, $element);
+            $keyword = $field->getSearchKeywords($subValue, $element);
+
+            if ($keyword !== '') {
+                $keywords[] = $keyword;
+            }
+        }
+
+        return implode(', ', $keywords);
+    }
+
     public function validateBlocks(ElementInterface $element): void
     {
         foreach ($this->getFields() as $field) {

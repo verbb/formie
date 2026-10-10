@@ -4,6 +4,7 @@ use craft\db\Query;
 use craft\helpers\Json;
 use verbb\formie\Formie;
 use verbb\formie\enums\SubscriptionStatus;
+use verbb\formie\helpers\OperationalSecurity;
 use verbb\formie\helpers\Table;
 use verbb\formie\integrations\payments\Moneris;
 use verbb\formie\models\{Payment, PaymentMoney, Subscription, SubscriptionPlan};
@@ -69,7 +70,7 @@ it('retains encrypted provider evidence separately from curated state and distin
         ->and($saved->lastSyncedAt->getTimestamp())->toBeGreaterThan($saved->providerUpdatedAt);
     $row = (new Query())->from('{{%formie_subscription_diagnostics}}')->where(['subscriptionUid' => $saved->uid])->one();
     expect($row['evidence'])->not->toContain('private@example.test');
-    $evidence = Craft::$app->getSecurity()->decryptByKey(base64_decode($row['evidence']), Formie::$plugin->getSettings()->getSecurityKey());
+    $evidence = OperationalSecurity::decrypt($row['evidence']);
     expect(Json::decode($evidence))->toBe($raw);
     Craft::$app->getDb()->createCommand()->update('{{%formie_subscription_diagnostics}}', ['observedAt' => '2000-01-01 00:00:00'], ['id' => $row['id']])->execute();
     Formie::$plugin->getDeliveryAttempts()->purgeExpiredEvidence();

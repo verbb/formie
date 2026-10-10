@@ -11,4 +11,5 @@ enum PaymentCapabilityPurpose: string
     case SESSION = 'payment.session';
     case CHALLENGE = 'payment.challenge';
     case CANCEL = 'payment.cancel';
+    case WEBHOOK_RECOVERY = 'payment.webhook-recovery';
 }

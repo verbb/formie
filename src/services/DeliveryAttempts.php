@@ -7,7 +7,9 @@ use verbb\formie\elements\Submission;
 use verbb\formie\enums\IntegrationStatus;
 use verbb\formie\errors\IntegrationStepException;
 use verbb\formie\events\IntegrationDeliveryEvent;
+use verbb\formie\content\ContentEncryption;
 use verbb\formie\helpers\DeliveryDiagnostics;
+use verbb\formie\helpers\OperationalSecurity;
 use verbb\formie\models\IntegrationExecutionContext;
 use verbb\formie\models\IntegrationResult;
 use verbb\formie\models\Notification;
@@ -142,8 +144,20 @@ class DeliveryAttempts extends Component
 
     public function operationFingerprint(Submission $submission, array $configuration): string
     {
+        return $this->operationFingerprints($submission, $configuration)[0];
+    }
+
+    public function operationFingerprints(Submission $submission, array $configuration): array
+    {
         $input = $this->_operationFingerprintData($submission, $configuration);
-        return hash_hmac('sha256', Json::encode($input), Formie::$plugin->getSettings()->getSecurityKey());
+        $encoded = Json::encode($input);
+        $fingerprints = [OperationalSecurity::fingerprint('delivery-operation', $input)];
+
+        foreach (ContentEncryption::legacyKeys() as $key) {
+            $fingerprints[] = hash_hmac('sha256', $encoded, $key);
+        }
+
+        return array_values(array_unique($fingerprints));
     }
 
     public function integrationConfiguration(Integration $integration, array $settings): array
@@ -163,12 +177,14 @@ class DeliveryAttempts extends Component
         return $config;
     }
 
-    public function executePrepared(string $uid, string $fingerprint, callable $send, array $secrets = []): IntegrationResult
+    public function executePrepared(string $uid, string|array $fingerprints, callable $send, array $secrets = []): IntegrationResult
     {
-        return $this->execute($uid, function() use ($uid, $fingerprint, $send): IntegrationResult {
+        return $this->execute($uid, function() use ($uid, $fingerprints, $send): IntegrationResult {
             $accepted = $this->data($uid)['acceptedFingerprint'] ?? null;
+            $fingerprints = is_array($fingerprints) ? $fingerprints : [$fingerprints];
+            $matches = is_string($accepted) && $this->_matchesHash($accepted, $fingerprints);
 
-            if (!is_string($accepted) || !hash_equals($accepted, $fingerprint)) {
+            if (!$matches) {
                 $this->checkpoint($uid, 'operation-stale', ['reason' => $accepted === null ? 'missing_accepted_operation' : 'input_or_configuration_changed']);
                 return IntegrationResult::rejected('operation_stale');
             }
@@ -239,14 +255,21 @@ class DeliveryAttempts extends Component
 
     public function write(IntegrationExecutionContext $context, string $step, string $parentUid, array $payload, callable $send, array $metadata = [], array $secrets = []): mixed
     {
-        $hash = hash_hmac('sha256', Json::encode($this->_canonicalize($payload)), Formie::$plugin->getSettings()->getSecurityKey());
+        $canonical = $this->_canonicalize($payload);
+        $hash = OperationalSecurity::fingerprint('delivery-payload', $canonical);
+        $hashes = [$hash];
+
+        foreach (ContentEncryption::legacyKeys() as $key) {
+            $hashes[] = hash_hmac('sha256', Json::encode($canonical), $key);
+        }
+
         $uid = $this->prepare($context, $step, [], $parentUid);
         $this->checkpoint($uid, 'request', ['request' => $payload] + $metadata, $secrets);
 
-        $result = $this->execute($uid, function(string $key) use ($uid, $hash, $send, $secrets): IntegrationResult {
+        $result = $this->execute($uid, function(string $key) use ($uid, $hash, $hashes, $send, $secrets): IntegrationResult {
             $row = $this->get($uid);
 
-            if ($row['payloadHash'] !== null && !hash_equals($row['payloadHash'], $hash)) {
+            if ($row['payloadHash'] !== null && !$this->_matchesHash($row['payloadHash'], $hashes)) {
                 return IntegrationResult::unknown('step_parameters_changed');
             }
             Db::update(self::TABLE, ['payloadHash' => $hash], ['uid' => $uid]);
@@ -270,7 +293,7 @@ class DeliveryAttempts extends Component
         }, $secrets);
         $row = $this->get($uid);
 
-        if ($row['payloadHash'] !== null && !hash_equals($row['payloadHash'], $hash)) {
+        if ($row['payloadHash'] !== null && !$this->_matchesHash($row['payloadHash'], $hashes)) {
             throw new IntegrationStepException(IntegrationResult::unknown('step_parameters_changed'));
         }
 
@@ -501,7 +524,7 @@ class DeliveryAttempts extends Component
         if (strlen($plain) > 2097152) {
             throw new RuntimeException('Delivery data exceeds the retention limit.');
         }
-        return base64_encode(Craft::$app->getSecurity()->encryptByKey($plain, Formie::$plugin->getSettings()->getSecurityKey()));
+        return OperationalSecurity::encrypt($plain);
     }
 
     private function _decrypt(?string $cipher): mixed
@@ -509,7 +532,7 @@ class DeliveryAttempts extends Component
         if (!$cipher) {
             throw new RuntimeException('Delivery evidence expired or is unavailable. Reconciliation is required.');
         }
-        $plain = Craft::$app->getSecurity()->decryptByKey(base64_decode($cipher, true), Formie::$plugin->getSettings()->getSecurityKey());
+        $plain = OperationalSecurity::decrypt($cipher);
 
         if ($plain === false) {
             throw new RuntimeException('Unable to decrypt delivery evidence.');
@@ -547,5 +570,16 @@ class DeliveryAttempts extends Component
             }
         }
         return $value;
+    }
+
+    private function _matchesHash(string $stored, array $candidates): bool
+    {
+        foreach ($candidates as $candidate) {
+            if (is_string($candidate) && hash_equals($stored, $candidate)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

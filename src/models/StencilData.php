@@ -42,9 +42,9 @@ class StencilData extends Model
         $integrations = $settings['integrations'] ?? [];
         $integrations = Formie::$plugin->getIntegrations()->filterAllIntegrationFormSettings($integrations, true);
 
-        $settings['integrations'] = IntegrationSecrets::protectBindings(array_filter($integrations, function($integration) {
+        $settings['integrations'] = array_filter($integrations, function($integration) {
             return isset($integration['enabled']) && $integration['enabled'];
-        }));
+        });
 
         return $settings;
     }

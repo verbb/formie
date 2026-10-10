@@ -4,6 +4,7 @@ namespace verbb\formie\helpers;
 use verbb\formie\Formie;
 use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\content\ContentEncryption;
 
 use Craft;
 use craft\helpers\App;
@@ -13,7 +14,7 @@ use ReflectionObject;
 use ReflectionProperty;
 use RuntimeException;
 
-/** Encrypt literal connection settings while leaving environment references portable. */
+/** Reads beta encrypted settings while new settings remain literal or environment references. */
 final class IntegrationSecrets
 {
     // Static Methods
@@ -33,30 +34,38 @@ final class IntegrationSecrets
 
     public static function protectBindings(array $bindings): array
     {
-        $service = Formie::$plugin->getIntegrations();
-
-        foreach ($bindings as $handle => &$settings) {
-            if (!is_array($settings)) {
-                continue;
-            }
-            $integration = $service->getIntegrationByHandle((string)$handle) ?? $service->getCaptchaByHandle((string)$handle);
-            $settings = self::protect($settings, sensitiveAttributes: $integration ? self::sensitiveAttributes($integration) : []);
-        }
         return $bindings;
     }
 
     public static function protect(array $settings, bool $connection = false, array $sensitiveAttributes = []): array
     {
-        foreach ($settings as $key => &$value) {
-            $sensitive = $connection || in_array($key, $sensitiveAttributes, true) || preg_match('/password|secret|token|authorization|cookie|api.?key|httpAuth|credential|webhook|headers|url$/i', (string)$key);
+        return $settings;
+    }
 
-            if (is_array($value)) {
-                $value = self::protect($value, (bool)$sensitive);
-            } elseif ($sensitive && is_string($value) && $value !== '' && !str_starts_with($value, self::PREFIX) && !preg_match('/^\$[A-Z][A-Z0-9_]*$/D', $value)) {
-                $value = self::PREFIX . base64_encode(Craft::$app->getSecurity()->encryptByKey(Json::encode($value), Formie::$plugin->getSettings()->getSecurityKey()));
+    public static function containsUnavailable(mixed $value): bool
+    {
+        if (is_string($value)) {
+            return str_starts_with($value, self::PREFIX);
+        }
+
+        if (!is_array($value)) {
+            return false;
+        }
+
+        foreach ($value as $item) {
+            if (self::containsUnavailable($item)) {
+                return true;
             }
         }
-        return $settings;
+
+        return false;
+    }
+
+    public static function assertAvailable(array $settings): void
+    {
+        if (self::containsUnavailable($settings)) {
+            throw new RuntimeException('This integration contains beta-encrypted settings that cannot be decrypted in this environment. Restore the former key or replace the unavailable setting.');
+        }
     }
 
     public static function resolveFormValue(string $value): string
@@ -93,12 +102,21 @@ final class IntegrationSecrets
                 $value = self::reveal($value);
             } elseif (is_string($value) && str_starts_with($value, self::PREFIX)) {
                 $cipher = base64_decode(substr($value, strlen(self::PREFIX)), true);
-                $plain = $cipher === false ? false : Craft::$app->getSecurity()->decryptByKey($cipher, Formie::$plugin->getSettings()->getSecurityKey());
+                $plain = false;
 
-                if ($plain === false) {
-                    throw new RuntimeException('Unable to decrypt integration settings. Restore the configured security key.');
+                if ($cipher !== false) {
+                    foreach (ContentEncryption::legacyKeys() as $key) {
+                        $plain = Craft::$app->getSecurity()->decryptByKey($cipher, $key);
+
+                        if ($plain !== false) {
+                            break;
+                        }
+                    }
                 }
-                $value = Json::decode($plain);
+
+                if ($plain !== false) {
+                    $value = Json::decode($plain);
+                }
             }
         }
         return $settings;

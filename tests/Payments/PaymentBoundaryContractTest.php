@@ -61,16 +61,21 @@ it('persists immutable exact snapshots and rejects stale payment writers', funct
 it('separates return, status and cancellation authority and supports revocation', function (): void {
     [$integration, $submission, $payment] = paymentBoundaryFixture();
     $status = PaymentAccess::issueStatusToken($payment);
+    $secondStatus = PaymentAccess::issueStatusToken($payment);
     $return = PaymentAccess::issueReturnToken($payment);
-    expect(PaymentAccess::resolveStatusToken($status)['purpose'])->toBe(PaymentCapabilityPurpose::STATUS->value)
+    expect($secondStatus)->not->toBe($status)
+        ->and(PaymentAccess::resolveStatusToken($status)['purpose'])->toBe(PaymentCapabilityPurpose::STATUS->value)
+        ->and(PaymentAccess::resolveStatusToken($secondStatus)['purpose'])->toBe(PaymentCapabilityPurpose::STATUS->value)
         ->and(PaymentCapabilities::resolve($status, PaymentCapabilityPurpose::CANCEL))->toBeNull()
         ->and(PaymentAccess::resolveReturnToken($status))->toBeNull()
         ->and(PaymentAccess::resolveStatusToken($return))->toBeNull()
         ->and(PaymentAccess::resolveReturnToken($return)['purpose'])->toBe(PaymentCapabilityPurpose::RETURN->value);
     PaymentCapabilities::revoke(PaymentCapabilityPurpose::RETURN, $payment->id);
     expect(PaymentAccess::resolveReturnToken($return))->toBeNull();
-    $row = (new Query())->from(Table::FORMIE_PAYMENT_CAPABILITIES)->where(['purpose' => PaymentCapabilityPurpose::STATUS->value])->one();
-    expect(json_encode($row))->not->toContain($status);
+    $rows = (new Query())->from(Table::FORMIE_PAYMENT_CAPABILITIES)->where(['purpose' => PaymentCapabilityPurpose::STATUS->value, 'resourceId' => $payment->id])->all();
+    expect($rows)->toHaveCount(2)
+        ->and(array_column($rows, 'tokenHash'))->toContain(hash('sha256', $status), hash('sha256', $secondStatus))
+        ->and(json_encode($rows))->not->toContain($status, $secondStatus);
 });
 
 it('keeps recurring charges distinct and retains financial history after archive and hard deletion', function (): void {

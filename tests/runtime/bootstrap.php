@@ -16,7 +16,7 @@ foreach (['.cache', '.cache/verbb-tests', '.cache/verbb-tests/app'] as $relative
 }
 $appRoot = $runtimeRoot . '/app';
 foreach (getenv() as $key => $value) {
-    if (str_starts_with($key, 'CRAFT_') || in_array($key, ['DOTENV_FILE', 'ENVIRONMENT', 'PRIMARY_SITE_URL'], true)) {
+    if (str_starts_with($key, 'CRAFT_') || str_starts_with($key, 'FORMIE_') || in_array($key, ['DOTENV_FILE', 'ENVIRONMENT', 'PRIMARY_SITE_URL'], true)) {
         putenv($key);
         unset($_ENV[$key], $_SERVER[$key]);
     }
@@ -26,6 +26,7 @@ foreach ([
     'CRAFT_DB_DRIVER' => 'mysql', 'CRAFT_DB_SERVER' => 'db', 'CRAFT_DB_PORT' => '3306',
     'CRAFT_DB_DATABASE' => 'db', 'CRAFT_DB_USER' => 'db', 'CRAFT_DB_PASSWORD' => 'db',
     'CRAFT_SECURITY_KEY' => 'verbb-disposable-test-runtime-not-for-production',
+    'FORMIE_ENCRYPTION_KEY' => 'formie-root:v1:YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE',
     'CRAFT_APP_ID' => 'VerbbTests-' . $owner['project'],
     'PRIMARY_SITE_URL' => 'https://' . $owner['project'] . '.ddev.site',
 ] as $key => $value) {

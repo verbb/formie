@@ -26,7 +26,7 @@ it('uses inherited sensitive metadata for non-obviously-named settings across st
     expect(\verbb\formie\helpers\IntegrationSecrets::sensitiveAttributes($connection))->toContain('opaque', 'apiKey', 'clientSecret');
     expect($secrets)->toContain('synthetic-private-value');
     $protected = \verbb\formie\helpers\IntegrationSecrets::protect(['opaque' => $connection->opaque], sensitiveAttributes: \verbb\formie\helpers\IntegrationSecrets::sensitiveAttributes($connection));
-    expect(json_encode($protected))->not->toContain('synthetic-private-value')
+    expect(json_encode($protected))->toContain('synthetic-private-value')
         ->and(\verbb\formie\helpers\IntegrationSecrets::reveal($protected)['opaque'])->toBe($connection->opaque);
     expect(json_encode($connection->refreshConfig()->toStorage()))->not->toContain($connection->opaque);
     $connection->cache['config'] = (new IntegrationConfig(['oldLabel' => $connection->opaque], $connection->getIntegrationConfigKey(), time()))->toStorage();
@@ -41,16 +41,16 @@ it('uses inherited sensitive metadata for non-obviously-named settings across st
         ->and($attempts->get($uid)['result'])->not->toContain($connection->opaque);
 });
 
-it('encrypts annotated form-owned values when saving and exporting a form', function() {
+it('stores annotated form-owned values literally when saving and exporting a form', function() {
     $connection = new SensitiveSettingFixture(['name' => 'Form secret', 'handle' => 'formSecret']);
     expect(\verbb\formie\Formie::$plugin->getIntegrations()->saveIntegration($connection, false))->toBeTrue();
     $form = formie()->form()->create();
     $form->settings->integrations = ['formSecret' => ['enabled' => true, 'opaque' => 'private-binding-value']];
     expect(Craft::$app->getElements()->saveElement($form, false))->toBeTrue();
     $stored = (new \craft\db\Query())->select('settings')->from(\verbb\formie\helpers\Table::FORMIE_FORMS)->where(['id' => $form->id])->scalar();
-    expect($stored)->not->toContain('private-binding-value');
+    expect($stored)->toContain('private-binding-value');
     $export = \verbb\formie\models\StencilData::getSerializedFormSettings($form->settings);
-    expect(json_encode($export))->not->toContain('private-binding-value');
+    expect(json_encode($export))->toContain('private-binding-value');
     $revealed = \verbb\formie\helpers\IntegrationSecrets::reveal(json_decode($stored, true)['integrations']);
     expect($revealed['formSecret']['opaque'])->toBe('private-binding-value');
 });

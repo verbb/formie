@@ -3,9 +3,11 @@
 use craft\db\Query;
 use craft\helpers\Json;
 use verbb\formie\Formie;
+use verbb\formie\helpers\OperationalSecurity;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\{Payment, Subscription};
 use verbb\formie\migrations\m260929_010000_payment_contracts;
+use verbb\formie\migrations\m261010_020000_operational_cryptography;
 
 it('migrates historical money and subscription evidence without guessing account ownership', function (): void {
     $db = Craft::$app->getDb();
@@ -25,7 +27,7 @@ it('migrates historical money and subscription evidence without guessing account
         expect($row['providerData'])->not->toContain('historical@example.test')->and($row['nextPaymentAt'])->toBeNull();
         $cipher = (new Query())->select('evidence')->from('{{%formie_subscription_diagnostics}}')->where(['subscriptionUid' => $subscription->uid])->scalar();
         expect($cipher)->not->toContain('historical@example.test');
-        $plain = Craft::$app->getSecurity()->decryptByKey(base64_decode($cipher), Formie::$plugin->getSettings()->getSecurityKey());
+        $plain = OperationalSecurity::decrypt($cipher);
         expect(Json::decode($plain)['customer_email'])->toBe('historical@example.test');
     } finally {
         if ($db->columnExists(Table::FORMIE_SUBSCRIPTIONS, 'subscriptionData')) {
@@ -35,4 +37,35 @@ it('migrates historical money and subscription evidence without guessing account
         $db->createCommand()->delete('{{%formie_subscription_diagnostics}}', ['subscriptionUid' => $subscription->uid])->execute();
         $db->createCommand()->delete(Table::FORMIE_SUBSCRIPTIONS, ['id' => $subscription->id])->execute();
     }
+});
+
+it('moves readable operational evidence back to the Craft security key', function (): void {
+    $oldKey = 'former-formie-operational-key-' . bin2hex(random_bytes(8));
+    $plain = Json::encode(['secret' => 'historical diagnostic']);
+    $legacyCiphertext = base64_encode(Craft::$app->getSecurity()->encryptByKey($plain, $oldKey));
+    $uid = \craft\helpers\StringHelper::UUID();
+    Craft::$app->getDb()->createCommand()->insert('{{%formie_subscription_diagnostics}}', [
+        'subscriptionUid' => $uid,
+        'status' => 'active',
+        'evidence' => $legacyCiphertext,
+        'observedAt' => \craft\helpers\Db::prepareDateForDb(new DateTimeImmutable()),
+    ])->execute();
+    putenv('FORMIE_SECURITY_KEY=' . $oldKey);
+    $_ENV['FORMIE_SECURITY_KEY'] = $_SERVER['FORMIE_SECURITY_KEY'] = $oldKey;
+
+    try {
+        expect((new m261010_020000_operational_cryptography())->safeUp())->toBeTrue();
+    } finally {
+        putenv('FORMIE_SECURITY_KEY');
+        unset($_ENV['FORMIE_SECURITY_KEY'], $_SERVER['FORMIE_SECURITY_KEY']);
+    }
+
+    $migrated = (new Query())
+        ->select('evidence')
+        ->from('{{%formie_subscription_diagnostics}}')
+        ->where(['subscriptionUid' => $uid])
+        ->scalar();
+    expect($migrated)->not->toBe($legacyCiphertext)
+        ->and(OperationalSecurity::decrypt($migrated))->toBe($plain);
+    Craft::$app->getDb()->createCommand()->delete('{{%formie_subscription_diagnostics}}', ['subscriptionUid' => $uid])->execute();
 });

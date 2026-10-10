@@ -131,6 +131,7 @@ use verbb\formie\records\FieldLayoutRow as FieldLayoutRowRecord;
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
+use craft\db\Table as CraftTable;
 use craft\errors\MissingComponentException;
 use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
@@ -1657,6 +1658,8 @@ class Fields extends Component
             $previousDefinitionId = $field->id ? ($context->fields[$field->id] ?? $definitionId) : null;
             $definitionRecord = $definitionId ? FieldDefinitionRecord::findOne($definitionId) : new FieldDefinitionRecord();
             $existingDefinitionUsageCount = $context->getDefinitionUsageCount($definitionId);
+            $previousDefinitionSettings = $definitionRecord ? Json::decodeIfJson($definitionRecord->settings) : [];
+            $contentEncryptionEnabled = false;
 
             if (!$definitionRecord) {
                 throw new Exception('Invalid field definition ID: ' . $definitionId);
@@ -1696,6 +1699,7 @@ class Fields extends Component
             );
 
             if (!$skipSharedDefinitionUpdate) {
+                $contentEncryptionEnabled = $field->enableContentEncryption && !(is_array($previousDefinitionSettings) && !empty($previousDefinitionSettings['enableContentEncryption']));
                 $definitionRecord->id = $definitionId;
                 $definitionRecord->label = $field->label;
                 $definitionRecord->handle = $field->handle;
@@ -1745,6 +1749,10 @@ class Fields extends Component
             $field->reference = $instanceRecord->reference;
             $context->recordSavedField($field, $previousDefinitionId);
             $this->_resetFieldCaches();
+
+            if ($contentEncryptionEnabled) {
+                $this->_purgeSearchIndexForFieldDefinition((int)$definitionRecord->id);
+            }
 
             if ($isRootSave) {
                 $context->refreshSavedFieldUsage();
@@ -1996,6 +2004,24 @@ class Fields extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _purgeSearchIndexForFieldDefinition(int $definitionId): void
+    {
+        $fieldIds = (new Query())
+            ->select('id')
+            ->from(Table::FORMIE_FORM_FIELDS)
+            ->where(['fieldId' => $definitionId])
+            ->column();
+
+        if (!$fieldIds) {
+            return;
+        }
+
+        Db::delete(CraftTable::SEARCHINDEX, [
+            'attribute' => 'field',
+            'fieldId' => array_map('intval', $fieldIds),
+        ]);
+    }
 
     private function _getLayoutQuerySelect(): array
     {

@@ -175,6 +175,34 @@ it('rejects unavailable or mismatched stored Summary state without a theme fallb
     }, ['method' => 'POST']))->toBe('');
 })->with(['missing', 'site', 'form', 'digest']);
 
+it('reads Summary access tokens issued with the former Formie key', function (): void {
+    $form = formie()->form()->summaryField('summary')->create();
+    $submission = formie()->submission($form)->save();
+    $oldKey = 'former-summary-key-' . bin2hex(random_bytes(8));
+    $payload = [
+        'version' => 2,
+        'purpose' => 'summary',
+        'submissionUid' => $submission->uid,
+        'formId' => (int)$form->id,
+        'siteId' => (int)$form->siteId,
+        'fieldId' => (int)$form->getFieldByHandle('summary')->id,
+        'expiresAt' => time() + 300,
+        'theme' => null,
+        'themeMode' => 'formie',
+        'themeDigest' => hash('sha256', 'legacy-summary-theme'),
+    ];
+    $token = base64_encode(Craft::$app->getSecurity()->encryptByKey(Json::encode($payload), $oldKey));
+    putenv('FORMIE_SECURITY_KEY=' . $oldKey);
+    $_ENV['FORMIE_SECURITY_KEY'] = $_SERVER['FORMIE_SECURITY_KEY'] = $oldKey;
+
+    try {
+        expect(FieldAccess::resolveAccessToken($token))->not->toBeNull();
+    } finally {
+        putenv('FORMIE_SECURITY_KEY');
+        unset($_ENV['FORMIE_SECURITY_KEY'], $_SERVER['FORMIE_SECURITY_KEY']);
+    }
+});
+
 it('keeps Signature image links independent of retained Summary theme state', function (): void {
     $form = formie()->form()->signatureField('signature')->create();
     $png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4////fwAJ+wP9KobjigAAAABJRU5ErkJggg==';

@@ -54,6 +54,8 @@ class Settings extends Model
     public string $defaultPage = 'forms';
     public bool $compatibilityMode = true;
     public array $referenceEnvironmentAllowlist = [];
+    public ?string $encryptionKey = null;
+    public array $encryptionPreviousKeys = [];
     public bool $staticCacheRefreshOnLoad = false;
     public string $allowedSubmitMethods = self::ALLOWED_SUBMIT_METHODS_BOTH;
     // Forms
@@ -367,6 +369,8 @@ class Settings extends Model
 
     public function getSecurityKey(): string
     {
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Settings::getSecurityKey() is deprecated. Use FORMIE_ENCRYPTION_KEY only for field content and Craft’s security key for transient operational data.');
+
         if ($securityKey = App::env('FORMIE_SECURITY_KEY')) {
             return $securityKey;
         }

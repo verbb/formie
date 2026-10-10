@@ -4,6 +4,7 @@ namespace verbb\formie\content;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Checkboxes;
+use verbb\formie\exceptions\EncryptedContentUnavailableException;
 
 use Craft;
 use craft\errors\InvalidFieldException;
@@ -115,7 +116,10 @@ class SubmissionContentNormalizer
     public function normalizeDbPayload(Submission $submission, array $content): void
     {
         $manager = $submission->getContentManager();
-        $submission->getContentState()->orphanedValuesByUid = [];
+        $state = $submission->getContentState();
+        $state->orphanedValuesByUid = [];
+        $state->lockedValuesByUid = [];
+        $decoded = [];
 
         foreach ($content as $uid => $value) {
             if (!is_string($uid) && !is_int($uid)) {
@@ -127,11 +131,26 @@ class SubmissionContentNormalizer
             if (!$field) {
                 // Keep unresolved content around so editing/resaving a submission
                 // does not silently erase values from an older field structure.
-                $submission->getContentState()->orphanedValuesByUid[(string)$uid] = $value;
+                $state->orphanedValuesByUid[(string)$uid] = $value;
                 continue;
             }
 
-            $manager->setRawValue($submission, $field->handle, $field->decodeValueFromStorage($value));
+            try {
+                $decoded[$field->handle] = $field->decodeValueFromStorage($value);
+            } catch (EncryptedContentUnavailableException $exception) {
+                $state->lockedValuesByUid[(string)$uid] = [
+                    'keyId' => $exception->keyId,
+                    'storedValue' => $value,
+                    'message' => $exception->getMessage(),
+                ];
+            }
+        }
+
+        // Decode the payload before mutating field state. If one value is locked,
+        // every original stored byte remains available and the save boundary will
+        // reject the submission rather than serializing a partial hydration.
+        foreach ($decoded as $handle => $value) {
+            $manager->setRawValue($submission, $handle, $value);
         }
     }
 

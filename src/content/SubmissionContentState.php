@@ -12,6 +12,7 @@ class SubmissionContentState
     public array $rawValuesByUid = [];
     public array $normalizedValuesByUid = [];
     public array $orphanedValuesByUid = [];
+    public array $lockedValuesByUid = [];
     public ?SubmissionFieldCollection $fieldCollection = null;
     public array $currentPageFieldHandleMapsByPageId = [];
     public array $uploadedDataFiles = [];

@@ -125,6 +125,7 @@ class Notifications extends Component
 
     public function sendNotification(Notification $notification, Submission $submission, ?bool $useQueue = null, ?string $deliveryKey = null): void
     {
+        $submission->assertContentAvailable();
         $settings = Formie::$plugin->getSettings();
         $useQueue ??= $settings->useQueueForNotifications;
 
@@ -173,6 +174,8 @@ class Notifications extends Component
 
     public function sendNotificationEmail(Notification $notification, Submission $submission, $queueJob = null, ?string $deliveryKey = null): array|bool
     {
+        $submission->assertContentAvailable();
+
         if (!$submission->id || !$submission->uid) {
             if ($notification->enableConditions) {
                 $evaluation = ConditionsHelper::evaluate($notification->conditions ?? [], $submission, 'notification');
@@ -1078,14 +1081,15 @@ class Notifications extends Component
         $deliveryKey ??= DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
         $attempts = Formie::$plugin->getDeliveryAttempts();
         $context = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, 'notification:' . ($notification->uid ?: $notification->id), $deliveryKey, $queueJob ? 'queued' : 'synchronous');
-        $fingerprint = $attempts->operationFingerprint($submission, $attempts->notificationConfiguration($notification));
+        $fingerprints = $attempts->operationFingerprints($submission, $attempts->notificationConfiguration($notification));
+        $fingerprint = $fingerprints[0];
         $uid = $queueJob instanceof DeliveryJobInterface ? $queueJob->getDeliveryAttemptUid() : $attempts->prepare($context, 'notification', ['notificationId' => $notification->id, 'acceptedFingerprint' => $fingerprint]);
 
         if ((new Query())->from(DeliveryAttempts::TABLE)->where(['submissionId' => $submission->id, 'binding' => $context->binding, 'status' => ['unknown', 'sending']])->andWhere(['not', ['uid' => $uid]])->exists()) {
             return ['success' => false, 'deliveryOutcomeUnknown' => true, 'error' => 'Reconcile the previous notification delivery before resending.'];
         }
         $diagnostics = $queueJob ?? new SendNotification(['deliveryAttemptUid' => $uid]);
-        $result = $attempts->executePrepared($uid, $fingerprint, function() use ($notification, $submission, $diagnostics, $deliveryKey, $attempts, $uid): IntegrationResult {
+        $result = $attempts->executePrepared($uid, $fingerprints, function() use ($notification, $submission, $diagnostics, $deliveryKey, $attempts, $uid): IntegrationResult {
             $attempts->checkpointSubmission($uid, $submission);
             $evaluation = $notification->enableConditions ? ConditionsHelper::evaluate($notification->conditions ?? [], $submission, 'notification') : null;
 

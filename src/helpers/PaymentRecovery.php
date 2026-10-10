@@ -130,7 +130,7 @@ class PaymentRecovery
             throw new RuntimeException('Automatic lookup is unavailable. Check the merchant reference in the gateway, then record its verified outcome.');
         }
 
-        if (!$payment->accountFingerprint || !hash_equals($payment->accountFingerprint, $integration->getPaymentAccountFingerprint())) {
+        if (!$integration->matchesPaymentAccountFingerprint($payment->accountFingerprint)) {
             throw new RuntimeException('Verify the original account before reconciling this payment.');
         }
         $integration->setField($payment->getField());

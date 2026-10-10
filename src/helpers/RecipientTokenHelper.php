@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\helpers;
 
-use verbb\formie\Formie;
+use verbb\formie\content\ContentEncryption;
 
+use Craft;
 use craft\helpers\Json;
 
 class RecipientTokenHelper
@@ -12,7 +13,7 @@ class RecipientTokenHelper
 
     public static function encode(mixed $value, string $type): string
     {
-        return 'recipient:v1:' . hash_hmac('sha256', $type . "\0" . Json::encode($value), Formie::$plugin->getSettings()->getSecurityKey());
+        return self::_encodeWithKey($value, $type, Craft::$app->getConfig()->getGeneral()->securityKey);
     }
 
     public static function encodeOption(array $option, int|string|null $index = null): string
@@ -23,6 +24,16 @@ class RecipientTokenHelper
     public static function encodeHidden(mixed $value): string
     {
         return self::encode($value, self::TYPE_HIDDEN);
+    }
+
+    public static function matchesOption(string $token, array $option, int|string|null $index = null): bool
+    {
+        return self::_matches($token, self::optionPayload($option, $index), self::TYPE_OPTION);
+    }
+
+    public static function matchesHidden(string $token, mixed $value): bool
+    {
+        return self::_matches($token, $value, self::TYPE_HIDDEN);
     }
 
     public static function decode(string $token): mixed
@@ -70,4 +81,24 @@ class RecipientTokenHelper
 
     public const TYPE_OPTION = 'recipient-option';
     public const TYPE_HIDDEN = 'recipient-hidden';
+
+
+    // Private Methods
+    // =========================================================================
+
+    private static function _matches(string $token, mixed $value, string $type): bool
+    {
+        foreach ([Craft::$app->getConfig()->getGeneral()->securityKey, ...ContentEncryption::legacyKeys()] as $key) {
+            if (hash_equals(self::_encodeWithKey($value, $type, $key), $token)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function _encodeWithKey(mixed $value, string $type, string $key): string
+    {
+        return 'recipient:v1:' . hash_hmac('sha256', $type . "\0" . Json::encode($value), $key);
+    }
 }

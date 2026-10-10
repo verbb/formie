@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\errors\StateConflict;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\OperationalSecurity;
 use verbb\formie\models\SubmissionCommand;
 use verbb\formie\models\SubmissionOutcome;
 
@@ -154,7 +155,7 @@ class SubmissionOperations extends Component
             }
             return array_map($normalize, $value);
         };
-        return hash_hmac('sha256', Json::encode($normalize($input)), Formie::$plugin->getSettings()->getSecurityKey());
+        return OperationalSecurity::fingerprint('submission-operation', $normalize($input));
     }
 
 

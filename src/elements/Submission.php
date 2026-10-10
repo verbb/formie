@@ -8,6 +8,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\content\ContentEncryption;
 use verbb\formie\content\FieldValueProjectionContext;
 use verbb\formie\content\SubmissionContentManager;
 use verbb\formie\content\SubmissionContentNormalizer;
@@ -21,8 +22,10 @@ use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\events\SubmissionCompleteEvent;
 use verbb\formie\events\SubmissionMarkedAsSpamEvent;
 use verbb\formie\events\SubmissionRulesEvent;
+use verbb\formie\exceptions\EncryptedContentUnavailableException;
 use verbb\formie\fields\Payment;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\FieldTraversal;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\SubmissionLimitHelper;
@@ -602,11 +605,42 @@ class Submission extends Element
 
     public function canSave(User $user): bool
     {
+        if ($this->hasLockedContent()) {
+            return false;
+        }
+
         if (parent::canSave($user)) {
             return true;
         }
 
         return Formie::$plugin->getPermissions()->canSaveSubmissions($user, $this->getForm());
+    }
+
+    public function hasLockedContent(): bool
+    {
+        return $this->getContentManager()->hasLockedValues($this);
+    }
+
+    public function getLockedContent(): array
+    {
+        $this->getContentManager();
+
+        return $this->getContentState()->lockedValuesByUid;
+    }
+
+    public function assertContentAvailable(): void
+    {
+        if (!$this->hasLockedContent()) {
+            return;
+        }
+
+        $locked = reset($this->getContentState()->lockedValuesByUid);
+        $keyId = is_array($locked) && is_string($locked['keyId'] ?? null) ? $locked['keyId'] : null;
+
+        throw new EncryptedContentUnavailableException(
+            $keyId ? "Encrypted submission content requires key $keyId." : 'Encrypted submission content is unavailable in this environment.',
+            $keyId,
+        );
     }
 
     public function canDelete(User $user): bool
@@ -1171,6 +1205,40 @@ class Submission extends Element
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
         $request = Craft::$app->getRequest();
+
+        if ($this->hasLockedContent()) {
+            $this->addError('content', Craft::t('formie', 'This submission contains encrypted values that cannot be read in this environment and cannot be changed.'));
+
+            return false;
+        }
+
+        $hasEncryptedFields = false;
+
+        foreach (FieldTraversal::recursively($this->getFields()) as $field) {
+            if ($field->enableContentEncryption) {
+                $hasEncryptedFields = true;
+                break;
+            }
+        }
+
+        if ($hasEncryptedFields) {
+            try {
+                $key = ContentEncryption::currentKey();
+
+                if (ContentEncryption::activeVersion() >= 2 && !$key) {
+                    $this->addError('content', Craft::t('formie', 'This form is temporarily unavailable. Please try again later.'));
+
+                    return false;
+                }
+            } catch (Throwable $exception) {
+                Formie::error('Encrypted submission content is unavailable because the configured Formie encryption key is invalid: {message}', [
+                    'message' => $exception->getMessage(),
+                ]);
+                $this->addError('content', Craft::t('formie', 'This form is temporarily unavailable. Please try again later.'));
+
+                return false;
+            }
+        }
 
         // Check if this is a spam submission and if we should save it
         // Only trigger this for site requests though

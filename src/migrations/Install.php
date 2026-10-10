@@ -2,6 +2,7 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\Formie;
+use verbb\formie\content\ContentEncryption;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\SentNotification;
 use verbb\formie\elements\Submission;
@@ -284,6 +285,17 @@ class Install extends Migration
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
+        ]);
+
+        $this->archiveTableIfExists(Table::FORMIE_ENCRYPTION_SETTINGS);
+        $this->createTable(Table::FORMIE_ENCRYPTION_SETTINGS, [
+            'id' => $this->primaryKey(),
+            'contentVersion' => $this->smallInteger()->notNull()->defaultValue(1),
+            'expectedKeyId' => $this->string(18),
+            'reencryptCursor' => $this->integer(),
+            'reencryptTargetKeyId' => $this->string(18),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
         ]);
 
         $this->archiveTableIfExists(Table::FORMIE_NOTIFICATIONS);
@@ -992,6 +1004,7 @@ class Install extends Migration
             'formie_integrations',
             'formie_captcha_providers',
             'formie_spam_settings',
+            'formie_encryption_settings',
             'formie_notifications',
             'formie_payments',
             'formie_payments_plans',
@@ -1041,6 +1054,20 @@ class Install extends Migration
 
     public function insertDefaultData(): void
     {
+        try {
+            $key = ContentEncryption::currentKey();
+        } catch (\RuntimeException) {
+            // A malformed optional key is surfaced in Formie settings and blocks
+            // encrypted writes, but it must not prevent the plugin being installed.
+            $key = null;
+        }
+
+        $this->insert(Table::FORMIE_ENCRYPTION_SETTINGS, [
+            'id' => 1,
+            'contentVersion' => $key ? 2 : 1,
+            'expectedKeyId' => $key?->id,
+        ]);
+
         Formie::$plugin->getCaptchaProviders()->seedRegistryFromLegacySettings([]);
         Formie::$plugin->getSpamProtection()->seedFromLegacySettings([]);
 

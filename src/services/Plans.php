@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\events\PlanEvent;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\SubscriptionPlan;
@@ -49,9 +50,16 @@ class Plans extends Component
 
     public function getPlanByReference(string $reference, ?int $integrationId = null, ?string $accountFingerprint = null): ?SubscriptionPlan
     {
+        $integration = $integrationId ? Formie::$plugin->getIntegrations()->getIntegrationById($integrationId) : null;
+        $compatibleAccount = $accountFingerprint !== null
+            && $integration instanceof PaymentIntegration
+            && $integration->matchesPaymentAccountFingerprint($accountFingerprint);
+
         $matches = array_filter($this->getAllPlans(), static fn(SubscriptionPlan $plan): bool => $plan->reference === $reference
             && ($integrationId === null || $plan->integrationId === $integrationId)
-            && ($accountFingerprint === null || $plan->accountFingerprint === $accountFingerprint));
+            && ($accountFingerprint === null
+                || $plan->accountFingerprint === $accountFingerprint
+                || ($compatibleAccount && $integration->matchesPaymentAccountFingerprint($plan->accountFingerprint))));
         // Legacy unscoped callers must never select an arbitrary account.
         return count($matches) === 1 ? reset($matches) : null;
     }

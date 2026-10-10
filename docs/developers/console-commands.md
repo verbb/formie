@@ -99,6 +99,36 @@ Option | Description
 ./craft formie/submissions/send-notification --submission-id=12345 --notification-id=12
 ```
 
+## Submission Content Encryption
+
+Generate a dedicated field-content key without writing it to a file:
+
+```shell
+php craft formie/encryption/generate-key
+```
+
+Use `--stdout` when a deployment system needs only the key value. The command refuses to replace a configured key unless `--rotate` is supplied; generating a replacement does not activate it or modify stored content. After storing the key as `FORMIE_ENCRYPTION_KEY`, deploy the same key and Formie code to every web and queue process, restart long-running workers, then activate v2 writes:
+
+```shell
+php craft formie/encryption/activate
+```
+
+Check the configured key ID, active write format, expected key ID, and stored format counts at any time:
+
+```shell
+php craft formie/encryption/status
+```
+
+To identify a saved key without configuring or revealing it, run `php craft formie/encryption/verify-key <value>`. The command prints only the key ID.
+
+After making and verifying a database backup, convert readable legacy and previous-key values to the current key. The command resumes from its last completed batch after interruption and does not fire submission save events:
+
+```shell
+php craft formie/encryption/reencrypt --confirm-backup --key-id=r_123456789abc
+```
+
+Use the key ID printed by the status command. When rotating a key, keep the former key in `FORMIE_ENCRYPTION_PREVIOUS_KEYS` and add `--adopt-new-key`. The command never replaces content it cannot decrypt; it reports those values and can be rerun after the missing rescue key is supplied.
+
 ## Cron
 
 ### Run Scheduled Tasks

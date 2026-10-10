@@ -7,6 +7,7 @@ use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\deprecations\SubmissionContentManagerDeprecations;
 use verbb\formie\elements\Submission;
+use verbb\formie\exceptions\EncryptedContentUnavailableException;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\services\RuntimeConfiguration;
@@ -96,6 +97,16 @@ class SubmissionContentManager
         return $this->getOrphanedValues($submission) !== [];
     }
 
+    public function getLockedValues(Submission $submission): array
+    {
+        return $submission->getContentState()->lockedValuesByUid;
+    }
+
+    public function hasLockedValues(Submission $submission): bool
+    {
+        return $this->getLockedValues($submission) !== [];
+    }
+
     public function setValue(Submission $submission, string $fieldHandle, mixed $value): void
     {
         $this->_accessor->setRawValue($submission, $fieldHandle, $value);
@@ -148,55 +159,30 @@ class SubmissionContentManager
 
     public function getProjectedFieldValue(Submission $submission, string $fieldPath, ?FieldValueProjectionContext $context = null): mixed
     {
-        if ($this->_looksLikeReferenceToken($fieldPath)) {
-            // Resolve full `{field:...}` expressions before splitting on dots so
-            // selectors, defaults, and transformers keep their authored meaning.
-            $resolved = Variables::getFieldAndValueForReference($fieldPath, $submission);
-            $field = $resolved['field'];
-            $value = $resolved['value'];
+        if ($context !== null && $this->hasLockedValues($submission)) {
+            [$rootHandle] = $this->splitFieldPath($fieldPath);
+            $field = $this->getFieldByHandle($submission, $rootHandle);
 
-            if ($context !== null && $field) {
-                return $this->projectValue($submission, $field, $value, $context);
-            }
-
-            return $value;
-        }
-
-        [$handle, $nestedPath] = $this->splitFieldPath($fieldPath);
-
-        if ($nestedPath !== null) {
-            $value = $this->getPathValue($submission, $fieldPath);
-            $field = $this->getFieldByHandle($submission, $handle);
-            $segments = explode('.', $nestedPath);
-
-            while ($field instanceof ParentFieldInterface && $segments) {
-                $row = $field instanceof RepeatableParentFieldInterface ? array_shift($segments) : null;
-                $childHandle = array_shift($segments);
-                $child = null;
-
-                foreach ($field->getFields($row) as $candidate) {
-                    if ($candidate->handle === $childHandle) {
-                        $child = $candidate;
-                        break;
-                    }
+            if ($context->projection === FieldValueProjection::Export) {
+                if ($field && isset($submission->getContentState()->lockedValuesByUid[$field->uid])) {
+                    return '[encrypted: unavailable]';
                 }
 
-                if (!$child) {
-                    $field = null;
-                    break;
-                }
-                $field = $child;
+                // Exports can still include readable fields. Only the unavailable
+                // encrypted field is replaced with an explicit placeholder.
+                return $this->_projectFieldValue($submission, $fieldPath, $context);
             }
-            return $context !== null && $field && !$segments ? $this->projectValue($submission, $field, $field->normalizeFieldValue($value, $submission), $context) : $value;
+
+            $locked = reset($submission->getContentState()->lockedValuesByUid);
+            $keyId = is_array($locked) && is_string($locked['keyId'] ?? null) ? $locked['keyId'] : null;
+
+            throw new EncryptedContentUnavailableException(
+                $keyId ? "Encrypted submission content requires key $keyId." : 'Encrypted submission content is unavailable in this environment.',
+                $keyId,
+            );
         }
 
-        $fieldValue = $this->getNormalizedValue($submission, $handle);
-
-        if ($context !== null && ($field = $this->getFieldByHandle($submission, $handle))) {
-            return $this->projectValue($submission, $field, $fieldValue, $context);
-        }
-
-        return $fieldValue;
+        return $this->_projectFieldValue($submission, $fieldPath, $context);
     }
 
     public function getFieldValuesForField(Submission $submission, string $type): array
@@ -383,6 +369,59 @@ class SubmissionContentManager
 
     // Private Methods
     // =========================================================================
+
+    private function _projectFieldValue(Submission $submission, string $fieldPath, ?FieldValueProjectionContext $context): mixed
+    {
+        if ($this->_looksLikeReferenceToken($fieldPath)) {
+            // Resolve full `{field:...}` expressions before splitting on dots so
+            // selectors, defaults, and transformers keep their authored meaning.
+            $resolved = Variables::getFieldAndValueForReference($fieldPath, $submission);
+            $field = $resolved['field'];
+            $value = $resolved['value'];
+
+            if ($context !== null && $field) {
+                return $this->projectValue($submission, $field, $value, $context);
+            }
+
+            return $value;
+        }
+
+        [$handle, $nestedPath] = $this->splitFieldPath($fieldPath);
+
+        if ($nestedPath !== null) {
+            $value = $this->getPathValue($submission, $fieldPath);
+            $field = $this->getFieldByHandle($submission, $handle);
+            $segments = explode('.', $nestedPath);
+
+            while ($field instanceof ParentFieldInterface && $segments) {
+                $row = $field instanceof RepeatableParentFieldInterface ? array_shift($segments) : null;
+                $childHandle = array_shift($segments);
+                $child = null;
+
+                foreach ($field->getFields($row) as $candidate) {
+                    if ($candidate->handle === $childHandle) {
+                        $child = $candidate;
+                        break;
+                    }
+                }
+
+                if (!$child) {
+                    $field = null;
+                    break;
+                }
+                $field = $child;
+            }
+            return $context !== null && $field && !$segments ? $this->projectValue($submission, $field, $field->normalizeFieldValue($value, $submission), $context) : $value;
+        }
+
+        $fieldValue = $this->getNormalizedValue($submission, $handle);
+
+        if ($context !== null && ($field = $this->getFieldByHandle($submission, $handle))) {
+            return $this->projectValue($submission, $field, $fieldValue, $context);
+        }
+
+        return $fieldValue;
+    }
 
     private function _currentPageFieldHandles(Submission $submission): array
     {

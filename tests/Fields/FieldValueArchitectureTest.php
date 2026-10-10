@@ -63,8 +63,8 @@ it('round trips every value family through whole-value encryption without exposi
     $value = $field->normalizeFieldValue($input);
     $before = $field->getValueAsData($value);
     $stored = $field->serializeValueForDb($value);
-    expect(array_keys($stored))->toBe(['__formie_encrypted', 'ciphertext']);
-    expect($stored['__formie_encrypted'])->toBe(1);
+    expect(array_keys($stored))->toBe(['__formie_enc', 'k', 'c']);
+    expect($stored['__formie_enc'])->toBe(2);
     $restored = $field->normalizeValueFromStorage($stored);
     expect(get_debug_type($restored))->toBe(get_debug_type($value));
     expect($field->getValueAsData($restored))->toEqual($before);
@@ -135,10 +135,12 @@ it('escapes plaintext storage markers without weakening trusted legacy decoding'
 it('escapes plaintext values that collide with reserved storage envelopes', function () {
     $plainEnvelope = ['__formie_storage' => 'formie:plain:v1:8d986bd501b14ae6a8de160e74b602db', 'value' => 'literal'];
     $encryptedEnvelope = ['__formie_encrypted' => 1, 'ciphertext' => 'broken'];
+    $v2EncryptedEnvelope = ['__formie_enc' => 2, 'k' => 'r_123456789abc', 'c' => 'broken'];
     $historicalLookalike = ['__formie_plain' => 1, 'value' => 'literal'];
 
     expect(FieldStorageCodec::decode(FieldStorageCodec::encode($plainEnvelope, false)))->toBe($plainEnvelope);
     expect(FieldStorageCodec::decode(FieldStorageCodec::encode($encryptedEnvelope, false)))->toBe($encryptedEnvelope);
+    expect(FieldStorageCodec::decode(FieldStorageCodec::encode($v2EncryptedEnvelope, false)))->toBe($v2EncryptedEnvelope);
     expect(FieldStorageCodec::decode($historicalLookalike))->toBe($historicalLookalike);
 });
 
@@ -147,7 +149,7 @@ it('rejects malformed trusted storage envelopes', function () {
 
     expect(fn() => $field->normalizeValueFromStorage(['__formie_encrypted' => 1, 'ciphertext' => 'broken']))->toThrow(RuntimeException::class);
     expect(fn() => $field->normalizeValueFromStorage('base64:' . base64_encode('crypt:broken')))->toThrow(RuntimeException::class);
-    expect(fn() => $field->normalizeValueFromStorage(['__formie_encrypted' => 2, 'ciphertext' => 'future']))->toThrow(RuntimeException::class);
+    expect(fn() => $field->normalizeValueFromStorage(['__formie_enc' => 2, 'k' => 'r_123456789abc', 'c' => 'future']))->toThrow(RuntimeException::class);
     expect(fn() => $field->normalizeValueFromStorage(['__formie_encrypted' => 1, 'ciphertext' => null]))->toThrow(RuntimeException::class);
 });
 
@@ -274,7 +276,7 @@ it('composes encrypted child values by their exact nested identities and survive
     $first = $placement === 'group' ? $decoded : $decoded[0];
     $child = $field->getFields()[0];
     expect($first)->toHaveKey($child->uid);
-    expect($first[$child->uid]['__formie_encrypted'])->toBe(1);
+    expect($first[$child->uid]['__formie_enc'])->toBe(2);
     $saved = \verbb\formie\elements\Submission::find()->id($submission->id)->status(null)->one();
     expect($saved->getFieldValueAsData('details'))->toEqual($data);
     expect($field->getValueAsData($field->normalizeValueFromStorage($stored)))->toEqual($data);
@@ -300,6 +302,20 @@ it('matches recipient browser tokens against configured rows without decrypting 
     expect($invalid->valid())->toBeFalse();
     expect($invalid->rawValue())->toBe($legacy);
     expect($field->normalizeValueFromStorage($legacy)->rawValue())->toBe('same@example.test');
+
+    $oldKey = 'former-recipient-key-' . bin2hex(random_bytes(8));
+    $option = $field->getResolvedOptions()[1];
+    $payload = \verbb\formie\helpers\RecipientTokenHelper::optionPayload($option);
+    $oldToken = 'recipient:v1:' . hash_hmac('sha256', \verbb\formie\helpers\RecipientTokenHelper::TYPE_OPTION . "\0" . \craft\helpers\Json::encode($payload), $oldKey);
+    putenv('FORMIE_SECURITY_KEY=' . $oldKey);
+    $_ENV['FORMIE_SECURITY_KEY'] = $_SERVER['FORMIE_SECURITY_KEY'] = $oldKey;
+
+    try {
+        expect($field->normalizeValueFromRequest($oldToken, null)->label())->toBe('Second');
+    } finally {
+        putenv('FORMIE_SECURITY_KEY');
+        unset($_ENV['FORMIE_SECURITY_KEY'], $_SERVER['FORMIE_SECURITY_KEY']);
+    }
 });
 
 it('adapts public Formie 3 JSON overrides once even when they call the parent', function () {

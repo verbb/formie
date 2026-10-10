@@ -4,7 +4,9 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\base\Payment;
 use verbb\formie\events\PaymentWebhookLifecycleEvent;
+use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\OperationalSecurity;
 use verbb\formie\jobs\ProcessPaymentWebhook;
 use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\payments\PaymentWebhookReceipt;
@@ -40,6 +42,8 @@ class PaymentWebhooks extends Component
 
     public function receive(Payment $integration, PaymentWebhookCommand $request, bool $synchronous = false): Response
     {
+        IntegrationSecrets::assertAvailable($integration->getSettings());
+
         if ($integration->id && $request->integrationId !== (int)$integration->id) {
             throw new RuntimeException('Webhook integration mismatch.');
         }
@@ -147,6 +151,8 @@ class PaymentWebhooks extends Component
             if (!$integration instanceof Payment || (int)$integration->id !== (int)$row['integrationId']) {
                 throw new RuntimeException('Payment webhook integration is unavailable.');
             }
+
+            IntegrationSecrets::assertAvailable($integration->getSettings());
 
             if ($receipt->resourceReference !== null && $receipt->resourceReference !== '') {
                 $resourceLock = 'formie.payment-webhook-resource.' . hash('sha256', implode('|', [
@@ -447,24 +453,12 @@ class PaymentWebhooks extends Component
 
     private function _encrypt(string $value): string
     {
-        $cipher = Craft::$app->getSecurity()->encryptByKey($value, Formie::$plugin->getSettings()->getSecurityKey());
-
-        if (!is_string($cipher)) {
-            throw new RuntimeException('Unable to encrypt webhook evidence.');
-        }
-
-        return base64_encode($cipher);
+        return OperationalSecurity::encrypt($value);
     }
 
     private function _decrypt(string $value): string
     {
-        $cipher = base64_decode($value, true);
-
-        if (!is_string($cipher)) {
-            throw new RuntimeException('Webhook evidence encoding is invalid.');
-        }
-
-        $plain = Craft::$app->getSecurity()->decryptByKey($cipher, Formie::$plugin->getSettings()->getSecurityKey());
+        $plain = OperationalSecurity::decrypt($value);
 
         if (!is_string($plain)) {
             throw new RuntimeException('Webhook evidence cannot be decrypted.');

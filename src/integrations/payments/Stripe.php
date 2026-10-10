@@ -1560,7 +1560,7 @@ class Stripe extends Payment
 
     private function _accountIdentityCacheKey(): string
     {
-        return 'formie.stripe-account.' . hash_hmac('sha256', (string)App::parseEnv($this->secretKey), Formie::$plugin->getSettings()->getSecurityKey());
+        return 'formie.stripe-account.' . hash('sha256', "formie:stripe-account-cache:v1\0" . (string)App::parseEnv($this->secretKey));
     }
 
     private function _isProcessablePaymentIntentStatus(?string $status): bool

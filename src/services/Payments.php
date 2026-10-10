@@ -102,7 +102,7 @@ class Payments extends Component
                 && (!$payment->subscriptionId || ($payment->scope['initial'] ?? false))
                 && ($payment->scope['operation'] ?? 'payment') === $operation) {
                 if ($payment->status !== Payment::STATUS_SUCCEEDED && ($payment->scope['initial'] ?? false)
-                    && (!$payment->accountFingerprint || !hash_equals($payment->accountFingerprint, $accountHash))) {
+                    && !$integration->matchesPaymentAccountFingerprint($payment->accountFingerprint)) {
                     throw new DeliveryOutcomeUnknownException('Payment account changed; reconcile the original account.');
                 }
 
@@ -242,7 +242,7 @@ class Payments extends Component
                 throw new RuntimeException('Payment integration not found.');
             }
 
-            if (!$payment->accountFingerprint || !hash_equals($payment->accountFingerprint, $integration->getPaymentAccountFingerprint())) {
+            if (!$integration->matchesPaymentAccountFingerprint($payment->accountFingerprint)) {
                 throw new RuntimeException('Restore the original payment account before reconciling it.');
             }
 
@@ -290,11 +290,19 @@ class Payments extends Component
             return null;
         }
 
-        if ($integrationId && $accountFingerprint === null) {
-            $integration = Formie::$plugin->getIntegrations()->getIntegrationById($integrationId);
-            $accountFingerprint = $integration instanceof PaymentIntegration ? $integration->getPaymentAccountFingerprint() : null;
+        $integration = $integrationId ? Formie::$plugin->getIntegrations()->getIntegrationById($integrationId) : null;
+        $rows = $this->_createPaymentsQuery()->where(array_filter(['reference' => $reference, 'integrationId' => $integrationId], static fn($value) => $value !== null))->all();
+
+        if ($integration instanceof PaymentIntegration) {
+            if ($accountFingerprint !== null && !$integration->matchesPaymentAccountFingerprint($accountFingerprint)) {
+                $rows = [];
+            } else {
+                $rows = array_values(array_filter($rows, static fn(array $row): bool => $integration->matchesPaymentAccountFingerprint($row['accountFingerprint'])));
+            }
+        } elseif ($accountFingerprint !== null) {
+            $rows = array_values(array_filter($rows, static fn(array $row): bool => hash_equals($accountFingerprint, (string)$row['accountFingerprint'])));
         }
-        $rows = $this->_createPaymentsQuery()->where(array_filter(['reference' => $reference, 'integrationId' => $integrationId, 'accountFingerprint' => $accountFingerprint], static fn($value) => $value !== null))->limit(2)->all();
+
         return count($rows) === 1 ? $this->_hydratePayment($rows[0]) : null;
     }
 

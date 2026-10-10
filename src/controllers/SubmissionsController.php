@@ -287,7 +287,9 @@ class SubmissionsController extends Controller
         // Add some settings just for submission editing
         $formConfigJson['settings']['outputJs'] = false;
         $variables['formConfigJson'] = $formConfigJson;
-        $variables['submissionClientContext'] = ConditionsHelper::getClientSubmissionContext($variables['submission']);
+        $variables['submissionClientContext'] = $variables['submission']->hasLockedContent()
+            ? []
+            : ConditionsHelper::getClientSubmissionContext($variables['submission']);
 
         return $this->renderTemplate('formie/submissions/_edit', $variables);
     }

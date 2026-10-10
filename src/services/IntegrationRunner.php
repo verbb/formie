@@ -185,7 +185,7 @@ class IntegrationRunner extends Component
                 $this->_reportResult($attempts->context($uid), $result, $uid);
                 return $result;
             }
-            return $attempts->executePrepared($uid, $this->dispatchFingerprint($submission, $data['handles']), function() use ($submission, $data, $row): IntegrationResult {
+            return $attempts->executePrepared($uid, $this->dispatchFingerprints($submission, $data['handles']), function() use ($submission, $data, $row): IntegrationResult {
                 $triggerContext = $data['triggerContext'];
                 $triggerContext['execution'] = 'queued';
                 $batch = $this->runSteps($submission, $data['handles'], $triggerContext, Formie::$plugin->getIntegrationDispatcher()->getPlan($submission->getForm()), $row['executionUid']);
@@ -236,6 +236,11 @@ class IntegrationRunner extends Component
 
     public function dispatchFingerprint(Submission $submission, array $handles): string
     {
+        return $this->dispatchFingerprints($submission, $handles)[0];
+    }
+
+    public function dispatchFingerprints(Submission $submission, array $handles): array
+    {
         $configuration = [];
 
         foreach (Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($submission->getForm()) as $binding) {
@@ -244,7 +249,7 @@ class IntegrationRunner extends Component
             }
         }
         $configuration['notifications'] = array_map(static fn($notification) => Formie::$plugin->getDeliveryAttempts()->notificationConfiguration($notification), $submission->getForm()->getNotifications());
-        return Formie::$plugin->getDeliveryAttempts()->operationFingerprint($submission, $configuration);
+        return Formie::$plugin->getDeliveryAttempts()->operationFingerprints($submission, $configuration);
     }
 
 
@@ -303,7 +308,8 @@ class IntegrationRunner extends Component
         }
         $attempts = Formie::$plugin->getDeliveryAttempts();
         $settings = FormIntegration::settingsFromRuntime($integration);
-        $fingerprint = $attempts->operationFingerprint($submission, $attempts->integrationConfiguration($integration, $settings));
+        $fingerprints = $attempts->operationFingerprints($submission, $attempts->integrationConfiguration($integration, $settings));
+        $fingerprint = $fingerprints[0];
         $uid = $attempts->prepare($context, 'integration', ['settings' => $settings, 'acceptedFingerprint' => $fingerprint]);
         $legacyResult = LegacyDeliveryAttempts::integrationResult($submission, $integration, $executionKey, $uid);
 
@@ -321,7 +327,7 @@ class IntegrationRunner extends Component
             $this->_reportResult($context, $result, $uid);
             return $result;
         }
-        $result = $attempts->executePrepared($uid, $fingerprint, function() use ($integration, $submission, $context, $uid, $attempts): IntegrationResult {
+        $result = $attempts->executePrepared($uid, $fingerprints, function() use ($integration, $submission, $context, $uid, $attempts): IntegrationResult {
             $integration->setDeliveryContext($context, $uid);
 
             if ($context->execution === 'queued') {

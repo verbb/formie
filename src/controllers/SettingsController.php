@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\content\ContentEncryption;
 use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\helpers\Plugin;
@@ -44,7 +45,10 @@ class SettingsController extends SettingsAccessController
             /* @var Settings $settings */
             $settings = Formie::$plugin->getSettings();
 
-            return $this->renderTemplate('formie/settings/general', compact('settings'));
+            return $this->renderTemplate('formie/settings/general', [
+                'settings' => $settings,
+                'encryptionStatus' => $this->_encryptionStatus(),
+            ]);
         }
 
         foreach (array_keys($permissions->getSettingsPageDefinitions()) as $page) {
@@ -307,6 +311,27 @@ class SettingsController extends SettingsAccessController
 
     // Private Methods
     // =========================================================================
+
+    private function _encryptionStatus(): array
+    {
+        try {
+            $key = ContentEncryption::currentKey();
+
+            return [
+                'state' => $key ? (ContentEncryption::activeVersion() >= 2 ? 'active' : 'ready') : 'notConfigured',
+                'keyId' => $key?->id,
+                'expectedKeyId' => ContentEncryption::expectedKeyId(),
+                'error' => null,
+            ];
+        } catch (Throwable $exception) {
+            return [
+                'state' => 'error',
+                'keyId' => null,
+                'expectedKeyId' => ContentEncryption::expectedKeyId(),
+                'error' => $exception->getMessage(),
+            ];
+        }
+    }
 
     private function _saveCaptchaIntegrations(mixed $integrations): bool
     {

@@ -132,14 +132,24 @@ class StringHelper extends CraftStringHelper
 
     public static function decdec(string $str): string
     {
+        Craft::$app->getDeprecator()->log(__METHOD__, 'StringHelper::decdec() is deprecated. Use the field-storage codec for persisted content or Craft’s security service for transient data.');
+        $stored = $str;
         $key = Formie::$plugin->getSettings()->getSecurityKey();
 
         if (strncmp($str, 'base64:', 7) === 0) {
-            $str = base64_decode(substr($str, 7));
+            $decoded = base64_decode(substr($str, 7), true);
+
+            if ($decoded === false) {
+                return $stored;
+            }
+
+            $str = $decoded;
         }
 
         if (strncmp($str, 'crypt:', 6) === 0) {
-            $str = Craft::$app->getSecurity()->decryptByKey(substr($str, 6), $key);
+            $decrypted = Craft::$app->getSecurity()->decryptByKey(substr($str, 6), $key);
+
+            return $decrypted === false ? $stored : $decrypted;
         }
 
         return $str;
@@ -147,6 +157,7 @@ class StringHelper extends CraftStringHelper
 
     public static function encenc(string $str): string
     {
+        Craft::$app->getDeprecator()->log(__METHOD__, 'StringHelper::encenc() is deprecated. Use the field-storage codec for persisted content or Craft’s security service for transient data.');
         $key = Formie::$plugin->getSettings()->getSecurityKey();
 
         return 'base64:' . base64_encode('crypt:' . Craft::$app->getSecurity()->encryptByKey($str, $key));

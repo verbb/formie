@@ -4,6 +4,7 @@ namespace verbb\formie\helpers;
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\compatibility\schema\SchemaCompatibility;
+use verbb\formie\content\ContentEncryption;
 
 use Craft;
 use craft\helpers\Html;
@@ -854,10 +855,21 @@ class SchemaHelper
 
     public static function enableContentEncryptionField(array $config = []): array
     {
+        $warning = null;
+
+        try {
+            if (!ContentEncryption::currentKey()) {
+                $warning = Craft::t('formie', 'A developer must configure FORMIE_ENCRYPTION_KEY before content encryption can be enabled for a new field. Existing encrypted fields remain readable in compatibility mode.');
+            }
+        } catch (\RuntimeException $exception) {
+            $warning = $exception->getMessage();
+        }
+
         return self::lightswitchField(array_merge([
             'label' => Craft::t('formie', 'Enable Content Encryption'),
             'instructions' => Craft::t('formie', 'Whether to encrypt the value saved for this field for data-security purposes.'),
             'name' => 'enableContentEncryption',
+            'warning' => $warning,
         ], $config));
     }
 

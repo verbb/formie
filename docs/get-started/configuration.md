@@ -47,6 +47,24 @@ Lists environment variables that editors may use in reference tokens and `$NAME`
 
 
 ::: reference
+### `encryptionKey`
+
+**Type:** `string|null` · **Default:** `null`
+
+Provides the dedicated key used only for encrypted submission field content. Prefer the `FORMIE_ENCRYPTION_KEY` environment variable so the key is not committed with project files. Generate a key with `php craft formie/encryption/generate-key`, keep a recoverable copy in your secrets manager, and use the same key in every environment that must read copied production submissions.
+:::
+
+
+::: reference
+### `encryptionPreviousKeys`
+
+**Type:** `array` · **Default:** `[]`
+
+Provides read-only rescue keys while encrypted submission content is moved to the current key. Prefer `FORMIE_ENCRYPTION_PREVIOUS_KEYS`, supplied as a comma-separated list or JSON array. Remove old keys only after `php craft formie/encryption/reencrypt` reports that every readable value uses the current key.
+:::
+
+
+::: reference
 ### `pluginName`
 
 **Type:** `string` · **Default:** `'Formie'`

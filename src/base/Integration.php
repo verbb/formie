@@ -766,6 +766,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function checkConnection(bool $useCache = true): bool
     {
+        IntegrationSecrets::assertAvailable($this->getSettings());
+
         if ($useCache && $status = $this->_getCache('connection')) {
             if ($status === self::CONNECT_SUCCESS) {
                 return true;
@@ -1050,6 +1052,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function requestWithProviderClient(Client $client, string $method, string $uri, array $options = []): mixed
     {
+        IntegrationSecrets::assertAvailable($this->getSettings());
+
         $origin = new Uri((string)$client->getConfig('base_uri'));
         $target = UriResolver::resolve($origin, new Uri($uri));
 
@@ -1067,6 +1071,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function request(string $method, string $uri, array $options = []): mixed
     {
+        IntegrationSecrets::assertAvailable($this->getSettings());
+
         $options['allow_redirects'] = false;
 
         if (isset($options['base_uri'])) {
@@ -1124,6 +1130,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function requestPublicEndpoint(string $method, string $uri, array $options = []): mixed
     {
+        IntegrationSecrets::assertAvailable($this->getSettings());
+
         $writes = !in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true);
 
         foreach (['proxy', 'curl', 'handler', 'base_uri', 'verify', 'cert', 'ssl_key', 'cookies'] as $option) {

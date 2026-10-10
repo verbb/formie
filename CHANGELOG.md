@@ -4,8 +4,11 @@
 
 ### Added
 - Added an event-based Microsoft Dynamics 365 entity registry for mapping and creating custom entities without a custom integration subclass. ([#2995](https://github.com/verbb/formie/issues/2995))
+- Added a dedicated optional field-content encryption key, key-status and migration commands, resumable re-encryption, previous-key recovery, and read-only handling for unavailable encrypted submission values.
 
 ### Changed
+- Store integration settings as literal values or environment references instead of encrypting values committed to project config, while retaining read compatibility for beta-encrypted settings.
+- Use Craft’s security key for disposable operational evidence, unkeyed stable payment fingerprints, and random hashed payment capability tokens so field-content key rotation does not interrupt unrelated operations.
 - Centralized reference transform declarations and register custom reference sources once per application.
 - Payment integrations now inherit before/after payment hooks from the base class. Custom providers should implement `executePayment()` without dispatching those hooks themselves.
 - Renamed custom field adapters’ persistence method to `serializeValueForDb()`.
@@ -18,6 +21,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Prevent missing or changed encryption keys from displaying encrypted submission content as blank or overwriting unreadable values during saves.
 - Fixed a medium-severity privilege escalation vulnerability.
 - Fixed specially formatted plaintext submission values being mistaken for encrypted field content.
 - Fixed payment hooks treating declined payments as successful or creating payment intents before processing was cancelled.

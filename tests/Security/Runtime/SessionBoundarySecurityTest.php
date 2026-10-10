@@ -31,6 +31,23 @@ it('binds draft context tokens to the issuing form', function (): void {
     expect($token)->not->toBeNull()
         ->and($formA->resolveDraftContextToken($token))->toBe('ctx:security:a')
         ->and($formB->resolveDraftContextToken($token))->toBeNull();
+
+    $oldKey = 'former-draft-key-' . bin2hex(random_bytes(8));
+    $payload = \craft\helpers\Json::encode([
+        'context' => 'ctx:security:legacy',
+        'formId' => (int)$formA->id,
+        'siteId' => (int)Craft::$app->getSites()->getCurrentSite()->id,
+    ]);
+    $legacyToken = base64_encode(Craft::$app->getSecurity()->encryptByKey($payload, $oldKey));
+    putenv('FORMIE_SECURITY_KEY=' . $oldKey);
+    $_ENV['FORMIE_SECURITY_KEY'] = $_SERVER['FORMIE_SECURITY_KEY'] = $oldKey;
+
+    try {
+        expect($formA->resolveDraftContextToken($legacyToken))->toBe('ctx:security:legacy');
+    } finally {
+        putenv('FORMIE_SECURITY_KEY');
+        unset($_ENV['FORMIE_SECURITY_KEY'], $_SERVER['FORMIE_SECURITY_KEY']);
+    }
 })->group('security');
 
 it('enforces grant purpose and revocation without escalation', function (): void {
