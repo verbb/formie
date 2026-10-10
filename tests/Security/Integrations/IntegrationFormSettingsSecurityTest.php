@@ -7,6 +7,7 @@ use verbb\formie\Formie;
 use verbb\formie\controllers\IntegrationsController;
 use verbb\formie\elements\Form;
 use verbb\formie\integrations\automations\WebRequest;
+use verbb\formie\integrations\elements\User as UserIntegration;
 use verbb\formie\integrations\helpdesk\Freshdesk;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
@@ -15,8 +16,10 @@ use verbb\formie\services\Permissions;
 use verbb\formie\services\Stencils as StencilsService;
 
 use craft\elements\User;
+use craft\models\UserGroup;
 
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 
 it('requires a control panel request for integration form settings refresh', function (): void {
     WebRequestTestHelper::withWebRequestContext(function ($request): void {
@@ -140,6 +143,117 @@ it('ignores integration settings posted by form editors without integration perm
             expect($fromStencil->settings->integrations)->not->toHaveKey('freshdesk');
         }, ['method' => 'POST']);
     } finally {
+        Craft::$app->getUser()->setIdentity($originalUser);
+    }
+})->group('security');
+
+it('requires group assignment permission only for newly configured User integration groups', function (): void {
+    $originalIntegrations = Formie::$plugin->getIntegrations();
+    $originalUser = Craft::$app->getUser()->getIdentity();
+    $existingGroup = new UserGroup([
+        'name' => 'Existing integration group ' . bin2hex(random_bytes(4)),
+        'handle' => 'existingIntegrationGroup' . bin2hex(random_bytes(4)),
+    ]);
+    $forbiddenGroup = new UserGroup([
+        'name' => 'Forbidden integration group ' . bin2hex(random_bytes(4)),
+        'handle' => 'forbiddenIntegrationGroup' . bin2hex(random_bytes(4)),
+    ]);
+
+    expect(Craft::$app->getUserGroups()->saveGroup($existingGroup))->toBeTrue()
+        ->and(Craft::$app->getUserGroups()->saveGroup($forbiddenGroup))->toBeTrue();
+
+    try {
+        $fixture = new UserIntegration([
+            'name' => 'User accounts',
+            'handle' => 'userAccounts',
+            'enabled' => true,
+        ]);
+        $registry = new class extends Integrations {
+            public UserIntegration $fixture;
+
+            public function getAllIntegrations(): array
+            {
+                return [$this->fixture];
+            }
+
+            public function getAllCaptchas(): array
+            {
+                return [];
+            }
+
+            public function getIntegrationByHandle(string $handle): ?\verbb\formie\base\IntegrationInterface
+            {
+                return $handle === $this->fixture->handle ? $this->fixture : null;
+            }
+
+            public function getFormIntegrationByHandle(string $handle): ?\verbb\formie\base\IntegrationInterface
+            {
+                return $this->getIntegrationByHandle($handle);
+            }
+        };
+        $registry->fixture = $fixture;
+        Formie::$plugin->set('integrations', $registry);
+
+        $form = formie()
+            ->form(['title' => 'User group assignment boundary'])
+            ->singleLineTextField('email')
+            ->integrations(['userAccounts' => [
+                'enabled' => false,
+                'groupUids' => [$existingGroup->uid],
+            ]])
+            ->create();
+        $name = 'groupAssignmentEditor' . bin2hex(random_bytes(5));
+        $actor = new User(['username' => $name, 'email' => $name . '@example.test']);
+        expect(Craft::$app->getElements()->saveElement($actor))->toBeTrue();
+        Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
+        expect(Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, [
+            'accessCp',
+            'accessPlugin-formie',
+            Permissions::PERM_ACCESS_FORMS,
+            Permissions::PERM_MANAGE_FORMS,
+            'formie-showFormIntegrations',
+        ]))->toBeTrue();
+
+        WebRequestTestHelper::withWebRequestContext(function($request) use ($actor, $existingGroup, $fixture, $forbiddenGroup, $form): void {
+            $request->setIsCpRequest(true);
+            Craft::$app->getUser()->setIdentity(User::find()->id($actor->id)->status(null)->one());
+            $fixture->groupUids = [$existingGroup->uid];
+            $optionUids = array_column($fixture->getGroupOptions(), 'value');
+
+            expect($optionUids)->toContain($existingGroup->uid)
+                ->and($optionUids)->not->toContain($forbiddenGroup->uid);
+
+            $post = static function(array $groupUids, bool $enabled = false) use ($form): array {
+                return [
+                    'id' => $form->id,
+                    'siteId' => $form->siteId,
+                    'title' => $form->title,
+                    'handle' => $form->handle,
+                    'settings' => ['integrations' => ['userAccounts' => [
+                        'enabled' => $enabled,
+                        'groupUids' => $groupUids,
+                    ]]],
+                ];
+            };
+
+            $request->setBodyParams($post([$existingGroup->uid]));
+            expect(Formie::$plugin->getForms()->buildFormFromPost()->settings->integrations['userAccounts']['groupUids'])
+                ->toBe([$existingGroup->uid]);
+
+            $request->setBodyParams($post([]));
+            expect(Formie::$plugin->getForms()->buildFormFromPost()->settings->integrations['userAccounts']['groupUids'])
+                ->toBe([]);
+
+            $request->setBodyParams($post([$existingGroup->uid, $forbiddenGroup->uid]));
+            expect(fn() => Formie::$plugin->getForms()->buildFormFromPost())
+                ->toThrow(ForbiddenHttpException::class, $forbiddenGroup->name);
+
+            $request->setBodyParams($post([$existingGroup->uid], true));
+            expect(fn() => Formie::$plugin->getForms()->buildFormFromPost())
+                ->toThrow(ForbiddenHttpException::class, $existingGroup->name);
+        }, ['method' => 'POST']);
+    } finally {
+        Formie::$plugin->set('integrations', $originalIntegrations);
         Craft::$app->getUser()->setIdentity($originalUser);
     }
 })->group('security');

@@ -15,6 +15,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
+use verbb\formie\integrations\elements\User as UserIntegration;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\LayoutSaveContext;
 use verbb\formie\records\Form as FormRecord;
@@ -25,6 +26,7 @@ use craft\base\ElementInterface;
 use craft\base\FieldInterface;
 use craft\base\NestedElementInterface;
 use craft\db\Query;
+use craft\elements\User as UserElement;
 use craft\errors\GqlException;
 use craft\helpers\Cp;
 use craft\helpers\Json;
@@ -32,6 +34,7 @@ use craft\helpers\UrlHelper;
 use craft\models\GqlSchema;
 
 use yii\base\Exception;
+use yii\web\ForbiddenHttpException;
 
 use Throwable;
 
@@ -709,11 +712,52 @@ class Forms extends Component
             Formie::$plugin->getFormDefaults()->applyDefaultStencil($form);
         }
 
+        if ($user && $canManageIntegrations) {
+            $this->_requireUserGroupAssignmentAccess($form, $oldIntegrationSettings, $user);
+        }
+
         if (!$canManageNotifications) {
             $form->setNotifications($oldNotifications);
         }
 
         return $form;
+    }
+
+    /**
+     * Require Craft's native assignment permission for newly configured groups,
+     * and for all retained groups when a disabled integration is enabled.
+     */
+    private function _requireUserGroupAssignmentAccess(Form $form, array $oldIntegrationSettings, UserElement $user): void
+    {
+        foreach ($form->settings->integrations ?? [] as $handle => $settings) {
+            if (!is_string($handle) || !is_array($settings)) {
+                continue;
+            }
+
+            $integration = Formie::$plugin->getIntegrations()->getFormIntegrationByHandle($handle);
+
+            if (!$integration instanceof UserIntegration) {
+                continue;
+            }
+
+            $oldSettings = $oldIntegrationSettings[$handle] ?? [];
+            $oldGroupUids = is_array($oldSettings) ? (array)($oldSettings['groupUids'] ?? []) : [];
+            $groupUids = (array)($settings['groupUids'] ?? []);
+            $isEnabling = is_array($oldSettings)
+                && !(bool)($oldSettings['enabled'] ?? false)
+                && (bool)($settings['enabled'] ?? false);
+            $groupUidsToAuthorize = $isEnabling ? $groupUids : array_diff($groupUids, $oldGroupUids);
+
+            foreach ($groupUidsToAuthorize as $groupUid) {
+                $group = is_string($groupUid) ? Craft::$app->getUserGroups()->getGroupByUid($groupUid) : null;
+
+                if ($group && !$user->can("assignUserGroup:$group->uid")) {
+                    throw new ForbiddenHttpException(Craft::t('formie', 'Your account does not have permission to assign the user group “{name}”.', [
+                        'name' => $group->name,
+                    ]));
+                }
+            }
+        }
     }
 
     private function _normalizeBuilderFieldReferences(array &$bodyParams): void

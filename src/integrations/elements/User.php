@@ -217,8 +217,16 @@ class User extends Element
     public function getGroupOptions(): array
     {
         $userGroups = [];
+        $currentUser = Craft::$app->getUser()->getIdentity();
+        $selectedGroupUids = array_fill_keys($this->groupUids, true);
 
         foreach (Craft::$app->getUserGroups()->getAllGroups() as $key => $group) {
+            // Existing assignments stay visible so an editor who no longer has
+            // assignment authority can preserve or remove them.
+            if ($currentUser && !isset($selectedGroupUids[$group->uid]) && !$currentUser->can("assignUserGroup:$group->uid")) {
+                continue;
+            }
+
             $userGroups[] = [
                 'label' => $group->name,
                 'value' => $group->uid,
