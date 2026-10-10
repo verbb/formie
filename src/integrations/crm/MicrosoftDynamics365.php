@@ -267,11 +267,11 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 $opportunityPayload = $opportunityValues;
 
                 if ($contactId) {
-                    $accountPayload['parentcontactid@odata.bind'] = $this->_formatLookupValue('contacts', $contactId);
+                    $opportunityPayload['parentcontactid@odata.bind'] = $this->_formatLookupValue('contacts', $contactId);
                 }
 
                 if ($accountId) {
-                    $accountPayload['parentaccountid@odata.bind'] = $this->_formatLookupValue('accounts', $accountId);
+                    $opportunityPayload['parentaccountid@odata.bind'] = $this->_formatLookupValue('accounts', $accountId);
                 }
 
                 $response = $this->deliverPayload($submission, 'opportunities?$select=opportunityid', $opportunityPayload);
