@@ -24,10 +24,11 @@ class TriggerIntegrationsTask implements TaskInterface
         $isSubmissionEdit = $dispatchState->isSubmissionEditDispatch();
 
         $dispatch = function() use ($context): void {
-            Formie::$plugin->getIntegrationTriggers()->dispatchFromWorkflow(
+            Formie::$plugin->getIntegrationTriggers()->dispatchFromWorkflowWithAuthority(
                 $context->command->submission,
                 $context->command->operation,
                 IntegrationTriggerEvents::resolveFromOperation($context->command->operation, $context->command->authority->type === SubmissionAuthorityType::CONTROL_PANEL),
+                $context->command->authority,
             );
         };
 

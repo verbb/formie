@@ -155,6 +155,7 @@ use verbb\formie\models\IntegrationResult;
 use verbb\formie\models\IntegrationRunContext;
 use verbb\formie\models\MissingIntegration;
 use verbb\formie\models\Settings;
+use verbb\formie\models\SubmissionAuthority;
 use verbb\formie\records\Integration as IntegrationRecord;
 
 use Craft;
@@ -468,6 +469,7 @@ class Integrations extends Component
         SubmissionOperation $operation = SubmissionOperation::SUBMIT,
         ?string $triggerEvent = null,
         bool $operatorInitiated = false,
+        ?SubmissionAuthority $authority = null,
     ): void {
         $submission->assertContentAvailable();
         $form = $submission->getForm();
@@ -476,7 +478,7 @@ class Integrations extends Component
             return;
         }
 
-        $triggerContext = $this->_buildTriggerContext($operation, $triggerEvent, $operatorInitiated);
+        $triggerContext = $this->_buildTriggerContext($operation, $triggerEvent, $operatorInitiated, $authority);
 
         if (Formie::$plugin->getIntegrationDispatcher()->shouldOrchestrate($form)) {
             Formie::$plugin->getIntegrationDispatcher()->dispatchSubmission(
@@ -1747,12 +1749,16 @@ class Integrations extends Component
         SubmissionOperation $operation,
         ?string $triggerEvent,
         bool $operatorInitiated,
+        ?SubmissionAuthority $authority,
     ): array {
         return [
             'operation' => $operation,
             'isSubmissionEdit' => $operation === SubmissionOperation::REVISE,
             'triggerEvent' => $triggerEvent ?? IntegrationTriggerEvents::resolveFromOperation($operation),
             'operatorInitiated' => $operatorInitiated,
+            'authorityType' => $authority?->type->value,
+            'authorityScope' => $authority?->scope,
+            'actorId' => $authority?->actorId,
         ];
     }
 }

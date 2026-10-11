@@ -15,12 +15,15 @@ final class IntegrationExecutionContext
     public readonly string $reason;
     public readonly bool $eligible;
     public readonly array $overrides;
+    public readonly ?string $authorityType;
+    public readonly ?string $authorityScope;
+    public readonly ?int $actorId;
 
 
     // Public Methods
     // =========================================================================
 
-    public function __construct(int $submissionId, int $formId, string $binding, string $executionUid, string $execution = 'queued', string $reason = 'automatic', bool $eligible = true, array $overrides = [])
+    public function __construct(int $submissionId, int $formId, string $binding, string $executionUid, string $execution = 'queued', string $reason = 'automatic', bool $eligible = true, array $overrides = [], ?string $authorityType = null, ?string $authorityScope = null, ?int $actorId = null)
     {
         $this->submissionId = $submissionId;
         $this->formId = $formId;
@@ -30,5 +33,8 @@ final class IntegrationExecutionContext
         $this->reason = $reason;
         $this->eligible = $eligible;
         $this->overrides = $overrides;
+        $this->authorityType = $authorityType;
+        $this->authorityScope = $authorityScope;
+        $this->actorId = $actorId;
     }
 }

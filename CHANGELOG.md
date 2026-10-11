@@ -27,6 +27,7 @@
 - Fixed a medium-severity information disclosure vulnerability.
 - Fixed a medium-severity submission relation integrity vulnerability.
 - Fixed a medium-severity element query injection vulnerability.
+- Fixed an improper authorization vulnerability.
 - Fixed specially formatted plaintext submission values being mistaken for encrypted field content.
 - Fixed payment hooks treating declined payments as successful or creating payment intents before processing was cancelled.
 - Fixed queued element integrations failing before saving their element.

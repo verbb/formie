@@ -526,7 +526,9 @@ class SubmissionRequests extends Component
             SubmissionAuthorityType::PAYMENT_REPLAY => 'payment:' . $submission->id,
             default => 'internal',
         };
-        $authority = new SubmissionAuthority($authorityType, (int)$form->id, $submission->id ? (int)$submission->id : null, $scope);
+        $actorId = in_array($authorityType, [SubmissionAuthorityType::VISITOR, SubmissionAuthorityType::CONTROL_PANEL, SubmissionAuthorityType::GRAPHQL_ADMIN], true)
+            ? Craft::$app->getUser()->getId() : null;
+        $authority = new SubmissionAuthority($authorityType, (int)$form->id, $submission->id ? (int)$submission->id : null, $scope, $actorId ? (int)$actorId : null);
         $operations = Formie::$plugin->getSubmissionOperations();
         $uploadClaims = new SubmissionUploadClaims();
         $submission->getContentState()->uploadClaims = $uploadClaims;

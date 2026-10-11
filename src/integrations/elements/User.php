@@ -6,8 +6,10 @@ use verbb\formie\base\Element;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\errors\IntegrationStepException;
 use verbb\formie\fields\Password;
+use verbb\formie\Formie;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Table;
@@ -31,6 +33,12 @@ use Throwable;
 
 class User extends Element
 {
+    // Constants
+    // =========================================================================
+
+    private const RESOURCE_ORIGIN = 'formieUserOrigin';
+
+
     // Static Methods
     // =========================================================================
 
@@ -108,7 +116,7 @@ class User extends Element
                 'required' => true,
             ]),
             new IntegrationField([
-                'name' => Craft::t('app', 'Password'),
+                'name' => Craft::t('formie', 'Password (New Users Only)'),
                 'handle' => 'newPassword',
             ]),
             new IntegrationField([
@@ -248,9 +256,10 @@ class User extends Element
             $generalConfig = Craft::$app->getConfig()->getGeneral();
 
             $user = $this->getElementForPayload(UserElement::class, 'users', $submission);
+            $isNewUser = $this->_isCreatedUser($user);
 
             // If a new user, set as pending
-            if (!$user->id) {
+            if ($isNewUser && !$user->id) {
                 $user->pending = true;
             }
 
@@ -329,6 +338,45 @@ class User extends Element
                 return $this->resultForPayload(true);
             }
 
+            if (!$user instanceof UserElement) {
+                return $this->resultForPayload(IntegrationResult::rejected('invalid_user_payload'));
+            }
+
+            // Events may replace the payload, and retries may reload a user created by the
+            // first attempt. Resolve the durable origin against the final target.
+            $isNewUser = $this->_isCreatedUser($user);
+
+            if ($isNewUser && !$user->id) {
+                $user->pending = true;
+            }
+
+            if (!$isNewUser) {
+                $storedUser = UserElement::find()->id($user->id)->status(null)->one();
+
+                if (!$storedUser) {
+                    return $this->resultForPayload(IntegrationResult::rejected('existing_user_unavailable'));
+                }
+
+                if (!$this->_canUpdateExistingUser($storedUser)) {
+                    return $this->resultForPayload(IntegrationResult::rejected('existing_user_unauthorized'));
+                }
+
+                if ($user->email !== $storedUser->email) {
+                    return $this->resultForPayload(IntegrationResult::rejected('existing_user_email_change_not_supported'));
+                }
+
+                if ($hashedPassword !== null || ($user->newPassword !== null && $user->newPassword !== '') || $user->password !== $storedUser->password) {
+                    return $this->resultForPayload(IntegrationResult::rejected('existing_user_password_change_not_supported'));
+                }
+
+                // Existing account credentials and activation state remain under Craft's
+                // native account-management flows, even when an event modified the payload.
+                $user->newPassword = null;
+                $user->password = $storedUser->password;
+                $user->active = $storedUser->active;
+                $user->pending = $storedUser->pending;
+            }
+
             if (!$user->validate()) {
                 Integration::error($this, Craft::t('formie', 'Unable to validate “{type}” element integration. Error: {error}.', [
                     'type' => $this->handle,
@@ -347,7 +395,7 @@ class User extends Element
                 return $this->resultForPayload(false);
             }
 
-            $this->recordDispatchElement($user);
+            $this->recordDispatchElement($user, [self::RESOURCE_ORIGIN => $isNewUser ? 'created' : 'existing']);
 
             // Has a Password field been used to map the value? Do a direct DB update as it's been hashed already.
             // This also needs to be done before sending activation emails
@@ -360,7 +408,7 @@ class User extends Element
 
             $autoLogin = false;
 
-            if ($user->getStatus() == UserElement::STATUS_PENDING) {
+            if ($isNewUser && $user->getStatus() == UserElement::STATUS_PENDING) {
                 if ($this->activateUser) {
                     Craft::$app->getUsers()->activateUser($user);
 
@@ -448,7 +496,7 @@ class User extends Element
                 }
             }
 
-            $this->recordDispatchElement($user);
+            $this->recordDispatchElement($user, [self::RESOURCE_ORIGIN => $isNewUser ? 'created' : 'existing']);
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}. Trace: “{trace}”.', [
                 'error' => Integration::getExceptionLogMessage($e),
@@ -539,7 +587,7 @@ class User extends Element
         $schema[] = SchemaHelper::lightswitchField([
             'name' => 'updateElement',
             'label' => Craft::t('formie', 'Update Users'),
-            'instructions' => Craft::t('formie', 'Whether this integration should update an existing user if found, or always create a new user.'),
+            'instructions' => Craft::t('formie', 'Whether this integration should update an existing user if found, or always create a new user. Visitors can only update their own account, and existing email addresses and passwords cannot be changed here.'),
         ]);
 
         $updateMappingSchema = $this->convertIntegrationFieldsToSchema($this->getUpdateAttributes()['users'] ?? []);
@@ -617,6 +665,49 @@ class User extends Element
 
             $user->{$userFieldHandle} = $fieldValue;
         }
+    }
+
+    private function _isCreatedUser(UserElement $user): bool
+    {
+        if (!$user->id) {
+            return true;
+        }
+
+        if ($uid = $this->getDeliveryAttemptUid()) {
+            $resource = Formie::$plugin->getDeliveryAttempts()->resource($uid);
+
+            if (($resource['elementType'] ?? null) === UserElement::class && (int)($resource['elementId'] ?? 0) === (int)$user->id) {
+                return ($resource[self::RESOURCE_ORIGIN] ?? null) === 'created';
+            }
+        }
+
+        return false;
+    }
+
+    private function _canUpdateExistingUser(UserElement $user): bool
+    {
+        $context = $this->getDeliveryExecutionContext();
+        $authorityType = SubmissionAuthorityType::tryFrom($context?->authorityType ?? '');
+
+        if ($authorityType === SubmissionAuthorityType::TRUSTED_INTERNAL) {
+            return true;
+        }
+
+        if (!in_array($authorityType, [SubmissionAuthorityType::VISITOR, SubmissionAuthorityType::CONTROL_PANEL], true) || !$context?->actorId) {
+            return false;
+        }
+
+        $actor = Craft::$app->getUsers()->getUserById($context->actorId);
+
+        if (!$actor || $actor->getStatus() !== UserElement::STATUS_ACTIVE) {
+            return false;
+        }
+
+        if ($authorityType === SubmissionAuthorityType::VISITOR) {
+            return (int)$actor->id === (int)$user->id;
+        }
+
+        return Craft::$app->getElements()->canSave($user, $actor);
     }
 
     private function _getPasswordField($submission)

@@ -4,17 +4,19 @@ use craft\db\Query;
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionOperation;
+use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\enums\workflow\Stage;
 use verbb\formie\helpers\DeliveryAttempt;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\IntegrationExecutionContext;
 use verbb\formie\models\IntegrationResult;
+use verbb\formie\models\SubmissionAuthority;
 use verbb\formie\services\SubmissionDispatches;
 use verbb\formie\services\SubmissionWorkflow;
 use verbb\formie\workflow\WorkflowContext;
 use yii\base\Event;
 
-function interruptCompletionBeforeDispatch(): array
+function interruptCompletionBeforeDispatch(?SubmissionAuthority $authority = null): array
 {
     $form = formie()->form()->singleLineTextField('message')->settings(['disableCaptchas' => true])->create();
     $submission = new Submission();
@@ -29,7 +31,7 @@ function interruptCompletionBeforeDispatch(): array
     };
     Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_STAGE, $listener);
     try {
-        expect(fn() => runSubmissionCommand(submissionCommand(['form' => $form, 'submission' => $submission])))
+        expect(fn() => runSubmissionCommand(submissionCommand(['form' => $form, 'submission' => $submission, 'authority' => $authority ?? new SubmissionAuthority(SubmissionAuthorityType::TRUSTED_INTERNAL, (int)$form->id, null, 'test')])))
             ->toThrow(RuntimeException::class, 'Synthetic interruption');
     } finally {
         Event::off(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_STAGE, $listener);
@@ -37,6 +39,52 @@ function interruptCompletionBeforeDispatch(): array
     $row = (new Query())->from(SubmissionDispatches::TABLE)->where(['submissionId' => $submission->id])->one();
     return [$form, $submission, $row];
 }
+
+it('preserves the initiating actor through durable dispatch recovery', function () {
+    $form = formie()->form()->singleLineTextField('message')->settings(['disableCaptchas' => true])->create();
+    $actor = \craft\elements\User::find()->admin(true)->status(null)->one();
+    $authority = new SubmissionAuthority(SubmissionAuthorityType::CONTROL_PANEL, (int)$form->id, null, 'cp-submit', (int)$actor->id);
+    $submission = new Submission();
+    $submission->setForm($form);
+    $submission->setFieldValue('message', 'Durable authority');
+    $listener = static function ($event) use ($form) {
+        if ($event->command->form->id === $form->id && $event->stage === Stage::PERSIST->value) {
+            throw new RuntimeException('Synthetic interruption after completion commit');
+        }
+    };
+    Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_STAGE, $listener);
+
+    try {
+        expect(fn() => runSubmissionCommand(submissionCommand(['form' => $form, 'submission' => $submission, 'authority' => $authority])))
+            ->toThrow(RuntimeException::class, 'Synthetic interruption');
+    } finally {
+        Event::off(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_AFTER_STAGE, $listener);
+    }
+
+    $row = (new Query())->from(SubmissionDispatches::TABLE)->where(['submissionId' => $submission->id])->one();
+    $stored = json_decode($row['command'], true, flags: JSON_THROW_ON_ERROR);
+    $resumed = null;
+    $capture = static function ($event) use ($form, &$resumed) {
+        if ($event->command->form->id === $form->id && $event->stage === Stage::DISPATCH->value) {
+            $resumed = $event->command->authority;
+        }
+    };
+    Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_STAGE, $capture);
+
+    try {
+        Formie::$plugin->getSubmissionDispatches()->resume((int)$submission->id, $row['uid']);
+    } finally {
+        Event::off(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_STAGE, $capture);
+    }
+
+    expect($stored['authority'])->toBe(SubmissionAuthorityType::CONTROL_PANEL->value)
+        ->and($stored['authorityScope'])->toBe('cp-submit')
+        ->and($stored['actorId'])->toBe((int)$actor->id)
+        ->and($resumed)->toBeInstanceOf(SubmissionAuthority::class)
+        ->and($resumed->type)->toBe(SubmissionAuthorityType::CONTROL_PANEL)
+        ->and($resumed->scope)->toBe('cp-submit')
+        ->and($resumed->actorId)->toBe((int)$actor->id);
+});
 
 it('recovers committed completion intent once without repeating persistence or payment stages', function () {
     [$form, $submission, $row] = interruptCompletionBeforeDispatch();

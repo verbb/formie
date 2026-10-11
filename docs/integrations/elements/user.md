@@ -22,7 +22,7 @@ The attribute mapping supports values like:
 - Last Name
 - Full Name
 - Email
-- Password
+- Password (new users only)
 - Photo
 
 If the native **Addresses** field has been added to your user field layout, address attributes can also be mapped.
@@ -31,3 +31,9 @@ If the native **Addresses** field has been added to your user field layout, addr
 If you turn on **Update Users**, Formie can look for an existing user instead of always creating a new one.
 
 Use **Update Element Mapping** to choose which values should be treated as the match criteria, then use **Merge User Groups** if you want existing group assignments to be kept alongside the groups selected in the integration.
+
+A visitor must be signed in to update an existing account, and can only update their own account. Control panel users can update another account when their Craft permissions allow it. Anonymous submissions can still create new users, but cannot update a matched account.
+
+The **Password (New Users Only)** mapping sets the initial password when the integration creates an account. Existing email addresses and passwords are not changed by this integration. Use Craft's account-management and password-reset flows for those changes.
+
+The activation settings also apply only to accounts created by the integration. Matching an existing pending account does not activate it, send another activation email, or sign the visitor in as that account.

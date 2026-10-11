@@ -60,6 +60,7 @@ class SubmissionDispatches extends Component
             'kind' => $kind, 'status' => 'ready', 'submissionVersion' => $submission->stateVersion,
             'command' => Json::encode([
                 'operation' => $command->operation->value, 'authority' => $command->authority->type->value,
+                'authorityScope' => $command->authority->scope, 'actorId' => $command->authority->actorId,
                 'siteId' => $submission->siteId, 'statusChanged' => $submission->hasStatusChanged(),
                 'spamUnmarked' => $submission->hasSpamChanged(true, false),
                 'sendNotificationsOnSpamUnmark' => $command->sendNotificationsOnSpamUnmark,
@@ -256,7 +257,13 @@ class SubmissionDispatches extends Component
             $command = new SubmissionCommand(
                 SubmissionOperation::from($run->command['operation']),
                 NavigationIntent::STAY,
-                new SubmissionAuthority(SubmissionAuthorityType::from($run->command['authority']), (int)$form->id, $submissionId, 'dispatch:' . $uid),
+                new SubmissionAuthority(
+                    SubmissionAuthorityType::from($run->command['authority']),
+                    (int)$form->id,
+                    $submissionId,
+                    $run->command['authorityScope'] ?? 'dispatch:' . $uid,
+                    isset($run->command['actorId']) ? (int)$run->command['actorId'] : null,
+                ),
                 $form,
                 $submission,
                 $submission->stateVersion,

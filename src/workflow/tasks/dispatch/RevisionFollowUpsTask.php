@@ -20,10 +20,11 @@ class RevisionFollowUpsTask implements TaskInterface
             Formie::$plugin->getNotificationTriggers()->dispatchStatusChange($command->submission, $context->taskState['dispatch.statusChanged'] ?? null);
 
             if ($command->authority->type === SubmissionAuthorityType::CONTROL_PANEL && ($context->taskState['dispatch.spamUnmarked'] ?? $command->submission->hasSpamChanged(true, false))) {
-                Formie::$plugin->getIntegrationTriggers()->dispatchSpamUnmark(
+                Formie::$plugin->getIntegrationTriggers()->dispatchSpamUnmarkWithAuthority(
                     $command->submission,
                     $command->sendNotificationsOnSpamUnmark,
                     $command->triggerIntegrationsOnSpamUnmark,
+                    $command->authority,
                 );
             }
         });

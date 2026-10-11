@@ -17,6 +17,7 @@ final class SubmissionAuthority
         public readonly int $formId,
         public readonly ?int $submissionId,
         public readonly string $scope,
+        public readonly ?int $actorId = null,
     ) {
     }
 }

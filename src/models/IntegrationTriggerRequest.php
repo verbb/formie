@@ -18,4 +18,5 @@ class IntegrationTriggerRequest extends Model
     public ?string $triggerEvent = null;
     public bool $operatorInitiated = false;
     public ?Integration $integration = null;
+    public ?SubmissionAuthority $authority = null;
 }

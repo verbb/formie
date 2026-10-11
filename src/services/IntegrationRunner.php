@@ -73,7 +73,7 @@ class IntegrationRunner extends Component
 
             if ($stopped || !$binding instanceof FormIntegration || !$binding->integration instanceof Integration || !$binding->integration->supportsPayloadSending()) {
                 $result = IntegrationResult::skipped($stopped ? 'previous_step_failed' : 'disabled_or_missing');
-                $context = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, $handle, $executionKey, $triggerContext['execution'] ?? 'synchronous');
+                $context = $this->_executionContext($submission, $handle, $executionKey, $triggerContext['execution'] ?? 'synchronous', $triggerContext);
                 $attempts = Formie::$plugin->getDeliveryAttempts();
                 $uid = $attempts->prepare($context, 'integration');
                 $result = $attempts->execute($uid, fn() => $result);
@@ -95,7 +95,7 @@ class IntegrationRunner extends Component
                 $stopped = true;
             }
         }
-        $this->trigger(self::EVENT_BATCH_COMPLETED, new IntegrationDeliveryEvent(['context' => new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, '@dispatch', $executionKey, $triggerContext['execution'] ?? 'synchronous'), 'batch' => $batch]));
+        $this->trigger(self::EVENT_BATCH_COMPLETED, new IntegrationDeliveryEvent(['context' => $this->_executionContext($submission, '@dispatch', $executionKey, $triggerContext['execution'] ?? 'synchronous', $triggerContext), 'batch' => $batch]));
         return $batch;
     }
 
@@ -106,7 +106,7 @@ class IntegrationRunner extends Component
 
         if (!$mutex->acquire($lock, 10)) {
             $result = IntegrationResult::unknown('binding_running');
-            $this->_reportResult(new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, (string)$connection->handle, $executionKey, $execution), $result);
+            $this->_reportResult($this->_executionContext($submission, (string)$connection->handle, $executionKey, $execution, $triggerContext), $result);
             return $result;
         }
 
@@ -127,7 +127,7 @@ class IntegrationRunner extends Component
             return;
         }
         $identity = $executionKey ?? DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
-        $context = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, '@dispatch', $identity, 'queued');
+        $context = $this->_executionContext($submission, '@dispatch', $identity, 'queued', $triggerContext);
         $bindings = [];
 
         foreach (Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($submission->getForm()) as $binding) {
@@ -176,7 +176,15 @@ class IntegrationRunner extends Component
                 foreach (Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($submission->getForm()) as $binding) {
                     if ($binding->integration->handle === $row['binding']) {
                         $integration = FormIntegration::fromSettings($binding->integration, $data['settings'] ?? [], $submission->formId, $submission->getForm()->handle)->createRuntime();
-                        $result = $this->runIntegration($integration, $submission, $row['executionUid'], $row['execution'], ['triggerEvent' => IntegrationTriggerEvents::SUBMIT, 'operatorInitiated' => true, 'retryAttemptUid' => $uid]);
+                        $original = $attempts->context($uid);
+                        $result = $this->runIntegration($integration, $submission, $row['executionUid'], $row['execution'], [
+                            'triggerEvent' => IntegrationTriggerEvents::SUBMIT,
+                            'operatorInitiated' => true,
+                            'retryAttemptUid' => $uid,
+                            'authorityType' => $original->authorityType,
+                            'authorityScope' => $original->authorityScope,
+                            'actorId' => $original->actorId,
+                        ]);
                         $this->finalizeDelivery($uid, $result);
                         return $result;
                     }
@@ -282,8 +290,11 @@ class IntegrationRunner extends Component
             }
             $overrides = $original->overrides;
             $reason = $original->reason;
+            $triggerContext['authorityType'] = $original->authorityType;
+            $triggerContext['authorityScope'] = $original->authorityScope;
+            $triggerContext['actorId'] = $original->actorId;
         }
-        $context = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, (string)$integration->handle, $executionKey, $execution, $reason, $eligible, $overrides);
+        $context = $this->_executionContext($submission, (string)$integration->handle, $executionKey, $execution, $triggerContext, $reason, $eligible, $overrides);
         $this->trigger(self::EVENT_EVALUATED, new IntegrationDeliveryEvent(['context' => $context]));
 
         if ($invalidConditions || (!$eligible && !$overrides)) {
@@ -348,6 +359,31 @@ class IntegrationRunner extends Component
             $this->trigger(self::EVENT_SKIPPED, new IntegrationDeliveryEvent(['context' => $context, 'result' => $result, 'attemptUid' => $uid]));
         }
         $this->trigger(self::EVENT_RESULT, new IntegrationDeliveryEvent(['context' => $context, 'result' => $result, 'attemptUid' => $uid]));
+    }
+
+    private function _executionContext(
+        Submission $submission,
+        string $binding,
+        string $executionUid,
+        string $execution,
+        array $triggerContext,
+        string $reason = 'automatic',
+        bool $eligible = true,
+        array $overrides = [],
+    ): IntegrationExecutionContext {
+        return new IntegrationExecutionContext(
+            (int)$submission->id,
+            (int)$submission->formId,
+            $binding,
+            $executionUid,
+            $execution,
+            $reason,
+            $eligible,
+            $overrides,
+            isset($triggerContext['authorityType']) ? (string)$triggerContext['authorityType'] : null,
+            isset($triggerContext['authorityScope']) ? (string)$triggerContext['authorityScope'] : null,
+            isset($triggerContext['actorId']) ? (int)$triggerContext['actorId'] : null,
+        );
     }
 
     private function _saveProjection(Integration|string $integration, Submission $submission, IntegrationResult $result, string $executionKey): void

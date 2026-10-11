@@ -170,7 +170,7 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
         ], $method, $contentType);
     }
 
-    public function recordDispatchElement(ElementInterface $element): void
+    public function recordDispatchElement(ElementInterface $element, array $resourceMetadata = []): void
     {
         if (!$element->id) {
             return;
@@ -183,7 +183,7 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
         ];
 
         if ($uid = $this->getDeliveryAttemptUid()) {
-            Formie::$plugin->getDeliveryAttempts()->recordResource($uid, $this->_deliveryState->outputs);
+            Formie::$plugin->getDeliveryAttempts()->recordResource($uid, $this->_deliveryState->outputs + $resourceMetadata);
         }
     }
 

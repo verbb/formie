@@ -71,7 +71,7 @@ class DeliveryAttempts extends Component
         }
 
         if ($row['uid'] === $uid) {
-            $this->checkpoint($uid, 'prepared', ['step' => $step, 'execution' => $context->execution, 'reason' => $context->reason, 'actorId' => $context->overrides ? Craft::$app->getUser()->getId() : null, 'eligible' => $context->eligible, 'overrides' => $context->overrides]);
+            $this->checkpoint($uid, 'prepared', ['step' => $step, 'execution' => $context->execution, 'reason' => $context->reason, 'actorId' => $context->actorId, 'eligible' => $context->eligible, 'overrides' => $context->overrides]);
         }
         Formie::$plugin->getSubmissionDispatches()->refresh($context->submissionId, $context->executionUid);
         return $row['uid'];
