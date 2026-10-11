@@ -656,6 +656,23 @@ Sets the paper orientation for generated PDFs.
 :::
 
 
+::: reference
+#### `pdfTrustedRemoteHosts`
+
+**Type:** `array` · **Default:** `[]`
+
+Allows generated PDFs to load images and other resources from the listed private or reserved hosts. Public HTTP and HTTPS resources work without configuration. Add only hosts you control and intend PDF templates or rich-text fields to access, using hostnames or IP addresses without a scheme or path.
+
+```php [config/formie.php]
+return [
+    'pdfTrustedRemoteHosts' => [
+        'assets.internal.example',
+    ],
+];
+```
+:::
+
+
 ### Theme
 
 ::: reference

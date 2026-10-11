@@ -32,6 +32,18 @@ class StringHelper extends CraftStringHelper
         return HtmlPurifier::process($string);
     }
 
+    public static function cleanRichTextRequest(string $string, bool $allowImages): string
+    {
+        if ($allowImages) {
+            return self::cleanString($string);
+        }
+
+        return HtmlPurifier::process($string, [
+            'HTML.ForbiddenElements' => ['img'],
+            'URI.DisableExternalResources' => true,
+        ]);
+    }
+
     public static function sanitizeMessageHtml(string $string): string
     {
         return trim(HtmlPurifier::process($string));

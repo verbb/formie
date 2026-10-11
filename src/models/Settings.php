@@ -161,6 +161,7 @@ class Settings extends Model
     // PDFs
     public string $pdfPaperSize = 'letter';
     public string $pdfPaperOrientation = 'portrait';
+    public array $pdfTrustedRemoteHosts = [];
     // Theme
     public array $themeConfig = [];
     public bool $useCssLayers = false;

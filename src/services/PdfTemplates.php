@@ -6,6 +6,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\PdfEvent;
 use verbb\formie\events\PdfRenderOptionsEvent;
 use verbb\formie\events\PdfTemplateEvent;
+use verbb\formie\helpers\PdfResourcePolicy;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
@@ -487,6 +488,8 @@ class PdfTemplates extends Component
                 'options' => $options,
             ]));
         }
+
+        (new PdfResourcePolicy($settings->pdfTrustedRemoteHosts))->apply($options);
 
         // Set the options
         $dompdf->setOptions($options);

@@ -7,6 +7,7 @@
 - Added a dedicated optional field-content encryption key, an Encryption settings page, `.env` key generation, key-status and migration commands, resumable re-encryption, previous-key recovery, and read-only handling for unavailable encrypted submission values.
 
 ### Changed
+- Require Dompdf 2.0.3 or later for PDF remote-resource validation.
 - Store integration settings as literal values or environment references instead of encrypting values committed to project config, while retaining read compatibility for beta-encrypted settings.
 - Disable content encryption for new fields until its dedicated key is configured, while allowing existing encrypted fields to remain enabled or be switched off.
 - Use Craft’s security key for disposable operational evidence, unkeyed stable payment fingerprints, and random hashed payment capability tokens so field-content key rotation does not interrupt unrelated operations.
@@ -22,6 +23,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed a medium-severity server-side request forgery vulnerability.
 - Prevent missing or changed encryption keys from displaying encrypted submission content as blank or overwriting unreadable values during saves.
 - Fixed a medium-severity privilege escalation vulnerability.
 - Fixed a medium-severity information disclosure vulnerability.

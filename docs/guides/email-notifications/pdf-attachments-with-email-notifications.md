@@ -22,7 +22,7 @@ Three pieces work together:
 2. **Email notification** — who receives the email and what the message body says
 3. **Attach setting** — notification enables **Attach PDF Template** and picks the template
 
-Global PDF defaults (`pdfPaperSize`, `pdfPaperOrientation`) live in [Configuration](/get-started/configuration).
+Global PDF defaults (`pdfPaperSize`, `pdfPaperOrientation`) live in [Configuration](/get-started/configuration). Public HTTP and HTTPS images work automatically. If a template intentionally loads resources from a private host, add that host to `pdfTrustedRemoteHosts`.
 
 ## Step 1 — Create the Twig Template
 

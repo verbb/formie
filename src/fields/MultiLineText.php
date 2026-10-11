@@ -96,6 +96,16 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
         return (string)$value;
     }
 
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
+    {
+        if ($this->useRichText && is_string($value) && $value !== '') {
+            $buttons = $this->getRichTextButtons() ?? [];
+            $value = StringHelper::cleanRichTextRequest($value, in_array('image', $buttons, true));
+        }
+
+        return parent::normalizeValueFromRequest($value, $element);
+    }
+
     public function getElementConditionRuleType(): ?string
     {
         return TextFieldConditionRule::class;
