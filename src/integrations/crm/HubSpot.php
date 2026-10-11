@@ -663,20 +663,19 @@ class HubSpot extends Crm
                     ],
                 ]);
 
-                $existingCompanyId = $response['results'][0]['id'] ?? '';
+                $companyId = $response['results'][0]['id'] ?? '';
 
-                // Update or create
-                if ($existingCompanyId) {
-                    $response = $this->deliverPayload($submission, "crm/v3/objects/companies/{$existingCompanyId}", $companyPayload, 'PATCH');
-                } else {
+                // A company name is useful for avoiding duplicates, but is not a safe identity
+                // for accepting property updates from a form submission.
+                if (!$companyId) {
                     $response = $this->deliverPayload($submission, 'crm/v3/objects/companies', $companyPayload);
-                }
 
-                if ($response === false) {
-                    return $this->resultForPayload(true);
-                }
+                    if ($response === false) {
+                        return $this->resultForPayload(true);
+                    }
 
-                $companyId = $response['id'] ?? '';
+                    $companyId = $response['id'] ?? '';
+                }
 
                 if (!$companyId) {
                     Integration::error($this, Craft::t('formie', 'Missing return “companyId” {response}. Sent payload {payload}', [
@@ -702,31 +701,8 @@ class HubSpot extends Crm
                     return $this->resultForPayload(false);
                 }
 
-                // Find existing ticket
-                $response = $this->request('POST', 'crm/v3/objects/tickets/search', [
-                    'json' => [
-                        'filterGroups' => [
-                            [
-                                'filters' => [
-                                    [
-                                        'operator' => 'EQ',
-                                        'propertyName' => 'subject',
-                                        'value' => $ticketSubject,
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ]);
-
-                $existingTicketId = $response['results'][0]['id'] ?? '';
-
-                // Update or create
-                if ($existingTicketId) {
-                    $response = $this->deliverPayload($submission, "crm/v3/objects/tickets/{$existingTicketId}", $ticketPayload, 'PATCH');
-                } else {
-                    $response = $this->deliverPayload($submission, 'crm/v3/objects/tickets', $ticketPayload);
-                }
+                // Subjects are not unique identifiers. Every submission represents a new ticket.
+                $response = $this->deliverPayload($submission, 'crm/v3/objects/tickets', $ticketPayload);
 
                 if ($response === false) {
                     return $this->resultForPayload(true);

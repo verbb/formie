@@ -5,12 +5,101 @@ declare(strict_types=1);
 use verbb\formie\helpers\References;
 use verbb\formie\base\Integration;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\elements\Submission;
 use verbb\formie\integrations\crm\HubSpot;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationConfig;
+use verbb\formie\models\IntegrationResult;
 use Tests\Support\IntegrationTestHelper;
 use verbb\formie\helpers\ArrayHelper;
+
+class HubSpotRecordDeliveryFixture extends HubSpot
+{
+    public array $deliveries = [];
+    public array $mappedValues = [];
+    public array $requests = [];
+    public array $searchResults = [];
+
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = null)
+    {
+        return $this->mappedValues[$fieldSettings] ?? [];
+    }
+
+    public function request(string $method, string $uri, array $options = []): mixed
+    {
+        $this->requests[] = compact('method', 'uri', 'options');
+
+        return ['results' => $this->searchResults[$uri] ?? []];
+    }
+
+    public function deliverPayload(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
+    {
+        $this->deliveries[] = compact('endpoint', 'payload', 'method', 'contentType');
+
+        return ['id' => str_contains($endpoint, 'companies') ? 'company-created' : 'ticket-created'];
+    }
+
+    public function executeForTest(Submission $submission): IntegrationResult
+    {
+        return $this->executePayload($submission);
+    }
+}
+
+it('does not overwrite an existing HubSpot company matched by name', function (): void {
+    $form = formie()->form(['title' => 'HubSpot Existing Company'])->singleLineTextField('company')->create();
+    $submission = formie()->submission($form)->with(['company' => 'Acme'])->save();
+    $integration = new HubSpotRecordDeliveryFixture([
+        'name' => 'HubSpot',
+        'handle' => 'hubspot',
+        'mapToCompany' => true,
+    ]);
+    $integration->mappedValues['company'] = ['name' => 'Acme', 'industry' => 'Untrusted update'];
+    $integration->searchResults['crm/v3/objects/companies/search'] = [['id' => 'company-existing']];
+
+    $result = $integration->executeForTest($submission);
+
+    expect($result->status)->toBe(\verbb\formie\enums\IntegrationStatus::Succeeded)
+        ->and($integration->requests)->toHaveCount(1)
+        ->and($integration->deliveries)->toBe([]);
+});
+
+it('creates a HubSpot company when no name match exists', function (): void {
+    $form = formie()->form(['title' => 'HubSpot New Company'])->singleLineTextField('company')->create();
+    $submission = formie()->submission($form)->with(['company' => 'New Company'])->save();
+    $integration = new HubSpotRecordDeliveryFixture([
+        'name' => 'HubSpot',
+        'handle' => 'hubspot',
+        'mapToCompany' => true,
+    ]);
+    $integration->mappedValues['company'] = ['name' => 'New Company'];
+
+    $result = $integration->executeForTest($submission);
+
+    expect($result->status)->toBe(\verbb\formie\enums\IntegrationStatus::Succeeded)
+        ->and($integration->deliveries)->toHaveCount(1)
+        ->and($integration->deliveries[0]['endpoint'])->toBe('crm/v3/objects/companies')
+        ->and($integration->deliveries[0]['method'])->toBe('POST');
+});
+
+it('always creates a new HubSpot ticket even when subjects repeat', function (): void {
+    $form = formie()->form(['title' => 'HubSpot Ticket'])->singleLineTextField('subject')->create();
+    $submission = formie()->submission($form)->with(['subject' => 'Refund request'])->save();
+    $integration = new HubSpotRecordDeliveryFixture([
+        'name' => 'HubSpot',
+        'handle' => 'hubspot',
+        'mapToTicket' => true,
+    ]);
+    $integration->mappedValues['ticket'] = ['subject' => 'Refund request', 'content' => 'A new request'];
+
+    $result = $integration->executeForTest($submission);
+
+    expect($result->status)->toBe(\verbb\formie\enums\IntegrationStatus::Succeeded)
+        ->and($integration->requests)->toBe([])
+        ->and($integration->deliveries)->toHaveCount(1)
+        ->and($integration->deliveries[0]['endpoint'])->toBe('crm/v3/objects/tickets')
+        ->and($integration->deliveries[0]['method'])->toBe('POST');
+});
 
 it('HubSpot EVENT_MODIFY_FIELD_MAPPING_VALUE converts boolean to string true/false', function (): void {
     $form = formie()->form(['title' => 'HubSpot Boolean'])

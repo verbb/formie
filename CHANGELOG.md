@@ -24,6 +24,7 @@
 
 ### Fixed
 - Fixed a medium-severity server-side request forgery vulnerability.
+- Fixed a low-severity CRM data integrity vulnerability.
 - Prevent missing or changed encryption keys from displaying encrypted submission content as blank or overwriting unreadable values during saves.
 - Fixed medium-severity privilege escalation vulnerabilities.
 - Fixed a medium-severity information disclosure vulnerability.
