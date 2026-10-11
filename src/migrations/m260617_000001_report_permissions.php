@@ -19,9 +19,7 @@ class m260617_000001_report_permissions extends Migration
         // directly would create rows Craft can never match, so lowercase everything here.
         $permissions = array_map('strtolower', [
             Permissions::PERM_ACCESS_REPORTS,
-            Permissions::PERM_MANAGE_REPORTS,
             Permissions::PERM_EXPORT_SUBMISSIONS,
-            Permissions::PERM_MANAGE_SCHEDULED_REPORTS,
         ]);
 
         $sourcePermission = strtolower(Permissions::PERM_ACCESS_SUBMISSIONS);
@@ -78,9 +76,7 @@ class m260617_000001_report_permissions extends Migration
         $this->delete(Table::USERPERMISSIONS, [
             'name' => array_map('strtolower', [
                 Permissions::PERM_ACCESS_REPORTS,
-                Permissions::PERM_MANAGE_REPORTS,
                 Permissions::PERM_EXPORT_SUBMISSIONS,
-                Permissions::PERM_MANAGE_SCHEDULED_REPORTS,
             ]),
         ]);
 

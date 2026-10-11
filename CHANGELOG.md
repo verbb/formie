@@ -25,7 +25,7 @@
 ### Fixed
 - Fixed a medium-severity server-side request forgery vulnerability.
 - Prevent missing or changed encryption keys from displaying encrypted submission content as blank or overwriting unreadable values during saves.
-- Fixed a medium-severity privilege escalation vulnerability.
+- Fixed medium-severity privilege escalation vulnerabilities.
 - Fixed a medium-severity information disclosure vulnerability.
 - Fixed a medium-severity submission relation integrity vulnerability.
 - Fixed a medium-severity element query injection vulnerability.
