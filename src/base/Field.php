@@ -1001,7 +1001,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
             if (array_key_exists($this->uid, $config->prefill)) {
                 $found = true;
-                return $this->normalizeValueFromRequest($this->setPrePopulatedValue($config->prefill[$this->uid]), $element);
+                return $this->normalizePrefillValue($this->setPrePopulatedValue($config->prefill[$this->uid]), $element);
             }
         }
         return null;
@@ -1399,6 +1399,11 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     protected function setPrePopulatedValue(mixed $value): mixed
     {
         return $value;
+    }
+
+    protected function normalizePrefillValue(mixed $value, ?ElementInterface $element): mixed
+    {
+        return $this->normalizeValueFromRequest($value, $element);
     }
 
     protected function supportsPlainTextHtmlSanitization(): bool

@@ -154,6 +154,88 @@ class Tags extends ElementField
             ->fixedOrder();
     }
 
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
+    {
+        $tagGroup = $this->_getTagGroup();
+
+        if (!is_string($value) || !$tagGroup) {
+            return parent::normalizeValueFromRequest($value, $element);
+        }
+
+        try {
+            $value = Json::decodeIfJson($value);
+        } catch (Throwable) {
+            return $this->normalizeRequestedElementIds([], $element, true);
+        }
+
+        if (!is_array($value)) {
+            $value = array_map(static fn($tag) => ['value' => $tag], StringHelper::explode($value, ' '));
+        }
+
+        $requestedIds = [];
+        $titles = [];
+        $invalid = false;
+
+        foreach (array_filter($value) as $tagValue) {
+            if (!is_array($tagValue)) {
+                $invalid = true;
+                continue;
+            }
+
+            if (array_key_exists('id', $tagValue)) {
+                $requestedIds[] = $tagValue['id'];
+                continue;
+            }
+
+            $title = $tagValue['value'] ?? null;
+
+            if (!is_string($title) || trim($title) === '') {
+                $invalid = true;
+                continue;
+            }
+
+            $titles[] = trim($title);
+        }
+
+        // Do not create tags for a malformed request that will be rejected anyway.
+        if ($invalid) {
+            return $this->normalizeRequestedElementIds($requestedIds, $element, true);
+        }
+
+        $elementsService = Craft::$app->getElements();
+        $createdOrTypedIds = [];
+
+        foreach ($titles as $title) {
+            $tag = Tag::find()
+                ->group($tagGroup)
+                ->title($title)
+                ->one();
+
+            if (!$tag) {
+                $tag = new Tag();
+                $tag->title = $title;
+                $tag->groupId = $tagGroup->id;
+
+                try {
+                    $elementsService->saveElement($tag, false);
+                } catch (Throwable $exception) {
+                    Formie::error('Failed to save tag: ' . $exception->getMessage());
+                    $invalid = true;
+                    continue;
+                }
+            }
+
+            $createdOrTypedIds[] = (int)$tag->id;
+        }
+
+        return $this->normalizeRequestedElementIds(
+            array_merge($requestedIds, $createdOrTypedIds),
+            $element,
+            $invalid,
+            $createdOrTypedIds,
+        );
+    }
+
     public function getFieldTypeConfigData(): array
     {
         $options = $this->getSourceOptions();

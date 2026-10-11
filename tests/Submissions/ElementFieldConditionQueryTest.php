@@ -9,7 +9,7 @@ use verbb\formie\fields\conditions\ElementFieldConditionRule;
 
 it('matches relation emptiness consistently in queries and loaded submissions', function (string $operator): void {
     $name = 'conditionRelation' . bin2hex(random_bytes(5));
-    $deleted = new User(['username' => $name, 'email' => $name . '@example.test']);
+    $deleted = new User(['username' => $name, 'email' => $name . '@example.test', 'active' => true, 'pending' => false]);
     expect(Craft::$app->getElements()->saveElement($deleted))->toBeTrue();
     $active = User::find()->admin(true)->one();
     $form = formie()->form()->usersField('people')->create();

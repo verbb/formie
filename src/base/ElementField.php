@@ -262,6 +262,21 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         return $query;
     }
 
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
+    {
+        if (!$element instanceof Submission) {
+            return $this->normalizeValue($value, $element);
+        }
+
+        [$ids, $invalid] = $this->_parseRequestedElementIds($value);
+
+        if ($invalid) {
+            $ids = [];
+        }
+
+        return $this->normalizeRequestedElementIds($ids, $element, $invalid);
+    }
+
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
         return (clone $this->normalizeValue($value, $element))->ids();
@@ -270,6 +285,27 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
     public function getElementConditionRuleType(): array|string|null
     {
         return ElementFieldConditionRule::class;
+    }
+
+    public function getElementValidationRules(): array
+    {
+        $rules = parent::getElementValidationRules();
+        $rules[] = [$this->handle, 'validateRequestSelection', 'skipOnEmpty' => false];
+
+        return $rules;
+    }
+
+    public function validateRequestSelection(ElementInterface $element): void
+    {
+        if (!$element instanceof Submission) {
+            return;
+        }
+
+        if (!isset($element->getContentState()->invalidElementSelectionsByPath[$this->valueKey()])) {
+            return;
+        }
+
+        $element->addError($this->valueKey(), Craft::t('formie', 'Select only valid options.'));
     }
 
     public function getElementsQuery(): ElementQueryInterface
@@ -922,6 +958,40 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         return FieldValueType::relationQuery(static::elementType());
     }
 
+    /**
+     * Accept only IDs the field currently offers, while allowing an existing
+     * submission to retain or remove historical selections that became unavailable.
+     */
+    protected function normalizeRequestedElementIds(array $ids, ?ElementInterface $element, bool $invalid = false, array $trustedIds = []): mixed
+    {
+        [$ids, $parseInvalid] = $this->_parseRequestedElementIds($ids);
+        [$trustedIds] = $this->_parseRequestedElementIds($trustedIds);
+        $invalid = $invalid || $parseInvalid;
+        $path = $this->valueKey();
+        $previousIds = $this->_previousElementIds($element);
+        $allowedIds = array_map('intval', (clone $this->getElementsQuery())->ids());
+        $allowed = array_fill_keys(array_merge($allowedIds, $previousIds, $trustedIds), true);
+        $acceptedIds = [];
+
+        foreach ($ids as $id) {
+            if (isset($allowed[$id])) {
+                $acceptedIds[] = $id;
+            } else {
+                $invalid = true;
+            }
+        }
+
+        if ($element instanceof Submission) {
+            if ($invalid) {
+                $element->getContentState()->invalidElementSelectionsByPath[$path] = true;
+            } else {
+                unset($element->getContentState()->invalidElementSelectionsByPath[$path]);
+            }
+        }
+
+        return $this->normalizeValue($acceptedIds, $element);
+    }
+
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {
         $query = clone $this->normalizeValue($value, $element);
@@ -1106,6 +1176,11 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         return $ids;
     }
 
+    protected function normalizePrefillValue(mixed $value, ?ElementInterface $element): mixed
+    {
+        return $this->normalizeValue($value, $element);
+    }
+
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         return implode(', ', array_map(function($item) {
@@ -1275,6 +1350,82 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         }
 
         return null;
+    }
+
+    private function _parseRequestedElementIds(mixed $value): array
+    {
+        if ($value === null || $value === '' || $value === []) {
+            return [[], false];
+        }
+
+        if (!is_array($value) || !array_is_list($value)) {
+            return [[], true];
+        }
+
+        $ids = [];
+        $seen = [];
+        $invalid = false;
+
+        foreach ($value as $item) {
+            if (is_array($item)) {
+                if (!array_key_exists('id', $item)) {
+                    $invalid = true;
+                    continue;
+                }
+
+                $item = $item['id'];
+            }
+
+            if ($item === null || $item === '') {
+                continue;
+            }
+
+            $id = $this->_parsePositiveElementId($item);
+
+            if ($id === null) {
+                $invalid = true;
+                continue;
+            }
+
+            if (!isset($seen[$id])) {
+                $ids[] = $id;
+                $seen[$id] = true;
+            }
+        }
+
+        return [$ids, $invalid];
+    }
+
+    private function _parsePositiveElementId(mixed $value): ?int
+    {
+        if (is_int($value)) {
+            return $value > 0 ? $value : null;
+        }
+
+        if (!is_string($value) || !preg_match('/^[1-9][0-9]*$/D', $value)) {
+            return null;
+        }
+
+        $id = filter_var($value, FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1],
+        ]);
+
+        return is_int($id) ? $id : null;
+    }
+
+    private function _previousElementIds(?ElementInterface $element): array
+    {
+        if (!$element instanceof Submission || !$element->id) {
+            return [];
+        }
+
+        $value = $element->getFieldValue($this->valueKey());
+
+        if (!$value instanceof ElementQueryInterface) {
+            return [];
+        }
+
+        return array_map('intval', (clone $value)->status(null)->ids());
     }
 
     private function _elementToArray(ElementInterface $element)
