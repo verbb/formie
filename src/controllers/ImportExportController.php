@@ -15,8 +15,10 @@ use craft\helpers\Console;
 use craft\helpers\Html;
 use craft\helpers\HtmlPurifier;
 use craft\helpers\Json;
+use craft\helpers\UrlHelper;
 use craft\web\UploadedFile;
 
+use yii\base\InvalidArgumentException;
 use yii\helpers\Markdown;
 use yii\web\HttpException;
 use yii\web\Response;
@@ -72,11 +74,12 @@ class ImportExportController extends SettingsAccessController
             throw new HttpException(404);
         }
 
-        $json = Json::decode(file_get_contents($fileLocation));
+        $json = $this->getFormImportData($fileLocation);
 
-        // Check if this is multiple forms exports (from Forms index) - just use the one
-        if (isset($json[0])) {
-            $json = $json[0];
+        if ($json === null) {
+            $this->setFailFlash(Craft::t('formie', 'This file is not a valid Formie form export.'));
+
+            return $this->redirect(UrlHelper::cpUrl('formie/settings/import-export'));
         }
 
         // Find an existing form with the same handle
@@ -158,7 +161,13 @@ class ImportExportController extends SettingsAccessController
             throw new HttpException(404);
         }
 
-        $json = Json::decode(file_get_contents($fileLocation));
+        $json = $this->getFormImportData($fileLocation);
+
+        if ($json === null) {
+            $this->setFailFlash(Craft::t('formie', 'This file is not a valid Formie form export.'));
+
+            return $this->redirect(UrlHelper::cpUrl('formie/settings/import-export'));
+        }
 
         $form = ImportExportHelper::importFormFromJson($json, $formAction);
 
@@ -215,6 +224,30 @@ class ImportExportController extends SettingsAccessController
 
     // Private Methods
     // =========================================================================
+
+    private function getFormImportData(string $fileLocation): ?array
+    {
+        try {
+            $json = Json::decode(file_get_contents($fileLocation));
+        } catch (InvalidArgumentException) {
+            return null;
+        }
+
+        // Multiple-form exports are reviewed and imported one form at a time.
+        if (is_array($json) && isset($json[0])) {
+            $json = $json[0];
+        }
+
+        if (!is_array($json) ||
+            !is_string($json['handle'] ?? null) ||
+            !is_array($json['pages'] ?? null) ||
+            !is_array($json['notifications'] ?? null)
+        ) {
+            return null;
+        }
+
+        return $json;
+    }
 
     private function stdout(string $string, string $color = ''): void
     {
