@@ -43,9 +43,17 @@ class SugarCrm extends Crm implements OAuthProviderInterface
     }
 
 
+    // Constants
+    // =========================================================================
+
+    private const DEFAULT_CLIENT_ID = 'sugar';
+    private const LEGACY_CLIENT_SECRET = 'sugar';
+
+
     // Properties
     // =========================================================================
 
+    public ?string $clientId = self::DEFAULT_CLIENT_ID;
     public ?string $username = null;
     public ?string $password = null;
     public ?string $apiDomain = null;
@@ -64,11 +72,20 @@ class SugarCrm extends Crm implements OAuthProviderInterface
 
     public function __construct(array $config = [])
     {
-        // Not really needed, due to `password` OAuth grant
-        $config['clientId'] = 'sugar';
-        $config['clientSecret'] = 'sugar';
+        // Sugar's built-in client has no secret, so discard the former placeholder value.
+        if (
+            ($config['clientId'] ?? self::DEFAULT_CLIENT_ID) === self::DEFAULT_CLIENT_ID &&
+            ($config['clientSecret'] ?? null) === self::LEGACY_CLIENT_SECRET
+        ) {
+            $config['clientSecret'] = null;
+        }
 
         parent::__construct($config);
+    }
+
+    public function getClientSecret(): ?string
+    {
+        return App::parseEnv($this->clientSecret) ?? '';
     }
 
     public function getUsername(): string
@@ -283,6 +300,11 @@ class SugarCrm extends Crm implements OAuthProviderInterface
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineRequiredOAuthSettingAttributes(): array
+    {
+        return ['clientId'];
+    }
 
     protected function defineRules(): array
     {
