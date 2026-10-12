@@ -6,10 +6,10 @@ use verbb\formie\elements\SentNotification;
 use verbb\formie\helpers\Table;
 
 use Craft;
+use craft\controllers\ElementIndexesController;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
-use craft\web\Application as WebApplication;
 
 class SentNotificationQuery extends ElementQuery
 {
@@ -138,7 +138,7 @@ class SentNotificationQuery extends ElementQuery
 
     private function _applyElementIndexPermissionScope(): void
     {
-        if (!(Craft::$app instanceof WebApplication) || Craft::$app->getController()?->getUniqueId() !== 'element-indexes') {
+        if (!(Craft::$app->controller instanceof ElementIndexesController)) {
             return;
         }
 

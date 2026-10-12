@@ -13,13 +13,13 @@ use verbb\formie\services\Fields;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\controllers\ElementIndexesController;
 use craft\db\Query;
 use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\web\Application as WebApplication;
 
 use yii\base\UnknownMethodException;
 
@@ -351,7 +351,7 @@ class SubmissionQuery extends ElementQuery
 
     private function _applyElementIndexPermissionScope(): void
     {
-        if (!(Craft::$app instanceof WebApplication) || Craft::$app->getController()?->getUniqueId() !== 'element-indexes') {
+        if (!(Craft::$app->controller instanceof ElementIndexesController)) {
             return;
         }
 
