@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 
 use Throwable;
@@ -43,7 +44,7 @@ class Akismet extends Captcha
 
     public function validateSubmission(Submission $submission): bool
     {
-        $apiKey = Craft::parseEnv($this->apiKey);
+        $apiKey = App::parseEnv($this->apiKey);
         $siteUrl = Craft::$app->getSites()->getCurrentSite()->getBaseUrl();
 
         $client = $this->getClient();

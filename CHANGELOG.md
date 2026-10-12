@@ -7,6 +7,7 @@
 - Added a dedicated optional field-content encryption key, an Encryption settings page, `.env` key generation, key-status and migration commands, resumable re-encryption, previous-key recovery, and read-only handling for unavailable encrypted submission values.
 
 ### Changed
+- Updated Craft API usage to avoid deprecated calls, including user deletion handling through deletion blockers.
 - Require Dompdf 2.0.3 or later for PDF remote-resource validation.
 - Store integration settings as literal values or environment references instead of encrypting values committed to project config, while retaining read compatibility for beta-encrypted settings.
 - Disable content encryption for new fields until its dedicated key is configured, while allowing existing encrypted fields to remain enabled or be switched off.

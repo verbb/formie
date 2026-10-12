@@ -7,6 +7,7 @@ use verbb\formie\elements\exporters\FormExport;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\SentNotification;
 use verbb\formie\elements\Submission;
+use verbb\formie\elements\deletionblockers\UserSubmissionsBlocker;
 use verbb\formie\fields\Forms;
 use verbb\formie\fields\Submissions;
 use verbb\formie\gql\interfaces\FieldInterface;
@@ -52,11 +53,12 @@ use craft\console\Application as ConsoleApplication;
 use craft\console\Controller as ConsoleController;
 use craft\console\controllers\ResaveController;
 use craft\controllers\GraphqlController;
-use craft\controllers\UsersController;
 use craft\elements\exporters\Expanded;
 use craft\elements\exporters\Raw;
 use craft\elements\User as UserElement;
+use craft\enums\CmsEdition;
 use craft\events\DefineConsoleActionsEvent;
+use craft\events\DefineElementDeletionBlockersEvent;
 use craft\events\ExecuteGqlQueryEvent;
 use craft\events\PluginEvent;
 use craft\events\RebuildConfigEvent;
@@ -166,7 +168,7 @@ class Formie extends Plugin
             $this->_registerSiteRoutes();
         }
 
-        if (Craft::$app->getEdition() !== Craft::Solo) {
+        if (Craft::$app->edition !== CmsEdition::Solo) {
             $this->_registerPermissions();
         }
 
@@ -667,9 +669,9 @@ class Formie extends Plugin
             DbSubmissionQuery::invalidateStaticCaches();
         });
 
-        Event::on(UsersController::class, UsersController::EVENT_DEFINE_CONTENT_SUMMARY, [$this->getSubmissions(), 'defineUserSubmissions']);
-        Event::on(UserElement::class, UserElement::EVENT_AFTER_DELETE, [$this->getSubmissions(), 'deleteUserSubmissions']);
-        Event::on(UserElement::class, UserElement::EVENT_AFTER_RESTORE, [$this->getSubmissions(), 'restoreUserSubmissions']);
+        Event::on(UserElement::class, UserElement::EVENT_DEFINE_DELETION_BLOCKERS, function(DefineElementDeletionBlockersEvent $event): void {
+            $event->blockers[] = new UserSubmissionsBlocker($event->elements, $event->hardDelete);
+        });
         Event::on(ElementSources::class, ElementSources::EVENT_DEFINE_SOURCE_TABLE_ATTRIBUTES, [$this->getSubmissions(), 'defineSourceTableAttributes']);
         Event::on(ElementSources::class, ElementSources::EVENT_DEFINE_SOURCE_SORT_OPTIONS, [$this->getSubmissions(), 'defineSourceSortOptions']);
 

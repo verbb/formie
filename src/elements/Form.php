@@ -74,6 +74,7 @@ use craft\elements\actions\Restore;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\Entry;
 use craft\elements\User;
+use craft\enums\CmsEdition;
 use craft\events\DefineElementHtmlEvent;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
@@ -3152,7 +3153,7 @@ class Form extends Element implements FormInterface
                 ],
             ]),
             SchemaHelper::separator([
-                'if' => Craft::$app->edition !== Craft::Solo,
+                'if' => Craft::$app->edition !== CmsEdition::Solo,
             ]),
             [
                 '$el' => 'h3',
@@ -3160,13 +3161,13 @@ class Form extends Element implements FormInterface
                 'attrs' => [
                     'class' => 'form-builder-h3',
                 ],
-                'if' => Craft::$app->edition !== Craft::Solo,
+                'if' => Craft::$app->edition !== CmsEdition::Solo,
             ],
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Use Dedicated Permissions'),
                 'instructions' => Craft::t('formie', 'When enabled, this form appears as its own permission in user group settings. When disabled, access is controlled by global permissions or the form‘s group.'),
                 'name' => 'settings.usePerFormPermissions',
-                'if' => Craft::$app->edition !== Craft::Solo,
+                'if' => Craft::$app->edition !== CmsEdition::Solo,
             ]),
             SchemaHelper::separator(),
             [

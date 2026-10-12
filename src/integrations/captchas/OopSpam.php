@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 
 use Throwable;
@@ -44,7 +45,7 @@ class OopSpam extends Captcha
 
     public function validateSubmission(Submission $submission): bool
     {
-        $apiKey = Craft::parseEnv($this->apiKey);
+        $apiKey = App::parseEnv($this->apiKey);
         $ip = Craft::$app->getRequest()->getUserIP();
         $userAgent = Craft::$app->getRequest()->getUserAgent();
         $referrer = Craft::$app->getRequest()->getReferrer();

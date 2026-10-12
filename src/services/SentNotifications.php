@@ -55,7 +55,7 @@ class SentNotifications extends Component
         $request = Craft::$app->getRequest();
 
         $info['formieVersion'] = 'Formie ' . Formie::$plugin->getVersion();
-        $info['craftVersion'] = 'Craft ' . Craft::$app->getEditionName() . ' ' . Craft::$app->getVersion();
+        $info['craftVersion'] = 'Craft ' . Craft::$app->edition->name . ' ' . Craft::$app->getVersion();
 
         if ($request->getIsConsoleRequest()) {
             $info['ipAddress'] = 'Console Request';

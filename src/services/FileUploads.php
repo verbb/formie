@@ -735,7 +735,6 @@ class FileUploads extends Component
 
                 $submissions = Submission::find()
                     ->formId((int)$form->id)
-                    ->anyStatus()
                     ->status(null)
                     ->isIncomplete(null)
                     ->isSpam(null)

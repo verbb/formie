@@ -9,6 +9,7 @@ use verbb\formie\models\FormTemplate;
 use Craft;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
+use craft\enums\CmsEdition;
 use craft\helpers\Cp;
 use craft\helpers\Db;
 
@@ -202,7 +203,7 @@ class FormQuery extends ElementQuery
         }
 
         // Scope CP form indexes to the forms the current user can view or manage.
-        if (!$this->_skipCpIndexScope && Craft::$app->getRequest()->getIsCpRequest() && Craft::$app->edition !== Craft::Solo) {
+        if (!$this->_skipCpIndexScope && Craft::$app->getRequest()->getIsCpRequest() && Craft::$app->edition !== CmsEdition::Solo) {
             $accessibleFormIds = Formie::$plugin->getPermissions()->getAccessibleFormIds(Craft::$app->getUser()->getIdentity());
 
             if ($accessibleFormIds !== null) {

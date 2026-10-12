@@ -44,7 +44,6 @@ use craft\db\Query;
 use craft\helpers\App;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\MigrationHelper;
 use craft\migrations\BaseContentRefactorMigration;
 
 use Exception;
@@ -198,14 +197,22 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         }
 
         // In case the migration is run again
-        MigrationHelper::dropAllForeignKeysOnTable(Table::FORMIE_FIELD_LAYOUT_PAGES, $this);
-        MigrationHelper::dropAllForeignKeysOnTable(Table::FORMIE_FIELD_LAYOUT_ROWS, $this);
-        MigrationHelper::dropAllForeignKeysOnTable(Table::FORMIE_FIELDS, $this);
-        MigrationHelper::dropAllForeignKeysOnTable(Table::FORMIE_FORM_FIELDS, $this);
-        MigrationHelper::dropAllIndexesOnTable(Table::FORMIE_FIELD_LAYOUT_PAGES, $this);
-        MigrationHelper::dropAllIndexesOnTable(Table::FORMIE_FIELD_LAYOUT_ROWS, $this);
-        MigrationHelper::dropAllIndexesOnTable(Table::FORMIE_FIELDS, $this);
-        MigrationHelper::dropAllIndexesOnTable(Table::FORMIE_FORM_FIELDS, $this);
+        $this->dropForeignKeyIfExists(Table::FORMIE_FIELD_LAYOUT_PAGES, 'layoutId');
+        $this->dropForeignKeyIfExists(Table::FORMIE_FIELD_LAYOUT_ROWS, 'layoutId');
+        $this->dropForeignKeyIfExists(Table::FORMIE_FIELD_LAYOUT_ROWS, 'pageId');
+        $this->dropForeignKeyIfExists(Table::FORMIE_FORM_FIELDS, 'fieldId');
+        $this->dropForeignKeyIfExists(Table::FORMIE_FORM_FIELDS, 'layoutId');
+        $this->dropForeignKeyIfExists(Table::FORMIE_FORM_FIELDS, 'pageId');
+        $this->dropForeignKeyIfExists(Table::FORMIE_FORM_FIELDS, 'rowId');
+        $this->dropIndexIfExists(Table::FORMIE_FIELD_LAYOUT_PAGES, 'layoutId');
+        $this->dropIndexIfExists(Table::FORMIE_FIELD_LAYOUT_ROWS, 'layoutId');
+        $this->dropIndexIfExists(Table::FORMIE_FIELD_LAYOUT_ROWS, 'pageId');
+        $this->dropIndexIfExists(Table::FORMIE_FIELDS, 'handle');
+        $this->dropIndexIfExists(Table::FORMIE_FORM_FIELDS, 'fieldId');
+        $this->dropIndexIfExists(Table::FORMIE_FORM_FIELDS, 'layoutId');
+        $this->dropIndexIfExists(Table::FORMIE_FORM_FIELDS, 'pageId');
+        $this->dropIndexIfExists(Table::FORMIE_FORM_FIELDS, 'rowId');
+        $this->dropIndexIfExists(Table::FORMIE_FORM_FIELDS, 'reference');
 
         $this->dropForeignKeyIfExists(Table::FORMIE_FORMS, ['layoutId']);
         $this->dropIndexIfExists(Table::FORMIE_FORMS, ['layoutId']);
@@ -1605,7 +1612,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
         foreach (Craft::$app->getDb()->schema->getTableNames() as $tableName) {
             if (str_starts_with($tableName, $tablePrefix . 'fmc_') || str_starts_with($tableName, $tablePrefix . 'fmcd_')) {
-                MigrationHelper::dropAllForeignKeysOnTable($tableName, $this);
+                $this->dropAllForeignKeysToTable($tableName);
 
                 $this->dropTableIfExists($tableName);
             }

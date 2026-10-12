@@ -132,6 +132,7 @@ use Craft;
 use craft\base\Component;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
+use craft\enums\CmsEdition;
 use craft\errors\MissingComponentException;
 use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
@@ -257,7 +258,7 @@ class Fields extends Component
             NameLast::class,
         ];
 
-        if (Craft::$app->getEdition() !== Craft::Solo) {
+        if (Craft::$app->edition !== CmsEdition::Solo) {
             $fieldTypes = array_merge($fieldTypes, [
                 Users::class,
             ]);
@@ -391,7 +392,7 @@ class Fields extends Component
         $fields[] = FeedMeTable::class;
         $fields[] = FeedMeTags::class;
 
-        if (Craft::$app->getEdition() !== Craft::Solo) {
+        if (Craft::$app->edition !== CmsEdition::Solo) {
             $fields[] = FeedMeUsers::class;
         }
 
