@@ -312,8 +312,12 @@ class SubmissionQuery extends ElementQuery
         // Group the fields by handle and field UUID
         $fieldsByHandle = [];
 
-        foreach ($this->customFields() as $field) {
-            $fieldsByHandle[$field->handle][$field->uid][] = $field;
+        if ($this->withCustomFields) {
+            foreach ($this->fieldLayouts() as $fieldLayout) {
+                foreach ($fieldLayout->getCustomFields() as $field) {
+                    $fieldsByHandle[$field->handle][$field->uid][] = $field;
+                }
+            }
         }
 
         foreach ($fieldsByHandle as $handle => $instancesByUid) {

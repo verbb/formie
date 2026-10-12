@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Updated user deletion handling to use Craft’s deletion blockers, with options to reassign, unassign, or delete related submissions.
+
 ### Fixed
 - Fix SugarCRM connections sending an invalid placeholder client secret, and allow custom OAuth client credentials. ([#2988](https://github.com/verbb/formie/issues/2988))
 - Fix non-form JSON files causing an error when reviewed for import. ([#3001](https://github.com/verbb/formie/issues/3001))

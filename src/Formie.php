@@ -5,6 +5,7 @@ use verbb\formie\base\PluginTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\SentNotification;
 use verbb\formie\elements\Submission;
+use verbb\formie\elements\deletionblockers\UserSubmissionsBlocker;
 use verbb\formie\elements\exporters\FormExport;
 use verbb\formie\elements\exporters\SubmissionExport;
 use verbb\formie\fields\Forms;
@@ -37,7 +38,6 @@ use verbb\formie\widgets\RecentSubmissions;
 use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
-use craft\controllers\UsersController;
 use craft\console\Application as ConsoleApplication;
 use craft\console\Controller as ConsoleController;
 use craft\console\controllers\ResaveController;
@@ -46,6 +46,7 @@ use craft\elements\exporters\Expanded;
 use craft\elements\exporters\Raw;
 use craft\enums\CmsEdition;
 use craft\events\DefineConsoleActionsEvent;
+use craft\events\DefineElementDeletionBlockersEvent;
 use craft\events\ExecuteGqlQueryEvent;
 use craft\events\FieldLayoutEvent;
 use craft\events\PluginEvent;
@@ -582,9 +583,9 @@ class Formie extends Plugin
 
     private function _registerEventHandlers(): void
     {
-        Event::on(UsersController::class, UsersController::EVENT_DEFINE_CONTENT_SUMMARY, [$this->getSubmissions(), 'defineUserSubmissions']);
-        Event::on(UserElement::class, UserElement::EVENT_AFTER_DELETE, [$this->getSubmissions(), 'deleteUserSubmissions']);
-        Event::on(UserElement::class, UserElement::EVENT_AFTER_RESTORE, [$this->getSubmissions(), 'restoreUserSubmissions']);
+        Event::on(UserElement::class, UserElement::EVENT_DEFINE_DELETION_BLOCKERS, function(DefineElementDeletionBlockersEvent $event): void {
+            $event->blockers[] = new UserSubmissionsBlocker($event->elements, $event->hardDelete);
+        });
         Event::on(ElementSources::class, ElementSources::EVENT_DEFINE_SOURCE_TABLE_ATTRIBUTES, [$this->getSubmissions(), 'defineSourceTableAttributes']);
         Event::on(ElementSources::class, ElementSources::EVENT_DEFINE_SOURCE_SORT_OPTIONS, [$this->getSubmissions(), 'defineSourceSortOptions']);
 
