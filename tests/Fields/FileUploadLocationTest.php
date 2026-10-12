@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use craft\elements\User;
 use craft\errors\InvalidSubpathException;
 use Tests\Support\UploadTestHelper;
 use verbb\formie\elements\Submission;
@@ -129,4 +130,22 @@ it('allows safe Twig in upload location subpaths', function (): void {
     $folder = $method->invoke($field, new Submission());
 
     expect($folder->path)->toBe('sandbox/FOLDER/');
+})->group('security');
+
+it('allows safe submission user properties in upload location subpaths', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $user = User::find()->status(null)->username('formie-seed-user')->one();
+    $field = new FileUpload([
+        'uploadLocationSource' => 'folder:' . $volume->uid,
+        'uploadLocationSubpath' => '{user.fullName|kebab}-{user.id}',
+    ]);
+    $form = formie()->form()->create();
+    $submission = new Submission(['userId' => $user->id]);
+    $submission->setForm($form);
+
+    $method = new ReflectionMethod(FileUpload::class, '_findFolder');
+    $method->setAccessible(true);
+    $folder = $method->invoke($field, $submission);
+
+    expect($folder->path)->toBe('formie-seed-' . $user->id . '/');
 })->group('security');

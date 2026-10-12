@@ -75,6 +75,12 @@ class Templates extends BaseTemplates
             $template = preg_replace_callback('/(?<!\{)\{([a-zA-Z][^{}]*)\}(?!\})/', static function(array $match) use (&$aliases, $prefix, $context, $autoescape): string {
                 $reference = $match[0];
 
+                // User paths are legacy Craft object-template expressions. Leave
+                // them for the sandbox so safe filters such as `kebab` still run.
+                if (str_starts_with($match[1], 'user.')) {
+                    return $reference;
+                }
+
                 // Bare object-template properties were stable filename/subpath syntax.
                 if (in_array($match[1], ['id', 'uid', 'title', 'url'], true)) {
                     $reference = '{submission:' . $match[1] . '}';

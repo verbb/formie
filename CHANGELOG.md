@@ -88,6 +88,7 @@
 - Fixed duplicating forms with Date fields across multiple sites.
 - Fixed variable transform parameters such as list separators being stripped when saved or ignored in HTML output.
 - Fixed variable transform choices ignoring All rows and Row count selections.
+- Fixed logged-in user variables being blocked by the Twig sandbox in File Upload field subpaths.
 - Fixed adding Table rows overwriting existing default or saved rows.
 - Fixed conditional Date/Time fields failing to initialize when shown again.
 - Fixed conditionally hidden date and signature fields retaining their previous values.

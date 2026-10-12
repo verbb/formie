@@ -148,6 +148,12 @@ trait PluginTrait
                 return true;
             }
 
+            // The documented `user.*` object-template values resolve through
+            // this virtual relation, whose properties are separately bounded.
+            if ($property === 'user') {
+                return true;
+            }
+
             if (strncmp($property, 'field:', 6) === 0) {
                 return $submission->getFieldByHandle(substr($property, 6)) !== null;
             }
