@@ -15,7 +15,6 @@ use verbb\formie\services\Stencils;
 use Craft;
 use craft\db\Migration;
 use craft\helpers\Json;
-use craft\helpers\MigrationHelper;
 
 use verbb\auth\Auth;
 
@@ -52,7 +51,7 @@ class Install extends Migration
     protected function afterUp(): void
     {
         $this->insertDefaultData();
-        
+
         parent::afterUp();
     }
 
@@ -571,8 +570,7 @@ class Install extends Migration
 
         foreach ($tables as $table) {
             if ($this->db->tableExists('{{%' . $table . '}}')) {
-                MigrationHelper::dropAllForeignKeysOnTable('{{%' . $table . '}}', $this);
-                MigrationHelper::dropAllForeignKeysToTable('{{%' . $table . '}}', $this);
+                $this->dropAllForeignKeysToTable('{{%' . $table . '}}');
             }
         }
     }

@@ -306,7 +306,7 @@ abstract class Element extends Integration
             CraftFields\Number::class,
             CraftFields\PlainText::class,
             CraftFields\RadioButtons::class,
-            CraftFields\Url::class,
+            CraftFields\Link::class,
         ];
 
         if (in_array($type, $supportedFields, true)) {

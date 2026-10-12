@@ -14,7 +14,6 @@ use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\MigrationHelper;
 use craft\migrations\BaseContentRefactorMigration;
 
 use Throwable;

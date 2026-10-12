@@ -20,7 +20,6 @@ use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\MigrationHelper;
 use craft\migrations\BaseContentRefactorMigration;
 
 use Exception;
@@ -154,14 +153,23 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         if (!$this->db->columnExists(Table::FORMIE_SUBMISSIONS, 'content')) {
             $this->addColumn(Table::FORMIE_SUBMISSIONS, 'content', $this->json()->after('id'));
         }
-        
+
         // In case the migration is run again
-        MigrationHelper::dropAllForeignKeysOnTable(Table::FORMIE_FIELD_LAYOUT_PAGES, $this);
-        MigrationHelper::dropAllForeignKeysOnTable(Table::FORMIE_FIELD_LAYOUT_ROWS, $this);
-        MigrationHelper::dropAllForeignKeysOnTable(Table::FORMIE_FIELDS, $this);
-        MigrationHelper::dropAllIndexesOnTable(Table::FORMIE_FIELD_LAYOUT_PAGES, $this);
-        MigrationHelper::dropAllIndexesOnTable(Table::FORMIE_FIELD_LAYOUT_ROWS, $this);
-        MigrationHelper::dropAllIndexesOnTable(Table::FORMIE_FIELDS, $this);
+        $this->dropForeignKeyIfExists(Table::FORMIE_FIELD_LAYOUT_PAGES, 'layoutId');
+        $this->dropForeignKeyIfExists(Table::FORMIE_FIELD_LAYOUT_ROWS, 'layoutId');
+        $this->dropForeignKeyIfExists(Table::FORMIE_FIELD_LAYOUT_ROWS, 'pageId');
+        $this->dropForeignKeyIfExists(Table::FORMIE_FIELDS, 'layoutId');
+        $this->dropForeignKeyIfExists(Table::FORMIE_FIELDS, 'pageId');
+        $this->dropForeignKeyIfExists(Table::FORMIE_FIELDS, 'rowId');
+        $this->dropForeignKeyIfExists(Table::FORMIE_FIELDS, 'syncId');
+        $this->dropIndexIfExists(Table::FORMIE_FIELD_LAYOUT_PAGES, 'layoutId');
+        $this->dropIndexIfExists(Table::FORMIE_FIELD_LAYOUT_ROWS, 'layoutId');
+        $this->dropIndexIfExists(Table::FORMIE_FIELD_LAYOUT_ROWS, 'pageId');
+        $this->dropIndexIfExists(Table::FORMIE_FIELDS, 'layoutId');
+        $this->dropIndexIfExists(Table::FORMIE_FIELDS, 'pageId');
+        $this->dropIndexIfExists(Table::FORMIE_FIELDS, 'rowId');
+        $this->dropIndexIfExists(Table::FORMIE_FIELDS, 'handle');
+        $this->dropIndexIfExists(Table::FORMIE_FIELDS, 'syncId');
 
         $this->dropForeignKeyIfExists(Table::FORMIE_FORMS, ['layoutId']);
         $this->dropIndexIfExists(Table::FORMIE_FORMS, ['layoutId']);
@@ -225,7 +233,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
             if ($convertedLayoutConfig !== $layoutConfig) {
                 if ($canConvertEmojiShortcodes) {
                     $layoutConfig = $convertedLayoutConfig;
-                } else if (!$emojiShortcodeWarningShown) {
+                } elseif (!$emojiShortcodeWarningShown) {
                     echo "    > Skipping emoji shortcode conversion because Formie layout tables cannot safely store 4-byte emoji characters.\n";
                     echo "    > Run Craft's `db/convert-charset` command, then run `craft formie/repair/emoji-shortcodes`.\n";
 
@@ -283,13 +291,13 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         foreach ($forms as $form) {
             if (!$form['fieldContentTable']) {
                 echo '    > ' . $form['handle'] . ': missing `fieldContentTable`.' . PHP_EOL;
-                
+
                 continue;
             }
 
             if (!$form['layoutId']) {
                 echo '    > ' . $form['handle'] . ': missing `layoutId`.' . PHP_EOL;
-                
+
                 continue;
             }
 
@@ -674,7 +682,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
                 // Don't remove the original content here, instead do at the very end
                 // $this->update('{{%content}}', ['title' => null], ['elementId' => $elementId]);
-            
+
                 echo '    > Updated form #' . $elementId . ' title to ' . $title . '.' . PHP_EOL;
             }
         }
@@ -690,7 +698,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
             if ($title) {
                 $this->update(Table::ELEMENTS_SITES, ['title' => $title], ['elementId' => $elementId]);
-            
+
                 echo '    > Updated submission #' . $elementId . ' title to ' . $title . '.' . PHP_EOL;
             }
         }
@@ -1464,7 +1472,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
         foreach (Craft::$app->getDb()->schema->getTableNames() as $tableName) {
             if (str_starts_with($tableName, $tablePrefix . 'fmc_') || str_starts_with($tableName, $tablePrefix . 'fmcd_')) {
-                MigrationHelper::dropAllForeignKeysOnTable($tableName, $this);
+                $this->dropAllForeignKeysToTable($tableName);
 
                 $this->dropTableIfExists($tableName);
             }

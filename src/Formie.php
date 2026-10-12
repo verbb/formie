@@ -99,7 +99,7 @@ class Formie extends Plugin
 
     public const EVENT_MODIFY_TWIG_ENVIRONMENT = 'modifyTwigEnvironment';
 
-    
+
     // Properties
     // =========================================================================
 
@@ -150,7 +150,7 @@ class Formie extends Plugin
             $this->_registerSiteRoutes();
         }
 
-        if (Craft::$app->getEdition() !== Craft::Solo) {
+        if (Craft::$app->edition !== CmsEdition::Solo) {
             $this->_registerPermissions();
         }
     }
@@ -220,7 +220,7 @@ class Formie extends Plugin
 
     private function _registerTwigExtensions(): void
     {
-        Craft::$app->getView()->registerTwigExtension(new Extension);
+        Craft::$app->getView()->registerTwigExtension(new Extension());
     }
 
     public function _registerSiteRoutes(): void
@@ -233,7 +233,7 @@ class Formie extends Plugin
             $event->rules['formie/payment-webhooks/poll-status'] = 'formie/payment-webhooks/poll-status';
         });
     }
-    
+
     public function _registerCpRoutes(): void
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
@@ -569,11 +569,13 @@ class Formie extends Plugin
                 }
 
                 $msg = $error['message'] ?? null;
+
                 if (!is_string($msg) || $msg === '') {
                     continue;
                 }
 
                 $sanitized = GqlHelper::stripGraphqlSuggestionHints($msg);
+
                 if ($sanitized !== '') {
                     $event->result['errors'][$i]['message'] = $sanitized;
                 }
@@ -773,7 +775,7 @@ class Formie extends Plugin
             $event->actions['formie-forms'] = [
                 'action' => function(): int {
                     $controller = Craft::$app->controller;
-                    
+
                     return $controller->resaveElements(Form::class);
                 },
                 'options' => [],

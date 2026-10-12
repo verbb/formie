@@ -56,7 +56,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public const EVENT_AFTER_FETCH_FORM_SETTINGS = 'afterFetchFormSettings';
     public const EVENT_MODIFY_FIELD_MAPPING_VALUES = 'modifyFieldMappingValues';
     public const EVENT_MODIFY_FIELD_MAPPING_VALUE = 'modifyFieldMappingValue';
-    
+
     public const TYPE_ADDRESS_PROVIDER = 'addressProvider';
     public const TYPE_CAPTCHA = 'captcha';
     public const TYPE_ELEMENT = 'element';
@@ -68,7 +68,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public const TYPE_AUTOMATION = 'automation';
     public const TYPE_MISC = 'miscellaneous';
     public const TYPE_CUSTOM = 'custom';
-    
+
     public const CATEGORY_ADDRESS_PROVIDERS = 'addressProviders';
     public const CATEGORY_CAPTCHAS = 'captchas';
     public const CATEGORY_ELEMENTS = 'elements';
@@ -830,13 +830,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         // For Checkboxes fields, we'll have an object, but let's check for anything iterable just to be safe
         if (is_iterable($fieldValue)) {
             $hasOptedIn = (bool)count($fieldValue);
-        } else if ($field instanceof Agree) {
+        } elseif ($field instanceof Agree) {
             // If this is an agree field, check this is the "Checked Value". This needs to handle strings
             // which won't work as falsey values.
             if ($field->checkedValue !== $fieldValue) {
                 $hasOptedIn = false;
             }
-        } else if (!$fieldValue) {
+        } elseif (!$fieldValue) {
             // For everything else, just a simple 'falsey' check is good enough
             $hasOptedIn = false;
         }
@@ -913,7 +913,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function beforeSaveForm(array $settings): void
     {
-        
+
     }
 
 
@@ -940,15 +940,22 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             ],
         ];
 
-        if (static::supportsOAuthConnection()) {
+        $requiredOAuthSettingAttributes = $this->defineRequiredOAuthSettingAttributes();
+
+        if (static::supportsOAuthConnection() && $requiredOAuthSettingAttributes) {
             $rules[] = [
-                ['clientId', 'clientSecret'], 'required', 'when' => function($model) {
+                $requiredOAuthSettingAttributes, 'required', 'when' => function($model) {
                     return $model->enabled;
                 },
             ];
         }
 
         return $rules;
+    }
+
+    protected function defineRequiredOAuthSettingAttributes(): array
+    {
+        return ['clientId', 'clientSecret'];
     }
 
     protected function defineFormSettingAttributes(): array

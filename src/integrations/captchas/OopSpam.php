@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\web\View;
@@ -36,13 +37,13 @@ class OopSpam extends Captcha
     public function getSettingsHtml(): ?string
     {
         $variables = $this->getSettingsHtmlVariables();
-        
+
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/oop-spam/_plugin-settings', $variables);
     }
 
     public function validateSubmission(Submission $submission): bool
     {
-        $apiKey = Craft::parseEnv($this->apiKey);
+        $apiKey = App::parseEnv($this->apiKey);
         $ip = Craft::$app->getRequest()->getUserIP();
         $userAgent = Craft::$app->getRequest()->getUserAgent();
         $referrer = Craft::$app->getRequest()->getReferrer();

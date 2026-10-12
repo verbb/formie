@@ -201,7 +201,7 @@ class Submissions extends Component
 
                 // Trigger any integrations
                 $this->triggerIntegrations($event->submission);
-            } else if ($submission->isSpam && $settings->spamEmailNotifications) {
+            } elseif ($submission->isSpam && $settings->spamEmailNotifications) {
                 // Special-case for wanting to send emails for spam
                 $this->sendNotifications($event->submission);
             }
@@ -321,7 +321,7 @@ class Submissions extends Component
                 if (!$fieldPage || !$currentPage || $fieldPage->id !== $currentPage->id) {
                     continue;
                 }
-                
+
                 if ($paymentIntegration = $field->getPaymentIntegration()) {
                     // Set the payment field on the integration, for ease-of-use
                     $paymentIntegration->setField($field);

@@ -32,6 +32,7 @@ use verbb\formie\records\FieldLayoutRow as FieldLayoutRowRecord;
 use verbb\formie\records\Field as FieldRecord;
 
 use Craft;
+use craft\enums\CmsEdition;
 use craft\base\Component;
 use craft\base\Field as CraftField;
 use craft\base\FieldInterface as CraftFieldInterface;
@@ -171,7 +172,7 @@ class Fields extends Component
             formiefields\subfields\NameLast::class,
         ];
 
-        if (Craft::$app->getEdition() !== Craft::Solo) {
+        if (Craft::$app->edition !== CmsEdition::Solo) {
             $fieldTypes = array_merge($fieldTypes, [
                 formiefields\Users::class,
             ]);
@@ -214,7 +215,7 @@ class Fields extends Component
                 continue;
             }
 
-            $this->_registeredFields[$class] = new $class;
+            $this->_registeredFields[$class] = new $class();
         }
 
         return $this->_registeredFields;
@@ -284,7 +285,7 @@ class Fields extends Component
             ArrayHelper::remove($registeredFields, formiefields\Tags::class),
         ]);
 
-        if (Craft::$app->getEdition() === Craft::Pro) {
+        if (Craft::$app->edition === CmsEdition::Pro) {
             $elementFields = array_merge($elementFields, array_filter([
                 ArrayHelper::remove($registeredFields, formiefields\Users::class),
             ]));
@@ -399,7 +400,7 @@ class Fields extends Component
         $fields[] = FeedMeField\Table::class;
         $fields[] = FeedMeField\Tags::class;
 
-        if (Craft::$app->getEdition() !== Craft::Solo) {
+        if (Craft::$app->edition !== CmsEdition::Solo) {
             $fields[] = FeedMeField\Users::class;
         }
 
@@ -655,7 +656,7 @@ class Fields extends Component
         foreach ($layout->getPages() as $pageKey => $page) {
             $page->layoutId = $layout->id;
             $page->sortOrder = $pageKey;
-            
+
             if (!$this->savePage($page)) {
                 $transaction->rollBack();
 
@@ -737,7 +738,7 @@ class Fields extends Component
 
         return $value;
     }
-    
+
     public function deleteLayoutById(int $id): bool
     {
         $layout = $this->getLayoutById($id);
@@ -748,7 +749,7 @@ class Fields extends Component
 
         return $this->deleteLayout($layout);
     }
-    
+
     public function deleteLayout(FieldLayout $layout): bool
     {
         if (!$layout->beforeDelete()) {
@@ -810,7 +811,7 @@ class Fields extends Component
 
         return true;
     }
-    
+
     public function deletePageById(int $id): bool
     {
         $page = $this->getPageById($id);
@@ -821,7 +822,7 @@ class Fields extends Component
 
         return $this->deletePage($page);
     }
-    
+
     public function deletePage(FieldLayoutPage $page): bool
     {
         if (!$page->beforeDelete()) {
@@ -894,7 +895,7 @@ class Fields extends Component
 
         return $this->deleteRow($row);
     }
-    
+
     public function deleteRow(FieldLayoutRow $row): bool
     {
         if (!$row->beforeDelete()) {
@@ -943,7 +944,7 @@ class Fields extends Component
         $fieldRecord->sortOrder = $field->sortOrder;
         $fieldRecord->settings = $field->settings;
 
-        // Check if this is a missing field, and swap back its type. 
+        // Check if this is a missing field, and swap back its type.
         // This can commonly happen during a migration, not really from normal use.
         if ($field instanceof formiefields\MissingField) {
             $fieldRecord->type = $field->expectedType;
@@ -966,7 +967,7 @@ class Fields extends Component
 
         return true;
     }
-    
+
     public function deleteFieldById(int $id): bool
     {
         $field = $this->getFieldById($id);
@@ -977,7 +978,7 @@ class Fields extends Component
 
         return $this->deleteField($field);
     }
-    
+
     public function deleteField(Field $field): bool
     {
         if (!$field->beforeDelete()) {

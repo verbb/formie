@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\web\View;
@@ -38,13 +39,13 @@ class Akismet extends Captcha
     public function getSettingsHtml(): ?string
     {
         $variables = $this->getSettingsHtmlVariables();
-        
+
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/akismet/_plugin-settings', $variables);
     }
 
     public function validateSubmission(Submission $submission): bool
     {
-        $apiKey = Craft::parseEnv($this->apiKey);
+        $apiKey = App::parseEnv($this->apiKey);
         $siteUrl = Craft::$app->getSites()->getCurrentSite()->getBaseUrl();
 
         $client = $this->getClient();

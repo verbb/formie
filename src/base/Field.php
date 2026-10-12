@@ -455,10 +455,10 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         if ($value instanceof Serializable) {
             // If the object explicitly defines its savable value, use that
             $value = $value->serialize();
-        } else if ($value instanceof Arrayable) {
+        } elseif ($value instanceof Arrayable) {
             // If it's "arrayable", convert to array
             $value = $value->toArray();
-        } else if ($value instanceof DateTime || DateTimeHelper::isIso8601($value)) {
+        } elseif ($value instanceof DateTime || DateTimeHelper::isIso8601($value)) {
             // Only DateTime objects and ISO-8601 strings should automatically be detected as dates
             $value = Db::prepareDateForDb($value);
         }
@@ -790,7 +790,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
         // Remove empty items, but allow `0` for namespaces
         $names = ArrayHelper::filterEmpty([...$names, $this->handle]);
-        
+
         return implode('.', $names);
     }
 
@@ -1028,7 +1028,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             // The render options are stored on the form for efficiency, so they're only parsed once
             // even if passing in options via `craft.formie.renderField()`.
             $form = $context['form'] ?? $this->getForm();
-            
+
             // Find if there's a config option for this key, either in plugin config or template render options
             $templateConfig = $form->getThemeConfigItem($key);
 
@@ -1408,7 +1408,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             $conditionSettings = $this->getConditions();
             $conditions = $conditionSettings['conditions'] ?? [];
 
-            // Ensure that any custom namespace provided in render options works. 
+            // Ensure that any custom namespace provided in render options works.
             // Note we can't use `this->_namespace` or any of the `namespace()` functions which will be incorrect
             // when referencing nested fields that use sibling conditions.
             $namespace = $this->_customNamespace ?? 'fields';
@@ -1462,7 +1462,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     {
         // Allow events to modify the value
         $value = $this->getValueForEmail($value, $notification, $submission);
-        
+
         $inputOptions = $this->getEmailOptions($submission, $notification, $value, $renderOptions);
         $html = $notification->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
 
@@ -1694,7 +1694,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
         return ($namespace ? $namespace . '.' : '') . $this->getFieldKey();
     }
-    
+
     protected function setPrePopulatedValue(mixed $value): mixed
     {
         return $value;
@@ -1799,7 +1799,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             fields\Tags::class,
             fields\Users::class,
             fields\Variants::class,
-    
+
             fields\subfields\AddressAutoComplete::class,
             fields\subfields\Address1::class,
             fields\subfields\Address2::class,
@@ -2030,7 +2030,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
                 if ($length) {
                     $castType = preg_replace('/\(\d+\)/', "($length)", $castType);
-                } else if ($castType === 'DECIMAL') {
+                } elseif ($castType === 'DECIMAL') {
                     [$precision, $scale] = Db::parseColumnPrecisionAndScale($dbType) ?? [null, null];
 
                     if ($precision && $scale) {
@@ -2051,20 +2051,12 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public function getName(): string
     {
-        // Don't show when upgrading Formie/Craft
-        if (!Craft::$app->getUpdates()->getAreMigrationsPending()) {
-            Craft::$app->getDeprecator()->log(__METHOD__, 'Formie fields’ `name` attribute has been deprecated. Use `label` instead.');
-        }
-
         return (string)$this->label;
     }
 
     public function setName(mixed $name): void
     {
-        // Don't show when upgrading Formie/Craft
-        if (!Craft::$app->getUpdates()->getAreMigrationsPending()) {
-            Craft::$app->getDeprecator()->log(__METHOD__, 'Formie fields’ `name` attribute has been deprecated. Use `label` instead.');
-        }
+        // Craft hydrates this compatibility property while Formie fields remain in Craft's fields table.
     }
 
 }
