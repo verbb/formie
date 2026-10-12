@@ -13,13 +13,26 @@ use yii\base\Action;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 
-function notificationAssetAclFixture(): array
+function notificationAssetAclFixture(bool $withUploads = false): array
 {
-    $form = formie()
-        ->form(['title' => 'Notification Asset ACL'])
-        ->settings(['usePerFormPermissions' => true])
-        ->create();
     $volume = UploadTestHelper::ensureUploadVolume();
+    $factory = formie()
+        ->form(['title' => 'Notification Asset ACL'])
+        ->settings(['usePerFormPermissions' => true]);
+
+    if ($withUploads) {
+        $rows = [['fields' => [[
+            'type' => \verbb\formie\fields\FileUpload::class,
+            'handle' => 'nestedUpload',
+            'label' => 'Nested upload',
+            'restrictFiles' => false,
+        ]]]];
+        $factory->fileUploadField('upload', ['restrictFiles' => false])
+            ->groupField('groupUploads', ['rows' => $rows])
+            ->repeaterField('repeatedUploads', ['rows' => $rows]);
+    }
+
+    $form = $factory->create();
     $asset = UploadTestHelper::seedAsset('notification-asset-' . bin2hex(random_bytes(4)) . '.txt', 'restricted attachment', $volume);
     $name = 'notificationAssetAcl' . bin2hex(random_bytes(6));
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);
@@ -57,6 +70,72 @@ it('requires a control panel request for email preview', function (): void {
         'bodyParams' => ['formId' => 1],
     ]);
 })->group('security');
+
+it('previews and test-sends sample uploads without reading restricted assets', function (bool $attachFiles): void {
+    ['asset' => $asset, 'form' => $form, 'user' => $user] = notificationAssetAclFixture(true);
+    $assetCount = \craft\elements\Asset::find()->status(null)->count();
+    $volumeCount = count(Craft::$app->getVolumes()->getAllVolumes());
+
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($asset, $form, $user, $attachFiles): void {
+        $request->setIsCpRequest(true);
+        $identity = User::find()->id($user->id)->status(null)->one();
+        Craft::$app->getUser()->setIdentity($identity);
+        Craft::$app->set('sites', new \craft\services\Sites());
+
+        expect(Craft::$app->getElements()->canView($asset, $identity))->toBeFalse();
+
+        $controller = new EmailController('formie-email-security', Craft::$app);
+        $preview = $controller->actionPreview()->data;
+
+        expect($preview)->not->toHaveKey('error')
+            ->and($preview['body'])->toContain('sample-upload.txt')
+            ->and($preview['body'])->not->toContain($asset->filename, 'restricted attachment');
+
+        $captured = null;
+        $capture = function ($event) use (&$captured): void {
+            $captured = $event->message->getSymfonyEmail();
+            // Inspect the fully prepared email without delivering mail from the test suite.
+            $event->isValid = false;
+        };
+        $mailer = Craft::$app->getMailer();
+        $mailer->on(\yii\mail\BaseMailer::EVENT_BEFORE_SEND, $capture);
+
+        try {
+            $controller->actionSendTestEmail();
+        } finally {
+            $mailer->off(\yii\mail\BaseMailer::EVENT_BEFORE_SEND, $capture);
+        }
+
+        expect($captured)->not->toBeNull()
+            ->and($captured->getAttachments())->toHaveCount($attachFiles ? 4 : 0);
+
+        foreach ($captured->getAttachments() as $attachment) {
+            expect($attachment->getFilename())->toBe('sample-upload.txt')
+                ->and($attachment->getMediaType() . '/' . $attachment->getMediaSubtype())->toBe('text/plain')
+                ->and($attachment->getBody())->toBe((new \verbb\formie\models\EmailPreviewAsset())->getPreviewContents())
+                ->and($attachment->getBody())->not->toContain('restricted attachment');
+        }
+    }, [
+        'method' => 'POST',
+        'requestUri' => '/admin/actions/formie/email/send-test-email',
+        'bodyParams' => [
+            'formId' => $form->id,
+            'to' => 'recipient@example.test',
+            'notification' => [
+                'name' => 'Sample upload preview',
+                'handle' => 'sampleUploadPreview',
+                'subject' => 'Sample upload',
+                'from' => 'sender@example.test',
+                'to' => 'recipient@example.test',
+                'content' => '{allFields}',
+                'attachFiles' => $attachFiles,
+            ],
+        ],
+    ]);
+
+    expect(\craft\elements\Asset::find()->status(null)->count())->toBe($assetCount)
+        ->and(count(Craft::$app->getVolumes()->getAllVolumes()))->toBe($volumeCount);
+})->with([true, false])->group('security');
 
 it('requires a control panel request for email test-send', function (): void {
     WebRequestTestHelper::withWebRequestContext(function ($request): void {

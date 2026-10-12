@@ -12,6 +12,7 @@ use verbb\formie\helpers\DeliveryDiagnostics;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\jobs\DeliveryJobInterface;
+use verbb\formie\models\EmailPreviewAsset;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 use verbb\formie\references\ReferenceOutputContext;
@@ -703,11 +704,15 @@ class Emails extends Component
     private function _attachAssetsToEmail($assets, Message $message): void
     {
         foreach ($assets as $asset) {
-            $path = Assets::getFullAssetFilePath($asset);
+            $path = null;
 
-            // If a non-local asset, store so we can delete later
-            if (!($asset->getVolume()->getFs() instanceof LocalFsInterface)) {
-                $this->_tempAttachments[] = $path;
+            if (!($asset instanceof EmailPreviewAsset)) {
+                $path = Assets::getFullAssetFilePath($asset);
+
+                // If a non-local asset, store so we can delete later
+                if (!($asset->getVolume()->getFs() instanceof LocalFsInterface)) {
+                    $this->_tempAttachments[] = $path;
+                }
             }
 
             // Check for asset size, 0kb files are technically invalid (or at least spammy)
@@ -725,6 +730,15 @@ class Emails extends Component
                     'filename' => $asset->filename,
                     'size' => $asset->size,
                     'limit' => $maxAttachmentSize,
+                ]);
+
+                continue;
+            }
+
+            if ($asset instanceof EmailPreviewAsset) {
+                $message->attachContent($asset->getPreviewContents(), [
+                    'fileName' => $asset->filename,
+                    'contentType' => $asset->getMimeType(),
                 ]);
 
                 continue;

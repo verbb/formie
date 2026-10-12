@@ -1,0 +1,2 @@
+This is a sample file for a Formie email preview.
+Files uploaded with a real submission will appear here instead.

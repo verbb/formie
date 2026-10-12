@@ -18,6 +18,7 @@ use verbb\formie\helpers\UploadAccess;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
+use verbb\formie\models\EmailPreviewAsset;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SlotTag;
@@ -1152,7 +1153,11 @@ class FileUpload extends ElementField
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
-        return Asset::find()->limit(1);
+        // Keep the usual query contract without falling back to stored assets if its cache is cleared.
+        $query = Asset::find()->id(false);
+        $query->setCachedResult([new EmailPreviewAsset()]);
+
+        return $query;
     }
 
     protected function defineClientRenderedInput(): array
