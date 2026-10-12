@@ -28,6 +28,7 @@ use craft\web\Controller;
 use craft\web\CpScreenResponseBehavior;
 use craft\web\Response as CraftResponse;
 
+use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\MethodNotAllowedHttpException;
 use yii\web\NotFoundHttpException;
@@ -438,9 +439,20 @@ class FormsController extends Controller
         $siteOverrides = Formie::$plugin->getFormSiteOverrides();
         $siteId = (int)($request->getParam('siteId') ?: Craft::$app->getSites()->getCurrentSite()->id);
         $currentUser = Craft::$app->getUser()->getIdentity();
+        $site = Craft::$app->getSites()->getSiteById($siteId);
+        $canTranslateNotifications = false;
+
+        if (!$site) {
+            throw new NotFoundHttpException('Site not found');
+        }
+
+        if (Craft::$app->getIsMultiSite()) {
+            $this->requirePermission('editSite:' . $site->uid);
+        }
 
         if ($formId) {
-            $persistedForm = Formie::$plugin->getForms()->getFormById($formId, $siteId);
+            // Authorize the saved layout before translations or posted settings can change it.
+            $persistedForm = Craft::$app->getElements()->getElementById($formId, Form::class, $siteId);
 
             if (!$persistedForm) {
                 throw new NotFoundHttpException('Form not found');
@@ -448,6 +460,27 @@ class FormsController extends Controller
 
             if (!$currentUser || !Formie::$plugin->getPermissions()->canManageForm($currentUser, $persistedForm)) {
                 throw new ForbiddenHttpException('User is not permitted to perform this action');
+            }
+
+            $canTranslateNotifications = Formie::$plugin->getPermissions()->canShowFormBuilderTab($currentUser, $persistedForm, 'formie-showNotifications');
+            $translations = $request->getBodyParam('translations');
+
+            if (is_string($translations)) {
+                $translations = Json::decodeIfJson($translations);
+            }
+
+            if ($siteOverrides->isEnabled() && $siteId !== $siteOverrides->getSourceSiteId($persistedForm) && is_array($translations)) {
+                $fieldOverrides = $translations['fieldOverrides'] ?? [];
+
+                if (!is_array($fieldOverrides)) {
+                    throw new BadRequestHttpException('Invalid field translations.');
+                }
+
+                $allowedIds = Formie::$plugin->getFieldSiteOverrides()->collectFieldDefinitionIds($persistedForm);
+
+                if (array_diff_key($fieldOverrides, array_fill_keys($allowedIds, true)) !== []) {
+                    throw new ForbiddenHttpException('Field translations are outside this form.');
+                }
             }
         }
 
@@ -637,6 +670,11 @@ class FormsController extends Controller
             && $siteId !== $sourceSiteId
             && is_array($translations)
         ) {
+            // Omitted notification overrides retain their stored values during the merge.
+            if (!$canTranslateNotifications) {
+                unset($translations['notifications']);
+            }
+
             $siteOverrides->saveTranslationBundle((int)$savedForm->id, $siteId, $translations);
         }
 
