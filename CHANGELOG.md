@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix SugarCRM connections sending an invalid placeholder client secret, and allow custom OAuth client credentials. ([#2988](https://github.com/verbb/formie/issues/2988))
 - Fix non-form JSON files causing an error when reviewed for import. ([#3001](https://github.com/verbb/formie/issues/3001))
 - Fix long-running queue workers sending email notifications with settings cached from an earlier job. ([#2998](https://github.com/verbb/formie/issues/2998))
 - Fixed element integration mappings accepting unsupported query or element attributes.
