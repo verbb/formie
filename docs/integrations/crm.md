@@ -1108,6 +1108,7 @@ Follow the below steps to connect to the SugarCRM API.
 1. Enter the username for your SugarCRM account in the **Username** field in Formie.
 1. Enter the password for your SugarCRM account in the **Password** field in Formie.
 1. Enter the full domain (including `https://`) for your SugarCRM account in the **Domain** field in Formie.
+1. Leave **Client ID** set to `sugar` and **Client Secret** blank to use SugarCRM's built-in OAuth client. If your SugarCRM administrator has created a dedicated OAuth Key for Formie, enter its client ID and optional secret instead.
 
 ### Step 3. Test Connection
 1. Save this integration.
