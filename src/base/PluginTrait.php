@@ -35,6 +35,7 @@ use verbb\base\services\Templates as BaseTemplates;
 
 use Craft;
 use craft\base\Model;
+use craft\elements\User;
 use craft\fields\data\OptionData;
 
 use yii\base\Event;
@@ -88,7 +89,7 @@ trait PluginTrait
             }
         }
 
-        return parent::__construct($id, $parent , $config);
+        return parent::__construct($id, $parent, $config);
     }
 
     public function getEmails(): Emails
@@ -248,9 +249,9 @@ trait PluginTrait
                 return true;
             }
 
-            // `formName` is a documented Formie variable backed by a safe
-            // virtual Submission property rather than a native attribute.
-            if ($property === 'formName') {
+            // These documented object-template values are backed by safe
+            // virtual Submission properties rather than native attributes.
+            if (in_array($property, ['formName', 'user'], true)) {
                 return true;
             }
 
@@ -259,6 +260,14 @@ trait PluginTrait
             }
 
             return $submission->getFieldByHandle($property) !== null;
+        };
+
+        $event->allowedProperties[User::class] = function(User $user, string $property): bool {
+            if (in_array($property, ['id', 'email', 'username', 'fullName', 'firstName', 'lastName'], true)) {
+                return true;
+            }
+
+            return $user->getFieldLayout()?->getFieldByHandle($property) !== null;
         };
 
         Event::trigger(self::class, self::EVENT_MODIFY_TWIG_ENVIRONMENT, $event);

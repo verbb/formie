@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fix long-running queue workers sending email notifications with settings cached from an earlier job. ([#2998](https://github.com/verbb/formie/issues/2998))
+- Fix logged-in user variables being blocked by the Twig sandbox in File Upload field subpaths.
 - Fix `{systemEmail}`, `{systemReplyTo}`, and `{systemName}` resolving to literal environment variable names in email notifications. ([#2997](https://github.com/verbb/formie/issues/2997))
 
 ## 2.2.38 - 2026-10-02
