@@ -38,4 +38,31 @@
     errors: integration.getErrors('apiDomain'),
 }) }}
 
+<hr>
+
+<h2>{{ 'OAuth Client' | t('formie') }}</h2>
+
+<p>{{ 'Use SugarCRM’s built-in OAuth client, or enter the credentials for a custom OAuth Key.' | t('formie') }}</p>
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Client ID' | t('formie'),
+    instructions: 'Leave this as `sugar` to use SugarCRM’s built-in OAuth client.' | t('formie'),
+    name: 'clientId',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.clientId ?? 'sugar',
+    warning: macros.configWarning('clientId', 'formie'),
+    errors: integration.getErrors('clientId'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Client Secret' | t('formie'),
+    instructions: 'Leave this blank for the built-in `sugar` client, or enter the secret for a custom OAuth Key.' | t('formie'),
+    name: 'clientSecret',
+    suggestEnvVars: true,
+    value: integration.settings.clientSecret ?? '',
+    warning: macros.configWarning('clientSecret', 'formie'),
+    errors: integration.getErrors('clientSecret'),
+}) }}
+
 {% endblock %}
