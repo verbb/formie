@@ -32,6 +32,7 @@ use verbb\formie\services\Templates;
 use verbb\formie\web\assets\forms\FormsAsset;
 
 use Craft;
+use craft\elements\User;
 
 use verbb\base\LogTrait;
 use verbb\base\helpers\Plugin;
@@ -56,7 +57,7 @@ trait PluginTrait
     // =========================================================================
 
     use LogTrait;
-    
+
 
     // Static Methods
     // =========================================================================
@@ -94,9 +95,9 @@ trait PluginTrait
                 return true;
             }
 
-            // These scalar metadata values are backed by safe virtual
+            // These documented object-template values are backed by safe
             // Submission properties rather than native attributes.
-            if (in_array($property, ['formName', 'formHandle', 'siteHandle'], true)) {
+            if (in_array($property, ['formName', 'formHandle', 'siteHandle', 'user'], true)) {
                 return true;
             }
 
@@ -105,6 +106,14 @@ trait PluginTrait
             }
 
             return $submission->getFieldByHandle($property) !== null;
+        };
+
+        $event->allowedProperties[User::class] = function(User $user, string $property): bool {
+            if (in_array($property, ['id', 'email', 'username', 'fullName', 'firstName', 'lastName'], true)) {
+                return true;
+            }
+
+            return $user->getFieldLayout()?->getFieldByHandle($property) !== null;
         };
 
         Event::trigger(self::class, self::EVENT_MODIFY_TWIG_ENVIRONMENT, $event);
@@ -177,7 +186,7 @@ trait PluginTrait
             }
         }
 
-        return parent::__construct($id, $parent , $config);
+        return parent::__construct($id, $parent, $config);
     }
 
     public function getCountries(): Countries
