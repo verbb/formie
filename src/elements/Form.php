@@ -2228,6 +2228,7 @@ class Form extends Element implements FormInterface
 
         // A permanent form deletion cascades its submission records before afterDelete().
         $this->_submissionsToDelete = Submission::find()
+            ->withoutCpIndexScope()
             ->formId($this->id)
             ->site('*')->unique()
             ->status(null)
@@ -2258,7 +2259,8 @@ class Form extends Element implements FormInterface
             $submission->deletedWithOwner = true;
 
             if (!$elementsService->deleteElement($submission, $this->hardDelete)) {
-                Formie::error("Unable to delete submission ”{$submission->id}” for form ”{$this->id}”: " . Json::encode($submission->getErrors()) . ".");
+                // Abort Craft's enclosing transaction rather than leave a partial cascade.
+                throw new RuntimeException("Unable to delete submission ”{$submission->id}” for form ”{$this->id}”: " . Json::encode($submission->getErrors()) . ".");
             }
         }
 
@@ -2299,13 +2301,14 @@ class Form extends Element implements FormInterface
     public function afterRestore(): void
     {
         // Restore only submissions that were trashed with this form.
-        $submissions = Submission::find()->formId($this->id)->site('*')->unique()->status(null)->trashed(true)
+        $submissions = Submission::find()->withoutCpIndexScope()->formId($this->id)->site('*')->unique()->status(null)->trashed(true)
             ->andWhere(['elements.deletedWithOwner' => true])->all();
         $elementsService = Craft::$app->getElements();
 
         foreach ($submissions as $submission) {
             if (!$elementsService->restoreElement($submission)) {
-                Formie::error("Unable to restore submission ”{$submission->id}” for form ”{$this->id}”: " . Json::encode($submission->getErrors()) . ".");
+                // Restore the form and its owned submissions together or roll back.
+                throw new RuntimeException("Unable to restore submission ”{$submission->id}” for form ”{$this->id}”: " . Json::encode($submission->getErrors()) . ".");
             }
         }
 

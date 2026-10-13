@@ -250,7 +250,7 @@
 - Fix Zoho picklist mappings sending option metadata IDs instead of their API values. ([#2959](https://github.com/verbb/formie/issues/2959))
 - Reject invalid date filters before deleting submissions from console commands.
 - Preserve submission edits made while queued field moves are running.
-- Preserve form fields and submission data when restoring deleted forms, and clean up child submissions and configured uploads on permanent deletion.
+- Preserve form fields and owned submissions across deletion and restoration, retain shared uploads during cleanup, and abort partial cascades when a child operation fails.
 - Preserve zero values in group and repeater value projections.
 - Enforce unique values for fields inside groups and repeaters.
 - Stop enforcing saved number bounds in server and client validation when limits are disabled.

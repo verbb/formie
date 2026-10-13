@@ -763,7 +763,7 @@ class FileUploads extends Component
         }
 
         // Formie stores field values in JSON rather than Craft relation rows.
-        foreach (Submission::find()->site('*')->unique()->isIncomplete(null)->isSpam(null)->status(null)->trashed(null)->each() as $submission) {
+        foreach (Submission::find()->withoutCpIndexScope()->site('*')->unique()->isIncomplete(null)->isSpam(null)->status(null)->trashed(null)->each() as $submission) {
             if ($exceptSubmissionId === (int)$submission->id && $exceptContentKey === null) {
                 continue;
             }

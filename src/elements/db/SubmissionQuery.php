@@ -76,10 +76,19 @@ class SubmissionQuery extends ElementQuery
     private ?array $_availableFieldHandles = null;
     private ?array $_resolvedFormIdsCache = null;
     private ?string $_resolvedFormIdsCacheKey = null;
+    private bool $_skipCpIndexScope = false;
 
 
     // Public Methods
     // =========================================================================
+
+    /** @internal Callers must authorize lifecycle operations independently of index visibility. */
+    public function withoutCpIndexScope(): static
+    {
+        $this->_skipCpIndexScope = true;
+
+        return $this;
+    }
 
     public function __call($name, $params)
     {
@@ -340,7 +349,7 @@ class SubmissionQuery extends ElementQuery
 
     private function _applyElementIndexPermissionScope(): void
     {
-        if (!(Craft::$app instanceof WebApplication) || Craft::$app->controller?->getUniqueId() !== 'element-indexes') {
+        if ($this->_skipCpIndexScope || !(Craft::$app instanceof WebApplication) || Craft::$app->controller?->getUniqueId() !== 'element-indexes') {
             return;
         }
 

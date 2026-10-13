@@ -395,7 +395,7 @@ class Permissions extends Component
         }
 
         if (!$form) {
-            return true;
+            return false;
         }
 
         if ($user->can($this->scopedPermission(self::PERM_VIEW_SUBMISSIONS, $this->formScope($form)))) {
@@ -470,7 +470,7 @@ class Permissions extends Component
         }
 
         if (!$form) {
-            return true;
+            return false;
         }
 
         if ($user->can($this->scopedPermission(self::PERM_VIEW_SENT_NOTIFICATIONS, $this->formScope($form)))) {

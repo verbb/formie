@@ -268,6 +268,10 @@ class SubmissionsController extends Controller
             throw new HttpException(404);
         }
 
+        if ($variables['submission']->id && (int)$variables['submission']->formId !== (int)$form->id) {
+            throw new HttpException(404);
+        }
+
         if (!$variables['submission']->canView($currentUser)) {
             throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
