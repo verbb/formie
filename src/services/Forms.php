@@ -20,6 +20,7 @@ use verbb\formie\integrations\elements\User as UserIntegration;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\LayoutSaveContext;
 use verbb\formie\records\Form as FormRecord;
+use verbb\formie\references\ReferenceSlot;
 
 use Craft;
 use craft\base\Component;
@@ -266,11 +267,11 @@ class Forms extends Component
         return $this->_populateFormFromPost(new Form(), allowNotificationChanges: $allowNotificationChanges);
     }
 
-    public function buildStencilFormFromPost(): Form
+    public function buildStencilFormFromPost(?array $oldIntegrationPolicySettings = null): Form
     {
         return $this->_populateFormFromPost(new Form([
             'builderEntityType' => Form::BUILDER_ENTITY_TYPE_STENCIL,
-        ]), applyDefaultStencil: false);
+        ]), applyDefaultStencil: false, oldIntegrationPolicySettings: $oldIntegrationPolicySettings);
     }
 
     public function getFormBuilderVariables(Form $form, ?int $activeSiteId = null): array
@@ -589,26 +590,24 @@ class Forms extends Component
         $this->_requireUserGroupAssignmentAccess($form, $oldIntegrationSettings, $user);
     }
 
-    public function requireGlobalUserGroupAssignmentAccess(UserIntegration $integration, ?UserIntegration $previous, UserElement $user): void
+    public function requireGlobalUserGroupAssignmentAccess(UserIntegration $integration, ?UserIntegration $previous, UserElement $user, array $settings = []): void
     {
         $groupUids = $this->_normalizeUserGroupUids($integration, $integration->groupUids);
         $oldGroupUids = $previous
             ? $this->_normalizeUserGroupUids($previous, $previous->groupUids)
             : [];
+        $policy = $this->_userGroupGrantPolicy($integration, $settings);
+        $policyChanged = $previous && $policy !== $this->_userGroupGrantPolicy($previous);
         $isEnabling = $previous && !$previous->getEnabled() && $integration->getEnabled();
-        $groupUidsToAuthorize = $isEnabling ? $groupUids : array_diff($groupUids, $oldGroupUids);
-
-        foreach ($groupUidsToAuthorize as $groupUid) {
-            $group = Craft::$app->getUserGroups()->getGroupByUid($groupUid);
-
-            if ($group && !$user->can("assignUserGroup:$group->uid")) {
-                throw new ForbiddenHttpException(Craft::t('formie', 'Your account does not have permission to assign the user group “{name}”.', [
-                    'name' => $group->name,
-                ]));
-            }
-        }
+        $groupUidsToAuthorize = ($isEnabling || $policyChanged) ? $groupUids : array_diff($groupUids, $oldGroupUids);
+        $this->_requireAssignableUserGroups($groupUidsToAuthorize, $user);
 
         $integration->groupUids = $groupUids;
+        $integration->setAttributes($policy, false);
+
+        if ($policyChanged) {
+            $this->_requireInheritedUserGroupPolicyAccess($integration, $previous, $user);
+        }
     }
 
 
@@ -657,7 +656,7 @@ class Forms extends Component
         return $element;
     }
 
-    private function _populateFormFromPost(Form $form, bool $applyDefaultStencil = true, bool $allowNotificationChanges = false): Form
+    private function _populateFormFromPost(Form $form, bool $applyDefaultStencil = true, bool $allowNotificationChanges = false, ?array $oldIntegrationPolicySettings = null): Form
     {
         $request = Craft::$app->getRequest();
         $bodyParams = $request->getBodyParams();
@@ -747,7 +746,7 @@ class Forms extends Component
         }
 
         if ($user && $canManageIntegrations) {
-            $this->_requireUserGroupAssignmentAccess($form, $oldIntegrationSettings, $user);
+            $this->_requireUserGroupAssignmentAccess($form, $oldIntegrationSettings, $user, $oldIntegrationPolicySettings);
         }
 
         if (!$canManageNotifications) {
@@ -759,9 +758,9 @@ class Forms extends Component
 
     /**
      * Require Craft's native assignment permission for newly configured groups,
-     * and for all retained groups when a disabled integration is enabled.
+     * and for retained groups when enabling or changing how they are granted.
      */
-    private function _requireUserGroupAssignmentAccess(Form $form, array $oldIntegrationSettings, UserElement $user): void
+    private function _requireUserGroupAssignmentAccess(Form $form, array $oldIntegrationSettings, UserElement $user, ?array $oldIntegrationPolicySettings = null): void
     {
         foreach ($form->settings->integrations ?? [] as $handle => $settings) {
             if (!is_string($handle) || !is_array($settings)) {
@@ -780,21 +779,102 @@ class Forms extends Component
             $isEnabling = is_array($oldSettings)
                 && !(bool)($oldSettings['enabled'] ?? false)
                 && (bool)($settings['enabled'] ?? false);
+            $oldPolicySettings = ($oldIntegrationPolicySettings ?? $oldIntegrationSettings)[$handle] ?? [];
+            $policy = $this->_userGroupGrantPolicy($integration, $settings);
+            $policyChanged = $policy !== $this->_userGroupGrantPolicy($integration, is_array($oldPolicySettings) ? $oldPolicySettings : []);
             $groupUidsToAuthorize = $isEnabling ? $groupUids : array_diff($groupUids, $oldGroupUids);
 
-            foreach ($groupUidsToAuthorize as $groupUid) {
-                $group = is_string($groupUid) ? Craft::$app->getUserGroups()->getGroupByUid($groupUid) : null;
+            if ($policyChanged) {
+                // Missing groups inherit the definition; an explicit empty list overrides it.
+                $effectiveGroups = array_key_exists('groupUids', $settings)
+                    ? $groupUids
+                    : $this->_normalizeUserGroupUids($integration, $integration->groupUids);
+                $groupUidsToAuthorize = array_merge($groupUidsToAuthorize, $effectiveGroups);
+            }
 
-                if ($group && !$user->can("assignUserGroup:$group->uid")) {
-                    throw new ForbiddenHttpException(Craft::t('formie', 'Your account does not have permission to assign the user group “{name}”.', [
-                        'name' => $group->name,
-                    ]));
-                }
+            $this->_requireAssignableUserGroups($groupUidsToAuthorize, $user);
+
+            // Persist only supplied keys so future global changes still propagate.
+            foreach (array_intersect_key($policy, $settings) as $attribute => $value) {
+                $form->settings->integrations[$handle][$attribute] = $value;
             }
 
             // An omitted setting must keep inheriting the integration's global default.
             if (array_key_exists('groupUids', $settings)) {
                 $form->settings->integrations[$handle]['groupUids'] = $groupUids;
+            }
+        }
+    }
+
+    private function _requireAssignableUserGroups(array $groupUids, UserElement $user): void
+    {
+        foreach (array_unique($groupUids) as $groupUid) {
+            $group = Craft::$app->getUserGroups()->getGroupByUid($groupUid);
+
+            if ($group && !$user->can("assignUserGroup:$group->uid")) {
+                throw new ForbiddenHttpException(Craft::t('formie', 'Your account does not have permission to assign the user group “{name}”.', [
+                    'name' => $group->name,
+                ]));
+            }
+        }
+    }
+
+    private function _userGroupGrantPolicy(UserIntegration $integration, array $settings = []): array
+    {
+        $policy = $integration->getAttributes(['updateElement', 'updateElementMapping', 'mergeUserGroups', 'activateUser']);
+        $policy = IntegrationSecrets::reveal(array_replace($policy, array_intersect_key($settings, $policy)));
+
+        // Reject unreadable wrappers before boolean typecasting can discard them.
+        if (IntegrationSecrets::containsUnavailable($policy)) {
+            throw new BadRequestHttpException('User group settings contain unavailable encrypted values.');
+        }
+
+        Typecast::properties($integration::class, $policy);
+        $policy = IntegrationSecrets::reveal($policy);
+
+        // JSON mappings can contain legacy values that only become visible after decoding.
+        if (IntegrationSecrets::containsUnavailable($policy)) {
+            throw new BadRequestHttpException('User group settings contain unavailable encrypted values.');
+        }
+
+        Typecast::properties($integration::class, $policy);
+
+        foreach ($policy['updateElementMapping'] as &$mapping) {
+            // Runtime skips legacy `none` mappings even if they also declare a slot kind.
+            if (is_array($mapping) && ($mapping['type'] ?? null) === 'none') {
+                $mapping = '';
+            }
+
+            $mapping = ReferenceSlot::fromStored($mapping)->toArray();
+        }
+        unset($mapping);
+        ksort($policy['updateElementMapping']);
+
+        return $policy;
+    }
+
+    private function _requireInheritedUserGroupPolicyAccess(UserIntegration $integration, UserIntegration $previous, UserElement $user): void
+    {
+        // A binding may supply its own groups while inheriting the changed global behavior.
+        // Read persisted settings directly, including dormant bindings, without hydrating forms.
+        foreach ([Table::FORMIE_FORMS => 'settings', Table::FORMIE_STENCILS => 'data'] as $table => $column) {
+            foreach ((new Query())->select([$column])->from($table)->each() as $row) {
+                $data = $row[$column];
+
+                // Match the bounded legacy decoding used when loading site stencils.
+                for ($layer = 0; $layer < 2 && is_string($data); $layer++) {
+                    $data = Json::decodeIfJson($data);
+                }
+
+                $settings = Json::decodeIfJson($column === 'data' ? ($data['settings'] ?? []) : $data);
+                $binding = $settings['integrations'][$integration->handle] ?? null;
+
+                if (!is_array($binding) || $this->_userGroupGrantPolicy($previous, $binding) === $this->_userGroupGrantPolicy($integration, $binding)) {
+                    continue;
+                }
+
+                $groups = array_key_exists('groupUids', $binding) ? $binding['groupUids'] : $integration->groupUids;
+                $this->_requireAssignableUserGroups($this->_normalizeUserGroupUids($integration, $groups), $user);
             }
         }
     }

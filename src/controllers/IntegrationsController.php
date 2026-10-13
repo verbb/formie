@@ -100,6 +100,7 @@ class IntegrationsController extends Controller
                 $integration,
                 $savedIntegration instanceof UserIntegration ? $savedIntegration : null,
                 $user,
+                $settings,
             );
         }
 

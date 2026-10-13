@@ -171,6 +171,8 @@ class StencilsController extends Controller
             $stencil->setDefaultStatus($status);
         }
 
+        // Keep the saved policy baseline before replacing the editable stencil data.
+        $oldIntegrationPolicySettings = ($duplicate || $duplicateToSite) ? [] : ($stencil->data->settings->integrations ?? []);
         $storedTranslations = $stencil->data->translations ?? [];
         $stencil->data = new StencilData([
             'translations' => $storedTranslations,
@@ -180,7 +182,7 @@ class StencilsController extends Controller
         $stencil->data->dataRetention = $request->getParam('dataRetention', $stencil->data->dataRetention);
         $stencil->data->dataRetentionValue = $request->getParam('dataRetentionValue', $stencil->data->dataRetentionValue);
 
-        $form = Formie::$plugin->getForms()->buildStencilFormFromPost();
+        $form = Formie::$plugin->getForms()->buildStencilFormFromPost($oldIntegrationPolicySettings);
         $stencil->data->populateFormData($form);
 
         $translations = $request->getBodyParam('translations');

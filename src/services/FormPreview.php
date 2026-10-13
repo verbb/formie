@@ -71,8 +71,12 @@ class FormPreview extends Component
             $isStencil = ($bodyParams['entityType'] ?? '') === 'stencil'
                 || ($bodyParams['isStencil'] ?? false);
 
+            $stencilId = $isStencil ? $request->getParam('stencilId') : null;
+            $stencil = $stencilId ? Formie::$plugin->getStencils()->getStencilById((int)$stencilId) : null;
+
+            // Unchanged previews use the same saved policy baseline as stencil edits.
             $form = $isStencil
-                ? Formie::$plugin->getForms()->buildStencilFormFromPost()
+                ? Formie::$plugin->getForms()->buildStencilFormFromPost($stencil?->data->settings->integrations ?? [])
                 : Formie::$plugin->getForms()->buildFormFromPost();
         } finally {
             $request->setBodyParams($originalBodyParams);
