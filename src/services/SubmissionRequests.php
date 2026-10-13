@@ -979,7 +979,8 @@ class SubmissionRequests extends Component
 
     private function _findSubmissionByUid(?string $submissionUid, ?bool $isIncomplete = true, ?int $formId = null): ?Submission
     {
-        if (!is_string($submissionUid) || trim($submissionUid) === '') {
+        // This identifies one submission; Craft's UID criterion also accepts search operators.
+        if (!is_string($submissionUid) || !preg_match('/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i', trim($submissionUid))) {
             return null;
         }
 
