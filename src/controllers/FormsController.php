@@ -712,6 +712,21 @@ class FormsController extends Controller
         $this->requirePostRequest();
         $this->requirePermission('formie-accessStencils');
 
+        // Authorize the persisted source before posted settings can change its group.
+        if ($sourceId = $this->request->getParam('id')) {
+            $source = Craft::$app->getElements()->getElementById(
+                $sourceId,
+                Form::class,
+                $this->request->getParam('siteId'),
+            );
+
+            if (!$source) {
+                throw new NotFoundHttpException('Form not found');
+            }
+
+            $this->_requireFormManageAccess($source);
+        }
+
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
         $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');
         $handle = $this->request->getParam('handle');
