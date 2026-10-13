@@ -726,6 +726,26 @@ class Integrations extends Component
         return null;
     }
 
+    /** Resolve definitions for authorization without applying builder visibility or enablement. */
+    public function getFormIntegrationDefinitionByHandle(string $handle): ?IntegrationInterface
+    {
+        $integrationsByHandle = [];
+        $hasHandlers = $this->hasEventHandlers(self::EVENT_MODIFY_FORM_INTEGRATION);
+
+        // Match runtime replacement order, including handles changed by extensions.
+        foreach (array_merge($this->getAllIntegrations(), $this->getAllCaptchas()) as $integration) {
+            if ($hasHandlers) {
+                $event = new ModifyFormIntegrationEvent(['integration' => $integration]);
+                $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATION, $event);
+                $integration = $event->integration;
+            }
+
+            $integrationsByHandle[$integration->handle] = $integration;
+        }
+
+        return $integrationsByHandle[$handle] ?? null;
+    }
+
     public function filterIntegrationFormSettings(IntegrationInterface $integration, array $settings): array
     {
         if (is_callable([$integration, 'hasFormSettings']) && !$integration::hasFormSettings()) {

@@ -737,7 +737,7 @@ class Forms extends Component
                 continue;
             }
 
-            $integration = Formie::$plugin->getIntegrations()->getFormIntegrationByHandle($handle);
+            $integration = Formie::$plugin->getIntegrations()->getFormIntegrationDefinitionByHandle($handle);
 
             if (!$integration instanceof UserIntegration) {
                 continue;
