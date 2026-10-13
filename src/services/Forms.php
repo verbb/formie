@@ -10,6 +10,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\gql\SchemaSnapshot;
 use verbb\formie\helpers\FormSerializer;
 use verbb\formie\helpers\HandleHelper;
+use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -30,10 +31,12 @@ use craft\elements\User as UserElement;
 use craft\errors\GqlException;
 use craft\helpers\Cp;
 use craft\helpers\Json;
+use craft\helpers\Typecast;
 use craft\helpers\UrlHelper;
 use craft\models\GqlSchema;
 
 use yii\base\Exception;
+use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 
 use Throwable;
@@ -741,8 +744,8 @@ class Forms extends Component
             }
 
             $oldSettings = $oldIntegrationSettings[$handle] ?? [];
-            $oldGroupUids = is_array($oldSettings) ? (array)($oldSettings['groupUids'] ?? []) : [];
-            $groupUids = (array)($settings['groupUids'] ?? []);
+            $oldGroupUids = $this->_normalizeUserGroupUids($integration, is_array($oldSettings) ? ($oldSettings['groupUids'] ?? []) : []);
+            $groupUids = $this->_normalizeUserGroupUids($integration, $settings['groupUids'] ?? []);
             $isEnabling = is_array($oldSettings)
                 && !(bool)($oldSettings['enabled'] ?? false)
                 && (bool)($settings['enabled'] ?? false);
@@ -757,7 +760,35 @@ class Forms extends Component
                     ]));
                 }
             }
+
+            // An omitted setting must keep inheriting the integration's global default.
+            if (array_key_exists('groupUids', $settings)) {
+                $form->settings->integrations[$handle]['groupUids'] = $groupUids;
+            }
         }
+    }
+
+    private function _normalizeUserGroupUids(UserIntegration $integration, mixed $value): array
+    {
+        // Match stored-settings loading and runtime hydration before checking permissions.
+        $attributes = IntegrationSecrets::reveal(['groupUids' => $value]);
+        Typecast::properties($integration::class, $attributes);
+
+        // Decoded JSON can expose legacy values that would otherwise change on the next load.
+        $attributes = IntegrationSecrets::reveal($attributes);
+        $groups = $attributes['groupUids'];
+
+        if (!is_array($groups) || IntegrationSecrets::containsUnavailable($groups)) {
+            throw new BadRequestHttpException('User group assignments must be a list of group UIDs.');
+        }
+
+        foreach ($groups as $groupUid) {
+            if (!is_string($groupUid) || $groupUid === '') {
+                throw new BadRequestHttpException('User group assignments must be a list of group UIDs.');
+            }
+        }
+
+        return $groups;
     }
 
     private function _normalizeBuilderFieldReferences(array &$bodyParams): void
