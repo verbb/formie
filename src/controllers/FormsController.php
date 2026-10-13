@@ -759,6 +759,14 @@ class FormsController extends Controller
         // Build temp form for validation.
         $form = Formie::$plugin->getForms()->buildFormFromPost(allowNotificationChanges: true);
 
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (!$user) {
+            throw new ForbiddenHttpException('User is not permitted to copy user group assignments');
+        }
+
+        Formie::$plugin->getForms()->requireUserGroupCopyAccess($form, $user);
+
         // Populate the stencil data with data prepped for the form
         $stencil->data->populateFormData($form);
         Formie::$plugin->getStencils()->populateTranslationBundlesFromForm($stencil, $form);

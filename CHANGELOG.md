@@ -28,7 +28,7 @@
 - Fixed a low-severity CRM data integrity vulnerability.
 - Prevent missing or changed encryption keys from displaying encrypted submission content as blank or overwriting unreadable values during saves.
 - Fixed medium-severity privilege escalation vulnerabilities.
-- Fixed a low-severity privilege escalation vulnerability.
+- Fixed low-severity privilege escalation vulnerabilities.
 - Fixed medium-severity information disclosure vulnerabilities.
 - Fixed low-severity information disclosure vulnerabilities.
 - Fixed a medium-severity submission relation integrity vulnerability.

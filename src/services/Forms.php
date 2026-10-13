@@ -19,6 +19,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\integrations\elements\User as UserIntegration;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\LayoutSaveContext;
+use verbb\formie\models\StencilData;
 use verbb\formie\records\Form as FormRecord;
 use verbb\formie\references\ReferenceSlot;
 
@@ -588,6 +589,29 @@ class Forms extends Component
     public function requireUserGroupAssignmentAccess(Form $form, array $oldIntegrationSettings, UserElement $user): void
     {
         $this->_requireUserGroupAssignmentAccess($form, $oldIntegrationSettings, $user);
+    }
+
+    public function requireUserGroupCopyAccess(Form $form, UserElement $user): void
+    {
+        // Check only the enabled settings that will survive stencil serialization.
+        $settings = StencilData::getSerializedFormSettings($form->settings);
+
+        foreach ($settings['integrations'] ?? [] as $handle => $binding) {
+            $integration = Formie::$plugin->getIntegrations()->getFormIntegrationDefinitionByHandle($handle);
+
+            if (!$integration instanceof UserIntegration) {
+                continue;
+            }
+
+            $groups = array_key_exists('groupUids', $binding) ? $binding['groupUids'] : $integration->groupUids;
+            $groups = $this->_normalizeUserGroupUids($integration, $groups);
+            $this->_requireAssignableUserGroups($groups, $user);
+
+            // Preserve omitted defaults while retaining the checked explicit representation.
+            if (array_key_exists('groupUids', $binding)) {
+                $form->settings->integrations[$handle]['groupUids'] = $groups;
+            }
+        }
     }
 
     public function requireGlobalUserGroupAssignmentAccess(UserIntegration $integration, ?UserIntegration $previous, UserElement $user, array $settings = []): void
