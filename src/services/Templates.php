@@ -2,13 +2,12 @@
 namespace verbb\formie\services;
 
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\data\ElementFieldData;
 
 use Craft;
-use craft\elements\db\ElementQueryInterface;
 
 use yii\base\Model;
 
-use ArrayAccess;
 use Closure;
 use DateTimeInterface;
 
@@ -37,14 +36,15 @@ class Templates extends BaseTemplates
         $this->allowedFilters = array_values(array_unique(array_merge($this->getDefaultSandboxedAllowedFilters(), $this->additionalAllowedFilters)));
         $this->allowedFunctions = array_values(array_unique(array_merge($this->getDefaultSandboxedAllowedFunctions(), $this->additionalAllowedFunctions)));
         $this->allowedMethods = $this->getDefaultSandboxedAllowedMethods();
+        $this->allowedMethods[ElementFieldData::class] = ['one', 'all', 'count'];
 
         foreach ($this->additionalAllowedMethods as $class => $methods) {
             $this->allowedMethods[$class] = array_values(array_unique(array_merge($this->allowedMethods[$class] ?? [], (array)$methods)));
         }
 
         $this->allowedProperties = $this->getDefaultSandboxedAllowedProperties();
-        $this->allowedProperties[ElementQueryInterface::class] = static function(ElementQueryInterface $query, string $property): bool {
-            return ctype_digit($property) && $query instanceof ArrayAccess;
+        $this->allowedProperties[ElementFieldData::class] = static function(ElementFieldData $value, string $property): bool {
+            return ctype_digit($property);
         };
 
         foreach ($this->additionalAllowedProperties as $class => $additional) {

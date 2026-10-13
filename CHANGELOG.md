@@ -12,7 +12,7 @@
 - Fix long-running queue workers sending email notifications with settings cached from an earlier job. ([#2998](https://github.com/verbb/formie/issues/2998))
 - Fixed element integration mappings accepting unsupported query or element attributes.
 - Fixed element field option ordering accepting unsupported query expressions.
-- Fixed Entries and other element field handles rendering empty in email notification Twig, including query methods and numeric indexing. ([#2996](https://github.com/verbb/formie/issues/2996))
+- Fixed Entries and other element field handles rendering empty in email notification Twig, including query methods, length checks and numeric indexing. ([#2996](https://github.com/verbb/formie/issues/2996))
 - Fix logged-in user variables being blocked by the Twig sandbox in File Upload field subpaths.
 - Fix `{systemEmail}`, `{systemReplyTo}`, and `{systemName}` resolving to literal environment variable names in email notifications. ([#2997](https://github.com/verbb/formie/issues/2997))
 - Fixed form notification settings accepting changes without the corresponding form-builder permission.

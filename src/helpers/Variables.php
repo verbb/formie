@@ -9,13 +9,15 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ParseVariablesEvent;
 use verbb\formie\events\RegisterVariablesEvent;
+use verbb\formie\fields;
+use verbb\formie\fields\data\ElementFieldData;
 use verbb\formie\fields\data\MultiOptionsFieldData;
 use verbb\formie\fields\data\SingleOptionFieldData;
-use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\Notification;
 
 use Craft;
+use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\fields\BaseRelationField;
 use craft\helpers\App;
@@ -419,7 +421,17 @@ class Variables
                 continue;
             }
 
-            $variables[$handle] = $submission->getFieldValue($handle);
+            $fieldValue = $submission->getFieldValue($handle);
+
+            // Relation fields return mutable element queries, whose array and
+            // length semantics differ from the selected elements they represent.
+            // Expose a read-only collection so common Twig access stays safe and
+            // consistent across one(), indexing, loops and length checks.
+            if ($fieldValue instanceof ElementQueryInterface) {
+                $fieldValue = new ElementFieldData($fieldValue);
+            }
+
+            $variables[$handle] = $fieldValue;
         }
 
         return $variables;
