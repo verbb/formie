@@ -118,17 +118,14 @@ it('rejects managed site submissions that try to continue by raw submission uid 
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
 
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission): void {
-        $result = runManagedSubmission(new ManagedSubmissionRequest([
+        expect(fn() => runManagedSubmission(new ManagedSubmissionRequest([
             'handle' => $form->handle,
             'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'siteId' => (int)$submission->siteId,
             'submissionUid' => (string)$submission->uid,
             'submitAction' => 'submit',
             'fieldParamNamespace' => 'fields',
-        ]));
-
-        expect($result->command->submission->id)->not->toBe((int)$submission->id)
-            ->and($result->command->submission->getFieldValue('fullName'))->toBe('Attacker Rewrite');
+        ])))->toThrow(ForbiddenHttpException::class);
 
         $freshSubmission = \verbb\formie\elements\Submission::find()
             ->id((int)$submission->id)

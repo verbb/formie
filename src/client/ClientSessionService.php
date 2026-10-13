@@ -44,7 +44,15 @@ class ClientSessionService extends Component
     public function refreshSession(SessionRefreshRequest $request, bool $enforceAbuseLimit = false): FormSession
     {
         $form = Formie::$plugin->getSubmissionRequests()->requireFormByHandle($request->handle, $request->siteId);
-        Formie::$plugin->getSubmissionRequests()->applyFormRequestContext($form, null, $request->session['continuation']['draftContext'] ?? null, $request->session['tokens']['request'] ?? null);
+        $requests = Formie::$plugin->getSubmissionRequests();
+        $requests->applyClientRequestContext($form, $request->session);
+
+        if ($authorizeScope = $request->getScopeAuthorizer()) {
+            if (!$authorizeScope($form, $requests->getRequiredClientMutationScope($form, $request->session))) {
+                throw new ForbiddenHttpException('Submission is unavailable.');
+            }
+        }
+
         $form->resetRequestToken();
 
         if (($request->session['continuation']['purpose'] ?? null) === SubmissionGrants::REVISE) {
@@ -84,6 +92,7 @@ class ClientSessionService extends Component
             'session' => $request->session,
             'values' => $request->values,
             'operationId' => $request->operationId,
+            'scopeAuthorizer' => $request->getScopeAuthorizer(),
         ]), SubmissionAuthorityType::VISITOR);
         return $result;
     }

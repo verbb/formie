@@ -76,11 +76,16 @@ class ClientFormResolver
             throw new BadRequestHttpException('Unable to verify your data submission.');
         }
 
-        $session = Formie::$plugin->getClientSessionService()->refreshSession(new SessionRefreshRequest([
-            'handle' => (string)($payload['handle'] ?? ''),
-            'siteId' => isset($payload['siteId']) ? (int)$payload['siteId'] : null,
-            'session' => (array)($payload['session'] ?? []),
-        ]), true);
+        try {
+            $session = Formie::$plugin->getClientSessionService()->refreshSession(new SessionRefreshRequest([
+                'handle' => (string)($payload['handle'] ?? ''),
+                'siteId' => isset($payload['siteId']) ? (int)$payload['siteId'] : null,
+                'session' => (array)($payload['session'] ?? []),
+                'scopeAuthorizer' => self::_authorizeResolvedScope(...),
+            ]), true);
+        } catch (ForbiddenHttpException) {
+            throw new Error('Unable to perform the action.');
+        }
 
         return $session->toArrayRecursive();
     }
@@ -109,6 +114,7 @@ class ClientFormResolver
         }
 
         $session = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
+            'scopeAuthorizer' => self::_authorizeResolvedScope(...),
             'handle' => (string)($payload['handle'] ?? ''),
             'siteId' => isset($payload['siteId']) ? (int)$payload['siteId'] : null,
             'currentPageId' => $payload['currentPageId'] ?? null,
@@ -145,6 +151,7 @@ class ClientFormResolver
         }
 
         $result = Formie::$plugin->getSubmissionRequests()->execute(new SubmitRequest([
+            'scopeAuthorizer' => self::_authorizeResolvedScope(...),
             'handle' => (string)($payload['handle'] ?? ''),
             'action' => (string)($payload['action'] ?? 'submit'),
             'browserData' => (array)($payload['browserData'] ?? []),
@@ -169,8 +176,13 @@ class ClientFormResolver
             return false;
         }
 
-        return $scope === 'save'
+        return self::_authorizeResolvedScope($form, $scope);
+    }
+
+    private static function _authorizeResolvedScope(Form $form, string $scope): bool
+    {
+        return GqlHelper::canReadForm($form) && ($scope === 'save'
             ? GqlHelper::canSaveSubmissionsForForm($form)
-            : GqlHelper::canCreateSubmissionsForForm($form);
+            : GqlHelper::canCreateSubmissionsForForm($form));
     }
 }

@@ -341,3 +341,216 @@ it('denies forged revision state to save-only GraphQL schemas', function (): voi
     expect((string)$reloaded?->getFieldValue('fullName'))->toBe('Original')
         ->and((int)Submission::find()->formId($form->id)->status(null)->isIncomplete(null)->count())->toBe(1);
 })->group('security');
+
+it('uses the resolved portable target when client continuation hints are altered', function (string $operation, string $alteration, bool $automaticRestore): void {
+    ['form' => $form, 'submission' => $submission, 'grant' => $grant] = clientMutationPortableContinueFixture();
+    $form->settings->automaticSubmissionState = $automaticRestore;
+    expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
+
+    withClientMutationGraphqlRequest([
+        'formieForms.' . $form->uid . ':read',
+        'formieSubmissions.' . $form->uid . ':create',
+    ], function () use ($form, $grant, $operation, $alteration): void {
+        $bootstrap = ClientFormResolver::resolveForm(null, [
+            'handle' => (string)$form->handle,
+            'grantToken' => $grant->token,
+            'draftContext' => 'portable-target',
+        ]);
+        $session = $bootstrap['session'];
+        $session['continuation']['progressId'] = (string)$grant->progressId;
+        unset($session['continuation']['grantToken']);
+
+        if ($alteration === 'missing-progress') {
+            unset($session['continuation']['progressId']);
+        } elseif ($alteration === 'wrong-progress') {
+            $session['continuation']['progressId'] = 999999999;
+        } else {
+            $session['continuation']['draftContext'] = 'unbound-context';
+        }
+
+        $input = [
+            'handle' => (string)$form->handle,
+            'session' => $session,
+            'values' => ['fullName' => 'Blocked'],
+        ];
+
+        if ($operation === 'refreshSession') {
+            expect(fn() => ClientFormResolver::refreshSession(null, ['input' => $input]))
+                ->toThrow(Error::class, 'Unable to perform the action.');
+        } else {
+            $result = ClientFormResolver::$operation(null, ['input' => $input]);
+            expect($result['success'])->toBeFalse()->and($result['httpStatus'])->toBe(403);
+        }
+    });
+
+    $reloaded = Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->one();
+    expect((string)$reloaded?->getFieldValue('fullName'))->toBe('Original')
+        ->and($reloaded?->isIncomplete)->toBeTrue()
+        ->and($reloaded?->stateVersion)->toBe($submission->stateVersion)
+        ->and((int)Submission::find()->formId($form->id)->status(null)->isIncomplete(null)->count())->toBe(1);
+})->with(['submitForm', 'setPage', 'refreshSession'])->with([['missing-progress', true], ['wrong-progress', true], ['raw-context', true], ['raw-context', false]])->group('security');
+
+it('denies fresh signed contexts to save-only schemas despite portable raw hints', function (string $operation): void {
+    ['form' => $form, 'grant' => $grant] = clientMutationPortableContinueFixture();
+
+    withClientMutationGraphqlRequest([
+        'formieForms.' . $form->uid . ':read',
+        'formieSubmissions.' . $form->uid . ':save',
+    ], function () use ($form, $grant, $operation): void {
+        $portable = ClientFormResolver::resolveForm(null, [
+            'handle' => (string)$form->handle,
+            'grantToken' => $grant->token,
+            'draftContext' => 'portable-context',
+        ]);
+        $fresh = ClientFormResolver::resolveForm(null, [
+            'handle' => (string)$form->handle,
+            'draftContext' => 'fresh-context',
+        ]);
+        $session = $fresh['session'];
+        $session['continuation']['draftContext'] = $portable['session']['continuation']['draftContext'];
+        $session['continuation']['progressId'] = $portable['session']['continuation']['progressId'];
+        unset($session['continuation']['grantToken']);
+        $input = ['handle' => (string)$form->handle, 'session' => $session, 'values' => ['fullName' => 'Blocked']];
+
+        if ($operation === 'refreshSession') {
+            expect(fn() => ClientFormResolver::refreshSession(null, ['input' => $input]))
+                ->toThrow(Error::class, 'Unable to perform the action.');
+        } else {
+            $result = ClientFormResolver::$operation(null, ['input' => $input]);
+            expect($result['success'])->toBeFalse()->and($result['httpStatus'])->toBe(403);
+        }
+    });
+
+    expect((int)Submission::find()->formId($form->id)->status(null)->isIncomplete(null)->count())->toBe(1);
+})->with(['submitForm', 'setPage', 'refreshSession'])->group('security');
+
+it('preserves portable refresh and completion with only the signed draft context', function (): void {
+    ['form' => $form, 'submission' => $submission, 'grant' => $grant] = clientMutationPortableContinueFixture();
+
+    withClientMutationGraphqlRequest([
+        'formieForms.' . $form->uid . ':read',
+        'formieSubmissions.' . $form->uid . ':save',
+    ], function () use ($form, $submission, $grant): void {
+        $bootstrap = ClientFormResolver::resolveForm(null, [
+            'handle' => (string)$form->handle,
+            'grantToken' => $grant->token,
+            'draftContext' => 'signed-only',
+        ]);
+        $session = $bootstrap['session'];
+        unset($session['continuation']['draftContext']);
+        $refreshed = ClientFormResolver::refreshSession(null, [
+            'input' => ['handle' => (string)$form->handle, 'session' => $session],
+        ]);
+        expect($refreshed['continuation']['draftContext'])->toBe('signed-only');
+        $result = ClientFormResolver::submitForm(null, [
+            'input' => ['handle' => (string)$form->handle, 'session' => $refreshed, 'values' => ['fullName' => 'Continued']],
+        ]);
+        expect($result['success'])->toBeTrue()->and($result['submissionUid'])->toBe($submission->uid);
+    });
+})->group('security');
+
+it('enforces server-owned authorization at each execution boundary without serializing it', function (string $operation): void {
+    ['form' => $form, 'submission' => $submission, 'grant' => $grant] = clientMutationPortableContinueFixture();
+
+    withClientMutationGraphqlRequest(['formieForms.' . $form->uid . ':read'], function () use ($form, $grant, $operation): void {
+        $bootstrap = ClientFormResolver::resolveForm(null, ['handle' => (string)$form->handle]);
+        $session = $bootstrap['session'];
+        $session['continuation']['grantToken'] = $grant->token;
+        $calls = [];
+        $class = match ($operation) {
+            'submit' => \verbb\formie\client\models\SubmitRequest::class,
+            'page' => \verbb\formie\client\models\PageTransitionRequest::class,
+            'refresh' => \verbb\formie\client\models\SessionRefreshRequest::class,
+        };
+        $request = new $class([
+            'handle' => (string)$form->handle,
+            'session' => $session,
+            'scopeAuthorizer' => static function ($resolvedForm, $scope) use (&$calls): bool {
+                $calls[] = [$resolvedForm->id, $scope];
+                return false;
+            },
+        ]);
+        expect($request->toArrayRecursive())->not->toHaveKey('scopeAuthorizer')->not->toHaveKey('_scopeAuthorizer');
+
+        if ($operation === 'refresh') {
+            expect(fn() => Formie::$plugin->getClientSessionService()->refreshSession($request))
+                ->toThrow(\yii\web\ForbiddenHttpException::class);
+        } else {
+            $request->values = ['fullName' => 'Blocked'];
+            $result = $operation === 'submit'
+                ? Formie::$plugin->getSubmissionRequests()->execute($request, \verbb\formie\enums\SubmissionAuthorityType::VISITOR)
+                : Formie::$plugin->getClientSessionService()->persistPageState($request);
+            expect($result->success)->toBeFalse()->and($result->httpStatus)->toBe(403);
+        }
+
+        expect($calls)->toBe([[$form->id, 'save']])
+            ->and((int)(new Query())->from(Table::FORMIE_SUBMISSION_GRANTS)->where(['parentId' => $grant->id])->count())->toBe(0);
+    });
+
+    $reloaded = Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->one();
+    expect((string)$reloaded?->getFieldValue('fullName'))->toBe('Original')->and($reloaded?->stateVersion)->toBe($submission->stateVersion);
+})->with(['submit', 'page', 'refresh'])->group('security');
+
+it('rechecks GraphQL scope if the execution target changes after preflight', function (): void {
+    ['form' => $form, 'submission' => $submission, 'grant' => $grant] = clientMutationPortableContinueFixture();
+
+    withClientMutationGraphqlRequest([
+        'formieForms.' . $form->uid . ':read',
+        'formieSubmissions.' . $form->uid . ':create',
+    ], function () use ($form, $grant): void {
+        $fresh = ClientFormResolver::resolveForm(null, ['handle' => (string)$form->handle, 'draftContext' => 'fresh']);
+        $portable = ClientFormResolver::resolveForm(null, [
+            'handle' => (string)$form->handle,
+            'grantToken' => $grant->token,
+            'draftContext' => 'portable',
+        ]);
+        $original = Formie::$plugin->getSubmissionRequests();
+        $changedTarget = new class extends \verbb\formie\services\SubmissionRequests {
+            public array $replacementSession;
+
+            public function execute(\verbb\formie\client\models\SubmitRequest $input, \verbb\formie\enums\SubmissionAuthorityType $authorityType): \verbb\formie\client\models\SubmitResult
+            {
+                $input->session = $this->replacementSession;
+                return parent::execute($input, $authorityType);
+            }
+        };
+        $changedTarget->replacementSession = $portable['session'];
+        Formie::$plugin->set('submissionRequests', $changedTarget);
+
+        try {
+            $result = ClientFormResolver::submitForm(null, [
+                'input' => ['handle' => (string)$form->handle, 'session' => $fresh['session'], 'values' => ['fullName' => 'Blocked']],
+            ]);
+            expect($result['success'])->toBeFalse()->and($result['httpStatus'])->toBe(403);
+        } finally {
+            Formie::$plugin->set('submissionRequests', $original);
+        }
+    });
+
+    $reloaded = Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->one();
+    expect((string)$reloaded?->getFieldValue('fullName'))->toBe('Original')->and($reloaded?->stateVersion)->toBe($submission->stateVersion);
+})->group('security');
+
+it('does not turn a valid grant for an unavailable target into a fresh submission', function (): void {
+    ['form' => $form, 'submission' => $submission, 'grant' => $grant] = clientMutationPortableContinueFixture();
+    $submission->enabled = false;
+    expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
+    expect(Submission::find()->id($submission->id)->isIncomplete(true)->isSpam(null)->one())->toBeNull();
+
+    withClientMutationGraphqlRequest([
+        'formieForms.' . $form->uid . ':read',
+        'formieSubmissions.' . $form->uid . ':save',
+    ], function () use ($form, $grant): void {
+        $fresh = ClientFormResolver::resolveForm(null, ['handle' => (string)$form->handle]);
+        $session = $fresh['session'];
+        $session['version'] = 0;
+        $session['continuation']['grantToken'] = $grant->token;
+        $result = ClientFormResolver::submitForm(null, [
+            'input' => ['handle' => (string)$form->handle, 'session' => $session, 'values' => ['fullName' => 'Blocked']],
+        ]);
+        expect($result['success'])->toBeFalse()->and($result['httpStatus'])->toBe(403);
+    });
+
+    expect((int)Submission::find()->formId($form->id)->status(null)->isIncomplete(null)->count())->toBe(1)
+        ->and((int)(new Query())->from(Table::FORMIE_SUBMISSION_GRANTS)->where(['parentId' => $grant->id])->count())->toBe(0);
+})->group('security');

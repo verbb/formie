@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\client\models;
 
-use verbb\formie\client\BaseClientModel;
+use verbb\formie\client\ClientMutationRequest;
 
-class PageTransitionRequest extends BaseClientModel
+class PageTransitionRequest extends ClientMutationRequest
 {
     // Properties
     // =========================================================================

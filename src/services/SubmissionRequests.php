@@ -259,99 +259,23 @@ class SubmissionRequests extends Component
         array $continuation = [],
         ?bool $isIncomplete = true
     ): ?Submission {
-        $continuationSubmissionId = $this->_resolveSubmissionIdFromClientGrant($form, $continuation);
-
-        // Prefer an explicit client continuation token. When automatic restore is
-        // off, bare progress alone must not revive a previous visit.
-        if ($progressState?->submissionId) {
-            $progressSubmissionId = (int)$progressState->submissionId;
-            $mayUseProgress = $form->settings->automaticSubmissionState
-                || ((int)($continuation['progressId'] ?? 0) === $progressState->id)
-                || ($continuationSubmissionId !== null && $continuationSubmissionId === $progressSubmissionId);
-
-            if ($mayUseProgress) {
-                $submission = $this->_findSubmissionById($progressSubmissionId, $isIncomplete, (int)$form->id);
-
-                if ($submission) {
-                    return $submission;
-                }
-            }
-        }
-
-        if (!$continuationSubmissionId) {
-            return null;
-        }
-
-        return $this->_findSubmissionById($continuationSubmissionId, $isIncomplete, (int)$form->id);
+        return $this->_resolveClientContinuationSubmission($form, $progressState, $continuation, $isIncomplete, true);
     }
 
     public function getRequiredClientMutationScope(Form $form, array $session, string $action = 'submit'): string
     {
+        [$submission, $progress, $revise] = $this->_resolveClientMutationTarget($form, $session, $action, false);
+
+        return $this->_scopeForClientTarget($form, $submission, $progress, $revise, $session);
+    }
+
+    public function applyClientRequestContext(Form $form, array $session): void
+    {
         $continuation = (array)($session['continuation'] ?? []);
-        $purpose = $action === 'revise' || ($continuation['purpose'] ?? null) === SubmissionGrants::REVISE
-            ? SubmissionGrants::REVISE
-            : SubmissionGrants::CONTINUE;
-        $grantToken = $continuation['grantToken'] ?? null;
-
-        if (is_string($grantToken) && trim($grantToken) !== '') {
-            $grant = Formie::$plugin->getSubmissionGrants()->verify(trim($grantToken), $purpose, $form);
-
-            if (!$grant) {
-                throw new ForbiddenHttpException('Submission is unavailable.');
-            }
-
-            return 'save';
-        }
-
-        if ($purpose === SubmissionGrants::REVISE) {
-            $grant = Formie::$plugin->getSubmissionGrants()->bound(
-                $form,
-                SubmissionGrants::REVISE,
-                (int)($continuation['submissionId'] ?? 0),
-            );
-
-            if (!$grant) {
-                throw new ForbiddenHttpException('Submission is unavailable.');
-            }
-
-            return 'save';
-        }
-
-        $progressId = (int)($continuation['progressId'] ?? 0);
-
-        if (!$progressId) {
-            return 'create';
-        }
-
-        $progress = Formie::$plugin->getSubmissionProgress()->loadProgress($progressId);
-
-        if (!$progress || $progress->formId !== (int)$form->id || $progress->siteId !== (int)$form->siteId || !$progress->submissionId) {
-            return 'create';
-        }
-
-        if (($continuation['draftContext'] ?? null) !== null) {
-            $form->setDraftContext((string)$continuation['draftContext']);
-        }
-
-        $directGrant = Formie::$plugin->getSubmissionGrants()->bound(
-            $form,
-            SubmissionGrants::CONTINUE,
-            $progress->submissionId,
-            false,
-        );
-
-        if ($directGrant?->progressId === $progress->id) {
-            return 'create';
-        }
-
-        $portableGrant = Formie::$plugin->getSubmissionGrants()->bound(
-            $form,
-            SubmissionGrants::CONTINUE,
-            $progress->submissionId,
-            true,
-        );
-
-        return $portableGrant?->progressId === $progress->id ? 'save' : 'create';
+        $draftContext = !empty($continuation['draftContextToken'])
+            ? $form->resolveDraftContextToken($continuation['draftContextToken'])
+            : ($continuation['draftContext'] ?? null);
+        $this->applyFormRequestContext($form, $session['tokens']['render'] ?? null, $draftContext, $session['tokens']['request'] ?? null);
     }
 
     public function primeSubmission(Submission $submission, Form $form, ?ProgressState $progressState = null, ?int $siteId = null): void
@@ -413,13 +337,95 @@ class SubmissionRequests extends Component
     // Private Methods
     // =========================================================================
 
+    private function _resolveClientContinuationSubmission(Form $form, ?ProgressState $progressState, array $continuation, ?bool $isIncomplete, bool $exchangeGrant): ?Submission
+    {
+        $continuationSubmissionId = $this->_resolveSubmissionIdFromClientGrant($form, $continuation, $exchangeGrant);
+
+        // Prefer an explicit client continuation token. When automatic restore is
+        // off, bare progress alone must not revive a previous visit.
+        if ($progressState?->submissionId) {
+            $progressSubmissionId = (int)$progressState->submissionId;
+            $mayUseProgress = $form->settings->automaticSubmissionState
+                || ((int)($continuation['progressId'] ?? 0) === $progressState->id)
+                || ($continuationSubmissionId !== null && $continuationSubmissionId === $progressSubmissionId);
+
+            if ($mayUseProgress) {
+                $submission = $this->_findSubmissionById($progressSubmissionId, $isIncomplete, (int)$form->id);
+
+                if ($submission) {
+                    return $submission;
+                }
+            }
+        }
+
+        if (!$continuationSubmissionId) {
+            return null;
+        }
+
+        return $this->_findSubmissionById($continuationSubmissionId, $isIncomplete, (int)$form->id);
+    }
+
+    private function _scopeForClientTarget(Form $form, ?Submission $submission, ?ProgressState $progress, bool $revise, array $session): string
+    {
+        $token = $session['continuation']['grantToken'] ?? null;
+
+        if (is_string($token) && trim($token) !== '') {
+            $purpose = $revise ? SubmissionGrants::REVISE : SubmissionGrants::CONTINUE;
+
+            if (!$submission?->id || !Formie::$plugin->getSubmissionGrants()->verify(trim($token), $purpose, $form)) {
+                throw new ForbiddenHttpException('Submission is unavailable.');
+            }
+
+            return 'save';
+        }
+
+        if ($revise) {
+            return 'save';
+        }
+
+        if (!$submission?->id) {
+            return 'create';
+        }
+
+        $grants = Formie::$plugin->getSubmissionGrants();
+        $direct = $grants->bound($form, SubmissionGrants::CONTINUE, (int)$submission->id, false);
+
+        if ($direct && $progress && $direct->progressId === $progress->id) {
+            return 'create';
+        }
+
+        if ($grants->bound($form, SubmissionGrants::CONTINUE, (int)$submission->id, true)) {
+            return 'save';
+        }
+
+        throw new ForbiddenHttpException('Submission is unavailable.');
+    }
+
     private function _executeClient(SubmitRequest $input, SubmissionAuthorityType $authorityType): SubmitResult
     {
         if ($authorityType !== SubmissionAuthorityType::VISITOR) {
             throw new ForbiddenHttpException('This adapter requires visitor authority.');
         }
         $form = $this->requireFormByHandle($input->handle, $input->siteId);
-        [$submission, $progress, $revise] = $this->_resolveClientMutationTarget($form, $input->session, $input->action);
+        $authorizeScope = $input->getScopeAuthorizer();
+        [$submission, $progress, $revise] = $this->_resolveClientMutationTarget($form, $input->session, $input->action, $authorizeScope === null);
+
+        if ($authorizeScope) {
+            if (!$authorizeScope($form, $this->_scopeForClientTarget($form, $submission, $progress, $revise, $input->session))) {
+                throw new ForbiddenHttpException('Submission is unavailable.');
+            }
+
+            // Bind a portable grant only after authorization, and retain the target just checked.
+            $token = $input->session['continuation']['grantToken'] ?? null;
+
+            if (is_string($token) && trim($token) !== '') {
+                $purpose = $revise ? SubmissionGrants::REVISE : SubmissionGrants::CONTINUE;
+
+                if (!Formie::$plugin->getSubmissionGrants()->exchange(trim($token), $purpose, $form)) {
+                    throw new ForbiddenHttpException('Submission is unavailable.');
+                }
+            }
+        }
         $submission ??= new Submission();
         $submission->setForm($form);
         $operation = $revise ? SubmissionOperation::REVISE : ($input->action === 'save' ? SubmissionOperation::SAVE_DRAFT : SubmissionOperation::SUBMIT);
@@ -467,26 +473,27 @@ class SubmissionRequests extends Component
         return $this->_buildClientResult($result->command, $result->response, $input);
     }
 
-    private function _resolveClientMutationTarget(Form $form, array $session, string $action): array
+    private function _resolveClientMutationTarget(Form $form, array $session, string $action, bool $exchangeGrant = true): array
     {
         $continuation = $session['continuation'] ?? [];
-        $draftContext = !empty($continuation['draftContextToken'])
-            ? $form->resolveDraftContextToken($continuation['draftContextToken'])
-            : ($continuation['draftContext'] ?? null);
-        $this->applyFormRequestContext($form, $session['tokens']['render'] ?? null, $draftContext, $session['tokens']['request'] ?? null);
+        $this->applyClientRequestContext($form, $session);
         $progress = $this->resolveProgressState($form);
         $revise = $action === 'revise' || ($session['continuation']['purpose'] ?? null) === SubmissionGrants::REVISE;
 
         if (!$revise) {
             return [
-                $this->resolveClientContinuationSubmission($form, $progress, (array)($session['continuation'] ?? [])),
+                $exchangeGrant
+                    ? $this->resolveClientContinuationSubmission($form, $progress, (array)$continuation)
+                    : $this->_resolveClientContinuationSubmission($form, $progress, (array)$continuation, true, false),
                 $progress,
                 false,
             ];
         }
 
         $grant = !empty($continuation['grantToken'])
-            ? Formie::$plugin->getSubmissionGrants()->exchange($continuation['grantToken'], SubmissionGrants::REVISE, $form)
+            ? ($exchangeGrant
+                ? Formie::$plugin->getSubmissionGrants()->exchange($continuation['grantToken'], SubmissionGrants::REVISE, $form)
+                : Formie::$plugin->getSubmissionGrants()->verify($continuation['grantToken'], SubmissionGrants::REVISE, $form))
             : Formie::$plugin->getSubmissionGrants()->bound($form, SubmissionGrants::REVISE, (int)($continuation['submissionId'] ?? 0));
 
         if (!$grant) {
@@ -884,7 +891,7 @@ class SubmissionRequests extends Component
         return (int)$verifiedSubmissionGrant->submissionId;
     }
 
-    private function _resolveSubmissionIdFromClientGrant(Form $form, array $continuation = []): ?int
+    private function _resolveSubmissionIdFromClientGrant(Form $form, array $continuation = [], bool $exchangeGrant = true): ?int
     {
         $token = $continuation['grantToken'] ?? null;
 
@@ -892,7 +899,9 @@ class SubmissionRequests extends Component
             return null;
         }
 
-        $verifiedToken = Formie::$plugin->getSubmissionGrants()->exchange(trim($token), SubmissionGrants::CONTINUE, $form);
+        $verifiedToken = $exchangeGrant
+            ? Formie::$plugin->getSubmissionGrants()->exchange(trim($token), SubmissionGrants::CONTINUE, $form)
+            : Formie::$plugin->getSubmissionGrants()->verify(trim($token), SubmissionGrants::CONTINUE, $form);
 
         if (!$verifiedToken || $verifiedToken->formId !== (int)$form->id || !$verifiedToken->submissionId) {
             return null;
