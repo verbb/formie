@@ -23,15 +23,18 @@ use verbb\formie\records\Form as FormRecord;
 use verbb\formie\records\FormTemplate as FormTemplateRecord;
 use verbb\formie\records\Notification as NotificationRecord;
 use verbb\formie\records\PdfTemplate as PdfTemplateRecord;
+use verbb\formie\services\Permissions;
 
 use Craft;
 use craft\db\Query;
 use craft\elements\Entry;
+use craft\elements\User as UserElement;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
 
 use yii\base\Exception;
+use yii\web\ForbiddenHttpException;
 
 use Throwable;
 
@@ -302,6 +305,19 @@ class ImportExportHelper
         return self::_import($data, $form);
     }
 
+    public static function importForUser(array $data, ?Form $existing, UserElement $user): ImportResult
+    {
+        if (!$user->can(Permissions::PERM_IMPORT_FORMS)) {
+            throw new ForbiddenHttpException('User is not permitted to import forms');
+        }
+
+        if ($existing && !Formie::$plugin->getPermissions()->canManageForm($user, $existing)) {
+            throw new ForbiddenHttpException('User is not permitted to update this form');
+        }
+
+        return self::_import($data, $existing, $user);
+    }
+
     public static function importFormFromJson($json, $formAction = 'update'): Form
     {
         $json = $json[0] ?? $json;
@@ -505,8 +521,10 @@ class ImportExportHelper
         }
     }
 
-    private static function _import(array $data, ?Form $existing): ImportResult
+    private static function _import(array $data, ?Form $existing, ?UserElement $user = null): ImportResult
     {
+        // Hydration replaces the existing form's settings, so capture its assignment baseline first.
+        $oldIntegrationSettings = $existing?->settings->integrations ?? [];
         $plan = self::planImport($data, $existing);
         $serializer = new FormSerializer();
         $projectConfig = Craft::$app->getProjectConfig();
@@ -526,6 +544,11 @@ class ImportExportHelper
                 $data['handle'] = HandleHelper::getUniqueHandle($handles, $data['handle'] ?? 'importedForm');
             }
             $form = self::createFormFromImport($data, $existing, $serializer);
+
+            if ($user) {
+                Formie::$plugin->getForms()->requireUserGroupAssignmentAccess($form, $oldIntegrationSettings, $user);
+            }
+
             self::_applyPortableResources($form, $data);
             $form->layoutSaveContext = new LayoutSaveContext($existing ? 'updateImport' : 'createImport');
             $form->layoutSaveContext->trusted = false;

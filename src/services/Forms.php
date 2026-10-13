@@ -581,6 +581,15 @@ class Forms extends Component
     }
 
 
+    /**
+     * Authorize group changes for an explicit configuring user.
+     */
+    public function requireUserGroupAssignmentAccess(Form $form, array $oldIntegrationSettings, UserElement $user): void
+    {
+        $this->_requireUserGroupAssignmentAccess($form, $oldIntegrationSettings, $user);
+    }
+
+
     // Private Methods
     // =========================================================================
 

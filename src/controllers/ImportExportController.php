@@ -209,11 +209,13 @@ class ImportExportController extends SettingsAccessController
             }
         }
 
-        $form = (
-            $existingForm
-            ? ImportExportHelper::updateFromImport($json, $existingForm)
-            : ImportExportHelper::createFromImport($json)
-        )->form;
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (!$user) {
+            throw new ForbiddenHttpException('User is not permitted to import forms');
+        }
+
+        $form = ImportExportHelper::importForUser($json, $existingForm, $user)->form;
 
         // check for errors
         if ($form->getErrors()) {
