@@ -19,6 +19,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\integrations\elements\User as UserIntegration;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\LayoutSaveContext;
+use verbb\formie\models\MissingIntegration;
 use verbb\formie\models\StencilData;
 use verbb\formie\records\Form as FormRecord;
 use verbb\formie\references\ReferenceSlot;
@@ -599,6 +600,10 @@ class Forms extends Component
         foreach ($settings['integrations'] ?? [] as $handle => $binding) {
             $integration = Formie::$plugin->getIntegrations()->getFormIntegrationDefinitionByHandle($handle);
 
+            if ($integration === null || $integration instanceof MissingIntegration) {
+                throw new BadRequestHttpException('Configure the integration before copying its enabled settings: ' . $handle);
+            }
+
             if (!$integration instanceof UserIntegration) {
                 continue;
             }
@@ -792,6 +797,17 @@ class Forms extends Component
             }
 
             $integration = Formie::$plugin->getIntegrations()->getFormIntegrationDefinitionByHandle($handle);
+
+            if ($integration === null || $integration instanceof MissingIntegration) {
+                // Keep unavailable settings portable without accepting new enabled bindings.
+                $previous = ($oldIntegrationPolicySettings ?? $oldIntegrationSettings)[$handle] ?? null;
+
+                if (!empty($settings['enabled']) && $settings !== $previous) {
+                    throw new BadRequestHttpException('Configure the integration before enabling or changing its form settings: ' . $handle);
+                }
+
+                continue;
+            }
 
             if (!$integration instanceof UserIntegration) {
                 continue;

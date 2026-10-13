@@ -246,11 +246,11 @@ it('checks event modified and hidden disabled User definitions', function(bool $
     });
 })->with([false, true])->group('security');
 
-it('retains unresolved settings while authorizing disabled User definitions', function(): void {
+it('retains disabled unresolved settings while authorizing disabled User definitions', function(): void {
     withGroupNormalizationEditor(function($request, $form, $group, $integration): void {
         $integration->enabled = false;
         $post = groupNormalizationPost($form, ['enabled' => true, 'groupUids' => []]);
-        $post['settings']['integrations']['unregisteredUser'] = ['enabled' => true, 'groupUids' => [$group->uid]];
+        $post['settings']['integrations']['unregisteredUser'] = ['enabled' => false, 'groupUids' => [$group->uid]];
         $request->setBodyParams($post);
         $response = (new FormsController('forms', Formie::$plugin))->actionSave();
         expect($response?->data['errors'] ?? [])->toBe([]);

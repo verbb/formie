@@ -79,8 +79,10 @@ it('denies a stencil-only user copying a source through the site action', functi
 })->group('security');
 
 it('preserves authorized stencil copies and leaves the source unchanged', function (bool $cp, string $scope): void {
+    $integration = new \verbb\formie\integrations\elements\User(['name' => 'Available provider', 'handle' => 'availableProvider' . bin2hex(random_bytes(5)), 'scope' => \verbb\formie\services\Integrations::SCOPE_SITE, 'enabled' => true, 'groupUids' => []]);
+    expect(Formie::$plugin->getIntegrations()->saveIntegration($integration))->toBeTrue();
     $source = formie()->form(['title' => 'Source configuration'])
-        ->settings(['usePerFormPermissions' => true, 'submitActionMessage' => 'Original success', 'integrations' => ['unavailableProvider' => ['enabled' => true, 'attributeMapping' => ['name' => 'Existing mapping']]]])
+        ->settings(['usePerFormPermissions' => true, 'submitActionMessage' => 'Original success', 'integrations' => [$integration->handle => ['enabled' => true, 'attributeMapping' => ['name' => 'Existing mapping']]]])
         ->singleLineTextField('name', ['label' => 'Source name'])
         ->groupField('details', ['rows' => [['fields' => [[
             'type' => \verbb\formie\fields\SingleLineText::class, 'handle' => 'nested', 'label' => 'Nested name',
@@ -121,7 +123,7 @@ it('preserves authorized stencil copies and leaves the source unchanged', functi
         ->and($stencil->data->settings->submitActionMessage)->toBe('<p>Unsaved success</p>')
         ->and($stencil->data->notifications[0]->subject)->toBe('Subject')
         ->and($stencil->data->pages[0]->rows[0]->fields)->not->toBeEmpty();
-    expect($stencil->data->settings->integrations['unavailableProvider']['attributeMapping']['name'] ?? null)->toBe(['kind' => 'literal', 'value' => 'Existing mapping']);
+    expect($stencil->data->settings->integrations[$integration->handle]['attributeMapping']['name'] ?? null)->toBe(['kind' => 'literal', 'value' => 'Existing mapping']);
     if ($secondarySite) {
         expect($stencil->data->translations[$secondarySite->uid]['fieldOverrides'][$source->getFieldByHandle('name')->reference]['label'] ?? null)->toBe('Translated name');
     }
