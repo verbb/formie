@@ -358,3 +358,158 @@ it('preserves inactive legacy matching slots instead of activating them on save'
         }
     }, false, true);
 })->with([false, true])->group('security');
+
+
+it('rejects newly supplied unresolved groups before form or import persistence', function(string $route, string $encoding, bool $enabled): void {
+    withRetainedGroupEditor(function($request, $form, $integration, $group, $actor) use ($route, $encoding, $enabled): void {
+        $missing = \craft\helpers\StringHelper::UUID();
+        $integration->enabled = $enabled;
+        expect(Formie::$plugin->getIntegrations()->saveIntegration($integration))->toBeTrue();
+        $before = retainedGroupStored($form);
+        $settings = $before[$integration->handle];
+        $settings['groupUids'] = match ($encoding) {
+            'json' => Json::encode([$missing]),
+            'legacy' => ['formie-secret:v1:' . base64_encode(Craft::$app->getSecurity()->encryptByKey(Json::encode($missing), Craft::$app->getConfig()->getGeneral()->securityKey))],
+            default => [$missing],
+        };
+        expect(fn() => retainedGroupSave($request, $form, $integration, $actor, $settings, $route))
+            ->toThrow(BadRequestHttpException::class, 'Create or restore the user group');
+        expect(retainedGroupStored($form))->toBe($before);
+    });
+})->with(['form', 'import'])->with(['array', 'json', 'legacy'])->with([false, true])->group('security');
+
+it('rejects unresolved groups on new imports without creating portable dependencies', function(): void {
+    withRetainedGroupEditor(function($request, $form, $integration, $group, $actor): void {
+        $data = ImportExportHelper::generateFormExport($form);
+        $data['settings'] = Json::decodeIfJson($data['settings']);
+        $data['settings']['integrations'][$integration->handle]['groupUids'] = [\craft\helpers\StringHelper::UUID()];
+        $handle = 'missingGroupImport' . bin2hex(random_bytes(5));
+        $data['handle'] = $handle;
+        $data['dependencies'][] = ['kind' => 'group', 'config' => ['name' => 'Uncreated group', 'handle' => $handle]];
+        Craft::$app->getProjectConfig()->saveModifiedConfigData();
+        Craft::$app->getProjectConfig()->reset();
+        $config = Craft::$app->getProjectConfig()->get();
+        expect(fn() => ImportExportHelper::importForUser($data, null, $actor))->toThrow(BadRequestHttpException::class, 'Create or restore');
+        expect(Formie::$plugin->getForms()->getFormByHandle($handle))->toBeNull()
+            ->and(Formie::$plugin->getFormGroups()->getGroupByHandle($handle))->toBeNull()
+            ->and(Craft::$app->getProjectConfig()->get())->toBe($config);
+    });
+})->group('security');
+
+it('preserves unresolved historical form references and removals but checks enablement and policy changes', function(string $operation): void {
+    withRetainedGroupEditor(function($request, $form, $integration, $group, $actor) use ($operation): void {
+        $missing = \craft\helpers\StringHelper::UUID();
+        $settings = retainedGroupStored($form)[$integration->handle];
+        $settings['groupUids'] = [$missing];
+        $settings['enabled'] = $operation !== 'enable';
+        $form->settings->integrations[$integration->handle] = $settings;
+        expect(Craft::$app->getElements()->saveElement($form, false))->toBeTrue();
+        Formie::$plugin->getForms()->invalidateFormCaches();
+        $before = retainedGroupStored($form);
+        if ($operation === 'remove') { $settings['groupUids'] = []; }
+        if ($operation === 'policy') { $settings['activateUser'] = true; }
+        $settings['enabled'] = true;
+        if (in_array($operation, ['enable', 'policy'], true)) {
+            expect(fn() => retainedGroupSave($request, $form, $integration, $actor, $settings, 'form'))->toThrow(BadRequestHttpException::class, 'Create or restore');
+            expect(retainedGroupStored($form))->toBe($before);
+        } else {
+            retainedGroupSave($request, $form, $integration, $actor, $settings, 'import');
+            expect(retainedGroupStored($form)[$integration->handle]['groupUids'])->toBe($operation === 'remove' ? [] : [$missing]);
+        }
+    });
+})->with(['retain', 'remove', 'enable', 'policy'])->group('security');
+
+it('rejects unresolved groups in stencil edits and copies without changing stored data', function(string $route): void {
+    withRetainedGroupEditor(function($request, $form, $integration) use ($route): void {
+        $settings = retainedGroupStored($form)[$integration->handle];
+        $settings['groupUids'] = [\craft\helpers\StringHelper::UUID()];
+        $form->settings->integrations[$integration->handle] = $settings;
+        expect(Craft::$app->getElements()->saveElement($form, false))->toBeTrue();
+        Formie::$plugin->getForms()->invalidateFormCaches();
+        $before = retainedGroupStored($form);
+        if ($route === 'copy') {
+            $request->setBodyParams(['id' => $form->id, 'siteId' => $form->siteId, 'title' => 'Missing group copy', 'handle' => 'missingCopy' . bin2hex(random_bytes(5))]);
+            $run = fn() => (new FormsController('forms', Formie::$plugin))->actionSaveAsStencil();
+        } else {
+            $stencil = new Stencil(['name' => 'Missing groups', 'handle' => 'missingStencil' . bin2hex(random_bytes(5)), 'scope' => Stencils::SCOPE_SITE, 'data' => new StencilData()]);
+            $stencil->data->populateFormData($form);
+            expect(Formie::$plugin->getStencils()->saveStencil($stencil))->toBeTrue();
+            $request->setBodyParams(['stencilId' => $stencil->id, 'title' => $stencil->name, 'handle' => $stencil->handle, 'settings' => ['integrations' => [$integration->handle => $settings]]]);
+            $run = fn() => (new StencilsController('stencils', Formie::$plugin))->actionSave();
+        }
+        $stencils = (new Query())->from(Table::FORMIE_STENCILS)->all();
+        expect($run)->toThrow(BadRequestHttpException::class, 'Create or restore');
+        expect((new Query())->from(Table::FORMIE_STENCILS)->all())->toBe($stencils)->and(retainedGroupStored($form))->toBe($before);
+    });
+})->with(['edit', 'copy'])->group('security');
+
+it('rejects unresolved global groups in both storage scopes before writes', function(string $scope): void {
+    withRetainedGroupEditor(function($request, $form, $integration): void {
+        $before = (new Query())->from(Table::FORMIE_INTEGRATIONS)->where(['id' => $integration->id])->one();
+        $config = Craft::$app->getProjectConfig()->get(Integrations::CONFIG_INTEGRATIONS_KEY);
+        $request->setBodyParams([$request->csrfParam => $request->getCsrfToken(), 'id' => $integration->id, 'name' => $integration->name, 'handle' => $integration->handle, 'type' => UserIntegration::class, 'enabled' => true,
+            'types' => [UserIntegration::class => ['groupUids' => [\craft\helpers\StringHelper::UUID()]]]]);
+        expect(fn() => (new IntegrationsController('integrations', Formie::$plugin))->runAction('save-integration'))->toThrow(BadRequestHttpException::class, 'Create or restore');
+        expect((new Query())->from(Table::FORMIE_INTEGRATIONS)->where(['id' => $integration->id])->one())->toBe($before)
+            ->and(Craft::$app->getProjectConfig()->get(Integrations::CONFIG_INTEGRATIONS_KEY))->toBe($config);
+    }, false, false, $scope);
+})->with([Integrations::SCOPE_SITE, Integrations::SCOPE_PROJECT])->group('security');
+
+it('preserves omitted unresolved inheritance but checks a fresh inherited copy', function(): void {
+    withRetainedGroupEditor(function($request, $form, $integration, $group, $actor): void {
+        $missing = \craft\helpers\StringHelper::UUID();
+        $integration->groupUids = [$missing];
+        expect(Formie::$plugin->getIntegrations()->saveIntegration($integration))->toBeTrue();
+        $settings = retainedGroupStored($form)[$integration->handle];
+        retainedGroupSave($request, $form, $integration, $actor, $settings, 'form');
+        $stored = retainedGroupStored($form)[$integration->handle];
+        expect($stored)->not->toHaveKey('groupUids');
+        expect(FormIntegration::fromSettings($integration, $stored)->createRuntime()->groupUids)->toBe([$missing]);
+        expect(fn() => Formie::$plugin->getForms()->requireUserGroupCopyAccess($form, $actor))->toThrow(BadRequestHttpException::class, 'Create or restore');
+    }, false, true);
+})->group('security');
+
+it('requires assignment permission after an unresolved group UID is restored', function(): void {
+    withRetainedGroupEditor(function($request, $form, $integration, $group, $actor): void {
+        $uid = \craft\helpers\StringHelper::UUID();
+        $before = retainedGroupStored($form);
+        $settings = $before[$integration->handle];
+        $settings['groupUids'] = [$uid];
+        expect(fn() => retainedGroupSave($request, $form, $integration, $actor, $settings, 'form'))->toThrow(BadRequestHttpException::class);
+        $restored = new UserGroup(['uid' => $uid, 'name' => 'Restored group', 'handle' => 'restored' . bin2hex(random_bytes(5))]);
+        expect(Craft::$app->getUserGroups()->saveGroup($restored))->toBeTrue();
+        expect(fn() => retainedGroupSave($request, $form, $integration, $actor, $settings, 'form'))->toThrow(ForbiddenHttpException::class, $restored->name);
+        expect(retainedGroupStored($form))->toBe($before);
+    });
+})->group('security');
+
+
+it('checks unresolved local groups when global policy changes are inherited', function(bool $stencil): void {
+    withRetainedGroupEditor(function($request, $form, $integration, $group, $actor) use ($stencil): void {
+        $settings = retainedGroupStored($form)[$integration->handle];
+        $settings['groupUids'] = [\craft\helpers\StringHelper::UUID()];
+        unset($settings['activateUser']);
+        $form->settings->integrations[$integration->handle] = $settings;
+        if ($stencil) {
+            $model = new Stencil(['name' => 'Inherited missing group', 'handle' => 'inheritedMissing' . bin2hex(random_bytes(5)), 'scope' => Stencils::SCOPE_SITE, 'data' => new StencilData()]);
+            $model->data->populateFormData($form);
+            expect(Formie::$plugin->getStencils()->saveStencil($model))->toBeTrue();
+        } else {
+            expect(Craft::$app->getElements()->saveElement($form, false))->toBeTrue();
+        }
+        $changed = clone $integration;
+        $changed->activateUser = !$integration->activateUser;
+        expect(fn() => Formie::$plugin->getForms()->requireGlobalUserGroupAssignmentAccess($changed, $integration, $actor))
+            ->toThrow(BadRequestHttpException::class, 'Create or restore');
+    }, true);
+})->with([false, true])->group('security');
+
+it('preserves unresolved global references for unchanged settings and removals', function(bool $remove): void {
+    withRetainedGroupEditor(function($request, $form, $integration, $group, $actor) use ($remove): void {
+        $integration->groupUids = [\craft\helpers\StringHelper::UUID()];
+        $changed = clone $integration;
+        if ($remove) { $changed->groupUids = []; }
+        Formie::$plugin->getForms()->requireGlobalUserGroupAssignmentAccess($changed, $integration, $actor);
+        expect($changed->groupUids)->toBe($remove ? [] : $integration->groupUids);
+    });
+})->with([false, true])->group('security');

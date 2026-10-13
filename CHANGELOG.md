@@ -7,6 +7,7 @@
 - Added a dedicated optional field-content encryption key, an Encryption settings page, `.env` key generation, key-status and migration commands, resumable re-encryption, previous-key recovery, and read-only handling for unavailable encrypted submission values.
 
 ### Changed
+- User groups must exist before adding their assignments to User integrations, importing new assignments, or saving or copying stencil assignments. Re-enabling integrations and changing group-grant settings now reject missing groups when their assignments are rechecked.
 - Field translations now apply only properties declared by the field type. Custom fields must include translated properties in `translatableProperties()`; undeclared stored values remain available for recovery.
 - Integrations must be configured before saving new or changed enabled form settings or copying enabled settings to a stencil. Unavailable integrations can still be imported disabled.
 - Updated Craft API usage to avoid deprecated calls, including user deletion handling through deletion blockers.

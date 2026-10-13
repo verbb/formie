@@ -851,7 +851,11 @@ class Forms extends Component
         foreach (array_unique($groupUids) as $groupUid) {
             $group = Craft::$app->getUserGroups()->getGroupByUid($groupUid);
 
-            if ($group && !$user->can("assignUserGroup:$group->uid")) {
+            if (!$group) {
+                throw new BadRequestHttpException('Create or restore the user group before assigning it: ' . $groupUid);
+            }
+
+            if (!$user->can("assignUserGroup:$group->uid")) {
                 throw new ForbiddenHttpException(Craft::t('formie', 'Your account does not have permission to assign the user group “{name}”.', [
                     'name' => $group->name,
                 ]));
