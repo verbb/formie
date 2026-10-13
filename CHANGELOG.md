@@ -7,6 +7,7 @@
 - Added a dedicated optional field-content encryption key, an Encryption settings page, `.env` key generation, key-status and migration commands, resumable re-encryption, previous-key recovery, and read-only handling for unavailable encrypted submission values.
 
 ### Changed
+- Field translations now apply only properties declared by the field type. Custom fields must include translated properties in `translatableProperties()`; undeclared stored values remain available for recovery.
 - Integrations must be configured before saving new or changed enabled form settings or copying enabled settings to a stencil. Unavailable integrations can still be imported disabled.
 - Updated Craft API usage to avoid deprecated calls, including user deletion handling through deletion blockers.
 - Require Dompdf 2.0.3 or later for PDF remote-resource validation.

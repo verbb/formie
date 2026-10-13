@@ -538,7 +538,7 @@ class Stencils extends Component
             }
 
             if (is_array($fields) && $fields !== []) {
-                $fieldOverrides[$siteId] = $fields;
+                $fieldOverrides[$siteId] = Formie::$plugin->getFormSiteOverrides()->filterFieldTranslationsForLayout($stencil->getFormLayout(), $fields);
             }
         }
 

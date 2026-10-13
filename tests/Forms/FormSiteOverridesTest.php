@@ -211,6 +211,7 @@ it('merges field overrides keyed by fieldId into builder data', function (): voi
                         'fields' => [
                             [
                                 'fieldId' => 1193,
+                                'type' => \verbb\formie\fields\SingleLineText::class,
                                 'reference' => 'field-ref-1',
                                 'uid' => 'legacy-field-uid',
                                 'label' => 'Primary label',
@@ -246,6 +247,7 @@ it('does not mutate canonical builder data while merging overrides', function ()
                         'fields' => [
                             [
                                 'fieldId' => 1193,
+                                'type' => \verbb\formie\fields\SingleLineText::class,
                                 'reference' => 'field-ref-1',
                                 'label' => 'Primary label',
                             ],

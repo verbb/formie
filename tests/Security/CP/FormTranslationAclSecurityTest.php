@@ -146,6 +146,22 @@ it('allows authorized nested and shared definition translations and notification
     expect(Formie::$plugin->getForms()->getFormById($shared->id, $site)->getFieldByHandle('message')->label)->toBe('Translated ' . $sharedId);
 });
 
+it('keeps historical undeclared translations out of a successful secondary-site save response', function (): void {
+    $fixture = translationAclFixture();
+    ['form' => $form, 'site' => $site] = $fixture;
+    $field = $form->getFieldByHandle('message');
+    $stored = ['label' => 'Translated message', 'handle' => 'forgedHandle'];
+    expect((new \verbb\formie\records\FieldSiteOverride([
+        'fieldId' => $field->definitionId, 'siteId' => $site, 'overrides' => $stored,
+    ]))->save(false))->toBeTrue();
+
+    $response = translationAclSave($fixture, ['translations' => ['title' => 'Translated form']]);
+    expect($response)->not->toHaveKey('errors');
+    expect($response['multiSite']['fieldOverrides'][$site][$field->definitionId])->toBe(['label' => 'Translated message']);
+    expect($response['data']['pages'][0]['rows'][0]['fields'][0]['handle'])->toBe('message');
+    expect(Formie::$plugin->getFieldSiteOverrides()->getOverride($field->definitionId, $site))->toBe($stored);
+})->group('security');
+
 it('keeps a permitted source-site save working when the body names a different site', function (): void {
     $fixture = translationAclFixture(allSites: false);
     $response = translationAclSave($fixture, ['title' => 'Allowed source title'], ['siteId' => $fixture['source']]);

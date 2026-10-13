@@ -155,6 +155,14 @@ class FieldSiteOverrides extends Component
             return;
         }
 
+        $definition = Formie::$plugin->getFields()->getFieldDefinitionById($fieldId);
+
+        if (!$definition) {
+            return;
+        }
+
+        // Filter incoming keys only; preserve historical data without applying undeclared properties.
+        $override = Formie::$plugin->getFormSiteOverrides()->filterFieldTranslationProperties($definition->type, $override, preserveUnavailable: true);
         $existing = $this->getOverride($fieldId, $siteId);
         $override = $this->normalizeFieldOverride($override);
         $override = $this->_mergeFieldOverridePayloads($existing, $override);

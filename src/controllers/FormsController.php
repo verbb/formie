@@ -694,7 +694,6 @@ class FormsController extends Controller
 
             if (is_array($variables['multiSite'] ?? null)) {
                 $variables['multiSite']['overrides'] = $siteOverrides->getAllOverrides((int)$savedForm->id);
-                $variables['multiSite']['fieldOverrides'] = Formie::$plugin->getFieldSiteOverrides()->getAllForForm($savedForm);
             }
         }
 

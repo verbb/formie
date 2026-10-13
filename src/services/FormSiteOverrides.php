@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
+use verbb\formie\fields\MissingField;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
@@ -601,7 +602,10 @@ class FormSiteOverrides extends Component
             'activeSiteId' => $activeSiteId,
             'sites' => $sites,
             'overrides' => $form->id ? $this->getAllOverrides((int)$form->id) : [],
-            'fieldOverrides' => $form->id ? Formie::$plugin->getFieldSiteOverrides()->getAllForForm($form) : [],
+            'fieldOverrides' => $form->id ? array_map(
+                fn(array $overrides) => $this->filterFieldTranslationsForLayout($form->getFormLayout(), $overrides),
+                Formie::$plugin->getFieldSiteOverrides()->getAllForForm($form),
+            ) : [],
             'layoutReadOnly' => false,
         ];
     }
@@ -609,6 +613,36 @@ class FormSiteOverrides extends Component
     public function normalizeFieldOverrides(array $fields): array
     {
         return $this->_normalizeFieldsOverrides($fields);
+    }
+
+    public function filterFieldTranslationProperties(string $fieldType, array $overrides, bool $preserveUnavailable = false): array
+    {
+        if ($fieldType === MissingField::class || !in_array($fieldType, Formie::$plugin->getFields()->getResolvedRegisteredFieldTypes(), true)) {
+            // Portable writes retain missing-type data; application paths keep it inert.
+            return $preserveUnavailable ? $overrides : [];
+        }
+
+        return array_intersect_key($overrides, array_fill_keys($fieldType::translatableProperties(), true));
+    }
+
+    /** Filter the separate site-switch payload as well as the already-translated builder data. */
+    public function filterFieldTranslationsForLayout(FieldLayout $layout, array $overrides): array
+    {
+        $filtered = [];
+
+        foreach ($layout->getFieldsRecursively() as $field) {
+            foreach (array_filter([$field->definitionId, $field->reference, $field->uid]) as $key) {
+                if (isset($overrides[$key]) && is_array($overrides[$key])) {
+                    $values = $this->filterFieldTranslationProperties($field::class, $overrides[$key]);
+
+                    if ($values !== []) {
+                        $filtered[$key] = $values;
+                    }
+                }
+            }
+        }
+
+        return $filtered;
     }
 
     public function remapOverrideKeysForForm(int $formId, array $overrides): array
@@ -789,6 +823,8 @@ class FormSiteOverrides extends Component
 
     private function _applyFieldOverrides(FieldInterface $field, array $fieldOverrides): void
     {
+        $fieldOverrides = $this->filterFieldTranslationProperties($field::class, $fieldOverrides);
+
         foreach ($fieldOverrides as $key => $value) {
             if ($key === 'options' && is_array($value)) {
                 $settings = $field->getSettings();
@@ -1029,6 +1065,8 @@ class FormSiteOverrides extends Component
 
     private function _mergeFieldArray(array $field, array $override): array
     {
+        $override = $this->filterFieldTranslationProperties((string)($field['type'] ?? ''), $override);
+
         foreach ($override as $key => $value) {
             if ($key === 'options' && is_array($value)) {
                 $field['options'] = $this->_mergeOptionsArray(
