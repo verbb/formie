@@ -20,6 +20,7 @@
 - Fixed support requests disabling TLS certificate verification.
 - Fixed provider secrets being included in reCAPTCHA request URLs.
 - Fixed Pardot prospect email values being interpolated into API paths without encoding.
+- Fix Pardot form handlers treating multiple checkbox and multi-select values as one combined option by sending each selected value as a separate parameter.
 - Fixed form duplication and form-builder metadata endpoints bypassing their corresponding permissions.
 - Fixed notification IDs being accepted when they belonged to another form.
 - Fixed submission bulk actions applying changes outside the current user's save permissions.

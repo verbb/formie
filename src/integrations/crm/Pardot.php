@@ -17,6 +17,7 @@ use craft\helpers\Json;
 
 use Throwable;
 
+use GuzzleHttp\Psr7\Query;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\models\Token;
 use verbb\auth\providers\Salesforce as SalesforceProvider;
@@ -455,11 +456,15 @@ class Pardot extends Crm implements OAuthProviderInterface
             if ($this->enableFormHandler) {
                 // Generate flat payload values to send
                 $payload = $this->generatePayloadValues($submission);
+                $formHandlerPayload = ArrayHelper::filterNull($this->_prepareFormHandlerPayload($submission, $payload));
 
                 // Send a raw request to the endpoint
                 $client = Craft::createGuzzleClient();
                 $request = $client->request('POST', $this->endpointUrl, [
-                    'form_params' => $payload,
+                    'headers' => [
+                        'Content-Type' => 'application/x-www-form-urlencoded',
+                    ],
+                    'body' => Query::build($formHandlerPayload, PHP_QUERY_RFC1738),
                 ]);
 
                 // Parse the response, which will be plain text
@@ -468,7 +473,7 @@ class Pardot extends Crm implements OAuthProviderInterface
                 if (str_contains($response, 'Please correct the following errors')) {
                     Integration::error($this, Craft::t('formie', 'Error in form handler response {response}. Sent payload {payload}', [
                         'response' => $response,
-                        'payload' => Json::encode($payload),
+                        'payload' => Json::encode($formHandlerPayload),
                     ]), true);
 
                     return false;
@@ -487,7 +492,8 @@ class Pardot extends Crm implements OAuthProviderInterface
     {
         $value = parent::getMappedFieldValue($mappedFieldValue, $submission, $integrationField);
 
-        // SalesForce needs values delimited with semicolon's
+        // Preserve the existing direct API mapping format. Form Handler multi-option values are
+        // encoded separately as repeated parameters in _prepareFormHandlerPayload().
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
             $value = is_array($value) ? implode(';', $value) : $value;
         }
@@ -556,8 +562,8 @@ class Pardot extends Crm implements OAuthProviderInterface
 
         // Option fields are encoded as option objects (or arrays of them) for JSON export. Flattening
         // those produces keys like `Industry.value` or `Services.0.value` which Pardot form handlers
-        // cannot map to a single external field. Multi-select values must also use semicolons
-        // (Salesforce/Pardot convention), not the comma-separated string from getValueAsString().
+        // cannot map to a single external field. Keep multi-select values in their established
+        // semicolon-delimited event format; they are expanded for transport after listeners run.
         foreach ($submission->getFields() as $field) {
             if ($field->getIsCosmetic() || !$field instanceof OptionsField) {
                 continue;
@@ -596,6 +602,28 @@ class Pardot extends Crm implements OAuthProviderInterface
 
     // Private Methods
     // =========================================================================
+
+    private function _prepareFormHandlerPayload(Submission $submission, array $payload): array
+    {
+        // Pardot form handlers require one parameter per selected option, all with the same field
+        // name. Convert only Formie's unchanged generated value so event listeners can still replace
+        // or remove the field after receiving the existing semicolon-delimited payload format.
+        foreach ($submission->getFields() as $field) {
+            if ($field->getIsCosmetic() || !$field instanceof OptionsField || !$field->multi || !array_key_exists($field->handle, $payload)) {
+                continue;
+            }
+
+            $values = array_map(function($item) {
+                return $item->value;
+            }, (array)$submission->getFieldValue($field->handle));
+
+            if ($payload[$field->handle] === implode(';', $values)) {
+                $payload[$field->handle] = $values;
+            }
+        }
+
+        return $payload;
+    }
 
     private function _prepPayload($fields)
     {
