@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Form;
+use verbb\formie\integrations\elements\User as UserIntegration;
 use verbb\formie\models\IntegrationSettingsContext;
 use verbb\formie\services\Permissions;
 
@@ -82,6 +83,25 @@ class IntegrationsController extends Controller
         ];
 
         $integration = $integrationsService->createIntegration($integrationData);
+
+        if ($integration instanceof UserIntegration) {
+            // Nested settings cannot change the identity used for the assignment baseline.
+            $integration->id = $savedIntegration?->id;
+            $integration->uid = $savedIntegration?->uid;
+            $integration->scope = $integrationData['scope'];
+
+            $user = Craft::$app->getUser()->getIdentity();
+
+            if (!$user) {
+                throw new ForbiddenHttpException('User is not permitted to configure user groups');
+            }
+
+            Formie::$plugin->getForms()->requireGlobalUserGroupAssignmentAccess(
+                $integration,
+                $savedIntegration instanceof UserIntegration ? $savedIntegration : null,
+                $user,
+            );
+        }
 
         if (!$integrationsService->saveIntegration($integration)) {
             $this->setFailFlash(Craft::t('formie', 'Couldn’t save integration.'));

@@ -589,6 +589,28 @@ class Forms extends Component
         $this->_requireUserGroupAssignmentAccess($form, $oldIntegrationSettings, $user);
     }
 
+    public function requireGlobalUserGroupAssignmentAccess(UserIntegration $integration, ?UserIntegration $previous, UserElement $user): void
+    {
+        $groupUids = $this->_normalizeUserGroupUids($integration, $integration->groupUids);
+        $oldGroupUids = $previous
+            ? $this->_normalizeUserGroupUids($previous, $previous->groupUids)
+            : [];
+        $isEnabling = $previous && !$previous->getEnabled() && $integration->getEnabled();
+        $groupUidsToAuthorize = $isEnabling ? $groupUids : array_diff($groupUids, $oldGroupUids);
+
+        foreach ($groupUidsToAuthorize as $groupUid) {
+            $group = Craft::$app->getUserGroups()->getGroupByUid($groupUid);
+
+            if ($group && !$user->can("assignUserGroup:$group->uid")) {
+                throw new ForbiddenHttpException(Craft::t('formie', 'Your account does not have permission to assign the user group “{name}”.', [
+                    'name' => $group->name,
+                ]));
+            }
+        }
+
+        $integration->groupUids = $groupUids;
+    }
+
 
     // Private Methods
     // =========================================================================
