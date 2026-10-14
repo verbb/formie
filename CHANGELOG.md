@@ -32,7 +32,9 @@
 - Fixed dynamic address state fields failing to reappear after selecting a country that uses states.
 - Fixed dynamic address state fields remaining visible before a country was selected.
 - Fixed required address state fields preventing submissions for countries where the state field is hidden.
+- Fixed required searchable dropdowns rejecting selected values during browser validation.
 - Fixed address state fields becoming unresponsive when changing countries after selecting a state.
+- Fixed live validation error descriptions referencing another form when multiple forms used the same field handles.
 - Fixed keyboard focus skipping newly added repeater rows and being lost when removing the focused row.
 - Fixed correcting a spam-rejected submission causing a stale-session error and clearing entered values.
 - Fixed retrying a cancelled checkout reusing the cancelled payment instead of creating a new payment attempt.

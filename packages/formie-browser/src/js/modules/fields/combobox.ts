@@ -6,6 +6,7 @@ import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/sh
 import { ensureModuleStyles } from '#modules/styles';
 import { getThemeClasses } from '#theme/theme-classes';
 import { createDebug } from '#utils/debug';
+import { VALIDATION_SKIP_ATTR } from '#validation/skip';
 
 const SELECT_SELECTOR = 'select[data-formie-combobox-input]';
 const MODULE_ID = 'combobox';
@@ -116,6 +117,8 @@ export function initFormieCombobox(select: SelectElement, options: FormieCombobo
     });
 
     const instance = new TomSelect(select, mergedOptions) as TomSelectInstance;
+    // The search query is temporary; the native select carries the field value.
+    instance.control_input.setAttribute(VALIDATION_SKIP_ATTR, '');
     removeEmptyOptionFromCombobox(instance);
     cleanLeakedThemeClasses(instance.wrapper, select);
 

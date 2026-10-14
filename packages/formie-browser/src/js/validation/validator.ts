@@ -298,8 +298,10 @@ export class FormieValidator {
         errorMessages.innerHTML = '';
 
         const handle = fieldContainer.getAttribute('data-formie-field-handle') || 'field';
-        const errorId = `${handle}-error`;
-        errorMessages.id = errorMessages.id || `${handle}-errors`;
+        errorMessages.id = errorMessages.id || `${input.id || `${this.form.id}-${handle}`}-errors`;
+        // Use the rendered field's scoped region so matching handles in other
+        // forms cannot capture this control's accessible error reference.
+        const errorId = `${errorMessages.id}-1`;
         applyErrorAriaLive(
             errorMessages,
             resolveValidationErrorAriaLive(this.config.errorAriaLive, this.submitted),
@@ -483,6 +485,16 @@ export class FormieValidator {
 
         if (richTextHost instanceof HTMLElement) {
             return isPainted(richTextHost);
+        }
+
+        // Searchable selects keep their value in a hidden native control. Its
+        // adjacent combobox determines whether that value is active for validation.
+        if (element instanceof HTMLSelectElement && element.hasAttribute('data-formie-combobox-input')) {
+            const combobox = element.nextElementSibling;
+
+            if (combobox instanceof HTMLElement && combobox.classList.contains('formie-combobox')) {
+                return isPainted(combobox);
+            }
         }
 
         return isPainted(element);
