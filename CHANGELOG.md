@@ -1,1164 +1,250 @@
 # Changelog
 
-## Unreleased
+## 4.0.0 - 2026-10-14
+
+> {warning} Before upgrading to Formie 4, review the [Upgrading from v3](https://verbb.io/craft-plugins/formie/docs/v4/get-started/upgrading-from-v3) guide for breaking changes and required migration steps.
 
 ### Added
-- Added an event-based Microsoft Dynamics 365 entity registry for mapping and creating custom entities without a custom integration subclass. ([#2995](https://github.com/verbb/formie/issues/2995))
-- Added a dedicated optional field-content encryption key, an Encryption settings page, `.env` key generation, key-status and migration commands, resumable re-encryption, previous-key recovery, and read-only handling for unavailable encrypted submission values.
-
-### Changed
-- User groups must exist before adding their assignments to User integrations, importing new assignments, or saving or copying stencil assignments. Re-enabling integrations and changing group-grant settings now reject missing groups when their assignments are rechecked.
-- Field translations now apply only properties declared by the field type. Custom fields must include translated properties in `translatableProperties()`; undeclared stored values remain available for recovery.
-- Integrations must be configured before saving new or changed enabled form settings or copying enabled settings to a stencil. Unavailable integrations can still be imported disabled.
-- Updated Craft API usage to avoid deprecated calls, including user deletion handling through deletion blockers.
-- Require Dompdf 2.0.3 or later for PDF remote-resource validation.
-- Store integration settings as literal values or environment references instead of encrypting values committed to project config, while retaining read compatibility for beta-encrypted settings.
-- Disable content encryption for new fields until its dedicated key is configured, while allowing existing encrypted fields to remain enabled or be switched off.
-- Use Craft’s security key for disposable operational evidence, unkeyed stable payment fingerprints, and random hashed payment capability tokens so field-content key rotation does not interrupt unrelated operations.
-- Centralized reference transform declarations and register custom reference sources once per application.
-- Payment integrations now inherit before/after payment hooks from the base class. Custom providers should implement `executePayment()` without dispatching those hooks themselves.
-- Renamed custom field adapters’ persistence method to `serializeValueForDb()`.
-- Simplified delivery diagnostics with a wider modal, plain-language status, tabbed evidence (including queued integration operations), and prominent submission and export actions.
-- Updated sent notification resend dialogs, the submission email notification dialog, and the unmark-spam action dialog to use Plugin Kit, including stable loading-state sizing.
-- Updated the default danger theme colors to use Tailwind's Rose palette.
-- Updated the default success theme colors to use Tailwind's Emerald palette.
-- Added themeable borders to success and error form messages.
-- Moved completion resolution and metadata persistence into the submission workflow’s Finalize task. `WorkflowContext::result()` now only constructs an outcome, so custom tasks can create results without triggering completion events or database writes.
-- Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
-
-### Fixed
-- Fixed populated address and repeater values not appearing in nested inputs.
-- Fixed resetting forms leaving added repeater rows or failing to restore removed rows and dynamic address state values.
-- Fixed dynamic address state fields failing to reappear after selecting a country that uses states.
-- Fixed dynamic address state fields remaining visible before a country was selected.
-- Fixed required address state fields preventing submissions for countries where the state field is hidden.
-- Fixed required searchable dropdowns rejecting selected values during browser validation.
-- Fixed address state fields becoming unresponsive when changing countries after selecting a state.
-- Fixed date pickers displaying prefilled dates and date ranges one day early in time zones west of UTC.
-- Fixed live validation error descriptions referencing another form when multiple forms used the same field handles.
-- Fixed keyboard focus skipping newly added repeater rows and being lost when removing the focused row.
-- Fixed correcting a spam-rejected submission causing a stale-session error and clearing entered values.
-- Fixed retrying a cancelled checkout reusing the cancelled payment instead of creating a new payment attempt.
-- Fixed cancelled payments leaving users on the payment status page instead of returning to the form to retry.
-- Fixed payment checkout redirects showing an unsaved-changes warning and leaving forms disabled when cancelled.
-- Fixed upgraded installations failing to create payments for new form fields due to outdated field foreign keys.
-- Fixed the Vue client-rendered form warning that the default form error summary was missing field-only accessibility props.
-- Fixed completed forms with conditional fields showing an unsaved-changes warning when leaving the page.
-- Fixed required simple upload fields rejecting retained files when returning to an earlier page.
-- Fixed native form navigation being rejected after resuming saved progress.
-- Fixed retained file inputs causing errors when saving or navigating native multi-page forms.
-- Fixed uploaded files failing to save after removing earlier repeater rows.
-- Fixed simple file uploads losing attachment capabilities after a failed submission.
-- Fixed Upload Manager silently rejecting files that exceed file type, size, or count restrictions.
-- Fixed failed uploads continuing to display an active processing status.
-- Fixed saving progress losing page query parameters when the browser omits the referrer.
-- Fixed resume links loading another in-progress submission already associated with the browser.
-- Fixed matching page conditions revealing inactive pages in multi-page forms.
-- Fixed saving form progress displaying the final submission completion message.
-- Fixed saving progress hiding unfinished AJAX forms when Hide Form was enabled for completion.
-- Fixed submission limit errors ignoring the configured message.
-- Fixed forms allowing IP or user submission limits to be saved without the corresponding collection setting enabled.
-- Fixed completion redirects failing after saving submissions when another site had no resolved base URL.
-- Fixed custom field validation messages being lost when saving forms, and cancelled edits changing existing messages.
-- Fixed the scheduled form expiry message instructions referring to the start date instead of the end date.
-- Fixed a medium-severity server-side request forgery vulnerability.
-- Fixed a low-severity CRM data integrity vulnerability.
-- Prevent missing or changed encryption keys from displaying encrypted submission content as blank or overwriting unreadable values during saves.
-- Fixed medium-severity privilege escalation vulnerabilities.
-- Fixed low-severity privilege escalation vulnerabilities.
-- Fixed medium-severity information disclosure vulnerabilities.
-- Fixed low-severity information disclosure vulnerabilities.
-- Fixed a medium-severity submission relation integrity vulnerability.
-- Fixed a medium-severity element query injection vulnerability.
-- Fixed a medium-severity element field input validation vulnerability.
-- Fixed improper authorization vulnerabilities.
-- Fixed a low-severity GraphQL authorization vulnerability.
-- Fixed specially formatted plaintext submission values being mistaken for encrypted field content.
-- Fixed payment hooks treating declined payments as successful or creating payment intents before processing was cancelled.
-- Fixed queued element integrations failing before saving their element.
-- Fixed downgraded integration API errors being recorded as successful deliveries.
-- Fixed integration field formatting running repeatedly as more provider instances were created.
-- Fixed query-string prefill for multiple choices, recipient labels, and element IDs.
-- Fixed duplicate field options losing their inline error markers.
-- Fixed quiz results becoming stale after administrative GraphQL submission edits.
-- Fixed custom element fields being omitted from option-source discovery and custom condition value types being ignored.
-- Fixed Help Desk integration icons and custom integration icon overrides.
-- Fixed legacy status access returning a separate service instance and payment field relations targeting Craft fields.
-- Fixed system email references resolving to literal environment variable names in notifications and report filenames. ([#2997](https://github.com/verbb/formie/issues/2997))
-- Fixed report export filename references ignoring site-specific system email settings.
-- Fixed form imports updating forms the importing user was not permitted to manage.
-- Fixed form saves accepting notification changes from users without access to the Notifications tab.
-- Fixed Ecomail and Moosend sending credentials and subscriber data over unencrypted HTTP.
-- Fixed escaped plain field markup being reactivated in email and PDF summaries.
-- Fixed failed payment status pages accepting untrusted redirect origins.
-- Fixed captcha provider credentials appearing in request URLs and transport error logs.
-- Fixed notification saves accepting record IDs owned by another form.
-- Fixed support requests disabling TLS certificate verification in development mode.
-- Fixed element metadata endpoints being available outside authorised control panel requests.
-- Fixed view-only control panel users receiving subscription cancellation links.
-- Fixed submission and sent-notification indexes accepting client-controlled form scopes.
-- Fixed mapped provider identifiers altering CRM request paths.
-- Fixed notification editors attaching assets they were not permitted to view.
-- Fixed form integration settings resolving environment variables outside the configured allowlist.
-- Fixed element field option ordering accepting undeclared query expressions.
-- Fixed bulk form and submission actions applying changes without checking access to every selected element.
-- Fixed untrusted form, submission, notification, and status labels being rendered as control panel markup.
-- Fixed integration settings permissions being selected from spoofable request paths.
-- Fixed unsafe form import values being rendered as control panel markup.
-- Fixed import completion pages exposing forms the current user could not view.
-- Fixed element integrations accepting mapped attributes that were not declared by their destination schema.
-- Fixed form saves authorizing against a request-selected group instead of the persisted form.
-- Fixed form imports failing between requests on load-balanced environments when Craft uses a remote temporary-upload filesystem.
-- Fixed queued integration and notification jobs reporting an error when updating progress after delivery.
-- Fixed `initJs: false` being ignored when rendering forms, allowing automatic startup to duplicate custom JavaScript initialization.
-- Fixed sent notifications being sorted oldest-first by default in the control panel.
-- Fixed delivery diagnostics appearing on submission edit pages and moved the diagnostic action to the far-right of the failed Formie queue job toolbar.
-- Fixed code-block copy controls obscuring scrollbars in delivery diagnostics.
-- Fixed editing saved submissions failing password confirmation and length validation against stored password hashes.
-- Fixed submission editing showing browser module errors for password rules and searchable dropdowns.
-- Fixed submission editing offering a nonfunctional “Save as draft” action.
-- Fixed resending notifications failing after sending when the original submission was incomplete, spam, or deleted, or the notification had been deleted.
-- Fixed sent notification history showing incomplete and spam submissions as deleted.
-- Fixed successful front-end submission edits showing an unsaved-changes warning when leaving the page.
-- Fixed front-end edits failing to find completed submissions identified by their UID.
-- Fixed saved uploads being cleared when opening a submission for editing or resuming.
-- Fixed reports set to include all form fields omitting field values from the table and downloaded exports.
-- Fixed reading condition values from multi-row Likert Survey fields throwing an error.
-- Fixed variable configuration being invisible and unclickable in integration mappings and conditions.
-- Fixed duplicating forms with Date fields across multiple sites.
-- Fixed variable transform parameters such as list separators being stripped when saved or ignored in HTML output.
-- Fixed variable transform choices ignoring All rows and Row count selections.
-- Fixed logged-in user variables being blocked by the Twig sandbox in File Upload field subpaths.
-- Fixed adding Table rows overwriting existing default or saved rows.
-- Fixed conditional Date/Time fields failing to initialize when shown again.
-- Fixed conditionally hidden date and signature fields retaining their previous values.
-- Fixed browser module errors repeatedly updating the page and making forms unresponsive.
-- Fixed unchecked checkbox groups being treated as nonempty by browser conditions.
-- Fixed empty searchable multi-select fields being treated as filled by conditions.
-- Fixed date pickers retaining a submitted date after their visible input reset.
-- Fixed signatures carrying over into a new submission after a form reset.
-- Fixed searchable Dropdown fields showing a stale selection after a form reset.
-- Fixed checkbox, radio, rich-text, rating, and rank fields retaining stale values or display state after a form reset.
-- Fixed ranked Survey fields rejecting valid answers.
-- Fixed radio and checkbox Quiz and Survey fields preventing browser features from starting.
-- Fixed empty Phone fields displaying their structured value instead of a blank number.
-- Fixed multipart Name fields inside Groups or Repeaters losing values when disabled name parts were cleared during submission.
-- Fixed page-tab navigation failing when returning to a saved server-rendered submission.
-- Fixed “Disable Submit Button Until Valid” being ignored on server-rendered forms and repeatedly updating disabled buttons.
-- Fixed successful AJAX redirects triggering an unsaved-changes warning.
-- Fixed explicit outcomes returned by custom validation tasks being overwritten when the task also added submission errors.
-- Fixed queued integrations and notifications leaving the worker on the submission’s site and locale. The previous site, language, and locale are now restored after delivery, including early returns and exceptions.
-- Fixed completion events being suppressed when an event handler or workflow task directly saved a different completed submission while another submission workflow was active.
-- Fixed replayed integration deliveries reporting a different result from the stored delivery attempt when a binding was disabled, became ineligible, had invalid settings, or had legacy delivery history. Replays now preserve provider outputs and apply the stored result to dispatch failure policies.
-- Fixed refreshed upload tokens triggering an unsaved-changes warning after a successful form submission.
-
-## 4.0.0-beta.17 - 2026-10-08
-
-### Added
-- Add a surface-aware form-level browser-module contribution event and expose structured hydration reports to module hosts.
-- Add Salesforce Client Credentials authentication with configurable My Domain support. ([#2961](https://github.com/verbb/formie/issues/2961))
-- Add provider-neutral subscription snapshots, canonical lifecycle/timeline fields, stale-event protection and mode-bound immediate or period-end cancellation capabilities.
-- Add immutable render-scoped theme frames, a generated PHP/TypeScript browser-theme state manifest, split functional/visual CSS assets and bounded theme-config validation.
-- Add end-to-end portability and repeatable builder/render/bootstrap/submit/resume/revise performance fixtures.
-- Add typed After Completion outcomes shared by HTML, Ajax, REST and GraphQL, with validated redirect overrides and captured query allowlists.
-- Add isolated render-instance configuration and versioned durable submission settings while preserving the trusted Twig APIs.
-- Add one versioned browser-module manifest with trusted executable IDs, repeated occurrence keys, exact rendering-surface lifecycle contexts, dynamic target reconciliation and required/optional failure diagnostics.
-- Add durable integration and notification delivery history with complete encrypted checkpoint evidence, safe per-operation retries, explicit reconciliation and a structured Plugin Kit diagnostics modal in Craft’s queue and submission views.
-- Add one typed reference runtime and Variable Picker catalogue, with immutable field declarations, native exact values, stable nested identities, explicit row scopes and context-safe diagnostics.
-- Add versioned, atomic form imports with dependency plans, stable-reference matching and recoverable missing field types.
-- Add portable per-site translations to stencils and copy them into form overrides when creating forms from a stencil. ([#2968](https://github.com/verbb/formie/issues/2968))
-- Allow each site to override whether a shared form field is required without duplicating the form. ([#2982](https://github.com/verbb/formie/issues/2982))
-
-### Changed
-- Standardize control-panel notices, replacement states and React crash fallbacks on Plugin Kit Alert, StatePanel, ErrorState and AppErrorBoundary.
-- Use large shared surfaces for prominent builder states and integration connection failures, compact replacement states for notification previews, and shared Alerts for dynamic-option feedback.
-- Require Verbb Base 3.0.20 or later so shared control-panel layouts use the current asset bundle namespace. ([verbb-base#3](https://github.com/verbb/verbb-base/issues/3))
-- Use explicit integration dispatch capability and execution-local results, with common form-integration policy separated from annotated provider settings.
-- Store canonical minor-unit payment amounts, account-scoped financial references and subscription terms; retain Formie 3 major-unit and plan projections at compatibility boundaries.
-- Separate payment states from browser actions and expose one canonical payment decision across submission transports and frontend adapters.
-- Keep curated subscription state separate from encrypted provider evidence, and distinguish billing-period end, actual next charge and synchronization time.
-- Keep administrative GraphQL saves persistence-only and separate request adapters from canonical command execution, sharing atomic content/upload persistence.
-- Bind queued notification and integration operations to accepted input/configuration fingerprints and report changed operations as stale before delivery or retry.
-- Replace field-only condition wrappers with shared ConditionSet predicates and row-aware submission-scoped evaluation state invalidated by content edits.
-- Share a permission-scoped lightweight GraphQL schema snapshot and keep unrelated form layouts out of schema generation.
-- Declare sensitive integration settings explicitly for encryption and diagnostic/configuration redaction, including inherited and non-standard property names.
-- Emit the integration result event once for every normalized run result, including skipped and early-rejected runs.
-- Enforce reference source usages and inline/block eligibility at the consuming boundary and filter the Variable Picker from the same declarations.
-- Make completed delivery evidence retention configurable, retain unresolved evidence for reconciliation, mark diagnostic limits explicitly and require personal-data acknowledgement for support downloads.
-- Retain prepared email content, stored and projected submission values, and argument-free exception traces in encrypted delivery diagnostics.
-- Declare field runtime types through protected `defineValueType()` hooks and keep numeric reference semantics separate from their decimal-string PHP values.
-- Use `browser` consistently for shared Formie 4 browser assets and JavaScript translation APIs, while retaining the Formie 3 `FrontendAsset` bundle and rendering compatibility helpers.
-- Remove intermediate Formie 4 beta `runtime` class and asset-helper aliases while retaining Formie 3 compatibility boundaries.
-- Separate versionless Formie 3 submission snapshot adaptation from the strict UID-based Formie 4 snapshot contract instead of retaining intermediate beta formats.
-- Save form field layouts atomically inside Craft’s element transaction, batch persistence and identity validation at the root boundary, and add installation-scale load, save and export profiling.
-- Treat the migrated Formie 4 database schema as one required runtime contract instead of silently disabling form, submission, notification, integration, payment and spam behavior when required columns are missing.
-- Keep legacy CAPTCHA data migration inside the install and upgrade lifecycle rather than reconciling it during normal requests.
-- Use explicit completion behavior, redirect source, redirect target and success-message settings throughout Formie 4, while retaining Formie 3 setting, GraphQL and response aliases at compatibility boundaries.
-- Treat subscription setup and mandate operations as non-monetary while recording each recurring invoice as a separate payment, and prevent payment integrations with manageable subscriptions from being deleted or disconnected.
-- Make browser-module declarations immutable, project one authoritative manifest per rendering surface, reference exact occurrence keys from fields and expose stable submit hooks instead of internal pipeline stages.
-- Use non-expiring, exact-value Signature image capabilities while preserving explicitly grandfathered Formie 2/3 email image URLs behind a dedicated compatibility setting.
-- Isolate Formie 3 adapters behind dedicated compatibility boundaries instead of exposing them through canonical Formie 4 models and services.
-- Keep required behavioural and accessibility attributes authoritative, remove beta-only theme override and `frontendTheme` APIs, retain the final trusted PHP slot event escape hatch, and bind Summary theme state to compact, expiring access tokens backed by encrypted shared storage.
-- Keep Formie 3 theme grammar compatibility while renaming the beta `defineFieldSlotTag()` method to `defineSlotTag()` and removing mutable render state from shared Form elements.
-- Split `formie.css` into functional `formie-base.css` and visual `formie-theme.css` layers; the `none` theme now omits only visual styling.
-- Share versioned tri-state conditions and plain-text validation rules across PHP and browser consumers; enforce recursive hidden-value clearing and server-authoritative navigation.
-- Preserve exact nested submission error paths, return typed page-transition results, and distinguish skipped side effects from invalid condition configuration.
-- Preserve explicit empty values, enforce server-populated values across resume, capture query prefill once, and evaluate Hidden value sources without changing reusable field definitions.
-- Standardise server-rendered and client-rendered products, separate CP edit configuration, and enforce the client-rendered contract across React, Vue and Web Components.
-- Require Formie origin allowlisting and explicit cross-origin public session credentials; share staged uploads and backend submission results across rendering products.
-- Use `IntegrationConfig` for globally cached non-secret builder metadata and immutable `FormIntegration` bindings for each form; isolate Formie 3 metadata APIs behind compatibility adapters, create fresh runtime instances and return explicit integration and batch results.
-- Run synchronous integrations before the queued lane and expose three notification timings with explicit completion policies.
-- Keep queue jobs immutable and small, encrypt literal integration settings and retained responses, and require validated public destinations and provider origins.
-- Expose durable queue identities through `DeliveryJobInterface` and use field-owned reference projections for inline token interpolation.
-- Store explicit integration mapping slot kinds, preserve Formie 3 tokens through compatibility parsing, and replace beta fluent variable APIs with namespaced source and transform definitions.
-- Require safe environment names to be allowlisted for references; diagnose missing fields and extensions and reject invalid email headers.
-- Replace beta rich-value projection methods with immutable domain objects and field-owned storage, browser, data and integration projections; route native integration mappings through those field-owned projections, preserve explicit empty clears, describe only the non-null runtime type because `null` is the universal absent value, and retain Formie 3 compatibility adapters.
-- Separate request, browser, condition and storage value paths; encrypt complete structured values and decode legacy encryption only from trusted storage.
-- Return immutable Phone values that retain entered numbers and countries, and a consistent Name value in both input modes; replace beta Array/value-class APIs and browser validation names.
-
-### Fixed
-- Present required form-feature failures as aligned alerts with collapsed, copyable technical details, prevent lazy control-panel chunks from re-running submission initialization, and skip browser modules where Craft owns the editing control.
-- Allow report editor pages to load when configuring export filename variables.
-- Avoid Verbb Base deprecation warnings by using its current control-panel asset bundle namespace. ([verbb-base#3](https://github.com/verbb/verbb-base/issues/3))
-- Fixed moderate-severity authorization bypass vulnerabilities across control-panel and GraphQL operations.
-- Fixed low-severity information disclosure vulnerabilities.
-- Fixed a low-severity rate-limit bypass vulnerability.
-- Allow existing forms containing Address, Repeater and other nested fields to be updated in the form builder.
-- Prevent structured Phone field defaults from being displayed as JSON in the form builder preview.
-- Fix text word and character limits disagreeing between browser and server validation for Unicode punctuation, emoji, and composed characters. ([#2977](https://github.com/verbb/formie/issues/2977))
-- Apply event-modified Phone countries to server-rendered and client-rendered browser pickers when a field has no explicit allowed-country list.
-- Allow upgrades with beta integration-policy settings to complete the reference migration before forms are loaded.
-- Preserve configured rich completion and error messages across partial settings updates, and render sanitized rich completion messages in client-rendered adapters.
-- Preserve uploaded files when an incomplete multi-page submission navigates back after the asset has been bound and promoted, without weakening upload ownership checks.
-- Separate shared field definition identity from form-field instances, use explicit definition/instance records and settings APIs, isolate the Formie 3 `syncId` alias, require registered fields to extend the base Field class and formalize parent-field traversal.
-- Share identity remapping across imports, duplicates and stencils; use portable definition UIDs for Synced Fields and explicit enabled/recursive traversal APIs.
-- Make payment amounts exact, return typed payment decisions with immutable actions and explicit resubmit/return/poll modes, and atomically settle payment-backed submissions with recoverable provider evidence.
-- Retain coherent subscription and recurring-payment history; separate cancellation, provider return, read-only status and browser-session authority, and reconcile status polling on a server-controlled cadence.
-- Process payment webhooks through adapter verification and a durable asynchronous inbox with stable integration URLs, encrypted idempotent receipts, bounded retries and redacted diagnostics; reject unauthenticated provider events without discarding valid bursts.
-- Store canonical journey progress in the database and use independent purpose-bound, expiring grants for Save & Continue and authorised editing across browsers.
-- Require structured, purpose-bound staged-upload references across server-rendered, client-rendered, REST and GraphQL submissions; bind accepted uploads to their exact form, field, owner and browser context before dispatch, with durable promotion recovery.
-- Remove beta draft-storage APIs, etags and `maxSavedDraftsPerSession`; existing beta resume links must be reissued after upgrading.
-- Replace beta submission workflow APIs with explicit operations, authorised commands, typed outcomes and six fixed stages with operation-scoped custom tasks.
-- Resolve progression and page transitions in Preflight after hidden-value clearing, while exposing only stable semantic task anchors and having validation consume the selected transition.
-- Require expected submission versions and retain bounded durable retry receipts to prevent duplicate and stale writes.
-- Require integrations to explicitly declare attributes that can be configured per form.
-- Require `verbb/base` 3.0.17 or later.
-- Render form-authored Twig and object templates in Base's explicit sandbox while retaining Formie 4's reference-token handling.
-
-- Respect the existing last-page and query-string options when resolving completion redirect URLs, including payment-failure fallbacks.
-- Fixed authorization for connecting OAuth integrations and revalidated access when callbacks return.
-- Fixed OAuth callback transaction validation.
-- Keep valid Save & Continue links usable when optional page-progress state expires or is removed.
-- Build the current database schema directly during fresh installs instead of replaying upgrade migrations.
-- Treat notification timing as order rather than implicit integration success, while leaving unknown outcomes unresolved and preserving explicit notification conditions.
-- Commit pending delivery intent with submission completion and recover interrupted dispatches without repeating payment or creating another completion run.
-- Keep integration results and reference values scoped to their delivery run instead of overwriting the submission’s latest results.
-- Serve staged upload previews through expiring view capabilities and require private temporary upload storage.
-- Enforce aggregate staged-upload file and byte budgets across fields and cap staged expiry independently of incomplete-submission retention.
-- Bound Base64 upload input and decoded sizes before allocating file contents, using Craft’s maximum upload size.
-- Complete required upload promotion before marking submissions complete, and finalize accepted uploads before completion events and delivery, including payment replay.
-- Retain upload cleanup records across permanent submission and form deletion and failed file deletion, preserve retryable field references, and leave shared or unowned files intact.
-- Preserve accepted field values during payment replay, including condition-cleared forced values and previously evaluated Hidden sources.
-- Stop manual asset resolution from rendering the full form a second time, and memoise missing browser submission progress per Form instance to prevent all-field render query amplification. ([#2637](https://github.com/verbb/formie/issues/2637))
-- Enforce field ownership and allowed field types at builder and save boundaries, preserve nested references and refresh layout lookups after descendant changes.
-- Stop invalid submissions before spam screening and CAPTCHA, and keep pending payment submissions incomplete until payment succeeds.
-- Fixed a moderate-severity information disclosure vulnerability. ([GHSA-963f-vfpf-f85p](https://github.com/verbb/formie/security/advisories/GHSA-963f-vfpf-f85p))
-- Fixed a high-severity server-side request forgery vulnerability. ([GHSA-82jr-3xc8-86mr](https://github.com/verbb/formie/security/advisories/GHSA-82jr-3xc8-86mr))
-- Fixed high-severity server-side template injection vulnerabilities in sandboxed Twig rendering. ([GHSA-f55h-mf7f-7wx7](https://github.com/verbb/formie/security/advisories/GHSA-f55h-mf7f-7wx7))
-- Keep stencil builder data isolated from unrelated Craft elements and forms with the same numeric ID. ([#2968](https://github.com/verbb/formie/issues/2968))
-
-## 4.0.0-beta.16 - 2026-09-17
-
-### Added
-- Add console commands to inspect unresolved payments, reconcile gateway status, record verified outcomes and resume submission processing.
-- Add extensible TipTap nodes, marks, toolbar controls, and constrained TextStyle definitions across Formie editing, previews, and PHP rendering, including opt-in font family, font size, text/background color, line height, and Small caps controls.
-
-### Changed
-- Pin Formie's bundled TipTap and ProseMirror graph to `3.22.4` so extension code shares one qualified runtime.
-- Stream all report export formats, including Excel, JSON and XML, and preserve the initial submission order while reading batches.
-- Align documentation filenames with page titles and update internal links.
-- Manage dashboard chart dependencies through the package lockfile so dependency audits cover shipped widget scripts.
-- Improve documentation for submission access, GraphQL clients, saved drafts, report delivery and integration setup; separate detailed reference material from walkthroughs.
-- Update frontend and test dependencies to patched releases, and resolve the frontend documentation theme from its published package.
-- Normalize CP General Settings to the shared `verbb-base` settings layout (Settings → Plugins → Formie crumbs, `pageTabs` / `pageTitle` / `pageAction` helpers) and trim `pluginName` on save.
-- Bump transitive `symfony/cache` to `6.4.45` (CVE-2026-45073 advisory floor).
-
-### Fixed
-- Preserve dynamic payment amount field selections when saving payment field settings.
-- Fix Zoho picklist mappings sending option metadata IDs instead of their API values. ([#2959](https://github.com/verbb/formie/issues/2959))
-- Reject invalid date filters before deleting submissions from console commands.
-- Preserve submission edits made while queued field moves are running.
-- Preserve form fields and owned submissions across deletion and restoration, retain shared uploads during cleanup, and abort partial cascades when a child operation fails.
-- Preserve zero values in group and repeater value projections.
-- Enforce unique values for fields inside groups and repeaters.
-- Stop enforcing saved number bounds in server and client validation when limits are disabled.
-- Compare and sort Number fields numerically while preserving large values and decimal precision.
-- Match blank submission answers correctly in empty filters without confusing them with the text “null”.
-- Apply selected submission states consistently to report summaries, tables, charts and exports.
-- Load report charts and summaries on PostgreSQL.
-- Include the selected End Date in scheduled report delivery windows.
-- Skip duplicate scheduled report deliveries from overlapping cron runs.
-- Sort report tables and exports by the displayed form name.
-- Allow report managers to use report exports and retrieve their queued downloads.
-- Preserve configured form availability across sites when an editor has access to only some sites.
-- Resolve editable form sites for the requested user instead of the current session.
-- Load the form builder consistently with pretty URLs and Craft query routes.
-- Preserve group site restrictions when a manager has access to only some sites.
-- Keep created-site-only forms on their source site when group availability changes.
-- Apply group site policy changes to forms on every site, including forms outside the current editor’s view.
-- Honor the selected site when looking up forms that are unavailable on the primary site.
-- Keep cached form lookups isolated to the requested site.
-- Resolve cached form lookups using the selected control-panel site.
-- Include regional forms in permission settings, GraphQL schemas and submission queries.
-- Preserve explicit GraphQL form filters when selecting submission fields through inline fragments.
-- Preserve unique form handles and recognize shared settings in use across every site.
-- Resolve numeric form-status filters correctly.
-- Respect form site availability when filtering by form status.
-- Restore configured form availability on secondary sites when upgrading existing installations.
-- Include regional forms in report choices, summaries and scheduled exports.
-- Preserve explicitly selected form sites when loading submission fields in the control panel.
-- Preserve historical submission fields and exports after form site availability changes.
-- Process regional forms in queued field moves and console export and cleanup commands.
-- Re-save regional submissions and return accurate console exit codes.
-- Report failed notification and integration deliveries accurately in console commands.
-- Keep per-form integration settings isolated when running bulk console commands.
-- Apply configured file-upload retention to forms on every site.
-- Allow existing fields and notifications to be selected with the keyboard.
-- Honor per-form permissions in form and submission indexes and GraphQL operations.
-- Load form indexes for users without permission to create forms.
-- Require all visible payment fields to be on the final submission page before processing payments.
-- Fixed a rate limit bypass vulnerability.
-- Fixed a CSRF vulnerability.
-- Fixed information disclosure vulnerabilities.
-- Preserve every report export column when labels repeat, and retain numeric labels as JSON object keys.
-- Keep unresolved earlier payment attempts blocked until their gateway outcome is verified.
-- Route users with settings page permissions to a page they can access.
-- Fix submission queries on Craft 5.0.
-- Create default statuses and the Contact Form stencil when installing on Craft 5.0.
-- Save form group settings on all supported Craft 5 versions.
-- Configure Stripe payment fields on all supported Craft 5 versions.
-- Open form preview slideouts on all supported Craft 5 versions.
-- Display custom form and submission statuses on all supported Craft 5 versions.
-- Load form condition rules on all supported Craft 5 versions.
-- Apply empty and non-empty relation filters consistently to submission queries on all supported Craft 5 versions.
-- Preserve queued integration failure events on all supported Craft 5 versions.
-- Render notification emails on all supported Craft 5 versions.
-- Preserve custom decimal-field query precision on all supported Craft 5 versions.
-- Preserve zero, false, and empty submission values when moving fields into or out of groups.
-- Preserve submission answers when moving fields between groups or removing their former group, including disabled forms.
-- Allow saved submissions to continue through later pages without triggering their own IP throttle.
-- Require POST requests when importing forms or migrating from another form plugin.
-- Allow settings page permissions to be assigned independently while preserving access to all settings for existing roles.
-- Remove all Formie tables when uninstalling the plugin.
-- Fixed an XSS vulnerability.
-- Make frontend builds work from a clean checkout with published Plugin Kit packages and complete TipTap dependencies.
-- Require POST requests for control panel deletion and notification resend actions.
-- Allow settings save requests to resolve their posted settings page without an error.
-- Return permission errors correctly when integration settings access is denied.
-- Supply a document title for every beta settings page so Craft 5 can render them without adding a settings-content heading.
-- Keep field error live regions mounted without reserving empty layout space, honour the configured announcement priority, and associate definition-driven errors with their controls. ([#2954](https://github.com/verbb/formie/issues/2954))
-- Preserve payment attempts and gateway receipts across interrupted Moneris, Eway, BPOINT, Opayo, Mollie and Paddle requests, and stop ambiguous outcomes from triggering another purchase.
-- Recover Eway payments by invoice reference and Mollie payments from verified webhook results when creation responses are lost.
-- Preserve completed report downloads across queue retries, clean up interrupted export workspaces, report progress and reject incomplete output.
-- Fix Mollie checkout initialization using the wrong redirect helper, and allow corrected attempts after explicit API rejections.
-- Keep payment amounts aligned with their currency precision when retrying or reconciling payments.
-- Keep asset rebuild tooling aligned with the current split Plugin Kit packages.
-- Avoid charging an extra minor unit for decimal Stripe and Opayo amounts, and use Stripe's required UGX amount format.
-- Fixed XSS vulnerabilities.
-- Fixed payment verification vulnerabilities.
-- Fixed an XML injection vulnerability.
-- Include current frontend package fixes in production assets and reject builds that resolve outdated runtime copies.
-- Enforce weekly submission limits on Sundays and keep calendar limit periods from overlapping.
-- Use the correct currency minor unit when creating Paddle prices.
-- Preserve legacy spam, CAPTCHA and field-default settings during upgrades, and refresh schema lookups after migration changes.
-- Preserve restricted user and group submission access when upgrading from Formie 2.
-- Migrate integration field-handle tokens to stable field references.
-- Keep submissions arriving during scheduled report delivery eligible for the next export.
-- Recognize array-based wildcard form selections in report field columns.
-- Clone localized form layouts without serializing callbacks or mutating canonical form settings and notifications.
-- Preserve typed dates when expiring subscriptions and archiving payment plans.
-- Block shared-address, multicast, documentation and IPv6 transition networks in outbound automation requests.
-- Migrate notification field-handle tokens to stable references when upgrading from Formie 3.
-- Reject empty submission form scopes, enforce the requesting user's permissions for queued reports, and consume signed report download tokens atomically.
-- Preserve scheduled report delivery cursors when exports or emails fail, and clean up temporary report files after failures and direct downloads.
-- Keep successful Stripe payment intents from regressing on delayed webhooks, verify their integration, restore subscription invoice updates, and return retryable responses on processing failures.
-- Refresh tokens on cached Twig-rendered forms before submission.
-- Preserve saved report date bounds when sending incremental scheduled exports.
-- Score submitted quiz answers using current field identities and option values.
-- Persist completed submission state when replaying successful payment webhooks.
-- Preserve Craft query-string routes in the form builder so saving and reloading keeps the editor available.
-- Fix Freeform 5 migration imports and scope submission migration to the selected form ID.
-- Give managed text inputs accessible names and focus the first invalid input after submission.
-- Read current field structure metadata in managed frontend adapters.
-- Allow client form bootstrap to obtain the CSRF token required for subsequent submissions.
-- Format date variable presets using their PHP date patterns.
-- Preserve field translations on import and field identities when updating existing forms from exports.
-- Keep the form builder and existing-field picker available when an HTML field's Twig preview cannot render.
-- Discard pending data uploads when a field is cleared, preserve them during partial-page merges, and apply nested field edits over stored UID values.
-- Apply file size and detected-type validation to data uploads, and normalize client file payloads consistently with GraphQL uploads.
-- Preserve both new and retained files in mixed GraphQL upload requests.
-- Reject malformed GraphQL upload data without reusing another file’s contents, and accept files containing only `0`.
-- Fix generic GraphQL submission saves failing to normalize form fields, and validate field and captcha maps against the selected form.
-- Include saved nested field layouts in GraphQL input schemas and preserve explicit nulls when clearing nested submission values.
-- Handle omitted optional Table column handles and Note styles, and retain values from Table columns without handles when rendering or exporting submissions.
-- Fix HubSpot form mapping exposing and submitting only the first communication subscription consent checkbox.
-- Fix CRM array mappings including option metadata instead of selected values, apply field-mapping event changes to outgoing payloads, and format Pardot multi-select values consistently.
-- Verify PayPal authorization/capture amount, currency, status and submission association; persist request identities and reconcile interrupted or pending captures.
-- Reuse PayWay transaction identities within its retry window, verify transaction ownership and amounts, and reconcile pending payments.
-- Protect streamed CSV/TSV report values and headings against spreadsheet formula injection.
-- Preserve cleared submission values, including empty checkboxes, tables and dates, through serialization and apply hidden-field clearing during CP edits.
-- Prevent nested shared-field saves from overwriting updated labels; preserve shared definitions in nested layouts and stencil materialization.
-- Duplicate form layout trees without serializing runtime callbacks or mutating the source layout.
-- Fix native JSON stencil persistence, date import settings, checkbox coercion, blank password validation and empty Other-option validation.
-- Compare encrypted recipient condition payloads rather than randomized ciphertext.
-- Fix report date-filter migration, current project-config palette/group updates, and defaultable validation settings.
-- Handle missing payment providers during field rendering and return a boolean for unconfigured Mollie settings.
-- Resolve stable field references when generating notification preview recipients and isolate cached values between previews.
-- Fix missing schema helper import when rendering reCAPTCHA form settings.
-- Persist delivery attempt identities before external calls, stop uncertain integration/email retries, and checkpoint individual notifications.
-- Reuse Square payment keys; recover Stripe customer, payment intent, subscription and schedule creation; reconcile GoCardless payment/subscription duplicate-key responses.
-- Queue status-change notifications atomically with element transactions, even when ordinary notification delivery is synchronous.
-- Store integration dispatch context as native JSON and read existing double-encoded context during submission hydration.
-- Checkpoint successful queued integration steps so retries skip completed steps and resume failed delivery.
-- Ignore stale frontend responses after reset or a newer navigation/refresh operation.
-- Fix form factories exhausting automatic handles or generating Craft-reserved handles.
-- Fix client-side payment authorize still requiring a Stripe/provider token when the Payment field is hidden by conditional logic (e.g. bank transfer vs card) — authorize and mount now skip fields marked conditionally/row/page hidden, matching server-side payment workflow skips.
-- Fix “Restore In-Progress Submissions Automatically” still restoring incomplete submissions on revisit when disabled — server render no longer hydrates from leftover progress, and submit/client continuation ignore bare progress unless the browser already holds that submission (or a resume/continuation token). Resume links are unchanged.
-- Fix anonymous File Upload hydrate/delete treating form+field+asset ID as authorization — issue an unguessable upload capability token on upload (and when rendering existing assets), require it for hydrate/delete, and restrict submission-linked hydrate to CP view permission, matching draft progress, or a verified resume/continuation token.
-- Fix automation HTTP clients following redirects after the public-endpoint SSRF guard — outbound automation requests no longer follow redirects (shared by Web Request / Zapier / Make / n8n).
-- Fix automation outbound requests racing DNS between public-IP validation and connect — absolute automation URLs pin `CURLOPT_RESOLVE` to a re-validated public IP (rebinding-resistant with redirects already disabled).
-- Fix the double-encoded submission content repair migration using MySQL-only `JSON_TYPE` — detect double-encoded payloads in PHP so PostgreSQL upgrades succeed.
-- Fix orchestrated integration queue jobs acknowledging unsuccessful `IntegrationResponse` results as successful — `IntegrationExecutor` now returns structured results and `TriggerIntegration` fails the job on unsuccessful steps.
-- Fix integration “stop on failure” only applying inside one immediate/queued batch — failure with stop now prevents later phases from running.
-- Fix per-notification “after integrations” timing being skipped when the form-wide default is before integrations — the after phase runs whenever any notification needs it.
-- Fix dispatch notification/integration/spam stages using check-then-act markers — stages are claimed atomically before side effects (at-most-once on crash after claim).
-- Fix replay-protection tokens being consumed only after dispatch — claim the token at dispatch start (`cache->add`) so concurrent completes cannot double-deliver notifications/integrations.
-- Fix payment status polling still requiring a client-supplied `paymentUid` after opaque `statusToken` resolution — the token alone is the capability.
-- Fix payment and subscription lookups loading the entire history into memory — ID/UID/reference/submission queries are scoped in SQL.
-- Fix missing `formie_payments.submissionId` index for hot payment lookup/poll paths (Install + migration).
-- Fix questionnaire results re-decoding every submission content blob per question — content is decoded once per aggregation run.
-- Fix `@verbb/formie-core` REST transport dropping Craft subdirectory install paths when resolving action URLs from absolute endpoints.
-- Fix `@verbb/formie-core` form instances accepting concurrent submits and applying transport results after `destroy()` — overlapping submits are rejected and destruction is terminal.
-- Fix form `csrfInput: false` being ignored because Twig `??` treated explicit `null` as missing — null now omits the CSRF field; default CSRF stays sync so `data-formie-csrf` is present for Formie refresh JS.
-- Fix Upload Manager returning “Invalid file upload field” when a File Upload field is nested under a Group (and related nested content-key paths), and writing staged asset ids under the correct nested input names. ([#2948](https://github.com/verbb/formie/issues/2948))
-
-## 4.0.0-beta.15 - 2026-09-05
-
-### Changed
-- OAuth integration connect uses Plugin Kit `<pk-connect-oauth>`; removed jQuery dirty-form glue.
-- Integration credentials connect uses Plugin Kit `<pk-connect>` (declarative Twig + WC bundle) instead of the React `IntegrationConnectApp` mount.
-- Bump `verbb/auth` to `^2.0.44` (Salesforce/Pardot OAuth PKCE and session refresh).
-- Allow `dompdf/dompdf` `^3.0` alongside v1/v2.
-- Add Theme setting for Friendly Captcha (light/dark/auto). (#2907)
-
-### Fixed
-- Fix a security vulnerability with how permissions were handled for some submission actions.
-- Fix sending an email notification and running an integration for a submission not requiring the “Save submissions” permission.
-- Fix a security vulnerability with how submission redirect URLs were handled (guest Control Panel variants of anonymous front-end actions are rejected; front-end completion no longer renders posted `redirect` values through Craft’s unsandboxed object-template Twig).
-- Fix email preview and test-send actions not enforcing Control Panel and Formie permissions.
-- Fix required Multi-line Text fields with Rich Text enabled being skipped by client-side validation — the backing `<textarea>` lives in a `display: none` wrapper, so visibility is now judged from the rich-text editor host instead. ([#2947](https://github.com/verbb/formie/issues/2947))
-- Fix field validation errors relying on `aria-errormessage` alone — also merge the error message id into `aria-describedby` (keeping any instruction ids) so assistive tech with weak `aria-errormessage` support still announces the error. ([#2946](https://github.com/verbb/formie/issues/2946))
-- Fix redirect URLs merging request query string values in a way that could leave brace-bearing params available for later template interpretation. Query params are now appended after reference parsing as literal (encoded) values.
-- Fix cached form CSRF refresh URLs generating a double subdomain when `CRAFT_BASE_CP_URL` is set alongside per-site subdomains (e.g. `my-project.staging.example.com`).
-- Fix an error when sending an email notification for a submission that no longer exists.
-- Fix Pardot form handler payloads sending option fields as indexed/`field.value` keys instead of a single field value, and multi-option values with commas instead of Salesforce/Pardot semicolons.
-- Fix ActiveCampaign Email marketing contact payloads sending blank unmapped properties (now `array_filter`’d like the CRM path). (#2934)
-- Fix User element integration silently skipping group assignment when a configured group UID no longer resolves. (#2909)
-- Fix Phone country dropdown stuck disabled on multi-page forms (and when conditions re-enable the tel input).
-- Fix Agree fields not appearing in the Calculations formula field picker.
-- Fix filtering submissions by ID (and UID) in the All forms index view.
-- Fix broken French translation encoding (`\\u{a0}` literals).
-- Fix missing validator/payment translation keys.
-- Fix Date field upgrade path for sub-field ordering and year range when migrating to Formie 4.
-- Fix page and next-button conditions using nested/legacy field references not being migrated to `{field:…}` syntax.
-- Fix Formie permissions such as “Access reports” never saving for a user group — some permission-seeding migrations inserted camel-cased names into `userpermissions`, but Craft stores names lowercased and matches them case-sensitively, so the assignment could never be read back. Existing mixed-case rows are now normalised (and merged into their lowercase equivalents) by a new migration.
-- Fix Recent Submissions widget breaking the control panel because `WidgetsVendorAsset` published from a `src/` path that is not shipped in the package (#2939).
-- Fix opening dialogs adding a spurious gap under the trigger/content when the overlay was a sibling inside a Tailwind `space-y-*` stack (`:not(:last-child)` treats in-tree `pk-dialog` hosts as layout siblings). Notifications, Reports, Client Events, Calculations, and dynamic option “convert to static” now keep overlays outside those stacks (or use `gap` instead).
-
-## 4.0.0-beta.14 - 2026-08-19
-
-### Added
-- Add `Submission::EVENT_AFTER_COMPLETE` and `SubmissionWorkflow::EVENT_AFTER_PAGE_ADVANCE` so modules can hook a page submit or a form submit without `afterTask` guards. See [Run custom code on page submit or form submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit).
-- Add `data-formie-validation-skip` so helper controls can opt out of client-side validation without field-specific validator exceptions.
-
-### Changed
-- Tighten conditions UI density: sentence Show/All selects and the Field picker trigger now use `xs` to match Condition/Value table chips.
-- Fix conditions Field column vertical alignment (trigger + ⋯ vs Condition/Value) when projected into EditableTable custom cells.
-
-### Fixed
-- Fix element-field variable tokens with a property selector resolving empty (e.g. `{field:<ref>:title}`). Unindexed selectors now resolve against related elements and join multi-value results. ([#2930](https://github.com/verbb/formie/issues/2930))
-- Fix status-change notifications never sending: the trigger compared `Submission::getStatus()` as a status model, but it returns the handle string. ([#2931](https://github.com/verbb/formie/issues/2931))
-- Fix control panel submission saves running visitor page-flow and new-submission semantics on `editExisting` requests, which blocked status-change notifications, flipped completed submissions to incomplete, and overwrote the selected status. ([#2932](https://github.com/verbb/formie/issues/2932))
-- Fix rich text toolbars always showing only Bold/Italic — pass `buttons` / `linkOptions` to `pk-tiptap-editor` instead of the obsolete `*Attr` prop names so configured buttons reach the element. ([#2929](https://github.com/verbb/formie/issues/2929))
-- Fix final submit validating only the current page when a later page is conditionally hidden — `isLastPage()` / `isFirstPage()` now accept the submission so they skip unreachable pages the same way as `getNextPage()`. ([#2927](https://github.com/verbb/formie/issues/2927))
-- Fix redirect Entry selections on the Behaviour tab (and stencils) never persisting because save read `submitActionEntryId` instead of the posted `submitActionEntry` list. ([#2926](https://github.com/verbb/formie/issues/2926))
-- Fix page (and other form-builder) conditions showing an empty Value dropdown for Submission Status by always supplying status select options. ([#2925](https://github.com/verbb/formie/issues/2925))
-- Fix CP submission edit (Follow field conditions) always hiding pages whose conditions use `{submission:*}` tokens — the client now evaluates those from a submission snapshot instead of treating them as missing fields. ([#2925](https://github.com/verbb/formie/issues/2925))
-- Fix required File Upload fields using Upload Manager never passing client-side validation after a successful upload. ([#2924](https://github.com/verbb/formie/issues/2924))
-- Fix submitting a filled Date/Time field throwing `Undefined property: DateFieldValue::$date` during validation when resolving nested `date`/`time` paths (including Date fields inside Group/Repeater). ([#2923](https://github.com/verbb/formie/issues/2923))
-- Fix Group nested field values being ignored in submission title format tokens and Element/integration field mappings when the picker stored a child field reference. ([#2922](https://github.com/verbb/formie/issues/2922))
-- Fix Group nested field variable chips showing “Unknown field” after refresh when the saved token still used a nested field reference.
-- Fix the variable-tag configure popover expanding TipTap variable-picker fields (extra padding under the control and a misaligned insert `+` button).
-- Fix Advanced Upload Manager (and related front-end XHR helpers) failing when Craft’s `csrfTokenName` is customised away from `CRAFT_CSRF_TOKEN`.
-- Fix integration field mapping excluding Multi-line Text fields from the variable picker. Mapping now accepts multi-line sources for string/date/number destinations.
-
-## 4.0.0-beta.13 - 2026-07-19
-
-### Changed
-- Update JS/CSS control panel handling to `@verbb/plugin-kit` v2.
-
-### Fixed
-- Fix multi-site form creation failing on fresh Formie 4 installs with “Base table or view not found: formie_form_site_overrides” by adding the site override tables to `Install.php` and backfilling them for affected installs.
-
-## 4.0.0-beta.12 - 2026-07-09
-
-### Changed
-- Improve UI feedback for third-party plugin migrations (Freeform, Sprout Forms, etc.), including clearer progress and result summaries.
-- Update the default **Contact** stencil to use field reference tokens in notification variables instead of legacy field handles.
-
-### Fixed
-- Require control panel access and per-form integration permissions for `integrations/form-settings`, filter sensitive integration attributes from request payloads, and require `formId` from the form builder client.
-- Reject anonymous front-end `save-submission` requests that attempt to create new submissions without going through `submit`.
-- Encode form title, handle, and notification names in the import preview summary to prevent stored XSS.
-- Fix invalid email notification handles left over from Formie 2 upgrades (for example handles containing `.1`), which blocked saving forms in the v4 builder.
-- Fix false unload warnings in the form builder when opening or switching forms without making changes.
-- Fix an error when duplicating a form with nested Group or Repeater fields.
-- Fix duplicating Date/Time sub-fields in the form builder creating conflicting field references.
-- Fix required rich text fields (such as Agree **Description**) treating empty TipTap documents as valid content.
-- Fix Date/Time field default values not rendering correctly for calendar, dropdown, number, and text display types on the front-end and in previews.
-- Fix Date/Time values displaying incorrectly when editing submissions in the control panel.
-- Fix Date/Time field sorting in submission indexes using chronological order instead of raw JSON text.
-- Fix File Upload fields allowing the temporary upload volume to be selected when it should be restricted.
-- Fix File Upload fields showing a hard error when configured with an invalid or missing volume.
-- Fix Recipients, Dropdown, and other option-based fields not round-tripping import/export data correctly, including legacy placeholder options.
-- Fix Phone field country flag preview in the form builder.
-- Fix Signature field dimensions on the submission edit screen and add a download button for the stored image.
-- Fix Signature field canvas height on the front-end preserving the stored PNG aspect ratio when restoring values or resizing.
-- Fix submission index default sort order using `dateCreated` instead of title, matching the default timestamp-based submission title format.
-- Fix submission field content layout in the control panel to align more closely with Craft element editing styles.
-- Fix double-encoded submission `content` JSON after upgrading from Formie 3, and improve date part backfill during migration.
-
-## 4.0.0-beta.11 - 2026-07-02
-
-### Added
-- Add `Cleanup` service, `./craft formie/gc/run`, and `./craft formie/cron/run` console commands for scheduled cleanup and retention. `formie/cron/run` also runs due scheduled reports, with `--only`, `--skip-gc`, and `--skip-reports` for finer scheduling control.
-- Add `formie/gc/prune-sent-notifications` and `formie/gc/prune-draft-storage` console commands.
-- Add **Checkout Mode** setting to the Opayo payment integration, with **Own Form** (default) and **Drop-in Checkout** options. Drop-in Checkout renders card fields inside an Opayo-hosted iframe via `sagepayCheckout`, which can reduce PCI scope compared to own-form tokenisation, while reusing the existing server-side session key, transaction, and 3DS callback flow.
-- Added user guides for new areas of functionality.
-
-### Changed
-- User guides now sit alongside docs.
-- Hide PayPal buttons after successful authorization so users are not prompted to pay again before submitting the form. Buttons are restored automatically when authorization is cleared after a failed submit.
-
-### Fixed
-- Do not purge stale pending uploads when `maxIncompleteSubmissionAge` is disabled.
-- Fix an error with statuses when migrating from Formie 2.
-- Fix an error migrating from Formie 2 and the Recipients field.
-- Fix `dispatchTiming` migration issue.
-
-## 4.0.0-beta.10 - 2026-06-26
-
-### Added
-- Add **Form Statuses** to label form lifecycle states in the control panel (active, draft, archived), with form builder assignment, index status menu filtering, bulk actions, and project config support. Rename existing submission workflow labels to **Submission Statuses**, with backward-compatible class aliases. ([#1471](https://github.com/verbb/formie/issues/1471))
-- Add existing and synced fields to **Group** fields from the form builder, so reusable field definitions can be placed inside independent group wrappers with namespaced handles. ([#2069](https://github.com/verbb/formie/issues/2069))
-- Show field handles in the form builder when the Craft user preference **Show field handles in edit forms** is enabled (admin users only), with a copy-to-clipboard control on hover. ([#2279](https://github.com/verbb/formie/issues/2279))
-- Show an **Encrypted** padlock badge on fields in the form builder when **Enable Content Encryption** is turned on. ([#2332](https://github.com/verbb/formie/issues/2332))
-- Add an optional **Other** choice for Radio fields, with a configurable label and free-text input on the front-end. ([#1875](https://github.com/verbb/formie/issues/1875))
-- Add `csrfInput` render option to control Craft CSRF hidden input output (`true` default, `false` to omit, or an options array such as `{ async: true }` for statically cached pages). ([#2121](https://github.com/verbb/formie/discussions/2121))
-- Add **Enable Multi-Page Forms** plugin setting to disable multi-page forms in the form builder. When disabled, authors cannot add pages and existing multi-page forms cannot be saved until reduced to a single page. ([#2483](https://github.com/verbb/formie/discussions/2483))
-- Add password validation settings to the Password field: minimum length, and requirements for uppercase, lowercase, and special characters. ([#1880](https://github.com/verbb/formie/issues/1880))
-- Add a **Unique User Email** setting to Email Address fields, to reject email addresses already associated with a Craft user account. ([#1151](https://github.com/verbb/formie/issues/1151))
-- Add registered **Custom Provider** option sources for Dropdown, Radio, Checkboxes, and Recipients fields. Modules can register lightweight `OptionSourceProviderInterface` classes via `OptionSources::EVENT_REGISTER_OPTION_SOURCE_PROVIDERS` for local Craft data without building a full integration. See [Custom option source providers](/developers/option-source-providers). ([#1421](https://github.com/verbb/formie/issues/1421))
-- Add dynamic Brevo list assignment via field mapping. Map a form field to the Brevo **List** integration field to subscribe contacts to a submission-specific list, with fallback to the form’s configured list. ([#2849](https://github.com/verbb/formie/issues/2849))
-- Add **Merge Multi-Option Fields** setting to the Pipedrive integration. When updating an existing person (matched by email), mapped multi-option field values such as labels can be appended to existing values instead of replacing them.
-- Add global **Allowed domains** email rules under **Settings → Spam Protection → Email Rules**. Allowlisted domains or full email addresses skip global blocked-domain and free-provider checks only; other spam screening still applies. ([#2335](https://github.com/verbb/formie/issues/2335))
-- Add a **Last Edited By** column to submission sources, tracking the Craft user who last saved a submission in the control panel. ([#1403](https://github.com/verbb/formie/issues/1403))
-- Add `craft.formie.ref()` and `craft.formie.refField()` for building variable-picker-compatible reference tokens from Twig when overriding settings such as `submitActionMessage`. See [Reference tokens](/developers/reference-tokens). ([#2838](https://github.com/verbb/formie/issues/2838))
-- Add a persisted `metadata` JSON column on submissions for submit-time request context (referrer, user agent, tracking cookies) and developer-defined custom data via `form.setSubmissionMetadata()`. Reference tokens such as `{metadata:custom.campaignId}` and `{metadata:request.referrer}` are supported in notifications, integrations, and PDFs. ([#1379](https://github.com/verbb/formie/issues/1379))
-- Add `formie_field_site_overrides` storage for per-site field definition overrides keyed by `fieldId`, separate from form-level `formie_form_site_overrides` payloads.
-
-### Changed
-- Freeform 4/5 plugin migrations now process submissions in batches (default 100) to avoid memory exhaustion on large forms. Use `php craft formie/migrate/freeform4` (or `freeform5`) with `--batch-size`, `--submission-offset`, `--submission-limit`, `--submissions-only`, and `--skip-submissions` for large migrations. ([#2513](https://github.com/verbb/formie/issues/2513))
-- Rework multi-site propagation and translation to use each form’s **source site** (where it was created) instead of Craft’s global primary site. “Same language” and “Same site group” propagation modes now filter from the source site. Forms store a persisted `sourceSiteId`. ([#84](https://github.com/verbb/formie/issues/84))
-- Rename the submission statuses database table from `formie_statuses` to `formie_submission_statuses`, aligning with `formie_form_statuses`. The `Table::FORMIE_STATUSES` constant remains as a deprecated alias.
-- Stop routing user-authored form content (labels, placeholders, messages, options) through the `formie` translation category. Form copy is output from the database after site overrides are merged; `formie.php` is for Formie-owned UI strings only ([#2907](https://github.com/verbb/formie/issues/2907)).
-- Remove front-end `sourceLanguage` mutation in the plugin constructor that existed to work around the above behaviour.
-- Improve multi-site submission and notification handling by loading forms with site translation overrides applied for the submission’s site.
-- Store field translation overrides in `formie_field_site_overrides` instead of nested `fields` entries in form site override JSON.
-- Include multi-site translation overrides in form import/export (`siteOverrides`, `fieldSiteOverrides`, and `sourceSiteHandle`), keyed by site handle and field reference for portability across environments. Form exports now use export version `v4`.
-
-### Fixed
-- Fix form import with **Update existing form** not removing notifications deleted before export. Empty `notifications` arrays in the import payload now replace the form’s notifications instead of being ignored. ([#1941](https://github.com/verbb/formie/issues/1941))
-- Fix plugin uninstall via `project-config/apply` failing when Formie stencil project config is removed after the `formie_stencils` table has already been dropped. ([#1710](https://github.com/verbb/formie/issues/1710))
-- Fix queued integrations losing submit-time context (referrer, IP address, HubSpot/Pardot tracking cookies) by persisting request metadata on the submission at submit time and hydrating integration context from it in queue workers. ([#1379](https://github.com/verbb/formie/issues/1379))
-- Fix plugin migrations failing on production when `allowAdminChanges` is disabled because migrations attempted to write plugin settings to project config. ([#2615](https://github.com/verbb/formie/issues/2615))
-- Fix phone country dropdown flags not appearing on Craft Cloud. Flag sprites are inlined in the front-end bundle instead of loading from relative CSS asset paths. ([#2529](https://github.com/verbb/formie/issues/2529))
-- Fix date dropdown fields rejecting year-only values with “Year cannot be blank” when other date parts are disabled. Partial date parts are stored via `DateFieldValue` without requiring a full calendar date. ([#2261](https://github.com/verbb/formie/issues/2261))
-- Fix Stripe payments failing with “Invalid email address” when **Payment Receipt** is enabled but the mapped receipt email resolves empty (for example legacy `{field.email}` tokens or **User Email** while logged out). ([#2262](https://github.com/verbb/formie/issues/2262))
-- Fix Google Maps API script conflicts when Address field autocomplete and the Google Maps Craft plugin are used on the same page. Formie reuses an existing `window.google` instance instead of injecting a second Maps script. ([#2041](https://github.com/verbb/formie/issues/2041))
-- Fix captcha provider credentials saved in the control panel being wiped when project config syncs on deploy. Site-scoped captcha settings are now preserved across deployments. ([#2407](https://github.com/verbb/formie/issues/2407))
-- Fix notification email preview and send failing when both **From Name** and **From Email** are set. ([#2698](https://github.com/verbb/formie/issues/2698))
-- Fix Phone field country selector labels not respecting the field’s **Country Language** setting. ([#2042](https://github.com/verbb/formie/issues/2042))
-
-## 4.0.0-beta.9 - 2026-06-25
-
-### Added
-- Add **Lock Field Settings** and **Editor Note** on the field editor **Advanced** tab to help content authors protect important field configuration. Locking dims field settings until **Unlock** is clicked for the session; notes appear in the field editor banner. ([#1189](https://github.com/verbb/formie/issues/1189))
-- Add Stripe subscription **Payment Limit** field settings to cancel subscriptions automatically after a fixed or dynamic number of payments using Stripe subscription schedules. ([#2123](https://github.com/verbb/formie/issues/2123))
-- Add Stripe subscription **Setup Fee** field settings to charge a one-time fee on the first subscription invoice using Stripe invoice items. ([#1767](https://github.com/verbb/formie/issues/1767))
+- Add a React-powered form builder foundation.
+- Add a Formie 3 to Formie 4 migration path for existing Craft 5 projects.
+- Add direct Formie 2 to Formie 4 migration support, allowing Craft 4 projects to move to Craft 5 without upgrading through Formie 3 first.
+- Add Formie 4 Compatibility Mode, enabled by default, to bridge selected Formie 3 class aliases, event owners, custom field schema methods, field config keys, theme config keys, and legacy front-end event listeners during upgrades.
+- Add first-party framework-agnostic, browser, React, Vue, and Web Components packages for server-rendered and client-rendered forms, with REST and GraphQL transports.
 - Add headless GraphQL payment support: structured Payment field input types, payment follow-up fields on `submitFormieClientForm`, and BYO provider documentation. ([#1375](https://github.com/verbb/formie/issues/1375))
-- Migrate GoCardless payments from deprecated Redirect Flows to Billing Request Flows, including mandate fulfilment, one-off payment creation, and billing request webhooks. ([#2552](https://github.com/verbb/formie/issues/2552))
-- Add GoCardless recurring subscription support via Direct Debit mandate authorisation and GoCardless subscription creation after billing request fulfilment. ([#2552](https://github.com/verbb/formie/issues/2552))
-
-### Changed
-- Improve default theme color contrast for WCAG 2.2 AA — darker error text, muted helper text, and border-only control styling with split border tokens ([#2475](https://github.com/verbb/formie/issues/2475)).
-- Add Ajax-safe tab link state theme keys `tabLinkCurrent` and `tabLinkInactive`, with aliases for `pageTabLinkActive`, `pageTabLinkInactive`, and `pageInactive` ([#1279](https://github.com/verbb/formie/issues/1279)).
-
-### Fixed
-- Fix required asterisk indicator not appearing on Agree fields when the field label is hidden and consent copy is shown on the checkbox label. ([#2333](https://github.com/verbb/formie/issues/2333))
-- Fix rich-text links to internal pages opening in a new tab including `rel="noopener noreferrer nofollow"`. Internal links now omit the attribute; external links keep it. ([#2604](https://github.com/verbb/formie/issues/2604))
-- Fix payment amount parsing for locale-formatted dynamic values (for example `1,234.56`, `1.750,00`, and `£750.00`) on both the server and in the browser payment modules. ([#2334](https://github.com/verbb/formie/issues/2334))
-- Fix payment follow-up states (such as 3D Secure authentication) showing as red validation errors. Action-required and pending payment responses now render as neutral form notices, and Ajax submit payloads include `paymentStatus`, `paymentMessage`, `paymentAction`, and `paymentDecision` metadata. ([#2660](https://github.com/verbb/formie/issues/2660))
-- Fix Stripe payment intent amounts being sent as floats; minor-unit values are now sent as integers.
-- Fix external redirect payments (for example Mollie) leaving users on the status polling page when payment fails. Failed payments now redirect back to the original form URL with a flash error message. ([#2502](https://github.com/verbb/formie/issues/2502))
-- Fix Stripe and other payment follow-up submits re-validating one-time captcha tokens (for example reCAPTCHA v2 checkbox and hCaptcha), which caused duplicate-token spam failures on the second Ajax POST. Incomplete continuation submits now skip captcha screening, matching replay-token behaviour. ([#2465](https://github.com/verbb/formie/issues/2465))
-- Fix hard-coded local-dev payment webhook proxy URL. `paymentWebhookProxyUrl` in `config/formie.php` now controls the dev-mode proxy base URL (default `https://proxy.verbb.io`), or can be set to an empty string to disable proxying.
-- Fix payment provider settings schema failing to load in the form builder due to a missing `Payment` field import in `FieldsController`.
-- Fix payment provider settings not pre-filling defaults when selecting a provider in the form builder.
-- Fix combobox schema fields using a literal “Select an option” empty option instead of a placeholder.
-
-## 4.0.0-beta.8 - 2026-06-24
-
-### Added
+- Add GraphQL `Json` siblings for stored rich-text content alongside existing `Html` fields ([#865](https://github.com/verbb/formie/issues/865)): `submitActionMessageJson`, `errorMessageJson`, `instructionsJson`, `descriptionJson`, and `contentJson`.
+- Add generic `saveSubmission` GraphQL mutation for handle-based submission saves ([#1007](https://github.com/verbb/formie/issues/1007)).
+- Add developer extension APIs for schema-driven integration and notification settings, submission workflow stages and tasks, field value projections, slot tags, client modules, and programmatic form and submission factories.
+- Add **Form Statuses** to label form lifecycle states in the control panel (active, draft, archived), with form builder assignment, index status menu filtering, bulk actions, and project config support. Rename existing submission workflow labels to **Submission Statuses**, with backward-compatible class aliases. ([#1471](https://github.com/verbb/formie/issues/1471))
+- Dispatch integrations on control panel submission saves when the re-run policy includes **Control panel save**, including bulk status changes and other direct element saves. CP submission edit saves continue to use the submission workflow without double-triggering. ([Discussion #2253](https://github.com/verbb/formie/discussions/2253))
+- Add a staged submission workflow service (`SubmissionWorkflow`) with `preflight`, `validate`, `screen`, `persist`, `dispatch`, and `finalize` stages.
+- Add database-backed temporary submission state, incomplete submission state, saved drafts, and resume-token handling.
+- Add multi-site support with automatic site availability via Form Group site policy, per-site content translation via sparse site overrides, portable stencil translations, and per-site required-field overrides. ([#2308](https://github.com/verbb/formie/issues/2308), [#84](https://github.com/verbb/formie/issues/84), [#2724](https://github.com/verbb/formie/issues/2724), [#2968](https://github.com/verbb/formie/issues/2968), [#2982](https://github.com/verbb/formie/issues/2982))
+- Add a dedicated optional field-content encryption key, an Encryption settings page, key generation and status commands, resumable re-encryption, previous-key recovery, and read-only handling for unavailable encrypted values.
+- Add `siteHandle` request parameter support for headless form load and submit endpoints ([#2286](https://github.com/verbb/formie/issues/2286)).
+- Add `Cleanup` service, `./craft formie/gc/run`, and `./craft formie/cron/run` console commands for scheduled cleanup and retention. `formie/cron/run` also runs due scheduled reports, with `--only`, `--skip-gc`, and `--skip-reports` for finer scheduling control.
+- Add **Reports** control panel section for saved analytical views over submissions: filters, summary counts, charts, column configuration, and on-demand export (CSV, Excel, JSON, XML, text) with configurable filename tokens. ([#647](https://github.com/verbb/formie/issues/647))
+- Add **Scheduled Reports** to email a summary and export attachment from a saved report on daily or weekly schedules, with configurable file type, optional email template, recipients, and user group delivery. ([#692](https://github.com/verbb/formie/issues/692), [#2184](https://github.com/verbb/formie/issues/2184))
+- Add **Report Async Export Row Threshold** setting (**Settings → Submissions**) to queue large report exports in the background (default 1000 rows). ([#2259](https://github.com/verbb/formie/issues/2259))
 - Add **Quiz** field to forms for scored questionnaires ([#605](https://github.com/verbb/formie/issues/605)). Each question supports radio buttons, checkboxes, or a dropdown; mark correct answers on static options, enable optional **Weighted score** for per-option points, and add **Answer explanation** rich text for incorrect responses. Form **Behaviour → Quiz Scoring** settings control pass percentage, retake restrictions (by logged-in user or IP address), and whether Ajax/client submit responses include a `quizResult` payload after a successful final-page submit. Scores persist in `formie_submission_quiz_results` for complete, non-spam submissions.
 - Add **Survey** field to forms with selectable presentation types: radio buttons, checkboxes, dropdown, **Likert** scale ([#798](https://github.com/verbb/formie/issues/798)), **Rating** star scale ([#2282](https://github.com/verbb/formie/issues/2282)), and **Rank** drag-and-drop ordering ([#605](https://github.com/verbb/formie/issues/605)). Likert supports single- and multi-row layouts, optional **Weighted score** on static columns, and built-in predefined scale defaults. Rank fields preserve submitted order on validation re-render.
 - Add a **Results** tab to the form builder when a form includes Quiz or Survey fields ([#605](https://github.com/verbb/formie/issues/605)). View per-question response counts and option breakdowns, rank-weighted preference charts, Likert scoring averages when weighted scoring is enabled, and a quiz summary (attempts, average score, pass rate, pass threshold) for scored quizzes.
-- Add author documentation for [Quiz](/fields/quiz) and [Survey](/fields/survey) fields.
-- Add multi-site support with automatic site availability via Form Group site policy and per-site content translation via sparse site overrides ([#2308](https://github.com/verbb/formie/issues/2308), [#84](https://github.com/verbb/formie/issues/84), [#2724](https://github.com/verbb/formie/issues/2724)).
-- Add `formie_form_site_overrides` storage, `FormSiteOverrides` and `FormSitePropagation` services, CP site switcher with instant client-side switching, and translation icons on translatable builder fields.
-- Add `allowedSubmitMethods` plugin setting to restrict form submission methods to Ajax only, page reload only, or both ([#1751](https://github.com/verbb/formie/issues/1751)).
-- Add `siteHandle` request parameter support for headless form load and submit endpoints ([#2286](https://github.com/verbb/formie/issues/2286)).
-- Redesign page **Client Events** with a dedicated **Tracking** tab, support for multiple named events per page, variable picker values, and server-resolved `clientEvents` payloads in Ajax submit responses ([#888](https://github.com/verbb/formie/issues/888)).
-- Add predefined **client event templates** (GTM, GA4, Meta), per-page suggestions, payload preview, optional per-event conditions, and form-level default client events with apply-to-all-pages support.
-- Add GraphQL `Json` siblings for stored rich-text content alongside existing `Html` fields ([#865](https://github.com/verbb/formie/issues/865)): `submitActionMessageJson`, `errorMessageJson`, `instructionsJson`, `descriptionJson`, and `contentJson`.
-- Add generic `saveSubmission` GraphQL mutation for handle-based submission saves ([#1007](https://github.com/verbb/formie/issues/1007)).
-- Add submission PDF downloads from the control panel and via `craft.formie.generateSubmissionPdf()` / `craft.formie.getSubmissionPdfDownloadUrl()` ([#1213](https://github.com/verbb/formie/issues/1213), [Discussion #1273](https://github.com/verbb/formie/discussions/1273)).
-
-### Changed
-- Redesign predefined/integration options UI.
-- Apply universal submission guards (global throttling, IP throttling, replay protection, and required request tokens) to client REST and GraphQL submits. Browser-only guards (honeypot, minimum submit time, form expiration) still require traditional `handle` + `submitAction` form posts.
-- Align client REST CSRF validation with `enableCsrfValidationForGuests`. The `@verbb/formie-core` REST transport now sends the CSRF token from `session.tokens.csrf` when present.
-- Require `formie-accessForms` permission for Formie CP field helper JSON actions.
-- Rate-limit anonymous payment callback requests using the same budget as payment webhooks.
-
-### Removed
-- GraphQL submission mutations no longer skip all submission guards. Browser-only guard checks still require a traditional form POST shape; headless transports must supply a bootstrap `requestToken`.
-
-### Fixed
-- Fix a HTML error with Signatures field.
-- Fix headless/Ajax validation error messages using the wrong locale by applying the target site language at submission time ([#1545](https://github.com/verbb/formie/issues/1545)).
-- Fix Summary field Ajax refreshes ignoring custom `themeConfig` classes by round-tripping render-time theme config through the summary HTML endpoint ([#1721](https://github.com/verbb/formie/issues/1721)).
-
-## 4.0.0-beta.7 - 2026-06-18
-
-### Added
-- Add form group policies for allowed submission statuses, optional per-group field palettes, and new-form default profiles (stencil, templates, form defaults). Group policies inherit from global settings; allowed submission statuses are enforced at the group level. ([#2717](https://github.com/verbb/formie/issues/2717), [#2209](https://github.com/verbb/formie/issues/2209), [#863](https://github.com/verbb/formie/issues/863))
-- Add `FormGroupPolicy` service as the single entry point for global → group → form policy resolution.
-- Add custom variable sources via `Variables::EVENT_REGISTER_VARIABLES`, exposing registered tokens in the variable picker and resolving them server-side when references are parsed. ([#898](https://github.com/verbb/formie/issues/898))
-- Add group-scoped form and submission permissions using stable form group handles, with optional per-form dedicated permissions via a new **Use Dedicated Permissions** form setting. ([#1426](https://github.com/verbb/formie/issues/1426), [#1356](https://github.com/verbb/formie/issues/1356), [#2489](https://github.com/verbb/formie/issues/2489), [Discussion #1696](https://github.com/verbb/formie/discussions/1696))
-- Add `formie-importForms` and `formie-exportForms` permissions, replacing the temporary admin-only import/export gate.
-- Add `formie-accessIntegrations` permission for the top-level **Integrations** control panel section, separate from **Access settings**.
-- Add nested settings page permissions under **Access settings**, with CP navigation and controller enforcement per page.
-- Add `formie_captcha_providers` table and migrate captcha provider credentials out of plugin settings, with site/project scope support and project config export for project-scoped providers.
-- Add `formie_spam_settings` table and migrate spam handling settings out of plugin settings, with site/project scope support and project config export for project-scoped defaults.
-- Add built-in submission guards (honeypot, minimum submit time, replay protection) via a `RunSubmissionGuardsTask` screen-stage workflow task and **Settings → Spam Protection** controls.
-- Add global email rules (blocked domains, block free providers), form submit expiration guard, and align `RunSpamChecksTask` with `SpamHelper` for documented keyword and IP matching.
-- Add suspicious text detection, maximum links screening, global submission throttling, and per-IP submission throttling under **Settings → Spam Protection**. ([#1332](https://github.com/verbb/formie/discussions/1331), [#1154](https://github.com/verbb/formie/issues/1154), [#1099](https://github.com/verbb/formie/issues/1099))
-- Add a suspicious text detector focused on keyboard spam, low-quality filler text, and configurable allowed terms.
-- Add a `Permissions` service as the single ACL entry point for forms, submissions, sent notifications, and import/export checks.
-- Add **Field Error Announcement** plugin setting (**Settings → Forms**) to control how front-end validation and submit errors are announced to screen readers (`polite`, `assertive`, or `off`). Live validation while typing always uses polite announcements. ([#2505](https://github.com/verbb/formie/issues/2505))
-- Add optional per-form reCAPTCHA **Action** and **Minimum Score** settings for score-based modes, inheriting global Spam Protection defaults when left blank. ([#2167](https://github.com/verbb/formie/issues/2167), [#2804](https://github.com/verbb/formie/issues/2804))
-- Add scoped **Submission Limits** per form: cap all submissions for a form (closes the form when reached), submissions per IP address, or submissions per logged-in user, over configurable periods. [Discussion #1939](https://github.com/verbb/formie/discussions/1939)
-- Add **Reports** control panel section for saved analytical views over submissions: filters, summary counts, charts, column configuration, and on-demand export (CSV, Excel, JSON, XML, text) with configurable filename tokens. ([#647](https://github.com/verbb/formie/issues/647))
-- Add **Scheduled Reports** to email a summary and export attachment from a saved report on daily or weekly schedules, with configurable file type, optional email template, recipients, and user group delivery. ([#692](https://github.com/verbb/formie/issues/692), [#2184](https://github.com/verbb/formie/issues/2184))
-- Add `formie-accessReports`, `formie-manageReports`, and `formie-manageScheduledReports` permissions.
-- Add `craft formie/reports/run-scheduled` console command for cron-driven scheduled report delivery.
-- Add **Report Async Export Row Threshold** setting (**Settings → Submissions**) to queue large report exports in the background (default 1000 rows). ([#2259](https://github.com/verbb/formie/issues/2259))
-- Add queued report exports with CP polling, email notification, and signed download links for interactive exports.
-- Add `formie_report_exports` table, `craft formie/gc/prune-report-exports` console command, and automatic expiry during Craft garbage collection.
-- Add report export download settings: interactive/scheduled link expiry (hours), and single-use download links (default on).
-
-### Changed
-- Apply single-use report export download limits to signed email links only; authenticated control panel downloads remain available until expiry.
-- Improve queued report export feedback in the control panel with a dismissible inline notice when the queue starts, instead of a delayed Craft toast about email delivery.
-- Improve report viewer load performance by skipping redundant overview refreshes on initial page load and aggregating summary counts in a single query per report instead of three counts per form.
-- Improve **Submission Limits** form settings UX (**Apply Limit To**, consolidated messaging) and clarify the distinction from global **Submission Throttling** abuse controls. Add [Submission Limits](/forms/submission-limits) author documentation. [Discussion #1939](https://github.com/verbb/formie/discussions/1939)
-- Remove built-in CSV export actions from the submissions element index; use **Reports** for export and scheduled delivery instead.
-- Align `Form` element `canView()`, `canSave()`, `canDuplicate()`, and delete behaviour with controller permissions instead of broad allow-all checks.
-- Auto-grant creators scoped group (or dedicated per-form) manage permissions when they can create forms but lack broader access.
-- Filter CP form and submission element sources and indexes to forms the current user can view or manage.
-- Filter the settings sidebar and default settings landing page to the first settings page a user can access.
-- Unify **Settings → Spam Protection** as the single CP page for spam handling, keyword rules, and captcha provider credentials. Legacy `spam` and `captchas` routes redirect to the new page.
-- Deprecate captcha and spam keys in `plugins.formie.settings`; legacy plugin settings values are stripped on save and seeded into runtime stores via the compatibility layer.
-- Removed chart on Submissions element index in favour of dedicated Reports charting.
-- Stream CSV/text report exports row-by-row to disk for memory-safe large datasets ([#2497](https://github.com/verbb/formie/issues/2497)).
-- Scheduled reports attach exports when under the email attachment limit; otherwise include a signed download link in the summary email instead of silently omitting the file.
-- Store report export download tokens as SHA-256 hashes; scheduled export links default to 48-hour expiry.
-
-### Fixed
-- Fix report export email links returning “Export not found” after a control panel auto-download by serving CP polling downloads from an authenticated route that does not consume single-use signed links.
-- Fix report export downloads failing with Craft’s “Invalid token” error by using a `downloadToken` query param instead of `token`, which Craft 5.9+ reserves for route tokens.
-- Hash legacy report export download tokens in PHP during migration for MySQL/MariaDB/PostgreSQL compatibility instead of MySQL-only `SHA2()`.
-- Kick Craft’s queue when polling queued report exports in the control panel, so large async exports progress instead of staying `pending` indefinitely on single-page report views.
-- Align spam keyword screening in `RunSpamChecksTask` with `SpamHelper`, restoring `[match:]` / `[ip:]` rule support and field/global reference resolution in the submission workflow.
-- Skip client-side validation for fields disabled by conditional logic, and disable conditionally hidden submit buttons so Enter no longer triggers hidden submit/next actions. ([#2727](https://github.com/verbb/formie/issues/2727), [#1136](https://github.com/verbb/formie/issues/1136), [Discussion #1628](https://github.com/verbb/formie/discussions/1628))
-- Apply spam behaviour (success/message) without attempting to persist discarded spam submissions when **Save spam submissions** is disabled, avoiding failed saves under bot load. ([#2818](https://github.com/verbb/formie/issues/2818))
-- Bound spam keyword scanning and spam log payloads so very large field values cannot stall PHP workers during spam handling. ([#2065](https://github.com/verbb/formie/issues/2065))
-- Initialise captcha placeholders immediately when multipage forms change page via tabs or Ajax **Next**, so Friendly Captcha and other providers mount on the visible page before submit. ([#1893](https://github.com/verbb/formie/issues/1893))
-- Tear down Cloudflare Turnstile widgets with `remove()` during remounts and apply CSP nonces to dynamically loaded captcha scripts where available, reducing console noise on strict CSP hosts. ([#2535](https://github.com/verbb/formie/issues/2535))
-- Wait for reCAPTCHA Enterprise readiness before executing score/policy challenges on multipage navigation. ([#2224](https://github.com/verbb/formie/issues/2224))
-
-## 4.0.0-beta.6 - 2026-06-14
-
-### Added
+- Add **Checkout Mode** setting to the Opayo payment integration, with **Own Form** (default) and **Drop-in Checkout** options. Drop-in Checkout renders card fields inside an Opayo-hosted iframe via `sagepayCheckout`, which can reduce PCI scope compared to own-form tokenisation, while reusing the existing server-side session key, transaction, and 3DS callback flow.
+- Add registered **Custom Provider** option sources for Dropdown, Radio, Checkboxes, and Recipients fields. Modules can register lightweight `OptionSourceProviderInterface` classes via `OptionSources::EVENT_REGISTER_OPTION_SOURCE_PROVIDERS` for local Craft data without building a full integration. See [Custom option source providers](https://verbb.io/craft-plugins/formie/docs/v4/developers/custom-option-source-providers). ([#1421](https://github.com/verbb/formie/issues/1421))
+- Add dynamic Brevo list assignment via field mapping. Map a form field to the Brevo **List** integration field to subscribe contacts to a submission-specific list, with fallback to the form’s configured list. ([#2849](https://github.com/verbb/formie/issues/2849))
+- Add **Merge Multi-Option Fields** setting to the Pipedrive integration. When updating an existing person (matched by email), mapped multi-option field values such as labels can be appended to existing values instead of replacing them.
+- Add a persisted `metadata` JSON column on submissions for submit-time request context (referrer, user agent, tracking cookies) and developer-defined custom data via `form.setSubmissionMetadata()`. Reference tokens such as `{metadata:custom.campaignId}` and `{metadata:request.referrer}` are supported in notifications, integrations, and PDFs. ([#1379](https://github.com/verbb/formie/issues/1379))
 - Add top-level **Integrations** control panel navigation for managing CRM, email marketing, element, and other payload integrations outside **Settings**.
 - Add **site-scoped** integrations that can be created and edited on production environments (`allowAdminChanges = false`). Existing integrations remain **project-scoped** and deploy via project config.
-- Add **Display Type** settings to File Upload fields: **File Input (Simple)** keeps the native browser input and uploads files on form submit; **Upload Manager (Advanced)** adds a drag-and-drop zone with async staged uploads, progress, remove, and reorder controls via Formie’s upload endpoints. Existing forms default to **File Input (Simple)**. ([#133](https://github.com/verbb/formie/issues/133), [#2385](https://github.com/verbb/formie/issues/2385), [Discussion #1692](https://github.com/verbb/formie/discussions/1692))
-- Expose `displayType` on File Upload GraphQL field settings.
-- Add per-field **Asset Data Retention** settings to File Upload fields, allowing uploaded assets to be deleted after a configured duration while the submission record is kept. ([#1715](https://github.com/verbb/formie/issues/1715))
-- Add File Upload asset retention and stale pending upload cleanup through Craft garbage collection and dedicated console commands.
 - Add **When integrations re-run** settings (Integrations → Settings) with per-integration policies: once on submit (default), also when submission is edited, or custom trigger events. Integration conditions still apply. ([#1429](https://github.com/verbb/formie/issues/1429), [#1724](https://github.com/verbb/formie/issues/1724), [#2591](https://github.com/verbb/formie/issues/2591), [#1970](https://github.com/verbb/formie/issues/1970))
-- Dispatch integrations on control panel submission saves when the re-run policy includes **Control panel save**, including bulk status changes and other direct element saves. CP submission edit saves continue to use the submission workflow without double-triggering. ([Discussion #2253](https://github.com/verbb/formie/discussions/2253))
-- Add `IntegrationTriggers` service as the single coordinator for workflow, control panel element saves, spam unmark actions, and manual integration runs.
-- Add `IntegrationExecutor` service to unify legacy and orchestrated integration step execution, including batched queue jobs.
-- Add `NotificationTriggers` service to coordinate status-change email notifications when submission statuses are updated.
 - Add **Use Submission User as Author** to Entry element integrations, assigning the collected submission user as the entry author when **Collect User** is enabled on the form. ([#1363](https://github.com/verbb/formie/issues/1363))
 - HubSpot **Map to Form** integrations now resolve custom object `objectTypeId` values when submitting to HubSpot forms, including portal-specific custom objects (Enterprise). Refresh HubSpot forms after creating custom objects. ([#2649](https://github.com/verbb/formie/issues/2649))
 - Add **Enable Conditions** to form integration settings, allowing integrations to be triggered only when submission field and status rules match. ([#447](https://github.com/verbb/formie/issues/447))
 - Add **Integration Dispatch** form settings (Integrations → Settings) to run payload integrations sequentially, choose immediate vs queued execution per integration, control notification timing relative to integrations, and expose dispatch results via `{dispatch:handle:property}` variables (for example `{dispatch:user:url}`). Dispatch variables appear in variable pickers when integration dispatch is enabled. ([#2635](https://github.com/verbb/formie/issues/2635), [#1152](https://github.com/verbb/formie/issues/1152), [#2810](https://github.com/verbb/formie/issues/2810))
-- Add per-notification **Dispatch Timing** (Advanced) to override the form’s integration dispatch notification timing.
+- Add durable integration and notification delivery history with encrypted diagnostics, safe retries, reconciliation tools, and support-download controls.
 - Add configurable **Integration API Error Handling** for Mailchimp and Campaign Monitor, classifying rate-limited and rejected payloads separately from operational failures. ([#2172](https://github.com/verbb/formie/discussions/2172), [#1990](https://github.com/verbb/formie/issues/1990))
 - Add `Integrations::EVENT_AFTER_TRIGGER_INTEGRATION_FAILED` for handling integration failures outside the queue, and **Send Email Alert for Failed Integration** settings mirroring failed notification alerts. ([Discussion #2579](https://github.com/verbb/formie/discussions/2579))
-
-### Changed
-- Apply control panel submission sidebar fields (title, status, spam, mark as complete) during managed CP submission saves.
-- Route all integration trigger entry points through `IntegrationTriggers` instead of `Submission::afterSave` hooks.
-- Consolidate legacy and orchestrated integration dispatch behind `IntegrationExecutor`, using batched `TriggerIntegration` queue jobs for queued steps.
-- Route status-change email notifications through `NotificationTriggers` instead of inline logic in `Submission::afterSave`.
-- Deprecate Formie 3 `Submissions` integration and notification dispatch helpers when compatibility mode is enabled. Use `Notifications`, `Integrations`, and `IntegrationTriggers` instead.
-- Remove unused `Integration::shouldTriggerOnSubmissionEdit()` API (superseded by re-run policies).
-- Update phone number values sent to integrations to use `E164` format instead of international formatting. ([Discussion #2731](https://github.com/verbb/formie/discussions/2731))
-- Improve integration queue job descriptions and debug output with form context (`formId`, `formHandle`, `formTitle`). ([#2172](https://github.com/verbb/formie/discussions/2172))
-- Reorganise plugin settings: move integration behaviour settings to **Settings → Behavior → Integrations**, and move **Use Queue for Notifications** to **Email Notifications**.
-- OAuth integration redirect URIs now default to a Craft action URL instead of a site URL. Add an optional **OAuth Redirect URI Override** plugin setting. ([#1333](https://github.com/verbb/formie/issues/1333))
-
-### Fixed
-- Fix Opayo, Stripe, Paddle, and GoCardless payment integrations not resolving **Billing Details** field mappings from the form builder static table, so Name and Address fields are included in payment payloads again. ([#2617](https://github.com/verbb/formie/issues/2617))
-- Fix Salesforce integrations failing after Craft 5 / Formie 3 upgrades when OAuth tokens were migrated without `instance_url`, by falling back to stored integration settings and backfilling token values. ([#2492](https://github.com/verbb/formie/issues/2492))
-- Fix Salesforce integration refresh failing when an enabled object such as Opportunity or Case is unavailable in the connected org. ([#1551](https://github.com/verbb/formie/issues/1551))
-- Fix Marketo OAuth connect failing when an empty `scope` parameter is sent with the client-credentials grant, and normalize API domains that include a trailing `/rest` segment. ([#2718](https://github.com/verbb/formie/issues/2718))
-- Fix Mailchimp integrations not exposing or formatting **Address** merge fields, which prevented mapping Formie Address fields to Mailchimp audiences that require `ADDRESS` data. ([#2387](https://github.com/verbb/formie/issues/2387))
-- Improve Pardot integration errors when an account does not support API v4 (legacy Pardot Classic). ([#2642](https://github.com/verbb/formie/issues/2642))
-- Fix file upload assets being deleted when trashing a submission with **File Uploads → Delete files** enabled, so restored submissions keep their uploaded files. ([#1258](https://github.com/verbb/formie/discussions/1258))
-- Fix new File Upload fields defaulting to an empty **Email Field Summary Value** setting.
-- Fix Signature fields intermittently showing a misleading “browser does not support” message on multi-page forms, conditional fields, and late layout by retrying canvas sizing, watching visibility changes, and showing accurate status copy when initialization fails. ([#2708](https://github.com/verbb/formie/issues/2708))
-
-## 4.0.0-beta.5 - 2026-06-12
-
-### Added
+- Add integration option sources, allowing integrations to opt in and expose selectable remote option lists to Dropdown, Radio and Checkboxes fields. ([#512](https://github.com/verbb/formie/issues/512))
+- Add Mailchimp option sources for Interest Categories and Tags, using cached integration form settings and manual refresh actions from the field settings UI. ([#512](https://github.com/verbb/formie/issues/512))
+- Add CRM integration option sources for HubSpot (forms and CRM properties), Salesforce, Zoho, and Microsoft Dynamics 365 picklists. ([#512](https://github.com/verbb/formie/issues/512))
+- Add Salesforce Client Credentials authentication with configurable My Domain support. ([#2961](https://github.com/verbb/formie/issues/2961))
+- Add an event-based Microsoft Dynamics 365 entity registry for custom entities without requiring a custom integration subclass. ([#2995](https://github.com/verbb/formie/issues/2995))
+- Add repeater sub-field reference support with explicit row scope (`first`, `last`, `index`, `all`, `count`, custom row expressions) for variable tokens, notifications, conditions, and integrations. Repeater nested fields now appear once in the variable picker, with row targeting configured in the variable settings popover. ([#1728](https://github.com/verbb/formie/issues/1728), [#1255](https://github.com/verbb/formie/issues/1255), [#2099](https://github.com/verbb/formie/issues/2099), [#1888](https://github.com/verbb/formie/issues/1888), [#2338](https://github.com/verbb/formie/issues/2338))
+- Add console commands to inspect unresolved payments, reconcile gateway status, record verified outcomes and resume submission processing.
+- Add Stripe subscription **Payment Limit** field settings to cancel subscriptions automatically after a fixed or dynamic number of payments using Stripe subscription schedules. ([#2123](https://github.com/verbb/formie/issues/2123))
+- Add Stripe subscription **Setup Fee** field settings to charge a one-time fee on the first subscription invoice using Stripe invoice items. ([#1767](https://github.com/verbb/formie/issues/1767))
+- Migrate GoCardless payments from deprecated Redirect Flows to Billing Request Flows, including mandate fulfilment, one-off payment creation, and billing request webhooks. ([#2552](https://github.com/verbb/formie/issues/2552))
+- Add GoCardless recurring subscription support via Direct Debit mandate authorisation and GoCardless subscription creation after billing request fulfilment. ([#2552](https://github.com/verbb/formie/issues/2552))
+- Add **Display Type** settings to File Upload fields: **File Input (Simple)** keeps the native browser input and uploads files on form submit; **Upload Manager (Advanced)** adds a drag-and-drop zone with async staged uploads, progress, remove, and reorder controls via Formie’s upload endpoints. Existing forms default to **File Input (Simple)**. ([#133](https://github.com/verbb/formie/issues/133), [#2385](https://github.com/verbb/formie/issues/2385), [Discussion #1692](https://github.com/verbb/formie/discussions/1692))
+- Add per-field **Asset Data Retention** settings to File Upload fields, allowing uploaded assets to be deleted after a configured duration while the submission record is kept. ([#1715](https://github.com/verbb/formie/issues/1715))
+- Add unique-value, match-field, text-limit, number-limit, email-format, blocked-domain, options-limit, and file-upload validation message overrides on supported field types. ([#1475](https://github.com/verbb/formie/issues/1475))
+- Add existing and synced fields to **Group** fields from the form builder, so reusable field definitions can be placed inside independent group wrappers with namespaced handles. ([#2069](https://github.com/verbb/formie/issues/2069))
+- Add form group policies for allowed submission statuses, optional per-group field palettes, and new-form default profiles (stencil, templates, form defaults). Group policies inherit from global settings; allowed submission statuses are enforced at the group level. ([#2717](https://github.com/verbb/formie/issues/2717), [#2209](https://github.com/verbb/formie/issues/2209), [#863](https://github.com/verbb/formie/issues/863))
+- Add optional per-form reCAPTCHA **Action** and **Minimum Score** settings for score-based modes, inheriting global Spam Protection defaults when left blank. ([#2167](https://github.com/verbb/formie/issues/2167), [#2804](https://github.com/verbb/formie/issues/2804))
+- Add **Settings → Synced Fields** as a read-only audit page listing shared field definitions and the forms they appear on, with a **View usage** link from synced fields in the form builder. ([#2377](https://github.com/verbb/formie/issues/2377))
+- Add a configurable field palette for the form builder, with drag-and-drop group and field organisation, per-field enable/disable, and optional palette label overrides. Replaces the legacy **Disabled Field Types** settings checkboxes. ([#2209](https://github.com/verbb/formie/issues/2209))
+- Add synced-field support for stencils, preserving shared definition links when creating new forms from a stencil. ([#1677](https://github.com/verbb/formie/issues/1677), [#1734](https://github.com/verbb/formie/issues/1734))
+- Add stencil scopes so developers can ship starter forms in project config while content editors can create and manage their own stencils in the control panel. ([#2814](https://github.com/verbb/formie/issues/2814))
+- Add **Form Groups** for control panel organisation. ([#1039](https://github.com/verbb/formie/issues/1039), [#662](https://github.com/verbb/formie/issues/662))
+- Add a dedicated **Settings → Defaults** control panel page for form, field, and notification defaults. ([#863](https://github.com/verbb/formie/issues/863))
+- Show field handles in the form builder when the Craft user preference **Show field handles in edit forms** is enabled (admin users only), with a copy-to-clipboard control on hover. ([#2279](https://github.com/verbb/formie/issues/2279))
+- Show an **Encrypted** padlock badge on fields in the form builder when **Enable Content Encryption** is turned on. ([#2332](https://github.com/verbb/formie/issues/2332))
+- Add an optional **Other** choice for Radio fields, with a configurable label and free-text input on the front-end. ([#1875](https://github.com/verbb/formie/issues/1875))
+- Add password validation settings to the Password field: minimum length, and requirements for uppercase, lowercase, and special characters. ([#1880](https://github.com/verbb/formie/issues/1880))
+- Add a **Unique User Email** setting to Email Address fields, to reject email addresses already associated with a Craft user account. ([#1151](https://github.com/verbb/formie/issues/1151))
+- Add global **Allowed domains** email rules under **Settings → Spam Protection → Email Rules**. Allowlisted domains or full email addresses skip global blocked-domain and free-provider checks only; other spam screening still applies. ([#2335](https://github.com/verbb/formie/issues/2335))
+- Add `craft.formie.ref()` and `craft.formie.refField()` for building variable-picker-compatible reference tokens from Twig when overriding settings such as `submitActionMessage`. See [Reference tokens](https://verbb.io/craft-plugins/formie/docs/v4/developers/reference-tokens). ([#2838](https://github.com/verbb/formie/issues/2838))
+- Add **Lock Field Settings** and **Editor Note** on the field editor **Advanced** tab to help content authors protect important field configuration. Locking dims field settings until **Unlock** is clicked for the session; notes appear in the field editor banner. ([#1189](https://github.com/verbb/formie/issues/1189))
+- Add **Field Error Announcement** plugin setting (**Settings → Forms**) to control how front-end validation and submit errors are announced to screen readers (`polite`, `assertive`, or `off`). Live validation while typing always uses polite announcements. ([#2505](https://github.com/verbb/formie/issues/2505))
+- Add scoped **Submission Limits** per form: cap all submissions for a form (closes the form when reached), submissions per IP address, or submissions per logged-in user, over configurable periods. [Discussion #1939](https://github.com/verbb/formie/discussions/1939)
 - Add a **Template** default value source for Hidden fields using sandboxed Craft object templates. Resolved server-side on render and submit; posted values are ignored. **Custom Value** behaviour is unchanged. ([#2605](https://github.com/verbb/formie/issues/2605))
 - Add rich text editing for field **Instructions**, including Craft entry links with `target="_blank"`, configurable via `rich-text.json` under `fields.instructions`. Legacy plain-text and markdown instructions are normalized automatically without migration. ([#724](https://github.com/verbb/formie/issues/724))
 - Add Craft-style attribute maps and merge helpers for `setFieldSettings()` field overrides, including `mergeInputAttributes` and `mergeContainerAttributes`. ([#2510](https://github.com/verbb/formie/issues/2510))
 - Add a **Note** builder field for form-builder guidance with Tip, Warning, Info, and Error styles. ([#2498](https://github.com/verbb/formie/issues/2498))
 - Add a **Rich Text** cosmetic field for WYSIWYG content in the form builder, configurable via `rich-text.json` under `fields.content`. ([#1028](https://github.com/verbb/formie/issues/1028), [#1709](https://github.com/verbb/formie/issues/1709), [Discussion #2070](https://github.com/verbb/formie/discussions/2070), [Discussion #772](https://github.com/verbb/formie/discussions/772))
 - Add a syntax-highlighted HTML code editor for HTML cosmetic fields in the form builder, with project config via `html.json`. ([#2181](https://github.com/verbb/formie/issues/2181))
-- Add an **Allow Twig** setting to HTML fields, controlling whether Twig is parsed when rendering field content. Twig runs in Formie’s sandboxed template environment, not Craft’s full CP template stack.
 - Add a **Custom Field** form-builder field backed by opt-in Craft field adapters. ([#2208](https://github.com/verbb/formie/issues/2208))
-- Add a Google Maps plugin support for Custom Field field. ([#625](https://github.com/verbb/formie/issues/625))
-- Add a Maps plugin field support for Custom Field field. ([#626](https://github.com/verbb/formie/issues/626))
-- Add Craft Link field support for Custom Field field, covering URL, email, phone and SMS link values. ([#718](https://github.com/verbb/formie/issues/718))
+- Add Google Maps field support to **Custom Field** fields. ([#625](https://github.com/verbb/formie/issues/625))
+- Add Maps field support to **Custom Field** fields. ([#626](https://github.com/verbb/formie/issues/626))
+- Add Craft Link field support to **Custom Field** fields, covering URL, email, phone and SMS link values. ([#718](https://github.com/verbb/formie/issues/718))
 - Add dynamic **Option Source** settings for Dropdown, Radio and Checkboxes, allowing options to be populated from predefined option sets and other structured sources. ([#2684](https://github.com/verbb/formie/issues/2684))
-- Add integration option sources, allowing integrations to opt in and expose selectable remote option lists to Dropdown, Radio and Checkboxes fields. ([#512](https://github.com/verbb/formie/issues/512))
-- Add Mailchimp option sources for Interest Categories and Tags, using cached integration form settings and manual refresh actions from the field settings UI. ([#512](https://github.com/verbb/formie/issues/512))
-- Add CRM integration option sources for HubSpot (forms and CRM properties), Salesforce, Zoho, and Microsoft Dynamics 365 picklists. ([#512](https://github.com/verbb/formie/issues/512))
-- Add **Template** option source mode for developer-owned option lists supplied at render time without persisting or strictly validating an authoritative option list.
 - Add a **Use Searchable Dropdown** setting for Dropdown fields, element relation fields when **Display type** is **Dropdown**, and Recipients when shown as a dropdown. The front end loads Formie’s `combobox` browser module so users can filter predefined options. ([#960](https://github.com/verbb/formie/issues/960))
 - Add support for changing compatible field types in the form builder, initially limited to simple string-like fields such as Single-Line Text and Email Address. Existing submissions are not rewritten. ([Discussion #2110](https://github.com/verbb/formie/discussions/2110))
 - Add **Settings → Fields → Field Builder** policy settings for **Allow Multi-Select Dropdowns** and **Allow Phone Country Selector**. When disabled, the corresponding field settings are hidden in the form builder and forced off on existing fields. ([Discussion #2484](https://github.com/verbb/formie/discussions/2484), [Discussion #2485](https://github.com/verbb/formie/discussions/2485))
-- Expose the **Allow Public Asset Volumes** plugin setting in **Settings → Fields**, controlling whether File Upload fields can use public asset volumes and whether **Public URL** is available as an email summary value.
 - Add **Date Range** collection to Date/Time fields when **Display Type** is **Calendar (Advanced)**, using Flatpickr range mode to collect a start and end date/time. ([#2011](https://github.com/verbb/formie/issues/2011))
-- Add an `includeFlatpickrCss` plugin setting to disable Formie’s bundled Flatpickr stylesheet when your project already provides its own. ([#2341](https://github.com/verbb/formie/issues/2341))
-- Add notification variable selectors for date ranges, including **Start Date/Time**, **End Date/Time**, **Start Date**, **Start Time**, **End Date**, and **End Time**.
-- Add GraphQL content types for date range submissions with `start` and `end` datetime values.
 - Add calendar date validation for Date/Time **Text Inputs** and **Dropdowns**, rejecting impossible dates (for example February 31), enforcing configured **Min Date** / **Max Date** settings on those display types, and surfacing validation errors on the offending sub-field. ([#1458](https://github.com/verbb/formie/issues/1458))
 - Add smart **State / Province** behaviour for Address fields, with **Text** or **Dropdown when available** input modes, country-dependent subdivision loading, dynamic labels (State, Province, Prefecture, and so on), optional hiding when unused, searchable dropdowns, and datalist suggestions for text fallback. ([#1416](https://github.com/verbb/formie/issues/1416))
-- Add a subdivisions endpoint (`formie/address/subdivisions`) and `ModifyAddressSubdivisionsEvent` for country-dependent state/province option data.
-- Add an `address-state` browser module with lazy subdivision loading, loading UX (country spinner and state skeleton), and password-manager/browser autofill reconciliation via a persistent `address-level1` anchor input.
-- Add **Allowed Countries** and **Preselect Country from IP** settings to Address fields, mirroring Phone field country restrictions and using a shared `formie/address/country-from-ip` endpoint (CDN geo headers such as `CF-IPCountry`).
-- Add **Preselect Country from IP** to Phone fields when the country selector is enabled, wiring `intl-tel-input` geo lookup through the shared country-from-ip endpoint.
 - Add table column reference support for Calculations fields with explicit row scope (`first`, `last`, `index`, `all`, `count`, custom row expressions). Table columns now appear in the Calculations variable picker, with row targeting configured in the variable settings popover. ([#1284](https://github.com/verbb/formie/issues/1284))
-- Add **Settings → Synced Fields** as a read-only audit page listing shared field definitions and the forms they appear on, with a **View usage** link from synced fields in the form builder. ([#2377](https://github.com/verbb/formie/issues/2377))
-
-### Changed
-- Refactor predefined options to align with the new option sources system.
-- Improve HTML and Rich Text cosmetic field builder previews and control panel submission views to show rendered output instead of raw source where appropriate. ([#2182](https://github.com/verbb/formie/issues/2182))
-- Render HTML field builder previews inside a sandboxed iframe so control panel styles do not bleed into preview content.
-- Render HTML field Twig through Formie’s sandboxed template service instead of Craft’s unrestricted `renderString()`, and default **Allow Twig** to off for new HTML fields.
-- Respect **Include in Email Field Summaries** for cosmetic fields in `{allFields}`, `{allContentFields}`, and `{allVisibleFields}` instead of always excluding them.
-- Update `@verbb/plugin-kit-react` to 1.0.4 for the CodeMirror-based HTML editor, `codeEditor` SchemaForm field registration, and live Rich Text preview rendering via `TiptapContent`.
-- Normalise Address sub-field browser selectors to the `data-formie-address-*` namespace, with legacy short-selector fallbacks for older saved forms and address provider modules.
-- Default new Address field layouts to place **Country** before **State / Province** so dependent subdivision loading works out of the box.
-- Map Freeform **Rich Text** fields to Formie **Rich Text** rather than HTML during migration.
-- Replace the Dropdown, Radio and Checkboxes option-table **Disabled** column with a row-menu **Visible / Hidden / Disabled** availability control ([#1816](https://github.com/verbb/formie/issues/1816)). **Hidden** removes an option from the front-end form while preserving stored submission values and labels; **Disabled** renders the option with HTML `disabled` so it stays visible but cannot be selected. Legacy `disabled: true` option rows are treated as hidden. Non-default states are indicated in the options table with row background tints.
-- Centralise front-end option filtering in `OptionsField::getFieldOptions()` so hidden options are excluded consistently (including Dropdown placeholders).
-- Format Date/Time values consistently for notifications, summaries, exports, and string output using the field's **Date Format** and **Time Format** settings. Casting a normalized date value object to string now matches `getFieldValueAsString()`.
-- Update integration field mapping to accept Date/Time reference values with `text`, `date`, and `number` types.
-- Move Agree field checked/unchecked display labels to the Settings tab and clarify that submissions store a boolean; use `getFieldValueAsString()` for Yes/No-style output. ([#2288](https://github.com/verbb/formie/issues/2288))
-- Normalise submission values by trimming leading and trailing whitespace during field normalization for single-line text, email, plain multi-line text, hidden, phone, number, name, address, and custom string fields. Password fields and rich text content are unchanged; existing submissions keep their stored values until resaved.
-
-### Deprecated
-- Deprecate the `PredefinedOptions` service, predefined option class namespace (`verbb\formie\options\*`), and `PredefinedOptions::EVENT_REGISTER_PREDEFINED_OPTIONS` event registration target. Use `OptionSources`, predefined option classes under `verbb\formie\options\predefined\*`, and `OptionSources::EVENT_REGISTER_PREDEFINED_OPTIONS` instead. Legacy APIs remain available through the compatibility layer with deprecation notices.
-
-### Fixed
-- Fix page-reload single-line and multi-line text limit validation rerenders so field error styling, form-level error messages, and scroll/focus behaviour match ajax submissions. ([#1997](https://github.com/verbb/formie/issues/1997))
-- Fix Recipients fields preserving the selected option label when multiple recipient options send to the same email address, using encrypted row identity tokens while keeping recipient emails private in front-end markup. ([#2382](https://github.com/verbb/formie/issues/2382))
-- Fix static Recipients option rows accepting invalid email targets by validating each comma-separated recipient address in the field settings.
-- Fix Dropdown, Radio and Checkboxes **Disabled** option availability not outputting HTML `disabled` on the front-end form. ([#1816](https://github.com/verbb/formie/issues/1816))
-- Fix Address and other fixed-parent sub-field settings being unavailable in the form builder by restoring on-demand field type config loading for nested sub-field types. ([#1416](https://github.com/verbb/formie/issues/1416))
-
-## 4.0.0-beta.4 - 2026-06-07
-
-### Added
-- Add conditional submission status rules in the form builder **Settings → Submissions** tab, evaluated on the front end during submission processing. ([#508](https://github.com/verbb/formie/issues/508))
-- Add repeater sub-field reference support with explicit row scope (`first`, `last`, `index`, `all`, `count`, custom row expressions) for variable tokens, notifications, conditions, and integrations. Repeater nested fields now appear once in the variable picker, with row targeting configured in the variable settings popover. ([#1728](https://github.com/verbb/formie/issues/1728), [#1255](https://github.com/verbb/formie/issues/1255), [#2099](https://github.com/verbb/formie/issues/2099), [#1888](https://github.com/verbb/formie/issues/1888), [#2338](https://github.com/verbb/formie/issues/2338))
-- Add conditional redirect rules under **Behaviour → After Submit**, with an optional **Enable Redirect Rules** toggle that overrides the default submit action when conditions match. ([#830](https://github.com/verbb/formie/issues/830))
 - Add failed notification alert recipients by Craft user group and additional email addresses. ([#2226](https://github.com/verbb/formie/issues/2226))
 - Add per-rule validation message overrides via a **Validation** form builder tab and the `validationMessages` field setting, with legacy `errorMessage` values migrated to `validationMessages.required`. ([#1269](https://github.com/verbb/formie/issues/1269))
-- Add plugin-wide default validation message templates under **Settings → Defaults → Field Defaults**.
-- Add `ValidationMessagesHelper` and client `data-formie-validation-{key}-message` attributes for overridden validation copy on the front end.
-- Add unique-value, match-field, text-limit, number-limit, email-format, blocked-domain, options-limit, and file-upload validation message overrides on supported field types. ([#1475](https://github.com/verbb/formie/issues/1475))
-
-### Changed
-- Standardize validation message placeholders to `{label}` across PHP validators, front-end validators, and translations (legacy `{name}` / `{attribute}` aliases remain at runtime).
-- Replace text-limit counter `{startTag}{num}{endTag}` translation strings with Craft plural syntax and wire translated counter copy on the front end. ([#2526](https://github.com/verbb/formie/issues/2526))
-- Show context-aware text-limit counter copy for empty (allowed), under-limit (left), and over-limit states on the front end and in control panel submissions.
-- Add per-field validation error position on the **Appearance** tab, with form- and plugin-level defaults (`Above Input` / `Below Input`).
-- Resolve nested Date/Name/Address sub-field validation messages from their parent field; stop copying legacy `errorMessage` onto Date sub-fields.
-- Wire client-side validation message overrides for file-upload and checkbox/radio options-limit rules via `data-formie-validation-*-message` attributes.
-- Extend front-end `t()` to resolve Craft-style `{param, plural, …}` and `{param, number}` message syntax.
-
-### Fixed
-- Fix option field values appearing empty in notification “All Form Fields” summaries when options were overridden via Twig `setFieldSettings()`, by applying persisted submission snapshots when loading forms for email/export and falling back to stored option values when labels cannot be resolved. ([#2350](https://github.com/verbb/formie/issues/2350))
-- Fix submission status filters in the control panel returning no results when submissions were saved without a persisted `statusId`, and resolve status queries by display name as well as handle. ([#2687](https://github.com/verbb/formie/issues/2687))
-- Sanitize notification queue job debug data to valid UTF-8 before re-serializing failed jobs, preventing queue rows from becoming unreadable when submission content contains invalid byte sequences. ([#2344](https://github.com/verbb/formie/issues/2344))
-- Improve notification mailer failure logging when Craft returns no transport error message, including CLI/queue context to help diagnose cron-only send failures. ([#2610](https://github.com/verbb/formie/issues/2610))
-
-## 4.0.0-beta.3 - 2026-06-06
-
-### Added
-- Add a configurable field palette for the form builder, with drag-and-drop group and field organisation, per-field enable/disable, and optional palette label overrides. Replaces the legacy **Disabled Field Types** settings checkboxes. ([#2209](https://github.com/verbb/formie/issues/2209))
-- Add a stock Form Preview slide-out in the form builder, rendering the current form with Formie’s default templates, CSS, and JavaScript. ([#370](https://github.com/verbb/formie/issues/370))
-- Add synced-field support for stencils, preserving shared definition links when creating new forms from a stencil. ([#1677](https://github.com/verbb/formie/issues/1677), [#1734](https://github.com/verbb/formie/issues/1734))
-- Add stencil scopes so developers can ship starter forms in project config while content editors can create and manage their own stencils in the control panel. ([#2814](https://github.com/verbb/formie/issues/2814))
-- Add **project stencils** (stored in `formie.stencils` project config) alongside regular database-backed stencils, with handles unique across both scopes.
-- Add the `formie-accessStencils` permission for managing stencils in the control panel.
-- Add read-only viewing of project stencils when admin changes are disabled, with **Save a copy** to create an editable stencil.
-- Add a **Type** column to the stencils index, showing **Project** for project stencils only.
-- Add **Form Groups** for control panel organisation. ([#1039](https://github.com/verbb/formie/issues/1039), [#662](https://github.com/verbb/formie/issues/662))
-- Add a dedicated **Settings → Defaults** control panel page for form, field, and notification defaults. ([#863](https://github.com/verbb/formie/issues/863))
-- Add structured `formDefaults`, `fieldDefaults`, and `notificationDefaults` plugin settings, applied when new forms, fields, and notifications are created.
-- Add `supportedDefaults()` and schema extraction for field-type defaults, with Date, File Upload, Phone, Agree, Single-Line Text, Multi-Line Text, Email, Number, Hidden, Radio, Checkboxes, and element fields (Entries, Categories, Users, Tags, Products, Variants) as supported field types.
-- Add [Field Defaults](/developers/field-defaults) developer documentation for third-party field authors.
-- Add schema-driven form and notification defaults extracted from the form builder and notification schemas, including a PDF template default for new notifications.
-- Add captcha integration defaults for new forms and stencils via `integrationDefaults`.
-- Add a migration to move legacy `defaultFileUploadVolume`, `defaultDateDisplayType`, `defaultDateValueOption`, and `defaultDateTime` settings into `fieldDefaults`.
 - Track and display who created and last updated a form in the form builder Settings tab footer and as optional forms index columns. ([Discussion #2342](https://github.com/verbb/formie/discussions/2342))
-- Add submission UID to the control panel submission sidebar and as an optional submissions index column. ([#2404](https://github.com/verbb/formie/issues/2404))
 - Add an Autocomplete setting to single-line and multi-line text fields in the form builder Settings tab, with a searchable list of HTML autocomplete tokens. ([Discussion #2764](https://github.com/verbb/formie/discussions/2764))
 - Document using `{env:FORMIE_*}` environment variable tokens in notification recipient fields. ([#2676](https://github.com/verbb/formie/issues/2676))
-- Add an opt-in setting to disable the submit button until the current page passes validation. ([#1514](https://github.com/verbb/formie/issues/1514))
 - Add a page setting to place the submit button at the end of the last field row. ([#2542](https://github.com/verbb/formie/issues/2542))
-- Add regression tests for required File Upload fields submitted via GraphQL with base64 file data. ([#1130](https://github.com/verbb/formie/issues/1130))
 - Add control panel submission field condition behaviour with plugin and per-form settings to follow, collapse, or ignore front-end field and page conditions when editing submissions. ([#2435](https://github.com/verbb/formie/issues/2435))
-
-### Changed
-- Replace **Settings → Fields** disabled-field checkboxes with the new field palette editor.
-- Move stencil management from **Settings** to **Formie → Stencils**, including create, edit, and index routes under `formie/stencils/*`. Legacy `formie/settings/stencils/*` URLs redirect to the new paths.
-- Change **Save as stencil** from the form builder to always create an editable, database-backed stencil.
-
-### Fixed
-- Fix legacy upgrade migrations failing on fresh Craft 5 installs that never had Craft’s `content` or `formie_tokens` tables.
-- Fix form usage counts and the form builder Usage tab omitting entries on disabled Craft sites. ([#2612](https://github.com/verbb/formie/issues/2612))
-- Fix the form builder Usage tab not listing elements that reference a form on non-primary sites, including when Craft stores a relation without a specific `sourceSiteId`. ([#2695](https://github.com/verbb/formie/issues/2695))
-- Prompt for confirmation when closing a field settings overlay with Escape (or backdrop/header close) only when the field has unsaved changes. Untouched new fields close immediately. ([#2219](https://github.com/verbb/formie/issues/2219))
-- Fix dropdown field options not saving in the form builder when no default option is selected. ([#2795](https://github.com/verbb/formie/issues/2795))
-- Validate literal email addresses in notification recipient settings so invalid addresses are caught when saving notifications. ([#2712](https://github.com/verbb/formie/issues/2712))
-- Skip notification email attachments when the asset file cannot be read, instead of failing the entire send. ([#2626](https://github.com/verbb/formie/issues/2626))
-- Fix replacing a deleted field with a new field using the same handle requiring a two-step save in the form builder. ([#1854](https://github.com/verbb/formie/issues/1854))
-- Fix submit button conditions not applying on the front end. ([#2568](https://github.com/verbb/formie/issues/2568))
-- Fix checkbox fields saving their default option values when explicitly unchecked on submit. ([#2457](https://github.com/verbb/formie/issues/2457))
-- Fix missing page-list validation indicators in the form builder when a form has no pages. ([#2786](https://github.com/verbb/formie/issues/2786))
 - Add a default country setting for Google Places address auto-complete fields. ([#2721](https://github.com/verbb/formie/issues/2721))
-- Fix email notification preview failing when a recipient setting references a non-email field. ([#2537](https://github.com/verbb/formie/issues/2537))
 - Add a configurable maximum email attachment size, and validate notification attach assets in the form builder. ([#2697](https://github.com/verbb/formie/issues/2697))
-- Fix file upload validation allowing extensions such as `.jfif` that Craft cannot save as assets. ([#2716](https://github.com/verbb/formie/issues/2716))
-- Fix the Dutch translation mapping `Auto` to `Automatisch`, which incorrectly changed checkbox labels and values meaning “car”. ([#2636](https://github.com/verbb/formie/issues/2636))
-- Generate translatable date picker placeholders from the configured date and time formats when no custom placeholder is set. ([#2464](https://github.com/verbb/formie/issues/2464))
-- Fix File Upload fields failing on submit when no upload location is set, by requiring the setting in the form builder and falling back to the plugin default volume when configured. ([#2597](https://github.com/verbb/formie/issues/2597))
-- Fix Ajax and multi-page File Upload fields losing their uploaded-file summary after step navigation or when editing existing submissions. ([#2742](https://github.com/verbb/formie/issues/2742), [#1856](https://github.com/verbb/formie/issues/1856), [#1910](https://github.com/verbb/formie/issues/1910))
-- Fix File Upload fields inside Repeater or Group fields not initializing upload persistence for nested inputs. ([#1448](https://github.com/verbb/formie/issues/1448))
-
-## 4.0.0-beta.2 - 2026-06-03
-
-### Fixed
-- Fix front-end JS/CSS build issues.
-- Fix `ModifyFrontendJsTranslationsEvent` naming.
-
-## 4.0.0-beta.1 - 2026-06-02
-
-### Added
-- Add a Formie 3 to Formie 4 migration path for existing Craft 5 projects.
-- Add direct Formie 2 to Formie 4 migration support, allowing Craft 4 projects to move to Craft 5 without upgrading through Formie 3 first.
-- Add Formie 4 Compatibility Mode, enabled by default, to bridge selected Formie 3 class aliases, event owners, custom field schema methods, field config keys, theme config keys, and legacy front-end event listeners during upgrades.
-- Add the new React-powered form builder foundation.
-- Add schema-driven integration settings for the form builder via `Integration::defineFormSettingsSchema()`, `Integration::getFormSettingsSchema()`, `Integration::EVENT_MODIFY_INTEGRATION_FORM_SETTINGS_SCHEMA`, and `ModifyIntegrationFormSettingsSchemaEvent`.
-- Add `Notifications::EVENT_MODIFY_NOTIFICATION_SCHEMA` for modifying notification schemas.
-- Add a new staged submission workflow service (`SubmissionWorkflow`) with `prepare`, `normalize`, `validate`, `screen`, `authorize`, `save`, `dispatch`, and `finalize` stages.
-- Add submission workflow process modes for normal submits, existing-submission edits, save-draft requests, and payment replays.
-- Add submission workflow extension events: `EVENT_REGISTER_WORKFLOW_STAGES`, `EVENT_REGISTER_STAGE_TASKS`, `EVENT_BEFORE_STAGE`, `EVENT_AFTER_STAGE`, `EVENT_BEFORE_TASK`, and `EVENT_AFTER_TASK`.
-- Add `SubmissionRequestEvent`, `SubmissionWorkflowStageEvent`, `SubmissionWorkflowTaskEvent`, `RegisterWorkflowStagesEvent`, and `RegisterStageTasksEvent`.
-- Add workflow enums for stage and task names, including tasks such as `screen.runCaptchaChecks`, `save.processPayments`, `dispatch.sendNotifications`, and `dispatch.triggerIntegrations`.
-- Add database-backed temporary submission state, incomplete submission state, saved drafts, and resume-token handling.
-- Add save-and-resume retention settings including `submissionStateRetentionDays`, `saveResumeTokenTtlDays`, and `maxSavedDraftsPerSession`.
-- Add anonymous client bootstrap and refresh rate-limit settings: `anonymousClientBootstrapRateLimit`, `anonymousClientRefreshRateLimit`, and `anonymousClientRateWindowSeconds`.
-- Add static-cache token refresh handling with `staticCacheRefreshOnLoad`.
-- Add `setOnlyCurrentPagePayload` for limiting submitted multi-page payload handling to the current page.
-- Add `plainTextHtmlSanitizationMode` for controlling plain-text HTML sanitization behavior.
-- Add `useCssLayers` for optionally outputting Formie CSS with CSS layers.
-- Add a Formie-native submission content manager, normalizer, serializer, and accessor layer.
-- Add field definition metadata APIs and traits for Formie-owned field definitions.
-- Add `Field::getDescription()` description sections for field value, structure, component, behavior, references, and conditions metadata.
-- Add `Field::themeConfigKey()` for resolving canonical theme config field keys.
-- Add `Field::defineValueForReference()`, `Field::getValueForReference()`, `Field::defineValueForReferenceBlock()`, and `Field::getValueForReferenceBlock()` as the canonical field reference value APIs.
-- Add `Field::defineValueForCondition()` and `Submission::getFieldValueForCondition()` for condition-specific value projection.
-- Add `Field::getCpEditHtml()` as the canonical CP submission edit rendering contract.
-- Add `Field::defineFieldSlotTag()` and `SlotTag` for field slot tag customization.
-- Add `Form::EVENT_MODIFY_SLOT_TAG`, `Field::EVENT_MODIFY_SLOT_TAG`, and `Integration::EVENT_MODIFY_SLOT_TAG`.
-- Add `ModifyFormSlotTagEvent`, `ModifyFieldSlotTagEvent`, and `ModifyIntegrationSlotTagEvent`.
-- Add `Field::EVENT_MODIFY_VALUE_FOR_REFERENCE` and `Field::EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK`.
-- Add `ValueContext::array()`, `ValueContext::reference()`, and `ValueContext::referenceBlock()`.
-- Add `craft.formie.parseValue()` and `craft.formie.parseContent()` for parsing field-reference values in Twig.
-- Add `craft.formie.formAssets()` for form-scoped asset output.
-- Add `craft.formie.frontendAssets()` for shared front-end asset output.
-- Add new `FormTemplate` output locations: `PAGE_HEADER`, `PAGE_FOOTER`, `INSIDE_FORM`, and `MANUAL`.
-- Add `initJs` and `useObserver` rendering options for controlling Formie front-end initialization.
-- Add client/server rendering services for Formie-managed HTML and client-rendered consumers, including `ClientSessionService`, `FormBootstrapBuilder`, `FormDefinitionBuilder`, `BrowserModuleManifestBuilder`, and `ServerRenderPayloadBuilder`.
-- Add client request/response models including `FormSession`, `LoadContext`, `FormDefinition`, `FormBootstrap`, `SubmitRequest`, `PageTransitionRequest`, `SessionRefreshRequest`, and `SubmitResult`.
-- Add client controllers for loading forms, changing pages, refreshing sessions, and submitting client-rendered forms.
-- Add `FrontendAssets` as the canonical shared front-end asset service.
-- Add `BrowserModuleEntry`, `BrowserModuleContext`, and `RenderFrame` models.
-- Add `IntegrationInterface::getBrowserModule()` for front-end module registration by integrations, captchas, address providers, and payments.
-- Add `BrowserModuleEntry` manifests with render-target metadata for front-end module hydration.
-- Add `hydrateFormieModules()` support for hydrating individual Formie modules without mounting a full form client.
-- Add the `@verbb/formie-core` package for framework-agnostic form definitions, transports, field helpers, conditions, calculations, and client-rendered form state.
-- Add the `@verbb/formie-browser` package as Formie’s canonical browser runtime for server-rendered forms.
-- Add the `@verbb/formie-react` package with `FormieForm`, `FormieClientForm`, `useFormieHtml()`, `useFormieClient()`, `useFormie()`, `useFormieField()`, `useFormiePage()`, `useFormieInstance()`, and `useFormieSlot()`.
-- Add the `@verbb/formie-vue` package with matching server-rendered and client-rendered Vue APIs.
-- Add the `@verbb/formie-web-components` package with `formie-form`, `formie-client-form`, `registerFormieWebComponents()`, `FormieRegistry`, and `createFormieRegistry()`.
-- Add REST and GraphQL transports for client-rendered forms.
-- Add `createFormieClient()`, `formie()`, `FormieValidator`, `ModuleRegistry`, `defineCaptchaModule()`, `definePassiveCaptchaModule()`, `definePaymentModule()`, and `defineAddressModule()` to the browser package.
-- Add browser CSS exports for Formie’s base, theme, and combined CSS.
-- Add canonical `formie:*` browser events for mount, unmount, validation, submit, page navigation, token refresh, state reset, field modules, address modules, payment modules, and submission workflow stages.
-- Add the canonical `formie:client:ready` event.
-- Add page-level client analytics output via `data-formie-client-event`.
-- Add GraphQL `formieHtmlForm` for server-rendered HTML form payloads.
-- Add GraphQL `formieClientForm` for client-rendered form definitions and sessions.
-- Add GraphQL mutations for client-rendered form submit, page changes, and session refresh.
-- Add GraphQL `runtimePayload`/client payload support built from the shared front-end payload builder.
-- Add GraphQL schema scope enforcement for handle-based client form reads and lifecycle mutations.
-- Add support for nested GraphQL field builders to read stored row configs for Group, Repeater, and Table-style fields.
-- Add request-local caches for form lookups, field metadata, field config settings, client module manifests, integration lists, submission status handles, and GraphQL field metadata.
-- Add synced-field storage split between shared field definitions and per-form field placements.
-- Add migration support for synced-field definitions and placements.
-- Add blocking validation for synced-field handle collisions instead of silently renaming handles.
-- Add support for detaching synced fields.
-- Add field-reference preservation for unresolved historical submission content when fields are removed or layouts change.
-- Add support for preserving Name field multi-part layout values when field modes change.
-- Add `SubmissionQuery::invalidateStaticCaches()` for long-running workers after form/field mutations.
-- Add `Formie::$plugin->getFactories()` for programmatic form and submission builders.
-- Add security regression guard tests.
-- Add a performance harness for submission query and field-graph scenarios.
-- Add integration field-mapping regression coverage across complex and nested field values.
-- Add Formie 4 plugin docs, migration docs, developer docs, and front-end package docs.
-- Add React, Vue, Web Components, Next.js, and Nuxt starter projects for the new front-end package stack.
-- Add Craft-rendered starter examples for Barba.js, Sprig, and Datastar.
-- Add `@verbb/plugin-kit` and `@verbb/plugin-kit-react` as the shared control panel UI foundation used by Formie’s React builder.
+- Add group-scoped form and submission permissions using stable form group handles, with optional per-form dedicated permissions via a new **Use Dedicated Permissions** form setting. ([#1426](https://github.com/verbb/formie/issues/1426), [#1356](https://github.com/verbb/formie/issues/1356), [#2489](https://github.com/verbb/formie/issues/2489), [Discussion #1696](https://github.com/verbb/formie/discussions/1696))
+- Add built-in submission guards (honeypot, minimum submit time, replay protection) via a `RunSubmissionGuardsTask` screen-stage workflow task and **Settings → Spam Protection** controls.
+- Add suspicious text detection, maximum links screening, global submission throttling, and per-IP submission throttling under **Settings → Spam Protection**. ([#1332](https://github.com/verbb/formie/discussions/1331), [#1154](https://github.com/verbb/formie/issues/1154), [#1099](https://github.com/verbb/formie/issues/1099))
+- Add Theme setting for Friendly Captcha (light/dark/auto). ([#2907](https://github.com/verbb/formie/issues/2907))
+- Add extensible TipTap nodes, marks, toolbar controls, and constrained TextStyle definitions across Formie editing, previews, and PHP rendering, including opt-in font family, font size, text/background color, line height, and Small caps controls.
+- Add `csrfInput` render option to control Craft CSRF hidden input output (`true` default, `false` to omit, or an options array such as `{ async: true }` for statically cached pages). ([#2121](https://github.com/verbb/formie/discussions/2121))
+- Add **Enable Multi-Page Forms** plugin setting to disable multi-page forms in the form builder. When disabled, authors cannot add pages and existing multi-page forms cannot be saved until reduced to a single page. ([#2483](https://github.com/verbb/formie/discussions/2483))
+- Add a **Last Edited By** column to submission sources, tracking the Craft user who last saved a submission in the control panel. ([#1403](https://github.com/verbb/formie/issues/1403))
+- Add `allowedSubmitMethods` plugin setting to restrict form submission methods to Ajax only, page reload only, or both ([#1751](https://github.com/verbb/formie/issues/1751)).
+- Redesign page **Client Events** with a dedicated **Tracking** tab, support for multiple named events per page, variable picker values, and server-resolved `clientEvents` payloads in Ajax submit responses ([#888](https://github.com/verbb/formie/issues/888)).
+- Add submission PDF downloads from the control panel and via `craft.formie.generateSubmissionPdf()` / `craft.formie.getSubmissionPdfDownloadUrl()` ([#1213](https://github.com/verbb/formie/issues/1213), [Discussion #1273](https://github.com/verbb/formie/discussions/1273)).
+- Add custom variable sources via `Variables::EVENT_REGISTER_VARIABLES`, exposing registered tokens in the variable picker and resolving them server-side when references are parsed. ([#898](https://github.com/verbb/formie/issues/898))
+- Add an `includeFlatpickrCss` plugin setting to disable Formie’s bundled Flatpickr stylesheet when your project already provides its own. ([#2341](https://github.com/verbb/formie/issues/2341))
+- Add conditional submission status rules in the form builder **Settings → Submissions** tab, evaluated on the front end during submission processing. ([#508](https://github.com/verbb/formie/issues/508))
+- Add conditional redirect rules under **Behaviour → After Submit**, with an optional **Enable Redirect Rules** toggle that overrides the default submit action when conditions match. ([#830](https://github.com/verbb/formie/issues/830))
+- Add a stock Form Preview slide-out in the form builder, rendering the current form with Formie’s default templates, CSS, and JavaScript. ([#370](https://github.com/verbb/formie/issues/370))
+- Add submission UID to the control panel submission sidebar and as an optional submissions index column. ([#2404](https://github.com/verbb/formie/issues/2404))
+- Add an opt-in setting to disable the submit button until the current page passes validation. ([#1514](https://github.com/verbb/formie/issues/1514))
+- Add Ajax-safe tab link state theme keys `tabLinkCurrent` and `tabLinkInactive`, with aliases for `pageTabLinkActive`, `pageTabLinkInactive`, and `pageInactive` ([#1279](https://github.com/verbb/formie/issues/1279)).
 
 ### Changed
 - Require Craft CMS 5 and PHP 8.2+.
-- Rework Formie’s form builder around React, schema-driven settings, and shared Plugin Kit React components.
-- Rework Formie’s front-end JavaScript from the old bundled theme/runtime model to package-based browser and framework runtimes.
-- Split Formie’s front-end rendering model into server-rendered forms and client-rendered forms.
-- Move Formie browser JavaScript and CSS into `@verbb/formie-browser`.
-- Rename `@verbb/formie-dom` to `@verbb/formie-browser`.
-- Replace old Formie JavaScript callback names and validator events with canonical `formie:*` DOM events.
-- Move the public ready event from `formie:runtime:ready` to `formie:client:ready`.
-- Move runtime/client PHP namespaces toward `client` naming, while keeping selected `runtime` class aliases in Compatibility Mode.
-- Rename runtime JS translation hooks to frontend JS translation hooks: `Rendering::EVENT_MODIFY_FRONTEND_JS_TRANSLATIONS`, `ModifyFrontendJsTranslationsEvent`, and `Rendering::getFrontendJsTranslations()`.
-- Replace `RuntimeModule` and `RuntimeModuleContext` terminology with `BrowserModuleEntry` and `BrowserModuleContext`.
-- Replace `RuntimeRenderFrame` terminology with `RenderFrame`.
-- Rename `RuntimeAssets` to `FrontendAssets`.
-- Replace `renderFormAssets()`, `registerFormAssets()`, `renderFormCss()`, and `renderFormJs()` with `formAssets()`.
-- Replace `renderRuntimeAssets()`, `renderCss()`, and `renderJs()` with `frontendAssets()`.
-- Rename render options `renderCss` and `renderJs` to `includeCss` and `includeJs`.
-- Rename form template options `outputCssLayout` and `outputCssTheme` to `outputCss`.
-- Rename form template options `outputJsBase` and `outputJsTheme` to `outputJs`.
-- Change Formie’s default front-end CSS class prefix from `fui` to `formie`.
-- Change form submit processing from a single save-oriented path to the staged submission workflow.
-- Route controller submissions, managed client submissions, GraphQL submissions, save-draft requests, and payment replays through the same submission workflow engine.
-- Move payment processing into workflow tasks instead of calling standalone submission payment processing directly.
-- Move notification dispatch and integration dispatch into workflow dispatch tasks.
-- Move payment callbacks, webhooks, and status polls through the payment replay workflow path with idempotent handling.
-- Store temporary and incomplete submission state in the database instead of offering session/database progression storage modes.
-- Remove the old user-facing `submissionStore`/`submissionStateMode` choice from active submission progression behavior.
-- Refresh submission state tokens on each multi-page step and Ajax response.
-- Use encrypted/authenticated state tokens for multi-page progression.
-- Rework save-and-resume around tokenized database records, TTL handling, capability checks, and URL token stripping.
-- Rework pending upload handling around sidecar records, finalize-on-submit behavior, and garbage collection of stale uploads.
-- Change submit action URLs and hidden field initial values so they no longer execute Twig.
-- Separate field defaults from prefill sources.
-- Change the default submission title pipeline to use `submissionTitleFormat` and field references on first save.
-- Change field references to use stable field references instead of relying only on field handles in places such as notifications, calculations, conditions, and integration mapping.
-- Change field value APIs from JSON/variable/email terminology toward array/reference/reference-block terminology.
-- Change field value storage and projection to preserve unresolved historical field UIDs instead of dropping unknown values after layout changes.
-- Change CP submission editing to hydrate only required field modules rather than mounting an entire front-end form client.
-- Change condition evaluation to use explicit boolean, numeric, and string coercion.
-- Change container and repeatable field condition subjects to use handle keys while storage remains UID-keyed.
-- Change field type metadata and GraphQL metadata to read from normalized configs before materializing field objects.
-- Change Formie fields service internals to stay config-first until callers need field object traversal.
-- Change Formie form, field, integration, and GraphQL lookup hot paths to use request-local caches.
-- Change synced fields from self-referential `syncId` fan-out to a definition/placement storage model.
-- Lock synced-field handle edits while fields remain synced.
-- Change stencils to use the canonical React builder and snapshot semantics.
-- Change stencil form creation to remap field references when materializing forms.
-- Change integration settings in the form builder from Twig/Vue HTML to PHP-defined schemas.
-- Change custom integration front-end output from `getFrontEndJsVariables()` to client modules.
-- Change address providers, captchas, payments, and field modules to register browser modules via the new client module manifest.
-- Change captchas to run through the workflow screen stage.
-- Change passive captcha and spam checks to use the shared screen workflow stage.
-- Change Formie’s static-cache support to use built-in token refresh behavior instead of requiring custom refresh snippets.
-- Change headless form rendering to use explicit server-rendered and client-rendered GraphQL queries.
-- Change GraphQL `formieForm { templateHtml }` usage to `formieHtmlForm { html }`.
-- Rename GraphQL page client event settings from `enableJsEvents` and `jsGtmEventOptions` to `enableClientEvents` and `clientEventFields`.
-- Change GraphQL field metadata generation to use cached field metadata from the fields service.
-- Change GraphQL client-form access so handle-based reads and lifecycle mutations require explicit schema scopes.
-- Change custom field schema method names from `defineGeneralSchema()`, `defineSettingsSchema()`, `defineAppearanceSchema()`, `defineAdvancedSchema()`, and `defineConditionsSchema()` to `defineFormBuilderGeneralSchema()`, `defineFormBuilderSettingsSchema()`, `defineFormBuilderAppearanceSchema()`, `defineFormBuilderAdvancedSchema()`, and `defineFormBuilderConditionsSchema()`.
-- Change schema node keys from `$formkit` to `$field`.
-- Change schema help text keys from `help` to `instructions`.
-- Change field builder previews from `getFormBuilderPreviewHtml()` to `defineFormBuilderPreviewSchema()`.
-- Change field input template discovery from `getFrontEndInputTemplatePath()` to `getInputTemplatePath()`.
-- Change field email template terminology from email templates to reference-block templates.
-- Change field slot/tag customization from `HtmlTag`/`htmlTag` terminology to `SlotTag`/`slotTag`.
-- Change form render IDs from `Form::getFormId()`/`setFormId()` terminology to `Form::getRenderId()`/`setRenderId()`.
-- Move `Submissions::EVENT_BEFORE_SEND_NOTIFICATION` ownership to `Notifications::EVENT_BEFORE_SEND_NOTIFICATION`.
-- Move `Submissions::EVENT_BEFORE_TRIGGER_INTEGRATION` ownership to `Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION`.
-- Keep Yii-style `getElementValidationRules()` as the supported submission validation surface for Formie 4.
-- Update integration field mapping to handle nested groups, repeaters, tables, element fields, and normalized field values more consistently.
-- Improve file upload validation, filename normalization, and safer CP/email summary URLs.
-- Improve payment webhook, callback, and status-poll error handling and authenticity checks.
-- Improve anonymous runtime route method constraints and abuse/rate-limit handling.
-- Improve CORS handling so arbitrary origins are not reflected when GraphQL origins are not configured.
-- Improve large-form builder drag/drop performance and validation in production builds.
-- Improve export/query performance with request-local caches and explicit invalidation hooks.
+- Rebuild the form builder around React, schema-driven settings, and shared Plugin Kit components.
+- Replace the legacy bundled front-end theme/runtime with package-based browser and framework runtimes for server-rendered and client-rendered forms.
+- Route controller, managed client, GraphQL, draft, payment, notification, and integration processing through the staged submission workflow.
+- Move integration settings to PHP-defined schemas and front-end integration, captcha, address, payment, and field behavior to client modules.
+- Replace the Dropdown, Radio and Checkboxes option-table **Disabled** column with a row-menu **Visible / Hidden / Disabled** availability control ([#1816](https://github.com/verbb/formie/issues/1816)). **Hidden** removes an option from the front-end form while preserving stored submission values and labels; **Disabled** renders the option with HTML `disabled` so it stays visible but cannot be selected. Legacy `disabled: true` option rows are treated as hidden. Non-default states are indicated in the options table with row background tints.
+- Rework multi-site propagation and translation to use each form’s **source site** (where it was created) instead of Craft’s global primary site. “Same language” and “Same site group” propagation modes now filter from the source site. Forms store a persisted `sourceSiteId`. ([#84](https://github.com/verbb/formie/issues/84))
+- Stop routing user-authored form content (labels, placeholders, messages, options) through the `formie` translation category. Form copy is output from the database after site overrides are merged; `formie.php` is for Formie-owned UI strings only ([#2907](https://github.com/verbb/formie/issues/2907)).
+- Replace text-limit counter `{startTag}{num}{endTag}` translation strings with Craft plural syntax and wire translated counter copy on the front end. ([#2526](https://github.com/verbb/formie/issues/2526))
+- Stream CSV/text report exports row-by-row to disk for memory-safe large datasets ([#2497](https://github.com/verbb/formie/issues/2497)).
+- Use stable field references and normalized field values across notifications, calculations, conditions, integrations, GraphQL, exports, and historical submission content.
+- Update phone number values sent to integrations to use `E164` format instead of international formatting. ([Discussion #2731](https://github.com/verbb/formie/discussions/2731))
+- Improve integration queue job descriptions and debug output with form context (`formId`, `formHandle`, `formTitle`). ([#2172](https://github.com/verbb/formie/discussions/2172))
+- OAuth integration redirect URIs now default to a Craft action URL instead of a site URL. Add an optional **OAuth Redirect URI Override** plugin setting. ([#1333](https://github.com/verbb/formie/issues/1333))
+- Store incomplete submissions and pending uploads in database-backed, tokenized records with expiry, capability checks, garbage collection, and idempotent payment replay handling.
+- Replace self-referential synced fields with shared definitions and per-form placements, and update stencils to use snapshot semantics and stable field-reference remapping.
+- Improve **Submission Limits** form settings UX (**Apply Limit To**, consolidated messaging) and clarify the distinction from global **Submission Throttling** abuse controls. Add [Submission Limits](https://verbb.io/craft-plugins/formie/docs/v4/forms/submission-limits) author documentation. [Discussion #1939](https://github.com/verbb/formie/discussions/1939)
+- Improve HTML and Rich Text cosmetic field builder previews and control panel submission views to show rendered output instead of raw source where appropriate. ([#2182](https://github.com/verbb/formie/issues/2182))
+- Move Agree field checked/unchecked display labels to the Settings tab and clarify that submissions store a boolean; use `getFieldValueAsString()` for Yes/No-style output. ([#2288](https://github.com/verbb/formie/issues/2288))
+- Replace custom static-cache refresh snippets with built-in token refresh behavior and tighten anonymous route, CORS, file-upload, callback, and webhook handling.
+- Freeform 4/5 plugin migrations now process submissions in batches (default 100) to avoid memory exhaustion on large forms. Use `php craft formie/migrate/freeform4` (or `freeform5`) with `--batch-size`, `--submission-offset`, `--submission-limit`, `--submissions-only`, and `--skip-submissions` for large migrations. ([#2513](https://github.com/verbb/formie/issues/2513))
+- Improve default theme color contrast for WCAG 2.2 AA — darker error text, muted helper text, and border-only control styling with split border tokens ([#2475](https://github.com/verbb/formie/issues/2475)).
 
 ### Fixed
-- Fix migration coverage for Formie 3 to Formie 4 upgrades.
-- Fix migration coverage for direct Formie 2 to Formie 4 upgrades.
-- Fix synced-field migration to preserve shared field definitions and per-form placements.
-- Fix field hydration for legacy config keys under Compatibility Mode.
-- Fix legacy webhook/automation naming compatibility during upgrades.
-- Fix Stripe and other payment replay flows to run through the canonical workflow path.
-- Fix submission workflow failure logging to include halted stage, stage metadata, payment status, payment message, and payment decision details.
-- Fix hidden condition values and container/repeatable field values to use normalized field value projections consistently.
-- Fix condition evaluator behavior for boolean, numeric, and string comparisons.
-- Fix unresolved historical submission data being lost when a form layout no longer contains the original field.
-- Fix GraphQL schema generation for nested field structures.
-- Fix GraphQL field metadata generation performance for large forms.
-- Fix form handle lookup hot paths by routing through request-local form caches.
-- Fix repeated per-form integration list resolution by memoizing enabled integrations per form per request.
-- Fix client module manifest lookup costs with request-local caches.
-- Fix long-running worker cache staleness by exposing `SubmissionQuery::invalidateStaticCaches()`.
+- Fixed rate-limit bypass, CSRF, XSS, information disclosure, payment verification, XML injection, submission permission, and redirect URL vulnerabilities.
 - Fix file-upload security checks for MIME types, extensions, active content, and filename normalization.
-- Fix safer file upload URLs in CP and email summary contexts.
-- Fix payment webhook and callback responses to avoid exposing sensitive validation details.
-- Fix anonymous client bootstrap, refresh, page transition, and submit flows to share stricter abuse controls.
-- Fix static-cache handling for token refresh and restored form responses.
-- Fix large builder drag/drop behavior on dense multi-page forms.
-- Fix integration mapping for normalized nested field values.
-- Fix missing or inconsistent custom field compatibility for legacy schema arrays and FormKit-style nodes.
-- Fix legacy front-end event bridging for projects migrating from Formie 3 event listeners.
+- Fix plugin uninstall via `project-config/apply` failing when Formie stencil project config is removed after the `formie_stencils` table has already been dropped. ([#1710](https://github.com/verbb/formie/issues/1710))
+- Fix plugin migrations failing on production when `allowAdminChanges` is disabled because migrations attempted to write plugin settings to project config. ([#2615](https://github.com/verbb/formie/issues/2615))
+- Fix captcha provider credentials saved in the control panel being wiped when project config syncs on deploy. Site-scoped captcha settings are now preserved across deployments. ([#2407](https://github.com/verbb/formie/issues/2407))
+- Fix Salesforce integrations failing after Craft 5 / Formie 3 upgrades when OAuth tokens were migrated without `instance_url`, by falling back to stored integration settings and backfilling token values. ([#2492](https://github.com/verbb/formie/issues/2492))
+- Fix Stripe payments failing with “Invalid email address” when **Payment Receipt** is enabled but the mapped receipt email resolves empty (for example legacy `{field.email}` tokens or **User Email** while logged out). ([#2262](https://github.com/verbb/formie/issues/2262))
+- Fix payment amount parsing for locale-formatted dynamic values (for example `1,234.56`, `1.750,00`, and `£750.00`) on both the server and in the browser payment modules. ([#2334](https://github.com/verbb/formie/issues/2334))
+- Fix payment follow-up states (such as 3D Secure authentication) showing as red validation errors. Action-required and pending payment responses now render as neutral form notices, and Ajax submit payloads include `paymentStatus`, `paymentMessage`, `paymentAction`, and `paymentDecision` metadata. ([#2660](https://github.com/verbb/formie/issues/2660))
+- Fix external redirect payments (for example Mollie) leaving users on the status polling page when payment fails. Failed payments now redirect back to the original form URL with a flash error message. ([#2502](https://github.com/verbb/formie/issues/2502))
+- Fix Stripe and other payment follow-up submits re-validating one-time captcha tokens (for example reCAPTCHA v2 checkbox and hCaptcha), which caused duplicate-token spam failures on the second Ajax POST. Incomplete continuation submits now skip captcha screening, matching replay-token behaviour. ([#2465](https://github.com/verbb/formie/issues/2465))
+- Fix Opayo, Stripe, Paddle, and GoCardless payment integrations not resolving **Billing Details** field mappings from the form builder static table, so Name and Address fields are included in payment payloads again. ([#2617](https://github.com/verbb/formie/issues/2617))
+- Fix OAuth integrations reporting a successful connection when their access token was not persisted. ([#2961](https://github.com/verbb/formie/issues/2961))
+- Fix Zoho picklist mappings sending option metadata IDs instead of their API values. ([#2959](https://github.com/verbb/formie/issues/2959))
+- Fix User element integration silently skipping group assignment when a configured group UID no longer resolves. ([#2909](https://github.com/verbb/formie/issues/2909))
+- Fix Group nested field values being ignored in submission title format tokens and Element/integration field mappings when the picker stored a child field reference. ([#2922](https://github.com/verbb/formie/issues/2922))
+- Fix queued integrations losing submit-time context (referrer, IP address, HubSpot/Pardot tracking cookies) by persisting request metadata on the submission at submit time and hydrating integration context from it in queue workers. ([#1379](https://github.com/verbb/formie/issues/1379))
+- Fix Salesforce integration refresh failing when an enabled object such as Opportunity or Case is unavailable in the connected org. ([#1551](https://github.com/verbb/formie/issues/1551))
+- Fix Marketo OAuth connect failing when an empty `scope` parameter is sent with the client-credentials grant, and normalize API domains that include a trailing `/rest` segment. ([#2718](https://github.com/verbb/formie/issues/2718))
+- Fix Mailchimp integrations not exposing or formatting **Address** merge fields, which prevented mapping Formie Address fields to Mailchimp audiences that require `ADDRESS` data. ([#2387](https://github.com/verbb/formie/issues/2387))
+- Improve Pardot integration errors when an account does not support API v4 (legacy Pardot Classic). ([#2642](https://github.com/verbb/formie/issues/2642))
+- Fix Upload Manager returning “Invalid file upload field” when a File Upload field is nested under a Group (and related nested content-key paths), and writing staged asset ids under the correct nested input names. ([#2948](https://github.com/verbb/formie/issues/2948))
+- Fix Recent Submissions widget breaking the control panel because `WidgetsVendorAsset` published from a `src/` path that is not shipped in the package ([#2939](https://github.com/verbb/formie/issues/2939)).
+- Fix required File Upload fields using Upload Manager never passing client-side validation after a successful upload. ([#2924](https://github.com/verbb/formie/issues/2924))
+- Fix phone country dropdown flags not appearing on Craft Cloud. Flag sprites are inlined in the front-end bundle instead of loading from relative CSS asset paths. ([#2529](https://github.com/verbb/formie/issues/2529))
+- Fix file upload assets being deleted when trashing a submission with **File Uploads → Delete files** enabled, so restored submissions keep their uploaded files. ([#1258](https://github.com/verbb/formie/discussions/1258))
+- Skip notification email attachments when the asset file cannot be read, instead of failing the entire send. ([#2626](https://github.com/verbb/formie/issues/2626))
+- Fix file upload validation allowing extensions such as `.jfif` that Craft cannot save as assets. ([#2716](https://github.com/verbb/formie/issues/2716))
+- Fix File Upload fields failing on submit when no upload location is set, by requiring the setting in the form builder and falling back to the plugin default volume when configured. ([#2597](https://github.com/verbb/formie/issues/2597))
+- Fix Ajax and multi-page File Upload fields losing their uploaded-file summary after step navigation or when editing existing submissions. ([#2742](https://github.com/verbb/formie/issues/2742), [#1856](https://github.com/verbb/formie/issues/1856), [#1910](https://github.com/verbb/formie/issues/1910))
+- Fix File Upload fields inside Repeater or Group fields not initializing upload persistence for nested inputs. ([#1448](https://github.com/verbb/formie/issues/1448))
+- Fix ActiveCampaign Email marketing contact payloads sending blank unmapped properties (now `array_filter`’d like the CRM path). ([#2934](https://github.com/verbb/formie/issues/2934))
+- Fix status-change notifications never sending: the trigger compared `Submission::getStatus()` as a status model, but it returns the handle string. ([#2931](https://github.com/verbb/formie/issues/2931))
+- Fix control panel submission saves running visitor page-flow and new-submission semantics on `editExisting` requests, which blocked status-change notifications, flipped completed submissions to incomplete, and overwrote the selected status. ([#2932](https://github.com/verbb/formie/issues/2932))
+- Fix form import with **Update existing form** not removing notifications deleted before export. Empty `notifications` arrays in the import payload now replace the form’s notifications instead of being ignored. ([#1941](https://github.com/verbb/formie/issues/1941))
+- Fix notification email preview and send failing when both **From Name** and **From Email** are set. ([#2698](https://github.com/verbb/formie/issues/2698))
+- Fix Recipients fields preserving the selected option label when multiple recipient options send to the same email address, using encrypted row identity tokens while keeping recipient emails private in front-end markup. ([#2382](https://github.com/verbb/formie/issues/2382))
+- Fix option field values appearing empty in notification “All Form Fields” summaries when options were overridden via Twig `setFieldSettings()`, by applying persisted submission snapshots when loading forms for email/export and falling back to stored option values when labels cannot be resolved. ([#2350](https://github.com/verbb/formie/issues/2350))
+- Sanitize notification queue job debug data to valid UTF-8 before re-serializing failed jobs, preventing queue rows from becoming unreadable when submission content contains invalid byte sequences. ([#2344](https://github.com/verbb/formie/issues/2344))
+- Improve notification mailer failure logging when Craft returns no transport error message, including CLI/queue context to help diagnose cron-only send failures. ([#2610](https://github.com/verbb/formie/issues/2610))
+- Validate literal email addresses in notification recipient settings so invalid addresses are caught when saving notifications. ([#2712](https://github.com/verbb/formie/issues/2712))
+- Fix email notification preview failing when a recipient setting references a non-email field. ([#2537](https://github.com/verbb/formie/issues/2537))
+- Fix final submit validating only the current page when a later page is conditionally hidden — `isLastPage()` / `isFirstPage()` now accept the submission so they skip unreachable pages the same way as `getNextPage()`. ([#2927](https://github.com/verbb/formie/issues/2927))
+- Fix page (and other form-builder) conditions showing an empty Value dropdown for Submission Status by always supplying status select options. ([#2925](https://github.com/verbb/formie/issues/2925))
+- Fix CP submission edit (Follow field conditions) always hiding pages whose conditions use `{submission:*}` tokens — the client now evaluates those from a submission snapshot instead of treating them as missing fields. ([#2925](https://github.com/verbb/formie/issues/2925))
+- Fix headless/Ajax validation error messages using the wrong locale by applying the target site language at submission time ([#1545](https://github.com/verbb/formie/issues/1545)).
+- Apply spam behaviour (success/message) without attempting to persist discarded spam submissions when **Save spam submissions** is disabled, avoiding failed saves under bot load. ([#2818](https://github.com/verbb/formie/issues/2818))
+- Fix page-reload single-line and multi-line text limit validation rerenders so field error styling, form-level error messages, and scroll/focus behaviour match ajax submissions. ([#1997](https://github.com/verbb/formie/issues/1997))
+- Fix Address and other fixed-parent sub-field settings being unavailable in the form builder by restoring on-demand field type config loading for nested sub-field types. ([#1416](https://github.com/verbb/formie/issues/1416))
+- Fix submission status filters in the control panel returning no results when submissions were saved without a persisted `statusId`, and resolve status queries by display name as well as handle. ([#2687](https://github.com/verbb/formie/issues/2687))
+- Fix form usage counts and the form builder Usage tab omitting entries on disabled Craft sites. ([#2612](https://github.com/verbb/formie/issues/2612))
+- Fix the form builder Usage tab not listing elements that reference a form on non-primary sites, including when Craft stores a relation without a specific `sourceSiteId`. ([#2695](https://github.com/verbb/formie/issues/2695))
+- Fix dropdown field options not saving in the form builder when no default option is selected. ([#2795](https://github.com/verbb/formie/issues/2795))
+- Fix replacing a deleted field with a new field using the same handle requiring a two-step save in the form builder. ([#1854](https://github.com/verbb/formie/issues/1854))
+- Fix missing page-list validation indicators in the form builder when a form has no pages. ([#2786](https://github.com/verbb/formie/issues/2786))
+- Keep field error live regions mounted without reserving empty layout space, honour the configured announcement priority, and associate definition-driven errors with their controls. ([#2954](https://github.com/verbb/formie/issues/2954))
+- Fix required Multi-line Text fields with Rich Text enabled being skipped by client-side validation — the backing `<textarea>` lives in a `display: none` wrapper, so visibility is now judged from the rich-text editor host instead. ([#2947](https://github.com/verbb/formie/issues/2947))
+- Fix field validation errors relying on `aria-errormessage` alone — also merge the error message id into `aria-describedby` (keeping any instruction ids) so assistive tech with weak `aria-errormessage` support still announces the error. ([#2946](https://github.com/verbb/formie/issues/2946))
+- Fix element-field variable tokens with a property selector resolving empty (e.g. `{field:<ref>:title}`). Unindexed selectors now resolve against related elements and join multi-value results. ([#2930](https://github.com/verbb/formie/issues/2930))
+- Fix rich text toolbars always showing only Bold/Italic — pass `buttons` / `linkOptions` to `pk-tiptap-editor` instead of the obsolete `*Attr` prop names so configured buttons reach the element. ([#2929](https://github.com/verbb/formie/issues/2929))
+- Fix submitting a filled Date/Time field throwing `Undefined property: DateFieldValue::$date` during validation when resolving nested `date`/`time` paths (including Date fields inside Group/Repeater). ([#2923](https://github.com/verbb/formie/issues/2923))
+- Fix date dropdown fields rejecting year-only values with “Year cannot be blank” when other date parts are disabled. Partial date parts are stored via `DateFieldValue` without requiring a full calendar date. ([#2261](https://github.com/verbb/formie/issues/2261))
+- Fix Google Maps API script conflicts when Address field autocomplete and the Google Maps Craft plugin are used on the same page. Formie reuses an existing `window.google` instance instead of injecting a second Maps script. ([#2041](https://github.com/verbb/formie/issues/2041))
+- Fix Phone field country selector labels not respecting the field’s **Country Language** setting. ([#2042](https://github.com/verbb/formie/issues/2042))
+- Fix required asterisk indicator not appearing on Agree fields when the field label is hidden and consent copy is shown on the checkbox label. ([#2333](https://github.com/verbb/formie/issues/2333))
+- Fix Summary field Ajax refreshes ignoring custom `themeConfig` classes by round-tripping render-time theme config through the summary HTML endpoint ([#1721](https://github.com/verbb/formie/issues/1721)).
+- Skip client-side validation for fields disabled by conditional logic, and disable conditionally hidden submit buttons so Enter no longer triggers hidden submit/next actions. ([#2727](https://github.com/verbb/formie/issues/2727), [#1136](https://github.com/verbb/formie/issues/1136), [Discussion #1628](https://github.com/verbb/formie/discussions/1628))
+- Bound spam keyword scanning and spam log payloads so very large field values cannot stall PHP workers during spam handling. ([#2065](https://github.com/verbb/formie/issues/2065))
+- Fix Signature fields intermittently showing a misleading “browser does not support” message on multi-page forms, conditional fields, and late layout by retrying canvas sizing, watching visibility changes, and showing accurate status copy when initialization fails. ([#2708](https://github.com/verbb/formie/issues/2708))
+- Fix Dropdown, Radio and Checkboxes **Disabled** option availability not outputting HTML `disabled` on the front-end form. ([#1816](https://github.com/verbb/formie/issues/1816))
+- Prompt for confirmation when closing a field settings overlay with Escape (or backdrop/header close) only when the field has unsaved changes. Untouched new fields close immediately. ([#2219](https://github.com/verbb/formie/issues/2219))
+- Fix checkbox fields saving their default option values when explicitly unchecked on submit. ([#2457](https://github.com/verbb/formie/issues/2457))
+- Fix the Dutch translation mapping `Auto` to `Automatisch`, which incorrectly changed checkbox labels and values meaning “car”. ([#2636](https://github.com/verbb/formie/issues/2636))
+- Generate translatable date picker placeholders from the configured date and time formats when no custom placeholder is set. ([#2464](https://github.com/verbb/formie/issues/2464))
+- Initialise captcha placeholders immediately when multipage forms change page via tabs or Ajax **Next**, so Friendly Captcha and other providers mount on the visible page before submit. ([#1893](https://github.com/verbb/formie/issues/1893))
+- Tear down Cloudflare Turnstile widgets with `remove()` during remounts and apply CSP nonces to dynamically loaded captcha scripts where available, reducing console noise on strict CSP hosts. ([#2535](https://github.com/verbb/formie/issues/2535))
+- Wait for reCAPTCHA Enterprise readiness before executing score/policy challenges on multipage navigation. ([#2224](https://github.com/verbb/formie/issues/2224))
+- Fix redirect Entry selections on the Behaviour tab (and stencils) never persisting because save read `submitActionEntryId` instead of the posted `submitActionEntry` list. ([#2926](https://github.com/verbb/formie/issues/2926))
+- Fix rich-text links to internal pages opening in a new tab including `rel="noopener noreferrer nofollow"`. Internal links now omit the attribute; external links keep it. ([#2604](https://github.com/verbb/formie/issues/2604))
+- Fix submit button conditions not applying on the front end. ([#2568](https://github.com/verbb/formie/issues/2568))
 
 ### Deprecated
-- Deprecated `Form::getFormId()` and `Form::setFormId()`. Use `Form::getRenderId()` and `Form::setRenderId()`.
-- Deprecated `Form::EVENT_MODIFY_HTML_TAG`. Use `Form::EVENT_MODIFY_SLOT_TAG`.
-- Deprecated `ModifyFormHtmlTagEvent`. Use `ModifyFormSlotTagEvent`.
-- Deprecated `Field::EVENT_MODIFY_HTML_TAG`. Use `Field::EVENT_MODIFY_SLOT_TAG`.
-- Deprecated `ModifyFieldHtmlTagEvent`. Use `ModifyFieldSlotTagEvent`.
-- Deprecated `Field::EVENT_MODIFY_VALUE_AS_JSON`. Use `Field::EVENT_MODIFY_VALUE_AS_ARRAY`.
-- Deprecated `Field::EVENT_MODIFY_VALUE_FOR_EMAIL`. Use `Field::EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK`.
-- Deprecated field value JSON methods such as `getValueAsJson()` and `defineValueAsJson()`. Use array-based equivalents.
-- Deprecated field variable value methods such as `getValueForVariable()`, `getValueForVariableRaw()`, `defineValueForVariable()`, and `defineValueForVariableRaw()`. Use reference value methods.
-- Deprecated field email value methods such as `getValueForEmail()` and `defineValueForEmail()`. Use reference-block value methods.
-- Deprecated field email template methods such as `getEmailTemplatePath()`, `getEmailHtml()`, `getEmailOptions()`, `hasEmailLabel()`, and `hasEmailPlaceholder()`. Use reference-block equivalents.
-- Deprecated legacy field key helpers such as `getFieldKey()`, `getErrorKey()`, `getFullHandle()`, `getFullNamespace()`, and `getReservedHandles()`.
-- Deprecated legacy custom field schema methods in favor of `defineFormBuilder*Schema()` methods.
-- Deprecated `getFormBuilderPreviewHtml()` in favor of `defineFormBuilderPreviewSchema()`.
-- Deprecated `getFrontEndInputTemplatePath()` in favor of `getInputTemplatePath()`.
-- Deprecated `defineHtmlTag()` in favor of `defineFieldSlotTag()`.
-- Deprecated `Submission::getValueAsString()`, `Submission::getValueAsJson()`, `Submission::getValueForExport()`, and `Submission::getValueForSummary()` in favor of `getFieldValue*()` methods.
-- Deprecated `Submission::getFieldValueAsJson()` in favor of `Submission::getFieldValueAsArray()`.
-- Deprecated `Submission::getValuesAsJson()` in favor of `Submission::getValuesAsArray()`.
-- Deprecated `Submission::getFieldValueForEmail()` in favor of `Submission::getFieldValueForReferenceBlock()`.
-- Deprecated `Submission::getFieldValueForVariable()` in favor of `Submission::getFieldValueForReference()`.
-- Deprecated `SubmissionContentManager::getValuesAsJson()` in favor of `getValuesAsArray()`.
-- Deprecated `ValueContext::json()` and `ValueContext::TYPE_JSON`. Use `ValueContext::array()` and `ValueContext::TYPE_ARRAY`.
-- Deprecated `ValueContext::variable()` and `ValueContext::TYPE_VARIABLE`. Use `ValueContext::reference()` and `ValueContext::TYPE_REFERENCE`.
-- Deprecated `ValueContext::email()` and `ValueContext::TYPE_EMAIL`. Use `ValueContext::referenceBlock()` and `ValueContext::TYPE_REFERENCE_BLOCK`.
-- Deprecated `craft.formie.registerAssets()`, `craft.formie.registerFormAssets()`, `craft.formie.renderFormAssets()`, `craft.formie.renderFormCss()`, and `craft.formie.renderFormJs()`. Use `craft.formie.formAssets()`.
-- Deprecated `craft.formie.renderRuntimeAssets()`, `craft.formie.renderCss()`, and `craft.formie.renderJs()`. Use `craft.formie.frontendAssets()`.
-- Deprecated render option keys `renderCss`, `renderJs`, `outputCssLayout`, `outputCssTheme`, `outputJsBase`, and `outputJsTheme`.
-- Deprecated `assets()` as the form-scoped asset helper name. Use `formAssets()`.
-- Deprecated legacy theme config root keys including `radio`, `date`, `email`, `hidden`, and `phone`. Use `radioButtons`, `dateTime`, `emailAddress`, `hiddenField`, and `phoneNumber`.
-- Deprecated legacy schema config keys including `limitType`, `limitAmount`, `subfieldLabelPosition`, `includeInEmail`, and `emailValue`.
-- Deprecated `Integration::getFormSettingsHtml()` for builder settings. Use `Integration::defineFormSettingsSchema()`.
-- Deprecated custom integration front-end variable output via `getFrontEndJsVariables()`. Use `IntegrationInterface::getBrowserModule()`.
-- Deprecated standalone `Submissions::processPayments()` usage. Payments now run through workflow tasks.
-- Deprecated selected submission dispatch pass-through methods on `Submissions`; use the canonical workflow, notification, integration, and payment services.
-- Deprecated runtime-named PHP classes in favor of client/frontend names where aliases are provided by Compatibility Mode.
-- Deprecated `Rendering::EVENT_MODIFY_RUNTIME_JS_TRANSLATIONS`, `ModifyRuntimeJsTranslationsEvent`, and `getRuntimeJsTranslations()` in favor of frontend-named equivalents.
-- Deprecated GraphQL page setting names `enableJsEvents` and `jsGtmEventOptions`.
-- Deprecated the refresh-token request `form` query parameter. Use `handle`.
-- Deprecated legacy Formie DOM events such as `onFormieLoaded`, `onFormieInit`, `onFormieReady`, `onBeforeFormieSubmit`, `onFormieSubmit`, `onAfterFormieSubmit`, `onFormieSubmitError`, `onFormiePageToggle`, `onFormieValidate`, and `onAfterFormieValidate`.
-- Deprecated legacy validator events such as `formieValidatorInitialized`, `formieValidatorDestroyed`, `formieValidatorShowError`, and `formieValidatorClearError`.
-- Deprecated the global `Formie.refreshForCache()` helper in favor of static-cache token refresh handling.
+- Deprecate legacy form render IDs, asset helpers, render options, runtime-named classes and JavaScript translation hooks in favor of the new render IDs, `formAssets()` / `frontendAssets()` helpers, client/frontend naming, and package-based runtimes.
+- Deprecate legacy HTML tag APIs in favor of slot tag APIs.
+- Deprecate JSON, variable, email, and legacy key field-value APIs in favor of array, reference, and reference-block APIs.
+- Deprecate legacy custom field schema, preview, and input-template APIs in favor of `defineFormBuilder*Schema()`, `defineFormBuilderPreviewSchema()`, and `getInputTemplatePath()`.
+- Deprecate legacy integration settings, front-end variables, payment processing, and submission dispatch helpers in favor of schema settings, client modules, and workflow services.
+- Deprecate legacy Formie DOM and validator events, GraphQL client-event setting names, refresh-token parameters, theme config keys, and schema config keys.
+- Deprecate the `PredefinedOptions` service and namespace in favor of `OptionSources` and the `verbb\formie\options\predefined` namespace.
 
 ### Removed
-- Remove the legacy `CustomElement` inheritance model from submissions.
-- Remove the `FieldLegacy` bridge trait.
-- Remove legacy Formie 3 field `inputHtml()` fallback behavior.
-- Remove expired Formie 3 field `name` helper compatibility surfaces.
-- Remove old sticky JavaScript form-bus APIs.
-- Remove the built-in Duplicate captcha integration.
-- Remove the built-in JavaScript captcha integration.
-- Remove the built-in Honeypot captcha integration.
-- Remove active support for file, Redis, and Memcached draft-state backends. Formie 4 supports the database-backed adapter.
-- Remove the old `submissionStateMode` and `submissionStore` settings from active configuration.
-- Remove `enableGatsbyCompatibility` from active configuration.
-- Remove active session/database branching for submission progression storage.
-- Remove `getFrontEndJsVariables()` as the custom integration front-end API.
-- Remove old built-in front-end bundle assumptions in favor of `@verbb/formie-browser` and the framework packages.
-- Remove direct `templateHtml` usage from the primary GraphQL form rendering path.
-- Remove Algolia as a built-in address provider module.
+- Remove the legacy `CustomElement` submission model, `FieldLegacy` trait, Formie 3 field `inputHtml()` fallback, and expired field `name` helpers.
+- Remove the old JavaScript form bus, built-in front-end bundle assumptions, and `getFrontEndJsVariables()` integration API.
+- Remove the Duplicate, JavaScript, and Honeypot captcha integrations and the Algolia address provider.
+- Remove file, Redis, Memcached, and session-backed submission progression; Formie 4 uses database-backed state and no longer exposes `submissionStateMode` or `submissionStore`.
+- Remove `enableGatsbyCompatibility` and direct `templateHtml` usage from the primary GraphQL rendering path.
+- Require GraphQL submission mutations to pass the applicable submission guards and a bootstrap `requestToken` for headless transports.
 
 ## 3.1.27 - 2026-05-30
 
