@@ -117,20 +117,10 @@ function P(e, t, n, r) {
 }
 var F = i({
 	name: "FormieVueDefaultErrorSummary",
-	props: {
-		errors: {
-			type: Array,
-			required: !0
-		},
-		errorId: {
-			type: String,
-			required: !0
-		},
-		errorAriaLive: {
-			type: String,
-			required: !0
-		}
-	},
+	props: { errors: {
+		type: Array,
+		required: !0
+	} },
 	setup(e) {
 		return () => e.errors.length === 0 ? null : a("div", { class: "formie-vue-errors" }, [a("ul", null, e.errors.map((e, t) => a("li", { key: `${e}:${t}` }, e)))]);
 	}

@@ -307,14 +307,6 @@ const DefaultErrorSummary = defineComponent({
             type: Array as PropType<string[]>,
             required: true,
         },
-        errorId: {
-            type: String,
-            required: true,
-        },
-        errorAriaLive: {
-            type: String as PropType<ClientErrorAriaLive>,
-            required: true,
-        },
     },
     setup(props) {
         return () => {

@@ -32,6 +32,7 @@
 - Fixed cancelled payments leaving users on the payment status page instead of returning to the form to retry.
 - Fixed payment checkout redirects showing an unsaved-changes warning and leaving forms disabled when cancelled.
 - Fixed upgraded installations failing to create payments for new form fields due to outdated field foreign keys.
+- Fixed the Vue client-rendered form warning that the default form error summary was missing field-only accessibility props.
 - Fixed completed forms with conditional fields showing an unsaved-changes warning when leaving the page.
 - Fixed required simple upload fields rejecting retained files when returning to an earlier page.
 - Fixed native form navigation being rejected after resuming saved progress.

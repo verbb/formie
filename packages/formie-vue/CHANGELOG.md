@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Stop the default form error summary from requiring field-only accessibility props.
+
 ## 1.0.14 - 2026-10-08
 
 ### Changed
