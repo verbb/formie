@@ -30,6 +30,9 @@ type UploadedAsset = {
     assetId: number | null;
     filename: string;
     url?: string | null;
+    uploadUid?: string | null;
+    attachToken?: string | null;
+    viewToken?: string | null;
 };
 
 type FileUploadHydrateResponse = {
@@ -151,6 +154,9 @@ function normalizeUploadedAsset(candidate: unknown): UploadedAsset | null {
         assetId,
         filename,
         url,
+        uploadUid: toTrimmedString(candidate.uploadUid) || null,
+        attachToken: toTrimmedString(candidate.attachToken) || null,
+        viewToken: toTrimmedString(candidate.viewToken ?? candidate.uploadToken) || null,
     };
 }
 
@@ -190,6 +196,9 @@ function readUploadedAssetsFromHiddenInputs(field: HTMLElement, input: HTMLInput
         return {
             assetId: toPositiveInt(hiddenInput.getAttribute(HIDDEN_INPUT_VALUE_ATTR)) ?? toPositiveInt(hiddenInput.value),
             filename: '',
+            viewToken: hiddenInput.getAttribute('data-formie-file-upload-token'),
+            uploadUid: hiddenInput.name.endsWith('[uploadUid]') ? hiddenInput.value : null,
+            attachToken: getHiddenInputs(field).find((entry) => entry.name === hiddenInput.name.replace(/\[uploadUid\]$/, '[attachToken]'))?.value,
         };
     }).filter((asset) => {
         return asset.assetId !== null;
@@ -203,6 +212,7 @@ function mergeUploadedAssets(assetIds: UploadedAsset[], summaryItems: UploadedAs
 
     return assetIds.map((asset, index) => {
         return {
+            ...asset,
             assetId: asset.assetId,
             filename: summaryItems[index]?.filename || '',
         };
@@ -366,12 +376,26 @@ function updateUploadedAssetInputs(field: HTMLElement, input: HTMLInputElement, 
 
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
-        hiddenInput.name = `${baseName}[${index}][assetId]`;
-        hiddenInput.value = String(asset.assetId);
+        const hasCapability = asset.uploadUid && asset.attachToken;
+        hiddenInput.name = `${baseName}[${index}][${hasCapability ? 'uploadUid' : 'assetId'}]`;
+        hiddenInput.value = hasCapability ? asset.uploadUid! : String(asset.assetId);
         hiddenInput.setAttribute(HIDDEN_INPUT_ENTRY_ATTR, 'true');
         hiddenInput.setAttribute(HIDDEN_INPUT_VALUE_ATTR, String(asset.assetId));
+        if (asset.viewToken) {
+            hiddenInput.setAttribute('data-formie-file-upload-token', asset.viewToken);
+        }
         insertionPoint.insertAdjacentElement('afterend', hiddenInput);
         insertionPoint = hiddenInput;
+
+        if (hasCapability) {
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = `${baseName}[${index}][attachToken]`;
+            tokenInput.value = asset.attachToken!;
+            tokenInput.setAttribute(HIDDEN_INPUT_ENTRY_ATTR, 'true');
+            insertionPoint.insertAdjacentElement('afterend', tokenInput);
+            insertionPoint = tokenInput;
+        }
     });
 
     input.value = '';
@@ -391,7 +415,7 @@ function getFormHandle(form: HTMLFormElement | null): string {
     return form.getAttribute('data-formie-handle')?.trim() || '';
 }
 
-function buildHydrateFormData(field: HTMLElement, input: HTMLInputElement, assetIds: number[]): FormData {
+function buildHydrateFormData(field: HTMLElement, input: HTMLInputElement, assets: UploadedAsset[]): FormData {
     const form = input.form;
     const body = new FormData();
     const handle = getFormHandle(form);
@@ -411,8 +435,13 @@ function buildHydrateFormData(field: HTMLElement, input: HTMLInputElement, asset
         body.append('submissionUid', submissionUidInput.value.trim());
     }
 
-    assetIds.forEach((assetId) => {
-        body.append('assetIds[]', String(assetId));
+    assets.forEach((asset) => {
+        if (asset.assetId) {
+            body.append('assetIds[]', String(asset.assetId));
+            if (asset.viewToken) {
+                body.append(`uploadTokens[${asset.assetId}]`, asset.viewToken);
+            }
+        }
     });
 
     return body;
@@ -433,7 +462,7 @@ async function hydrateUploadedAssets(field: HTMLElement, input: HTMLInputElement
     const response = await requestJson<FileUploadHydrateResponse>(hydrateEndpoint, {
         profile: field.closest('form')?.dataset.formieRequestProfile as import('@verbb/formie-core').BrowserRequestOptions['profile'],
         method: 'POST',
-        body: buildHydrateFormData(field, input, assetIds),
+        body: buildHydrateFormData(field, input, uploadedAssets),
     });
     const hydratedAssets = normalizeUploadedAssets(response.assets);
 
@@ -452,6 +481,7 @@ async function hydrateUploadedAssets(field: HTMLElement, input: HTMLInputElement
 
         const hydratedAsset = hydratedMap.get(asset.assetId)!;
         return {
+            ...asset,
             assetId: asset.assetId,
             filename: hydratedAsset.filename || asset.filename,
             url: hydratedAsset.url ?? asset.url,
@@ -480,24 +510,24 @@ function getUploadedAssetsFromEvent(event: Event, matcher: FileUploadEventMatche
 
     if (detailInputKey !== '' && detailInputKey === matcher.inputKey) {
         matchedByInputKey = true;
-        candidates.push(detail.assets, detail.assetIds, detail.data);
+        candidates.push(detail.uploadedAssets, detail.assets, detail.assetIds, detail.data);
     }
 
     if (detailInputName !== '' && detailInputName === matcher.inputName) {
         matchedByInputName = true;
-        candidates.push(detail.assets, detail.assetIds, detail.data);
+        candidates.push(detail.uploadedAssets, detail.assets, detail.assetIds, detail.data);
     }
 
     if (detailFieldHandle === matcher.fieldHandle) {
         matchedByFieldHandle = true;
-        candidates.push(detail.assets, detail.assetIds, detail.data);
+        candidates.push(detail.uploadedAssets, detail.assets, detail.assetIds, detail.data);
     }
 
     if (nestedData) {
         const nestedAssetCandidates = [
+            nestedData.uploadedAssets,
             nestedData.assets,
             nestedData.assetIds,
-            nestedData.uploadedAssets,
             nestedData.data,
         ];
 

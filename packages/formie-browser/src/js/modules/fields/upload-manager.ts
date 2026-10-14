@@ -508,6 +508,19 @@ function markUploadComplete(listItem: HTMLElement): void {
     }, UPLOAD_COMPLETE_DISPLAY_MS);
 }
 
+function markUploadFailed(listItem: HTMLElement): void {
+    const { track, bar, label } = getProgressElements(listItem);
+
+    listItem.classList.add('is-error');
+    listItem.classList.remove('is-uploading', 'is-upload-complete', 'is-processing', 'is-preparing');
+    track?.setAttribute('data-indeterminate', 'false');
+    bar?.setAttribute('data-progress', 'error');
+
+    if (label) {
+        label.textContent = 'Upload failed';
+    }
+}
+
 function createSortButton(direction: 'up' | 'down'): HTMLButtonElement {
     const label = direction === 'up' ? 'Move file up' : 'Move file down';
     const button = document.createElement('button');
@@ -796,6 +809,27 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         autoProceed: true,
         restrictions,
     });
+
+    const selectionError = document.createElement('div');
+    selectionError.className = 'formie-upload-manager-error';
+    selectionError.setAttribute('role', 'alert');
+    selectionError.hidden = true;
+    root.append(selectionError);
+
+    // Uppy stores restriction messages for UI plugins; this custom UI must render them.
+    uppy.on('info-visible', () => {
+        const messages = uppy.getState().info.filter((info) => info.type === 'error');
+
+        if (messages.length) {
+            selectionError.textContent = [...new Set(messages.map((info) => info.message))].join(' ');
+            selectionError.hidden = false;
+        }
+    });
+
+    const clearSelectionError = () => {
+        selectionError.textContent = '';
+        selectionError.hidden = true;
+    };
 
     // Resolve once for Uppy's allow-list; per-request meta/header refresh
     // still re-reads the live form token (including custom csrfTokenName).
@@ -1147,8 +1181,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         const assetId = toPositiveInt(body.assetId);
 
         if (!body.success || !assetId) {
-            managedFile.listItem.classList.add('is-error');
-            managedFile.listItem.classList.remove('is-uploading', 'is-upload-complete', 'is-processing', 'is-preparing');
+            markUploadFailed(managedFile.listItem);
 
             if (errorEl instanceof HTMLElement) {
                 errorEl.hidden = false;
@@ -1184,8 +1217,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         }
 
         const errorEl = managedFile.listItem.querySelector('[data-formie-upload-manager-error]');
-        managedFile.listItem.classList.add('is-error');
-        managedFile.listItem.classList.remove('is-uploading', 'is-upload-complete', 'is-processing', 'is-preparing');
+        markUploadFailed(managedFile.listItem);
 
         if (errorEl instanceof HTMLElement) {
             errorEl.hidden = false;
@@ -1254,6 +1286,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
 
         const files = Array.from(browseInput.files);
         browseInput.value = '';
+        clearSelectionError();
 
         try {
             uppy.addFiles(files.map((file) => {
@@ -1294,6 +1327,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         }
 
         const files = Array.from(transfer.files);
+        clearSelectionError();
 
         try {
             uppy.addFiles(files.map((file) => {
@@ -1311,6 +1345,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
     });
 
     const resetHandler = () => {
+        clearSelectionError();
         state.files.forEach((managedFile) => {
             managedFile.listItem.remove();
         });
@@ -1326,6 +1361,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
     return () => {
         resolvedForm?.removeEventListener(FORM_RESET_EVENT, resetHandler);
         uppy.destroy();
+        selectionError.remove();
         state.files = [];
     };
 }

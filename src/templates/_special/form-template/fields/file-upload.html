@@ -13,10 +13,10 @@
     {% for element in value.all() %}
         {% set reference = field.getSubmissionUploadReference(element, submission) %}
         {% if reference.uploadUid and reference.attachToken %}
-            <input type="hidden" name="{{ field.getHtmlName('[' ~ loop.index0 ~ '][uploadUid]') }}" value="{{ reference.uploadUid }}" data-formie-file-upload-entry="true" data-formie-file-upload-asset-id="{{ element.id }}"{% if reference.viewToken %} data-formie-file-upload-token="{{ reference.viewToken }}"{% endif %}>
-            <input type="hidden" name="{{ field.getHtmlName('[' ~ loop.index0 ~ '][attachToken]') }}" value="{{ reference.attachToken }}" data-formie-file-upload-entry="true">
+            <input type="hidden" name="{{ field.getHtmlName() ~ '[' ~ loop.index0 ~ '][uploadUid]' }}" value="{{ reference.uploadUid }}" data-formie-file-upload-entry="true" data-formie-file-upload-asset-id="{{ element.id }}"{% if reference.viewToken %} data-formie-file-upload-token="{{ reference.viewToken }}"{% endif %}>
+            <input type="hidden" name="{{ field.getHtmlName() ~ '[' ~ loop.index0 ~ '][attachToken]' }}" value="{{ reference.attachToken }}" data-formie-file-upload-entry="true">
         {% else %}
-            <input type="hidden" name="{{ field.getHtmlName('[' ~ loop.index0 ~ '][assetId]') }}" value="{{ element.id }}" data-formie-file-upload-entry="true" data-formie-file-upload-asset-id="{{ element.id }}"{% if reference.viewToken %} data-formie-file-upload-token="{{ reference.viewToken }}"{% endif %}>
+            <input type="hidden" name="{{ field.getHtmlName() ~ '[' ~ loop.index0 ~ '][assetId]' }}" value="{{ element.id }}" data-formie-file-upload-entry="true" data-formie-file-upload-asset-id="{{ element.id }}"{% if reference.viewToken %} data-formie-file-upload-token="{{ reference.viewToken }}"{% endif %}>
         {% endif %}
     {% endfor %}
 {% endif %}

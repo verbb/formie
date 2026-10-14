@@ -154,6 +154,14 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
 
     public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
     {
+        if ($element instanceof Submission && is_array($value)) {
+            foreach (array_keys($value['rows'] ?? $value) as $index => $rowKey) {
+                foreach ($this->getFields($rowKey) as $field) {
+                    $element->getContentState()->requestFieldPaths[$this->valueKey() . '.' . $index . '.' . $field->handle] = $field->valueKey();
+                }
+            }
+        }
+
         $parts = $this->projectChildValues($value, $element, fn($field, $child) => $field->normalizeValueFromRequest($child, $element));
         return $this->normalizeValue($parts, $element);
     }

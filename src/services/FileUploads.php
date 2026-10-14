@@ -513,13 +513,14 @@ class FileUploads extends Component
                         && $submission->id
                         && $uploadSubmissionId === (int)$submission->id)
                 );
+                $requestContentKey = $submission->getContentState()->requestFieldPaths[$contentKey] ?? $contentKey;
+                $claim = $command->uploadClaims->get($requestContentKey, $id) ?? $command->uploadClaims->get($contentKey, $id);
                 $owned = $upload && (int)$upload['siteId'] === (int)$form->siteId
-                    && $upload['contentKey'] === $contentKey
+                    && $upload['contentKey'] === ($claim?->contentKey ?? $contentKey)
                     && hash_equals((string)$upload['browserHash'], Formie::$plugin->getSubmissionGrants()->browserHash($form))
                     && (int)$upload['expiresAt'] > time() && $availableState
                     && (!$uploadSubmissionId || $uploadSubmissionId === (int)$submission->id);
                 $retainedAsset = in_array($id, $retained, true);
-                $claim = $command->uploadClaims->get($contentKey, $id);
                 $legacyOwned = $command->allowLegacyUploadIds && $owned;
 
                 if ($command->operation === SubmissionOperation::PAYMENT_REPLAY && !$retainedAsset) {
@@ -598,8 +599,8 @@ class FileUploads extends Component
         foreach ($submission->getFieldValuesForField(FileUpload::class) as $contentKey => $value) {
             foreach ($this->_extractAssetIds($value) as $id) {
                 Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
-                    'submissionId' => (int)$submission->id, 'state' => SubmissionUploadStatus::BOUND->value,
-                ], ['assetId' => $id, 'formId' => (int)$submission->formId, 'contentKey' => $contentKey, 'state' => [SubmissionUploadStatus::STAGED->value, SubmissionUploadStatus::BOUND->value]])->execute();
+                    'submissionId' => (int)$submission->id, 'state' => SubmissionUploadStatus::BOUND->value, 'contentKey' => $contentKey,
+                ], ['assetId' => $id, 'formId' => (int)$submission->formId, 'contentKey' => [$contentKey, $submission->getContentState()->requestFieldPaths[$contentKey] ?? $contentKey], 'state' => [SubmissionUploadStatus::STAGED->value, SubmissionUploadStatus::BOUND->value]])->execute();
             }
         }
     }
@@ -797,6 +798,12 @@ class FileUploads extends Component
         $progressId = $upload['progressId'] === null ? null : (int)$upload['progressId'];
         $progress = $progressId ? Formie::$plugin->getSubmissionProgress()->getProgressState($form) : null;
         $isStaged = $upload['state'] === SubmissionUploadStatus::STAGED->value;
+        $normalizedContentKey = array_search($contentKey, $submission->getContentState()->requestFieldPaths, true);
+
+        // Stored values and newly staged native uploads use compacted rows; AJAX retains the posted row keys.
+        if ($normalizedContentKey !== false && $upload['contentKey'] === $normalizedContentKey) {
+            $contentKey = $normalizedContentKey;
+        }
         $isRetainedBoundUpload = $upload['state'] === SubmissionUploadStatus::BOUND->value
             && $submissionId
             && $uploadSubmissionId === $submissionId

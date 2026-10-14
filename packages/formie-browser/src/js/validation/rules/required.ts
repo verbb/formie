@@ -7,6 +7,18 @@ const required: ValidationRuleDefinition = {
             return true;
         }
 
+        if (input instanceof HTMLInputElement && input.type === 'file') {
+            if (input.files?.length) {
+                return true;
+            }
+
+            const field = input.closest('[data-formie-field-handle]');
+            const name = input.name.replace(/\[\]$/, '');
+
+            return Array.from(field?.querySelectorAll<HTMLInputElement>('input[type="hidden"][data-formie-file-upload-asset-id]') || [])
+                .some((asset) => !asset.disabled && asset.name.startsWith(`${name}[`) && Number(asset.getAttribute('data-formie-file-upload-asset-id')) > 0);
+        }
+
         if (input.type === 'checkbox' || input.type === 'radio') {
             const checkboxInputs = input.form?.querySelectorAll(`[name="${input.name}"]:not([type="hidden"]):not([disabled])`) || [];
 

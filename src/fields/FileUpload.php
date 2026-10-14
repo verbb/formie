@@ -1355,6 +1355,7 @@ class FileUpload extends ElementField
                         'inputKey' => $inputKey,
                         'inputName' => $inputName,
                         'assetIds' => $assetIds,
+                        'uploadedAssets' => array_map(fn(int $assetId) => $this->getSubmissionUploadReference($assetId, $element), $assetIds),
                     ],
                 ]);
             }
@@ -1495,6 +1496,11 @@ class FileUpload extends ElementField
 
         // See if we have uploaded file(s).
         $paramName = $this->requestParamName($element);
+
+        if ($element instanceof Submission && isset($element->getContentState()->requestFieldPaths[$this->valueKey()])) {
+            $namespace = $element->getFieldParamNamespace();
+            $paramName = ($namespace ? $namespace . '.' : '') . $element->getContentState()->requestFieldPaths[$this->valueKey()];
+        }
 
         if ($paramName !== null) {
             $uploadedFiles = UploadedFile::getInstancesByName($paramName);

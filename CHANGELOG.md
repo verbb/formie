@@ -32,6 +32,12 @@
 - Fixed cancelled payments leaving users on the payment status page instead of returning to the form to retry.
 - Fixed payment checkout redirects showing an unsaved-changes warning and leaving forms disabled when cancelled.
 - Fixed upgraded installations failing to create payments for new form fields due to outdated field foreign keys.
+- Fixed required simple upload fields rejecting retained files when returning to an earlier page.
+- Fixed retained file inputs causing errors when saving or navigating native multi-page forms.
+- Fixed uploaded files failing to save after removing earlier repeater rows.
+- Fixed simple file uploads losing attachment capabilities after a failed submission.
+- Fixed Upload Manager silently rejecting files that exceed file type, size, or count restrictions.
+- Fixed failed uploads continuing to display an active processing status.
 - Fixed a medium-severity server-side request forgery vulnerability.
 - Fixed a low-severity CRM data integrity vulnerability.
 - Prevent missing or changed encryption keys from displaying encrypted submission content as blank or overwriting unreadable values during saves.
