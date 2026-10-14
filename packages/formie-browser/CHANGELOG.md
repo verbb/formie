@@ -5,10 +5,12 @@
 ### Fixed
 - Fixed correcting a spam-rejected submission causing a stale-session error and clearing entered values.
 - Fixed payment checkout redirects showing an unsaved-changes warning and leaving forms disabled when cancelled.
+- Fixed completed forms with conditional fields showing an unsaved-changes warning when leaving the page.
 - Fixed required simple upload fields rejecting retained files when returning to an earlier page.
 - Fixed simple file uploads losing attachment capabilities after a failed submission.
 - Fixed Upload Manager silently rejecting files that exceed file type, size, or count restrictions.
 - Fixed failed uploads continuing to display an active processing status.
+- Fixed matching page conditions revealing inactive pages in multi-page forms.
 
 ## 1.0.14 - 2026-10-08
 

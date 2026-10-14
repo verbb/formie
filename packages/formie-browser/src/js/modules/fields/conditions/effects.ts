@@ -47,9 +47,10 @@ function clearConditionNodeValues(node: Element): void {
 }
 
 function setVisibilityState(node: Element, hidden: boolean): boolean {
-    const isPage = node.hasAttribute('data-formie-page');
-    const hiddenAttr = isPage ? PAGE_HIDDEN_ATTR : CONDITIONAL_HIDDEN_ATTR;
-    const hiddenClasses = getThemeClasses(node, isPage ? 'pageHidden' : 'conditionalHidden');
+    // Navigation owns page-hidden. A matching condition must not reveal an
+    // inactive page, or clear its values just because the visitor moved on.
+    const hiddenAttr = CONDITIONAL_HIDDEN_ATTR;
+    const hiddenClasses = getThemeClasses(node, 'conditionalHidden');
     const wasHidden = node.hasAttribute(hiddenAttr);
 
     if (hidden) {
@@ -190,9 +191,7 @@ function clearCpMutedState(node: Element): void {
 
 function clearHideState(node: Element): void {
     node.removeAttribute(CONDITIONAL_HIDDEN_ATTR);
-    node.removeAttribute(PAGE_HIDDEN_ATTR);
     node.classList.remove(...getThemeClasses(node, 'conditionalHidden'));
-    node.classList.remove(...getThemeClasses(node, 'pageHidden'));
 }
 
 function syncAncestorRows(node: Element): void {

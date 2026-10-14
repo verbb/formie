@@ -10,6 +10,7 @@ import {
 import type { ConditionEntry, ConditionInput } from '#modules/fields/conditions/types';
 import { getConditionInputEventNames } from '#modules/fields/conditions/values';
 import { createDebug } from '#utils/debug';
+import { getFormStateEventName } from '#utils/event-names';
 
 const debug = createDebug('conditions');
 
@@ -212,8 +213,13 @@ export const conditionsModule: BrowserModuleDefinition = {
                 };
 
                 ctx.form.addEventListener('reset', resetHandler);
+                // Canonical resets have already restored values. Settle conditions
+                // before the unload guard captures the form's new clean state.
+                const stateResetEvent = getFormStateEventName('reset');
+                ctx.form.addEventListener(stateResetEvent, evaluateAll);
                 sourceUnbinds.push(() => {
                     ctx.form?.removeEventListener('reset', resetHandler);
+                    ctx.form?.removeEventListener(stateResetEvent, evaluateAll);
                 });
 
                 // CP status menu (etc.) updates `data-formie-submission` and fires this event.
