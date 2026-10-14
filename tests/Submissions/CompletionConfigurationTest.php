@@ -48,6 +48,33 @@ it('allows project paths and explicitly approved origins', function (): void {
     } finally { $settings->completionRedirectAllowedOrigins = $original; }
 });
 
+it('resolves completion redirects when another site has no resolved base URL', function (?string $baseUrl): void {
+    $sites = Craft::$app->getSites()->getAllSites();
+    $site = end($sites);
+    $originalBaseUrl = $site->getBaseUrl(false);
+    $settings = Formie::$plugin->getSettings();
+    $originalAllowed = $settings->completionRedirectAllowedOrigins;
+    $settings->completionRedirectAllowedOrigins = ['https://partner.test'];
+
+    try {
+        $site->setBaseUrl($baseUrl);
+        $form = formie()->form()->singleLineTextField('name')->create();
+        $form->settings->setAttributes([
+            'completionBehavior' => 'redirect',
+            'redirectUrl' => 'https://partner.test/thanks',
+        ], false);
+        $submission = new Submission();
+        $submission->setForm($form);
+
+        expect((new CompletionResolver())->resolve($form, $submission)->url)->toBe('https://partner.test/thanks')
+            ->and(CompletionRedirectPolicy::validate('https://unapproved.test/thanks'))->toBe('')
+            ->and(CompletionRedirectPolicy::validate('/thanks'))->toBe('/thanks');
+    } finally {
+        $site->setBaseUrl($originalBaseUrl);
+        $settings->completionRedirectAllowedOrigins = $originalAllowed;
+    }
+})->with([null, '', '$FORMIE_QA_UNSET_REDIRECT_SITE_URL']);
+
 it('validates the template and stable PHP event overrides last', function (): void {
     $form = formie()->form()->singleLineTextField('name')->create();
     $form->setRedirectUrl('/template');

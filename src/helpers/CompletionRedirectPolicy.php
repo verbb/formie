@@ -42,7 +42,12 @@ final class CompletionRedirectPolicy
         $allowed = Formie::$plugin->getSettings()->completionRedirectAllowedOrigins;
 
         foreach (Craft::$app->getSites()->getAllSites() as $site) {
-            $allowed[] = self::origin(Craft::getAlias($site->getBaseUrl()));
+            $baseUrl = $site->getBaseUrl();
+
+            // Sites without URLs, including unset environment aliases, provide no origin.
+            if ($baseUrl !== null) {
+                $allowed[] = self::origin(Craft::getAlias($baseUrl));
+            }
         }
         return in_array($origin, array_map(self::origin(...), $allowed), true) ? $url : '';
     }
