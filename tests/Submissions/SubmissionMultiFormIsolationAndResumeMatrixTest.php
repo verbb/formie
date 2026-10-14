@@ -6,6 +6,46 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Name;
+use Tests\Support\WebRequestTestHelper;
+use verbb\formie\services\SubmissionGrants;
+
+it('uses an explicit resume link instead of another automatically restored submission', function (bool $pageFirst): void {
+    $form = formie()->form()->multiPage(2)
+        ->onPage(1)->singleLineTextField('message')
+        ->onPage(2)->singleLineTextField('details')->create();
+
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($form, $pageFirst): void {
+        $progress = Formie::$plugin->getSubmissionProgress();
+        $grants = Formie::$plugin->getSubmissionGrants();
+        $pages = $form->getPages();
+        $makeSubmission = function (string $message) use ($form): Submission {
+            $submission = new Submission();
+            $submission->setForm($form);
+            $submission->isIncomplete = true;
+            $submission->setFieldValue('message', $message);
+            expect(Craft::$app->getElements()->saveElement($submission, false))->toBeTrue();
+            return $submission;
+        };
+
+        $target = $makeSubmission('Resume this booking');
+        $targetProgress = $progress->upsertProgressState($form, $target, (int)$pages[1]->id);
+        $grant = $grants->issue($target, SubmissionGrants::CONTINUE, $targetProgress->id);
+        $grants->revokeBrowser($form, SubmissionGrants::CONTINUE);
+        $other = $makeSubmission('Other booking');
+        $progress->upsertProgressState($form, $other, (int)$pages[0]->id);
+
+        $request->setQueryParams(['resumeToken' => $grant->token]);
+        $renderForm = Form::find()->id($form->id)->one();
+        if ($pageFirst) {
+            expect($renderForm->getCurrentPage()->id)->toBe($pages[1]->id);
+        }
+        expect($renderForm->getCurrentSubmission()->id)->toBe($target->id)
+            ->and($renderForm->getCurrentSubmission()->getFieldValue('message'))->toBe('Resume this booking')
+            ->and($renderForm->getCurrentPage()->id)->toBe($pages[1]->id)
+            ->and(Craft::$app->getResponse()->getHeaders()->get('Referrer-Policy'))->toBe('strict-origin')
+            ->and(Craft::$app->getResponse()->getHeaders()->get('Cache-Control'))->toContain('no-store');
+    });
+})->with([true, false]);
 
 it('isolates progress for separate form contexts and forms', function (): void {
     $formA = formie()->form()->singleLineTextField('headline')->create();

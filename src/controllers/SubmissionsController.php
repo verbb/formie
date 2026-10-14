@@ -733,7 +733,7 @@ class SubmissionsController extends Controller
         }
 
         if ($response->submitAction === 'save') {
-            $message = $form->settings->getSuccessMessage($submission);
+            $message = Craft::t('formie', 'Your progress has been saved.');
             $resumeUrl = $saveResumePayload['resumeUrl'] ?? null;
 
             Formie::$plugin->getService()->setNotice($form->getFlashNamespace(), $message);
@@ -866,7 +866,7 @@ class SubmissionsController extends Controller
         }
 
         if ($submitAction === 'save') {
-            $payload['successMessage'] = StringHelper::sanitizeMessageHtml($form->settings->getSuccessMessage($submission));
+            $payload['successMessage'] = Craft::t('formie', 'Your progress has been saved.');
         }
 
         $payload['completion'] = $response->outcome->data['completion'] ?? null;
@@ -1032,7 +1032,7 @@ class SubmissionsController extends Controller
     {
         $baseResumeUrl = Formie::$plugin->getSubmissionRequests()->resolveTrustedResumeBaseUrl(
             $this->request->getReferrer(),
-            (string)$this->request->getPathInfo()
+            (string)$this->request->getUrl()
         );
 
         return Formie::$plugin->getSubmissionRequests()->createSaveResumePayload($form, $submission, $baseResumeUrl);

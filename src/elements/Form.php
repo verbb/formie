@@ -3740,6 +3740,14 @@ class Form extends Element implements FormInterface
             return;
         }
 
+        // An explicit resume link selects its booking before automatic browser
+        // restoration, for both page-first and submission-first rendering.
+        $this->_hydrateCurrentSubmissionFromSubmissionGrant();
+
+        if ($this->_currentSubmission) {
+            return;
+        }
+
         // Disabled "Restore In-Progress Submissions Automatically" means a normal
         // revisit starts blank. Resume links hydrate via resumeToken separately;
         // in-session multi-page continuity uses progress state on submit, not render.
@@ -3903,7 +3911,8 @@ class Form extends Element implements FormInterface
 
         $headers->set('Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0');
         $headers->set('Pragma', 'no-cache');
-        $headers->set('Referrer-Policy', 'no-referrer');
+        // Keep resume capabilities out of referrers without making native POST origins opaque.
+        $headers->set('Referrer-Policy', 'strict-origin');
         $headers->set('Expires', '0');
     }
 

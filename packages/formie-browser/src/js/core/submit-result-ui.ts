@@ -363,7 +363,7 @@ function shouldRenderSuccessMessage(form: HTMLFormElement, result: FormSubmitRes
     return getConfiguredCompletionBehavior(form) === 'message' && getSuccessMessagePosition(form) !== '';
 }
 
-export function renderFormSuccess(form: HTMLFormElement, message: string): void {
+export function renderFormSuccess(form: HTMLFormElement, message: string, options: { hideForm?: boolean } = {}): void {
     const position = getSuccessMessagePosition(form);
 
     if (!position) {
@@ -384,7 +384,7 @@ export function renderFormSuccess(form: HTMLFormElement, message: string): void 
     successNode.innerHTML = message;
     container.appendChild(successNode);
 
-    if (shouldHideFormOnSuccess(form)) {
+    if (options.hideForm !== false && shouldHideFormOnSuccess(form)) {
         setFormHiddenState(form, true);
     }
 
@@ -408,7 +408,8 @@ export function applySubmitResultUi(form: HTMLFormElement, result: FormSubmitRes
 
     if (result.ok) {
         if (shouldRenderSuccessMessage(form, result)) {
-            renderFormSuccess(form, result.message || '');
+            // Saving progress acknowledges persistence without completing the form.
+            renderFormSuccess(form, result.message || '', { hideForm: result.action !== 'save' });
         }
 
         return;

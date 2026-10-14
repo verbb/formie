@@ -260,7 +260,7 @@ class SubmissionsController extends Controller
             $payload['nextPageId'] = null;
             $payload['totalPages'] = count($pages);
             $payload['isFinalPage'] = false;
-            $payload['successMessage'] = StringHelper::sanitizeMessageHtml($form->settings->getSuccessMessage($submission));
+            $payload['successMessage'] = Craft::t('formie', 'Your progress has been saved.');
         } else {
             $payload['nextPageId'] = $nextPageId;
             $payload['totalPages'] = count($pages);
@@ -325,7 +325,7 @@ class SubmissionsController extends Controller
     {
         $baseResumeUrl = Formie::$plugin->getSubmissionRequests()->resolveTrustedResumeBaseUrl(
             $this->request->getReferrer(),
-            (string)$this->request->getPathInfo()
+            (string)$this->request->getUrl()
         );
 
         return Formie::$plugin->getSubmissionRequests()->createSaveResumePayload($form, $submission, $baseResumeUrl);

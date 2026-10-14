@@ -34,12 +34,17 @@
 - Fixed upgraded installations failing to create payments for new form fields due to outdated field foreign keys.
 - Fixed completed forms with conditional fields showing an unsaved-changes warning when leaving the page.
 - Fixed required simple upload fields rejecting retained files when returning to an earlier page.
+- Fixed native form navigation being rejected after resuming saved progress.
 - Fixed retained file inputs causing errors when saving or navigating native multi-page forms.
 - Fixed uploaded files failing to save after removing earlier repeater rows.
 - Fixed simple file uploads losing attachment capabilities after a failed submission.
 - Fixed Upload Manager silently rejecting files that exceed file type, size, or count restrictions.
 - Fixed failed uploads continuing to display an active processing status.
+- Fixed saving progress losing page query parameters when the browser omits the referrer.
+- Fixed resume links loading another in-progress submission already associated with the browser.
 - Fixed matching page conditions revealing inactive pages in multi-page forms.
+- Fixed saving form progress displaying the final submission completion message.
+- Fixed saving progress hiding unfinished AJAX forms when Hide Form was enabled for completion.
 - Fixed a medium-severity server-side request forgery vulnerability.
 - Fixed a low-severity CRM data integrity vulnerability.
 - Prevent missing or changed encryption keys from displaying encrypted submission content as blank or overwriting unreadable values during saves.

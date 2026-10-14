@@ -788,7 +788,7 @@ class SubmissionRequests extends Component
         $notice = $response->outcome->data['completion']['message'] ?? null;
 
         if ($submitAction === 'save' && $response->success) {
-            $notice = StringHelper::sanitizeMessageHtml($form->settings->getSuccessMessage($submission));
+            $notice = Craft::t('formie', 'Your progress has been saved.');
         }
 
         if (!$response->success) {

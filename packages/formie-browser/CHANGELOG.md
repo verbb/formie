@@ -10,6 +10,7 @@
 - Fixed simple file uploads losing attachment capabilities after a failed submission.
 - Fixed Upload Manager silently rejecting files that exceed file type, size, or count restrictions.
 - Fixed failed uploads continuing to display an active processing status.
+- Fixed saving progress hiding unfinished forms when Hide Form was enabled for completion.
 - Fixed matching page conditions revealing inactive pages in multi-page forms.
 
 ## 1.0.14 - 2026-10-08

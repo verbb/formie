@@ -1,6 +1,7 @@
 <?php
 
 return [
+  'Your progress has been saved.' => 'Your progress has been saved.',
   '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.' => '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.',
   '(GDPR) {text}' => '(GDPR) {text}',
   '(optional)' => '(optional)',
