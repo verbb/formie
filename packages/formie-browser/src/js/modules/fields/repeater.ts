@@ -32,6 +32,18 @@ function getRowCount(field: HTMLElement): number {
     return field.querySelectorAll(ROW_SELECTOR).length;
 }
 
+function focusRow(row: Element | null): boolean {
+    const control = Array.from(row?.querySelectorAll<HTMLElement>(
+        'input:not([type="hidden"]), select, textarea, button, a[href], [tabindex]',
+    ) || []).find((element) => {
+        return element.tabIndex >= 0 && !element.matches(':disabled')
+            && !element.closest('[hidden], [inert]') && element.getClientRects().length > 0;
+    });
+
+    control?.focus();
+    return !!control;
+}
+
 function syncAddButton(addButton: HTMLButtonElement | null, rowCount: number): void {
     if (!addButton) {
         return;
@@ -57,6 +69,9 @@ function bindRepeaterField(field: HTMLElement): () => void {
         return () => {};
     }
 
+    const form = field.closest('form');
+    let disposed = false;
+    let generation = 0;
     const removeHandlers = new Map<HTMLElement, EventListener>();
     // Start after the highest existing row id so SSR rows and client-added rows
     // keep producing unique `__ROW__` replacements across one repeater instance.
@@ -84,8 +99,16 @@ function bindRepeaterField(field: HTMLElement): () => void {
                     return;
                 }
 
+                const restoreFocus = row.contains(document.activeElement);
+                const nextRow = row.nextElementSibling;
+                const previousRow = row.previousElementSibling;
                 row.remove();
                 syncAddButton(addButton instanceof HTMLButtonElement ? addButton : null, getRowCount(field));
+                // Removing the focused control otherwise sends keyboard users back
+                // to the document body. Keep them in the nearest surviving row.
+                if (restoreFocus && !focusRow(nextRow) && !focusRow(previousRow)) {
+                    if (addButton instanceof HTMLButtonElement) addButton.focus();
+                }
                 debug.log('Row removed.', {
                     rowCount: getRowCount(field),
                 });
@@ -130,11 +153,16 @@ function bindRepeaterField(field: HTMLElement): () => void {
             return;
         }
 
+        const addedGeneration = generation;
         container.appendChild(row);
         // Give downstream field modules a tick to see the new row before we emit
         // the public append/init-row lifecycle events used for nested enhancements.
         await sleep(50);
+        if (disposed || addedGeneration !== generation || !row.isConnected) return;
         bindRemoveButtons();
+        // Rows are inserted before Add, so leaving focus there skips the new
+        // inputs on Tab. Do not steal focus if the user moved on while mounting.
+        if (document.activeElement === addButton) focusRow(row);
         syncAddButton(addButton, getRowCount(field));
         debug.log('Row appended.', {
             rowCount: getRowCount(field),
@@ -170,6 +198,23 @@ function bindRepeaterField(field: HTMLElement): () => void {
         }
     }
 
+    const initialRows = Array.from(container.children).map((row) => row.cloneNode(true));
+
+    const onReset = (event: Event) => {
+        queueMicrotask(() => {
+            if (event.defaultPrevented || disposed) return;
+            generation++;
+            removeHandlers.forEach((handler, button) => button.removeEventListener('click', handler));
+            removeHandlers.clear();
+            // Replace rows so removed initial rows return and added rows disappear.
+            // The module loader disposes old controls and hydrates the new rows.
+            container.replaceChildren(...initialRows.map((row) => row.cloneNode(true)));
+            bindRemoveButtons();
+            syncAddButton(addButton instanceof HTMLButtonElement ? addButton : null, getRowCount(field));
+        });
+    };
+    form?.addEventListener('reset', onReset);
+
     dispatchFieldEvent(field, MODULE_ID, 'init', {
         repeater: field,
     });
@@ -178,6 +223,8 @@ function bindRepeaterField(field: HTMLElement): () => void {
     });
 
     return () => {
+        disposed = true;
+        form?.removeEventListener('reset', onReset);
         if (addButton instanceof HTMLButtonElement) {
             addButton.removeEventListener('click', addHandler);
         }

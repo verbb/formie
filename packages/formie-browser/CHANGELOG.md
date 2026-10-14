@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Fixed
+- Fixed resetting forms leaving added repeater rows or failing to restore removed rows and dynamic address state values.
+- Fixed dynamic address state fields failing to reappear after selecting a country that uses states.
+- Fixed dynamic address state fields remaining visible before a country was selected.
+- Fixed address state fields becoming unresponsive when changing countries after selecting a state.
+- Fixed keyboard focus skipping newly added repeater rows and being lost when removing the focused row.
 - Fixed correcting a spam-rejected submission causing a stale-session error and clearing entered values.
 - Fixed payment checkout redirects showing an unsaved-changes warning and leaving forms disabled when cancelled.
 - Fixed completed forms with conditional fields showing an unsaved-changes warning when leaving the page.

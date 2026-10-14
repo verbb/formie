@@ -130,13 +130,15 @@ function syncComboboxValue(control: AddressStateControl, value: string): void {
 }
 
 function setControlValue(control: AddressStateControl, value: string): void {
-    if (control.value !== value) {
-        control.value = value;
-        dispatchControlEvents(control);
-        return;
-    }
+    const previousValue = control.value;
+    control.value = value;
+    syncComboboxValue(control, control.value);
 
-    syncComboboxValue(control, value);
+    // A select rejects values outside its options. Dispatch only actual changes
+    // so an unmatched autofill value cannot recursively trigger reconciliation.
+    if (control.value !== previousValue) {
+        dispatchControlEvents(control);
+    }
 }
 
 function syncAutofillAnchor(fieldState: FieldState, value: string): void {
@@ -204,14 +206,13 @@ function reconcileAutofillValue(fieldState: FieldState): void {
     }
 
     const subdivisions = fieldState.lastSubdivisions;
-    const resolved = subdivisions.length > 0
-        ? (resolveOptionMatch(pending, subdivisions) || pending)
+    const resolved = fieldState.stateControl instanceof HTMLSelectElement
+        ? (resolveOptionMatch(pending, subdivisions) || '')
         : pending;
 
-    setControlValue(fieldState.stateControl, resolved);
-    syncComboboxValue(fieldState.stateControl, resolved);
     syncAutofillAnchor(fieldState, resolved);
     fieldState.pendingStateValue = resolved;
+    setControlValue(fieldState.stateControl, resolved);
 }
 
 function buildSubdivisionsUrl(action: string, country: string, optionLabel: string, optionValue: string): string {
@@ -461,7 +462,7 @@ function setFieldVisibility(fieldState: FieldState, visible: boolean): void {
     const { stateField, stateControl, required } = fieldState;
 
     toggleThemeClasses(stateField, stateField, 'conditionalHidden', !visible);
-    stateField.toggleAttribute('data-formie-conditionally-hidden', !visible);
+    stateField.toggleAttribute('data-formie-address-state-hidden', !visible);
 
     if (!visible) {
         stateControl.required = false;
@@ -509,7 +510,7 @@ function showFetchingUI(fieldState: FieldState): void {
     fieldState.stateControl.setAttribute('tabindex', '-1');
 
     toggleThemeClasses(fieldState.stateField, fieldState.stateField, 'conditionalHidden', false);
-    fieldState.stateField.removeAttribute('data-formie-conditionally-hidden');
+    fieldState.stateField.removeAttribute('data-formie-address-state-hidden');
     fieldState.stateField.setAttribute('data-formie-address-state-skeleton-active', 'true');
 
     const controlWrapper = fieldState.stateField.querySelector('[data-formie-field-control]');
@@ -772,6 +773,10 @@ function initAddressStateField(field: HTMLElement, options: AddressStateOptions)
         lastSubdivisions: [],
     };
 
+    const initialStateValue = stateControl.value;
+    const form = field.closest('form');
+    let disposed = false;
+    let resetTimer: number | null = null;
     ensureAutofillAnchor(fieldState);
 
     const refresh = (force = false) => {
@@ -830,6 +835,7 @@ function initAddressStateField(field: HTMLElement, options: AddressStateOptions)
 
         if (isStateControl && !isAnchor) {
             syncAutofillAnchor(fieldState, target.value);
+            fieldState.pendingStateValue = target.value;
         }
 
         stashPendingStateValue(fieldState);
@@ -891,11 +897,30 @@ function initAddressStateField(field: HTMLElement, options: AddressStateOptions)
         syncAutofillAnchor(fieldState, stateValue);
 
         void applyCountryState(fieldState, options).then(() => {
-            setControlValue(fieldState.stateControl, stateValue);
-            syncComboboxValue(fieldState.stateControl, stateValue);
+            // Keep the normalized option value, which may differ from a provider's
+            // abbreviation (for example "CA" when options store "California").
+            reconcileAutofillValue(fieldState);
             fieldState.lastCountry = fieldState.countryControl?.value?.trim() || '';
         });
     };
+
+    const onReset = (event: Event) => {
+        if (resetTimer !== null) window.clearTimeout(resetTimer);
+        // Enhanced selects finish their own reset in microtasks. Rebuild the
+        // dependent options after those controls have restored the country.
+        resetTimer = window.setTimeout(() => {
+            resetTimer = null;
+            if (event.defaultPrevented || disposed) return;
+            clearScheduledAutofillTimers(fieldState);
+            // The current select may contain another country's options. Keep the
+            // original value pending until the reset country's options are ready.
+            fieldState.stateControl.value = '';
+            fieldState.pendingStateValue = initialStateValue;
+            syncAutofillAnchor(fieldState, initialStateValue);
+            refresh(true);
+        }, 0);
+    };
+    form?.addEventListener('reset', onReset);
 
     fieldState.countryControl?.addEventListener('change', onCountryChange);
     fieldState.countryControl?.addEventListener('input', onCountryChange);
@@ -907,10 +932,15 @@ function initAddressStateField(field: HTMLElement, options: AddressStateOptions)
     addressRoot.addEventListener('formie:address:loqate:populate', onProviderPopulate);
     addressRoot.addEventListener('formie:address:place-kit:populate', onProviderPopulate);
 
-    refresh();
+    // Apply the empty-country visibility state on first mount as well.
+    refresh(true);
     scheduleAutofillSweep(fieldState, options);
 
     return () => {
+        disposed = true;
+        if (resetTimer !== null) window.clearTimeout(resetTimer);
+        fieldState.fetchGeneration++;
+        form?.removeEventListener('reset', onReset);
         clearScheduledAutofillTimers(fieldState);
         hideFetchingUI(fieldState);
         fieldState.skeletonEl?.remove();
