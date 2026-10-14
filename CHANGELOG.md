@@ -27,6 +27,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed upgraded installations failing to create payments for new form fields due to outdated field foreign keys.
 - Fixed a medium-severity server-side request forgery vulnerability.
 - Fixed a low-severity CRM data integrity vulnerability.
 - Prevent missing or changed encryption keys from displaying encrypted submission content as blank or overwriting unreadable values during saves.
