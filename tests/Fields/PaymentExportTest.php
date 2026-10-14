@@ -11,6 +11,7 @@ it('exports the latest payment details for its field', function(): void {
     $older = new Payment(['fieldId' => 42, 'amount' => '5.00', 'currency' => 'aud']);
     $payment = new Payment([
         'fieldId' => 42,
+        'integrationId' => 1,
         'subscriptionId' => 7,
         'amount' => '25.50',
         'currency' => 'aud',
