@@ -8,7 +8,7 @@ class HandleHelper
     // Static Methods
     // =========================================================================
 
-    public static function getUniqueHandle(array $handles, string $handle, int $suffix = 0)
+    public static function getUniqueHandle(array $handles, string $handle, int $suffix = 0, ?int $maxLength = null): string
     {
         $newHandle = $handle;
 
@@ -16,8 +16,14 @@ class HandleHelper
             $newHandle = $handle . $suffix;
         }
 
-        if (in_array($newHandle, $handles)) {
-            return self::getUniqueHandle($handles, $handle, $suffix + 1);
+        // Preserve the numeric suffix when truncating so every candidate remains distinguishable.
+        if ($maxLength !== null && strlen($newHandle) > $maxLength) {
+            $suffixLength = $suffix ? strlen((string)$suffix) : 0;
+            $newHandle = substr($handle, 0, $maxLength - $suffixLength) . ($suffix ?: '');
+        }
+
+        if (in_array($newHandle, $handles, true)) {
+            return self::getUniqueHandle($handles, $handle, $suffix + 1, $maxLength);
         }
 
         return $newHandle;

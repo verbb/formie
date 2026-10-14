@@ -541,7 +541,7 @@ class ImportExportHelper
         try {
             if (!$existing) {
                 $handles = (new Query())->select('handle')->from(Table::FORMIE_FORMS)->column();
-                $data['handle'] = HandleHelper::getUniqueHandle($handles, $data['handle'] ?? 'importedForm');
+                $data['handle'] = HandleHelper::getUniqueHandle($handles, $data['handle'] ?? 'importedForm', maxLength: HandleHelper::getMaxFormHandle());
             }
             $form = self::createFormFromImport($data, $existing, $serializer);
 

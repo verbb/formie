@@ -154,7 +154,7 @@ class StencilsController extends Controller
             $stencil->name = Craft::t('formie', '{name} Copy', ['name' => $originalName]);
 
             $stencilHandles = ArrayHelper::getColumn(Formie::$plugin->getStencils()->getAllStencils(), 'handle');
-            $stencil->handle = HandleHelper::getUniqueHandle($stencilHandles, $stencil->handle);
+            $stencil->handle = HandleHelper::getUniqueHandle($stencilHandles, $stencil->handle, maxLength: 255);
 
             if ($duplicateToSite) {
                 $stencil->scope = StencilsService::SCOPE_SITE;
