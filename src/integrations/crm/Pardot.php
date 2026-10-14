@@ -25,6 +25,7 @@ use craft\helpers\Json;
 
 use Throwable;
 
+use GuzzleHttp\Psr7\Query;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\models\Token;
 use verbb\auth\providers\Salesforce as SalesforceProvider;
@@ -537,17 +538,21 @@ class Pardot extends Crm implements OAuthProviderInterface
             if ($this->enableFormHandler) {
                 // Generate flat payload values to send
                 $payload = $this->generatePayloadValues($submission);
+                $formHandlerPayload = ArrayHelper::filterNull($this->_prepareFormHandlerPayload($submission, $payload));
 
                 // Form handlers must not receive the OAuth credentials used by
                 // Pardot's provider API client.
                 $response = $this->requestPublicEndpoint('POST', $this->endpointUrl, [
-                    'form_params' => $payload,
+                    'headers' => [
+                        'Content-Type' => 'application/x-www-form-urlencoded',
+                    ],
+                    'body' => Query::build($formHandlerPayload, PHP_QUERY_RFC1738),
                 ]);
 
                 if (is_string($response) && str_contains($response, 'Please correct the following errors')) {
                     Integration::error($this, Craft::t('formie', 'Error in form handler response {response}. Sent payload {payload}', [
                         'response' => $response,
-                        'payload' => Json::encode($payload),
+                        'payload' => Json::encode($formHandlerPayload),
                     ]), true);
 
                     return $this->resultForPayload(false);
@@ -642,8 +647,8 @@ class Pardot extends Crm implements OAuthProviderInterface
 
         // Option fields are encoded as option objects (or arrays of them) for JSON export. Flattening
         // those produces keys like `Industry.value` or `Services.0.value` which Pardot form handlers
-        // cannot map to a single external field. Multi-select values must also use semicolons
-        // (Salesforce/Pardot convention), not the comma-separated string from __toString().
+        // cannot map to a single external field. Keep multi-select values in their established
+        // semicolon-delimited event format; they are expanded for transport after listeners run.
         foreach ($submission->getFields() as $field) {
             if ($field->getIsCosmetic() || !$field instanceof OptionsField) {
                 continue;
@@ -696,6 +701,40 @@ class Pardot extends Crm implements OAuthProviderInterface
 
     // Private Methods
     // =========================================================================
+
+    private function _prepareFormHandlerPayload(Submission $submission, array $payload): array
+    {
+        // Pardot requires one same-name parameter per selected option. Only expand Formie's unchanged
+        // generated value so listeners can still replace or remove the semicolon-delimited field.
+        foreach ($submission->getFields() as $field) {
+            if ($field->getIsCosmetic() || !$field instanceof OptionsField || !$field->multi || !array_key_exists($field->handle, $payload)) {
+                continue;
+            }
+
+            $value = $submission->getFieldValue($field->handle);
+            $values = [];
+
+            if ($value instanceof MultiOptionFieldValue) {
+                $values = $value->values();
+            } elseif (is_iterable($value)) {
+                foreach ($value as $item) {
+                    if ($item instanceof OptionValue) {
+                        $values[] = (string)$item->value;
+                    } elseif (is_array($item) && array_key_exists('value', $item)) {
+                        $values[] = (string)$item['value'];
+                    } elseif ($item !== null && $item !== '') {
+                        $values[] = (string)$item;
+                    }
+                }
+            }
+
+            if ($payload[$field->handle] === implode(';', $values)) {
+                $payload[$field->handle] = $values;
+            }
+        }
+
+        return $payload;
+    }
 
     private function _prepPayload($fields)
     {
