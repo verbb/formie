@@ -1980,6 +1980,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }, $value) ?? $value;
     }
 
+    protected function prepareCachedFormSettings(array $settings): array
+    {
+        return $settings;
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -2027,18 +2032,21 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             // compatibility; restore them before exposing config to callers.
             $stored = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($stored)));
 
-            return IntegrationConfig::fromStorage(IntegrationSecrets::redactValues($stored, $this->getDiagnosticSecrets()), $this->getIntegrationConfigKey());
+            $config = IntegrationConfig::fromStorage(IntegrationSecrets::redactValues($stored, $this->getDiagnosticSecrets()), $this->getIntegrationConfigKey());
+        } else {
+            // Formie 3 stored the encoded metadata directly under `settings`.
+            $legacy = $this->_getCache('settings') ?: [];
+            $legacy = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($legacy)));
+            $config = new IntegrationConfig(
+                IntegrationConfig::decode(IntegrationSecrets::redactValues($legacy, $this->getDiagnosticSecrets())),
+                $this->getIntegrationConfigKey(),
+                0,
+            );
         }
 
-        // Formie 3 stored the encoded metadata directly under `settings`.
-        $legacy = $this->_getCache('settings') ?: [];
-        $legacy = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($legacy)));
+        $settings = $this->prepareCachedFormSettings($config->all());
 
-        return new IntegrationConfig(
-            IntegrationConfig::decode(IntegrationSecrets::redactValues($legacy, $this->getDiagnosticSecrets())),
-            $this->getIntegrationConfigKey(),
-            0,
-        );
+        return $settings === $config->all() ? $config : new IntegrationConfig($settings, $config->invalidationKey, $config->fetchedAt);
     }
 
     private function _fetchConfigWithCompatibility(): IntegrationConfig

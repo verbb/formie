@@ -165,6 +165,7 @@ class HubSpot extends Crm
 
     private ?Client $_formsClient = null;
     private ?Client $_uploadClient = null;
+    private bool $_useSelectedFormSettings = false;
 
 
     // Public Methods
@@ -565,6 +566,7 @@ class HubSpot extends Crm
     protected function executePayload(Submission $submission): IntegrationResult
     {
         $this->beginPayloadDelivery($submission);
+        $this->_useSelectedFormSettings = true;
 
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
@@ -830,6 +832,8 @@ class HubSpot extends Crm
             Integration::apiError($this, $e);
 
             return $this->resultForPayload(false);
+        } finally {
+            $this->_useSelectedFormSettings = false;
         }
 
         return $this->resultForPayload(true);
@@ -858,6 +862,19 @@ class HubSpot extends Crm
         ];
 
         return $rules;
+    }
+
+    protected function prepareCachedFormSettings(array $settings): array
+    {
+        if (!$this->_useSelectedFormSettings || !$this->formId || !isset($settings['forms']) || !is_array($settings['forms'])) {
+            return $settings;
+        }
+
+        $settings['forms'] = array_values(array_filter($settings['forms'], function($form) {
+            return is_array($form) && ($form['id'] ?? null) === $this->formId;
+        }));
+
+        return $settings;
     }
 
     protected function defineClient(): Client
