@@ -63,6 +63,15 @@ export const normalizeFieldEditorValues = (field) => {
 
     let next = normalizeFieldInstructions(field);
 
+    // PHP serializes an empty message map as []; named array properties disappear
+    // in JSON. Give the editor its own object so edits also stay local until Apply.
+    if (Object.prototype.hasOwnProperty.call(field, 'validationMessages')) {
+        next = {
+            ...next,
+            validationMessages: { ...field.validationMessages },
+        };
+    }
+
     if (Object.prototype.hasOwnProperty.call(field, 'builderNote')) {
         next = {
             ...next,
