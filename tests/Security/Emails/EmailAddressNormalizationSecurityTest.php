@@ -20,3 +20,13 @@ it('normalizes and splits recipient addresses before mail headers are built', fu
         'third@example.test',
     ]);
 })->group('security');
+
+it('decodes HTML entities in notification addresses', function (): void {
+    $emails = new Emails();
+    $method = new ReflectionMethod(Emails::class, '_getParsedEmails');
+    $method->setAccessible(true);
+
+    expect($method->invoke($emails, 'support&amp;billing@example.test'))->toBe([
+        'support&billing@example.test',
+    ]);
+})->group('security');

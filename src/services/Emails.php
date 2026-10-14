@@ -660,6 +660,9 @@ class Emails extends Component
         // which only really occurs when the value is dynamic, and coming from a mapped field value, where values are encoded
         $emails = HtmlPurifier::process($emails);
 
+        // Decode entities such as `&amp;` before splitting addresses into mail header values.
+        $emails = html_entity_decode($emails, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
         // Split the emails
         $emails = str_replace(';', ',', $emails);
         $emails = preg_split('/[\s,]+/', $emails);
