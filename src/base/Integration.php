@@ -1594,15 +1594,22 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             ],
         ];
 
-        if (static::supportsOAuthConnection()) {
+        $requiredOAuthSettingAttributes = $this->defineRequiredOAuthSettingAttributes();
+
+        if (static::supportsOAuthConnection() && $requiredOAuthSettingAttributes) {
             $rules[] = [
-                ['clientId', 'clientSecret'], 'required', 'when' => function($model) {
+                $requiredOAuthSettingAttributes, 'required', 'when' => function($model) {
                     return $model->enabled;
                 },
             ];
         }
 
         return $rules;
+    }
+
+    protected function defineRequiredOAuthSettingAttributes(): array
+    {
+        return ['clientId', 'clientSecret'];
     }
 
     protected function defineClient(): Client

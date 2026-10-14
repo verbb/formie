@@ -47,6 +47,13 @@ class SugarCrm extends Crm implements OAuthProviderInterface
     }
 
 
+    // Constants
+    // =========================================================================
+
+    private const DEFAULT_CLIENT_ID = 'sugar';
+    private const LEGACY_CLIENT_SECRET = 'sugar';
+
+
     // Properties
     // =========================================================================
 
@@ -77,11 +84,19 @@ class SugarCrm extends Crm implements OAuthProviderInterface
 
     public function __construct(array $config = [])
     {
-        // Not really needed, due to `password` OAuth grant
-        $config['clientId'] = 'sugar';
-        $config['clientSecret'] = 'sugar';
+        $config['clientId'] = $config['clientId'] ?? self::DEFAULT_CLIENT_ID;
+
+        // Sugar's built-in client has no secret, so discard Formie's former placeholder value.
+        if ($config['clientId'] === self::DEFAULT_CLIENT_ID && ($config['clientSecret'] ?? null) === self::LEGACY_CLIENT_SECRET) {
+            $config['clientSecret'] = null;
+        }
 
         parent::__construct($config);
+    }
+
+    public function getClientSecret(): ?string
+    {
+        return App::parseEnv($this->clientSecret) ?? '';
     }
 
     public function getUsername(): string
@@ -97,6 +112,11 @@ class SugarCrm extends Crm implements OAuthProviderInterface
     public function getApiDomain(): string
     {
         return App::parseEnv($this->apiDomain);
+    }
+
+    public function getGrant(): string
+    {
+        return 'password';
     }
 
     public function getOAuthProviderConfig(): array
@@ -118,7 +138,7 @@ class SugarCrm extends Crm implements OAuthProviderInterface
         $oauthProvider = $this->getOAuthProvider();
 
         // SugarCRM doesn't support `authorization_code` grant
-        $token = $oauthProvider->getAccessToken('password', [
+        $token = $oauthProvider->getAccessToken($this->getGrant(), [
             'username' => $this->getUsername(),
             'password' => $this->getPassword(),
             'platform' => 'formie',
@@ -194,6 +214,11 @@ class SugarCrm extends Crm implements OAuthProviderInterface
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineRequiredOAuthSettingAttributes(): array
+    {
+        return ['clientId'];
+    }
 
     protected function executePayload(Submission $submission): IntegrationResult
     {

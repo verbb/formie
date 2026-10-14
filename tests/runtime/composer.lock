@@ -13051,16 +13051,16 @@
         },
         {
             "name": "verbb/auth",
-            "version": "2.0.48",
+            "version": "2.0.51",
             "source": {
                 "type": "git",
                 "url": "https://github.com/verbb/auth.git",
-                "reference": "4abddb1348e1670e8ed8fa44429f6f4d1d8527bf"
+                "reference": "4f0dc3ac81dbc2e6c8917d98a810836cb0ed1302"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/verbb/auth/zipball/4abddb1348e1670e8ed8fa44429f6f4d1d8527bf",
-                "reference": "4abddb1348e1670e8ed8fa44429f6f4d1d8527bf",
+                "url": "https://api.github.com/repos/verbb/auth/zipball/4f0dc3ac81dbc2e6c8917d98a810836cb0ed1302",
+                "reference": "4f0dc3ac81dbc2e6c8917d98a810836cb0ed1302",
                 "shasum": ""
             },
             "require": {
@@ -13105,7 +13105,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-28T14:14:12+00:00"
+            "time": "2026-10-09T10:54:51+00:00"
         },
         {
             "name": "verbb/base",
@@ -13163,12 +13163,12 @@
             "dist": {
                 "type": "path",
                 "url": "../../..",
-                "reference": "14db9ff13e33758960fcc13d6e6cf1a1a6189295"
+                "reference": "ead4d867e048bc136f5d0eb0dc4874f0b73ead94"
             },
             "require": {
                 "commerceguys/addressing": "^2.1.1",
                 "craftcms/cms": "^5.0.0",
-                "dompdf/dompdf": "^1.0.2 || ^2.0.3 || ^3.0",
+                "dompdf/dompdf": "^2.0.3 || ^3.0",
                 "ezyang/htmlpurifier": "^4.13",
                 "fakerphp/faker": "^1.9.1",
                 "giggsey/libphonenumber-for-php": "^8.12",
@@ -13180,7 +13180,7 @@
                 "php": "^8.2",
                 "stripe/stripe-php": "^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0 || ^12.0 || ^13.0 || ^14.0 || ^15.0 || ^16.0",
                 "symfony/expression-language": "^5.0 || ^6.0 || ^7.0",
-                "verbb/auth": "^2.0.48",
+                "verbb/auth": "^2.0.50",
                 "verbb/base": "^3.0.20",
                 "verbb/tiptap": "^1.0.3"
             },
