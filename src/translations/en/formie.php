@@ -3093,6 +3093,7 @@ To review it please log into your control panel.
   'Tracking ID' => 'Tracking ID',
   'Track multi-page progress after each step completes.' => 'Track multi-page progress after each step completes.',
   'Transaction' => 'Transaction',
+  'Transaction Reference' => 'Transaction Reference',
   'Transaction Type' => 'Transaction Type',
   'Transportation/Logistics' => 'Transportation/Logistics',
   'Trigger' => 'Trigger',
