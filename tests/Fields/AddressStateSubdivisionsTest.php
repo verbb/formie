@@ -76,3 +76,42 @@ it('rejects invalid country subdivision requests', function (): void {
             ->toThrow(BadRequestHttpException::class);
     });
 })->group('fields');
+
+it('validates required states only when the configured address control is available', function (string $country, string $mode, bool $hideWhenUnused, bool $expectedValid): void {
+    $rows = (new \verbb\formie\fields\Address())->getSubFields();
+    foreach ($rows as &$row) {
+        foreach ($row['fields'] as &$field) {
+            if ($field['handle'] === 'country' && $country === 'Germany') {
+                $field['optionValue'] = 'full';
+            }
+            if ($field['handle'] === 'state') {
+                $field['required'] = true;
+                $field['inputMode'] = $mode;
+                $field['hideWhenUnused'] = $hideWhenUnused;
+            }
+        }
+        unset($field);
+    }
+    unset($row);
+
+    $form = formie()->form(['title' => 'Dynamic address required state'])
+        ->addressField('address', ['rows' => $rows])->create();
+    $submission = new \verbb\formie\elements\Submission();
+    $submission->setForm($form);
+    $submission->title = 'Dynamic address validation';
+    $submission->setScenario(\craft\base\Element::SCENARIO_LIVE);
+    $submission->setFieldValueFromRequest('address', ['country' => $country, 'city' => 'QA City']);
+
+    expect(Craft::$app->getElements()->saveElement($submission))->toBe($expectedValid);
+    if (!$expectedValid) {
+        expect($submission)->toHaveFieldError('address.state');
+    }
+})->with([
+    'Germany hides unused state' => ['DE', 'dropdownWhenAvailable', true, true],
+    'full country names' => ['Germany', 'dropdownWhenAvailable', true, true],
+    'no country hides unused state' => ['', 'dropdownWhenAvailable', true, true],
+    'US still requires state' => ['US', 'dropdownWhenAvailable', true, false],
+    'Australia still requires state' => ['AU', 'dropdownWhenAvailable', true, false],
+    'visible state stays required' => ['DE', 'dropdownWhenAvailable', false, false],
+    'text state stays required' => ['DE', 'text', true, false],
+])->group('fields');

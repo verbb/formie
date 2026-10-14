@@ -7,6 +7,7 @@ use verbb\formie\base\Field;
 use verbb\formie\base\FixedParentField;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\conditions\ConditionVisibility;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\subfields\Address1;
@@ -23,6 +24,7 @@ use verbb\formie\gql\types\AddressType;
 use verbb\formie\gql\types\input\AddressInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\ValidationHelper;
 use verbb\formie\integrations\addressproviders\Google;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
@@ -212,6 +214,31 @@ class Address extends FixedParentField implements PreviewableFieldInterface
         }
         $address = new AddressFieldValue($value);
         return $address->isEmpty() ? null : $address;
+    }
+
+    public function validateBlocks(ElementInterface $element): void
+    {
+        $countryField = $this->getFieldByHandle('country');
+        $country = $countryField ? (string)$element->getFieldValue($countryField->valueKey()) : '';
+        $countries = Formie::$plugin->getCountries();
+        $countryCode = $countries->resolveCountryCode($country);
+
+        foreach ($this->getFields() as $field) {
+            if (ConditionVisibility::unavailable($field, $element) || $field->getIsDisabled()) {
+                continue;
+            }
+
+            // Match the dynamic state control: countries without an administrative
+            // area hide this field, so visitors cannot supply a required value.
+            if ($field instanceof AddressState && $field->inputMode === AddressState::INPUT_MODE_DROPDOWN_WHEN_AVAILABLE && $field->hideWhenUnused) {
+                if ($country === '' || ($countryCode && !$countries->getAddressFormatMetadata($countryCode)['administrativeAreaUsed'])) {
+                    continue;
+                }
+            }
+
+            $value = $element->getFieldValue($field->valueKey());
+            ValidationHelper::validateField($element, $field, $value, ValidationHelper::fieldValidationAttribute($field));
+        }
     }
 
     public function defineFormBuilderPreviewSchema(): array
