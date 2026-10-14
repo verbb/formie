@@ -784,9 +784,10 @@ class HubSpot extends Crm
                 }
 
                 // Setup Hubspot's context, if we're mapping it, or if it's automatically saved in context
-                $hutk = $formValues['trackingID'] ?? $this->context['hubspotutk'] ?? '';
+                $hutk = $this->_getValidTrackingId($formValues['trackingID'] ?? null)
+                    ?? $this->_getValidTrackingId($this->context['hubspotutk'] ?? null);
 
-                if ($hutk) {
+                if ($hutk !== null) {
                     $formPayload['context']['hutk'] = $hutk;
                 }
 
@@ -933,6 +934,15 @@ class HubSpot extends Crm
 
     // Private Methods
     // =========================================================================
+
+    private function _getValidTrackingId(mixed $value): ?string
+    {
+        if (!is_string($value) || !preg_match('/\A[a-f0-9]{32}\z/i', $value)) {
+            return null;
+        }
+
+        return $value;
+    }
 
     private function _convertFieldType(string $fieldType): string
     {

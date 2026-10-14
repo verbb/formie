@@ -179,6 +179,18 @@ it('HubSpot convertValueForIntegration is not overridden (all logic in event)', 
     expect($value)->toBe(42);
 });
 
+it('accepts only valid HubSpot tracking ids', function (): void {
+    $integration = new HubSpot(['name' => 'HubSpot', 'handle' => 'hubspot']);
+    $method = new ReflectionMethod($integration, '_getValidTrackingId');
+    $method->setAccessible(true);
+
+    expect($method->invoke($integration, '0123456789abcdef0123456789abcdef'))->toBe('0123456789abcdef0123456789abcdef')
+        ->and($method->invoke($integration, 'ABCDEF0123456789ABCDEF0123456789'))->toBe('ABCDEF0123456789ABCDEF0123456789')
+        ->and($method->invoke($integration, 'not-a-hubspot-cookie'))->toBeNull()
+        ->and($method->invoke($integration, '0123456789abcdef0123456789abcde'))->toBeNull()
+        ->and($method->invoke($integration, ['unexpected']))->toBeNull();
+});
+
 it('exposes every HubSpot marketing consent checkbox as a separate mapping field', function (): void {
     $integration = new HubSpot(['name' => 'HubSpot', 'handle' => 'hubspot']);
     $method = new ReflectionMethod($integration, '_getFormFields');
