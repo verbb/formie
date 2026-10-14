@@ -44,9 +44,10 @@ foreach (['active' => 'active', 'cancelled' => 'cancelled', 'ambiguous' => 'unkn
 foreach (['providerStatus', 'startedAt', 'trialStartsAt', 'trialEndsAt', 'currentPeriodStartsAt', 'currentPeriodEndsAt', 'nextPaymentAt', 'pausedAt', 'cancelAt', 'cancelledAt', 'endedAt', 'cancellationMode'] as $column) {
     $check($app->getDb()->columnExists(\verbb\formie\helpers\Table::FORMIE_SUBSCRIPTIONS, $column), 'upgrade creates canonical subscription column ' . $column);
 }
-foreach (['success' => 'success', 'pending' => 'unknown'] as $legacy => $expected) {
+foreach (['success' => 'succeeded', 'pending' => 'unknown'] as $legacy => $expected) {
     $payment = Formie::$plugin->getPayments()->getPaymentById($fixture['paymentIds'][$legacy]);
-    $check($payment->status === $expected && $payment->amount === '25.0100'
+    $check($payment->status === $expected && $payment->amount === '25.01'
+        && $payment->amountMinor === '2501' && $payment->currency === 'USD'
         && $payment->isMonetary && $payment->operation === 'legacySubscriptionPayment',
         'exact legacy amount, operation meaning and ' . $legacy . ' payment certainty survived');
 }
@@ -61,7 +62,6 @@ foreach (['integrationUid', 'accountFingerprint', 'eventType', 'payload', 'verif
 foreach (['lastReconciledAt', 'nextReconcileAt', 'reconciliationAttempts'] as $column) {
     $check($app->getDb()->columnExists(\verbb\formie\helpers\Table::FORMIE_PAYMENTS, $column), 'upgrade creates payment reconciliation column ' . $column);
 }
-echo "Populated Formie 3 → current Formie upgrade contract passed.\n";
 $referenceContext = \verbb\formie\references\ReferenceContext::forSubmission($submission);
 $check(\verbb\formie\helpers\References::resolveValue('{field:' . $field->reference . '}', $referenceContext)->requireValue() === 'Synthetic Ada', 'exact upgraded field instance resolves through the shared runtime');
 $check(\verbb\formie\helpers\References::interpolateText('{field.fullName}', $referenceContext) === 'Synthetic Ada', 'stable Formie 3 dotted field syntax remains compatible');
@@ -69,12 +69,18 @@ $check(\verbb\formie\helpers\References::resolveValue('{env:SECURITY_KEY}', $ref
 
 $check($app->getDb()->tableExists(\verbb\formie\services\DeliveryAttempts::TABLE) && $app->getDb()->tableExists(\verbb\formie\services\DeliveryAttempts::DIAGNOSTICS), 'upgrade creates durable delivery and diagnostic stores');
 $rawDelivery = (new \craft\db\Query())->from(\verbb\formie\helpers\Table::FORMIE_INTEGRATIONS)->where(['handle' => 'upgradeDelivery'])->one();
-$check($rawDelivery && !str_contains($rawDelivery['settings'], 'upgrade-literal-api-key'), 'legacy connection literals are encrypted at rest');
+$connectionSettings = $rawDelivery ? json_decode($rawDelivery['settings'], true, 512, JSON_THROW_ON_ERROR) : [];
+$check(($connectionSettings['apiKey'] ?? null) === 'upgrade-literal-api-key', 'legacy connection literals remain as configured');
 unset($rawDelivery['dateDeleted']);
 $check(Formie::$plugin->getIntegrations()->createIntegration($rawDelivery)->apiKey === 'upgrade-literal-api-key', 'upgraded connection credentials hydrate correctly');
 $rawFormSettings = (new \craft\db\Query())->select('settings')->from(\verbb\formie\helpers\Table::FORMIE_FORMS)->where(['id' => $form->id])->scalar();
-$check(!str_contains($rawFormSettings, 'upgrade-literal-password') && $form->settings->integrations['upgradeWebhook']['httpAuth']['password'] === 'upgrade-literal-password', 'legacy per-form secrets are encrypted and hydrate correctly');
-$check(!str_contains(json_encode($app->getProjectConfig()->get('formie.integrations', true)), 'upgrade-literal-api-key'), 'project config no longer contains the legacy literal credential');
+$storedFormSettings = json_decode($rawFormSettings, true, 512, JSON_THROW_ON_ERROR);
+$check(($storedFormSettings['integrations']['upgradeWebhook']['httpAuth']['password'] ?? null) === 'upgrade-literal-password' && $form->settings->integrations['upgradeWebhook']['httpAuth']['password'] === 'upgrade-literal-password', 'legacy per-form literal settings remain configured and hydrate correctly');
+$projectIntegrations = (array)$app->getProjectConfig()->get('formie.integrations', true);
+$originalProjectIntegrations = $fixture['integrationProjectConfig'] ?? [];
+$check(isset($originalProjectIntegrations[$rawDelivery['uid']]) && array_diff_key($projectIntegrations, $originalProjectIntegrations) === [] && array_diff_key($originalProjectIntegrations, $projectIntegrations) === [], 'upgrade preserves the original integration project-config ownership');
+$projectSettings = \craft\helpers\ProjectConfig::unpackAssociativeArrays((array)($projectIntegrations[$rawDelivery['uid']]['settings'] ?? []));
+$check(($projectSettings['apiKey'] ?? null) === 'upgrade-literal-api-key', 'project config preserves the configured literal credential');
 $check((new \craft\db\Query())->from(\verbb\formie\services\DeliveryAttempts::TABLE)->count() == 0, 'upgrade does not perform or invent external deliveries');
 
 $check($app->getDb()->tableExists('{{%formie_instance_configs}}'), 'upgrade creates encrypted instance configuration storage');
@@ -91,3 +97,5 @@ $check(($notification->conditions['version'] ?? null) === 1 && \verbb\formie\hel
 $submission->addError('field:company.companyName', '<b>Example error.</b>');
 $check($submission->getSubmissionErrors()->toValuePathMap() === ['company.companyName' => ['Example error.']], 'legacy nested errors preserve complete value paths as safe text');
 $check(isset($submission->getSubmissionErrors()->toClient()['fields'][$form->getFieldByHandle('company')->id . '.companyName']), 'upgraded nested client errors use the form-field instance identity');
+
+echo "Populated Formie 3 → current Formie upgrade contract passed.\n";

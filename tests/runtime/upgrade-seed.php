@@ -59,7 +59,10 @@ foreach (['success', 'pending'] as $status) {
     if (!Formie::$plugin->getPayments()->savePayment($payment)) { throw new RuntimeException('Unable to seed payment.'); }
     $paymentIds[$status] = $payment->id;
 }
+// This standalone seed does not run Craft's after-request project-config flush.
+$app->getProjectConfig()->saveModifiedConfigData();
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/upgrade-fixture.json', json_encode([
+    'integrationProjectConfig' => $app->getProjectConfig()->get('formie.integrations', true),
     'subscriptionIds' => $subscriptionIds, 'paymentIds' => $paymentIds, 'from' => Formie::$plugin->version, 'formId' => $form->id, 'sharedFormId' => $shared->id, 'submissionId' => $submission->id,
     'fieldUid' => $form->getFieldByHandle('fullName')->uid, 'signatureFieldId' => $form->getFieldByHandle('signature')->id,
     'submissionUid' => $submission->uid, 'signatureValue' => $signatureValue,
