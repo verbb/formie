@@ -79,3 +79,37 @@ export function waitForElement(
         });
     });
 }
+
+export function waitForElementRemoval(
+    selector: string,
+    root: ParentNode = document,
+    timeoutMs = 10000,
+): Promise<void> {
+    return new Promise((resolve, reject) => {
+        if (!root.querySelector(selector)) {
+            resolve();
+            return;
+        }
+
+        let timeoutId: number | null = null;
+        const observer = new MutationObserver(() => {
+            if (root.querySelector(selector)) {
+                return;
+            }
+
+            observer.disconnect();
+            if (timeoutId !== null) window.clearTimeout(timeoutId);
+            resolve();
+        });
+
+        observer.observe(root, {
+            childList: true,
+            subtree: true,
+        });
+
+        timeoutId = window.setTimeout(() => {
+            observer.disconnect();
+            reject(new Error(`Timed out waiting for "${selector}" to be removed.`));
+        }, Math.max(timeoutMs, 0));
+    });
+}

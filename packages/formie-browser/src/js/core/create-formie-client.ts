@@ -32,6 +32,7 @@ import { runSubmitPipeline } from '#submit/pipeline';
 import { clearSubmissionOnUnload, requestGraphqlRender, requestRefreshTokens, requestRender, requestSetPage } from '#transport/forms-api';
 import { ensureFormStartedAt } from '#utils/form-started-at';
 import { createDebug } from '#utils/debug';
+import { waitForElementRemoval } from '#utils/async';
 import { createFormUnloadWarningGuard } from '#utils/unload-warning';
 import { getValidationScope } from '#validation/scope';
 import { FormieValidator } from '#validation/validator';
@@ -1082,6 +1083,13 @@ export function createFormieClient(): FormieClient {
             dispatchFormieDomEvent(target, 'formie:theme:applied', {
                 hasClasses: true,
             });
+        }
+
+        // Craft's async CSRF element initializes the session. Let it finish before
+        // captcha modules request session-bound tokens, otherwise the concurrent
+        // responses can race and replace each other's session cookie.
+        if (form?.querySelector('craft-csrf-input')) {
+            await waitForElementRemoval('craft-csrf-input', form);
         }
 
         // Modules run against the mounted DOM surface, not against server payload

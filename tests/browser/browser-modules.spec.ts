@@ -1,5 +1,31 @@
 import { test, expect } from '@playwright/test';
 
+test('mount waits for Craft async CSRF before initializing form modules', async({ page }) => {
+    await page.goto('/browser-fixture');
+    await page.waitForFunction(() => !!(window as any).legacyModules);
+    const result = await page.evaluate(async() => {
+        const { createFormieClient } = (window as any).legacyModules;
+        const form = document.createElement('form');
+        const csrf = document.createElement('craft-csrf-input');
+        form.append(csrf);
+        document.body.append(form);
+
+        let mounted = false;
+        const mountPromise = createFormieClient().mount(form, {}).then(() => {
+            mounted = true;
+        });
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        const mountedBeforeCsrf = mounted;
+        csrf.remove();
+        await mountPromise;
+        form.remove();
+
+        return { mountedBeforeCsrf, mountedAfterCsrf: mounted };
+    });
+
+    expect(result).toEqual({ mountedBeforeCsrf: false, mountedAfterCsrf: true });
+});
+
 test('module occurrences reconcile repeated targets, conditional DOM and failures', async({ page }) => {
     await page.goto('/browser-fixture?adapter=react');
     await page.waitForFunction(() => !!(window as any).browserModules);
