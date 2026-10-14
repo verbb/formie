@@ -30,7 +30,8 @@ async function loadGoogleMapsScript(apiKey: string): Promise<GoogleMaps> {
         if (maps?.places?.PlaceAutocompleteElement) {
             return existing as GoogleMaps;
         }
-        const imp = maps as { importLibrary?: (name: string) => Promise<unknown> } | undefined;
+        const imp = maps as
+            { importLibrary?: (name: string) => Promise<unknown> } | undefined;
         if (typeof imp?.importLibrary === 'function') {
             await imp.importLibrary('places');
         }
@@ -44,7 +45,8 @@ async function loadGoogleMapsScript(apiKey: string): Promise<GoogleMaps> {
     const existingScript = document.getElementById(SCRIPT_ID);
     if (existingScript) {
         const google = await ensureGlobal<GoogleMaps>('google', 10000);
-        const maps = google?.maps as { importLibrary?: (name: string) => Promise<unknown> } | undefined;
+        const maps = google?.maps as
+            { importLibrary?: (name: string) => Promise<unknown> } | undefined;
         if (typeof maps?.importLibrary === 'function') {
             await maps.importLibrary('places');
         }
@@ -80,7 +82,8 @@ async function loadGoogleMapsScript(apiKey: string): Promise<GoogleMaps> {
         });
 
         const google = await ready;
-        const maps = google?.maps as { importLibrary?: (name: string) => Promise<unknown> } | undefined;
+        const maps = google?.maps as
+            { importLibrary?: (name: string) => Promise<unknown> } | undefined;
         if (typeof maps?.importLibrary === 'function') {
             await maps.importLibrary('places');
         }
@@ -152,7 +155,13 @@ type AddressComponent = {
     long_text?: string;
 };
 
-function parseAddressComponents(components: AddressComponent[]): Record<string, string> {
+type GooglePostalAddress = {
+    addressLines?: unknown[];
+};
+
+function parseAddressComponents(
+    components: AddressComponent[],
+): Record<string, string> {
     const map = componentMap();
     const out: Record<string, string> = {};
 
@@ -162,10 +171,11 @@ function parseAddressComponents(components: AddressComponent[]): Record<string, 
         if (!type || !map[type as keyof typeof map]) continue;
 
         const fieldKey = map[type as keyof typeof map];
-        const val = (comp as unknown as Record<string, string>)[fieldKey]
-            ?? comp.short_text
-            ?? comp.long_text
-            ?? '';
+        const val =
+            (comp as unknown as Record<string, string>)[fieldKey] ??
+            comp.short_text ??
+            comp.long_text ??
+            '';
 
         out[type] = val;
     }
@@ -173,17 +183,26 @@ function parseAddressComponents(components: AddressComponent[]): Record<string, 
     return out;
 }
 
-function buildAddressFromComponents(formData: Record<string, string>): {
+export function buildAddressFromComponents(
+    formData: Record<string, string>,
+    postalAddress?: GooglePostalAddress,
+): {
     address1: string;
     city: string;
     state: string;
     zip: string;
     country: string;
 } {
-    let address1 = '';
+    const postalAddressLines = postalAddress?.addressLines?.filter(
+        (line): line is string =>
+            typeof line === 'string' && line.trim() !== '',
+    );
+    let address1 = postalAddressLines?.join(', ') || '';
 
-    if (formData.street_number || formData.route) {
-        address1 = [formData.street_number, formData.route].filter(Boolean).join(' ');
+    if (!address1 && (formData.street_number || formData.route)) {
+        address1 = [formData.street_number, formData.route]
+            .filter(Boolean)
+            .join(' ');
 
         if (formData.subpremise) {
             address1 = `${formData.subpremise}/${address1}`;
@@ -203,7 +222,8 @@ function hasCountryRestriction(options: Record<string, unknown>): boolean {
     const componentRestrictions = options.componentRestrictions;
 
     if (componentRestrictions && typeof componentRestrictions === 'object') {
-        const country = (componentRestrictions as { country?: unknown }).country;
+        const country = (componentRestrictions as { country?: unknown })
+            .country;
 
         if (Array.isArray(country) ? country.length > 0 : Boolean(country)) {
             return true;
@@ -215,7 +235,9 @@ function hasCountryRestriction(options: Record<string, unknown>): boolean {
     return Array.isArray(includedRegionCodes) && includedRegionCodes.length > 0;
 }
 
-export function buildGoogleAutocompleteOptions(provider: GoogleAddressProviderOptions): Record<string, unknown> {
+export function buildGoogleAutocompleteOptions(
+    provider: GoogleAddressProviderOptions,
+): Record<string, unknown> {
     const options = { types: ['geocode'], ...(provider.options || {}) };
     const country = provider.countryDefaultValue?.trim().toLowerCase();
 
@@ -247,10 +269,13 @@ export const googleAddressModule = defineAddressModule<
     },
     mount: async ({ api, field, services, provider }) => {
         const input = services.input.getAutocomplete();
-        const PlaceAutocompleteElement = api?.maps?.places?.PlaceAutocompleteElement;
+        const PlaceAutocompleteElement =
+            api?.maps?.places?.PlaceAutocompleteElement;
 
         if (!input || typeof PlaceAutocompleteElement !== 'function') {
-            console.warn('[formie] Google Places API not ready; address autocomplete skipped.');
+            console.warn(
+                '[formie] Google Places API not ready; address autocomplete skipped.',
+            );
             return null;
         }
 
@@ -303,20 +328,40 @@ export const googleAddressModule = defineAddressModule<
         wrapper.appendChild(input);
 
         const onSelect = async (ev: Event): Promise<void> => {
-            const e = ev as unknown as { placePrediction?: { toPlace: () => Promise<{ addressComponents?: unknown[]; formattedAddress?: string; fetchFields: (opts: { fields: string[] }) => Promise<void> }> } };
+            const e = ev as unknown as {
+                placePrediction?: {
+                    toPlace: () => Promise<{
+                        addressComponents?: unknown[];
+                        formattedAddress?: string;
+                        postalAddress?: GooglePostalAddress;
+                        fetchFields: (opts: {
+                            fields: string[];
+                        }) => Promise<void>;
+                    }>;
+                };
+            };
             const pred = e.placePrediction;
 
             if (!pred) return;
 
             const place = await pred.toPlace();
-            await place.fetchFields({ fields: ['addressComponents', 'formattedAddress'] });
+            await place.fetchFields({
+                fields: [
+                    'addressComponents',
+                    'formattedAddress',
+                    'postalAddress',
+                ],
+            });
 
             if (!place.addressComponents) return;
 
             const formData = parseAddressComponents(
                 place.addressComponents as AddressComponent[],
             );
-            const address = buildAddressFromComponents(formData);
+            const address = buildAddressFromComponents(
+                formData,
+                place.postalAddress,
+            );
 
             setFieldValues(services, {
                 ...address,
@@ -324,15 +369,19 @@ export const googleAddressModule = defineAddressModule<
             });
 
             field.dispatchEvent(
-                new CustomEvent(getAddressProviderEventName('google', 'populate'), {
-                    bubbles: true,
-                    detail: {
-                        addressProvider: 'google',
-                        place,
-                        formattedAddress: place.formattedAddress,
-                        addressComponents: place.addressComponents,
+                new CustomEvent(
+                    getAddressProviderEventName('google', 'populate'),
+                    {
+                        bubbles: true,
+                        detail: {
+                            addressProvider: 'google',
+                            place,
+                            formattedAddress: place.formattedAddress,
+                            addressComponents: place.addressComponents,
+                            postalAddress: place.postalAddress,
+                        },
                     },
-                }),
+                ),
             );
         };
         autocomplete.addEventListener('gmp-select', onSelect as EventListener);
@@ -342,9 +391,14 @@ export const googleAddressModule = defineAddressModule<
     onCurrentLocation: async (position, { field, services, provider }) => {
         const { latitude, longitude } = position.coords;
         const form = services.form;
-        const actionUrl = provider.geocodeEndpoint || form?.action || window.location.href;
-        const fieldHandle = field.getAttribute('data-formie-field-handle')?.trim();
-        const formHandle = (form?.querySelector('[name="handle"]') as HTMLInputElement | null)?.value?.trim();
+        const actionUrl =
+            provider.geocodeEndpoint || form?.action || window.location.href;
+        const fieldHandle = field
+            .getAttribute('data-formie-field-handle')
+            ?.trim();
+        const formHandle = (
+            form?.querySelector('[name="handle"]') as HTMLInputElement | null
+        )?.value?.trim();
 
         if (!formHandle || !fieldHandle) return;
 
@@ -356,14 +410,18 @@ export const googleAddressModule = defineAddressModule<
             formData.append('handle', formHandle);
             formData.append('fieldHandle', fieldHandle);
 
-            const response = await browserRequest(actionUrl, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    Accept: 'application/json',
+            const response = await browserRequest(
+                actionUrl,
+                {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        Accept: 'application/json',
+                    },
                 },
-            }, getFormBrowserRequestOptions(form));
+                getFormBrowserRequestOptions(form),
+            );
 
             const data = await response.json();
 
