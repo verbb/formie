@@ -710,10 +710,19 @@ class Emails extends Component
             $path = null;
 
             if (!($asset instanceof EmailPreviewAsset)) {
-                $path = Assets::getFullAssetFilePath($asset);
+                try {
+                    $path = Assets::getFullAssetFilePath($asset);
+                } catch (Throwable $e) {
+                    Formie::warning('Not attaching “{filename}” because the asset file could not be read: {error}', [
+                        'filename' => $asset->filename,
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    continue;
+                }
 
                 // If a non-local asset, store so we can delete later
-                if (!($asset->getVolume()->getFs() instanceof LocalFsInterface)) {
+                if ($path && !($asset->getVolume()->getFs() instanceof LocalFsInterface)) {
                     $this->_tempAttachments[] = $path;
                 }
             }

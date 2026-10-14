@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use Tests\Support\UploadTestHelper;
+use craft\base\FsInterface;
+use craft\elements\Asset;
+use craft\models\Volume;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\Formie;
 use verbb\formie\models\EmailPreviewAsset;
@@ -65,4 +68,35 @@ it('preserves real attachment bytes and enforces size limits for sample attachme
     } finally {
         $settings->maxEmailAttachmentSizeMb = $originalLimit;
     }
+});
+
+it('skips unreadable remote attachments without failing the notification', function(): void {
+    $filesystem = test()->createMock(FsInterface::class);
+    $volume = test()->createMock(Volume::class);
+    $volume->method('getFs')->willReturn($filesystem);
+
+    $asset = new class ($volume) extends Asset {
+        public function __construct(private readonly Volume $testVolume)
+        {
+            parent::__construct();
+        }
+
+        public function getVolume(): Volume
+        {
+            return $this->testVolume;
+        }
+
+        public function getCopyOfFile(): string
+        {
+            throw new RuntimeException('Remote object is unavailable.');
+        }
+    };
+    $asset->filename = 'unreadable.txt';
+    $asset->size = 128;
+
+    $method = new ReflectionMethod(Emails::class, '_attachAssetsToEmail');
+    $message = Craft::$app->getMailer()->compose();
+    $method->invoke(Formie::$plugin->getEmails(), [$asset], $message);
+
+    expect($message->getSymfonyEmail()->getAttachments())->toBe([]);
 });
