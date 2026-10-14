@@ -49,6 +49,7 @@
 - Fixed forms allowing IP or user submission limits to be saved without the corresponding collection setting enabled.
 - Fixed completion redirects failing after saving submissions when another site had no resolved base URL.
 - Fixed custom field validation messages being lost when saving forms, and cancelled edits changing existing messages.
+- Fixed the scheduled form expiry message instructions referring to the start date instead of the end date.
 - Fixed a medium-severity server-side request forgery vulnerability.
 - Fixed a low-severity CRM data integrity vulnerability.
 - Prevent missing or changed encryption keys from displaying encrypted submission content as blank or overwriting unreadable values during saves.

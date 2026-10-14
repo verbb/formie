@@ -2986,7 +2986,7 @@ To review it please log into your control panel.
   'The maximum size in megabytes for assets attached to email notifications. Set to 0 for no limit.' => 'The maximum size in megabytes for assets attached to email notifications. Set to 0 for no limit.',
   'Theme' => 'Theme',
   'The message displayed to users who are not logged in.' => 'The message displayed to users who are not logged in.',
-  'The message displayed when the current time is after the scheduled start date.' => 'The message displayed when the current time is after the scheduled start date.',
+  'The message displayed when the current time is after the scheduled end date.' => 'The message displayed when the current time is after the scheduled end date.',
   'The message displayed when the current time is before the scheduled start date.' => 'The message displayed when the current time is before the scheduled start date.',
   'The message displayed when the submission limit has been reached.' => 'The message displayed when the submission limit has been reached.',
   'The minimum level the user can zoom the map out to.' => 'The minimum level the user can zoom the map out to.',

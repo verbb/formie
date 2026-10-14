@@ -2836,7 +2836,7 @@ class Form extends Element implements FormInterface
                     ], RichTextHelper::getRichTextConfig('forms.scheduleFormPendingMessage'))),
                     SchemaHelper::richTextField(array_merge([
                         'label' => Craft::t('formie', 'Expired Message'),
-                        'instructions' => Craft::t('formie', 'The message displayed when the current time is after the scheduled start date.'),
+                        'instructions' => Craft::t('formie', 'The message displayed when the current time is after the scheduled end date.'),
                         'name' => 'settings.scheduleFormExpiredMessage',
                     ], RichTextHelper::getRichTextConfig('forms.scheduleFormExpiredMessage'))),
                 ],
