@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\compatibility\fields\FieldRuntimeCompatibility;
 use verbb\formie\conditions\ConditionVisibility;
 use verbb\formie\content\FieldStorageCodec;
+use verbb\formie\content\SubmissionContentAccessor;
 use verbb\formie\content\ContentEncryption;
 use verbb\formie\deprecations\FieldDeprecations;
 use verbb\formie\elements\Form;
@@ -1013,6 +1014,17 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
         if ($found) {
             return $prefillValue;
+        }
+
+        // Nested controls render independently, but populated values belong to
+        // their parent. Project the row-aware path before falling back to defaults.
+        if ($parent = $this->getParentField()) {
+            $path = substr($this->valueKey(), strlen($parent->valueKey()) + 1);
+            $value = (new SubmissionContentAccessor())->resolvePathValue($parent->getInitialValue($element), $path);
+
+            if ($value !== null) {
+                return $this->normalizeValue($value, $element);
+            }
         }
 
         return $this->getDefaultValue();

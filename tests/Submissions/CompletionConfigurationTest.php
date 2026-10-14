@@ -426,3 +426,37 @@ it('persists completion during finalization and reuses it without repeating reso
         \yii\base\Event::off(CompletionResolver::class, CompletionResolver::EVENT_RESOLVE_COMPLETION, $listener);
     }
 });
+
+it('projects populated parent values into independently rendered nested controls', function (): void {
+    $form = formie()->form()
+        ->addressField('address', ['rows' => (new \verbb\formie\fields\Address())->getSubFields()])
+        ->repeaterField('guests', ['rows' => [['fields' => [
+            ['type' => \verbb\formie\fields\SingleLineText::class, 'handle' => 'name', 'label' => 'Name', 'defaultValue' => 'Default guest'],
+        ]]]])
+        ->create();
+    Formie::$plugin->getRendering()->populateFormValues($form, [
+        'address' => ['address1' => '1 Initial Road', 'country' => 'AU', 'state' => 'Victoria'],
+        'guests' => [['name' => 'First guest'], ['name' => '']],
+    ]);
+    $address = $form->getFieldByHandle('address');
+    $parts = [];
+    foreach ($address->getFields() as $field) {
+        $parts[$field->handle] = $field->getElementValue();
+    }
+    expect($parts['address1'])->toBe('1 Initial Road')
+        ->and((string)$parts['country'])->toBe('AU')
+        ->and($parts['state'])->toBe('Victoria');
+    $guests = $form->getFieldByHandle('guests');
+    expect($guests->getFields(0)[0]->getElementValue())->toBe('First guest')
+        ->and($guests->getFields(1)[0]->getElementValue())->toBe('');
+    $submission = new Submission();
+    $submission->setForm($form);
+    $submission->setFieldValue('address', ['address1' => '', 'country' => 'US', 'state' => 'California']);
+    $submission->setFieldValue('guests', [['name' => 'Edited guest']]);
+    foreach ($address->getFields() as $field) {
+        if ($field->handle === 'address1') {
+            expect($field->getElementValue($submission))->toBe('');
+        }
+    }
+    expect($guests->getFields(0)[0]->getElementValue($submission))->toBe('Edited guest');
+});

@@ -27,6 +27,7 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed populated address and repeater values not appearing in nested inputs.
 - Fixed correcting a spam-rejected submission causing a stale-session error and clearing entered values.
 - Fixed retrying a cancelled checkout reusing the cancelled payment instead of creating a new payment attempt.
 - Fixed cancelled payments leaving users on the payment status page instead of returning to the form to retry.
