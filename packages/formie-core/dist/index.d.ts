@@ -9,7 +9,7 @@ export { allFields, compositePartDefinitions, createRepeaterRowValue, defaultVal
 export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from './text';
 export { getClientErrorAriaLive, getClientFieldErrorId } from './accessibility';
 export type { ClientErrorAriaLive } from './accessibility';
-export type { ClientFieldDefinition, ClientFieldValueContract, ClientFieldValueStructure, ClientFieldType, ClientFieldValueType, ClientFormDefinition, ClientFormBootstrap, ClientFormSession, KnownClientFieldType, ClientPageDefinition, ClientRowDefinition, ClientFormEventName, ClientFormFieldState, ClientFormInstance, ClientFormPageState, ClientFormState, ClientSubmitAction, ClientSubmitResult, PaymentDecision, ClientTransport, ClientValidationRule, } from './types';
+export type { ClientFieldDefinition, ClientFieldValueContract, ClientFieldValueStructure, ClientFieldType, ClientFieldValueType, ClientFormDefinition, ClientFormBootstrap, ClientFormSession, KnownClientFieldType, ClientPageDefinition, ClientRowDefinition, ClientFormEventName, ClientFormFieldState, ClientFormInstance, ClientFormPageState, ClientFormState, ClientSubmitAction, ClientSubmitResult, PaymentDecision, ClientTransport, } from './types';
 export { parseReference, serializeReference } from './references';
 export type { ReferenceExpression } from './references';
 export { resolveReference } from './references';
@@ -19,7 +19,7 @@ export * from './contract';
 export type { RequestProfile, BrowserRequestOptions } from './request-profile';
 export { browserRequest, browserRequestHeaders } from './request-profile';
 export { evaluateCondition, combineConditions, conditionNumber } from './conditions';
-export type { ConditionEvaluation, ConditionValueType } from './conditions';
+export type { BrowserConditionRule, BrowserConditionSettings, ConditionEvaluation, ConditionValueType } from './conditions';
 export { validateBrowserValue, browserValueEmpty, registerBrowserValidationRule } from './validation';
 export type { BrowserValidationRule, BrowserValidationContext } from './validation';
 export { clientActionAllowed, evaluateClientCondition } from './condition-state';

@@ -80,7 +80,7 @@ class FormSlotRegistry extends Component
         $hasStaticCache = $settings->hasStaticCache();
         $errorAriaLive = $settings->errorAriaLive;
         $pendingClientEvents = false;
-        $submissionContext = ConditionsHelper::getClientSubmissionContext($context->submission);
+        $submissionContext = ConditionsHelper::getBrowserSubmissionContext($context->submission);
 
         if ($form) {
             $flashEvents = Formie::$plugin->getService()->getFlash($form->getFlashNamespace(), 'clientEvents');

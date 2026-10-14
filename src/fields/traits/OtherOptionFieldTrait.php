@@ -280,7 +280,7 @@ trait OtherOptionFieldTrait
                     'data-formie-other-option' => true,
                     'data-formie-input-id' => $this->getHtmlDataId($form, $otherOptionValue),
                     'data-formie-input-type' => 'radio',
-                ], ValidationMessagesHelper::requiredClientAttributes($this)))
+                ], ValidationMessagesHelper::requiredBrowserAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

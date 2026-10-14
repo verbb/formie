@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+- Share browser condition and validation types across rendering products.
+- Require canonical client-rendered field metadata instead of accepting obsolete beta runtime definitions.
+
 ## 1.0.14 - 2026-10-08
 
 ### Added

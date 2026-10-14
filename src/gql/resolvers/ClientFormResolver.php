@@ -3,15 +3,15 @@ namespace verbb\formie\gql\resolvers;
 
 use verbb\formie\Formie;
 use verbb\formie\client\models\LoadContext;
-use verbb\formie\client\models\PageTransitionRequest;
-use verbb\formie\client\models\SessionRefreshRequest;
-use verbb\formie\client\models\SubmitRequest;
-use verbb\formie\client\models\SubmitResult;
 use verbb\formie\elements\Form;
 use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\helpers\BrowserRequestProfile;
 use verbb\formie\helpers\CrossOriginRequestHelper;
 use verbb\formie\helpers\Gql as GqlHelper;
+use verbb\formie\models\FormSubmitRequest;
+use verbb\formie\models\FormSubmitResult;
+use verbb\formie\models\PageTransitionRequest;
+use verbb\formie\models\SessionRefreshRequest;
 
 use Craft;
 
@@ -77,7 +77,7 @@ class ClientFormResolver
         }
 
         try {
-            $session = Formie::$plugin->getClientSessionService()->refreshSession(new SessionRefreshRequest([
+            $session = Formie::$plugin->getFormSessions()->refreshSession(new SessionRefreshRequest([
                 'handle' => (string)($payload['handle'] ?? ''),
                 'siteId' => isset($payload['siteId']) ? (int)$payload['siteId'] : null,
                 'session' => (array)($payload['session'] ?? []),
@@ -101,7 +101,7 @@ class ClientFormResolver
         );
 
         if (!GqlHelper::canReadForm($form) || !self::_canMutateSubmissionsForForm($form, $payload, 'back')) {
-            return SubmitResult::rejection(403)->toArrayRecursive();
+            return FormSubmitResult::rejection(403)->toArrayRecursive();
         }
 
         if (!Craft::$app->getRequest()->getIsPost()) {
@@ -113,7 +113,7 @@ class ClientFormResolver
             throw new BadRequestHttpException('Unable to verify your data submission.');
         }
 
-        $session = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
+        $session = Formie::$plugin->getFormSessions()->persistPageState(new PageTransitionRequest([
             'scopeAuthorizer' => self::_authorizeResolvedScope(...),
             'handle' => (string)($payload['handle'] ?? ''),
             'siteId' => isset($payload['siteId']) ? (int)$payload['siteId'] : null,
@@ -122,7 +122,7 @@ class ClientFormResolver
             'session' => (array)($payload['session'] ?? []),
             'operationId' => $payload['operationId'] ?? null,
             'values' => (array)($payload['values'] ?? []),
-        ]), true);
+        ]));
 
         return $session->toArrayRecursive();
     }
@@ -138,7 +138,7 @@ class ClientFormResolver
         );
 
         if (!GqlHelper::canReadForm($form) || !self::_canMutateSubmissionsForForm($form, $payload, (string)($payload['action'] ?? 'submit'))) {
-            return SubmitResult::rejection(403)->toArrayRecursive();
+            return FormSubmitResult::rejection(403)->toArrayRecursive();
         }
 
         if (!Craft::$app->getRequest()->getIsPost()) {
@@ -150,7 +150,7 @@ class ClientFormResolver
             throw new BadRequestHttpException('Unable to verify your data submission.');
         }
 
-        $result = Formie::$plugin->getSubmissionRequests()->execute(new SubmitRequest([
+        $result = Formie::$plugin->getSubmissionRequests()->execute(new FormSubmitRequest([
             'scopeAuthorizer' => self::_authorizeResolvedScope(...),
             'handle' => (string)($payload['handle'] ?? ''),
             'action' => (string)($payload['action'] ?? 'submit'),
@@ -167,7 +167,7 @@ class ClientFormResolver
     private static function _canMutateSubmissionsForForm(Form $form, array $payload, string $action = 'submit'): bool
     {
         try {
-            $scope = Formie::$plugin->getSubmissionRequests()->getRequiredClientMutationScope(
+            $scope = Formie::$plugin->getSubmissionRequests()->getRequiredSessionMutationScope(
                 $form,
                 (array)($payload['session'] ?? []),
                 $action,

@@ -16,7 +16,7 @@ it('never inverts invalid into permission', function () {
 
 it('retains configured empty sets in both browser products', function () {
     foreach (['all' => true, 'any' => false] as $mode => $expected) {
-        $wire = \verbb\formie\helpers\ConditionsHelper::toComponentConditionDefinition(['conditionRule' => $mode, 'showRule' => 'show', 'conditions' => []]);
+        $wire = \verbb\formie\helpers\ConditionsHelper::toBrowserConditionDefinition(['conditionRule' => $mode, 'showRule' => 'show', 'conditions' => []]);
         expect($wire['mode'])->toBe($mode)->and($wire['rules'])->toBe([]);
         $result = (new \verbb\formie\conditions\ConditionSetEvaluator())->evaluate(\verbb\formie\conditions\ConditionSet::fromArray($wire), new \verbb\formie\elements\Submission());
         expect($result->value)->toBe($expected);

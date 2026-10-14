@@ -6,10 +6,10 @@ use verbb\formie\fields\traits\OptionsLimitFieldTrait;
 use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -330,7 +330,7 @@ class Checkboxes extends OptionsField
                     'data-formie-checkbox-input' => true,
                     'data-formie-input-id' => $this->getHtmlDataId($form, $optionValue),
                     'data-formie-input-type' => 'checkbox',
-                ], ValidationMessagesHelper::requiredClientAttributes($this)))
+                ], ValidationMessagesHelper::requiredBrowserAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',
@@ -392,12 +392,12 @@ class Checkboxes extends OptionsField
         return Craft::t('app', 'Checkbox Options');
     }
 
-    protected function definePrimaryOptionVariableSourceTypes(): array
+    protected function definePrimaryOptionReferenceTypes(): array
     {
         return [
-            Variables::TYPE_TEXT,
-            Variables::TYPE_CALCULATIONS,
-            Variables::TYPE_BOOLEAN,
+            ReferenceType::Text,
+            ReferenceType::List,
+            ReferenceType::Boolean,
         ];
     }
 
@@ -414,7 +414,7 @@ class Checkboxes extends OptionsField
 
     protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientRenderedInput(), $this->getOptionsLimitClientInput());
+        return array_merge(parent::defineClientRenderedInput(), $this->getOptionsLimitClientRenderedInput());
     }
 
     protected function defineBrowserModules(): array

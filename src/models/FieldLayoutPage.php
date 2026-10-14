@@ -211,7 +211,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
             'id' => (string)$this->id,
             'key' => 'page-' . ($index + 1),
             'label' => $this->label,
-            'condition' => ConditionsHelper::toComponentConditionDefinition($this->getBrowserConditions()),
+            'condition' => ConditionsHelper::toBrowserConditionDefinition($this->getBrowserConditions()),
             'rows' => array_values(array_map(static function(FieldLayoutRow $row) {
                 return $row->getClientRenderedDefinition();
             }, $this->getRows())),
@@ -219,7 +219,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
                 'primary' => [
                     'type' => $isLastPage ? 'submit' : 'next',
                     'label' => $pageSettings->submitButtonLabel,
-                    'condition' => $this->hasSubmitButtonConditions() ? ConditionsHelper::toComponentConditionDefinition($this->getSubmitButtonClientConditions()) : null,
+                    'condition' => $this->hasSubmitButtonConditions() ? ConditionsHelper::toBrowserConditionDefinition($this->getSubmitButtonBrowserConditions()) : null,
                 ],
                 'secondary' => $secondaryActions,
             ],
@@ -272,7 +272,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
         }
 
         if ($form = $this->getForm()) {
-            $conditions = ConditionsHelper::normalizeClientConditions($conditions, $form);
+            $conditions = ConditionsHelper::compileBrowserConditions($conditions, $form);
         }
 
         $conditions['clearOnHide'] = true;
@@ -337,7 +337,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
         return $this->getPageSettings()->getConditions();
     }
 
-    public function getSubmitButtonClientConditions(): array
+    public function getSubmitButtonBrowserConditions(): array
     {
         $conditions = $this->getSubmitButtonConditions();
 
@@ -346,7 +346,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
         }
 
         if ($form = $this->getForm()) {
-            $conditions = ConditionsHelper::normalizeClientConditions($conditions, $form);
+            $conditions = ConditionsHelper::compileBrowserConditions($conditions, $form);
         }
 
         $conditions['clearOnHide'] = true;
@@ -360,7 +360,7 @@ class FieldLayoutPage extends SavableComponent implements TranslatableProperties
             return null;
         }
 
-        $conditions = $this->getSubmitButtonClientConditions();
+        $conditions = $this->getSubmitButtonBrowserConditions();
 
         if (!$conditions) {
             return null;

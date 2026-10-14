@@ -281,7 +281,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
-            'textLimitConfig' => $this->getTextLimitClientConfig(true),
+            'textLimitConfig' => $this->getTextLimitBrowserConfig(true),
         ]);
     }
 
@@ -309,7 +309,7 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
 
     protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientRenderedInput(), $this->getTextLimitClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), $this->getTextLimitClientRenderedInput(), [
             'inputType' => 'text',
         ]);
     }

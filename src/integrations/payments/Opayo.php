@@ -31,8 +31,8 @@ use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
-use verbb\formie\models\payments\PaymentSessionCommand;
 use verbb\formie\models\SlotTag;
+use verbb\formie\models\payments\PaymentSessionCommand;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -161,7 +161,7 @@ class Opayo extends Payment
                 'currency' => $this->getFieldSetting('currency'),
                 'amountType' => $this->getFieldSetting('amountType'),
                 'amountFixed' => $this->getFieldSetting('amountFixed'),
-                'amountVariable' => $this->normalizeClientFieldReference($this->getFieldSetting('amountVariable')),
+                'amountVariable' => $this->normalizeBrowserFieldReference($this->getFieldSetting('amountVariable')),
                 'sessionEndpoint' => UrlHelper::actionUrl('formie/payment-sessions/initialize'),
                 'sessionToken' => PaymentAccess::issueProviderSessionToken('opayo', (int)$this->id, (string)$this->handle, formId: $context->form?->id, fieldId: $context->field?->id, siteId: $context->form?->siteId),
                 'checkoutMode' => $this->getCheckoutMode(),

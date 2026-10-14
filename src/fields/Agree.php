@@ -396,7 +396,7 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
                     'data-formie-agree-input' => true,
                     'data-formie-input-id' => $this->getHtmlDataId($form),
                     'data-formie-input-type' => 'agree',
-                ], ValidationMessagesHelper::requiredClientAttributes($this)))
+                ], ValidationMessagesHelper::requiredBrowserAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

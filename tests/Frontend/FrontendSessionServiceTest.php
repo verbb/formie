@@ -5,9 +5,9 @@ declare(strict_types=1);
 use Tests\Support\WebRequestTestHelper;
 use Tests\Support\UploadTestHelper;
 use verbb\formie\Formie;
-use verbb\formie\client\models\PageTransitionRequest;
-use verbb\formie\client\models\SessionRefreshRequest;
-use verbb\formie\client\models\SubmitRequest;
+use verbb\formie\models\PageTransitionRequest;
+use verbb\formie\models\SessionRefreshRequest;
+use verbb\formie\models\FormSubmitRequest;
 use verbb\formie\helpers\UploadAccess;
 
 use yii\web\BadRequestHttpException;
@@ -20,8 +20,8 @@ it('resolves signed draft context when navigating a saved server-rendered form',
 
     withSubmissionGuardsPostContext(function () use ($form, $pages): void {
         $form->setDraftContext('custom:signed-page-navigation');
-        $initial = Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive();
-        $saved = runClientSubmission(new SubmitRequest([
+        $initial = Formie::$plugin->getFormSessions()->issueInitialSession($form)->toArrayRecursive();
+        $saved = runClientSubmission(new FormSubmitRequest([
             'handle' => $form->handle,
             'action' => 'save',
             'session' => $initial,
@@ -32,7 +32,7 @@ it('resolves signed draft context when navigating a saved server-rendered form',
         // Server-rendered forms carry the signed token, not the raw context.
         unset($session['continuation']['draftContext']);
         Formie::$plugin->getForms()->invalidateFormCaches();
-        $result = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
+        $result = Formie::$plugin->getFormSessions()->persistPageState(new PageTransitionRequest([
             'handle' => $form->handle,
             'targetPageId' => (string)$pages[1]->id,
             'session' => $session,
@@ -59,7 +59,7 @@ it('builds draft-aware frontend sessions', function(): void {
     $form->setDraftContext('custom:frontend-session');
 
     $session = WebRequestTestHelper::withWebRequestContext(function () use ($form): array {
-        return Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive();
+        return Formie::$plugin->getFormSessions()->issueInitialSession($form)->toArrayRecursive();
     }, [
         'method' => 'POST',
     ]);
@@ -78,7 +78,7 @@ it('binds upload creation capabilities to the exact form and browser session', f
     $other = formie()->form(['title' => 'Other Upload Creation Session'])->fileUploadField('document')->create();
 
     $checks = WebRequestTestHelper::withWebRequestContext(function ($request, $response, $session) use ($form, $other): array {
-        $token = Formie::$plugin->getClientSessionService()->issueInitialSession($form)->tokens['uploadCreate'];
+        $token = Formie::$plugin->getFormSessions()->issueInitialSession($form)->tokens['uploadCreate'];
         $valid = UploadAccess::validateCreateToken($form, $token);
         $wrongForm = UploadAccess::validateCreateToken($other, $token);
         $session->set('formie:authority', 'different-upload-creation-browser');
@@ -102,7 +102,7 @@ it('persists frontend page navigation through the session service', function(): 
     $pages = $form->getPages();
 
     $session = WebRequestTestHelper::withWebRequestContext(function () use ($form, $pages): array {
-        return Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
+        return Formie::$plugin->getFormSessions()->persistPageState(new PageTransitionRequest([
             'handle' => $form->handle,
             'targetPageId' => (string)$pages[1]->id,
             'session' => ['tokens' => ['request' => $form->getRequestToken()], 'version' => 0],
@@ -129,7 +129,7 @@ it('issues browser-bound progress references without portable bearer tokens', fu
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
     $session = WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission): array {
         Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission, $form->getCurrentPage()?->id);
-        return Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive();
+        return Formie::$plugin->getFormSessions()->issueInitialSession($form)->toArrayRecursive();
     }, [
         'method' => 'POST',
     ]);
@@ -140,7 +140,7 @@ it('issues browser-bound progress references without portable bearer tokens', fu
 });
 
 it('fails cleanly when refreshing an unknown frontend session form', function(): void {
-    expect(fn() => Formie::$plugin->getClientSessionService()->refreshSession(new SessionRefreshRequest([
+    expect(fn() => Formie::$plugin->getFormSessions()->refreshSession(new SessionRefreshRequest([
         'handle' => 'missing-form',
         'session' => [],
     ])))->toThrow(BadRequestHttpException::class);

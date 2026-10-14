@@ -91,7 +91,7 @@ Event::on(Form::class, Form::EVENT_MODIFY_SLOT_TAG, function(ModifyFormSlotTagEv
 Contribute browser modules for an entire form through `BrowserModuleManifestBuilder::EVENT_REGISTER_MODULES`. The event supplies the form and requested rendering surface. Contributions use a form target and core kind by default; specify other targets or kinds explicitly when needed. The normal surface filtering, occurrence keys and duplicate-key validation still apply. Module configuration is public browser data and must not contain credentials.
 
 ```php
-use verbb\formie\client\modules\BrowserModuleManifestBuilder;
+use verbb\formie\browser\modules\BrowserModuleManifestBuilder;
 use verbb\formie\events\RegisterBrowserModulesEvent;
 use verbb\formie\models\BrowserModule;
 use yii\base\Event;

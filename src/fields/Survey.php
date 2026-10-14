@@ -1462,7 +1462,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
                     'data-formie-radio-input' => true,
                     'data-formie-input-id' => $this->getHtmlDataId($form, $inputSuffix),
                     'data-formie-input-type' => 'radio',
-                ], ValidationMessagesHelper::requiredClientAttributes($this)))
+                ], ValidationMessagesHelper::requiredBrowserAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',
@@ -1712,7 +1712,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
                     'data-formie-rating-input' => true,
                     'data-formie-input-id' => $this->getHtmlDataId($form, $optionValue),
                     'data-formie-input-type' => 'radio',
-                ], ValidationMessagesHelper::requiredClientAttributes($this)))
+                ], ValidationMessagesHelper::requiredBrowserAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

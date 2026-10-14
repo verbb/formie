@@ -5,7 +5,6 @@ use verbb\formie\conditions\ConditionSet;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldClientRenderedChildren;
-use verbb\formie\fields\definitions\FieldClientRenderedDefinition;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\models\BrowserModuleContext;
@@ -39,7 +38,6 @@ interface FieldInterface extends SavableComponentInterface, FieldTypeDefinitionI
     public function fieldKind(): string;
     public function valueType(): FieldValueType;
     public function clientRenderedChildren(): FieldClientRenderedChildren;
-    public function clientRenderedDefinition(): FieldClientRenderedDefinition;
     public function browserModules(BrowserModuleContext $context): array;
     /** @return FieldReferenceValue[] */
     public function referenceValues(): array;

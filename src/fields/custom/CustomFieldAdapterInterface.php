@@ -34,7 +34,7 @@ interface CustomFieldAdapterInterface
     public function getSettingGqlTypes(CustomField $field): array;
     public function getContentGqlType(CustomField $field): Type|array;
     public function getContentGqlMutationArgumentType(CustomField $field): Type|array;
-    public function getClientInput(CustomField $field): array;
+    public function getClientRenderedInput(CustomField $field): array;
     public function getBrowserModules(CustomField $field): array;
     public function getDefaultValue(CustomField $field): mixed;
     public function valueType(CustomField $field): FieldValueType;

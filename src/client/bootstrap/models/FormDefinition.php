@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\client\bootstrap\models;
 
-use verbb\formie\client\BaseClientModel;
+use verbb\formie\base\FormPayload;
 
-class FormDefinition extends BaseClientModel
+class FormDefinition extends FormPayload
 {
     // Properties
     // =========================================================================

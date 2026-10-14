@@ -5,7 +5,7 @@ declare(strict_types=1);
 use craft\errors\GqlException;
 use craft\models\GqlSchema;
 use GraphQL\Type\Definition\ResolveInfo;
-use verbb\formie\client\models\SubmitRequest;
+use verbb\formie\models\FormSubmitRequest;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\events\ModifyPhoneCountriesEvent;
@@ -14,7 +14,7 @@ use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\gql\resolvers\ClientFormResolver;
 use verbb\formie\gql\resolvers\mutations\SubmissionResolver;
 use verbb\formie\models\BrowserModule;
-use verbb\formie\models\ManagedSubmissionRequest;
+use verbb\formie\models\HtmlSubmissionRequest;
 use verbb\formie\services\Countries;
 use Tests\Support\WebRequestTestHelper;
 use yii\base\Event;
@@ -82,7 +82,7 @@ it('accepts an unlisted country through every public submission adapter', functi
         ->create();
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($form, $transport): void {
-        $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive();
+        $session = Formie::$plugin->getFormSessions()->issueInitialSession($form)->toArrayRecursive();
         $phone = ['number' => '(404) 555-1234', 'country' => 'US'];
 
         if (in_array($transport, ['html', 'ajax'], true)) {
@@ -94,7 +94,7 @@ it('accepts an unlisted country through every public submission adapter', functi
                 'expectedVersion' => 0,
                 'fields' => ['phone' => $phone],
             ]);
-            $execution = Formie::$plugin->getSubmissionRequests()->executeManaged(new ManagedSubmissionRequest([
+            $execution = Formie::$plugin->getSubmissionRequests()->executeHtml(new HtmlSubmissionRequest([
                 'handle' => $form->handle,
                 'requestToken' => $session['tokens']['request'],
                 'expectedVersion' => 0,
@@ -127,7 +127,7 @@ it('accepts an unlisted country through every public submission adapter', functi
                     $gql->setActiveSchema($previous);
                 }
             } else {
-                $result = runClientSubmission(new SubmitRequest($input))->toArrayRecursive();
+                $result = runClientSubmission(new FormSubmitRequest($input))->toArrayRecursive();
             }
 
             $success = $result['success'];

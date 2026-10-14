@@ -60,12 +60,12 @@
 
 {% block content %}
 
-{# Snapshot for client conditions that use `{submission:*}` (status, title, …). #}
+{# Snapshot for browser conditions that use `{submission:*}` (status, title, …). #}
 {% set attributes = {
     id: form.getRenderId(),
     class: 'formie-form',
     'data-fui-form': formConfigJson,
-    'data-formie-submission': submissionClientContext|default({})|json_encode,
+    'data-formie-submission': submissionBrowserContext|default({})|json_encode,
 } %}
 
 <div {{ attr(attributes) }}>
@@ -457,7 +457,7 @@ $(function () {
             var $status = $('<span>').addClass('status').addClass(color);
             $statusSelect.empty().append($status, document.createTextNode(label));
 
-            // Keep client condition snapshots in sync so `{submission:status}` re-evaluates.
+            // Keep browser condition snapshots in sync so `{submission:status}` re-evaluates.
             var formEl = document.querySelector('[data-fui-form][data-formie-submission]');
             if (formEl) {
                 var snap = {};

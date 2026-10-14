@@ -299,4 +299,4 @@ With the module in place:
 2. Edit a form, open the **Integrations** tab, attach the integration, enter the URL, and send a test payload.
 3. Submit the form on the front end and confirm your endpoint receives the request.
 
-Integrations run as part of the [submission workflow](/developers/submission-workflow). For execution order, queue vs immediate mode, and conditions, see [Integration dispatch and policies](/guides/integrations/integration-dispatch-and-policies).
+Integrations run as part of the [submission workflow](/developers/submission-workflow). For execution order, queued and synchronous execution, and conditions, see [Integration dispatch and policies](/guides/integrations/integration-dispatch-and-policies).

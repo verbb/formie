@@ -263,19 +263,19 @@ class ValidationMessagesHelper
         return $parent instanceof Field ? $parent : $field;
     }
 
-    public static function requiredClientAttributes(Field $field): array
+    public static function requiredBrowserAttributes(Field $field): array
     {
         return [
-            'data-formie-required-message' => $field->getValidationMessageClientAttribute(self::KEY_REQUIRED),
+            'data-formie-required-message' => $field->getValidationMessageBrowserAttribute(self::KEY_REQUIRED),
         ];
     }
 
-    public static function clientAttribute(string $key): string
+    public static function browserAttribute(string $key): string
     {
         return 'data-formie-validation-' . StringHelper::toKebabCase($key) . '-message';
     }
 
-    public static function textLimitClientAttributes(
+    public static function textLimitBrowserAttributes(
         Field $field,
         bool $limit,
         mixed $min,
@@ -284,7 +284,7 @@ class ValidationMessagesHelper
         ?string $maxType,
     ): array {
         $attrs = [
-            'data-formie-required-message' => $field->getValidationMessageClientAttribute(self::KEY_REQUIRED),
+            'data-formie-required-message' => $field->getValidationMessageBrowserAttribute(self::KEY_REQUIRED),
         ];
 
         if (!$limit) {
@@ -293,7 +293,7 @@ class ValidationMessagesHelper
 
         if ($minType === 'characters' && $min) {
             $attrs['data-formie-min-chars'] = $min;
-            $attrs[self::clientAttribute(self::KEY_MIN_CHARACTERS)] = $field->getValidationMessageClientAttribute(self::KEY_MIN_CHARACTERS, [
+            $attrs[self::browserAttribute(self::KEY_MIN_CHARACTERS)] = $field->getValidationMessageBrowserAttribute(self::KEY_MIN_CHARACTERS, [
                 'limit' => $min,
                 'min' => $min,
             ]);
@@ -301,7 +301,7 @@ class ValidationMessagesHelper
 
         if ($maxType === 'characters' && $max) {
             $attrs['data-formie-max-chars'] = $max;
-            $attrs[self::clientAttribute(self::KEY_MAX_CHARACTERS)] = $field->getValidationMessageClientAttribute(self::KEY_MAX_CHARACTERS, [
+            $attrs[self::browserAttribute(self::KEY_MAX_CHARACTERS)] = $field->getValidationMessageBrowserAttribute(self::KEY_MAX_CHARACTERS, [
                 'limit' => $max,
                 'max' => $max,
             ]);
@@ -309,7 +309,7 @@ class ValidationMessagesHelper
 
         if ($minType === 'words' && $min) {
             $attrs['data-formie-min-words'] = $min;
-            $attrs[self::clientAttribute(self::KEY_MIN_WORDS)] = $field->getValidationMessageClientAttribute(self::KEY_MIN_WORDS, [
+            $attrs[self::browserAttribute(self::KEY_MIN_WORDS)] = $field->getValidationMessageBrowserAttribute(self::KEY_MIN_WORDS, [
                 'limit' => $min,
                 'min' => $min,
             ]);
@@ -317,7 +317,7 @@ class ValidationMessagesHelper
 
         if ($maxType === 'words' && $max) {
             $attrs['data-formie-max-words'] = $max;
-            $attrs[self::clientAttribute(self::KEY_MAX_WORDS)] = $field->getValidationMessageClientAttribute(self::KEY_MAX_WORDS, [
+            $attrs[self::browserAttribute(self::KEY_MAX_WORDS)] = $field->getValidationMessageBrowserAttribute(self::KEY_MAX_WORDS, [
                 'limit' => $max,
                 'max' => $max,
             ]);
@@ -326,7 +326,7 @@ class ValidationMessagesHelper
         return $attrs;
     }
 
-    public static function passwordValidationClientAttributes(
+    public static function passwordValidationBrowserAttributes(
         Field $field,
         mixed $minLength,
         bool $requireUppercase,
@@ -334,12 +334,12 @@ class ValidationMessagesHelper
         bool $requireSpecialCharacter,
     ): array {
         $attrs = [
-            'data-formie-required-message' => $field->getValidationMessageClientAttribute(self::KEY_REQUIRED),
+            'data-formie-required-message' => $field->getValidationMessageBrowserAttribute(self::KEY_REQUIRED),
         ];
 
         if ($minLength) {
             $attrs['data-formie-password-min-length'] = $minLength;
-            $attrs[self::clientAttribute(self::KEY_MIN_CHARACTERS)] = $field->getValidationMessageClientAttribute(self::KEY_MIN_CHARACTERS, [
+            $attrs[self::browserAttribute(self::KEY_MIN_CHARACTERS)] = $field->getValidationMessageBrowserAttribute(self::KEY_MIN_CHARACTERS, [
                 'limit' => $minLength,
                 'min' => $minLength,
             ]);
@@ -347,37 +347,37 @@ class ValidationMessagesHelper
 
         if ($requireUppercase) {
             $attrs['data-formie-password-require-uppercase'] = true;
-            $attrs[self::clientAttribute(self::KEY_PASSWORD_UPPERCASE)] = $field->getValidationMessageClientAttribute(self::KEY_PASSWORD_UPPERCASE);
+            $attrs[self::browserAttribute(self::KEY_PASSWORD_UPPERCASE)] = $field->getValidationMessageBrowserAttribute(self::KEY_PASSWORD_UPPERCASE);
         }
 
         if ($requireLowercase) {
             $attrs['data-formie-password-require-lowercase'] = true;
-            $attrs[self::clientAttribute(self::KEY_PASSWORD_LOWERCASE)] = $field->getValidationMessageClientAttribute(self::KEY_PASSWORD_LOWERCASE);
+            $attrs[self::browserAttribute(self::KEY_PASSWORD_LOWERCASE)] = $field->getValidationMessageBrowserAttribute(self::KEY_PASSWORD_LOWERCASE);
         }
 
         if ($requireSpecialCharacter) {
             $attrs['data-formie-password-require-special-character'] = true;
-            $attrs[self::clientAttribute(self::KEY_PASSWORD_SPECIAL_CHARACTER)] = $field->getValidationMessageClientAttribute(self::KEY_PASSWORD_SPECIAL_CHARACTER);
+            $attrs[self::browserAttribute(self::KEY_PASSWORD_SPECIAL_CHARACTER)] = $field->getValidationMessageBrowserAttribute(self::KEY_PASSWORD_SPECIAL_CHARACTER);
         }
 
         return $attrs;
     }
 
-    public static function numberValidationClientAttributes(Field $field, bool $limit, mixed $min, mixed $max): array
+    public static function numberValidationBrowserAttributes(Field $field, bool $limit, mixed $min, mixed $max): array
     {
         $attrs = [
-            'data-formie-required-message' => $field->getValidationMessageClientAttribute(self::KEY_REQUIRED),
-            self::clientAttribute(self::KEY_NUMBER) => $field->getValidationMessageClientAttribute(self::KEY_NUMBER),
+            'data-formie-required-message' => $field->getValidationMessageBrowserAttribute(self::KEY_REQUIRED),
+            self::browserAttribute(self::KEY_NUMBER) => $field->getValidationMessageBrowserAttribute(self::KEY_NUMBER),
         ];
 
         if ($limit && $min) {
-            $attrs[self::clientAttribute(self::KEY_NUMBER_MIN)] = $field->getValidationMessageClientAttribute(self::KEY_NUMBER_MIN, [
+            $attrs[self::browserAttribute(self::KEY_NUMBER_MIN)] = $field->getValidationMessageBrowserAttribute(self::KEY_NUMBER_MIN, [
                 'min' => $min,
             ]);
         }
 
         if ($limit && $max) {
-            $attrs[self::clientAttribute(self::KEY_NUMBER_MAX)] = $field->getValidationMessageClientAttribute(self::KEY_NUMBER_MAX, [
+            $attrs[self::browserAttribute(self::KEY_NUMBER_MAX)] = $field->getValidationMessageBrowserAttribute(self::KEY_NUMBER_MAX, [
                 'max' => $max,
             ]);
         }
@@ -385,36 +385,36 @@ class ValidationMessagesHelper
         return $attrs;
     }
 
-    public static function emailValidationClientAttributes(Field $field): array
+    public static function emailValidationBrowserAttributes(Field $field): array
     {
         return [
-            'data-formie-required-message' => $field->getValidationMessageClientAttribute(self::KEY_REQUIRED),
-            self::clientAttribute(self::KEY_EMAIL) => $field->getValidationMessageClientAttribute(self::KEY_EMAIL),
+            'data-formie-required-message' => $field->getValidationMessageBrowserAttribute(self::KEY_REQUIRED),
+            self::browserAttribute(self::KEY_EMAIL) => $field->getValidationMessageBrowserAttribute(self::KEY_EMAIL),
         ];
     }
 
-    public static function fileUploadValidationClientAttributes(
+    public static function fileUploadValidationBrowserAttributes(
         Field $field,
         int $limitFiles,
         float $sizeMinLimit,
         float $sizeMaxLimit,
     ): array {
-        $attrs = self::requiredClientAttributes($field);
+        $attrs = self::requiredBrowserAttributes($field);
 
         if ($limitFiles) {
-            $attrs[self::clientAttribute(self::KEY_MAX_FILES)] = $field->getValidationMessageClientAttribute(self::KEY_MAX_FILES, [
+            $attrs[self::browserAttribute(self::KEY_MAX_FILES)] = $field->getValidationMessageBrowserAttribute(self::KEY_MAX_FILES, [
                 'files' => $limitFiles,
             ]);
         }
 
         if ($sizeMinLimit) {
-            $attrs[self::clientAttribute(self::KEY_MIN_FILE_SIZE)] = $field->getValidationMessageClientAttribute(self::KEY_MIN_FILE_SIZE, [
+            $attrs[self::browserAttribute(self::KEY_MIN_FILE_SIZE)] = $field->getValidationMessageBrowserAttribute(self::KEY_MIN_FILE_SIZE, [
                 'filesize' => $sizeMinLimit,
             ]);
         }
 
         if ($sizeMaxLimit) {
-            $attrs[self::clientAttribute(self::KEY_MAX_FILE_SIZE)] = $field->getValidationMessageClientAttribute(self::KEY_MAX_FILE_SIZE, [
+            $attrs[self::browserAttribute(self::KEY_MAX_FILE_SIZE)] = $field->getValidationMessageBrowserAttribute(self::KEY_MAX_FILE_SIZE, [
                 'filesize' => $sizeMaxLimit,
             ]);
         }
@@ -422,7 +422,7 @@ class ValidationMessagesHelper
         return $attrs;
     }
 
-    public static function optionsLimitClientAttributes(Field $field, bool $limitOptions, mixed $min, mixed $max): array
+    public static function optionsLimitBrowserAttributes(Field $field, bool $limitOptions, mixed $min, mixed $max): array
     {
         $attrs = [];
 
@@ -431,13 +431,13 @@ class ValidationMessagesHelper
         }
 
         if ($min) {
-            $attrs[self::clientAttribute(self::KEY_MIN_OPTIONS)] = $field->getValidationMessageClientAttribute(self::KEY_MIN_OPTIONS, [
+            $attrs[self::browserAttribute(self::KEY_MIN_OPTIONS)] = $field->getValidationMessageBrowserAttribute(self::KEY_MIN_OPTIONS, [
                 'min' => $min,
             ]);
         }
 
         if ($max) {
-            $attrs[self::clientAttribute(self::KEY_MAX_OPTIONS)] = $field->getValidationMessageClientAttribute(self::KEY_MAX_OPTIONS, [
+            $attrs[self::browserAttribute(self::KEY_MAX_OPTIONS)] = $field->getValidationMessageBrowserAttribute(self::KEY_MAX_OPTIONS, [
                 'max' => $max,
             ]);
         }

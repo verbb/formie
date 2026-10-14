@@ -2,12 +2,12 @@
 namespace verbb\formie\controllers\client;
 
 use verbb\formie\Formie;
-use verbb\formie\client\models\SubmitRequest;
 use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\helpers\BrowserRequestProfile;
 use verbb\formie\helpers\SiteHelper;
+use verbb\formie\models\FormSubmitRequest;
 
 use craft\web\Controller;
 
@@ -52,7 +52,7 @@ class SubmissionsController extends Controller
 
         $this->requirePostRequest();
 
-        $result = Formie::$plugin->getSubmissionRequests()->execute(new SubmitRequest([
+        $result = Formie::$plugin->getSubmissionRequests()->execute(new FormSubmitRequest([
             'handle' => (string)$this->request->getBodyParam('handle', $this->request->getParam('handle', '')),
             'operationId' => $this->request->getBodyParam('operationId'),
             'action' => (string)$this->request->getBodyParam('action', 'submit'),

@@ -434,7 +434,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                     'data-formie-input-type' => 'tel',
                     'data-formie-input-error-state' => $errors ? true : false,
                     'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
-                ], ValidationMessagesHelper::requiredClientAttributes($this)))
+                ], ValidationMessagesHelper::requiredBrowserAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

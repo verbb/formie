@@ -52,7 +52,7 @@ it('routes client submission upload envelopes through request normalization', fu
     UploadTestHelper::ensureUploadVolume();
     $form = formie()->form()->fileUploadField('upload', ['restrictFiles' => false])->settings(['disableCaptchas' => true])->create();
     \Tests\Support\WebRequestTestHelper::withWebRequestContext(function () use ($form) {
-        $result = runClientSubmission(new \verbb\formie\client\models\SubmitRequest([
+        $result = runClientSubmission(new \verbb\formie\models\FormSubmitRequest([
             'handle' => $form->handle,
             'session' => ['version' => 0, 'tokens' => ['request' => $form->getRequestToken()]],
             'values' => ['upload' => [['filename' => 'client-boundary.txt', 'fileData' => 'data:text/plain;base64,' . base64_encode('Client boundary bytes')]]],

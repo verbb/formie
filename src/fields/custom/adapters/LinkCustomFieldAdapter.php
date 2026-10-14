@@ -4,8 +4,8 @@ namespace verbb\formie\fields\custom\adapters;
 use verbb\formie\Formie;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
-use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
 use verbb\formie\fields\CustomField;
+use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\CustomLinkFieldValue;
 use verbb\formie\helpers\SchemaHelper;
@@ -234,7 +234,7 @@ class LinkCustomFieldAdapter extends AbstractCustomFieldAdapter
         ];
     }
 
-    public function getClientInput(CustomField $field): array
+    public function getClientRenderedInput(CustomField $field): array
     {
         return [
             'inputType' => 'link',

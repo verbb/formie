@@ -188,4 +188,4 @@ Clone and run the official starters to try each package in a working application
 - [Web Components starter](https://formie-starters.verbb.io/web-components)
 - [Nuxt starter](https://formie-starters.verbb.io/nuxt)
 
-Each starter includes working examples for HTML mode, component mode, REST, and GraphQL. Use them as copy-paste references before building from the package README alone.
+Each starter includes working examples for server-rendered forms, client-rendered forms, REST, and GraphQL. Use them as copy-paste references before building from the package README alone.

@@ -87,7 +87,7 @@ class PayPal extends Payment
                 'currency' => $this->getFieldSetting('currency'),
                 'amountType' => $this->getFieldSetting('amountType'),
                 'amountFixed' => $this->getFieldSetting('amountFixed'),
-                'amountVariable' => $this->normalizeClientFieldReference($this->getFieldSetting('amountVariable')),
+                'amountVariable' => $this->normalizeBrowserFieldReference($this->getFieldSetting('amountVariable')),
                 'buttonLayout' => $this->getFieldSetting('buttonLayout', 'horizontal'),
                 'buttonColor' => $this->getFieldSetting('buttonColor', 'gold'),
                 'buttonShape' => $this->getFieldSetting('buttonShape', 'rect'),

@@ -1665,7 +1665,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                     'data-formie-input-type' => 'date',
                     'data-formie-input-error-state' => $errors ? true : false,
                     'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
-                ], ValidationMessagesHelper::requiredClientAttributes($this)))
+                ], ValidationMessagesHelper::requiredBrowserAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',
@@ -1691,7 +1691,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                     'data-formie-input-type' => 'date',
                     'data-formie-input-error-state' => $errors ? true : false,
                     'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
-                ], ValidationMessagesHelper::requiredClientAttributes($this)))
+                ], ValidationMessagesHelper::requiredBrowserAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

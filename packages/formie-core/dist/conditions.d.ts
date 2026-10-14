@@ -6,24 +6,24 @@ export type ConditionEvaluation = {
         rule?: number;
     }>;
 };
-export type ClientConditionRule = {
+export type BrowserConditionRule = {
     condition: string;
     value?: unknown;
     valueType?: ConditionValueType;
     browserSafe?: boolean;
 };
-export type ClientConditionSettings = {
+export type BrowserConditionSettings = {
     showRule: 'show' | 'hide' | 'enable' | 'disable';
     conditionRule: 'all' | 'any';
-    conditions: ClientConditionRule[];
+    conditions: BrowserConditionRule[];
 };
 export declare function conditionNumber(value: unknown): number | null;
 export declare function evaluateCondition(operator: string, actual: unknown, expected: unknown, type?: ConditionValueType): ConditionEvaluation;
 export declare function combineConditions(mode: string, results: ConditionEvaluation[]): ConditionEvaluation;
-export declare function evaluateConditionDefinition(condition: ClientConditionRule, actualValues: string[], options?: {
+export declare function evaluateConditionDefinition(condition: BrowserConditionRule, actualValues: string[], options?: {
     visibility?: boolean | null;
 }): ConditionEvaluation;
-export declare function finalizeConditionEvaluation(settings: Pick<ClientConditionSettings, 'conditionRule' | 'showRule'>, results: Array<ConditionEvaluation | boolean>): {
+export declare function finalizeConditionEvaluation(settings: Pick<BrowserConditionSettings, 'conditionRule' | 'showRule'>, results: Array<ConditionEvaluation | boolean>): {
     finalResult: boolean;
     shouldHide: boolean;
     evaluation: ConditionEvaluation;

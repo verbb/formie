@@ -1,9 +1,9 @@
 <?php
-namespace verbb\formie\client\models;
+namespace verbb\formie\models;
 
-use verbb\formie\client\BaseClientModel;
+use verbb\formie\base\FormPayload;
 
-class FormSession extends BaseClientModel
+class FormSession extends FormPayload
 {
     // Properties
     // =========================================================================

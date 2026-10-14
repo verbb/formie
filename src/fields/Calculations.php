@@ -105,7 +105,7 @@ class Calculations extends Field implements PreviewableFieldInterface
         $formula = trim($this->formula->toPlainText());
         $variables = [];
         $form = $this->getForm();
-        $fieldMap = $form ? FieldReferenceHelper::getClientFieldReferenceMap($form->getFields()) : [];
+        $fieldMap = $form ? FieldReferenceHelper::getBrowserFieldReferenceMap($form->getFields()) : [];
         $variableIdsBySourceKey = [];
         $sourceKeyByVariableId = [];
 
@@ -117,7 +117,7 @@ class Calculations extends Field implements PreviewableFieldInterface
                 return '';
             }
 
-            $sourceHandle = FieldReferenceHelper::resolveClientFieldKey($expression->identifier, $fieldMap);
+            $sourceHandle = FieldReferenceHelper::resolveBrowserFieldKey($expression->identifier, $fieldMap);
             $sourceHandle = trim($sourceHandle);
 
             if ($expression->selector !== '') {
@@ -374,7 +374,7 @@ class Calculations extends Field implements PreviewableFieldInterface
                     'data-formie-input-id' => $dataId,
                     'data-formie-input-type' => 'calculation',
                     'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
-                ], ValidationMessagesHelper::requiredClientAttributes($this)))
+                ], ValidationMessagesHelper::requiredBrowserAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

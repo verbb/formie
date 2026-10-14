@@ -2,7 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
-use verbb\formie\compatibility\client\RefreshTokensCompatibility;
+use verbb\formie\compatibility\browser\RefreshTokensCompatibility;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\BrowserRequestProfile;

@@ -31,14 +31,14 @@ use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
+use verbb\formie\models\SlotTag;
+use verbb\formie\models\Subscription;
+use verbb\formie\models\SubscriptionPlan;
 use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\payments\PaymentWebhookReceipt;
 use verbb\formie\models\payments\SubscriptionSnapshot;
 use verbb\formie\models\payments\VerifiedWebhook;
 use verbb\formie\models\payments\VerifiedWebhookBatch;
-use verbb\formie\models\SlotTag;
-use verbb\formie\models\Subscription;
-use verbb\formie\models\SubscriptionPlan;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\theme\context\RenderContext;
 
@@ -157,7 +157,7 @@ class Stripe extends Payment
         $currency = static::getSiteCurrency();
         $currencyType = $this->getFieldSetting('currencyType');
         $currencyFixed = $this->getFieldSetting('currencyFixed');
-        $currencyVariable = $this->normalizeClientFieldReference($this->getFieldSetting('currencyVariable'));
+        $currencyVariable = $this->normalizeBrowserFieldReference($this->getFieldSetting('currencyVariable'));
 
         if ($currencyType === Payment::VALUE_TYPE_FIXED) {
             $currency = strtolower($currencyFixed);
@@ -169,7 +169,7 @@ class Stripe extends Payment
         $amount = self::toStripeAmount(100, $currency);
         $amountType = $this->getFieldSetting('amountType');
         $amountFixed = $this->getFieldSetting('amountFixed');
-        $amountVariable = $this->normalizeClientFieldReference($this->getFieldSetting('amountVariable'));
+        $amountVariable = $this->normalizeBrowserFieldReference($this->getFieldSetting('amountVariable'));
 
         if ($amountType === Payment::VALUE_TYPE_FIXED) {
             $amount = self::toStripeAmount((string)$amountFixed, $currency);
@@ -196,7 +196,7 @@ class Stripe extends Payment
             $normalizedBillingDetails = [];
 
             foreach (['billingName', 'billingEmail', 'billingAddress'] as $key) {
-                $normalized = $this->normalizeClientFieldReference(
+                $normalized = $this->normalizeBrowserFieldReference(
                     $this->normalizeFieldMappingValue($billingDetails[$key] ?? '')
                 );
 

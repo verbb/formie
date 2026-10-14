@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use verbb\formie\Formie;
-use verbb\formie\models\ManagedSubmissionRequest;
+use verbb\formie\models\HtmlSubmissionRequest;
 use verbb\formie\services\SubmissionWorkflow;
 use Tests\Support\WebRequestTestHelper;
 
@@ -47,7 +47,7 @@ it('does not treat raw runtime submission uids as anonymous continuation credent
     $submission->isIncomplete = true;
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
 
-    expect(Formie::$plugin->getSubmissionRequests()->resolveClientContinuationSubmission($form, null, [
+    expect(Formie::$plugin->getSubmissionRequests()->resolveSessionContinuationSubmission($form, null, [
         'submissionUid' => (string)$submission->uid,
     ]))->toBeNull();
 })->group('security');
@@ -65,7 +65,7 @@ it('resolves runtime continuation only when presented with a valid continuation 
     $submission->isIncomplete = true;
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
     Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission, $form->getCurrentPage()?->id);
-    $resolved = Formie::$plugin->getSubmissionRequests()->resolveClientContinuationSubmission($form, null, [
+    $resolved = Formie::$plugin->getSubmissionRequests()->resolveSessionContinuationSubmission($form, null, [
         'grantToken' => Formie::$plugin->getSubmissionGrants()->issue($submission, \verbb\formie\services\SubmissionGrants::CONTINUE, Formie::$plugin->getSubmissionProgress()->getProgressState($form)->id)->token,
     ]);
 
@@ -86,7 +86,7 @@ it('rejects managed site submissions that try to continue by raw submission id a
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
 
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission): void {
-        expect(fn() => runManagedSubmission(new ManagedSubmissionRequest([
+        expect(fn() => runHtmlSubmission(new HtmlSubmissionRequest([
             'handle' => $form->handle,
             'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'siteId' => (int)$submission->siteId,
@@ -118,7 +118,7 @@ it('rejects managed site submissions that try to continue by raw submission uid 
     expect(Craft::$app->getElements()->saveElement($submission))->toBeTrue();
 
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission): void {
-        expect(fn() => runManagedSubmission(new ManagedSubmissionRequest([
+        expect(fn() => runHtmlSubmission(new HtmlSubmissionRequest([
             'handle' => $form->handle,
             'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'siteId' => (int)$submission->siteId,
@@ -151,7 +151,7 @@ it('rejects anonymous site save-submission attempts to create a new submission',
         ->create();
 
     WebRequestTestHelper::withWebRequestContext(function () use ($form): void {
-        expect(fn() => runManagedSubmission(new ManagedSubmissionRequest([
+        expect(fn() => runHtmlSubmission(new HtmlSubmissionRequest([
             'handle' => $form->handle,
             'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'siteId' => (int)Craft::$app->getSites()->getCurrentSite()->id,

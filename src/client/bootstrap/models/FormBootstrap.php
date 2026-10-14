@@ -1,12 +1,12 @@
 <?php
 namespace verbb\formie\client\bootstrap\models;
 
-use verbb\formie\client\BaseClientModel;
-use verbb\formie\client\models\FormSession;
+use verbb\formie\base\FormPayload;
+use verbb\formie\models\FormSession;
 
 use InvalidArgumentException;
 
-class FormBootstrap extends BaseClientModel
+class FormBootstrap extends FormPayload
 {
     // Properties
     // =========================================================================

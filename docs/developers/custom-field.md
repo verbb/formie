@@ -142,11 +142,11 @@ Adds input-specific configuration to the client-rendered field definition.
 :::
 
 ::: reference
-### `clientRenderedDefinition()`
+### `getClientRenderedDefinition()`
 
-**Returns:** `verbb\formie\fields\definitions\FieldClientRenderedDefinition`
+**Returns:** `array`
 
-Declares the base field type and input metadata used in the structured client-rendered payload.
+Returns the complete client-rendered field definition, including input configuration, nested structure, conditions and validation. Override `defineClientRenderedType()` and `defineClientRenderedInput()` to declare the field type and input configuration.
 :::
 
 ::: reference

@@ -233,8 +233,8 @@ describe('createClientFormInstance', () => {
                     type: 'repeater',
                     required: false,
                     validation: [],
-                    runtime: {
-                        structure: 'repeatable-parent',
+                    client: {
+                        children: { model: 'repeatable-parent', mode: 'rows' },
                     },
                     input: {
                         kind: 'repeater',

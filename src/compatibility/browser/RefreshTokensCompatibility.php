@@ -1,5 +1,5 @@
 <?php
-namespace verbb\formie\compatibility\client;
+namespace verbb\formie\compatibility\browser;
 
 use Craft;
 use craft\helpers\Html;

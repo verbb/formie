@@ -1,9 +1,11 @@
 <?php
-namespace verbb\formie\client;
+namespace verbb\formie\models;
+
+use verbb\formie\base\FormPayload;
 
 use Closure;
 
-abstract class ClientMutationRequest extends BaseClientModel
+abstract class FormMutationRequest extends FormPayload
 {
     // Properties
     // =========================================================================

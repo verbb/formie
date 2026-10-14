@@ -2316,7 +2316,7 @@ function ar() {
 			};
 			y(b, "formie:validator:ready", t), y(a, "formie:validator:ready", t);
 		}
-		b && (Qt(b), g.theme && g.theme !== "formie" && b.setAttribute("data-formie-frontend-theme", g.theme), (v || g.endpoint || a.dataset.formieEndpoint) && Ln(a, b, g), g.mode === "server-rendered" && He(b) && (Ve(b), Ue(b)), C(b)), Object.keys(E).length && y(a, "formie:theme:applied", { hasClasses: !0 });
+		b && (Qt(b), (v || g.endpoint || a.dataset.formieEndpoint) && Ln(a, b, g), g.mode === "server-rendered" && He(b) && (Ve(b), Ue(b)), C(b)), Object.keys(E).length && y(a, "formie:theme:applied", { hasClasses: !0 });
 		let O = await Xt(T, {
 			registry: r,
 			matchContext: {

@@ -37,9 +37,9 @@ it('uses validation message overrides with placeholder interpolation', function 
         ->toBe('Pick another Email.')
         ->and($field->getValidationMessage(ValidationMessagesHelper::KEY_MAX_CHARACTERS, ['max' => 5, 'limit' => 5]))
         ->toBe('Keep Email under 5 characters.')
-        ->and($field->getValidationMessageClientAttribute(ValidationMessagesHelper::KEY_REQUIRED))
+        ->and($field->getValidationMessageBrowserAttribute(ValidationMessagesHelper::KEY_REQUIRED))
         ->toBe('Email is mandatory.')
-        ->and($field->getValidationMessageClientAttribute(ValidationMessagesHelper::KEY_UNIQUE))
+        ->and($field->getValidationMessageBrowserAttribute(ValidationMessagesHelper::KEY_UNIQUE))
         ->toBe('Pick another Email.');
 });
 
@@ -119,7 +119,7 @@ it('uses plugin validation message defaults when a field has no override', funct
             ->toBe('Please complete Username.')
             ->and($field->getValidationMessage(ValidationMessagesHelper::KEY_UNIQUE))
             ->toBe('The Username value is already taken.')
-            ->and($field->getValidationMessageClientAttribute(ValidationMessagesHelper::KEY_REQUIRED))
+            ->and($field->getValidationMessageBrowserAttribute(ValidationMessagesHelper::KEY_REQUIRED))
             ->toBe('Please complete Username.');
     } finally {
         Formie::$plugin->getSettings()->validationMessageDefaults = $previousDefaults;

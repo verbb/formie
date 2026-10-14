@@ -183,7 +183,7 @@ trait TextLimitFieldTrait
 
     protected function applyTextLimitInputAttributes(array $attributes): array
     {
-        return array_merge($attributes, ValidationMessagesHelper::textLimitClientAttributes(
+        return array_merge($attributes, ValidationMessagesHelper::textLimitBrowserAttributes(
             $this,
             (bool)$this->limit,
             $this->min,
@@ -223,24 +223,24 @@ trait TextLimitFieldTrait
             new BrowserModule([
                 'moduleId' => 'formie:text-limit',
                 'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED],
-                'config' => $this->getTextLimitClientConfig(false),
+                'config' => $this->getTextLimitBrowserConfig(false),
             ]),
             new BrowserModule([
                 'moduleId' => 'formie:text-limit',
                 'surfaces' => [BrowserModule::SURFACE_CP_EDIT],
-                'config' => $this->getTextLimitClientConfig(true),
+                'config' => $this->getTextLimitBrowserConfig(true),
             ]),
         ];
     }
 
-    protected function getTextLimitClientConfig(bool $allowOvertype): array
+    protected function getTextLimitBrowserConfig(bool $allowOvertype): array
     {
         return [
             'allowOvertype' => $allowOvertype,
         ];
     }
 
-    protected function getTextLimitClientInput(): array
+    protected function getTextLimitClientRenderedInput(): array
     {
         return [
             'min' => $this->min,

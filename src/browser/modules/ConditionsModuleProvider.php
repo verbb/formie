@@ -1,5 +1,5 @@
 <?php
-namespace verbb\formie\client\modules;
+namespace verbb\formie\browser\modules;
 
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\CpSubmissionFieldConditions;
@@ -22,7 +22,7 @@ class ConditionsModuleProvider implements BrowserModuleProviderInterface
             $surfaces[] = BrowserModule::SURFACE_CP_EDIT;
         }
 
-        $cpDisplayMode = CpSubmissionFieldConditions::clientDisplayMode($form->getCpSubmissionFieldConditions());
+        $cpDisplayMode = CpSubmissionFieldConditions::browserDisplayMode($form->getCpSubmissionFieldConditions());
 
         return [
             new BrowserModule([

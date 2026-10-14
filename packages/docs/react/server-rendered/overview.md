@@ -14,7 +14,7 @@ Browser events and browser modules still apply for server-rendered forms. Use th
 
 ## Component
 
-This is the simplest HTML-mode entry point.
+This is the simplest server-rendered entry point.
 
 ```tsx
 import { FormieForm } from '@verbb/formie-react';
@@ -40,7 +40,7 @@ export function ContactForm() {
 
 ### Props
 
-`<FormieForm />` supports these HTML-mode props:
+`<FormieForm />` supports these server-rendered props:
 
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |

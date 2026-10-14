@@ -362,7 +362,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
                     'data-formie-input-type' => 'password',
                     'data-formie-input-error-state' => $errors ? true : false,
                     'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
-                ], ValidationMessagesHelper::passwordValidationClientAttributes(
+                ], ValidationMessagesHelper::passwordValidationBrowserAttributes(
                     $this,
                     $this->passwordMinLength,
                     (bool)$this->passwordRequireUppercase,

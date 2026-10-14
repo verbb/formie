@@ -3,8 +3,8 @@ namespace verbb\formie\fields\custom\adapters;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
-use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
 use verbb\formie\fields\CustomField;
+use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\CustomMapFieldValue;
 use verbb\formie\helpers\SchemaHelper;
@@ -199,13 +199,13 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         ];
     }
 
-    public function getClientInput(CustomField $field): array
+    public function getClientRenderedInput(CustomField $field): array
     {
         return [
             'inputType' => 'map',
             'provider' => static::handle(),
             'placeholder' => $this->getPlaceholder($field) ?: null,
-            'mapSettings' => $this->getMapClientSettings($field),
+            'mapSettings' => $this->getMapBrowserSettings($field),
         ];
     }
 
@@ -311,7 +311,7 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         $hideAddress = $this->getBooleanSetting($field, 'hideAddress');
         $hideMap = $this->getBooleanSetting($field, 'hideMap');
         $hideSearch = $this->getBooleanSetting($field, 'hideSearch');
-        $settings = $this->getMapsPluginClientSettings($field);
+        $settings = $this->getMapsPluginBrowserSettings($field);
         $searchInput = !$hideSearch ? $this->renderTextInput($field, $form, array_filter([
             'id' => $id . '-search',
             'name' => $hideAddress ? $addressName : null,
@@ -435,7 +435,7 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         return trim((string)$this->getSetting($field, 'defaultValue', ''));
     }
 
-    protected function getMapClientSettings(CustomField $field): array
+    protected function getMapBrowserSettings(CustomField $field): array
     {
         return [
             'hideSearch' => $this->getBooleanSetting($field, 'hideSearch'),
@@ -453,7 +453,7 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         ];
     }
 
-    protected function getMapsPluginClientSettings(CustomField $field): array
+    protected function getMapsPluginBrowserSettings(CustomField $field): array
     {
         $settings = SimpleMap::getInstance()->getSettings();
         $mapTiles = $settings->mapTiles === MapTiles::Wikimedia ? MapTiles::OpenStreetMap : $settings->mapTiles;

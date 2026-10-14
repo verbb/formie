@@ -7,7 +7,7 @@ import type {
     KnownClientFieldType,
 } from './types';
 
-const KNOWN_FRONTEND_FIELD_TYPES = new Set<KnownClientFieldType>([
+const KNOWN_CLIENT_FIELD_TYPES = new Set<KnownClientFieldType>([
     'single-line-text',
     'multi-line-text',
     'number',
@@ -48,18 +48,15 @@ export function serializeFieldValues(definition: ClientFormDefinition, values: R
 }
 
 export function isKnownClientFieldType(fieldType: string): fieldType is KnownClientFieldType {
-    return KNOWN_FRONTEND_FIELD_TYPES.has(fieldType as KnownClientFieldType);
+    return KNOWN_CLIENT_FIELD_TYPES.has(fieldType as KnownClientFieldType);
 }
 
 export function fieldValueContract(field: ClientFieldDefinition): ClientFieldValueContract {
-    if (field.client?.children) {
-        return { structure: field.client.children.model, valueType: field.client.valueType };
-    }
-    if (!field.runtime) {
-        throw new Error(`Field "${field.handle}" is missing field value metadata.`);
+    if (!field.client?.children) {
+        throw new Error(`Field "${field.handle}" is missing client-rendered value metadata. Update Formie and its packages together.`);
     }
 
-    return field.runtime;
+    return { structure: field.client.children.model, valueType: field.client.valueType };
 }
 
 export function fieldValueStructure(field: ClientFieldDefinition): ClientFieldValueContract['structure'] {

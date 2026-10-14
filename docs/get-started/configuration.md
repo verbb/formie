@@ -490,16 +490,16 @@ Sets how many days a Save & Continue link remains valid. The link also stops wor
 
 
 ::: reference
-#### `anonymousClientBootstrapRateLimit`
+#### `anonymousFormBootstrapRateLimit`
 
 **Type:** `int` · **Default:** `30`
 
-Limits anonymous client bootstrap requests within the configured rate window. Set to `0` to disable the limit.
+Limits anonymous form bootstrap requests within the configured rate window. Set to `0` to disable the limit.
 :::
 
 
 ::: reference
-#### `anonymousClientRefreshRateLimit`
+#### `anonymousFormRefreshRateLimit`
 
 **Type:** `int` · **Default:** `120`
 
@@ -508,7 +508,7 @@ Limits anonymous token-refresh requests within the configured rate window. Set t
 
 
 ::: reference
-#### `anonymousClientRateWindowSeconds`
+#### `anonymousFormRateWindowSeconds`
 
 **Type:** `int` · **Default:** `60`
 

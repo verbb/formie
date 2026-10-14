@@ -311,7 +311,7 @@ it('traverses and remaps nested parent fields at every depth', function () {
         $sourceFields = $form->getFieldsRecursively();
         $sourceParents = array_values(array_filter($sourceFields, fn($field) => $field instanceof ParentFieldInterface));
         $sourceLeaf = current(array_filter($sourceFields, fn($field) => $field->handle === 'email'));
-        $referenceMap = FieldReferenceHelper::getClientFieldReferenceMap($form->getFields());
+        $referenceMap = FieldReferenceHelper::getBrowserFieldReferenceMap($form->getFields());
         $copy = Formie::$plugin->getForms()->duplicateForm($form);
         $copyParents = array_values(array_filter($copy->getFieldsRecursively(), fn($field) => $field instanceof ParentFieldInterface));
 

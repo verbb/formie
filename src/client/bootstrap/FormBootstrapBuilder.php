@@ -32,8 +32,8 @@ class FormBootstrapBuilder extends Component
 
         (new RuntimeConfiguration())->establish($form, $context->query);
 
-        $definition = Formie::$plugin->getClientFormDefinitionBuilder()->build($form, $context);
-        $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form, null, true, null, $context->grantToken);
+        $definition = $form->getClientRenderedDefinition($context);
+        $session = Formie::$plugin->getFormSessions()->issueInitialSession($form, null, true, null, $context->grantToken);
 
         return new FormBootstrap([
             'definition' => $definition,

@@ -182,7 +182,7 @@ it('rejects arbitrary final asset IDs through every submission adapter', functio
         $token = $form->getRequestToken();
         if (in_array($transport, ['html', 'ajax'], true)) {
             $request->setBodyParams(['formieHoneypot' => '', 'formStartedAt' => (string)((int)(microtime(true) * 1000) - 60000), 'handle' => $form->handle, 'requestToken' => $token, 'fields' => ['document' => [$asset->id]]]);
-            $result = Formie::$plugin->getSubmissionRequests()->executeManaged(new \verbb\formie\models\ManagedSubmissionRequest([
+            $result = Formie::$plugin->getSubmissionRequests()->executeHtml(new \verbb\formie\models\HtmlSubmissionRequest([
                 'handle' => $form->handle, 'requestToken' => $token, 'expectedVersion' => 0,
             ]), \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
             expect($result->response->outcome->type->value)->toBe('validationFailed');
@@ -196,7 +196,7 @@ it('rejects arbitrary final asset IDs through every submission adapter', functio
                     $result = \verbb\formie\gql\resolvers\ClientFormResolver::submitForm(null, ['input' => $input]);
                 } finally { $gql->setActiveSchema($previous); }
             } else {
-                $result = runClientSubmission(new \verbb\formie\client\models\SubmitRequest($input))->toArrayRecursive();
+                $result = runClientSubmission(new \verbb\formie\models\FormSubmitRequest($input))->toArrayRecursive();
             }
             expect($result['outcome'])->toBe('validationFailed');
         }
@@ -216,7 +216,7 @@ it('accepts the same structured staged-upload reference through every submission
             'uploadUid' => $tracked['uid'],
             'attachToken' => UploadAccess::issueToken((int)$asset->id, (int)$form->id, $field->uid, purpose: 'attach'),
         ]];
-        $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive();
+        $session = Formie::$plugin->getFormSessions()->issueInitialSession($form)->toArrayRecursive();
 
         if (in_array($transport, ['html', 'ajax'], true)) {
             $request->setBodyParams([
@@ -228,7 +228,7 @@ it('accepts the same structured staged-upload reference through every submission
                 'expectedVersion' => 0,
                 'fields' => ['document' => $reference],
             ]);
-            $execution = Formie::$plugin->getSubmissionRequests()->executeManaged(new \verbb\formie\models\ManagedSubmissionRequest([
+            $execution = Formie::$plugin->getSubmissionRequests()->executeHtml(new \verbb\formie\models\HtmlSubmissionRequest([
                 'handle' => $form->handle,
                 'requestToken' => $session['tokens']['request'],
                 'expectedVersion' => 0,
@@ -250,7 +250,7 @@ it('accepts the same structured staged-upload reference through every submission
                     $result = \verbb\formie\gql\resolvers\ClientFormResolver::submitForm(null, ['input' => $input]);
                 } finally { $gql->setActiveSchema($previous); }
             } else {
-                $result = runClientSubmission(new \verbb\formie\client\models\SubmitRequest($input))->toArrayRecursive();
+                $result = runClientSubmission(new \verbb\formie\models\FormSubmitRequest($input))->toArrayRecursive();
             }
             $success = $result['success'];
         }

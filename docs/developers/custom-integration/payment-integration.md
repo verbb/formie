@@ -62,7 +62,7 @@ class ExamplePayment extends Payment
                 'publishableKey' => App::parseEnv($this->publishableKey),
                 'amountType' => $this->getFieldSetting('amountType'),
                 'amountFixed' => $this->getFieldSetting('amountFixed'),
-                'amountVariable' => $this->normalizeClientFieldReference($this->getFieldSetting('amountVariable')),
+                'amountVariable' => $this->normalizeBrowserFieldReference($this->getFieldSetting('amountVariable')),
                 'currency' => $this->getFieldSetting('currency'),
                 'requiredInputSuffixes' => ['examplePaymentToken'],
                 'waitForValueMs' => 2500,

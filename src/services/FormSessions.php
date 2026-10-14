@@ -1,17 +1,16 @@
 <?php
-namespace verbb\formie\client;
+namespace verbb\formie\services;
 
 use verbb\formie\Formie;
-use verbb\formie\client\models\FormSession;
-use verbb\formie\client\models\PageTransitionRequest;
-use verbb\formie\client\models\SessionRefreshRequest;
-use verbb\formie\client\models\SubmitRequest;
-use verbb\formie\client\models\SubmitResult;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\helpers\UploadAccess;
-use verbb\formie\services\SubmissionGrants;
+use verbb\formie\models\FormSession;
+use verbb\formie\models\FormSubmitRequest;
+use verbb\formie\models\FormSubmitResult;
+use verbb\formie\models\PageTransitionRequest;
+use verbb\formie\models\SessionRefreshRequest;
 
 use Craft;
 
@@ -19,14 +18,13 @@ use yii\base\Component;
 use yii\web\ForbiddenHttpException;
 use yii\web\TooManyRequestsHttpException;
 
-class ClientSessionService extends Component
+class FormSessions extends Component
 {
     // Constants
     // =========================================================================
 
     private const RATE_SCOPE_BOOTSTRAP = 'bootstrap';
     private const RATE_SCOPE_REFRESH = 'refresh';
-    private const RATE_SCOPE_PAGE = 'page';
 
 
     // Public Methods
@@ -35,7 +33,7 @@ class ClientSessionService extends Component
     public function issueInitialSession(Form $form, ?string $currentPageId = null, bool $enforceAbuseLimit = false, ?bool $includeProgressContinuation = null, ?string $continuationGrantToken = null): FormSession
     {
         if ($enforceAbuseLimit) {
-            $this->_enforceAnonymousClientRateLimit($form, self::RATE_SCOPE_BOOTSTRAP);
+            $this->_enforceAnonymousFormRateLimit($form, self::RATE_SCOPE_BOOTSTRAP);
         }
 
         return $this->_buildSession($form, $currentPageId, $includeProgressContinuation, $continuationGrantToken);
@@ -52,10 +50,10 @@ class ClientSessionService extends Component
             unset($session['tokens']['render']);
         }
 
-        $requests->applyClientRequestContext($form, $session);
+        $requests->applySessionRequestContext($form, $session);
 
         if ($authorizeScope = $request->getScopeAuthorizer()) {
-            if (!$authorizeScope($form, $requests->getRequiredClientMutationScope($form, $session))) {
+            if (!$authorizeScope($form, $requests->getRequiredSessionMutationScope($form, $session))) {
                 throw new ForbiddenHttpException('Submission is unavailable.');
             }
         }
@@ -73,7 +71,7 @@ class ClientSessionService extends Component
         $currentPageId = (string)($request->session['currentPageId'] ?? ($form->getCurrentPage()?->id ?? ''));
 
         if ($enforceAbuseLimit) {
-            $this->_enforceAnonymousClientRateLimit($form, self::RATE_SCOPE_REFRESH);
+            $this->_enforceAnonymousFormRateLimit($form, self::RATE_SCOPE_REFRESH);
         }
 
         $continuation = (array)($request->session['continuation'] ?? []);
@@ -89,9 +87,9 @@ class ClientSessionService extends Component
         return $this->_buildSession($form, $currentPageId, null, $grantToken);
     }
 
-    public function persistPageState(PageTransitionRequest $request, bool $enforceAbuseLimit = false): SubmitResult
+    public function persistPageState(PageTransitionRequest $request): FormSubmitResult
     {
-        $result = Formie::$plugin->getSubmissionRequests()->execute(new SubmitRequest([
+        return Formie::$plugin->getSubmissionRequests()->execute(new FormSubmitRequest([
             'handle' => $request->handle,
             'siteId' => $request->siteId,
             'action' => 'back',
@@ -101,18 +99,17 @@ class ClientSessionService extends Component
             'operationId' => $request->operationId,
             'scopeAuthorizer' => $request->getScopeAuthorizer(),
         ]), SubmissionAuthorityType::VISITOR);
-        return $result;
     }
 
     public function enforceAnonymousRateLimit(Form $form, string $scope = self::RATE_SCOPE_REFRESH): void
     {
-        $this->_enforceAnonymousClientRateLimit($form, $scope);
+        $this->_enforceAnonymousFormRateLimit($form, $scope);
     }
 
     public function buildTokenPayload(Form $form, bool $enforceAbuseLimit = false): array
     {
         if ($enforceAbuseLimit) {
-            $this->_enforceAnonymousClientRateLimit($form, self::RATE_SCOPE_REFRESH);
+            $this->_enforceAnonymousFormRateLimit($form, self::RATE_SCOPE_REFRESH);
         }
 
         Craft::$app->getSession()->open();
@@ -209,13 +206,12 @@ class ClientSessionService extends Component
         return $continuation ?: null;
     }
 
-    private function _enforceAnonymousClientRateLimit(Form $form, string $scope): void
+    private function _enforceAnonymousFormRateLimit(Form $form, string $scope): void
     {
         $settings = Formie::$plugin->getSettings();
         $limit = match ($scope) {
-            self::RATE_SCOPE_BOOTSTRAP => (int)$settings->anonymousClientBootstrapRateLimit,
-            self::RATE_SCOPE_PAGE,
-            self::RATE_SCOPE_REFRESH => (int)$settings->anonymousClientRefreshRateLimit,
+            self::RATE_SCOPE_BOOTSTRAP => (int)$settings->anonymousFormBootstrapRateLimit,
+            self::RATE_SCOPE_REFRESH => (int)$settings->anonymousFormRefreshRateLimit,
             default => 0,
         };
 
@@ -223,10 +219,10 @@ class ClientSessionService extends Component
             return;
         }
 
-        $window = max(1, (int)$settings->anonymousClientRateWindowSeconds);
-        $fingerprint = $this->_resolveClientRateLimitFingerprint($form, $scope);
-        $cacheKey = 'formie.client-rate-limit.' . md5($fingerprint);
-        $mutexKey = 'formie.client-rate-limit-lock.' . md5($fingerprint);
+        $window = max(1, (int)$settings->anonymousFormRateWindowSeconds);
+        $fingerprint = $this->_resolveFormRateLimitFingerprint($form, $scope);
+        $cacheKey = 'formie.form-rate-limit.' . md5($fingerprint);
+        $mutexKey = 'formie.form-rate-limit-lock.' . md5($fingerprint);
         $cache = Craft::$app->getCache();
         $mutex = Craft::$app->getMutex();
         $now = time();
@@ -266,7 +262,7 @@ class ClientSessionService extends Component
         }
     }
 
-    private function _resolveClientRateLimitFingerprint(Form $form, string $scope): string
+    private function _resolveFormRateLimitFingerprint(Form $form, string $scope): string
     {
         $request = Craft::$app->getRequest();
         $ip = trim((string)($request->getUserIP() ?? 'unknown'));

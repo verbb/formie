@@ -300,7 +300,7 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
         return array_merge(parent::defineClientRenderedInput(), [
             'customFieldAdapter' => $this->customFieldAdapter,
             'customFieldAdapterSettings' => $this->getCustomFieldAdapterSettings(),
-        ], $this->getAdapter()->getClientInput($this));
+        ], $this->getAdapter()->getClientRenderedInput($this));
     }
 
     protected function defineBrowserModules(): array

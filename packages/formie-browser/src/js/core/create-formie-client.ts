@@ -212,7 +212,7 @@ function mergeSearchParams(sourceUrl: string | null, destinationUrl: string): st
     }
 }
 
-function normalizeHeadlessManagedUrls(target: Element, form: HTMLFormElement, options: FormMountOptions): void {
+function normalizeServerRenderedUrls(target: Element, form: HTMLFormElement, options: FormMountOptions): void {
     const baseEndpoint = options.endpoint || (target as HTMLElement).dataset.formieEndpoint;
     const submitAction = resolveHeadlessEndpoint(baseEndpoint, DEFAULT_HEADLESS_SUBMIT_ACTION);
     const existingAction = form.getAttribute('action');
@@ -1066,13 +1066,8 @@ export function createFormieClient(): FormieClient {
         if (form) {
             ensureFormStartedAt(form);
 
-
-            if (normalizedOptions.theme && normalizedOptions.theme !== 'formie') {
-                form.setAttribute('data-formie-frontend-theme', normalizedOptions.theme);
-            }
-
             if (renderPayload || normalizedOptions.endpoint || (target as HTMLElement).dataset.formieEndpoint) {
-                normalizeHeadlessManagedUrls(target, form, normalizedOptions);
+                normalizeServerRenderedUrls(target, form, normalizedOptions);
             }
 
             if (normalizedOptions.mode === 'server-rendered' && hasServerRenderedValidationErrors(form)) {

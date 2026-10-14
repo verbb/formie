@@ -350,7 +350,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         $config = parent::getCpEditConfig();
 
         if ($this->getOptionsMode() !== OptionsMode::STATIC) {
-            // CP submission editing consumes the thin client config rather than
+            // CP submission editing consumes the CP edit config rather than
             // the full front-end payload, so expose resolved dynamic rows there too.
             $options = $this->getFieldOptions();
             $config['options'] = $options;

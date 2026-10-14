@@ -5,7 +5,6 @@ use verbb\formie\Formie;
 use verbb\formie\base\ElementField;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\references\ReferenceType;
 
 use Craft;
@@ -266,11 +265,11 @@ class Products extends ElementField
     // Protected Methods
     // =========================================================================
 
-    protected function definePrimaryOptionVariableSourceTypes(): array
+    protected function definePrimaryOptionReferenceTypes(): array
     {
         return [
-            Variables::TYPE_TEXT,
-            Variables::TYPE_NUMBER,
+            ReferenceType::Text,
+            ReferenceType::Number,
         ];
     }
 

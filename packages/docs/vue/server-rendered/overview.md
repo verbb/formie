@@ -14,7 +14,7 @@ Browser events and browser modules still apply for server-rendered forms. Use th
 
 ## Component
 
-This is the simplest HTML-mode entry point.
+This is the simplest server-rendered entry point.
 
 ```vue
 <script setup lang="ts">
@@ -46,7 +46,7 @@ In templates, use **kebab-case** for multi-word props (`form-handle`, `theme-con
 
 ### Props
 
-`<FormieForm />` supports these HTML-mode props:
+`<FormieForm />` supports these server-rendered props:
 
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |

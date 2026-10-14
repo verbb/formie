@@ -6,9 +6,9 @@ use Tests\Support\WebRequestTestHelper;
 use verbb\formie\Formie;
 use verbb\formie\controllers\client\FormsController as ClientFormsController;
 use verbb\formie\models\Settings;
-use verbb\formie\client\models\PageTransitionRequest;
-use verbb\formie\client\models\SubmitRequest;
-use verbb\formie\client\models\SessionRefreshRequest;
+use verbb\formie\models\PageTransitionRequest;
+use verbb\formie\models\FormSubmitRequest;
+use verbb\formie\models\SessionRefreshRequest;
 use verbb\formie\services\SubmissionWorkflow;
 use craft\helpers\UrlHelper;
 use yii\web\MethodNotAllowedHttpException;
@@ -80,7 +80,7 @@ it('reissues refresh-session tokens instead of trusting attacker supplied token 
     $pageId = (string)($form->getCurrentPage()?->id ?? '');
 
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $pageId, $authorizeScope, $malformedTokens): void {
-        $session = Formie::$plugin->getClientSessionService()->refreshSession(new SessionRefreshRequest([
+        $session = Formie::$plugin->getFormSessions()->refreshSession(new SessionRefreshRequest([
             'handle' => (string)$form->handle,
             'siteId' => (int)$form->siteId,
             'scopeAuthorizer' => $authorizeScope ? static fn() => true : null,
@@ -181,17 +181,17 @@ it('rate limits anonymous runtime bootstrap session minting', function (): void 
 
     /** @var Settings $settings */
     $settings = Formie::$plugin->getSettings();
-    $originalBootstrapLimit = $settings->anonymousClientBootstrapRateLimit;
-    $originalWindow = $settings->anonymousClientRateWindowSeconds;
+    $originalBootstrapLimit = $settings->anonymousFormBootstrapRateLimit;
+    $originalWindow = $settings->anonymousFormRateWindowSeconds;
 
     try {
-        $settings->anonymousClientBootstrapRateLimit = 1;
-        $settings->anonymousClientRateWindowSeconds = 60;
+        $settings->anonymousFormBootstrapRateLimit = 1;
+        $settings->anonymousFormRateWindowSeconds = 60;
 
         WebRequestTestHelper::withWebRequestContext(function ($request, $response) use ($form): void {
-            Formie::$plugin->getClientSessionService()->issueInitialSession($form, null, true);
+            Formie::$plugin->getFormSessions()->issueInitialSession($form, null, true);
 
-            expect(fn() => Formie::$plugin->getClientSessionService()->issueInitialSession($form, null, true))
+            expect(fn() => Formie::$plugin->getFormSessions()->issueInitialSession($form, null, true))
                 ->toThrow(TooManyRequestsHttpException::class);
 
             expect((int)$response->getHeaders()->get('Retry-After'))->toBeGreaterThanOrEqual(1)->toBeLessThanOrEqual(60);
@@ -203,8 +203,8 @@ it('rate limits anonymous runtime bootstrap session minting', function (): void 
             ],
         ]);
     } finally {
-        $settings->anonymousClientBootstrapRateLimit = $originalBootstrapLimit;
-        $settings->anonymousClientRateWindowSeconds = $originalWindow;
+        $settings->anonymousFormBootstrapRateLimit = $originalBootstrapLimit;
+        $settings->anonymousFormRateWindowSeconds = $originalWindow;
     }
 })->group('security');
 
@@ -216,17 +216,17 @@ it('shares refresh abuse limits across token refresh and session refresh endpoin
 
     /** @var Settings $settings */
     $settings = Formie::$plugin->getSettings();
-    $originalRefreshLimit = $settings->anonymousClientRefreshRateLimit;
-    $originalWindow = $settings->anonymousClientRateWindowSeconds;
+    $originalRefreshLimit = $settings->anonymousFormRefreshRateLimit;
+    $originalWindow = $settings->anonymousFormRateWindowSeconds;
 
     try {
-        $settings->anonymousClientRefreshRateLimit = 1;
-        $settings->anonymousClientRateWindowSeconds = 60;
+        $settings->anonymousFormRefreshRateLimit = 1;
+        $settings->anonymousFormRateWindowSeconds = 60;
 
         WebRequestTestHelper::withWebRequestContext(function ($request, $response) use ($form): void {
-            Formie::$plugin->getClientSessionService()->buildTokenPayload($form, true);
+            Formie::$plugin->getFormSessions()->buildTokenPayload($form, true);
 
-            expect(fn() => Formie::$plugin->getClientSessionService()->refreshSession(new SessionRefreshRequest([
+            expect(fn() => Formie::$plugin->getFormSessions()->refreshSession(new SessionRefreshRequest([
                 'handle' => (string)$form->handle,
                 'siteId' => (int)$form->siteId,
                 'session' => [],
@@ -241,8 +241,8 @@ it('shares refresh abuse limits across token refresh and session refresh endpoin
             ],
         ]);
     } finally {
-        $settings->anonymousClientRefreshRateLimit = $originalRefreshLimit;
-        $settings->anonymousClientRateWindowSeconds = $originalWindow;
+        $settings->anonymousFormRefreshRateLimit = $originalRefreshLimit;
+        $settings->anonymousFormRateWindowSeconds = $originalWindow;
     }
 })->group('security');
 
@@ -257,24 +257,24 @@ it('shares refresh abuse limits across token refresh and page transitions', func
 
     /** @var Settings $settings */
     $settings = Formie::$plugin->getSettings();
-    $originalRefreshLimit = $settings->anonymousClientRefreshRateLimit;
-    $originalWindow = $settings->anonymousClientRateWindowSeconds;
+    $originalRefreshLimit = $settings->anonymousFormRefreshRateLimit;
+    $originalWindow = $settings->anonymousFormRateWindowSeconds;
 
     try {
-        $settings->anonymousClientRefreshRateLimit = 1;
-        $settings->anonymousClientRateWindowSeconds = 60;
+        $settings->anonymousFormRefreshRateLimit = 1;
+        $settings->anonymousFormRateWindowSeconds = 60;
 
         WebRequestTestHelper::withWebRequestContext(function ($request, $response) use ($form, $pages): void {
-            $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive();
-            Formie::$plugin->getClientSessionService()->buildTokenPayload($form, true);
+            $session = Formie::$plugin->getFormSessions()->issueInitialSession($form)->toArrayRecursive();
+            Formie::$plugin->getFormSessions()->buildTokenPayload($form, true);
 
-            expect(Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
+            expect(Formie::$plugin->getFormSessions()->persistPageState(new PageTransitionRequest([
                 'handle' => (string)$form->handle,
                 'siteId' => (int)$form->siteId,
                 'targetPageId' => (string)$pages[1]->id,
                 'session' => $session,
                 'values' => [],
-            ]), true)->httpStatus)->toBe(429);
+            ]))->httpStatus)->toBe(429);
 
             expect((int)$response->getHeaders()->get('Retry-After'))->toBeGreaterThanOrEqual(1)->toBeLessThanOrEqual(60);
         }, [
@@ -285,8 +285,8 @@ it('shares refresh abuse limits across token refresh and page transitions', func
             ],
         ]);
     } finally {
-        $settings->anonymousClientRefreshRateLimit = $originalRefreshLimit;
-        $settings->anonymousClientRateWindowSeconds = $originalWindow;
+        $settings->anonymousFormRefreshRateLimit = $originalRefreshLimit;
+        $settings->anonymousFormRateWindowSeconds = $originalWindow;
     }
 })->group('security');
 
@@ -298,20 +298,20 @@ it('rate limits anonymous runtime submit requests with the shared refresh abuse 
 
     /** @var Settings $settings */
     $settings = Formie::$plugin->getSettings();
-    $originalRefreshLimit = $settings->anonymousClientRefreshRateLimit;
-    $originalWindow = $settings->anonymousClientRateWindowSeconds;
+    $originalRefreshLimit = $settings->anonymousFormRefreshRateLimit;
+    $originalWindow = $settings->anonymousFormRateWindowSeconds;
 
     try {
-        $settings->anonymousClientRefreshRateLimit = 1;
-        $settings->anonymousClientRateWindowSeconds = 60;
+        $settings->anonymousFormRefreshRateLimit = 1;
+        $settings->anonymousFormRateWindowSeconds = 60;
 
         WebRequestTestHelper::withWebRequestContext(function ($request, $response) use ($form): void {
-            Formie::$plugin->getClientSessionService()->buildTokenPayload($form, true);
+            Formie::$plugin->getFormSessions()->buildTokenPayload($form, true);
 
-            expect(runClientSubmission(new SubmitRequest([
+            expect(runClientSubmission(new FormSubmitRequest([
                 'handle' => (string)$form->handle,
                 'siteId' => (int)$form->siteId,
-                'session' => Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive(),
+                'session' => Formie::$plugin->getFormSessions()->issueInitialSession($form)->toArrayRecursive(),
                 'values' => [
                     'firstName' => 'Security Tester',
                 ],
@@ -326,8 +326,8 @@ it('rate limits anonymous runtime submit requests with the shared refresh abuse 
             ],
         ]);
     } finally {
-        $settings->anonymousClientRefreshRateLimit = $originalRefreshLimit;
-        $settings->anonymousClientRateWindowSeconds = $originalWindow;
+        $settings->anonymousFormRefreshRateLimit = $originalRefreshLimit;
+        $settings->anonymousFormRateWindowSeconds = $originalWindow;
     }
 })->group('security');
 

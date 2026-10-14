@@ -15,8 +15,8 @@ use verbb\formie\fields\subfields\NameLast;
 use verbb\formie\fields\subfields\NameMiddle;
 use verbb\formie\fields\subfields\NamePrefix;
 use verbb\formie\fields\values\NameFieldValue;
-use verbb\formie\gql\types\input\NameInputType;
 use verbb\formie\gql\types\NameType;
+use verbb\formie\gql\types\input\NameInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
@@ -444,7 +444,7 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
                     'data-formie-input-type' => 'text',
                     'data-formie-input-error-state' => $errors ? true : false,
                     'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
-                ], ValidationMessagesHelper::requiredClientAttributes($this)))
+                ], ValidationMessagesHelper::requiredBrowserAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

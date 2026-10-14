@@ -16,7 +16,6 @@ use verbb\formie\helpers\FieldOptionHelper;
 use verbb\formie\helpers\OptionsMode;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Variables as FormieVariables;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\OptionSource;
 use verbb\formie\options\OptionSourceConfigHelper;
@@ -533,7 +532,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         $config = parent::getCpEditConfig();
 
         if ($this->getOptionsMode() !== OptionsMode::STATIC) {
-            // CP submission editing consumes the thin client config rather than
+            // CP submission editing consumes the CP edit config rather than
             // the full front-end payload, so expose resolved dynamic rows there too.
             $options = $this->getFieldOptions();
             $config['options'] = $options;
@@ -960,9 +959,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
     protected function defineReferenceValues(): array
     {
-        $primaryTypes = array_values(array_unique(array_map(static function(string $type): ReferenceType {
-            return $type === FormieVariables::TYPE_CALCULATIONS ? ReferenceType::List : ReferenceType::from($type);
-        }, $this->definePrimaryOptionVariableSourceTypes()), SORT_REGULAR));
+        $primaryTypes = array_values(array_unique($this->definePrimaryOptionReferenceTypes(), SORT_REGULAR));
 
         return [
             FieldReferenceValue::primary(types: $primaryTypes),
@@ -971,9 +968,9 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         ];
     }
 
-    protected function definePrimaryOptionVariableSourceTypes(): array
+    protected function definePrimaryOptionReferenceTypes(): array
     {
-        return [FormieVariables::TYPE_TEXT];
+        return [ReferenceType::Text];
     }
 
     protected function defineClientRenderedInput(): array

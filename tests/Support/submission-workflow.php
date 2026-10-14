@@ -36,7 +36,7 @@ function runSubmissionCommand(SubmissionCommand $command): SubmissionResponse
     return SubmissionResponse::fromOutcome($outcome, $command->form, $command->submission, $command);
 }
 
-function runManagedSubmission(\verbb\formie\models\ManagedSubmissionRequest $input, \verbb\formie\enums\SubmissionAuthorityType $authority = \verbb\formie\enums\SubmissionAuthorityType::VISITOR): \verbb\formie\models\SubmissionExecutionResult
+function runHtmlSubmission(\verbb\formie\models\HtmlSubmissionRequest $input, \verbb\formie\enums\SubmissionAuthorityType $authority = \verbb\formie\enums\SubmissionAuthorityType::VISITOR): \verbb\formie\models\SubmissionExecutionResult
 {
     $form = Formie::$plugin->getSubmissionRequests()->requireFormByHandle($input->handle, $input->siteId);
     $input->requestToken ??= Formie::$plugin->getSubmissionGuards()->issueRequestToken($form);
@@ -45,10 +45,10 @@ function runManagedSubmission(\verbb\formie\models\ManagedSubmissionRequest $inp
     if ($input->submissionId && $input->expectedVersion === null) {
         $input->expectedVersion = (int)(new \craft\db\Query())->select('stateVersion')->from(\verbb\formie\helpers\Table::FORMIE_SUBMISSIONS)->where(['id' => $input->submissionId])->scalar();
     }
-    return Formie::$plugin->getSubmissionRequests()->executeManaged($input, $authority);
+    return Formie::$plugin->getSubmissionRequests()->executeHtml($input, $authority);
 }
 
-function runClientSubmission(\verbb\formie\client\models\SubmitRequest $input): \verbb\formie\client\models\SubmitResult
+function runClientSubmission(\verbb\formie\models\FormSubmitRequest $input): \verbb\formie\models\FormSubmitResult
 {
     return Formie::$plugin->getSubmissionRequests()->execute($input, \verbb\formie\enums\SubmissionAuthorityType::VISITOR);
 }

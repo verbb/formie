@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Remove the unused legacy frontend-theme attribute from mounted forms.
+
 ### Fixed
 - Fixed resetting forms leaving added repeater rows or failing to restore removed rows and dynamic address state values.
 - Fixed dynamic address state fields failing to reappear after selecting a country that uses states.

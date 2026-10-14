@@ -112,9 +112,9 @@ Formie rate-limits anonymous bootstrap and token-refresh requests to protect aga
 
 | Setting | Default |
 | --- | --- |
-| `anonymousClientBootstrapRateLimit` | 30 per window |
-| `anonymousClientRefreshRateLimit` | 120 per window |
-| `anonymousClientRateWindowSeconds` | 60 |
+| `anonymousFormBootstrapRateLimit` | 30 per window |
+| `anonymousFormRefreshRateLimit` | 120 per window |
+| `anonymousFormRateWindowSeconds` | 60 |
 
 Set a limit to `0` to disable it. High-traffic cached pages rarely hit these limits because refresh runs once per form mount, not per page view — but load tests on a single IP can.
 

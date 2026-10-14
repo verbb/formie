@@ -9,8 +9,8 @@ use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
 use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\SlotTag;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -248,7 +248,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
                     'data-formie-input-id' => $this->getHtmlDataId($form, $optionValue),
                     'data-formie-input-type' => 'select',
                     'data-formie-input-error-state' => $errors ? true : false,
-                ], ValidationMessagesHelper::requiredClientAttributes($this))))
+                ], ValidationMessagesHelper::requiredBrowserAttributes($this))))
                 ->theme([
                     'class' => [
                         'formie-select',
@@ -294,7 +294,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
 
     protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientRenderedInput(), $this->getOptionsLimitClientInput(), [
+        return array_merge(parent::defineClientRenderedInput(), $this->getOptionsLimitClientRenderedInput(), [
             'autocomplete' => $this->getAutocompleteCoreAttribute(),
             'useSearchable' => $this->useSearchable,
         ]);
@@ -326,10 +326,10 @@ class Dropdown extends OptionsField implements SortableFieldInterface
         return Craft::t('app', 'Dropdown Options');
     }
 
-    protected function definePrimaryOptionVariableSourceTypes(): array
+    protected function definePrimaryOptionReferenceTypes(): array
     {
         return $this->multi
-            ? [Variables::TYPE_TEXT, Variables::TYPE_CALCULATIONS, Variables::TYPE_BOOLEAN]
-            : [Variables::TYPE_TEXT];
+            ? [ReferenceType::Text, ReferenceType::List, ReferenceType::Boolean]
+            : [ReferenceType::Text];
     }
 }

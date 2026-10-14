@@ -2,12 +2,9 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
-use verbb\formie\references\ReferenceCatalogue;
+use verbb\formie\browser\modules\BrowserModuleManifestBuilder;
 use verbb\formie\cache\RenderCache;
 use verbb\formie\client\bootstrap\FormBootstrapBuilder;
-use verbb\formie\client\bootstrap\FormDefinitionBuilder;
-use verbb\formie\client\ClientSessionService;
-use verbb\formie\client\modules\BrowserModuleManifestBuilder;
 use verbb\formie\deprecations\PluginDeprecations;
 use verbb\formie\elements\Submission as SubmissionElement;
 use verbb\formie\events\ModifyTwigEnvironmentEvent;
@@ -17,6 +14,7 @@ use verbb\formie\models\HiddenDefaultTemplateContext;
 use verbb\formie\models\HiddenDefaultTemplateFormContext;
 use verbb\formie\models\HiddenDefaultTemplateRequestContext;
 use verbb\formie\models\HiddenDefaultTemplateSiteContext;
+use verbb\formie\references\ReferenceCatalogue;
 use verbb\formie\server\ServerRenderPayloadBuilder;
 use verbb\formie\services\BrowserAssets;
 use verbb\formie\services\CaptchaProviders;
@@ -27,33 +25,34 @@ use verbb\formie\services\Countries;
 use verbb\formie\services\CustomFields;
 use verbb\formie\services\DeliveryAttempts;
 use verbb\formie\services\EmailDomains;
-use verbb\formie\services\Emails;
 use verbb\formie\services\EmailTemplates;
+use verbb\formie\services\Emails;
 use verbb\formie\services\Factories;
 use verbb\formie\services\FieldPalette;
-use verbb\formie\services\Fields;
 use verbb\formie\services\FieldSiteOverrides;
 use verbb\formie\services\FieldTypeDefinitions;
+use verbb\formie\services\Fields;
 use verbb\formie\services\FileUploads;
 use verbb\formie\services\FormDefaults;
 use verbb\formie\services\FormGroupDefaults;
 use verbb\formie\services\FormGroupPolicy;
 use verbb\formie\services\FormGroups;
 use verbb\formie\services\FormPreview;
-use verbb\formie\services\Forms;
+use verbb\formie\services\FormSessions;
 use verbb\formie\services\FormSiteOverrides;
 use verbb\formie\services\FormSitePropagation;
 use verbb\formie\services\FormStatuses;
 use verbb\formie\services\FormTemplates;
+use verbb\formie\services\Forms;
 use verbb\formie\services\IntegrationDispatcher;
 use verbb\formie\services\IntegrationRunner;
-use verbb\formie\services\Integrations;
 use verbb\formie\services\IntegrationTriggers;
-use verbb\formie\services\Notifications;
+use verbb\formie\services\Integrations;
 use verbb\formie\services\NotificationTriggers;
+use verbb\formie\services\Notifications;
 use verbb\formie\services\OptionSources;
-use verbb\formie\services\Payments;
 use verbb\formie\services\PaymentWebhooks;
+use verbb\formie\services\Payments;
 use verbb\formie\services\PdfTemplates;
 use verbb\formie\services\Permissions;
 use verbb\formie\services\Plans;
@@ -67,9 +66,9 @@ use verbb\formie\services\ReportEditor;
 use verbb\formie\services\ReportExport;
 use verbb\formie\services\ReportExportFiles;
 use verbb\formie\services\ReportQuery;
-use verbb\formie\services\Reports;
 use verbb\formie\services\ReportScheduledDelivery;
 use verbb\formie\services\ReportViewer;
+use verbb\formie\services\Reports;
 use verbb\formie\services\ScheduledReports;
 use verbb\formie\services\SentNotifications;
 use verbb\formie\services\Service;
@@ -83,9 +82,9 @@ use verbb\formie\services\SubmissionOperations;
 use verbb\formie\services\SubmissionProcessor;
 use verbb\formie\services\SubmissionProgress;
 use verbb\formie\services\SubmissionRequests;
-use verbb\formie\services\Submissions;
 use verbb\formie\services\SubmissionStatuses;
 use verbb\formie\services\SubmissionWorkflow;
+use verbb\formie\services\Submissions;
 use verbb\formie\services\Subscriptions;
 use verbb\formie\services\Templates;
 use verbb\formie\services\ThemeConfig;
@@ -219,7 +218,6 @@ trait PluginTrait
                 'forms' => Forms::class,
                 'formSlotRegistry' => FormSlotRegistry::class,
                 'clientFormBootstrapBuilder' => FormBootstrapBuilder::class,
-                'clientFormDefinitionBuilder' => FormDefinitionBuilder::class,
                 'formGroups' => FormGroups::class,
                 'formPreview' => FormPreview::class,
                 'formTemplates' => FormTemplates::class,
@@ -258,7 +256,7 @@ trait PluginTrait
                 'renderCache' => RenderCache::class,
                 'rendering' => Rendering::class,
                 'browserAssets' => BrowserAssets::class,
-                'clientSessionService' => ClientSessionService::class,
+                'formSessions' => FormSessions::class,
                 'sentNotifications' => SentNotifications::class,
                 'spamProtection' => SpamProtection::class,
                 'service' => Service::class,
@@ -428,11 +426,6 @@ trait PluginTrait
         return $this->get('clientFormBootstrapBuilder');
     }
 
-    public function getClientFormDefinitionBuilder(): FormDefinitionBuilder
-    {
-        return $this->get('clientFormDefinitionBuilder');
-    }
-
     public function getServerRenderPayloadBuilder(): ServerRenderPayloadBuilder
     {
         return $this->get('serverRenderPayloadBuilder');
@@ -443,9 +436,9 @@ trait PluginTrait
         return $this->get('browserModuleManifestBuilder');
     }
 
-    public function getClientSessionService(): ClientSessionService
+    public function getFormSessions(): FormSessions
     {
-        return $this->get('clientSessionService');
+        return $this->get('formSessions');
     }
 
     public function getFieldTypeDefinitions(): FieldTypeDefinitions

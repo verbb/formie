@@ -12,7 +12,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\Formie;
 use verbb\formie\client\models\LoadContext;
-use verbb\formie\client\models\SubmitRequest;
+use verbb\formie\models\FormSubmitRequest;
 use verbb\formie\controllers\FieldsController;
 use verbb\formie\fields\Address;
 use verbb\formie\fields\Name;
@@ -833,7 +833,7 @@ function runCompleteSubmitPerfScenario(array $profile, int $iterations): array
             $result = null;
 
             foreach (array_values($form->getPages()) as $pageIndex => $page) {
-                $result = runClientSubmission(new SubmitRequest([
+                $result = runClientSubmission(new FormSubmitRequest([
                     'handle' => $form->handle,
                     'operationId' => "perf-submit-{$profile['name']}-{$i}-{$pageIndex}",
                     'action' => 'submit',
@@ -867,7 +867,7 @@ function runResumeLoadPerfScenario(array $profile, int $iterations): array
         $versions[] = WebRequestTestHelper::withWebRequestContext(function () use ($profile, $i): int {
             $form = requirePerfMainForm($profile);
             $bootstrap = Formie::$plugin->getClientFormBootstrapBuilder()->build($form, new LoadContext(['handle' => $form->handle]));
-            $saved = runClientSubmission(new SubmitRequest([
+            $saved = runClientSubmission(new FormSubmitRequest([
                 'handle' => $form->handle,
                 'operationId' => "perf-resume-save-{$profile['name']}-{$i}",
                 'action' => 'save',
@@ -906,7 +906,7 @@ function runReviseSubmitPerfScenario(array $profile, int $iterations): array
                 'grantToken' => $grant->token,
                 'grantPurpose' => SubmissionGrants::REVISE,
             ]));
-            $result = runClientSubmission(new SubmitRequest([
+            $result = runClientSubmission(new FormSubmitRequest([
                 'handle' => $form->handle,
                 'operationId' => "perf-revise-{$profile['name']}-{$i}",
                 'action' => 'submit',

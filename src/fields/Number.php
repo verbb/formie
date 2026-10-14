@@ -418,7 +418,7 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
                     'data-formie-input-type' => 'number',
                     'data-formie-input-error-state' => $errors ? true : false,
                     'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
-                ], ValidationMessagesHelper::numberValidationClientAttributes(
+                ], ValidationMessagesHelper::numberValidationBrowserAttributes(
                     $this,
                     (bool)$this->limit,
                     $this->min,

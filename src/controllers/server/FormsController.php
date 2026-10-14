@@ -2,7 +2,7 @@
 namespace verbb\formie\controllers\server;
 
 use verbb\formie\Formie;
-use verbb\formie\compatibility\client\RefreshTokensCompatibility;
+use verbb\formie\compatibility\browser\RefreshTokensCompatibility;
 use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\elements\Form;

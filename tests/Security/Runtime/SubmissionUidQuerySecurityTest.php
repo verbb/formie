@@ -7,7 +7,7 @@ use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\Formie;
-use verbb\formie\models\ManagedSubmissionRequest;
+use verbb\formie\models\HtmlSubmissionRequest;
 use yii\web\ForbiddenHttpException;
 
 function submissionUidPattern(string $kind, string $uid): string
@@ -66,7 +66,7 @@ it('preserves valid UID edits and still requires an edit grant', function (strin
     };
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission, $uid, $authorized): void {
         $form->setSubmission($submission);
-        $input = new ManagedSubmissionRequest([
+        $input = new HtmlSubmissionRequest([
             'handle' => $form->handle,
             'operation' => SubmissionOperation::REVISE,
             'submissionUid' => $uid,
@@ -76,9 +76,9 @@ it('preserves valid UID edits and still requires an edit grant', function (strin
             'fieldParamNamespace' => 'fields',
         ]);
         if ($authorized) {
-            expect(runManagedSubmission($input)->response->success)->toBeTrue();
+            expect(runHtmlSubmission($input)->response->success)->toBeTrue();
         } else {
-            expect(fn() => runManagedSubmission($input))->toThrow(ForbiddenHttpException::class);
+            expect(fn() => runHtmlSubmission($input))->toThrow(ForbiddenHttpException::class);
         }
     }, ['method' => 'POST', 'bodyParams' => ['fields' => ['name' => 'Changed']]]);
     expect(Submission::find()->id($submission->id)->isIncomplete(null)->isSpam(null)->one()->getFieldValue('name'))->toBe($authorized ? 'Changed' : 'Original');
@@ -107,7 +107,7 @@ it('preserves explicit ID and resume grant precedence over an irrelevant UID exp
         Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission, $form->getCurrentPage()?->id);
         $progress = Formie::$plugin->getSubmissionProgress()->getProgressState($form);
         $token = Formie::$plugin->getSubmissionGrants()->issue($submission, \verbb\formie\services\SubmissionGrants::CONTINUE, $progress->id)->token;
-        $result = runManagedSubmission(new ManagedSubmissionRequest([
+        $result = runHtmlSubmission(new HtmlSubmissionRequest([
             'handle' => $form->handle,
             'operation' => SubmissionOperation::SUBMIT,
             'submissionId' => $identity === 'id' ? (int)$submission->id : null,
@@ -132,7 +132,7 @@ it('keeps valid foreign and deleted UIDs unavailable', function (bool $deleted):
         expect(Craft::$app->getElements()->deleteElement($submission))->toBeTrue();
     }
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission): void {
-        expect(fn() => runManagedSubmission(new ManagedSubmissionRequest([
+        expect(fn() => runHtmlSubmission(new HtmlSubmissionRequest([
             'handle' => $form->handle,
             'operation' => SubmissionOperation::SUBMIT,
             'submissionUid' => $submission->uid,

@@ -105,7 +105,7 @@ class PayWay extends Payment
                 'currency' => $this->getFieldSetting('currency'),
                 'amountType' => $this->getFieldSetting('amountType'),
                 'amountFixed' => $this->getFieldSetting('amountFixed'),
-                'amountVariable' => $this->normalizeClientFieldReference($this->getFieldSetting('amountVariable')),
+                'amountVariable' => $this->normalizeBrowserFieldReference($this->getFieldSetting('amountVariable')),
                 'requiredInputSuffixes' => ['paywayTokenId'],
                 'waitForValueMs' => 2500,
             ],

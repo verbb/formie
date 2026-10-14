@@ -11,7 +11,6 @@ trait FieldClientRenderedDefinitionTrait
 
     public function getClientRenderedDefinition(): array
     {
-        $clientRenderedDefinition = $this->clientRenderedDefinition();
         $clientRenderedChildren = $this->clientRenderedChildren();
         $valueType = $this->_clientValueType($this->valueType()->toArray());
         $definition = [
@@ -21,9 +20,9 @@ trait FieldClientRenderedDefinitionTrait
             'handle' => (string)$this->handle,
             'label' => $this->label,
             'instructions' => $this->getInstructionsHtml()->__toString() ?: null,
-            'type' => $clientRenderedDefinition->type,
+            'type' => $this->defineClientRenderedType(),
             'required' => (bool)$this->required,
-            'condition' => ConditionsHelper::toComponentConditionDefinition($this->getBrowserConditions()),
+            'condition' => ConditionsHelper::toBrowserConditionDefinition($this->getBrowserConditions()),
             'validation' => $this->browserValidationRules(),
             'input' => $this->getClientRenderedInput(),
             'client' => [
@@ -49,7 +48,7 @@ trait FieldClientRenderedDefinitionTrait
         $contract = array_merge([
             'fieldKind' => $this->fieldKind(),
             'fieldType' => static::kebabClassName(),
-        ], $this->clientRenderedDefinition()->input);
+        ], $this->defineClientRenderedInput());
         $isFileField = $this->fieldKind() === Field::KIND_FILE;
         $initialValue = $isFileField
             ? []

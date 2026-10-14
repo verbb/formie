@@ -56,9 +56,9 @@ class CpSubmissionFieldConditions
         ], self::pluginOptions());
     }
 
-    public static function clientDisplayMode(string $mode): string
+    public static function browserDisplayMode(string $mode): string
     {
-        return $mode === self::MUTED ? self::MUTED : self::CLIENT_DISPLAY_HIDE;
+        return $mode === self::MUTED ? self::MUTED : self::BROWSER_DISPLAY_HIDE;
     }
 
 
@@ -69,6 +69,6 @@ class CpSubmissionFieldConditions
     public const MUTED = 'muted';
     public const SHOW_ALL = 'show-all';
 
-    /** Client-side conditions module display mode when fields should be hidden in CP. */
-    public const CLIENT_DISPLAY_HIDE = 'hide';
+    /** Browser conditions module display mode when fields should be hidden in CP. */
+    public const BROWSER_DISPLAY_HIDE = 'hide';
 }

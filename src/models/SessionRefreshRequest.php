@@ -1,9 +1,7 @@
 <?php
-namespace verbb\formie\client\models;
+namespace verbb\formie\models;
 
-use verbb\formie\client\ClientMutationRequest;
-
-class SessionRefreshRequest extends ClientMutationRequest
+class SessionRefreshRequest extends FormMutationRequest
 {
     // Properties
     // =========================================================================

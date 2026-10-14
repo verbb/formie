@@ -59,19 +59,12 @@ class Eway extends Payment
     // Properties
     // =========================================================================
 
-    // public static function supportsConnection(): bool
-    // {
-
-    //     return false;
-    // }
-
-
-
-
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[Sensitive]
     public ?string $apiPassword =  null;
+
     public ?string $clientSideEncryptionKey =  null;
     public bool|string $useSandbox = false;
 

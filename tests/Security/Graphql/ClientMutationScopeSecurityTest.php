@@ -458,9 +458,9 @@ it('enforces server-owned authorization at each execution boundary without seria
         $session['continuation']['grantToken'] = $grant->token;
         $calls = [];
         $class = match ($operation) {
-            'submit' => \verbb\formie\client\models\SubmitRequest::class,
-            'page' => \verbb\formie\client\models\PageTransitionRequest::class,
-            'refresh' => \verbb\formie\client\models\SessionRefreshRequest::class,
+            'submit' => \verbb\formie\models\FormSubmitRequest::class,
+            'page' => \verbb\formie\models\PageTransitionRequest::class,
+            'refresh' => \verbb\formie\models\SessionRefreshRequest::class,
         };
         $request = new $class([
             'handle' => (string)$form->handle,
@@ -473,13 +473,13 @@ it('enforces server-owned authorization at each execution boundary without seria
         expect($request->toArrayRecursive())->not->toHaveKey('scopeAuthorizer')->not->toHaveKey('_scopeAuthorizer');
 
         if ($operation === 'refresh') {
-            expect(fn() => Formie::$plugin->getClientSessionService()->refreshSession($request))
+            expect(fn() => Formie::$plugin->getFormSessions()->refreshSession($request))
                 ->toThrow(\yii\web\ForbiddenHttpException::class);
         } else {
             $request->values = ['fullName' => 'Blocked'];
             $result = $operation === 'submit'
                 ? Formie::$plugin->getSubmissionRequests()->execute($request, \verbb\formie\enums\SubmissionAuthorityType::VISITOR)
-                : Formie::$plugin->getClientSessionService()->persistPageState($request);
+                : Formie::$plugin->getFormSessions()->persistPageState($request);
             expect($result->success)->toBeFalse()->and($result->httpStatus)->toBe(403);
         }
 
@@ -508,7 +508,7 @@ it('rechecks GraphQL scope if the execution target changes after preflight', fun
         $changedTarget = new class extends \verbb\formie\services\SubmissionRequests {
             public array $replacementSession;
 
-            public function execute(\verbb\formie\client\models\SubmitRequest $input, \verbb\formie\enums\SubmissionAuthorityType $authorityType): \verbb\formie\client\models\SubmitResult
+            public function execute(\verbb\formie\models\FormSubmitRequest $input, \verbb\formie\enums\SubmissionAuthorityType $authorityType): \verbb\formie\models\FormSubmitResult
             {
                 $input->session = $this->replacementSession;
                 return parent::execute($input, $authorityType);

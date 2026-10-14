@@ -27,6 +27,6 @@ class ServerRenderPayloadBuilder extends Component
 
     public function buildRefreshTokensPayload(Form $form): array
     {
-        return Formie::$plugin->getClientSessionService()->buildTokenPayload($form, true);
+        return Formie::$plugin->getFormSessions()->buildTokenPayload($form, true);
     }
 }

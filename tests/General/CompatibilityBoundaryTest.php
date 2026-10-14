@@ -26,6 +26,9 @@ it('keeps compatibility implementation behind explicit compatibility boundaries'
 it('retains Formie 3 aliases without retaining intermediate Formie 4 beta names', function (): void {
     expect(class_exists('verbb\\formie\\base\\FormField'))->toBeTrue()
         ->and(class_exists('verbb\\formie\\services\\PredefinedOptions'))->toBeTrue()
+        ->and(class_exists('verbb\\formie\\options\\sources\\OptionList'))->toBeFalse()
+        ->and(class_exists('verbb\\formie\\client\\ClientSessionService'))->toBeFalse()
+        ->and(class_exists('verbb\\formie\\services\\FormSessions'))->toBeTrue()
         ->and(class_exists('verbb\\formie\\runtime\\models\\PageTransitionRequest'))->toBeFalse()
         ->and(class_exists('verbb\\formie\\runtime\\models\\SessionRefreshRequest'))->toBeFalse()
         ->and(class_exists('verbb\\formie\\runtime\\models\\SubmitRequest'))->toBeFalse()

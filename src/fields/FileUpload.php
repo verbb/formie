@@ -1016,7 +1016,7 @@ class FileUpload extends ElementField
                     'data-formie-file-limit' => $limitFiles,
                     'data-formie-file-upload-hydrate-endpoint' => UrlHelper::actionUrl('formie/file-upload/hydrate'),
                     'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
-                ], ValidationMessagesHelper::fileUploadValidationClientAttributes(
+                ], ValidationMessagesHelper::fileUploadValidationBrowserAttributes(
                     $this,
                     (int)$limitFiles,
                     (float)$sizeMinLimit,
@@ -1736,7 +1736,7 @@ class FileUpload extends ElementField
         $uploadEndpoint = UrlHelper::actionUrl('formie/file-upload/upload');
         $deleteEndpoint = UrlHelper::actionUrl('formie/file-upload/delete');
         $hydrateEndpoint = UrlHelper::actionUrl('formie/file-upload/hydrate');
-        $validationAttributes = ValidationMessagesHelper::fileUploadValidationClientAttributes(
+        $validationAttributes = ValidationMessagesHelper::fileUploadValidationBrowserAttributes(
             $this,
             (int)$limitFiles,
             (float)$sizeMinLimit,

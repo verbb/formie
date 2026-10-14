@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use verbb\formie\Formie;
 use verbb\formie\client\models\LoadContext;
-use verbb\formie\client\models\SubmitRequest;
+use verbb\formie\models\FormSubmitRequest;
 use Tests\Support\WebRequestTestHelper;
 
 it('submits a client payload through the current bootstrap session contract', function(): void {
@@ -21,7 +21,7 @@ it('submits a client payload through the current bootstrap session contract', fu
             'handle' => $form->handle,
         ]));
 
-        $result = runClientSubmission(new SubmitRequest([
+        $result = runClientSubmission(new FormSubmitRequest([
             'handle' => $form->handle,
             'action' => 'submit',
             'session' => $bootstrap->session->toArrayRecursive(),
@@ -88,12 +88,12 @@ it('exchanges revision grants through REST and GraphQL with refresh and stale-ta
                 $bootstrap = $controller->actionLoad()->data;
             }
             expect($bootstrap['session']['continuation']['purpose'])->toBe('revise-complete');
-            $refreshed = Formie::$plugin->getClientSessionService()->refreshSession(new \verbb\formie\client\models\SessionRefreshRequest(['handle' => $form->handle, 'session' => $bootstrap['session']]))->toArrayRecursive();
+            $refreshed = Formie::$plugin->getFormSessions()->refreshSession(new \verbb\formie\models\SessionRefreshRequest(['handle' => $form->handle, 'session' => $bootstrap['session']]))->toArrayRecursive();
             expect($refreshed['continuation']['purpose'])->toBe('revise-complete');
             $input = ['handle' => $form->handle, 'operationId' => 'first-revision', 'session' => $refreshed, 'values' => ['name' => 'Revised']];
             $submit = fn(array $payload) => $transport === 'graphql'
                 ? \verbb\formie\gql\resolvers\ClientFormResolver::submitForm(null, ['input' => $payload])
-                : runClientSubmission(new SubmitRequest($payload))->toArrayRecursive();
+                : runClientSubmission(new FormSubmitRequest($payload))->toArrayRecursive();
             $first = $submit($input);
             expect($first['outcome'])->toBe('revised')->and($first['version'])->toBeGreaterThan($refreshed['version']);
             $input['operationId'] = 'stale-revision';
@@ -112,7 +112,7 @@ it('returns a portable grant only for explicit client save and resumes the same 
     $form = formie()->form()->multiPage(2)->onPage(1)->singleLineTextField('name')->settings(['disableCaptchas' => true])->create();
     WebRequestTestHelper::withWebRequestContext(function () use ($form) {
         $bootstrap = Formie::$plugin->getClientFormBootstrapBuilder()->build($form, new LoadContext(['handle' => $form->handle]));
-        $result = runClientSubmission(new SubmitRequest(['handle' => $form->handle, 'action' => 'save', 'session' => $bootstrap->session->toArrayRecursive(), 'values' => ['name' => 'Saved']]))->toArrayRecursive();
+        $result = runClientSubmission(new FormSubmitRequest(['handle' => $form->handle, 'action' => 'save', 'session' => $bootstrap->session->toArrayRecursive(), 'values' => ['name' => 'Saved']]))->toArrayRecursive();
         expect($result['outcome'])->toBe('draftSaved')->and($result['resumeToken'])->not->toBeEmpty();
         $progress = Formie::$plugin->getSubmissionProgress()->getProgressState($form);
         Craft::$app->getSession()->set('formie:authority', 'second-client');

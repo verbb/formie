@@ -2,7 +2,6 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\base\Field;
-use verbb\formie\validators\FieldRequiredValidator;
 
 use craft\base\Element;
 use craft\base\ElementInterface;
@@ -67,15 +66,10 @@ class ValidationHelper
         $isEmpty = fn() => $field->isValueEmpty($value, $element);
 
         if ($scenario === Element::SCENARIO_LIVE && $field->required) {
-            $config = ['isEmpty' => $isEmpty];
-
-            if ($requiredMessage !== null) {
-                $config['message'] = $requiredMessage;
-                $requiredValidator = new FieldRequiredValidator($config);
-            } else {
-                $config['message'] = ValidationMessagesHelper::resolve($field, ValidationMessagesHelper::KEY_REQUIRED);
-                $requiredValidator = new RequiredValidator($config);
-            }
+            $requiredValidator = new RequiredValidator([
+                'isEmpty' => $isEmpty,
+                'message' => $requiredMessage ?? ValidationMessagesHelper::resolve($field, ValidationMessagesHelper::KEY_REQUIRED),
+            ]);
 
             $requiredValidator->validateAttribute($element, $attribute);
         }

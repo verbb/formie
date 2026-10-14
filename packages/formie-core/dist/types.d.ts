@@ -1,3 +1,4 @@
+import type { BrowserValidationRule } from './validation';
 import type { BrowserModuleManifest } from './browser-modules';
 export type KnownClientFieldType = 'single-line-text' | 'multi-line-text' | 'number' | 'email' | 'phone' | 'dropdown' | 'radio' | 'checkboxes' | 'agree' | 'date' | 'name' | 'address' | 'repeater' | 'signature' | 'file';
 export type ClientFieldType = KnownClientFieldType | (string & {});
@@ -5,22 +6,10 @@ export type ClientFieldValueStructure = 'scalar' | 'fixed-parent' | 'container-p
 export type ClientFieldValueType = {
     kind: 'string' | 'boolean' | 'object' | 'array' | 'relationQuery' | 'none' | 'storageSafe';
     items?: ClientFieldValueType;
-    class?: string | null;
 };
 export type ClientFieldValueContract = {
     structure: ClientFieldValueStructure;
     valueType?: ClientFieldValueType;
-};
-export type ClientValidationRule = {
-    message?: string;
-    messages?: Record<string, string>;
-    type: string;
-    fieldId?: string | null;
-    fieldHandle?: string | null;
-    min?: number | null;
-    max?: number | null;
-    minDate?: string | null;
-    maxDate?: string | null;
 };
 export type ClientFieldDefinition = {
     uid: string;
@@ -54,16 +43,14 @@ export type ClientFieldDefinition = {
             browserSafe?: boolean;
         }>;
     } | null;
-    validation: ClientValidationRule[];
-    client?: {
+    validation: BrowserValidationRule[];
+    client: {
         children: {
             model: ClientFieldValueStructure;
             mode?: 'parts' | 'rows';
         };
         valueType?: ClientFieldValueType;
     };
-    /** Older bootstrap payloads used runtime.structure. */
-    runtime?: ClientFieldValueContract;
     input: Record<string, unknown>;
     moduleRefs?: string[];
     meta?: Record<string, unknown>;

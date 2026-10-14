@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 use verbb\formie\Formie;
 use verbb\formie\fields\Quiz;
-use verbb\formie\client\models\{LoadContext, SubmitRequest};
+use verbb\formie\client\models\LoadContext;
+use verbb\formie\models\FormSubmitRequest;
 use Tests\Support\WebRequestTestHelper;
 
 it('scores submitted answers through the save workflow and persists the exact pass result', function (bool $correct, array $multiple, float $score, bool $passed, bool $multipleCorrect): void {
@@ -19,7 +20,7 @@ it('scores submitted answers through the save workflow and persists the exact pa
         ]])->create();
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $correct, $multiple, $score, $passed, $multipleCorrect): void {
         $bootstrap = Formie::$plugin->getClientFormBootstrapBuilder()->build($form, new LoadContext(['handle' => $form->handle]));
-        $execution = runClientSubmission(new SubmitRequest([
+        $execution = runClientSubmission(new FormSubmitRequest([
             'handle' => $form->handle, 'action' => 'submit', 'session' => $bootstrap->session->toArrayRecursive(),
             'values' => ['single' => $correct ? 'yes' : 'no', 'multiple' => $multiple],
         ]));

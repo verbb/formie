@@ -5,7 +5,7 @@ use verbb\formie\enums\SubmissionOperation;
 
 use craft\base\Model;
 
-class ManagedSubmissionRequest extends Model
+class HtmlSubmissionRequest extends Model
 {
     // Properties
     // =========================================================================

@@ -2,10 +2,10 @@
 namespace verbb\formie\controllers\client;
 
 use verbb\formie\Formie;
-use verbb\formie\client\models\SessionRefreshRequest;
 use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\helpers\BrowserRequestProfile;
+use verbb\formie\models\SessionRefreshRequest;
 
 use craft\web\Controller;
 
@@ -50,7 +50,7 @@ class SessionsController extends Controller
 
         $this->requirePostRequest();
 
-        $session = Formie::$plugin->getClientSessionService()->refreshSession(new SessionRefreshRequest([
+        $session = Formie::$plugin->getFormSessions()->refreshSession(new SessionRefreshRequest([
             'handle' => (string)$this->request->getBodyParam('handle', $this->request->getParam('handle', '')),
             'siteId' => $this->request->getBodyParam('siteId') ? (int)$this->request->getBodyParam('siteId') : null,
             'session' => (array)$this->request->getBodyParam('session', []),

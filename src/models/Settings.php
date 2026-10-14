@@ -115,9 +115,9 @@ class Settings extends Model
     public int $reportScheduledExportExpiryHours = 48;
     public bool $reportExportSingleUseDownload = true;
     public int $saveResumeTokenTtlDays = 14;
-    public int $anonymousClientBootstrapRateLimit = 30;
-    public int $anonymousClientRefreshRateLimit = 120;
-    public int $anonymousClientRateWindowSeconds = 60;
+    public int $anonymousFormBootstrapRateLimit = 30;
+    public int $anonymousFormRefreshRateLimit = 120;
+    public int $anonymousFormRateWindowSeconds = 60;
     // Sent Notifications
     public bool $sentNotifications = true;
     public int $maxSentNotificationsAge = 30;
@@ -455,8 +455,8 @@ class Settings extends Model
         $rules[] = [['submissionStateRetentionDays'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['deliveryEvidenceRetentionDays'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['saveResumeTokenTtlDays'], 'number', 'integerOnly' => true, 'min' => 1];
-        $rules[] = [['anonymousClientBootstrapRateLimit', 'anonymousClientRefreshRateLimit'], 'number', 'integerOnly' => true, 'min' => 0];
-        $rules[] = [['anonymousClientRateWindowSeconds'], 'number', 'integerOnly' => true, 'min' => 1];
+        $rules[] = [['anonymousFormBootstrapRateLimit', 'anonymousFormRefreshRateLimit'], 'number', 'integerOnly' => true, 'min' => 0];
+        $rules[] = [['anonymousFormRateWindowSeconds'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['plainTextHtmlSanitizationMode'], 'in', 'range' => [
             self::PLAIN_TEXT_HTML_SANITIZATION_MODE_PRESERVE,
             self::PLAIN_TEXT_HTML_SANITIZATION_MODE_SANITIZE,

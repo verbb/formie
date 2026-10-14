@@ -1,18 +1,17 @@
 <?php
-namespace verbb\formie\client\models;
+namespace verbb\formie\models;
 
-use verbb\formie\client\ClientMutationRequest;
-
-class PageTransitionRequest extends ClientMutationRequest
+class FormSubmitRequest extends FormMutationRequest
 {
     // Properties
     // =========================================================================
 
     public string $handle = '';
     public ?string $operationId = null;
+    public ?int $targetPageId = null;
+    public string $action = 'submit';
     public ?int $siteId = null;
-    public ?string $currentPageId = null;
-    public ?string $targetPageId = null;
     public array $session = [];
     public array $values = [];
+    public array $browserData = [];
 }

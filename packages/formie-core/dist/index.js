@@ -307,12 +307,11 @@ function T(e) {
 	return ee.has(e);
 }
 function te(e) {
-	if (e.client?.children) return {
+	if (!e.client?.children) throw Error(`Field "${e.handle}" is missing client-rendered value metadata. Update Formie and its packages together.`);
+	return {
 		structure: e.client.children.model,
 		valueType: e.client.valueType
 	};
-	if (!e.runtime) throw Error(`Field "${e.handle}" is missing field value metadata.`);
-	return e.runtime;
 }
 function ne(e) {
 	return te(e).structure;
@@ -508,7 +507,7 @@ function F(e, t, n) {
 			};
 		}
 		(a == null || a === "" || Array.isArray(a) && !a.length) && e.source?.defaultValue && (a = e.source.defaultValue);
-		let u = i.field.client?.valueType?.kind ?? i.field.runtime?.valueType?.kind, d = e.valueType ?? (u === "boolean" ? "boolean" : Array.isArray(a) ? "collection" : "text");
+		let u = i.field.client?.valueType?.kind, d = e.valueType ?? (u === "boolean" ? "boolean" : Array.isArray(a) ? "collection" : "text");
 		return _(e.operator, a, e.value, d);
 	}));
 }

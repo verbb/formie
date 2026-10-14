@@ -177,16 +177,16 @@ class ConditionsHelper
         ];
     }
 
-    public static function normalizeClientConditions(array $conditions, Form $form): array
+    public static function compileBrowserConditions(array $conditions, Form $form): array
     {
         return (new ConditionCompiler())->compile(ConditionSet::fromArray($conditions), $form);
     }
 
     /**
-     * Snapshot of `{submission:*}` values for client condition evaluation (CP + front-end).
+     * Snapshot of `{submission:*}` values for browser condition evaluation (CP and site forms).
      * Keys match condition option identifiers (`status`, `title`, `formName`, …).
      */
-    public static function getClientSubmissionContext(?Submission $submission): array
+    public static function getBrowserSubmissionContext(?Submission $submission): array
     {
         if (!$submission) {
             return [];
@@ -209,12 +209,7 @@ class ConditionsHelper
         ];
     }
 
-    public static function getClientFieldReferenceMap(Form $form): array
-    {
-        return FieldReferenceHelper::getClientFieldReferenceMap($form->getFields());
-    }
-
-    public static function toComponentConditionDefinition(array $conditions): ?array
+    public static function toBrowserConditionDefinition(array $conditions): ?array
     {
         if (!$conditions) {
             return null;

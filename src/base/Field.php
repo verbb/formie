@@ -4,9 +4,9 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\compatibility\fields\FieldRuntimeCompatibility;
 use verbb\formie\conditions\ConditionVisibility;
+use verbb\formie\content\ContentEncryption;
 use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\content\SubmissionContentAccessor;
-use verbb\formie\content\ContentEncryption;
 use verbb\formie\deprecations\FieldDeprecations;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -811,7 +811,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         return ValidationMessagesHelper::resolve($this, $key, $params);
     }
 
-    public function getValidationMessageClientAttribute(string $key, array $params = []): ?string
+    public function getValidationMessageBrowserAttribute(string $key, array $params = []): ?string
     {
         if (ValidationMessagesHelper::override($this, $key) === null
             && ValidationMessagesHelper::pluginDefault($key) === null) {

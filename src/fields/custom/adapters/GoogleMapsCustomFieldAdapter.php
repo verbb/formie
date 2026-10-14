@@ -2,8 +2,8 @@
 namespace verbb\formie\fields\custom\adapters;
 
 use verbb\formie\elements\Form;
-use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
 use verbb\formie\fields\CustomField;
+use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\CustomGoogleMapsAddressFieldValue;
 use verbb\formie\helpers\SchemaHelper;
@@ -199,13 +199,13 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         ];
     }
 
-    public function getClientInput(CustomField $field): array
+    public function getClientRenderedInput(CustomField $field): array
     {
         return [
             'inputType' => 'map',
             'provider' => static::handle(),
             'placeholder' => $this->getPlaceholder($field) ?: null,
-            'mapSettings' => $this->getMapClientSettings($field),
+            'mapSettings' => $this->getMapBrowserSettings($field),
         ];
     }
 
@@ -394,7 +394,7 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
                 'data-formie-custom-map-preferred-country' => $this->getStringSetting($field, 'preferredCountry'),
                 'data-formie-custom-map-min-zoom' => $this->getStringSetting($field, 'minZoom'),
                 'data-formie-custom-map-max-zoom' => $this->getStringSetting($field, 'maxZoom'),
-                'data-formie-custom-google-maps-settings' => Json::encode($this->getGoogleMapsClientSettings($field)),
+                'data-formie-custom-google-maps-settings' => Json::encode($this->getGoogleMapsBrowserSettings($field)),
                 'class' => ['formie-custom-google-maps'],
             ]
         );
@@ -437,7 +437,7 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         return trim((string)$this->getSetting($field, 'defaultValue', ''));
     }
 
-    protected function getMapClientSettings(CustomField $field): array
+    protected function getMapBrowserSettings(CustomField $field): array
     {
         return [
             'hideSearch' => $this->getBooleanSetting($field, 'hideSearch'),
@@ -455,7 +455,7 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
         ];
     }
 
-    protected function getGoogleMapsClientSettings(CustomField $field): array
+    protected function getGoogleMapsBrowserSettings(CustomField $field): array
     {
         $fieldParams = [];
 

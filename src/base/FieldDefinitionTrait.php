@@ -4,7 +4,6 @@ namespace verbb\formie\base;
 use verbb\formie\compatibility\fields\LegacyBrowserModules;
 use verbb\formie\conditions\ConditionSet;
 use verbb\formie\fields\definitions\FieldClientRenderedChildren;
-use verbb\formie\fields\definitions\FieldClientRenderedDefinition;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\models\BrowserModule;
@@ -35,20 +34,13 @@ trait FieldDefinitionTrait
         return $this->defineValueType();
     }
 
-    // Client children describe how managed clients should model nested parts or rows.
+    // Client-rendered children describe nested parts or rows.
     public function clientRenderedChildren(): FieldClientRenderedChildren
     {
         return $this->defineClientRenderedChildren();
     }
 
-    // Base type/input metadata for REST, GraphQL, and other client-rendered consumers.
-    public function clientRenderedDefinition(): FieldClientRenderedDefinition
-    {
-        return FieldClientRenderedDefinition::make(type: $this->defineClientRenderedType())
-            ->withInputDefinition($this->defineClientRenderedInput());
-    }
-
-    // Lazy browser modules the field needs when Formie manages client behavior.
+    // Lazy browser modules the field needs when Formie manages browser behavior.
     public function browserModules(BrowserModuleContext $context): array
     {
         return array_map(static function(array|BrowserModule $module): BrowserModule {

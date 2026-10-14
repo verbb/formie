@@ -2,7 +2,6 @@
 namespace verbb\formie\controllers\server;
 
 use verbb\formie\Formie;
-use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\elements\Form;
@@ -14,7 +13,8 @@ use verbb\formie\helpers\BrowserRequestProfile;
 use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\ManagedSubmissionRequest;
+use verbb\formie\models\HtmlSubmissionRequest;
+use verbb\formie\models\PageTransitionRequest;
 use verbb\formie\models\SubmissionCommand;
 use verbb\formie\models\SubmissionErrors;
 use verbb\formie\models\SubmissionResponse;
@@ -92,7 +92,7 @@ class SubmissionsController extends Controller
         );
 
         try {
-            $result = Formie::$plugin->getSubmissionRequests()->executeManaged(new ManagedSubmissionRequest([
+            $result = Formie::$plugin->getSubmissionRequests()->executeHtml(new HtmlSubmissionRequest([
                 'handle' => $this->_stringParam('handle'),
                 'operation' => SubmissionOperation::SUBMIT,
                 'siteId' => $siteId,
@@ -152,7 +152,7 @@ class SubmissionsController extends Controller
             throw new BadRequestHttpException('Missing required pageId.');
         }
 
-        $result = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
+        $result = Formie::$plugin->getFormSessions()->persistPageState(new PageTransitionRequest([
             'handle' => $handle,
             'siteId' => $siteId,
             'targetPageId' => (string)$pageId,
@@ -171,7 +171,7 @@ class SubmissionsController extends Controller
                     return $value !== null && $value !== '';
                 }),
             ],
-        ]), true);
+        ]));
         $this->response->setNoCacheHeaders();
         $this->response->setStatusCode($result->httpStatus);
 

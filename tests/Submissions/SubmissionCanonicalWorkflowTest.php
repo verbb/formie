@@ -208,7 +208,7 @@ it('treats CP creation as permissioned administrative creation without visitor s
     try {
         $result = \Tests\Support\WebRequestTestHelper::withWebRequestContext(function () use ($form) {
             Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
-            return runManagedSubmission(new \verbb\formie\models\ManagedSubmissionRequest(['handle' => $form->handle]), \verbb\formie\enums\SubmissionAuthorityType::CONTROL_PANEL);
+            return runHtmlSubmission(new \verbb\formie\models\HtmlSubmissionRequest(['handle' => $form->handle]), \verbb\formie\enums\SubmissionAuthorityType::CONTROL_PANEL);
         }, ['method' => 'POST', 'bodyParams' => ['fields' => ['first' => 'Admin', 'last' => 'Created']]]);
         expect($result->response->outcome->type)->toBe(Outcome::COMPLETED)
             ->and($seen)->toBe(['preflight', 'validate', 'persist', 'finalize'])
@@ -223,7 +223,7 @@ it('rejects stale posted values before populating or persisting an existing subm
     $submission = formie()->submission($form)->with(['name' => 'Original'])->save();
     $result = \Tests\Support\WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission) {
         Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
-        return runManagedSubmission(new \verbb\formie\models\ManagedSubmissionRequest([
+        return runHtmlSubmission(new \verbb\formie\models\HtmlSubmissionRequest([
             'handle' => $form->handle, 'submissionId' => $submission->id,
             'operation' => Operation::REVISE, 'expectedVersion' => 0,
         ]), \verbb\formie\enums\SubmissionAuthorityType::CONTROL_PANEL);
@@ -264,7 +264,7 @@ it('binds managed retry identity to multipart contents rather than temporary upl
         \Tests\Support\WebRequestTestHelper::withWebRequestContext(function () use ($form, $firstPath, $secondPath) {
             Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
             $_FILES = ['fields' => ['name' => ['attachment' => 'input.txt'], 'tmp_name' => ['attachment' => $firstPath], 'type' => ['attachment' => 'text/plain'], 'size' => ['attachment' => 5], 'error' => ['attachment' => UPLOAD_ERR_OK]]];
-            $run = fn() => runManagedSubmission(new \verbb\formie\models\ManagedSubmissionRequest([
+            $run = fn() => runHtmlSubmission(new \verbb\formie\models\HtmlSubmissionRequest([
                 'handle' => $form->handle, 'operationId' => 'multipart-retry',
             ]), \verbb\formie\enums\SubmissionAuthorityType::CONTROL_PANEL)->response->outcome;
             $first = $run();

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use verbb\formie\client\models\SubmitResult;
+use verbb\formie\models\FormSubmitResult;
 use verbb\formie\Formie;
 use verbb\formie\gql\types\input\PaymentInputType;
 use verbb\formie\integrations\payments\Stripe;
@@ -35,7 +35,7 @@ function createStripeGraphqlPaymentFixture(): array
 }
 
 it('serializes payment follow-up fields on submit results', function(): void {
-    $result = new SubmitResult([
+    $result = new FormSubmitResult([
         'success' => false,
         'payment' => [
             'status' => PaymentDecision::STATUS_ACTION_REQUIRED->value,

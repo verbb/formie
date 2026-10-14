@@ -2,8 +2,8 @@ import schema from './condition-schema.json';
 
 export type ConditionValueType = 'text' | 'number' | 'boolean' | 'date' | 'time' | 'datetime' | 'collection';
 export type ConditionEvaluation = { value: boolean | null; diagnostics: Array<{ code: string; rule?: number }> };
-export type ClientConditionRule = { condition: string; value?: unknown; valueType?: ConditionValueType; browserSafe?: boolean };
-export type ClientConditionSettings = { showRule: 'show' | 'hide' | 'enable' | 'disable'; conditionRule: 'all' | 'any'; conditions: ClientConditionRule[] };
+export type BrowserConditionRule = { condition: string; value?: unknown; valueType?: ConditionValueType; browserSafe?: boolean };
+export type BrowserConditionSettings = { showRule: 'show' | 'hide' | 'enable' | 'disable'; conditionRule: 'all' | 'any'; conditions: BrowserConditionRule[] };
 const invalid = (code: string): ConditionEvaluation => ({ value: null, diagnostics: [{ code }] });
 const text = (value: unknown): string | null => typeof value === 'number' && !Number.isFinite(value) ? null : value == null ? '' : ['string', 'number', 'boolean'].includes(typeof value) ? String(value) : null;
 const trim = (value: string): string => value.replace(/^[ \t\r\n\v\f]+|[ \t\r\n\v\f]+$/g, '');
@@ -110,13 +110,13 @@ export function combineConditions(mode: string, results: ConditionEvaluation[]):
 }
 
 // DOM input conversion is explicit; typed consumers call evaluateCondition with their projection.
-export function evaluateConditionDefinition(condition: ClientConditionRule, actualValues: string[], options: { visibility?: boolean | null } = {}): ConditionEvaluation {
+export function evaluateConditionDefinition(condition: BrowserConditionRule, actualValues: string[], options: { visibility?: boolean | null } = {}): ConditionEvaluation {
     if (condition.browserSafe === false) return invalid('serverOnlyReference');
     const type = condition.valueType ?? (actualValues.length > 1 ? 'collection' : 'text');
     return evaluateCondition(condition.condition, type === 'collection' ? actualValues : actualValues[0] ?? null, condition.value, type);
 }
 
-export function finalizeConditionEvaluation(settings: Pick<ClientConditionSettings, 'conditionRule' | 'showRule'>, results: Array<ConditionEvaluation | boolean>): { finalResult: boolean; shouldHide: boolean; evaluation: ConditionEvaluation } {
+export function finalizeConditionEvaluation(settings: Pick<BrowserConditionSettings, 'conditionRule' | 'showRule'>, results: Array<ConditionEvaluation | boolean>): { finalResult: boolean; shouldHide: boolean; evaluation: ConditionEvaluation } {
     const evaluation = combineConditions(settings.conditionRule, results.map((result) => typeof result === 'boolean' ? { value: result, diagnostics: [] } : result));
     const finalResult = evaluation.value === true;
     return { finalResult, shouldHide: ['show', 'enable'].includes(settings.showRule) ? !finalResult : finalResult, evaluation };

@@ -104,7 +104,7 @@ abstract class AbstractCustomFieldAdapter implements CustomFieldAdapterInterface
         ];
     }
 
-    public function getClientInput(CustomField $field): array
+    public function getClientRenderedInput(CustomField $field): array
     {
         return [];
     }

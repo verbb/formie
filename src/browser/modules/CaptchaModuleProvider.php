@@ -1,5 +1,5 @@
 <?php
-namespace verbb\formie\client\modules;
+namespace verbb\formie\browser\modules;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;

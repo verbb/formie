@@ -62,7 +62,7 @@ class SubmissionGuards extends Component
             throw new ForbiddenHttpException('Invalid or expired submission request.');
         }
 
-        Formie::$plugin->getClientSessionService()->enforceAnonymousRateLimit($request->form);
+        Formie::$plugin->getFormSessions()->enforceAnonymousRateLimit($request->form);
         $settings = Formie::$plugin->getSettings();
 
         if ($settings->enableGlobalSubmissionThrottling && ($reason = $this->_validateGlobalSubmissionThrottling($settings))) {

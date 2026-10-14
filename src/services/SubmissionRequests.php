@@ -2,8 +2,6 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
-use verbb\formie\client\models\SubmitRequest;
-use verbb\formie\client\models\SubmitResult;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\NavigationIntent;
@@ -16,7 +14,9 @@ use verbb\formie\fields\Payment;
 use verbb\formie\helpers\ClientEventsHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\FieldLayoutPage;
-use verbb\formie\models\ManagedSubmissionRequest;
+use verbb\formie\models\FormSubmitRequest;
+use verbb\formie\models\FormSubmitResult;
+use verbb\formie\models\HtmlSubmissionRequest;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\Settings;
@@ -43,28 +43,28 @@ class SubmissionRequests extends Component
     // Public Methods
     // =========================================================================
 
-    public function execute(SubmitRequest $input, SubmissionAuthorityType $authorityType): SubmitResult
+    public function execute(FormSubmitRequest $input, SubmissionAuthorityType $authorityType): FormSubmitResult
     {
         try {
-            return $this->_executeClient($input, $authorityType);
+            return $this->_executeSessionRequest($input, $authorityType);
         } catch (HttpException $exception) {
             if (!in_array($exception->statusCode, [403, 429], true)) {
                 throw $exception;
             }
-            return SubmitResult::rejection($exception->statusCode);
+            return FormSubmitResult::rejection($exception->statusCode);
         }
     }
 
-    public function executeManaged(ManagedSubmissionRequest $input, SubmissionAuthorityType $authorityType): SubmissionExecutionResult
+    public function executeHtml(HtmlSubmissionRequest $input, SubmissionAuthorityType $authorityType): SubmissionExecutionResult
     {
         if (!in_array($authorityType, [SubmissionAuthorityType::VISITOR, SubmissionAuthorityType::CONTROL_PANEL], true)) {
-            throw new ForbiddenHttpException('Unsupported managed submission authority.');
+            throw new ForbiddenHttpException('Unsupported HTML submission authority.');
         }
         $form = $this->requireFormByHandle($input->handle, $input->siteId);
         $draftContext = $input->draftContextToken ? $form->resolveDraftContextToken($input->draftContextToken) : $input->draftContext;
         $this->applyFormRequestContext($form, $input->renderId, $draftContext, $input->requestToken);
         $progress = $authorityType === SubmissionAuthorityType::VISITOR ? $this->resolveProgressState($form) : null;
-        $submission = $this->_resolveManagedContinuationSubmission($form, $progress, $input->submissionId, $input->resumeToken, $input->submissionUid, $input->operation === SubmissionOperation::REVISE ? null : true) ?? new Submission();
+        $submission = $this->_resolveHtmlContinuationSubmission($form, $progress, $input->submissionId, $input->resumeToken, $input->submissionUid, $input->operation === SubmissionOperation::REVISE ? null : true) ?? new Submission();
         $submission->setForm($form);
         $operation = $input->operation;
 
@@ -253,23 +253,23 @@ class SubmissionRequests extends Component
         return null;
     }
 
-    public function resolveClientContinuationSubmission(
+    public function resolveSessionContinuationSubmission(
         Form $form,
         ?ProgressState $progressState = null,
         array $continuation = [],
         ?bool $isIncomplete = true
     ): ?Submission {
-        return $this->_resolveClientContinuationSubmission($form, $progressState, $continuation, $isIncomplete, true);
+        return $this->_resolveSessionContinuationSubmission($form, $progressState, $continuation, $isIncomplete, true);
     }
 
-    public function getRequiredClientMutationScope(Form $form, array $session, string $action = 'submit'): string
+    public function getRequiredSessionMutationScope(Form $form, array $session, string $action = 'submit'): string
     {
-        [$submission, $progress, $revise] = $this->_resolveClientMutationTarget($form, $session, $action, false);
+        [$submission, $progress, $revise] = $this->_resolveSessionMutationTarget($form, $session, $action, false);
 
-        return $this->_scopeForClientTarget($form, $submission, $progress, $revise, $session);
+        return $this->_scopeForSessionTarget($form, $submission, $progress, $revise, $session);
     }
 
-    public function applyClientRequestContext(Form $form, array $session): void
+    public function applySessionRequestContext(Form $form, array $session): void
     {
         $continuation = (array)($session['continuation'] ?? []);
         $draftContext = !empty($continuation['draftContextToken'])
@@ -337,11 +337,11 @@ class SubmissionRequests extends Component
     // Private Methods
     // =========================================================================
 
-    private function _resolveClientContinuationSubmission(Form $form, ?ProgressState $progressState, array $continuation, ?bool $isIncomplete, bool $exchangeGrant): ?Submission
+    private function _resolveSessionContinuationSubmission(Form $form, ?ProgressState $progressState, array $continuation, ?bool $isIncomplete, bool $exchangeGrant): ?Submission
     {
-        $continuationSubmissionId = $this->_resolveSubmissionIdFromClientGrant($form, $continuation, $exchangeGrant);
+        $continuationSubmissionId = $this->_resolveSubmissionIdFromGrant($form, $continuation, $exchangeGrant);
 
-        // Prefer an explicit client continuation token. When automatic restore is
+        // Prefer an explicit session continuation token. When automatic restore is
         // off, bare progress alone must not revive a previous visit.
         if ($progressState?->submissionId) {
             $progressSubmissionId = (int)$progressState->submissionId;
@@ -365,7 +365,7 @@ class SubmissionRequests extends Component
         return $this->_findSubmissionById($continuationSubmissionId, $isIncomplete, (int)$form->id);
     }
 
-    private function _scopeForClientTarget(Form $form, ?Submission $submission, ?ProgressState $progress, bool $revise, array $session): string
+    private function _scopeForSessionTarget(Form $form, ?Submission $submission, ?ProgressState $progress, bool $revise, array $session): string
     {
         $token = $session['continuation']['grantToken'] ?? null;
 
@@ -401,17 +401,17 @@ class SubmissionRequests extends Component
         throw new ForbiddenHttpException('Submission is unavailable.');
     }
 
-    private function _executeClient(SubmitRequest $input, SubmissionAuthorityType $authorityType): SubmitResult
+    private function _executeSessionRequest(FormSubmitRequest $input, SubmissionAuthorityType $authorityType): FormSubmitResult
     {
         if ($authorityType !== SubmissionAuthorityType::VISITOR) {
             throw new ForbiddenHttpException('This adapter requires visitor authority.');
         }
         $form = $this->requireFormByHandle($input->handle, $input->siteId);
         $authorizeScope = $input->getScopeAuthorizer();
-        [$submission, $progress, $revise] = $this->_resolveClientMutationTarget($form, $input->session, $input->action, $authorizeScope === null);
+        [$submission, $progress, $revise] = $this->_resolveSessionMutationTarget($form, $input->session, $input->action, $authorizeScope === null);
 
         if ($authorizeScope) {
-            if (!$authorizeScope($form, $this->_scopeForClientTarget($form, $submission, $progress, $revise, $input->session))) {
+            if (!$authorizeScope($form, $this->_scopeForSessionTarget($form, $submission, $progress, $revise, $input->session))) {
                 throw new ForbiddenHttpException('Submission is unavailable.');
             }
 
@@ -470,21 +470,21 @@ class SubmissionRequests extends Component
             $input->targetPageId,
         );
         $form->resetRequestToken();
-        return $this->_buildClientResult($result->command, $result->response, $input);
+        return $this->_buildFormSubmitResult($result->command, $result->response, $input);
     }
 
-    private function _resolveClientMutationTarget(Form $form, array $session, string $action, bool $exchangeGrant = true): array
+    private function _resolveSessionMutationTarget(Form $form, array $session, string $action, bool $exchangeGrant = true): array
     {
         $continuation = $session['continuation'] ?? [];
-        $this->applyClientRequestContext($form, $session);
+        $this->applySessionRequestContext($form, $session);
         $progress = $this->resolveProgressState($form);
         $revise = $action === 'revise' || ($session['continuation']['purpose'] ?? null) === SubmissionGrants::REVISE;
 
         if (!$revise) {
             return [
                 $exchangeGrant
-                    ? $this->resolveClientContinuationSubmission($form, $progress, (array)$continuation)
-                    : $this->_resolveClientContinuationSubmission($form, $progress, (array)$continuation, true, false),
+                    ? $this->resolveSessionContinuationSubmission($form, $progress, (array)$continuation)
+                    : $this->_resolveSessionContinuationSubmission($form, $progress, (array)$continuation, true, false),
                 $progress,
                 false,
             ];
@@ -633,7 +633,7 @@ class SubmissionRequests extends Component
         }
     }
 
-    private function _resolveManagedContinuationSubmission(
+    private function _resolveHtmlContinuationSubmission(
         Form $form,
         ?ProgressState $progressState = null,
         ?int $submissionId = null,
@@ -672,7 +672,7 @@ class SubmissionRequests extends Component
             $submission = $this->_findSubmissionById($submissionId, $isIncomplete, (int)$form->id);
 
             if (!$submission) {
-                // Managed resume tokens are expected to point at a specific
+                // HTML resume tokens are expected to point at a specific
                 // draft. Starting a fresh submission instead would silently
                 // discard the caller's continuation state.
                 throw new SubmissionUnavailableException($form, 'submissionId', (string)$submissionId);
@@ -711,7 +711,7 @@ class SubmissionRequests extends Component
 
     private function _authorizeVisitor(
         Form $form,
-        ManagedSubmissionRequest $request,
+        HtmlSubmissionRequest $request,
         ?ProgressState $progressState,
         Submission $submission
     ): void {
@@ -746,7 +746,7 @@ class SubmissionRequests extends Component
         throw new ForbiddenHttpException('User is not permitted to perform this action');
     }
 
-    private function _buildClientResult(SubmissionCommand $submissionRequest, SubmissionResponse $response, SubmitRequest $request): SubmitResult
+    private function _buildFormSubmitResult(SubmissionCommand $submissionRequest, SubmissionResponse $response, FormSubmitRequest $request): FormSubmitResult
     {
         $form = $submissionRequest->form;
         $submission = $response->submission;
@@ -767,7 +767,7 @@ class SubmissionRequests extends Component
             && (bool)$submission->id
             && ($response->nextPage || $submitAction === 'save');
 
-        $session = Formie::$plugin->getClientSessionService()->issueInitialSession(
+        $session = Formie::$plugin->getFormSessions()->issueInitialSession(
             $form,
             $currentPageId,
             false,
@@ -840,7 +840,7 @@ class SubmissionRequests extends Component
             $requestUrl = Craft::$app->getRequest();
             $savePayload = $this->createSaveResumePayload($form, $submission, $this->resolveTrustedResumeBaseUrl($requestUrl->getReferrer(), ''));
         }
-        return new SubmitResult(array_merge([
+        return new FormSubmitResult(array_merge([
             'success' => $response->success,
             'outcome' => $response->outcome->type->value,
             'version' => $response->outcome->version,
@@ -891,7 +891,7 @@ class SubmissionRequests extends Component
         return (int)$verifiedSubmissionGrant->submissionId;
     }
 
-    private function _resolveSubmissionIdFromClientGrant(Form $form, array $continuation = [], bool $exchangeGrant = true): ?int
+    private function _resolveSubmissionIdFromGrant(Form $form, array $continuation = [], bool $exchangeGrant = true): ?int
     {
         $token = $continuation['grantToken'] ?? null;
 

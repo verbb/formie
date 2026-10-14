@@ -12,7 +12,7 @@ it('rejects a missing csrf token and accepts the same request with its valid tok
     $form = formie()->form()->singleLineTextField('fullName')->create();
     Formie::$plugin->getSettings()->enableCsrfValidationForGuests = true;
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($form): void {
-        $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive();
+        $session = Formie::$plugin->getFormSessions()->issueInitialSession($form)->toArrayRecursive();
         $body = ['handle' => $form->handle, 'action' => 'submit', 'values' => ['fullName' => 'CSRF control'], 'session' => $session];
         $count = fn() => (int)Submission::find()->formId($form->id)->status(null)->isSpam(null)->isIncomplete(null)->count();
         $before = $count();

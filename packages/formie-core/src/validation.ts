@@ -1,6 +1,17 @@
 import { conditionNumber } from './conditions';
 
-export type BrowserValidationRule = { type: string; message?: string; messages?: Record<string, string>; min?: number | null; max?: number | null; [key: string]: unknown };
+export type BrowserValidationRule = {
+    message?: string;
+    messages?: Record<string, string>;
+    type: string;
+    fieldId?: string | null;
+    fieldHandle?: string | null;
+    min?: number | null;
+    max?: number | null;
+    minDate?: string | null;
+    maxDate?: string | null;
+    [key: string]: unknown;
+};
 export type BrowserValidationContext = { label?: string; comparison?: unknown; comparisonLabel?: string; empty?: boolean };
 export type BrowserRule = (value: unknown, rule: BrowserValidationRule, context: BrowserValidationContext) => string | null;
 const rules = new Map<string, BrowserRule>();

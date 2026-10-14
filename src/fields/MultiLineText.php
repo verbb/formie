@@ -395,7 +395,7 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
             'value' => $value,
             'field' => $this,
             'form' => $form,
-            'textLimitConfig' => $this->getTextLimitClientConfig(true),
+            'textLimitConfig' => $this->getTextLimitBrowserConfig(true),
         ]);
     }
 
@@ -435,7 +435,7 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
 
     protected function defineClientRenderedInput(): array
     {
-        return array_merge(parent::defineClientRenderedInput(), $this->getTextLimitClientInput());
+        return array_merge(parent::defineClientRenderedInput(), $this->getTextLimitClientRenderedInput());
     }
 
     protected function defineBrowserModules(): array

@@ -9,7 +9,7 @@ class FieldReferenceHelper
     // Static Methods
     // =========================================================================
 
-    public static function resolveClientFieldKey(string $reference, array $fieldMap = []): string
+    public static function resolveBrowserFieldKey(string $reference, array $fieldMap = []): string
     {
         $trimmedReference = trim($reference);
 
@@ -24,12 +24,12 @@ class FieldReferenceHelper
         return $trimmedReference;
     }
 
-    public static function getClientFieldReferenceMap(array $fields): array
+    public static function getBrowserFieldReferenceMap(array $fields): array
     {
-        return self::_buildClientFieldReferenceMap($fields);
+        return self::_buildBrowserFieldReferenceMap($fields);
     }
 
-    private static function _buildClientFieldReferenceMap(array $fields, string $uidPrefix = '', string $referencePrefix = ''): array
+    private static function _buildBrowserFieldReferenceMap(array $fields, string $uidPrefix = '', string $referencePrefix = ''): array
     {
         $map = [];
 
@@ -61,7 +61,7 @@ class FieldReferenceHelper
             }
 
             if ($field instanceof ParentFieldInterface) {
-                $map += self::_buildClientFieldReferenceMap(
+                $map += self::_buildBrowserFieldReferenceMap(
                     $field->getFields(),
                     $fullUid ?: $uidPrefix,
                     $fullReference ?: $referencePrefix

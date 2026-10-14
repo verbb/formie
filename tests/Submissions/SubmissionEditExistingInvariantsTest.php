@@ -6,7 +6,7 @@ use Tests\Support\WebRequestTestHelper;
 use verbb\formie\conditions\ConditionOperator;
 use verbb\formie\elements\Submission;
 use verbb\formie\Formie;
-use verbb\formie\models\ManagedSubmissionRequest;
+use verbb\formie\models\HtmlSubmissionRequest;
 use verbb\formie\models\Notification;
 use verbb\formie\models\SubmissionCommand;
 use verbb\formie\models\SubmissionStatus;
@@ -121,7 +121,7 @@ it('keeps completed multi-page cp saves complete and preserves the selected stat
     expect($submission->isIncomplete)->toBeFalse();
 
     editInvariantsWithCpRequest(function () use ($form, $submission): void {
-        $result = runManagedSubmission(new ManagedSubmissionRequest([
+        $result = runHtmlSubmission(new HtmlSubmissionRequest([
             'handle' => $form->handle,
             'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'siteId' => (int)$submission->siteId,
@@ -253,7 +253,7 @@ it('sends status-change notifications when cp workflow saves change the submissi
 
     try {
         editInvariantsWithCpRequest(function () use ($form, $existing): void {
-            $result = runManagedSubmission(new ManagedSubmissionRequest([
+            $result = runHtmlSubmission(new HtmlSubmissionRequest([
                 'handle' => $form->handle,
                 'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
                 'siteId' => (int)$existing->siteId,
@@ -289,7 +289,7 @@ it('marks incomplete cp submissions complete only when markAsComplete is posted'
     $incomplete = editInvariantsSaveIncomplete($form, ['fullName' => 'Still going']);
 
     editInvariantsWithCpRequest(function () use ($form, $incomplete): void {
-        $result = runManagedSubmission(new ManagedSubmissionRequest([
+        $result = runHtmlSubmission(new HtmlSubmissionRequest([
             'handle' => $form->handle,
             'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'siteId' => (int)$incomplete->siteId,
@@ -310,7 +310,7 @@ it('marks incomplete cp submissions complete only when markAsComplete is posted'
         ->and($stillIncomplete->getFieldValue('fullName'))->toBe('Still going updated');
 
     editInvariantsWithCpRequest(function () use ($form, $incomplete): void {
-        $result = runManagedSubmission(new ManagedSubmissionRequest([
+        $result = runHtmlSubmission(new HtmlSubmissionRequest([
             'handle' => $form->handle,
             'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'siteId' => (int)$incomplete->siteId,

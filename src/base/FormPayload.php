@@ -1,9 +1,9 @@
 <?php
-namespace verbb\formie\client;
+namespace verbb\formie\base;
 
 use craft\base\Model;
 
-class BaseClientModel extends Model
+abstract class FormPayload extends Model
 {
     // Public Methods
     // =========================================================================

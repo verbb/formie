@@ -7,10 +7,10 @@ use verbb\formie\fields\traits\OtherOptionFieldTrait;
 use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
-use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -278,7 +278,7 @@ class Radio extends OptionsField implements SortableFieldInterface
                     'data-formie-radio-input' => true,
                     'data-formie-input-id' => $this->getHtmlDataId($form, $optionValue),
                     'data-formie-input-type' => 'radio',
-                ], ValidationMessagesHelper::requiredClientAttributes($this)))
+                ], ValidationMessagesHelper::requiredBrowserAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',
@@ -353,8 +353,8 @@ class Radio extends OptionsField implements SortableFieldInterface
         return $modules;
     }
 
-    protected function definePrimaryOptionVariableSourceTypes(): array
+    protected function definePrimaryOptionReferenceTypes(): array
     {
-        return [Variables::TYPE_TEXT];
+        return [ReferenceType::Text];
     }
 }

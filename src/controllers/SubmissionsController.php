@@ -3,7 +3,6 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
-use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\compatibility\payments\LegacyPaymentSubmitResponse;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -19,7 +18,8 @@ use verbb\formie\helpers\SiteHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\TypeHelper;
-use verbb\formie\models\ManagedSubmissionRequest;
+use verbb\formie\models\HtmlSubmissionRequest;
+use verbb\formie\models\PageTransitionRequest;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SubmissionCommand;
 use verbb\formie\models\SubmissionErrors;
@@ -291,9 +291,9 @@ class SubmissionsController extends Controller
         // Add some settings just for submission editing
         $formConfigJson['settings']['outputJs'] = false;
         $variables['formConfigJson'] = $formConfigJson;
-        $variables['submissionClientContext'] = $variables['submission']->hasLockedContent()
+        $variables['submissionBrowserContext'] = $variables['submission']->hasLockedContent()
             ? []
-            : ConditionsHelper::getClientSubmissionContext($variables['submission']);
+            : ConditionsHelper::getBrowserSubmissionContext($variables['submission']);
 
         return $this->renderTemplate('formie/submissions/_edit', $variables);
     }
@@ -607,7 +607,7 @@ class SubmissionsController extends Controller
             $form->setDraftContext($draftContext);
         }
 
-        $result = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
+        $result = Formie::$plugin->getFormSessions()->persistPageState(new PageTransitionRequest([
             'handle' => $handle,
             'targetPageId' => (string)$pageId,
             'values' => $this->request->getBodyParam('fields', []),
@@ -616,7 +616,7 @@ class SubmissionsController extends Controller
                 'version' => $this->request->getBodyParam('expectedVersion'),
                 'continuation' => ['draftContext' => $draftContext, 'progressId' => $this->request->getBodyParam('progressId')],
             ],
-        ]), true);
+        ]));
 
         $redirectBase = SetPageReturnUrlHelper::resolveLegacySetPageRedirectUrl($this->request);
 
@@ -655,7 +655,7 @@ class SubmissionsController extends Controller
         }
 
         try {
-            $result = Formie::$plugin->getSubmissionRequests()->executeManaged(new ManagedSubmissionRequest([
+            $result = Formie::$plugin->getSubmissionRequests()->executeHtml(new HtmlSubmissionRequest([
                 'handle' => $handle,
                 'operation' => $operation,
                 'expectedVersion' => $this->_parseTypedParam('expectedVersion', TypeHelper::TYPE_INT, null, false),

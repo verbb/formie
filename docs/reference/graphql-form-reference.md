@@ -161,7 +161,7 @@ Field | Type | Description
 `placeholder` | `String` | The field placeholder.
 `defaultValue` | `String` | The field’s default value, when it can be represented as a string.
 `emailFieldSummaryValue` | `String` | The value format used in email field summaries.
-`prePopulate` | `String` | The query-string parameter used to prefill the field’s initial value.
+`prefillQueryParam` | `String` | The query-string parameter used to prefill the field’s initial value.
 `errorMessage` | `String` | The field’s error message.
 `labelPosition` | `String` | The label position.
 `instructionsPosition` | `String` | The instructions position.

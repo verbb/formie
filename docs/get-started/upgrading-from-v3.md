@@ -415,7 +415,7 @@ query FormHtml($handle: String!, $input: ServerRenderPayloadInput) {
 ```
 :::
 
-This is the same HTML-mode flow used by the starter examples. GraphQL loads the HTML payload, and the rendered form still submits through its normal form action.
+This is the same server-rendered flow used by the starter examples. GraphQL loads the HTML payload, and the rendered form still submits through its normal form action.
 
 If you submit forms through GraphQL, review the current GraphQL docs. Formie now has separate docs for querying forms, querying submissions, rendering forms, and creating submissions:
 
@@ -1544,9 +1544,9 @@ Setting | Use
 `submissionStateRetentionDays` | Controls retention for stored submission state.
 `saveResumeTokenTtlDays` | Controls resume link lifetime.
 `setOnlyCurrentPagePayload` | Limits front-end page payload behaviour to the current page.
-`anonymousClientBootstrapRateLimit` | Rate limit for anonymous form bootstrap requests.
-`anonymousClientRefreshRateLimit` | Rate limit for anonymous token refresh requests.
-`anonymousClientRateWindowSeconds` | Rate-limit window used by the anonymous request limits.
+`anonymousFormBootstrapRateLimit` | Rate limit for anonymous form bootstrap requests.
+`anonymousFormRefreshRateLimit` | Rate limit for anonymous token refresh requests.
+`anonymousFormRateWindowSeconds` | Rate-limit window used by the anonymous request limits.
 `useCssLayers` | Outputs Formie's CSS using CSS layers when enabled.
 
 Removed settings are ignored during settings normalisation:
@@ -1704,7 +1704,7 @@ A direct fixed child reference is valid. A direct repeater-child reference needs
 
 ## Integration Delivery Storage
 
-Back up the database, finish pending integration and notification jobs, and retain the Formie security key before upgrading. The upgrade encrypts literal persisted connection and per-form secrets. Environment references remain portable. Formie 3 providers returning `bool` or `IntegrationResponse` remain callable through a compatibility adapter. A `false` result is a non-retryable failure unless the provider supplies more precise evidence through a guarded request. Update providers to return `IntegrationResult` and wrap each remote write in a named child operation; see [Custom Integrations](/developers/custom-integration/overview#results-and-safe-retries).
+Back up the database, finish pending integration and notification jobs, and retain the Formie security key before upgrading. Literal connection and permitted per-form settings remain as configured. Environment references remain portable. Existing beta-encrypted settings require their original key or replacement values. Formie 3 providers returning `bool` or `IntegrationResponse` remain callable through a compatibility adapter. A `false` result is a non-retryable failure unless the provider supplies more precise evidence through a guarded request. Update providers to return `IntegrationResult` and wrap each remote write in a named child operation; see [Custom Integrations](/developers/custom-integration/overview#results-and-safe-retries).
 
 After upgrading, use **Formie delivery diagnostics** on failed Formie jobs in **Utilities → Queue Manager** to inspect retained delivery evidence and reconcile uncertain results before retrying. Downgrading requires the matching pre-upgrade database and code backup.
 
@@ -1753,3 +1753,34 @@ For custom front-end validation, follow [Custom Front-End Validation](#custom-fr
 ### Browser Translation Event
 
 Replace `EVENT_MODIFY_FRONT_END_JS_TRANSLATIONS` with `Rendering::EVENT_MODIFY_BROWSER_JS_TRANSLATIONS`. The event still supplies the translation array for extensions to modify.
+
+
+## Updating Earlier Formie 4 Extensions
+
+If custom code adopted APIs from an earlier Formie 4 beta, update these names when deploying the plugin and npm packages together. These beta APIs do not have compatibility aliases.
+
+| Earlier API | Current API |
+|---|---|
+| `client\modules` namespace | `browser\modules` |
+| `compatibility\client\RefreshTokensCompatibility` | `compatibility\browser\RefreshTokensCompatibility`; legacy refresh endpoints retain their behaviour |
+| `ClientSessionService` and `getClientSessionService()` | `services\FormSessions` and `getFormSessions()` |
+| `client\BaseClientModel` | `base\FormPayload` |
+| `client\ClientMutationRequest` | `models\FormMutationRequest` |
+| `client\models\FormSession`, `PageTransitionRequest`, `SessionRefreshRequest` | The corresponding classes in `models` |
+| `client\models\SubmitRequest`, `SubmitResult` | `models\FormSubmitRequest`, `FormSubmitResult` |
+| `ManagedSubmissionRequest` and `executeManaged()` | `HtmlSubmissionRequest` and `executeHtml()` |
+| `getClientFormDefinitionBuilder()->build($form, $context)` | `$form->getClientRenderedDefinition($context)` |
+| `clientRenderedDefinition()` and `FieldClientRenderedDefinition` | Override `defineClientRenderedType()` and `defineClientRenderedInput()`; obtain the complete payload with `getClientRenderedDefinition()` |
+| Custom Craft-field adapter `getClientInput()` | `getClientRenderedInput()` |
+| `definePrimaryOptionVariableSourceTypes()` | `definePrimaryOptionReferenceTypes()`, returning `ReferenceType` enum cases |
+| `ClientConditionRule`, `ClientConditionSettings`, `ClientValidationRule` npm types | `BrowserConditionRule`, `BrowserConditionSettings`, `BrowserValidationRule` |
+| Field `runtime.structure` metadata | `client.children.model`, alongside `client.valueType` |
+| `anonymousClientBootstrapRateLimit`, `anonymousClientRefreshRateLimit`, `anonymousClientRateWindowSeconds` settings | `anonymousFormBootstrapRateLimit`, `anonymousFormRefreshRateLimit`, `anonymousFormRateWindowSeconds` |
+
+The CP condition helper uses `CpSubmissionFieldConditions::browserDisplayMode()` and `BROWSER_DISPLAY_HIDE`. Shared PHP condition helpers now use browser terminology: `compileBrowserConditions()`, `getBrowserSubmissionContext()`, `getSubmitButtonBrowserConditions()`, and `toBrowserConditionDefinition()`. Field-reference helpers use `getBrowserFieldReferenceMap()`, `resolveBrowserFieldKey()`, and `normalizeBrowserFieldReference()`. Shared validation helpers use `BrowserAttribute` or `BrowserAttributes` suffixes; text-limit configuration uses `getTextLimitBrowserConfig()`. Client-rendered text-limit and option-limit inputs use `getTextLimitClientRenderedInput()` and `getOptionsLimitClientRenderedInput()`.
+
+`FormSessions::persistPageState($request)` takes only the page-transition request. Remove the unused second boolean argument; visitor page transitions enforce the shared refresh rate limit through the submission guards.
+
+Session submission helpers use `applySessionRequestContext()`, `getRequiredSessionMutationScope()`, and `resolveSessionContinuationSubmission()`. Map adapter configuration helpers use `BrowserSettings` suffixes. Code using the old `ConditionsHelper::getClientFieldReferenceMap()` forwarding method should call `FieldReferenceHelper::getBrowserFieldReferenceMap($form->getFields())` directly.
+
+The empty `FieldRequiredValidator` wrapper has been removed; use Yii’s `RequiredValidator`. Removed beta compatibility classes include `ClientCompatibility`, `ClientGuestCsrfTrait`, and the `options\sources` class aliases. Use the canonical `options`, `options\resolvers`, and `options\predefined` classes. Replace `OptionSourceProviderInterface` with `OptionSourceResolverInterface` and the `providers` classes with their corresponding `resolvers` classes. `IntegrationSecrets::protect()` and `protectBindings()` have also been removed: settings remain as configured, and sensitive metadata controls redaction. Existing encrypted settings retain their migration and recovery path. The `FormIntegrationSetting` and `Sensitive` PHP attributes remain separate contracts for form assignability and redaction.

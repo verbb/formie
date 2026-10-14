@@ -388,7 +388,7 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
                     'data-formie-input-type' => 'email',
                     'data-formie-input-error-state' => $errors ? true : false,
                     'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
-                ], ValidationMessagesHelper::emailValidationClientAttributes($this)))
+                ], ValidationMessagesHelper::emailValidationBrowserAttributes($this)))
                 ->theme([
                     'class' => [
                         'formie-input',

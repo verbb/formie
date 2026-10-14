@@ -25,7 +25,7 @@ Integrations can fail when a provider is down, credentials expire, or mapping se
 
 ## [Integration Dispatch and Policies](/guides/integrations/integration-dispatch-and-policies)
 
-Formie separates **what** an integration does (credentials, mapping, API calls) from **when and how** it runs on each submission. The form builder’s Integrations tab controls dispatch behaviour — order, queue vs immediate execution, re-run policies, and per-integration conditions — without changing your integration PHP.
+Formie separates **what** an integration does (credentials, mapping, API calls) from **when and how** it runs on each submission. The form builder’s Integrations tab controls dispatch behaviour — order, queued and synchronous execution, re-run policies, and per-integration conditions — without changing your integration PHP.
 
 ## [Using Guzzle Clients from Formie Integrations in Your Own Code](/guides/integrations/using-guzzle-clients-from-formie-integrations-in-your-own-code)
 

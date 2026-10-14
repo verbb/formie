@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\Formie;
-use verbb\formie\models\ManagedSubmissionRequest;
+use verbb\formie\models\HtmlSubmissionRequest;
 use verbb\formie\services\SubmissionWorkflow;
 
 it('does not advertise continuation tokens from leftover progress when automatic restore is off', function(): void {
@@ -25,7 +25,7 @@ it('does not advertise continuation tokens from leftover progress when automatic
     $session = WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission): array {
         Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission, $form->getCurrentPage()?->id);
 
-        return Formie::$plugin->getClientSessionService()->issueInitialSession($form)->toArrayRecursive();
+        return Formie::$plugin->getFormSessions()->issueInitialSession($form)->toArrayRecursive();
     }, [
         'method' => 'GET',
     ]);
@@ -55,7 +55,7 @@ it('starts a new managed submission instead of bare progress when automatic rest
     $result = WebRequestTestHelper::withWebRequestContext(function () use ($form, $pages, $prior) {
         Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $prior, $pages[1]->id);
 
-        return runManagedSubmission(new ManagedSubmissionRequest([
+        return runHtmlSubmission(new HtmlSubmissionRequest([
             'handle' => $form->handle,
             'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'submitAction' => 'submit',
@@ -100,7 +100,7 @@ it('continues the same managed submission when submissionUid matches progress wi
     $result = WebRequestTestHelper::withWebRequestContext(function () use ($form, $pages, $submission) {
         Formie::$plugin->getSubmissionProgress()->upsertProgressState($form, $submission, $pages[0]->id);
 
-        return runManagedSubmission(new ManagedSubmissionRequest([
+        return runHtmlSubmission(new HtmlSubmissionRequest([
             'handle' => $form->handle,
             'operation' => \verbb\formie\enums\SubmissionOperation::SUBMIT,
             'submitAction' => 'submit',

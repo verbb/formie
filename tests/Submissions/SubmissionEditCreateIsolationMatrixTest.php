@@ -5,7 +5,7 @@ declare(strict_types=1);
 use verbb\formie\Formie;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\ManagedSubmissionRequest;
+use verbb\formie\models\HtmlSubmissionRequest;
 use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;
 use Tests\Support\WebRequestTestHelper;
@@ -100,7 +100,7 @@ it('uses explicit managed submission identities when saving existing submissions
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $existing, $identity): void {
         $form->setSubmission($existing);
 
-        $result = runManagedSubmission(new ManagedSubmissionRequest([
+        $result = runHtmlSubmission(new HtmlSubmissionRequest([
             'handle' => $form->handle,
             'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'siteId' => (int)$existing->siteId,
@@ -147,7 +147,7 @@ it('rejects anonymous site edits that identify a completed submission by identit
         ->save();
 
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $existing, $identity): void {
-        expect(fn() => runManagedSubmission(new ManagedSubmissionRequest([
+        expect(fn() => runHtmlSubmission(new HtmlSubmissionRequest([
             'handle' => $form->handle,
             'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
             'siteId' => (int)$existing->siteId,

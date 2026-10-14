@@ -1,9 +1,13 @@
 export type BrowserValidationRule = {
-    type: string;
     message?: string;
     messages?: Record<string, string>;
+    type: string;
+    fieldId?: string | null;
+    fieldHandle?: string | null;
     min?: number | null;
     max?: number | null;
+    minDate?: string | null;
+    maxDate?: string | null;
     [key: string]: unknown;
 };
 export type BrowserValidationContext = {

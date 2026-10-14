@@ -4,6 +4,7 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\compatibility\payments\LegacyPaymentCredentials;
 use verbb\formie\compatibility\payments\LegacyPaymentWebhooks;
+use verbb\formie\content\ContentEncryption;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubscriptionCancellationMode;
 use verbb\formie\enums\SubscriptionStatus;
@@ -14,7 +15,6 @@ use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldReferenceHelper;
 use verbb\formie\helpers\IntegrationSecrets;
-use verbb\formie\content\ContentEncryption;
 use verbb\formie\helpers\PaymentAmountHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
@@ -24,12 +24,12 @@ use verbb\formie\models\Notification;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentFieldPayload;
+use verbb\formie\models\SlotTag;
+use verbb\formie\models\Subscription;
 use verbb\formie\models\payments\PaymentWebhookCommand;
 use verbb\formie\models\payments\PaymentWebhookReceipt;
 use verbb\formie\models\payments\SubscriptionSnapshot;
 use verbb\formie\models\payments\VerifiedWebhookBatch;
-use verbb\formie\models\SlotTag;
-use verbb\formie\models\Subscription;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\theme\context\RenderContext;
 
@@ -814,7 +814,7 @@ abstract class Payment extends Integration
         return $fieldKey !== '' ? $fieldKey : null;
     }
 
-    protected function normalizeClientFieldReference(mixed $value): ?string
+    protected function normalizeBrowserFieldReference(mixed $value): ?string
     {
         $raw = trim((string)$value);
 
@@ -825,7 +825,7 @@ abstract class Payment extends Integration
         $expression = References::parseReferenceExpression($raw);
 
         if ($expression->isValid && $expression->target === 'field' && $expression->identifier !== '') {
-            return FieldReferenceHelper::resolveClientFieldKey($expression->identifier);
+            return FieldReferenceHelper::resolveBrowserFieldKey($expression->identifier);
         }
 
         return $raw;

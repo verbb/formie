@@ -3,12 +3,12 @@ namespace verbb\formie\controllers\client;
 
 use verbb\formie\Formie;
 use verbb\formie\client\models\LoadContext;
-use verbb\formie\client\models\PageTransitionRequest;
 use verbb\formie\controllers\AnonymousSiteRequestGuardTrait;
 use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\BrowserRequestProfile;
 use verbb\formie\helpers\SiteHelper;
+use verbb\formie\models\PageTransitionRequest;
 
 use craft\web\Controller;
 
@@ -90,7 +90,7 @@ class FormsController extends Controller
 
         $this->requirePostRequest();
 
-        $result = Formie::$plugin->getClientSessionService()->persistPageState(new PageTransitionRequest([
+        $result = Formie::$plugin->getFormSessions()->persistPageState(new PageTransitionRequest([
             'handle' => (string)$this->request->getBodyParam('handle', $this->request->getParam('handle', '')),
             'siteId' => SiteHelper::resolveSiteIdFromRequest(),
             'currentPageId' => $this->request->getBodyParam('currentPageId'),
@@ -98,7 +98,7 @@ class FormsController extends Controller
             'targetPageId' => $this->request->getBodyParam('targetPageId'),
             'session' => (array)$this->request->getBodyParam('session', []),
             'values' => (array)$this->request->getBodyParam('values', []),
-        ]), true);
+        ]));
 
         $this->response->setNoCacheHeaders();
         $this->response->setStatusCode($result->httpStatus);

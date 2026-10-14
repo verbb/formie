@@ -1,11 +1,11 @@
 <?php
-namespace verbb\formie\client\models;
+namespace verbb\formie\models;
 
-use verbb\formie\client\BaseClientModel;
+use verbb\formie\base\FormPayload;
 
 use Craft;
 
-class SubmitResult extends BaseClientModel
+class FormSubmitResult extends FormPayload
 {
     // Static Methods
     // =========================================================================
@@ -46,13 +46,4 @@ class SubmitResult extends BaseClientModel
     public ?array $redirect = null;
     public array $clientEvents = [];
     public ?array $payment = null;
-
-
-    // Public Methods
-    // =========================================================================
-
-    public function __construct($config = [])
-    {
-        parent::__construct($config);
-    }
 }

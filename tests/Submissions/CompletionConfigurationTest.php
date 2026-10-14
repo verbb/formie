@@ -221,8 +221,8 @@ it('preserves instance settings when refreshing a client session', function (): 
     $runtime = new RuntimeConfiguration();
     $runtime->establish($form, ['utm_source' => 'initial']);
     \Tests\Support\WebRequestTestHelper::withWebRequestContext(function () use ($form, $runtime): void {
-    $session = Formie::$plugin->getClientSessionService()->issueInitialSession($form);
-    $refreshed = Formie::$plugin->getClientSessionService()->refreshSession(new \verbb\formie\client\models\SessionRefreshRequest(['handle' => $form->handle, 'session' => $session->toArrayRecursive()]));
+    $session = Formie::$plugin->getFormSessions()->issueInitialSession($form);
+    $refreshed = Formie::$plugin->getFormSessions()->refreshSession(new \verbb\formie\models\SessionRefreshRequest(['handle' => $form->handle, 'session' => $session->toArrayRecursive()]));
     $fresh = Form::find()->id($form->id)->status(null)->one();
     $runtime->restoreToken($fresh, $refreshed->tokens['request']);
     expect($fresh->settings->redirectUrl)->toBe('/refresh-preserved')->and($fresh->getInstanceConfig()->query)->toBe(['utm_source' => 'initial']);
