@@ -26,6 +26,25 @@ test('mount waits for Craft async CSRF before initializing form modules', async(
     expect(result).toEqual({ mountedBeforeCsrf: false, mountedAfterCsrf: true });
 });
 
+test('Google address parsing preserves provider address-line ordering', async({ page }) => {
+    await page.goto('/browser-fixture');
+    await page.waitForFunction(() => !!(window as any).googleAddressBoundary);
+    const result = await page.evaluate(() => {
+        const { buildAddressFromComponents } = (window as any).googleAddressBoundary;
+        const components = { street_number: '1', route: 'Main Street', locality: 'Melbourne' };
+
+        return {
+            providerOrder: buildAddressFromComponents(components, { addressLines: ['Main Street 1', 'Unit 2'] }).address1,
+            fallbackOrder: buildAddressFromComponents(components).address1,
+        };
+    });
+
+    expect(result).toEqual({
+        providerOrder: 'Main Street 1, Unit 2',
+        fallbackOrder: '1 Main Street',
+    });
+});
+
 test('module occurrences reconcile repeated targets, conditional DOM and failures', async({ page }) => {
     await page.goto('/browser-fixture?adapter=react');
     await page.waitForFunction(() => !!(window as any).browserModules);
