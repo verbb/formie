@@ -2194,9 +2194,9 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return $modules;
     }
 
-    private function _getDatePickerLocale(): string
+    private function _getDatePickerLocale(?string $localeId = null): string
     {
-        $locale = strtolower(str_replace('_', '-', Craft::$app->getLocale()->id));
+        $locale = strtolower(str_replace('_', '-', $localeId ?? Craft::$app->getLocale()->id));
         $aliases = [
             'nb' => 'no',
             'ca' => 'cat',

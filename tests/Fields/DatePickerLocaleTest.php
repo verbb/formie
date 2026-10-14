@@ -3,16 +3,9 @@
 use verbb\formie\fields\Date;
 
 it('maps Craft locales to Flatpickr locale names', function(string $craftLocale, string $flatpickrLocale): void {
-    $originalLanguage = Craft::$app->language;
+    $method = new ReflectionMethod(Date::class, '_getDatePickerLocale');
 
-    try {
-        Craft::$app->language = $craftLocale;
-        $method = new ReflectionMethod(Date::class, '_getDatePickerLocale');
-
-        expect($method->invoke(new Date()))->toBe($flatpickrLocale);
-    } finally {
-        Craft::$app->language = $originalLanguage;
-    }
+    expect($method->invoke(new Date(), $craftLocale))->toBe($flatpickrLocale);
 })->with([
     ['nb-NO', 'no'],
     ['ca-ES', 'cat'],
