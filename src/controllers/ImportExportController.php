@@ -14,8 +14,10 @@ use craft\helpers\Console;
 use craft\helpers\Html;
 use craft\helpers\HtmlPurifier;
 use craft\helpers\Json;
+use craft\helpers\UrlHelper;
 use craft\web\UploadedFile;
 
+use yii\base\InvalidArgumentException as YiiInvalidArgumentException;
 use yii\helpers\Markdown;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
@@ -100,11 +102,10 @@ class ImportExportController extends SettingsAccessController
     {
         $request = $this->request;
 
-        $json = $this->_readImport($filename);
+        $json = $this->_getFormImportData($filename);
 
-        // Check if this is multiple forms exports (from Forms index) - just use the one
-        if (isset($json[0])) {
-            $json = $json[0];
+        if ($json === null) {
+            return $this->_invalidFormImportResponse();
         }
 
         // Find an existing form with the same handle
@@ -195,8 +196,12 @@ class ImportExportController extends SettingsAccessController
         $filename = $request->getParam('filename');
         $formAction = $request->getParam('formAction');
 
-        $json = $this->_readImport($filename);
-        $json = $json[0] ?? $json;
+        $json = $this->_getFormImportData($filename);
+
+        if ($json === null) {
+            return $this->_invalidFormImportResponse();
+        }
+
         $existingForm = $formAction === 'update'
             ? Formie::$plugin->getForms()->getFormByHandle($json['handle'] ?? '')
             : null;
@@ -291,6 +296,37 @@ class ImportExportController extends SettingsAccessController
 
     // Private Methods
     // =========================================================================
+
+    private function _getFormImportData(mixed $filename): ?array
+    {
+        try {
+            $json = $this->_readImport($filename);
+        } catch (InvalidArgumentException|YiiInvalidArgumentException) {
+            return null;
+        }
+
+        // Multiple-form exports are reviewed and imported one form at a time.
+        if (is_array($json) && isset($json[0])) {
+            $json = $json[0];
+        }
+
+        if (!is_array($json) ||
+            !is_string($json['handle'] ?? null) ||
+            !is_array($json['pages'] ?? null) ||
+            !is_array($json['notifications'] ?? null)
+        ) {
+            return null;
+        }
+
+        return $json;
+    }
+
+    private function _invalidFormImportResponse(): Response
+    {
+        $this->setFailFlash(Craft::t('formie', 'This file is not a valid Formie form export.'));
+
+        return $this->redirect(UrlHelper::cpUrl('formie/settings/import-export'));
+    }
 
     private function _stdout(string $string, string $color = ''): void
     {

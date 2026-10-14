@@ -56,6 +56,39 @@ it('reports when a form import file is no longer available', function(): void {
     ]);
 })->group('security');
 
+it('rejects files that are not valid Formie form exports', function(string $contents): void {
+    $importFiles = new FormImportFiles(Craft::$app->getAssets()->getTempAssetUploadFs());
+    $user = \craft\elements\User::find()->admin(true)->one();
+    $userId = (int)$user->id;
+    $stream = fopen('php://temp', 'w+b');
+    fwrite($stream, $contents);
+    rewind($stream);
+    $filename = $importFiles->store($stream, $userId);
+    fclose($stream);
+
+    try {
+        WebRequestTestHelper::withWebRequestContext(function() use ($filename, $user): void {
+            Craft::$app->getRequest()->setIsCpRequest(true);
+            Craft::$app->getUser()->setIdentity($user);
+
+            $controller = new ImportExportController('formie-import-export-security', Craft::$app);
+            $response = $controller->actionImportConfigure($filename);
+
+            expect($response)->toBeInstanceOf(Response::class)
+                ->and($response->getStatusCode())->toBe(302)
+                ->and($response->getHeaders()->get('Location'))->toContain('/formie/settings/import-export');
+        }, [
+            'method' => 'GET',
+            'requestUri' => '/admin/formie/settings/import-export/import-configure',
+        ]);
+    } finally {
+        $importFiles->delete($filename, $userId);
+    }
+})->with([
+    'unrelated JSON object' => [json_encode(['name' => 'Not a form'], JSON_THROW_ON_ERROR)],
+    'malformed JSON' => ['{"handle":'],
+])->group('security');
+
 it('encodes hostile import preview strings before rendering the summary with raw', function(): void {
     $controller = new SecurityImportExportControllerProbe('formie-import-export-security', Craft::$app);
     $importFiles = new FormImportFiles(Craft::$app->getAssets()->getTempAssetUploadFs());
