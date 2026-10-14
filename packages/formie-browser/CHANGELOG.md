@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed correcting a spam-rejected submission causing a stale-session error and clearing entered values.
 - Fixed payment checkout redirects showing an unsaved-changes warning and leaving forms disabled when cancelled.
 
 ## 1.0.14 - 2026-10-08

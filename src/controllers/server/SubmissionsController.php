@@ -248,6 +248,8 @@ class SubmissionsController extends Controller
         }
 
         if (!$response->success) {
+            // Terminal spam can be corrected, but its saved record cannot be resumed.
+            $payload['resetSubmissionIdentity'] = $submission->isSpam && !$submission->isIncomplete;
             $payload['errors'] = SubmissionErrors::fromSubmission($submission)->toValuePathMap();
             $this->_appendPaymentResponsePayload($payload, $response);
 

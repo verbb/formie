@@ -371,6 +371,17 @@ export function applyPageState(form: HTMLFormElement, nextPageId: string): void 
 }
 
 function syncSubmissionIdentity(form: HTMLFormElement, result: FormSubmitResult): void {
+    if (result.meta?.resetSubmissionIdentity === true) {
+        // Saved spam is terminal. Preserve the entered values for correction,
+        // but do not try to continue the rejected record on the next submit.
+        removeHiddenInput(form, 'submissionId');
+        removeHiddenInput(form, 'submissionUid');
+        removeHiddenInput(form, 'progressId');
+        setHiddenInputValue(form, 'expectedVersion', '0');
+        clearResumeTokenState(form);
+        return;
+    }
+
     const session = result.meta?.session as { version?: number } | undefined;
     const version = session?.version ?? result.meta?.version;
     if (typeof version === 'number') {

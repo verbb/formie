@@ -11,7 +11,9 @@
 {{ hiddenInput('siteId', craft.app.sites.currentSite.id) }}
 {{ hiddenInput('renderId', form.getRenderId()) }}
 {{ hiddenInput('requestToken', form.getRequestToken()) }}
-{{ hiddenInput('expectedVersion', form.getCurrentSubmission() ? form.getCurrentSubmission().stateVersion : 0) }}
+{# Rejected spam values are rendered for correction, not as a resumable record. #}
+{% set rejectedSubmission = submission and submission.isSpam and not submission.isIncomplete and not form.isEditingSubmission() %}
+{{ hiddenInput('expectedVersion', not rejectedSubmission and form.getCurrentSubmission() ? form.getCurrentSubmission().stateVersion : 0) }}
 {{ hiddenInput('formieUploadPayloadVersion', 4) }}
 {{ hiddenInput('uploadCreateToken', uploadCreateToken) }}
 {{ hiddenInput('formStartedAt', '') }}
@@ -22,7 +24,7 @@
 
 
 
-{% if submission and submission.uid %}
+{% if submission and submission.uid and not rejectedSubmission %}
     {{ hiddenInput('submissionUid', submission.uid) }}
 {% endif %}
 
