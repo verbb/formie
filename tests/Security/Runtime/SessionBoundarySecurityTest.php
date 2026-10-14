@@ -71,7 +71,7 @@ it('keeps submission grants valid when optional progress is deleted', function (
         ->and($verified->progressId)->toBeNull();
 })->group('security');
 
-it('reissues refresh-session tokens instead of trusting attacker supplied token blobs', function (): void {
+it('reissues refresh-session tokens instead of trusting attacker supplied token blobs', function (bool $authorizeScope, bool $malformedTokens): void {
     $form = formie()
         ->form(['title' => 'Refresh Session Security'])
         ->singleLineTextField('fullName')
@@ -79,13 +79,14 @@ it('reissues refresh-session tokens instead of trusting attacker supplied token 
 
     $pageId = (string)($form->getCurrentPage()?->id ?? '');
 
-    WebRequestTestHelper::withWebRequestContext(function () use ($form, $pageId): void {
+    WebRequestTestHelper::withWebRequestContext(function () use ($form, $pageId, $authorizeScope, $malformedTokens): void {
         $session = Formie::$plugin->getClientSessionService()->refreshSession(new SessionRefreshRequest([
             'handle' => (string)$form->handle,
             'siteId' => (int)$form->siteId,
+            'scopeAuthorizer' => $authorizeScope ? static fn() => true : null,
             'session' => [
                 'currentPageId' => $pageId,
-                'tokens' => [
+                'tokens' => $malformedTokens ? 'invalid-token-bag' : [
                     'request' => 'attacker-request-token',
                     'render' => 'attacker-render-id',
                     'csrf' => [
@@ -103,7 +104,12 @@ it('reissues refresh-session tokens instead of trusting attacker supplied token 
     }, [
         'method' => 'POST',
     ]);
-})->group('security');
+})->with([
+    'without scope authorizer' => [false, false],
+    'with scope authorizer' => [true, false],
+    'malformed tokens without scope authorizer' => [false, true],
+    'malformed tokens with scope authorizer' => [true, true],
+])->group('security');
 
 it('only allows same-origin bases for save-resume capability urls', function (): void {
     $processor = Formie::$plugin->getSubmissionRequests();

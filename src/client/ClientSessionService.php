@@ -45,10 +45,17 @@ class ClientSessionService extends Component
     {
         $form = Formie::$plugin->getSubmissionRequests()->requireFormByHandle($request->handle, $request->siteId);
         $requests = Formie::$plugin->getSubmissionRequests();
-        $requests->applyClientRequestContext($form, $request->session);
+        $session = $request->session;
+
+        // Refresh must not restore render identity from caller-supplied token values.
+        if (is_array($session['tokens'] ?? null)) {
+            unset($session['tokens']['render']);
+        }
+
+        $requests->applyClientRequestContext($form, $session);
 
         if ($authorizeScope = $request->getScopeAuthorizer()) {
-            if (!$authorizeScope($form, $requests->getRequiredClientMutationScope($form, $request->session))) {
+            if (!$authorizeScope($form, $requests->getRequiredClientMutationScope($form, $session))) {
                 throw new ForbiddenHttpException('Submission is unavailable.');
             }
         }
