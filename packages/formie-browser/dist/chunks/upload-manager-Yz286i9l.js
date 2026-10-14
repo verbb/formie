@@ -160,11 +160,11 @@ function D(e) {
 	let t = "";
 	return e.replace(/[^A-Z0-9]/gi, (e) => (t += `-${E(e)}`, "/")) + t;
 }
-function ee(e, t) {
+function O(e, t) {
 	let n = t || "uppy";
 	return typeof e.name == "string" && (n += `-${D(e.name.toLowerCase())}`), e.type !== void 0 && (n += `-${e.type}`), e.meta && typeof e.meta.relativePath == "string" && (n += `-${D(e.meta.relativePath.toLowerCase())}`), e.data?.size !== void 0 && (n += `-${e.data.size}`), e.data.lastModified !== void 0 && (n += `-${e.data.lastModified}`), n;
 }
-function O(e) {
+function k(e) {
 	return !e.isRemote || !e.remote ? !1 : (/* @__PURE__ */ new Set([
 		"box",
 		"dropbox",
@@ -173,36 +173,36 @@ function O(e) {
 		"unsplash"
 	])).has(e.remote.provider);
 }
-function te(e, t) {
-	if (O(e)) return e.id;
+function ee(e, t) {
+	if (k(e)) return e.id;
 	let n = T(e);
-	return ee({
+	return O({
 		...e,
 		type: n
 	}, t);
 }
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/getAllowedMetaFields.js
-function k(e, t) {
+function A(e, t) {
 	return e === !0 ? Object.keys(t) : Array.isArray(e) ? e : [];
 }
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/getTimeStamp.js
-function A(e) {
+function j(e) {
 	return e < 10 ? `0${e}` : e.toString();
 }
-function j() {
+function M() {
 	let e = /* @__PURE__ */ new Date();
-	return `${A(e.getHours())}:${A(e.getMinutes())}:${A(e.getSeconds())}`;
+	return `${j(e.getHours())}:${j(e.getMinutes())}:${j(e.getSeconds())}`;
 }
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/isNetworkError.js
-function ne(e) {
+function N(e) {
 	return e ? e.readyState === 4 && e.status === 0 : !1;
 }
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/TaskQueue.js
-var re = class {
+var te = class {
 	#e = [];
 	#t = 0;
 	#n;
@@ -299,26 +299,26 @@ var re = class {
 };
 //#endregion
 //#region ../../node_modules/@uppy/utils/lib/Translator.js
-function ie(e, t, n) {
+function ne(e, t, n) {
 	let r = [];
 	return e.forEach((e) => typeof e == "string" ? t[Symbol.split](e).forEach((e, t, i) => {
 		e !== "" && r.push(e), t < i.length - 1 && r.push(n);
 	}) : r.push(e)), r;
 }
-function M(e, t) {
+function re(e, t) {
 	let n = /\$/g, r = [e];
 	if (t == null) return r;
 	for (let e of Object.keys(t)) if (e !== "_") {
 		let i = t[e];
-		typeof i == "string" && (i = n[Symbol.replace](i, "$$$$")), r = ie(r, RegExp(`%\\{${e}\\}`, "g"), i);
+		typeof i == "string" && (i = n[Symbol.replace](i, "$$$$")), r = ne(r, RegExp(`%\\{${e}\\}`, "g"), i);
 	}
 	return r;
 }
-var N = (e) => {
+var ie = (e) => {
 	throw Error(`missing string: ${e}`);
 }, P = class {
 	locale;
-	constructor(e, { onMissingKey: t = N } = {}) {
+	constructor(e, { onMissingKey: t = ie } = {}) {
 		this.locale = {
 			strings: {},
 			pluralize(e) {
@@ -346,14 +346,14 @@ var N = (e) => {
 		if (n ??= (this.#e(e), e), typeof n == "object") {
 			if (t && t.smart_count !== void 0) {
 				let e = this.locale.pluralize(t.smart_count);
-				return M(n[e], t);
+				return re(n[e], t);
 			}
 			throw Error("Attempted to use a string with plural forms, but no value was given for %{smart_count}");
 		}
 		if (typeof n != "string") throw Error("string was not a string");
-		return M(n, t);
+		return re(n, t);
 	}
-}, ae = class {
+}, F = class {
 	uppy;
 	opts;
 	id;
@@ -400,7 +400,7 @@ var N = (e) => {
 	uninstall() {}
 	update(e) {}
 	afterUpdate() {}
-}, oe = class {
+}, I = class {
 	#e;
 	#t = [];
 	constructor(e) {
@@ -452,15 +452,15 @@ var N = (e) => {
 			this.#e.getFile(e) && t();
 		});
 	}
-}, se = {
+}, ae = {
 	debug: () => {},
 	warn: () => {},
-	error: (...e) => console.error(`[Uppy] [${j()}]`, ...e)
-}, ce = {
-	debug: (...e) => console.debug(`[Uppy] [${j()}]`, ...e),
-	warn: (...e) => console.warn(`[Uppy] [${j()}]`, ...e),
-	error: (...e) => console.error(`[Uppy] [${j()}]`, ...e)
-}, le = /* @__PURE__ */ t(((e, t) => {
+	error: (...e) => console.error(`[Uppy] [${M()}]`, ...e)
+}, oe = {
+	debug: (...e) => console.debug(`[Uppy] [${M()}]`, ...e),
+	warn: (...e) => console.warn(`[Uppy] [${M()}]`, ...e),
+	error: (...e) => console.error(`[Uppy] [${M()}]`, ...e)
+}, se = /* @__PURE__ */ t(((e, t) => {
 	t.exports = function(e) {
 		if (typeof e != "number" || Number.isNaN(e)) throw TypeError(`Expected a number, got ${typeof e}`);
 		let t = e < 0, n = Math.abs(e);
@@ -478,7 +478,7 @@ var N = (e) => {
 		], i = Math.min(Math.floor(Math.log(n) / Math.log(1024)), r.length - 1), a = Number(n / 1024 ** i), o = r[i];
 		return `${a >= 10 || a % 1 == 0 ? Math.round(a) : a.toFixed(1)} ${o}`;
 	};
-})), ue = /* @__PURE__ */ t(((e, t) => {
+})), ce = /* @__PURE__ */ t(((e, t) => {
 	function n(e, t) {
 		this.text = e ||= "", this.hasWild = ~e.indexOf("*"), this.separator = t, this.parts = e.split(t);
 	}
@@ -498,8 +498,8 @@ var N = (e) => {
 		var i = new n(e, r || /[\/\.]/);
 		return t === void 0 ? i : i.match(t);
 	};
-})), de = /* @__PURE__ */ t(((e, t) => {
-	var n = ue(), r = /[\/\+\.]/;
+})), le = /* @__PURE__ */ t(((e, t) => {
+	var n = ce(), r = /[\/\+\.]/;
 	t.exports = function(e, t) {
 		function i(t) {
 			var i = n(t, e, r);
@@ -507,7 +507,7 @@ var N = (e) => {
 		}
 		return t ? i(t.split(";")[0]) : i;
 	};
-})), F = /* @__PURE__ */ e(le(), 1), fe = /* @__PURE__ */ e(de(), 1), pe = {
+})), L = /* @__PURE__ */ e(se(), 1), ue = /* @__PURE__ */ e(le(), 1), de = {
 	maxFileSize: null,
 	minFileSize: null,
 	maxTotalFileSize: null,
@@ -515,14 +515,14 @@ var N = (e) => {
 	minNumberOfFiles: null,
 	allowedFileTypes: null,
 	requiredMetaFields: []
-}, I = class extends Error {
+}, R = class extends Error {
 	isUserFacing;
 	file;
 	constructor(e, t) {
 		super(e), this.isUserFacing = t?.isUserFacing ?? !0, t?.file && (this.file = t.file);
 	}
 	isRestriction = !0;
-}, me = class {
+}, fe = class {
 	getI18n;
 	getOpts;
 	constructor(e, t) {
@@ -534,26 +534,26 @@ var N = (e) => {
 	}
 	validateAggregateRestrictions(e, t) {
 		let { maxTotalFileSize: n, maxNumberOfFiles: r } = this.getOpts().restrictions;
-		if (r && e.filter((e) => !e.isGhost).length + t.length > r) throw new I(`${this.getI18n()("youCanOnlyUploadX", { smart_count: r })}`);
+		if (r && e.filter((e) => !e.isGhost).length + t.length > r) throw new R(`${this.getI18n()("youCanOnlyUploadX", { smart_count: r })}`);
 		if (n) {
 			let r = [...e, ...t].reduce((e, t) => e + (t.size ?? 0), 0);
-			if (r > n) throw new I(this.getI18n()("aggregateExceedsSize", {
-				sizeAllowed: (0, F.default)(n),
-				size: (0, F.default)(r)
+			if (r > n) throw new R(this.getI18n()("aggregateExceedsSize", {
+				sizeAllowed: (0, L.default)(n),
+				size: (0, L.default)(r)
 			}));
 		}
 	}
 	validateSingleFile(e) {
 		let { maxFileSize: t, minFileSize: n, allowedFileTypes: r } = this.getOpts().restrictions;
-		if (r && !r.some((t) => t.includes("/") ? e.type ? (0, fe.default)(e.type.replace(/;.*?$/, ""), t) : !1 : t[0] === "." && e.extension ? e.extension.toLowerCase() === t.slice(1).toLowerCase() : !1)) {
+		if (r && !r.some((t) => t.includes("/") ? e.type ? (0, ue.default)(e.type.replace(/;.*?$/, ""), t) : !1 : t[0] === "." && e.extension ? e.extension.toLowerCase() === t.slice(1).toLowerCase() : !1)) {
 			let t = r.join(", ");
-			throw new I(this.getI18n()("youCanOnlyUploadFileTypes", { types: t }), { file: e });
+			throw new R(this.getI18n()("youCanOnlyUploadFileTypes", { types: t }), { file: e });
 		}
-		if (t && e.size != null && e.size > t) throw new I(this.getI18n()("exceedsSize", {
-			size: (0, F.default)(t),
+		if (t && e.size != null && e.size > t) throw new R(this.getI18n()("exceedsSize", {
+			size: (0, L.default)(t),
 			file: e.name ?? this.getI18n()("unnamed")
 		}), { file: e });
-		if (n && e.size != null && e.size < n) throw new I(this.getI18n()("inferiorSize", { size: (0, F.default)(n) }), { file: e });
+		if (n && e.size != null && e.size < n) throw new R(this.getI18n()("inferiorSize", { size: (0, L.default)(n) }), { file: e });
 	}
 	validate(e, t) {
 		t.forEach((e) => {
@@ -562,17 +562,17 @@ var N = (e) => {
 	}
 	validateMinNumberOfFiles(e) {
 		let { minNumberOfFiles: t } = this.getOpts().restrictions;
-		if (t && Object.keys(e).length < t) throw new I(this.getI18n()("youHaveToAtLeastSelectX", { smart_count: t }));
+		if (t && Object.keys(e).length < t) throw new R(this.getI18n()("youHaveToAtLeastSelectX", { smart_count: t }));
 	}
 	getMissingRequiredMetaFields(e) {
-		let t = new I(this.getI18n()("missingRequiredMetaFieldOnFile", { fileName: e.name ?? this.getI18n()("unnamed") })), { requiredMetaFields: n } = this.getOpts().restrictions, r = [];
+		let t = new R(this.getI18n()("missingRequiredMetaFieldOnFile", { fileName: e.name ?? this.getI18n()("unnamed") })), { requiredMetaFields: n } = this.getOpts().restrictions, r = [];
 		for (let t of n) (!Object.hasOwn(e.meta, t) || e.meta[t] === "") && r.push(t);
 		return {
 			missingFields: r,
 			error: t
 		};
 	}
-}, he = {
+}, pe = {
 	name: "@uppy/store-default",
 	description: "The default simple object-based store for Uppy.",
 	version: "5.0.0",
@@ -611,8 +611,8 @@ var N = (e) => {
 		"dist",
 		"CHANGELOG.md"
 	]
-}, ge = class {
-	static VERSION = he.version;
+}, me = class {
+	static VERSION = pe.version;
 	state = {};
 	#e = /* @__PURE__ */ new Set();
 	getState() {
@@ -635,39 +635,39 @@ var N = (e) => {
 			t(...e);
 		});
 	}
-}, L = /* @__PURE__ */ t(((e, t) => {
+}, z = /* @__PURE__ */ t(((e, t) => {
 	function n(e) {
 		var t = typeof e;
 		return e != null && (t == "object" || t == "function");
 	}
 	t.exports = n;
-})), _e = /* @__PURE__ */ t(((e, t) => {
+})), he = /* @__PURE__ */ t(((e, t) => {
 	t.exports = typeof global == "object" && global && global.Object === Object && global;
-})), ve = /* @__PURE__ */ t(((e, t) => {
-	var n = _e(), r = typeof self == "object" && self && self.Object === Object && self;
+})), ge = /* @__PURE__ */ t(((e, t) => {
+	var n = he(), r = typeof self == "object" && self && self.Object === Object && self;
 	t.exports = n || r || Function("return this")();
-})), ye = /* @__PURE__ */ t(((e, t) => {
-	var n = ve();
+})), _e = /* @__PURE__ */ t(((e, t) => {
+	var n = ge();
 	t.exports = function() {
 		return n.Date.now();
 	};
-})), be = /* @__PURE__ */ t(((e, t) => {
+})), ve = /* @__PURE__ */ t(((e, t) => {
 	var n = /\s/;
 	function r(e) {
 		for (var t = e.length; t-- && n.test(e.charAt(t)););
 		return t;
 	}
 	t.exports = r;
-})), xe = /* @__PURE__ */ t(((e, t) => {
-	var n = be(), r = /^\s+/;
+})), ye = /* @__PURE__ */ t(((e, t) => {
+	var n = ve(), r = /^\s+/;
 	function i(e) {
 		return e && e.slice(0, n(e) + 1).replace(r, "");
 	}
 	t.exports = i;
-})), Se = /* @__PURE__ */ t(((e, t) => {
-	t.exports = ve().Symbol;
-})), Ce = /* @__PURE__ */ t(((e, t) => {
-	var n = Se(), r = Object.prototype, i = r.hasOwnProperty, a = r.toString, o = n ? n.toStringTag : void 0;
+})), be = /* @__PURE__ */ t(((e, t) => {
+	t.exports = ge().Symbol;
+})), xe = /* @__PURE__ */ t(((e, t) => {
+	var n = be(), r = Object.prototype, i = r.hasOwnProperty, a = r.toString, o = n ? n.toStringTag : void 0;
 	function s(e) {
 		var t = i.call(e, o), n = e[o];
 		try {
@@ -678,31 +678,31 @@ var N = (e) => {
 		return r && (t ? e[o] = n : delete e[o]), s;
 	}
 	t.exports = s;
-})), we = /* @__PURE__ */ t(((e, t) => {
+})), Se = /* @__PURE__ */ t(((e, t) => {
 	var n = Object.prototype.toString;
 	function r(e) {
 		return n.call(e);
 	}
 	t.exports = r;
-})), Te = /* @__PURE__ */ t(((e, t) => {
-	var n = Se(), r = Ce(), i = we(), a = "[object Null]", o = "[object Undefined]", s = n ? n.toStringTag : void 0;
+})), Ce = /* @__PURE__ */ t(((e, t) => {
+	var n = be(), r = xe(), i = Se(), a = "[object Null]", o = "[object Undefined]", s = n ? n.toStringTag : void 0;
 	function c(e) {
 		return e == null ? e === void 0 ? o : a : s && s in Object(e) ? r(e) : i(e);
 	}
 	t.exports = c;
-})), Ee = /* @__PURE__ */ t(((e, t) => {
+})), we = /* @__PURE__ */ t(((e, t) => {
 	function n(e) {
 		return typeof e == "object" && !!e;
 	}
 	t.exports = n;
-})), De = /* @__PURE__ */ t(((e, t) => {
-	var n = Te(), r = Ee(), i = "[object Symbol]";
+})), Te = /* @__PURE__ */ t(((e, t) => {
+	var n = Ce(), r = we(), i = "[object Symbol]";
 	function a(e) {
 		return typeof e == "symbol" || r(e) && n(e) == i;
 	}
 	t.exports = a;
-})), Oe = /* @__PURE__ */ t(((e, t) => {
-	var n = xe(), r = L(), i = De(), a = NaN, o = /^[-+]0x[0-9a-f]+$/i, s = /^0b[01]+$/i, c = /^0o[0-7]+$/i, l = parseInt;
+})), Ee = /* @__PURE__ */ t(((e, t) => {
+	var n = ye(), r = z(), i = Te(), a = NaN, o = /^[-+]0x[0-9a-f]+$/i, s = /^0b[01]+$/i, c = /^0o[0-7]+$/i, l = parseInt;
 	function u(e) {
 		if (typeof e == "number") return e;
 		if (i(e)) return a;
@@ -716,8 +716,8 @@ var N = (e) => {
 		return u || c.test(e) ? l(e.slice(2), u ? 2 : 8) : o.test(e) ? a : +e;
 	}
 	t.exports = u;
-})), ke = /* @__PURE__ */ t(((e, t) => {
-	var n = L(), r = ye(), i = Oe(), a = "Expected a function", o = Math.max, s = Math.min;
+})), De = /* @__PURE__ */ t(((e, t) => {
+	var n = z(), r = _e(), i = Ee(), a = "Expected a function", o = Math.max, s = Math.min;
 	function c(e, t, c) {
 		var l, u, d, f, p, m, h = 0, g = !1, _ = !1, v = !0;
 		if (typeof e != "function") throw TypeError(a);
@@ -762,8 +762,8 @@ var N = (e) => {
 		return D.cancel = T, D.flush = E, D;
 	}
 	t.exports = c;
-})), Ae = /* @__PURE__ */ t(((e, t) => {
-	var n = ke(), r = L(), i = "Expected a function";
+})), Oe = /* @__PURE__ */ t(((e, t) => {
+	var n = De(), r = z(), i = "Expected a function";
 	function a(e, t, a) {
 		var o = !0, s = !0;
 		if (typeof e != "function") throw TypeError(i);
@@ -774,7 +774,7 @@ var N = (e) => {
 		});
 	}
 	t.exports = a;
-})), je = /* @__PURE__ */ t(((e, t) => {
+})), ke = /* @__PURE__ */ t(((e, t) => {
 	t.exports = function() {
 		var e = {}, t = e._fns = {};
 		e.emit = function(e, t, i, a, o, s, c) {
@@ -814,11 +814,11 @@ var N = (e) => {
 		}
 		return e;
 	};
-})), Me = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict", Ne = (e = 21) => {
+})), Ae = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict", je = (e = 21) => {
 	let t = "", n = e | 0;
-	for (; n-- > 0;) t += Me[Math.random() * 64 | 0];
+	for (; n-- > 0;) t += Ae[Math.random() * 64 | 0];
 	return t;
-}, Pe = {
+}, Me = {
 	name: "@uppy/core",
 	description: "Core module for the extensible JavaScript file upload widget with support for drag&drop, resumable uploads, previews, restrictions, file processing/encoding, remote providers like Instagram, Dropbox, Google Drive, S3 and more :dog:",
 	version: "5.2.0",
@@ -880,12 +880,12 @@ var N = (e) => {
 };
 //#endregion
 //#region ../../node_modules/@uppy/core/lib/getFileName.js
-function Fe(e, t) {
+function Ne(e, t) {
 	return t.name ? t.name : e.split("/")[0] === "image" ? `${e.split("/")[0]}.${e.split("/")[1]}` : "noname";
 }
 //#endregion
 //#region ../../node_modules/@uppy/core/lib/locale.js
-var Ie = { strings: {
+var Pe = { strings: {
 	addBulkFilesFailed: {
 		0: "Failed to add %{smart_count} file due to an internal error",
 		1: "Failed to add %{smart_count} files due to internal errors"
@@ -949,7 +949,7 @@ var Ie = { strings: {
 } };
 //#endregion
 //#region ../../node_modules/@uppy/core/lib/supportsUploadProgress.js
-function Le(e) {
+function Fe(e) {
 	if (e == null && typeof navigator < "u" && (e = navigator.userAgent), !e) return !0;
 	let t = /Edge\/(\d+\.\d+)/.exec(e);
 	if (!t) return !0;
@@ -958,17 +958,17 @@ function Le(e) {
 }
 //#endregion
 //#region ../../node_modules/@uppy/core/lib/Uppy.js
-var Re = /* @__PURE__ */ e(Ae(), 1), ze = /* @__PURE__ */ e(je(), 1), R = {
+var Ie = /* @__PURE__ */ e(Oe(), 1), Le = /* @__PURE__ */ e(ke(), 1), B = {
 	totalProgress: 0,
 	allowNewUpload: !0,
 	error: null,
 	recoveredState: null
-}, Be = class e {
-	static VERSION = Pe.version;
+}, Re = class e {
+	static VERSION = Me.version;
 	#e = Object.create(null);
 	#t;
 	#n;
-	#r = (0, ze.default)();
+	#r = (0, Le.default)();
 	#i = /* @__PURE__ */ new Set();
 	#a = /* @__PURE__ */ new Set();
 	#o = /* @__PURE__ */ new Set();
@@ -981,18 +981,18 @@ var Re = /* @__PURE__ */ e(Ae(), 1), ze = /* @__PURE__ */ e(je(), 1), R = {
 	scheduledAutoProceed = null;
 	wasOffline = !1;
 	constructor(t) {
-		this.defaultLocale = Ie;
+		this.defaultLocale = Pe;
 		let n = {
 			id: "uppy",
 			autoProceed: !1,
 			allowMultipleUploadBatches: !0,
 			debug: !1,
-			restrictions: pe,
+			restrictions: de,
 			meta: {},
 			onBeforeFileAdded: (e, t) => !Object.hasOwn(t, e.id),
 			onBeforeUpload: (e) => e,
-			store: new ge(),
-			logger: se,
+			store: new me(),
+			logger: ae,
 			infoTimeout: 5e3
 		}, r = {
 			...n,
@@ -1004,19 +1004,19 @@ var Re = /* @__PURE__ */ e(Ae(), 1), ze = /* @__PURE__ */ e(je(), 1), R = {
 				...n.restrictions,
 				...t?.restrictions
 			}
-		}, t?.logger && t.debug ? this.log("You are using a custom `logger`, but also set `debug: true`, which uses built-in logger to output logs to console. Ignoring `debug: true` and using your custom `logger`.", "warning") : t?.debug && (this.opts.logger = ce), this.log(`Using Core v${e.VERSION}`), this.i18nInit(), this.store = this.opts.store, this.setState({
-			...R,
+		}, t?.logger && t.debug ? this.log("You are using a custom `logger`, but also set `debug: true`, which uses built-in logger to output logs to console. Ignoring `debug: true` and using your custom `logger`.", "warning") : t?.debug && (this.opts.logger = oe), this.log(`Using Core v${e.VERSION}`), this.i18nInit(), this.store = this.opts.store, this.setState({
+			...B,
 			plugins: {},
 			files: {},
 			currentUploads: {},
 			capabilities: {
-				uploadProgress: Le(),
+				uploadProgress: Fe(),
 				individualCancellation: !0,
 				resumableUploads: !1
 			},
 			meta: { ...this.opts.meta },
 			info: []
-		}), this.#t = new me(() => this.opts, () => this.i18n), this.#n = this.store.subscribe((e, t, n) => {
+		}), this.#t = new fe(() => this.opts, () => this.i18n), this.#n = this.store.subscribe((e, t, n) => {
 			this.emit("state-update", e, t, n), this.updateAll(t);
 		}), this.opts.debug && typeof window < "u" && (window[this.opts.id] = this), this.#b();
 	}
@@ -1092,14 +1092,14 @@ var Re = /* @__PURE__ */ e(Ae(), 1), ze = /* @__PURE__ */ e(je(), 1), R = {
 			};
 		}), this.setState({
 			files: n,
-			...R
+			...B
 		});
 	}
 	clear() {
 		let { capabilities: e, currentUploads: t } = this.getState();
 		if (Object.keys(t).length > 0 && !e.individualCancellation) throw Error("The installed uploader plugin does not allow removing files during an upload.");
 		this.setState({
-			...R,
+			...B,
 			files: {}
 		});
 	}
@@ -1238,7 +1238,7 @@ var Re = /* @__PURE__ */ e(Ae(), 1), ze = /* @__PURE__ */ e(je(), 1), R = {
 	#u(e) {
 		let { allowNewUpload: t } = this.getState();
 		if (t === !1) {
-			let t = new I(this.i18n("noMoreFilesAllowed"), { file: e });
+			let t = new R(this.i18n("noMoreFilesAllowed"), { file: e });
 			throw this.#s([t]), t;
 		}
 	}
@@ -1256,7 +1256,7 @@ var Re = /* @__PURE__ */ e(Ae(), 1), ze = /* @__PURE__ */ e(je(), 1), R = {
 			isRemote: !1,
 			source: void 0,
 			preview: void 0
-		} : e, n = T(t), r = Fe(n, t), i = C(r).extension, a = te(t, this.getID()), o = {
+		} : e, n = T(t), r = Ne(n, t), i = C(r).extension, a = ee(t, this.getID()), o = {
 			...t.meta,
 			name: r,
 			type: n
@@ -1316,8 +1316,8 @@ var Re = /* @__PURE__ */ e(Ae(), 1), ze = /* @__PURE__ */ e(je(), 1), R = {
 			if (t = this.getState().files, n = {
 				...t,
 				...n
-			}, !s && this.checkIfFileAlreadyExists(e.id)) throw new I(this.i18n("noDuplicates", { fileName: e.name ?? this.i18n("unnamed") }), { file: e });
-			if (s === !1 && !o) throw new I("Cannot add the file because onBeforeFileAdded returned false.", {
+			}, !s && this.checkIfFileAlreadyExists(e.id)) throw new R(this.i18n("noDuplicates", { fileName: e.name ?? this.i18n("unnamed") }), { file: e });
+			if (s === !1 && !o) throw new R("Cannot add the file because onBeforeFileAdded returned false.", {
 				isUserFacing: !1,
 				file: e
 			});
@@ -1462,7 +1462,7 @@ var Re = /* @__PURE__ */ e(Ae(), 1), ze = /* @__PURE__ */ e(je(), 1), R = {
 	cancelAll() {
 		this.emit("cancel-all");
 		let { files: e } = this.getState(), t = Object.keys(e);
-		t.length && this.removeFiles(t), this.setState(R);
+		t.length && this.removeFiles(t), this.setState(B);
 	}
 	retryUpload(e) {
 		this.setFileState(e, {
@@ -1504,7 +1504,7 @@ var Re = /* @__PURE__ */ e(Ae(), 1), ze = /* @__PURE__ */ e(je(), 1), R = {
 		let e = this.#y(), t = null;
 		e != null && (t = Math.round(e * 100), t > 100 ? t = 100 : t < 0 && (t = 0)), this.emit("progress", t ?? 0), this.setState({ totalProgress: t ?? 0 });
 	}
-	#v = (0, Re.default)(() => this.#_(), 500, {
+	#v = (0, Ie.default)(() => this.#_(), 500, {
 		leading: !0,
 		trailing: !0
 	});
@@ -1709,7 +1709,7 @@ var Re = /* @__PURE__ */ e(Ae(), 1), ze = /* @__PURE__ */ e(je(), 1), R = {
 	#C(e, t = {}) {
 		let { forceAllowNewUpload: n = !1 } = t, { allowNewUpload: r, currentUploads: i } = this.getState();
 		if (!r && !n) throw Error("Cannot create a new upload: already uploading.");
-		let a = Ne();
+		let a = je();
 		return this.emit("upload", a, this.getFilesByIds(e)), this.setState({
 			allowNewUpload: this.opts.allowMultipleUploadBatches !== !1 && this.opts.allowMultipleUploads !== !1,
 			currentUploads: {
@@ -1808,7 +1808,7 @@ var Re = /* @__PURE__ */ e(Ae(), 1), ze = /* @__PURE__ */ e(je(), 1), R = {
 		if (t === !1) throw Error("Not starting the upload because onBeforeUpload returned false");
 		t && typeof t == "object" && (e = t, this.setState({ files: e }));
 		try {
-			if (this.#t.validateMinNumberOfFiles(e), !this.#l(e)) throw new I(this.i18n("missingRequiredMetaField"));
+			if (this.#t.validateMinNumberOfFiles(e), !this.#l(e)) throw new R(this.i18n("missingRequiredMetaField"));
 			let { currentUploads: t } = this.getState(), n = Object.values(t).flatMap((e) => e.fileIDs), r = Object.keys(e).filter((e) => {
 				let t = this.getFile(e);
 				return t && !t.progress.uploadStarted && !n.includes(e);
@@ -1818,7 +1818,7 @@ var Re = /* @__PURE__ */ e(Ae(), 1), ze = /* @__PURE__ */ e(je(), 1), R = {
 			throw this.#s([e]), e;
 		}
 	}
-}, Ve = {
+}, ze = {
 	name: "@uppy/xhr-upload",
 	description: "Plain and simple classic HTML multipart form uploads with Uppy, as well as uploads using the HTTP PUT method.",
 	version: "5.2.0",
@@ -1873,17 +1873,17 @@ var Re = /* @__PURE__ */ e(Ae(), 1), ze = /* @__PURE__ */ e(je(), 1), R = {
 		vitest: "^3.2.4"
 	},
 	peerDependencies: { "@uppy/core": "^5.2.0" }
-}, He = { strings: { uploadStalled: "Upload has not made any progress for %{seconds} seconds. You may want to retry it." } };
+}, Be = { strings: { uploadStalled: "Upload has not made any progress for %{seconds} seconds. You may want to retry it." } };
 //#endregion
 //#region ../../node_modules/@uppy/xhr-upload/lib/index.js
-function Ue(e, t) {
+function Ve(e, t) {
 	let n = t;
-	return n ||= /* @__PURE__ */ Error("Upload error"), typeof n == "string" && (n = Error(n)), n instanceof Error || (n = Object.assign(/* @__PURE__ */ Error("Upload error"), { data: n })), ne(e) ? (n = new h(n, e), n) : (n.request = e, n);
+	return n ||= /* @__PURE__ */ Error("Upload error"), typeof n == "string" && (n = Error(n)), n instanceof Error || (n = Object.assign(/* @__PURE__ */ Error("Upload error"), { data: n })), N(e) ? (n = new h(n, e), n) : (n.request = e, n);
 }
-function We(e) {
+function He(e) {
 	return e.data.slice(0, e.data.size, e.meta.type);
 }
-var Ge = {
+var Ue = {
 	formData: !0,
 	fieldName: "file",
 	method: "post",
@@ -1894,17 +1894,17 @@ var Ge = {
 	limit: 5,
 	withCredentials: !1,
 	responseType: ""
-}, Ke = class extends ae {
-	static VERSION = Ve.version;
+}, We = class extends F {
+	static VERSION = ze.version;
 	#e;
 	#t;
 	uploaderEvents;
 	constructor(e, t) {
 		if (super(e, {
-			...Ge,
+			...Ue,
 			fieldName: t.bundle ? "files[]" : "file",
 			...t
-		}), this.type = "uploader", this.id = this.opts.id || "XHRUpload", this.defaultLocale = He, this.i18nInit(), this.#t = new re({ concurrency: this.opts.limit }), this.opts.bundle && !this.opts.formData) throw Error("`opts.formData` must be true when `opts.bundle` is enabled.");
+		}), this.type = "uploader", this.id = this.opts.id || "XHRUpload", this.defaultLocale = Be, this.i18nInit(), this.#t = new te({ concurrency: this.opts.limit }), this.opts.bundle && !this.opts.formData) throw Error("`opts.formData` must be true when `opts.bundle` is enabled.");
 		if (this.opts.bundle && typeof this.opts.headers == "function") throw Error("`opts.headers` can not be a function when the `bundle: true` option is set.");
 		if (t?.allowedMetaFields === void 0 && "metaFields" in this.opts) throw Error("The `metaFields` option has been renamed to `allowedMetaFields`.");
 		this.uploaderEvents = Object.create(null), this.#e = (e) => async (t, n) => {
@@ -1945,7 +1945,7 @@ var Ge = {
 			} catch (t) {
 				if (t.name === "AbortError") return;
 				let n = t.request;
-				for (let r of e) this.uppy.emit("upload-error", this.uppy.getFile(r.id), Ue(n, t), n);
+				for (let r of e) this.uppy.emit("upload-error", this.uppy.getFile(r.id), Ve(n, t), n);
 				throw t;
 			}
 		};
@@ -1960,7 +1960,7 @@ var Ge = {
 		return typeof n == "function" ? r.headers = n(e) : Object.assign(r.headers, this.opts.headers), t && Object.assign(r.headers, t.headers), e.xhrUpload && Object.assign(r.headers, e.xhrUpload.headers), r;
 	}
 	addMetadata(e, t, n) {
-		k(n.allowedMetaFields, t).forEach((n) => {
+		A(n.allowedMetaFields, t).forEach((n) => {
 			let r = t[n];
 			Array.isArray(r) ? r.forEach((t) => e.append(n, t)) : e.append(n, r);
 		});
@@ -1968,18 +1968,18 @@ var Ge = {
 	createFormDataUpload(e, t) {
 		let n = new FormData();
 		this.addMetadata(n, e.meta, t);
-		let r = We(e);
+		let r = He(e);
 		return e.name ? n.append(t.fieldName, r, e.meta.name) : n.append(t.fieldName, r), n;
 	}
 	createBundledUpload(e, t) {
 		let n = new FormData(), { meta: r } = this.uppy.getState();
 		return this.addMetadata(n, r, t), e.forEach((e) => {
-			let t = this.getOptions(e), r = We(e);
+			let t = this.getOptions(e), r = He(e);
 			e.name ? n.append(t.fieldName, r, e.name) : n.append(t.fieldName, r);
 		}), n;
 	}
 	async #n(e) {
-		let t = new oe(this.uppy), n = new AbortController();
+		let t = new I(this.uppy), n = new AbortController();
 		t.onFileRemove(e.id, () => n.abort()), t.onCancelAll(e.id, () => n.abort());
 		try {
 			await this.#t.add(async (t) => {
@@ -2023,7 +2023,7 @@ var Ge = {
 		}
 	}
 	#i(e) {
-		let t = this.getOptions(e), n = k(t.allowedMetaFields, e.meta);
+		let t = this.getOptions(e), n = A(t.allowedMetaFields, e.meta);
 		return {
 			...e.remote?.body,
 			protocol: "multipart",
@@ -2085,64 +2085,64 @@ var Ge = {
 		}
 		this.uppy.removeUploader(this.#o);
 	}
-}, qe = "@layer formie-theme{.formie-upload-manager{gap:var(--formie-gap-field);flex-direction:column;display:flex}.formie-upload-manager-dropzone{justify-content:center;align-items:center;gap:var(--formie-space-2);padding:var(--formie-space-4);min-height:calc(var(--formie-control-height) * 3);border:var(--formie-border-width) dashed var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface-subtle);color:var(--formie-color-text);text-align:center;cursor:pointer;flex-direction:column;transition:border-color .15s,background-color .15s,box-shadow .15s;display:flex}.formie-upload-manager-dropzone:hover,.formie-upload-manager-dropzone.formie-upload-manager-dropzone-active{border-color:var(--formie-color-focus-ring);background:var(--formie-color-surface-muted)}.formie-upload-manager-dropzone:focus{outline:0}.formie-upload-manager-dropzone:focus-visible{box-shadow:0 0 0 var(--formie-focus-ring-width) var(--formie-color-focus-ring)}.formie-field-has-error .formie-upload-manager-dropzone{border-color:var(--formie-color-danger)}.formie-upload-manager-prompt{font-size:var(--formie-font-size-sm);color:var(--formie-color-text-muted);margin:0}.formie-upload-manager-list{gap:var(--formie-space-2);flex-direction:column;margin:0;padding:0;list-style:none;display:flex}.formie-upload-manager-item{align-items:center;gap:var(--formie-space-2);padding:var(--formie-space-2) var(--formie-space-3);border:var(--formie-border-width) solid var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface);grid-template-columns:minmax(0,1fr) minmax(6.5rem,8rem) auto;display:grid}.formie-upload-manager-item.is-error{border-color:var(--formie-color-danger)}.formie-upload-manager-item.is-complete .formie-upload-manager-progress{opacity:0;visibility:hidden;pointer-events:none}.formie-upload-manager-filename{text-overflow:ellipsis;white-space:nowrap;font-size:var(--formie-font-size-sm);overflow:hidden}.formie-upload-manager-progress{justify-content:center;gap:var(--formie-space-1);min-height:var(--formie-button-icon-button-size);opacity:1;visibility:visible;flex-direction:column;align-self:center;transition:opacity .2s,visibility .2s;display:flex}.formie-upload-manager-progress-track{border-radius:var(--formie-radius-full);background:var(--formie-color-surface-muted);height:.375rem;position:relative;overflow:hidden}.formie-upload-manager-progress-bar{border-radius:inherit;background:var(--formie-color-primary);width:0;height:100%;transition:width .18s ease-out,background-color .2s}.formie-upload-manager-item.is-upload-complete .formie-upload-manager-progress-bar{background:var(--formie-color-success,var(--formie-color-primary));width:100%!important}.formie-upload-manager-item.is-uploading:not(.is-upload-complete) .formie-upload-manager-progress-track[data-indeterminate=true] .formie-upload-manager-progress-bar,.formie-upload-manager-item.is-preparing .formie-upload-manager-progress-bar,.formie-upload-manager-item.is-processing .formie-upload-manager-progress-bar{width:35%;animation:1.1s ease-in-out infinite formie-upload-manager-progress-indeterminate}.formie-upload-manager-item.is-processing .formie-upload-manager-progress-bar{opacity:.85}.formie-upload-manager-item.is-processing .formie-upload-manager-progress-label{color:var(--formie-color-text)}@keyframes formie-upload-manager-progress-indeterminate{0%{transform:translate(-120%)}to{transform:translate(320%)}}.formie-upload-manager-progress-label{font-size:var(--formie-font-size-xs);color:var(--formie-color-text-muted);text-align:center;white-space:nowrap;line-height:1.2}.formie-upload-manager-item.is-upload-complete .formie-upload-manager-progress-label{color:var(--formie-color-success-dark,var(--formie-color-primary));font-weight:var(--formie-font-weight-medium)}.formie-upload-manager-error{font-size:var(--formie-font-size-xs);color:var(--formie-color-danger);grid-column:1/-1}.formie-upload-manager-browse-button{margin-top:var(--formie-space-1)}.formie-upload-manager-actions{align-items:center;gap:var(--formie-space-2);flex-shrink:0;align-self:center;display:flex}.formie-upload-manager-sort-controls{border-radius:var(--formie-radius-sm);background:0 0;flex-direction:row;align-items:center;gap:.0625rem;padding:0;display:inline-flex}.formie-upload-manager-sort-controls[hidden]{display:none}.formie-upload-manager-sort-button,.formie-upload-manager-action-button{border-radius:var(--formie-radius-sm);width:1.375rem;height:1.375rem;color:var(--formie-color-text-muted);cursor:pointer;text-indent:-9999px;white-space:nowrap;background:0 0;border:0;justify-content:center;align-items:center;padding:0;font-size:0;line-height:0;transition:background-color .15s,color .15s,opacity .15s;display:inline-flex;position:relative;overflow:hidden}.formie-upload-manager-sort-button{width:1.375rem;height:1.375rem}.formie-upload-manager-sort-button:hover:not(:disabled),.formie-upload-manager-action-button:hover{background:var(--formie-color-surface-muted);color:var(--formie-color-text)}.formie-upload-manager-sort-button:focus-visible,.formie-upload-manager-action-button:focus-visible{box-shadow:0 0 0 var(--formie-focus-ring-width) var(--formie-color-focus-ring);outline:0}.formie-upload-manager-sort-button:disabled{opacity:.28;cursor:not-allowed}.formie-upload-manager-sort-button:after,.formie-upload-manager-action-button:after{content:\"\";background-color:currentColor;display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);-webkit-mask-position:50%;mask-position:50%;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}.formie-upload-manager-sort-button[data-formie-icon=arrow-up]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-arrow-up)}.formie-upload-manager-sort-button[data-formie-icon=arrow-down]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-arrow-down)}.formie-upload-manager-action-button[data-formie-icon=close]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-close)}.formie-upload-manager-sort-button:after{width:.75rem;height:.75rem;-webkit-mask-image:var(--formie-upload-manager-icon-mask);-webkit-mask-image:var(--formie-upload-manager-icon-mask);mask-image:var(--formie-upload-manager-icon-mask)}.formie-upload-manager-action-button:after{width:.825rem;height:.825rem;-webkit-mask-image:var(--formie-upload-manager-icon-mask);-webkit-mask-image:var(--formie-upload-manager-icon-mask);mask-image:var(--formie-upload-manager-icon-mask)}.formie-upload-manager-remove-button{flex-shrink:0}}", z = "[data-formie-upload-manager-root]", B = "[data-formie-upload-manager]", Je = "[data-formie-upload-manager-browse]", Ye = "[data-formie-upload-manager-input]", V = "[data-formie-upload-manager-status]", Xe = "[data-formie-upload-manager-list]", Ze = "[data-formie-upload-manager-sort-controls]", Qe = "[data-formie-upload-manager-sort=\"up\"]", $e = "[data-formie-upload-manager-sort=\"down\"]", H = "data-formie-file-upload-anchor", U = "data-formie-file-upload-asset-id", et = "data-formie-file-upload-token", W = "data-formie-file-upload-entry", tt = r("reset"), nt = i("repeater", "init-row"), rt = "upload-manager", it = "upload-manager", at = ["uploadManagerRequired", "uploadManagerFileLimit"], ot = 900, st = 95, ct = 12e4, G = a("fields", "upload-manager");
-d(rt, [qe]);
-function lt(e) {
+}, Ge = "@layer formie-theme{.formie-upload-manager{gap:var(--formie-gap-field);flex-direction:column;display:flex}.formie-upload-manager-dropzone{justify-content:center;align-items:center;gap:var(--formie-space-2);padding:var(--formie-space-4);min-height:calc(var(--formie-control-height) * 3);border:var(--formie-border-width) dashed var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface-subtle);color:var(--formie-color-text);text-align:center;cursor:pointer;flex-direction:column;transition:border-color .15s,background-color .15s,box-shadow .15s;display:flex}.formie-upload-manager-dropzone:hover,.formie-upload-manager-dropzone.formie-upload-manager-dropzone-active{border-color:var(--formie-color-focus-ring);background:var(--formie-color-surface-muted)}.formie-upload-manager-dropzone:focus{outline:0}.formie-upload-manager-dropzone:focus-visible{box-shadow:0 0 0 var(--formie-focus-ring-width) var(--formie-color-focus-ring)}.formie-field-has-error .formie-upload-manager-dropzone{border-color:var(--formie-color-danger)}.formie-upload-manager-prompt{font-size:var(--formie-font-size-sm);color:var(--formie-color-text-muted);margin:0}.formie-upload-manager-list{gap:var(--formie-space-2);flex-direction:column;margin:0;padding:0;list-style:none;display:flex}.formie-upload-manager-item{align-items:center;gap:var(--formie-space-2);padding:var(--formie-space-2) var(--formie-space-3);border:var(--formie-border-width) solid var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface);grid-template-columns:minmax(0,1fr) minmax(6.5rem,8rem) auto;display:grid}.formie-upload-manager-item.is-error{border-color:var(--formie-color-danger)}.formie-upload-manager-item.is-complete .formie-upload-manager-progress{opacity:0;visibility:hidden;pointer-events:none}.formie-upload-manager-filename{text-overflow:ellipsis;white-space:nowrap;font-size:var(--formie-font-size-sm);overflow:hidden}.formie-upload-manager-progress{justify-content:center;gap:var(--formie-space-1);min-height:var(--formie-button-icon-button-size);opacity:1;visibility:visible;flex-direction:column;align-self:center;transition:opacity .2s,visibility .2s;display:flex}.formie-upload-manager-progress-track{border-radius:var(--formie-radius-full);background:var(--formie-color-surface-muted);height:.375rem;position:relative;overflow:hidden}.formie-upload-manager-progress-bar{border-radius:inherit;background:var(--formie-color-primary);width:0;height:100%;transition:width .18s ease-out,background-color .2s}.formie-upload-manager-item.is-upload-complete .formie-upload-manager-progress-bar{background:var(--formie-color-success,var(--formie-color-primary));width:100%!important}.formie-upload-manager-item.is-uploading:not(.is-upload-complete) .formie-upload-manager-progress-track[data-indeterminate=true] .formie-upload-manager-progress-bar,.formie-upload-manager-item.is-preparing .formie-upload-manager-progress-bar,.formie-upload-manager-item.is-processing .formie-upload-manager-progress-bar{width:35%;animation:1.1s ease-in-out infinite formie-upload-manager-progress-indeterminate}.formie-upload-manager-item.is-processing .formie-upload-manager-progress-bar{opacity:.85}.formie-upload-manager-item.is-processing .formie-upload-manager-progress-label{color:var(--formie-color-text)}@keyframes formie-upload-manager-progress-indeterminate{0%{transform:translate(-120%)}to{transform:translate(320%)}}.formie-upload-manager-progress-label{font-size:var(--formie-font-size-xs);color:var(--formie-color-text-muted);text-align:center;white-space:nowrap;line-height:1.2}.formie-upload-manager-item.is-upload-complete .formie-upload-manager-progress-label{color:var(--formie-color-success-dark,var(--formie-color-primary));font-weight:var(--formie-font-weight-medium)}.formie-upload-manager-error{font-size:var(--formie-font-size-xs);color:var(--formie-color-danger);grid-column:1/-1}.formie-upload-manager-browse-button{margin-top:var(--formie-space-1)}.formie-upload-manager-actions{align-items:center;gap:var(--formie-space-2);flex-shrink:0;align-self:center;display:flex}.formie-upload-manager-sort-controls{border-radius:var(--formie-radius-sm);background:0 0;flex-direction:row;align-items:center;gap:.0625rem;padding:0;display:inline-flex}.formie-upload-manager-sort-controls[hidden]{display:none}.formie-upload-manager-sort-button,.formie-upload-manager-action-button{border-radius:var(--formie-radius-sm);width:1.375rem;height:1.375rem;color:var(--formie-color-text-muted);cursor:pointer;text-indent:-9999px;white-space:nowrap;background:0 0;border:0;justify-content:center;align-items:center;padding:0;font-size:0;line-height:0;transition:background-color .15s,color .15s,opacity .15s;display:inline-flex;position:relative;overflow:hidden}.formie-upload-manager-sort-button{width:1.375rem;height:1.375rem}.formie-upload-manager-sort-button:hover:not(:disabled),.formie-upload-manager-action-button:hover{background:var(--formie-color-surface-muted);color:var(--formie-color-text)}.formie-upload-manager-sort-button:focus-visible,.formie-upload-manager-action-button:focus-visible{box-shadow:0 0 0 var(--formie-focus-ring-width) var(--formie-color-focus-ring);outline:0}.formie-upload-manager-sort-button:disabled{opacity:.28;cursor:not-allowed}.formie-upload-manager-sort-button:after,.formie-upload-manager-action-button:after{content:\"\";background-color:currentColor;display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);-webkit-mask-position:50%;mask-position:50%;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}.formie-upload-manager-sort-button[data-formie-icon=arrow-up]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-arrow-up)}.formie-upload-manager-sort-button[data-formie-icon=arrow-down]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-arrow-down)}.formie-upload-manager-action-button[data-formie-icon=close]{--formie-upload-manager-icon-mask:var(--formie-icon-mask-close)}.formie-upload-manager-sort-button:after{width:.75rem;height:.75rem;-webkit-mask-image:var(--formie-upload-manager-icon-mask);-webkit-mask-image:var(--formie-upload-manager-icon-mask);mask-image:var(--formie-upload-manager-icon-mask)}.formie-upload-manager-action-button:after{width:.825rem;height:.825rem;-webkit-mask-image:var(--formie-upload-manager-icon-mask);-webkit-mask-image:var(--formie-upload-manager-icon-mask);mask-image:var(--formie-upload-manager-icon-mask)}.formie-upload-manager-remove-button{flex-shrink:0}}", V = "[data-formie-upload-manager-root]", H = "[data-formie-upload-manager]", Ke = "[data-formie-upload-manager-browse]", qe = "[data-formie-upload-manager-input]", U = "[data-formie-upload-manager-status]", Je = "[data-formie-upload-manager-list]", Ye = "[data-formie-upload-manager-sort-controls]", Xe = "[data-formie-upload-manager-sort=\"up\"]", Ze = "[data-formie-upload-manager-sort=\"down\"]", W = "data-formie-file-upload-anchor", G = "data-formie-file-upload-asset-id", Qe = "data-formie-file-upload-token", K = "data-formie-file-upload-entry", $e = r("reset"), et = i("repeater", "init-row"), tt = "upload-manager", nt = "upload-manager", rt = ["uploadManagerRequired", "uploadManagerFileLimit"], it = 900, at = 95, ot = 12e4, q = a("fields", "upload-manager");
+d(tt, [Ge]);
+function st(e) {
 	return !!e && typeof e == "object" && !Array.isArray(e);
 }
-function K(e) {
+function J(e) {
 	let t = Number(e);
 	return Number.isInteger(t) && t > 0 ? t : null;
 }
-function q(e) {
+function Y(e) {
 	return typeof e == "string" ? e.trim() : "";
 }
-function J(e) {
+function ct(e) {
 	return e.getAttribute("data-formie-field-handle")?.trim() || "";
 }
-function ut(e) {
+function lt(e) {
 	if (!e) return "";
 	let t = e.querySelector("input[name=\"handle\"]");
 	return t instanceof HTMLInputElement && t.value.trim() ? t.value.trim() : e.getAttribute("data-formie-handle")?.trim() || "";
 }
-function Y(e) {
+function X(e) {
 	return Array.from(e.querySelectorAll("input[type=\"hidden\"]")).filter((e) => e instanceof HTMLInputElement);
 }
-function dt(e, t) {
-	let n = Y(e).find((e) => e.hasAttribute(H) || e.name === t.replace("[]", "") && e.value === "");
-	if (n) return n.setAttribute(H, "true"), n;
+function ut(e, t) {
+	let n = X(e).find((e) => e.hasAttribute(W) || e.name === t.replace("[]", "") && e.value === "");
+	if (n) return n.setAttribute(W, "true"), n;
 	let r = document.createElement("input");
-	return r.type = "hidden", r.name = t.replace("[]", ""), r.value = "", r.setAttribute(H, "true"), e.prepend(r), r;
+	return r.type = "hidden", r.name = t.replace("[]", ""), r.value = "", r.setAttribute(W, "true"), e.prepend(r), r;
+}
+function dt(e, t) {
+	return X(e).filter((e) => e.hasAttribute(G) || e.name === t && e.value.trim() !== "");
 }
 function ft(e, t) {
-	return Y(e).filter((e) => e.hasAttribute(U) || e.name === t && e.value.trim() !== "");
-}
-function X(e, t) {
-	return ft(e, t).map((e) => K(e.getAttribute(U)) ?? K(e.value)).filter((e) => e !== null);
+	return dt(e, t).map((e) => J(e.getAttribute(G)) ?? J(e.value)).filter((e) => e !== null);
 }
 function pt(e, t) {
 	let n = {};
-	return ft(e, t).forEach((e) => {
-		let t = K(e.getAttribute(U)) ?? K(e.value), r = e.getAttribute(et)?.trim() || "";
+	return dt(e, t).forEach((e) => {
+		let t = J(e.getAttribute(G)) ?? J(e.value), r = e.getAttribute(Qe)?.trim() || "";
 		t && r && (n[t] = r);
 	}), n;
 }
 function mt(e, t, n, r) {
 	let i = t, a = n.endsWith("[]") ? n.slice(0, -2) : n;
-	Y(e).filter((e) => e.hasAttribute(W) || e.name === n && e.value.trim() !== "").forEach((e) => {
+	X(e).filter((e) => e.hasAttribute(K) || e.name === n && e.value.trim() !== "").forEach((e) => {
 		e.remove();
 	}), r.forEach(({ assetId: e, uploadToken: t, uploadUid: n, attachToken: r }, o) => {
 		let s = document.createElement("input");
-		if (s.type = "hidden", s.setAttribute(W, "true"), s.setAttribute(U, String(e)), n && r ? (s.name = `${a}[${o}][uploadUid]`, s.value = n) : (s.name = `${a}[${o}][assetId]`, s.value = String(e)), t && s.setAttribute(et, t), i.insertAdjacentElement("afterend", s), i = s, n && r) {
+		if (s.type = "hidden", s.setAttribute(K, "true"), s.setAttribute(G, String(e)), n && r ? (s.name = `${a}[${o}][uploadUid]`, s.value = n) : (s.name = `${a}[${o}][assetId]`, s.value = String(e)), t && s.setAttribute(Qe, t), i.insertAdjacentElement("afterend", s), i = s, n && r) {
 			let e = document.createElement("input");
-			e.type = "hidden", e.name = `${a}[${o}][attachToken]`, e.value = r, e.setAttribute(W, "true"), i.insertAdjacentElement("afterend", e), i = e;
+			e.type = "hidden", e.name = `${a}[${o}][attachToken]`, e.value = r, e.setAttribute(K, "true"), i.insertAdjacentElement("afterend", e), i = e;
 		}
 	});
 }
 function ht(e, t, n) {
 	let r = n.getAttribute("data-formie-upload-key")?.trim() || n.getAttribute("data-formie-input-id")?.trim() || "", i = {
-		handle: ut(e),
-		fieldHandle: J(t),
+		handle: lt(e),
+		fieldHandle: ct(t),
 		inputKey: r
 	};
 	return e ? ([
@@ -2161,7 +2161,7 @@ function ht(e, t, n) {
 	}), o(i, e), i) : i;
 }
 function gt(e, t, n, r = {}) {
-	let i = new FormData(), a = ut(e), o = J(t);
+	let i = new FormData(), a = lt(e), o = ct(t);
 	return a && i.append("handle", a), o && i.append("fieldHandle", o), [
 		"submissionUid",
 		"resumeToken",
@@ -2184,10 +2184,10 @@ function _t(e) {
 	let t = e.split(",").map((e) => e.trim()).filter(Boolean);
 	return t.length ? t : null;
 }
-function Z(e, t, n, r) {
+function vt(e, t, n, r) {
 	return t?.trim() || e.getAttribute(n)?.trim() || r;
 }
-function vt(e) {
+function Z(e) {
 	let t = e.querySelector("[data-formie-upload-manager-progress]");
 	if (!(t instanceof HTMLElement)) return {
 		track: null,
@@ -2202,11 +2202,11 @@ function vt(e) {
 	};
 }
 function Q(e, t, n = "uploading") {
-	let { track: r, bar: i, label: a } = vt(e);
+	let { track: r, bar: i, label: a } = Z(e);
 	e.classList.add("is-uploading"), e.classList.remove("is-upload-complete", "is-complete", "is-processing", "is-preparing"), n === "processing" ? e.classList.add("is-processing") : n === "preparing" && e.classList.add("is-preparing"), r && r.setAttribute("data-indeterminate", "true"), i && (i.style.removeProperty("width"), i.setAttribute("data-progress", n)), a && (a.textContent = t);
 }
 function yt(e, t, n) {
-	let { track: r, bar: i, label: a } = vt(e), o = Math.max(0, Math.min(st, Math.round(t)));
+	let { track: r, bar: i, label: a } = Z(e), o = Math.max(0, Math.min(at, Math.round(t)));
 	e.classList.add("is-uploading"), e.classList.remove("is-upload-complete", "is-complete", "is-processing", "is-preparing"), r && r.setAttribute("data-indeterminate", "false"), i && (i.style.width = `${o}%`, i.setAttribute("data-progress", String(o))), a && (a.textContent = n || (o > 0 ? `Uploading… ${o}%` : "Uploading…"));
 }
 function bt(e, t, n = {}) {
@@ -2219,7 +2219,7 @@ function bt(e, t, n = {}) {
 		Q(e, "Uploading…", "uploading");
 		return;
 	}
-	let a = Math.min(st, Math.max(1, Math.round(t)));
+	let a = Math.min(at, Math.max(1, Math.round(t)));
 	yt(e, a, `Uploading… ${a}%`);
 }
 function xt(e, t) {
@@ -2237,16 +2237,20 @@ function St(e) {
 	return e.status === 0 || e.status >= 500;
 }
 function Ct(e) {
-	let { track: t, bar: n, label: r } = vt(e);
+	let { track: t, bar: n, label: r } = Z(e);
 	e.classList.add("is-uploading", "is-upload-complete"), e.classList.remove("is-complete", "is-processing", "is-preparing"), t && t.setAttribute("data-indeterminate", "false"), n && (n.style.width = "100%", n.setAttribute("data-progress", "100")), r && (r.textContent = "Complete"), window.setTimeout(() => {
 		e.classList.add("is-complete"), e.classList.remove("is-uploading", "is-upload-complete");
-	}, ot);
+	}, it);
 }
 function wt(e) {
+	let { track: t, bar: n, label: r } = Z(e);
+	e.classList.add("is-error"), e.classList.remove("is-uploading", "is-upload-complete", "is-processing", "is-preparing"), t?.setAttribute("data-indeterminate", "false"), n?.setAttribute("data-progress", "error"), r && (r.textContent = "Upload failed");
+}
+function Tt(e) {
 	let t = e === "up" ? "Move file up" : "Move file down", n = document.createElement("button");
 	return n.type = "button", n.className = "formie-upload-manager-sort-button", n.setAttribute("data-formie-upload-manager-sort", e), n.setAttribute("data-formie-icon", e === "up" ? "arrow-up" : "arrow-down"), n.setAttribute("aria-label", t), n.setAttribute("title", t), n.textContent = t, n;
 }
-function Tt(e, t) {
+function Et(e, t) {
 	let n = document.createElement("li");
 	n.className = "formie-upload-manager-item", n.setAttribute("data-formie-upload-manager-item", "true");
 	let r = document.createElement("span");
@@ -2261,7 +2265,7 @@ function Tt(e, t) {
 	s.className = "formie-upload-manager-progress-label", s.setAttribute("data-formie-upload-manager-progress-label", "true"), s.textContent = "Preparing…", a.append(o), i.append(a, s);
 	let c = document.createElement("div");
 	c.className = "formie-upload-manager-sort-controls", c.setAttribute("data-formie-upload-manager-sort-controls", "true"), c.hidden = !0;
-	let l = wt("up"), u = wt("down");
+	let l = Tt("up"), u = Tt("down");
 	c.append(l, u);
 	let d = document.createElement("div");
 	d.className = "formie-upload-manager-actions", d.setAttribute("data-formie-upload-manager-actions", "true");
@@ -2277,13 +2281,13 @@ function Tt(e, t) {
 		sortDownButton: u
 	};
 }
-function Et(e) {
-	let t = Y(e).find((e) => e.hasAttribute(H));
+function Dt(e) {
+	let t = X(e).find((e) => e.hasAttribute(W));
 	if (t?.name) return t.name.endsWith("[]") ? t.name : `${t.name}[]`;
-	let n = J(e), r = n ? u(n) : "";
+	let n = ct(e), r = n ? u(n) : "";
 	return r ? `${r}[]` : "fields[fileUpload][]";
 }
-function Dt(e) {
+function Ot(e) {
 	return e.files.filter((e) => e.assetId !== null).length;
 }
 function $(e) {
@@ -2299,53 +2303,60 @@ function $(e) {
 		filename: t
 	})) });
 }
-function Ot(e) {
-	m(e, it, (e) => {
+function kt(e) {
+	m(e, nt, (e) => {
 		e.addValidator("uploadManagerRequired", ({ input: e }) => {
-			if (!e.matches(V)) return !0;
+			if (!e.matches(U)) return !0;
 			let t = e.closest("[data-formie-field-handle]");
-			return !(t instanceof HTMLElement) || e.getAttribute("data-formie-validation-required") !== "true" || X(t, Et(t)).length > 0;
+			return !(t instanceof HTMLElement) || e.getAttribute("data-formie-validation-required") !== "true" || ft(t, Dt(t)).length > 0;
 		}, ({ input: e, label: t, t: n }) => e.getAttribute("data-formie-required-message") ?? n("{label} cannot be blank.", { label: t })), e.addValidator("uploadManagerFileLimit", ({ input: e }) => {
-			if (!e.matches(V)) return !0;
+			if (!e.matches(U)) return !0;
 			let t = e.closest("[data-formie-field-handle]");
 			if (!(t instanceof HTMLElement)) return !0;
-			let n = t.querySelector(B);
+			let n = t.querySelector(H);
 			if (!(n instanceof HTMLElement)) return !0;
 			let r = parseInt(n.getAttribute("data-formie-file-limit") || "", 10);
-			return !r || X(t, Et(t)).length <= r;
+			return !r || ft(t, Dt(t)).length <= r;
 		}, ({ input: e, t }) => {
-			let n = e.closest("[data-formie-field-handle]")?.querySelector(B);
+			let n = e.closest("[data-formie-field-handle]")?.querySelector(H);
 			return n?.getAttribute("data-formie-validation-max-files-message") ?? t("Choose up to {files} files.", { files: n?.getAttribute("data-formie-file-limit") || "" });
 		});
 	});
 }
-function kt(e) {
-	f(e, it, at);
+function At(e) {
+	f(e, nt, rt);
 }
-function At(e, t) {
+function jt(e, t) {
 	if (e instanceof HTMLFormElement) return e;
 	let n = t.closest("form");
 	return n instanceof HTMLFormElement ? n : null;
 }
-function jt(e, t, r) {
-	let i = e.querySelector(z);
+function Mt(e, t, r) {
+	let i = e.querySelector(V);
 	if (!(i instanceof HTMLElement)) return () => {};
-	let a = i.querySelector(B);
+	let a = i.querySelector(H);
 	if (!(a instanceof HTMLElement)) return () => {};
-	let o = i.querySelector(Ye), c = i.querySelector(Je), u = i.querySelector(Xe), d = i.querySelector(V);
+	let o = i.querySelector(qe), c = i.querySelector(Ke), u = i.querySelector(Je), d = i.querySelector(U);
 	if (!(o instanceof HTMLInputElement) || !(u instanceof HTMLElement)) return () => {};
-	let f = At(t, e), m = d instanceof HTMLInputElement ? d : null, h = Et(e), g = dt(e, h), _ = Z(a, r.uploadEndpoint, "data-formie-file-upload-upload-endpoint", "/actions/formie/file-upload/upload"), v = Z(a, r.deleteEndpoint, "data-formie-file-upload-delete-endpoint", "/actions/formie/file-upload/delete"), y = Z(a, r.hydrateEndpoint, "data-formie-file-upload-hydrate-endpoint", "/actions/formie/file-upload/hydrate"), b = r.limitFiles ?? K(a.getAttribute("data-formie-file-limit")), x = r.sizeLimit ?? parseFloat(a.getAttribute("data-formie-size-max-limit") || ""), S = r.sizeMinLimit ?? parseFloat(a.getAttribute("data-formie-size-min-limit") || ""), C = _t(r.accept ?? a.getAttribute("accept") ?? o.accept), w = {};
+	let f = jt(t, e), m = d instanceof HTMLInputElement ? d : null, h = Dt(e), g = ut(e, h), _ = vt(a, r.uploadEndpoint, "data-formie-file-upload-upload-endpoint", "/actions/formie/file-upload/upload"), v = vt(a, r.deleteEndpoint, "data-formie-file-upload-delete-endpoint", "/actions/formie/file-upload/delete"), y = vt(a, r.hydrateEndpoint, "data-formie-file-upload-hydrate-endpoint", "/actions/formie/file-upload/hydrate"), b = r.limitFiles ?? J(a.getAttribute("data-formie-file-limit")), x = r.sizeLimit ?? parseFloat(a.getAttribute("data-formie-size-max-limit") || ""), S = r.sizeMinLimit ?? parseFloat(a.getAttribute("data-formie-size-min-limit") || ""), C = _t(r.accept ?? a.getAttribute("accept") ?? o.accept), w = {};
 	b && (w.maxNumberOfFiles = b), x && (w.maxFileSize = x * 1e3 * 1e3), S && (w.minFileSize = S * 1e3 * 1e3), C && (w.allowedFileTypes = C);
-	let T = new Be({
+	let T = new Re({
 		autoProceed: !0,
 		restrictions: w
-	}), E = s(f);
-	T.use(Ke, {
+	}), E = document.createElement("div");
+	E.className = "formie-upload-manager-error", E.setAttribute("role", "alert"), E.hidden = !0, i.append(E), T.on("info-visible", () => {
+		let e = T.getState().info.filter((e) => e.type === "error");
+		e.length && (E.textContent = [...new Set(e.map((e) => e.message))].join(" "), E.hidden = !1);
+	});
+	let D = () => {
+		E.textContent = "", E.hidden = !0;
+	}, O = s(f);
+	T.use(We, {
 		endpoint: _,
 		fieldName: "file",
 		formData: !0,
 		withCredentials: f?.dataset.formieRequestProfile !== "cross-origin-public",
-		timeout: ct,
+		timeout: ot,
 		shouldRetry: St,
 		headers: { Accept: "application/json" },
 		allowedMetaFields: [
@@ -2360,7 +2371,7 @@ function jt(e, t, r) {
 			"submissionEditToken",
 			"resumeToken",
 			"uploadCreateToken",
-			...E ? [E.name] : []
+			...O ? [O.name] : []
 		],
 		getResponseData(e) {
 			try {
@@ -2375,7 +2386,7 @@ function jt(e, t, r) {
 			i && e.setRequestHeader("X-CSRF-Token", i.value);
 			let a = r[0];
 			a?.id && a.size && e.upload.addEventListener("progress", (e) => {
-				let t = M(a.id);
+				let t = P(a.id);
 				if (!t) return;
 				let n = 0;
 				e.lengthComputable && e.total > 0 ? n = Math.round(e.loaded / e.total * 100) : e.loaded > 0 && a.size && (n = Math.min(100, Math.round(e.loaded / a.size * 100))), bt(t.listItem, n, {
@@ -2385,7 +2396,7 @@ function jt(e, t, r) {
 			});
 		}
 	});
-	let D = {
+	let k = {
 		field: e,
 		dropzone: a,
 		browseInput: o,
@@ -2395,31 +2406,31 @@ function jt(e, t, r) {
 		assetInputName: h,
 		uppy: T,
 		files: []
-	}, ee = () => b ? Math.max(0, b - Dt(D)) : null, O = (e) => {
+	}, ee = () => b ? Math.max(0, b - Ot(k)) : null, A = (e) => {
 		a.classList.toggle("formie-upload-manager-dropzone-active", e);
-	}, te = (e) => e.assetId !== null && !e.listItem.classList.contains("is-error"), k = () => {
-		let e = D.files.length >= 2;
-		D.files.forEach((t, n) => {
-			let r = t.listItem.querySelector(Ze), i = t.listItem.querySelector(Qe), a = t.listItem.querySelector($e);
+	}, j = (e) => e.assetId !== null && !e.listItem.classList.contains("is-error"), M = () => {
+		let e = k.files.length >= 2;
+		k.files.forEach((t, n) => {
+			let r = t.listItem.querySelector(Ye), i = t.listItem.querySelector(Xe), a = t.listItem.querySelector(Ze);
 			if (!(r instanceof HTMLElement)) return;
-			let o = e && te(t);
-			r.hidden = !o, i instanceof HTMLButtonElement && (i.disabled = !o || n === 0), a instanceof HTMLButtonElement && (a.disabled = !o || n >= D.files.length - 1);
+			let o = e && j(t);
+			r.hidden = !o, i instanceof HTMLButtonElement && (i.disabled = !o || n === 0), a instanceof HTMLButtonElement && (a.disabled = !o || n >= k.files.length - 1);
 		});
-	}, A = (e, t) => {
-		let n = D.files.indexOf(e), r = n + t;
-		if (n < 0 || r < 0 || r >= D.files.length) return;
-		let i = D.files[r];
-		D.files[n] = i, D.files[r] = e, t === -1 ? e.listItem.before(i.listItem) : e.listItem.after(i.listItem), $(D), k(), p(D.field, "file-upload", "uploaded-assets-reordered", { assets: D.files.filter((e) => e.assetId !== null).map((e) => ({
+	}, N = (e, t) => {
+		let n = k.files.indexOf(e), r = n + t;
+		if (n < 0 || r < 0 || r >= k.files.length) return;
+		let i = k.files[r];
+		k.files[n] = i, k.files[r] = e, t === -1 ? e.listItem.before(i.listItem) : e.listItem.after(i.listItem), $(k), M(), p(k.field, "file-upload", "uploaded-assets-reordered", { assets: k.files.filter((e) => e.assetId !== null).map((e) => ({
 			assetId: e.assetId,
 			filename: e.filename
 		})) });
-	}, j = (e, t, n, r) => {
+	}, te = (e, t, n, r) => {
 		t.addEventListener("click", () => {
 			ne(e);
 		}), n.addEventListener("click", () => {
-			A(e, -1);
+			N(e, -1);
 		}), r.addEventListener("click", () => {
-			A(e, 1);
+			N(e, 1);
 		});
 	}, ne = async (t) => {
 		if (t.uppyFileId && T.removeFile(t.uppyFileId), t.assetId) {
@@ -2434,15 +2445,15 @@ function jt(e, t, r) {
 					body: n
 				});
 			} catch (e) {
-				G.warn("Failed to delete uploaded asset.", {
+				q.warn("Failed to delete uploaded asset.", {
 					assetId: t.assetId,
 					error: e
 				});
 			}
 		}
-		t.listItem.remove(), D.files = D.files.filter((e) => e !== t), $(D), k();
+		t.listItem.remove(), k.files = k.files.filter((e) => e !== t), $(k), M();
 	}, re = (t, n, r = null, i = null, a = null, o = null) => {
-		let { listItem: s, removeButton: c, sortUpButton: l, sortDownButton: d } = Tt(e, n);
+		let { listItem: s, removeButton: c, sortUpButton: l, sortDownButton: d } = Et(e, n);
 		s.classList.add("is-complete"), u.append(s);
 		let f = {
 			assetId: t,
@@ -2454,9 +2465,9 @@ function jt(e, t, r) {
 			uppyFileId: null,
 			listItem: s
 		};
-		j(f, c, l, d), D.files.push(f), k();
+		te(f, c, l, d), k.files.push(f), M();
 	}, ie = async () => {
-		let t = X(e, h);
+		let t = ft(e, h);
 		if (!t.length) return;
 		let n = pt(e, h);
 		try {
@@ -2464,18 +2475,18 @@ function jt(e, t, r) {
 				profile: f?.dataset.formieRequestProfile,
 				method: "POST",
 				body: gt(f, e, t, n)
-			})).assets || [], i = new Map(r.map((e) => [K(e.assetId), e]).filter(([e]) => e !== null));
+			})).assets || [], i = new Map(r.map((e) => [J(e.assetId), e]).filter(([e]) => e !== null));
 			t.forEach((e) => {
-				if (D.files.some((t) => t.assetId === e)) return;
+				if (k.files.some((t) => t.assetId === e)) return;
 				let t = i.get(e);
-				t && re(e, t.filename || `Asset #${e}`, q(t.uploadToken) || n[e] || null, q(t.deleteToken) || null, q(t.uploadUid) || null, q(t.attachToken) || null);
-			}), $(D), k();
+				t && re(e, t.filename || `Asset #${e}`, Y(t.uploadToken) || n[e] || null, Y(t.deleteToken) || null, Y(t.uploadUid) || null, Y(t.attachToken) || null);
+			}), $(k), M();
 		} catch (e) {
-			G.warn("Failed to hydrate uploaded assets.", { error: e });
+			q.warn("Failed to hydrate uploaded assets.", { error: e });
 		}
-	}, M = (e) => e && D.files.find((t) => t.uppyFileId === e) || null;
+	}, P = (e) => e && k.files.find((t) => t.uppyFileId === e) || null;
 	T.on("upload-progress", (e, t) => {
-		let n = M(e?.id);
+		let n = P(e?.id);
 		if (!n) return;
 		let r = t.bytesTotal || 0, i = t.bytesUploaded || 0, a = r > 0 ? Math.round(i / r * 100) : 0;
 		bt(n.listItem, a, {
@@ -2483,26 +2494,26 @@ function jt(e, t, r) {
 			total: r
 		});
 	}), T.on("upload-retry", (e) => {
-		let t = M(e?.id);
+		let t = P(e?.id);
 		t && Q(t.listItem, "Retrying…", "retrying");
 	}), T.on("upload-success", (e, t) => {
-		let n = M(e?.id);
+		let n = P(e?.id);
 		if (!n) return;
-		let r = n.listItem.querySelector("[data-formie-upload-manager-error]"), i = lt(t?.body) ? t.body : {}, a = K(i.assetId);
+		let r = n.listItem.querySelector("[data-formie-upload-manager-error]"), i = st(t?.body) ? t.body : {}, a = J(i.assetId);
 		if (!i.success || !a) {
-			if (n.listItem.classList.add("is-error"), n.listItem.classList.remove("is-uploading", "is-upload-complete", "is-processing", "is-preparing"), r instanceof HTMLElement) {
+			if (wt(n.listItem), r instanceof HTMLElement) {
 				r.hidden = !1, r.textContent = xt(null, { message: "Upload failed." });
 				let e = i.errors ? Object.values(i.errors).flat().find(Boolean) : null;
 				e && (r.textContent = e);
 			}
 			return;
 		}
-		n.assetId = a, n.uploadToken = q(i.uploadToken) || null, n.deleteToken = q(i.deleteToken) || null, n.uploadUid = q(i.uploadUid) || null, n.attachToken = q(i.attachToken) || null, n.filename = i.filename || n.filename, Ct(n.listItem), $(D), k();
+		n.assetId = a, n.uploadToken = Y(i.uploadToken) || null, n.deleteToken = Y(i.deleteToken) || null, n.uploadUid = Y(i.uploadUid) || null, n.attachToken = Y(i.attachToken) || null, n.filename = i.filename || n.filename, Ct(n.listItem), $(k), M();
 	}), T.on("upload-error", (e, t, n) => {
-		let r = M(e?.id);
+		let r = P(e?.id);
 		if (!r) return;
 		let i = r.listItem.querySelector("[data-formie-upload-manager-error]");
-		r.listItem.classList.add("is-error"), r.listItem.classList.remove("is-uploading", "is-upload-complete", "is-processing", "is-preparing"), i instanceof HTMLElement && (i.hidden = !1, i.textContent = xt(n, t));
+		wt(r.listItem), i instanceof HTMLElement && (i.hidden = !1, i.textContent = xt(n, t));
 	}), T.on("file-added", (t) => {
 		let n = ee();
 		if (n !== null && n <= 0) {
@@ -2510,7 +2521,7 @@ function jt(e, t, r) {
 			return;
 		}
 		T.setFileMeta(t.id, ht(f, e, a));
-		let { listItem: r, removeButton: i, sortUpButton: o, sortDownButton: s } = Tt(e, t.name || "Upload");
+		let { listItem: r, removeButton: i, sortUpButton: o, sortDownButton: s } = Et(e, t.name || "Upload");
 		u.append(r);
 		let c = {
 			assetId: null,
@@ -2521,21 +2532,21 @@ function jt(e, t, r) {
 			uppyFileId: t.id,
 			listItem: r
 		};
-		j(c, i, o, s), D.files.push(c), k();
+		te(c, i, o, s), k.files.push(c), M();
 	});
-	let N = () => {
+	let F = () => {
 		o.click();
 	};
 	c?.addEventListener("click", (e) => {
-		e.preventDefault(), e.stopPropagation(), N();
+		e.preventDefault(), e.stopPropagation(), F();
 	}), a.addEventListener("click", (e) => {
-		e.target instanceof Element && e.target.closest(Je) || N();
+		e.target instanceof Element && e.target.closest(Ke) || F();
 	}), a.addEventListener("keydown", (e) => {
-		(e.key === "Enter" || e.key === " ") && (e.preventDefault(), N());
+		(e.key === "Enter" || e.key === " ") && (e.preventDefault(), F());
 	}), o.addEventListener("change", () => {
 		if (!o.files?.length) return;
 		let e = Array.from(o.files);
-		o.value = "";
+		o.value = "", D();
 		try {
 			T.addFiles(e.map((e) => ({
 				name: e.name,
@@ -2547,16 +2558,17 @@ function jt(e, t, r) {
 		}
 	}), ["dragenter", "dragover"].forEach((e) => {
 		a.addEventListener(e, (e) => {
-			e.preventDefault(), e.stopPropagation(), O(!0);
+			e.preventDefault(), e.stopPropagation(), A(!0);
 		});
 	}), ["dragleave", "drop"].forEach((e) => {
 		a.addEventListener(e, (e) => {
-			e.preventDefault(), e.stopPropagation(), O(!1);
+			e.preventDefault(), e.stopPropagation(), A(!1);
 		});
 	}), a.addEventListener("drop", (e) => {
 		let t = e.dataTransfer;
 		if (!t?.files?.length) return;
 		let n = Array.from(t.files);
+		D();
 		try {
 			T.addFiles(n.map((e) => ({
 				name: e.name,
@@ -2567,17 +2579,17 @@ function jt(e, t, r) {
 			e instanceof Error && T.info(e.message, "error", 3e3);
 		}
 	});
-	let P = () => {
-		D.files.forEach((e) => {
+	let I = () => {
+		D(), k.files.forEach((e) => {
 			e.listItem.remove();
-		}), D.files = [], T.cancelAll(), mt(e, g, h, []);
+		}), k.files = [], T.cancelAll(), mt(e, g, h, []);
 	};
-	return f?.addEventListener(tt, P), ie(), () => {
-		f?.removeEventListener(tt, P), T.destroy(), D.files = [];
+	return f?.addEventListener($e, I), ie(), () => {
+		f?.removeEventListener($e, I), T.destroy(), E.remove(), k.files = [];
 	};
 }
-var Mt = {
-	moduleId: `formie:${rt}`,
+var Nt = {
+	moduleId: `formie:${tt}`,
 	version: 2,
 	surfaces: [
 		"server-rendered",
@@ -2585,34 +2597,34 @@ var Mt = {
 		"cp-edit"
 	],
 	kind: "field",
-	match: (e) => !!e.target.querySelector(z),
+	match: (e) => !!e.target.querySelector(V),
 	setup: async (e) => {
 		let t = e.options || {}, n = e.form, r = /* @__PURE__ */ new WeakSet(), i = [];
-		Ot(n);
+		kt(n);
 		let a = (e) => {
 			let a = /* @__PURE__ */ new Set();
 			e instanceof HTMLElement && e.hasAttribute("data-formie-field-handle") && a.add(e), e instanceof Element && (e.querySelectorAll("[data-formie-field-handle]").forEach((e) => {
 				e instanceof HTMLElement && a.add(e);
-			}), e.querySelectorAll(z).forEach((e) => {
+			}), e.querySelectorAll(V).forEach((e) => {
 				let t = e.closest("[data-formie-field-handle]");
 				t instanceof HTMLElement && a.add(t);
 			})), a.forEach((e) => {
-				!r.has(e) && e.querySelector(z) && (r.add(e), i.push(jt(e, n, t)));
+				!r.has(e) && e.querySelector(V) && (r.add(e), i.push(Mt(e, n, t)));
 			});
 		};
 		a(e.target);
 		let o = (e) => {
 			let t = e.detail;
-			if (!lt(t)) return;
+			if (!st(t)) return;
 			let n = t.row;
 			n instanceof HTMLElement && a(n);
 		};
-		return n?.addEventListener(nt, o), G.log("Module setup.", { count: i.length }), await e.emit("formie:module:upload-manager:init", { count: i.length }), { destroy: () => {
-			n?.removeEventListener(nt, o), i.forEach((e) => {
+		return n?.addEventListener(et, o), q.log("Module setup.", { count: i.length }), await e.emit("formie:module:upload-manager:init", { count: i.length }), { destroy: () => {
+			n?.removeEventListener(et, o), i.forEach((e) => {
 				e();
-			}), kt(n), G.log("Module destroy."), e.emit("formie:module:upload-manager:destroy", {});
+			}), At(n), q.log("Module destroy."), e.emit("formie:module:upload-manager:destroy", {});
 		} };
 	}
 };
 //#endregion
-export { Mt as uploadManagerModule };
+export { Nt as uploadManagerModule };

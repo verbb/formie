@@ -56,7 +56,10 @@ function M(e) {
 	return !n && !r ? null : {
 		assetId: n,
 		filename: r,
-		url: i
+		url: i,
+		uploadUid: w(e.uploadUid) || null,
+		attachToken: w(e.attachToken) || null,
+		viewToken: w(e.viewToken ?? e.uploadToken) || null
 	};
 }
 function N(e) {
@@ -77,13 +80,17 @@ function P(e) {
 	})).filter((e) => e.filename !== "") : [];
 }
 function F(e, t) {
-	return A(e, t).map((e) => ({
-		assetId: C(e.getAttribute(h)) ?? C(e.value),
-		filename: ""
+	return A(e, t).map((t) => ({
+		assetId: C(t.getAttribute(h)) ?? C(t.value),
+		filename: "",
+		viewToken: t.getAttribute("data-formie-file-upload-token"),
+		uploadUid: t.name.endsWith("[uploadUid]") ? t.value : null,
+		attachToken: k(e).find((e) => e.name === t.name.replace(/\[uploadUid\]$/, "[attachToken]"))?.value
 	})).filter((e) => e.assetId !== null);
 }
 function I(e, t) {
 	return e.length ? e.map((e, n) => ({
+		...e,
 		assetId: e.assetId,
 		filename: t[n]?.filename || ""
 	})) : t;
@@ -140,7 +147,12 @@ function U(e, t, n) {
 	}), n.forEach((e, t) => {
 		if (!e.assetId) return;
 		let n = document.createElement("input");
-		n.type = "hidden", n.name = `${i}[${t}][assetId]`, n.value = String(e.assetId), n.setAttribute(g, "true"), n.setAttribute(h, String(e.assetId)), r.insertAdjacentElement("afterend", n), r = n;
+		n.type = "hidden";
+		let a = e.uploadUid && e.attachToken;
+		if (n.name = `${i}[${t}][${a ? "uploadUid" : "assetId"}]`, n.value = a ? e.uploadUid : String(e.assetId), n.setAttribute(g, "true"), n.setAttribute(h, String(e.assetId)), e.viewToken && n.setAttribute("data-formie-file-upload-token", e.viewToken), r.insertAdjacentElement("afterend", n), r = n, a) {
+			let n = document.createElement("input");
+			n.type = "hidden", n.name = `${i}[${t}][attachToken]`, n.value = e.attachToken, n.setAttribute(g, "true"), r.insertAdjacentElement("afterend", n), r = n;
+		}
 	}), t.value = "";
 }
 function W(e) {
@@ -153,23 +165,23 @@ function G(e, t, n) {
 	a && i.append("handle", a), o && i.append("fieldHandle", o);
 	let s = r?.querySelector("input[name=\"submissionUid\"]");
 	return s instanceof HTMLInputElement && s.value.trim() && i.append("submissionUid", s.value.trim()), n.forEach((e) => {
-		i.append("assetIds[]", String(e));
+		e.assetId && (i.append("assetIds[]", String(e.assetId)), e.viewToken && i.append(`uploadTokens[${e.assetId}]`, e.viewToken));
 	}), i;
 }
 async function K(e, t, n) {
-	let i = n.map((e) => e.assetId).filter((e) => e !== null);
-	if (!i.length) return n;
-	let a = t.getAttribute(p)?.trim() || "/actions/formie/file-upload/hydrate", o = N((await r(a, {
+	if (!n.map((e) => e.assetId).filter((e) => e !== null).length) return n;
+	let i = t.getAttribute(p)?.trim() || "/actions/formie/file-upload/hydrate", a = N((await r(i, {
 		profile: e.closest("form")?.dataset.formieRequestProfile,
 		method: "POST",
-		body: G(e, t, i)
+		body: G(e, t, n)
 	})).assets);
-	if (!o.length) return n;
-	let s = new Map(o.map((e) => [e.assetId, e]));
+	if (!a.length) return n;
+	let o = new Map(a.map((e) => [e.assetId, e]));
 	return n.map((e) => {
-		if (!e.assetId || !s.has(e.assetId)) return e;
-		let t = s.get(e.assetId);
+		if (!e.assetId || !o.has(e.assetId)) return e;
+		let t = o.get(e.assetId);
 		return {
+			...e,
 			assetId: e.assetId,
 			filename: t.filename || e.filename,
 			url: t.url ?? e.url
@@ -180,11 +192,11 @@ function q(e, t) {
 	let n = e.detail;
 	if (!S(n)) return [];
 	let r = w(n.fieldHandle), i = w(n.inputKey), a = w(n.inputName ?? n.name), o = S(n.data) ? n.data : null, s = w(o?.fieldHandle), c = w(o?.inputKey), l = w(o?.inputName ?? o?.name), u = [], d = !1, f = !1, p = !1;
-	if (i !== "" && i === t.inputKey && (d = !0, u.push(n.assets, n.assetIds, n.data)), a !== "" && a === t.inputName && (f = !0, u.push(n.assets, n.assetIds, n.data)), r === t.fieldHandle && (p = !0, u.push(n.assets, n.assetIds, n.data)), o) {
+	if (i !== "" && i === t.inputKey && (d = !0, u.push(n.uploadedAssets, n.assets, n.assetIds, n.data)), a !== "" && a === t.inputName && (f = !0, u.push(n.uploadedAssets, n.assets, n.assetIds, n.data)), r === t.fieldHandle && (p = !0, u.push(n.uploadedAssets, n.assets, n.assetIds, n.data)), o) {
 		let e = [
+			o.uploadedAssets,
 			o.assets,
 			o.assetIds,
-			o.uploadedAssets,
 			o.data
 		];
 		c !== "" && c === t.inputKey && (d = !0, u.push(...e)), l !== "" && l === t.inputName && (f = !0, u.push(...e)), s === t.fieldHandle && (p = !0, u.push(...e));

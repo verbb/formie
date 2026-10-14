@@ -1,7 +1,7 @@
 import { n as e } from "./chunks/request-profile-DhwkeCpS.js";
 import { i as t, m as n, t as r } from "./chunks/dist-ZLeW0zZ3.js";
 import { c as i, d as a, l as o, o as s, r as c, t as l, u } from "./chunks/event-names-BCI2FLD8.js";
-import { a as d, c as f, d as p, f as m, i as h, l as g, n as _, o as v, p as y, r as b, s as x, t as S, u as C } from "./chunks/api-D6kJ7kXZ.js";
+import { a as d, c as f, d as p, f as m, i as h, l as g, n as _, o as v, p as y, r as b, s as x, t as S, u as C } from "./chunks/api-VW7K3oi_.js";
 import { a as ee, i as te, n as ne, r as w, t as T } from "./chunks/debug-BV0DvdHx.js";
 import { i as E, r as re, t as D } from "./chunks/theme-classes-DAQuEqdP.js";
 import { i as O, t as ie } from "./chunks/csrf-DxHg_ZYt.js";
@@ -911,24 +911,24 @@ function jt(e, t) {
 function Mt(e, t) {
 	return !t.message || t.nextPage || t.redirect ? !1 : t.action === "save" || ut(e) === "message" && ft(e) !== "";
 }
-function Nt(e, t) {
-	let n = ft(e);
-	if (!n) return;
-	let r = St(e, n);
-	D(r, e, "message", "messageSuccess"), r.setAttribute("data-formie-message", "true"), r.setAttribute("data-formie-message-success", "true"), r.setAttribute("role", "status"), r.setAttribute("aria-live", "polite"), r.setAttribute("aria-atomic", "true");
-	let i = document.createElement("div");
-	i.setAttribute("data-formie-success", "true"), D(i, e, "success"), i.innerHTML = t, r.appendChild(i), mt(e) && d(e, !0);
-	let a = pt(e);
-	if (a !== null) {
+function Nt(e, t, n = {}) {
+	let r = ft(e);
+	if (!r) return;
+	let i = St(e, r);
+	D(i, e, "message", "messageSuccess"), i.setAttribute("data-formie-message", "true"), i.setAttribute("data-formie-message-success", "true"), i.setAttribute("role", "status"), i.setAttribute("aria-live", "polite"), i.setAttribute("aria-atomic", "true");
+	let a = document.createElement("div");
+	a.setAttribute("data-formie-success", "true"), D(a, e, "success"), a.innerHTML = t, i.appendChild(a), n.hideForm !== !1 && mt(e) && d(e, !0);
+	let o = pt(e);
+	if (o !== null) {
 		let t = window.setTimeout(() => {
 			L.delete(e), Et(e);
-		}, a);
+		}, o);
 		L.set(e, t);
 	}
 }
 function R(e, t) {
 	if (wt(e), Tt(e), Et(e), Dt(e), t.ok) {
-		Mt(e, t) && Nt(e, t.message || "");
+		Mt(e, t) && Nt(e, t.message || "", { hideForm: t.action !== "save" });
 		return;
 	}
 	if (!t.ok) {
@@ -1085,13 +1085,13 @@ var Rt = class {
 	calculations: () => import("./chunks/calculations-YEoVCG2q.js").then((e) => e.calculationsModule),
 	"checkbox-radio": () => import("./chunks/checkbox-radio-gsm8QPJg.js").then((e) => e.checkboxRadioModule),
 	combobox: () => import("./chunks/combobox-CWNdx4Fk.js").then((e) => e.comboboxModule),
-	conditions: () => import("./chunks/conditions-DqNHLTbN.js").then((e) => e.conditionsModule),
+	conditions: () => import("./chunks/conditions-Ceeg6ReZ.js").then((e) => e.conditionsModule),
 	"custom-google-maps": () => import("./chunks/custom-google-maps-C4l2S3GO.js").then((e) => e.customGoogleMapsModule),
 	"custom-link": () => import("./chunks/custom-link-CLazgKYH.js").then((e) => e.customLinkModule),
 	"custom-maps": () => import("./chunks/custom-maps-DqcAlD0v.js").then((e) => e.customMapsModule),
 	"date-picker": () => import("./chunks/date-picker-RUnevF7l.js").then((e) => e.datePickerModule),
-	"file-upload": () => import("./chunks/file-upload-Bm-TXyNB.js").then((e) => e.fileUploadModule),
-	"upload-manager": () => import("./chunks/upload-manager-BbiUosZq.js").then((e) => e.uploadManagerModule),
+	"file-upload": () => import("./chunks/file-upload-B8_mH012.js").then((e) => e.fileUploadModule),
+	"upload-manager": () => import("./chunks/upload-manager-Yz286i9l.js").then((e) => e.uploadManagerModule),
 	hidden: () => import("./chunks/hidden-BZhXnNPe.js").then((e) => e.hiddenModule),
 	"phone-country": () => import("./chunks/phone-country-bAqje17P.js").then((e) => e.phoneCountryModule),
 	"password-validation": () => import("./chunks/password-validation-C8_uO_c_.js").then((e) => e.passwordValidationModule),
@@ -1107,17 +1107,17 @@ var Rt = class {
 	table: () => import("./chunks/table-DnIBdeKF.js").then((e) => e.tableModule),
 	"text-limit": () => import("./chunks/text-limit-LGMPhFuC.js").then((e) => e.textLimitModule)
 }, Ut = {
-	bpoint: () => import("./chunks/bpoint-D0RKFM4F.js").then((e) => e.bpointModule),
-	eway: () => import("./chunks/eway-or6dtjoT.js").then((e) => e.ewayModule),
-	"go-cardless": () => import("./chunks/go-cardless-DzJ-0FKg.js").then((e) => e.goCardlessModule),
-	mollie: () => import("./chunks/mollie-DG8Ju83x.js").then((e) => e.mollieModule),
-	moneris: () => import("./chunks/moneris-C8m3Fvqu.js").then((e) => e.monerisModule),
-	opayo: () => import("./chunks/opayo-B3EvrVxw.js").then((e) => e.opayoModule),
-	paddle: () => import("./chunks/paddle-BIYR9Um3.js").then((e) => e.paddleModule),
-	paypal: () => import("./chunks/paypal-B_yxIo2d.js").then((e) => e.paypalModule),
-	payway: () => import("./chunks/payway-CeOzS0sL.js").then((e) => e.paywayModule),
-	square: () => import("./chunks/square-DEzxv9D9.js").then((e) => e.squareModule),
-	stripe: () => import("./chunks/stripe-CVPQGDz3.js").then((e) => e.stripeModule)
+	bpoint: () => import("./chunks/bpoint-YJOlM_2e.js").then((e) => e.bpointModule),
+	eway: () => import("./chunks/eway-BPGE7Jgs.js").then((e) => e.ewayModule),
+	"go-cardless": () => import("./chunks/go-cardless-ay6Uqb2b.js").then((e) => e.goCardlessModule),
+	mollie: () => import("./chunks/mollie-CbxLcdf0.js").then((e) => e.mollieModule),
+	moneris: () => import("./chunks/moneris-lz0s2HcU.js").then((e) => e.monerisModule),
+	opayo: () => import("./chunks/opayo-Cwoo-jww.js").then((e) => e.opayoModule),
+	paddle: () => import("./chunks/paddle-CL5BoNqA.js").then((e) => e.paddleModule),
+	paypal: () => import("./chunks/paypal-CKeF083N.js").then((e) => e.paypalModule),
+	payway: () => import("./chunks/payway-CgOabw1t.js").then((e) => e.paywayModule),
+	square: () => import("./chunks/square-Dwe2HXx4.js").then((e) => e.squareModule),
+	stripe: () => import("./chunks/stripe-B3sm6kqD.js").then((e) => e.stripeModule)
 }, Wt = {
 	...Ht,
 	...Bt,
@@ -1514,6 +1514,11 @@ var cn = {
 	required: {
 		rule: ({ input: e, getRule: n }) => {
 			if (!n("required") || e.type === "hidden") return !0;
+			if (e instanceof HTMLInputElement && e.type === "file") {
+				if (e.files?.length) return !0;
+				let t = e.closest("[data-formie-field-handle]"), n = e.name.replace(/\[\]$/, "");
+				return Array.from(t?.querySelectorAll("input[type=\"hidden\"][data-formie-file-upload-asset-id]") || []).some((e) => !e.disabled && e.name.startsWith(`${n}[`) && Number(e.getAttribute("data-formie-file-upload-asset-id")) > 0);
+			}
 			if (e.type === "checkbox" || e.type === "radio") {
 				let t = e.form?.querySelectorAll(`[name="${e.name}"]:not([type="hidden"]):not([disabled])`) || [];
 				return t.length ? Array.from(t).some((e) => e instanceof HTMLInputElement && e.checked) : e instanceof HTMLInputElement ? e.checked : !0;

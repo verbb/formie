@@ -332,7 +332,11 @@ function V(e, t) {
 	let c = e;
 	c.formieValidation && E(e, c.formieValidation);
 }
-function H(e, t) {
+function Se(e, t) {
+	if (t.meta?.resetSubmissionIdentity === !0) {
+		M(e, "submissionId"), M(e, "submissionUid"), M(e, "progressId"), A(e, "expectedVersion", "0"), H(e);
+		return;
+	}
 	let n = t.meta?.session?.version ?? t.meta?.version;
 	typeof n == "number" && A(e, "expectedVersion", String(n));
 	let r = t.meta?.submissionUid;
@@ -340,7 +344,7 @@ function H(e, t) {
 	let i = (t.meta?.session)?.continuation?.progressId;
 	typeof i == "string" && i.trim() !== "" ? A(e, "progressId", i) : M(e, "progressId");
 }
-function Se(e) {
+function H(e) {
 	let t = e.getAttribute("action");
 	t && e.setAttribute("action", fe(t, "resumeToken"));
 	try {
@@ -363,7 +367,7 @@ function Ce(e, t) {
 }
 function U(t, n = {}) {
 	let r = t.formieValidation, i = N(t)[0]?.getAttribute("data-formie-page-id");
-	if (L(t), t.reset(), n.preserveHiddenState || I(t, !1), M(t, "submissionId"), A(t, "expectedVersion", "0"), M(t, "submissionUid"), M(t, "progressId"), M(t, "pageId"), Se(t), r?.resetLiveState(), i) {
+	if (L(t), t.reset(), n.preserveHiddenState || I(t, !1), M(t, "submissionId"), A(t, "expectedVersion", "0"), M(t, "submissionUid"), M(t, "progressId"), M(t, "pageId"), H(t), r?.resetLiveState(), i) {
 		V(t, i), t.dispatchEvent(new CustomEvent(e("reset"), { bubbles: !0 }));
 		return;
 	}
@@ -401,6 +405,7 @@ function Ee(e, t, n) {
 		U(e), k.log("Resetting state due to stale/reset marker.");
 		return;
 	}
+	t.payment?.action?.type === "redirect" && t.payment.action.url && j(e, "payment-redirect");
 	let r = Te(e, t);
 	if (!t.ok && t.redirect?.url && !r.hasPaymentFollowUpEvent) {
 		k.log("Applying redirect fallback for failed result.", {
@@ -409,7 +414,7 @@ function Ee(e, t, n) {
 		}), L(e), t.redirect.target === "new-tab" ? window.open(t.redirect.url, "_blank", "noopener,noreferrer") : (j(e, "redirect"), window.location.href = t.redirect.url);
 		return;
 	}
-	if (H(e, t), !t.ok) {
+	if (Se(e, t), !t.ok) {
 		k.log("Non-redirect failure; keeping current form state."), L(e);
 		return;
 	}
