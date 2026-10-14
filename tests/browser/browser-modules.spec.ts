@@ -89,6 +89,8 @@ test('module match and setup hooks receive the exact rendering surface', async({
 test('required CP module failures render aligned copyable diagnostics', async({ page }) => {
     await page.goto('/browser-fixture');
     await page.waitForFunction(() => !!(window as any).browserModules);
+    let copied = '';
+    await page.exposeFunction('recordCopiedDetails', (value: string) => { copied = value; });
     const result = await page.evaluate(async() => {
         const { hydrateFormieModules, ModuleRegistry } = (window as any).browserModules;
         const form = document.createElement('form');
@@ -108,10 +110,9 @@ test('required CP module failures render aligned copyable diagnostics', async({ 
             },
         });
 
-        let copied = '';
         Object.defineProperty(navigator, 'clipboard', {
             configurable: true,
-            value: { writeText: async(value: string) => { copied = value; } },
+            value: { writeText: (value: string) => (window as any).recordCopiedDetails(value) },
         });
 
         const entry = { key: 'diagnostic-entry', moduleId: 'test:diagnostics', kind: 'core', targets: [{ type: 'form' }], config: {}, required: true };
@@ -121,12 +122,9 @@ test('required CP module failures render aligned copyable diagnostics', async({ 
         const disclosure = alert.shadowRoot!.querySelector('details')!;
         const report = alert.querySelector<HTMLElement>('[data-formie-module-error-details]')!;
         const initiallyOpen = disclosure.open;
-        const copiedEvent = new Promise((resolve) => alert.addEventListener('pk-copy', resolve, { once: true }));
-        alert.shadowRoot!.querySelector<HTMLButtonElement>('[part="copy-button"]')!.click();
-        await copiedEvent;
-        await (alert as HTMLElement & { updateComplete: Promise<void> }).updateComplete;
+        (window as any).diagnosticsFixture = { host, form };
 
-        const rendered = {
+        return {
             tagName: alert.localName,
             parentIsRootSibling: alert.nextElementSibling === root,
             role: alert.shadowRoot!.querySelector('[part="base"]')?.getAttribute('role'),
@@ -134,14 +132,7 @@ test('required CP module failures render aligned copyable diagnostics', async({ 
             summary: alert.shadowRoot!.querySelector('summary')?.textContent,
             initiallyOpen,
             report: report.textContent,
-            copied,
-            copyStatus: alert.shadowRoot!.querySelector('[part="copy-status"]')?.textContent,
         };
-
-        await host.destroy();
-        const removedOnDestroy = !form.querySelector('[data-formie-module-error]');
-        form.remove();
-        return { ...rendered, removedOnDestroy };
     });
 
     expect(result.tagName).toBe('pk-alert');
@@ -155,9 +146,22 @@ test('required CP module failures render aligned copyable diagnostics', async({ 
     expect(result.report).toContain('Key: diagnostic-entry');
     expect(result.report).toContain('Error: Error: Provider failed to initialize.');
     expect(result.report).toContain('Stack:');
-    expect(result.copied).toBe(result.report);
-    expect(result.copyStatus).toBe('Details copied.');
-    expect(result.removedOnDestroy).toBe(true);
+    const alert = page.locator('[data-formie-module-error]');
+    await alert.locator('summary').click();
+    await expect(alert.locator('[data-formie-module-error-details]')).toBeVisible();
+    await alert.getByRole('button', { name: 'Copy details', exact: true }).click();
+    await expect.poll(() => copied).toBe(result.report);
+    await expect(alert.locator('[part="copy-status"]')).toHaveText('Details copied.');
+
+    const removedOnDestroy = await page.evaluate(async() => {
+        const { host, form } = (window as any).diagnosticsFixture;
+        await host.destroy();
+        const removed = !form.querySelector('[data-formie-module-error]');
+        form.remove();
+        delete (window as any).diagnosticsFixture;
+        return removed;
+    });
+    expect(removedOnDestroy).toBe(true);
 });
 
 for (const adapter of ['react', 'vue', 'web-components']) {
