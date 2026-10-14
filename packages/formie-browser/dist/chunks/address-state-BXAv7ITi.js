@@ -4,7 +4,7 @@ import { t as n } from "./debug-BV0DvdHx.js";
 import { a as r, n as i } from "./theme-classes-DAQuEqdP.js";
 import { n as a } from "./constants-DVcJAvc5.js";
 import { i as o, n as s } from "./shared-OKhSay59.js";
-import { initFormieCombobox as c } from "./combobox-CWNdx4Fk.js";
+import { initFormieCombobox as c } from "./combobox-Ba08_cHL.js";
 //#region src/js/modules/fields/address-state.ts
 var l = "[data-formie-address-state-dynamic]", u = "[data-formie-address-state-input]", d = "[data-formie-address-state-autofill-anchor]", f = "formie-address-autofill-start", p = a.country, m = "address-state", h = "formie/address/subdivisions", g = ["formie-select", "formie-dropdown-input"], _ = [
 	0,
@@ -34,11 +34,8 @@ function E(e, t) {
 	n && n.getValue() !== t && n.setValue(t, !0);
 }
 function D(e, t) {
-	if (e.value !== t) {
-		e.value = t, T(e);
-		return;
-	}
-	E(e, t);
+	let n = e.value;
+	e.value = t, E(e, e.value), e.value !== n && T(e);
 }
 function O(e, t) {
 	e.autofillAnchor && (e.autofillAnchor.value = t);
@@ -64,8 +61,8 @@ function M(e) {
 	k(e);
 	let t = A(e);
 	if (!t) return;
-	let n = e.lastSubdivisions, r = n.length > 0 && L(t, n) || t;
-	D(e.stateControl, r), E(e.stateControl, r), O(e, r), e.pendingStateValue = r;
+	let n = e.lastSubdivisions, r = e.stateControl instanceof HTMLSelectElement ? L(t, n) || "" : t;
+	O(e, r), e.pendingStateValue = r, D(e.stateControl, r);
 }
 function N(e, t, n, r) {
 	let i = new URL(/^https?:\/\//.test(e) || e.startsWith("/") ? e : `/actions/${e}`, window.location.origin);
@@ -174,7 +171,7 @@ function G(e, t, n, r) {
 }
 function K(e, t) {
 	let { stateField: n, stateControl: i, required: a } = e;
-	if (r(n, n, "conditionalHidden", !t), n.toggleAttribute("data-formie-conditionally-hidden", !t), !t) {
+	if (r(n, n, "conditionalHidden", !t), n.toggleAttribute("data-formie-address-state-hidden", !t), !t) {
 		i.required = !1, i.disabled = !0;
 		return;
 	}
@@ -192,7 +189,7 @@ function J() {
 	return t.className = "formie-address-state-skeleton-input", e.appendChild(t), e;
 }
 function Y(e) {
-	e.addressRoot.setAttribute("data-formie-address-state-fetching", "true"), e.countryControl?.setAttribute("aria-busy", "true"), e.stateControl.setAttribute("aria-hidden", "true"), e.stateControl.setAttribute("tabindex", "-1"), r(e.stateField, e.stateField, "conditionalHidden", !1), e.stateField.removeAttribute("data-formie-conditionally-hidden"), e.stateField.setAttribute("data-formie-address-state-skeleton-active", "true");
+	e.addressRoot.setAttribute("data-formie-address-state-fetching", "true"), e.countryControl?.setAttribute("aria-busy", "true"), e.stateControl.setAttribute("aria-hidden", "true"), e.stateControl.setAttribute("tabindex", "-1"), r(e.stateField, e.stateField, "conditionalHidden", !1), e.stateField.removeAttribute("data-formie-address-state-hidden"), e.stateField.setAttribute("data-formie-address-state-skeleton-active", "true");
 	let t = e.stateField.querySelector("[data-formie-field-control]");
 	t instanceof HTMLElement && (e.skeletonEl || (e.skeletonEl = J(), t.appendChild(e.skeletonEl)), e.skeletonEl.removeAttribute("hidden")), q(e).textContent = "Loading state or province options for the selected country.";
 }
@@ -205,7 +202,7 @@ function Z(e, t) {
 	let r = n.querySelector("[data-formie-field-required]");
 	n.textContent = t, r && n.appendChild(r);
 }
-function Q(e, t) {
+function ee(e, t) {
 	e.setAttribute("data-formie-combobox-input", "true"), s(e, "combobox", "before-init", {
 		select: e,
 		options: { placeholder: t }
@@ -216,7 +213,7 @@ function Q(e, t) {
 		options: { placeholder: t }
 	}), n;
 }
-async function $(t, n) {
+async function Q(t, n) {
 	let { hideWhenUnused: r = !0, useSearchable: i = !0, useDatalist: a = !0, optionLabel: o = "name", optionValue: s = "name", placeholder: c = null, subdivisionsAction: l = h } = n, u = t.countryControl?.value?.trim() || "";
 	k(t);
 	let d = A(t), f = ++t.fetchGeneration;
@@ -242,15 +239,15 @@ async function $(t, n) {
 	}
 	if (K(t, !0), Z(t.stateField, _), m.length > 0) {
 		let e = t.stateControl instanceof HTMLSelectElement ? t.stateControl : W(t.stateControl, d, m, c);
-		t.stateControl === e ? (B(t.stateControl, e), U(e, m, c, e.value)) : t.stateControl = V(t.stateControl, e), i ? t.comboboxCleanup = Q(e, c) : e.removeAttribute("data-formie-combobox-input"), D(e, L(d, m) || d), M(t);
+		t.stateControl === e ? (B(t.stateControl, e), U(e, m, c, e.value)) : t.stateControl = V(t.stateControl, e), i ? t.comboboxCleanup = ee(e, c) : e.removeAttribute("data-formie-combobox-input"), D(e, L(d, m) || d), M(t);
 		return;
 	}
 	let v = t.stateControl instanceof HTMLInputElement ? t.stateControl : H(t.stateControl, d);
 	t.stateControl !== v && (t.stateControl = V(t.stateControl, v)), v.disabled = !1, G(v, t.datalistId, m, a), D(v, d), M(t);
 }
-function ee(e, t) {
+function te(e, t) {
 	let n = () => {
-		k(e), e.countryControl?.value?.trim() && (e.lastCountry = "", $(e, t).then(() => {
+		k(e), e.countryControl?.value?.trim() && (e.lastCountry = "", Q(e, t).then(() => {
 			M(e);
 		}));
 	};
@@ -259,7 +256,7 @@ function ee(e, t) {
 		e.autofillSweepTimers.push(r);
 	});
 }
-function te(e) {
+function $(e) {
 	e.countryChangeTimer !== null && (window.clearTimeout(e.countryChangeTimer), e.countryChangeTimer = null), e.autofillSweepTimers.forEach((e) => {
 		window.clearTimeout(e);
 	}), e.autofillSweepTimers = [];
@@ -288,50 +285,54 @@ function ne(e, t) {
 		fetchGeneration: 0,
 		required: r.required,
 		lastSubdivisions: []
-	};
+	}, o = r.value, s = e.closest("form"), c = !1, d = null;
 	j(a);
-	let o = (e = !1) => {
+	let p = (e = !1) => {
 		let n = a.countryControl?.value?.trim() || "";
 		if (!e && n === a.lastCountry) return;
 		let r = a.lastCountry, i = A(a);
-		a.lastCountry = n, $(a, t).then(() => {
+		a.lastCountry = n, Q(a, t).then(() => {
 			M(a), r && n && r !== n && !L(i, a.lastSubdivisions) && !A(a) && (D(a.stateControl, ""), O(a, ""));
 		});
-	}, s = () => {
+	}, m = () => {
 		a.countryChangeTimer !== null && window.clearTimeout(a.countryChangeTimer), a.countryChangeTimer = window.setTimeout(() => {
-			a.countryChangeTimer = null, k(a), o(!0);
+			a.countryChangeTimer = null, k(a), p(!0);
 		}, 50);
-	}, c = (e) => {
+	}, h = (e) => {
 		let n = e.target;
 		if (!(n instanceof HTMLInputElement || n instanceof HTMLSelectElement)) return;
 		let r = n === a.autofillAnchor, i = n.matches(l) || n.matches(u);
-		if ((r || i) && (i && !r && O(a, n.value), k(a), a.countryControl?.value?.trim())) {
+		if ((r || i) && (i && !r && (O(a, n.value), a.pendingStateValue = n.value), k(a), a.countryControl?.value?.trim())) {
 			if (a.lastSubdivisions.length > 0) {
 				M(a);
 				return;
 			}
-			a.lastCountry = "", $(a, t).then(() => {
+			a.lastCountry = "", Q(a, t).then(() => {
 				M(a);
 			});
 		}
-	}, d = (e) => {
+	}, g = (e) => {
 		if (e.animationName !== f) return;
 		let r = e.target;
-		(r instanceof HTMLInputElement || r instanceof HTMLSelectElement) && n.contains(r) && (k(a), a.countryControl?.value?.trim() && (a.lastCountry = "", $(a, t).then(() => {
+		(r instanceof HTMLInputElement || r instanceof HTMLSelectElement) && n.contains(r) && (k(a), a.countryControl?.value?.trim() && (a.lastCountry = "", Q(a, t).then(() => {
 			M(a);
 		})));
-	}, p = (e) => {
+	}, _ = (e) => {
 		let n = e.detail?.state?.trim();
 		if (!n) {
-			o();
+			p();
 			return;
 		}
-		a.pendingStateValue = n, O(a, n), $(a, t).then(() => {
-			D(a.stateControl, n), E(a.stateControl, n), a.lastCountry = a.countryControl?.value?.trim() || "";
+		a.pendingStateValue = n, O(a, n), Q(a, t).then(() => {
+			M(a), a.lastCountry = a.countryControl?.value?.trim() || "";
 		});
+	}, y = (e) => {
+		d !== null && window.clearTimeout(d), d = window.setTimeout(() => {
+			d = null, !(e.defaultPrevented || c) && ($(a), a.stateControl.value = "", a.pendingStateValue = o, O(a, o), p(!0));
+		}, 0);
 	};
-	return a.countryControl?.addEventListener("change", s), a.countryControl?.addEventListener("input", s), n.addEventListener("input", c), n.addEventListener("change", c), n.addEventListener("animationstart", d), n.addEventListener("formie:address:google:populate", p), n.addEventListener("formie:address:address-finder:populate", p), n.addEventListener("formie:address:loqate:populate", p), n.addEventListener("formie:address:place-kit:populate", p), o(), ee(a, t), () => {
-		te(a), X(a), a.skeletonEl?.remove(), a.fetchingAnnouncementEl?.remove(), a.autofillAnchor?.remove(), a.comboboxCleanup?.(), a.countryControl?.removeEventListener("change", s), a.countryControl?.removeEventListener("input", s), n.removeEventListener("input", c), n.removeEventListener("change", c), n.removeEventListener("animationstart", d), n.removeEventListener("formie:address:google:populate", p), n.removeEventListener("formie:address:address-finder:populate", p), n.removeEventListener("formie:address:loqate:populate", p), n.removeEventListener("formie:address:place-kit:populate", p);
+	return s?.addEventListener("reset", y), a.countryControl?.addEventListener("change", m), a.countryControl?.addEventListener("input", m), n.addEventListener("input", h), n.addEventListener("change", h), n.addEventListener("animationstart", g), n.addEventListener("formie:address:google:populate", _), n.addEventListener("formie:address:address-finder:populate", _), n.addEventListener("formie:address:loqate:populate", _), n.addEventListener("formie:address:place-kit:populate", _), p(!0), te(a, t), () => {
+		c = !0, d !== null && window.clearTimeout(d), a.fetchGeneration++, s?.removeEventListener("reset", y), $(a), X(a), a.skeletonEl?.remove(), a.fetchingAnnouncementEl?.remove(), a.autofillAnchor?.remove(), a.comboboxCleanup?.(), a.countryControl?.removeEventListener("change", m), a.countryControl?.removeEventListener("input", m), n.removeEventListener("input", h), n.removeEventListener("change", h), n.removeEventListener("animationstart", g), n.removeEventListener("formie:address:google:populate", _), n.removeEventListener("formie:address:address-finder:populate", _), n.removeEventListener("formie:address:loqate:populate", _), n.removeEventListener("formie:address:place-kit:populate", _);
 	};
 }
 var re = {

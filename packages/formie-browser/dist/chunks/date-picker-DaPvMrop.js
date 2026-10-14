@@ -5198,30 +5198,31 @@ function fe() {
 }
 function P(e, t) {
 	if (!e) return null;
-	if (!Number.isNaN(Date.parse(e))) return new Date(e);
-	let n = e.trim().match(/^([+-]?\d+)\s*(day|days|week|weeks|month|months|year|years)$/i);
-	if (!n) return null;
-	let r = parseInt(n[1] || "0", 10), i = (n[2] || "").toLowerCase(), a = /* @__PURE__ */ new Date();
-	switch (i) {
+	let n = B(e);
+	if (n) return n;
+	let r = e.trim().match(/^([+-]?\d+)\s*(day|days|week|weeks|month|months|year|years)$/i);
+	if (!r) return null;
+	let i = parseInt(r[1] || "0", 10), a = (r[2] || "").toLowerCase(), o = /* @__PURE__ */ new Date();
+	switch (a) {
 		case "day":
 		case "days":
-			a.setDate(a.getDate() + r);
+			o.setDate(o.getDate() + i);
 			break;
 		case "week":
 		case "weeks":
-			a.setDate(a.getDate() + r * 7);
+			o.setDate(o.getDate() + i * 7);
 			break;
 		case "month":
 		case "months":
-			a.setMonth(a.getMonth() + r);
+			o.setMonth(o.getMonth() + i);
 			break;
 		case "year":
 		case "years":
-			a.setFullYear(a.getFullYear() + r);
+			o.setFullYear(o.getFullYear() + i);
 			break;
 		default: return null;
 	}
-	return t === "min" ? a.setHours(0, 0, 0, 0) : a.setHours(23, 59, 59, 999), a;
+	return t === "min" ? o.setHours(0, 0, 0, 0) : o.setHours(23, 59, 59, 999), o;
 }
 function pe(e) {
 	return (e.getIsDate ? e.dateFormat || "" : e.getIsTime ? e.timeFormat || "" : `${e.dateFormat || ""} ${e.timeFormat || ""}`.trim()).replaceAll("A", "K").replaceAll("a", "K").replaceAll("s", "S").replaceAll("g", "h").replaceAll("h", "G");
@@ -5250,7 +5251,7 @@ function z(e, t) {
 	return !t.getIsTime && !t.getIsDateTime ? `${n}-${r}-${i}` : `${n}-${r}-${i} ${R(e.getHours())}:${R(e.getMinutes())}:${R(e.getSeconds())}`;
 }
 function B(e) {
-	let t = new Date(e);
+	let t = new Date(/^\d{4}-\d{2}-\d{2}$/.test(e) ? `${e}T00:00:00` : e);
 	return Number.isNaN(t.getTime()) ? null : t;
 }
 function V(e, t, n, r) {

@@ -15,7 +15,11 @@ function g(e, t) {
 function _(e) {
 	return e.querySelectorAll(l).length;
 }
-function v(e, t) {
+function v(e) {
+	let t = Array.from(e?.querySelectorAll("input:not([type=\"hidden\"]), select, textarea, button, a[href], [tabindex]") || []).find((e) => e.tabIndex >= 0 && !e.matches(":disabled") && !e.closest("[hidden], [inert]") && e.getClientRects().length > 0);
+	return t?.focus(), !!t;
+}
+function y(e, t) {
 	if (!e) return;
 	let n = parseInt(e.getAttribute("data-formie-max-rows") || "", 10);
 	if (n > 0 && t >= n) {
@@ -24,28 +28,30 @@ function v(e, t) {
 	}
 	e.disabled = !1;
 }
-function y(e) {
+function b(e) {
 	let n = e.matches(c) ? e : e.querySelector(c), i = e.querySelector(u);
 	if (!(n instanceof HTMLElement)) return m.warn("Missing repeater container; skipping field."), () => {};
-	let o = /* @__PURE__ */ new Map(), s = Array.from(e.querySelectorAll(l)).reduce((e, t) => {
+	let o = e.closest("form"), s = !1, b = 0, x = /* @__PURE__ */ new Map(), S = Array.from(e.querySelectorAll(l)).reduce((e, t) => {
 		let n = parseInt(t.getAttribute("data-formie-repeater-item-id") || "", 10);
 		return Number.isNaN(n) ? e : Math.max(e, n + 1);
-	}, 0), y = () => {
+	}, 0), C = () => {
 		e.querySelectorAll(d).forEach((t) => {
-			if (!(t instanceof HTMLElement) || o.has(t)) return;
+			if (!(t instanceof HTMLElement) || x.has(t)) return;
 			let n = (n) => {
 				n.preventDefault();
 				let a = t.closest(l);
 				if (!(a instanceof HTMLElement)) return;
 				let o = parseInt((i instanceof HTMLButtonElement ? i.getAttribute("data-formie-min-rows") : "") || "", 10);
-				o > 0 && _(e) <= o || (a.remove(), v(i instanceof HTMLButtonElement ? i : null, _(e)), m.log("Row removed.", { rowCount: _(e) }), r(e, p, "remove", {
+				if (o > 0 && _(e) <= o) return;
+				let s = a.contains(document.activeElement), c = a.nextElementSibling, u = a.previousElementSibling;
+				a.remove(), y(i instanceof HTMLButtonElement ? i : null, _(e)), s && !v(c) && !v(u) && i instanceof HTMLButtonElement && i.focus(), m.log("Row removed.", { rowCount: _(e) }), r(e, p, "remove", {
 					repeater: e,
 					row: a
-				}));
+				});
 			};
-			t.addEventListener("click", n), o.set(t, n);
+			t.addEventListener("click", n), x.set(t, n);
 		});
-	}, b = async () => {
+	}, w = async () => {
 		if (!(i instanceof HTMLButtonElement)) return;
 		let o = i.getAttribute("data-formie-repeater-add");
 		if (!o) {
@@ -59,32 +65,38 @@ function y(e) {
 			m.warn("Template not found for add action.", { handle: o });
 			return;
 		}
-		let d = g(a(u), s++);
+		let d = g(a(u), S++);
 		if (!d) {
 			m.warn("Failed to build row from template.");
 			return;
 		}
-		n.appendChild(d), await t(50), y(), v(i, _(e)), m.log("Row appended.", { rowCount: _(e) }), r(e, p, "append", {
+		let x = b;
+		n.appendChild(d), await t(50), !s && x === b && d.isConnected && (C(), document.activeElement === i && v(d), y(i, _(e)), m.log("Row appended.", { rowCount: _(e) }), r(e, p, "append", {
 			repeater: e,
 			row: d
 		}), r(e, p, "init-row", {
 			repeater: e,
 			row: d
-		});
-	}, x = (e) => {
-		e.preventDefault(), b();
+		}));
+	}, T = (e) => {
+		e.preventDefault(), w();
 	};
-	if (i instanceof HTMLButtonElement && i.addEventListener("click", x), y(), v(i instanceof HTMLButtonElement ? i : null, _(e)), i instanceof HTMLButtonElement && _(e) === 0) {
+	if (i instanceof HTMLButtonElement && i.addEventListener("click", T), C(), y(i instanceof HTMLButtonElement ? i : null, _(e)), i instanceof HTMLButtonElement && _(e) === 0) {
 		let e = parseInt(i.getAttribute("data-formie-min-rows") || "", 10);
-		for (let t = 0; t < e; t += 1) b();
+		for (let t = 0; t < e; t += 1) w();
 	}
-	return r(e, p, "init", { repeater: e }), m.log("Field initialized.", { rowCount: _(e) }), () => {
-		i instanceof HTMLButtonElement && i.removeEventListener("click", x), o.forEach((e, t) => {
+	let E = Array.from(n.children).map((e) => e.cloneNode(!0)), D = (t) => {
+		queueMicrotask(() => {
+			t.defaultPrevented || s || (b++, x.forEach((e, t) => t.removeEventListener("click", e)), x.clear(), n.replaceChildren(...E.map((e) => e.cloneNode(!0))), C(), y(i instanceof HTMLButtonElement ? i : null, _(e)));
+		});
+	};
+	return o?.addEventListener("reset", D), r(e, p, "init", { repeater: e }), m.log("Field initialized.", { rowCount: _(e) }), () => {
+		s = !0, o?.removeEventListener("reset", D), i instanceof HTMLButtonElement && i.removeEventListener("click", T), x.forEach((e, t) => {
 			t.removeEventListener("click", e);
 		});
 	};
 }
-var b = {
+var x = {
 	moduleId: `formie:${p}`,
 	version: 2,
 	surfaces: [
@@ -96,7 +108,7 @@ var b = {
 	match: (e) => e.target instanceof HTMLElement && (e.target.matches(s) || !!e.target.querySelector(s)),
 	setup: async (e) => {
 		if (!(e.target instanceof HTMLElement)) return;
-		let t = e.target.matches(s) ? [e.target] : Array.from(e.target.querySelectorAll(s)).filter((e) => e instanceof HTMLElement), n = t.map((e) => y(e));
+		let t = e.target.matches(s) ? [e.target] : Array.from(e.target.querySelectorAll(s)).filter((e) => e instanceof HTMLElement), n = t.map((e) => b(e));
 		return m.log("Module setup.", { fieldCount: t.length }), await e.emit("formie:module:repeater:init", { count: t.length }), { destroy: () => {
 			n.forEach((e) => {
 				e();
@@ -105,4 +117,4 @@ var b = {
 	}
 };
 //#endregion
-export { b as repeaterModule };
+export { x as repeaterModule };
