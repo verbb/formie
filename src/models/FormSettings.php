@@ -13,6 +13,7 @@ use verbb\formie\enums\RedirectTarget;
 use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\CpSubmissionFieldConditions;
 use verbb\formie\helpers\IntegrationSecrets;
+use verbb\formie\helpers\SubmissionLimitHelper;
 
 use Craft;
 use craft\base\Model;
@@ -622,6 +623,22 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         );
     }
 
+    public function validateSubmissionLimitCollection(string $attribute): void
+    {
+        if (!SubmissionLimitHelper::isEnabled($this) || SubmissionLimitHelper::getLimit($this) < 1) {
+            return;
+        }
+
+        $scope = SubmissionLimitHelper::getScope($this);
+
+        // Limits count stored identities; keep collection an explicit privacy choice.
+        if ($scope === SubmissionLimitHelper::SCOPE_IP && !$this->collectIp) {
+            $this->addError($attribute, Craft::t('formie', 'Enable Collect IP Addresses in Settings → Privacy when limiting by IP address.'));
+        } elseif ($scope === SubmissionLimitHelper::SCOPE_USER && !$this->collectUser) {
+            $this->addError($attribute, Craft::t('formie', 'Enable Collect User in Settings → Privacy when limiting by user.'));
+        }
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -632,6 +649,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
         $rules[] = [['integrations'], 'validateIntegrations'];
         $rules[] = [['submitMethod'], 'validateSubmitMethod'];
+        $rules[] = [['limitSubmissionsScope'], 'validateSubmissionLimitCollection'];
         $rules[] = [['completionBehavior'], 'in', 'range' => ['message', 'redirect', 'reload', 'reset']];
         $rules[] = [['completionRedirectSource'], 'in', 'range' => ['url', 'entry']];
         $rules[] = [['redirectTarget'], 'in', 'range' => ['same-tab', 'new-tab']];

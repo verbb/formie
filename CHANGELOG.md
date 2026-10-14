@@ -45,6 +45,8 @@
 - Fixed matching page conditions revealing inactive pages in multi-page forms.
 - Fixed saving form progress displaying the final submission completion message.
 - Fixed saving progress hiding unfinished AJAX forms when Hide Form was enabled for completion.
+- Fixed submission limit errors ignoring the configured message.
+- Fixed forms allowing IP or user submission limits to be saved without the corresponding collection setting enabled.
 - Fixed completion redirects failing after saving submissions when another site had no resolved base URL.
 - Fixed a medium-severity server-side request forgery vulnerability.
 - Fixed a low-severity CRM data integrity vulnerability.

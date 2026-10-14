@@ -5,6 +5,30 @@ declare(strict_types=1);
 use verbb\formie\elements\Form;
 use verbb\formie\models\FormSettings;
 
+it('requires collection for enabled identity-based submission limits', function (string $scope, string $collection): void {
+    $form = formie()->form(['title' => 'Limit Collection Dependency'])->emailField('email')->create();
+    $form->settings->setAttributes([
+        'limitSubmissions' => true,
+        'limitSubmissionsScope' => $scope,
+        'limitSubmissionsNumber' => 2,
+        $collection => false,
+    ], false);
+
+    expect(Craft::$app->elements->saveElement($form))->toBeFalse()
+        ->and($form->hasErrors('settings.limitSubmissionsScope'))->toBeTrue()
+        ->and($form->settings->{$collection})->toBeFalse();
+
+    $form->settings->{$collection} = true;
+    expect(Craft::$app->elements->saveElement($form))->toBeTrue();
+
+    $form->settings->{$collection} = false;
+    $form->settings->limitSubmissions = false;
+    expect(Craft::$app->elements->saveElement($form))->toBeTrue();
+})->with([
+    'IP limit' => ['ipAddress', 'collectIp'],
+    'user limit' => ['user', 'collectUser'],
+]);
+
 it('persists appearance and behavior settings', function (): void {
     $form = formie()
         ->form(['title' => 'Settings Contract'])

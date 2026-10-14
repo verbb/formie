@@ -2872,6 +2872,10 @@ class Form extends Element implements FormInterface
                         ],
                     ]),
                     SchemaHelper::groupField([
+                        'warning' => Craft::t('formie', 'Enable **Collect IP Addresses** in Settings → Privacy when limiting by IP address.'),
+                        'if' => 'settings.limitSubmissionsScope == "ipAddress"',
+                    ]),
+                    SchemaHelper::groupField([
                         'warning' => Craft::t('formie', 'Enable **Collect User** in Settings → Privacy when limiting by user.'),
                         'if' => 'settings.limitSubmissionsScope == "user"',
                     ]),

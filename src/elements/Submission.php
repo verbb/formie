@@ -767,7 +767,8 @@ class Submission extends Element
         // Check whether the submission is either incomplete or "new" (the latter important for GQL)
         if (($this->isIncomplete || !$this->id) && $form && SubmissionLimitHelper::isEnabled($form->settings)) {
             if (!$form->isWithinSubmissionsLimit($this)) {
-                $this->addError('form', Craft::t('formie', 'This form has met the number of allowed submissions.'));
+                $message = SubmissionErrors::plainText($form->settings->getLimitSubmissionsMessage());
+                $this->addError('form', $message !== '' ? $message : Craft::t('formie', 'This form has met the number of allowed submissions.'));
             }
         }
 

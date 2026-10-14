@@ -50,7 +50,7 @@ it('enforces submission limits across configured periods', function (string $lim
     });
 
     expect($response->success)->toBeFalse()
-        ->and(json_encode($response->submission->getErrors()))->toContain('allowed submissions');
+        ->and(json_encode($response->submission->getErrors()))->toContain('Limit reached.');
 })->with('submission_limit_types');
 
 it('allows editing an existing submission even when new submission limits are reached', function (): void {
@@ -85,7 +85,7 @@ it('allows editing an existing submission even when new submission limits are re
         ->and($editResponse->submission->getFieldValue('fullName'))->toBe('Edited Existing');
 });
 
-it('exposes the configured limit message when submission limits are exceeded', function (): void {
+it('exposes the configured limit message when submission limits are exceeded', function (string $message, string $expected): void {
     $form = formie()
         ->form(['title' => 'Limit Message Contract'])
         ->singleLineTextField('fullName')
@@ -100,14 +100,22 @@ it('exposes the configured limit message when submission limits are exceeded', f
         'limitSubmissions' => true,
         'limitSubmissionsNumber' => 1,
         'limitSubmissionsType' => 'total',
-        'limitSubmissionsMessage' => 'LIMIT_EXCEEDED_MESSAGE',
+        'limitSubmissionsMessage' => $message,
     ], false);
     expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
 
+    $submission = new Submission();
+    $submission->setForm($form);
+
     expect($form->isWithinSubmissionsLimit())->toBeFalse()
         ->and($form->isClosedBySubmissionLimit())->toBeTrue()
-        ->and(strip_tags($form->settings->getLimitSubmissionsMessage()))->toContain('LIMIT_EXCEEDED_MESSAGE');
-});
+        ->and($submission->validate())->toBeFalse()
+        ->and($submission->getSubmissionErrors()->toClient()['form'])->toContain($expected);
+})->with([
+    'custom rich text' => ['<p>Sorry, <strong>fully booked</strong> &amp; closed.</p>', 'Sorry, fully booked & closed.'],
+    'empty message' => ['', 'This form has met the number of allowed submissions.'],
+    'empty rich text' => ['<p></p>', 'This form has met the number of allowed submissions.'],
+]);
 
 it('enforces per-ip submission limits without closing the form', function (): void {
     $form = formie()
@@ -125,6 +133,7 @@ it('enforces per-ip submission limits without closing the form', function (): vo
     $form->settings->setAttributes([
         'limitSubmissions' => true,
         'limitSubmissionsScope' => 'ipAddress',
+        'collectIp' => true,
         'limitSubmissionsNumber' => 1,
         'limitSubmissionsType' => 'total',
     ], false);
@@ -222,6 +231,7 @@ it('supports legacy ip-address limit settings via limitSubmissions value', funct
 
     $form->settings->setAttributes([
         'limitSubmissions' => 'ipAddress',
+        'collectIp' => true,
         'limitSubmissionsIpAddressNumber' => 1,
         'limitSubmissionsIpAddressType' => 'total',
     ], false);
