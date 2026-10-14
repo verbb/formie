@@ -1,15 +1,12 @@
 <?php
 namespace verbb\formie\migrations;
 
-use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\IntegrationDispatchPlan;
 
-use Craft;
 use craft\db\Migration;
 use craft\db\Query;
 use craft\helpers\Json;
-use craft\helpers\ProjectConfig;
 
 class m260927_000000_delivery_attempts extends Migration
 {
@@ -71,7 +68,6 @@ class m260927_000000_delivery_attempts extends Migration
             if (isset($settings['integrationDispatch'])) {
                 $settings['integrationDispatch'] = IntegrationDispatchPlan::fromFormSettings($settings['integrationDispatch'])->toSettingsArray();
             }
-            $settings['integrations'] = IntegrationSecrets::protect((array)($settings['integrations'] ?? []));
             $this->update(Table::FORMIE_FORMS, ['settings' => Json::encode($settings)], ['id' => $row['id']]);
         }
 
@@ -79,38 +75,9 @@ class m260927_000000_delivery_attempts extends Migration
             $this->update(Table::FORMIE_NOTIFICATIONS, ['dispatchTiming' => 'afterFinalizedDeliveryAttempts'], ['dispatchTiming' => 'afterIntegrations']);
         }
 
-        foreach ((new Query())->from(Table::FORMIE_INTEGRATIONS)->each() as $row) {
-            $settings = is_string($row['settings']) ? Json::decode($row['settings']) : $row['settings'];
-            $this->update(Table::FORMIE_INTEGRATIONS, ['settings' => Json::encode(IntegrationSecrets::protect((array)$settings, true)), 'cache' => null], ['id' => $row['id']]);
-        }
-        $projectConfig = Craft::$app->getProjectConfig();
+        // Connection metadata predates the versioned cache and must be fetched again.
+        $this->update(Table::FORMIE_INTEGRATIONS, ['cache' => null]);
 
-        foreach ((array)$projectConfig->get('formie.integrations', true) as $uid => $config) {
-            $settings = ProjectConfig::unpackAssociativeArrays((array)($config['settings'] ?? []));
-            $protected = IntegrationSecrets::protect($settings, true);
-
-            if ($settings !== $protected) {
-                $projectConfig->set('formie.integrations.' . $uid . '.settings', ProjectConfig::packAssociativeArrays($protected), 'Encrypt literal integration settings');
-            }
-        }
-
-        foreach ((new Query())->from(Table::FORMIE_STENCILS)->each() as $row) {
-            $data = is_string($row['data']) ? Json::decode($row['data']) : $row['data'];
-
-            if (is_array($data) && isset($data['settings']['integrations'])) {
-                $data['settings']['integrations'] = IntegrationSecrets::protect((array)$data['settings']['integrations']);
-                $this->update(Table::FORMIE_STENCILS, ['data' => Json::encode($data)], ['id' => $row['id']]);
-            }
-        }
-
-        foreach ((array)$projectConfig->get('formie.stencils', true) as $uid => $config) {
-            $data = ProjectConfig::unpackAssociativeArrays((array)($config['data'] ?? []));
-
-            if (isset($data['settings']['integrations'])) {
-                $data['settings']['integrations'] = IntegrationSecrets::protect((array)$data['settings']['integrations']);
-                $projectConfig->set('formie.stencils.' . $uid . '.data', ProjectConfig::packAssociativeArrays($data), 'Encrypt literal stencil integration settings');
-            }
-        }
         return true;
     }
 

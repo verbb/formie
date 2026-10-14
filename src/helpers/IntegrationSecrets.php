@@ -43,16 +43,6 @@ final class IntegrationSecrets
         return self::_removeSensitiveValues($settings, array_values(array_unique($secrets)));
     }
 
-    public static function protectBindings(array $bindings): array
-    {
-        return $bindings;
-    }
-
-    public static function protect(array $settings, bool $connection = false, array $sensitiveAttributes = []): array
-    {
-        return $settings;
-    }
-
     public static function containsUnavailable(mixed $value): bool
     {
         if (is_string($value)) {

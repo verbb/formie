@@ -48,10 +48,8 @@ it('retries the definitely failed second write of the actual Freshdesk provider 
 
 it('stores literal connection and binding settings while preserving environment references and hydration', function () {
     $settings = ['apiKey' => 'literal-api-secret', 'clientSecret' => '$CRM_SECRET', 'httpAuth' => ['username' => 'literal-user', 'password' => 'literal-password'], 'fieldMapping' => ['name' => 'field:name']];
-    $sealed = IntegrationSecrets::protect($settings);
-    expect(Json::encode($sealed))->toContain('literal-api-secret', 'literal-password', 'literal-user', '$CRM_SECRET');
-    expect(IntegrationSecrets::protect($sealed))->toBe($sealed)->and(IntegrationSecrets::reveal($sealed))->toBe($settings);
-    $integration = new Freshdesk(['name' => 'Encrypted connection', 'handle' => 'encrypted' . uniqid(), 'apiDomain' => 'https://example.test', 'apiKey' => 'at-rest-secret']);
+    expect(IntegrationSecrets::reveal($settings))->toBe($settings);
+    $integration = new Freshdesk(['name' => 'Literal connection', 'handle' => 'literal' . uniqid(), 'apiDomain' => 'https://example.test', 'apiKey' => 'at-rest-secret']);
     expect(Formie::$plugin->getIntegrations()->saveIntegration($integration, false))->toBeTrue();
     $raw = (new Query())->from(Table::FORMIE_INTEGRATIONS)->where(['id' => $integration->id])->one();
     expect($raw['settings'])->toContain('at-rest-secret');
@@ -158,9 +156,9 @@ class DeliveryLaneProvider extends \verbb\formie\base\Integration
 
 class PreparedMappingProvider extends DeliveryLaneProvider
 {
-
     #[\verbb\formie\attributes\FormIntegrationSetting]
     public string $mapping = 'original';
+
     public static int $calls = 0;
     public function sendPayload(\verbb\formie\elements\Submission $submission): IntegrationResult {
         self::$calls++;

@@ -26,9 +26,6 @@ it('uses inherited sensitive metadata for non-obviously-named settings across st
     $secrets = $connection->getDiagnosticSecrets();
     expect(\verbb\formie\helpers\IntegrationSecrets::sensitiveAttributes($connection))->toContain('opaque', 'apiKey', 'clientSecret');
     expect($secrets)->toContain('synthetic-private-value');
-    $protected = \verbb\formie\helpers\IntegrationSecrets::protect(['opaque' => $connection->opaque], sensitiveAttributes: \verbb\formie\helpers\IntegrationSecrets::sensitiveAttributes($connection));
-    expect(json_encode($protected))->toContain('synthetic-private-value')
-        ->and(\verbb\formie\helpers\IntegrationSecrets::reveal($protected)['opaque'])->toBe($connection->opaque);
     expect(json_encode($connection->refreshConfig()->toStorage()))->not->toContain($connection->opaque);
     $connection->cache['config'] = (new IntegrationConfig(['oldLabel' => $connection->opaque], $connection->getIntegrationConfigKey(), time()))->toStorage();
     expect(json_encode($connection->getConfig()->toStorage()))->not->toContain($connection->opaque);
@@ -187,10 +184,10 @@ it('retains immutable form and connection identity on bindings', function () {
 });
 
 it('keeps inherited annotations authoritative and excludes static properties', function () {
-
     $connection = new class extends Freshdesk {
         #[FormIntegrationSetting]
         public string $custom = '';
+
         #[FormIntegrationSetting]
         public static string $global = '';
     };

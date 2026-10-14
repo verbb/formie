@@ -95,9 +95,8 @@ it('does not expose unallowlisted environment secrets in per-form request header
         expect(fn() => IntegrationSecrets::resolveFormValue('$CRAFT_SECURITY_KEY'))->toThrow(RuntimeException::class);
         $integration = new \verbb\formie\integrations\automations\WebRequest(['headers' => [['key' => 'Authorization', 'value' => '$CRAFT_SECURITY_KEY']]]);
         expect(fn() => $integration->getClient())->toThrow(RuntimeException::class);
-        $sealed = IntegrationSecrets::protect(['headers' => [['key' => 'Authorization', 'value' => 'literal-secret']], 'url' => 'https://example.test/secret-hook']);
-        expect(json_encode($sealed))->toContain('literal-secret', 'secret-hook');
-        expect(IntegrationSecrets::reveal($sealed)['headers'][0]['value'])->toBe('literal-secret');
+        $storedSettings = ['headers' => [['key' => 'Authorization', 'value' => 'literal-secret']], 'url' => 'https://example.test/secret-hook'];
+        expect(IntegrationSecrets::reveal($storedSettings)['headers'][0]['value'])->toBe('literal-secret');
     } finally { Formie::$plugin->getSettings()->referenceEnvironmentAllowlist = $old; }
 });
 
