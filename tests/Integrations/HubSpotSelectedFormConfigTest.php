@@ -1,6 +1,7 @@
 <?php
 
 use verbb\formie\integrations\crm\HubSpot;
+use verbb\formie\models\IntegrationCollection;
 
 it('limits HubSpot form metadata to the selected form during delivery', function(): void {
     $integration = new HubSpot(['formId' => 'portal__selected']);
@@ -10,16 +11,15 @@ it('limits HubSpot form metadata to the selected form during delivery', function
     $settings = [
         'forms' => [
             ['id' => 'portal__first', 'fields' => range(1, 50)],
-            ['id' => 'portal__selected', 'fields' => ['email']],
+            new IntegrationCollection(['id' => 'portal__selected', 'fields' => ['email']]),
             ['id' => 'portal__last', 'fields' => range(1, 50)],
         ],
         'contact' => ['email'],
     ];
 
-    expect($method->invoke($integration, $settings))->toBe([
-        'forms' => [
-            ['id' => 'portal__selected', 'fields' => ['email']],
-        ],
-        'contact' => ['email'],
-    ]);
+    $filtered = $method->invoke($integration, $settings);
+
+    expect($filtered['forms'])->toHaveCount(1)
+        ->and($filtered['forms'][0])->toBe($settings['forms'][1])
+        ->and($filtered['contact'])->toBe(['email']);
 });

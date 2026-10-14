@@ -871,7 +871,7 @@ class HubSpot extends Crm
         }
 
         $settings['forms'] = array_values(array_filter($settings['forms'], function($form) {
-            return is_array($form) && ($form['id'] ?? null) === $this->formId;
+            return (is_array($form) || $form instanceof IntegrationCollection) && ArrayHelper::getValue($form, 'id') === $this->formId;
         }));
 
         return $settings;
