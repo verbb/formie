@@ -2142,17 +2142,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
                 $surfaces[] = BrowserModule::SURFACE_CP_EDIT;
             }
 
-            $locale = Craft::$app->getLocale()->id;
-
-            if (preg_match('/^([a-z]{2})-/', $locale, $matches)) {
-                $locale = $matches[1];
-            }
-
-            $supportedLocales = ['ar', 'at', 'az', 'be', 'bg', 'bn', 'cat', 'cs', 'cy', 'da', 'de', 'eo', 'es', 'et', 'fa', 'fi', 'fo', 'fr', 'gr', 'he', 'hi', 'hr', 'hu', 'id', 'is', 'it', 'ja', 'km', 'ko', 'kz', 'lt', 'lv', 'mk', 'mn', 'ms', 'my', 'nl', 'no', 'pa', 'pl', 'pt', 'ro', 'ru', 'si', 'sk', 'sl', 'sq', 'sr-cyr', 'sr', 'sv', 'th', 'tr', 'uk', 'vn', 'zh-tw', 'zh'];
-
-            if (in_array(strtolower($locale), $supportedLocales, true)) {
-                $locale = strtolower($locale);
-            }
+            $locale = $this->_getDatePickerLocale();
 
             $minDate = null;
             $maxDate = null;
@@ -2202,6 +2192,62 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         }
 
         return $modules;
+    }
+
+    private function _getDatePickerLocale(): string
+    {
+        $locale = strtolower(str_replace('_', '-', Craft::$app->getLocale()->id));
+        $aliases = [
+            'nb' => 'no',
+            'ca' => 'cat',
+            'el' => 'gr',
+            'vi' => 'vn',
+            'kk' => 'kz',
+            'zh-hant' => 'zh-tw',
+            'zh-hk' => 'zh-tw',
+            'zh-mo' => 'zh-tw',
+            'sr-cyrl' => 'sr-cyr',
+            'de-at' => 'at',
+        ];
+        $supportedLocales = [
+            'ar', 'at', 'az', 'be', 'bg', 'bn', 'bs', 'cat', 'ckb', 'cs', 'cy', 'da', 'de',
+            'eo', 'es', 'et', 'fa', 'fi', 'fo', 'fr', 'ga', 'gr', 'he', 'hi', 'hr', 'hu',
+            'hy', 'id', 'is', 'it', 'ja', 'ka', 'km', 'ko', 'kz', 'lt', 'lv', 'mk', 'mn',
+            'ms', 'my', 'nl', 'nn', 'no', 'pa', 'pl', 'pt', 'ro', 'ru', 'si', 'sk', 'sl',
+            'sq', 'sr', 'sr-cyr', 'sv', 'th', 'tr', 'uk', 'uz', 'vn', 'zh', 'zh-tw',
+        ];
+
+        if (isset($aliases[$locale])) {
+            $locale = $aliases[$locale];
+        }
+
+        if (in_array($locale, $supportedLocales, true)) {
+            return $locale;
+        }
+
+        if (preg_match('/^([a-z]{2,3})-([a-z0-9]+)/', $locale, $matches)) {
+            $regional = $aliases[$matches[1] . '-' . $matches[2]] ?? $matches[1] . '-' . $matches[2];
+
+            if (in_array($regional, $supportedLocales, true)) {
+                return $regional;
+            }
+
+            $language = $aliases[$matches[1]] ?? $matches[1];
+
+            if (in_array($language, $supportedLocales, true)) {
+                return $language;
+            }
+        }
+
+        if (preg_match('/^([a-z]{2,3})/', $locale, $matches)) {
+            $language = $aliases[$matches[1]] ?? $matches[1];
+
+            if (in_array($language, $supportedLocales, true)) {
+                return $language;
+            }
+        }
+
+        return 'en';
     }
 
     protected function defineReferenceValues(): array
