@@ -90,8 +90,9 @@ function normalizeOffsetDate(input: string | null | undefined, type: 'min' | 'ma
         return null;
     }
 
-    if (!Number.isNaN(Date.parse(input))) {
-        return new Date(input);
+    const absoluteDate = parseSubmissionDate(input);
+    if (absoluteDate) {
+        return absoluteDate;
     }
 
     // Form config may express relative min/max bounds like "+2 weeks", which are
@@ -209,7 +210,9 @@ function formatSubmissionDate(date: Date, options: DatePickerOptions): string {
 }
 
 function parseSubmissionDate(value: string): Date | null {
-    const parsed = new Date(value);
+    // Date-only field values represent a local calendar day. JavaScript otherwise
+    // parses YYYY-MM-DD as UTC and shifts the picker to yesterday west of UTC.
+    const parsed = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00` : value);
 
     if (Number.isNaN(parsed.getTime())) {
         return null;
