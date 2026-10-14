@@ -128,19 +128,22 @@ class PaymentStatusController extends Controller
             ]);
         }
 
-        if ($payment->status === PaymentModel::STATUS_FAILED) {
-            Formie::info('Payment poll: gateway reports failed for paymentUid {paymentUid} ({integration})', [
+        if (in_array($payment->status, [PaymentModel::STATUS_FAILED, PaymentModel::STATUS_CANCELLED], true)) {
+            Formie::info('Payment poll: gateway reports {status} for paymentUid {paymentUid} ({integration})', [
                 'paymentUid' => $paymentUid,
                 'integration' => $integrationHandle,
+                'status' => $payment->status,
             ]);
 
             return $this->asJson($this->_buildPaymentFailurePollResponse(
                 $payment,
-                Craft::t('formie', 'Your payment failed. Please try again.'),
+                $payment->status === PaymentModel::STATUS_CANCELLED
+                    ? Craft::t('formie', 'Your payment was canceled. Please try again.')
+                    : Craft::t('formie', 'Your payment failed. Please try again.'),
             ));
         }
 
-        return $this->asJson(['status' => in_array($payment->status, [PaymentModel::STATUS_UNKNOWN, PaymentModel::STATUS_CANCELLED], true) ? $payment->status : 'pending']);
+        return $this->asJson(['status' => $payment->status === PaymentModel::STATUS_UNKNOWN ? $payment->status : 'pending']);
     }
 
     public function actionStatus(): Response
@@ -189,7 +192,7 @@ class PaymentStatusController extends Controller
     {
         $message = trim((string)($payment->message ?? '')) ?: $defaultMessage;
         $response = [
-            'status' => 'failed',
+            'status' => $payment->status,
             'message' => $message,
         ];
 

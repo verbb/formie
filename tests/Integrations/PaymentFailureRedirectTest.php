@@ -11,7 +11,7 @@ use verbb\formie\models\Payment as PaymentModel;
 use Tests\Support\WebRequestTestHelper;
 
 
-it('resolves failed payments back to the stored form url', function (): void {
+it('resolves failed and cancelled payments back to the stored form url', function (string $status, ?string $message, string $expectedMessage): void {
     $integration = new Mollie([
         'name' => 'Failure Redirect Integration ' . uniqid(),
         'handle' => 'failureRedirect' . uniqid(),
@@ -39,16 +39,16 @@ it('resolves failed payments back to the stored form url', function (): void {
         'fieldId' => $paymentField->id,
         'amount' => 10.00,
         'currency' => 'AUD',
-        'status' => PaymentModel::STATUS_FAILED,
+        'status' => $status,
         'reference' => 'failure-redirect-' . uniqid(),
-        'message' => 'Card declined.',
+        'message' => $message,
         'redirectUrl' => '/checkout-form',
     ]);
     Formie::$plugin->getPayments()->savePayment($payment, false);
 
     $statusToken = PaymentAccess::issueStatusToken($payment);
 
-    WebRequestTestHelper::withWebRequestContext(function ($request) use ($statusToken): void {
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($statusToken, $status, $expectedMessage): void {
         $request->setQueryParams([
             'statusToken' => $statusToken,
         ]);
@@ -56,11 +56,15 @@ it('resolves failed payments back to the stored form url', function (): void {
         $controller = new PaymentStatusController('formie-payment-failure', Craft::$app);
         $response = $controller->actionPollStatus();
 
-        expect($response->data['status'] ?? null)->toBe('failed')
+        expect($response->data['status'] ?? null)->toBe($status)
             ->and($response->data['redirectUrl'] ?? null)->toBe('/checkout-form')
-            ->and($response->data['message'] ?? null)->toBe('Card declined.');
+            ->and($response->data['message'] ?? null)->toBe($expectedMessage);
     });
-});
+})->with([
+    [PaymentModel::STATUS_FAILED, 'Card declined.', 'Card declined.'],
+    [PaymentModel::STATUS_CANCELLED, 'Customer cancelled.', 'Customer cancelled.'],
+    [PaymentModel::STATUS_CANCELLED, null, 'Your payment was canceled. Please try again.'],
+]);
 
 it('rejects untrusted failed payment redirects and uses the configured form url', function (): void {
     $form = formie()

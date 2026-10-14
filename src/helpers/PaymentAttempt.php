@@ -58,7 +58,7 @@ class PaymentAttempt
             $payment = null;
 
             foreach (array_reverse($payments->getSubmissionPayments($submission)) as $candidate) {
-                if ($candidate->integrationId === $integration->id && $candidate->fieldId === $integration->getField()->id && $candidate->status !== Payment::STATUS_FAILED) {
+                if ($candidate->integrationId === $integration->id && $candidate->fieldId === $integration->getField()->id && !in_array($candidate->status, [Payment::STATUS_FAILED, Payment::STATUS_CANCELLED], true)) {
                     $payment = $candidate;
                     break;
                 }

@@ -106,7 +106,8 @@ class BoundaryWebhookPayment extends Stripe
         ksort($fingerprint);
 
         return new VerifiedWebhookBatch(
-            $this->getWebhookAccountFingerprint('test'),
+            // Give each fixture its own account so repeated runs can retain receipts.
+            $this->getWebhookAccountFingerprint('test', $this->uid),
             'test',
             [new VerifiedWebhook((string)$payload['id'], (string)($payload['type'] ?? 'test'), 'test', null, null, $payload, json_encode($fingerprint))],
             ['signature' => 'private'],

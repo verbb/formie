@@ -542,6 +542,12 @@ export function applySubmitResultState(form: HTMLFormElement, result: FormSubmit
         return;
     }
 
+    // Provider handlers may navigate as soon as their action event is dispatched.
+    // Treat checkout navigation like the generic redirect before invoking them.
+    if (result.payment?.action?.type === 'redirect' && result.payment.action.url) {
+        markInternalNavigation(form, 'payment-redirect');
+    }
+
     // Dispatch payment/redirect events from submitData (e.g. formie:payment:mollie:redirect)
     const eventDispatchResult = dispatchSubmitDataEvents(form, result);
 

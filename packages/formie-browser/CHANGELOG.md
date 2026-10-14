@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Fixed payment checkout redirects showing an unsaved-changes warning and leaving forms disabled when cancelled.
+
 ## 1.0.14 - 2026-10-08
 
 ### Added

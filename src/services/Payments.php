@@ -94,7 +94,7 @@ class Payments extends Component
         $accountHash = $integration->getPaymentAccountFingerprint();
 
         foreach (array_reverse($this->getSubmissionPayments($submission)) as $payment) {
-            if ($payment->status === Payment::STATUS_FAILED) {
+            if (in_array($payment->status, [Payment::STATUS_FAILED, Payment::STATUS_CANCELLED], true)) {
                 continue;
             }
 

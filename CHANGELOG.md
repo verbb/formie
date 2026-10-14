@@ -27,6 +27,9 @@
 - Standardized PHP imports, class sections, member ordering, and formatting across the plugin source for more consistent plugin development.
 
 ### Fixed
+- Fixed retrying a cancelled checkout reusing the cancelled payment instead of creating a new payment attempt.
+- Fixed cancelled payments leaving users on the payment status page instead of returning to the form to retry.
+- Fixed payment checkout redirects showing an unsaved-changes warning and leaving forms disabled when cancelled.
 - Fixed upgraded installations failing to create payments for new form fields due to outdated field foreign keys.
 - Fixed a medium-severity server-side request forgery vulnerability.
 - Fixed a low-severity CRM data integrity vulnerability.

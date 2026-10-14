@@ -110,6 +110,28 @@ it('allows a new payment only after a confirmed decline', function (string $prov
     });
 })->with(['eway', 'bpoint', 'opayo']);
 
+it('starts one new checkout after a confirmed cancellation and reuses it on duplicate retries', function (): void {
+    [$integration, $submission] = paymentAttemptFixture('mollie');
+    WebRequestTestHelper::withWebRequestContext(function () use ($integration, $submission): void {
+        expect($integration->processPayment($submission)->status->value)->toBe('requiresAction');
+        $payments = Formie::$plugin->getPayments();
+        $cancelled = $payments->getSubmissionPayments($submission)[0];
+        $cancelled->status = Payment::STATUS_CANCELLED;
+        expect($payments->savePayment($cancelled))->toBeTrue();
+
+        $integration->receipt['id'] = 'tr_retry' . uniqid();
+        expect($integration->processPayment($submission)->status->value)->toBe('requiresAction');
+        expect($integration->processPayment($submission)->status->value)->toBe('requiresAction');
+        expect($integration->requests)->toHaveCount(2);
+        $attempts = $payments->getSubmissionPayments($submission);
+        expect($attempts)->toHaveCount(2)
+            ->and($attempts[0]->id)->toBe($cancelled->id)
+            ->and($attempts[0]->status)->toBe(Payment::STATUS_CANCELLED)
+            ->and($attempts[1]->status)->toBe(Payment::STATUS_REQUIRES_ACTION)
+            ->and($attempts[1]->reference)->toBe($integration->receipt['id']);
+    });
+});
+
 it('recovers a successful gateway receipt after the final payment save failed', function (): void {
     [$integration, $submission] = paymentAttemptFixture('eway');
     $original = Formie::$plugin->getPayments();
