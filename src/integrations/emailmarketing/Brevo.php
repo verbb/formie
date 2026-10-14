@@ -169,6 +169,9 @@ class Brevo extends EmailMarketing
         $rules = parent::defineRules();
 
         $rules[] = [['apiKey'], 'required'];
+        $rules[] = [['templateId', 'redirectionUrl'], 'required', 'when' => function() {
+            return $this->useDoubleOptIn;
+        }, 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
     }

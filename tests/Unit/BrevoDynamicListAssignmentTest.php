@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use verbb\formie\integrations\emailmarketing\Brevo;
+use verbb\formie\base\Integration;
 use verbb\formie\models\IntegrationField;
 
 it('includes a mappable list field in Brevo integration settings', function (): void {
@@ -59,4 +60,22 @@ it('returns no Brevo list ids when nothing is configured or mapped', function ()
     expect($method->invoke($integration, null))->toBe([])
         ->and($method->invoke($integration, ''))->toBe([])
         ->and($method->invoke($integration, '0, abc'))->toBe([]);
+});
+
+it('requires Brevo double opt-in delivery settings on form integrations', function (): void {
+    $integration = new Brevo([
+        'name' => 'Brevo',
+        'handle' => 'brevoValidation',
+        'useDoubleOptIn' => true,
+    ]);
+    $integration->setScenario(Integration::SCENARIO_FORM);
+
+    expect($integration->validate(['templateId', 'redirectionUrl']))->toBeFalse()
+        ->and($integration->getErrors('templateId'))->not->toBeEmpty()
+        ->and($integration->getErrors('redirectionUrl'))->not->toBeEmpty();
+
+    $integration->templateId = '42';
+    $integration->redirectionUrl = 'https://example.test/subscribed';
+
+    expect($integration->validate(['templateId', 'redirectionUrl']))->toBeTrue();
 });
