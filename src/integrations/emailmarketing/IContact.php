@@ -35,8 +35,10 @@ class IContact extends EmailMarketing
     public ?string $accountId = null;
     public ?string $appId = null;
     public ?string $clientFolderId = null;
+
     #[Sensitive]
     public ?string $password = null;
+
     public ?string $username = null;
 
 

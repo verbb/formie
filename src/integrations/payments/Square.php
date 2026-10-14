@@ -56,8 +56,10 @@ class Square extends Payment
     // =========================================================================
 
     public ?string $applicationId = null;
+
     #[Sensitive]
     public ?string $accessToken = null;
+
     public ?string $locationId = null;
     public bool|string $useSandbox = false;
 

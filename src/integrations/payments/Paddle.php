@@ -62,6 +62,7 @@ class Paddle extends Payment
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $clientSideToken = null;
     public bool|string $useSandbox = false;
 

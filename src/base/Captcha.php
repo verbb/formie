@@ -52,6 +52,7 @@ abstract class Captcha extends Integration
 
     #[FormIntegrationSetting]
     public bool $showAllPages = false;
+
     public ?string $spamReason = null;
     public ?bool $saveSpam = null;
     public bool $validationErrored = false;

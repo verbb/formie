@@ -57,8 +57,10 @@ class Bpoint extends Payment
     // =========================================================================
 
     public ?string $username = null;
+
     #[Sensitive]
     public ?string $password = null;
+
     public ?string $merchantNumber = null;
 
 

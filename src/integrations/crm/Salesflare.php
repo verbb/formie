@@ -37,8 +37,10 @@ class Salesflare extends Crm
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
 

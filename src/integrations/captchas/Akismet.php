@@ -18,6 +18,7 @@ class Akismet extends Captcha
     // =========================================================================
 
     public ?string $handle = 'akismet';
+
     #[Sensitive]
     public ?string $apiKey = null;
 

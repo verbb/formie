@@ -21,8 +21,10 @@ class CaptchaEu extends Captcha
     // =========================================================================
 
     public ?string $handle = 'captchaEu';
+
     #[Sensitive]
     public ?string $restKey = null;
+
     public ?string $publicKey = null;
     public ?string $endPoint = null;
 

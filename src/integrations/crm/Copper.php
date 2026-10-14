@@ -37,21 +37,30 @@ class Copper extends Crm
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $apiEmail = null;
+
     #[FormIntegrationSetting]
     public bool $mapToPeople = false;
+
     #[FormIntegrationSetting]
     public bool $mapToLead = false;
+
     #[FormIntegrationSetting]
     public bool $mapToOpportunity = false;
+
     #[FormIntegrationSetting]
     public bool $mapToTask = false;
+
     #[FormIntegrationSetting]
     public ?array $peopleFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $opportunityFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $taskFieldMapping = null;
 

@@ -37,11 +37,15 @@ class Twilio extends Messaging
     // =========================================================================
 
     public ?string $accountSid = null;
+
     #[Sensitive]
     public ?string $authToken = null;
+
     public ?string $fromNumber = null;
+
     #[FormIntegrationSetting]
     public ?string $toNumber = null;
+
     #[FormIntegrationSetting]
     public ?string $message = null;
 

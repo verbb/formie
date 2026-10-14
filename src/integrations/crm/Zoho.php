@@ -77,24 +77,34 @@ class Zoho extends Crm implements OAuthProviderInterface
 
     public bool|string $useDeveloper = false;
     public ?string $dataCenter = 'US';
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public bool $mapToDeal = false;
+
     #[FormIntegrationSetting]
     public bool $mapToLead = false;
+
     #[FormIntegrationSetting]
     public bool $mapToAccount = false;
+
     #[FormIntegrationSetting]
     public bool $mapToQuote = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $dealFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $accountFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $quoteFieldMapping = null;
 

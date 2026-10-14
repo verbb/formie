@@ -36,12 +36,16 @@ class Pipeliner extends Crm
 
     #[Sensitive]
     public ?string $apiToken = null;
+
     #[Sensitive]
     public ?string $apiPassword = null;
+
     public ?string $apiSpaceId = null;
     public ?string $apiServiceUrl = null;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
 

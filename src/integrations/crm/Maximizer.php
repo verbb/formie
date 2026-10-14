@@ -40,19 +40,26 @@ class Maximizer extends Crm
     // =========================================================================
 
     public ?string $username = null;
+
     #[Sensitive]
     public ?string $password = null;
+
     public ?string $webAccessUrl = null;
     public ?string $databaseId = null;
     public ?string $vendorId = null;
+
     #[Sensitive]
     public ?string $appKey = null;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public bool $mapToOpportunity = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $opportunityFieldMapping = null;
 

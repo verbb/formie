@@ -45,6 +45,7 @@ class Product extends Element
 
     #[FormIntegrationSetting]
     public ?int $productTypeId = null;
+
     #[FormIntegrationSetting]
     public mixed $defaultAuthorId = null;
 

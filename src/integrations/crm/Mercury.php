@@ -35,19 +35,27 @@ class Mercury extends Crm
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[Sensitive]
     public ?string $apiToken = null;
+
     #[Sensitive]
     public ?string $uatKey = null;
+
     #[Sensitive]
     public ?string $uatToken = null;
+
     public bool|string $useUat = false;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public bool $mapToOpportunity = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $opportunityFieldMapping = null;
 

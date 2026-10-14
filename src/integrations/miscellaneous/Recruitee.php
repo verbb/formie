@@ -37,9 +37,12 @@ class Recruitee extends Miscellaneous
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $subdomain = null;
+
     #[FormIntegrationSetting]
     public bool $mapToCandidate = false;
+
     #[FormIntegrationSetting]
     public ?array $candidateFieldMapping = null;
 

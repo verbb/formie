@@ -36,9 +36,12 @@ class Flowlu extends Crm
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $apiDomain = null;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
 

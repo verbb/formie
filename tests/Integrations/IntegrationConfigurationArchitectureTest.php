@@ -14,6 +14,7 @@ class SensitiveSettingFixture extends Freshdesk
     #[\verbb\formie\attributes\Sensitive]
     #[FormIntegrationSetting]
     public string $opaque = '';
+
     public static function supportsConnection(): bool { return false; }
     public function fetchConfig(): IntegrationConfig {
         return new IntegrationConfig(['label' => $this->opaque, 'fields' => [new IntegrationField(['handle' => 'safe', 'name' => $this->opaque])]]);
@@ -186,6 +187,7 @@ it('retains immutable form and connection identity on bindings', function () {
 });
 
 it('keeps inherited annotations authoritative and excludes static properties', function () {
+
     $connection = new class extends Freshdesk {
         #[FormIntegrationSetting]
         public string $custom = '';

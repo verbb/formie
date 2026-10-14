@@ -137,44 +137,64 @@ class Salesforce extends Crm implements OAuthProviderInterface
     public bool|string $useSandbox = false;
     public bool|string $useCredentials = false;
     public ?string $username = null;
+
     #[Sensitive]
     public ?string $password = null;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public bool $mapToLead = false;
+
     #[FormIntegrationSetting]
     public bool $mapToOpportunity = false;
+
     #[FormIntegrationSetting]
     public bool $mapToAccount = false;
+
     #[FormIntegrationSetting]
     public bool $mapToCase = false;
+
     #[FormIntegrationSetting]
     public bool $mapToCampaignMember = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $opportunityFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $accountFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $caseFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $campaignMemberFieldMapping = null;
+
     #[FormIntegrationSetting]
     public bool $duplicateLeadTask = false;
+
     #[FormIntegrationSetting]
     public string $duplicateLeadTaskSubject = 'Task';
+
     #[FormIntegrationSetting]
     public bool $mapToContactAttachments = false;
+
     #[FormIntegrationSetting]
     public bool $mapToLeadAttachments = false;
+
     #[FormIntegrationSetting]
     public bool $mapToOpportunityAttachments = false;
+
     #[FormIntegrationSetting]
     public bool $mapToAccountAttachments = false;
+
     #[FormIntegrationSetting]
     public bool $mapToCaseAttachments = false;
 

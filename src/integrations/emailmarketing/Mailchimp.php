@@ -85,8 +85,10 @@ class Mailchimp extends EmailMarketing
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[FormIntegrationSetting]
     public bool $appendTags = false;
+
     #[FormIntegrationSetting]
     public bool $useDoubleOptIn = false;
 

@@ -22,8 +22,10 @@ class FriendlyCaptcha extends Captcha
     // =========================================================================
 
     public ?string $handle = 'friendlyCaptcha';
+
     #[Sensitive]
     public ?string $secretKey = null;
+
     public ?string $siteKey = null;
     public string $apiVersion = 'v1';
     public string $language = 'en';

@@ -34,6 +34,7 @@ class Mailcoach extends EmailMarketing
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $apiUrl = null;
 
 

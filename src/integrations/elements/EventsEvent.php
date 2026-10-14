@@ -44,6 +44,7 @@ class EventsEvent extends Element
 
     #[FormIntegrationSetting]
     public ?int $eventTypeId = null;
+
     #[FormIntegrationSetting]
     public int|array|null $defaultAuthorId = null;
 

@@ -47,8 +47,10 @@ class PayPal extends Payment
     // =========================================================================
 
     public ?string $clientId = null;
+
     #[Sensitive]
     public ?string $clientSecret = null;
+
     public bool|string $useSandbox = false;
 
     private ?string $_accessToken = null;

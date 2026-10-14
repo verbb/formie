@@ -36,9 +36,12 @@ class NoCrm extends Crm
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $apiDomain = null;
+
     #[FormIntegrationSetting]
     public bool $mapToLead = false;
+
     #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
 

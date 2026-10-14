@@ -94,10 +94,13 @@ class ExampleCrm extends Crm
 
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public bool $mapToDeal = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $dealFieldMapping = null;
 
@@ -454,6 +457,7 @@ class SalesforceCustom extends Salesforce
 {
     #[FormIntegrationSetting]
     public bool $mapToPipeline = false;
+
     #[FormIntegrationSetting]
     public ?array $pipelineFieldMapping = null;
 

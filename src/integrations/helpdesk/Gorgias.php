@@ -38,10 +38,13 @@ class Gorgias extends HelpDesk
 
     public ?string $apiUrl = null;
     public ?string $username = null;
+
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[FormIntegrationSetting]
     public bool $mapToTicket = false;
+
     #[FormIntegrationSetting]
     public ?array $ticketFieldMapping = null;
 

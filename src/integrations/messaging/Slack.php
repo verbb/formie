@@ -55,12 +55,16 @@ class Slack extends Messaging implements OAuthProviderInterface
 
     #[FormIntegrationSetting]
     public ?string $channelType = null;
+
     #[FormIntegrationSetting]
     public ?string $userId = null;
+
     #[FormIntegrationSetting]
     public ?string $channelId = null;
+
     #[FormIntegrationSetting]
     public ?string $message = null;
+
     #[FormIntegrationSetting]
     #[Sensitive]
     public ?string $webhook = null;

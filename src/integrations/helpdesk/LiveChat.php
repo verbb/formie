@@ -49,10 +49,13 @@ class LiveChat extends HelpDesk implements OAuthProviderInterface
     // =========================================================================
 
     public ?string $licenseId = null;
+
     #[FormIntegrationSetting]
     public ?string $message = null;
+
     #[FormIntegrationSetting]
     public bool $mapToTicket = false;
+
     #[FormIntegrationSetting]
     public ?array $ticketFieldMapping = null;
 

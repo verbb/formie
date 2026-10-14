@@ -17,6 +17,7 @@ class CleanTalk extends Captcha
     // =========================================================================
 
     public ?string $handle = 'cleantalk';
+
     #[Sensitive]
     public ?string $apiKey = null;
 

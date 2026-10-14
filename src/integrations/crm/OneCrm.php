@@ -44,20 +44,28 @@ class OneCrm extends Crm implements OAuthProviderInterface
     // =========================================================================
 
     public ?string $apiDomain = null;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public bool $mapToLead = false;
+
     #[FormIntegrationSetting]
     public bool $mapToAccount = false;
+
     #[FormIntegrationSetting]
     public bool $mapToOpportunity = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $accountFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $opportunityFieldMapping = null;
 

@@ -37,16 +37,22 @@ class Capsule extends Crm
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[FormIntegrationSetting]
     public bool $mapToPeople = false;
+
     #[FormIntegrationSetting]
     public bool $mapToOpportunity = false;
+
     #[FormIntegrationSetting]
     public bool $mapToTask = false;
+
     #[FormIntegrationSetting]
     public ?array $peopleFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $opportunityFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $taskFieldMapping = null;
 

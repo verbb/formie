@@ -33,6 +33,7 @@ class Adestra extends EmailMarketing
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $coreTableId = null;
     public ?string $workspaceId = null;
 

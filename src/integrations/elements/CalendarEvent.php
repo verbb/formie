@@ -47,6 +47,7 @@ class CalendarEvent extends Element
 
     #[FormIntegrationSetting]
     public ?int $calendarId = null;
+
     #[FormIntegrationSetting]
     public int|array|null $defaultAuthorId = null;
 

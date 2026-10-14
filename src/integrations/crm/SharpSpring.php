@@ -39,15 +39,21 @@ class SharpSpring extends Crm
     // =========================================================================
 
     public ?string $accountId = null;
+
     #[Sensitive]
     public ?string $secretKey = null;
+
     public ?string $formUrl = null;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public bool $mapToForm = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?string $endpoint = null;
 

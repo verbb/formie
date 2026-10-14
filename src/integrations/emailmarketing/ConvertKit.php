@@ -34,6 +34,7 @@ class ConvertKit extends EmailMarketing
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[Sensitive]
     public ?string $apiSecret = null;
 

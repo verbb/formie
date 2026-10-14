@@ -34,6 +34,7 @@ class CustomerIo extends EmailMarketing
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $siteId = null;
     public ?string $dataCenter = null;
 

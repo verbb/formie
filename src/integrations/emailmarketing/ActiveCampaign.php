@@ -35,6 +35,7 @@ class ActiveCampaign extends EmailMarketing
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $apiUrl = null;
 
 

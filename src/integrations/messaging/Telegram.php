@@ -37,8 +37,10 @@ class Telegram extends Messaging
 
     #[Sensitive]
     public ?string $botToken = null;
+
     #[FormIntegrationSetting]
     public ?string $chatId = null;
+
     #[FormIntegrationSetting]
     public ?string $message = null;
 

@@ -38,9 +38,12 @@ class ClickUp extends Miscellaneous
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $workspaceId = null;
+
     #[FormIntegrationSetting]
     public ?string $listId = null;
+
     #[FormIntegrationSetting]
     public ?array $fieldMapping = null;
 

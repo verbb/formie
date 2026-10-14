@@ -49,8 +49,10 @@ class Front extends HelpDesk implements OAuthProviderInterface
 
     #[FormIntegrationSetting]
     public ?string $message = null;
+
     #[FormIntegrationSetting]
     public bool $mapToMessage = false;
+
     #[FormIntegrationSetting]
     public ?array $messageFieldMapping = null;
 

@@ -37,10 +37,13 @@ class Entry extends Element
 
     #[FormIntegrationSetting]
     public ?string $entryTypeSection = null;
+
     #[FormIntegrationSetting]
     public mixed $defaultAuthorId = null;
+
     #[FormIntegrationSetting]
     public bool $useSubmissionUserAsAuthor = false;
+
     #[FormIntegrationSetting]
     public ?bool $createDraft = null;
 

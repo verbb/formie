@@ -69,8 +69,10 @@ class PayWay extends Payment
     // =========================================================================
 
     public ?string $publishableKey = null;
+
     #[Sensitive]
     public ?string $secretKey = null;
+
     public ?string $merchantId = null;
 
 

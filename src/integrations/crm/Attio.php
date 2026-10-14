@@ -57,8 +57,10 @@ class Attio extends Crm
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[FormIntegrationSetting]
     public bool $mapToPeople = false;
+
     #[FormIntegrationSetting]
     public ?array $peopleFieldMapping = null;
 

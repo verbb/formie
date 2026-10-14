@@ -24,6 +24,7 @@ class Question extends Captcha
     // =========================================================================
 
     public ?string $handle = 'question';
+
     #[FormIntegrationSetting]
     public array $questions = [];
 

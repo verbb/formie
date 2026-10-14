@@ -129,26 +129,37 @@ class HubSpot extends Crm
 
     #[Sensitive]
     public ?string $accessToken = null;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public bool $mapToDeal = false;
+
     #[FormIntegrationSetting]
     public bool $mapToCompany = false;
+
     #[FormIntegrationSetting]
     public bool $mapToTicket = false;
+
     #[FormIntegrationSetting]
     public bool $mapToForm = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $dealFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $companyFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $ticketFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $formFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?string $formId = null;
 

@@ -130,10 +130,13 @@ class Stripe extends Payment
     // =========================================================================
 
     public ?string $publishableKey = null;
+
     #[Sensitive]
     public ?string $secretKey = null;
+
     #[Sensitive]
     public ?string $webhookSecretKey = null;
+
     public bool $hidePostalCode = false;
     public bool $hideIcon = false;
 

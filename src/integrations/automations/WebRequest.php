@@ -43,13 +43,17 @@ class WebRequest extends Automation
     #[FormIntegrationSetting]
     #[Sensitive]
     public ?string $url = null;
+
     #[FormIntegrationSetting]
     public string $method = 'POST';
+
     #[FormIntegrationSetting]
     public string $requestType = 'json';
+
     #[FormIntegrationSetting]
     #[Sensitive]
     public array $headers = [];
+
     #[FormIntegrationSetting]
     #[Sensitive]
     public array $httpAuth = [];

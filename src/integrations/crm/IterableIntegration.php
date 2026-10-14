@@ -39,14 +39,19 @@ class IterableIntegration extends Crm
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[FormIntegrationSetting]
     public bool $mapToUser = false;
+
     #[FormIntegrationSetting]
     public bool $mapToMessageType = false;
+
     #[FormIntegrationSetting]
     public ?array $userFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $messageTypeFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?string $messageTypeId = null;
 

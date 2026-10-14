@@ -35,10 +35,13 @@ class Klaviyo extends Crm
     // =========================================================================
 
     public ?string $publicApiKey = null;
+
     #[Sensitive]
     public ?string $privateApiKey = null;
+
     #[FormIntegrationSetting]
     public bool $mapToProfile = false;
+
     #[FormIntegrationSetting]
     public ?array $profileFieldMapping = null;
 

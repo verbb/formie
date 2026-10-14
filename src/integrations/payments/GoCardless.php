@@ -78,8 +78,10 @@ class GoCardless extends Payment
 
     #[Sensitive]
     public ?string $accessToken = null;
+
     #[Sensitive]
     public ?string $webhookSecretKey = null;
+
     public bool|string $useSandbox = false;
 
 

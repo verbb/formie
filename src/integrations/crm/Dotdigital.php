@@ -46,15 +46,21 @@ class Dotdigital extends Crm
     // =========================================================================
 
     public ?string $username = null;
+
     #[Sensitive]
     public ?string $password = null;
+
     public ?string $apiDomain = null;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public bool $sendEmailCampaign = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $emailSendMapping = null;
 

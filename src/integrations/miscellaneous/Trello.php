@@ -46,10 +46,13 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
 
     #[FormIntegrationSetting]
     public ?string $boardId = null;
+
     #[FormIntegrationSetting]
     public ?string $listId = null;
+
     #[FormIntegrationSetting]
     public ?string $cardName = null;
+
     #[FormIntegrationSetting]
     public ?string $cardDescription = null;
 

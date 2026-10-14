@@ -40,8 +40,10 @@ class Recaptcha extends Captcha
     // =========================================================================
 
     public ?string $handle = 'recaptcha';
+
     #[Sensitive]
     public ?string $secretKey = null;
+
     public ?string $siteKey = null;
     public ?string $type = 'v3';
     public string $size = 'normal';
@@ -53,8 +55,10 @@ class Recaptcha extends Captcha
     public string $scriptLoadingMethod = 'asyncDefer';
     public ?string $enterpriseType = 'score';
     public ?string $projectId = null;
+
     #[FormIntegrationSetting]
     public ?string $formAction = null;
+
     #[FormIntegrationSetting]
     public ?string $formMinScore = null;
 

@@ -379,8 +379,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public ?int $sortOrder = null;
     public array $cache = [];
     public ?string $uid = null;
+
     #[Sensitive]
     public ?string $clientSecret = null;
+
     // Store extra context for when running the integration
     public array $context = [];
     // Store extra context when configuring the integration in the form builder

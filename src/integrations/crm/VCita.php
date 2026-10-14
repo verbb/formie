@@ -36,8 +36,10 @@ class VCita extends Crm
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[FormIntegrationSetting]
     public bool $mapToClient = false;
+
     #[FormIntegrationSetting]
     public ?array $clientFieldMapping = null;
 

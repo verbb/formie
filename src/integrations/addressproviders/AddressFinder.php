@@ -32,6 +32,7 @@ class AddressFinder extends AddressProvider
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $countryCode = null;
     public array $widgetOptions = [];
 

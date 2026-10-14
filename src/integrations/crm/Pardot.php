@@ -79,16 +79,22 @@ class Pardot extends Crm implements OAuthProviderInterface
 
     public ?string $businessUnitId = null;
     public bool|string $useSandbox = false;
+
     #[FormIntegrationSetting]
     public bool $mapToProspect = false;
+
     #[FormIntegrationSetting]
     public bool $mapToOpportunity = false;
+
     #[FormIntegrationSetting]
     public bool $enableFormHandler = false;
+
     #[FormIntegrationSetting]
     public ?array $prospectFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $opportunityFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?string $endpointUrl = null;
 

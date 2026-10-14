@@ -40,26 +40,37 @@ class Pipedrive extends Crm
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[FormIntegrationSetting]
     public bool $mapToPerson = false;
+
     #[FormIntegrationSetting]
     public bool $mapToDeal = false;
+
     #[FormIntegrationSetting]
     public bool $mapToLead = false;
+
     #[FormIntegrationSetting]
     public bool $mapToOrganization = false;
+
     #[FormIntegrationSetting]
     public bool $mapToNote = false;
+
     #[FormIntegrationSetting]
     public ?array $personFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $dealFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $organizationFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $noteFieldMapping = null;
+
     #[FormIntegrationSetting]
     public bool $mergeMultiOptionFields = false;
 

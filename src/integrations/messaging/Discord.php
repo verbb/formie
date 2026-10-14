@@ -41,6 +41,7 @@ class Discord extends Messaging
     #[FormIntegrationSetting]
     #[Sensitive]
     public ?string $webhookUrl = null;
+
     #[FormIntegrationSetting]
     public ?string $message = null;
 

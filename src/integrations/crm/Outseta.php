@@ -37,11 +37,15 @@ class Outseta extends Crm
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[Sensitive]
     public ?string $secretKey = null;
+
     public ?string $apiDomain = null;
+
     #[FormIntegrationSetting]
     public bool $mapToPeople = false;
+
     #[FormIntegrationSetting]
     public ?array $peopleFieldMapping = null;
 

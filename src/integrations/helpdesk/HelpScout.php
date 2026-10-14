@@ -47,8 +47,10 @@ class HelpScout extends HelpDesk implements OAuthProviderInterface
 
     #[FormIntegrationSetting]
     public ?string $message = null;
+
     #[FormIntegrationSetting]
     public bool $mapToConversation = false;
+
     #[FormIntegrationSetting]
     public ?array $conversationFieldMapping = null;
 

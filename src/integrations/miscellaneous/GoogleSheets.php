@@ -48,8 +48,10 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
 
     public ?string $proxyRedirect = null;
     public ?string $spreadsheetId = null;
+
     #[FormIntegrationSetting]
     public ?string $sheetId = null;
+
     #[FormIntegrationSetting]
     public ?array $fieldMapping = null;
 

@@ -32,6 +32,7 @@ abstract class EmailMarketing extends Integration implements DispatchableIntegra
 
     #[FormIntegrationSetting]
     public ?array $fieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?string $listId = null;
 

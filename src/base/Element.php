@@ -92,14 +92,19 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
 
     #[FormIntegrationSetting]
     public array $attributeMapping = [];
+
     #[FormIntegrationSetting]
     public array $fieldMapping = [];
+
     #[FormIntegrationSetting]
     public bool $updateElement = false;
+
     #[FormIntegrationSetting]
     public array $updateElementMapping = [];
+
     #[FormIntegrationSetting]
     public bool $updateSearchIndexes = true;
+
     #[FormIntegrationSetting]
     public bool $overwriteValues = false;
 

@@ -34,6 +34,7 @@ class Ontraport extends EmailMarketing
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $appId = null;
 
 

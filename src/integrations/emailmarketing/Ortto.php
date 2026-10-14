@@ -35,6 +35,7 @@ class Ortto extends EmailMarketing
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $dataCenter = 'INT';
 
 

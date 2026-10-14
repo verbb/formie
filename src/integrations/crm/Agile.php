@@ -38,18 +38,25 @@ class Agile extends Crm
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $apiEmail = null;
     public ?string $apiDomain = null;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public bool $mapToDeal = false;
+
     #[FormIntegrationSetting]
     public bool $mapToTask = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $dealFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $taskFieldMapping = null;
 

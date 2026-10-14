@@ -37,10 +37,13 @@ class Brevo extends EmailMarketing
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[FormIntegrationSetting]
     public bool $useDoubleOptIn = false;
+
     #[FormIntegrationSetting]
     public ?string $templateId = null;
+
     #[FormIntegrationSetting]
     public ?string $redirectionUrl = null;
 

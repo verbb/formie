@@ -48,8 +48,10 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
 
     #[FormIntegrationSetting]
     public ?string $message = null;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
 

@@ -40,6 +40,7 @@ class Ifttt extends Automation
 
     #[Sensitive]
     public ?string $webhookKey = null;
+
     #[FormIntegrationSetting]
     public ?string $eventName = null;
 

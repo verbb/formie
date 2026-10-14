@@ -37,6 +37,7 @@ class CampaignMonitor extends EmailMarketing
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $clientId = null;
 
 

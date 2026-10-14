@@ -40,8 +40,10 @@ class Monday extends Miscellaneous
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[FormIntegrationSetting]
     public ?string $boardId = null;
+
     #[FormIntegrationSetting]
     public ?array $fieldMapping = null;
 

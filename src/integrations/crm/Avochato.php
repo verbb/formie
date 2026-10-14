@@ -35,10 +35,13 @@ class Avochato extends Crm
     // =========================================================================
 
     public ?string $authId = null;
+
     #[Sensitive]
     public ?string $authSecret = null;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
 

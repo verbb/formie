@@ -46,6 +46,7 @@ class Infusionsoft extends Crm implements OAuthProviderInterface
 
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
 

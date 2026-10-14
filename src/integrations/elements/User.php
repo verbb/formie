@@ -52,14 +52,19 @@ class User extends Element
     // =========================================================================
 
     public array $groupIds = [];
+
     #[FormIntegrationSetting]
     public array $groupUids = [];
+
     #[FormIntegrationSetting]
     public bool $activateUser = false;
+
     #[FormIntegrationSetting]
     public bool $mergeUserGroups = false;
+
     #[FormIntegrationSetting]
     public bool $sendActivationEmail = true;
+
     public ?AddressElement $address = null;
 
 

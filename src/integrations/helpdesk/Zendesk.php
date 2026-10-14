@@ -37,10 +37,13 @@ class Zendesk extends HelpDesk
 
     public ?string $domain = null;
     public ?string $username = null;
+
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[FormIntegrationSetting]
     public bool $mapToTicket = false;
+
     #[FormIntegrationSetting]
     public ?array $ticketFieldMapping = null;
 

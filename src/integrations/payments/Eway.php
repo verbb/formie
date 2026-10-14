@@ -61,8 +61,10 @@ class Eway extends Payment
 
     // public static function supportsConnection(): bool
     // {
+
     //     return false;
     // }
+
 
 
 

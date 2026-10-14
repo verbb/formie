@@ -34,6 +34,7 @@ class Klaviyo extends EmailMarketing
 
     #[Sensitive]
     public ?string $privateApiKey = null;
+
     public ?string $publicApiKey = null;
 
 

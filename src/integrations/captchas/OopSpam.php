@@ -18,8 +18,10 @@ class OopSpam extends Captcha
     // =========================================================================
 
     public ?string $handle = 'OopSpam';
+
     #[Sensitive]
     public ?string $apiKey = null;
+
     public int $spamThreshold = 3;
 
 

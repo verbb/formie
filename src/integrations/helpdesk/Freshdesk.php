@@ -43,13 +43,18 @@ class Freshdesk extends HelpDesk
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $apiDomain = null;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public bool $mapToTicket = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $ticketFieldMapping = null;
 

@@ -44,8 +44,10 @@ class Marketo extends Crm implements OAuthProviderInterface
     // =========================================================================
 
     public ?string $apiDomain = null;
+
     #[FormIntegrationSetting]
     public bool $mapToLead = false;
+
     #[FormIntegrationSetting]
     public ?array $leadFieldMapping = null;
 

@@ -26,6 +26,7 @@ class PlaceKit extends AddressProvider
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public array $options = [];
 
 

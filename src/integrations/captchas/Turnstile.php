@@ -21,8 +21,10 @@ class Turnstile extends Captcha
     // =========================================================================
 
     public ?string $handle = 'turnstile';
+
     #[Sensitive]
     public ?string $secretKey = null;
+
     public ?string $siteKey = null;
     public string $scriptLoadingMethod = 'asyncDefer';
     public string $theme = 'auto';

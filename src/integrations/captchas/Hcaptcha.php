@@ -22,8 +22,10 @@ class Hcaptcha extends Captcha
     // =========================================================================
 
     public ?string $handle = 'hcaptcha';
+
     #[Sensitive]
     public ?string $secretKey = null;
+
     public ?string $siteKey = null;
     public string $size = 'normal';
     public string $theme = 'light';

@@ -34,6 +34,7 @@ class Mailjet extends EmailMarketing
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[Sensitive]
     public ?string $secretKey = null;
 

@@ -158,6 +158,7 @@ class DeliveryLaneProvider extends \verbb\formie\base\Integration
 
 class PreparedMappingProvider extends DeliveryLaneProvider
 {
+
     #[\verbb\formie\attributes\FormIntegrationSetting]
     public string $mapping = 'original';
     public static int $calls = 0;

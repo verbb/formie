@@ -92,10 +92,13 @@ class Opayo extends Payment
     // =========================================================================
 
     public ?string $vendorName = null;
+
     #[Sensitive]
     public ?string $integrationKey = null;
+
     #[Sensitive]
     public ?string $integrationPassword = null;
+
     public bool|string $useSandbox = false;
     public string $checkoutMode = self::CHECKOUT_MODE_OWN_FORM;
 

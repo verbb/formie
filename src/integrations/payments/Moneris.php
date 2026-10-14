@@ -55,8 +55,10 @@ class Moneris extends Payment
     // =========================================================================
 
     public ?string $storeId = null;
+
     #[Sensitive]
     public ?string $apiToken = null;
+
     public ?string $profileId = null;
     public bool|string $useSandbox = false;
 

@@ -35,8 +35,10 @@ class Vero extends EmailMarketing
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     #[Sensitive]
     public ?string $apiSecret = null;
+
     #[Sensitive]
     public ?string $authToken = null;
 

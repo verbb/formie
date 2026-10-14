@@ -37,17 +37,24 @@ class ActiveCampaign extends Crm
 
     #[Sensitive]
     public ?string $apiKey = null;
+
     public ?string $apiUrl = null;
+
     #[FormIntegrationSetting]
     public bool $mapToContact = false;
+
     #[FormIntegrationSetting]
     public bool $mapToDeal = false;
+
     #[FormIntegrationSetting]
     public bool $mapToAccount = false;
+
     #[FormIntegrationSetting]
     public ?array $contactFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $dealFieldMapping = null;
+
     #[FormIntegrationSetting]
     public ?array $accountFieldMapping = null;
 
