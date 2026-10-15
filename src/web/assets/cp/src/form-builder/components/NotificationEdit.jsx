@@ -73,6 +73,23 @@ function NotificationEdit({
         setOpen(false);
     };
 
+    const handleAfterShow = async (event) => {
+        const dialog = event.currentTarget;
+
+        // Builder IDs also identify existing notifications before the form is saved.
+        // Ignore nested overlays so opening a picker cannot refocus the name.
+        if (event.target !== dialog || !isNew || notification?._id) {
+            return;
+        }
+
+        const nameInput = dialog.querySelector('pk-field[data-name="name"] pk-tiptap-input');
+        await nameInput?.updateComplete;
+
+        if (dialog.isConnected && dialog.open) {
+            nameInput?.editorInstance?.commands.focus('start', { scrollIntoView: false });
+        }
+    };
+
     const handleAfterHide = () => {
         const pending = pendingCloseRef.current;
         pendingCloseRef.current = null;
@@ -101,6 +118,7 @@ function NotificationEdit({
             onPkOpenChange={(event) => {
                 setOpen(Boolean(event.detail?.open ?? event.target?.open));
             }}
+            onPkAfterShow={handleAfterShow}
             onPkAfterHide={handleAfterHide}
         >
             <div className={cn(
