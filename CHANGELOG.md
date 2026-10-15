@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.48 - 2026-10-15
 
 ### Changed
 - Updated user deletion handling to use Craft’s deletion blockers, with options to reassign, unassign, or delete related submissions.
