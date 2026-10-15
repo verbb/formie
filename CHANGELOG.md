@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.2.39 - 2026-10-15
 
 ### Fixed
 - Fix long-running queue workers sending email notifications with settings cached from an earlier job. ([#2998](https://github.com/verbb/formie/issues/2998))
