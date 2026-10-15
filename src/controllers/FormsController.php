@@ -196,7 +196,7 @@ class FormsController extends Controller
             throw new NotFoundHttpException('Form not found');
         }
 
-        $form = Formie::$plugin->getForms()->getFormById($formId);
+        $form = $this->_getCpFormById((int)$formId);
 
         if (!$form) {
             throw new NotFoundHttpException('Form not found');
@@ -229,7 +229,7 @@ class FormsController extends Controller
         $formId = $this->request->getParam('formId');
         $templateId = $this->request->getParam('templateId');
 
-        $form = $formId ? Formie::$plugin->getForms()->getFormById((int)$formId) : null;
+        $form = $formId ? $this->_getCpFormById((int)$formId) : null;
 
         if (!$form) {
             throw new NotFoundHttpException('Form not found');
@@ -392,7 +392,7 @@ class FormsController extends Controller
         $formId = $this->request->getParam('formId');
         $templateId = $this->request->getParam('templateId');
 
-        $form = $formId ? Formie::$plugin->getForms()->getFormById((int)$formId) : null;
+        $form = $formId ? $this->_getCpFormById((int)$formId) : null;
 
         if (!$form) {
             throw new NotFoundHttpException('Form not found');
@@ -819,7 +819,7 @@ class FormsController extends Controller
 
         $formId = $this->request->getRequiredBodyParam('formId');
 
-        $form = Formie::$plugin->getForms()->getFormById($formId);
+        $form = $this->_getCpFormById((int)$formId);
 
         if (!$form) {
             throw new NotFoundHttpException('Form not found');
@@ -923,7 +923,7 @@ class FormsController extends Controller
     {
         $formId = (int)$this->request->getRequiredParam('formId');
 
-        $form = Formie::$plugin->getForms()->getFormById($formId);
+        $form = $this->_getCpFormById((int)$formId);
 
         if (!$form) {
             throw new NotFoundHttpException('Form not found');
@@ -963,7 +963,7 @@ class FormsController extends Controller
             return $this->asJson([]);
         }
 
-        $form = Formie::$plugin->getForms()->getFormById($formId);
+        $form = $this->_getCpFormById((int)$formId);
 
         if (!$form) {
             throw new NotFoundHttpException('Form not found.');
@@ -985,6 +985,13 @@ class FormsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _getCpFormById(int $formId): ?Form
+    {
+        // Control panel operations must also resolve disabled forms. Each action
+        // checks its own permissions before exposing or modifying the form.
+        return Form::find()->id($formId)->status(null)->one();
+    }
 
     private function _requireFormManageAccess(Form $form): void
     {
@@ -1026,7 +1033,7 @@ class FormsController extends Controller
             return null;
         }
 
-        $form = Formie::$plugin->getForms()->getFormById($formId);
+        $form = $this->_getCpFormById((int)$formId);
 
         if (!$form) {
             throw new NotFoundHttpException('Form not found.');

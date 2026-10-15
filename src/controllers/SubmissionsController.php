@@ -232,7 +232,18 @@ class SubmissionsController extends Controller
             }
         }
 
-        $form = Formie::$plugin->getForms()->getFormByHandle($formHandle);
+        // Existing responses remain accessible independently of the form's public
+        // availability or lifecycle label. Submission permissions are checked below.
+        if ($submissionId || $submission?->id) {
+            $form = Form::find()
+                ->withoutCpIndexScope()
+                ->handle($formHandle)
+                ->siteId($siteModel->id)
+                ->status(null)
+                ->one();
+        } else {
+            $form = Formie::$plugin->getForms()->getFormByHandle($formHandle, (int)$siteModel->id);
+        }
 
         if (!$form) {
             throw new HttpException(404);
