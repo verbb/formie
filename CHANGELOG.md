@@ -7,6 +7,7 @@
 
 ### Fixed
 - Fix integration lists rendering as an empty pane when configured integrations exist.
+- Fix Zendesk tickets being rejected when the mapped requester name is blank.
 - Fix submission status color migrations failing when legacy status event handlers are registered.
 - Fix an error when upgrading multi-site installs from Formie 3 to Formie 4. ([#3007](https://github.com/verbb/formie/issues/3007))
 - Fix unnecessary `EVENT_MODIFY_HTML_TAG` deprecation warnings when rendering forms with the debug toolbar enabled. ([#3009](https://github.com/verbb/formie/issues/3009))

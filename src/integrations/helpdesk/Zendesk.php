@@ -141,6 +141,11 @@ class Zendesk extends HelpDesk
                 $requesterName = ArrayHelper::remove($ticketValues, 'requester_name') ?? 'Anonymous';
                 $requesterEmail = ArrayHelper::remove($ticketValues, 'requester_email') ?? 'anonymous@example.com';
 
+                // A mapped optional field can be blank rather than null, but Zendesk requires a requester name.
+                if (trim((string)$requesterName) === '') {
+                    $requesterName = 'Anonymous';
+                }
+
                 $tags = is_array($tags) ? $tags : array_filter(array_map('trim', explode(',', $tags)));
 
                 $ticketPayload = [
