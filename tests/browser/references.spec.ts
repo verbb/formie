@@ -38,6 +38,7 @@ test('preserves explicit literal and field mapping modes through save and reload
     const { formId } = JSON.parse(readFileSync('.cache/verbb-tests/reference-picker.json', 'utf8'));
     await page.goto(`/admin/formie/forms/edit/${formId}`);
     await page.getByRole('tab', { name: 'Integrations', exact: true }).click();
+    await page.getByRole('button', { name: /Browser Freshdesk/ }).click();
     const literal = page.getByRole('textbox', { name: 'Use text exactly as entered', exact: true });
     await expect(page.getByRole('cell', { name: 'Contact name', exact: true })).toBeVisible();
     if (!(await literal.count())) {
@@ -51,6 +52,7 @@ test('preserves explicit literal and field mapping modes through save and reload
     await expect(page.locator('#notifications').getByText('Form saved.', { exact: true })).toBeVisible();
     await page.reload();
     await page.getByRole('tab', { name: 'Integrations', exact: true }).click();
+    await page.getByRole('button', { name: /Browser Freshdesk/ }).click();
     await expect(literal).toHaveValue('Literal {field:missing}');
     await page.getByRole('button', { name: 'More actions', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Switch to Field Value', exact: true }).click();
@@ -60,6 +62,7 @@ test('preserves explicit literal and field mapping modes through save and reload
     await expect(page.locator('#notifications').getByText('Form saved.', { exact: true })).toBeVisible();
     await page.reload();
     await page.getByRole('tab', { name: 'Integrations', exact: true }).click();
+    await page.getByRole('button', { name: /Browser Freshdesk/ }).click();
     await expect(page.getByRole('button', { name: 'Contact name', exact: true })).toBeVisible();
     await expect(literal).toHaveCount(0);
 });

@@ -61,6 +61,8 @@ test('opens Formie diagnostics from a real Craft job with unresolved delivery an
             exact: true,
         }),
     ).toBeVisible();
+    // Opening scales the dialog; measure only after that animation finishes.
+    await expect(dialog.locator('.dialog')).not.toHaveClass(/\bshow\b/);
     const dialogWidth = await dialog.evaluate(
         (element) =>
             element.shadowRoot
