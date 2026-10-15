@@ -309,7 +309,7 @@ function Integrations({ schema }) {
                                     {group.label}
                                 </h3>
                             </div>
-                            <div className="space-y-1">
+                            <div>
                                 {group.integrations.map((integration) => {
                                     const isSelected = activeIntegration && activeIntegration.handle === integration.handle;
                                     const iconKey = `${integration.handle}:${integration.icon || ''}`;
@@ -337,6 +337,7 @@ function Integrations({ schema }) {
                                                     slot="start"
                                                     src={integration.icon}
                                                     alt=""
+                                                    className="size-[18px] shrink-0 object-contain"
                                                     onError={() => {
                                                         handleIconError(iconKey);
                                                     }}
@@ -419,7 +420,7 @@ function Integrations({ schema }) {
                                                         <img
                                                             src={integration.icon}
                                                             alt=""
-                                                            className="size-4 shrink-0"
+                                                            className="size-[18px] shrink-0 object-contain"
                                                             onError={() => {
                                                                 handleIconError(iconKey);
                                                             }}

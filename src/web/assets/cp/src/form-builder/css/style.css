@@ -473,7 +473,7 @@ pk-tabs.form-builder-section-tabs[variant='pane'] {
 }
 
 /*
- * Integrations sidebar rows: Craft/v1 density (7px 10px, 16px icon, 10px gap).
+ * Integrations sidebar rows: compact density with 18px integration logos.
  * Host Tailwind cannot style shadow .button — use tokens + ::part(base).
  * Must live outside breakpoint media queries (sidebar is desktop-first).
  * Selector must beat :host([size='none']) token resets (0 padding / 1em icons).
@@ -486,7 +486,7 @@ pk-button.form-builder-integrations-nav-item[size='none'] {
     --pk-btn-height: auto;
     --pk-btn-padding-inline: 10px;
     --pk-btn-padding-block: 7px;
-    --pk-btn-icon-size: 16px;
+    --pk-btn-icon-size: 18px;
     --pk-btn-icon-gap: 8px;
     --pk-btn-radius: var(--pk-radius-lg);
     --pk-btn-font: 13px;
