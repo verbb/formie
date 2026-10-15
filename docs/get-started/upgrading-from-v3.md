@@ -1,36 +1,30 @@
 # Upgrading from v3
 
-Use this guide to update a Formie 3 project to Formie 4. Review the required changes for your templates, custom fields and integrations first, then check the compatibility and operational sections before testing the upgraded site.
+Formie 4 enables compatibility mode by default. Work through this guide in three stages:
+
+1. [Breaking Changes](#breaking-changes): fix affected code or configuration before upgrading, even with compatibility mode enabled.
+2. [Before Disabling Compatibility Mode](#before-disabling-compatibility-mode): keep compatibility mode enabled until you have replaced these usages.
+3. [Deprecated Changes](#deprecated-changes): these APIs and configuration aliases still work with compatibility mode off. Update them as you maintain your project.
+
+The [Behaviour Changes](#behaviour-changes) section covers automatic migrations and other differences to be aware of. [Earlier Formie 4 extensions](#updating-earlier-formie-4-extensions) have separate notes; skip those when upgrading from stable Formie 3.
+
+Test the upgrade on staging first. Before upgrading, back up the database and code, retain the existing Craft and Formie security keys, finish pending notification/integration jobs and allow active checkout sessions to finish. Deploy matching PHP and browser assets, then purge cached form HTML. Roll back using the matching pre-upgrade database and code backup.
 
 ## Breaking Changes
 
-Check the sections that match your project before deploying. Changes to custom integrations, templates and translation files may need manual edits even when stored form data migrates automatically. Working aliases are covered under [Deprecated Changes](#deprecated-changes).
+These changes are required **only if your project uses the affected API or depends on the old behaviour**. Compatibility mode does not restore that behaviour. Most sections concern custom templates, modules, integrations or submission clients; they are not a checklist of edits for every site.
 
-Jump directly to the sections most likely to need attention:
+- **Custom fields and integrations:** update [field UI/templates](#custom-fields), [parent fields](#custom-parent-fields), [field traversal](#field-and-row-traversal), [integration settings](#custom-integrations) and [browser modules](#browser-module-declarations).
+- **Custom frontend code:** review [JavaScript event behaviour](#javascript-event-behaviour), [validators](#custom-front-end-validation), [GraphQL queries](#graphql), [submission clients and uploads](#continuity-and-upload-upgrade-actions), and [CSS selectors](#default-theme-classes).
+- **Templates and configuration:** review [field values](#field-value-contracts), [references](#references-and-variable-picker), [redirects and overrides](#completion-and-setting-overrides), [plugin translations](#translation-strings) and [form content translations](#form-content-translations).
+- **Custom PHP and SQL:** update [submission hooks](#submission-workflow), [payment providers](#payment-and-subscription-boundary) and [literal status-table references](#submission-status-database-table).
+- **Spam protection and conditions:** replace references to [removed captcha types](#removed-legacy-captchas) and test [conditions and validation](#conditions-and-validation) that depend on changed comparisons.
 
-- [Custom Fields](#custom-fields) if the project defines custom Formie fields.
-- [Custom Integrations](#custom-integrations) if the project defines custom integrations, captchas, address providers, or payment providers.
-- [Removed legacy captchas](#removed-legacy-captchas) if the site relied on Formie’s built-in Duplicate, JavaScript, or Honeypot captcha types.
-- [Custom Front-End Validation](#custom-front-end-validation) if the project registers custom browser validators or overrides front-end message strings.
-- [Translation Strings](#translation-strings) if the project overrides Formie **plugin UI** messages in translation files.
-- [Form Content Translations](#form-content-translations) if the project mapped field labels or form messages through `formie.php` or `site.php`.
-- [Submission and form statuses](#submission-and-form-statuses) if custom PHP, Twig, or module code references status services, models, events, or database tables.
-- [Reports and submission export](#reports-and-submission-export) if editors expect an **Export** button on the submissions index.
-- [Encrypted submission fields](#encrypted-submission-fields) if any fields use **Enable Content Encryption**.
+### Custom Fields
 
-## Encrypted Submission Fields
+#### Field Preview
 
-Formie can still read Formie 3 encrypted field values after the upgrade, including sites that used `FORMIE_SECURITY_KEY` and older values that used Craft’s security key. Existing encrypted fields also keep writing the compatible format until you deliberately activate the dedicated Formie field-content key, so this does not block the initial upgrade.
-
-Before enabling encryption on another field, generate `FORMIE_ENCRYPTION_KEY` with `php craft formie/encryption/generate-key`. The command saves the key to the project’s configured `.env` file; use `--stdout` if another system manages the environment. Store the same key in every environment that must read copied submissions. Deploy and restart all web and queue processes before running `php craft formie/encryption/activate`. Make a verified database backup, then follow the [submission content encryption commands](/developers/console-commands#submission-content-encryption) to convert existing values. [Content Encryption](/submissions/content-encryption) documents the ongoing Formie 4 setup and operational behaviour without the upgrade-specific compatibility details.
-
-Keep `FORMIE_SECURITY_KEY` and the previous Craft security key available until conversion is complete if the site has used both. You can supply old keys temporarily through `FORMIE_ENCRYPTION_PREVIOUS_KEYS`. Formie preserves and locks any value it cannot decrypt instead of displaying it as blank or overwriting it during a resave.
-
-## Custom Fields
-
-### Field Preview
-
-Field previews should now use preview schema, rather than a HTML template.
+Custom field previews must use schema instead of an HTML template.
 
 ::: code-group
 ```php [Formie 3]
@@ -43,6 +37,8 @@ public function getPreviewInputHtml(): string
 ```
 
 ```php [Formie 4]
+use verbb\formie\helpers\SchemaHelper;
+
 public function defineFormBuilderPreviewSchema(): array
 {
     return [
@@ -52,51 +48,163 @@ public function defineFormBuilderPreviewSchema(): array
 ```
 :::
 
-### Field Templates
+#### Custom Input Rendering
 
-Use `getInputTemplatePath()` in place of the old front-end input template path method.
+Formie 4 no longer calls `getFrontEndInputHtml()`. Replace the override with a template path and template variables:
 
 ::: code-group
 ```php [Formie 3]
-public static function getFrontEndInputTemplatePath(): string
+use craft\helpers\Template;
+use verbb\formie\elements\Form;
+use Twig\Markup;
+
+public function getFrontEndInputHtml(Form $form, mixed $value, array $renderOptions = []): Markup
 {
-    return 'my-module/my-field/input';
+    $variables = $this->getFrontEndInputOptions($form, $value, $renderOptions);
+    $variables['placeholder'] = $this->placeholder;
+
+    return Template::raw($form->renderTemplate('my-module/my-field/input', $variables));
 }
 ```
 
 ```php [Formie 4]
+use verbb\formie\elements\Form;
+
 public static function getInputTemplatePath(): string
 {
     return 'my-module/my-field/input';
 }
-```
-:::
-
-If the field needs template variables, extend `getInputTemplateVariables()`.
-
-```php
-use verbb\formie\elements\Form;
 
 public function getInputTemplateVariables(Form $form, mixed $value): array
 {
-    return array_merge(parent::getInputTemplateVariables($form, $value), [
-        'placeholder' => $this->placeholder,
-    ]);
+    $variables = parent::getInputTemplateVariables($form, $value);
+    $variables['placeholder'] = $this->placeholder;
+
+    return $variables;
+}
+```
+:::
+
+For rendering that cannot use a template, override `renderInput(Form $form, mixed $value)`; see [Custom Field Templates](/developers/custom-field/overview#templates). Existing template-path aliases can be updated [later](#field-templates).
+
+#### Custom Field Tags
+
+If your custom field overrides `defineHtmlTag()` for a tag already supplied by its base field, move that override to `defineSlotTag()`. The new tag takes precedence even with compatibility mode enabled. Also replace any `parent::defineHtmlTag()` calls: that parent method no longer exists.
+
+The [compatibility fallback](#theme-config) only supports legacy tags for which the new renderer returns no tag. Use the following pattern when updating an override:
+
+::: code-group
+```php [Formie 3]
+public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+{
+    if ($key === 'fieldInput') {
+        return new HtmlTag('input', [
+            'class' => ['fui-input'],
+        ]);
+    }
+
+    return parent::defineHtmlTag($key, $context);
 }
 ```
 
-Avoid overriding `renderInput()` unless the field cannot be handled with templates and template variables.
+```php [Formie 4]
+use verbb\formie\models\SlotTag;
+use verbb\formie\theme\context\RenderContext;
 
-## Custom Integrations
+protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
+{
+    if ($key === 'fieldInput') {
+        return SlotTag::make('input')
+            ->core([
+                'type' => 'text',
+                'name' => $this->getHtmlName(),
+                'data-formie-input' => true,
+            ])
+            ->theme([
+                'class' => ['formie-input'],
+            ]);
+    }
 
-### Form Integration Settings
+    return parent::defineSlotTag($key, $context);
+}
+```
+:::
 
-> [!CAUTION]
-> Integrations that add settings to a form's Integrations tab need to move those settings to `defineFormSettingsSchema()`.
+#### Field Value Hooks
 
-Integrations that provide a UI for the form builder's Integrations tab now define their controls with a schema, as opposed to Twig/Vue/HTML templates.
+`EVENT_MODIFY_VALUE_FOR_VARIABLE` and `EVENT_MODIFY_VALUE_FOR_VARIABLE_RAW` have been removed. For values inserted into text, such as a notification subject:
 
-This aims to provide a more solid, consistent and performant approach to configuring these screens, rather than flaky templates tied to a framework.
+::: code-group
+```php [Formie 3]
+use verbb\formie\base\Field;
+use verbb\formie\events\ModifyFieldEmailValueEvent;
+use yii\base\Event;
+
+Event::on(Field::class, Field::EVENT_MODIFY_VALUE_FOR_VARIABLE_RAW, function(ModifyFieldEmailValueEvent $event) {
+    if ($event->field->handle === 'referenceCode') {
+        $event->value = strtoupper((string)$event->value);
+    }
+});
+```
+
+```php [Formie 4]
+use verbb\formie\base\Field;
+use verbb\formie\events\ModifyFieldValueEvent;
+use yii\base\Event;
+
+Event::on(Field::class, Field::EVENT_MODIFY_VALUE_FOR_REFERENCE, function(ModifyFieldValueEvent $event) {
+    if ($event->field->handle === 'referenceCode') {
+        $event->value = strtoupper((string)$event->value);
+    }
+});
+```
+:::
+
+For a field's value in an all-fields notification summary, use `EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK` with `ModifyFieldEmailValueEvent` instead. See [Field Events](/developers/events/field-events) for the event reference.
+
+If your `EVENT_MODIFY_VALUE_AS_STRING` listener also changed variable output, move that part to the reference event above; variable output no longer triggers the string event.
+
+Replace hard-coded event names with the current constants:
+
+Formie 3 | Formie 4
+--- | ---
+`'modifyValueAsJson'` | `Field::EVENT_MODIFY_VALUE_AS_DATA`
+`'modifyValueForEmail'` | `Field::EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK`
+
+Before disabling compatibility mode, update any old [field schema methods](#field-schema-methods). Other [field template](#field-templates) and [value method](#field-values) renames can wait until later.
+
+### Custom Parent Fields
+
+Update custom nested field bases to the Formie 4 classes:
+
+| Formie 3 | Formie 4 |
+| --- | --- |
+| `NestedField` | `ParentField` (shared parent behaviour) |
+| `SingleNestedField` with editable child fields | `ContainerParentField` |
+| `SubField` with intrinsic parts, such as Name | `FixedParentField` |
+| `MultiNestedField` | `RepeatableParentField` |
+
+See [Custom Field](/developers/custom-field/overview) for child definitions, storage and rendering.
+
+<span id="field-extensions-and-portable-forms"></span>
+
+### Field and Row Traversal
+
+Update templates that pass boolean traversal flags:
+
+Formie 3 | Formie 4
+--- | ---
+`row.getFields(false)` | `row.getEnabledFields()`
+`page.getRows(false)` | `page.getEnabledRows()`
+
+Use `getFieldsRecursively()` for recursive traversal and `field.getFields(rowKey)` for a repeater row.
+
+
+### Custom Integrations
+
+#### Form Integration Settings
+
+Custom integrations that add controls to a form's **Integrations** tab must replace their Twig/Vue/HTML settings UI with `defineFormSettingsSchema()`.
 
 ::: code-group
 ```php [Formie 3]
@@ -109,8 +217,12 @@ public function getFormSettingsHtml($form): string
 ```
 
 ```php [Formie 4]
+use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\base\FormInterface;
 use verbb\formie\helpers\SchemaHelper;
+
+#[FormIntegrationSetting]
+public ?string $endpointUrl = null;
 
 protected function defineFormSettingsSchema(FormInterface $form): array
 {
@@ -125,44 +237,48 @@ protected function defineFormSettingsSchema(FormInterface $form): array
 
     return $schema;
 }
-
-#[\verbb\formie\attributes\FormIntegrationSetting]
-public ?string $endpointUrl = null;
-
 ```
 :::
 
 Always start with `parent::defineFormSettingsSchema($form)` unless you have a specific reason not to. The parent schema includes the standard Enabled setting.
 
-Formie 4 only saves and populates form-level integration attributes annotated with `#[FormIntegrationSetting]`. Annotate every existing property used by your form schema. For registered integrations, undeclared values are discarded so form data cannot override plugin-level settings such as credentials or provider base URLs. Opaque settings for a temporarily unavailable integration are retained to avoid data loss, but are not hydrated at runtime.
+Formie 4 only saves and populates form-level integration attributes annotated with `#[FormIntegrationSetting]`. Annotate every existing property used by your form schema. Unannotated properties will not be saved as form settings; keep credentials and other global settings on the integration.
 
-Custom integrations that send to a URL configured on each form should use `requestPublicEndpoint()` or `deliverPayloadToPublicEndpoint()`. Provider API calls with fixed endpoints should continue to use `request()` or `deliverPayload()`.
+#### Custom Integration Endpoints
 
-### Integration Config
+If your integration sends submissions to a URL configured on each form, update its delivery call. These examples use the `endpointUrl` setting above and your existing `$submission` and `$payload` variables.
 
-Formie 3 called provider metadata such as lists, fields, pipelines and channels “form settings.” Formie 4 calls this globally cached metadata `IntegrationConfig`, keeping it distinct from the settings saved for one form.
-
-Existing `fetchFormSettings(): IntegrationFormSettings` implementations continue through the Formie 3 compatibility adapter. New and updated integrations should use the canonical API:
-
-```php
-use verbb\formie\models\IntegrationConfig;
-
-public function fetchConfig(): IntegrationConfig
-{
-    return new IntegrationConfig([
-        'fields' => $this->fetchRemoteFields(),
-    ]);
-}
+::: code-group
+```php [Formie 3]
+$response = $this->deliverPayload($submission, $this->endpointUrl, $payload);
 ```
 
-Use `getConfig()`, `refreshConfig()`, `supportsConfigRefresh()`, `EVENT_BEFORE_FETCH_CONFIG`, `EVENT_AFTER_FETCH_CONFIG`, and `IntegrationConfigEvent` in Formie 4 code. Formie 3's `fetchFormSettings()`, `getFormSettings()`, `getFormSettingValue()`, and form-settings events remain deprecated compatibility APIs.
+```php [Formie 4]
+$response = $this->deliverPayloadToPublicEndpoint($submission, $this->endpointUrl, $payload);
+```
+:::
 
-### Captchas and Address Providers
+If your integration uses `request()` directly, change that call instead:
 
-> [!CAUTION]
-> Custom captchas and address providers need to move to browser modules, and any front-end behaviour for them needs to be adapted to Formie's browser module system.
+::: code-group
+```php [Formie 3]
+$response = $this->request('POST', $this->endpointUrl, [
+    'json' => $payload,
+]);
+```
 
-Captchas and address providers now use browser modules instead of ad-hoc JavaScript variables. In practice, that means moving both the PHP side and the front-end side of the integration to the current browser module approach.
+```php [Formie 4]
+$response = $this->requestPublicEndpoint('POST', $this->endpointUrl, [
+    'json' => $payload,
+]);
+```
+:::
+
+Keep using `request()` and `deliverPayload()` for the integration provider's fixed API endpoints. See [Custom Integrations](/developers/custom-integration/overview#form-settings-schema) for form-configured URL requirements.
+
+#### Captchas and Address Providers
+
+Custom captchas and address providers must replace `getFrontEndJsVariables()` with `getBrowserModule()` and register their JavaScript in the application bundle.
 
 ::: code-group
 ```php [Formie 3]
@@ -194,63 +310,652 @@ public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule
 
 See [Captcha Integration](/developers/custom-integration/captcha-integration) and [Address Provider Integration](/developers/custom-integration/address-provider-integration) for the fuller flow.
 
-## Removed Legacy Captchas
+#### Captcha GraphQL Data
 
-Formie 4 no longer ships the **Duplicate**, **JavaScript**, or **Honeypot** captcha integrations that existed in earlier major versions. They are not available in the form builder’s captcha picker, and there is no compatibility shim that re-registers them as captcha integrations.
+GraphQL no longer invokes `getGqlVariables()`. Update custom captchas to the [Captcha Integration](/developers/custom-integration/captcha-integration) contract.
 
-Instead, their behaviour is covered by **submission guards** — built-in passive checks configured globally under **Formie → Settings → Spam Protection → Submission Guards**.
+The [integration config](#integration-config) and [method-name](#integration-method-names) aliases remain available with compatibility mode off; update those when maintaining your integration.
 
-### What They Were
+### Browser Module Declarations
 
-- **Duplicate** attempted to block repeat submissions by comparing new requests to recent activity. In practice it was sensitive to caching, multi-page flows, and Ajax reloads, which produced hard-to-debug false positives and noisy support tickets.
-- **JavaScript** was a lightweight “prove the browser ran our script” check. It duplicated behaviour that modern browsers, privacy tools, and static caching already interfere with, and it was a poor accessibility story compared to provider-backed challenges.
-- **Honeypot** relied on a hidden field that legitimate users were expected to leave empty. Browser autofill, password managers, accessibility tools, and static or edge-cached HTML often touched that field anyway, which caused false positives; determined bots could also learn to avoid a known pattern.
+Formie 4 no longer loads JavaScript from the `src` URL returned by `getFrontEndJsModules()`. Adapt your JavaScript to the browser module API and register it in your application bundle before mounting the form.
 
-Those approaches did not match how serious abuse is handled today: explicit provider verification, clearer spam reasons, and a single **screening** stage in the submission workflow.
+You can keep the existing PHP declaration during this step. For example, a field returning `'module' => 'MyRating'` from `getFrontEndJsModules()` needs JavaScript registered as `legacy:my-rating`.
 
-### What to Use Instead
+In your Twig template, disable automatic initialisation so your bundle can register the module first:
 
-| Formie 3 | Formie 4 | Where to configure |
-| --- | --- | --- |
-| **Honeypot** | **Honeypot** submission guard | **Settings → Spam Protection → Submission Guards** |
-| **Javascript** (including minimum submit time) | **Minimum submit time** submission guard | **Settings → Spam Protection → Submission Guards** |
-| **Duplicate** | **Replay protection** submission guard | **Settings → Spam Protection → Submission Guards** |
+```twig
+{{ craft.formie.renderForm(form, { initJs: false }) }}
+```
 
-Submission guards are **global** settings. They apply to all forms automatically when enabled. You do not enable them per form the way you did with the old built-in captchas.
+In your application bundle, register the field's behaviour before mounting the form. This example assumes your custom field template contains a range input and an `<output>` element inside Formie's standard field wrapper:
 
-All three guards are enabled by default after upgrade (honeypot on, three-second minimum submit time, replay protection on). Review **Settings → Spam Protection** after upgrading and adjust them for your site.
+```js
+import { createFormieClient, formie } from '@verbb/formie-browser';
 
-For stronger abuse protection, also enable one or more supported [Captcha integrations](/integrations/captchas/) (for example Cloudflare Turnstile, hCaptcha, or reCAPTCHA) and combine them with [Spam Protection](/forms/spam-protection) keyword rules where appropriate.
+const client = createFormieClient();
 
-### How Guards Fit the Workflow
+client.registerModule({
+  moduleId: 'legacy:my-rating',
+  version: 2,
+  surfaces: ['server-rendered'],
+  kind: 'field',
+  match: ({ target }) => Boolean(target.querySelector('input[type="range"]')),
+  async setup({ target }) {
+    const input = target.querySelector('input[type="range"]');
+    const output = target.querySelector('output');
+    const update = () => { output.textContent = input.value; };
 
-Request safeguards run before submission processing, including on draft saves and page changes. Custom REST and GraphQL clients must send the session tokens issued when the form loads; logging in does not bypass these checks.
+    input.addEventListener('input', update);
+    update();
 
-Retrying a successful request with the same input recovers its result if the response was lost. Different input causes a conflict, except after validation errors, when visitors can correct their answers. Custom HTML/AJAX clients must post `expectedVersion`; client sessions carry `version`; administrative GraphQL edits use the record's `stateVersion` as `expectedVersion`.
+    return { destroy: () => input.removeEventListener('input', update) };
+  },
+});
 
-The honeypot input and `formStartedAt` timestamp are rendered automatically for browser forms. Replay protection reuses Formie’s existing per-render `requestToken`.
+await formie({ element: '[data-formie-form]', client });
+```
 
-See [Submission Workflow](/developers/submission-workflow#screen) for the full screening order and [Spam Protection](/forms/spam-protection#submission-guards) for configuration detail.
+You can update the [PHP declaration](#browser-module-php-declarations) later. See [Build a Custom Module](https://docs.verbb.io/formie/browser/modules/build-a-custom-module) for more on field markup, configuration and module registration.
 
-### Settings and Storage Changes
+### JavaScript Event Behaviour
 
-Spam handling, keyword rules, submission guards, and captcha provider credentials now live on a single **Settings → Spam Protection** page. Legacy **Settings → Spam** and **Settings → Captchas** routes redirect there.
+Most existing event listeners continue to work with compatibility mode enabled. See [Front-End JavaScript Events](#front-end-javascript-events) below for the full before-and-after examples and event-name mappings. Only these exceptions need attention before upgrading:
 
-Those values are stored in Formie’s dedicated settings tables (`formie_spam_settings`, `formie_captcha_providers`) rather than `plugins.formie.settings` in project config. Legacy plugin settings keys are stripped on save and seeded into the new stores automatically while compatibility mode is enabled.
+- `onFormieLoaded` and `onFormieInit` now fire when each form mounts. Update code that assumes a single page-wide initialisation event or relies on the old JavaScript instance API.
+- Legacy submission and validation events do not forward `preventDefault()` to the new workflow. Update listeners that use these events to stop processing.
+- `onFormieThemeReady` no longer fires. Use `formie:validator:ready`; see the [custom validation example](#custom-front-end-validation) below.
 
-### Custom Code and GraphQL
+Other supported event names can be updated later, before disabling compatibility mode.
 
-If you had custom code or front-end automation that targeted the old Duplicate, JavaScript, or Honeypot captcha handles:
+### Custom Front-End Validation
 
-- Remove references to those captcha integration handles — they no longer exist.
-- Switch spam-related checks to the replacement captcha integration handles you enable (for example `turnstile`, `recaptcha`), or hook into the screening stage if you need custom server-side checks.
-- Update any GraphQL mutation arguments that referenced the removed captcha types.
+Update custom validators registered through `onFormieThemeReady` to use `formie:validator:ready`. The browser bridge does not restore `onFormieThemeReady`. Test both valid and invalid input after updating.
 
-Provider-backed captchas and spam rules still evaluate together in the **`screen`** stage. See [Submission Workflow](/developers/submission-workflow#screen) for how that stage orders checks and how that relates to validation and saves.
+::: code-group
+```js [Formie 3]
+const form = document.querySelector('#formie-form');
 
-## Front-End JavaScript Events
+form.addEventListener('onFormieThemeReady', (event) => {
+  event.detail.addValidator('businessEmail', ({ input }) => {
+    return !input.value.endsWith('@example.com');
+  }, () => {
+    return 'Please use your business email address.';
+  });
+});
+```
 
-Formie 4 uses namespaced DOM event names. If you listen for old Formie event names, switch them to the new event names.
+```js [Formie 4]
+const form = document.querySelector('#formie-form');
+
+form?.addEventListener('formie:validator:ready', (event) => {
+  const { validator } = event.detail;
+
+  validator.addValidator(
+    'businessEmail',
+    ({ input }) => !input.value.endsWith('@example.com'),
+    () => 'Please use your business email address.'
+  );
+});
+```
+:::
+
+Learn more in [Frontend Assets](/frontend/frontend-assets).
+
+### GraphQL
+
+#### Loading Form HTML
+
+If you were loading rendered HTML over GraphQL, switch from the old form query to the dedicated HTML query.
+
+::: code-group
+```graphql [Formie 3]
+query FormHtml($handle: String!) {
+  formieForm(handle: $handle) {
+    templateHtml
+  }
+}
+```
+
+```graphql [Formie 4]
+query FormHtml($handle: String!, $input: ServerRenderPayloadInput) {
+  formieHtmlForm(handle: $handle, input: $input) {
+    html
+  }
+}
+```
+:::
+
+#### Decimal Query Variables
+
+Number fields and numeric Table cells now use `FormieDecimal` and return decimal strings. Update declared variables and send decimal values as strings to preserve precision.
+
+Formie 3 | Formie 4
+--- | ---
+`$amount: Number` | `$amount: FormieDecimal`
+
+#### Integration Settings in GraphQL
+
+Form integration settings returned through GraphQL contain only values needed by the browser. Make, n8n and Web Request destination URLs are server-side settings and are not returned. Custom clients should keep those destinations on the server rather than reading them from form queries.
+
+#### Custom GraphQL Submission Clients
+
+Custom submission clients must also update their [tokens and version handling](#continuity-and-upload-upgrade-actions). See [Rendering Forms](/graphql/rendering-forms) and [Create Submissions](/graphql/create-submissions) for complete requests. The [page-setting renames](#graphql-page-settings) remain covered by compatibility mode.
+
+### Submission Workflow
+
+If your module uses `onBeforeSubmission()`, `onAfterSubmission()` or the old before/after submission events, update it before upgrading. Formie 4 no longer calls these hooks, and compatibility mode does not restore them. Choose the replacement according to what your code does.
+
+#### Checking or Changing Values Before Saving
+
+For checks previously run in `beforeSubmission` or `beforeIncompleteSubmission`, move the check into a **workflow task**: a PHP class whose `execute()` method lets processing continue or stops it with an error.
+
+For example, this task checks an order reference and shows a validation error when it is invalid:
+
+```php
+use verbb\formie\enums\SubmissionOutcomeType;
+use verbb\formie\workflow\WorkflowContext;
+use verbb\formie\workflow\tasks\TaskInterface;
+use verbb\formie\workflow\tasks\TaskResult;
+
+class CheckOrderTask implements TaskInterface
+{
+    public function execute(WorkflowContext $context): TaskResult
+    {
+        if ($context->command->form->handle !== 'orders') {
+            return TaskResult::continue();
+        }
+
+        $submission = $context->command->submission;
+        $reference = (string)$submission->getFieldValue('orderReference');
+
+        if ($reference !== '' && !str_starts_with($reference, 'ORD-')) {
+            $submission->addError('field:orderReference', 'Enter a reference beginning with ORD-.');
+
+            return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
+        }
+
+        return TaskResult::continue();
+    }
+}
+```
+
+Replace the form handle, field handle and check with your own. Register the task in your Craft module using the [task registration example](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch#register-the-task). That places it after Formie's field validation and before saving, so a failed check cannot save the submission or send notifications.
+
+If your old hook changed field values, place that task **before** field validation so Formie validates the changed values. The same guide shows [how to choose a position](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch#choose-a-position).
+
+#### Running Code After a Page or Form Submit
+
+If you used `afterSubmission` or `afterIncompleteSubmission`, choose when your code should run:
+
+- **When the form becomes complete:** use `Submission::EVENT_AFTER_COMPLETE`. This does not fire for intermediate pages or later edits to an already complete submission.
+- **After a successful Next-page submission:** use `SubmissionWorkflow::EVENT_AFTER_PAGE_ADVANCE`. This does not fire for Back navigation, saved drafts or final completion.
+
+For example, replace a listener that runs after a successful final submission with:
+
+```php
+use verbb\formie\elements\Submission;
+use verbb\formie\events\SubmissionCompleteEvent;
+use yii\base\Event;
+
+Event::on(Submission::class, Submission::EVENT_AFTER_COMPLETE, function(SubmissionCompleteEvent $event) {
+    $submission = $event->submission;
+
+    // Move your successful-submit code here.
+});
+```
+
+These events run after saving and before notifications and integrations. They do not report failed attempts. See [Run Custom Code on Page Submit or Form Submit](/guides/submissions-workflows/run-custom-code-on-page-submit-or-form-submit) for both listener examples, or [workflow events](/developers/events/submission-events#submission-workflow-events) if your code observes another point in processing.
+
+<span id="spam-checks-and-direct-saves"></span>
+
+#### Custom Spam Checks
+
+Move custom checks from `spamChecks()`, `beforeSpamCheck` or `afterSpamCheck` into a task in the Screen stage, before or after Formie's `screen.evaluateSpam` task. Use the same [task registration pattern](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch#choose-a-position); [Screen stage](/developers/submission-workflow#screen) explains where custom spam checks belong. Test custom checks with invalid input, page changes and a completed submission.
+
+#### Programmatic Submissions
+
+Direct element saves persist data but do not run the submission workflow or automatically dispatch notifications and integrations. Code that submits a form programmatically must use [SubmissionProcessor](/developers/submission-workflow). Existing notification and integration forwarding methods are covered under [Custom Integration Dispatch](#custom-integration-dispatch).
+
+Next, review the [notification and integration event changes](#php-events) before disabling compatibility mode.
+
+### Removed Legacy Captchas
+
+Remove references to these captcha types or handles from custom PHP and GraphQL requests. Their replacements are built-in [submission guards](/forms/spam-protection#submission-guards):
+
+Formie 3 | Formie 4
+--- | ---
+**Honeypot** captcha | **Honeypot** submission guard
+**JavaScript** captcha | **Minimum submit time** submission guard
+**Duplicate** captcha | **Replay protection** submission guard
+
+Built-in configuration is [migrated automatically](#spam-protection). Use [Submission Workflow](/developers/submission-workflow#screen) for custom server-side checks. Custom clients must still follow the [submission token and version requirements](#continuity-and-upload-upgrade-actions).
+
+### Translation Strings
+
+Update custom text-limit counter translations and browser translation event listeners before upgrading. These are separate from [form content translations](#form-content-translations).
+
+Supported [validation-message keys](#validation-message-translations) can wait until compatibility mode is disabled. One exception is `{attribute} must select between {min} and {max}.`: if you overrode that combined key, replace it with the separate [minimum and maximum option messages](#front-end-validation-placeholders).
+
+#### Text Limit Counter Copy
+
+Text-limit counters no longer use `{startTag}` / `{endTag}` HTML placeholders in translation strings. The count is rendered in markup; the translation covers the suffix only.
+
+Remove overrides for these **removed** source keys:
+
+- `{startTag}{num}{endTag} character left`
+- `{startTag}{num}{endTag} characters left`
+- `{startTag}{num}{endTag} word left`
+- `{startTag}{num}{endTag} words left`
+- `{num} characters left` (legacy)
+- `{num} words left` (legacy)
+
+Replace them with Craft plural syntax. Counters use three states depending on field content:
+
+State | When | Example suffix
+--- | --- | ---
+Allowed | Field is empty | `100 characters allowed`
+Left | Under the limit | `42 characters left`
+Over | Over the limit | `5 characters over limit`
+
+Use these six source keys in your translation file. For example, in `translations/de/formie.php`:
+
+```php
+// translations/de/formie.php
+return [
+    '{count, plural, one{character allowed} other{characters allowed}}' => '{count, plural, one{Zeichen erlaubt} other{Zeichen erlaubt}}',
+    '{count, plural, one{character left} other{characters left}}' => '{count, plural, one{Zeichen übrig} other{Zeichen übrig}}',
+    '{count, plural, one{character over limit} other{characters over limit}}' => '{count, plural, one{Zeichen über dem Limit} other{Zeichen über dem Limit}}',
+    '{count, plural, one{word allowed} other{words allowed}}' => '{count, plural, one{Wort erlaubt} other{Wörter erlaubt}}',
+    '{count, plural, one{word left} other{words left}}' => '{count, plural, one{Wort übrig} other{Wörter übrig}}',
+    '{count, plural, one{word over limit} other{words over limit}}' => '{count, plural, one{Wort über dem Limit} other{Wörter über dem Limit}}',
+];
+```
+
+On the front end, pass `{ count }` when translating these strings. Formie’s browser `t()` helper resolves Craft-style plural branches when the form renders.
+
+#### Browser Translation Event
+
+Update custom browser translation listeners:
+
+Formie 3 | Formie 4
+--- | ---
+`Rendering::EVENT_MODIFY_FRONT_END_JS_TRANSLATIONS` | `Rendering::EVENT_MODIFY_BROWSER_JS_TRANSLATIONS`
+
+### Form Content Translations
+
+Formie no longer passes user-authored form copy through the `formie` translation category at render time. Labels, placeholders, messages, and option labels come from the database (with [site overrides](/forms/multi-site#content-translation) on multi-site projects).
+
+#### Audit Your Translation Files
+
+Review `translations/*/formie.php` and remove keys that match **form builder content**, for example:
+
+```php
+// Remove — migrate to CP site overrides or edit the form directly
+'Your name' => 'Votre nom',
+'Contact us' => 'Contactez-nous',
+'Please enter your email' => 'Veuillez saisir votre e-mail',
+```
+
+Keep keys that match **Formie-owned English source strings**, for example:
+
+```php
+// Keep
+'{label} cannot be blank.' => '…',
+'(optional)' => '…',
+'Drop files here or browse to upload.' => '…',
+```
+
+The same applies to user field labels stored in `translations/*/site.php`. Prefer editing the form or using CP site overrides instead.
+
+#### Migration Paths
+
+For labels, placeholders and messages previously translated through locale files, select the destination site in the form builder and enter its site overrides. This also supports two sites with the same language but different copy.
+
+Keep plugin validation translations in `formie.php`. For a message specific to one field, use its **Validation** tab (`validationMessages.*`). See [Content Translation](/forms/multi-site#content-translation) for the site-override controls.
+
+#### Single-Site Projects
+
+Edit the form in the control panel. You do not need translation file entries for field labels.
+
+Learn more in [Static Translations](/forms/static-translations).
+
+<span id="theme-attributes"></span>
+
+### Default Theme Classes
+
+Formie 4’s default theme uses the `formie` CSS class prefix. If your site styles Formie 3’s `.fui-` classes, update those selectors or adopt the current theme variables before deploying. A PHP compatibility bridge cannot rewrite your stylesheet.
+
+Formie 3 | Formie 4
+--- | ---
+`.fui-form` | `.formie-form`
+
+Theme configuration can no longer remove required functional or accessibility attributes. Update customisations that depended on removing them; trusted `EVENT_MODIFY_SLOT_TAG` listeners remain available for deliberate overrides.
+
+If you use the Formie 3 [Tailwind](https://github.com/verbb/formie-theme-configs/blob/formie-3/tailwind/index.html) or [Bootstrap](https://github.com/verbb/formie-theme-configs/blob/formie-3/bootstrap/index.html) theme examples, update their class selectors and review the resulting markup.
+
+Inspect each styled form, including validation errors, page navigation and nested fields, after rebuilding your site assets. See [Theme Config](/theming/theme-config) for the current theming approach. Update the [legacy custom tag fallback](#theme-config) before disabling compatibility mode.
+
+### Submission Status Database Table
+
+Custom SQL that queries `formie_statuses` must use `formie_submission_statuses`. The migration renames the table automatically, but compatibility aliases cannot rewrite SQL.
+
+Formie 3 | Formie 4
+--- | ---
+`formie_statuses` | `formie_submission_statuses`
+
+PHP/Twig status aliases remain available as described under [Submission and Form Statuses](#submission-and-form-statuses).
+
+### Field Value Contracts
+
+<span id="name-and-date-output"></span>
+
+#### Name Field Output
+
+Name fields now return `NameFieldValue`, including single-name mode. Ordinary Twig output still displays the name. When your code requires a string, use `getFieldValueAsString()`:
+
+```twig
+{{ submission.getFieldValueAsString('fullName') }}
+```
+
+#### Date Display Formatting
+
+For a Date field's configured display format instead of its raw date/time string, use `getFieldValueAsString()`:
+
+```twig
+{{ submission.getFieldValueAsString('appointmentDate') }}
+```
+
+Replace these example handles with your own. See [Reading Submission Values](/developers/submission-content#reading-submission-values) for the output helpers.
+
+#### Changing a Field Value
+
+Name, Address and option values are now immutable: assigning to a property on the existing value no longer works. Create a replacement value and assign it to the submission. For example, to change the first name in a multi-part Name field while keeping its other parts:
+
+```php
+use verbb\formie\fields\values\NameFieldValue;
+
+$name = $submission->getFieldValue('fullName');
+$parts = $name->toArray();
+$parts['firstName'] = 'Ada';
+
+$submission->setFieldValue('fullName', new NameFieldValue($parts));
+```
+
+Save the submission through your existing save or submission workflow after assigning the replacement. Apply the same replacement approach to Address properties and selected options.
+
+<span id="numbers-and-phone-values"></span>
+
+#### Number Values
+
+GraphQL returns Number values as decimal strings. Update client types and the [GraphQL query type](#decimal-query-variables). For a Number field named `amount`:
+
+::: code-group
+```ts [Formie 3]
+type SubmissionValues = { amount: number | null };
+```
+
+```ts [Formie 4]
+type SubmissionValues = { amount: string | null };
+```
+:::
+
+#### Phone Values
+
+Replace `hasCountryCode` checks with a check for the value's country. For a Phone field named `phone`:
+
+::: code-group
+```php [Formie 3]
+$hasCountry = $submission->getFieldValue('phone')->hasCountryCode;
+```
+
+```php [Formie 4]
+$hasCountry = $submission->getFieldValue('phone')->country !== null;
+```
+:::
+
+To check whether the field enables country selection, use `$submission->getFieldByHandle('phone')->countryEnabled`. String output uses a valid E.164 number, or preserves invalid entered text.
+
+#### Empty Agree Values
+
+Missing Agree input normalises to `false`. For an Agree field named `agree`, update empty-value checks:
+
+::: code-group
+```php [Formie 3]
+$isUnchecked = $submission->getFieldValue('agree') === null;
+```
+
+```php [Formie 4]
+$isUnchecked = $submission->getFieldValue('agree') === false;
+```
+:::
+
+#### Payment Records
+
+If your template reads payment records from a Payment field's value, switch to `submission.getPayments()` or `submission.getSubscriptions()`. The field value now contains only submitted input.
+
+Working method aliases are listed under [Field Values](#field-values). Encryption has its own [activation and conversion process](#encrypted-submission-fields).
+
+<span id="reference-runtime-and-variable-picker"></span>
+
+### References and Variable Picker
+
+#### Parsing Values in Custom Code
+
+Replace `craft.formie.getParsedValue()` or PHP’s `Variables::getParsedValue()` according to the result you need: `parseContent()` returns text with tokens replaced; `parseValue()` returns the value of one token without converting it to display text.
+
+::: code-group
+```twig [Twig]
+{{ craft.formie.parseContent('Reference: {submission:uid}', submission) }}
+{% set submissionId = craft.formie.parseValue('{submission:id}', submission) %}
+```
+
+```php [PHP]
+use verbb\formie\helpers\References;
+
+$text = References::parseContent('Reference: {submission:uid}', $submission);
+$submissionId = References::parseValue('{submission:id}', $submission);
+```
+:::
+
+Code needing explicit output encoding or a custom context can use `References::interpolateText()` or `References::resolveValue()`. See [Exact Values and Text](/developers/reference-tokens#exact-values-and-text) for that example.
+
+#### Custom Variable Sources
+
+If your module added picker variables through `RegisterVariablesEvent::$variables` or `ParseVariablesEvent::$variables`, replace that registration with `ReferenceCatalogue::EVENT_REGISTER`. Each `ReferenceSource` supplies a label, its value type (`FieldValueType`) and a callback that returns the value.
+
+Follow the [Custom Variable Sources example](/developers/custom-variable-sources), then update your custom tokens to the registered ID. For example, a source registered as `acme/campaign` uses `{custom:acme/campaign}`. Formie cannot infer replacements for third-party variable names.
+
+<span id="environment-variables-and-twig-expressions"></span>
+
+#### Environment Variable Access
+
+If notifications or other references read an environment variable, add its name to `referenceEnvironmentAllowlist` in `config/formie.php`:
+
+```php
+return [
+    'referenceEnvironmentAllowlist' => ['CAMPAIGN_CODE'],
+];
+```
+
+This also applies to authored notification `$NAME` aliases. A `FORMIE_` prefix does not allow access automatically.
+
+#### Twig Expressions in References
+
+Stored references, automation URLs, Hidden Custom Value defaults, upload subpaths and uploaded filenames do not evaluate Twig expressions. Move computed values into a [custom variable source](/developers/custom-variable-sources), then select that source in the Variable Picker. Hidden fields using **Template**, HTML fields with **Allow Twig** enabled and PDF filenames retain sandboxed Twig support.
+
+Review File Upload subpaths that use Craft object-template shorthand or Twig filters. Replace them with references before accepting uploads:
+
+| Previous Subpath | Reference Subpath |
+| --- | --- |
+| `uploads/{id}` | `uploads/{submission:id}` |
+| `uploads/{myFieldHandle}` | `uploads/{field:myFieldHandle}` |
+| `uploads/{user.id}` | `uploads/{user:id}` |
+
+Use the picker to select any supported transform. Arbitrary Twig filters, method calls and custom user properties require a registered PHP source. Submit a test file and verify its final asset folder after making these changes.
+
+<span id="missing-and-repeated-fields"></span>
+
+#### Missing Field References
+
+Test references in notifications, redirects and integration mappings. Missing or ambiguous fields now produce diagnostics instead of silently returning an empty value; correct the field reference when this happens.
+
+#### Repeater Field References
+
+For a repeater child outside the current row, select which rows to read in the Variable Picker. Custom tokens need an explicit selector such as `scope=first`, `last`, `index`, `all`, `count` or `rows`; see [Reference Tokens](/developers/reference-tokens#transforms-and-metadata).
+
+<span id="completion-and-runtime-configuration"></span>
+
+### Completion and Setting Overrides
+
+The [completion setting renames](#completion-setting-names) are handled automatically. Review the following only if your site uses external redirects, custom query parameters or setting overrides in Twig or PHP.
+
+<span id="redirect-destinations-and-query-parameters"></span>
+
+#### Redirect Destinations
+
+Relative redirect URLs and URLs on configured Craft sites still work. If completion redirects to another site, add its exact origin to `completionRedirectAllowedOrigins` in `config/formie.php`:
+
+```php
+return [
+    'completionRedirectAllowedOrigins' => ['https://partner.example.com'],
+];
+```
+
+Use the destination's scheme, hostname and port, without a path.
+
+#### Redirect Query Parameters
+
+Only five UTM query parameters are forwarded by default. Add other parameters your destination needs to `completionQueryAllowlist`. For example, this adds `affiliate` to the default campaign parameters:
+
+```php
+return [
+    'completionQueryAllowlist' => ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'affiliate'],
+];
+```
+
+Set `completionQueryAllowlist` to `[]` to disable query forwarding. See [Completion and Redirects](/templates/completion-and-redirects) for examples.
+
+<span id="runtime-setting-overrides"></span>
+
+#### Overriding Form Settings
+
+Remove attempts to override form or field identities, provider credentials or global integration settings at render time. Configure credentials and global settings on the integration instead. If a custom field needs an additional setting to be overridden, declare it through `runtimeOverridableSettings()`; see [Configuration Lifetime](/templates/overriding-settings#configuration-lifetime).
+
+#### Settings Snapshot Argument
+
+Remove named `updateSnapshot:` arguments from `setSettings()`, `setFieldSettings()` and `setIntegrationSettings()`. If your code passed `false` to keep an override out of the saved configuration, revise that assumption: Formie now retains settings needed to continue the form automatically. Apply overrides before rendering, as shown in [Overriding Settings](/templates/overriding-settings).
+
+#### Prefilled and Empty Values
+
+An explicitly empty posted value now stays empty, including Hidden fields. Query input is captured when a new form instance starts. Test prefilled values and resumed forms if your code previously relied on restoring defaults after a value was cleared or rereading query parameters on later pages.
+
+### Conditions and Validation
+
+Update conditions or custom validation code that depends on these changed behaviours:
+
+- Text compares alphabetically (`10` comes before `2`); Number fields compare numerically.
+- Option comparisons match complete values, not parts of an option.
+- Invalid conditions block actions. Correct unknown rules and dependency cycles.
+- Date/time rules need complete values and a timezone offset for ambiguous local times.
+- Hidden and disabled values are cleared before validation, including nested and repeater values.
+
+Test conditional visibility, required fields and page navigation.
+
+#### Custom AJAX Validation Responses
+
+Validation errors are plain text. Custom AJAX clients should inspect validation results, not rely on HTTP status alone: the Formie 3 transport can still return HTTP 200 for errors.
+
+See [Conditions](/developers/conditions) for condition evaluation and [Validation](/developers/validation) for request and validation details.
+
+### Continuity and Upload Upgrade Actions
+
+Standard Formie rendering supplies the current tokens and version inputs automatically. The changes below apply to overridden templates, custom submission clients and existing edit links. Rebuild custom client assets alongside the PHP upgrade.
+
+#### Overridden Hidden Inputs
+
+If you copied or overrode `form/hidden-inputs.html`, update it from the Formie 4 template. Keep its `expectedVersion`, upload credentials and `formStartedAt` inputs, and keep Formie's JavaScript enabled so it populates the submission guard inputs.
+
+#### Custom Submission Requests
+
+When continuing or editing a submission, send the current version returned by Formie so an older request cannot overwrite newer changes:
+
+- **Custom HTML/AJAX requests:** include the issued hidden inputs and `expectedVersion`. A new submission starts at version `0`.
+- **Custom client-rendered requests:** send the issued session tokens and current `version`.
+- **Administrative GraphQL edits:** read the record's `stateVersion` and send it as `expectedVersion`.
+
+Keep the issued tokens alongside the version; logging in does not bypass visitor submission checks. See [Submission Workflow](/developers/submission-workflow#progress-grants-and-uploads) and [GraphQL Submission Examples](/graphql/create-submissions) for request formats.
+
+#### Existing Edit Links
+
+Previously generated edit tokens must be replaced. Check ownership before calling `form.setSubmission(submission)`, then render the authorised edit form again to issue a fresh token.
+
+#### Uploads and Asset IDs
+
+Custom clients can no longer attach an arbitrary asset by posting its ID. Upload the file first and send the returned `{ uploadUid, attachToken }`, or reference an asset already owned by the authorised submission and field.
+
+Legacy asset IDs remain accepted when Formie can verify them against the current browser's staged upload or the submission's existing field value. See [GraphQL File Uploads](/graphql/create-submissions#file-upload-fields) for an example and [upload request contracts](/developers/submission-workflow#progress-grants-and-uploads) for REST clients.
+
+Test page changes, draft resume in another browser, completed-submission editing and uploads. When two clients submit changes against the same version, only the first should succeed.
+
+### Payment and Subscription Boundary
+
+#### Preparing a Payment Site
+
+Finish active checkout sessions before deployment. Afterwards, regenerate payment and subscription cancellation links; cancellation links must show confirmation on GET and cancel through a CSRF-protected POST. Keep the Formie security key needed to read historical delivery and webhook evidence.
+
+Check the providers your site uses:
+
+- **GoCardless:** configure the **Webhook Secret Key** and enable billing request, payment and subscription events using [GoCardless Setup](/integrations/payments/gocardless#step-3-configure-webhooks). Unsigned webhooks are rejected.
+- **Stripe:** keep the existing signing secret configured.
+- **Mollie:** reconcile outstanding Formie 3 payments before cutover. Their old callback URLs lack the payment-specific credentials required by Formie 4.
+
+Existing handle-based webhook URLs remain routable with compatibility mode enabled, subject to provider verification. Updating them to integration-UID URLs can wait until [disabling compatibility mode](#payment-webhooks).
+
+#### Custom Payment Providers
+
+If your provider overrides `processPayment(): bool`, move its payment request code into protected `executePayment()` and return a `PaymentDecision`. This result tells Formie whether payment succeeded, failed, needs customer action or is still pending. Inherit `processPayment()` from the base class. The [PHP Integration example](/developers/custom-integration/payment-integration#php-integration) shows the method signature and result construction.
+
+Update code that requires payment amounts to be PHP floats to accept decimal strings. Use `PaymentMoney` for calculations that must preserve currency precision; see [Money and Outcomes](/developers/custom-integration/payment-integration#money-and-outcomes).
+
+If your provider used generic public callbacks, separate them by purpose: customer return, status lookup, session initialisation or provider challenge. Follow the [Endpoint Contracts](/developers/custom-integration/payment-integration#endpoint-contracts) for the matching routes and credentials.
+
+#### Subscription Records
+
+Stored subscription statuses migrate automatically. Update custom code that compares the old status strings:
+
+Formie 3 | Formie 4
+--- | ---
+`suspended` | `pastDue` or `paused`, according to provider state.
+`cancelling` | `active` with `cancelAt`.
+`expired` | `failed` for incomplete setup, otherwise `completed`.
+
+The `hasStarted`, `isSuspended`, `isCanceled` and `isExpired` flags remain readable, but cannot be assigned. Update code that writes those flags to use `status`; custom providers should apply state through the [subscription snapshot API](/developers/custom-integration/payment-integration#subscriptions).
+
+If your code reads the full provider response from `Subscription.subscriptionData`, update it to use the selected identifiers and flags in `providerData`. The compatibility getter no longer returns the full response.
+
+Test a payment, provider return, webhook and cancellation before deployment. Working aliases and provider adapters are listed under [Payment Compatibility](#payment-compatibility).
+
+## Before Disabling Compatibility Mode
+
+<span id="compatibility-mode"></span>
+
+The changes in this section can wait until after the initial upgrade. Their Formie 3 behaviour requires `compatibilityMode`; complete the applicable updates before turning it off.
+
+`compatibilityMode` is enabled by default. Leave it enabled while updating legacy class names, field schemas, PHP and browser event listeners. Use this section to identify the usages that depend on the switch, then test with it disabled on staging. Deprecation logs help locate old code, but not every warning is a reason to keep compatibility mode on.
+
+```php
+// config/formie.php
+return [
+    'compatibilityMode' => false,
+];
+```
+
+Compatibility mode also enables the [browser event bridge](#front-end-javascript-events) automatically on rendered forms. Purge cached form HTML after changing the setting. Once these updates are complete, the [Deprecated Changes](#deprecated-changes) are optional cleanup and do not require compatibility mode.
+
+### Front-End JavaScript Events
+
+With `compatibilityMode` enabled (the default), Formie automatically enables supported Formie 3 events on rendered forms, including HTML loaded through REST or GraphQL. Existing listeners do not need a custom JavaScript bundle or manual mounting. Update to the namespaced events before disabling compatibility mode.
 
 ::: code-group
 ```js [Formie 3]
@@ -285,81 +990,9 @@ Formie 3 | Formie 4
 `onFormieValidate` | `formie:stage:validate:before`
 `onAfterFormieValidate` | `formie:stage:validate:after`
 
-Some mappings are approximate because the front-end submission flow has changed. Use the new event that matches the point in the form lifecycle you need.
+Some mappings are approximate because the submission flow has changed. Use the event that matches the point in the form lifecycle you need.
 
-The browser package includes an opt-in compatibility bridge for older event names. If you mount Formie yourself, you can enable it while you migrate listeners:
-
-```ts
-import { createFormieClient } from '@verbb/formie-browser';
-
-const formie = createFormieClient();
-const form = document.querySelector('[data-formie-form]');
-
-if (form instanceof HTMLElement) {
-    await formie.mount(form, {
-        mode: 'html',
-        compatibility: true,
-    });
-}
-```
-
-You can also enable only part of the bridge:
-
-```ts
-await formie.mount(form, {
-    mode: 'html',
-    compatibility: {
-        legacyDomEvents: true,
-        legacyValidatorEvents: false,
-    },
-});
-```
-
-For rendered HTML, the bridge can be enabled with a data attribute:
-
-```html
-<form data-formie data-formie-form data-formie-compatibility="true">
-    <!-- ... -->
-</form>
-```
-
-Prefer updating to the new event names instead of leaving the bridge enabled permanently.
-
-Learn more in [Frontend Assets](/frontend/frontend-assets).
-
-## Custom Front-End Validation
-
-Custom validator registration should now use the validator exposed by `formie:validator:ready`.
-
-::: code-group
-```js [Formie 3]
-const form = document.querySelector('#formie-form');
-
-form.addEventListener('onFormieThemeReady', (event) => {
-  event.detail.addValidator('businessEmail', ({ input }) => {
-    return !input.value.endsWith('@example.com');
-  }, () => {
-    return 'Please use your business email address.';
-  });
-});
-```
-
-```js [Formie 4]
-const form = document.querySelector('#formie-form');
-
-form?.addEventListener('formie:validator:ready', (event) => {
-  const { validator } = event.detail;
-
-  validator.addValidator(
-    'businessEmail',
-    ({ input }) => !input.value.endsWith('@example.com'),
-    () => 'Please use your business email address.'
-  );
-});
-```
-:::
-
-Validator events have also been renamed:
+These validator event names also remain available while compatibility mode is enabled:
 
 Formie 3 | Formie 4
 --- | ---
@@ -368,401 +1001,25 @@ Formie 3 | Formie 4
 `formieValidatorShowError` | `formie:validator:show-error`
 `formieValidatorClearError` | `formie:validator:clear-error`
 
-Learn more in [Frontend Assets](/frontend/frontend-assets).
+If you mount Formie yourself, the browser inherits the setting from the rendered form. An explicit `compatibility` mount option overrides it. For standalone HTML without Formie's rendered attributes, use `compatibility: true` or `data-formie-compatibility="true"`. See [Frontend Assets](/frontend/frontend-assets) for custom setups.
 
-## GraphQL
+### Other PHP Class Names
 
-> [!IMPORTANT]
-> Compatibility mode will handle these changes automatically.
-
-If you query form page settings, update the renamed client event fields:
-
-::: code-group
-```graphql [Formie 3]
-settings {
-  enableJsEvents
-  jsGtmEventOptions
-}
-```
-
-```graphql [Formie 4]
-settings {
-  enableClientEvents
-  clientEventFields
-}
-```
-:::
-
-If you were loading rendered HTML over GraphQL, switch from the old form query to the dedicated HTML query.
-
-Form integration settings returned through GraphQL contain only values needed by the browser. Make, n8n and Web Request destination URLs are server-side settings and are not returned. Custom clients should keep those destinations on the server rather than reading them from form queries.
-
-::: code-group
-```graphql [Formie 3]
-query FormHtml($handle: String!) {
-  formieForm(handle: $handle) {
-    templateHtml
-  }
-}
-```
-
-```graphql [Formie 4]
-query FormHtml($handle: String!, $input: ServerRenderPayloadInput) {
-  formieHtmlForm(handle: $handle, input: $input) {
-    html
-  }
-}
-```
-:::
-
-This is the same server-rendered flow used by the starter examples. GraphQL loads the HTML payload, and the rendered form still submits through its normal form action.
-
-If you submit forms through GraphQL, review the current GraphQL docs. Formie now has separate docs for querying forms, querying submissions, rendering forms, and creating submissions:
-
-- [Query Forms](/graphql/query-forms)
-- [Query Submissions](/graphql/query-submissions)
-- [Rendering Forms](/graphql/rendering-forms)
-- [Create Submissions](/graphql/create-submissions)
-
-## Submission Workflow
-
-Submission processing now uses Preflight, Validate, Screen, Persist, Dispatch and Finalize. Invalid submissions stop after Validate, before content spam or CAPTCHA. Direct element saves remain persistence-only; code needing submission lifecycle policies must use an explicit operation through `SubmissionProcessor`.
-
-### Stable Formie 3 APIs
-
-| Formie 3 | Formie 4 |
-| --- | --- |
-| `getSubmissionById()`, retention/pruning and element persistence | Retained. Direct persistence does not automatically dispatch status-change notifications or integrations. |
-| `onBeforeSubmission()` / `beforeSubmission` / `beforeIncompleteSubmission` | Move execution-controlling checks to a registered Submit task in Preflight or Validate. There is no cancellation-compatible wrapper around the new command boundary. |
-| `onAfterSubmission()` / `afterSubmission` / `afterIncompleteSubmission` | Observe the typed outcome, `EVENT_AFTER_PAGE_ADVANCE` or `Submission::EVENT_AFTER_COMPLETE`, according to the intended lifecycle boundary. |
-| `spamChecks()` / `beforeSpamCheck` / `afterSpamCheck` | Register a Submit task around `screen.evaluateSpam`, or observe that public task. Cheap request guards belong outside Screen. |
-| `beforeSendNotification`, `beforeTriggerIntegration` on `Submissions` | Compatibility event bridges remain; migrate listeners to `Notifications` and `Integrations`. |
-| `afterPruneSubmission` | Retained on `Submissions`. |
-| `sendNotifications()`, `sendNotification()`, `sendNotificationEmail()`, `triggerIntegrations()`, `sendIntegrationPayload()` | Deprecated forwarding methods remain; use their owning notification/integration services. |
-| `processPayments()` | Deprecated direct-call compatibility method remains. Normal submissions should use the workflow's payment operation. |
-
-Use a registered task for checks that can stop processing, and an event listener to react to a page advance or completed submission. See [Submission Workflow](/developers/submission-workflow) for registration examples.
-
-Control panel creation uses an administrative Submit policy: whole-record validation, status preservation, and no visitor progression, screening, payment or automatic completion dispatch. Existing CP edits use Revise. Public submit/edit actions remain visitor actions even for authenticated administrators; the submission editor posts to the explicit administrative action.
-
-
-## Render Options
-
-Some render options have been renamed.
-
-### Include CSS and JavaScript
-
-Use `includeCss` and `includeJs` in place of `renderCss` and `renderJs`.
-
-::: code-group
-```twig [Formie 3]
-{{ craft.formie.renderForm('contact', {
-    renderCss: false,
-    renderJs: true,
-}) }}
-```
-
-```twig [Formie 4]
-{{ craft.formie.renderForm('contact', {
-    includeCss: false,
-    includeJs: true,
-}) }}
-```
-:::
-
-### Output CSS and JavaScript
-
-Form template asset flags are now consolidated.
-
-::: code-group
-```twig [Formie 3]
-{{ craft.formie.renderForm('contact', {
-    outputCssLayout: true,
-    outputCssTheme: true,
-    outputJsBase: true,
-    outputJsTheme: true,
-}) }}
-```
-
-```twig [Formie 4]
-{{ craft.formie.renderForm('contact', {
-    outputCss: true,
-    outputJs: true,
-}) }}
-```
-:::
-
-Formie still normalizes the old render option keys, but update templates to use the new keys.
-
-### Output Location
-
-Use `outputCssLocation` and `outputJsLocation` when you need to control where assets are output.
-
-```twig
-{{ craft.formie.renderForm('contact', {
-    outputCssLocation: 'page-header',
-    outputJsLocation: 'page-footer',
-}) }}
-```
-
-Available values are:
-
-Value | Meaning
---- | ---
-`page-header` | Register output for the document head.
-`page-footer` | Register output near the end of the page.
-`inside-form` | Output assets near the rendered form.
-`manual` | Do not output that asset automatically.
-
-Learn more in [Render Options](/templates/render-options).
-
-## Form Templates
-
-Form Templates now use single CSS and JavaScript output flags.
-
-::: code-group
-```php [Formie 3]
-[
-    'outputCssLayout' => true,
-    'outputCssTheme' => true,
-    'outputJsBase' => true,
-    'outputJsTheme' => true,
-]
-```
-
-```php [Formie 4]
-[
-    'outputCss' => true,
-    'outputJs' => true,
-    'outputCssLocation' => 'page-header',
-    'outputJsLocation' => 'page-footer',
-]
-```
-:::
-
-Learn more in [Template Overrides](/theming/template-overrides) and [Theme Config](/theming/theme-config).
-
-## Text Limits
-
-Single-line and multi-line text fields now use `maxType` and `max` instead of `limitType` and `limitAmount`.
-
-::: code-group
-```php [Formie 3]
-[
-    'limitType' => 'characters',
-    'limitAmount' => 120,
-]
-```
-
-```php [Formie 4]
-[
-    'maxType' => 'characters',
-    'max' => 120,
-]
-```
-:::
-
-Learn more in [Single-Line Text](/fields/single-line-text) and [Multi-Line Text](/fields/multi-line-text).
-
-## Translation Strings
-
-Formie 4 standardises several **plugin-owned** message keys that sites commonly override in `translations/*/formie.php`, especially for front-end validation and text-limit counters.
-
-These are strings Formie ships in English and translates with `Craft::t('formie', …)`. They are separate from form field labels and messages you edit in the form builder. See [Form Content Translations](#form-content-translations) if you previously mapped builder copy through translation files.
-
-If your project overrides plugin UI strings, update the **source keys** in your translation files. Formie looks up messages by the English source string passed to `Craft::t('formie', …)`, not by a separate message ID.
-
-### Front-End Validation Placeholders
-
-Formie-owned validation messages now use `{label}` for the field label placeholder instead of `{attribute}`.
-
-Update any overrides that still target the old `{attribute}` keys. The English source strings themselves also changed:
+Replace these older class names before disabling compatibility mode:
 
 Formie 3 | Formie 4
 --- | ---
-`{attribute} cannot be blank.` | `{label} cannot be blank.`
-`{attribute} is not a valid email address.` | `{label} is not a valid email address.`
-`{attribute} is not a valid URL.` | `{label} is not a valid URL.`
-`{attribute} is not a valid number.` | `{label} is not a valid number.`
-`{attribute} is not a valid format.` | `{label} is not a valid format.`
-`{attribute} must match {value}.` | `{label} must match {value}.`
-`{attribute} must be between {min} and {max}.` | `{label} must be between {min} and {max}.`
-`{attribute} must be no less than {min}.` | `{label} must be no less than {min}.`
-`{attribute} must be no greater than {max}.` | `{label} must be no greater than {max}.`
-`{attribute} has an invalid value.` | `{label} has an invalid value.`
-`{attribute} must select between {min} and {max}.` | `{label} must select between {min} and {max}.`
-`{attribute} must select no less than {min}.` | `{label} must select no less than {min}.`
-`{attribute} must select no greater than {max}.` | `{label} must select no greater than {max}.`
+`verbb\formie\base\FormField` | `verbb\formie\base\Field`
+`verbb\formie\base\FormFieldInterface` | `verbb\formie\base\FieldInterface`
+`verbb\formie\services\PredefinedOptions` | `verbb\formie\services\OptionSources`
+`verbb\formie\services\Phone` | `verbb\formie\services\Countries`
+`verbb\formie\options\Countries` and other predefined option classes directly in `options` | The matching class in `verbb\formie\options\predefined`
 
-These strings are included in Formie’s browser translation seed via `Rendering::getBrowserJsTranslations()`. If you append custom strings through the [`modifyBrowserJsTranslations`](/developers/events/form-events#the-modifybrowserjstranslations-event) event, use the new `{label}` placeholders in both the source key and your translated value.
+Register predefined-option event listeners on `OptionSources` instead of `PredefinedOptions`. Access the service through `getOptionSources()` instead of the old `predefinedOptions` component. The deprecated `getPredefinedOptions()` method remains callable with compatibility mode off.
 
-Custom per-field validation overrides in the form builder now live under **Validation** as `validationMessages.{key}` (for example `validationMessages.required` and `validationMessages.unique`). Legacy field `errorMessage` values are migrated to `validationMessages.required` automatically.
+### Submission and Form Statuses
 
-If a saved override still contains `{name}` or `{attribute}`, Formie still maps those to `{label}` automatically, but new overrides should use `{label}` directly.
-
-### Text Limit Counter Copy
-
-Text-limit counters no longer use `{startTag}` / `{endTag}` HTML placeholders in translation strings. The count is rendered in markup; the translation covers the suffix only.
-
-Remove overrides for these **removed** source keys:
-
-- `{startTag}{num}{endTag} character left`
-- `{startTag}{num}{endTag} characters left`
-- `{startTag}{num}{endTag} word left`
-- `{startTag}{num}{endTag} words left`
-- `{num} characters left` (legacy)
-- `{num} words left` (legacy)
-
-Replace them with Craft plural syntax. Counters use three states depending on field content:
-
-State | When | Example suffix
---- | --- | ---
-Allowed | Field is empty | `100 characters allowed`
-Left | Under the limit | `42 characters left`
-Over | Over the limit | `5 characters over limit`
-
-Formie 3 | Formie 4
---- | ---
-`{startTag}{num}{endTag} characters left` | `{count, plural, one{character allowed} other{characters allowed}}` (empty), `{count, plural, one{character left} other{characters left}}` (typing), `{count, plural, one{character over limit} other{characters over limit}}` (over limit)
-`{startTag}{num}{endTag} words left` | `{count, plural, one{word allowed} other{words allowed}}`, `{count, plural, one{word left} other{words left}}`, `{count, plural, one{word over limit} other{words over limit}}`
-
-Example site override:
-
-```php
-// translations/de/formie.php
-return [
-    '{count, plural, one{character allowed} other{characters allowed}}' => '{count, plural, one{Zeichen erlaubt} other{Zeichen erlaubt}}',
-    '{count, plural, one{character left} other{characters left}}' => '{count, plural, one{Zeichen übrig} other{Zeichen übrig}}',
-    '{count, plural, one{character over limit} other{characters over limit}}' => '{count, plural, one{Zeichen über dem Limit} other{Zeichen über dem Limit}}',
-    '{count, plural, one{word allowed} other{words allowed}}' => '{count, plural, one{Wort erlaubt} other{Wörter erlaubt}}',
-    '{count, plural, one{word left} other{words left}}' => '{count, plural, one{Wort übrig} other{Wörter übrig}}',
-    '{count, plural, one{word over limit} other{words over limit}}' => '{count, plural, one{Wort über dem Limit} other{Wörter über dem Limit}}',
-];
-```
-
-On the front end, pass `{ count }` when translating these strings. Formie’s browser `t()` helper resolves Craft-style plural branches when the form renders.
-
-### Server-Side Unique-Value Messages
-
-The default unique-value validation message source key is now:
-
-```php
-'"{label}" must be unique.'
-```
-
-If you previously overrode a field-specific unique message via translation files alone, consider using the **Unique Error Message** field on the Validation tab instead (`validationMessages.unique`), which supports `{label}` and other allowed placeholders without requiring a global translation override.
-
-## Form Content Translations
-
-Formie no longer passes user-authored form copy through the `formie` translation category at render time. Labels, placeholders, messages, and option labels come from the database (with [site overrides](/forms/multi-site#content-translation) on multi-site projects).
-
-This replaces an older workaround that mutated the plugin `sourceLanguage` on front-end requests so German (or other non-English) canonical labels would not be reverse-translated to English via `formie.php`.
-
-### Audit Your Translation Files
-
-Review `translations/*/formie.php` and remove keys that match **form builder content**, for example:
-
-```php
-// Remove — migrate to CP site overrides or edit the form directly
-'Your name' => 'Votre nom',
-'Contact us' => 'Contactez-nous',
-'Please enter your email' => 'Veuillez saisir votre e-mail',
-```
-
-Keep keys that match **Formie-owned English source strings**, for example:
-
-```php
-// Keep
-'{label} cannot be blank.' => '…',
-'(optional)' => '…',
-'Drop files here or browse to upload.' => '…',
-```
-
-The same applies to user field labels stored in `translations/*/site.php`. Prefer editing the form or using CP site overrides instead.
-
-### Migration Paths
-
-| Old pattern | New approach |
-| --- | --- |
-| `'Your name' => 'Votre nom'` in `fr/formie.php` | French **site override** in the form builder |
-| German labels written in the builder, no overrides | No change — copy renders as stored |
-| Plugin validation overrides in `de/formie.php` | Keep in `formie.php` |
-| Per-field validation text | **Validation** tab on the field (`validationMessages.*`) |
-| Two English sites, different labels | CP site overrides (not locale files) |
-
-### Single-Site Projects
-
-Edit the form in the control panel. You do not need translation file entries for field labels.
-
-Learn more in [Static Translations](/forms/static-translations).
-
-## Sub-Field Label Position
-
-The setting key now uses `subField` casing.
-
-::: code-group
-```php [Formie 3]
-[
-    'subfieldLabelPosition' => \verbb\formie\positions\AboveInput::class,
-]
-```
-
-```php [Formie 4]
-[
-    'subFieldLabelPosition' => \verbb\formie\positions\AboveInput::class,
-]
-```
-:::
-
-Learn more in [Address](/fields/address), [Name](/fields/name), and [Date/Time](/fields/date-time).
-
-## Instruction Positions
-
-The old fieldset-specific instruction positions are normalised to regular positions.
-
-::: code-group
-```php [Formie 3]
-[
-    'instructionsPosition' => 'verbb\\formie\\positions\\FieldsetStart',
-]
-```
-
-```php [Formie 4]
-[
-    'instructionsPosition' => \verbb\formie\positions\AboveInput::class,
-]
-```
-:::
-
-`FieldsetEnd` maps to `BelowInput`.
-
-Learn more in [Form Builder](/forms/form-builder).
-
-## Submission and Form Statuses
-
-> [!IMPORTANT]
-> With `compatibilityMode` enabled (the default), legacy submission status class names and helpers keep working and log Craft deprecation warnings when your project uses them. Update custom code when you can; disable compatibility mode once deprecation logs are clear.
-
-In Formie 3, statuses always meant submission workflow labels. Formie 4 introduces form statuses as a new concept, then renames the old submission status APIs so the two systems are not confused in code.
-
-**What you had in Formie 3** — submission statuses only:
-
-- **Settings → Statuses** in the control panel
-- `Statuses`, `Status`, `StatusEvent`, and `getStatuses()` in PHP
-- `formie_statuses` database table and `formie.statuses` project config
-
-**What Formie 4 adds** — form statuses (new):
-
-- **Settings → Form Statuses**, `FormStatuses`, `FormStatus`, `formie_form_statuses`, and `formie.formStatuses`
-- A **Form Status** picker on forms, the index **Status** menu, and bulk actions
-
-**What Formie 4 renames** — your existing submission statuses (same behaviour, explicit naming):
-
-- **Settings → Submission Statuses** (legacy **Settings → Statuses** URL still works)
-- `SubmissionStatuses`, `SubmissionStatus`, `SubmissionStatusEvent`, and `getSubmissionStatuses()`
-- `formie_submission_statuses` database table (`formie.statuses` project config is unchanged)
-
-#### Submission Status Renames (Formie 3 → Formie 4)
+Formie 3 submission statuses are now named **Submission Statuses** to distinguish them from the new **Form Statuses**. The old PHP class names and handlers registered on the old service class work while `compatibilityMode` is enabled.
 
 Formie 3 | Formie 4
 --- | ---
@@ -771,13 +1028,6 @@ Formie 3 | Formie 4
 `verbb\formie\records\Status` | `verbb\formie\records\SubmissionStatus`
 `verbb\formie\events\StatusEvent` | `verbb\formie\events\SubmissionStatusEvent`
 `verbb\formie\controllers\StatusesController` | `verbb\formie\controllers\SubmissionStatusesController`
-`Formie::$plugin->getStatuses()` | `Formie::$plugin->getSubmissionStatuses()`
-`craft.formie.getStatuses()` | `craft.formie.getSubmissionStatuses()`
-`SubmissionStatuses::CONFIG_STATUSES_KEY` | `SubmissionStatuses::CONFIG_SUBMISSION_STATUSES_KEY` (`formie.statuses`)
-`Table::FORMIE_STATUSES` | `Table::FORMIE_SUBMISSION_STATUSES`
-Database table `formie_statuses` | `formie_submission_statuses`
-
-Legacy aliases for the Formie 3 class names are registered by compatibility mode. Event handler names on `SubmissionStatuses` are unchanged (`beforeSaveStatus`, `afterSaveStatus`, and so on).
 
 If your project listens for submission status events, register handlers on `SubmissionStatuses` and type-hint `SubmissionStatusEvent`:
 
@@ -805,250 +1055,18 @@ Event::on(SubmissionStatuses::class, SubmissionStatuses::EVENT_BEFORE_SAVE_STATU
 ```
 :::
 
-Compatibility mode also forwards handlers still registered on the legacy `Statuses` class name to the canonical service and logs a deprecation warning.
+The [status getter and constant renames](#submission-status-methods) can wait until later.
 
-## Reports and Submission Export
+### GraphQL Page Settings
 
-Formie 3 exposed **Export** on the submissions element index (CSV export of the current source and filters). Formie 4 removes that control panel action for all forms — the button disappears when no element exporters are registered, which is expected after upgrade.
-
-Submission export now lives in **[Reports](/reports/reports)**:
-
-- **Formie → Reports** — saved filters, columns, charts, on-demand export (CSV, Excel, JSON, XML, text), and [scheduled email delivery](/reports/scheduled-reports)
-- For a one-off file without saving a report definition, run a report scoped to the form(s) you need and choose **Export** on the report run screen
-
-Train editors and support staff on this workflow before cutover if they rely on the old submissions index export.
-
-**Permissions** — report access is split from submission management. Under **Settings → Users → {group} → Formie**, assign:
-
-| Permission | Purpose |
-| --- | --- |
-| **Access reports** | Open **Formie → Reports** and run saved reports |
-| **Export submissions** | Export from reports (without full manage access) |
-| **Manage reports** | Create, edit, delete reports; includes export |
-| **Manage scheduled reports** | Configure delivery under **Settings → Scheduled Reports** and on a report’s **Scheduled** tab |
-
-Administrators bypass these checks.
-
-**Custom code** — PHP/Twig export helpers such as `getFieldValueForExport()` and `getValuesForExport()` are unchanged. Only the built-in control panel export action moved. Third-party modules can still register custom submission element exporters if needed.
-
-See [Reports](/reports/reports), [Saved reports and scheduled delivery](/guides/submissions-workflows/saved-reports-and-scheduled-delivery), and [Submissions overview](/submissions/submissions#export-submission-data).
-
-## Default Theme Classes
-
-Formie 4’s default theme uses the `formie` CSS class prefix. If your site styles Formie 3’s `.fui-` classes, update those selectors or adopt the current theme variables before deploying. A PHP compatibility bridge cannot rewrite your stylesheet.
+These page-setting names remain available with `compatibilityMode` enabled. Update queries before disabling it.
 
 Formie 3 | Formie 4
 --- | ---
-`.fui-form` | `.formie-form`
+`enableJsEvents` | `enableClientEvents`
+`jsGtmEventOptions` | `clientEventFields`
 
-Inspect each styled form, including validation errors, page navigation and nested fields, after rebuilding your site assets. See [Theme Config](/theming/theme-config) for the current theming approach.
-
-## Deprecated Changes
-
-Working compatibility APIs remain available as described below. Update them after addressing required changes; a deprecation warning does not by itself mean a call has stopped working.
-
-## Compatibility Mode
-
-Formie includes a compatibility layer to make Formie 3 projects easier to update. It is enabled by default.
-
-```php
-// config/formie.php
-return [
-    'compatibilityMode' => true,
-];
-```
-
-Compatibility mode currently covers four areas:
-
-- A small set of legacy class aliases that were already deprecated in earlier releases.
-- A small PHP event bridge for notification and integration events that moved to more specific services.
-- Deprecated `Submissions` integration and notification dispatch helpers that delegate to `IntegrationTriggers`, `Integrations`, and `Notifications`.
-- Custom field compatibility bridges for older schema methods, field config normalisation, and legacy Theme Config field tags.
-
-Leave compatibility mode enabled while you update the site. Once the project has no Formie deprecation warnings and any custom code has been updated, you can disable it:
-
-```php
-// config/formie.php
-return [
-    'compatibilityMode' => false,
-];
-```
-
-## Form Rendering and Assets
-
-Formie 4 has a cleaner rendering API for form assets.
-
-### Render Form Assets
-
-::: code-group
-```twig [Formie 3]
-{{ craft.formie.renderFormAssets(form) }}
-```
-
-```twig [Formie 4]
-{{ craft.formie.formAssets(form) }}
-```
-:::
-
-### Render CSS or JavaScript
-
-::: code-group
-```twig [Formie 3]
-{{ craft.formie.renderFormCss(form) }}
-{{ craft.formie.renderFormJs(form) }}
-```
-
-```twig [Formie 4]
-{{ craft.formie.formAssets(form, {
-    includeJs: false,
-}) }}
-
-{{ craft.formie.formAssets(form, {
-    includeCss: false,
-}) }}
-```
-:::
-
-### Render Shared Assets
-
-If you are not rendering assets for a specific form, use `browserAssets()`.
-
-::: code-group
-```twig [Formie 3]
-{{ craft.formie.renderCss() }}
-{{ craft.formie.renderJs() }}
-```
-
-```twig [Formie 4]
-{{ craft.formie.browserAssets() }}
-
-{{ craft.formie.browserAssets({
-    includeJs: false,
-}) }}
-
-{{ craft.formie.browserAssets({
-    includeCss: false,
-}) }}
-```
-:::
-
-The same replacement applies if you are calling `Formie::$plugin->getRendering()` in PHP:
-
-::: code-group
-```php [Formie 3]
-Formie::$plugin->getRendering()->renderFormAssets($form);
-```
-
-```php [Formie 4]
-Formie::$plugin->getRendering()->formAssets($form);
-```
-:::
-
-See [Frontend Assets](/frontend/frontend-assets) and [Render Options](/templates/render-options) for the full rendering options.
-
-## Form Render IDs
-
-Use `getRenderId()` and `setRenderId()` in place of `getFormId()` and `setFormId()`.
-
-::: code-group
-```twig [Formie 3]
-{% set id = form.getFormId() %}
-```
-
-```twig [Formie 4]
-{% set id = form.getRenderId() %}
-```
-:::
-
-::: code-group
-```php [Formie 3]
-$form->setFormId('contact-form');
-```
-
-```php [Formie 4]
-$form->setRenderId('contact-form');
-```
-:::
-
-Learn more in [Rendering Forms](/templates/rendering-forms).
-
-## Submission Values
-
-Submission value helpers have been renamed to make the format explicit.
-
-### Single Field Values
-
-Use the `getFieldValue*()` methods in place of the older `getValue*()` methods.
-
-::: code-group
-```twig [Formie 3]
-{{ submission.getValueAsString('fullName') }}
-{% set address = submission.getValueAsJson('billingAddress') %}
-{% set exportValue = submission.getValueForExport('payment') %}
-{% set summaryValue = submission.getValueForSummary('billingAddress') %}
-```
-
-```twig [Formie 4]
-{{ submission.getFieldValueAsString('fullName') }}
-{% set address = submission.getFieldValueAsData('billingAddress') %}
-{% set exportValue = submission.getFieldValueForExport('payment') %}
-{% set summaryValue = submission.getFieldValueForSummary('billingAddress') %}
-```
-:::
-
-### Submission Values
-
-Use the Data helpers for JSON-safe values.
-
-::: code-group
-```twig [Formie 3]
-{% set values = submission.getValuesAsJson() %}
-```
-
-```twig [Formie 4]
-{% set values = submission.getValuesAsData() %}
-```
-:::
-
-The same change applies in PHP:
-
-::: code-group
-```php [Formie 3]
-$values = $submission->getValuesAsJson();
-```
-
-```php [Formie 4]
-$values = $submission->getValuesAsData();
-```
-:::
-
-### Value Types
-
-Use the helper that matches the job you are doing.
-
-```twig
-{# Normal value. Good when you want the field's natural shape. #}
-{% set value = submission.getFieldValue('billingAddress') %}
-
-{# String value. Good for text output, logs, and simple display. #}
-{% set value = submission.getFieldValueAsString('billingAddress') %}
-
-{# Data value. Good for JSON-safe scalar or structured values. #}
-{% set value = submission.getFieldValueAsData('billingAddress') %}
-
-{# Export value. Good for CSVs, spreadsheets, and reports. #}
-{% set value = submission.getFieldValueForExport('billingAddress') %}
-
-{# Summary value. Good for review screens and summary output. #}
-{% set value = submission.getFieldValueForSummary('billingAddress') %}
-```
-
-See [Submission Content](/developers/submission-content) for a fuller explanation of the different value formats.
-
-## Field Schema Methods
-
-> [!IMPORTANT]
-> Compatibility mode will handle these changes automatically.
+### Field Schema Methods
 
 Form builder settings use `defineFormBuilder*Schema()` methods.
 
@@ -1090,7 +1108,7 @@ Formie 3 | Formie 4
 `defineAdvancedSchema()` | `defineFormBuilderAdvancedSchema()`
 `defineConditionsSchema()` | `defineFormBuilderConditionsSchema()`
 
-The schema node format also changed. If you were already using `SchemaHelper`, keep using it. If you built schema arrays manually, update FormKit-style nodes such as `$formkit` to the current `$field` format.
+If you built schema arrays manually, update FormKit-style nodes such as `$formkit` to the current `$field` format.
 
 ::: code-group
 ```php [Formie 3]
@@ -1117,129 +1135,19 @@ Even when using `SchemaHelper`, check these schema changes:
 - `help` is now `instructions`
 - old `if` expressions such as `$get(required).value` should be updated to the current expression format
 
-See [UI Schemas](/developers/ui-schemas) for the current schema syntax.
+See [UI Schemas](/developers/ui-schemas) for the current schema syntax. The remaining [field authoring helpers](#field-authoring-helpers) and [value method renames](#field-values) can be updated later, with compatibility mode off.
 
-## Field Values
+### Theme Config
 
-The public methods trigger Formie events after the value has been defined.
+With compatibility mode enabled, a public `defineHtmlTag()` override can still supply a tag when the new `defineSlotTag()` implementation returns `null`. Update these remaining custom tags to `defineSlotTag()` before disabling compatibility mode; see [Custom Field Theme Config](/developers/custom-field/overview#theme-config) for the implementation.
 
-Value method changes:
+This fallback does not replace tags already supplied by a base field or restore `parent::defineHtmlTag()`. The [tag event renames](#field-and-form-slot-tag-events) can wait until later.
 
-Formie 3 | Formie 4
---- | ---
-`defineValueAsJson()` | `defineValueAsData()`
-`getValueAsJson()` | `getValueAsData()`
-`defineValueForVariable()` | `defineValueForReference()`
-`getValueForVariable()` | `getValueForReference()`
-`defineValueForVariableRaw()` | `defineValueForReference()`
-`getValueForVariableRaw()` | `getValueForReference()`
-`defineValueForEmail()` | `defineValueForReferenceBlock()`
-`getValueForEmail()` | `getValueForReferenceBlock()`
+### PHP Events
 
-Formie 4 splits field values into two concepts:
+Update listeners for the events that moved to these services:
 
-- **Reference**: the singular, string-like value used for variable chips, subject lines, and other single-value contexts.
-- **Reference block**: the richer block value used when Formie renders looped field content in notification bodies and similar “all fields” output.
-
-Deprecated aliases remain available while you upgrade, but new field code should target the `reference` / `reference block` names directly.
-
-## Additional Deprecated Names
-
-These aliases belong to upgrade work. Use the canonical names in ordinary templates and new extensions.
-
-Formie 3 | Formie 4
---- | ---
-GraphQL `emailValue` | `emailFieldSummaryValue`
-GraphQL `includeInEmail` | `includeInEmailFieldSummaries`
-`includeInEmailField()` | `includeInEmailFieldSummariesField()`
-`emailNotificationValue()` | `emailFieldSummaryValue()`
-
-For field/form `modifyHtmlTag` event replacements, see [Field and Form Slot Tag Events](#field-and-form-slot-tag-events). For custom previews, replace template-string previews with the schema described in [UI Schemas](/developers/ui-schemas).
-
-## Field Paths
-
-Several field path helpers have clearer names.
-
-Formie 3 | Formie 4
---- | ---
-`getFieldKey()` | `valueKey()`
-`getErrorKey()` | `errorKey()`
-`getFullHandle()` | `handlePath()`
-`getFullNamespace()` | `namespacePath()`
-`getReservedHandles()` | `Formie::$plugin->getFields()->getReservedHandles()`
-
-::: code-group
-```php [Formie 3]
-$key = $field->getFieldKey();
-$errors = $submission->getErrors($field->getErrorKey());
-```
-
-```php [Formie 4]
-$key = $field->valueKey();
-$errors = $submission->getErrors($field->errorKey());
-```
-:::
-
-## Theme Config
-
-> [!IMPORTANT]
-> Compatibility mode will handle these changes automatically.
-
-If your custom field supports Theme Config, update `defineHtmlTag()` usage to `defineSlotTag()`, and return a `SlotTag`.
-
-::: code-group
-```php [Formie 3]
-protected function defineHtmlTag(string $key, array $context = []): ?HtmlTag
-{
-    if ($key === 'fieldInput') {
-        return new HtmlTag('input', [
-            'class' => ['fui-input'],
-        ]);
-    }
-
-    return parent::defineHtmlTag($key, $context);
-}
-```
-
-```php [Formie 4]
-use verbb\formie\models\SlotTag;
-use verbb\formie\theme\context\RenderContext;
-
-protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
-{
-    if ($key === 'fieldInput') {
-        return SlotTag::make('input')
-            ->core([
-                'type' => 'text',
-                'name' => $this->getHtmlName(),
-                'data-formie-input' => true,
-            ])
-            ->theme([
-                'class' => ['formie-input'],
-            ]);
-    }
-
-    return parent::defineSlotTag($key, $context);
-}
-```
-:::
-
-The PHP bridge does not update your custom CSS selectors. Review [Default Theme Classes](#default-theme-classes) before deployment. If you use the Formie 3 [Tailwind](https://github.com/verbb/formie-theme-configs/blob/formie-3/tailwind/index.html) or [Bootstrap](https://github.com/verbb/formie-theme-configs/blob/formie-3/bootstrap/index.html) theme examples, update their class selectors and review the resulting markup as part of this upgrade.
-
-The Formie 3 theme grammar remains supported, including flat attribute shorthand, false/null removal, `resetClass`, top-level `resetClasses`, `prepend` and `append`. Theme and instance attributes now merge before required core attributes, so declarative config cannot remove functional or accessibility markup. Trusted `EVENT_MODIFY_SLOT_TAG` listeners still run last when an expert override is required.
-
-Purge cached form HTML during deployment and regenerate saved Summary and Signature links by rendering the form or requesting a fresh image/download URL. Custom Summary refresh requests must use the issued token. Summary tokens expire after seven days, so refresh cached forms within that period. Signature image links retain their existing lifetime. If you run multiple web servers, they must share the database and Formie security key.
-
-See [Custom Field](/developers/custom-field/overview) for the current custom field guide.
-
-## PHP Events
-
-Most PHP events keep the same names and owners. A small number of events moved to more specific services.
-
-### Notifications
-
-> [!IMPORTANT]
-> Compatibility mode will handle these changes automatically.
+#### Notifications
 
 `beforeSendNotification` now belongs on the `Notifications` service.
 
@@ -1265,10 +1173,7 @@ Event::on(Notifications::class, Notifications::EVENT_BEFORE_SEND_NOTIFICATION, f
 ```
 :::
 
-### Integrations
-
-> [!IMPORTANT]
-> Compatibility mode will handle these changes automatically.
+#### Integrations
 
 `beforeTriggerIntegration` now belongs on the `Integrations` service.
 
@@ -1294,24 +1199,510 @@ Event::on(Integrations::class, Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION, f
 ```
 :::
 
-### Custom Integration Dispatch
+After updating these event listeners, the [submission dispatch helpers](#custom-integration-dispatch) and [field/form tag events](#field-and-form-slot-tag-events) can be updated later; both still work with compatibility mode off.
 
-> [!IMPORTANT]
-> With `compatibilityMode` enabled (the default), Formie 4 keeps the Formie 3 `Submissions` dispatch helpers working and logs Craft deprecation warnings when your project calls them. Update custom code when you can; disable compatibility mode once deprecation logs are clear.
+### Validation Message Translations
 
-Formie 4 routes integration and notification dispatch through dedicated services. If your Formie 3 project called dispatch helpers on `Submissions`, use the replacements below.
+With compatibility mode enabled, Formie falls back to supported Formie 3 validation-message keys in `translations/*/formie.php`. Update those keys before disabling the setting; otherwise custom translations can fall back to the default copy.
+
+This fallback only covers the supported plugin validation-message keys below.
+
+#### Front-End Validation Placeholders
+
+Formie-owned validation messages now use `{label}` for the field label placeholder instead of `{attribute}`.
+
+Before disabling compatibility mode, update overrides that target the old `{attribute}` source keys and use `{label}` in translated values. Common source-key changes are:
 
 Formie 3 | Formie 4
 --- | ---
-`getSubmissions()->triggerIntegrations($submission)` | `getIntegrationTriggers()->dispatch(...)` or `dispatchFromWorkflow(...)`
-`getSubmissions()->sendIntegrationPayload($integration, $submission)` | `getIntegrations()->sendIntegrationPayload(...)` for workflow dispatch, or `getIntegrationTriggers()->dispatchManualIntegration(...)` for operator-initiated runs
-`getSubmissions()->sendNotifications($submission)` | `getNotifications()->sendNotifications(...)`
-`getSubmissions()->sendNotification($notification, $submission)` | `getNotifications()->sendNotification(...)`
-`getSubmissions()->sendNotificationEmail($notification, $submission)` | `getNotifications()->sendNotificationEmail(...)`
+`{attribute} cannot be blank.` | `{label} cannot be blank.`
+`{attribute} is not a valid email address.` | `{label} is not a valid email address.`
+`{attribute} is not a valid URL.` | `{label} is not a valid URL.`
+`{attribute} is not a valid number.` | `{label} is not a valid number.`
+`{attribute} is not a valid format.` | `{label} is not a valid format.`
+`{attribute} must match {value}.` | `{label} must match {value}.`
+`{attribute} must be no less than {min}.` | `{label} must be no less than {min}.`
+`{attribute} must be no greater than {max}.` | `{label} must be no greater than {max}.`
+`{attribute} has an invalid value.` | `{label} has an invalid value.`
+`{attribute} must select no less than {min}.` | `{label} should contain at least {min, number} {min, plural, one{option} other{options}}.`
+`{attribute} must select no greater than {max}.` | `{label} should contain at most {max, number} {max, plural, one{option} other{options}}.`
 
-Status-change email notifications (notifications with a `{submission:status}` condition) are handled by `NotificationTriggers` when a submission’s status changes. You do not need an `Submission::EVENT_AFTER_SAVE` listener for that behaviour.
+If you overrode `{attribute} must be between {min} and {max}.`, provide separate translations for the minimum and maximum number messages above. Compatibility mode uses the old combined translation for both until you replace it.
 
-Avoid triggering integrations from `Submission::EVENT_AFTER_SAVE`. That bypasses re-run policies, workflow idempotency, and the CP save vs workflow split. Prefer listening to `Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION`, or call `IntegrationTriggers` explicitly when you need custom dispatch.
+These strings are included in Formie’s browser translation seed via `Rendering::getBrowserJsTranslations()`. If you append custom strings through the [`modifyBrowserJsTranslations`](/developers/events/form-events#the-modifybrowserjstranslations-event) event, use the new `{label}` placeholders in both the source key and your translated value.
+
+Custom per-field validation overrides in the form builder now live under **Validation** as `validationMessages.{key}` (for example `validationMessages.required` and `validationMessages.unique`). Legacy field `errorMessage` values are migrated to `validationMessages.required` automatically.
+
+If a saved override still contains `{name}` or `{attribute}`, Formie still maps those to `{label}` automatically, but new overrides should use `{label}` directly.
+
+#### Server-Side Unique-Value Messages
+
+The default unique-value validation message source key is now:
+
+```php
+'“{label}” must be unique.'
+```
+
+If you previously overrode a field-specific unique message via translation files alone, consider using the **Unique Error Message** field on the Validation tab instead (`validationMessages.unique`), which supports `{label}` and other allowed placeholders without requiring a global translation override.
+
+### Payment Webhooks
+
+Existing `processWebhook()` provider overrides and handle-based webhook URLs require compatibility mode. Update them before disabling it.
+
+When updating a `processWebhook()` override, split it into `verifyWebhook()` to authenticate the request and `handleWebhook()` to process the verified event. The old method runs synchronously through the compatibility adapter while compatibility mode is enabled. See [Webhook Evidence](/developers/custom-integration/payment-integration#webhook-evidence) for the implementation contract.
+
+Existing `process-webhook?handle=…` URLs remain routable while `compatibilityMode` is enabled; provider authentication still applies. Change registered endpoints to the integration-UID URL shown by Formie before disabling compatibility mode.
+
+The webhook adapter does not provide the durable receipt handling of the new API. See [Payment Integration](/developers/custom-integration/payment-integration) when updating it. Other [payment method and property renames](#payment-compatibility), including the cancellation adapter, can wait until later.
+
+## Deprecated Changes
+
+<span id="replacement-reference"></span>
+
+These aliases and automatic conversions work even with `compatibilityMode` disabled. They do not block the initial upgrade or prevent you from turning compatibility mode off. Use the current names when updating custom code and templates.
+
+### Integration Config
+
+Provider metadata (lists, fields, pipelines and channels) is now called `IntegrationConfig`, separate from the settings saved on each form.
+
+Formie 3 | Formie 4
+--- | ---
+`IntegrationFormSettings` | `IntegrationConfig`
+`fetchFormSettings()` | `fetchConfig()`
+`getFormSettings()` | `getConfig()`
+`getFormSettings(false)` | `refreshConfig()`
+`getFormSettingValue($key)` | `getConfigValue($key)`
+`EVENT_BEFORE_FETCH_FORM_SETTINGS` | `EVENT_BEFORE_FETCH_CONFIG`
+`EVENT_AFTER_FETCH_FORM_SETTINGS` | `EVENT_AFTER_FETCH_CONFIG`
+`IntegrationFormSettingsEvent` / `$event->settings` | `IntegrationConfigEvent` / `$event->config`
+
+When updating a provider, return `IntegrationConfig` from `fetchConfig()` and implement `supportsConfigRefresh()` if it supports manual refresh. See [Custom Integrations](/developers/custom-integration/overview) for the current API.
+
+### Integration Method Names
+
+Update method calls using these replacements:
+
+Formie 3 | Formie 4
+--- | ---
+`populateQueueJobContext()` | `recordDeliveryRequest()`
+`getTransaction()` | `refreshPayment()`
+`getRefreshJsVariables()` | `getRefreshData()`
+Stripe `getReturnUrl($submission)` | `createPaymentReturnUrl($submission)`
+`OAuthRequest()` | `request()`
+
+When updating a custom provider's **overrides**, use the implementation hooks:
+
+- Replace `populateQueueJobContext()` customisation with `recordDeliveryRequestEvidence()` to supply prepared request evidence; see [Results and Safe Retries](/developers/custom-integration/overview#results-and-safe-retries).
+- Replace `getTransaction()` customisation with `refreshPaymentState()` to fetch and save verified provider state; see [Refresh and Builder Hooks](/developers/custom-integration/payment-integration#refresh-and-builder-hooks). Existing `getTransactionStatus()` calls retain provider-specific handling; use `refreshPayment()` when new code needs to refresh a payment.
+- Replace `getRefreshJsVariables()` customisation with `defineRefreshData()` to return refreshed captcha data; see [Captcha Browser Behaviour](/developers/custom-integration/captcha-integration#browser-behaviour).
+
+#### Integration Service Methods
+
+Update service calls and overrides together. The deprecated entry points remain callable, and canonical calls honour older overrides, including parent calls. A canonical override declared on the same or a more-derived class takes precedence. Do not override both spellings for the same operation.
+
+Previous method | Current method
+--- | ---
+`getFormIntegrationByHandle()` | `getBuilderIntegrationByHandle()`
+`getAllIntegrationsForForm()` | `getGroupedBuilderIntegrations()`
+`getIntegrationSummariesForForm()` | `getGroupedBuilderIntegrationSummaries()`
+`getFormIntegrationDefinitionByHandle()` | `resolveIntegrationDefinitionByHandle()`
+`getFormIntegrationsForForm($form)` | `getEnabledFormIntegrations($form)`
+`getAllEnabledIntegrationsForForm($form)` | `getEnabledIntegrationRuntimes($form)`
+`populateIntegrationFromFormSettings()` | `createIntegrationRuntime()`
+`createIntegrationConfig()` | `createProjectConfig()`
+Dispatcher `loadContext()` / `saveContext()` | `loadRunResults()` / `saveRunResults()`
+Triggers `dispatchManualIntegration()` | `runManualIntegration()`
+
+This table includes Formie 3 service methods and renamed methods from the Formie 4 beta. Builder choices are different from a form's `FormIntegration` bindings. Runtime creation returns a clone, and `createProjectConfig()` serialises configured connection settings rather than returning fetched `IntegrationConfig` metadata. See [Connections, Bindings and Runtimes](/developers/custom-integration/overview#connections-bindings-and-runtimes).
+
+Provider metadata overrides of `fetchFormSettings()` may continue to call their parent; acquisition returns the compatible `IntegrationFormSettings` model. This also applies to subclasses of native providers. Refresh events run once around acquisition, including for element integrations. When migrating the override, implement `fetchConfig()` and return `IntegrationConfig`.
+
+Existing `sendPayload(): bool` overrides may still return or check their parent result; the deprecated facade preserves boolean behavior while the canonical execution path retains its detailed result. Metadata compatibility also includes `getFormSettings()` and `getFormSettingValue()` read overrides, not only acquisition.
+
+Keep zero-argument `populateContext()` and single-argument `enforceOptInField($submission)` signatures in old providers. Call `populateSubmissionContext($submission)` to prepare submission metadata through an existing context override. Keep the string parameter and its original name in `getMappedFieldValue(string $mappedFieldValue, ...)`; use `resolveMappedFieldValue()` for structured reference slots. Older overrides participate in both single-value and bulk mappings.
+
+For provider implementations, migrate `sendPayload()` overrides to `executePayload()`. For application callers, use the [execution entry point matching the action](/developers/custom-integration/overview#calling-integrations); replacing a direct send with `execute()` does not apply the runner's complete dispatch policy. Web calls to the manual trigger service require permission to save submissions for the submission's form, including through the deprecated method. Custom controllers remain responsible for POST and CSRF requirements.
+
+Custom providers must extend `Integration` or a category base. Registration, connection creation and form binding reject classes that only implement `IntegrationInterface` or `DispatchableIntegrationInterface`, because the execution lifecycle requires the base implementation.
+
+#### Payment Amount Helpers
+
+The base `getAmount()` adapter honours `getPaymentAmount()` overrides and preserves older overrides that call their parent. Stripe and Opayo distinguish API units from displayed currency amounts. Use `getProviderAmount()` for provider API requests and `getPaymentAmount()` for major currency units when replacing `getAmount()` calls.
+
+#### Integration Class Names
+
+Replace `className()` with `getShortClassName()` for a short class name, or use `::class` for a fully qualified class name. Replace `kebabClassName()` with `getClassHandle()` for an implementation handle. See [Method Contracts](/developers/custom-integration/overview#method-contracts-and-compatibility) for signatures.
+
+### Render Options
+
+Update render options to these names:
+
+Formie 3 | Formie 4
+--- | ---
+`renderCss` | `includeCss`
+`renderJs` | `includeJs`
+`outputCssLayout` / `outputCssTheme` | `outputCss`
+`outputJsBase` / `outputJsTheme` | `outputJs`
+
+Use `outputCssLocation` and `outputJsLocation` to choose `page-header`, `page-footer`, `inside-form`, or `manual`. See [Render Options](/templates/render-options) for examples.
+
+### Form Templates
+
+Update asset flags in custom Form Templates:
+
+Formie 3 | Formie 4
+--- | ---
+`outputCssLayout` / `outputCssTheme` | `outputCss`
+`outputJsBase` / `outputJsTheme` | `outputJs`
+
+Review [Template Overrides](/theming/template-overrides) when updating custom templates.
+
+### Text Limits
+
+Update custom text-limit configuration for Single-Line Text and Multi-Line Text fields:
+
+Formie 3 | Formie 4
+--- | ---
+`limitType` | `maxType`
+`limitAmount` | `max`
+
+### Sub-Field Label Position
+
+Use the updated casing in custom field configuration:
+
+Formie 3 | Formie 4
+--- | ---
+`subfieldLabelPosition` | `subFieldLabelPosition`
+
+### Instruction Positions
+
+Update custom configuration to the current instruction-position classes:
+
+Formie 3 | Formie 4
+--- | ---
+`verbb\formie\positions\FieldsetStart` | `verbb\formie\positions\AboveInput`
+`verbb\formie\positions\FieldsetEnd` | `verbb\formie\positions\BelowInput`
+
+### Form Rendering and Assets
+
+Replace asset helpers in templates as shown below. The same method names apply on the PHP Rendering service.
+
+Formie 3 | Formie 4
+--- | ---
+`craft.formie.renderFormAssets(form)` | `craft.formie.formAssets(form)`
+`craft.formie.renderFormCss(form)` | `craft.formie.formAssets(form, { includeJs: false })`
+`craft.formie.renderFormJs(form)` | `craft.formie.formAssets(form, { includeCss: false })`
+`craft.formie.renderCss()` | `craft.formie.browserAssets({ includeJs: false })`
+`craft.formie.renderJs()` | `craft.formie.browserAssets({ includeCss: false })`
+
+See [Frontend Assets](/frontend/frontend-assets) for asset loading examples.
+
+### Form Render IDs
+
+Formie 3 | Formie 4
+--- | ---
+`form.getFormId()` | `form.getRenderId()`
+`form.setFormId(id)` | `form.setRenderId(id)`
+
+See [Rendering Forms](/templates/rendering-forms) when rendering multiple instances of a form.
+
+### Submission Values
+
+Formie 3 | Formie 4
+--- | ---
+`submission.getValueAsString(handle)` | `submission.getFieldValueAsString(handle)`
+`submission.getValueAsJson(handle)` | `submission.getFieldValueAsData(handle)`
+`submission.getValueForExport(handle)` | `submission.getFieldValueForExport(handle)`
+`submission.getValueForSummary(handle)` | `submission.getFieldValueForSummary(handle)`
+`submission.getValuesAsJson()` | `submission.getValuesAsData()`
+
+These mappings also apply in PHP. See [Submission Content](/developers/submission-content) for the available output formats.
+
+### Field Templates
+
+Replace `getFrontEndInputTemplatePath()` overrides with `getInputTemplatePath()`:
+
+::: code-group
+```php [Formie 3]
+public static function getFrontEndInputTemplatePath(): string
+{
+    return 'my-module/my-field/input';
+}
+```
+
+```php [Formie 4]
+public static function getInputTemplatePath(): string
+{
+    return 'my-module/my-field/input';
+}
+```
+:::
+
+If the field needs template variables, extend `getInputTemplateVariables()`.
+
+```php
+use verbb\formie\elements\Form;
+
+public function getInputTemplateVariables(Form $form, mixed $value): array
+{
+    $variables = parent::getInputTemplateVariables($form, $value);
+    $variables['placeholder'] = $this->placeholder;
+
+    return $variables;
+}
+```
+
+### Field Setting Names
+
+Field configuration accepts the names below and saves their canonical equivalents. If both names are supplied, the canonical key wins. The same mappings apply to subclasses, `setAttributes()` and PHP property access; legacy PHP property access is deprecated. Existing GraphQL setting names remain available as deprecated aliases where those settings are exposed.
+
+| Formie 3 | Formie 4 |
+| --- | --- |
+| Element fields `limitOptions` | `optionLimit` |
+| File Upload `sizeLimit` | `maxFileSize` |
+| File Upload `sizeMinLimit` | `minFileSize` |
+| File Upload `limitFiles` | `maxFiles` |
+| Phone / Address `countryAllowed` | `allowedCountryCodes` |
+| Repeater `addLabel` | `addRowLabel` |
+
+The `limitOptions` rename applies only to Element fields; do not rename the selection-count toggle on choice fields.
+
+When updating a subclass, rename its property declaration as well as reads and writes. Existing public declarations such as `public ?string $sizeLimit = '1'` remain synchronized with the new property, including defaults and array mutations. A canonical declaration on the same class or a more-derived class takes precedence over the legacy default; explicit configuration still takes precedence over defaults. `getSettings()` emits canonical names, and cloned fields keep their own settings values.
+
+Phone and Address retain `countryAllowed` as a deprecated public array linked to `allowedCountryCodes`. Existing appends, element removal and functions that take an array by reference continue to work on native fields and subclasses; clones keep independent values. Use `allowedCountryCodes` in new code.
+
+Saved Repeater translations using `addLabel` are applied as `addRowLabel`, including site-switch data and builder saves. An explicit `addRowLabel` translation wins when both names are present. Reading a translation does not rewrite its stored record.
+
+#### Recipients Display Settings
+
+Recipients accepts its old `multi` / `multiple` configuration during upgrading, but cardinality is determined by `displayType`. It is not emitted as a separate saved setting. Read `displayType` to determine the field's presentation.
+
+### Field Authoring Helpers
+
+#### Field Class Names
+
+Replace `className()` with `getShortClassName()` for a short class name. Use `::class` for the fully qualified field class.
+
+Existing `className()` overrides remain supported, including inherited overrides and calls to `parent::className()`. Their results still feed `kebabClassName()`, `lowerClassName()`, default input/reference-block template paths and the default Theme Config key. For example, an override returning `SharedWidget` keeps the default template path `fields/shared-widget`.
+
+When updating an override, rename it to `getShortClassName()` and update its parent call too. A canonical override on the same class or a more-derived class takes precedence when Formie resolves the name. The inherited deprecated `className()` method forwards to the canonical method; a direct call to your own `className()` override still runs your implementation according to PHP inheritance.
+
+#### Browser Condition Data
+
+Use `getBrowserConditionsJson()` instead of `getConditionsJson()`.
+
+#### Field Template Helpers
+
+Replace `getFrontEndInputTemplatePath()` and `getEmailTemplatePath()` overrides with `getInputTemplatePath()` and `getReferenceBlockTemplatePath()`. Existing overrides also work on native field subclasses, including subfields, and can call their parent implementation. A canonical override on the same class or a more-derived class takes precedence.
+
+#### Field Reference-Block Rendering
+
+Update these public rendering overrides and calls together:
+
+| Formie 3 | Formie 4 |
+| --- | --- |
+| `getEmailHtml()` | `getReferenceBlockHtml()` |
+| `getEmailOptions()` | `getReferenceBlockOptions()` |
+| `hasEmailLabel()` | `hasReferenceBlockLabel()` |
+| `hasEmailPlaceholder()` | `hasReferenceBlockPlaceholder()` |
+
+The HTML and options methods retain their `(Submission $submission, Notification $notification, mixed $value, array $renderOptions = [])` arguments. Existing overrides remain supported on native field subclasses and can call their parent implementation. A canonical override on the same class or a more-derived class takes precedence. This includes fields with their own rendering behaviour, such as Section, Content and HTML, and the label/placeholder defaults on Agree and cosmetic fields.
+
+#### Browser Module Configuration
+
+`getConfigJson()` only exposes legacy module declarations for old templates; use registered browser modules and the rendering API for new templates.
+
+#### Field Value Type Declarations
+
+Declare value types with protected `defineValueType()` rather than `phpType()` or `defineValueClass()`.
+
+#### Recipients Value Helpers
+
+Replace Recipients `getFakeValue()` and `getRealValue()` calls with `normalizeFieldValue()` and the normalised value's accessors. Use `serializeValueForClientInput()` when you need browser tokens.
+
+### Field Values
+
+Formie 3 | Formie 4
+--- | ---
+`defineValueAsJson()` | `defineValueAsData()`
+`getValueAsJson()` | `getValueAsData()`
+`defineValueForVariable()` / `defineValueForVariableRaw()` | `defineValueForReference()`
+`getValueForVariable()` / `getValueForVariableRaw()` | `getValueForReference()`
+`defineValueForEmail()` | `defineValueForReferenceBlock()`
+`getValueForEmail()` | `getValueForReferenceBlock()`
+`EVENT_MODIFY_VALUE_AS_JSON` | `EVENT_MODIFY_VALUE_AS_DATA`
+`EVENT_MODIFY_VALUE_FOR_EMAIL` | `EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK`
+
+Choose the new hook according to where the value appears:
+
+- **Reference text:** implement `defineValueForReference($value, $element = null)` for values inserted into text, such as subject lines. Old variable overrides are not called outside notification contexts, so implement this hook if the same custom output is needed there.
+- **Notification blocks:** implement `defineValueForReferenceBlock($value, $notification, $element = null)` and a [reference-block template](#field-reference-block-templates) for richer field output. Callers needing the rendered HTML use `getReferenceBlockHtml($submission, $notification, $value)`.
+
+See [Custom Field Values](/developers/custom-field/overview#normalised-values-and-projections) for the value hooks and their arguments. When a projection reuses the data representation, protected `resolveValueAsData($value, $element = null)` preserves old `defineValueAsJson()` overrides without firing an additional data event. Dedicated projections, such as text conditions, continue to use their own shape.
+
+For a `serializeValue()` override, move the storage conversion into `defineValueForDb()` when updating your field. Code requesting the stored representation calls `serializeValueForDb()`.
+
+### Additional Deprecated Names
+
+Formie 3 | Formie 4
+--- | ---
+GraphQL `emailValue` | `emailFieldSummaryValue`
+GraphQL `includeInEmail` | `includeInEmailFieldSummaries`
+`includeInEmailField()` | `includeInEmailFieldSummariesField()`
+`emailNotificationValue()` | `emailFieldSummaryValue()`
+
+For field/form `modifyHtmlTag` event replacements, see [Field and Form Slot Tag Events](#field-and-form-slot-tag-events).
+
+### Field Paths
+
+Several field path helpers have clearer names.
+
+Formie 3 | Formie 4
+--- | ---
+`getFieldKey()` | `valueKey()`
+`getErrorKey()` | `errorKey()`
+`getFullHandle()` | `handlePath()`
+`getFullNamespace()` | `namespacePath()`
+`getReservedHandles()` | `Formie::$plugin->getFields()->getReservedHandles()`
+
+::: code-group
+```php [Formie 3]
+$key = $field->getFieldKey();
+$errors = $submission->getErrors($field->getErrorKey());
+```
+
+```php [Formie 4]
+$key = $field->valueKey();
+$errors = $submission->getErrors($field->errorKey());
+```
+:::
+
+### Field Reference-Block Templates
+
+Reference-block templates replace the old field-level email template hook.
+
+:::: code-group
+```php [Formie 3]
+public static function getEmailTemplatePath(): string
+{
+    return 'my-module/my-field/email';
+}
+```
+
+```php [Formie 4]
+public static function getReferenceBlockTemplatePath(): string
+{
+    return 'my-module/my-field/email';
+}
+```
+::::
+
+### Completion Setting Names
+
+Use these names when updating completion settings:
+
+| Formie 3 | Formie 4 |
+| --- | --- |
+| `prePopulate` | `prefillQueryParam` |
+| Hidden `defaultOption` | `valueSource` |
+| `submitActionTab` | `redirectTarget` |
+| `submitActionUrl` | `redirectUrl` |
+| `submitActionEntry` | `redirectEntry` |
+| `submitActionFormHide` | `hideFormAfterSubmit` |
+| `submitActionMessage` | `successMessage` |
+| `submitActionMessageTimeout` | `successMessageTimeout` |
+| `submitActionMessagePosition` | `successMessagePosition` |
+
+When replacing `submitAction: entry` or `submitAction: url`, set `completionBehavior: redirect` and set `completionRedirectSource` to `entry` or `url` respectively.
+
+### Populating Submission Values
+
+Review calls to `craft.formie.populateFormValues()` with `force = true`: forced population applies across pages and resume.
+
+### Settings Method Arguments
+
+Remove the obsolete trailing positional `true` argument from `setSettings()`, `setFieldSettings()` and `setIntegrationSettings()` when updating code; PHP ignores that extra argument.
+
+### Payment Compatibility
+
+Replace direct `Submissions::processPayments()` calls with the submission workflow when processing form submissions.
+
+When updating `getAmount()` and `getPaymentAmount()` calculations, use decimal strings to avoid precision loss.
+
+Formie 3 | Formie 4
+--- | ---
+`verbb\formie\models\Plan` | `SubscriptionPlan`
+`getRedirectUri()` | `getWebhookUrl()`
+`nextPaymentDate` | `nextPaymentAt`
+`dateSuspended` | `pausedAt`
+`dateCanceled` | `cancelledAt`
+`dateExpired` | `endedAt`
+
+Replace `cancelSubscription()` provider overrides with `cancelSubscriptionSnapshot()` and return a `SubscriptionSnapshot` describing the provider's resulting state; see [Subscriptions](/developers/custom-integration/payment-integration#subscriptions).
+
+`getPaymentByReference()` and `getSubscriptionByReference()` accept an integration ID to scope lookups. Pass it in updated providers. Payment identifiers alone do not authorise public requests.
+
+### Browser Module PHP Declarations
+
+Existing `getFrontEndJsModules()` declarations are adapted even with compatibility mode off. Replace them with `defineBrowserModules()` when updating your field:
+
+::: code-group
+```php [Formie 3]
+public function getFrontEndJsModules(): ?array
+{
+    return [
+        'src' => '/assets/my-rating.js',
+        'module' => 'MyRating',
+        'settings' => ['max' => 10],
+    ];
+}
+```
+
+```php [Formie 4]
+use verbb\formie\models\BrowserModule;
+
+protected function defineBrowserModules(): array
+{
+    return [new BrowserModule([
+        'moduleId' => 'my-site:rating',
+        'config' => ['max' => 10],
+    ])];
+}
+```
+:::
+
+When making this change, update the JavaScript registration's `moduleId` from `legacy:my-rating` to `my-site:rating` too. Both declarations must use the same ID. Choose your own prefix, such as your plugin or site name, before the colon.
+
+See [Build a Custom Module](https://docs.verbb.io/formie/browser/modules/build-a-custom-module) for configuration and supported form types.
+
+### Submission Status Methods
+
+Formie 3 | Formie 4
+--- | ---
+`Formie::$plugin->getStatuses()` | `Formie::$plugin->getSubmissionStatuses()`
+`craft.formie.getStatuses()` | `craft.formie.getSubmissionStatuses()`
+`SubmissionStatuses::CONFIG_STATUSES_KEY` | `SubmissionStatuses::CONFIG_SUBMISSION_STATUSES_KEY` (`formie.statuses`)
+`Table::FORMIE_STATUSES` | `Table::FORMIE_SUBMISSION_STATUSES`
+
+### Custom Integration Dispatch
+
+Notification sends move to the Notifications service:
+
+Formie 3 | Formie 4
+--- | ---
+`getSubmissions()->sendNotifications($submission)` | `getNotifications()->sendNotifications($submission)`
+`getSubmissions()->sendNotification($notification, $submission)` | `getNotifications()->sendNotification($notification, $submission)`
+`getSubmissions()->sendNotificationEmail($notification, $submission)` | `getNotifications()->sendNotificationEmail($notification, $submission)`
+
+For `triggerIntegrations()` and `sendIntegrationPayload()`, choose the replacement according to why the integration is running:
+
+- **Automatic delivery after a submission change:** use `getIntegrationTriggers()->dispatch()` with an `IntegrationTriggerRequest`, as shown below. Workflow extensions can use `dispatchFromWorkflow()`; see [Integration Dispatch and Policies](/guides/integrations/integration-dispatch-and-policies).
+- **A deliberate run of one integration:** use `runManualIntegration($integration, $submission)`.
+The provider-send service is internal runner plumbing. For application code, choose automatic dispatch or a manual trigger; provider implementations send their HTTP payload through `deliverPayload()` inside `executePayload()`. The deprecated `getSubmissions()->sendIntegrationPayload()` entry point retains its boolean/`IntegrationResponse` return shape, including acknowledged event cancellation.
+
+Do not trigger integrations from a general `Submission::EVENT_AFTER_SAVE` listener: that also catches saves outside the visitor workflow and can bypass re-run rules or duplicate delivery. To customise an integration before it runs, use `Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION` instead. Status-change notifications are already handled by `NotificationTriggers` when their `{submission:status}` condition matches.
+
+The examples below show separate alternatives; choose the call your custom code needs.
 
 ::: code-group
 ```php [Formie 3]
@@ -1328,24 +1719,22 @@ Formie::$plugin->getSubmissions()->sendIntegrationPayload($integration, $submiss
 ```php [Formie 4]
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\helpers\IntegrationTriggerEvents;
 use verbb\formie\models\IntegrationTriggerRequest;
-use verbb\formie\services\SubmissionWorkflow;
 
 $submission = Submission::find()->id(123)->one();
 
 // Automatic dispatch (respects re-run policies and orchestration)
 Formie::$plugin->getIntegrationTriggers()->dispatch(new IntegrationTriggerRequest([
     'submission' => $submission,
-    'operation' => \verbb\formie\enums\SubmissionOperation::REVISE,
+    'operation' => SubmissionOperation::REVISE,
     'triggerEvent' => IntegrationTriggerEvents::CP_SAVE,
 ]));
 
 // Operator-initiated single integration run
-Formie::$plugin->getIntegrationTriggers()->dispatchManualIntegration($integration, $submission);
+Formie::$plugin->getIntegrationTriggers()->runManualIntegration($integration, $submission);
 
-// Low-level payload send (events still fire on Integrations)
-Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
 ```
 :::
 
@@ -1354,8 +1743,6 @@ Learn more in [Submission Workflow](/developers/submission-workflow) and [Integr
 ### Field and Form Slot Tag Events
 
 If your project listens for field or form tag-mutation events, switch from the old `htmlTag` names to the canonical `slotTag` names.
-
-The old constants and event classes still exist as deprecated aliases, but new code should use the slot-tag names.
 
 Formie 3 | Formie 4
 --- | ---
@@ -1400,99 +1787,73 @@ Event::on(Form::class, Form::EVENT_MODIFY_SLOT_TAG, function(ModifyFormSlotTagEv
 
 See [Field Events](/developers/events/field-events) and [Form Events](/developers/events/form-events) for the current event reference.
 
-## Field Reference-Block Templates
-
-Reference-block templates replace the old field-level email template hook.
-
-:::: code-group
-```php [Formie 3]
-public static function getEmailTemplatePath(): string
-{
-    return 'my-module/my-field/email';
-}
-```
-
-```php [Formie 4]
-public static function getReferenceBlockTemplatePath(): string
-{
-    return 'my-module/my-field/email';
-}
-```
-::::
-
-`getEmailTemplatePath()` still exists as a deprecated compatibility alias, but new code should use `getReferenceBlockTemplatePath()`.
-
 ## Behaviour Changes
 
-The following sections explain operational changes to review after applying the required code changes above.
+### Field Templates and HTML Purification
 
-## Changes at a Glance
+Upgrading explicitly enables **Allow Hidden Field Templates**, **Allow Twig in HTML Fields** and **Allow Template Includes in HTML Fields**, and leaves **Require HTML Purification** off. This preserves existing field behavior, including each HTML field’s Purify Content choice. Previously configured values and `config/formie.php` overrides are respected. New installs use the opposite defaults.
 
-Not every important change in Formie 4 is a breaking change. Some parts of the plugin now work quite differently, and they are worth understanding before you update custom code or plan new work.
+Review these controls in **Settings → Fields** before tightening them. Disabling Hidden templates makes their computed values empty while still ignoring posted input; disabling HTML Twig suppresses output from fields configured for Twig. Stored source is retained, but affected forms must switch away from disabled modes before they can be saved. Disabling includes rejects those Twig calls. Requiring purification can remove markup that existing fields previously allowed. Clear rendered-form caches after changing the policy. PDF filename templates remain unchanged.
 
-### Integration Settings
 
-Custom integrations no longer build their form settings UI with templates. They now define schema for the form builder.
+Review these operational changes while testing the upgrade. They cover automatic migrations, editor workflows and settings you may need to adjust for your site.
 
-This changes how integration settings are built and maintained. If you have custom integrations, it is worth thinking of their settings in the same way as field schema: structured, reusable, and easier for Formie to normalise and extend.
+### Changes at a Glance
 
-### Submission Workflow
+Stored form settings and content are migrated automatically unless a section above calls for a manual edit. You do not need to recreate forms or resave every submission.
 
-Submission processing is no longer one large save step. Formie now runs submissions through a clearer staged workflow.
+Formie 3 | Formie 4
+--- | ---
+**Settings → Spam** and **Settings → Captchas** | **Settings → Spam Protection**
+**Settings → Statuses** | **Settings → Submission Statuses**; form statuses are a separate feature.
+Session-based form progress | Database-backed progress and separate links for resuming drafts and editing completed submissions.
+Integration field-mapping tokens | Migrated reference values; existing notification and form tokens retain compatibility parsing.
 
-That makes custom submission handling more predictable. If you need to run your own logic during processing, it is a better fit to add a workflow task or hook into the workflow events than to try to replace the whole pipeline.
+Custom frontends should review [Frontend Assets](/frontend/frontend-assets) when adopting the browser packages.
 
-The **`screen`** stage now runs built-in submission guards (honeypot, minimum submit time, replay protection) before captcha integrations and spam keyword checks. See [Submission Workflow](/developers/submission-workflow#screen).
+### Spam Protection
 
-### Spam Protection Settings
+Spam settings and provider credentials migrate automatically to dedicated storage. The old **Settings → Spam** and **Settings → Captchas** URLs redirect to **Settings → Spam Protection**.
 
-Spam handling, keyword rules, submission guards, and captcha provider credentials are consolidated on **Settings → Spam Protection**. Legacy **Settings → Spam** and **Settings → Captchas** routes redirect there. Values are stored in dedicated settings tables rather than `plugins.formie.settings` in project config.
+Built-in captcha configuration is replaced by submission guards:
 
-If you relied on the old built-in **Honeypot**, **Javascript**, or **Duplicate** captchas, see [Removed legacy captchas](#removed-legacy-captchas).
+Formie 3 | Formie 4
+--- | ---
+**Honeypot** captcha | **Honeypot** submission guard
+**JavaScript** captcha | **Minimum submit time** submission guard
+**Duplicate** captcha | **Replay protection** submission guard
 
-### Front-End Browser Package
+All three guards are enabled by default, with a three-second minimum submit time. They apply to every form, and standard rendering supplies the required inputs. Review **Formie → Settings → Spam Protection → Submission Guards** after upgrading. Custom references to the [removed captcha types](#removed-legacy-captchas) still need updating.
 
-Formie’s front-end JavaScript and CSS are now part of the browser package and related front-end packages.
+### Encrypted Submission Fields
 
-If your project needs custom validation, DOM event listeners, front-end theming, or a more app-driven setup with React, Vue, Barba, Sprig, or similar tooling, it is worth getting familiar with that package-based front-end model.
+You can activate the dedicated Formie field-content key after upgrading; existing encrypted fields use their previous format until you activate the new key.
 
-Learn more in [Custom Integration](/developers/custom-integration/overview), [Submission Workflow](/developers/submission-workflow), and [Frontend Assets](/frontend/frontend-assets).
+Before enabling encryption on another field, generate `FORMIE_ENCRYPTION_KEY` with `php craft formie/encryption/generate-key`. The command saves the key to the project’s configured `.env` file; use `--stdout` if another system manages the environment. Store the same key in every environment that must read copied submissions. Deploy and restart all web and queue processes before running `php craft formie/encryption/activate`. Make a verified database backup, then follow the [submission content encryption commands](/developers/console-commands#submission-content-encryption) to convert existing values. See [Content Encryption](/submissions/content-encryption) for key management.
 
-### Field References
+Keep `FORMIE_SECURITY_KEY` and the previous Craft security key available until conversion is complete if the site has used both. You can supply old keys temporarily through `FORMIE_ENCRYPTION_PREVIOUS_KEYS`. Formie preserves and locks any value it cannot decrypt instead of displaying it as blank or overwriting it during a resave.
 
-Formie now uses a more consistent field reference concept across places like notifications, calculations, conditions, and integration mapping.
+### Reports and Submission Export
 
-Instead of relying on a field handle as the token value, Formie uses a stable field reference. That makes these links more reliable as forms evolve over time.
+The submissions index **Export** action has moved to **Formie → Reports**. Update editor permissions and workflows if they rely on it.
 
-### Database Submission State
+Submission export now lives in **[Reports](/reports/reports)**:
 
-Formie 3 relied much more heavily on session-based submission state. That could be fragile, especially across devices, longer sessions, or more complex front-end flows.
+- **Formie → Reports** — saved filters, columns, charts, on-demand export (CSV, Excel, JSON, XML, text), and [scheduled email delivery](/reports/scheduled-reports)
+- For a one-off file without saving a report definition, run a report scoped to the form(s) you need and choose **Export** on the report run screen
 
-Formie 4 stores temporary, incomplete, and saved draft submission state in the database instead. That gives automatic submission state, save-and-continue, retention, and resume tokens a much more reliable foundation.
+**Permissions** — report access is split from submission management. Under **Settings → Users → {group} → Formie**, assign:
 
-### Static Caching
+| Permission | Purpose |
+| --- | --- |
+| **Access reports** | Open **Formie → Reports** and run saved reports |
+| **Export submissions** | Export from reports (without full manage access) |
+| **Manage reports** | Create, edit, delete reports; includes export |
+| **Manage scheduled reports** | Configure delivery under **Settings → Scheduled Reports** and on a report’s **Scheduled** tab |
 
-Formie can now handle static-cache token refresh more directly, instead of relying on extra custom snippets to keep cached forms usable.
+See [Reports](/reports/reports), [Saved reports and scheduled delivery](/guides/submissions-workflows/saved-reports-and-scheduled-delivery), and [Submissions overview](/submissions/submissions#export-submission-data).
 
-If your site uses static caching, it is worth understanding the new refresh-on-load handling and the related config settings, especially if you previously added your own refresh logic.
-
-### Form and Submission Statuses
-
-In Formie 3, **Settings → Statuses** managed workflow labels for saved submissions — for example **New**, or custom statuses you created for your team. There was no separate status system for forms themselves.
-
-Formie 4 adds **[Form statuses](/forms/form-statuses)** — lifecycle labels you can assign to forms in the control panel (for example **Active**, **Draft**, **Archived**). That is a new feature, not a rename of something that existed in Formie 3.
-
-Adding form statuses meant the old generic “statuses” naming was no longer clear enough. Everything Formie 3 called **Statuses** is now **[Submission statuses](/submissions/submission-statuses)** in the control panel, PHP APIs, and database:
-
-- **Settings → Submission Statuses** (the legacy **Settings → Statuses** route still opens this)
-- `SubmissionStatuses`, `SubmissionStatus`, and related classes — replacing `Statuses`, `Status`, and so on
-- Database table `formie_submission_statuses` — renamed from `formie_statuses`
-
-Submission status project config stays at `formie.statuses`. Form statuses use a new `formie.formStatuses` key and `formie_form_statuses` table.
-
-If your project has custom PHP, Twig, or module code that references the Formie 3 names, see [Submission and form statuses](#submission-and-form-statuses).
-
-## Static Caches
+### Static Caches
 
 Static-cache handling has changed. Formie can refresh request-specific tokens for statically cached forms when the `staticCacheRefreshOnLoad` plugin setting is enabled, and it assumes static-cache handling is needed when Blitz is installed and enabled.
 
@@ -1507,11 +1868,13 @@ You no longer need to include a JavaScript snippet to refresh the tokens.
 
 See [Cached Forms](/frontend/cached-forms) and [Configuration](/get-started/configuration).
 
-## Save and Continue Later
+Purge cached form HTML on deployment so recipients, Summary fields and editing flows receive current tokens. Custom Summary refresh requests must send the issued token; Summary tokens expire after seven days, so refresh cached forms within that period. Regenerate saved Summary and Signature links by rendering the form or requesting a fresh URL. Multiple web servers must share the database and Formie security key.
+
+### Save and Continue Later
 
 Formie 4 stores form progress in the database so Save & Continue links can resume the same draft across browsers. Automatic page saving remembers the visitor’s browser; it does not create a shareable link. Links for resuming drafts and editing completed submissions are separate and cannot be used interchangeably.
 
-For normal forms, this should not require template changes. If you customise save buttons, draft handling, or submission retention, review [Save & Continue Later](/forms/save-continue-later).
+If you customise save buttons, draft handling, or submission retention, review [Save & Continue Later](/forms/save-continue-later).
 
 Related settings include:
 
@@ -1520,17 +1883,41 @@ Setting | Use
 `submissionStateRetentionDays` | How long stored submission state is retained.
 `saveResumeTokenTtlDays` | How long resume links remain valid.
 
-Learn more in [Save & Continue Later](/forms/save-continue-later) and [Configuration](/get-started/configuration).
+Custom clients and edit templates also need the [continuity and upload changes](#continuity-and-upload-upgrade-actions).
 
-### Continuity and Upload Upgrade Actions
+### Portable Forms and Synced Fields
 
-Existing submission IDs, field content and authorised Formie 3 template hooks such as `form.setSubmission(submission)` and `form.getSubmissionEditToken()` remain available. Continue to check ownership before calling `setSubmission()`. Render authorised edit forms again to obtain fresh edit tokens; existing signed tokens must be replaced.
+Review the import preview and verify shared-field links afterwards. If a stencil's shared definition cannot be resolved, it creates an independent definition. Unknown or unregistered field types retain their settings as Missing Fields; restore and register the owning extension before recovery.
 
-Formie 3 asset-ID inputs remain supported only when ownership can be reconstructed from the current browser's staged upload or the authorised submission's existing field value. Arbitrary asset IDs must be replaced with a new upload. REST and GraphQL clients can submit `{ uploadUid, attachToken }`; the Upload Manager returns separate view, attach and delete credentials. Rebuild client assets together with the PHP upgrade.
+Keep instance IDs/UIDs and handle-based input names; do not replace them with shared definition IDs. See [Shared and Per-Form Settings](/developers/custom-field/overview#shared-and-per-form-settings) when adapting custom field settings or translations.
 
-Test Save & Continue on a second browser, then submit conflicting changes from both browsers: only the first version should succeed. Check completed-record editing separately and confirm that copied asset IDs and cross-field upload capabilities are rejected. [Submission Workflow](/developers/submission-workflow#progress-grants-and-uploads) documents the services and interrupted-promotion recovery.
+Replace the deprecated `syncId` PHP/config property with `definitionId` and `isSynced`; portable links use `syncedDefinitionUid`. Custom export tools should preserve `schemaVersion`, `formieVersion` and field references.
 
-## New and Renamed Settings
+### Automation Test Payloads
+
+Move sample sends out of `fetchFormSettings()` or `fetchConfig()` into `sendTestPayload()` when updating the integration, so metadata refresh does not send an unwanted request. The builder's test action now invokes `sendTestPayload()` separately through the integration's normal execution hook.
+
+### Integration Delivery Storage
+
+Existing providers returning `bool` or `IntegrationResponse` still work through a compatibility adapter. Update to `IntegrationResult` when adopting detailed delivery outcomes and safe retries. A legacy `false` result is non-retryable unless the provider supplies more precise request evidence.
+
+After upgrading, inspect **Formie delivery diagnostics** on failed jobs in **Utilities → Queue Manager** and reconcile uncertain outcomes before retrying. See [Custom Integrations](/developers/custom-integration/overview#results-and-safe-retries) for the provider API.
+
+### Integration Connection Checks
+
+`checkConnection()` now returns `false` when the connection status is `fail`.
+
+### Payment History
+
+Reconcile legacy payments that migrate to `unknown` because their outcome could not be determined. Contradictory subscription flags also become `unknown`, with the original flags retained in history.
+
+Formie 3 subscription payment rows remain monetary history because they cannot reliably be separated into setup attempts and charges. Stripe automatic collection owns invoice charging; Formie observes the result rather than issuing an additional payment request for `invoice.created`.
+
+Existing `deleteSubscription()` and `deleteSubscriptionById()` calls now archive the subscription and preserve its financial history. Review custom code that depended on physical deletion.
+
+Use the [payment console commands](/developers/console-commands) to inspect and reconcile unresolved outcomes before retrying.
+
+### New and Renamed Settings
 
 Review `config/formie.php` if your project keeps a full config file.
 
@@ -1538,7 +1925,7 @@ The most upgrade-relevant settings are:
 
 Setting | Use
 --- | ---
-`compatibilityMode` | Enables Formie 3 compatibility shims. Defaults to `true`.
+`compatibilityMode` | Enables Formie 3 compatibility shims, including supported browser events. Defaults to `true`.
 `allowLegacySignatureImageUrls` | Keeps unsigned Signature images in previously sent Formie 2/3 emails available for explicitly grandfathered submissions. Defaults to `true`; new emails use signed URLs.
 `staticCacheRefreshOnLoad` | Enables token refresh support for static-cache setups that are not auto-detected.
 `submissionStateRetentionDays` | Controls retention for stored submission state.
@@ -1549,220 +1936,18 @@ Setting | Use
 `anonymousFormRateWindowSeconds` | Rate-limit window used by the anonymous request limits.
 `useCssLayers` | Outputs Formie's CSS using CSS layers when enabled.
 
-Removed settings are ignored during settings normalisation:
-
-Removed setting | What to do
---- | ---
-`enableGatsbyCompatibility` | Remove it.
+Remove `enableGatsbyCompatibility` from your config when convenient; Formie ignores this obsolete setting.
 
 See [Configuration](/get-started/configuration) for the current config shape.
 
-## Replacement Reference
-
-Formie 3 | Formie 4
---- | ---
-`form.getFormId()` | `form.getRenderId()`
-`form.setFormId()` | `form.setRenderId()`
-`submission.getValueAsString()` | `submission.getFieldValueAsString()`
-`submission.getValueAsJson()` | `submission.getFieldValueAsData()`
-`submission.getValuesAsJson()` | `submission.getValuesAsData()`
-`field.getValueAsJson()` | `field.getValueAsData()`
-`field.defineValueAsJson()` | `field.defineValueAsData()`
-`field.getFieldKey()` | `field.valueKey()`
-`field.getErrorKey()` | `field.errorKey()`
-`field.getFullHandle()` | `field.handlePath()`
-`field.getFullNamespace()` | `field.namespacePath()`
-`craft.formie.renderFormAssets(form)` | `craft.formie.formAssets(form)`
-`craft.formie.renderFormCss(form)` | `craft.formie.formAssets(form, { includeJs: false })`
-`craft.formie.renderFormJs(form)` | `craft.formie.formAssets(form, { includeCss: false })`
-`craft.formie.renderCss()` | `craft.formie.browserAssets({ includeJs: false })`
-`craft.formie.renderJs()` | `craft.formie.browserAssets({ includeCss: false })`
-`renderCss` render option | `includeCss`
-`renderJs` render option | `includeJs`
-`outputCssLayout` / `outputCssTheme` | `outputCss`
-`outputJsBase` / `outputJsTheme` | `outputJs`
-`defineGeneralSchema()` | `defineFormBuilderGeneralSchema()`
-`defineSettingsSchema()` | `defineFormBuilderSettingsSchema()`
-`defineAppearanceSchema()` | `defineFormBuilderAppearanceSchema()`
-`defineAdvancedSchema()` | `defineFormBuilderAdvancedSchema()`
-`defineConditionsSchema()` | `defineFormBuilderConditionsSchema()`
-`getPreviewInputHtml()` | `defineFormBuilderPreviewSchema()`
-`getFrontEndInputTemplatePath()` | `getInputTemplatePath()`
-`getFormSettingsHtml()` for integration form settings | `defineFormSettingsSchema()`
-`getFrontEndJsVariables()` for captchas/providers | `getBrowserModule()`
-`enableJsEvents` | `enableClientEvents`
-`jsGtmEventOptions` | `clientEventFields`
-`onAfterFormieSubmit` | `formie:submit:result`
-`formieValidatorInitialized` | `formie:validator:ready`
-`verbb\formie\services\Statuses` | `verbb\formie\services\SubmissionStatuses`
-`verbb\formie\models\Status` | `verbb\formie\models\SubmissionStatus`
-`verbb\formie\events\StatusEvent` | `verbb\formie\events\SubmissionStatusEvent`
-`Formie::$plugin->getStatuses()` | `Formie::$plugin->getSubmissionStatuses()`
-`craft.formie.getStatuses()` | `craft.formie.getSubmissionStatuses()`
-`Table::FORMIE_STATUSES` | `Table::FORMIE_SUBMISSION_STATUSES`
-Database table `formie_statuses` | `formie_submission_statuses`
-Submissions index **Export** button | **Formie → Reports** → run report → **Export**
-
-## Payment And Subscription Boundary
-
-Formie 4 keeps `verbb\formie\base\Payment`. Custom Formie 3 providers need the following explicit upgrade mappings; provider-specific event names survive where their semantics remain valid.
-
-| Formie 3 | Formie 4 |
-| --- | --- |
-| Provider `processPayment(): bool` | Implement protected `executePayment(): PaymentDecision`; inherit `processPayment()` so durable intent, locking and uncertainty handling cannot be bypassed. Boolean success cannot express pending or unknown. |
-| Floating point `Payment.amount` and conversions | Decimal strings and `PaymentMoney`; reject precision loss. `getAmount()` and `getPaymentAmount()` retain numeric-compatible return signatures for old extensions, but native adapters return exact strings or integer minor units. Update extension calculations to exact strings. |
-| Payment before/after events and payload events | Existing event names/classes and their boolean legacy result projection remain. Payment authority and provider verification must still succeed. |
-| `getPaymentByReference()` / `getSubscriptionByReference()` | Optional integration ID scopes the lookup. Native provider adapters always pass it. Identifiers alone never authorize public requests. |
-| Subscription boolean flags | Read-only `hasStarted`, `isSuspended`, `isCanceled`, `isExpired` projections remain. Write the coherent `status` instead. Contradictory legacy flags migrate to unknown with original flags retained in history. |
-| Subscription statuses | `suspended` maps to `pastDue` or `paused`; `cancelling` maps to `active` plus `cancelAt`; `expired` maps to `failed` for an incomplete provider setup or `completed` otherwise. New canonical states are pending, trialing, active, pastDue, paused, cancelled, failed, completed and unknown. |
-| Subscription timeline | Canonical timestamps use `startedAt`, `trialStartsAt`, `trialEndsAt`, `currentPeriodStartsAt`, `currentPeriodEndsAt`, `nextPaymentAt`, `pausedAt`, `cancelAt`, `cancelledAt` and `endedAt`. The Formie 3 `nextPaymentDate`, `dateSuspended`, `dateCanceled` and `dateExpired` properties remain as compatibility aliases. |
-| Subscription payment rows | Formie 4 beta setup rows become non-monetary `subscriptionSetup` operations and recurring invoices remain separate monetary `recurringCharge` payments. Formie 3 rows remain monetary `legacySubscriptionPayment` records because their schema cannot safely distinguish a setup attempt from a charge. |
-| `Subscription.subscriptionData` | The compatibility getter returns the selected identifiers and flags in `providerData`, not a full provider response. Use `providerData` in new code. |
-| `verbb\formie\models\Plan` | Remains a deprecated subclass of `SubscriptionPlan`. Use `SubscriptionPlan` for new code. |
-| Subscription deletion | Archive through the service. Financial foreign keys use SET NULL and preserve owner snapshots. |
-| Provider `processWebhook()` | Implement `verifyWebhook()` to authenticate and normalize the request, then `handleWebhook()` to process one durable receipt. Compatibility mode can run the inseparable Formie 3 method synchronously, but it cannot provide the canonical inbox guarantees. |
-| Payment `getRedirectUri()` | Use `getWebhookUrl()`. The Formie 3 name remains a compatibility alias. |
-| Generic callback handlers | Move to the return, status, session or provider-challenge endpoint matching the operation. No generic public callback dispatcher remains. |
-| Cancellation links | Reissue cancellation-only capabilities. Other submission/status/resume credentials cannot cancel subscriptions. GET only displays confirmation; POST requires CSRF. |
-| Provider cancellation methods | Formie 3 `cancelSubscription()` implementations remain behind a compatibility adapter. Native Formie 4 providers return `SubscriptionSnapshot` from `cancelSubscriptionSnapshot()` and declare immediate or period-end support. |
-| Stripe `invoice.created` automatic payment request | Stripe automatic collection owns charging. Formie observes the invoice instead of issuing an unreceipted additional pay request. Paid/failed invoices create distinct history. |
-
-Unresolved legacy payments migrate to unknown rather than inventing a confirmed provider result. Successful and failed historical payments retain their meaning and exact stored decimal text. The upgrade preserves payment and subscription identities, linkage and provider snapshots, and derives canonical timeline dates from provider data where available. Deploy when active checkout sessions have drained. Regenerate payment and cancellation links using the scoped return, status and subscription endpoints.
-
-Webhook signatures must be valid before Formie accepts an event. Stripe and GoCardless retain encrypted authenticated evidence; Mollie URLs include a per-payment secret and use the provider API to authenticate the observed state. Reconfigure provider endpoints with the stable integration-UID URL shown by Formie, then retain the Formie security key for historical evidence decryption. See [Payment Integration](../developers/custom-integration/payment-integration) and [Console Commands](../developers/console-commands) for outcomes, replay, diagnostics and retention.
-
-
-## Field Extensions and Portable Forms
-
-Existing field subclasses continue to extend `verbb\formie\base\Field`. Register each concrete class through `Fields::EVENT_REGISTER_FIELDS`; classes that only implement `FieldInterface` are rejected when registration is resolved. Static metadata and inherited builder-schema defaults remain supported.
-
-| Formie 3 | Formie 4 |
-|---|---|
-| `Field`, `id`, `uid` | Preserved; these identify the form-field instance |
-| `syncId` | Shared `definitionId` plus `isSynced`; the legacy PHP/config property remains supported with a deprecation notice |
-| `getAllFields()` | Preserved as fully hydrated runtime field objects |
-| Boolean field traversal flags | `getFields()`, `getEnabledFields()`, `getFieldsRecursively()` |
-
-Update custom templates that pass traversal flags. For example, replace `row.getFields(false)` with `row.getEnabledFields()` and `page.getRows(false)` with `page.getEnabledRows()`. Repeater row context uses `field.getFields(rowKey)`. Do not change native handle-based input names or replace instance IDs/UIDs in stored content with definition identity.
-
-Existing exports remain importable. Review the import preview before applying changes: it shows which fields are kept, added or removed, and which related resources are reused or created. New imports and duplicates receive their own field identities; updates preserve matched fields. Imports roll back if they fail. Custom export tools should retain `schemaVersion`, `formieVersion` and field references.
-
-Unknown, disabled or unregistered imported field types remain recoverable Missing Fields with their settings. Restore and register the owning extension before recovering them. Portable synced links use `syncedDefinitionUid`. A stencil whose shared definition cannot be resolved creates an independent definition; verify shared-field links after importing.
-
-Changing a stencil or default after creating a form does not update that form. Custom field developers should review [field definitions and instances](/developers/custom-field/overview#shared-and-per-form-settings) when adapting settings or translations.
-
-## Custom Parent Fields
-
-Update custom nested field bases to the Formie 4 classes:
-
-| Formie 3 base | Formie 4 base |
-| --- | --- |
-| `NestedField` | `ParentField` (shared parent behaviour) |
-| `SingleNestedField` with editable child fields | `ContainerParentField` |
-| `SubField` with intrinsic parts, such as Name | `FixedParentField` |
-| `MultiNestedField` | `RepeatableParentField` |
-
-See [Custom Field](/developers/custom-field/overview) for child definitions, storage and rendering. The custom Craft-field adapter interface uses `serializeValueForDb()` for persistence; earlier Formie 4 beta adapters should rename their `serializeValue()` implementation.
-
-## Field Value Contracts
-
-Name values now consistently use `NameFieldValue`, including single-name mode. Text and Email return strings, Agree normalises missing input to false, and Number keeps decimal text without float conversion. Phone uses immutable `PhoneFieldValue`: `.number` and `.country` remain available, `.canonicalNumber` holds valid E.164 data, and string output uses that canonical number or retains invalid entered text. Presentation policy such as `hasCountryCode` is not part of the value. Phone's stored Formie 3 number/country shape and encrypted number parts are read through the storage compatibility boundary. Use `getFieldValueAsString()` for string output and `getFieldValueAsData()` for natural JSON-safe data.
-
-GraphQL Number fields and numeric Table cells use `FormieDecimal`, which returns decimal strings and preserves literal digits. Change explicitly declared `$amount: Number` variables to `$amount: FormieDecimal` and send decimal variables as strings. JSON numeric variables may have lost precision in the caller before Formie receives them. Malformed text still reaches ordinary field validation. Control-panel number inputs also retain all stored digits when the configured decimal count changes.
-
-| Existing API | Replacement |
-|---|---|
-| `Submission::getValueAsJson()` / `Field::getValueAsJson()` | `Submission::getFieldValueAsData()` / `Field::getValueAsData()`; deprecated adapters remain available |
-| Formie 3 `defineValueAsJson()` override | Supported through a deprecated protected-method adapter; implement `defineValueAsData()` |
-| Formie 3 `serializeValue()` override | Supported through the storage adapter; implement `defineValueForDb()` and call `serializeValueForDb()` |
-
-The Formie 3 `EVENT_MODIFY_VALUE_AS_JSON` constant aliases `EVENT_MODIFY_VALUE_AS_DATA`; email event constants identify the corresponding reference-block event. Each projection dispatches one event. Register with the constants rather than hard-coded legacy event strings. A reference projection does not dispatch the public string event.
-
-Rich values are immutable after normalisation. Replace assignments to Name/Address properties and option selections with construction of a new value. Date casts use canonical date/time strings; configured display formatting belongs to `getFieldValueAsString()`. Payment values contain submitted parts only; use `submission.getPayments()` and `submission.getSubscriptions()` to retrieve payment records.
-
-Back up the database and retain the original Formie security key before upgrading. Trusted storage accepts existing scalar, UID-keyed nested and exact legacy encrypted representations. New writes encrypt the complete stored representation in a versioned envelope. This is a read adaptation and rewrite-on-save upgrade, so no bulk destructive rewrite is required. Earlier releases cannot read newly encrypted values; restore the pre-upgrade backup when rolling back. Refresh cached forms after deployment so recipient inputs use current opaque option tokens. Previously rendered encrypted recipient tokens are not decrypted from requests.
-
-## Reference Runtime and Variable Picker
-
-Reference slots use one parseable grammar with explicit native-value and text operations. The following Formie 3 tokens remain supported without Twig evaluation: `{field:handle}`, `{field.handle}`, the form/submission/system/site/user catalogue tokens such as `{formName}` and `{userEmail}`, the four date/time presets, and all-fields summary tokens. Simple `{submission.id}`-style aliases remain supported for PDF filenames. Handle resolution stays inside the owning form; ambiguous handles and deleted fields produce diagnostics.
-
-Back up the database before upgrading. The reference-slot migration writes `{kind, value}` objects only within integration field mappings and is idempotent. Existing exact tokens become reference slots; literals retain literal semantics, including decoded provider options. Notification, form, field, redirect and rich-text token strings use compatibility parsing, so an unsafe blanket rewrite is unnecessary. Existing field-reference migrations retain exact instance identity. Roll back by restoring the pre-upgrade database, because older versions cannot read the slot objects.
-
-Environment access changes deliberately: configure `referenceEnvironmentAllowlist` with safe names in `config/formie.php`. A `FORMIE_` prefix does not grant access. Authored notification `$NAME` aliases use the same allowlist. Submitted `$NAME` values remain literal. Secrets are never included in picker values. Header values containing CR, LF or NUL fail; HTML substitutions are escaped once and URL substitutions are encoded as components. A whole legacy URL reference retains exact URL semantics followed by destination validation.
-
-Stored reference slots cannot execute arbitrary Twig filters, globals, functions or object traversal. Move those expressions to deliberately authored template files or [registered reference sources](/developers/custom-variable-sources). Explicit Hidden template mode and HTML template rendering remain separate template surfaces. PDF filenames and upload subpaths preserve their explicit sandboxed template surface. References in those templates use the shared runtime and their resolved values are inserted after rendering, so submitted text never becomes template code. Automation URLs use reference interpolation; move arbitrary expressions there into registered sources. Unknown references are diagnosed instead of collapsing to empty strings, and defaults do not conceal missing sources.
-
-| Formie 3 | Formie 4 |
-| --- | --- |
-| `Variables::getParsedValue()` | `References::interpolateText()` with an explicit context and output context; exact destinations use `resolveValue()` |
-| Twig `craft.formie.getParsedValue()` | `craft.formie.parseContent(text, submission)` for text containing references; `craft.formie.parseValue(reference, submission)` for one reference whose native value is needed |
-| Formie 3 `RegisterVariablesEvent::$variables` / `ParseVariablesEvent::$variables` | Register a `ReferenceSource` through `ReferenceCatalogue::EVENT_REGISTER`; declare a namespaced ID and `FieldValueType` |
-
-Register custom sources with namespaced IDs such as `vendor/name` and update their stored tokens to `{custom:vendor/name}`. Formie cannot infer third-party ownership or semantics. Formie 3 field email projection adapters remain available through reference blocks.
-
-A direct fixed child reference is valid. A direct repeater-child reference needs a current row in `ReferenceContext::$rows`; parent collection selectors use `scope=first`, `last`, `index`, `all`, `count` or `rows`. Table columns are selectors on their parent, not field identities. Update code that treated an unscoped child or an unknown extension as an empty value to inspect `ResolvedReference::$diagnostic`.
-
-## Integration Delivery Storage
-
-Back up the database, finish pending integration and notification jobs, and retain the Formie security key before upgrading. Literal connection and permitted per-form settings remain as configured. Environment references remain portable. Existing beta-encrypted settings require their original key or replacement values. Formie 3 providers returning `bool` or `IntegrationResponse` remain callable through a compatibility adapter. A `false` result is a non-retryable failure unless the provider supplies more precise evidence through a guarded request. Update providers to return `IntegrationResult` and wrap each remote write in a named child operation; see [Custom Integrations](/developers/custom-integration/overview#results-and-safe-retries).
-
-After upgrading, use **Formie delivery diagnostics** on failed Formie jobs in **Utilities → Queue Manager** to inspect retained delivery evidence and reconcile uncertain results before retrying. Downgrading requires the matching pre-upgrade database and code backup.
-
-## Browser module declarations
-
-Formie 4 distinguishes server-rendered HTML from client-rendered definitions. Browser modules apply to either product; CP edit configuration uses `getCpEditConfig()`. Public field definitions use `getClientRenderedDefinition()` and `getClientRenderedInput()`. Custom PHP declarations use immutable `BrowserModule` values with a namespaced `moduleId` and explicit surfaces. Formie projects them into surface-specific manifests with unique occurrence keys and discriminated targets. The manifest contains no executable `src` URLs.
-
-Stable `getFrontEndJsModules()` declarations are adapted with a deprecation warning. Register third-party JavaScript in your trusted application bundle under `legacy:<kebab-name>`; old source URLs are ignored. Repeated declarations remain distinct. The client-rendered bootstrap remains version 1; its nested browser-module manifest is version 2 and names its exact surface. The client-rendered web component is `<formie-client-form>`.
-
-## Completion and Runtime Configuration
-
-| Formie 3 | Formie 4 |
-| --- | --- |
-| `form.setRedirectUrl(url)` | Preserved; final destination policy applies after all overrides |
-| `SubmissionsController::EVENT_AFTER_SUBMISSION_REQUEST` redirect override | Preserved at actual completion for all submission transports |
-| `craft.formie.populateFormValues(form, values, force = false)` | Preserved; `true` enforces values across pages and resume |
-| `prePopulate` | `prefillQueryParam`; stable PHP alias and stored-configuration migration |
-| Hidden `defaultOption` | `valueSource`; hydration alias and migration |
-| `submitAction` values `entry` / `url` | `completionBehavior: redirect`, with `completionRedirectSource: entry` / `url` |
-| `submitActionTab` | `redirectTarget` |
-| `submitActionUrl` | `redirectUrl` |
-| `submitActionEntry` | `redirectEntry` |
-| `submitActionFormHide` | `hideFormAfterSubmit` |
-| `submitActionMessage` | `successMessage` |
-| `submitActionMessageTimeout` | `successMessageTimeout` |
-| `submitActionMessagePosition` | `successMessagePosition` |
-| `$updateSnapshot` argument on `setSettings()`, `setFieldSettings()` and `setIntegrationSettings()` | Remove this argument; configuration lifetime is managed internally |
-| Settings retained in the visitor’s session | Settings needed to continue the form are stored with its progress and submission |
-
-Back up the database before upgrading and retain Craft’s security key. The migration adds storage for temporary form settings without resaving submissions or running integrations. Refresh cached forms after deployment.
-
-Review external completion destinations and add their exact origins to `completionRedirectAllowedOrigins`. Query forwarding now defaults to five UTM parameters; add required campaign keys to `completionQueryAllowlist`. An empty allowlist disables forwarding. Explicitly empty posted values remain empty, including Hidden fields. Query input is captured only when a new form instance starts.
-
-Runtime overrides are deliberately allowlisted. Remove attempts to override identities, provider credentials or global integration settings. Custom fields opt their supported settings in through `runtimeOverridableSettings()`. See [Overriding Settings](/templates/overriding-settings) and [Completion and Redirects](/templates/completion-and-redirects).
-
-## Conditions and Validation
-
-Formie 4 accepts the stable Formie 3 `showRule`, `conditionRule` and `conditions` arrays and migrates them to the versioned condition contract. Known `==`, `equals` and `notEquals` aliases normalize to `=`, `=` and `!=`. Stable condition context selectors such as `{submission:formName}`, `{submission:siteName}`, `{submission:siteHandle}` and `{submission:dateCreated}` normalize to the shared form, site and submission sources. Unknown rules remain diagnosable invalid configuration. Existing acyclic forward references retain dependency ordering; new builder rules select preceding sources, and cycles must be corrected.
-
-Test conditions that compare text, numbers, dates or selected options. Text comparisons use alphabetical order (`10` comes before `2`), while Number fields compare numeric values. Options match complete values rather than parts of an option. Invalid conditions block actions instead of allowing them. Date/time rules need complete dates and times, with a timezone offset for ambiguous local times.
-
-Hidden and disabled public values are cleared recursively before validation, including nested and repeater values. Browser-posted page targets cannot bypass progression rules. Validation errors are plain text and retain complete nested paths. Stable Formie 3 AJAX still uses handle-based error keys and may return HTTP 200; the client-rendered APIs use form-field instance IDs and typed domain outcomes.
-
-For custom front-end validation, follow [Custom Front-End Validation](#custom-front-end-validation) and [Conditions](/developers/conditions) and [Validation](/developers/validation).
-
-### Browser Translation Event
-
-Replace `EVENT_MODIFY_FRONT_END_JS_TRANSLATIONS` with `Rendering::EVENT_MODIFY_BROWSER_JS_TRANSLATIONS`. The event still supplies the translation array for extensions to modify.
-
-
 ## Updating Earlier Formie 4 Extensions
 
-If custom code adopted APIs from an earlier Formie 4 beta, update these names when deploying the plugin and npm packages together. These beta APIs do not have compatibility aliases.
+Skip this section when upgrading from stable Formie 3. It applies only to custom code written against earlier Formie 4 betas; deploy updated PHP and npm packages together. The replacements below have no compatibility aliases unless noted.
 
-| Earlier API | Current API |
+| Earlier Formie 4 Beta | Current Formie 4 |
 |---|---|
 | `client\modules` namespace | `browser\modules` |
-| `compatibility\client\RefreshTokensCompatibility` | `compatibility\browser\RefreshTokensCompatibility`; legacy refresh endpoints retain their behaviour |
+| `compatibility\client\RefreshTokensCompatibility` | `compatibility\browser\RefreshTokensCompatibility` |
 | `ClientSessionService` and `getClientSessionService()` | `services\FormSessions` and `getFormSessions()` |
 | `client\BaseClientModel` | `base\FormPayload` |
 | `client\ClientMutationRequest` | `models\FormMutationRequest` |
@@ -1770,17 +1955,76 @@ If custom code adopted APIs from an earlier Formie 4 beta, update these names wh
 | `client\models\SubmitRequest`, `SubmitResult` | `models\FormSubmitRequest`, `FormSubmitResult` |
 | `ManagedSubmissionRequest` and `executeManaged()` | `HtmlSubmissionRequest` and `executeHtml()` |
 | `getClientFormDefinitionBuilder()->build($form, $context)` | `$form->getClientRenderedDefinition($context)` |
-| `clientRenderedDefinition()` and `FieldClientRenderedDefinition` | Override `defineClientRenderedType()` and `defineClientRenderedInput()`; obtain the complete payload with `getClientRenderedDefinition()` |
 | Custom Craft-field adapter `getClientInput()` | `getClientRenderedInput()` |
-| `definePrimaryOptionVariableSourceTypes()` | `definePrimaryOptionReferenceTypes()`, returning `ReferenceType` enum cases |
+| `definePrimaryOptionVariableSourceTypes()` | `definePrimaryOptionReferenceTypes()` |
 | `ClientConditionRule`, `ClientConditionSettings`, `ClientValidationRule` npm types | `BrowserConditionRule`, `BrowserConditionSettings`, `BrowserValidationRule` |
-| Field `runtime.structure` metadata | `client.children.model`, alongside `client.valueType` |
 | `anonymousClientBootstrapRateLimit`, `anonymousClientRefreshRateLimit`, `anonymousClientRateWindowSeconds` settings | `anonymousFormBootstrapRateLimit`, `anonymousFormRefreshRateLimit`, `anonymousFormRateWindowSeconds` |
+
+### Beta Field Rendering
+
+For fields that implemented `clientRenderedDefinition()` or returned `FieldClientRenderedDefinition`, put the field type in `defineClientRenderedType()` and its input settings in `defineClientRenderedInput()`. Call `getClientRenderedDefinition()` to obtain the assembled payload. The [Custom Field reference](/developers/custom-field/overview) documents these hooks.
+
+Code reading field `runtime.structure` must read `client.children.model` and `client.valueType` instead.
+
+### Beta Reference Types
+
+`definePrimaryOptionReferenceTypes()` must return `ReferenceType` enum cases; renaming the method alone is insufficient.
+
+### Beta Condition and Validation Helpers
+
+Code using the old `ConditionsHelper::getClientFieldReferenceMap()` forwarding method should call `FieldReferenceHelper::getBrowserFieldReferenceMap($form->getFields())` directly.
 
 The CP condition helper uses `CpSubmissionFieldConditions::browserDisplayMode()` and `BROWSER_DISPLAY_HIDE`. Shared PHP condition helpers now use browser terminology: `compileBrowserConditions()`, `getBrowserSubmissionContext()`, `getSubmitButtonBrowserConditions()`, and `toBrowserConditionDefinition()`. Field-reference helpers use `getBrowserFieldReferenceMap()`, `resolveBrowserFieldKey()`, and `normalizeBrowserFieldReference()`. Shared validation helpers use `BrowserAttribute` or `BrowserAttributes` suffixes; text-limit configuration uses `getTextLimitBrowserConfig()`. Client-rendered text-limit and option-limit inputs use `getTextLimitClientRenderedInput()` and `getOptionsLimitClientRenderedInput()`.
 
+### Beta Submission Sessions
+
 `FormSessions::persistPageState($request)` takes only the page-transition request. Remove the unused second boolean argument; visitor page transitions enforce the shared refresh rate limit through the submission guards.
 
-Session submission helpers use `applySessionRequestContext()`, `getRequiredSessionMutationScope()`, and `resolveSessionContinuationSubmission()`. Map adapter configuration helpers use `BrowserSettings` suffixes. Code using the old `ConditionsHelper::getClientFieldReferenceMap()` forwarding method should call `FieldReferenceHelper::getBrowserFieldReferenceMap($form->getFields())` directly.
+Session submission helpers use `applySessionRequestContext()`, `getRequiredSessionMutationScope()`, and `resolveSessionContinuationSubmission()`.
 
-The empty `FieldRequiredValidator` wrapper has been removed; use Yii’s `RequiredValidator`. Removed beta compatibility classes include `ClientCompatibility`, `ClientGuestCsrfTrait`, and the `options\sources` class aliases. Use the canonical `options`, `options\resolvers`, and `options\predefined` classes. Replace `OptionSourceProviderInterface` with `OptionSourceResolverInterface` and the `providers` classes with their corresponding `resolvers` classes. `IntegrationSecrets::protect()` and `protectBindings()` have also been removed: settings remain as configured, and sensitive metadata controls redaction. Existing encrypted settings retain their migration and recovery path. The `FormIntegrationSetting` and `Sensitive` PHP attributes remain separate contracts for form assignability and redaction.
+### Removed Beta Classes
+
+The empty `FieldRequiredValidator` wrapper has been removed; use Yii’s `RequiredValidator`. Removed beta compatibility classes include `ClientCompatibility`, `ClientGuestCsrfTrait`, and the `options\sources` class aliases. Use the canonical `options`, `options\resolvers`, and `options\predefined` classes. Replace `OptionSourceProviderInterface` with `OptionSourceResolverInterface` and the `providers` classes with their corresponding `resolvers` classes.
+
+<span id="integration-connection-settings"></span>
+
+### Beta Integration Secrets
+
+Existing encrypted settings from earlier Formie 4 betas need their original key or replacement values.
+
+Remove calls to `IntegrationSecrets::protect()` and `protectBindings()`. Use `FormIntegrationSetting` to allow a property to be configured per form and `Sensitive` to mark it for redaction.
+
+### Beta Craft-Field Storage
+
+Custom Craft-field adapters must also rename their persistence implementation from `serializeValue()` to `serializeValueForDb()`.
+
+### Beta Subscription Setup Records
+
+Earlier beta subscription setup rows become non-monetary `subscriptionSetup` operations; recurring invoices remain separate `recurringCharge` payments.
+
+### Beta Field Helpers
+
+Beta extension code should replace `isOptionFrontEndDisabled()` with `isOptionDisabled()`, `getOptionSourceSourceOptions()` with `getOptionSourceOptions()`, and protected `conditionDefinition()` with `defineConditions()`. The partial public `collectBrowserModules()` helper is removed; presentation delegates compose the protected declaration, while consumers use `browserModules($context)` for completed declarations.
+
+### Beta Recipients Values
+
+The beta `RecipientsFieldValue` no longer stores `displayType`; use its read-only `value`, `label`, `valid` and `multiple` properties and `all()` / `values()` / `labels()` methods.
+
+### Beta Quiz Settings
+
+Quiz's beta property `fieldType` is now `displayType`, and its `FIELD_TYPE_*` constants are now `DISPLAY_*`. Stored beta configuration is migrated when loaded; the old PHP property and constants are not retained.
+
+### Beta Browser Module Settings
+
+Map adapter configuration helpers use `BrowserSettings` suffixes. Update beta browser-module configurations to use `allowedCountryCodes`, `maxFiles`, `minFileSize` and `maxFileSize`; client-rendered Repeater definitions use `addRowLabel`.
+
+### Working Beta Integration Aliases
+
+These earlier beta methods and their overrides remain supported. Update them when convenient.
+
+Earlier Formie 4 Beta | Current Formie 4
+--- | ---
+`getIntegrationFieldMappingField()` | `createFieldMappingField()`
+`getGraphqlPaymentInputFieldKeys()` | `getGqlPaymentInputFieldKeys()`
+`getOptionalGraphqlPaymentInputFieldKeys()` | `getOptionalGqlPaymentInputFieldKeys()`
+`getConfigRefreshParams()` | `getOptionSourceRefreshParams($provider)`
