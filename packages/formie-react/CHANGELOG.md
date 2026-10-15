@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Use `addRowLabel` for repeater button labels in client-rendered field contracts.
+
 ## 1.0.14 - 2026-10-08
 
 ### Changed

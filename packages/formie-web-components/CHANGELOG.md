@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Use `addRowLabel` for the client-rendered Repeater button label.
+
 ## 1.0.14 - 2026-10-08
 
 ### Changed

@@ -3,9 +3,15 @@
 ## Unreleased
 
 ### Changed
+- Rename field module settings to `allowedCountryCodes`, `maxFiles`, `minFileSize` and `maxFileSize` to match the PHP field API.
 - Remove the unused legacy frontend-theme attribute from mounted forms.
 
 ### Fixed
+- Fixed adding or removing repeater rows with the mouse automatically focusing fields in the submission editor, and keyboard focus targeting field wrappers instead of controls.
+- Fixed hiding an unused state field triggering an unsaved-changes warning when opening a submission.
+- Fixed PlaceKit autocomplete clearing the selected state when using a dynamic State / Province dropdown.
+- Fixed dynamic state dropdowns using control-panel markup, including country changes and preservation of historical saved values.
+- Fixed browser event compatibility not inheriting the setting from forms loaded into a wrapper through REST or GraphQL.
 - Fixed resetting forms leaving added repeater rows or failing to restore removed rows and dynamic address state values.
 - Fixed dynamic address state fields failing to reappear after selecting a country that uses states.
 - Fixed dynamic address state fields remaining visible before a country was selected.

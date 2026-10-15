@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Use `addRowLabel` for the client-rendered Repeater button label.
+
 ### Fixed
 - Stop the default form error summary from requiring field-only accessibility props.
 
