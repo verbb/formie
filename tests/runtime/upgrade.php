@@ -28,7 +28,7 @@ foreach ($db->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN) as $table) {
 $db->exec('SET FOREIGN_KEY_CHECKS=1');
 $run(['php', 'tests/runtime/upgrade-craft.php', 'install/craft', '--interactive=0', '--username=admin', '--email=admin@example.test', '--password=testing-only-password', '--siteName=Upgrade fixture', '--siteUrl=https://formie-react-tests.ddev.site', '--language=en-US']);
 $run(['php', 'tests/runtime/upgrade-craft.php', 'plugin/install', 'formie', '--interactive=0']);
-$run(['php', 'tests/runtime/upgrade-seed.php']);
+$run(['php', 'tests/runtime/upgrade-seed.php', ...(in_array('--single-site', $argv, true) ? ['--single-site'] : [])]);
 // Remove only the old Composer package before installing a path dependency inside its source tree.
 // The installed plugin and populated database remain in place for Craft's upgrade migrations.
 $run(['composer', 'remove', 'verbb/formie', '--no-interaction', '--no-progress'], $dir);

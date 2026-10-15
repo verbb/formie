@@ -80,14 +80,7 @@ process because its query implementation caches the form registry for the proces
 
 The lifecycle task creates a populated form, verifies that disabling and enabling retain its records, checks that uninstall removes all Formie tables and elements, and confirms that a fresh reinstall can save and reload submission content. It runs only in the owned disposable application.
 
-The upgrade task installs the locked Formie 3.1.39 baseline on Craft 5.11.1 in a
-separate generated app with an `upg_` table prefix. It creates real forms, a synced
-field, nested submission content and a notification before Composer switches to
-this checkout and Craft runs its migrations. The checks reload those original
-records after migration and verify values, shared-field identity and notification
-reference resolution. Weekly/manual automation runs this contract. It covers this
-populated Formie 3 baseline; it does not imply every historical version or third-party
-field combination has been upgraded successfully.
+The upgrade task installs the locked Formie 3.1.39 baseline on Craft 5.11.1 in a separate generated app with an `upg_` table prefix. It creates a second site, real forms, a synced field, nested submission content and a notification before Composer switches to this checkout and Craft runs its migrations. The checks reload those original records after migration and verify values, shared-field identity, notification reference resolution and secondary-site form titles. Run `ddev test --task=upgrade --single-site` to exercise the same populated upgrade with one site. Weekly/manual automation runs the multisite contract. It covers this populated Formie 3 baseline; it does not imply every historical version or third-party field combination has been upgraded successfully.
 
 PR automation runs default and seeded-random PHP, core and CP JavaScript, and the
 [Chromium browser contracts](browser/README.md). Weekly and manual runs add

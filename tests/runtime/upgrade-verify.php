@@ -15,6 +15,14 @@ $form = Form::find()->id($fixture['formId'])->status(null)->one();
 $shared = Form::find()->id($fixture['sharedFormId'])->status(null)->one();
 $submission = Submission::find()->id($fixture['submissionId'])->status(null)->one();
 $check($form !== null && $shared !== null && $submission !== null, 'original form and submission identities survived');
+if ($fixture['secondarySiteId'] !== null) {
+    $check($app->getIsMultiSite(), 'populated upgrade runs through multisite migrations');
+    $check((int)$form->sourceSiteId === (int)$fixture['primarySiteId'], 'legacy source site is backfilled before form propagation');
+    $translated = Form::find()->id($form->id)->siteId($fixture['secondarySiteId'])->status(null)->one();
+    $check($translated !== null && $translated->title === 'Upgrade contract', 'upgraded form is available with its title on the secondary site');
+} else {
+    $check(!$app->getIsMultiSite(), 'single-site upgrade remains supported');
+}
 $check($submission->stateVersion === 0, 'existing submissions receive an initial version without changing their content');
 $check($app->getDb()->tableExists(\verbb\formie\helpers\Table::FORMIE_SUBMISSION_OPERATIONS), 'upgrade creates durable submission operation storage');
 $check($app->getDb()->tableExists(\verbb\formie\helpers\Table::FORMIE_SUBMISSION_PROGRESS), 'upgrade creates canonical progress storage');

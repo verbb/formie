@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix an error when upgrading multi-site installs from Formie 3 to Formie 4. ([#3007](https://github.com/verbb/formie/issues/3007))
 - Fix unnecessary `EVENT_MODIFY_HTML_TAG` deprecation warnings when rendering forms with the debug toolbar enabled. ([#3009](https://github.com/verbb/formie/issues/3009))
 
 ## 4.0.0 - 2026-10-16

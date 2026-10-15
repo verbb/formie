@@ -7,6 +7,17 @@ use verbb\formie\models\{FieldLayout, Notification};
 use verbb\formie\fields\{Group, Signature, SingleLineText};
 
 if (Formie::$plugin->version !== '3.1.39') { throw new RuntimeException('The fixture must start on the pinned Formie 3 release.'); }
+// Exercise migrations against a genuinely multisite legacy installation.
+$primarySite = $app->getSites()->getPrimarySite();
+$secondarySite = null;
+if (!in_array('--single-site', $argv, true)) {
+    $secondarySite = new \craft\models\Site([
+        'groupId' => $primarySite->groupId, 'name' => 'Upgrade translation', 'handle' => 'upgradeTranslation',
+        'language' => 'fr', 'hasUrls' => true, 'baseUrl' => $primarySite->baseUrl . '/fr/',
+    ]);
+    if (!$app->getSites()->saveSite($secondarySite)) { throw new RuntimeException(json_encode($secondarySite->getErrors())); }
+    if (!$app->getIsMultiSite()) { throw new RuntimeException('The upgrade fixture must have multiple sites.'); }
+}
 $form = new Form(['title' => 'Upgrade contract', 'handle' => 'upgradeContract']);
 $form->setFormLayout(new FieldLayout(['pages' => [['label' => 'Details', 'rows' => [['fields' => [
     ['type' => SingleLineText::class, 'label' => 'Full name', 'handle' => 'fullName', 'required' => true, 'prePopulate' => 'legacyName'],
@@ -62,6 +73,7 @@ foreach (['success', 'pending'] as $status) {
 // This standalone seed does not run Craft's after-request project-config flush.
 $app->getProjectConfig()->saveModifiedConfigData();
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/upgrade-fixture.json', json_encode([
+    'primarySiteId' => $primarySite->id, 'secondarySiteId' => $secondarySite?->id,
     'integrationProjectConfig' => $app->getProjectConfig()->get('formie.integrations', true),
     'subscriptionIds' => $subscriptionIds, 'paymentIds' => $paymentIds, 'from' => Formie::$plugin->version, 'formId' => $form->id, 'sharedFormId' => $shared->id, 'submissionId' => $submission->id,
     'fieldUid' => $form->getFieldByHandle('fullName')->uid, 'signatureFieldId' => $form->getFieldByHandle('signature')->id,
