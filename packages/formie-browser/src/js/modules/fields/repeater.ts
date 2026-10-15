@@ -34,7 +34,7 @@ function getRowCount(field: HTMLElement): number {
 
 function focusRow(row: Element | null): boolean {
     const control = Array.from(row?.querySelectorAll<HTMLElement>(
-        'input:not([type="hidden"]), select, textarea, button, a[href], [tabindex]',
+        'input:not([type="hidden"]), select, textarea, button, a[href], [role="button"], [role="combobox"], [role="textbox"], [contenteditable="true"]',
     ) || []).find((element) => {
         return element.tabIndex >= 0 && !element.matches(':disabled')
             && !element.closest('[hidden], [inert]') && element.getClientRects().length > 0;
@@ -58,7 +58,7 @@ function syncAddButton(addButton: HTMLButtonElement | null, rowCount: number): v
     addButton.disabled = false;
 }
 
-function bindRepeaterField(field: HTMLElement): () => void {
+function bindRepeaterField(field: HTMLElement, isCpEdit: boolean): () => void {
     const container = field.matches(CONTAINER_SELECTOR)
         ? field
         : field.querySelector(CONTAINER_SELECTOR);
@@ -99,7 +99,8 @@ function bindRepeaterField(field: HTMLElement): () => void {
                     return;
                 }
 
-                const restoreFocus = row.contains(document.activeElement);
+                const restoreFocus = row.contains(document.activeElement)
+                    && (!isCpEdit || (event instanceof MouseEvent && event.detail === 0));
                 const nextRow = row.nextElementSibling;
                 const previousRow = row.previousElementSibling;
                 row.remove();
@@ -123,7 +124,7 @@ function bindRepeaterField(field: HTMLElement): () => void {
         });
     };
 
-    const addRow = async() => {
+    const addRow = async(focusNewRow = false) => {
         if (!(addButton instanceof HTMLButtonElement)) {
             return;
         }
@@ -162,7 +163,7 @@ function bindRepeaterField(field: HTMLElement): () => void {
         bindRemoveButtons();
         // Rows are inserted before Add, so leaving focus there skips the new
         // inputs on Tab. Do not steal focus if the user moved on while mounting.
-        if (document.activeElement === addButton) focusRow(row);
+        if (focusNewRow && document.activeElement === addButton) focusRow(row);
         syncAddButton(addButton, getRowCount(field));
         debug.log('Row appended.', {
             rowCount: getRowCount(field),
@@ -179,7 +180,10 @@ function bindRepeaterField(field: HTMLElement): () => void {
 
     const addHandler = (event: Event) => {
         event.preventDefault();
-        void addRow();
+        // Pointer additions in the CP should not focus Craft's field wrappers
+        // and show a focus ring around the newly inserted field.
+        const focusNewRow = !isCpEdit || (event instanceof MouseEvent && event.detail === 0);
+        void addRow(focusNewRow);
     };
 
     if (addButton instanceof HTMLButtonElement) {
@@ -258,7 +262,7 @@ export const repeaterModule: BrowserModuleDefinition = {
             });
 
         const destroyBindings = fields.map((field) => {
-            return bindRepeaterField(field);
+            return bindRepeaterField(field, ctx.surface === 'cp-edit');
         });
         debug.log('Module setup.', { fieldCount: fields.length });
 
