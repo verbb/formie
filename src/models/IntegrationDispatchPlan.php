@@ -106,7 +106,7 @@ class IntegrationDispatchPlan extends Model
             return $this->steps;
         }
 
-        $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form);
+        $integrations = Formie::$plugin->getIntegrations()->getEnabledIntegrationRuntimes($form);
         $steps = [];
 
         foreach ($integrations as $integration) {

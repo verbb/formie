@@ -112,38 +112,10 @@ class PayWay extends Payment
         ]);
     }
 
-    public function getTransaction(PaymentModel $payment): void
-    {
-        if (!$payment->reference || in_array($payment->status, [PaymentModel::STATUS_SUCCEEDED, PaymentModel::STATUS_FAILED], true)) {
-            return;
-        }
-        $submission = $payment->getSubmission();
-
-        if (!$submission || $payment->integrationId !== $this->id) {
-            throw new Exception('Invalid PayWay payment context.');
-        }
-        $response = $this->request('GET', 'transactions/' . rawurlencode($payment->reference));
-        $this->_validateTransaction($response, $submission, (string)$payment->amount, (string)$payment->currency);
-
-        if ((string)$response['transactionId'] !== $payment->reference) {
-            throw new DeliveryOutcomeUnknownException('PayWay returned a different transaction.');
-        }
-        $payment->status = match (strtolower((string)($response['status'] ?? ''))) {
-            'approved', 'approved*' => PaymentModel::STATUS_SUCCEEDED,
-            'declined', 'voided' => PaymentModel::STATUS_FAILED,
-            default => PaymentModel::STATUS_PENDING,
-        };
-        $payment->response = $response;
-
-        if (!Formie::$plugin->getPayments()->savePayment($payment)) {
-            throw new DeliveryOutcomeUnknownException('Unable to save the PayWay payment outcome.');
-        }
-        Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
-    }
-
+    /** @deprecated Use refreshPayment(); this adapter preserves the legacy status-check behaviour. */
     public function getTransactionStatus(PaymentModel $payment): void
     {
-        $this->getTransaction($payment);
+        $this->refreshPayment($payment);
     }
 
     public function fetchConnection(): bool
@@ -226,6 +198,35 @@ class PayWay extends Payment
     // Protected Methods
     // =========================================================================
 
+    protected function refreshPaymentState(PaymentModel $payment): void
+    {
+        if (!$payment->reference || in_array($payment->status, [PaymentModel::STATUS_SUCCEEDED, PaymentModel::STATUS_FAILED], true)) {
+            return;
+        }
+        $submission = $payment->getSubmission();
+
+        if (!$submission || $payment->integrationId !== $this->id) {
+            throw new Exception('Invalid PayWay payment context.');
+        }
+        $response = $this->request('GET', 'transactions/' . rawurlencode($payment->reference));
+        $this->_validateTransaction($response, $submission, (string)$payment->amount, (string)$payment->currency);
+
+        if ((string)$response['transactionId'] !== $payment->reference) {
+            throw new DeliveryOutcomeUnknownException('PayWay returned a different transaction.');
+        }
+        $payment->status = match (strtolower((string)($response['status'] ?? ''))) {
+            'approved', 'approved*' => PaymentModel::STATUS_SUCCEEDED,
+            'declined', 'voided' => PaymentModel::STATUS_FAILED,
+            default => PaymentModel::STATUS_PENDING,
+        };
+        $payment->response = $response;
+
+        if (!Formie::$plugin->getPayments()->savePayment($payment)) {
+            throw new DeliveryOutcomeUnknownException('Unable to save the PayWay payment outcome.');
+        }
+        Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
+    }
+
     protected function executePayment(Submission $submission): PaymentDecision
     {
         $mutex = Craft::$app->getMutex();
@@ -292,7 +293,7 @@ class PayWay extends Payment
 
 
         // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount($submission);
+        $amount = $this->getPaymentAmount($submission);
         $currency = $this->getFieldSetting('currency');
 
         // Capture the authorized payment

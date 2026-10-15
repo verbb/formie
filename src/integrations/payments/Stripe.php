@@ -235,28 +235,42 @@ class Stripe extends Payment
         return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey);
     }
 
-    public function getReturnUrl(Submission $submission): string
+    public function createPaymentReturnUrl(Submission $submission): string
     {
-        $url = 'formie/payment-return/index';
-        $payment = Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
-        $params = ['returnToken' => PaymentAccess::issueReturnToken($payment)];
+        return $this->callLegacyIntegrationMethod('getReturnUrl', Stripe::class, [$submission], function() use ($submission) {
+            $url = 'formie/payment-return/index';
+            $payment = Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
+            $params = ['returnToken' => PaymentAccess::issueReturnToken($payment)];
 
-        if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
-            return UrlHelper::actionUrl($url, $params);
-        }
+            if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
+                return UrlHelper::actionUrl($url, $params);
+            }
 
-        return UrlHelper::siteUrl($url, $params);
+            return UrlHelper::siteUrl($url, $params);
+        }, canonicalMethod: 'createPaymentReturnUrl');
     }
 
+    /** @deprecated Use createPaymentReturnUrl(). */
+    public function getReturnUrl(Submission $submission): string
+    {
+        return $this->callCanonicalIntegrationMethod('getReturnUrl', fn() => $this->createPaymentReturnUrl($submission));
+    }
+
+    public function getProviderAmount(Submission $submission): string|int|float
+    {
+        return self::toStripeAmount($this->getPaymentAmount($submission), $this->getCurrency($submission));
+    }
+
+    /** @deprecated Use getProviderAmount(). */
     public function getAmount(Submission $submission): string|int|float
     {
-        // Ensure the amount is converted to Stripe for zero-decimal currencies
-        return self::toStripeAmount(parent::getAmount($submission), $this->getCurrency($submission));
+        return $this->callCanonicalIntegrationMethod('getAmount', fn() => $this->getProviderAmount($submission));
     }
 
     public function getPaymentAmount(Submission $submission): string|int|float
     {
-        return self::fromStripeAmount($this->getAmount($submission), (string)$this->getCurrency($submission));
+        // Older overrides supply provider units; canonical overrides and the field default supply major units.
+        return $this->callLegacyIntegrationMethod('getAmount', Stripe::class, [$submission], fn() => $this->resolvePaymentAmount($submission), fn($amount) => self::fromStripeAmount($amount, (string)$this->getCurrency($submission)), 'getPaymentAmount');
     }
 
     public function getSubscriptionPaymentLimit(Submission $submission): ?int
@@ -520,7 +534,7 @@ class Stripe extends Payment
                                 'data' => [
                                     'clientSecret' => $paymentIntent->client_secret,
                                     'paymentIntentId' => $paymentIntent->id,
-                                    'returnUrl' => $this->getReturnUrl($submission),
+                                    'returnUrl' => $this->createPaymentReturnUrl($submission),
                                 ],
                             ]);
 
@@ -580,7 +594,7 @@ class Stripe extends Payment
                     'data' => [
                         'clientSecret' => $existingClientSecret,
                         'paymentIntentId' => $existingPaymentIntentId,
-                        'returnUrl' => $this->getReturnUrl($submission),
+                        'returnUrl' => $this->createPaymentReturnUrl($submission),
                     ],
                 ]);
 
@@ -591,7 +605,7 @@ class Stripe extends Payment
             $currency = null;
 
             // Get the amount from the field, which handles dynamic fields
-            $amount = $this->getAmount($submission);
+            $amount = $this->getProviderAmount($submission);
             $currency = $this->getCurrency($submission);
 
             if (!$amount) {
@@ -647,7 +661,7 @@ class Stripe extends Payment
                 'data' => [
                     'clientSecret' => $response->client_secret,
                     'paymentIntentId' => $response->id,
-                    'returnUrl' => $this->getReturnUrl($submission),
+                    'returnUrl' => $this->createPaymentReturnUrl($submission),
                 ],
             ]);
 
@@ -696,38 +710,6 @@ class Stripe extends Payment
         }
 
         return true;
-    }
-
-    public function getTransaction(PaymentModel $payment): void
-    {
-        if ((int)$payment->integrationId !== (int)$this->id) {
-            throw new Exception('Payment provider mismatch.');
-        }
-
-        if ($payment->subscriptionId) {
-            $subscription = $payment->getSubscription();
-
-            if (!$subscription?->reference) {
-                return;
-            }
-            $remote = $this->getStripe()->subscriptions->retrieve($subscription->reference);
-            $subscription = $this->_applySubscriptionSnapshot($subscription, $remote->toArray(), 'stripeReconcile');
-            $this->_syncInitialSubscriptionPayment($subscription);
-            return;
-        }
-
-        if (!$payment->reference) {
-            return;
-        }
-        $remote = $this->getStripe()->paymentIntents->retrieve($payment->reference);
-
-        if ($remote->id !== $payment->reference
-            || !PaymentMoney::fromDecimal(self::fromStripeAmount((string)$remote->amount, strtoupper($remote->currency)), strtoupper($remote->currency))->equals(PaymentMoney::fromDecimal($payment->amount, (string)$payment->currency))) {
-            throw new Exception('Stripe payment snapshot mismatch.');
-        }
-        $payment->status = $this->_getPaymentStatusFromPaymentIntentStatus($remote->status);
-        $payment->response = $remote->toArray();
-        Formie::$plugin->getPayments()->savePayment($payment);
     }
 
     public function verifyWebhook(PaymentWebhookCommand $request): VerifiedWebhookBatch
@@ -1181,6 +1163,38 @@ class Stripe extends Payment
     // Protected Methods
     // =========================================================================
 
+    protected function refreshPaymentState(PaymentModel $payment): void
+    {
+        if ((int)$payment->integrationId !== (int)$this->id) {
+            throw new Exception('Payment provider mismatch.');
+        }
+
+        if ($payment->subscriptionId) {
+            $subscription = $payment->getSubscription();
+
+            if (!$subscription?->reference) {
+                return;
+            }
+            $remote = $this->getStripe()->subscriptions->retrieve($subscription->reference);
+            $subscription = $this->_applySubscriptionSnapshot($subscription, $remote->toArray(), 'stripeReconcile');
+            $this->_syncInitialSubscriptionPayment($subscription);
+            return;
+        }
+
+        if (!$payment->reference) {
+            return;
+        }
+        $remote = $this->getStripe()->paymentIntents->retrieve($payment->reference);
+
+        if ($remote->id !== $payment->reference
+            || !PaymentMoney::fromDecimal(self::fromStripeAmount((string)$remote->amount, strtoupper($remote->currency)), strtoupper($remote->currency))->equals(PaymentMoney::fromDecimal($payment->amount, (string)$payment->currency))) {
+            throw new Exception('Stripe payment snapshot mismatch.');
+        }
+        $payment->status = $this->_getPaymentStatusFromPaymentIntentStatus($remote->status);
+        $payment->response = $remote->toArray();
+        Formie::$plugin->getPayments()->savePayment($payment);
+    }
+
     protected function executePayment(Submission $submission): PaymentDecision
     {
         $this->_confirmationAction = null;
@@ -1241,7 +1255,7 @@ class Stripe extends Payment
                         event: 'formie:payment:stripe:confirm',
                         message: $latestPayment->message ?: Craft::t('formie', 'Additional payment confirmation is required to continue.'),
                         resumeMode: PaymentResumeMode::RETURN,
-                        resumeUrl: $this->getReturnUrl($submission),
+                        resumeUrl: $this->createPaymentReturnUrl($submission),
                     )
                 ),
                 PaymentModel::STATUS_PROCESSING => PaymentDecision::pending($latestPayment->message, $this->handle, $latestPayment->reference),
@@ -1253,7 +1267,7 @@ class Stripe extends Payment
                         event: 'formie:payment:stripe:confirm',
                         message: $latestPayment->message ?: Craft::t('formie', 'Additional payment confirmation is required to continue.'),
                         resumeMode: PaymentResumeMode::RETURN,
-                        resumeUrl: $this->getReturnUrl($submission),
+                        resumeUrl: $this->createPaymentReturnUrl($submission),
                     )
                 ),
                 PaymentModel::STATUS_FAILED => PaymentDecision::failed($latestPayment->message, $this->handle, $latestPayment->reference),
@@ -1552,9 +1566,9 @@ class Stripe extends Payment
         }
     }
 
-    protected function getOptionalGraphqlPaymentInputFieldKeys(): array
+    protected function getOptionalGqlPaymentInputFieldKeys(): array
     {
-        return ['stripePaymentId', 'stripeSubscriptionId'];
+        return $this->callLegacyIntegrationMethod('getOptionalGraphqlPaymentInputFieldKeys', Payment::class, [], fn() => ['stripePaymentId', 'stripeSubscriptionId'], canonicalMethod: 'getOptionalGqlPaymentInputFieldKeys');
     }
 
 
@@ -1594,7 +1608,7 @@ class Stripe extends Payment
         $planDescription = $this->getFieldSetting('planDescription', 'Formie: ' . $submission->getForm()->title);
 
         // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount($submission);
+        $amount = $this->getProviderAmount($submission);
         $currency = $this->getCurrency($submission);
 
         $payload = [
@@ -1867,7 +1881,7 @@ class Stripe extends Payment
                     'type' => 'setup',
                     'clientSecret' => $stripeSubscription->pending_setup_intent->client_secret,
                     'subscriptionId' => $stripeSubscription->id,
-                    'returnUrl' => $this->getReturnUrl($submission),
+                    'returnUrl' => $this->createPaymentReturnUrl($submission),
                 ],
             ]);
 
@@ -1887,7 +1901,7 @@ class Stripe extends Payment
                 'type' => 'payment',
                 'clientSecret' => $clientSecret,
                 'subscriptionId' => $stripeSubscription->id,
-                'returnUrl' => $this->getReturnUrl($submission),
+                'returnUrl' => $this->createPaymentReturnUrl($submission),
             ],
         ]);
     }

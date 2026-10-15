@@ -108,7 +108,7 @@ class IntegrationRerunPolicies
 
     public static function formHasIntegrationAllowingEvent(Form $form, string $triggerEvent): bool
     {
-        foreach (Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form) as $integration) {
+        foreach (Formie::$plugin->getIntegrations()->getEnabledIntegrationRuntimes($form) as $integration) {
             if (!$integration->supportsPayloadSending()) {
                 continue;
             }

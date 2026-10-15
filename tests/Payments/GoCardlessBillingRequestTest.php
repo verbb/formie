@@ -84,7 +84,7 @@ it('creates a billing request flow during payment processing', function(): void 
         ->and($integration->requests[1]['uri'])->toBe('billing_request_flows');
 });
 
-it('creates a mandate payment after the billing request is fulfilled', function(): void {
+it('creates a mandate payment after the billing request is fulfilled', function(string $refreshMethod): void {
     $integration = new GoCardless([
         'name' => 'GoCardless Sync',
         'handle' => 'goCardlessSync' . uniqid(),
@@ -180,16 +180,16 @@ it('creates a mandate payment after the billing request is fulfilled', function(
     };
     $integration->setField($field);
 
-    $integration->getTransactionStatus($payment);
+    $integration->$refreshMethod($payment);
 
     $payment = Formie::$plugin->getPayments()->getPaymentById((int)$payment->id);
 
     expect($payment->reference)->toBe('PM123')
         ->and($payment->status)->toBe(PaymentModel::STATUS_PENDING)
         ->and($payment->response['gcPayment']['id'] ?? null)->toBe('PM123');
-});
+})->with(['getTransactionStatus', 'refreshPayment']);
 
-it('creates a subscription after the billing request is fulfilled', function(): void {
+it('creates a subscription after the billing request is fulfilled', function(string $refreshMethod): void {
     $integration = new GoCardless([
         'name' => 'GoCardless Subscription Sync',
         'handle' => 'goCardlessSubSync' . uniqid(),
@@ -304,7 +304,7 @@ it('creates a subscription after the billing request is fulfilled', function(): 
     };
     $integration->setField($field);
 
-    $integration->getTransactionStatus($payment);
+    $integration->$refreshMethod($payment);
 
     $payment = Formie::$plugin->getPayments()->getPaymentById((int)$payment->id);
     $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference('SB123', $integration->id);
@@ -315,7 +315,7 @@ it('creates a subscription after the billing request is fulfilled', function(): 
         ->and($subscription)->not->toBeNull()
         ->and($subscription->reference)->toBe('SB123')
         ->and($subscription->submissionId)->toBe($submission->id);
-});
+})->with(['getTransactionStatus', 'refreshPayment']);
 
 it('resolves direct debit schemes from currency', function(): void {
     $integration = new GoCardless([
@@ -329,4 +329,14 @@ it('resolves direct debit schemes from currency', function(): void {
     expect($method->invoke($integration, 'GBP'))->toBe('bacs')
         ->and($method->invoke($integration, 'EUR'))->toBe('sepa_core')
         ->and($method->invoke($integration, 'AUD'))->toBe('becs');
+});
+
+
+it('reports missing GoCardless credentials as invalid settings', function(): void {
+    $integration = new GoCardless();
+    expect($integration->hasValidSettings())->toBeFalse();
+    $integration->accessToken = '';
+    expect($integration->hasValidSettings())->toBeFalse();
+    $integration->accessToken = 'test-token';
+    expect($integration->hasValidSettings())->toBeTrue();
 });

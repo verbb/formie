@@ -215,7 +215,7 @@ class Klaviyo extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Profile']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Profiles']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'profileFieldMapping',
             'if' => 'mapToProfile',
             'dataLabel' => 'Profile',

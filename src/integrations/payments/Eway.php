@@ -101,68 +101,6 @@ class Eway extends Payment
         ]);
     }
 
-    public function getTransaction(PaymentModel $payment): void
-    {
-        $mutex = Craft::$app->getMutex();
-        $lock = PaymentAttempt::lockName((int)$payment->submissionId, (int)$payment->integrationId, (int)$payment->fieldId);
-
-        if (!$mutex->acquire($lock, 10)) {
-            throw new Exception('This payment is already being processed.');
-        }
-
-        try {
-            $row = Craft::$app->getDb()->useMaster(fn() => (new Query())->from(Table::FORMIE_PAYMENTS)->where(['id' => $payment->id, 'integrationId' => $this->id])->one());
-
-            if (!$row) {
-                throw new Exception('Eway payment not found.');
-            }
-
-            $current = new PaymentModel($row);
-
-            if ($current->status === PaymentModel::STATUS_SUCCEEDED) {
-                $payment->status = $current->status;
-                return;
-            }
-
-            PaymentAttempt::verifyAccount($this, $current, ['apiKey' => $this->apiKey, 'apiPassword' => $this->apiPassword, 'useSandbox' => $this->useSandbox]);
-            $merchantReference = (new PaymentAttempt($current))->merchantReference();
-            $uri = $current->reference ? 'Transaction/' . rawurlencode($current->reference) : 'Transaction/InvoiceRef/' . rawurlencode($merchantReference);
-            $response = $this->request('GET', $uri);
-            $transactions = $response['Transactions'] ?? [];
-            $transaction = count($transactions) === 1 ? reset($transactions) : [];
-            $currency = new Currency((string)$current->currency);
-            $currencyCode = str_pad((string)(new ISOCurrencies())->numericCodeFor($currency), 3, '0', STR_PAD_LEFT);
-
-            if (!empty($response['Errors']) || !$transaction || empty($transaction['TransactionID'])
-                || ($transaction['InvoiceReference'] ?? null) !== $merchantReference
-                || ($current->reference && (string)$transaction['TransactionID'] !== $current->reference)
-                || str_pad((string)($transaction['CurrencyCode'] ?? ''), 3, '0', STR_PAD_LEFT) !== $currencyCode
-                || (string)($transaction['TotalAmount'] ?? '') !== (string)$this->_minorAmount($current->amount, (string)$current->currency)
-                || (int)($transaction['TransactionType'] ?? 0) !== 1) {
-                throw new Exception('The Eway transaction owner, amount or currency could not be verified.');
-            }
-
-            if (($transaction['TransactionStatus'] ?? null) !== true || ($transaction['TransactionCaptured'] ?? null) !== true) {
-                throw new Exception('Eway has not confirmed a captured payment.');
-            }
-
-            $current->reference = (string)$transaction['TransactionID'];
-            $current->response = $transaction;
-            $current->status = PaymentModel::STATUS_SUCCEEDED;
-            $current->message = null;
-
-            if (!Formie::$plugin->getPayments()->savePayment($current)) {
-                throw new Exception('Unable to save the verified Eway payment.');
-            }
-
-            $payment->reference = $current->reference;
-            $payment->response = $current->response;
-            $payment->status = $current->status;
-        } finally {
-            $mutex->release($lock);
-        }
-    }
-
     public function fetchConnection(): bool
     {
         try {
@@ -343,12 +281,74 @@ class Eway extends Payment
     // Protected Methods
     // =========================================================================
 
+    protected function refreshPaymentState(PaymentModel $payment): void
+    {
+        $mutex = Craft::$app->getMutex();
+        $lock = PaymentAttempt::lockName((int)$payment->submissionId, (int)$payment->integrationId, (int)$payment->fieldId);
+
+        if (!$mutex->acquire($lock, 10)) {
+            throw new Exception('This payment is already being processed.');
+        }
+
+        try {
+            $row = Craft::$app->getDb()->useMaster(fn() => (new Query())->from(Table::FORMIE_PAYMENTS)->where(['id' => $payment->id, 'integrationId' => $this->id])->one());
+
+            if (!$row) {
+                throw new Exception('Eway payment not found.');
+            }
+
+            $current = new PaymentModel($row);
+
+            if ($current->status === PaymentModel::STATUS_SUCCEEDED) {
+                $payment->status = $current->status;
+                return;
+            }
+
+            PaymentAttempt::verifyAccount($this, $current, ['apiKey' => $this->apiKey, 'apiPassword' => $this->apiPassword, 'useSandbox' => $this->useSandbox]);
+            $merchantReference = (new PaymentAttempt($current))->merchantReference();
+            $uri = $current->reference ? 'Transaction/' . rawurlencode($current->reference) : 'Transaction/InvoiceRef/' . rawurlencode($merchantReference);
+            $response = $this->request('GET', $uri);
+            $transactions = $response['Transactions'] ?? [];
+            $transaction = count($transactions) === 1 ? reset($transactions) : [];
+            $currency = new Currency((string)$current->currency);
+            $currencyCode = str_pad((string)(new ISOCurrencies())->numericCodeFor($currency), 3, '0', STR_PAD_LEFT);
+
+            if (!empty($response['Errors']) || !$transaction || empty($transaction['TransactionID'])
+                || ($transaction['InvoiceReference'] ?? null) !== $merchantReference
+                || ($current->reference && (string)$transaction['TransactionID'] !== $current->reference)
+                || str_pad((string)($transaction['CurrencyCode'] ?? ''), 3, '0', STR_PAD_LEFT) !== $currencyCode
+                || (string)($transaction['TotalAmount'] ?? '') !== (string)$this->_minorAmount($current->amount, (string)$current->currency)
+                || (int)($transaction['TransactionType'] ?? 0) !== 1) {
+                throw new Exception('The Eway transaction owner, amount or currency could not be verified.');
+            }
+
+            if (($transaction['TransactionStatus'] ?? null) !== true || ($transaction['TransactionCaptured'] ?? null) !== true) {
+                throw new Exception('Eway has not confirmed a captured payment.');
+            }
+
+            $current->reference = (string)$transaction['TransactionID'];
+            $current->response = $transaction;
+            $current->status = PaymentModel::STATUS_SUCCEEDED;
+            $current->message = null;
+
+            if (!Formie::$plugin->getPayments()->savePayment($current)) {
+                throw new Exception('Unable to save the verified Eway payment.');
+            }
+
+            $payment->reference = $current->reference;
+            $payment->response = $current->response;
+            $payment->status = $current->status;
+        } finally {
+            $mutex->release($lock);
+        }
+    }
+
     protected function executePayment(Submission $submission): PaymentDecision
     {
 
         $currency = $this->getFieldSetting('currency');
 
-        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $currency, [
+        return PaymentAttempt::run($this, $submission, $this->getPaymentAmount($submission), $currency, [
             'apiKey' => $this->apiKey,
             'apiPassword' => $this->apiPassword,
             'useSandbox' => $this->useSandbox,

@@ -257,7 +257,7 @@ class ExampleCrm extends Crm
             'instructions' => Craft::t('formie', 'Whether to map form data to a contact.'),
         ]);
 
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'contactFieldMapping',
             'if' => 'mapToContact',
             'dataLabel' => 'Contact',
@@ -270,7 +270,7 @@ class ExampleCrm extends Crm
             'instructions' => Craft::t('formie', 'Whether to map form data to a deal.'),
         ]);
 
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'dealFieldMapping',
             'if' => 'mapToDeal',
             'dataLabel' => 'Deal',
@@ -363,7 +363,7 @@ Start with `parent::defineFormSettingsSchema($form)`. The parent schema already 
 For each CRM object you support, add:
 
 1. A lightswitch (`mapToContact`, `mapToDeal`, …) so editors can turn that object on for this form.
-2. A field-mapping block via `getIntegrationFieldMappingField()`, with `dataKey` matching the key you used in `fetchConfig()`.
+2. A field-mapping block via `createFieldMappingField()`, with `dataKey` matching the key you used in `fetchConfig()`.
 
 The `if` attribute hides the mapping UI until the lightswitch is on. When an editor saves the form, values land on the public properties you declared on the class (`$mapToContact`, `$contactFieldMapping`, etc.).
 

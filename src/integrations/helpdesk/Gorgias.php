@@ -228,7 +228,7 @@ class Gorgias extends HelpDesk
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Ticket']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Tickets']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'ticketFieldMapping',
             'if' => 'mapToTicket',
             'dataLabel' => 'Ticket',

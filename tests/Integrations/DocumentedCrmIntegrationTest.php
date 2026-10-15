@@ -90,7 +90,7 @@ it('registers the documented CRM and delivers saved nested mappings through a qu
             ->and(json_decode((string)$history[0]['request']->getBody(), true))->toBe([
                 'email' => 'nested@example.com', 'firstName' => null, 'lastName' => null,
             ]);
-        $result = Formie::$plugin->getIntegrationDispatcher()->loadContext($submission, $run)->getResult($connection->handle);
+        $result = Formie::$plugin->getIntegrationDispatcher()->loadRunResults($submission, $run)->getResult($connection->handle);
         expect($result['status'])->toBe('succeeded');
     } finally {
         $newJobs = (new Query())->select(['id', 'job'])->from('{{%queue}}')->where(['not in', 'id', $queueIdsBefore])->all();

@@ -73,16 +73,13 @@ namespace modules\formieintegration\integrations;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\Json;
 use GuzzleHttp\Client;
 use Throwable;
 use verbb\formie\base\Automation;
 use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
-use verbb\formie\Formie;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationConfig;
 
 class ExampleAutomation extends Automation
 {
@@ -91,16 +88,27 @@ class ExampleAutomation extends Automation
         return Craft::t('formie', 'Example Automation Integration');
     }
 
+    #[\verbb\formie\attributes\FormIntegrationSetting]
+    #[\verbb\formie\attributes\Sensitive]
     public ?string $url = null;
+
+    #[\verbb\formie\attributes\FormIntegrationSetting]
     public string $method = 'POST';
+
+    #[\verbb\formie\attributes\FormIntegrationSetting]
     public string $requestType = 'json';
+
+    public static function supportsConnection(): bool
+    {
+        return false;
+    }
 
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to any URL you provide.');
     }
 
-    public function defineRules(): array
+    protected function defineRules(): array
     {
         $rules = parent::defineRules();
         $rules[] = [['url'], 'required', 'on' => [Integration::SCENARIO_FORM]];
@@ -108,39 +116,7 @@ class ExampleAutomation extends Automation
         return $rules;
     }
 
-    public function fetchConfig(): IntegrationConfig
-    {
-        $payload = [];
 
-        try {
-            $formId = Craft::$app->getRequest()->getParam('formId');
-            $form = Formie::$plugin->getForms()->getFormById($formId);
-
-            $submission = new Submission();
-            $submission->setForm($form);
-
-            Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
-            $payload = $this->generatePayloadValues($submission);
-
-            $url = $form->settings->integrations[$this->handle]['url'] ?? $this->url;
-
-            $this->deliverPayload(
-                $submission,
-                $this->getEndpointUrl($url, $submission),
-                $payload,
-                $this->method,
-                $this->requestType,
-            );
-        } catch (Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}”', [
-                'message' => $e->getMessage(),
-            ]));
-
-            Integration::apiError($this, $e);
-        }
-
-        return new IntegrationConfig(['payload' => $payload]);
-    }
 
     protected function executePayload(Submission $submission): \verbb\formie\models\IntegrationResult
     {
@@ -158,11 +134,6 @@ class ExampleAutomation extends Automation
 
             return $this->resultForPayload($response !== false);
         } catch (Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'API error: “{message}”. Payload: “{payload}”.', [
-                'message' => $e->getMessage(),
-                'payload' => Json::encode($payload ?? []),
-            ]));
-
             Integration::apiError($this, $e);
 
             return $this->resultForPayload(false);
@@ -215,6 +186,8 @@ class ExampleAutomation extends Automation
             ],
         ]);
 
+        $schema[] = SchemaHelper::integrationSendTestPayloadButtonField();
+
         return $schema;
     }
 }
@@ -244,16 +217,9 @@ Prefer `$this->deliverPayload()` over calling the client directly — it fires p
 
 ### Test Payload from the Builder
 
-`fetchConfig()` runs when an editor refreshes or tests the integration while editing a form. That is your chance to send a **sample request** to the configured URL so the editor can verify the endpoint before going live.
+The explicit **Send Test Payload** action calls `sendTestPayload()` with a generated, unsaved submission. The inherited implementation invokes `executePayload()`, so this example needs only one payload implementation for test and real submissions. The control panel reports the returned `IntegrationResult`; it does not cache the test response as metadata.
 
-The pattern:
-
-1. Load the current form from the request.
-2. Create a fake submission with `populateFakeSubmission()` — realistic field values without a real submit.
-3. Build the payload with `generatePayloadValues($submission)`.
-4. Call `deliverPayload()` against the URL from form settings.
-
-Return `IntegrationConfig` with the payload so the control panel can display what was sent. Errors flow through `Integration::apiError()` and appear in the UI.
+Formie checks form-integration permissions and CSRF protection before creating the sample. Sample requests use the same hardened HTTP transport, but an unsaved sample is not a production delivery and cannot be automatically retried. `fetchConfig()` remains available for actual builder metadata and must not send payloads.
 
 ### Sending the Payload on Submit
 

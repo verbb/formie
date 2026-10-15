@@ -101,27 +101,6 @@ class Paddle extends Payment
         ]);
     }
 
-    public function getTransaction(PaymentModel $payment): void
-    {
-        if ($payment->integrationId !== $this->id || !$payment->reference) {
-            throw new Exception('Invalid Paddle payment.');
-        }
-
-        $transaction = $this->request('GET', 'transactions/' . rawurlencode($payment->reference))['data'] ?? [];
-        $this->_verifyTransaction($payment, $transaction);
-        $payment->response = $transaction;
-        $payment->status = match ($transaction['status'] ?? null) {
-            'paid', 'completed' => PaymentModel::STATUS_SUCCEEDED,
-            'canceled' => PaymentModel::STATUS_CANCELLED,
-            'draft', 'ready', 'billed', 'past_due' => PaymentModel::STATUS_PENDING,
-            default => PaymentModel::STATUS_UNKNOWN,
-        };
-
-        if (!Formie::$plugin->getPayments()->savePayment($payment)) {
-            throw new Exception('Unable to save the verified Paddle payment.');
-        }
-    }
-
     public function fetchConnection(): bool
     {
         try {
@@ -247,13 +226,34 @@ class Paddle extends Payment
     // Protected Methods
     // =========================================================================
 
+    protected function refreshPaymentState(PaymentModel $payment): void
+    {
+        if ($payment->integrationId !== $this->id || !$payment->reference) {
+            throw new Exception('Invalid Paddle payment.');
+        }
+
+        $transaction = $this->request('GET', 'transactions/' . rawurlencode($payment->reference))['data'] ?? [];
+        $this->_verifyTransaction($payment, $transaction);
+        $payment->response = $transaction;
+        $payment->status = match ($transaction['status'] ?? null) {
+            'paid', 'completed' => PaymentModel::STATUS_SUCCEEDED,
+            'canceled' => PaymentModel::STATUS_CANCELLED,
+            'draft', 'ready', 'billed', 'past_due' => PaymentModel::STATUS_PENDING,
+            default => PaymentModel::STATUS_UNKNOWN,
+        };
+
+        if (!Formie::$plugin->getPayments()->savePayment($payment)) {
+            throw new Exception('Unable to save the verified Paddle payment.');
+        }
+    }
+
     protected function executePayment(Submission $submission): PaymentDecision
     {
 
         return PaymentAttempt::run(
             $this,
             $submission,
-            $this->getAmount($submission),
+            $this->getPaymentAmount($submission),
             $this->getFieldSetting('currency'),
             [
             'apiKey' => $this->apiKey,
@@ -324,7 +324,7 @@ class Paddle extends Payment
                 throw new Exception('Paddle checkout does not match the saved payment.');
             }
 
-            $this->getTransaction($payment);
+            $this->refreshPayment($payment);
 
             return match ($payment->status) {
                 PaymentModel::STATUS_SUCCEEDED => PaymentDecision::succeeded($this->handle, $payment->reference),
@@ -404,7 +404,6 @@ class Paddle extends Payment
                 throw new Exception('Unable to save the Paddle checkout reference.');
             }
         }
-
 
 
         return PaymentDecision::requiresAction(
@@ -498,7 +497,7 @@ class Paddle extends Payment
         $orderDescription = $this->getFieldSetting('orderDescription', 'Formie: ' . $submission->getForm()->title);
 
         // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount($submission);
+        $amount = $this->getPaymentAmount($submission);
         $currency = $this->getFieldSetting('currency');
 
         $payload = [

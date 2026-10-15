@@ -173,7 +173,7 @@ class Square extends Payment
 
 
         // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount($submission);
+        $amount = $this->getPaymentAmount($submission);
         $currency = $this->getFieldSetting('currency');
 
         // Capture the authorized payment

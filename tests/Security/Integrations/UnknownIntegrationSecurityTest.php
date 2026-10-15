@@ -177,7 +177,7 @@ it('keeps disabled unknown imports inactive when the definition becomes availabl
         saveUnknownBinding($request, $form, $actor, $binding, 'import');
         $registry->definitions = [new UserIntegration(['handle' => 'futureUsers', 'enabled' => true, 'groupUids' => []])];
         $loaded = Form::find()->id($form->id)->one();
-        expect(Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($loaded))->toBe([]);
+        expect(Formie::$plugin->getIntegrations()->getEnabledFormIntegrations($loaded))->toBe([]);
         $binding['enabled'] = true;
         expect(fn() => saveUnknownBinding($request, $loaded, $actor, $binding, 'form'))->toThrow(\yii\web\ForbiddenHttpException::class, $group->name);
     });

@@ -241,7 +241,7 @@ class Bpoint extends Payment
 
         $currency = strtoupper((string)($this->getFieldSetting('currency') ?: 'AUD'));
 
-        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $currency, [
+        return PaymentAttempt::run($this, $submission, $this->getPaymentAmount($submission), $currency, [
             'merchantNumber' => $this->merchantNumber,
             'username' => $this->username,
             'password' => $this->password,

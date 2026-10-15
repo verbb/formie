@@ -202,10 +202,10 @@ class SubmissionsController extends Controller
             // Ensure that the integration settings are prepped from the form settings
             $form = $submission->getForm();
             $formSettings = $form->settings->integrations[$this->integration] ?? [];
-            $formIntegration = Formie::$plugin->getIntegrations()->populateIntegrationFromFormSettings($integration, $formSettings);
-            $formIntegration->populateContext($submission);
+            $formIntegration = Formie::$plugin->getIntegrations()->createIntegrationRuntime($integration, $formSettings);
+            $formIntegration->populateSubmissionContext($submission);
 
-            $result = Formie::$plugin->getIntegrationTriggers()->dispatchManualIntegration($formIntegration, $submission);
+            $result = Formie::$plugin->getIntegrationTriggers()->runManualIntegration($formIntegration, $submission);
 
             if (!$result->isSuccessful()) {
                 $failed = true;

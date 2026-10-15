@@ -222,7 +222,7 @@ class HelpScout extends HelpDesk implements OAuthProviderInterface
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Conversation']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Conversations']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'conversationFieldMapping',
             'if' => 'mapToConversation',
             'dataLabel' => 'Conversation',

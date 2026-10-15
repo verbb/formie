@@ -58,7 +58,7 @@ protected function executePayload(Submission $submission): \verbb\formie\models\
 }
 ```
 
-Use `deliverPayload()` rather than calling the client directly when you want Formie’s payload events, opt-in handling and queue debug context.
+Use `deliverPayload()` rather than calling the client directly when you want Formie’s payload events, opt-in handling and delivery diagnostics.
 
 ## Guzzle Clients
 If the integration needs custom client configuration, override `defineClient()`.
@@ -79,3 +79,9 @@ protected function defineClient(): Client
 
 For more on reusing the client outside the integration itself, see [Using Guzzle Clients from Formie Integrations in Your Own Code](/guides/integrations/using-guzzle-clients-from-formie-integrations-in-your-own-code).
 
+
+## Test Payloads
+
+The builder’s explicit **Send Test Payload** action creates an unsaved sample submission, applies permitted form settings and calls `sendTestPayload(Submission $submission): IntegrationResult`. Its default implementation uses the same `executePayload()` hook as real delivery. Keep shared payload construction there; override `sendTestPayload()` only when the destination requires different test behaviour.
+
+Test sends require an authorized control-panel POST with CSRF protection. Unsaved samples are sent once without creating a fake saved submission or a production retry record. They still use the hardened transport and payload events, and a failed or skipped result is not shown as successful delivery. Metadata refresh remains separate: `fetchConfig()` and `refreshConfig()` must not send test payloads.

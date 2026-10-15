@@ -3,6 +3,7 @@ namespace verbb\formie\deprecations;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
+use verbb\formie\compatibility\integrations\IntegrationResultCompatibility;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\fields\Payment;
@@ -94,8 +95,10 @@ trait SubmissionsDeprecations
     public function sendIntegrationPayload(Integration $integration, Submission $submission): bool|IntegrationResponse
     {
         // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Submissions `sendIntegrationPayload()` has been deprecated. Use `Formie::$plugin->getIntegrations()->sendIntegrationPayload()` for workflow dispatch, or `Formie::$plugin->getIntegrationTriggers()->dispatchManualIntegration()` for operator-initiated runs.');
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Submissions `sendIntegrationPayload()` has been deprecated. Use the submission workflow for automatic dispatch, or `Formie::$plugin->getIntegrationTriggers()->runManualIntegration()` for operator-initiated runs.');
 
-        return Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
+        $result = Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
+
+        return IntegrationResultCompatibility::toLegacy($result, $result->code === 'event_cancelled' ? null : $integration->getLegacyIntegrationResponse());
     }
 }

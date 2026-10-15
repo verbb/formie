@@ -247,7 +247,7 @@ class Payments extends Component
             }
 
             if (!in_array($payment->status, [Payment::STATUS_SUCCEEDED, Payment::STATUS_CANCELLED], true) && ($payment->scope['providerOutcome']['status'] ?? null) !== Payment::STATUS_SUCCEEDED) {
-                $this->observeProvider(fn() => $integration->getTransaction($payment));
+                $this->observeProvider(fn() => $integration->refreshPayment($payment));
             }
             $payment = $this->getPaymentById($payment->id);
             Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PAYMENTS, [

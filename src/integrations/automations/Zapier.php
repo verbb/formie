@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\integrations\automations;
 
-use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Automation;
@@ -9,11 +8,9 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
-use craft\helpers\Json;
 
 use Throwable;
 
@@ -47,37 +44,6 @@ class Zapier extends Automation
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to Zapier.');
-    }
-
-    public function fetchConfig(): IntegrationConfig
-    {
-        $settings = [];
-
-        try {
-            $formId = Craft::$app->getRequest()->getParam('formId');
-            $form = Formie::$plugin->getForms()->getFormById($formId);
-
-            // Generate and send a test payload to Zapier
-            $submission = new Submission();
-            $submission->setForm($form);
-
-            Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
-
-            $payload = $this->generatePayloadValues($submission);
-            $response = $this->deliverPayload($submission, $this->getEndpointUrl($this->webhook, $submission), $payload);
-
-            $rawResponse = (string)$response->getBody();
-            $json = Json::decodeIfJson($rawResponse);
-
-            $settings = [
-                'response' => $response,
-                'json' => $json,
-            ];
-        } catch (Throwable $e) {
-            Integration::apiError($this, $e);
-        }
-
-        return new IntegrationConfig($settings);
     }
 
 
@@ -123,6 +89,8 @@ class Zapier extends Automation
             'name' => 'webhook',
             'required' => true,
         ]);
+
+        $schema[] = SchemaHelper::integrationSendTestPayloadButtonField();
 
         return $schema;
     }

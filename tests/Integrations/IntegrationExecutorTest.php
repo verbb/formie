@@ -56,7 +56,7 @@ it('passes explicit run inputs and persists typed outputs without mutable provid
         ->and($provider::$seen->execution->executionUid)->toBe('explicit-run')
         ->and($provider::$seen->attemptUid)->not->toBeNull()
         ->and($result->outputs['elementId'])->toBe(42)
-        ->and(Formie::$plugin->getIntegrationDispatcher()->loadContext($submission, 'explicit-run')->getResult('explicitContext')['elementId'])->toBe(42)
+        ->and(Formie::$plugin->getIntegrationDispatcher()->loadRunResults($submission, 'explicit-run')->getResult('explicitContext')['elementId'])->toBe(42)
         ->and($provider->context)->not->toHaveKey('dispatchElement');
 });
 
@@ -66,7 +66,7 @@ it('adapts inherited Formie 3 sendPayload overrides that call their native paren
     $provider = new class(['name' => 'Inherited legacy', 'handle' => 'inheritedLegacy']) extends \verbb\formie\integrations\helpdesk\Freshdesk {
         public int $legacyCalls = 0;
         public int $nativeCalls = 0;
-        public function sendPayload(Submission $submission): \verbb\formie\models\IntegrationResult {
+        public function sendPayload(Submission $submission): bool {
             $this->legacyCalls++;
             return parent::sendPayload($submission);
         }
@@ -164,7 +164,7 @@ it('sets manual trigger context for operator-initiated integration runs', functi
     $integration = executorTestIntegration('manualTest');
 
     withExecutorTestIntegrations($form, [$integration], function () use ($integration, $submission): void {
-        Formie::$plugin->getIntegrationTriggers()->dispatchManualIntegration($integration, $submission);
+        Formie::$plugin->getIntegrationTriggers()->runManualIntegration($integration, $submission);
 
         expect($integration->context)->toBe([]);
         $history = Formie::$plugin->getDeliveryAttempts()->history((int)$submission->id);

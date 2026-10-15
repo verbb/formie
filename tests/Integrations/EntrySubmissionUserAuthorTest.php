@@ -51,7 +51,7 @@ it('uses the submission user as the entry author when enabled', function (): voi
     $slug = StringHelper::slugify($title);
     $integration = entryAuthorIntegrationConfig($title, $fallbackUser->id);
 
-    expect($integration->sendPayload($submission)->status)->toBe(\verbb\formie\enums\IntegrationStatus::Succeeded);
+    expect($integration->execute(\verbb\formie\models\IntegrationRunContext::forIntegration($integration, $submission))->status)->toBe(\verbb\formie\enums\IntegrationStatus::Succeeded);
 
     $entry = EntryElement::find()
         ->status(null)
@@ -83,7 +83,7 @@ it('falls back to the default entry author when no submission user is available'
     $slug = StringHelper::slugify($title);
     $integration = entryAuthorIntegrationConfig($title, $fallbackUser->id);
 
-    expect($integration->sendPayload($submission)->status)->toBe(\verbb\formie\enums\IntegrationStatus::Succeeded);
+    expect($integration->execute(\verbb\formie\models\IntegrationRunContext::forIntegration($integration, $submission))->status)->toBe(\verbb\formie\enums\IntegrationStatus::Succeeded);
 
     $entry = EntryElement::find()
         ->status(null)
@@ -105,7 +105,7 @@ it('creates an entry with a thin queue job and stores prepared element evidence'
     $uid = $attempts->prepare(new \verbb\formie\models\IntegrationExecutionContext($submission->id, $form->id, 'entry', StringHelper::UUID()), 'dispatch');
     $integration->setDeliveryContext($attempts->context($uid), $uid);
     $integration->setQueueJob(new \verbb\formie\jobs\TriggerIntegration(['deliveryAttemptUid' => $uid]));
-    $result = $integration->sendPayload($submission);
+    $result = $integration->execute(\verbb\formie\models\IntegrationRunContext::forIntegration($integration, $submission));
     expect($result->status)->toBe(\verbb\formie\enums\IntegrationStatus::Succeeded);
     $entry = EntryElement::find()->status(null)->slug(StringHelper::slugify($title))->one();
     expect($entry)->not->toBeNull();

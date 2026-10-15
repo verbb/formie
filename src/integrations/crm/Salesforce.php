@@ -397,7 +397,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
         return new IntegrationConfig($settings);
     }
 
-    public function getMappedFieldValue(mixed $mappedFieldValue, Submission $submission, IntegrationField $integrationField): mixed
+    public function getMappedFieldValue(string $mappedFieldValue, Submission $submission, IntegrationField $integrationField): mixed
     {
         $value = parent::getMappedFieldValue($mappedFieldValue, $submission, $integrationField);
 
@@ -834,7 +834,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'contactFieldMapping',
             'if' => 'mapToContact',
             'dataLabel' => 'Contact',
@@ -845,7 +845,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Lead']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Leads']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'leadFieldMapping',
             'if' => 'mapToLead',
             'dataLabel' => 'Lead',
@@ -856,7 +856,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Opportunity']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Opportunities']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'opportunityFieldMapping',
             'if' => 'mapToOpportunity',
             'dataLabel' => 'Opportunity',
@@ -867,7 +867,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Account']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Accounts']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'accountFieldMapping',
             'if' => 'mapToAccount',
             'dataLabel' => 'Account',
@@ -878,7 +878,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Case']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Cases']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'caseFieldMapping',
             'if' => 'mapToCase',
             'dataLabel' => 'Case',
@@ -889,7 +889,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Campaign Member']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Campaign Members']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'campaignMemberFieldMapping',
             'if' => 'mapToCampaignMember',
             'dataLabel' => 'Campaign Member',

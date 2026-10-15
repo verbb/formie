@@ -56,9 +56,9 @@ abstract class HelpDesk extends Integration implements DispatchableIntegrationIn
         return Craft::$app->getView()->renderTemplate("formie/integrations/help-desk/{$handle}/_plugin-settings", $variables);
     }
 
-    public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = null)
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = null)
     {
-        // A quick shortcut to keep CRM's simple, just pass in a string to the namespace
+        // Resolve a cached metadata key when the caller supplies a collection name.
         $fields = is_string($fieldSettings) ? $this->getConfigValue($fieldSettings) : $fieldSettings;
 
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);

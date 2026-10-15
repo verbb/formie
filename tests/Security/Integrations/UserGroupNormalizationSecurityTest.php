@@ -178,8 +178,8 @@ it('checks disabled User definitions before saving any group representation', fu
         withGroupNormalizationEditor(function($request, $form, $group, $integration) use ($encoding, $environment): void {
             $integration->enabled = $environment ? '$FORMIE_TEST_USER_INTEGRATION_ENABLED' : false;
             $service = Formie::$plugin->getIntegrations();
-            expect($service->getFormIntegrationByHandle($integration->handle))->toBeNull()
-                ->and($service->getFormIntegrationsForForm($form))->toBe([]);
+            expect($service->getBuilderIntegrationByHandle($integration->handle))->toBeNull()
+                ->and($service->getEnabledFormIntegrations($form))->toBe([]);
             $before = groupNormalizationStored($form);
             $request->setBodyParams(groupNormalizationPost($form, ['enabled' => true, 'groupUids' => groupNormalizationValue($encoding, $group->uid)]));
             expect(fn() => (new FormsController('forms', Formie::$plugin))->actionSave())->toThrow(ForbiddenHttpException::class, $group->name);
@@ -199,11 +199,11 @@ it('allows authorized preparation of disabled User integrations without enabling
         $saved = Craft::$app->getElements()->getElementById($form->id, Form::class, $form->siteId);
         $service = Formie::$plugin->getIntegrations();
         expect(groupNormalizationStored($form)['groupUids'])->toBe([$group->uid])
-            ->and($service->getFormIntegrationByHandle($integration->handle))->toBeNull()
-            ->and($service->getFormIntegrationsForForm($saved))->toBe([])
+            ->and($service->getBuilderIntegrationByHandle($integration->handle))->toBeNull()
+            ->and($service->getEnabledFormIntegrations($saved))->toBe([])
             ->and($integration->getEnabled())->toBeFalse();
         $integration->enabled = true;
-        expect($service->getFormIntegrationsForForm($saved)[0]->createRuntime()->groupUids)->toBe([$group->uid]);
+        expect($service->getEnabledFormIntegrations($saved)[0]->createRuntime()->groupUids)->toBe([$group->uid]);
     }, true, true);
 })->group('security');
 
@@ -239,7 +239,7 @@ it('checks event modified and hidden disabled User definitions', function(bool $
             $post['settings']['integrations'] = ['resolvedUser' => ['enabled' => true, 'groupUids' => [$group->uid]]];
             $request->setBodyParams($post);
             expect(fn() => Formie::$plugin->getForms()->buildFormFromPost())->toThrow(ForbiddenHttpException::class, $group->name);
-            expect($service->getFormIntegrationByHandle('resolvedUser'))->toBeNull();
+            expect($service->getBuilderIntegrationByHandle('resolvedUser'))->toBeNull();
         } finally {
             $service->off(Integrations::EVENT_MODIFY_FORM_INTEGRATION, $handler);
         }
@@ -256,7 +256,7 @@ it('retains disabled unresolved settings while authorizing disabled User definit
         expect($response?->data['errors'] ?? [])->toBe([]);
         $saved = Craft::$app->getElements()->getElementById($form->id, Form::class, $form->siteId);
         expect($saved->settings->integrations['unregisteredUser']['groupUids'])->toBe([$group->uid])
-            ->and(Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($saved))->toBe([]);
+            ->and(Formie::$plugin->getIntegrations()->getEnabledFormIntegrations($saved))->toBe([]);
     });
 })->group('security');
 
@@ -282,15 +282,15 @@ it('authorizes the exact runtime winner when extensions produce colliding handle
         $previous = Formie::$plugin->getIntegrations();
         Formie::$plugin->set('integrations', $service);
         try {
-            expect($service->getFormIntegrationDefinitionByHandle('userAccounts'))->toBeInstanceOf(UserIntegration::class)
-                ->and($service->getFormIntegrationDefinitionByHandle('USERACCOUNTS'))->toBe($caseVariant)
-                ->and($service->getFormIntegrationDefinitionByHandle('UserAccounts'))->toBeNull();
+            expect($service->resolveIntegrationDefinitionByHandle('userAccounts'))->toBeInstanceOf(UserIntegration::class)
+                ->and($service->resolveIntegrationDefinitionByHandle('USERACCOUNTS'))->toBe($caseVariant)
+                ->and($service->resolveIntegrationDefinitionByHandle('UserAccounts'))->toBeNull();
             $request->setBodyParams(groupNormalizationPost($form, ['enabled' => true, 'groupUids' => [$group->uid]]));
             expect(fn() => Formie::$plugin->getForms()->buildFormFromPost())->toThrow(ForbiddenHttpException::class, $group->name);
             $form->settings->integrations['userAccounts'] = ['enabled' => true, 'groupUids' => []];
-            expect($service->getFormIntegrationsForForm($form))->toBe([]);
+            expect($service->getEnabledFormIntegrations($form))->toBe([]);
             $integration->enabled = true;
-            expect($service->getFormIntegrationsForForm($form)[0]->integration)->toBeInstanceOf(UserIntegration::class);
+            expect($service->getEnabledFormIntegrations($form)[0]->integration)->toBeInstanceOf(UserIntegration::class);
         } finally {
             Formie::$plugin->set('integrations', $previous);
         }

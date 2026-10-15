@@ -650,7 +650,7 @@ class Copper extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'People']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'People']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'peopleFieldMapping',
             'if' => 'mapToPeople',
             'dataLabel' => 'People',
@@ -661,7 +661,7 @@ class Copper extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Lead']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Leads']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'leadFieldMapping',
             'if' => 'mapToLead',
             'dataLabel' => 'Lead',
@@ -672,7 +672,7 @@ class Copper extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Opportunity']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Opportunities']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'opportunityFieldMapping',
             'if' => 'mapToOpportunity',
             'dataLabel' => 'Opportunity',
@@ -683,7 +683,7 @@ class Copper extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Task']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Tasks']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'taskFieldMapping',
             'if' => 'mapToTask',
             'dataLabel' => 'Task',

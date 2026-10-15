@@ -297,7 +297,7 @@ it('waits for finalized results of the same run without implicit success gating'
         $dispatcher = Formie::$plugin->getIntegrationDispatcher();
         $context = new \verbb\formie\models\IntegrationRunResults();
         $context->record('remote', ['status' => $status, 'executionUid' => 'policy-run']);
-        $dispatcher->saveContext($submission, $context, 'policy-run');
+        $dispatcher->saveRunResults($submission, $context, 'policy-run');
         $dispatcher->sendNotifications($submission, $dispatcher::PHASE_AFTER, 'different-run');
         expect($recorder->sent)->toBe(0);
         $dispatcher->sendNotifications($submission, $dispatcher::PHASE_AFTER, 'policy-run');
@@ -348,7 +348,7 @@ it('projects a reconciled integration outcome before finalizing delivery notific
         Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
         $attempts->reconcile($uid, IntegrationResult::succeeded('verified-provider-id'), 'Provider confirmed delivery.');
         $fresh = \verbb\formie\elements\Submission::find()->id($submission->id)->status(null)->one();
-        $projection = Formie::$plugin->getIntegrationDispatcher()->loadContext($fresh, 'reconciled-run')->getResult('reconciledProvider');
+        $projection = Formie::$plugin->getIntegrationDispatcher()->loadRunResults($fresh, 'reconciled-run')->getResult('reconciledProvider');
         expect($projection['status'])->toBe('succeeded')->and($projection['executionUid'])->toBe('reconciled-run');
         expect((new Query())->from($attempts::TABLE)->where(['submissionId' => $submission->id, 'step' => 'finalized', 'status' => 'succeeded'])->exists())->toBeTrue();
     } finally { Craft::$app->getUser()->setIdentity($identity); }

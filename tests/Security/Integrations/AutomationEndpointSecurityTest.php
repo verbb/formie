@@ -133,7 +133,7 @@ it('sends Slack webhooks without the OAuth provider request path', function (): 
         'message' => 'Hello',
     ]);
 
-    expect($integration->sendPayload($submission)->status)->toBe(\verbb\formie\enums\IntegrationStatus::Succeeded)
+    expect($integration->execute(\verbb\formie\models\IntegrationRunContext::forIntegration($integration, $submission))->status)->toBe(\verbb\formie\enums\IntegrationStatus::Succeeded)
         ->and($integration->history)->toHaveCount(1)
         ->and($integration->history[0]['request']->hasHeader('Authorization'))->toBeFalse();
 })->group('security');

@@ -44,6 +44,8 @@ protected function defineFormSettingsSchema(FormInterface $form): array
 }
 ```
 
+Element metadata uses `fetchConfig()` like other providers. Formie reads current Craft field layouts on every `getConfig()` call and does not persist that metadata cache. `refreshConfig()` runs the same before/after configuration events and honours cancellation. Supply metadata through the acquisition hook instead of overriding the public cache or refresh lifecycle.
+
 ## Sending Payloads
 In `executePayload()`, resolve the attribute mapping, resolve the field mapping, set those values on the element, then save it.
 

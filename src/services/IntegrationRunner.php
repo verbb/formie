@@ -47,7 +47,7 @@ class IntegrationRunner extends Component
     public function resolveEnabledHandles(Form $form): array
     {
         return array_values(array_map(fn(FormIntegration $binding) => $binding->integration->handle, array_filter(
-            Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($form),
+            Formie::$plugin->getIntegrations()->getEnabledFormIntegrations($form),
             fn(FormIntegration $binding) => $binding->integration->supportsPayloadSending(),
         )));
     }
@@ -63,7 +63,7 @@ class IntegrationRunner extends Component
         $executionKey ??= DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
         $available = [];
 
-        foreach (Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($form) as $binding) {
+        foreach (Formie::$plugin->getIntegrations()->getEnabledFormIntegrations($form) as $binding) {
             $available[$binding->integration->handle] = $binding;
         }
         $stopped = (bool)($triggerContext['skipRemaining'] ?? false);
@@ -130,7 +130,7 @@ class IntegrationRunner extends Component
         $context = $this->_executionContext($submission, '@dispatch', $identity, 'queued', $triggerContext);
         $bindings = [];
 
-        foreach (Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($submission->getForm()) as $binding) {
+        foreach (Formie::$plugin->getIntegrations()->getEnabledFormIntegrations($submission->getForm()) as $binding) {
             $bindings[$binding->integration->handle] = $binding->toSettings();
         }
         $triggerContext['bindings'] = $bindings;
@@ -173,7 +173,7 @@ class IntegrationRunner extends Component
             Craft::$app->getSites()->setCurrentSite($submission->getSite());
 
             if ($row['step'] === 'integration') {
-                foreach (Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($submission->getForm()) as $binding) {
+                foreach (Formie::$plugin->getIntegrations()->getEnabledFormIntegrations($submission->getForm()) as $binding) {
                     if ($binding->integration->handle === $row['binding']) {
                         $integration = FormIntegration::fromSettings($binding->integration, $data['settings'] ?? [], $submission->formId, $submission->getForm()->handle)->createRuntime();
                         $original = $attempts->context($uid);
@@ -251,7 +251,7 @@ class IntegrationRunner extends Component
     {
         $configuration = [];
 
-        foreach (Formie::$plugin->getIntegrations()->getFormIntegrationsForForm($submission->getForm()) as $binding) {
+        foreach (Formie::$plugin->getIntegrations()->getEnabledFormIntegrations($submission->getForm()) as $binding) {
             if (in_array($binding->integration->handle, $handles, true)) {
                 $configuration[$binding->integration->handle] = Formie::$plugin->getDeliveryAttempts()->integrationConfiguration($binding->integration, $binding->toSettings());
             }
@@ -267,7 +267,7 @@ class IntegrationRunner extends Component
     private function _runIntegration(Integration $connection, Submission $submission, string $executionKey, string $execution, array $triggerContext): IntegrationResult
     {
         $integration = clone $connection;
-        $integration->populateContext($submission);
+        $integration->populateSubmissionContext($submission);
         $conditionEvaluation = $integration->enableConditions ? ConditionsHelper::evaluate($integration->conditions ?? [], $submission, 'integration') : null;
         $invalidConditions = $conditionEvaluation && $conditionEvaluation->value === null;
         $eligible = $integration->shouldTrigger($submission, $triggerContext) && $integration->enforceOptInField($submission);
@@ -398,7 +398,7 @@ class IntegrationRunner extends Component
 
         try {
             $dispatcher = Formie::$plugin->getIntegrationDispatcher();
-            $context = $dispatcher->loadContext($submission, $executionKey);
+            $context = $dispatcher->loadRunResults($submission, $executionKey);
             $value = $result->toStorage() + ['success' => $result->isSuccessful(), 'executionUid' => $executionKey, 'handle' => $handle];
             $element = $result->outputs;
 
@@ -420,7 +420,7 @@ class IntegrationRunner extends Component
                 }
             }
             $context->record($handle, $value);
-            $dispatcher->saveContext($submission, $context, $executionKey);
+            $dispatcher->saveRunResults($submission, $context, $executionKey);
         } finally {
             $mutex->release($lock);
         }

@@ -100,13 +100,13 @@ it('round trips integration context only for the requested run', function (): vo
     $context = new \verbb\formie\models\IntegrationRunResults();
     $context->record('example', ['success' => true, 'elementId' => 42]);
     $service = new IntegrationDispatcher();
-    $service->saveContext($submission, $context, 'context-run');
+    $service->saveRunResults($submission, $context, 'context-run');
     $raw = (new \craft\db\Query())->select('context')
         ->from(IntegrationDispatcher::CONTEXT_TABLE)->where(['submissionId' => $submission->id, 'runUid' => 'context-run'])->scalar();
     expect(\craft\helpers\Json::decodeIfJson($raw))->toBe($context->toStorageArray());
 
     $restored = \verbb\formie\elements\Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->one();
-    expect($service->loadContext($restored, 'context-run')->getResult('example'))->toBe(['success' => true, 'elementId' => 42])
-        ->and($service->loadContext($restored)->results)->toBe([])
-        ->and($service->loadContext($restored, 'other-run')->results)->toBe([]);
+    expect($service->loadRunResults($restored, 'context-run')->getResult('example'))->toBe(['success' => true, 'elementId' => 42])
+        ->and($service->loadRunResults($restored)->results)->toBe([])
+        ->and($service->loadRunResults($restored, 'other-run')->results)->toBe([]);
 });

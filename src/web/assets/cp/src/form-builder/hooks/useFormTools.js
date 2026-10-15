@@ -13,7 +13,7 @@ import { createItem, normalizeCollection, takeAtLeast } from '@verbb/plugin-kit-
 import { getRequestErrorMessage, normalizeErrorText } from '@utils/requestError';
 import { extractSiteTranslationsFromFormData, stripTranslatableValuesToCanonical } from '@form-builder/utils/siteOverrides';
 
-const getRefreshResponseErrorMessage = (data) => {
+const getIntegrationActionErrorMessage = (data, fallbackError) => {
     if (!data || typeof data !== 'object') {
         return '';
     }
@@ -59,7 +59,7 @@ const getRefreshResponseErrorMessage = (data) => {
     }
 
     if (data.success === false || data.ok === false || data.status === false) {
-        return 'Failed to refresh integration data.';
+        return fallbackError;
     }
 
     return '';
@@ -1350,7 +1350,8 @@ const fetchIntegrationFormSettingsConfig = async(handle, formId) => {
     }
 };
 
-const refreshIntegrationFormSettings = async(handle, settings = {}, options = {}) => {
+const requestIntegrationAction = async(action, handle, settings, options) => {
+    const fallbackError = action.endsWith('/send-test-payload') ? 'Failed to send test payload.' : 'Failed to refresh integration data.';
     if (!handle) {
         return { ok: false, error: 'Missing integration handle' };
     }
@@ -1366,7 +1367,7 @@ const refreshIntegrationFormSettings = async(handle, settings = {}, options = {}
         : {};
 
     try {
-        const response = await Craft.sendActionRequest('POST', 'formie/integrations/form-settings', {
+        const response = await Craft.sendActionRequest('POST', action, {
             data: {
                 integration: handle,
                 formId,
@@ -1377,7 +1378,7 @@ const refreshIntegrationFormSettings = async(handle, settings = {}, options = {}
         });
 
         const data = response?.data || {};
-        const responseError = getRefreshResponseErrorMessage(data);
+        const responseError = getIntegrationActionErrorMessage(data, fallbackError);
         if (responseError) {
             return {
                 ok: false,
@@ -1395,14 +1396,22 @@ const refreshIntegrationFormSettings = async(handle, settings = {}, options = {}
 
         return { ok: true, data };
     } catch (error) {
-        console.error('Error refreshing integration form settings:', error);
+        console.error('Error running integration action:', error);
 
         return {
             ok: false,
-            error: getRequestErrorMessage(error, 'Failed to refresh integration data.'),
+            error: getRequestErrorMessage(error, fallbackError),
             errorObject: error,
         };
     }
+};
+
+const refreshIntegrationFormSettings = (handle, settings = {}, options = {}) => {
+    return requestIntegrationAction('formie/integrations/form-settings', handle, settings, options);
+};
+
+const sendIntegrationTestPayload = (handle, settings = {}, options = {}) => {
+    return requestIntegrationAction('formie/integrations/send-test-payload', handle, settings, options);
 };
 
 const fetchFieldTypeConfig = async(type, options = {}) => {
@@ -1525,6 +1534,7 @@ export {
     deleteForm,
     fetchIntegrationFormSettingsConfig,
     refreshIntegrationFormSettings,
+    sendIntegrationTestPayload,
     fetchFieldTypeConfig,
     fetchPaymentProviderSettingsSchema,
     useFormValues,

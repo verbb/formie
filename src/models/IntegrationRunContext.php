@@ -28,7 +28,7 @@ final readonly class IntegrationRunContext
             $submission,
             $execution,
             $integration->getDeliveryAttemptUid(),
-            Formie::$plugin->getIntegrationDispatcher()->loadContext($submission, $execution->executionUid)
+            Formie::$plugin->getIntegrationDispatcher()->loadRunResults($submission, $execution->executionUid)
         );
     }
 

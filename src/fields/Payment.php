@@ -107,7 +107,7 @@ class Payment extends Field
             return GqlJson::getType();
         }
 
-        $keys = $integration->getGraphqlPaymentInputFieldKeys($this);
+        $keys = $integration->getGqlPaymentInputFieldKeys($this);
 
         if (!$keys) {
             return GqlJson::getType();

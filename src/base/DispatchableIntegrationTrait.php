@@ -10,6 +10,7 @@ trait DispatchableIntegrationTrait
     // Public Methods
     // =========================================================================
 
+    /** Runner-facing lifecycle; providers normally implement executePayload(). */
     public function execute(IntegrationRunContext $context): IntegrationResult
     {
         $this->beginRun($context);

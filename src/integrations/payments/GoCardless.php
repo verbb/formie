@@ -100,7 +100,7 @@ class GoCardless extends Payment
 
     public function hasValidSettings(): bool
     {
-        return App::parseEnv($this->accessToken);
+        return (bool)App::parseEnv($this->accessToken);
     }
 
     public function getReturnUrl(array $params = []): string
@@ -216,30 +216,7 @@ class GoCardless extends Payment
         return $response;
     }
 
-    public function getTransaction(PaymentModel $payment): void
-    {
-        if ((int)$payment->integrationId !== (int)$this->id) {
-            throw new Exception('Payment provider mismatch.');
-        }
-
-        if ($field = $payment->getField()) {
-            $this->setField($field);
-        }
-
-        if ($payment->subscriptionId && $payment->reference) {
-            $this->_refreshGoCardlessSubscription($payment);
-        } elseif (!$payment->reference) {
-            $this->_syncPaymentFromBillingRequestReturn($payment);
-        } else {
-            $remote = $this->request('GET', 'payments/' . rawurlencode($payment->reference))['payments'] ?? [];
-
-            if (!$remote) {
-                throw new Exception('Unable to resolve GoCardless payment.');
-            }
-            $this->_updatePaymentStatus($payment, $remote);
-        }
-    }
-
+    /** @deprecated Use refreshPayment(); this adapter preserves the legacy status-check behaviour. */
     public function getTransactionStatus(PaymentModel $payment): void
     {
         if (in_array($payment->status, [PaymentModel::STATUS_SUCCEEDED, PaymentModel::STATUS_FAILED], true)) {
@@ -258,7 +235,7 @@ class GoCardless extends Payment
             if (!empty($existing['gcSubscription']['id'])) {
                 $this->_refreshGoCardlessSubscription($payment);
             } elseif ($payment->reference) {
-                $this->getTransaction($payment);
+                $this->refreshPayment($payment);
             }
         } catch (Throwable $e) {
             Integration::error($this, Craft::t('formie', 'Unable to refresh GoCardless payment: “{message}”.', [
@@ -480,11 +457,35 @@ class GoCardless extends Payment
     // Protected Methods
     // =========================================================================
 
+    protected function refreshPaymentState(PaymentModel $payment): void
+    {
+        if ((int)$payment->integrationId !== (int)$this->id) {
+            throw new Exception('Payment provider mismatch.');
+        }
+
+        if ($field = $payment->getField()) {
+            $this->setField($field);
+        }
+
+        if ($payment->subscriptionId && $payment->reference) {
+            $this->_refreshGoCardlessSubscription($payment);
+        } elseif (!$payment->reference) {
+            $this->_syncPaymentFromBillingRequestReturn($payment);
+        } else {
+            $remote = $this->request('GET', 'payments/' . rawurlencode($payment->reference))['payments'] ?? [];
+
+            if (!$remote) {
+                throw new Exception('Unable to resolve GoCardless payment.');
+            }
+            $this->_updatePaymentStatus($payment, $remote);
+        }
+    }
+
     protected function executePayment(Submission $submission): PaymentDecision
     {
         $response = null;
         $field = $this->getField();
-        $amount = $this->getAmount($submission);
+        $amount = $this->getPaymentAmount($submission);
         $currency = (string)$this->getFieldSetting('currency');
 
         $payment = Formie::$plugin->getPayments()->prepareAttempt($this, $submission);
@@ -539,7 +540,6 @@ class GoCardless extends Payment
                 'billingRequestFlow' => $flow,
             ];
             Formie::$plugin->getPayments()->savePayment($payment);
-
 
 
             return PaymentDecision::requiresAction(

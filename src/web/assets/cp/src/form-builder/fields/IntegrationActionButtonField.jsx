@@ -5,7 +5,7 @@ import { Button, Icon } from '@verbb/plugin-kit-react/components';
 import { FieldLayout } from '@verbb/plugin-kit-react/forms';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
 import { useFormBuilderForm } from '@form-builder/contexts/FormBuilderFormContext';
-import { refreshIntegrationFormSettings } from '@form-builder/hooks/useFormTools';
+import { refreshIntegrationFormSettings, sendIntegrationTestPayload } from '@form-builder/hooks/useFormTools';
 import { IntegrationErrorMessage } from './IntegrationErrorMessage';
 
 const SUCCESS_FEEDBACK_DURATION = 2200;
@@ -64,7 +64,8 @@ function IntegrationActionButtonField({ field }) {
         const currentSettings = getValueAtPath(settingsPath, {}) || {};
 
         setLoading(true);
-        const result = await refreshIntegrationFormSettings(integrationHandle, currentSettings, {
+        const sendAction = actionType === 'testPayload' ? sendIntegrationTestPayload : refreshIntegrationFormSettings;
+        const result = await sendAction(integrationHandle, currentSettings, {
             formId,
         });
         setLoading(false);

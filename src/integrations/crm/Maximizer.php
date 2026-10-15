@@ -300,7 +300,7 @@ class Maximizer extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'contactFieldMapping',
             'if' => 'mapToContact',
             'dataLabel' => 'Contact',
@@ -311,7 +311,7 @@ class Maximizer extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Opportunity']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Opportunities']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'opportunityFieldMapping',
             'if' => 'mapToOpportunity',
             'dataLabel' => 'Opportunity',

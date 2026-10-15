@@ -143,7 +143,7 @@ class ProjectConfigHelper
                 continue;
             }
 
-            $data[$integration->uid] = $integrationsService->createIntegrationConfig($integration);
+            $data[$integration->uid] = $integrationsService->createProjectConfig($integration);
         }
 
         return $data;

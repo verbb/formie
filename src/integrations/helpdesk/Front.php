@@ -187,7 +187,7 @@ class Front extends HelpDesk implements OAuthProviderInterface
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Message']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Messages']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'messageFieldMapping',
             'if' => 'mapToMessage',
             'dataLabel' => 'Message',

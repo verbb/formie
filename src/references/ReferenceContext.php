@@ -27,7 +27,7 @@ final readonly class ReferenceContext
         $user = $submission->getUser();
         $dispatch = [];
 
-        foreach (Formie::$plugin->getIntegrationDispatcher()->loadContext($submission)->results as $handle => $result) {
+        foreach (Formie::$plugin->getIntegrationDispatcher()->loadRunResults($submission)->results as $handle => $result) {
             if (is_array($result)) {
                 $dispatch[$handle] = ['id' => $result['elementId'] ?? null, 'url' => $result['url'] ?? null, 'success' => $result['success'] ?? false, 'type' => $result['type'] ?? null];
             }

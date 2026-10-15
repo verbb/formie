@@ -95,8 +95,8 @@ Method | Use
 --- | ---
 `renderHtml()` | Outputs the captcha markup for the form.
 `getBrowserModule()` | Registers browser behaviour for the captcha, when needed.
-`getRefreshJsVariables()` | Returns data used when refreshing captcha tokens.
-`getGqlVariables()` | Returns GraphQL mutation variables for the captcha.
+`getRefreshData()` | Returns transport-neutral data used when refreshing captcha tokens; normally supplied by the protected `defineRefreshData()` hook.
+`getGqlVariables()` | Deprecated compatibility method for older callers; current GraphQL handling does not invoke it.
 `validateSubmission()` | Validates the submitted captcha value.
 
 ## Form Settings
@@ -212,4 +212,4 @@ export default defineCaptchaModule<ExampleCaptchaOptions, ExampleCaptchaApi, Ret
 
 In this example, the PHP integration declares the module with `new BrowserModule([...])`, and the browser module writes the solved token to `example-captcha-token`. That is the same name `validateSubmission()` reads with `getCaptchaValue()`.
 
-`getRefreshJsVariables()` is available for captcha providers that need data when Formie refreshes captcha-related browser state. `getGqlVariables()` is available when a captcha needs to expose values for GraphQL mutation handling.
+Override `defineRefreshData(Form $form, ?FieldLayoutPage $page = null): array` when the captcha needs to supply refreshed challenge data. Formie reads it through `getRefreshData()`. Older `getRefreshJsVariables()` overrides still participate in that call, including parent calls. `getGqlVariables()` remains callable for compatibility but is not a current GraphQL extension hook; new integrations should use the browser-module and submission-validation contracts described above.

@@ -192,7 +192,7 @@ class Moneris extends Payment
 
         $currency = $this->getFieldSetting('currency');
 
-        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $currency, [
+        return PaymentAttempt::run($this, $submission, $this->getPaymentAmount($submission), $currency, [
             'storeId' => $this->storeId,
             'apiToken' => $this->apiToken,
             'useSandbox' => $this->useSandbox,

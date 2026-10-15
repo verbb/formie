@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\compatibility\integrations\LegacyIntegrationApiTrait;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionAuthorityType;
@@ -16,6 +17,7 @@ use verbb\formie\models\SubmissionAuthority;
 use Craft;
 
 use yii\base\Component;
+use yii\web\ForbiddenHttpException;
 
 class IntegrationTriggers extends Component
 {
@@ -27,6 +29,12 @@ class IntegrationTriggers extends Component
     public const SOURCE_SPAM_UNMARK = 'spamUnmark';
     public const SOURCE_MANUAL = 'manual';
     public const SOURCE_CLI = 'cli';
+
+
+    // Traits
+    // =========================================================================
+
+    use LegacyIntegrationApiTrait;
 
 
     // Public Methods
@@ -140,9 +148,17 @@ class IntegrationTriggers extends Component
         ]);
     }
 
+    public function runManualIntegration(Integration $integration, Submission $submission): IntegrationResult
+    {
+        return $this->callLegacyIntegrationMethod('dispatchManualIntegration', IntegrationTriggers::class, [$integration, $submission], function() use ($integration, $submission) {
+            return $this->_dispatchManualIntegration($integration, $submission, $this->_operatorAuthority($submission, 'manual'));
+        }, canonicalMethod: 'runManualIntegration');
+    }
+
+    /** @deprecated Use runManualIntegration(). */
     public function dispatchManualIntegration(Integration $integration, Submission $submission): IntegrationResult
     {
-        return $this->_dispatchManualIntegration($integration, $submission, $this->_operatorAuthority($submission, 'manual'));
+        return $this->callCanonicalIntegrationMethod('dispatchManualIntegration', fn() => $this->runManualIntegration($integration, $submission));
     }
 
 
@@ -151,6 +167,11 @@ class IntegrationTriggers extends Component
 
     private function _dispatchManualIntegration(Integration $integration, Submission $submission, SubmissionAuthority $authority): IntegrationResult
     {
+        // Custom controllers use the same form-scoped permission as the CP action.
+        if (!Craft::$app->getRequest()->getIsConsoleRequest() && !Formie::$plugin->getPermissions()->canSaveSubmissions(Craft::$app->getUser()->getIdentity(), $submission->getForm())) {
+            throw new ForbiddenHttpException('You do not have permission to run integrations for this form.');
+        }
+
         return Formie::$plugin->getIntegrationRunner()->runIntegration($integration, $submission, StringHelper::UUID(), 'synchronous', [
             'triggerEvent' => IntegrationTriggerEvents::MANUAL,
             'operatorInitiated' => true,

@@ -422,9 +422,9 @@ class Pardot extends Crm implements OAuthProviderInterface
         return new IntegrationConfig($settings);
     }
 
-    public function populateContext(?Submission $submission = null): void
+    public function populateContext(): void
     {
-        parent::populateContext($submission);
+        parent::populateContext();
 
         if (!isset($this->context['pardot_tracking']) || !$this->context['pardot_tracking']) {
             $trackingData = [];
@@ -612,7 +612,7 @@ class Pardot extends Crm implements OAuthProviderInterface
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Prospect']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Prospects']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'prospectFieldMapping',
             'if' => 'mapToProspect',
             'dataLabel' => 'Prospect',
@@ -623,7 +623,7 @@ class Pardot extends Crm implements OAuthProviderInterface
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Opportunity']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Opportunities']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'opportunityFieldMapping',
             'if' => 'mapToOpportunity',
             'dataLabel' => 'Opportunity',

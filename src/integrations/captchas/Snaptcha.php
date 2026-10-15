@@ -50,26 +50,13 @@ class Snaptcha extends Captcha
         ]);
     }
 
-    public function getRefreshJsVariables(Form $form, FieldLayoutPage $page = null): array
-    {
-        $model = new SnaptchaModel();
-        $fieldName = SnaptchaPlugin::$plugin->settings->fieldName;
-        $fieldValue = SnaptchaPlugin::$plugin->snaptcha->getFieldValue($model) ?? '';
-
-        return [
-            'formId' => $form->getRenderId(),
-            'sessionKey' => $fieldName,
-            'value' => $fieldValue,
-        ];
-    }
-
     public function getBrowserModule(BrowserModuleContext $context): ?BrowserModule
     {
         if (!$context->form) {
             return null;
         }
 
-        $refresh = $this->getRefreshJsVariables($context->form, $context->page);
+        $refresh = $this->getRefreshData($context->form, $context->page);
 
         return new BrowserModule([
             'moduleId' => 'formie:snaptcha',
@@ -86,6 +73,23 @@ class Snaptcha extends Captcha
 
     public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
     {
-        return $this->getRefreshJsVariables($form, $page);
+        return $this->getRefreshData($form, $page);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRefreshData(Form $form, ?FieldLayoutPage $page = null): array
+    {
+        $model = new SnaptchaModel();
+        $fieldName = SnaptchaPlugin::$plugin->settings->fieldName;
+        $fieldValue = SnaptchaPlugin::$plugin->snaptcha->getFieldValue($model) ?? '';
+
+        return [
+            'formId' => $form->getRenderId(),
+            'sessionKey' => $fieldName,
+            'value' => $fieldValue,
+        ];
     }
 }

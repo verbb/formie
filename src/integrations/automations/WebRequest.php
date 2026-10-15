@@ -1,7 +1,6 @@
 <?php
 namespace verbb\formie\integrations\automations;
 
-use verbb\formie\Formie;
 use verbb\formie\attributes\FormIntegrationSetting;
 use verbb\formie\attributes\Sensitive;
 use verbb\formie\base\Automation;
@@ -11,7 +10,6 @@ use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 
 use Craft;
@@ -67,46 +65,6 @@ class WebRequest extends Automation
         return Craft::t('formie', 'Send your form content to any URL you provide.');
     }
 
-    public function fetchConfig(): IntegrationConfig
-    {
-        $settings = [];
-        $payload = [];
-
-        try {
-            $formId = Craft::$app->getRequest()->getParam('formId');
-            $form = Formie::$plugin->getForms()->getFormById($formId);
-
-            // Generate and send a test payload to Zapier
-            $submission = new Submission();
-            $submission->setForm($form);
-
-            Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
-            $payload = $this->generatePayloadValues($submission);
-
-            $response = $this->deliverPayload($submission, $this->getEndpointUrl($this->url, $submission), $payload, $this->method, $this->requestType);
-
-            $rawResponse = (string)$response->getBody();
-            $json = Json::decodeIfJson($rawResponse);
-
-            $settings = [
-                'response' => $response,
-                'json' => $json,
-            ];
-        } catch (Throwable $e) {
-            // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
-                'message' => Integration::getExceptionLogMessage($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'payload' => Json::encode($payload),
-                'response' => $rawResponse ?? '',
-            ]));
-
-            Integration::apiError($this, $e);
-        }
-
-        return new IntegrationConfig($settings);
-    }
 
     // Protected Methods
     // =========================================================================
@@ -236,6 +194,8 @@ class WebRequest extends Automation
                 ['name' => 'password', 'label' => Craft::t('formie', 'Password'), 'type' => 'text'],
             ],
         ]);
+
+        $schema[] = SchemaHelper::integrationSendTestPayloadButtonField();
 
         return $schema;
     }

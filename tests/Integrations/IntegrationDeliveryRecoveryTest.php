@@ -40,7 +40,7 @@ it('stops a swallowed transport failure from being retried and requires reconcil
         expect($run()->results()[0]['result']->status->value)->toBe('unknown');
         expect($run()->results()[0]['result']->status->value)->toBe('unknown');
         expect($integration::$calls)->toBe(1);
-        expect(Formie::$plugin->getIntegrationTriggers()->dispatchManualIntegration($integration, $submission)->status->value)->toBe('unknown');
+        expect(Formie::$plugin->getIntegrationTriggers()->runManualIntegration($integration, $submission)->status->value)->toBe('unknown');
         expect($integration::$calls)->toBe(1);
     } finally {
         Event::off(Integrations::class, Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $handler);

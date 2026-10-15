@@ -5,9 +5,13 @@ use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\ModifyAutomationPayloadEvent;
 use verbb\formie\helpers\References;
+use verbb\formie\models\IntegrationExecutionContext;
+use verbb\formie\models\IntegrationResult;
+use verbb\formie\models\IntegrationRunContext;
 
 use Craft;
 use craft\helpers\App;
+use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
 use GuzzleHttp\Client;
@@ -37,6 +41,14 @@ abstract class Automation extends Integration implements DispatchableIntegration
 
     // Public Methods
     // =========================================================================
+
+    public function sendTestPayload(Submission $submission): IntegrationResult
+    {
+        // Fake submissions contain display IDs; they must never become persisted delivery identities.
+        $context = new IntegrationExecutionContext(0, (int)$submission->formId, (string)$this->handle, StringHelper::UUID(), 'synchronous', 'test');
+
+        return $this->execute(new IntegrationRunContext($submission, $context));
+    }
 
     public function getType(): string
     {

@@ -22,7 +22,7 @@ protected function defineFormSettingsSchema(FormInterface $form): array
         'options' => $this->getCollectionOptions('mailboxes'),
     ]);
 
-    $schema[] = $this->getIntegrationFieldMappingField([
+    $schema[] = $this->createFieldMappingField([
         'name' => 'fieldMapping',
         'dataLabel' => 'Ticket',
         'dataKey' => 'ticket',

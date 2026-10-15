@@ -273,7 +273,7 @@ class IterableIntegration extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'User']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Users']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'userFieldMapping',
             'if' => 'mapToUser',
             'dataLabel' => 'User',
@@ -297,7 +297,7 @@ class IterableIntegration extends Crm
         $mappingSchema = $this->defineFieldMappingSchema('messageTypes', 'messageTypeId');
 
         if ($mappingSchema) {
-            $schema[] = $this->getIntegrationFieldMappingField([
+            $schema[] = $this->createFieldMappingField([
                 'name' => 'messageTypeFieldMapping',
                 'if' => 'mapToMessageType',
                 'dataLabel' => 'Message Type',

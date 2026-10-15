@@ -457,7 +457,7 @@ class Capsule extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'People']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'People']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'peopleFieldMapping',
             'if' => 'mapToPeople',
             'dataLabel' => 'People',
@@ -468,7 +468,7 @@ class Capsule extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Opportunity']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Opportunities']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'opportunityFieldMapping',
             'if' => 'mapToOpportunity',
             'dataLabel' => 'Opportunity',
@@ -479,7 +479,7 @@ class Capsule extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Task']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Tasks']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'taskFieldMapping',
             'if' => 'mapToTask',
             'dataLabel' => 'Task',

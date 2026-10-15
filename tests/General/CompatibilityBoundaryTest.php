@@ -1,6 +1,8 @@
 <?php
 
 use verbb\formie\base\Field;
+use verbb\formie\base\Integration;
+use verbb\formie\compatibility\integrations\LegacyIntegrationApiTrait;
 use verbb\formie\compatibility\delivery\LegacyDeliveryJobTrait;
 use verbb\formie\compatibility\fields\FieldRuntimeCompatibility;
 use verbb\formie\compatibility\signatures\SignatureAccessCompatibility;
@@ -15,6 +17,7 @@ use verbb\formie\variables\Formie as FormieVariable;
 
 it('keeps compatibility implementation behind explicit compatibility boundaries', function (): void {
     expect(class_uses(Field::class))->toContain(FieldRuntimeCompatibility::class)
+        ->and(class_uses(Integration::class))->toContain(LegacyIntegrationApiTrait::class)
         ->and(class_uses(SignatureAccess::class))->toContain(SignatureAccessCompatibility::class)
         ->and(class_uses(SendNotification::class))->toContain(LegacyDeliveryJobTrait::class)
         ->and(class_uses(TriggerIntegration::class))->toContain(LegacyDeliveryJobTrait::class)

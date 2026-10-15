@@ -59,7 +59,7 @@ protected function defineFormSettingsSchema(FormInterface $form): array
         'instructions' => Craft::t('formie', 'Whether to map form data to a contact.'),
     ]);
 
-    $schema[] = $this->getIntegrationFieldMappingField([
+    $schema[] = $this->createFieldMappingField([
         'name' => 'contactFieldMapping',
         'if' => 'mapToContact',
         'dataLabel' => 'Contact',

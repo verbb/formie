@@ -96,7 +96,7 @@ it('separates timing from success across lanes failure policies and explicit con
         expect($emails->sent)->toBe($expected);
         $stops = $failurePolicy === 'stop' && in_array($status, ['failed', 'rejected', 'unknown'], true);
         expect(NotificationTimingProvider::$calls)->toBe($stops ? ['remote'] : ['remote', 'next']);
-        $context = $dispatcher->loadContext($submission, $key);
+        $context = $dispatcher->loadRunResults($submission, $key);
         expect($context->getResult('next')['status'])->toBe($stops ? 'skipped' : 'succeeded');
     } finally {
         Formie::$plugin->set('emails', $oldEmails);

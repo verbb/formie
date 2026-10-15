@@ -71,14 +71,9 @@ class Question extends Captcha
         ]);
     }
 
-    public function getRefreshJsVariables(Form $form, $page = null): array
-    {
-        return [];
-    }
-
     public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
     {
-        return $this->getRefreshJsVariables($form, $page);
+        return $this->getRefreshData($form, $page);
     }
 
     public function hasStrictValidation(): bool

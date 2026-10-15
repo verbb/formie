@@ -53,7 +53,7 @@ it('replays the durable result through every early delivery branch', function (s
         if ($branch === 'legacy') (new DeliveryAttempt($submission->id, 'integration:' . $handle, $run))->execute([], fn() => true);
         $batch = $runner->runSteps($submission, [$handle], [], null, $run);
         $uid = Formie::$plugin->getDeliveryAttempts()->prepare(new IntegrationExecutionContext($submission->id, $form->id, $handle, $run), 'integration');
-        $projection = Formie::$plugin->getIntegrationDispatcher()->loadContext($submission, $run)->getResult($handle);
+        $projection = Formie::$plugin->getIntegrationDispatcher()->loadRunResults($submission, $run)->getResult($handle);
 
         expect($batch->results()[0]['result']->toStorage())->toBe($first->toStorage())
             ->and($reported)->toHaveCount(1)

@@ -230,7 +230,7 @@ it('uses one instance reference across conditions integrations headers redirects
     $integration = new \verbb\formie\integrations\crm\HubSpot(['name' => 'Parity', 'handle' => 'parity']);
     $destination = new \verbb\formie\models\IntegrationField(['handle' => 'answer']);
     expect(References::resolveValue($token, $context)->requireValue())->toBe('A&B <C>')
-        ->and($integration->getMappedFieldValue(['kind' => 'reference', 'value' => $token], $submission, $destination))->toBe('A&B <C>')
+        ->and($integration->resolveMappedFieldValue(['kind' => 'reference', 'value' => $token], $submission, $destination))->toBe('A&B <C>')
         ->and($integration->getFieldMappingValues($submission, ['answer' => ['kind' => 'reference', 'value' => $token]], [$destination]))->toBe(['answer' => 'A&B <C>'])
         ->and(References::interpolateText($token, $context, ReferenceOutputContext::EmailHeader))->toBe('A&B <C>')
         ->and(References::parseUrl('https://example.test/?answer=' . $token, $submission))->toBe('https://example.test/?answer=A%26B%20%3CC%3E');

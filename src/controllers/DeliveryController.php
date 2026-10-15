@@ -53,7 +53,7 @@ class DeliveryController extends Controller
         $submission = $this->_requireSubmission((int)$this->request->getRequiredBodyParam('submissionId'));
         $handle = (string)$this->request->getRequiredBodyParam('handle');
 
-        foreach (Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($submission->getForm()) as $integration) {
+        foreach (Formie::$plugin->getIntegrations()->getEnabledIntegrationRuntimes($submission->getForm()) as $integration) {
             if ($integration->handle === $handle && $integration->supportsPayloadSending()) {
                 $result = Formie::$plugin->getIntegrationTriggers()->forceIntegration($integration, $submission, (string)$this->request->getRequiredBodyParam('reason'));
                 return $this->asJson($result->toStorage());

@@ -33,18 +33,19 @@ protected function defineFormSettingsSchema(FormInterface $form): array
 ```
 
 ## Payloads
-Render any templated message content against the submission before sending it to the provider.
+Resolve message references against the submission before sending the text to the provider.
 
 ```php
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\References;
 use Throwable;
 
 protected function executePayload(Submission $submission): \verbb\formie\models\IntegrationResult
 {
     $this->beginPayloadDelivery($submission);
     try {
-        $message = Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate($this->message, $submission, autoescape: false);
+        $message = References::parseContent($this->message, $submission);
 
         $response = $this->deliverPayload($submission, 'messages', [
             'channel' => $this->channelId,

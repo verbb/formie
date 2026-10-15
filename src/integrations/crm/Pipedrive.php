@@ -581,7 +581,7 @@ class Pipedrive extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Person']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'People']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'personFieldMapping',
             'if' => 'mapToPerson',
             'dataLabel' => 'Person',
@@ -598,7 +598,7 @@ class Pipedrive extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Deal']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Deals']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'dealFieldMapping',
             'if' => 'mapToDeal',
             'dataLabel' => 'Deal',
@@ -609,7 +609,7 @@ class Pipedrive extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Lead']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Leads']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'leadFieldMapping',
             'if' => 'mapToLead',
             'dataLabel' => 'Lead',
@@ -620,7 +620,7 @@ class Pipedrive extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Organization']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Organizations']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'organizationFieldMapping',
             'if' => 'mapToOrganization',
             'dataLabel' => 'Organization',
@@ -631,7 +631,7 @@ class Pipedrive extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Note']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Notes']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'noteFieldMapping',
             'if' => 'mapToNote',
             'dataLabel' => 'Note',

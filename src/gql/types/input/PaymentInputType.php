@@ -69,7 +69,7 @@ class PaymentInputType extends InputObjectType
             return $fields;
         }
 
-        foreach ($integration->getGraphqlPaymentInputFieldKeys($field) as $key) {
+        foreach ($integration->getGqlPaymentInputFieldKeys($field) as $key) {
             $fields[$key] = [
                 'name' => $key,
                 'type' => Type::string(),

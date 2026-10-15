@@ -134,7 +134,7 @@ class PaymentRecovery
             throw new RuntimeException('Verify the original account before reconciling this payment.');
         }
         $integration->setField($payment->getField());
-        Formie::$plugin->getPayments()->observeProvider(fn() => $integration->getTransaction($payment));
+        Formie::$plugin->getPayments()->observeProvider(fn() => $integration->refreshPayment($payment));
 
         return self::_load($paymentId);
     }

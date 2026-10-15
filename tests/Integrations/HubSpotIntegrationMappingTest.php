@@ -359,7 +359,7 @@ it('includes a hardcoded marketing consent in the HubSpot form submission payloa
         $event->isValid = false;
     });
 
-    expect($integration->sendPayload($submission)->status)->toBe(\verbb\formie\enums\IntegrationStatus::Skipped)
+    expect($integration->execute(\verbb\formie\models\IntegrationRunContext::forIntegration($integration, $submission))->status)->toBe(\verbb\formie\enums\IntegrationStatus::Skipped)
         ->and($capturedPayload['legalConsentOptions']['consent']['communications'] ?? null)->toBe([
             [
                 'value' => true,

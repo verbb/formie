@@ -513,7 +513,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 'label' => Craft::t('formie', 'Map to {name}', ['name' => $entity->label]),
                 'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => $entity->getPluralLabel()]),
             ]);
-            $schema[] = $this->getIntegrationFieldMappingField([
+            $schema[] = $this->createFieldMappingField([
                 'name' => $entity->getMappingSetting(),
                 'if' => $enabledSetting,
                 'dataLabel' => $entity->label,

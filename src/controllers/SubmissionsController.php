@@ -493,7 +493,7 @@ class SubmissionsController extends Controller
         $form = $submission->getForm();
 
         // We need to fetch all submissions for the form, which are prepped correctly
-        $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form);
+        $integrations = Formie::$plugin->getIntegrations()->getEnabledIntegrationRuntimes($form);
         $resolvedIntegration = null;
 
         foreach ($integrations as $integration) {
@@ -504,7 +504,7 @@ class SubmissionsController extends Controller
             $resolvedIntegration = $integration;
 
             // Allow integrations to add extra data before running
-            $resolvedIntegration->populateContext($submission);
+            $resolvedIntegration->populateSubmissionContext($submission);
         }
 
         if (!$resolvedIntegration) {
@@ -515,7 +515,7 @@ class SubmissionsController extends Controller
             return $this->asFailure($error);
         }
 
-        $response = Formie::$plugin->getIntegrationTriggers()->dispatchManualIntegration($resolvedIntegration, $submission);
+        $response = Formie::$plugin->getIntegrationTriggers()->runManualIntegration($resolvedIntegration, $submission);
 
         if (!$response->isSuccessful()) {
             $message = Craft::t('formie', 'Integration result: {status}.', ['status' => $response->status->value]);

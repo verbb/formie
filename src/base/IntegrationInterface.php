@@ -7,6 +7,7 @@ use verbb\formie\models\IntegrationConfig;
 
 use craft\base\SavableComponentInterface;
 
+/** Caller-facing integration methods. Provider implementations must extend Integration or a category base. */
 interface IntegrationInterface extends SavableComponentInterface
 {
     // Public Methods

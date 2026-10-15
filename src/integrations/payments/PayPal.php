@@ -101,28 +101,10 @@ class PayPal extends Payment
         ]);
     }
 
-    public function getTransaction(PaymentModel $payment): void
-    {
-        if (!$payment->reference || in_array($payment->status, [PaymentModel::STATUS_SUCCEEDED, PaymentModel::STATUS_FAILED], true)) {
-            return;
-        }
-        $submission = $payment->getSubmission();
-
-        if (!$submission || $payment->integrationId !== $this->id) {
-            throw new Exception('Invalid PayPal payment context.');
-        }
-        $capture = $this->_requestApi('GET', 'v2/payments/captures/' . rawurlencode($payment->reference));
-        $this->_applyCapture($payment, $capture, $submission);
-
-        if (!Formie::$plugin->getPayments()->savePayment($payment)) {
-            throw new DeliveryOutcomeUnknownException('Unable to save the PayPal payment status.');
-        }
-        Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
-    }
-
+    /** @deprecated Use refreshPayment(); this adapter preserves the legacy status-check behaviour. */
     public function getTransactionStatus(PaymentModel $payment): void
     {
-        $this->getTransaction($payment);
+        $this->refreshPayment($payment);
     }
 
     public function fetchConnection(): bool
@@ -317,6 +299,25 @@ class PayPal extends Payment
     // Protected Methods
     // =========================================================================
 
+    protected function refreshPaymentState(PaymentModel $payment): void
+    {
+        if (!$payment->reference || in_array($payment->status, [PaymentModel::STATUS_SUCCEEDED, PaymentModel::STATUS_FAILED], true)) {
+            return;
+        }
+        $submission = $payment->getSubmission();
+
+        if (!$submission || $payment->integrationId !== $this->id) {
+            throw new Exception('Invalid PayPal payment context.');
+        }
+        $capture = $this->_requestApi('GET', 'v2/payments/captures/' . rawurlencode($payment->reference));
+        $this->_applyCapture($payment, $capture, $submission);
+
+        if (!Formie::$plugin->getPayments()->savePayment($payment)) {
+            throw new DeliveryOutcomeUnknownException('Unable to save the PayPal payment status.');
+        }
+        Formie::$plugin->getSubmissionRequests()->replayPaymentIfSuccessful($payment);
+    }
+
     protected function executePayment(Submission $submission): PaymentDecision
     {
         $mutex = Craft::$app->getMutex();
@@ -386,9 +387,9 @@ class PayPal extends Payment
         return $defaults;
     }
 
-    protected function getOptionalGraphqlPaymentInputFieldKeys(): array
+    protected function getOptionalGqlPaymentInputFieldKeys(): array
     {
-        return ['paypalAuthId'];
+        return $this->callLegacyIntegrationMethod('getOptionalGraphqlPaymentInputFieldKeys', Payment::class, [], fn() => ['paypalAuthId'], canonicalMethod: 'getOptionalGqlPaymentInputFieldKeys');
     }
 
 
@@ -505,7 +506,7 @@ class PayPal extends Payment
     {
 
         $field = $this->getField();
-        $amount = $this->getAmount($submission);
+        $amount = $this->getPaymentAmount($submission);
         $currency = strtoupper((string)$this->getFieldSetting('currency'));
         $payment = null;
 

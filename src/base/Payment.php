@@ -409,24 +409,32 @@ abstract class Payment extends Integration
         return null;
     }
 
+    public function getGqlPaymentInputFieldKeys(FieldInterface $field): array
+    {
+        return $this->callLegacyIntegrationMethod('getGraphqlPaymentInputFieldKeys', Payment::class, [$field], function() use ($field) {
+            $this->setField($field);
+
+            $module = $this->getBrowserModule(new BrowserModuleContext([
+                'form' => $field->getForm(),
+                'field' => $field,
+                'integration' => $this,
+                'surface' => BrowserModule::SURFACE_SERVER_RENDERED,
+            ]));
+
+            $required = [];
+
+            if (is_array($module?->config['requiredInputSuffixes'] ?? null)) {
+                $required = $module->config['requiredInputSuffixes'];
+            }
+
+            return array_values(array_unique(array_merge($required, $this->getOptionalGqlPaymentInputFieldKeys())));
+        }, canonicalMethod: 'getGqlPaymentInputFieldKeys');
+    }
+
+    /** @deprecated Use getGqlPaymentInputFieldKeys(). */
     public function getGraphqlPaymentInputFieldKeys(FieldInterface $field): array
     {
-        $this->setField($field);
-
-        $module = $this->getBrowserModule(new BrowserModuleContext([
-            'form' => $field->getForm(),
-            'field' => $field,
-            'integration' => $this,
-            'surface' => BrowserModule::SURFACE_SERVER_RENDERED,
-        ]));
-
-        $required = [];
-
-        if (is_array($module?->config['requiredInputSuffixes'] ?? null)) {
-            $required = $module->config['requiredInputSuffixes'];
-        }
-
-        return array_values(array_unique(array_merge($required, $this->getOptionalGraphqlPaymentInputFieldKeys())));
+        return $this->callCanonicalIntegrationMethod('getGraphqlPaymentInputFieldKeys', fn() => $this->getGqlPaymentInputFieldKeys($field));
     }
 
     public function getWebhookUrl(): string
@@ -492,20 +500,10 @@ abstract class Payment extends Integration
         return StringHelper::toCamelCase($this->handle . 'Payment');
     }
 
+    /** @deprecated Use getPaymentAmount() for major currency units. */
     public function getAmount(Submission $submission): string|int|float
     {
-        $amount = 0;
-        $amountType = $this->getFieldSetting('amountType');
-        $amountFixed = $this->getFieldSetting('amountFixed');
-        $amountVariable = $this->getFieldSetting('amountVariable');
-
-        if ($amountType === Payment::VALUE_TYPE_FIXED) {
-            $amount = PaymentAmountHelper::parseAmount($amountFixed);
-        } elseif ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
-            $amount = PaymentAmountHelper::parseAmount(References::resolveValue($amountVariable, ReferenceContext::forSubmission($submission))->requireValue());
-        }
-
-        return $amount;
+        return $this->callCanonicalIntegrationMethod('getAmount', fn() => $this->getPaymentAmount($submission));
     }
 
     public function getCurrency(Submission $submission): ?string
@@ -525,11 +523,10 @@ abstract class Payment extends Integration
 
     /**
      * Resolve the amount in the major currency units stored on payment records.
-     * Providers whose getAmount() returns API units must convert them here.
      */
     public function getPaymentAmount(Submission $submission): string|int|float
     {
-        return $this->getAmount($submission);
+        return $this->callLegacyIntegrationMethod('getAmount', Payment::class, [$submission], fn() => $this->resolvePaymentAmount($submission), canonicalMethod: 'getPaymentAmount');
     }
 
     public function receiveWebhook(PaymentWebhookCommand $command): Response
@@ -649,14 +646,42 @@ abstract class Payment extends Integration
         return 10;
     }
 
-    public function getTransaction(PaymentModel $payment): void
+    public function refreshPayment(PaymentModel $payment): void
     {
-
+        $this->callLegacyIntegrationMethod('getTransaction', Payment::class, [$payment], fn() => $this->refreshPaymentState($payment), canonicalMethod: 'refreshPayment');
     }
 
+    /** @deprecated Use refreshPayment(). */
+    public function getTransaction(PaymentModel $payment): void
+    {
+        $this->callCanonicalIntegrationMethod('getTransaction', fn() => $this->refreshPayment($payment));
+    }
+
+    /** @deprecated Use refreshPayment(). Provider-specific legacy status handlers remain supported. */
     public function getTransactionStatus(PaymentModel $payment): void
     {
+        $this->refreshPayment($payment);
+    }
 
+    // Keep established hooks untyped so older extension signatures still load.
+    public function defineFormBuilderGeneralSchema()
+    {
+        return [];
+    }
+
+    public function defineFormBuilderSettingsSchema()
+    {
+        return [];
+    }
+
+    public function defineFormBuilderAppearanceSchema()
+    {
+        return [];
+    }
+
+    public function getPaymentSubFields(PaymentField $field)
+    {
+        return [];
     }
 
     public function getField(): ?PaymentField
@@ -689,9 +714,35 @@ abstract class Payment extends Integration
     // Protected Methods
     // =========================================================================
 
+    protected function resolvePaymentAmount(Submission $submission): string|int|float
+    {
+        $amount = 0;
+        $amountType = $this->getFieldSetting('amountType');
+        $amountFixed = $this->getFieldSetting('amountFixed');
+        $amountVariable = $this->getFieldSetting('amountVariable');
+
+        if ($amountType === Payment::VALUE_TYPE_FIXED) {
+            $amount = PaymentAmountHelper::parseAmount($amountFixed);
+        } elseif ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
+            $amount = PaymentAmountHelper::parseAmount(References::resolveValue($amountVariable, ReferenceContext::forSubmission($submission))->requireValue());
+        }
+
+        return $amount;
+    }
+
+    protected function refreshPaymentState(PaymentModel $payment): void
+    {
+    }
+
+    protected function getOptionalGqlPaymentInputFieldKeys(): array
+    {
+        return $this->callLegacyIntegrationMethod('getOptionalGraphqlPaymentInputFieldKeys', Payment::class, [], fn() => [], canonicalMethod: 'getOptionalGqlPaymentInputFieldKeys');
+    }
+
+    /** @deprecated Use getOptionalGqlPaymentInputFieldKeys(). */
     protected function getOptionalGraphqlPaymentInputFieldKeys(): array
     {
-        return [];
+        return $this->callCanonicalIntegrationMethod('getOptionalGraphqlPaymentInputFieldKeys', fn() => $this->getOptionalGqlPaymentInputFieldKeys());
     }
 
     protected function getPaymentAccountIdentity(): ?string
@@ -711,7 +762,7 @@ abstract class Payment extends Integration
 
     protected function getIntegrationHandle(): string
     {
-        return StringHelper::toKebabCase(static::className());
+        return $this->getClassHandle();
     }
 
     protected function getPaymentFieldValue(Submission $submission): array

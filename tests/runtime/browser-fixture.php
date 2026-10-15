@@ -160,3 +160,15 @@ $conditionForm = \verbb\formie\Formie::$plugin->getFactories()->form(['title' =>
     ->repeaterField('people', ['rows' => [['fields' => [[
         'type' => \verbb\formie\fields\Email::class, 'handle' => 'email', 'label' => 'Row email', 'required' => true,
     ]]]]])->create();
+
+$testAutomation = new \verbb\formie\integrations\automations\WebRequest([
+    'name' => 'Browser automation test', 'handle' => 'browserAutomationTest', 'enabled' => true,
+]);
+if (!\verbb\formie\Formie::$plugin->getIntegrations()->saveIntegration($testAutomation, false)) {
+    throw new RuntimeException('Cannot save automation test fixture.');
+}
+$testAutomationForm = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Automation test contract', 'handle' => 'automationTestContract'])
+    ->singleLineTextField('message')
+    ->integrations(['browserAutomationTest' => ['enabled' => true, 'url' => 'https://127.0.0.1/', 'method' => 'POST', 'requestType' => 'json']])
+    ->create();
+file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/automation-test.json', json_encode(['formId' => $testAutomationForm->id]));

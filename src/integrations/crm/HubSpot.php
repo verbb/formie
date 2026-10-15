@@ -186,6 +186,7 @@ class HubSpot extends Crm
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
+    /** @deprecated Use getOptionSourceRefreshParams() for source-specific refreshes. */
     public function getConfigRefreshParams(): array
     {
         return [
@@ -431,9 +432,9 @@ class HubSpot extends Crm
         ]);
     }
 
-    public function populateContext(?Submission $submission = null): void
+    public function populateContext(): void
     {
-        parent::populateContext($submission);
+        parent::populateContext();
 
         if (!array_key_exists('hubspotutk', $this->context) || $this->context['hubspotutk'] === null) {
             $this->context['hubspotutk'] = $_COOKIE['hubspotutk'] ?? null;
@@ -898,7 +899,7 @@ class HubSpot extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'contactFieldMapping',
             'if' => 'mapToContact',
             'dataLabel' => 'Contact',
@@ -909,7 +910,7 @@ class HubSpot extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Deal']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Deals']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'dealFieldMapping',
             'if' => 'mapToDeal',
             'dataLabel' => 'Deal',
@@ -920,7 +921,7 @@ class HubSpot extends Crm
             'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Company']),
             'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Companies']),
         ]);
-        $schema[] = $this->getIntegrationFieldMappingField([
+        $schema[] = $this->createFieldMappingField([
             'name' => 'companyFieldMapping',
             'if' => 'mapToCompany',
             'dataLabel' => 'Company',
@@ -947,7 +948,7 @@ class HubSpot extends Crm
         $mappingSchema = $this->defineFieldMappingSchema('forms', 'formId');
 
         if ($mappingSchema) {
-            $schema[] = $this->getIntegrationFieldMappingField([
+            $schema[] = $this->createFieldMappingField([
                 'name' => 'formFieldMapping',
                 'if' => 'mapToForm',
                 'dataLabel' => 'Form',

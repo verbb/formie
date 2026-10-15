@@ -541,7 +541,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
             // If this disabled globally? Then don't include it, otherwise populate the settings
             if ($integration && $integration->getEnabled()) {
-                $integration = Formie::$plugin->getIntegrations()->populateIntegrationFromFormSettings($integration, $formSettings);
+                $integration = Formie::$plugin->getIntegrations()->createIntegrationRuntime($integration, $formSettings);
 
                 $enabledIntegrations[] = $integration;
             }
@@ -598,7 +598,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     public function validateIntegrations(): void
     {
         if ($form = $this->getForm()) {
-            $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form);
+            $integrations = Formie::$plugin->getIntegrations()->getEnabledIntegrationRuntimes($form);
 
             foreach ($integrations as $integration) {
                 $integration->setScenario(Integration::SCENARIO_FORM);

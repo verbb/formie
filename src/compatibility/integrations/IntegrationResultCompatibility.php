@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\compatibility\integrations;
 
+use verbb\formie\enums\IntegrationStatus;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\IntegrationResult;
 
@@ -8,6 +9,14 @@ final class IntegrationResultCompatibility
 {
     // Static Methods
     // =========================================================================
+
+    public static function toLegacy(IntegrationResult $result, ?IntegrationResponse $response = null): bool|IntegrationResponse
+    {
+        // Formie 3 acknowledged cancelled or ineligible sends without treating them as failures.
+        $success = $result->isSuccessful() || $result->status === IntegrationStatus::Skipped;
+
+        return $response ? new IntegrationResponse($success, $response->message ?? []) : $success;
+    }
 
     public static function normalize(mixed $value, bool $uncertain = false): IntegrationResult
     {

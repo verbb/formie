@@ -171,15 +171,21 @@ class Opayo extends Payment
         ]);
     }
 
+    public function getProviderAmount(Submission $submission): string|int|float
+    {
+        return self::toOpayoAmount($this->getPaymentAmount($submission), $this->getCurrency($submission));
+    }
+
+    /** @deprecated Use getProviderAmount(). */
     public function getAmount(Submission $submission): string|int|float
     {
-        // Ensure the amount is converted to Stripe for zero-decimal currencies
-        return self::toOpayoAmount(parent::getAmount($submission), $this->getCurrency($submission));
+        return $this->callCanonicalIntegrationMethod('getAmount', fn() => $this->getProviderAmount($submission));
     }
 
     public function getPaymentAmount(Submission $submission): string|int|float
     {
-        return self::fromOpayoAmount($this->getAmount($submission), (string)$this->getCurrency($submission));
+        // Older overrides supply provider units; canonical overrides and the field default supply major units.
+        return $this->callLegacyIntegrationMethod('getAmount', Opayo::class, [$submission], fn() => $this->resolvePaymentAmount($submission), fn($amount) => self::fromOpayoAmount($amount, (string)$this->getCurrency($submission)), 'getPaymentAmount');
     }
 
     public function getCurrency(Submission $submission): ?string
@@ -261,7 +267,7 @@ class Opayo extends Payment
                 }
 
                 if (!empty($payment->scope['challengeSent'])) {
-                    $this->getTransaction($payment);
+                    $this->refreshPayment($payment);
 
                     if ($payment->status !== PaymentModel::STATUS_SUCCEEDED) {
                         throw new Exception('Challenge outcome requires reconciliation.');
@@ -524,9 +530,9 @@ class Opayo extends Payment
     // Protected Methods
     // =========================================================================
 
-    protected function getOptionalGraphqlPaymentInputFieldKeys(): array
+    protected function getOptionalGqlPaymentInputFieldKeys(): array
     {
-        return ['opayoSessionKey', 'opayo3DSComplete'];
+        return $this->callLegacyIntegrationMethod('getOptionalGraphqlPaymentInputFieldKeys', Payment::class, [], fn() => ['opayoSessionKey', 'opayo3DSComplete'], canonicalMethod: 'getOptionalGqlPaymentInputFieldKeys');
     }
 
     protected function executePayment(Submission $submission): PaymentDecision
@@ -534,7 +540,7 @@ class Opayo extends Payment
 
         $currency = $this->getCurrency($submission);
 
-        return PaymentAttempt::run($this, $submission, self::fromOpayoAmount($this->getAmount($submission), (string)$currency), $currency, [
+        return PaymentAttempt::run($this, $submission, $this->getPaymentAmount($submission), $currency, [
             'vendorName' => $this->vendorName,
             'integrationKey' => $this->integrationKey,
             'integrationPassword' => $this->integrationPassword,

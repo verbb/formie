@@ -106,6 +106,10 @@ final class FormIntegration
 
     public function __construct(IntegrationInterface $integration, bool $enabled, string $execution, array $settings, ?int $formId = null, ?string $formHandle = null)
     {
+        if (!$integration instanceof Integration) {
+            throw new InvalidArgumentException('Form integration bindings require a connection extending ' . Integration::class . '.');
+        }
+
         $this->integration = $integration;
         $this->enabled = $enabled;
         $this->execution = $execution;

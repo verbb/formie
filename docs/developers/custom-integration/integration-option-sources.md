@@ -161,3 +161,9 @@ The base `Integration` class implements:
 - `resolveOptionSourceOptions()`
 
 Override these when a provider needs bespoke collection grouping or lookup logic beyond `collectionKey`, `storage: objects` and `optionSourceTypes`.
+
+## Refresh Parameters
+
+Override `getOptionSourceRefreshParams(string $provider): array` when an option source needs extra parameters on its explicit metadata refresh request. Return parameters only for the named option source, and return an empty array when none are needed. For example, HubSpot requests form metadata only for its forms option source.
+
+The base method returns an empty array by default. Older integrations overriding `getConfigRefreshParams()` remain supported by the base fallback, but new implementations should use the source-specific hook.

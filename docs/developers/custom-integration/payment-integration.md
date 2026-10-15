@@ -15,7 +15,7 @@ The browser and server pieces work together:
 7. The inherited `processPayment()` saves the payment attempt and acquires its lock, then calls your protected `executePayment()` method, which returns a typed `PaymentDecision`.
 8. If the provider uses redirects, challenges or webhooks, the integration handles the follow-up provider response and updates the payment record.
 
-When a saved payment completes through reconciliation or a verified webhook, Formie compares its amount and currency with the current submission before completing the form. `getPaymentAmount($submission)` must return the amount in the major currency units stored on the payment record. Its default implementation calls `getAmount()`; override it if your provider’s `getAmount()` returns minor API units. `getCurrency($submission)` resolves the configured fixed or dynamic currency, falling back to the field’s `currency` setting.
+When a saved payment completes through reconciliation or a verified webhook, Formie compares its amount and currency with the current submission before completing the form. `getPaymentAmount($submission)` must return the amount in the major currency units stored on the payment record. Its default implementation preserves older `getAmount()` overrides. New providers should treat `getPaymentAmount()` as the major-unit contract and convert explicitly at the API boundary. Stripe and Opayo expose `getProviderAmount()` for their API units; their deprecated `getAmount()` methods retain the old unit semantics. `getCurrency($submission)` resolves the configured fixed or dynamic currency, falling back to the field’s `currency` setting.
 
 ## PHP Integration
 
@@ -319,13 +319,21 @@ Method | Use
 `renderFieldHtml()` | Renders the provider’s Payment field template.
 `getBrowserModule()` | Registers browser behaviour for the Payment field.
 `executePayment()` | Provider implementation called by `processPayment()` after it saves the attempt and acquires the lock.
-`getAmount()` | Resolves the configured fixed or dynamic amount from the Payment field.
+`getPaymentAmount()` | Resolves the amount in major currency units. Override it to customise the amount, calling its parent to extend the field-based calculation. Provider API conversions must be explicit.
 `getCurrency()` | Resolves the configured fixed or dynamic currency from the Payment field.
 `getPaymentFieldPayload()` | Reads provider-specific hidden input values from the submitted Payment field.
 `addFieldError()` | Adds an error to the Payment field when processing fails.
 `supportsWebhooks()` | Whether the provider can send webhook updates.
 `verifyWebhook()` | Authenticates exact request evidence and returns normalized provider events without changing payment state.
 `handleWebhook()` | Applies one durable normalized receipt under Formie's processing lock.
-`getTransaction()` | Authenticated provider reconciliation; never trusts browser return fields.
+`refreshPayment()` | Public payment-refresh action; calls the protected `refreshPaymentState()` hook and adapts legacy `getTransaction()` overrides. Never trusts browser return fields.
 `requiresAjaxSubmission()` | Whether forms using this provider must submit with Ajax.
 `getWebhookUrl()` | Returns the stable integration-UID webhook URL Formie exposes for the payment provider.
+
+## Refresh and Builder Hooks
+
+Implement `refreshPaymentState(Payment $payment): void` to fetch authenticated provider state and persist verified payment updates. Here `Payment` is `verbb\formie\models\Payment`, not the integration base. The service calls `refreshPayment()` during reconciliation. The old `getTransaction()` and `getTransactionStatus()` entry points remain callable; provider-specific status adapters retain their existing return handling and error behaviour.
+
+Payment integrations may implement `defineFormBuilderGeneralSchema()`, `defineFormBuilderSettingsSchema()` and `defineFormBuilderAppearanceSchema()` to configure the Payment field. Their defaults return empty arrays, as does `getPaymentSubFields($field)`. These established hooks allow older untyped return signatures.
+
+`getGqlPaymentInputFieldKeys($field)` supplies payment input keys to GraphQL. Override the protected `getOptionalGqlPaymentInputFieldKeys()` hook for additional optional inputs. The older `Graphql` spellings remain compatible. Stripe’s `createPaymentReturnUrl($submission)` prepares a payment attempt and issues a return token; its old `getReturnUrl()` name remains an adapter. Other providers’ URL-only helpers do not imply attempt creation.

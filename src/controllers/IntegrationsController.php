@@ -2,9 +2,12 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\Automation;
 use verbb\formie\base\FormInterface;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\integrations\elements\User as UserIntegration;
 use verbb\formie\models\IntegrationSettingsContext;
 use verbb\formie\services\Permissions;
@@ -166,43 +169,37 @@ class IntegrationsController extends Controller
 
     public function actionFormSettings(): Response
     {
-        $this->requirePostRequest();
-        $this->requireCpRequest();
+        $integration = $this->_getFormSettingsIntegration();
 
-        try {
-            $request = $this->request;
-            $handle = $request->getParam('integration');
-            $settings = $request->getParam('settings');
-            $formId = (int)$request->getParam('formId');
+        return $this->asJson($integration->refreshConfig()->all());
+    }
 
-            if (!$handle) {
-                return $this->asFailure(Craft::t('formie', 'Unknown integration: “{handle}”', ['handle' => $handle]));
-            }
+    public function actionSendTestPayload(): Response
+    {
+        $integration = $this->_getFormSettingsIntegration();
 
-            $this->_requireIntegrationFormPermission($formId);
-
-            $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle);
-            $integration = $integration ? clone $integration : null;
-
-            if (!$integration) {
-                throw new BadRequestHttpException(Craft::t('formie', 'Unknown integration: “{handle}”', ['handle' => $handle]));
-            }
-
-            // Apply any settings provided by the payload. Particularly if we're enabling/disabling objects to fetch for.
-            if (is_array($settings)) {
-                $integration = Formie::$plugin->getIntegrations()->populateIntegrationFromFormSettings($integration, $settings);
-            }
-
-            // Apply any extra settings to the integration, useful when fetching specific data objects
-            $integration->settingsContext = new IntegrationSettingsContext([
-                'dataKey' => $request->getParam('dataKey'),
-            ]);
-
-            // Handball to the integration class to deal with the return.
-            return $this->asJson($integration->refreshConfig()->all());
-        } catch (Throwable $e) {
-            throw $e;
+        if (!$integration instanceof Automation) {
+            throw new BadRequestHttpException('This integration does not support test payloads.');
         }
+
+        $form = Formie::$plugin->getForms()->getFormById((int)$this->request->getParam('formId'));
+
+        if (!$form) {
+            throw new BadRequestHttpException('Save the form before sending a test payload.');
+        }
+
+        $submission = new Submission();
+        $submission->setForm($form);
+        Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
+        $result = $integration->sendTestPayload($submission);
+
+        // Return the semantic outcome, never the raw provider response or cached metadata.
+        return $this->asJson([
+            'success' => $result->isSuccessful(),
+            'status' => $result->status->value,
+            'message' => $result->isSuccessful() ? '' : Craft::t('formie', 'The test payload was not delivered.'),
+            'code' => $result->code,
+        ]);
     }
 
     public function actionGetIntegrationFormSettingsConfig(): Response
@@ -427,6 +424,34 @@ class IntegrationsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _getFormSettingsIntegration(): IntegrationInterface
+    {
+        $this->requirePostRequest();
+        $this->requireCpRequest();
+        $request = $this->request;
+        $handle = (string)$request->getParam('integration');
+        $formId = (int)$request->getParam('formId');
+        $this->_requireIntegrationFormPermission($formId);
+        $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle);
+
+        if (!$integration) {
+            throw new BadRequestHttpException(Craft::t('formie', 'Unknown integration: “{handle}”', ['handle' => $handle]));
+        }
+
+        $integration = clone $integration;
+        $settings = $request->getParam('settings');
+
+        if (is_array($settings)) {
+            $integration = Formie::$plugin->getIntegrations()->createIntegrationRuntime($integration, $settings);
+        }
+
+        $integration->settingsContext = new IntegrationSettingsContext([
+            'dataKey' => $request->getParam('dataKey'),
+        ]);
+
+        return $integration;
+    }
 
     private function _requireIntegrationFormPermission(int $formId): void
     {

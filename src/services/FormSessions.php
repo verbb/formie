@@ -137,7 +137,7 @@ class FormSessions extends Component
         $captchas = [];
 
         foreach (Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form, null, true) as $captcha) {
-            if ($jsVariables = $captcha->getRefreshJsVariables($form)) {
+            if ($jsVariables = $captcha->getRefreshData($form)) {
                 $captchas[$captcha->handle] = $jsVariables;
             }
         }

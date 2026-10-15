@@ -106,11 +106,18 @@ abstract class Captcha extends Integration
         return null;
     }
 
-    public function getRefreshJsVariables(Form $form, FieldLayoutPage $page = null): array
+    public function getRefreshData(Form $form, ?FieldLayoutPage $page = null): array
     {
-        return [];
+        return $this->callLegacyIntegrationMethod('getRefreshJsVariables', Captcha::class, [$form, $page], fn() => $this->defineRefreshData($form, $page), canonicalMethod: 'getRefreshData');
     }
 
+    /** @deprecated Use getRefreshData(). */
+    public function getRefreshJsVariables(Form $form, FieldLayoutPage $page = null): array
+    {
+        return $this->callCanonicalIntegrationMethod('getRefreshJsVariables', fn() => $this->getRefreshData($form, $page));
+    }
+
+    /** @deprecated Legacy caller API; Formie does not use this hook to build GraphQL mutations. */
     public function getGqlVariables(Form $form, FieldLayoutPage $page = null): ?array
     {
         return null;
@@ -158,6 +165,11 @@ abstract class Captcha extends Integration
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineRefreshData(Form $form, ?FieldLayoutPage $page = null): array
+    {
+        return [];
+    }
 
     protected function defineFormSettingsSchema(FormInterface $form): array
     {

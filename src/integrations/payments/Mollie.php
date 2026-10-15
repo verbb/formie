@@ -237,30 +237,11 @@ class Mollie extends Payment
         return $response;
     }
 
-    public function getTransaction(PaymentModel $payment): void
-    {
-        // This is called every 10s from a webhook status check, in case there's an issue receiving the webhook
-        // from the provider (on local installs for instance). Manually check how the payment has gone and update.
-        if (!$payment->reference) {
-            throw new Exception('Missing Mollie payment reference.');
-        }
-
-        if (
-            $payment->status === PaymentModel::STATUS_SUCCEEDED ||
-            $payment->status === PaymentModel::STATUS_FAILED
-        ) {
-            return;
-        }
-
-        $molliePayment = $this->request('GET', "payments/{$payment->reference}");
-
-        $this->_updateFormiePaymentStatus($payment, $molliePayment);
-    }
-
+    /** @deprecated Use refreshPayment(); this adapter preserves the legacy status-check behaviour. */
     public function getTransactionStatus(PaymentModel $payment): void
     {
         try {
-            $this->getTransaction($payment);
+            $this->refreshPayment($payment);
         } catch (Throwable $e) {
             Integration::error($this, Craft::t('formie', 'Unable to refresh Mollie payment: “{message}”.', [
                 'message' => $e->getMessage(),
@@ -365,12 +346,32 @@ class Mollie extends Payment
     // Protected Methods
     // =========================================================================
 
+    protected function refreshPaymentState(PaymentModel $payment): void
+    {
+        // This is called every 10s from a webhook status check, in case there's an issue receiving the webhook
+        // from the provider (on local installs for instance). Manually check how the payment has gone and update.
+        if (!$payment->reference) {
+            throw new Exception('Missing Mollie payment reference.');
+        }
+
+        if (
+            $payment->status === PaymentModel::STATUS_SUCCEEDED ||
+            $payment->status === PaymentModel::STATUS_FAILED
+        ) {
+            return;
+        }
+
+        $molliePayment = $this->request('GET', "payments/{$payment->reference}");
+
+        $this->_updateFormiePaymentStatus($payment, $molliePayment);
+    }
+
     protected function executePayment(Submission $submission): PaymentDecision
     {
 
         $currency = $this->getFieldSetting('currency');
 
-        return PaymentAttempt::run($this, $submission, $this->getAmount($submission), $currency, [
+        return PaymentAttempt::run($this, $submission, $this->getPaymentAmount($submission), $currency, [
             'apiKey' => $this->apiKey,
         ], fn(PaymentModel $payment, PaymentAttempt $attempt) => $this->_processPayment($submission, $payment, $attempt));
     }

@@ -186,7 +186,7 @@ it('requires group assignment permission only for newly configured User integrat
                 return $handle === $this->fixture->handle ? $this->fixture : null;
             }
 
-            public function getFormIntegrationByHandle(string $handle): ?\verbb\formie\base\IntegrationInterface
+            public function getBuilderIntegrationByHandle(string $handle): ?\verbb\formie\base\IntegrationInterface
             {
                 return $this->getIntegrationByHandle($handle);
             }
@@ -280,7 +280,7 @@ it('applies only explicitly declared form settings to an integration', function 
         'contactFieldMapping' => ['email' => 'email'],
     ]);
 
-    $formIntegration = $service->populateIntegrationFromFormSettings($integration, [
+    $formIntegration = $service->createIntegrationRuntime($integration, [
         'enabled' => false,
         'apiDomain' => 'http://169.254.169.254/latest/meta-data/',
         'apiKey' => 'form-secret',
@@ -391,8 +391,8 @@ it('discards global integration settings when a form is persisted', function ():
             'mapToContact' => true,
         ]);
 
-        $binding = $registry->getFormIntegrationsForForm($savedForm)[0];
-        $formIntegration = $registry->getAllEnabledIntegrationsForForm($savedForm)[0];
+        $binding = $registry->getEnabledFormIntegrations($savedForm)[0];
+        $formIntegration = $registry->getEnabledIntegrationRuntimes($savedForm)[0];
 
         expect($binding->execution)->toBe('synchronous')
             ->and($binding->formId)->toBe($savedForm->id)

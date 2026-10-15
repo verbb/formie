@@ -327,7 +327,7 @@ class Forms extends Component
             'updatedById' => $canonicalForm->updatedById,
             'settings' => $canonicalForm->settings,
             'notifications' => $canonicalNotificationsConfig,
-            'integrations' => Formie::$plugin->getIntegrations()->getIntegrationSummariesForForm(),
+            'integrations' => Formie::$plugin->getIntegrations()->getGroupedBuilderIntegrationSummaries(),
             'pages' => $canonicalForm->getFormLayout()->getFormBuilderConfig(),
         ];
         $displayData = $isStencilBuilder
@@ -598,7 +598,7 @@ class Forms extends Component
         $settings = StencilData::getSerializedFormSettings($form->settings);
 
         foreach ($settings['integrations'] ?? [] as $handle => $binding) {
-            $integration = Formie::$plugin->getIntegrations()->getFormIntegrationDefinitionByHandle($handle);
+            $integration = Formie::$plugin->getIntegrations()->resolveIntegrationDefinitionByHandle($handle);
 
             if ($integration === null || $integration instanceof MissingIntegration) {
                 throw new BadRequestHttpException('Configure the integration before copying its enabled settings: ' . $handle);
@@ -796,7 +796,7 @@ class Forms extends Component
                 continue;
             }
 
-            $integration = Formie::$plugin->getIntegrations()->getFormIntegrationDefinitionByHandle($handle);
+            $integration = Formie::$plugin->getIntegrations()->resolveIntegrationDefinitionByHandle($handle);
 
             if ($integration === null || $integration instanceof MissingIntegration) {
                 // Keep unavailable settings portable without accepting new enabled bindings.

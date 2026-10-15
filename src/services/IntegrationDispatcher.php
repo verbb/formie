@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\compatibility\integrations\LegacyIntegrationApiTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\IntegrationStatus;
@@ -39,6 +40,12 @@ class IntegrationDispatcher extends Component
     public const PHASE_AFTER = 'afterFinalizedDeliveryAttempts';
     public const PHASE_SYNCHRONOUS = 'afterSynchronousIntegrations';
     public const CONTEXT_TABLE = '{{%formie_integration_run_contexts}}';
+
+
+    // Traits
+    // =========================================================================
+
+    use LegacyIntegrationApiTrait;
 
 
     // Properties
@@ -164,7 +171,7 @@ class IntegrationDispatcher extends Component
 
         if ($phase !== self::PHASE_BEFORE) {
             $plan = $this->getPlan($form);
-            $context = $this->loadContext($submission, $deliveryKey);
+            $context = $this->loadRunResults($submission, $deliveryKey);
             $handles = $phase === self::PHASE_SYNCHRONOUS ? $plan->getSynchronousHandles($form) : $plan->getOrderedHandles($form);
 
             foreach ($handles as $handle) {
@@ -240,43 +247,59 @@ class IntegrationDispatcher extends Component
         }
     }
 
-    public function loadContext(Submission $submission, ?string $runUid = null): IntegrationRunResults
+    public function loadRunResults(Submission $submission, ?string $runUid = null): IntegrationRunResults
     {
-        $runUid ??= $this->currentRunUid($submission);
+        return $this->callLegacyIntegrationMethod('loadContext', IntegrationDispatcher::class, [$submission, $runUid], function() use ($submission, $runUid) {
+            $runUid ??= $this->currentRunUid($submission);
 
-        if (!$submission->id || $runUid === null) {
-            return new IntegrationRunResults();
-        }
-        $value = Craft::$app->getDb()->useMaster(fn() => (new Query())->select('context')->from(self::CONTEXT_TABLE)
-            ->where(['submissionId' => $submission->id, 'runUid' => $runUid])->scalar());
-        return IntegrationRunResults::fromStorage($value);
+            if (!$submission->id || $runUid === null) {
+                return new IntegrationRunResults();
+            }
+            $value = Craft::$app->getDb()->useMaster(fn() => (new Query())->select('context')->from(self::CONTEXT_TABLE)
+                ->where(['submissionId' => $submission->id, 'runUid' => $runUid])->scalar());
+            return IntegrationRunResults::fromStorage($value);
+        }, canonicalMethod: 'loadRunResults');
     }
 
+    /** @deprecated Use loadRunResults(). */
+    public function loadContext(Submission $submission, ?string $runUid = null): IntegrationRunResults
+    {
+        return $this->callCanonicalIntegrationMethod('loadContext', fn() => $this->loadRunResults($submission, $runUid));
+    }
+
+    public function saveRunResults(Submission $submission, IntegrationRunResults $context, string $runUid): void
+    {
+        $this->callLegacyIntegrationMethod('saveContext', IntegrationDispatcher::class, [$submission, $context, $runUid], function() use ($submission, $context, $runUid) {
+            if (!$submission->id || $runUid === '' || strlen($runUid) > 255) {
+                throw new InvalidArgumentException('A saved submission and integration run identity are required.');
+            }
+            $mutex = Craft::$app->getMutex();
+            $lock = 'formie.run-context.' . hash('sha256', $submission->id . ':' . $runUid);
+
+            if (!$mutex->acquire($lock, 10)) {
+                throw new RuntimeException('Unable to update integration run context.');
+            }
+
+            try {
+                // Independent workers may finish different bindings in the same run.
+                $stored = $this->loadRunResults($submission, $runUid);
+                $stored->results = array_replace($stored->results, $context->results);
+                $now = Db::prepareDateForDb(new DateTime());
+                Craft::$app->getDb()->createCommand()->upsert(self::CONTEXT_TABLE, [
+                    'submissionId' => $submission->id, 'runUid' => $runUid,
+                    'context' => Json::encode($stored->toStorageArray()),
+                    'dateCreated' => $now, 'dateUpdated' => $now,
+                ], ['context' => Json::encode($stored->toStorageArray()), 'dateUpdated' => $now])->execute();
+            } finally {
+                $mutex->release($lock);
+            }
+        }, canonicalMethod: 'saveRunResults');
+    }
+
+    /** @deprecated Use saveRunResults(). */
     public function saveContext(Submission $submission, IntegrationRunResults $context, string $runUid): void
     {
-        if (!$submission->id || $runUid === '' || strlen($runUid) > 255) {
-            throw new InvalidArgumentException('A saved submission and integration run identity are required.');
-        }
-        $mutex = Craft::$app->getMutex();
-        $lock = 'formie.run-context.' . hash('sha256', $submission->id . ':' . $runUid);
-
-        if (!$mutex->acquire($lock, 10)) {
-            throw new RuntimeException('Unable to update integration run context.');
-        }
-
-        try {
-            // Independent workers may finish different bindings in the same run.
-            $stored = $this->loadContext($submission, $runUid);
-            $stored->results = array_replace($stored->results, $context->results);
-            $now = Db::prepareDateForDb(new DateTime());
-            Craft::$app->getDb()->createCommand()->upsert(self::CONTEXT_TABLE, [
-                'submissionId' => $submission->id, 'runUid' => $runUid,
-                'context' => Json::encode($stored->toStorageArray()),
-                'dateCreated' => $now, 'dateUpdated' => $now,
-            ], ['context' => Json::encode($stored->toStorageArray()), 'dateUpdated' => $now])->execute();
-        } finally {
-            $mutex->release($lock);
-        }
+        $this->callCanonicalIntegrationMethod('saveContext', fn() => $this->saveRunResults($submission, $context, $runUid));
     }
 
     public function currentRunUid(Submission $submission): ?string

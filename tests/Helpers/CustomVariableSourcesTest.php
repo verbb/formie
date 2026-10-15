@@ -71,8 +71,8 @@ it('enforces source usage before resolution in real mapping and redirect consume
     $submission = formie()->submission($form)->save();
     $integration = new \verbb\formie\integrations\automations\WebRequest();
     $destination = new \verbb\formie\models\IntegrationField();
-    expect($integration->getMappedFieldValue(['kind' => 'reference', 'value' => '{custom:acme/mapping}'], $submission, $destination))->toBe('<mapped>')
-        ->and($integration->getMappedFieldValue(['kind' => 'text', 'value' => 'Value: {custom:acme/mapping}'], $submission, $destination))->toBe('Value: <mapped>');
+    expect($integration->resolveMappedFieldValue(['kind' => 'reference', 'value' => '{custom:acme/mapping}'], $submission, $destination))->toBe('<mapped>')
+        ->and($integration->resolveMappedFieldValue(['kind' => 'text', 'value' => 'Value: {custom:acme/mapping}'], $submission, $destination))->toBe('Value: <mapped>');
     expect(fn() => References::resolveUrl('{custom:acme/mapping}', $submission))->toThrow(\verbb\formie\references\ReferenceException::class);
     expect(fn() => References::parseContent('{custom:acme/mapping}', $submission, ['outputContext' => \verbb\formie\references\ReferenceOutputContext::EmailHeader]))->toThrow(\verbb\formie\references\ReferenceException::class);
     expect($calls)->toBe(2);

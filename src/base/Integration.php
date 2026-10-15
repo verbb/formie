@@ -4,6 +4,8 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\attributes\Sensitive;
 use verbb\formie\compatibility\integrations\IntegrationResultCompatibility;
+use verbb\formie\compatibility\integrations\LegacyIntegrationApiTrait;
+use verbb\formie\compatibility\integrations\LegacyIntegrationConfigTrait;
 use verbb\formie\compatibility\integrations\LegacyIntegrationDeliveryTrait;
 use verbb\formie\compatibility\integrations\LegacyIntegrationPolicyTrait;
 use verbb\formie\elements\Form;
@@ -71,7 +73,7 @@ use yii\helpers\IpHelper;
 
 use Error;
 use Exception;
-use ReflectionMethod;
+use ReflectionClass;
 use Throwable;
 
 use GuzzleHttp\Client;
@@ -91,13 +93,18 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Static Methods
     // =========================================================================
 
+    /** @deprecated Preserves the historical short name. Use ::class for identity or getShortClassName() for display. */
     public static function className(): string
     {
-        $classNameParts = explode('\\', static::class);
-
-        return array_pop($classNameParts);
+        return static::getShortClassName();
     }
 
+    public static function getShortClassName(): string
+    {
+        return (new ReflectionClass(static::class))->getShortName();
+    }
+
+    /** @deprecated Use getClassHandle() for the integration implementation handle. */
     public static function kebabClassName(): string
     {
         return StringHelper::toKebabCase(static::className());
@@ -363,8 +370,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // =========================================================================
 
     use OAuthProviderTrait {
-        request as OAuthRequest;
+        request as protected sendOAuthRequest;
     }
+    use LegacyIntegrationApiTrait;
+    use LegacyIntegrationConfigTrait;
     use LegacyIntegrationDeliveryTrait;
     use LegacyIntegrationPolicyTrait;
 
@@ -393,6 +402,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     private ?FormIntegration $_formIntegration = null;
     private ?IntegrationRunContext $_runContext = null;
+    private ?Submission $_contextSubmission = null;
+    private ?array $_mappingSlot = null;
     // Keep track of whether run in the context of a queue job
     private ?JobInterface $_queueJob = null;
     private ?IntegrationExecutionContext $_deliveryContext = null;
@@ -511,6 +522,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->_configRefreshCancelled = false;
         $this->_deliveryState = new IntegrationDeliveryState();
         $this->_runContext = null;
+        $this->_legacyApiCalls = [];
         $this->context = [];
         $this->settingsContext = clone $this->settingsContext;
     }
@@ -547,6 +559,28 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $handled;
     }
 
+    // These established hooks intentionally allow untyped third-party overrides.
+    public function getDescription()
+    {
+        return '';
+    }
+
+    public function fetchConnection()
+    {
+        return static::supportsOAuthConnection() && $this->getToken() !== null;
+    }
+
+    public function getOptionSourceRefreshParams(string $provider)
+    {
+        return $this->getConfigRefreshParams();
+    }
+
+    /** @deprecated Override getOptionSourceRefreshParams() for each option source. */
+    public function getConfigRefreshParams()
+    {
+        return [];
+    }
+
     public function getName(): string
     {
         return $this->name ?? '';
@@ -562,12 +596,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return self::TYPE_CUSTOM;
     }
 
+    // No return type: stable third-party subclasses may declare this method without one.
     public function getClassHandle()
     {
-        $classNameParts = explode('\\', static::class);
-        $end = array_pop($classNameParts);
-
-        return StringHelper::toKebabCase($end);
+        return StringHelper::toKebabCase(static::getShortClassName());
     }
 
     public function getTypeHandle(): string
@@ -695,17 +727,25 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $event->tag;
     }
 
+    public function createFieldMappingField(array $config = []): array
+    {
+        return $this->callLegacyIntegrationMethod('getIntegrationFieldMappingField', Integration::class, [$config], function() use ($config) {
+            $dataLabel = isset($config['dataLabel']) ? trim((string)$config['dataLabel']) : '';
+            $dataKey = isset($config['dataKey']) ? trim((string)$config['dataKey']) : '';
+
+            return SchemaHelper::integrationFieldMappingField(array_merge([
+                'label' => Craft::t('formie', '{name} Field Mapping', ['name' => $dataLabel]),
+                'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {name} {label} fields.', ['name' => $this->displayName(), 'label' => $dataLabel]),
+                'integrationLabel' => Craft::t('formie', '{name} Field', ['name' => $dataLabel]),
+                'integrationFields' => $this->defineFieldMappingSchema($dataKey),
+            ], $config));
+        }, canonicalMethod: 'createFieldMappingField');
+    }
+
+    /** @deprecated Use createFieldMappingField(). */
     public function getIntegrationFieldMappingField(array $config = []): array
     {
-        $dataLabel = isset($config['dataLabel']) ? trim((string)$config['dataLabel']) : '';
-        $dataKey = isset($config['dataKey']) ? trim((string)$config['dataKey']) : '';
-
-        return SchemaHelper::integrationFieldMappingField(array_merge([
-            'label' => Craft::t('formie', '{name} Field Mapping', ['name' => $dataLabel]),
-            'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {name} {label} fields.', ['name' => $this->displayName(), 'label' => $dataLabel]),
-            'integrationLabel' => Craft::t('formie', '{name} Field', ['name' => $dataLabel]),
-            'integrationFields' => $this->defineFieldMappingSchema($dataKey),
-        ], $config));
+        return $this->callCanonicalIntegrationMethod('getIntegrationFieldMappingField', fn() => $this->createFieldMappingField($config));
     }
 
     public function getFormSettingsSchema(FormInterface $form): array
@@ -800,7 +840,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         // Update the cache
         $this->_setCache(['connection' => $event->success]);
 
-        return $event->success;
+        return $event->success === self::CONNECT_SUCCESS;
     }
 
     public function getIsConnected(): bool
@@ -823,66 +863,23 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function getConfig(bool $useCache = true): IntegrationConfig
     {
-        if ($useCache) {
-            return $this->_getCachedConfig();
+        if (!$useCache) {
+            $this->_configRefreshCancelled = false;
         }
 
-        $this->_configRefreshCancelled = false;
-        $previous = $this->_getCachedConfig();
-        $event = new IntegrationConfigEvent([
-            'integration' => $this,
-        ]);
-        $this->trigger(self::EVENT_BEFORE_FETCH_CONFIG, $event);
+        return $this->callLegacyIntegrationMethod('getFormSettings', Integration::class, [$useCache], fn() => $this->resolveConfig($useCache), function($settings) {
+            if ($settings === false) {
+                $this->_configRefreshCancelled = true;
+                return $this->_getCachedConfig();
+            }
+            $cached = $this->_getCachedConfig();
 
-        if (!$event->isValid) {
-            $this->_configRefreshCancelled = true;
-            Integration::info($this, 'Refreshing integration config cancelled by event hook.');
-
-            return $previous;
-        }
-
-        // Stable Formie 3 events remain an adapter around the canonical event.
-        $legacyEvent = new IntegrationFormSettingsEvent([
-            'integration' => $this,
-        ]);
-        $this->trigger(self::EVENT_BEFORE_FETCH_FORM_SETTINGS, $legacyEvent);
-
-        if (!$legacyEvent->isValid) {
-            $this->_configRefreshCancelled = true;
-            Integration::info($this, 'Refreshing integration config cancelled by legacy event hook.');
-
-            return $previous;
-        }
-
-        if (static::supportsConnection() && !static::getIsConnected()) {
-            Integration::error($this, 'Connect to the integration provider first.', true);
-        }
-
-        $config = $this->_fetchConfigWithCompatibility();
-
-        $event = new IntegrationConfigEvent([
-            'integration' => $this,
-            'config' => $config,
-        ]);
-        $this->trigger(self::EVENT_AFTER_FETCH_CONFIG, $event);
-        $config = $event->config ?? $config;
-
-        $legacyEvent = new IntegrationFormSettingsEvent([
-            'integration' => $this,
-            'config' => $config,
-            'settings' => IntegrationFormSettings::fromConfig($config),
-        ]);
-        $this->trigger(self::EVENT_AFTER_FETCH_FORM_SETTINGS, $legacyEvent);
-        $config = $legacyEvent->settings?->toConfig() ?? $legacyEvent->config ?? $config;
-
-        $config = new IntegrationConfig(
-            IntegrationSecrets::redactValues(IntegrationConfig::encode(array_merge($previous->all(), $config->all())), $this->getDiagnosticSecrets()),
-            $this->getIntegrationConfigKey(),
-            time(),
-        );
-        $this->_setCache(['config' => $config->toStorage()]);
-
-        return $config;
+            return new IntegrationConfig(
+                IntegrationSecrets::redactValues(IntegrationConfig::encode($settings->getSettings()), $this->getDiagnosticSecrets()),
+                $cached->invalidationKey,
+                $cached->fetchedAt,
+            );
+        }, 'getConfig');
     }
 
     public function refreshConfig(): IntegrationConfig
@@ -893,7 +890,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     /** @deprecated in 4.0.0. Use getConfig(). */
     public function getFormSettings(bool $useCache = true): bool|IntegrationFormSettings
     {
-        $config = $this->getConfig($useCache);
+        $config = $this->callCanonicalIntegrationMethod('getFormSettings', fn() => $this->getConfig($useCache));
 
         if (!$useCache && $this->_configRefreshCancelled) {
             return false;
@@ -916,13 +913,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function getConfigValue(string $key): mixed
     {
-        return $this->getConfig()->get($key);
+        return $this->callLegacyIntegrationMethod('getFormSettingValue', Integration::class, [$key], fn() => $this->getConfig()->get($key), canonicalMethod: 'getConfigValue');
     }
 
     /** @deprecated in 4.0.0. Use getConfigValue(). */
-    public function getFormSettingValue(string $key): mixed
+    public function getFormSettingValue(string $key)
     {
-        return $this->getConfigValue($key);
+        return $this->callCanonicalIntegrationMethod('getFormSettingValue', fn() => $this->getConfigValue($key));
     }
 
     public function validateFieldMapping(string $attribute, array $fields = []): void
@@ -964,6 +961,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return UrlHelper::actionUrl(self::OAUTH_CALLBACK_ACTION);
     }
 
+    /** @internal Sets the attempt prepared by the runner. */
     public function setDeliveryContext(IntegrationExecutionContext $context, string $attemptUid): void
     {
         $this->_deliveryContext = $context;
@@ -972,6 +970,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->_deliveryState = new IntegrationDeliveryState();
     }
 
+    /** Prepares provider execution; application callers enter through the trigger services. */
     public function beginRun(IntegrationRunContext $context): void
     {
         if ($this->_runContext === $context) {
@@ -1037,7 +1036,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function executeDeliveryWrite(string $method, string $uri, array $options, callable $send, bool $isSideEffect = false): mixed
     {
-        if (!$this->_deliveryContext || (!$isSideEffect && in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true))) {
+        // Explicit builder samples have no persisted submission or retry identity. Send once without creating invalid delivery records.
+        if (!$this->_deliveryContext || ($this->_deliveryContext->reason === 'test' && $this->_deliveryContext->submissionId === 0) || (!$isSideEffect && in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true))) {
             return $send();
         }
 
@@ -1071,6 +1071,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return Json::isJsonObject($text) ? Json::decode($text) : $text;
     }
 
+    /** @deprecated Historical OAuth transport alias. Use request() for guarded integration delivery. */
+    public function OAuthRequest(string $method = 'GET', string $uri = '', array $options = [])
+    {
+        return $this->callCanonicalIntegrationMethod('OAuthRequest', fn() => $this->requestWithOAuthProvider($method, $uri, $options));
+    }
+
     public function request(string $method, string $uri, array $options = []): mixed
     {
         IntegrationSecrets::assertAvailable($this->getSettings());
@@ -1100,7 +1106,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 if (!$this instanceof Payment) {
                     $this->_secureOAuthClient($base);
                 }
-                $result = $this->executeDeliveryWrite($method, $uri, $options, fn() => $this->OAuthRequest($method, $uri, $options));
+                $result = $this->executeDeliveryWrite($method, $uri, $options, fn() => $this->requestWithOAuthProvider($method, $uri, $options));
 
                 if ($writes) {
                     $this->_deliveryState->writeAccepted = true;
@@ -1242,37 +1248,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
             $integrationField ??= new IntegrationField();
 
-            $slot = ReferenceSlot::fromStored($rawFieldKey);
-            $context = ReferenceContext::forSubmission($submission, usage: ReferenceUsage::Integration);
-            $field = null;
-            $rawValue = null;
-            $resolved = null;
-
-            if ($slot->kind === ReferenceSlotKind::Exact) {
-                $resolved = References::resolveValue((string)$slot->value, $context);
-                $field = $resolved->field;
-                $rawValue = $resolved->requireValue();
-            } else {
-                $rawValue = $slot->resolve($context);
-            }
-            $value = $this->_projectIntegrationMappingValue($resolved, $rawValue, $submission, $integrationField, $fieldKey);
-
-            $eventConfig = [
-                'value' => $value,
-                'rawValue' => $rawValue,
-                'submission' => $submission,
-                'integrationField' => $integrationField,
-                'integration' => $this,
-            ];
-
-            if ($field !== null) {
-                $eventConfig['field'] = $field;
-            }
-
-            $event = new ModifyFieldIntegrationValueEvent($eventConfig);
-            $this->modifyFieldMappingValue($event);
-            $this->trigger(static::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
-            $fieldValues[$tag] = $event->value;
+            $fieldValues[$tag] = $this->resolveMappedFieldValue($rawFieldKey, $submission, $integrationField);
         }
 
         $event = new ModifyFieldIntegrationValuesEvent([
@@ -1310,19 +1286,33 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return ConditionsHelper::evaluate($conditionSettings, $submission, 'integration')->permits(($conditionSettings['triggerRule'] ?? 'trigger') === 'trigger');
     }
 
-    public function populateContext(?Submission $submission = null): void
+    /** Builds submission/template variables; execution identity and earlier results are supplied by IntegrationRunContext. */
+    public function populateContext(): void
     {
-        $this->context = Formie::$plugin->getSubmissionMetadata()->buildIntegrationContext($submission);
+        $this->context = Formie::$plugin->getSubmissionMetadata()->buildIntegrationContext($this->_contextSubmission);
     }
 
+    public function populateSubmissionContext(Submission $submission): void
+    {
+        $previous = $this->_contextSubmission;
+        $this->_contextSubmission = $submission;
+
+        try {
+            $this->populateContext();
+        } finally {
+            $this->_contextSubmission = $previous;
+        }
+    }
+
+    public function recordDeliveryRequest(Submission $submission, string $endpoint, mixed $payload, string $method, string $contentType): void
+    {
+        $this->callLegacyIntegrationMethod('populateQueueJobContext', Integration::class, func_get_args(), fn() => $this->recordDeliveryRequestEvidence($submission, $endpoint, $payload, $method, $contentType), canonicalMethod: 'recordDeliveryRequest');
+    }
+
+    /** @deprecated Use recordDeliveryRequest(). */
     public function populateQueueJobContext($submission, $endpoint, $payload, $method, $contentType): void
     {
-        if ($this->_deliveryAttemptUid) {
-            Formie::$plugin->getDeliveryAttempts()->checkpoint($this->_deliveryAttemptUid, 'request-prepared', [
-                'method' => $method, 'endpoint' => $endpoint, 'contentType' => $contentType,
-                'mapping' => $payload,
-            ], $this->getDiagnosticSecrets());
-        }
+        $this->callCanonicalIntegrationMethod('populateQueueJobContext', fn() => $this->recordDeliveryRequest($submission, $endpoint, $payload, $method, $contentType));
     }
 
     public function getDiagnosticSecrets(): array
@@ -1355,7 +1345,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function beforeSendPayload(Submission $submission, string &$endpoint, mixed &$payload, string &$method, string $contentType = 'json'): bool
     {
         // Record request evidence against the durable delivery attempt, when present.
-        $this->populateQueueJobContext($submission, $endpoint, $payload, $method, $contentType);
+        $this->recordDeliveryRequest($submission, $endpoint, $payload, $method, $contentType);
 
         $event = new SendIntegrationPayloadEvent([
             'submission' => $submission,
@@ -1407,7 +1397,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $event->isValid;
     }
 
-    public function enforceOptInField(Submission $submission, ?array $variables = null): bool
+    public function enforceOptInField(Submission $submission): bool
     {
         if (in_array('optIn', $this->_deliveryContext?->overrides ?? [], true)) {
             return true;
@@ -1420,7 +1410,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         // Get the value of the mapped field (resolved via getFieldValue when field is found, else variables)
         $optInField = $this->normalizeFieldMappingValue($this->optInField);
-        $resolved = Variables::getFieldAndValueForReference($optInField, $submission, $variables);
+        $resolved = Variables::getFieldAndValueForReference($optInField, $submission);
         $field = $resolved['field'];
         $rawValue = $resolved['value'];
 
@@ -1455,34 +1445,25 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return true;
     }
 
-    public function getMappedFieldValue(mixed $fieldKey, Submission $submission, IntegrationField $integrationField): mixed
+    public function getMappedFieldValue(string $mappedFieldValue, Submission $submission, IntegrationField $integrationField): mixed
     {
-        $slot = ReferenceSlot::fromStored($fieldKey);
-        $context = ReferenceContext::forSubmission($submission, usage: ReferenceUsage::Integration);
-        $field = null;
-        $resolved = null;
+        $slot = $this->_mappingSlot;
+        $value = $slot !== null && $slot[0] === $mappedFieldValue ? $slot[1] : $mappedFieldValue;
 
-        if ($slot->kind === ReferenceSlotKind::Exact) {
-            $resolved = References::resolveValue((string)$slot->value, $context);
-            $rawValue = $resolved->requireValue();
-            $field = $resolved->field;
-        } else {
-            $rawValue = $slot->resolve($context);
+        return $this->callCanonicalIntegrationMethod('getMappedFieldValue', fn() => $this->resolveMappedFieldValue($value, $submission, $integrationField));
+    }
+
+    public function resolveMappedFieldValue(mixed $fieldKey, Submission $submission, IntegrationField $integrationField): mixed
+    {
+        $previous = $this->_mappingSlot;
+        $mappedFieldValue = $this->normalizeFieldMappingValue($fieldKey);
+        $this->_mappingSlot = [$mappedFieldValue, $fieldKey];
+
+        try {
+            return $this->callLegacyIntegrationMethod('getMappedFieldValue', Integration::class, [$mappedFieldValue, $submission, $integrationField], fn() => $this->resolveMappingSlot($fieldKey, $submission, $integrationField), canonicalMethod: 'resolveMappedFieldValue');
+        } finally {
+            $this->_mappingSlot = $previous;
         }
-        $fieldValue = $this->_projectIntegrationMappingValue($resolved, $rawValue, $submission, $integrationField, $this->normalizeFieldMappingValue($fieldKey));
-
-        $event = new ModifyFieldIntegrationValueEvent([
-            'value' => $fieldValue,
-            'rawValue' => $rawValue,
-            'field' => $field,
-            'submission' => $submission,
-            'integrationField' => $integrationField,
-            'integration' => $this,
-        ]);
-        $this->modifyFieldMappingValue($event);
-        $this->trigger(static::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
-
-        return $event->value;
     }
 
     public function allowedGqlSettings(): array
@@ -1560,6 +1541,124 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Protected Methods
     // =========================================================================
 
+    protected function resolveConfig(bool $useCache): IntegrationConfig
+    {
+        if ($useCache && $this->shouldCacheConfig()) {
+            return $this->_getCachedConfig();
+        }
+
+        $this->_configRefreshCancelled = false;
+        $previous = $this->_getCachedConfig();
+        $event = new IntegrationConfigEvent([
+            'integration' => $this,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_FETCH_CONFIG, $event);
+
+        if (!$event->isValid) {
+            $this->_configRefreshCancelled = true;
+            Integration::info($this, 'Refreshing integration config cancelled by event hook.');
+
+            return $previous;
+        }
+
+        // Stable Formie 3 events remain an adapter around the canonical event.
+        $legacyEvent = new IntegrationFormSettingsEvent([
+            'integration' => $this,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_FETCH_FORM_SETTINGS, $legacyEvent);
+
+        if (!$legacyEvent->isValid) {
+            $this->_configRefreshCancelled = true;
+            Integration::info($this, 'Refreshing integration config cancelled by legacy event hook.');
+
+            return $previous;
+        }
+
+        if (static::supportsConnection() && !static::getIsConnected()) {
+            Integration::error($this, 'Connect to the integration provider first.', true);
+        }
+
+        $config = $this->fetchConfigWithCompatibility();
+
+        $event = new IntegrationConfigEvent([
+            'integration' => $this,
+            'config' => $config,
+        ]);
+        $this->trigger(self::EVENT_AFTER_FETCH_CONFIG, $event);
+        $config = $event->config ?? $config;
+
+        $legacyEvent = new IntegrationFormSettingsEvent([
+            'integration' => $this,
+            'config' => $config,
+            'settings' => IntegrationFormSettings::fromConfig($config),
+        ]);
+        $this->trigger(self::EVENT_AFTER_FETCH_FORM_SETTINGS, $legacyEvent);
+        $config = $legacyEvent->settings?->toConfig() ?? $legacyEvent->config ?? $config;
+
+        $config = new IntegrationConfig(
+            IntegrationSecrets::redactValues(IntegrationConfig::encode($this->shouldCacheConfig() ? array_merge($previous->all(), $config->all()) : $config->all()), $this->getDiagnosticSecrets()),
+            $this->getIntegrationConfigKey(),
+            time(),
+        );
+
+        if ($this->shouldCacheConfig()) {
+            $this->_setCache(['config' => $config->toStorage()]);
+        } else {
+            $this->cache['config'] = $config->toStorage();
+        }
+
+        return $config;
+    }
+
+    protected function resolveMappingSlot(mixed $fieldKey, Submission $submission, IntegrationField $integrationField): mixed
+    {
+        $slot = ReferenceSlot::fromStored($fieldKey);
+        $context = ReferenceContext::forSubmission($submission, usage: ReferenceUsage::Integration);
+        $field = null;
+        $resolved = null;
+
+        if ($slot->kind === ReferenceSlotKind::Exact) {
+            $resolved = References::resolveValue((string)$slot->value, $context);
+            $rawValue = $resolved->requireValue();
+            $field = $resolved->field;
+        } else {
+            $rawValue = $slot->resolve($context);
+        }
+        $fieldValue = $this->_projectIntegrationMappingValue($resolved, $rawValue, $submission, $integrationField, $this->normalizeFieldMappingValue($fieldKey));
+
+        $event = new ModifyFieldIntegrationValueEvent([
+            'value' => $fieldValue,
+            'rawValue' => $rawValue,
+            'field' => $field,
+            'submission' => $submission,
+            'integrationField' => $integrationField,
+            'integration' => $this,
+        ]);
+        $this->modifyFieldMappingValue($event);
+        $this->trigger(static::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
+
+        return $event->value;
+    }
+
+    protected function shouldCacheConfig(): bool
+    {
+        return true;
+    }
+
+    protected function requestWithOAuthProvider(string $method, string $uri, array $options = []): mixed
+    {
+        return $this->callLegacyIntegrationMethod('OAuthRequest', Integration::class, [$method, $uri, $options], fn() => $this->sendOAuthRequest($method, $uri, $options), canonicalMethod: 'requestWithOAuthProvider');
+    }
+
+    protected function recordDeliveryRequestEvidence(Submission $submission, string $endpoint, mixed $payload, string $method, string $contentType): void
+    {
+        if ($this->_deliveryAttemptUid) {
+            Formie::$plugin->getDeliveryAttempts()->checkpoint($this->_deliveryAttemptUid, 'request-prepared', [
+                'method' => $method, 'endpoint' => $endpoint, 'contentType' => $contentType,
+                'mapping' => $payload,
+            ], $this->getDiagnosticSecrets());
+        }
+    }
 
     protected function modifyFieldMappingValue(ModifyFieldIntegrationValueEvent $event): void
     {
@@ -2047,29 +2146,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $settings = $this->prepareCachedFormSettings($config->all());
 
         return $settings === $config->all() ? $config : new IntegrationConfig($settings, $config->invalidationKey, $config->fetchedAt);
-    }
-
-    private function _fetchConfigWithCompatibility(): IntegrationConfig
-    {
-        if (method_exists($this, 'fetchFormSettings')) {
-            $legacyMethod = new ReflectionMethod($this, 'fetchFormSettings');
-            $configMethod = new ReflectionMethod($this, 'fetchConfig');
-            $legacyClass = $legacyMethod->getDeclaringClass()->getName();
-            $configClass = $configMethod->getDeclaringClass()->getName();
-
-            // A Formie 3 subclass of a concrete provider may override the old
-            // method while inheriting that provider's new fetchConfig(). The
-            // most-derived extension method remains authoritative.
-            if ($legacyClass !== $configClass && is_subclass_of($legacyClass, $configClass)) {
-                $settings = $this->fetchFormSettings();
-
-                if ($settings instanceof IntegrationFormSettings) {
-                    return $settings->toConfig();
-                }
-            }
-        }
-
-        return $this->fetchConfig();
     }
 
     private function _readDeliveryResponse(ResponseInterface $response): string
