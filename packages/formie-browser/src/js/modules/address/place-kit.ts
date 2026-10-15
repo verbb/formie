@@ -58,13 +58,6 @@ export const placeKitModule = defineAddressModule<
         const picker = api(provider.apiKey, options as { target: HTMLInputElement });
 
         picker.on('pick', (value, item: PlaceKitItem) => {
-            field.dispatchEvent(
-                new CustomEvent(getAddressProviderEventName('place-kit', 'populate'), {
-                    bubbles: true,
-                    detail: { addressProvider: 'place-kit', addressComponents: item },
-                }),
-            );
-
             let address1 = '';
 
             if (item.street) {
@@ -87,6 +80,19 @@ export const placeKitModule = defineAddressModule<
             services.input.setValue('state', item.administrative || '');
             services.input.setValue('zip', typeof zip === 'string' ? zip : '');
             services.input.setValue('country', countryValue || item.country || '');
+
+            // Notify dependent state controls after all address values are applied.
+            // Keep the provider value available while country options are loading.
+            field.dispatchEvent(
+                new CustomEvent(getAddressProviderEventName('place-kit', 'populate'), {
+                    bubbles: true,
+                    detail: {
+                        addressProvider: 'place-kit',
+                        addressComponents: item,
+                        state: item.administrative || '',
+                    },
+                }),
+            );
         });
 
         return picker;

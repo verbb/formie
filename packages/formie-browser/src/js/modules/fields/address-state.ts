@@ -58,6 +58,9 @@ type ComboboxSelect = HTMLSelectElement & {
 
 type FieldState = {
     addressRoot: HTMLElement;
+    isCpEdit: boolean;
+    initialCountry: string;
+    initialValue: string;
     stateField: HTMLElement;
     stateControl: AddressStateControl;
     countryControl: HTMLInputElement | HTMLSelectElement | null;
@@ -105,7 +108,8 @@ function getStateControl(field: HTMLElement): AddressStateControl | null {
 }
 
 function getFieldLabel(field: HTMLElement): HTMLElement | null {
-    return field.querySelector('[data-formie-field-label]');
+    return field.querySelector('[data-formie-field-label]')
+        || (field.querySelector('[data-formie-address-state-cp]') ? field.querySelector(':scope > .heading > label') : null);
 }
 
 function dispatchControlEvents(control: AddressStateControl): void {
@@ -183,6 +187,7 @@ function ensureAutofillAnchor(fieldState: FieldState): HTMLInputElement {
         anchor.setAttribute('tabindex', '-1');
         anchor.setAttribute('aria-hidden', 'true');
         anchor.className = 'formie-sr-only';
+        anchor.hidden = fieldState.isCpEdit;
         fieldState.addressRoot.appendChild(anchor);
         fieldState.autofillAnchor = anchor;
     }
@@ -321,6 +326,7 @@ function copyControlAttributes(source: AddressStateControl, target: AddressState
         'data-formie-input-type',
         'data-formie-input-error-state',
         'data-formie-address-state-dynamic',
+        'data-formie-address-state-cp',
         'data-formie-address-state-hide-when-unused',
         'data-formie-address-state-use-searchable',
         'data-formie-address-state-use-datalist',
@@ -341,7 +347,7 @@ function copyControlAttributes(source: AddressStateControl, target: AddressState
 }
 
 function applyTextThemeClasses(template: AddressStateControl, input: HTMLInputElement): void {
-    input.className = template.className;
+    input.className = template.hasAttribute('data-formie-address-state-cp') ? 'text fullwidth' : template.className;
 }
 
 function applySelectThemeClasses(template: AddressStateControl, select: HTMLSelectElement): void {
@@ -462,11 +468,16 @@ function setFieldVisibility(fieldState: FieldState, visible: boolean): void {
     const { stateField, stateControl, required } = fieldState;
 
     toggleThemeClasses(stateField, stateField, 'conditionalHidden', !visible);
+    // Use module-owned visibility: the generic hidden attribute unmounts modules,
+    // which would remove the country listener needed to show this field again.
     stateField.toggleAttribute('data-formie-address-state-hidden', !visible);
+
 
     if (!visible) {
         stateControl.required = false;
-        stateControl.disabled = true;
+        // Keep the empty value in Craft's serialized form data so hiding the
+        // field during initialization does not count as an unsaved edit.
+        stateControl.disabled = !fieldState.isCpEdit;
         return;
     }
 
@@ -480,7 +491,7 @@ function ensureFetchingAnnouncement(fieldState: FieldState): HTMLElement {
     }
 
     const announcement = document.createElement('div');
-    announcement.className = 'formie-sr-only';
+    announcement.className = fieldState.isCpEdit ? 'visually-hidden' : 'formie-sr-only';
     announcement.setAttribute('data-formie-address-state-fetching-announce', 'true');
     announcement.setAttribute('aria-live', 'polite');
     announcement.setAttribute('aria-atomic', 'true');
@@ -547,7 +558,7 @@ function updateFieldLabel(stateField: HTMLElement, label: string): void {
         return;
     }
 
-    const required = labelEl.querySelector('[data-formie-field-required]');
+    const required = labelEl.querySelector('[data-formie-field-required], .required');
     labelEl.textContent = label;
 
     if (required) {
@@ -596,6 +607,10 @@ async function applyCountryState(
     const country = fieldState.countryControl?.value?.trim() || '';
     stashPendingStateValue(fieldState);
     const currentValue = getEffectiveStateValue(fieldState);
+    // Opening an existing submission must not discard a historical state value
+    // merely because current country metadata no longer includes it.
+    const preserveStoredValue = fieldState.isCpEdit && !!currentValue
+        && country === fieldState.initialCountry && currentValue === fieldState.initialValue;
     const fetchGeneration = ++fieldState.fetchGeneration;
 
     fieldState.comboboxCleanup?.();
@@ -609,7 +624,7 @@ async function applyCountryState(
 
         hideFetchingUI(fieldState);
 
-        if (hideWhenUnused) {
+        if (hideWhenUnused && !preserveStoredValue) {
             setFieldVisibility(fieldState, false);
             setControlValue(fieldState.stateControl, '');
             syncAutofillAnchor(fieldState, '');
@@ -624,7 +639,7 @@ async function applyCountryState(
             const textControl = createTextControl(fieldState.stateControl, currentValue);
             fieldState.stateControl = replaceControl(fieldState.stateControl, textControl);
         } else {
-            fieldState.stateControl.disabled = true;
+            fieldState.stateControl.disabled = !fieldState.isCpEdit && !preserveStoredValue;
             fieldState.stateControl.placeholder = placeholder || fieldState.stateControl.placeholder;
         }
 
@@ -645,14 +660,17 @@ async function applyCountryState(
         return;
     }
 
-    const subdivisions = response?.subdivisions || [];
+    const subdivisions = [...(response?.subdivisions || [])];
+    if (preserveStoredValue && subdivisions.length && !resolveOptionMatch(currentValue, subdivisions)) {
+        subdivisions.push({ label: currentValue, value: currentValue });
+    }
     const administrativeAreaUsed = response?.administrativeAreaUsed ?? true;
     const administrativeAreaLabel = response?.administrativeAreaLabel || 'State / Province';
     fieldState.lastSubdivisions = subdivisions;
 
     hideFetchingUI(fieldState);
 
-    if (hideWhenUnused && !administrativeAreaUsed) {
+    if (hideWhenUnused && !administrativeAreaUsed && !preserveStoredValue) {
         setFieldVisibility(fieldState, false);
         setControlValue(fieldState.stateControl, '');
         syncAutofillAnchor(fieldState, '');
@@ -756,6 +774,9 @@ function initAddressStateField(field: HTMLElement, options: AddressStateOptions)
 
     const fieldState: FieldState = {
         addressRoot,
+        isCpEdit: stateControl.hasAttribute('data-formie-address-state-cp'),
+        initialCountry: getCountryControl(addressRoot)?.value?.trim() || '',
+        initialValue: stateControl.value?.trim() || '',
         stateField: field,
         stateControl,
         countryControl: getCountryControl(addressRoot),

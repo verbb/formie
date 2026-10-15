@@ -3,6 +3,7 @@ namespace verbb\formie\fields\subfields;
 
 use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\SingleLineText;
+use verbb\formie\fields\subfields\traits\AddressTextSubmissionTrait;
 use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
@@ -24,6 +25,16 @@ class Address2 extends SingleLineText implements ChildFieldInterface
 
     protected const DEFAULT_INPUT_TEMPLATE_PATH = 'fields/single-line-text';
     protected const DEFAULT_REFERENCE_BLOCK_TEMPLATE_PATH = 'fields/single-line-text';
+    protected const SUBMISSION_INPUT_ATTRIBUTES = [
+        'data-formie-address-line2-input' => true,
+        'autocomplete' => 'address-line2',
+    ];
+
+
+    // Traits
+    // =========================================================================
+
+    use AddressTextSubmissionTrait;
 
     // Protected Methods
     // =========================================================================

@@ -2136,9 +2136,9 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         if ($this->displayType === 'datePicker') {
             $surfaces = [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED];
 
-            // CP date/time fields use Craft's paired date and time controls. The
-            // browser module only owns the CP input when it renders one picker.
-            if (!$this->getIsDateTime()) {
+            // Single CP date/time values use Craft's paired controls. Ranges
+            // render one shared picker with separate start/end transport inputs.
+            if ($this->getCollectsRange() || !$this->getIsDateTime()) {
                 $surfaces[] = BrowserModule::SURFACE_CP_EDIT;
             }
 

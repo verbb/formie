@@ -1,0 +1,21 @@
+{% import '_includes/forms' as forms %}
+
+{{ forms.text({
+    id: field.handle,
+    value: field.formatRangeValueForDisplay(value),
+    placeholder: field.getEffectivePlaceholder(),
+    autocomplete: false,
+    inputAttributes: {
+        required: field.required,
+        'data-formie-date-datepicker-input': true,
+        'data-formie-date-range-input': true,
+    },
+}) }}
+
+{# The visible picker formats the range; only its canonical boundaries are submitted. #}
+{{ hiddenInput(name ~ '[start]', field.getRangeBoundaryInputValue(value, 'start'), {
+    'data-formie-date-range-start-input': true,
+}) }}
+{{ hiddenInput(name ~ '[end]', field.getRangeBoundaryInputValue(value, 'end'), {
+    'data-formie-date-range-end-input': true,
+}) }}

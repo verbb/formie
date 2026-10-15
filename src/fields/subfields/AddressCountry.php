@@ -133,6 +133,20 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
         return $this->_getValueLabel($value);
     }
 
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/dropdown/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+            'options' => $this->translatedOptions(),
+            'inputAttributes' => [
+                'id' => $this->handle,
+                'data-formie-address-country-input' => true,
+            ],
+        ]);
+    }
+
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $tag = parent::defineSlotTag($key, $context);

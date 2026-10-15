@@ -7,6 +7,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\Address;
 use verbb\formie\fields\SingleLineText;
+use verbb\formie\fields\subfields\traits\AddressTextSubmissionTrait;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\integrations\addressproviders\Google;
 use verbb\formie\models\SlotTag;
@@ -31,6 +32,18 @@ class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
 
     protected const DEFAULT_INPUT_TEMPLATE_PATH = 'fields/single-line-text';
     protected const DEFAULT_REFERENCE_BLOCK_TEMPLATE_PATH = 'fields/single-line-text';
+    protected const SUBMISSION_INPUT_ATTRIBUTES = [
+        'data-formie-address-autocomplete-input' => true,
+        'autocomplete' => 'off',
+        'type' => 'search',
+        'aria-autocomplete' => 'list',
+    ];
+
+
+    // Traits
+    // =========================================================================
+
+    use AddressTextSubmissionTrait;
 
 
     // Properties

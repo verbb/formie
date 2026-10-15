@@ -11,6 +11,7 @@ use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\helpers\UrlHelper;
 
 use GraphQL\Type\Definition\Type;
@@ -239,6 +240,22 @@ class AddressState extends SingleLineText implements ChildFieldInterface
         }
 
         return parent::defineSlotTag($key, $context);
+    }
+
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/address/state', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+            'textLimitConfig' => $this->getTextLimitBrowserConfig(true),
+            'inputAttributes' => [
+                'id' => $this->handle,
+                'data-formie-address-state-input' => true,
+                'data-formie-address-state-cp' => true,
+                'data-formie-address-state-dynamic' => $this->_usesDynamicSubdivisions(),
+            ],
+        ]);
     }
 
     protected function defineClientRenderedInput(): array

@@ -4,7 +4,9 @@
 
 {% block field %}
 
-{% if field.getCollectsRange() %}
+{% if field.getCollectsRange() and field.displayType == 'datePicker' %}
+    {% include 'formie/_formfields/date/_range' %}
+{% elseif field.getCollectsRange() %}
     {% namespace field.handle %}
         <div class="formie-subfield-rows" data-formie-subfield-rows>
             {% for row in field.getEnabledRows() %}

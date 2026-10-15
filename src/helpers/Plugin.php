@@ -10,7 +10,6 @@ use verbb\formie\web\assets\cp\FormsIndexAsset;
 use verbb\formie\web\assets\cp\PluginSettingsAsset;
 use verbb\formie\web\assets\cp\ReportsAsset;
 use verbb\formie\web\assets\cp\SentNotificationsAsset;
-use verbb\formie\web\assets\cp\SubmissionsAsset;
 use verbb\formie\web\assets\cp\WidgetsAsset;
 use verbb\formie\web\assets\cp\WidgetsVendorAsset;
 
@@ -75,7 +74,9 @@ class Plugin extends BasePlugin
 
     public static function registerCpSubmissionsAssets(): void
     {
-        self::registerCpAsset('src/submissions/js/formie-submissions.js', CpReactAsset::class, SubmissionsAsset::class);
+        // The manifest includes shared Plugin Kit CSS extracted from this entry.
+        // The fixed-path bundle only registers the submissions stylesheet.
+        self::registerCpAsset('src/submissions/js/formie-submissions.js');
     }
 
     public static function registerCpReportsAssets(): void

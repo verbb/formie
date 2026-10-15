@@ -288,3 +288,60 @@
 #fields .formie-cp-rank .field:last-child {
     margin-bottom: 0;
 }
+
+// Google replaces the native input, so its custom element needs CP input styling.
+#fields .formie-autocomplete-wrapper gmp-place-autocomplete {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: var(--pk-input-height);
+    border: var(--pk-input-border);
+    border-radius: var(--pk-input-border-radius);
+    background-color: var(--pk-input-bg);
+    color: var(--text-color);
+    color-scheme: light;
+    font: inherit;
+
+    &:focus-within {
+        border-color: var(--pk-color-sky-600);
+        box-shadow: var(--pk-input-focus-shadow);
+    }
+}
+
+// Reuse the shared state/combobox behaviour with control-panel sizing and colours.
+#fields .formie-cp-address-state {
+    --formie-control-height: var(--pk-input-height);
+    --formie-control-font-size: var(--pk-font-size-base);
+    --formie-control-padding-y: 7px;
+    --formie-control-padding-x: 9px;
+    --formie-color-border-control: var(--pk-input-border-color);
+    --formie-color-surface: var(--pk-input-bg);
+    --formie-color-focus-ring: var(--pk-color-sky-600);
+    --formie-shadow-focus: var(--pk-input-focus-shadow);
+    margin: 0;
+
+    > select:not(.tomselected) {
+        width: 100%;
+        min-height: var(--pk-input-height);
+        padding: 6px 9px;
+        border: var(--pk-input-border);
+        border-radius: var(--pk-input-border-radius);
+        background: var(--pk-input-bg);
+        color: inherit;
+        font: inherit;
+        appearance: auto;
+
+        &:focus-visible {
+            outline: none;
+            box-shadow: var(--pk-input-focus-shadow);
+        }
+    }
+}
+
+#fields [data-formie-address-state-hidden] {
+    display: none !important;
+}
+
+#fields [data-formie-address-state-skeleton-active] .formie-cp-address-state {
+    opacity: 0.5;
+}

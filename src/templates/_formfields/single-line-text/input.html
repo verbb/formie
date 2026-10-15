@@ -23,7 +23,7 @@
                 'formie-min-words': minWords,
                 'formie-max-words': maxWords,
             } | filter,
-        },
+        } | merge(inputAttributes ?? {}, recursive=true),
     }) }}
 
     {% if field.limit %}
