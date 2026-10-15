@@ -5,7 +5,6 @@
 > {warning} Before upgrading to Formie 4, review the [Upgrading from v3](https://verbb.io/craft-plugins/formie/docs/v4/get-started/upgrading-from-v3) guide for breaking changes and required migration steps.
 
 ### Added
-- Add a React-powered form builder foundation.
 - Add a Formie 3 to Formie 4 migration path for existing Craft 5 projects.
 - Add direct Formie 2 to Formie 4 migration support, allowing Craft 4 projects to move to Craft 5 without upgrading through Formie 3 first.
 - Add Formie 4 Compatibility Mode, enabled by default, to bridge selected Formie 3 class aliases, event owners, custom field schema methods, field config keys, theme config keys, and legacy front-end event listeners during upgrades.
