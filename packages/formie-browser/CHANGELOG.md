@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.15 - 2026-10-15
+
 ### Changed
 - Rename field module settings to `allowedCountryCodes`, `maxFiles`, `minFileSize` and `maxFileSize` to match the PHP field API.
 - Remove the unused legacy frontend-theme attribute from mounted forms.
