@@ -118,26 +118,29 @@ it('blocks callable gadgets in upload location subpath Twig', function (): void 
         ->toThrow(InvalidSubpathException::class);
 })->group('security');
 
-it('allows safe Twig in upload location subpaths', function (): void {
+it('resolves references in upload location subpaths', function (): void {
     $volume = UploadTestHelper::ensureUploadVolume();
     $field = new FileUpload([
         'uploadLocationSource' => 'folder:' . $volume->uid,
-        'uploadLocationSubpath' => 'sandbox/{{ "folder"|upper }}',
+        'uploadLocationSubpath' => 'references/{form:handle;transform=upper}',
     ]);
 
     $method = new ReflectionMethod(FileUpload::class, '_findFolder');
     $method->setAccessible(true);
-    $folder = $method->invoke($field, new Submission());
+    $form = formie()->form(['handle' => 'folder'])->create();
+    $submission = new Submission();
+    $submission->setForm($form);
+    $folder = $method->invoke($field, $submission);
 
-    expect($folder->path)->toBe('sandbox/FOLDER/');
+    expect($folder->path)->toBe('references/FOLDER/');
 })->group('security');
 
-it('allows safe submission user properties in upload location subpaths', function (): void {
+it('resolves submission user references in upload location subpaths', function (): void {
     $volume = UploadTestHelper::ensureUploadVolume();
     $user = User::find()->status(null)->username('formie-seed-user')->one();
     $field = new FileUpload([
         'uploadLocationSource' => 'folder:' . $volume->uid,
-        'uploadLocationSubpath' => '{user.fullName|kebab}-{user.id}',
+        'uploadLocationSubpath' => 'user-{user:id}',
     ]);
     $form = formie()->form()->create();
     $submission = new Submission(['userId' => $user->id]);
@@ -147,5 +150,44 @@ it('allows safe submission user properties in upload location subpaths', functio
     $method->setAccessible(true);
     $folder = $method->invoke($field, $submission);
 
-    expect($folder->path)->toBe('formie-seed-' . $user->id . '/');
+    expect($folder->path)->toBe('user-' . $user->id . '/');
 })->group('security');
+
+it('rejects Twig and invalid upload paths without creating folders', function (string $subpath): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form()->create();
+    $submission = new Submission();
+    $submission->setForm($form);
+    $field = new FileUpload([
+        'uploadLocationSource' => 'folder:' . $volume->uid,
+        'uploadLocationSubpath' => $subpath,
+    ]);
+    $before = (new \craft\db\Query())->from('{{%volumefolders}}')->where(['volumeId' => $volume->id])->count();
+    $method = new ReflectionMethod(FileUpload::class, '_findFolder');
+
+    expect(fn() => $method->invoke($field, $submission))->toThrow(InvalidSubpathException::class);
+    expect((new \craft\db\Query())->from('{{%volumefolders}}')->where(['volumeId' => $volume->id])->count())->toBe($before);
+})->with([
+    'Twig output' => '{{ "folder"|upper }}',
+    'Twig statement' => '{% set folder = "value" %}uploads',
+    'object shorthand' => '{user.fullName|kebab}',
+    'missing reference' => 'uploads/{custom:missing/value}',
+    'traversal' => '../escape',
+    'nested traversal' => 'uploads/../escape',
+    'backslash traversal' => 'uploads/..\\escape',
+    'empty segment' => 'uploads//escape',
+])->group('security');
+
+it('rejects traversal and Twig supplied through upload references', function (string $value): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form()->create();
+    $submission = new Submission(['title' => $value]);
+    $submission->setForm($form);
+    $field = new FileUpload([
+        'uploadLocationSource' => 'folder:' . $volume->uid,
+        'uploadLocationSubpath' => 'uploads/{submission:title}',
+    ]);
+
+    expect(fn() => (new ReflectionMethod(FileUpload::class, '_findFolder'))->invoke($field, $submission))
+        ->toThrow(InvalidSubpathException::class);
+})->with(['../escape', '{{ 7 * 7 }}', ''])->group('security');

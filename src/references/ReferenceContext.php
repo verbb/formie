@@ -32,14 +32,15 @@ final readonly class ReferenceContext
                 $dispatch[$handle] = ['id' => $result['elementId'] ?? null, 'url' => $result['url'] ?? null, 'success' => $result['success'] ?? false, 'type' => $result['type'] ?? null];
             }
         }
-        $environment = [];
+        return new self($submission->getForm(), $submission, $site, $user, $rows, $permissions, $outputContext, $notification, new DateTimeImmutable('now', new DateTimeZone(Craft::$app->getTimeZone())), self::_system($site), self::_environment(), $dispatch, metadata: $submission->metadata ?? [], usage: $usage);
+    }
 
-        foreach (Formie::$plugin->getSettings()->referenceEnvironmentAllowlist as $name) {
-            if (is_string($name) && preg_match('/^[A-Z][A-Z0-9_]*$/D', $name)) {
-                $environment[$name] = App::env($name);
-            }
-        }
-        return new self($submission->getForm(), $submission, $site, $user, $rows, $permissions, $outputContext, $notification, new DateTimeImmutable('now', new DateTimeZone(Craft::$app->getTimeZone())), self::_system($site), $environment, $dispatch, metadata: $submission->metadata ?? [], usage: $usage);
+    public static function forForm(?Form $form): self
+    {
+        $site = $form ? Craft::$app->getSites()->getSiteById($form->siteId) : Craft::$app->getSites()->getCurrentSite();
+        $user = Craft::$app->getRequest()->getIsConsoleRequest() ? null : Craft::$app->getUser()->getIdentity();
+
+        return new self(form: $form, site: $site, user: $user, permissions: ['server'], now: new DateTimeImmutable('now', new DateTimeZone(Craft::$app->getTimeZone())), system: self::_system($site), environment: self::_environment());
     }
 
     public static function forReport(?Site $site, DateTimeImmutable $now, array $report): self
@@ -90,6 +91,18 @@ final readonly class ReferenceContext
 
     // Private Methods
     // =========================================================================
+
+    private static function _environment(): array
+    {
+        $environment = [];
+
+        foreach (Formie::$plugin->getSettings()->referenceEnvironmentAllowlist as $name) {
+            if (is_string($name) && preg_match('/^[A-Z][A-Z0-9_]*$/D', $name)) {
+                $environment[$name] = App::env($name);
+            }
+        }
+        return $environment;
+    }
 
     private static function _system(?Site $site): array
     {

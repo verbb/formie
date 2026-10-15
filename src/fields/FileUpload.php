@@ -14,6 +14,7 @@ use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FieldBuilderPolicy;
+use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\UploadAccess;
 use verbb\formie\helpers\ValidationMessagesHelper;
@@ -24,6 +25,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
 use verbb\formie\models\SlotTag;
 use verbb\formie\records\Submission as SubmissionRecord;
+use verbb\formie\references\ReferenceContext;
 use verbb\formie\references\ReferenceException;
 use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
@@ -61,7 +63,6 @@ use WeakMap;
 
 use Faker\Generator as FakerFactory;
 use GraphQL\Type\Definition\Type;
-use Twig\Error\Error as TwigError;
 
 class FileUpload extends ElementField
 {
@@ -600,7 +601,7 @@ class FileUpload extends ElementField
             ]),
             SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Upload Location'),
-                'instructions' => Craft::t('formie', 'Note that the subfolder path can contain variables like {myFieldHandle}.'),
+                'instructions' => Craft::t('formie', 'Choose a subfolder path using the variable picker, for example uploads/{form:handle}/{submission:id}. Twig expressions are not supported.'),
                 'required' => true,
                 'children' => [
                     SchemaHelper::selectField([
@@ -609,8 +610,13 @@ class FileUpload extends ElementField
                         'validation' => 'required',
                         'required' => true,
                     ]),
-                    SchemaHelper::textField([
+                    SchemaHelper::variableTextField([
                         'name' => 'uploadLocationSubpath',
+                        'variableConfig' => [
+                            'shapes' => ['inline'],
+                            'types' => [Variables::TYPE_TEXT],
+                            'groups' => [Variables::STATIC_FIELDS, Variables::STATIC_FORM, Variables::STATIC_GENERAL, Variables::STATIC_SITE],
+                        ],
                         'class' => 'text flex-grow fullwidth',
                         'outerClass' => 'flex-grow',
                         'placeholder' => 'path/to/subfolder',
@@ -1552,8 +1558,15 @@ class FileUpload extends ElementField
         if ($isDynamic) {
             // Prepare the path by parsing tokens and normalizing slashes.
             try {
-                $renderedSubpath = Formie::$plugin->getTemplates()->renderSandboxedObjectTemplate($subpath, $element, autoescape: false);
-            } catch (InvalidConfigException|TwigError|ReferenceException $e) {
+                $context = $element instanceof Submission
+                    ? ReferenceContext::forSubmission($element)
+                    : ReferenceContext::forForm($element instanceof Form ? $element : $this->getForm());
+                $renderedSubpath = References::interpolateText($subpath, $context);
+
+                if ($context->diagnostics->hasWarnings() || preg_match('/[{}]/', $renderedSubpath)) {
+                    throw new InvalidSubpathException($subpath);
+                }
+            } catch (InvalidConfigException|ReferenceException $e) {
                 throw new InvalidSubpathException($subpath, null, 0, $e);
             }
 
@@ -1562,20 +1575,29 @@ class FileUpload extends ElementField
                 throw new InvalidSubpathException($subpath);
             }
 
-            // Sanitize the subpath
-            $segments = array_filter(explode('/', $renderedSubpath), function(string $segment): bool {
-                return $segment !== ':ignore:';
-            });
+            $subpath = $renderedSubpath;
+        }
 
-            $generalConfig = Craft::$app->getConfig()->getGeneral();
+        // Validate before sanitizing so traversal cannot become a different destination.
+        $segments = array_filter(explode('/', $subpath), static fn(string $segment): bool => $segment !== ':ignore:');
+        $generalConfig = Craft::$app->getConfig()->getGeneral();
 
-            $segments = array_map(function(string $segment) use ($generalConfig): string {
-                return FileHelper::sanitizeFilename($segment, [
-                    'asciiOnly' => $generalConfig->convertFilenamesToAscii,
-                ]);
-            }, $segments);
+        foreach ($segments as &$segment) {
+            if (in_array(trim($segment), ['', '.', '..'], true) || preg_match('/[\\\\\x00-\x1f\x7f]/', $segment)) {
+                throw new InvalidSubpathException($subpath);
+            }
 
-            $subpath = implode('/', $segments);
+            $segment = FileHelper::sanitizeFilename($segment, ['asciiOnly' => $generalConfig->convertFilenamesToAscii]);
+
+            if ($segment === '' || in_array($segment, ['.', '..'], true)) {
+                throw new InvalidSubpathException($subpath);
+            }
+        }
+        unset($segment);
+        $subpath = implode('/', $segments);
+
+        if ($subpath === '') {
+            throw new InvalidSubpathException($subpath);
         }
 
         $folder = $assetsService->findFolder([
@@ -1600,7 +1622,7 @@ class FileUpload extends ElementField
         try {
             return $this->_findFolder($element);
         } catch (InvalidSubpathException $e) {
-            // If this is a new/disabled element, the subpath probably just contained a token that returned null, like {id}
+            // If this is a new/disabled element, the subpath probably just contained a token that returned null, like {submission:id}
             // so use the user’s upload folder instead
             if ($element === null || !$element->id || !$element->enabled) {
                 return Craft::$app->getAssets()->getUserTemporaryUploadFolder();

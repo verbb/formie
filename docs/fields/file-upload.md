@@ -29,6 +29,12 @@ Choose **Upload Manager (Advanced)** when you want immediate feedback, drag-and-
 - **Filename format** - Control how uploaded assets are named.
 - **Notification attachments** - Allow uploaded files to be attached to email notifications when the notification is configured to include them.
 
+### Upload Subpaths and Filenames
+
+Use the Variable Picker to add references to the upload subpath and filename format. For example, `applications/{form:handle}/{submission:id}` groups uploads by form and saved submission. Folder segments are sanitised before creation; invalid or unresolved subpaths are rejected. A submission without an ID can use temporary storage until its final destination is available.
+
+These settings resolve references only. Twig expressions, filters and object-template shorthand are not evaluated. Use a [custom variable source](/developers/custom-variable-sources) when your destination needs a value computed by PHP.
+
 ## Submitted Value
 
 File Upload stores references to uploaded Craft assets. In templates, exports, summaries and integrations, treat the value as uploaded asset data rather than the original browser file input.
