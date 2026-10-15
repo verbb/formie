@@ -30,10 +30,6 @@
     {% endif %}
 {% endblock %}
 
-{% block settingsContent %}
-    <div id="integrations-vue-admin-table"></div>
-{% endblock %}
-
 {% set supportsConnection = false %}
 
 {% if integrations | length and integrations[0].supportsConnection() %}
@@ -65,6 +61,56 @@
     }]) %}
 {% endfor %}
 
+{% block settingsContent %}
+    <div id="integrations-vue-admin-table">
+        {% if tableData | length %}
+            <div class="tablepane">
+                <table class="data fullwidth">
+                    <caption class="visually-hidden">{{ title }}</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">{{ 'Name' | t('app') }}</th>
+                            <th scope="col">{{ 'Type' | t('app') }}</th>
+                            <th scope="col">{{ 'Scope' | t('formie') }}</th>
+                            <th scope="col">{{ 'Enabled' | t('formie') }}</th>
+                            {% if supportsConnection %}
+                                <th scope="col">{{ 'Connected' | t('formie') }}</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in tableData %}
+                            <tr>
+                                <th scope="row" data-title="{{ 'Name' | t('app') }}"><a href="{{ row.url }}">{{ row.title }}</a></th>
+                                <td data-title="{{ 'Type' | t('app') }}">
+                                    {% if row.type.isMissing %}
+                                        <span class="error">{{ row.type.label }}</span>
+                                    {% else %}
+                                        {{ row.type.label }}
+                                    {% endif %}
+                                </td>
+                                <td data-title="{{ 'Scope' | t('formie') }}">{{ row.scope }}</td>
+                                <td data-title="{{ 'Enabled' | t('formie') }}">
+                                    <span class="status {{ row.enabled ? 'on' : 'disabled' }}"></span>
+                                    {{ (row.enabled ? 'Enabled' : 'Disabled') | t('formie') }}
+                                </td>
+                                {% if supportsConnection %}
+                                    <td data-title="{{ 'Connected' | t('formie') }}">
+                                        <span class="status {{ row.connected ? 'on' : 'disabled' }}"></span>
+                                        {{ (row.connected ? 'Connected' : 'Not connected') | t('formie') }}
+                                    </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="zilch">{{ 'No integrations exist yet.' | t('formie') }}</div>
+        {% endif %}
+    </div>
+{% endblock %}
+
 {% set editableCount = 0 %}
 {% for integration in integrations %}
     {% if integration.canEdit() %}
@@ -83,8 +129,8 @@ var columns = [
 
             return '<div style="display: flex; align-items: center;">' + 
                 '<img src="' + value.icon + '" style="width: 20px; height: 20px; margin-right: 8px;">' + 
-                value.label
-            '</div>';
+                value.label +
+                '</div>';
         }
     },
     {
@@ -116,7 +162,7 @@ var columns = [
 
 new Craft.VueAdminTable({
     columns: columns,
-    container: '#{{ 'integrations-vue-admin-table' | namespaceInputId('settings') }}',
+    container: '#integrations-vue-admin-table',
     emptyMessage: Craft.t('formie', 'No integrations exist yet.'),
     tableData: {{ tableData | json_encode | raw }},
 
