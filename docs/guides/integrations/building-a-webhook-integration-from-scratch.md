@@ -9,7 +9,7 @@ This guide is a good companion to the [custom field](https://verbb.io/craft-plug
 :::
 
 ### Create your module
-First, you'll need to get familiar with [creating a module](/blog/everything-you-need-to-know-about-modules). The code we will be writing will be in PHP, and added to our custom module. 
+First, you'll need to get familiar with [creating a module](https://verbb.io/blog/everything-you-need-to-know-about-modules). The code we will be writing will be in PHP, and added to our custom module.
 
 When creating your module, set the namespace to `modules\formieintegration` and the module ID to `formie-integration`.
 
