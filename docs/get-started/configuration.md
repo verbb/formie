@@ -87,7 +87,7 @@ Sets the default Formie control panel page when clicking Formie in the main navi
 
 **Type:** `bool` · **Default:** `true`
 
-Enables compatibility shims for older Formie APIs during an upgrade.
+Enables compatibility shims for older Formie APIs, including supported browser events on rendered forms. The browser inherits this setting automatically; no custom JavaScript setup is required. Purge cached form HTML after changing it.
 :::
 
 

@@ -12,13 +12,15 @@ The main browser changes from the old bundled Formie plugin JavaScript are:
 - validator lifecycle hooks now use canonical `formie:validator:*` events
 - the public browser API is now either the `formie()` helper or a client created with `createFormieClient()`
 
-If your old code only listens for legacy event names, turn on compatibility while you migrate each listener to the new event surface.
+If your old code only listens for supported legacy event names, leave compatibility enabled while you migrate each listener to the new event surface.
 
 ## Turn on Compatibility
 
 ### Managed or Rendered Forms
 
-If you are mounting from rendered HTML, enable compatibility on the root:
+Formie-rendered HTML inherits the plugin's `compatibilityMode` setting, which is enabled by default. This works with automatic startup and HTML loaded through REST or GraphQL; you do not need your own bundle or mount call. Purge cached form HTML after changing the setting.
+
+For standalone HTML that Formie does not render, enable compatibility on the root:
 
 ```html
 <form data-formie data-formie-form data-formie-compatibility="true">
@@ -28,7 +30,7 @@ If you are mounting from rendered HTML, enable compatibility on the root:
 
 ### Your Own Bundle
 
-If you mount with the package directly, pass `compatibility` in the mount options:
+If you mount with the package directly, the rendered form still supplies the default. Pass an explicit `compatibility` option to override it:
 
 ```ts
 import { createFormieClient } from '@verbb/formie-browser';
@@ -82,11 +84,11 @@ These validator events can be bridged too:
 | `formieValidatorShowError` | `formie:validator:show-error` |
 | `formieValidatorClearError` | `formie:validator:clear-error` |
 
-Approximate mappings exist to keep older integrations alive, not to guarantee identical timing in every edge case.
+Approximate mappings do not preserve every timing or cancellation behaviour. In particular, `onFormieLoaded` and `onFormieInit` fire for each mounted form, legacy events do not forward `preventDefault()` to the workflow, and `onFormieThemeReady` is not bridged.
 
 ## Recommended Migration Path
 
-1. Turn on compatibility.
+1. Leave the plugin's compatibility mode enabled, or enable the bridge for standalone HTML.
 2. Replace old event listeners with the canonical `formie:*` or `formie:validator:*` names.
 3. Test any submit-flow logic that relied on older event timing.
 4. Remove compatibility once the old listeners are gone.

@@ -92,6 +92,7 @@ if ($path === '/browser-rendered' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $form = \verbb\formie\elements\Form::find()->id($fixture[($_GET['method'] ?? '') === 'native' ? 'renderedNativeId' : 'renderedId'])->one();
     $cached = isset($_GET['cached']);
     \verbb\formie\Formie::$plugin->getSettings()->staticCacheRefreshOnLoad = $cached;
+    \verbb\formie\Formie::$plugin->getSettings()->compatibilityMode = ($_GET['compatibility'] ?? '1') !== '0';
     $view = $app->getView();
     $view->setTemplateMode(\craft\web\View::TEMPLATE_MODE_SITE);
     // Exercise the assets and registration that a Composer installation ships.

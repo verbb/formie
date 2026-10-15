@@ -992,11 +992,15 @@ export function createFormieClient(): FormieClient {
             mode: normalizeMode(options.mode ?? mergedFromDom.mode),
             transport: normalizeTransport(options.transport ?? mergedFromDom.transport),
         };
-        const compatibilityOptions = resolveLegacyCompatibilityOptions(normalizedOptions.compatibility);
-
-
         const renderPayload = await ensureHtmlRender(target, normalizedOptions);
         const form = getFormFromTarget(target);
+
+        // Fetched HTML carries the plugin setting on the form, not its mount wrapper.
+        if (options.compatibility === undefined && form?.hasAttribute('data-formie-compatibility')) {
+            normalizedOptions.compatibility = inferOptionsFromElement(form).compatibility;
+        }
+
+        const compatibilityOptions = resolveLegacyCompatibilityOptions(normalizedOptions.compatibility);
         if (form) setFormBrowserRequestOptions(form, normalizedOptions);
         normalizedOptions.staticCache =
             options.staticCache ??

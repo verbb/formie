@@ -98,6 +98,7 @@ class FormSlotRegistry extends Component
                 'accept-charset' => 'utf-8',
                 'data-formie' => true,
                 'data-formie-form' => true,
+                'data-formie-compatibility' => $settings->compatibilityMode ? 'true' : 'false',
                 // Let JS resolve CSRF by Craft's configured token name (not a hard-coded CRAFT_CSRF_TOKEN).
                 'data-formie-csrf-param' => Craft::$app->getRequest()->csrfParam,
                 'data-formie-init' => $context->renderOption('initJs', true) ? false : 'false',
