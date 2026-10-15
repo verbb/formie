@@ -6,6 +6,7 @@
 - Add the `formie:unload-warning:collect-exclusions` browser event for integrations to exclude automatically updated transport fields from unsaved-changes checks. ([#3008](https://github.com/verbb/formie/issues/3008))
 
 ### Fixed
+- Fix submission status color migrations failing when legacy status event handlers are registered.
 - Fix an error when upgrading multi-site installs from Formie 3 to Formie 4. ([#3007](https://github.com/verbb/formie/issues/3007))
 - Fix unnecessary `EVENT_MODIFY_HTML_TAG` deprecation warnings when rendering forms with the debug toolbar enabled. ([#3009](https://github.com/verbb/formie/issues/3009))
 - Fix CAPTCHA token updates triggering an unsaved-changes warning on untouched forms. ([#3008](https://github.com/verbb/formie/issues/3008))
