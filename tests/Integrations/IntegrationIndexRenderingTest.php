@@ -2,18 +2,23 @@
 
 declare(strict_types=1);
 
-function renderIntegrationIndexFallback(array $tableData, bool $supportsConnection = false): string
-{
-    $source = file_get_contents(dirname(__DIR__, 2) . '/src/templates/settings/integrations/index.html');
-    $start = strpos($source, '{% block settingsContent %}');
-    $end = strpos($source, '{% endblock %}', $start);
-    $template = substr($source, $start + strlen('{% block settingsContent %}'), $end - $start - strlen('{% block settingsContent %}'));
+use craft\elements\User;
+use craft\web\View;
+use Tests\Support\WebRequestTestHelper;
+use verbb\formie\integrations\crm\Salesforce;
 
-    return Craft::$app->getView()->renderString($template, [
-        'tableData' => $tableData,
-        'supportsConnection' => $supportsConnection,
-        'title' => 'CRM',
-    ]);
+function renderIntegrationIndexPage(array $integrations): string
+{
+    return WebRequestTestHelper::withWebRequestContext(function ($request) use ($integrations): string {
+        $request->setIsCpRequest(true);
+        Craft::$app->getUser()->setIdentity(User::find()->admin(true)->one());
+        Craft::$app->getView()->registerTwigExtension(new \verbb\base\web\twig\Extension());
+
+        return Craft::$app->getView()->renderPageTemplate('formie/settings/integrations/index', [
+            'integrations' => $integrations,
+            'typeName' => 'CRM',
+        ], View::TEMPLATE_MODE_CP);
+    }, ['requestUri' => '/admin/formie/integrations/crm']);
 }
 
 it('mounts the enhanced integration table on the rendered container', function (): void {
@@ -25,32 +30,27 @@ it('mounts the enhanced integration table on the rendered container', function (
 });
 
 it('keeps configured integrations visible before the enhanced table mounts', function (): void {
-    $html = renderIntegrationIndexFallback([[
+    $html = renderIntegrationIndexPage([new Salesforce([
         'id' => 1,
-        'title' => 'Primary Salesforce',
-        'url' => '/admin/formie/integrations/crm/1',
+        'name' => 'Primary Salesforce',
+        'handle' => 'primarySalesforce',
         'enabled' => true,
-        'connected' => true,
-        'scope' => 'Project',
-        'type' => [
-            'isMissing' => false,
-            'label' => 'Salesforce',
-        ],
-    ]], true);
+    ])]);
 
     expect($html)
         ->toContain('<table class="data fullwidth">')
-        ->toContain('href="/admin/formie/integrations/crm/1"')
+        ->toContain('id="integrations-vue-admin-table"')
         ->toContain('Primary Salesforce')
         ->toContain('Salesforce')
         ->toContain('Connected')
-        ->not->toContain('No integrations exist yet.');
+        ->not->toContain('<div class="zilch">');
 });
 
 it('shows the empty state only when no integrations exist', function (): void {
-    $html = renderIntegrationIndexFallback([]);
+    $html = renderIntegrationIndexPage([]);
 
     expect($html)
-        ->toContain('No integrations exist yet.')
-        ->not->toContain('<table');
+        ->toContain('id="integrations-vue-admin-table"')
+        ->toContain('<div class="zilch">No integrations exist yet.</div>')
+        ->not->toContain('<table class="data fullwidth">');
 });
