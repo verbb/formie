@@ -115,7 +115,7 @@ class ElementOptionSourceHelper
 
         /** @var ElementField $field */
         $field = new $fieldClass();
-        $sourceOptions = $field->getOptionSourceSourceOptions();
+        $sourceOptions = $field->getOptionSourceOptions();
         $multiSource = $field->getOptionSourceMode() === 'multiple';
 
         $defaultSource = $multiSource

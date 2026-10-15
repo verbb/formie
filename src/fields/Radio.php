@@ -33,6 +33,7 @@ class Radio extends OptionsField implements SortableFieldInterface
         return 'formie/_formfields/radio/icon.svg';
     }
 
+    /** @deprecated Use valueType() for the normalized runtime contract. */
     public static function phpType(): string
     {
         return sprintf('\\%s', SingleOptionFieldValue::class);

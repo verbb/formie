@@ -147,7 +147,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         return self::resolveOptionAvailability($option) === 'hidden';
     }
 
-    public static function isOptionFrontEndDisabled(array $option): bool
+    public static function isOptionDisabled(array $option): bool
     {
         return self::resolveOptionAvailability($option) === 'disabled';
     }
@@ -503,7 +503,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
             }
 
             $options[] = array_merge($option, [
-                'disabled' => self::isOptionFrontEndDisabled($option),
+                'disabled' => self::isOptionDisabled($option),
             ]);
         }
 
@@ -885,7 +885,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        return $value?->toArray() ?? ($this->multi ? [] : null);
+        return $value instanceof MultiOptionFieldValue ? $value->values() : ($value?->value ?? ($this->multi ? [] : null));
     }
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element = null): mixed
@@ -984,7 +984,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
                     'label' => $option['label'] ?? '',
                     'value' => $option['value'] ?? '',
                     'selected' => FieldOptionHelper::isOptionDefault($option),
-                    'disabled' => self::isOptionFrontEndDisabled($option),
+                    'disabled' => self::isOptionDisabled($option),
                 ];
             }, $this->getFieldOptions())),
         ];

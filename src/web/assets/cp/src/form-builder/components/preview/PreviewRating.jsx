@@ -2,7 +2,7 @@ import React from 'react';
 import { normalizeOptions, normalizeSelectedValues } from './previewValueUtils';
 import {
     applyOptionAvailabilityToPreviewOptions,
-    isOptionFrontEndDisabled,
+    isOptionDisabled,
 } from '@form-builder/utils/optionAvailability';
 import { ratingStarPresentationStyle } from './previewSurveyStarUrls';
 
@@ -50,7 +50,7 @@ export const PreviewRating = ({
                                 type="radio"
                                 value={optionValue}
                                 checked={selectedValues.includes(optionValue)}
-                                disabled={isOptionFrontEndDisabled(option)}
+                                disabled={isOptionDisabled(option)}
                                 readOnly
                             />
                             <span className="formie-field-preview-rating-star" aria-hidden="true" />

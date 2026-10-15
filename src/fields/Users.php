@@ -220,7 +220,7 @@ class Users extends ElementField
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit Options'),
                 'instructions' => Craft::t('formie', 'Limit the number of available users.'),
-                'name' => 'limitOptions',
+                'name' => 'optionLimit',
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Label Source'),

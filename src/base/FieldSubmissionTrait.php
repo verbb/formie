@@ -84,8 +84,8 @@ trait FieldSubmissionTrait
             'data-formie-field' => true,
         ];
 
-        if ($this->enableConditions && $this->getConditionsJson()) {
-            $meta['attributes']['data-formie-conditions'] = $this->getConditionsJson();
+        if ($this->enableConditions && $this->getBrowserConditionsJson()) {
+            $meta['attributes']['data-formie-conditions'] = $this->getBrowserConditionsJson();
         }
 
         if (!$this->isConditionallyHidden($element)) {

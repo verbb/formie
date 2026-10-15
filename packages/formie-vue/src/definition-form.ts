@@ -978,7 +978,7 @@ const RepeaterFieldInput = defineComponent({
                     onClick: () => {
                         props.setValue([...currentRows, createRepeaterRowValue(props.field)]);
                     },
-                }, String(contract.addLabel ?? 'Add another row')),
+                }, String(contract.addRowLabel ?? 'Add another row')),
                 state.errors.fields[props.errorKey] && state.errors.fields[props.errorKey].length > 0
                     ? h('ul', {
                         key: 'errors',

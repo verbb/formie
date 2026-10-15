@@ -4,6 +4,7 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentFieldInterface;
+use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\MissingField;
 use verbb\formie\helpers\Table;
@@ -621,6 +622,8 @@ class FormSiteOverrides extends Component
             // Portable writes retain missing-type data; application paths keep it inert.
             return $preserveUnavailable ? $overrides : [];
         }
+
+        $overrides = FieldConfigNormalizer::normalizeSettingAliases($overrides, $fieldType);
 
         return array_intersect_key($overrides, array_fill_keys($fieldType::translatableProperties(), true));
     }

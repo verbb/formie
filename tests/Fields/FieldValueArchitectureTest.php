@@ -186,7 +186,7 @@ it('dispatches one event per projection and keeps data distinct from browser opt
     $field->getValueForReference($value);
     expect($events)->toBe([Field::EVENT_MODIFY_VALUE_FOR_REFERENCE]);
     expect($field->serializeValueForClientInput($value))->toBe('a');
-    expect($field->getValueAsData($value))->toBe(['label' => 'Alpha', 'value' => 'a', 'selected' => true, 'valid' => true]);
+    expect($field->getValueAsData($value))->toBe('a');
     expect(fn() => $value->value = 'b')->toThrow(Error::class);
 });
 
@@ -295,13 +295,13 @@ it('matches recipient browser tokens against configured rows without decrypting 
     ]]);
     $token = $field->getFieldOptions()[1]['value'];
     $value = $field->normalizeValueFromRequest($token, null);
-    expect($value->label())->toBe('Second');
+    expect($value->label)->toBe('Second');
     expect($field->serializeValueForClientInput($value))->toBe($token);
     $legacy = \verbb\formie\helpers\StringHelper::encenc('same@example.test');
     $invalid = $field->normalizeValueFromRequest($legacy, null);
-    expect($invalid->valid())->toBeFalse();
-    expect($invalid->rawValue())->toBe($legacy);
-    expect($field->normalizeValueFromStorage($legacy)->rawValue())->toBe('same@example.test');
+    expect($invalid->valid)->toBeFalse();
+    expect($invalid->value)->toBe($legacy);
+    expect($field->normalizeValueFromStorage($legacy)->value)->toBe('same@example.test');
 
     $oldKey = 'former-recipient-key-' . bin2hex(random_bytes(8));
     $option = $field->getResolvedOptions()[1];
@@ -311,7 +311,7 @@ it('matches recipient browser tokens against configured rows without decrypting 
     $_ENV['FORMIE_SECURITY_KEY'] = $_SERVER['FORMIE_SECURITY_KEY'] = $oldKey;
 
     try {
-        expect($field->normalizeValueFromRequest($oldToken, null)->label())->toBe('Second');
+        expect($field->normalizeValueFromRequest($oldToken, null)->label)->toBe('Second');
     } finally {
         putenv('FORMIE_SECURITY_KEY');
         unset($_ENV['FORMIE_SECURITY_KEY'], $_SERVER['FORMIE_SECURITY_KEY']);

@@ -15,15 +15,12 @@ class DateHourNumber extends DateNumber implements ChildFieldInterface
         return Craft::t('formie', 'Date - Hour');
     }
 
-    public static function getInputTemplatePath(): string
-    {
-        return 'fields/number';
-    }
 
-    public static function getReferenceBlockTemplatePath(): string
-    {
-        return 'fields/number';
-    }
+    // Constants
+    // =========================================================================
+
+    protected const DEFAULT_INPUT_TEMPLATE_PATH = 'fields/number';
+    protected const DEFAULT_REFERENCE_BLOCK_TEMPLATE_PATH = 'fields/number';
 
 
     // Properties

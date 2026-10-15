@@ -6,6 +6,7 @@ use verbb\formie\base\Field as FormieField;
 use verbb\formie\base\OptionsField;
 use verbb\formie\base\QuestionnaireFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
+use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\fields\traits\DisplayTypeFieldTrait;
 use verbb\formie\fields\traits\QuestionFieldTrait;
 use verbb\formie\fields\values\MultiOptionFieldValue;
@@ -43,6 +44,7 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
         return 'formie/_formfields/quiz/icon.svg';
     }
 
+    /** @deprecated Use valueType() for the normalized runtime contract. */
     public static function phpType(): string
     {
         return sprintf('\\%s', SingleOptionFieldValue::class);
@@ -57,9 +59,9 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
     // Constants
     // =========================================================================
 
-    public const FIELD_TYPE_DROPDOWN = 'dropdown';
-    public const FIELD_TYPE_RADIO = 'radio';
-    public const FIELD_TYPE_CHECKBOXES = 'checkboxes';
+    public const DISPLAY_DROPDOWN = 'dropdown';
+    public const DISPLAY_RADIO = 'radio';
+    public const DISPLAY_CHECKBOXES = 'checkboxes';
 
 
     // Traits
@@ -73,7 +75,7 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
     // =========================================================================
 
     public RichText $question;
-    public string $fieldType = self::FIELD_TYPE_RADIO;
+    public string $displayType = self::DISPLAY_RADIO;
     public bool $randomizeOptions = false;
     public bool $enableAnswerExplanation = false;
     public RichText $answerExplanation;
@@ -86,13 +88,14 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
 
     public function __construct(array $config = [])
     {
+        $config = FieldConfigNormalizer::normalizeSettingAliases($config, static::class);
         $this->_initQuestionFieldConfig($config);
         $this->initDisplayTypeFieldConfig($config);
         $config['answerExplanation'] = RichText::from($config['answerExplanation'] ?? null);
 
         parent::__construct($config);
 
-        $this->multi = $this->fieldType === self::FIELD_TYPE_CHECKBOXES;
+        $this->multi = $this->displayType === self::DISPLAY_CHECKBOXES;
     }
 
     public function setAttributes($values, $safeOnly = true): void
@@ -102,14 +105,14 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
                 $values['answerExplanation'] = RichText::from($values['answerExplanation']);
             }
 
-            if (array_key_exists('fieldType', $values)) {
-                $this->multi = ($values['fieldType'] ?? $this->fieldType) === self::FIELD_TYPE_CHECKBOXES;
+            if (array_key_exists('displayType', $values)) {
+                $this->multi = ($values['displayType'] ?? $this->displayType) === self::DISPLAY_CHECKBOXES;
             }
         }
 
         parent::setAttributes($values, $safeOnly);
 
-        $this->multi = $this->fieldType === self::FIELD_TYPE_CHECKBOXES;
+        $this->multi = $this->displayType === self::DISPLAY_CHECKBOXES;
     }
 
     public function getSettings(): array
@@ -124,7 +127,7 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
     public function settingsAttributes(): array
     {
         return array_merge(parent::settingsAttributes(), $this->defineDisplayTypeSettingsAttributes(), [
-            'fieldType',
+            'displayType',
             'randomizeOptions',
             'enableAnswerExplanation',
             'answerExplanation',
@@ -134,9 +137,9 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
 
     public function themeConfigKey(): string
     {
-        return match ($this->fieldType) {
-            self::FIELD_TYPE_CHECKBOXES => 'checkboxes',
-            self::FIELD_TYPE_DROPDOWN => 'dropdown',
+        return match ($this->displayType) {
+            self::DISPLAY_CHECKBOXES => 'checkboxes',
+            self::DISPLAY_DROPDOWN => 'dropdown',
             default => 'radioButtons',
         };
     }
@@ -145,13 +148,13 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
     {
         return [
             SchemaHelper::previewChoiceList('checkbox', [
-                'if' => 'field.fieldType == "checkboxes"',
+                'if' => 'field.displayType == "checkboxes"',
             ]),
             SchemaHelper::previewSelect([
-                'if' => 'field.fieldType == "dropdown"',
+                'if' => 'field.displayType == "dropdown"',
             ]),
             SchemaHelper::previewChoiceList('radio', [
-                'if' => 'field.fieldType == "radio"',
+                'if' => 'field.displayType == "radio"',
             ]),
         ];
     }
@@ -160,10 +163,10 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
     {
         return [
             ...$this->defineQuestionGeneralSchema(),
-            ...$this->defineLockedFieldTypeSchema('fieldType', [
-                ['label' => Craft::t('formie', 'Dropdown'), 'value' => self::FIELD_TYPE_DROPDOWN],
-                ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => self::FIELD_TYPE_RADIO],
-                ['label' => Craft::t('formie', 'Checkboxes'), 'value' => self::FIELD_TYPE_CHECKBOXES],
+            ...$this->defineLockedFieldTypeSchema('displayType', [
+                ['label' => Craft::t('formie', 'Dropdown'), 'value' => self::DISPLAY_DROPDOWN],
+                ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => self::DISPLAY_RADIO],
+                ['label' => Craft::t('formie', 'Checkboxes'), 'value' => self::DISPLAY_CHECKBOXES],
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Randomize Options'),
@@ -244,7 +247,7 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
 
     public function defineFormBuilderAppearanceSchema(): array
     {
-        $layoutIf = 'fieldType == "radio" || fieldType == "checkboxes"';
+        $layoutIf = 'displayType == "radio" || displayType == "checkboxes"';
 
         return [
             SchemaHelper::visibility(),
@@ -354,22 +357,22 @@ class Quiz extends OptionsField implements SortableFieldInterface, Questionnaire
         return $values;
     }
 
-    public function defineClientRenderedInput(): array
+    public function getPresentationDisplayType(): string
+    {
+        return $this->displayType;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineClientRenderedInput(): array
     {
         $contract = parent::defineClientRenderedInput();
         $contract['randomizeOptions'] = $this->randomizeOptions;
 
         return $contract;
     }
-
-    public function getPresentationDisplayType(): string
-    {
-        return $this->fieldType;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {

@@ -3,6 +3,7 @@ namespace verbb\formie\references;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\compatibility\fields\FieldCompatibility;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\models\ReferenceExpression;
@@ -101,7 +102,7 @@ final class ReferenceResolver
                 $field = $result->field;
                 $project = static fn(mixed $item): mixed => $outputContext === ReferenceOutputContext::StructuredData
                     ? $field->getValueAsData($item, $context->submission)
-                    : $field->getValueForReference($item, $context->submission);
+                    : FieldCompatibility::withReferenceNotification($field, $context->notification, fn() => $field->getValueForReference($item, $context->submission));
 
                 if ($result->fieldProjection === 'value' && $field->valueType()->accepts($value)) {
                     $value = $project($value);
@@ -171,7 +172,7 @@ final class ReferenceResolver
         }
 
         if (in_array($id, ['lower', 'upper', 'title', 'capitalize', 'replace', 'truncate'], true) && $field && $field->valueType()->accepts($value)) {
-            $value = $field->getValueForReference($value, $context->submission);
+            $value = FieldCompatibility::withReferenceNotification($field, $context->notification, fn() => $field->getValueForReference($value, $context->submission));
         }
 
         if (in_array($id, ['lower', 'upper', 'title', 'capitalize', 'replace', 'truncate'], true) && !is_scalar($value) && $value !== null) {

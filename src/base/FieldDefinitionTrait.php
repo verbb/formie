@@ -16,12 +16,6 @@ trait FieldDefinitionTrait
     // Public Methods
     // =========================================================================
 
-    /** @deprecated Declare browserModules() using registered module IDs. */
-    public function getFrontEndJsModules(): ?array
-    {
-        return null;
-    }
-
     // Field kind is a lightweight client/config hint, not the normalized PHP value type.
     public function fieldKind(): string
     {
@@ -82,17 +76,12 @@ trait FieldDefinitionTrait
     // Conditions are normalized once here so browser payloads and rendered fields stay aligned.
     public function conditions(): ConditionSet
     {
-        return $this->conditionDefinition();
+        return $this->defineConditions();
     }
 
     public function getConditions(): array
     {
         return $this->conditions ?? [];
-    }
-
-    public function collectBrowserModules(): array
-    {
-        return $this->defineBrowserModules();
     }
 
 
@@ -120,7 +109,7 @@ trait FieldDefinitionTrait
     }
 
     // Conditions remain field-authored config until we have a form context to normalize against.
-    protected function conditionDefinition(): ConditionSet
+    protected function defineConditions(): ConditionSet
     {
         return ConditionSet::fromArray($this->enableConditions ? $this->getConditions() : []);
     }
@@ -161,8 +150,5 @@ trait FieldDefinitionTrait
         return [];
     }
 
-    protected function defineValueClass(): ?string
-    {
-        return null;
-    }
+
 }

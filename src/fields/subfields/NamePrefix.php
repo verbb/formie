@@ -24,21 +24,14 @@ class NamePrefix extends Dropdown implements ChildFieldInterface
         return Craft::t('formie', 'Name - Prefix');
     }
 
-    public static function getInputTemplatePath(): string
-    {
-        return 'fields/dropdown';
-    }
-
-    public static function getReferenceBlockTemplatePath(): string
-    {
-        return 'fields/dropdown';
-    }
-
 
     // Constants
     // =========================================================================
 
     public const EVENT_MODIFY_PREFIX_OPTIONS = 'modifyPrefixOptions';
+
+    protected const DEFAULT_INPUT_TEMPLATE_PATH = 'fields/dropdown';
+    protected const DEFAULT_REFERENCE_BLOCK_TEMPLATE_PATH = 'fields/dropdown';
 
 
     // Public Methods
@@ -115,13 +108,6 @@ class NamePrefix extends Dropdown implements ChildFieldInterface
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         return $this->_getValueLabel($value);
-    }
-
-    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
-    {
-        $label = $this->_getValueLabel($value);
-
-        return $label !== '' ? [$label] : [];
     }
 
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed

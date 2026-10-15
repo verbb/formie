@@ -190,7 +190,7 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
 
     public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
-        return false;
+        return $this->callLegacyFieldMethod('getEmailHtml', 'getReferenceBlockHtml', [$submission, $notification, $value, $renderOptions], fn() => false);
     }
 
     public function defineFormBuilderGeneralSchema(): array

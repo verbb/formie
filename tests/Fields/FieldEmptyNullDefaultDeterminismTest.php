@@ -33,7 +33,7 @@ it('keeps empty/null/default normalization and serialization deterministic acros
     assertRoundTripDeterminism(new Payment(['handle' => 'payment']), null);
     assertRoundTripDeterminism(new Signature(['handle' => 'signature']), null);
     assertRoundTripDeterminism(new Calculations(['handle' => 'calc', 'formula' => []]), null);
-    assertRoundTripDeterminism(new FileUpload(['handle' => 'uploads', 'limitFiles' => false]), []);
+    assertRoundTripDeterminism(new FileUpload(['handle' => 'uploads', 'maxFiles' => false]), []);
     assertRoundTripDeterminism(new Table([
         'handle' => 'tableData',
         'columns' => [

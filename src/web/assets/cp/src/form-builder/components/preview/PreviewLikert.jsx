@@ -2,7 +2,7 @@ import React, { useId, useMemo } from 'react';
 import { normalizeOptions, normalizeSelectedValues } from './previewValueUtils';
 import {
     applyOptionAvailabilityToPreviewOptions,
-    isOptionFrontEndDisabled,
+    isOptionDisabled,
 } from '@form-builder/utils/optionAvailability';
 
 function getEffectiveLikertRows(likertRows, multipleRowsEnabled) {
@@ -124,7 +124,7 @@ export const PreviewLikert = ({
                                             type="radio"
                                             value={optionValue}
                                             checked={selected}
-                                            disabled={isOptionFrontEndDisabled(option)}
+                                            disabled={isOptionDisabled(option)}
                                             readOnly
                                             aria-labelledby={`${previewId}-col-${index}`}
                                         />
@@ -154,7 +154,7 @@ export const PreviewLikert = ({
                                         type="radio"
                                         value={optionValue}
                                         checked={selectedValues.includes(optionValue)}
-                                        disabled={isOptionFrontEndDisabled(option)}
+                                        disabled={isOptionDisabled(option)}
                                         readOnly
                                         aria-labelledby={`${previewId}-col-${index}`}
                                     />

@@ -395,21 +395,21 @@ class ValidationMessagesHelper
 
     public static function fileUploadValidationBrowserAttributes(
         Field $field,
-        int $limitFiles,
-        float $sizeMinLimit,
+        int $maxFiles,
+        float $minFileSize,
         float $sizeMaxLimit,
     ): array {
         $attrs = self::requiredBrowserAttributes($field);
 
-        if ($limitFiles) {
+        if ($maxFiles) {
             $attrs[self::browserAttribute(self::KEY_MAX_FILES)] = $field->getValidationMessageBrowserAttribute(self::KEY_MAX_FILES, [
-                'files' => $limitFiles,
+                'files' => $maxFiles,
             ]);
         }
 
-        if ($sizeMinLimit) {
+        if ($minFileSize) {
             $attrs[self::browserAttribute(self::KEY_MIN_FILE_SIZE)] = $field->getValidationMessageBrowserAttribute(self::KEY_MIN_FILE_SIZE, [
-                'filesize' => $sizeMinLimit,
+                'filesize' => $minFileSize,
             ]);
         }
 

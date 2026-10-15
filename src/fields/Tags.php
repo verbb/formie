@@ -252,7 +252,7 @@ class Tags extends ElementField
             : null;
     }
 
-    public function getOptionSourceSourceOptions(): array
+    public function getOptionSourceOptions(): array
     {
         return array_values(array_filter(
             $this->getSourceOptions(),
@@ -442,7 +442,7 @@ class Tags extends ElementField
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit Options'),
                 'instructions' => Craft::t('formie', 'Limit the number of available variants.'),
-                'name' => 'limitOptions',
+                'name' => 'optionLimit',
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Label Source'),

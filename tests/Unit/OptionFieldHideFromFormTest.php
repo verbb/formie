@@ -78,14 +78,14 @@ it('includes disabled options in front-end field options', function (): void {
 
     expect($field->getFieldOptions())->toHaveCount(2)
         ->and($field->getFieldOptions()[1]['disabled'] ?? false)->toBeTrue()
-        ->and(OptionsField::isOptionFrontEndDisabled($field->getFieldOptions()[1]))->toBeTrue();
+        ->and(OptionsField::isOptionDisabled($field->getFieldOptions()[1]))->toBeTrue();
 });
 
 it('resolves disabled and hidden availability states', function (): void {
     expect(OptionsField::resolveOptionAvailability(['availability' => 'hidden']))->toBe('hidden')
         ->and(OptionsField::resolveOptionAvailability(['availability' => 'disabled']))->toBe('disabled')
         ->and(OptionsField::resolveOptionAvailability(['label' => 'Visible']))->toBeNull()
-        ->and(OptionsField::isOptionFrontEndDisabled(['availability' => 'disabled']))->toBeTrue()
+        ->and(OptionsField::isOptionDisabled(['availability' => 'disabled']))->toBeTrue()
         ->and(OptionsField::isOptionHidden(['availability' => 'hidden']))->toBeTrue();
 });
 

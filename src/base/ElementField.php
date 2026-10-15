@@ -165,7 +165,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
     public ?string $source = null;
     public bool $allowMultipleSources = true;
     public bool $limit = false;
-    public ?string $limitOptions = null;
+    public ?string $optionLimit = null;
     public string $displayType = 'dropdown';
     public string $labelSource = 'title';
     public string $orderBy = 'title ASC';
@@ -199,7 +199,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         $attributes = parent::settingsAttributes();
         $attributes[] = 'sources';
         $attributes[] = 'source';
-        $attributes[] = 'limitOptions';
+        $attributes[] = 'optionLimit';
         $attributes[] = 'displayType';
         $attributes[] = 'labelSource';
         $attributes[] = 'orderBy';
@@ -363,7 +363,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         // Ensure selected initial values survive option limits for render-time prefill/default cases.
         $initialValue = $this->getInitialValue();
 
-        if ($initialValue && $this->limitOptions) {
+        if ($initialValue && $this->optionLimit) {
             $ids = [];
 
             // Handle the two ways a default value can be set
@@ -382,8 +382,8 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
             }
         }
 
-        if ($this->limitOptions) {
-            $query->limit($this->limitOptions);
+        if ($this->optionLimit) {
+            $query->limit($this->optionLimit);
         }
 
         if ($this->orderBy) {
@@ -682,8 +682,8 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
             'orderBy' => $this->orderBy,
         ];
 
-        if ($this->limitOptions) {
-            $params['limitOptions'] = $this->limitOptions;
+        if ($this->optionLimit) {
+            $params['optionLimit'] = $this->optionLimit;
         }
 
         if ($this->getOptionSourceMode() === 'multiple') {
@@ -707,8 +707,8 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
             $config['orderBy'] = (string)$params['orderBy'];
         }
 
-        if (!empty($params['limitOptions'])) {
-            $config['limitOptions'] = (string)$params['limitOptions'];
+        if (!empty($params['optionLimit'])) {
+            $config['optionLimit'] = (string)$params['optionLimit'];
         }
 
         if ($this->getOptionSourceMode() === 'multiple') {
@@ -737,7 +737,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         return $config;
     }
 
-    public function getOptionSourceSourceOptions(): array
+    public function getOptionSourceOptions(): array
     {
         return $this->getSourceOptions();
     }
@@ -900,8 +900,8 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
                 'name' => 'source',
                 'type' => Type::string(),
             ],
-            'limitOptions' => [
-                'name' => 'limitOptions',
+            'optionLimit' => [
+                'name' => 'optionLimit',
                 'type' => Type::string(),
             ],
             'displayType' => [
@@ -1117,7 +1117,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
             'sourceElementId' => !empty($element->id) ? $element->id : null,
             'showSiteMenu' => 'auto',
             'viewMode' => 'list',
-            'limit' => $this->limitOptions ? $this->limitOptions : null,
+            'limit' => $this->optionLimit ? $this->optionLimit : null,
             'defaultPlacement' => 'end',
             'modalSettings' => [
                 'defaultSiteId' => $element->siteId ?? null,
@@ -1317,7 +1317,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
 
     protected function supportedDefaults(): array
     {
-        return ['displayType', 'labelSource', 'orderBy', 'limitOptions'];
+        return ['displayType', 'labelSource', 'orderBy', 'optionLimit'];
     }
 
 

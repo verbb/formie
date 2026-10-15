@@ -53,7 +53,7 @@ class FieldSlotRegistry extends Component
                 'data-formie-field-type' => $field?->kebabClassName(),
                 'data-formie-input-id' => $context->inputId(),
                 'data-formie-field-has-error' => $context->hasErrors() ? true : false,
-                'data-formie-conditions' => $field?->getConditionsJson(),
+                'data-formie-conditions' => $field?->getBrowserConditionsJson(),
                 'data-formie-conditionally-hidden' => $isConditionallyHidden ? true : false,
                 'data-formie-validation' => $validation,
             ])

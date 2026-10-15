@@ -237,7 +237,6 @@ it('escapes hostile recipients labels in cp previews', function(): void {
     ]);
 
     $value = new RecipientsFieldValue(
-        'dropdown',
         'ops',
         '<script>alert("xss")</script>Operations',
         true,

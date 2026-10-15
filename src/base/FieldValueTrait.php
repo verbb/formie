@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\compatibility\fields\FieldCompatibility;
 use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldEmailValueEvent;
@@ -55,21 +56,16 @@ trait FieldValueTrait
 
     public function getValueAsData(mixed $value, ?ElementInterface $element = null): mixed
     {
-        if (!$this->_projectingLegacyData && $this->_hasLegacyFieldMethodOverride('getValueAsJson')) {
-            Craft::$app->getDeprecator()->log(static::class . '::getValueAsJson', 'Implement defineValueAsData() instead of overriding getValueAsJson().');
-            $this->_projectingLegacyData = true;
+        $nested = FieldCompatibility::isCalling($this, 'getValueAsData');
+        $value = FieldCompatibility::withLegacyCall($this, 'getValueAsData', fn() => $this->callLegacyFieldMethod(
+            'getValueAsJson',
+            'getValueAsData',
+            [$value, $element],
+            fn() => $this->resolveValueAsData($value, $element),
+        ));
 
-            try {
-                $value = $this->getValueAsJson($value, $element);
-            } finally {
-                $this->_projectingLegacyData = false;
-            }
-        } else {
-            $value = $this->defineValueAsData($value, $element);
-
-            if ($this->_projectingLegacyData) {
-                return $value;
-            }
+        if ($nested) {
+            return $value;
         }
 
         $event = new ModifyFieldValueEvent([
@@ -140,7 +136,12 @@ trait FieldValueTrait
 
     public function getValueForReference(mixed $value, ?ElementInterface $element = null): mixed
     {
-        $value = $this->defineValueForReference($value, $element);
+        $nested = FieldCompatibility::isCalling($this, 'getValueForReference');
+        $value = FieldCompatibility::withLegacyCall($this, 'getValueForReference', fn() => $this->resolveLegacyReferenceValue($value, $element, fn() => $this->defineValueForReference($value, $element)));
+
+        if ($nested) {
+            return $value;
+        }
 
         $event = new ModifyFieldValueEvent([
             'value' => $value,
@@ -156,7 +157,17 @@ trait FieldValueTrait
 
     public function getValueForReferenceBlock(mixed $value, Notification $notification, ?ElementInterface $element = null): mixed
     {
-        $value = $this->defineValueForReferenceBlock($value, $notification, $element);
+        $nested = FieldCompatibility::isCalling($this, 'getValueForReferenceBlock');
+        $value = FieldCompatibility::withLegacyCall($this, 'getValueForReferenceBlock', fn() => $this->callLegacyFieldMethod(
+            'getValueForEmail',
+            'getValueForReferenceBlock',
+            [$value, $notification, $element],
+            fn() => $this->callLegacyFieldMethod('defineValueForEmail', 'defineValueForReferenceBlock', [$value, $notification, $element], fn() => $this->defineValueForReferenceBlock($value, $notification, $element)),
+        ));
+
+        if ($nested) {
+            return $value;
+        }
 
         $event = new ModifyFieldEmailValueEvent([
             'value' => $value,
@@ -202,11 +213,6 @@ trait FieldValueTrait
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        if ($this->_hasLegacyFieldMethodOverride('defineValueAsJson')) {
-            Craft::$app->getDeprecator()->log(static::class . '::defineValueAsJson', 'Implement defineValueAsData() instead of defineValueAsJson().');
-            return $this->defineValueAsJson($value, $element);
-        }
-
         return FieldStorageCodec::assertSafe($value);
     }
 
@@ -219,7 +225,7 @@ trait FieldValueTrait
     protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         $fieldValue = $integrationField->getType() === IntegrationField::TYPE_ARRAY
-            ? $this->defineValueAsData($value, $element)
+            ? $this->resolveValueAsData($value, $element)
             : $this->defineValueAsString($value, $element);
 
         return Integration::convertValueForIntegration($fieldValue, $integrationField);
@@ -238,18 +244,12 @@ trait FieldValueTrait
 
     protected function defineValueForReferenceBlock(mixed $value, Notification $notification, ElementInterface $element = null): mixed
     {
-        // Keep legacy field overrides working without making the canonical
-        // reference-block path depend on the deprecated email-named hook.
-        if ($this->_hasLegacyFieldMethodOverride('defineValueForEmail')) {
-            return $this->defineValueForEmail($value, $notification, $element);
-        }
-
         return $this->_copyProjectionValue($value);
     }
 
     protected function defineValueForCondition(mixed $value, Submission $submission): mixed
     {
-        return $this->defineValueAsData($value, $submission);
+        return $this->resolveValueAsData($value, $submission);
     }
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed

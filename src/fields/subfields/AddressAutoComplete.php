@@ -25,15 +25,12 @@ class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
         return Craft::t('formie', 'Address - Auto-Complete');
     }
 
-    public static function getInputTemplatePath(): string
-    {
-        return 'fields/single-line-text';
-    }
 
-    public static function getReferenceBlockTemplatePath(): string
-    {
-        return 'fields/single-line-text';
-    }
+    // Constants
+    // =========================================================================
+
+    protected const DEFAULT_INPUT_TEMPLATE_PATH = 'fields/single-line-text';
+    protected const DEFAULT_REFERENCE_BLOCK_TEMPLATE_PATH = 'fields/single-line-text';
 
 
     // Properties

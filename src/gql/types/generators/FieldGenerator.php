@@ -2,6 +2,7 @@
 namespace verbb\formie\gql\types\generators;
 
 use verbb\formie\Formie;
+use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\fields\MissingField;
 use verbb\formie\gql\interfaces\FieldInterface;
 use verbb\formie\gql\types\FieldType;
@@ -36,6 +37,17 @@ class FieldGenerator implements GeneratorInterface
             }
             $typeName = $field->getGqlTypeName();
             $contentFieldGqlTypes = $field->getSettingGqlTypes();
+
+            foreach (FieldConfigNormalizer::settingAliases(get_class($field)) as $legacy => $canonical) {
+                if (isset($contentFieldGqlTypes[$canonical])) {
+                    $definition = $contentFieldGqlTypes[$canonical];
+                    $definition['name'] = $legacy;
+                    $definition['deprecationReason'] = "Use {$canonical} instead.";
+                    $definition['resolve'] ??= static fn($source) => $source->$canonical;
+                    $contentFieldGqlTypes[$legacy] = $definition;
+                }
+            }
+
 
             if (!$field->includeInGqlSchema($schema)) {
                 continue;

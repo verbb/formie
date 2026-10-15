@@ -59,7 +59,7 @@ class Summary extends CosmeticField
 
     public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
-        return false;
+        return $this->callLegacyFieldMethod('getEmailHtml', 'getReferenceBlockHtml', [$submission, $notification, $value, $renderOptions], fn() => false);
     }
 
     public function getFieldAccessToken(?Submission $submission): ?string

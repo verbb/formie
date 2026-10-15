@@ -30,9 +30,11 @@ trait FieldBrowserConditionTrait
         ] : [];
     }
 
-    public function getConditionsJson(): ?string
+    public function getBrowserConditionsJson(): ?string
     {
-        $conditions = $this->getBrowserConditions();
-        return $conditions ? Json::encode($conditions) : null;
+        return $this->callLegacyFieldMethod('getConditionsJson', 'getBrowserConditionsJson', [], function(): ?string {
+            $conditions = $this->getBrowserConditions();
+            return $conditions ? Json::encode($conditions) : null;
+        });
     }
 }

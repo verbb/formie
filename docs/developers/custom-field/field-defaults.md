@@ -158,7 +158,7 @@ If a setting needs normalisation before it is assigned to a new field, Formie ha
 
 If your custom field extends a Formie field that already defines `supportedDefaults()`, you inherit that list unless you override it.
 
-For example, fields that extend `verbb\formie\base\ElementField` inherit defaults for `displayType`, `labelSource`, `orderBy`, and `limitOptions`. Override `supportedDefaults()` when you want a narrower or different set.
+For example, fields that extend `verbb\formie\base\ElementField` inherit defaults for `displayType`, `labelSource`, `orderBy`, and `optionLimit`. Override `supportedDefaults()` when you want a narrower or different set.
 
 ```php
 protected function supportedDefaults(): array

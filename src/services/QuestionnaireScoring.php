@@ -414,7 +414,7 @@ class QuestionnaireScoring extends Component
         }
 
         $selectedValues = $this->_extractSelectedValues($field, $submission->getFieldValue($field->valueKey()));
-        $isMulti = $field->fieldType === Quiz::FIELD_TYPE_CHECKBOXES;
+        $isMulti = $field->displayType === Quiz::DISPLAY_CHECKBOXES;
         $weighted = $field->weightedScoreEnabled;
 
         if ($isMulti) {
@@ -544,7 +544,7 @@ class QuestionnaireScoring extends Component
             return [];
         }
 
-        if ($field->fieldType === Quiz::FIELD_TYPE_CHECKBOXES) {
+        if ($field->displayType === Quiz::DISPLAY_CHECKBOXES) {
             return $this->_extractMultiOptionValues($stored);
         }
 

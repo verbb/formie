@@ -747,7 +747,7 @@ function RepeaterFieldInput({
             onClick: () => {
                 setValue([...currentRows, createRepeaterRowValue(field)]);
             },
-        }, String(contract.addLabel ?? 'Add another row')),
+        }, String(contract.addRowLabel ?? 'Add another row')),
         state.errors.fields[errorKey] && state.errors.fields[errorKey].length > 0 ? createElement('ul', {
             key: 'errors',
             className: 'formie-react-field-errors',

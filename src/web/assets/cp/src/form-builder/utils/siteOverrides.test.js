@@ -42,7 +42,7 @@ const TEST_TRANSLATABLE_CONFIG = {
         ],
         'verbb\\formie\\fields\\Repeater': [
             'label',
-            'addLabel',
+            'addRowLabel',
             'instructions',
             'validationMessages',
         ],

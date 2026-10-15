@@ -15,7 +15,7 @@ test(`${adapter}/${transport}/${profile}: multi-page values, repeater and upload
     const before = await (await request.get('/browser-saved?journey=1')).json();
     await page.getByLabel('Visitor name', { exact: false }).fill('Journey visitor');
     await page.locator('#host button[type="submit"]').click();
-    await page.getByRole('button', { name: 'Add another row', exact: true }).click();
+    await page.getByRole('button', { name: 'Add journey item', exact: true }).click();
     await page.getByLabel('Item name', { exact: false }).last().fill('Keep this item');
     await page.locator('input[type="file"]').setInputFiles({ name: 'journey.txt', mimeType: 'text/plain', buffer: Buffer.from('Formie browser upload contract') });
     await page.getByRole('button', { name: /back|previous/i }).click();

@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
+use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\compatibility\fields\PhoneStorageCompatibility;
 use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Submission;
@@ -112,6 +113,8 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     public bool $countryEnabled = true;
     public ?string $countryDefaultValue = null;
     public string $countryLanguage = 'auto';
+    public array $allowedCountryCodes = [];
+    /** @deprecated Use allowedCountryCodes. Retained for reference-based array edits. */
     public array $countryAllowed = [];
     public bool $countryPreselectFromIp = false;
 
@@ -121,6 +124,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
 
     public function __construct(array $config = [])
     {
+        $config = FieldConfigNormalizer::normalizeSettingAliases($config, static::class);
         unset(
             $config['subfieldLabelPosition'],
             $config['subFieldLabelPosition'],
@@ -140,12 +144,6 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     public function themeConfigKey(): string
     {
         return 'phoneNumber';
-    }
-
-    public function getErrorKey(): string
-    {
-        // Deprecated: use errorKey().
-        return $this->errorKey();
     }
 
     public function errorKey(): string
@@ -240,8 +238,8 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     public function getAllowedCountries(): array
     {
         // An explicit picker list takes precedence over event-modified countries.
-        if ($this->countryAllowed) {
-            return $this->countryAllowed;
+        if ($this->allowedCountryCodes) {
+            return $this->allowedCountryCodes;
         }
 
         // Otherwise, use the countries available to this field, including event changes.
@@ -263,11 +261,11 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'name' => 'countryDefaultValue',
                 'type' => Type::string(),
             ],
-            'countryAllowed' => [
-                'name' => 'countryAllowed',
+            'allowedCountryCodes' => [
+                'name' => 'allowedCountryCodes',
                 'type' => Type::string(),
                 'resolve' => function($field) {
-                    return Json::encode($field->countryAllowed);
+                    return Json::encode($field->allowedCountryCodes);
                 },
             ],
         ]);
@@ -291,7 +289,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
             SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Allowed Countries'),
                 'instructions' => Craft::t('formie', 'Select which countries should be available to pick from. By default, all countries are available.'),
-                'name' => 'countryAllowed',
+                'name' => 'allowedCountryCodes',
                 'if' => 'countryEnabled',
                 'placeholder' => Craft::t('formie', 'Select an option'),
                 'options' => $this->getCountryOptions(),
@@ -502,7 +500,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
                 'config' => [
                     'countryDefaultValue' => $this->countryDefaultValue,
-                    'countryAllowed' => $this->_getAllowedCountryCodes(),
+                    'allowedCountryCodes' => $this->_getAllowedCountryCodes(),
                     'countryPreselectFromIp' => $this->countryPreselectFromIp,
                     'countryFromIpAction' => UrlHelper::actionUrl('formie/address/country-from-ip'),
                     'language' => $this->_getMatchedLanguageId() ?? 'en',
@@ -532,7 +530,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
     private function _getAllowedCountryCodes(): array
     {
         $codes = [];
-        $countries = $this->countryAllowed;
+        $countries = $this->allowedCountryCodes;
 
         if (!$countries) {
             $countryService = Formie::$plugin->getCountries();

@@ -7,6 +7,7 @@ use verbb\formie\base\Field;
 use verbb\formie\base\FixedParentField;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\conditions\ConditionVisibility;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
@@ -83,6 +84,8 @@ class Address extends FixedParentField implements PreviewableFieldInterface
     // Properties
     // =========================================================================
 
+    public array $allowedCountryCodes = [];
+    /** @deprecated Use allowedCountryCodes. Retained for reference-based array edits. */
     public array $countryAllowed = [];
     public bool $countryPreselectFromIp = false;
 
@@ -99,6 +102,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
 
     public function __construct(array $config = [])
     {
+        $config = FieldConfigNormalizer::normalizeSettingAliases($config, static::class);
         unset(
             $config['autocompleteIntegration'],
             $config['autocompleteEnabled'],
@@ -319,7 +323,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
             SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Allowed Countries'),
                 'instructions' => Craft::t('formie', 'Select which countries should be available to pick from. By default, all countries are available.'),
-                'name' => 'countryAllowed',
+                'name' => 'allowedCountryCodes',
                 'placeholder' => Craft::t('formie', 'Select an option'),
                 'options' => $this->getCountryOptions(),
                 'multiple' => true,
@@ -675,7 +679,7 @@ class Address extends FixedParentField implements PreviewableFieldInterface
                 'surfaces' => [BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED, BrowserModule::SURFACE_CP_EDIT],
                 'config' => [
                     'countryPreselectFromIp' => true,
-                    'countryAllowed' => $this->countryAllowed,
+                    'allowedCountryCodes' => $this->allowedCountryCodes,
                     'countryOptionValue' => $countrySubfield->optionValue ?? 'short',
                     'countryFromIpAction' => UrlHelper::actionUrl('formie/address/country-from-ip'),
                 ],

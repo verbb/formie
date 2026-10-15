@@ -25,10 +25,11 @@ class MissingField extends Field implements MissingComponentInterface
         return Craft::t('formie', 'Missing Field');
     }
 
-    public static function getInputTemplatePath(): string
-    {
-        return '';
-    }
+
+    // Constants
+    // =========================================================================
+
+    protected const DEFAULT_INPUT_TEMPLATE_PATH = '';
 
 
     // Traits
@@ -97,7 +98,7 @@ class MissingField extends Field implements MissingComponentInterface
 
     public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
-        return false;
+        return $this->callLegacyFieldMethod('getEmailHtml', 'getReferenceBlockHtml', [$submission, $notification, $value, $renderOptions], fn() => false);
     }
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed

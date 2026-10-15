@@ -47,7 +47,7 @@ it('rejects uploaded files that exceed the configured max file size', function (
         ->form(['title' => 'File Upload Size Security'])
         ->fileUploadField('attachments', [
             'restrictFiles' => false,
-            'sizeLimit' => 0.001,
+            'maxFileSize' => 0.001,
         ])
         ->create();
 
@@ -139,7 +139,7 @@ it('rejects uploaded files above the configured file-count limit', function (): 
         ->form(['title' => 'File Upload Count Security'])
         ->fileUploadField('attachments', [
             'restrictFiles' => false,
-            'limitFiles' => 1,
+            'maxFiles' => 1,
         ])
         ->create();
 

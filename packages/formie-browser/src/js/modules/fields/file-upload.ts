@@ -258,8 +258,8 @@ function registerValidators(form: HTMLFormElement | null): void {
         });
 
         validator.addValidator('fileSizeMinLimit', ({ input }) => {
-            const sizeLimit = parseFloat(input.getAttribute('data-formie-size-min-limit') || '');
-            const sizeBytes = sizeLimit * 1000 * 1000;
+            const maxFileSize = parseFloat(input.getAttribute('data-formie-size-min-limit') || '');
+            const sizeBytes = maxFileSize * 1000 * 1000;
 
             if (input.type !== 'file' || !sizeBytes || !('files' in input) || !input.files?.length) {
                 return true;
@@ -276,8 +276,8 @@ function registerValidators(form: HTMLFormElement | null): void {
         });
 
         validator.addValidator('fileSizeMaxLimit', ({ input }) => {
-            const sizeLimit = parseFloat(input.getAttribute('data-formie-size-max-limit') || '');
-            const sizeBytes = sizeLimit * 1000 * 1000;
+            const maxFileSize = parseFloat(input.getAttribute('data-formie-size-max-limit') || '');
+            const sizeBytes = maxFileSize * 1000 * 1000;
 
             if (input.type !== 'file' || !sizeBytes || !('files' in input) || !input.files?.length) {
                 return true;

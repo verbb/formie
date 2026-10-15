@@ -530,7 +530,7 @@ function renderRepeater(ctx: RenderViewContext, props: FieldNodeProps): Template
                     setValue([...currentRows, createRepeaterRowValue(field)]);
                 }}
             >
-                ${String(contract.addLabel ?? 'Add another row')}
+                ${String(contract.addRowLabel ?? 'Add another row')}
             </button>
         </div>
     `;

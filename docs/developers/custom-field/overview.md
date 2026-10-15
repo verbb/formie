@@ -43,6 +43,15 @@ Use `getFields()` to read a parent’s immediate fields, `getEnabledFields()` to
 
 ## Methods
 
+Use public getters to consume a field's completed configuration or projected value. Author configuration through the named hooks: `defineFormBuilder*Schema()` methods are public; value, browser-module, client-input and reference declaration hooks are protected. Public value getters dispatch their corresponding events, so a projection hook should reuse protected implementations instead of calling another public projection getter. To reuse the data projection, call protected `resolveValueAsData($value, $element = null)`: it resolves `defineValueAsData()` and supported legacy overrides without firing the data event. Keep dedicated condition, browser and integration projections when their shape differs from the data representation.
+
+Use `MyField::class` for the fully qualified class identity and `MyField::getShortClassName()` for its short class name. `fieldKind()` describes an input kind, `valueType()` describes the normalized PHP value, and `getPresentationDisplayType()` identifies a presentation mode on fields that support presentation delegates. These represent different concepts.
+
+Overriding `getShortClassName()` also changes the derived `kebabClassName()` and `lowerClassName()` results, the default Theme Config key and any default template paths derived from its name. For example, returning `SharedWidget` produces `fields/shared-widget` as the default input and reference-block template path. Explicit template-path overrides and fixed native template defaults continue to determine their own paths. Use the template-path methods when you only want to choose different templates.
+
+Fields that extend a native field inherit its supported settings and option-source capabilities. For example, a Dropdown subclass can use integration-backed options; a Recipients subclass still requires a source that explicitly supports recipients. Constructors and `setAttributes()` accept field configuration; normal settings are emitted by `getSettings()`. `parentField` and `namespace` are setter-backed runtime properties and are preserved when a field delegates presentation to another field. Keep these runtime properties separate from stored settings.
+
+
 ::: reference
 ### `displayName()`
 
@@ -97,6 +106,14 @@ Defines the schema for the `General` tab in the field edit modal.
 **Returns:** `array`
 
 Defines the schema for the `Settings` tab in the field edit modal.
+:::
+
+::: reference
+### `defineFormBuilderValidationSchema()`
+
+**Returns:** `array`
+
+Defines the schema for the `Validation` tab in the field edit modal. Like the other `defineFormBuilder*Schema()` hooks, this method is public.
 :::
 
 ::: reference
@@ -166,7 +183,7 @@ Returns the complete client-rendered field definition, including input configura
 
 **Returns:** `verbb\formie\fields\definitions\FieldClientRenderedChildren`
 
-Declares whether the client-rendered payload is scalar, part-based, or row-based for nested fields.
+Returns the nested structure declared by the protected `defineClientRenderedChildren()` hook. Override that hook to describe scalar, part-based or row-based input; use `clientRenderedChildren()` when reading the completed declaration.
 :::
 
 ::: reference
@@ -282,6 +299,16 @@ Returns the post-normalisation PHP value type declared by the protected `defineV
 
 Refer to the [Field](/reference/field) object documentation for more.
 
+## Options and Presentation
+
+`options()` returns authored option rows, `getResolvedOptions()` resolves the current source, and `getFieldOptions()` returns the rows suitable for display, including availability and any recipient tokenization. These methods are not interchangeable. `isOptionHidden()` and `isOptionDisabled()` interpret canonical option availability.
+
+Element fields use `optionLimit` to limit results fetched from their source. Choice fields use the boolean `limitOptions` with `min` and `max` to validate selection counts. Quiz uses `displayType` to select its presentation, with `DISPLAY_RADIO`, `DISPLAY_DROPDOWN` and `DISPLAY_CHECKBOXES` constants. Recipients derives selection cardinality from `displayType`; it has no independent editable multiplicity setting.
+
+Phone and Address use `allowedCountryCodes` for configured country codes. File Upload uses `minFileSize` and `maxFileSize` in decimal megabytes (1 MB = 1,000,000 bytes), and `maxFiles` for the number of files. Repeater and Table use `addRowLabel` for their add-row button text.
+
+A normalized `RecipientsFieldValue` exposes read-only `value`, `label`, `valid` and `multiple` properties, plus `all()`, `values()` and `labels()` for selections. It contains selection data, not a widget type. The field owns presentation, storage and browser tokenization; pass a normalized value to `serializeValueForClientInput()` when preparing browser input.
+
 ## Normalised Values and Projections
 
 A field first normalises input into a consistent PHP value. It then converts that value for each use: display text, JSON data, database storage, exports or integration requests. These conversions are called **projections**. Keep them separate so, for example, changing a date’s display format does not change how it is stored.
@@ -334,7 +361,7 @@ For a form containing a Name field with handle `contactName`, these Twig calls s
 {% set parts = submission.getFieldValueAsData('contactName') %}
 ```
 
-`name` is the immutable Name value in both UI modes. `parts` contains `name`, `prefix`, `prefixOption`, `firstName`, `middleName` and `lastName`; the single-name input uses `name`. Option data contains selected value, label and validity metadata without the available-option catalogue. Relation data is a list of selected `id`, `title` and `url` records; File Upload also includes `filename`. The Link adapter returns an immutable `CustomLinkFieldValue` with URL, label and submitted attributes; native Craft input rendering receives a separate reconstructed object. Use the field's integration, export or reference methods when those consumers require a different shape.
+`name` is the immutable Name value in both UI modes. `parts` contains `name`, `prefix`, `prefixOption`, `firstName`, `middleName` and `lastName`; the single-name input uses `name`. Option data is the selected scalar, or a list of selected scalars for multiple selections. This also applies to Name Prefix and Address Country subfields: a prefix can return `dr` as data and `Doctor` as display/export text; a country configured to store codes returns `AU` as data rather than its display label. Labels, validity and selection helpers remain available on the normalized PHP value object. Empty single selections return `null`; empty multiple selections return `[]`. Relation data is a list of selected `id`, `title` and `url` records; File Upload also includes `filename`. The Link adapter returns an immutable `CustomLinkFieldValue` with URL, label and submitted attributes; native Craft input rendering receives a separate reconstructed object. Use the field's integration, export or reference methods when those consumers require a different shape.
 
 ## Settings Schema
 Custom field settings are defined with schema, not Twig templates. The schema tells the form builder which inputs to show, which setting each input saves to, and how the UI should be grouped.

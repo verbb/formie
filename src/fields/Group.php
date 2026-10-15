@@ -79,12 +79,6 @@ class Group extends ContainerParentField implements ContainerParentFieldInterfac
         ];
     }
 
-    public function getConfigJson(): ?string
-    {
-        // Group fields themselves should not contain the inner field's JS
-        return null;
-    }
-
     public function defineFormBuilderGeneralSchema(): array
     {
         return [

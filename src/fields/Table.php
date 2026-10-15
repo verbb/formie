@@ -74,6 +74,7 @@ class Table extends Field
         return 'formie/_formfields/table/icon.svg';
     }
 
+    /** @deprecated Use valueType() for the normalized runtime contract. */
     public static function phpType(): string
     {
         return 'array|null';
@@ -177,7 +178,7 @@ class Table extends Field
 
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
-        return $this->defineValueAsData($value, $element);
+        return $this->resolveValueAsData($value, $element);
     }
 
     public function __construct(array $config = [])

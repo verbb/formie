@@ -19,15 +19,12 @@ class DateYearDropdown extends DateDropdown implements ChildFieldInterface
         return Craft::t('formie', 'Date - Year');
     }
 
-    public static function getInputTemplatePath(): string
-    {
-        return 'fields/dropdown';
-    }
 
-    public static function getReferenceBlockTemplatePath(): string
-    {
-        return 'fields/dropdown';
-    }
+    // Constants
+    // =========================================================================
+
+    protected const DEFAULT_INPUT_TEMPLATE_PATH = 'fields/dropdown';
+    protected const DEFAULT_REFERENCE_BLOCK_TEMPLATE_PATH = 'fields/dropdown';
 
 
     // Properties

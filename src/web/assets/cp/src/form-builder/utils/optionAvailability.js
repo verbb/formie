@@ -20,7 +20,7 @@ export function isOptionHidden(row) {
     return resolveOptionAvailability(row) === 'hidden';
 }
 
-export function isOptionFrontEndDisabled(row) {
+export function isOptionDisabled(row) {
     return resolveOptionAvailability(row) === 'disabled';
 }
 
@@ -131,7 +131,7 @@ export function applyOptionAvailabilityToPreviewOptions(options) {
 
         return {
             ...option,
-            disabled: isOptionFrontEndDisabled(option),
+            disabled: isOptionDisabled(option),
         };
     });
 }

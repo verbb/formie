@@ -9,7 +9,7 @@ const preview: FormiePreviewSourceDefinition = {
             targets: [{ type: 'selector', selector: '[data-formie-field-handle="phoneNumberWithCountry"]' }],
             config: {
                 countryDefaultValue: 'US',
-                countryAllowed: ['US', 'CA', 'GB'],
+                allowedCountryCodes: ['US', 'CA', 'GB'],
             },
         },
     ],

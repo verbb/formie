@@ -48,7 +48,7 @@ file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/sent-notification-b
 $journey = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Browser journey', 'handle' => 'browserJourney'])
     ->multiPage(2)->onPage(1)
     ->singleLineTextField('visitorName', ['label' => 'Visitor name', 'required' => true])
-    ->onPage(2)->repeaterField('items', ['rows' => [['fields' => [[
+    ->onPage(2)->repeaterField('items', ['addRowLabel' => 'Add journey item', 'rows' => [['fields' => [[
         'type' => \verbb\formie\fields\SingleLineText::class, 'handle' => 'itemName', 'label' => 'Item name',
     ]]]]])->fileUploadField('attachment', ['label' => 'Attachment', 'restrictFiles' => false])->create();
 $journey->getPages()[1]->getPageSettings()->showBackButton = true;

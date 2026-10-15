@@ -2,6 +2,8 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\compatibility\fields\FieldCompatibility;
+use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\compatibility\fields\FieldRuntimeCompatibility;
 use verbb\formie\conditions\ConditionVisibility;
 use verbb\formie\content\ContentEncryption;
@@ -66,8 +68,18 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     // Static Methods
     // =========================================================================
 
+    /** @deprecated Use ::class for identity or getShortClassName() for a short name. */
     public static function className(): string
     {
+        return FieldCompatibility::withLegacyCall(static::class, 'className', fn() => static::getShortClassName());
+    }
+
+    public static function getShortClassName(): string
+    {
+        if (FieldCompatibility::prefersLegacyMethod(static::class, 'className', 'getShortClassName')) {
+            return FieldCompatibility::withLegacyCall(static::class, 'className', fn() => static::className());
+        }
+
         $classNameParts = explode('\\', static::class);
 
         return array_pop($classNameParts);
@@ -75,17 +87,12 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public static function kebabClassName(): string
     {
-        return StringHelper::toKebabCase(static::className());
+        return StringHelper::toKebabCase(static::getShortClassName());
     }
 
     public static function lowerClassName(): string
     {
-        return StringHelper::toLowerCase(static::className());
-    }
-
-    public static function phpType(): string
-    {
-        return 'mixed';
+        return StringHelper::toLowerCase(static::getShortClassName());
     }
 
     public static function dbType(): array|string|null
@@ -100,11 +107,11 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public static function getReferenceBlockTemplatePath(): string
     {
-        if (static::_hasLegacyStaticMethodOverride('getEmailTemplatePath')) {
-            return static::getEmailTemplatePath();
+        if (FieldCompatibility::prefersLegacyMethod(static::class, 'getEmailTemplatePath', 'getReferenceBlockTemplatePath')) {
+            return FieldCompatibility::withLegacyCall(static::class, 'getEmailTemplatePath', fn() => static::getEmailTemplatePath());
         }
 
-        return static::_getDefaultReferenceBlockTemplatePath();
+        return static::DEFAULT_REFERENCE_BLOCK_TEMPLATE_PATH ?? 'fields/' . static::kebabClassName();
     }
 
     public static function defineFieldType(): array
@@ -200,7 +207,11 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public static function getInputTemplatePath(): string
     {
-        return 'fields/' . static::kebabClassName();
+        if (FieldCompatibility::prefersLegacyMethod(static::class, 'getFrontEndInputTemplatePath', 'getInputTemplatePath')) {
+            return FieldCompatibility::withLegacyCall(static::class, 'getFrontEndInputTemplatePath', fn() => static::getFrontEndInputTemplatePath());
+        }
+
+        return static::DEFAULT_INPUT_TEMPLATE_PATH ?? 'fields/' . static::kebabClassName();
     }
 
     public static function getRequiredPlugins(): array
@@ -302,11 +313,6 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         return RichText::from(self::_normalizeInstructionsValue($value));
     }
 
-    private static function _getDefaultReferenceBlockTemplatePath(): string
-    {
-        return 'fields/' . static::kebabClassName();
-    }
-
 
     // Constants
     // =========================================================================
@@ -361,6 +367,9 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     // Deprecated
     public const EVENT_MODIFY_VALUE_AS_JSON = self::EVENT_MODIFY_VALUE_AS_DATA;
     public const EVENT_MODIFY_VALUE_FOR_EMAIL = self::EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK;
+
+    protected const DEFAULT_INPUT_TEMPLATE_PATH = null;
+    protected const DEFAULT_REFERENCE_BLOCK_TEMPLATE_PATH = null;
 
 
     // Traits
@@ -441,6 +450,8 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function __construct(array $config = [])
     {
+        $this->initializeLegacySettingAliases();
+
         if (array_key_exists('prePopulate', $config)) {
             $config['prefillQueryParam'] = $config['prefillQueryParam'] ?? $config['prePopulate'];
             unset($config['prePopulate']);
@@ -458,6 +469,10 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function setAttributes($values, $safeOnly = true): void
     {
+        if (is_array($values)) {
+            $values = FieldConfigNormalizer::normalizeSettingAliases($values, static::class);
+        }
+
         if (is_array($values) && array_key_exists('instructions', $values)) {
             $values['instructions'] = self::_instructionsFrom($values['instructions']);
         }
@@ -471,7 +486,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function getSettings(): array
     {
-        $settings = parent::getSettings();
+        $settings = FieldConfigNormalizer::normalizeSettingAliases(parent::getSettings(), static::class);
         $settings['instructions'] = $this->instructions->getSchema();
         $settings['builderNote'] = $this->builderNote->getSchema();
 
@@ -529,7 +544,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function themeConfigKey(): string
     {
-        return StringHelper::toCamelCase(StringHelper::toKebabCase(static::className()));
+        return StringHelper::toCamelCase(StringHelper::toKebabCase(static::getShortClassName()));
     }
 
     public function getDisplayType(): ?string
@@ -563,20 +578,12 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function hasReferenceBlockLabel(): bool
     {
-        if ($this->_hasLegacyFieldMethodOverride('hasEmailLabel')) {
-            return $this->hasEmailLabel();
-        }
-
-        return true;
+        return $this->callLegacyFieldMethod('hasEmailLabel', 'hasReferenceBlockLabel', [], fn() => true);
     }
 
     public function hasReferenceBlockPlaceholder(): bool
     {
-        if ($this->_hasLegacyFieldMethodOverride('hasEmailPlaceholder')) {
-            return $this->hasEmailPlaceholder();
-        }
-
-        return true;
+        return $this->callLegacyFieldMethod('hasEmailPlaceholder', 'hasReferenceBlockPlaceholder', [], fn() => true);
     }
 
     public function getIsHidden(): bool
@@ -692,10 +699,10 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     final public function serializeValueForDb(mixed $value, ?ElementInterface $element = null): mixed
     {
-        if ($this->_hasLegacyFieldMethodOverride('serializeValue')) {
+        if (FieldCompatibility::prefersLegacyMethod($this, 'serializeValue', 'defineValueForDb')) {
             Craft::$app->getDeprecator()->log(static::class . '::serializeValue', 'Implement defineValueForDb() instead of overriding serializeValue().');
         }
-        $stored = $this->_hasLegacyFieldMethodOverride('serializeValue')
+        $stored = FieldCompatibility::prefersLegacyMethod($this, 'serializeValue', 'defineValueForDb')
             ? $this->serializeValue($value, $element)
             : $this->defineValueForDb($value, $element);
 
@@ -1078,20 +1085,12 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
-        if ($this->_hasLegacyFieldMethodOverride('getEmailHtml')) {
-            return $this->getEmailHtml($submission, $notification, $value, $renderOptions);
-        }
-
-        return $this->_renderReferenceBlockHtml($submission, $notification, $value, $renderOptions);
+        return $this->callLegacyFieldMethod('getEmailHtml', 'getReferenceBlockHtml', [$submission, $notification, $value, $renderOptions], fn() => $this->_renderReferenceBlockHtml($submission, $notification, $value, $renderOptions));
     }
 
     public function getReferenceBlockOptions(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): array
     {
-        if ($this->_hasLegacyFieldMethodOverride('getEmailOptions')) {
-            return $this->getEmailOptions($submission, $notification, $value, $renderOptions);
-        }
-
-        return $this->_buildReferenceBlockOptions($submission, $notification, $value, $renderOptions);
+        return $this->callLegacyFieldMethod('getEmailOptions', 'getReferenceBlockOptions', [$submission, $notification, $value, $renderOptions], fn() => $this->_buildReferenceBlockOptions($submission, $notification, $value, $renderOptions));
     }
 
     public function includeInGqlSchema(GqlSchema $schema): bool

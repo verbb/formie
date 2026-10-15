@@ -55,6 +55,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
         return 'formie/_formfields/survey/icon.svg';
     }
 
+    /** @deprecated Use valueType() for the normalized runtime contract. */
     public static function phpType(): string
     {
         return sprintf('\\%s', SingleOptionFieldValue::class);
@@ -951,7 +952,7 @@ class Survey extends OptionsField implements SortableFieldInterface, Questionnai
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        return !$this->usesOptions() ? $this->getDisplayTypeField()->defineValueAsData($value, $element) : parent::defineValueAsData($value, $element);
+        return !$this->usesOptions() ? $this->getDisplayTypeField()->resolveValueAsData($value, $element) : parent::defineValueAsData($value, $element);
     }
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element = null): mixed

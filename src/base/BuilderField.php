@@ -7,18 +7,10 @@ use craft\models\GqlSchema;
 
 abstract class BuilderField extends CosmeticField implements BuilderFieldInterface
 {
-    // Static Methods
+    // Constants
     // =========================================================================
 
-    public static function getFrontEndInputTemplatePath(): string
-    {
-        return '';
-    }
-
-    public static function getInputTemplatePath(): string
-    {
-        return '';
-    }
+    protected const DEFAULT_INPUT_TEMPLATE_PATH = '';
 
 
     // Public Methods
@@ -88,6 +80,6 @@ abstract class BuilderField extends CosmeticField implements BuilderFieldInterfa
 
     protected function getBuilderIdentityHandlePrefix(): string
     {
-        return StringHelper::toCamelCase(static::className());
+        return StringHelper::toCamelCase(static::getShortClassName());
     }
 }

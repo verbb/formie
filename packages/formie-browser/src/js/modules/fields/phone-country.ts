@@ -18,7 +18,7 @@ ensureModuleStyles(MODULE_ID, [intlTelInputCss]);
 
 type PhoneCountryOptions = {
     countryDefaultValue?: string;
-    countryAllowed?: string[];
+    allowedCountryCodes?: string[];
     countryPreselectFromIp?: boolean;
     countryFromIpAction?: string;
     language?: string;
@@ -93,7 +93,7 @@ function buildOptions(options: PhoneCountryOptions, form: HTMLFormElement | null
         loadUtils: () => import('intl-tel-input/utils'),
     };
 
-    const allowedCountries = (options.countryAllowed || [])
+    const allowedCountries = (options.allowedCountryCodes || [])
         .map((item) => {
             return item.toLowerCase();
         })

@@ -3,6 +3,7 @@ namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\RepeatableParentField;
+use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\input\RepeaterInputType;
@@ -37,7 +38,7 @@ class Repeater extends RepeatableParentField
     public static function translatableProperties(): array
     {
         $properties = parent::translatableProperties();
-        $properties[] = 'addLabel';
+        $properties[] = 'addRowLabel';
 
         return $properties;
     }
@@ -124,7 +125,7 @@ class Repeater extends RepeatableParentField
 
     public ?int $minRows = null;
     public ?int $maxRows = null;
-    public ?string $addLabel = null;
+    public ?string $addRowLabel = null;
 
 
     // Public Methods
@@ -132,8 +133,10 @@ class Repeater extends RepeatableParentField
 
     public function __construct(array $config = [])
     {
-        // Setuo defaults for some values which can't in in the property definition
-        $config['addLabel'] = $config['addLabel'] ?? Craft::t('formie', 'Add another row');
+        $this->initializeLegacySettingAliases();
+        $config = FieldConfigNormalizer::normalizeSettingAliases($config, static::class);
+        // Resolve legacy subclass defaults before supplying the translated fallback.
+        $config['addRowLabel'] = $config['addRowLabel'] ?? $this->addRowLabel ?? Craft::t('formie', 'Add another row');
 
         parent::__construct($config);
     }
@@ -161,8 +164,8 @@ class Repeater extends RepeatableParentField
                 'name' => 'maxRows',
                 'type' => Type::int(),
             ],
-            'addLabel' => [
-                'name' => 'addLabel',
+            'addRowLabel' => [
+                'name' => 'addRowLabel',
                 'type' => Type::string(),
             ],
         ]);
@@ -175,7 +178,7 @@ class Repeater extends RepeatableParentField
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Add Label'),
                 'instructions' => Craft::t('formie', 'The label for the button that adds another instance.'),
-                'name' => 'addLabel',
+                'name' => 'addRowLabel',
                 'validation' => 'required',
                 'required' => true,
             ]),
@@ -380,7 +383,7 @@ class Repeater extends RepeatableParentField
             return SlotTag::make('button')
                 ->core([
                     'type' => 'button',
-                    'text' => $this->addLabel,
+                    'text' => $this->addRowLabel,
                     'disabled' => $isStatic,
                     'data-formie-add-button' => true,
                     'data-formie-repeater-add' => $this->handle,
@@ -477,7 +480,7 @@ class Repeater extends RepeatableParentField
         return array_merge(parent::defineClientRenderedInput(), [
             'minRows' => $this->minRows,
             'maxRows' => $this->maxRows,
-            'addLabel' => $this->addLabel,
+            'addRowLabel' => $this->addRowLabel,
         ]);
     }
 

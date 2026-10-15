@@ -3,6 +3,7 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
+use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\Date;
 use verbb\formie\fields\FileUpload;
@@ -180,6 +181,7 @@ class FormDefaults extends Component
                 continue;
             }
 
+            $values = FieldConfigNormalizer::normalizeSettingAliases($values, $fieldClass);
             $supported = $this->_getSupportedDefaults($fieldClass);
 
             if ($supported === []) {
@@ -230,7 +232,7 @@ class FormDefaults extends Component
             return [];
         }
 
-        return $stored;
+        return FieldConfigNormalizer::normalizeSettingAliases($stored, $fieldClass);
     }
 
     public function getFieldTypeDefaultsConfig(): array

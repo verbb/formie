@@ -5,7 +5,7 @@ import { cn } from '@verbb/plugin-kit-react/utils';
 import { normalizeOptions, normalizeSelectedValues } from './previewValueUtils';
 import {
     applyOptionAvailabilityToPreviewOptions,
-    isOptionFrontEndDisabled,
+    isOptionDisabled,
 } from '@form-builder/utils/optionAvailability';
 
 const OTHER_OPTION_VALUE = '__other__';
@@ -39,7 +39,7 @@ export const PreviewChoiceList = ({
                             type={inputType}
                             value={optionValue}
                             checked={selectedValues.includes(optionValue)}
-                            disabled={isOptionFrontEndDisabled(option)}
+                            disabled={isOptionDisabled(option)}
                             readOnly
                         />
                         <label>{option?.label ?? optionValue}</label>

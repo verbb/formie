@@ -211,7 +211,7 @@ class QuestionnaireResults extends Component
         }
 
         if ($field instanceof Quiz) {
-            if ($field->fieldType === Quiz::FIELD_TYPE_CHECKBOXES) {
+            if ($field->displayType === Quiz::DISPLAY_CHECKBOXES) {
                 return $this->_extractMultiOptionValues($stored);
             }
 

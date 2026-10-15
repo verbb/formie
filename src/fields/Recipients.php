@@ -99,7 +99,6 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
     public array $options = [];
     public string $optionsMode = OptionsMode::STATIC;
     public ?array $optionSource = null;
-    public ?bool $multiple = null;
 
 
     // Public Methods
@@ -204,7 +203,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
                 $option = RecipientOptionSelectionHelper::resolveSelectionOption($selection, $optionsById, $optionsByValue);
                 $valid = $option !== null;
                 $label = $selection['label'] ?? ($option['label'] ?? null);
-                $value = new RecipientsFieldValue($this->displayType, $selectedValue, $label, $valid, [], $options);
+                $value = new RecipientsFieldValue($selectedValue, $label, $valid, [], $options);
             } elseif ($this->displayType === 'checkboxes') {
                 $selectedOptions = [];
 
@@ -215,13 +214,13 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
                     $selectedOptions[] = new OptionValue($label, $selection['value'], true, $valid);
                 }
 
-                $value = new RecipientsFieldValue($this->displayType, null, null, true, $selectedOptions, $options);
+                $value = new RecipientsFieldValue(null, null, true, $selectedOptions, $options, multiple: true);
             }
         } elseif ($value !== null) {
             // Ensure we're always dealing with real values. Fake values are used on front-end render.
             // Fake values will exist here if validation for the element fails.
             $value = $this->_resolveRecipientInput($value);
-            $value = new RecipientsFieldValue($this->displayType, $value);
+            $value = new RecipientsFieldValue($value);
         }
 
         return $value;
@@ -234,12 +233,12 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         }
 
         if ($this->displayType === 'hidden') {
-            return RecipientTokenHelper::encodeHidden($value->rawValue());
+            return RecipientTokenHelper::encodeHidden($value->value);
         }
         $tokens = [];
         $selections = $this->displayType === 'checkboxes'
-            ? array_map(static fn($option) => ['value' => $option->value, 'label' => $option->label], $value->selectedOptions())
-            : [['value' => $value->rawValue(), 'label' => $value->label()]];
+            ? array_map(static fn($option) => ['value' => $option->value, 'label' => $option->label], $value->all())
+            : [['value' => $value->value, 'label' => $value->label]];
 
         foreach ($selections as $selection) {
             if ($selection['value'] === null || $selection['value'] === '') {
@@ -263,6 +262,18 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         return [
             SchemaHelper::previewRecipients(),
         ];
+    }
+
+    /** @deprecated Selection cardinality is determined by displayType. */
+    public function getMultiple(): bool
+    {
+        return $this->displayType === 'checkboxes';
+    }
+
+    /** @deprecated Retained for legacy configuration; displayType determines cardinality. */
+    public function setMultiple(?bool $value): void
+    {
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Recipients selection cardinality is determined by displayType.');
     }
 
     public function options(): array
@@ -305,7 +316,6 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         $attributes[] = 'options';
         $attributes[] = 'optionsMode';
         $attributes[] = 'optionSource';
-        $attributes[] = 'multiple';
         $attributes[] = 'useSearchable';
 
         return $attributes;
@@ -365,7 +375,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         $inputOptions = parent::getInputTemplateVariables($form, $value);
 
         // When rendering the value **always** swap out the real values with obscured ones
-        $inputOptions['value'] = $this->getFakeValue($value);
+        $inputOptions['value'] = $this->serializeValueForClientInput($this->normalizeValue($value, null));
 
         return $inputOptions;
     }
@@ -452,7 +462,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
             return;
         }
 
-        if (in_array($this->displayType, ['dropdown', 'radio'], true) && !$value->valid()) {
+        if (in_array($this->displayType, ['dropdown', 'radio'], true) && !$value->valid) {
             $element->addError($this->valueKey(), Craft::t('formie', 'Select a valid recipient.'));
 
             return;
@@ -462,7 +472,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
             return;
         }
 
-        foreach ($value->selectedOptions() as $option) {
+        foreach ($value->all() as $option) {
             if ($option instanceof OptionValue && !$option->valid) {
                 $element->addError($this->valueKey(), Craft::t('formie', 'Select only valid recipients.'));
 
@@ -471,8 +481,10 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         }
     }
 
+    /** @deprecated Use normalizeFieldValue() and the normalized value's value/values() accessors. */
     public function getRealValue($value)
     {
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Use normalizeFieldValue() and its value/values() accessors.');
         $resolved = $this->_resolveRecipientInput($value);
 
         if (is_array($resolved) && array_key_exists('value', $resolved)) {
@@ -481,8 +493,10 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         return $resolved;
     }
 
+    /** @deprecated Use serializeValueForClientInput() with a normalized value. */
     public function getFakeValue($value)
     {
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Use serializeValueForClientInput() with a normalized value.');
         $normalized = $this->normalizeValue($value, null);
 
         if ($normalized instanceof RecipientsFieldValue) {
@@ -511,6 +525,8 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
             'multiple' => [
                 'name' => 'multiple',
                 'type' => Type::boolean(),
+                'deprecationReason' => 'Selection cardinality is determined by displayType.',
+                'resolve' => static fn(self $field): bool => $field->displayType === 'checkboxes',
             ],
             'useSearchable' => [
                 'name' => 'useSearchable',
@@ -734,23 +750,23 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        return $value?->toArray();
+        return $value?->multiple ? $value->values() : ($value?->value ?? ($this->displayType === 'checkboxes' ? [] : null));
     }
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {
         if ($value instanceof RecipientsFieldValue) {
-            $value = match ($value->displayType()) {
+            $value = match ($this->displayType) {
                 'checkboxes' => array_map(static fn(OptionValue $option): array => [
                     'value' => $option->value,
                     'label' => $option->getDisplayLabel(),
-                ], $value->selectedOptions()),
-                'hidden' => is_array($value->rawValue()) ? Json::encode($value->rawValue()) : $value->rawValue(),
-                default => ($value->rawValue() === null || $value->rawValue() === '')
-                    ? $value->rawValue()
+                ], $value->all()),
+                'hidden' => is_array($value->value) ? Json::encode($value->value) : $value->value,
+                default => ($value->value === null || $value->value === '')
+                    ? $value->value
                     : [
-                        'value' => $value->rawValue(),
-                        'label' => $value->label(),
+                        'value' => $value->value,
+                        'label' => $value->label,
                     ],
             };
         }
@@ -819,10 +835,10 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         if ($value instanceof RecipientsFieldValue) {
             $templateValue = match ($this->displayType) {
                 'checkboxes' => $value->values(),
-                'hidden' => is_array($value->rawValue())
-                    ? Json::encode($value->rawValue())
-                    : (string)($value->rawValue() ?? ''),
-                default => $value->rawValue() ?? '',
+                'hidden' => is_array($value->value)
+                    ? Json::encode($value->value)
+                    : (string)($value->value ?? ''),
+                default => $value->value ?? '',
             };
         }
 

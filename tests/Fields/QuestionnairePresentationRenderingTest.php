@@ -30,8 +30,8 @@ it('renders questionnaire choice layouts required by their browser modules', fun
         ->and($layout->getElementsByTagName('legend')->length)->toBe(1)
         ->and($layout->getElementsByTagName('input')->length)->toBeGreaterThanOrEqual(2);
 })->with([
-    'radio quiz' => [Quiz::class, 'fieldType', 'radio'],
-    'checkbox quiz' => [Quiz::class, 'fieldType', 'checkboxes'],
+    'radio quiz' => [Quiz::class, 'displayType', 'radio'],
+    'checkbox quiz' => [Quiz::class, 'displayType', 'checkboxes'],
     'radio survey' => [Survey::class, 'displayType', 'radio'],
     'checkbox survey' => [Survey::class, 'displayType', 'checkboxes'],
 ]);

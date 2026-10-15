@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\compatibility\fields;
 
+use verbb\formie\base\ElementField;
 use verbb\formie\fields\Address;
 use verbb\formie\fields\Categories;
 use verbb\formie\fields\Checkboxes;
@@ -11,8 +12,10 @@ use verbb\formie\fields\MultiLineText;
 use verbb\formie\fields\Number;
 use verbb\formie\fields\Phone;
 use verbb\formie\fields\Products;
+use verbb\formie\fields\Quiz;
 use verbb\formie\fields\Radio;
 use verbb\formie\fields\Recipients;
+use verbb\formie\fields\Repeater;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\fields\subfields\Address1;
 use verbb\formie\fields\subfields\Address2;
@@ -59,8 +62,50 @@ class FieldConfigNormalizer
     // Static Methods
     // =========================================================================
 
+    public static function settingAliases(string $fieldClass): array
+    {
+        $aliases = [];
+
+        foreach ([
+            ElementField::class => ['limitOptions' => 'optionLimit'],
+            FileUpload::class => ['sizeLimit' => 'maxFileSize', 'sizeMinLimit' => 'minFileSize', 'limitFiles' => 'maxFiles'],
+            Repeater::class => ['addLabel' => 'addRowLabel'],
+            Phone::class => ['countryAllowed' => 'allowedCountryCodes'],
+            Address::class => ['countryAllowed' => 'allowedCountryCodes'],
+        ] as $type => $names) {
+            if (is_a($fieldClass, $type, true)) {
+                $aliases += $names;
+            }
+        }
+
+        return $aliases;
+    }
+
+    public static function normalizeSettingAliases(array $config, string $fieldClass): array
+    {
+        $aliases = self::settingAliases($fieldClass);
+
+        // Migrate stored beta configuration without adding a public PHP alias.
+        if (is_a($fieldClass, Quiz::class, true)) {
+            $aliases['fieldType'] = 'displayType';
+        }
+
+        foreach ($aliases as $legacy => $canonical) {
+            if (array_key_exists($legacy, $config)) {
+                if (!array_key_exists($canonical, $config)) {
+                    $config[$canonical] = $config[$legacy];
+                }
+
+                unset($config[$legacy]);
+            }
+        }
+
+        return $config;
+    }
+
     public static function normalize(array &$config, string $fieldClass): void
     {
+        $config = self::normalizeSettingAliases($config, $fieldClass);
         unset($config['columnWidth']);
 
         self::_normalizeLegacyTextLimitConfig($config, $fieldClass);
@@ -75,10 +120,25 @@ class FieldConfigNormalizer
         self::_removeLegacyProperties($config);
     }
 
+    private static function _matchesFieldType(string $fieldClass, array $types): bool
+    {
+        foreach ($types as $type) {
+            if (is_a($fieldClass, $type, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static function _normalizeLegacyTextLimitConfig(array &$config, string $fieldClass): void
     {
-        if (!in_array($fieldClass, self::_supportedLimitConfigTypes(), true)) {
-            unset($config['limitType'], $config['limitAmount']);
+        if (!self::_matchesFieldType($fieldClass, self::_supportedLimitConfigTypes())) {
+            foreach (['limitType', 'limitAmount'] as $name) {
+                if (!property_exists($fieldClass, $name) && !method_exists($fieldClass, 'set' . ucfirst($name))) {
+                    unset($config[$name]);
+                }
+            }
 
             return;
         }
@@ -96,11 +156,11 @@ class FieldConfigNormalizer
 
     private static function _removeUnsupportedLimitConfig(array &$config, string $fieldClass): void
     {
-        if (array_key_exists('limit', $config) && !in_array($fieldClass, self::_supportedLimitTypes(), true)) {
+        if (array_key_exists('limit', $config) && !property_exists($fieldClass, 'limit') && !method_exists($fieldClass, 'setLimit') && !self::_matchesFieldType($fieldClass, self::_supportedLimitTypes())) {
             unset($config['limit']);
         }
 
-        if (array_key_exists('maxType', $config) && !in_array($fieldClass, self::_supportedLimitConfigTypes(), true)) {
+        if (array_key_exists('maxType', $config) && !property_exists($fieldClass, 'maxType') && !method_exists($fieldClass, 'setMaxType') && !self::_matchesFieldType($fieldClass, self::_supportedLimitConfigTypes())) {
             unset($config['maxType']);
         }
     }
@@ -145,7 +205,7 @@ class FieldConfigNormalizer
 
     private static function _normalizeValidationMessages(array &$config, string $fieldClass): void
     {
-        if (in_array($fieldClass, self::_childFieldTypes(), true)) {
+        if (self::_matchesFieldType($fieldClass, self::_childFieldTypes())) {
             unset($config['errorMessage'], $config['validationMessages']);
 
             return;
@@ -183,10 +243,10 @@ class FieldConfigNormalizer
 
     private static function _normalizeLegacyComboboxConfig(array &$config, string $fieldClass): void
     {
-        if ($fieldClass === Phone::class) {
-            if (isset($config['countryAllowed']) && is_array($config['countryAllowed'])) {
+        if (is_a($fieldClass, Phone::class, true)) {
+            if (isset($config['allowedCountryCodes']) && is_array($config['allowedCountryCodes'])) {
                 // Vue comboboxes stored selected option payloads; React comboboxes store values.
-                $config['countryAllowed'] = self::_normalizeComboboxMultiValue($config['countryAllowed']);
+                $config['allowedCountryCodes'] = self::_normalizeComboboxMultiValue($config['allowedCountryCodes']);
             }
 
             if (isset($config['countryDefaultValue'])) {
@@ -194,15 +254,15 @@ class FieldConfigNormalizer
             }
         }
 
-        if ($fieldClass === Address::class && isset($config['countryAllowed']) && is_array($config['countryAllowed'])) {
-            $config['countryAllowed'] = self::_normalizeComboboxMultiValue($config['countryAllowed']);
+        if (is_a($fieldClass, Address::class, true) && isset($config['allowedCountryCodes']) && is_array($config['allowedCountryCodes'])) {
+            $config['allowedCountryCodes'] = self::_normalizeComboboxMultiValue($config['allowedCountryCodes']);
         }
 
-        if ($fieldClass === AddressCountry::class && isset($config['defaultValue'])) {
+        if (is_a($fieldClass, AddressCountry::class, true) && isset($config['defaultValue'])) {
             $config['defaultValue'] = self::_normalizeComboboxSingleValue($config['defaultValue']);
         }
 
-        if ($fieldClass === AddressAutoComplete::class && isset($config['countryDefaultValue'])) {
+        if (is_a($fieldClass, AddressAutoComplete::class, true) && isset($config['countryDefaultValue'])) {
             $config['countryDefaultValue'] = self::_normalizeComboboxSingleValue($config['countryDefaultValue']);
         }
     }
@@ -233,7 +293,7 @@ class FieldConfigNormalizer
 
     private static function _normalizeOptionsFieldConfig(array &$config, string $fieldClass): void
     {
-        if (!in_array($fieldClass, self::_optionsFieldTypes(), true)) {
+        if (!self::_matchesFieldType($fieldClass, self::_optionsFieldTypes())) {
             return;
         }
 
@@ -250,7 +310,7 @@ class FieldConfigNormalizer
 
     private static function _normalizeRecipientsFieldConfig(array &$config, string $fieldClass): void
     {
-        if ($fieldClass !== Recipients::class) {
+        if (!is_a($fieldClass, Recipients::class, true)) {
             return;
         }
 

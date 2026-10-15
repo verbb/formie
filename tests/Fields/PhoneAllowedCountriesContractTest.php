@@ -22,7 +22,7 @@ use yii\base\Event;
 it('treats allowed countries as picker choices rather than server rejection rules', function (): void {
     $form = formie()
         ->form(['title' => 'Phone picker server contract ' . uniqid()])
-        ->phoneField('phone', ['countryAllowed' => ['AU']])
+        ->phoneField('phone', ['allowedCountryCodes' => ['AU']])
         ->create();
 
     $examples = [
@@ -59,7 +59,7 @@ it('treats allowed countries as picker choices rather than server rejection rule
 
     $requiredForm = formie()
         ->form(['title' => 'Required phone picker contract ' . uniqid()])
-        ->phoneField('phone', ['countryAllowed' => ['AU']])
+        ->phoneField('phone', ['allowedCountryCodes' => ['AU']])
         ->required('phone')
         ->create();
     $requiredEmpty = new Submission();
@@ -78,7 +78,7 @@ it('accepts an unlisted country through every public submission adapter', functi
     $form = formie()
         ->form(['title' => 'Phone picker ' . $transport . ' ' . uniqid()])
         ->settings(['disableCaptchas' => true])
-        ->phoneField('phone', ['countryAllowed' => ['AU']])
+        ->phoneField('phone', ['allowedCountryCodes' => ['AU']])
         ->create();
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($form, $transport): void {
@@ -154,7 +154,7 @@ it('accepts an unlisted country through administrative GraphQL persistence', fun
     $form = formie()
         ->form(['title' => 'Phone picker administrative GraphQL ' . uniqid()])
         ->settings(['disableCaptchas' => true])
-        ->phoneField('phone', ['countryAllowed' => ['AU']])
+        ->phoneField('phone', ['allowedCountryCodes' => ['AU']])
         ->create();
     $resolver = Craft::createObject(SubmissionResolver::class);
     $resolveInfo = test()->createMock(ResolveInfo::class);
@@ -194,20 +194,20 @@ it('projects explicit and event-modified picker choices to both browser manifest
         ->create();
 
     foreach ([BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED] as $surface) {
-        expect(f01PhoneCountryModuleConfig($unrestricted, $surface)['countryAllowed'])->toBe([]);
+        expect(f01PhoneCountryModuleConfig($unrestricted, $surface)['allowedCountryCodes'])->toBe([]);
     }
 
     $explicit = formie()
         ->form(['title' => 'Explicit phone picker ' . uniqid()])
         ->phoneField('phone', [
-            'countryAllowed' => ['au'],
+            'allowedCountryCodes' => ['au'],
             'countryDefaultValue' => 'NZ',
         ])
         ->create();
 
     foreach ([BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED] as $surface) {
         $config = f01PhoneCountryModuleConfig($explicit, $surface);
-        expect($config['countryAllowed'])->toBe(['AU'])
+        expect($config['allowedCountryCodes'])->toBe(['AU'])
             ->and($config['countryDefaultValue'])->toBe('NZ');
     }
 
@@ -229,7 +229,7 @@ it('projects explicit and event-modified picker choices to both browser manifest
 
     try {
         foreach ([BrowserModule::SURFACE_SERVER_RENDERED, BrowserModule::SURFACE_CLIENT_RENDERED] as $surface) {
-            expect(f01PhoneCountryModuleConfig($eventModified, $surface)['countryAllowed'])->toBe(['AU', 'NZ']);
+            expect(f01PhoneCountryModuleConfig($eventModified, $surface)['allowedCountryCodes'])->toBe(['AU', 'NZ']);
         }
     } finally {
         Event::off(Countries::class, Countries::EVENT_MODIFY_PHONE_COUNTRIES, $listener);
@@ -237,7 +237,7 @@ it('projects explicit and event-modified picker choices to both browser manifest
 
     $disabled = formie()
         ->form(['title' => 'Disabled phone picker ' . uniqid()])
-        ->phoneField('phone', ['countryEnabled' => false, 'countryAllowed' => ['AU']])
+        ->phoneField('phone', ['countryEnabled' => false, 'allowedCountryCodes' => ['AU']])
         ->create();
     expect(f01PhoneCountryModuleConfig($disabled, BrowserModule::SURFACE_SERVER_RENDERED))->toBeNull()
         ->and(f01PhoneCountryModuleConfig($disabled, BrowserModule::SURFACE_CLIENT_RENDERED))->toBeNull();

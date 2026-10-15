@@ -252,7 +252,7 @@ Field | Type | Description
 --- | --- | ---
 `sources` | `String` | The selected sources as a JSON string.
 `source` | `String` | The selected source.
-`limitOptions` | `String` | The selectable item limit.
+`optionLimit` | `String` | The selectable item limit.
 `displayType` | `String` | The front-end display type.
 `useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
 `labelSource` | `String` | Where option labels should come from.
@@ -318,7 +318,7 @@ Field | Type | Description
 --- | --- | ---
 `sources` | `String` | The selected sources as a JSON string.
 `source` | `String` | The selected source.
-`limitOptions` | `String` | The selectable item limit.
+`optionLimit` | `String` | The selectable item limit.
 `displayType` | `String` | The front-end display type.
 `useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
 `labelSource` | `String` | Where option labels should come from.
@@ -331,7 +331,7 @@ Field | Type | Description
 
 ### File Upload
 
-File Upload inherits element field settings, except `limitOptions` and `multi`.
+File Upload inherits element field settings, except `optionLimit` and `multi`.
 
 Field | Type | Description
 --- | --- | ---
@@ -342,9 +342,9 @@ Field | Type | Description
 `orderBy` | `String` | The element query sort order.
 `layout` | `String` | The option layout.
 `defaultValue` | `String` | The default value as a string.
-`sizeLimit` | `String` | The maximum file size.
-`sizeMinLimit` | `String` | The minimum file size.
-`limitFiles` | `String` | The file count limit.
+`maxFileSize` | `String` | The maximum file size.
+`minFileSize` | `String` | The minimum file size.
+`maxFiles` | `String` | The file count limit.
 `allowedKinds` | `[String]` | Allowed file kinds.
 `volumeHandle` | `String` | The upload volume handle.
 
@@ -423,7 +423,7 @@ Field | Type | Description
 `countryOptions` | `[CountryOption]` | The available country options.
 `countryEnabled` | `Boolean` | Whether the country sub-field is enabled.
 `countryDefaultValue` | `String` | The default country value.
-`countryAllowed` | `String` | Allowed countries as a JSON string.
+`allowedCountryCodes` | `String` | Allowed countries as a JSON string.
 
 ### Products
 
@@ -433,7 +433,7 @@ Field | Type | Description
 --- | --- | ---
 `sources` | `String` | The selected sources as a JSON string.
 `source` | `String` | The selected source.
-`limitOptions` | `String` | The selectable item limit.
+`optionLimit` | `String` | The selectable item limit.
 `displayType` | `String` | The front-end display type.
 `useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
 `labelSource` | `String` | Where option labels should come from.
@@ -460,7 +460,6 @@ Field | Type | Description
 --- | --- | ---
 `displayType` | `String` | The front-end display type.
 `useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
-`multiple` | `Boolean` | Whether multiple recipients can be selected.
 `options` | `[FieldOption]` | The recipient options.
 
 ### Repeater
@@ -471,7 +470,7 @@ Field | Type | Description
 `fields` | `[FieldInterface]` | The field’s nested fields.
 `minRows` | `Int` | The minimum number of rows.
 `maxRows` | `Int` | The maximum number of rows.
-`addLabel` | `String` | The add-row button label.
+`addRowLabel` | `String` | The add-row button label.
 
 ### Section
 
@@ -518,7 +517,7 @@ Field | Type | Description
 --- | --- | ---
 `sources` | `String` | The selected sources as a JSON string.
 `source` | `String` | The selected source.
-`limitOptions` | `String` | The selectable item limit.
+`optionLimit` | `String` | The selectable item limit.
 `displayType` | `String` | The front-end display type.
 `useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
 `labelSource` | `String` | Where option labels should come from.
@@ -537,7 +536,7 @@ Field | Type | Description
 --- | --- | ---
 `sources` | `String` | The selected sources as a JSON string.
 `source` | `String` | The selected source.
-`limitOptions` | `String` | The selectable item limit.
+`optionLimit` | `String` | The selectable item limit.
 `displayType` | `String` | The front-end display type.
 `useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
 `labelSource` | `String` | Where option labels should come from.
@@ -556,7 +555,7 @@ Field | Type | Description
 --- | --- | ---
 `sources` | `String` | The selected sources as a JSON string.
 `source` | `String` | The selected source.
-`limitOptions` | `String` | The selectable item limit.
+`optionLimit` | `String` | The selectable item limit.
 `displayType` | `String` | The front-end display type.
 `useSearchable` | `Boolean` | Whether the front-end dropdown is filterable when `displayType` is `dropdown`.
 `labelSource` | `String` | Where option labels should come from.

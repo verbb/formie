@@ -16,7 +16,7 @@ type ComboboxSelect = HTMLSelectElement & {
 
 type AddressCountryOptions = {
     countryPreselectFromIp?: boolean;
-    countryAllowed?: string[];
+    allowedCountryCodes?: string[];
     countryOptionValue?: 'short' | 'full';
     countryFromIpAction?: string;
 };
@@ -33,14 +33,14 @@ function resolveCountrySelectValue(
     return countryCode.toUpperCase();
 }
 
-function isCountryAllowed(countryCode: string, countryAllowed: string[] = []): boolean {
-    if (!countryAllowed.length) {
+function isCountryAllowed(countryCode: string, allowedCountryCodes: string[] = []): boolean {
+    if (!allowedCountryCodes.length) {
         return true;
     }
 
     const upperCode = countryCode.toUpperCase();
 
-    return countryAllowed.some((allowed) => allowed.toUpperCase() === upperCode);
+    return allowedCountryCodes.some((allowed) => allowed.toUpperCase() === upperCode);
 }
 
 function optionExists(select: HTMLSelectElement, value: string): boolean {
@@ -91,7 +91,7 @@ async function preselectCountry(
         return;
     }
 
-    if (!isCountryAllowed(response.countryCode, options.countryAllowed)) {
+    if (!isCountryAllowed(response.countryCode, options.allowedCountryCodes)) {
         debug.log('Detected country is not in the allowed list; skipping preselect.', {
             countryCode: response.countryCode,
         });

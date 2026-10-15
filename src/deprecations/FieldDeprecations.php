@@ -2,29 +2,42 @@
 namespace verbb\formie\deprecations;
 
 use verbb\formie\Formie;
+use verbb\formie\compatibility\fields\FieldCompatibility;
 use verbb\formie\compatibility\fields\FieldConfigNormalizer;
-use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldEmailValueEvent;
 use verbb\formie\events\ModifyFieldHtmlTagEvent;
 use verbb\formie\events\ModifyFieldSlotTagEvent;
-use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\helpers\Json;
 
 trait FieldDeprecations
 {
     // Static Methods
     // =========================================================================
 
+    /** @deprecated Use getInputTemplatePath(). */
+    public static function getFrontEndInputTemplatePath(): string
+    {
+        Craft::$app->getDeprecator()->log(static::class . '::getFrontEndInputTemplatePath', 'Use getInputTemplatePath().');
+        return FieldCompatibility::withLegacyCall(static::class, 'getFrontEndInputTemplatePath', fn() => static::getInputTemplatePath());
+    }
+
+    /** @deprecated Declare the normalized runtime type with defineValueType(). */
+    public static function phpType(): string
+    {
+        return 'mixed';
+    }
+
     public static function getEmailTemplatePath(): string
     {
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(static::class . '::getEmailTemplatePath', 'Field `getEmailTemplatePath()` has been deprecated. Use `getReferenceBlockTemplatePath()` instead.');
 
-        return static::_getDefaultReferenceBlockTemplatePath();
+        return FieldCompatibility::withLegacyCall(static::class, 'getEmailTemplatePath', fn() => static::getReferenceBlockTemplatePath());
     }
 
     protected static function normalizeConfig(array &$config = []): void
@@ -36,22 +49,43 @@ trait FieldDeprecations
     // Public Methods
     // =========================================================================
 
+    /** @deprecated Declare browser modules with defineBrowserModules(). */
+    public function getFrontEndJsModules(): ?array
+    {
+        return null;
+    }
+
+    /** @deprecated Legacy module JSON is only for Formie 3 templates. Use registered browser modules. */
+    public function getConfigJson(): ?string
+    {
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Use registered browser modules and Formie rendering instead of legacy module JSON.');
+        $modules = $this->getFrontEndJsModules();
+        $config = [];
+
+        foreach ($modules ? (array_is_list($modules) ? $modules : [$modules]) : [] as $module) {
+            $settings = array_filter([...($module['settings'] ?? []), 'module' => $module['module'] ?? '']);
+
+            if ($settings) {
+                $config[] = $settings;
+            }
+        }
+
+        return $config ? Json::encode($config) : null;
+    }
+
+    /** @deprecated Use getBrowserConditionsJson(). */
+    public function getConditionsJson(): ?string
+    {
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Use getBrowserConditionsJson().');
+        return FieldCompatibility::withLegacyCall($this, 'getConditionsJson', fn() => $this->getBrowserConditionsJson());
+    }
+
     public function getValueAsJson(mixed $value, ?ElementInterface $element = null): mixed
     {
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `getValueAsJson()` has been deprecated. Use `getValueAsData()` instead.');
 
-        if (!$this->_projectingLegacyData && $this->_hasLegacyFieldMethodOverride('getValueAsJson')) {
-            $event = new ModifyFieldValueEvent([
-                'value' => $this->defineValueAsData($value, $element),
-                'field' => $this,
-                'submission' => $element,
-            ]);
-            $this->trigger(static::EVENT_MODIFY_VALUE_AS_DATA, $event);
-            return FieldStorageCodec::assertSafe($event->value);
-        }
-
-        return $this->getValueAsData($value, $element);
+        return FieldCompatibility::withLegacyCall($this, 'getValueAsJson', fn() => $this->getValueAsData($value, $element));
     }
 
     public function getFieldKey(): string
@@ -99,7 +133,7 @@ trait FieldDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `hasEmailLabel()` has been deprecated. Use `hasReferenceBlockLabel()` instead.');
 
-        return $this->hasReferenceBlockLabel();
+        return FieldCompatibility::withLegacyCall($this, 'hasEmailLabel', fn() => $this->hasReferenceBlockLabel());
     }
 
     public function hasEmailPlaceholder(): bool
@@ -107,23 +141,23 @@ trait FieldDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `hasEmailPlaceholder()` has been deprecated. Use `hasReferenceBlockPlaceholder()` instead.');
 
-        return $this->hasReferenceBlockPlaceholder();
+        return FieldCompatibility::withLegacyCall($this, 'hasEmailPlaceholder', fn() => $this->hasReferenceBlockPlaceholder());
     }
 
-    public function getValueForVariable(mixed $value, Notification $notification, ?ElementInterface $element = null): mixed
+    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
     {
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `getValueForVariable()` has been deprecated. Use `getValueForReference()` instead.');
 
-        return $this->getValueForReference($value, $element);
+        return FieldCompatibility::withReferenceNotification($this, $notification, fn() => FieldCompatibility::withLegacyCall($this, 'getValueForVariable', fn() => $this->getValueForReference($value, $submission)));
     }
 
-    public function getValueForVariableRaw(mixed $value, Notification $notification, ?ElementInterface $element = null): mixed
+    public function getValueForVariableRaw(mixed $value, Submission $submission, Notification $notification): mixed
     {
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `getValueForVariableRaw()` has been deprecated. Use `getValueForReference()` instead.');
 
-        return $this->getValueForReference($value, $element);
+        return FieldCompatibility::withReferenceNotification($this, $notification, fn() => FieldCompatibility::withLegacyCall($this, 'getValueForVariableRaw', fn() => $this->getValueForReference($value, $submission)));
     }
 
     public function getValueForEmail(mixed $value, Notification $notification, ?ElementInterface $element = null): mixed
@@ -131,7 +165,7 @@ trait FieldDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `getValueForEmail()` has been deprecated. Use `getValueForReferenceBlock()` instead.');
 
-        return $this->getValueForReferenceBlock($value, $notification, $element);
+        return FieldCompatibility::withLegacyCall($this, 'getValueForEmail', fn() => $this->getValueForReferenceBlock($value, $notification, $element));
     }
 
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
@@ -139,7 +173,7 @@ trait FieldDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `getEmailHtml()` has been deprecated. Use `getReferenceBlockHtml()` instead.');
 
-        return $this->_renderReferenceBlockHtml($submission, $notification, $value, $renderOptions);
+        return FieldCompatibility::withLegacyCall($this, 'getEmailHtml', fn() => $this->getReferenceBlockHtml($submission, $notification, $value, $renderOptions));
     }
 
     public function getEmailOptions(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): array
@@ -147,7 +181,7 @@ trait FieldDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `getEmailOptions()` has been deprecated. Use `getReferenceBlockOptions()` instead.');
 
-        return $this->_buildReferenceBlockOptions($submission, $notification, $value, $renderOptions);
+        return FieldCompatibility::withLegacyCall($this, 'getEmailOptions', fn() => $this->getReferenceBlockOptions($submission, $notification, $value, $renderOptions));
     }
 
     public function defineGeneralSchema(): array
@@ -155,7 +189,7 @@ trait FieldDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `defineGeneralSchema()` has been deprecated. Use `defineFormBuilderGeneralSchema()` instead.');
 
-        return $this->defineFormBuilderGeneralSchema();
+        return FieldCompatibility::withLegacyCall($this, 'defineGeneralSchema', fn() => $this->defineFormBuilderGeneralSchema());
     }
 
     public function defineSettingsSchema(): array
@@ -163,7 +197,7 @@ trait FieldDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `defineSettingsSchema()` has been deprecated. Use `defineFormBuilderSettingsSchema()` instead.');
 
-        return $this->defineFormBuilderSettingsSchema();
+        return FieldCompatibility::withLegacyCall($this, 'defineSettingsSchema', fn() => $this->defineFormBuilderSettingsSchema());
     }
 
     public function defineAppearanceSchema(): array
@@ -171,7 +205,7 @@ trait FieldDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `defineAppearanceSchema()` has been deprecated. Use `defineFormBuilderAppearanceSchema()` instead.');
 
-        return $this->defineFormBuilderAppearanceSchema();
+        return FieldCompatibility::withLegacyCall($this, 'defineAppearanceSchema', fn() => $this->defineFormBuilderAppearanceSchema());
     }
 
     public function defineAdvancedSchema(): array
@@ -179,7 +213,7 @@ trait FieldDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `defineAdvancedSchema()` has been deprecated. Use `defineFormBuilderAdvancedSchema()` instead.');
 
-        return $this->defineFormBuilderAdvancedSchema();
+        return FieldCompatibility::withLegacyCall($this, 'defineAdvancedSchema', fn() => $this->defineFormBuilderAdvancedSchema());
     }
 
     public function defineConditionsSchema(): array
@@ -187,12 +221,18 @@ trait FieldDeprecations
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `defineConditionsSchema()` has been deprecated. Use `defineFormBuilderConditionsSchema()` instead.');
 
-        return $this->defineFormBuilderConditionsSchema();
+        return FieldCompatibility::withLegacyCall($this, 'defineConditionsSchema', fn() => $this->defineFormBuilderConditionsSchema());
     }
 
 
     // Protected Methods
     // =========================================================================
+
+    /** @deprecated Declare defineValueType() instead. */
+    protected function defineValueClass(): ?string
+    {
+        return null;
+    }
 
     protected function triggerDeprecatedHtmlTagEvent(ModifyFieldSlotTagEvent $event): void
     {
@@ -230,23 +270,23 @@ trait FieldDeprecations
     protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
     {
         Craft::$app->getDeprecator()->log(__METHOD__, 'Implement defineValueAsData() instead.');
-        return FieldStorageCodec::assertSafe($value);
+        return FieldCompatibility::withLegacyCall($this, 'defineValueAsJson', fn() => $this->defineValueAsData($value, $element));
     }
 
-    protected function defineValueForVariable(mixed $value, Notification $notification, ElementInterface $element = null): mixed
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
     {
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `defineValueForVariable()` has been deprecated. Use `defineValueForReference()` instead.');
 
-        return $this->defineValueForReference($value, $element);
+        return FieldCompatibility::withLegacyCall($this, 'defineValueForVariable', fn() => $this->defineValueForReference($value, $submission));
     }
 
-    protected function defineValueForVariableRaw(mixed $value, Notification $notification, ElementInterface $element = null): mixed
+    protected function defineValueForVariableRaw(mixed $value, Submission $submission, Notification $notification): mixed
     {
         // Deprecated in 4.0.0
         Craft::$app->getDeprecator()->log(__METHOD__, 'Field `defineValueForVariableRaw()` has been deprecated. Use `defineValueForReference()` instead.');
 
-        return $this->defineValueForReference($value, $element);
+        return FieldCompatibility::withLegacyCall($this, 'defineValueForVariableRaw', fn() => $this->defineValueForReference($value, $submission));
     }
 
     protected function defineValueForEmail(mixed $value, Notification $notification, ElementInterface $element = null): mixed
@@ -256,6 +296,6 @@ trait FieldDeprecations
 
         // Let reference-block templates (or the field) define what value should
         // be used for legacy email-named rendering hooks.
-        return $value;
+        return FieldCompatibility::withLegacyCall($this, 'defineValueForEmail', fn() => $this->defineValueForReferenceBlock($value, $notification, $element));
     }
 }

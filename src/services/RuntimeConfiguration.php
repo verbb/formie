@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
+use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\content\FieldStorageCodec;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -132,6 +133,10 @@ final class RuntimeConfiguration
 
     public function validateSettings(object $model, array $settings, array $allowed, string $target): array
     {
+        if ($model instanceof Field) {
+            $settings = FieldConfigNormalizer::normalizeSettingAliases($settings, get_class($model));
+        }
+
         $unknown = array_diff(array_keys($settings), $allowed);
 
         if ($unknown) {

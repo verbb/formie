@@ -42,9 +42,9 @@ type UploadManagerOptions = {
     uploadEndpoint?: string;
     deleteEndpoint?: string;
     hydrateEndpoint?: string;
-    limitFiles?: number | null;
-    sizeMinLimit?: number | null;
-    sizeLimit?: number | null;
+    maxFiles?: number | null;
+    minFileSize?: number | null;
+    maxFileSize?: number | null;
     accept?: string | null;
     restrictFiles?: boolean;
 };
@@ -776,9 +776,9 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
     const uploadEndpoint = getEndpoint(dropzone, options.uploadEndpoint, 'data-formie-file-upload-upload-endpoint', '/actions/formie/file-upload/upload');
     const deleteEndpoint = getEndpoint(dropzone, options.deleteEndpoint, 'data-formie-file-upload-delete-endpoint', '/actions/formie/file-upload/delete');
     const hydrateEndpoint = getEndpoint(dropzone, options.hydrateEndpoint, 'data-formie-file-upload-hydrate-endpoint', '/actions/formie/file-upload/hydrate');
-    const limitFiles = options.limitFiles ?? toPositiveInt(dropzone.getAttribute('data-formie-file-limit'));
-    const sizeLimit = options.sizeLimit ?? parseFloat(dropzone.getAttribute('data-formie-size-max-limit') || '');
-    const sizeMinLimit = options.sizeMinLimit ?? parseFloat(dropzone.getAttribute('data-formie-size-min-limit') || '');
+    const maxFiles = options.maxFiles ?? toPositiveInt(dropzone.getAttribute('data-formie-file-limit'));
+    const maxFileSize = options.maxFileSize ?? parseFloat(dropzone.getAttribute('data-formie-size-max-limit') || '');
+    const minFileSize = options.minFileSize ?? parseFloat(dropzone.getAttribute('data-formie-size-min-limit') || '');
     const accept = options.accept ?? dropzone.getAttribute('accept') ?? browseInput.accept;
     const allowedFileTypes = parseAcceptTypes(accept);
 
@@ -789,16 +789,16 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         allowedFileTypes?: string[] | null;
     } = {};
 
-    if (limitFiles) {
-        restrictions.maxNumberOfFiles = limitFiles;
+    if (maxFiles) {
+        restrictions.maxNumberOfFiles = maxFiles;
     }
 
-    if (sizeLimit) {
-        restrictions.maxFileSize = sizeLimit * 1000 * 1000;
+    if (maxFileSize) {
+        restrictions.maxFileSize = maxFileSize * 1000 * 1000;
     }
 
-    if (sizeMinLimit) {
-        restrictions.minFileSize = sizeMinLimit * 1000 * 1000;
+    if (minFileSize) {
+        restrictions.minFileSize = minFileSize * 1000 * 1000;
     }
 
     if (allowedFileTypes) {
@@ -920,11 +920,11 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
     };
 
     const remainingUploadCapacity = (): number | null => {
-        if (!limitFiles) {
+        if (!maxFiles) {
             return null;
         }
 
-        return Math.max(0, limitFiles - countManagedAssets(state));
+        return Math.max(0, maxFiles - countManagedAssets(state));
     };
 
     const setDropzoneActive = (active: boolean) => {

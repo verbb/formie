@@ -52,7 +52,7 @@ trait PresentationFieldConfigTrait
             $propertyNamesByClass[$fieldClass] = $this->getPresentationFieldPublicPropertyNames($fieldClass);
         }
 
-        return array_intersect_key($config, array_flip($propertyNamesByClass[$fieldClass]));
+        return array_intersect_key($config, array_flip([...$propertyNamesByClass[$fieldClass], 'parentField', 'namespace']));
     }
 
     protected function getPresentationFieldPublicPropertyNames(string $class): array

@@ -36,12 +36,12 @@ abstract class CosmeticField extends Field implements CosmeticFieldInterface
 
     public function hasReferenceBlockLabel(): bool
     {
-        return false;
+        return $this->callLegacyFieldMethod('hasEmailLabel', 'hasReferenceBlockLabel', [], fn() => false);
     }
 
     public function hasReferenceBlockPlaceholder(): bool
     {
-        return false;
+        return $this->callLegacyFieldMethod('hasEmailPlaceholder', 'hasReferenceBlockPlaceholder', [], fn() => false);
     }
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed

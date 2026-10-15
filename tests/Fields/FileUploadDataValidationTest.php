@@ -18,17 +18,17 @@ it('validates decoded data uploads against file constraints', function (array $s
     ]));
     $submission->getFieldValue('upload');
     $field->validateFileType($submission);
-    if (isset($settings['sizeLimit'])) {
+    if (isset($settings['maxFileSize'])) {
         $field->validateMaxFileSize($submission);
     }
-    if (isset($settings['sizeMinLimit'])) {
+    if (isset($settings['minFileSize'])) {
         $field->validateMinFileSize($submission);
     }
     expect($submission->hasErrors('upload'))->toBe(!$valid);
 })->with([
-    'too large' => [['sizeLimit' => '0.000005'], 'data.txt', '1234567890', false],
-    'too small' => [['sizeMinLimit' => '0.000015'], 'data.txt', '1234567890', false],
-    'exact limits' => [['sizeLimit' => '0.000010', 'sizeMinLimit' => '0.000010'], 'data.txt', '1234567890', true],
+    'too large' => [['maxFileSize' => '0.000005'], 'data.txt', '1234567890', false],
+    'too small' => [['minFileSize' => '0.000015'], 'data.txt', '1234567890', false],
+    'exact limits' => [['maxFileSize' => '0.000010', 'minFileSize' => '0.000010'], 'data.txt', '1234567890', true],
     'spoofed image' => [[], 'image.png', 'This is ordinary text rather than an image.', false],
 ]);
 

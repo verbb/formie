@@ -51,7 +51,7 @@ class Section extends CosmeticField
 
     public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
-        return Html::tag('hr');
+        return $this->callLegacyFieldMethod('getEmailHtml', 'getReferenceBlockHtml', [$submission, $notification, $value, $renderOptions], fn() => Html::tag('hr'));
     }
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool

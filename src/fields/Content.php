@@ -115,19 +115,21 @@ class Content extends CosmeticField
 
     public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
-        $form = $submission->getForm();
+        return $this->callLegacyFieldMethod('getEmailHtml', 'getReferenceBlockHtml', [$submission, $notification, $value, $renderOptions], function() use ($submission, $value): string|null|bool {
+            $form = $submission->getForm();
 
-        if (!$form) {
-            return false;
-        }
+            if (!$form) {
+                return false;
+            }
 
-        $html = $this->getRenderedContentBlock($form, $value, $submission);
+            $html = $this->getRenderedContentBlock($form, $value, $submission);
 
-        if ($html === '') {
-            return false;
-        }
+            if ($html === '') {
+                return false;
+            }
 
-        return Template::raw($html);
+            return Template::raw($html);
+        });
     }
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool

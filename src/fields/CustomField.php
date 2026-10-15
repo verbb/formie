@@ -41,17 +41,18 @@ class CustomField extends Field implements SortableFieldInterface, PreviewableFi
         return 'formie/_formfields/custom-field/icon.svg';
     }
 
-    public static function getInputTemplatePath(): string
-    {
-        return 'fields/custom-field';
-    }
-
     public static function dbType(): string
     {
         // Adapters can be scalar or structured; JSON gives the single Formie
         // field type room to support both without per-adapter content columns.
         return Schema::TYPE_JSON;
     }
+
+
+    // Constants
+    // =========================================================================
+
+    protected const DEFAULT_INPUT_TEMPLATE_PATH = 'fields/custom-field';
 
 
     // Properties

@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Element;
 use verbb\formie\base\ElementField;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionUploadStatus;
@@ -82,6 +83,7 @@ class FileUpload extends ElementField
         return Asset::class;
     }
 
+    /** @deprecated Use valueType() for the normalized runtime contract. */
     public static function phpType(): string
     {
         return sprintf('\\%s|\\%s<\\%s>', AssetQuery::class, ElementCollection::class, Asset::class);
@@ -126,9 +128,9 @@ class FileUpload extends ElementField
 
     public bool $allowMultipleSources = false;
     public string $displayType = 'fileInput';
-    public ?string $sizeLimit = null;
-    public ?string $sizeMinLimit = null;
-    public ?string $limitFiles = null;
+    public ?string $maxFileSize = null;
+    public ?string $minFileSize = null;
+    public ?string $maxFiles = null;
     public bool $restrictFiles = true;
     public ?array $allowedKinds = ['image', 'pdf'];
     public ?string $uploadLocationSource = null;
@@ -150,6 +152,8 @@ class FileUpload extends ElementField
 
     public function __construct($config = [])
     {
+        $config = FieldConfigNormalizer::normalizeSettingAliases($config, static::class);
+
         // Normalize the options
         if (array_key_exists('restrictLocation', $config)) {
             unset($config['restrictLocation']);
@@ -367,15 +371,15 @@ class FileUpload extends ElementField
             $rules[] = [$this->handle, 'validateFileType'];
         }
 
-        if ($this->limitFiles) {
+        if ($this->maxFiles) {
             $rules[] = [$this->handle, 'validateFileLimit'];
         }
 
-        if ($this->sizeMinLimit) {
+        if ($this->minFileSize) {
             $rules[] = [$this->handle, 'validateMinFileSize'];
         }
 
-        if ($this->sizeLimit) {
+        if ($this->maxFileSize) {
             $rules[] = [$this->handle, 'validateMaxFileSize'];
         }
 
@@ -423,7 +427,7 @@ class FileUpload extends ElementField
 
     public function validateFileLimit(ElementInterface $element): void
     {
-        $fileLimit = (int)($this->limitFiles ?? 1);
+        $fileLimit = (int)($this->maxFiles ?? 1);
 
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
@@ -445,19 +449,19 @@ class FileUpload extends ElementField
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
 
-        $sizeMinLimit = $this->sizeMinLimit * 1000 * 1000;
+        $minFileSize = $this->minFileSize * 1000 * 1000;
 
         foreach ($uploadedFiles as $file) {
             $size = $this->_getUploadedFileSize($file);
 
-            if ($size !== null && $size < $sizeMinLimit) {
+            if ($size !== null && $size < $minFileSize) {
                 $filenames[] = $file['filename'];
             }
         }
 
         if ($filenames) {
             $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MIN_FILE_SIZE, [
-                'filesize' => $this->sizeMinLimit,
+                'filesize' => $this->minFileSize,
             ]));
         }
     }
@@ -469,19 +473,19 @@ class FileUpload extends ElementField
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
 
-        $sizeLimit = $this->sizeLimit * 1000 * 1000;
+        $maxFileSize = $this->maxFileSize * 1000 * 1000;
 
         foreach ($uploadedFiles as $file) {
             $size = $this->_getUploadedFileSize($file);
 
-            if ($size !== null && $size > $sizeLimit) {
+            if ($size !== null && $size > $maxFileSize) {
                 $filenames[] = $file['filename'];
             }
         }
 
         if ($filenames) {
             $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MAX_FILE_SIZE, [
-                'filesize' => $this->sizeLimit,
+                'filesize' => $this->maxFileSize,
             ]));
         }
     }
@@ -514,11 +518,11 @@ class FileUpload extends ElementField
 
     public function exceedsMaxUploadSize(int $size): bool
     {
-        if (!$this->sizeLimit) {
+        if (!$this->maxFileSize) {
             return false;
         }
 
-        return $size > ((float)$this->sizeLimit * 1000 * 1000);
+        return $size > ((float)$this->maxFileSize * 1000 * 1000);
     }
 
     public function getUploadTypeValidationErrors(string $filename, ?string $path = null, ?string $mimeType = null, ?string $data = null): array
@@ -720,20 +724,20 @@ class FileUpload extends ElementField
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit Number of Files'),
                 'instructions' => Craft::t('formie', 'Limit the number of files a user can upload.'),
-                'name' => 'limitFiles',
+                'name' => 'maxFiles',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Maximum Files Error Message'),
                 'instructions' => ValidationMessagesHelper::tokenInstructions(['files']),
                 'name' => 'validationMessages.maxFiles',
-                'if' => 'limitFiles',
+                'if' => 'maxFiles',
             ]),
             SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Min File Size'),
                 'instructions' => Craft::t('formie', 'Set the minimum size of the files a user can upload.'),
                 'children' => [
                     SchemaHelper::numberField([
-                        'name' => 'sizeMinLimit',
+                        'name' => 'minFileSize',
                     ]),
                     [
                         '$el' => 'span',
@@ -746,7 +750,7 @@ class FileUpload extends ElementField
                 'label' => Craft::t('formie', 'Minimum File Size Error Message'),
                 'instructions' => ValidationMessagesHelper::tokenInstructions(['filesize']),
                 'name' => 'validationMessages.minFileSize',
-                'if' => 'sizeMinLimit',
+                'if' => 'minFileSize',
             ]),
             SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Max File Size'),
@@ -754,7 +758,7 @@ class FileUpload extends ElementField
                 'warning' => Craft::t('formie', 'Maximum allowed upload size is {size}.', ['size' => $maxUpload]),
                 'children' => [
                     SchemaHelper::numberField([
-                        'name' => 'sizeLimit',
+                        'name' => 'maxFileSize',
                     ]),
                     [
                         '$el' => 'span',
@@ -767,7 +771,7 @@ class FileUpload extends ElementField
                 'label' => Craft::t('formie', 'Maximum File Size Error Message'),
                 'instructions' => ValidationMessagesHelper::tokenInstructions(['filesize']),
                 'name' => 'validationMessages.maxFileSize',
-                'if' => 'sizeLimit',
+                'if' => 'maxFileSize',
             ]),
         ];
     }
@@ -808,15 +812,15 @@ class FileUpload extends ElementField
         // Draft and back-navigation commands still enforce file policy before provider writes.
         $this->validateFileType($element);
 
-        if ($this->limitFiles) {
+        if ($this->maxFiles) {
             $this->validateFileLimit($element);
         }
 
-        if ($this->sizeLimit) {
+        if ($this->maxFileSize) {
             $this->validateMaxFileSize($element);
         }
 
-        if ($this->sizeMinLimit) {
+        if ($this->minFileSize) {
             $this->validateMinFileSize($element);
         }
 
@@ -914,23 +918,23 @@ class FileUpload extends ElementField
         $types = parent::getSettingGqlTypes();
 
         // Remove some inherited types that don't make sense here
-        unset($types['limitOptions'], $types['multi']);
+        unset($types['optionLimit'], $types['multi']);
 
         return array_merge($types, [
             'displayType' => [
                 'name' => 'displayType',
                 'type' => Type::string(),
             ],
-            'sizeLimit' => [
-                'name' => 'sizeLimit',
+            'maxFileSize' => [
+                'name' => 'maxFileSize',
                 'type' => Type::string(),
             ],
-            'sizeMinLimit' => [
-                'name' => 'sizeMinLimit',
+            'minFileSize' => [
+                'name' => 'minFileSize',
                 'type' => Type::string(),
             ],
-            'limitFiles' => [
-                'name' => 'limitFiles',
+            'maxFiles' => [
+                'name' => 'maxFiles',
                 'type' => Type::string(),
             ],
             'allowedKinds' => [
@@ -985,12 +989,12 @@ class FileUpload extends ElementField
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
 
-        $sizeMaxLimit = $this->sizeLimit ?? 0;
-        $sizeMinLimit = $this->sizeMinLimit ?? 0;
-        $limitFiles = $this->limitFiles ?? 0;
+        $sizeMaxLimit = $this->maxFileSize ?? 0;
+        $minFileSize = $this->minFileSize ?? 0;
+        $maxFiles = $this->maxFiles ?? 0;
 
         if ($this->displayType === 'uploadManager') {
-            $uploadManagerTag = $this->_defineUploadManagerFieldSlotTag($key, $context, $id, $dataId, $errors, $sizeMaxLimit, $sizeMinLimit, $limitFiles);
+            $uploadManagerTag = $this->_defineUploadManagerFieldSlotTag($key, $context, $id, $dataId, $errors, $sizeMaxLimit, $minFileSize, $maxFiles);
 
             if ($uploadManagerTag !== null) {
                 return $uploadManagerTag;
@@ -1003,7 +1007,7 @@ class FileUpload extends ElementField
                     'type' => 'file',
                     'id' => $id,
                     'name' => $this->getHtmlName('[]'),
-                    'multiple' => $limitFiles != 1,
+                    'multiple' => $maxFiles != 1,
                     'accept' => $this->getAccept(),
                     'data-formie-input' => true,
                     'data-formie-file-input' => true,
@@ -1011,15 +1015,15 @@ class FileUpload extends ElementField
                     'data-formie-input-type' => 'file',
                     'data-formie-file-upload-key' => $id,
                     'data-formie-input-error-state' => $errors ? true : false,
-                    'data-formie-size-min-limit' => $sizeMinLimit,
+                    'data-formie-size-min-limit' => $minFileSize,
                     'data-formie-size-max-limit' => $sizeMaxLimit,
-                    'data-formie-file-limit' => $limitFiles,
+                    'data-formie-file-limit' => $maxFiles,
                     'data-formie-file-upload-hydrate-endpoint' => UrlHelper::actionUrl('formie/file-upload/hydrate'),
                     'aria-describedby' => $this->hasInstructions() ? "{$id}-instructions" : null,
                 ], ValidationMessagesHelper::fileUploadValidationBrowserAttributes(
                     $this,
-                    (int)$limitFiles,
-                    (float)$sizeMinLimit,
+                    (int)$maxFiles,
+                    (float)$minFileSize,
                     (float)$sizeMaxLimit,
                 )))
                 ->theme([
@@ -1082,7 +1086,7 @@ class FileUpload extends ElementField
         $variables['fsType'] = $uploadFs ? get_class($uploadFs) : null;
         $variables['showFolders'] = true;
         $variables['defaultFieldLayoutId'] = $uploadVolume->fieldLayoutId ?? null;
-        $variables['limit'] = $this->limitFiles;
+        $variables['limit'] = $this->maxFiles;
         $variables['showSourcePath'] = false;
 
         // The outer "Upload" button only supports a true Assets field. Uploads within the element select are fine.
@@ -1122,7 +1126,7 @@ class FileUpload extends ElementField
                 return (clone $value)->ids();
             }
 
-            $value = $this->defineValueAsData($value, $element);
+            $value = $this->resolveValueAsData($value, $element);
 
             return array_map(function($item) {
                 // Handle when volumes don't have a public URL
@@ -1164,12 +1168,12 @@ class FileUpload extends ElementField
     {
         return array_merge(parent::defineClientRenderedInput(), [
             'displayType' => $this->displayType,
-            'multiple' => (int)($this->limitFiles ?? 0) !== 1,
-            'limitFiles' => $this->limitFiles !== null ? (int)$this->limitFiles : null,
+            'multiple' => (int)($this->maxFiles ?? 0) !== 1,
+            'maxFiles' => $this->maxFiles !== null ? (int)$this->maxFiles : null,
             'allowedKinds' => array_values($this->allowedKinds ?? []),
             'restrictFiles' => (bool)$this->restrictFiles,
-            'sizeMinLimit' => $this->sizeMinLimit !== null ? (float)$this->sizeMinLimit : null,
-            'sizeLimit' => $this->sizeLimit !== null ? (float)$this->sizeLimit : null,
+            'minFileSize' => $this->minFileSize !== null ? (float)$this->minFileSize : null,
+            'maxFileSize' => $this->maxFileSize !== null ? (float)$this->maxFileSize : null,
         ]);
     }
 
@@ -1185,9 +1189,9 @@ class FileUpload extends ElementField
                     'uploadEndpoint' => UrlHelper::actionUrl('formie/file-upload/upload'),
                     'deleteEndpoint' => UrlHelper::actionUrl('formie/file-upload/delete'),
                     'hydrateEndpoint' => UrlHelper::actionUrl('formie/file-upload/hydrate'),
-                    'limitFiles' => $this->limitFiles !== null ? (int)$this->limitFiles : null,
-                    'sizeMinLimit' => $this->sizeMinLimit !== null ? (float)$this->sizeMinLimit : null,
-                    'sizeLimit' => $this->sizeLimit !== null ? (float)$this->sizeLimit : null,
+                    'maxFiles' => $this->maxFiles !== null ? (int)$this->maxFiles : null,
+                    'minFileSize' => $this->minFileSize !== null ? (float)$this->minFileSize : null,
+                    'maxFileSize' => $this->maxFileSize !== null ? (float)$this->maxFileSize : null,
                     'accept' => $this->getAccept(),
                     'restrictFiles' => (bool)$this->restrictFiles,
                 ],
@@ -1730,16 +1734,16 @@ class FileUpload extends ElementField
         string $dataId,
         array $errors,
         float|int $sizeMaxLimit,
-        float|int $sizeMinLimit,
-        float|int|string|null $limitFiles,
+        float|int $minFileSize,
+        float|int|string|null $maxFiles,
     ): ?SlotTag {
         $uploadEndpoint = UrlHelper::actionUrl('formie/file-upload/upload');
         $deleteEndpoint = UrlHelper::actionUrl('formie/file-upload/delete');
         $hydrateEndpoint = UrlHelper::actionUrl('formie/file-upload/hydrate');
         $validationAttributes = ValidationMessagesHelper::fileUploadValidationBrowserAttributes(
             $this,
-            (int)$limitFiles,
-            (float)$sizeMinLimit,
+            (int)$maxFiles,
+            (float)$minFileSize,
             (float)$sizeMaxLimit,
         );
         $sharedAttributes = array_merge([
@@ -1747,9 +1751,9 @@ class FileUpload extends ElementField
             'data-formie-upload-key' => $id,
             'data-formie-input-id' => $dataId,
             'data-formie-input-type' => 'upload-manager',
-            'data-formie-size-min-limit' => $sizeMinLimit,
+            'data-formie-size-min-limit' => $minFileSize,
             'data-formie-size-max-limit' => $sizeMaxLimit,
-            'data-formie-file-limit' => $limitFiles,
+            'data-formie-file-limit' => $maxFiles,
             'data-formie-file-upload-upload-endpoint' => $uploadEndpoint,
             'data-formie-file-upload-delete-endpoint' => $deleteEndpoint,
             'data-formie-file-upload-hydrate-endpoint' => $hydrateEndpoint,
@@ -1788,7 +1792,7 @@ class FileUpload extends ElementField
             return SlotTag::make('input')
                 ->core([
                     'type' => 'file',
-                    'multiple' => $limitFiles != 1,
+                    'multiple' => $maxFiles != 1,
                     'accept' => $this->getAccept(),
                     'data-formie-upload-manager-input' => true,
                     // Picker only: value is cleared after selection. Required is owned by

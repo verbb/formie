@@ -805,3 +805,36 @@ it('propagates using the form source site site group instead of craft primary', 
         fn(int $siteId) => Craft::$app->getSites()->getSiteById($siteId)?->groupId === $otherSite?->groupId,
     )));
 });
+
+it('migrates legacy repeater label translations before filtering and preserves stored history', function (): void {
+    $service = Formie::$plugin->getFormSiteOverrides();
+    $form = formie()->form(['title' => 'Legacy Repeater Translation'])->repeaterField('people', [
+        'addRowLabel' => 'Add person',
+        'rows' => [['fields' => [['type' => \verbb\formie\fields\SingleLineText::class, 'handle' => 'name', 'label' => 'Name']]]],
+    ])->create();
+    $field = $form->getFieldByHandle('people');
+    $sourceSiteId = $service->getSourceSiteId($form);
+    $siteId = (int)current(array_filter(Formie::$plugin->getFormSitePropagation()->resolveSiteIdsForForm($form), fn($id) => $id !== $sourceSiteId));
+    expect($siteId)->toBeGreaterThan(0);
+    $record = new \verbb\formie\records\FieldSiteOverride([
+        'fieldId' => $field->definitionId,
+        'siteId' => $siteId,
+        'overrides' => ['addLabel' => 'Ajouter une personne', 'maxRows' => 999],
+    ]);
+    expect($record->save(false))->toBeTrue();
+    $store = Formie::$plugin->getFieldSiteOverrides();
+    $before = $store->getOverride($field->definitionId, $siteId);
+    $translated = $service->applyToForm($form, $siteId, true)->getFieldByHandle('people');
+    expect($translated->addRowLabel)->toBe('Ajouter une personne')->and($translated->maxRows)->toBe($field->maxRows);
+    $data = $service->applyToBuilderData($form->getFormBuilderConfig(), $siteId);
+    $builderField = $data['pages'][0]['rows'][0]['fields'][0];
+    expect($builderField['addRowLabel'])->toBe('Ajouter une personne')->and($builderField)->not->toHaveKey('addLabel');
+    $switchPayload = $service->filterFieldTranslationsForLayout($form->getFormLayout(), [$field->definitionId => $before]);
+    expect($switchPayload[$field->definitionId])->toBe(['addRowLabel' => 'Ajouter une personne'])
+        ->and($store->getOverride($field->definitionId, $siteId))->toBe($before);
+    $service->saveTranslationBundle($form->id, $siteId, ['fieldOverrides' => $switchPayload]);
+    expect($service->applyToForm($form, $siteId, true)->getFieldByHandle('people')->addRowLabel)->toBe('Ajouter une personne');
+    $store->saveOverride($field->definitionId, $siteId, ['addLabel' => 'Ancien', 'addRowLabel' => 'Nouveau']);
+    expect($service->applyToForm($form, $siteId, true)->getFieldByHandle('people')->addRowLabel)->toBe('Nouveau');
+    expect($service->filterFieldTranslationProperties(\verbb\formie\fields\Phone::class, ['countryAllowed' => ['AU']]))->toBe([]);
+});

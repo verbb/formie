@@ -23,15 +23,12 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
         return Craft::t('formie', 'Address - Country');
     }
 
-    public static function getInputTemplatePath(): string
-    {
-        return 'fields/dropdown';
-    }
 
-    public static function getReferenceBlockTemplatePath(): string
-    {
-        return 'fields/dropdown';
-    }
+    // Constants
+    // =========================================================================
+
+    protected const DEFAULT_INPUT_TEMPLATE_PATH = 'fields/dropdown';
+    protected const DEFAULT_REFERENCE_BLOCK_TEMPLATE_PATH = 'fields/dropdown';
 
 
     // Properties
@@ -60,8 +57,8 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
         $field = $parent instanceof Address ? $parent : null;
         $countries = Formie::$plugin->getCountries()->getAddressCountries($field);
 
-        if ($field?->countryAllowed) {
-            $allowed = array_map('strtoupper', $field->countryAllowed);
+        if ($field?->allowedCountryCodes) {
+            $allowed = array_map('strtoupper', $field->allowedCountryCodes);
             $countries = array_values(array_filter(
                 $countries,
                 fn(array $country) => in_array(strtoupper($country['value']), $allowed, true),
@@ -124,13 +121,6 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         return $this->_getValueLabel($value);
-    }
-
-    protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
-    {
-        $label = $this->_getValueLabel($value);
-
-        return $label !== '' ? [$label] : [];
     }
 
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed

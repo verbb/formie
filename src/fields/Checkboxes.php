@@ -25,6 +25,7 @@ class Checkboxes extends OptionsField
     // Static Methods
     // =========================================================================
 
+    /** @deprecated Use valueType() for the normalized runtime contract. */
     public static function phpType(): string
     {
         return sprintf('\\%s', MultiOptionFieldValue::class);

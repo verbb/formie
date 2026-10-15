@@ -62,7 +62,9 @@ interface FieldInterface extends SavableComponentInterface, FieldTypeDefinitionI
     public function getNamespace(): string;
     public function defineFormBuilderGeneralSchema(): array;
     public function defineFormBuilderSettingsSchema(): array;
+    public function defineFormBuilderValidationSchema(): array;
     public function defineFormBuilderAppearanceSchema(): array;
     public function defineFormBuilderAdvancedSchema(): array;
-    public function afterCreateField(array $data);
+    public function defineFormBuilderConditionsSchema(): array;
+    public function afterCreateField(array $data): void;
 }

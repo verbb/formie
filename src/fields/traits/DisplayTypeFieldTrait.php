@@ -162,7 +162,7 @@ trait DisplayTypeFieldTrait
         $field = $this->getDisplayTypeField();
 
         if ($field instanceof FormieField) {
-            return $field->collectBrowserModules();
+            return $field->defineBrowserModules();
         }
 
         return [];

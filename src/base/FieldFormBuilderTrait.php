@@ -127,11 +127,11 @@ trait FieldFormBuilderTrait
         }
 
         $tabSchemas = array_values(array_filter([
-            $this->defineFormBuilderGeneralSchema(),
-            $this->defineFormBuilderSettingsSchema(),
-            $this->defineFormBuilderValidationSchema(),
-            $this->defineFormBuilderAppearanceSchema(),
-            $this->defineFormBuilderAdvancedSchema(),
+            FieldCompatibility::resolveSchema($this, 'defineFormBuilderGeneralSchema'),
+            FieldCompatibility::resolveSchema($this, 'defineFormBuilderSettingsSchema'),
+            FieldCompatibility::resolveSchema($this, 'defineFormBuilderValidationSchema'),
+            FieldCompatibility::resolveSchema($this, 'defineFormBuilderAppearanceSchema'),
+            FieldCompatibility::resolveSchema($this, 'defineFormBuilderAdvancedSchema'),
         ]));
 
         return SchemaHelper::extractSettingsSchema($tabSchemas, $names);
@@ -216,32 +216,32 @@ trait FieldFormBuilderTrait
             [
                 'handle' => 'general',
                 'label' => Craft::t('formie', 'General'),
-                'content' => $this->defineFormBuilderGeneralSchema(),
+                'content' => FieldCompatibility::resolveSchema($this, 'defineFormBuilderGeneralSchema'),
             ],
             [
                 'handle' => 'settings',
                 'label' => Craft::t('formie', 'Settings'),
-                'content' => $this->defineFormBuilderSettingsSchema(),
+                'content' => FieldCompatibility::resolveSchema($this, 'defineFormBuilderSettingsSchema'),
             ],
             [
                 'handle' => 'validation',
                 'label' => Craft::t('formie', 'Validation'),
-                'content' => $this->defineFormBuilderValidationSchema(),
+                'content' => FieldCompatibility::resolveSchema($this, 'defineFormBuilderValidationSchema'),
             ],
             [
                 'handle' => 'appearance',
                 'label' => Craft::t('formie', 'Appearance'),
-                'content' => $this->defineFormBuilderAppearanceSchema(),
+                'content' => FieldCompatibility::resolveSchema($this, 'defineFormBuilderAppearanceSchema'),
             ],
             [
                 'handle' => 'advanced',
                 'label' => Craft::t('formie', 'Advanced'),
-                'content' => $this->_injectCompatibleFieldTypeSchema($this->defineFormBuilderAdvancedSchema()),
+                'content' => $this->_injectCompatibleFieldTypeSchema(FieldCompatibility::resolveSchema($this, 'defineFormBuilderAdvancedSchema')),
             ],
             [
                 'handle' => 'conditions',
                 'label' => Craft::t('formie', 'Conditions'),
-                'content' => $this->defineFormBuilderConditionsSchema(),
+                'content' => FieldCompatibility::resolveSchema($this, 'defineFormBuilderConditionsSchema'),
             ],
         ];
 

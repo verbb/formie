@@ -66,13 +66,13 @@ it('builds option source params from element field settings', function (): void 
         'sources' => ['section:blog'],
         'labelSource' => 'title',
         'orderBy' => 'title ASC',
-        'limitOptions' => '25',
+        'optionLimit' => '25',
     ]);
 
     expect(ElementOptionSourceHelper::buildParamsFromElementField($field))->toBe([
         'labelSource' => 'title',
         'orderBy' => 'title ASC',
-        'limitOptions' => '25',
+        'optionLimit' => '25',
         'sources' => ['section:blog'],
     ]);
 })->skip(fn (): bool => !class_exists(\Craft::class), 'Requires Craft bootstrap');
@@ -180,9 +180,9 @@ it('preserves selected recipient labels when options share an email target', fun
 
     expect($field->hasErrors('options'))->toBeFalse()
         ->and($value)->toBeInstanceOf(\verbb\formie\fields\values\RecipientsFieldValue::class)
-        ->and($value->rawValue())->toBe('hello@example.com')
-        ->and($value->label())->toBe('Other')
-        ->and($savedValue->label())->toBe('Other')
+        ->and($value->value)->toBe('hello@example.com')
+        ->and($value->label)->toBe('Other')
+        ->and($savedValue->label)->toBe('Other')
         ->and($field->serializeValue($value, null))->toBe([
             'value' => 'hello@example.com',
             'label' => 'Other',
@@ -239,7 +239,7 @@ it('marks unknown visible recipient option values invalid', function (): void {
     $validationRules = $field->getElementValidationRules();
 
     expect($value)->toBeInstanceOf(\verbb\formie\fields\values\RecipientsFieldValue::class)
-        ->and($value->valid())->toBeFalse()
+        ->and($value->valid)->toBeFalse()
         ->and($validationRules)->toContain([0 => 'recipient', 1 => 'validateVisibleRecipientOptions', 'skipOnEmpty' => false]);
 })->skip(fn (): bool => !class_exists(\Craft::class) || !\Craft::$app || !\verbb\formie\Formie::$plugin, 'Requires Craft bootstrap');
 
@@ -260,13 +260,13 @@ it('builds multi-source element field config from option source params', functio
         'sources' => ['section:blog'],
         'labelSource' => 'title',
         'orderBy' => 'title ASC',
-        'limitOptions' => '50',
+        'optionLimit' => '50',
     ]);
 
     expect($config['sources'])->toBe(['section:blog'])
         ->and($config['labelSource'])->toBe('title')
         ->and($config['orderBy'])->toBe('title ASC')
-        ->and($config['limitOptions'])->toBe('50');
+        ->and($config['optionLimit'])->toBe('50');
 })->skip(fn (): bool => !class_exists(\Craft::class) || !\verbb\formie\Formie::$plugin, 'Requires Formie field registry');
 
 it('builds single-source element field config from option source params', function (): void {

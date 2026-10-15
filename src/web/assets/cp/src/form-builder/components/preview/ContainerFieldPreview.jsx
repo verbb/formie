@@ -1264,7 +1264,7 @@ const ContainerFieldPreview = ({
                     'gap-2 px-3 py-2 m-3',
                 ])}>
                     <Icon icon="plus-square" className="size-3.5" />
-                    {field?.addLabel || field?.settings?.addLabel || Craft.t('formie', 'Add another row')}
+                    {field?.addRowLabel || field?.settings?.addRowLabel || Craft.t('formie', 'Add another row')}
                 </div>
             )}
         </div>

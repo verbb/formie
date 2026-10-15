@@ -13,7 +13,7 @@ it('scores submitted answers through the save workflow and persists the exact pa
         ->addField(Quiz::class, 'single', ['weightedScoreEnabled' => true, 'options' => [
             ['label' => 'Correct', 'value' => 'yes', 'isCorrect' => true, 'points' => 3],
             ['label' => 'Incorrect', 'value' => 'no', 'isCorrect' => false, 'points' => 0],
-        ]])->addField(Quiz::class, 'multiple', ['fieldType' => Quiz::FIELD_TYPE_CHECKBOXES, 'options' => [
+        ]])->addField(Quiz::class, 'multiple', ['displayType' => Quiz::DISPLAY_CHECKBOXES, 'options' => [
             ['label' => 'A', 'value' => 'a', 'isCorrect' => true],
             ['label' => 'B', 'value' => 'b', 'isCorrect' => true],
             ['label' => 'C', 'value' => 'c', 'isCorrect' => false],

@@ -134,7 +134,7 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
 
     public function hasReferenceBlockPlaceholder(): bool
     {
-        return false;
+        return $this->callLegacyFieldMethod('hasEmailPlaceholder', 'hasReferenceBlockPlaceholder', [], fn() => false);
     }
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool

@@ -105,14 +105,14 @@ it('prefers persisted metadata over live cookies when populating integration con
         $_COOKIE['hubspotutk'] = 'live-hutk';
 
         $hubSpot = new HubSpot(['name' => 'HubSpot', 'handle' => 'hubSpotTest']);
-        $hubSpot->populateContext($submission);
+        $hubSpot->populateSubmissionContext($submission);
 
         expect($hubSpot->context['hubspotutk'])->toBe('stored-hutk');
         expect($hubSpot->context['referrer'])->toBe('https://example.test/page');
 
         $pardot = new Pardot(['name' => 'Pardot', 'handle' => 'pardotTest']);
         $submission->metadata['request']['cookies']['visitor_id42'] = 'stored-pardot';
-        $pardot->populateContext($submission);
+        $pardot->populateSubmissionContext($submission);
 
         expect($pardot->context['pardot_tracking'])->toBe([
             'visitor_id42' => 'stored-pardot',

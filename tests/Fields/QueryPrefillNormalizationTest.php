@@ -22,8 +22,8 @@ it('normalizes query choices without splitting submitted array values', function
 
 it('resolves a recipient label for prefill without accepting it as a submitted address', function (): void {
     $field = new Recipients(['displayType' => 'dropdown', 'options' => [['label' => 'Sales', 'value' => 'sales@example.test']]]);
-    expect(queryPrefillValue($field, 'Sales')->rawValue())->toBe('sales@example.test');
-    expect($field->normalizeValueFromRequest('Sales', null)->valid())->toBeFalse();
+    expect(queryPrefillValue($field, 'Sales')->value)->toBe('sales@example.test');
+    expect($field->normalizeValueFromRequest('Sales', null)->valid)->toBeFalse();
 });
 
 it('accepts scalar and array element ids as query prefill', function (mixed $input, array $expected): void {

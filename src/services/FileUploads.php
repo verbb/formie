@@ -498,7 +498,7 @@ class FileUploads extends Component
             }
             $ids = $this->_extractAssetIds($value);
 
-            if ($field->limitFiles && count($ids) > (int)$field->limitFiles) {
+            if ($field->maxFiles && count($ids) > (int)$field->maxFiles) {
                 throw new ForbiddenHttpException('Upload count limit exceeded.');
             }
             $retained = $existing ? $this->_extractAssetIds($existing->getFieldValue($contentKey)) : [];
@@ -542,7 +542,7 @@ class FileUploads extends Component
                 }
                 $asset = Asset::find()->id($id)->status(null)->one();
 
-                if (!$asset || $field->exceedsMaxUploadSize((int)$asset->size) || ($field->sizeMinLimit && $asset->size < $field->sizeMinLimit * 1000000) || $field->getUploadTypeValidationErrors($asset->filename, $asset->getCopyOfFile())) {
+                if (!$asset || $field->exceedsMaxUploadSize((int)$asset->size) || ($field->minFileSize && $asset->size < $field->minFileSize * 1000000) || $field->getUploadTypeValidationErrors($asset->filename, $asset->getCopyOfFile())) {
                     throw new ForbiddenHttpException('Upload policy rejected the file.');
                 }
 
