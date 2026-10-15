@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Input, Popover } from '@verbb/plugin-kit-react/components';
+import { createFocusTrap, getFocusableElements } from '@verbb/plugin-kit-web';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
 import { resolveVariableTagLabel } from '@verbb/plugin-kit-tiptap-core';
 import { VariableCommandList } from '@form-builder/fields/variable-picker/VariableCommandList';
@@ -53,20 +54,17 @@ export function useVariableTagConfigureSession(hostRef, editor = null) {
         };
     }, [hostRef, editor]);
 
-    const closeSession = useCallback(() => {
-        setSession(null);
+    const closeSession = useCallback((closingSession) => {
+        // An outgoing popover can finish closing after another chip opens.
+        setSession((current) => {
+            return current === closingSession ? null : current;
+        });
     }, []);
 
     return { session, setSession, closeSession };
 }
 
-/**
- * Configure UI for a placed variable chip — kit `Popover` anchored to the chip.
- * Stays in the React tree (same as VariableDropdown) so modal dialogs stay
- * interactive; pk-popup owns top-layer + light-dismiss. No createPortal / dialog
- * special-casing.
- */
-export function VariableTagConfigureOverlay({
+function VariableTagConfigureContent({
     session,
     onClose,
     variableCategories,
@@ -78,6 +76,8 @@ export function VariableTagConfigureOverlay({
 }) {
     const t = useTranslation();
     const originalAttrsRef = useRef(null);
+    const contentRef = useRef(null);
+    const closeSourceRef = useRef(null);
     const [isPickerMode, setIsPickerMode] = useState(false);
     const [defaultIfEmpty, setDefaultIfEmpty] = useState('');
     const [transformerId, setTransformerId] = useState('');
@@ -90,6 +90,39 @@ export function VariableTagConfigureOverlay({
 
     const attrs = session?.attrs ?? {};
     const updateAttributes = session?.updateAttributes;
+
+    const focusFirstControl = useCallback(async () => {
+        const content = contentRef.current;
+        if (!content) {
+            return;
+        }
+
+        // React mounts the hosts before Lit renders their focusable controls,
+        // including when the Change variable search is replaced by settings.
+        await Promise.all(Array.from(content.querySelectorAll('*'), (element) => {
+            return element.updateComplete;
+        }));
+        if (contentRef.current === content && content.isConnected) {
+            getFocusableElements(content)[0]?.focus({ preventScroll: true });
+        }
+    }, []);
+
+    const restoreAnchorFocus = useCallback(() => {
+        getFocusableElements(session.anchor)[0]?.focus({ preventScroll: true });
+    }, [session.anchor]);
+
+    useEffect(() => {
+        // Native controls live inside Kit shadow roots. Use the shared traversal
+        // so Tab wraps through inputs, selects and footer buttons correctly.
+        return createFocusTrap({ root: contentRef.current });
+    }, []);
+
+    useEffect(() => {
+        if (!isPickerMode) {
+            // Returning from Change variable replaces the focused search input.
+            focusFirstControl();
+        }
+    }, [isPickerMode, focusFirstControl]);
 
     useEffect(() => {
         if (!session) {
@@ -118,19 +151,31 @@ export function VariableTagConfigureOverlay({
         );
         setIsPickerMode(false);
         setConfigureSessionKey((current) => current + 1);
+
+        return () => {
+            // Changing variables previews token attributes immediately. Switching
+            // chips must discard that preview just like dismissing the popover.
+            if (originalAttrsRef.current) {
+                updateAttributes?.(originalAttrsRef.current);
+                originalAttrsRef.current = null;
+            }
+        };
         // Only re-seed when a new configure session opens (anchor identity).
         // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional session open gate
     }, [session?.anchor]);
 
-    const closeConfig = useCallback((preservedValue = null) => {
-        if (preservedValue == null && originalAttrsRef.current) {
+    const closeConfig = useCallback((restoreFocus = false) => {
+        if (originalAttrsRef.current) {
             updateAttributes?.(originalAttrsRef.current);
         }
 
         originalAttrsRef.current = null;
         setIsPickerMode(false);
-        onClose?.();
-    }, [onClose, updateAttributes]);
+        onClose?.(session);
+        if (restoreFocus) {
+            restoreAnchorFocus();
+        }
+    }, [onClose, session, updateAttributes, restoreAnchorFocus]);
 
     const resolveVariableMetaForToken = useCallback((lookupValue = '') => {
         return findVariableOptionByValue(
@@ -252,7 +297,8 @@ export function VariableTagConfigureOverlay({
         });
         originalAttrsRef.current = null;
         setIsPickerMode(false);
-        onClose?.();
+        onClose?.(session);
+        restoreAnchorFocus();
     };
 
     if (!session?.anchor) {
@@ -272,13 +318,24 @@ export function VariableTagConfigureOverlay({
             // wrapper + absolute insert rail (extra padding under the field).
             // Same idea as controlled `pk-dialog` without a trigger.
             className="absolute left-0 top-0 h-0 w-0 overflow-visible border-0 p-0"
+            onPkAfterShow={focusFirstControl}
+            onPkHide={(event) => {
+                closeSourceRef.current = event.detail?.source;
+            }}
             onPkOpenChange={(event) => {
+                if (event.target !== event.currentTarget) {
+                    return;
+                }
+
                 if (!(event.detail?.open ?? event.target?.open ?? false)) {
-                    closeConfig();
+                    // Pointer dismissal must leave focus on the clicked target,
+                    // especially when that target is another variable chip.
+                    closeConfig(closeSourceRef.current === 'escape');
                 }
             }}
         >
             <div
+                ref={contentRef}
                 data-variable-config-popover=""
                 className="min-w-[260px] max-w-[360px] overflow-hidden"
                 role="dialog"
@@ -366,4 +423,20 @@ export function VariableTagConfigureOverlay({
             </div>
         </Popover>
     );
+}
+
+/**
+ * Configure UI for a placed variable chip — kit `Popover` anchored to the chip.
+ * Stays in the React tree (same as VariableDropdown) so modal dialogs stay
+ * interactive; pk-popup owns top-layer + light-dismiss. No createPortal / dialog
+ * special-casing.
+ */
+export function VariableTagConfigureOverlay(props) {
+    if (!props.session?.anchor) {
+        return null;
+    }
+
+    // Kit variable chips have unique DOM IDs. Each chip needs its own popover
+    // instance so an outgoing light-dismiss animation cannot close the next one.
+    return <VariableTagConfigureContent key={props.session.anchor.id} {...props} />;
 }
