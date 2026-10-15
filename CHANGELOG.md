@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.0.0 - 2026-10-14
+## 4.0.0 - 2026-10-16
 
 > {warning} Before upgrading to Formie 4, review the [Upgrading from v3](https://verbb.io/craft-plugins/formie/docs/v4/get-started/upgrading-from-v3) guide for breaking changes and required migration steps.
 
