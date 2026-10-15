@@ -561,8 +561,7 @@ function bindFormEvents(
     bus: EventBus,
     validator: FormieValidator | null,
     unbinds: Array<() => void>,
-): () => void {
-    let captureBaseline = () => {};
+): void {
     form.dataset.formieRequestProfile = options.profile ?? 'same-origin-browser';
     if (options.profile === 'cross-origin-public') form.dataset.formieSubmitMethod = 'ajax';
     const submitMethod = String(
@@ -588,7 +587,6 @@ function bindFormEvents(
                 return !hasInternalNavigation(form);
             },
         });
-        captureBaseline = unloadWarning.scheduleBaselineCapture;
         const handleSubmitResult = (event: Event): void => {
             if (!(event instanceof CustomEvent)) {
                 return;
@@ -858,8 +856,6 @@ function bindFormEvents(
     unbinds.push(() => {
         form.removeEventListener('submit', submitHandler);
     });
-
-    return captureBaseline;
 }
 
 async function refreshTokensIfNeeded(target: Element, options: FormMountOptions, form: HTMLFormElement | null): Promise<void> {
@@ -1227,7 +1223,9 @@ export function createFormieClient(): FormieClient {
         }
 
         if (form) {
-            const captureBaseline = bindFormEvents(target, form, normalizedOptions, bus, validator, unbinds);
+            // Module setup has finished, so capture content before any asynchronous
+            // token refresh. Provider-owned exclusions handle transport changes.
+            bindFormEvents(target, form, normalizedOptions, bus, validator, unbinds);
 
             if (validator) {
                 unbinds.push(bindSubmitReadiness(form, validator, target));
@@ -1235,12 +1233,6 @@ export function createFormieClient(): FormieClient {
             }
 
             await refreshTokensIfNeeded(target, normalizedOptions, form);
-
-            // Recapture after captcha/token hydration and field-module init settle so
-            // programmatic post-mount value changes do not leave a false dirty state.
-            captureBaseline();
-            const baselineTimer = window.setTimeout(captureBaseline, 350);
-            unbinds.push(() => window.clearTimeout(baselineTimer));
         }
 
         stageNames.forEach((stageName) => {

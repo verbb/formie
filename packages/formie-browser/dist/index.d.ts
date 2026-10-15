@@ -26,6 +26,7 @@ export type { FormRefreshTokensPayload, FormEndpointPayload, BrowserModuleEntry,
 export type { BrowserThemeClassMap, ThemeClassMap } from '#contracts/theme';
 export type { ValidationConfig, ValidationContext, ValidationError, ValidationInput, ValidationRuleDefinition, ValidationRules, ValidationRuleValue, } from '#validation/types';
 export type { TranslationReplacements } from '#utils/i18n';
+export type { FormUnloadWarningExclusionsEventDetail } from '#utils/unload-warning';
 export type { FieldReferenceTransform, FieldValueRegistry, FieldValueRegistryEntry, ParsedFieldReference, ResolveFieldValueResult, } from '#utils/field-references';
 export { mountClientRenderedModules } from '#core/client-rendered-modules';
 //# sourceMappingURL=index.d.ts.map

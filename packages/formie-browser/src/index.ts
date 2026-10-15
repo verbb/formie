@@ -119,6 +119,7 @@ export type {
     ValidationRuleValue,
 } from '#validation/types';
 export type { TranslationReplacements } from '#utils/i18n';
+export type { FormUnloadWarningExclusionsEventDetail } from '#utils/unload-warning';
 export type {
     FieldReferenceTransform,
     FieldValueRegistry,

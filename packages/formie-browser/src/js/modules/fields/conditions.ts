@@ -300,6 +300,9 @@ export const conditionsModule: BrowserModuleDefinition = {
         });
 
         rebuild();
+        // Initial visibility and disabled state belong to module setup. Finish
+        // them before the form captures its clean baseline or announces readiness.
+        evaluateAll();
 
         await ctx.emit('formie:module:conditions:init', {
             count: entries.length,

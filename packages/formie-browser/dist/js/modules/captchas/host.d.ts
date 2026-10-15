@@ -74,6 +74,9 @@ export type CaptchaHostServices = {
     };
 };
 export declare function normalizeCaptchaModuleOptions<TProvider extends Record<string, unknown>>(id: string, rawOptions: Record<string, unknown> | undefined, { defaultPlaceholderSelector, defaultTokenFieldNames, defaultWaitForValueMs, }: CaptchaModuleDefaults): NormalizedCaptchaModuleOptions<TProvider>;
-export declare function createCaptchaHostServices<TProvider extends Record<string, unknown>>(ctx: ModuleSetupContext, options: NormalizedCaptchaModuleOptions<TProvider>): CaptchaHostServices;
+export declare function createCaptchaHostServices<TProvider extends Record<string, unknown>>(ctx: ModuleSetupContext, options: NormalizedCaptchaModuleOptions<TProvider>, lifecycle?: {
+    onTokenFieldNames?: (names: string[]) => void;
+    isActive?: () => boolean;
+}): CaptchaHostServices;
 export {};
 //# sourceMappingURL=host.d.ts.map

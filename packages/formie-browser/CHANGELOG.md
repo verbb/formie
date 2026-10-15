@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+- Add the `formie:unload-warning:collect-exclusions` event for integrations to exclude automatically updated transport fields from unsaved-changes checks.
+
+### Fixed
+- Fixed CAPTCHA token updates triggering unsaved-changes warnings on untouched forms, including custom or changing token field names. ([#3008](https://github.com/verbb/formie/issues/3008))
+- Fixed initial conditional field visibility triggering an unsaved-changes warning after native submissions.
+- Fixed edits made immediately after mounting a form being treated as saved.
+- Fixed CAPTCHA teardown leaving widgets or callbacks active after failed setup, pending mounts or provider cleanup errors.
+- Fixed CAPTCHA widgets with a numeric zero handle failing to challenge or reset.
+
 ## 1.0.15 - 2026-10-15
 
 ### Changed

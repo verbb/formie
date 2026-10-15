@@ -1,3 +1,7 @@
+export type FormUnloadWarningExclusionsEventDetail = {
+    readonly form: HTMLFormElement;
+    readonly exclude: (...fieldNames: string[]) => void;
+};
 export type FormUnloadWarningGuard = {
     captureBaseline: () => void;
     scheduleBaselineCapture: () => void;

@@ -1,4 +1,5 @@
 import { isFormCsrfFieldName } from '#utils/csrf';
+import { dispatchFormieDomEvent } from '#core/dom-events';
 
 const DIRTY_TRACKING_IGNORED_FIELD_NAMES = new Set([
     'action',
@@ -13,6 +14,37 @@ const DIRTY_TRACKING_IGNORED_FIELD_NAMES = new Set([
     'draftContext',
     'progressId',
 ]);
+
+type FormSnapshot = Array<[string, FormDataEntryValue]>;
+
+export type FormUnloadWarningExclusionsEventDetail = {
+    readonly form: HTMLFormElement;
+    readonly exclude: (...fieldNames: string[]) => void;
+};
+
+function collectExcludedFieldNames(form: HTMLFormElement): Set<string> {
+    const excludedFieldNames = new Set<string>();
+    let collecting = true;
+
+    dispatchFormieDomEvent(form, 'formie:unload-warning:collect-exclusions', {
+        form,
+        exclude: (...fieldNames: string[]) => {
+            // Exclusions belong to this synchronous comparison, not a later check.
+            if (!collecting) {
+                return;
+            }
+
+            fieldNames.forEach((name) => {
+                if (typeof name === 'string' && name !== '') {
+                    excludedFieldNames.add(name);
+                }
+            });
+        },
+    } satisfies FormUnloadWarningExclusionsEventDetail);
+    collecting = false;
+
+    return excludedFieldNames;
+}
 
 function serializeStableValue(value: unknown, seen: WeakSet<object>): string {
     if (value == null) {
@@ -82,9 +114,16 @@ function shouldTrackFieldName(name: string, form: HTMLFormElement): boolean {
     return !DIRTY_TRACKING_IGNORED_FIELD_NAMES.has(normalizedName);
 }
 
-function buildTrackedSnapshot(form: HTMLFormElement): string {
-    const entries = Array.from(new FormData(form).entries()).filter(([name]) => {
-        return shouldTrackFieldName(String(name || ''), form);
+function buildTrackedSnapshot(
+    snapshot: FormSnapshot,
+    form: HTMLFormElement,
+    excludedFieldNames: Set<string>,
+): string {
+    const entries = snapshot.filter(([name]) => {
+        return (
+            !excludedFieldNames.has(name) &&
+            shouldTrackFieldName(String(name || ''), form)
+        );
     });
 
     return stableSerialize(entries);
@@ -103,8 +142,9 @@ export function createFormUnloadWarningGuard(
         shouldWarn?: () => boolean;
     } = {},
 ): FormUnloadWarningGuard {
-    let baselineSnapshot: string | null = null;
+    let baselineSnapshot: FormSnapshot = [];
     let isReady = false;
+    let destroyed = false;
     let isDirty = false;
     let animationFrameId: number | null = null;
     let dirtyTimerId: number | null = null;
@@ -132,18 +172,31 @@ export function createFormUnloadWarningGuard(
             return false;
         }
 
-        isDirty = buildTrackedSnapshot(form) !== baselineSnapshot;
+        // Apply the same current exclusions to both sides. A late registration
+        // must neither create a false edit nor reset genuine visitor changes.
+        const excludedFieldNames = collectExcludedFieldNames(form);
+        const currentSnapshot = Array.from(new FormData(form).entries());
+        isDirty =
+            buildTrackedSnapshot(currentSnapshot, form, excludedFieldNames) !==
+            buildTrackedSnapshot(baselineSnapshot, form, excludedFieldNames);
 
         return isDirty;
     };
 
     const captureBaseline = (): void => {
-        baselineSnapshot = buildTrackedSnapshot(form);
+        if (destroyed) {
+            return;
+        }
+        clearScheduledWork();
+        baselineSnapshot = Array.from(new FormData(form).entries());
         isReady = true;
         isDirty = false;
     };
 
     const scheduleBaselineCapture = (): void => {
+        if (destroyed) {
+            return;
+        }
         clearScheduledWork();
         isReady = false;
 
@@ -183,13 +236,16 @@ export function createFormUnloadWarningGuard(
     form.addEventListener('input', scheduleDirtyRefresh);
     form.addEventListener('change', scheduleDirtyRefresh);
     window.addEventListener('beforeunload', handleBeforeUnload);
-    scheduleBaselineCapture();
+    captureBaseline();
 
     return {
         captureBaseline,
         scheduleBaselineCapture,
         refreshDirtyState,
         destroy: () => {
+            destroyed = true;
+            isReady = false;
+            baselineSnapshot = [];
             clearScheduledWork();
             form.removeEventListener('input', scheduleDirtyRefresh);
             form.removeEventListener('change', scheduleDirtyRefresh);

@@ -237,8 +237,11 @@ function observeVisiblePlaceholders(
     onHide: (placeholder: HTMLElement) => void,
 ): ObserveVisiblePlaceholdersResult {
     const visible = new Set<HTMLElement>();
+    let active = true;
 
     const reconcileNow = () => {
+        // A debounced observer callback may already be queued when cleanup runs.
+        if (!active) return;
         const placeholders = queryCaptchaPlaceholders(root, selector);
         const nextVisible = new Set(placeholders.filter((placeholder) => isElementVisible(placeholder)));
 
@@ -291,6 +294,8 @@ function observeVisiblePlaceholders(
 
     return {
         cleanup: () => {
+            if (!active) return;
+            active = false;
             mutationObserver.disconnect();
             cleanups.forEach((cleanup) => {
                 cleanup();
@@ -371,6 +376,10 @@ export function normalizeCaptchaModuleOptions<TProvider extends Record<string, u
 export function createCaptchaHostServices<TProvider extends Record<string, unknown>>(
     ctx: ModuleSetupContext,
     options: NormalizedCaptchaModuleOptions<TProvider>,
+    lifecycle: {
+        onTokenFieldNames?: (names: string[]) => void;
+        isActive?: () => boolean;
+    } = {},
 ): CaptchaHostServices {
     const tokenRoot = ctx.form || ctx.root;
     const placeholderSelector = options.ui.placeholderSelector;
@@ -396,9 +405,11 @@ export function createCaptchaHostServices<TProvider extends Record<string, unkno
         errors: {
             getDefaultMessage: () => options.ui.errorMessage,
             show: (message, placeholder) => {
+                if (lifecycle.isActive?.() === false) return;
                 showCaptchaError(placeholder || getPrimaryPlaceholder(ctx.root, placeholderSelector), message || options.ui.errorMessage, ctx.form || ctx.root);
             },
             clear: (placeholder) => {
+                if (lifecycle.isActive?.() === false) return;
                 clearCaptchaError(placeholder || getPrimaryPlaceholder(ctx.root, placeholderSelector));
             },
         },
@@ -411,6 +422,10 @@ export function createCaptchaHostServices<TProvider extends Record<string, unkno
                 root = tokenRoot,
                 container = ctx.form,
             } = {}) => {
+                // Late SDK callbacks must not mutate an unmounted form or a new
+                // instance that now owns the same transport names.
+                if (lifecycle.isActive?.() === false) return;
+                lifecycle.onTokenFieldNames?.(names);
                 names.forEach((name) => {
                     ensureCaptchaValueInput(root, name, {
                         value,
@@ -419,6 +434,7 @@ export function createCaptchaHostServices<TProvider extends Record<string, unkno
                 });
             },
             clear: (names = options.transport.tokenFieldNames, root = tokenRoot) => {
+                if (lifecycle.isActive?.() === false) return;
                 clearCaptchaValues(root, names);
             },
             wait: (timeoutMs = options.transport.waitForValueMs, names = options.transport.tokenFieldNames, root = tokenRoot) => {

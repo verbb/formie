@@ -16,6 +16,7 @@ import {
 } from '#modules/captchas/host';
 import { createDebug } from '#utils/debug';
 import { getFormStateEventName } from '#utils/event-names';
+import type { FormUnloadWarningExclusionsEventDetail } from '#utils/unload-warning';
 
 type Cleanup = () => void;
 const debug = createDebug('captchas');
@@ -91,40 +92,112 @@ export function createCaptchaModule<TProvider extends Record<string, unknown> = 
         surfaces: ['server-rendered', 'client-rendered'],
         kind: 'captcha',
         match: () => true,
-        setup: async(ctx) => {
+        setup: async (ctx) => {
             // Every captcha module, passive or widget-backed, starts from the
             // same two building blocks:
             // 1. normalized options from the backend manifest
             // 2. shared host services for placeholders, errors, tokens, and
             //    refresh-token events
-            const options = normalizeCaptchaModuleOptions<TProvider>(moduleId.split(':')[1], ctx.options || {}, {
-                defaultPlaceholderSelector,
-                defaultTokenFieldNames,
-                defaultWaitForValueMs,
-            });
+            const options = normalizeCaptchaModuleOptions<TProvider>(
+                moduleId.split(':')[1],
+                ctx.options || {},
+                {
+                    defaultPlaceholderSelector,
+                    defaultTokenFieldNames,
+                    defaultWaitForValueMs,
+                },
+            );
             debug.log('Setup module.', {
                 moduleId: moduleId,
                 placeholderSelector: options.ui.placeholderSelector,
                 tokenFieldNames: options.transport.tokenFieldNames,
             });
             let placeholder: HTMLElement | undefined;
-            if (ctx.surface === 'client-rendered' && !ctx.root.querySelector(options.ui.placeholderSelector)) {
-                const attribute = /^\[(data-[a-z0-9-]+)\]$/.exec(options.ui.placeholderSelector)?.[1];
-                if (!attribute) throw new Error('The CAPTCHA needs a supported placeholder in the client-rendered form.');
+            if (
+                ctx.surface === 'client-rendered' &&
+                !ctx.root.querySelector(options.ui.placeholderSelector)
+            ) {
+                const attribute = /^\[(data-[a-z0-9-]+)\]$/.exec(
+                    options.ui.placeholderSelector,
+                )?.[1];
+                if (!attribute)
+                    throw new Error(
+                        'The CAPTCHA needs a supported placeholder in the client-rendered form.',
+                    );
                 placeholder = document.createElement('div');
                 placeholder.setAttribute(attribute, '');
                 (ctx.form ?? ctx.root).append(placeholder);
             }
-            const services = createCaptchaHostServices(ctx, options);
-
-            const instance = await setup({
-                ...ctx,
-                options,
-                services,
+            // Providers own their transport names. Keep refreshed names until
+            // teardown so removing or rotating a token cannot dirty the baseline.
+            const excludedFieldNames = new Set(
+                options.transport.tokenFieldNames,
+            );
+            let active = true;
+            const trackTokenNames = (names: string[]) => {
+                names
+                    .filter(Boolean)
+                    .forEach((name) => excludedFieldNames.add(name));
+            };
+            trackTokenNames(
+                options.transport.sessionKey
+                    ? [options.transport.sessionKey]
+                    : [],
+            );
+            const services = createCaptchaHostServices(ctx, options, {
+                onTokenFieldNames: trackTokenNames,
+                isActive: () => active,
             });
-            if (!instance) { placeholder?.remove(); return; }
-            const destroy = instance.destroy;
-            return { ...instance, destroy: async() => { await destroy(); placeholder?.remove(); } };
+            const stopCollecting = services.events.onForm(
+                'formie:unload-warning:collect-exclusions',
+                (event) => {
+                    const detail = (
+                        event as CustomEvent<FormUnloadWarningExclusionsEventDetail>
+                    ).detail;
+                    if (detail?.form === ctx.form) {
+                        detail.exclude(...excludedFieldNames);
+                    }
+                },
+            );
+            const stopTrackingRefreshes = services.refresh.onTokensRefreshed(
+                (entry) => {
+                    if (
+                        typeof entry.sessionKey === 'string' &&
+                        entry.sessionKey.trim() !== ''
+                    ) {
+                        trackTokenNames([entry.sessionKey.trim()]);
+                    }
+                },
+            );
+            const cleanup = () => {
+                active = false;
+                stopCollecting();
+                stopTrackingRefreshes();
+                placeholder?.remove();
+            };
+
+            try {
+                const instance = await setup({ ...ctx, options, services });
+                if (!instance) {
+                    cleanup();
+                    return;
+                }
+
+                const destroy = instance.destroy;
+                return {
+                    ...instance,
+                    destroy: async () => {
+                        try {
+                            await destroy();
+                        } finally {
+                            cleanup();
+                        }
+                    },
+                };
+            } catch (error) {
+                cleanup();
+                throw error;
+            }
         },
     };
 }
@@ -237,12 +310,14 @@ export function createManagedCaptchaModule<
     TProvider extends Record<string, unknown>,
     TApi,
     TWidget,
->(adapter: ManagedCaptchaModuleAdapter<TProvider, TApi, TWidget>): BrowserModuleDefinition {
+>(
+    adapter: ManagedCaptchaModuleAdapter<TProvider, TApi, TWidget>,
+): BrowserModuleDefinition {
     return createCaptchaModule<TProvider>({
         moduleId: adapter.moduleId,
         defaultPlaceholderSelector: adapter.defaultPlaceholderSelector,
         defaultTokenFieldNames: adapter.defaultTokenFieldNames,
-        setup: async(ctx) => {
+        setup: async (ctx) => {
             // Managed providers are the widget/SDK-backed family. The factory
             // owns only the generic plumbing:
             // - load the provider API once
@@ -254,13 +329,15 @@ export function createManagedCaptchaModule<
             const cleanups: Cleanup[] = [];
             const mountedWidgets = new Map<HTMLElement, TWidget>();
             const mountPromises = new Map<HTMLElement, Promise<void>>();
+            const unmountPromises = new Map<HTMLElement, Promise<void>>();
+            let destructionPromise: Promise<void> | null = null;
             let activePlaceholder = ctx.services.placeholder.getPrimary();
             let destroyed = false;
             let initializationError: unknown;
 
             let apiPromise: Promise<TApi> | null = null;
 
-            const getApi = async(): Promise<TApi> => {
+            const getApi = async (): Promise<TApi> => {
                 if (!apiPromise) {
                     debug.log('Loading captcha provider API.', {
                         moduleId: adapter.moduleId,
@@ -271,55 +348,67 @@ export function createManagedCaptchaModule<
                 return apiPromise;
             };
 
-            const unmountPlaceholder = async(placeholder: HTMLElement) => {
-                const widget = mountedWidgets.get(placeholder);
+            const unmountPlaceholder = (
+                placeholder: HTMLElement,
+            ): Promise<void> => {
+                const pending = unmountPromises.get(placeholder);
+                if (pending) return pending;
 
-                ctx.services.errors.clear(placeholder);
+                const promise = (async () => {
+                    // A widget can finish mounting after its placeholder hides or
+                    // teardown starts. Wait so its provider resources are released too.
+                    await mountPromises.get(placeholder)?.catch(() => {});
+                    ctx.services.errors.clear(placeholder);
+                    const hasWidget = mountedWidgets.has(placeholder);
+                    const widget = mountedWidgets.get(placeholder) as TWidget;
+                    mountedWidgets.delete(placeholder);
 
-                if (!widget) {
-                    placeholder.innerHTML = '';
-                    return;
-                }
+                    try {
+                        if (hasWidget && adapter.unmount) {
+                            const api = await getApi();
+                            await adapter.unmount({
+                                api,
+                                widget,
+                                placeholder,
+                                services: ctx.services,
+                                options: ctx.options,
+                                provider: ctx.options.provider,
+                            });
+                        }
+                    } finally {
+                        // Provider failures must not leave transport values or DOM
+                        // behind, or prevent another widget from being cleaned up.
+                        placeholder.innerHTML = '';
+                        ctx.services.tokens.clear();
+                        if (activePlaceholder === placeholder) {
+                            activePlaceholder =
+                                ctx.services.placeholder.getPrimary();
+                        }
+                    }
+                })().finally(() => unmountPromises.delete(placeholder));
 
-                const api = await getApi();
-
-                if (adapter.unmount) {
-                    await adapter.unmount({
-                        api,
-                        widget,
-                        placeholder,
-                        services: ctx.services,
-                        options: ctx.options,
-                        provider: ctx.options.provider,
-                    });
-                }
-
-                mountedWidgets.delete(placeholder);
-                placeholder.innerHTML = '';
-                ctx.services.tokens.clear();
-                debug.log('Unmounted captcha placeholder widget.', {
-                    moduleId: adapter.moduleId,
-                });
-
-                if (activePlaceholder === placeholder) {
-                    activePlaceholder = ctx.services.placeholder.getPrimary();
-                }
+                unmountPromises.set(placeholder, promise);
+                return promise;
             };
 
-            const mountPlaceholder = async(placeholder: HTMLElement) => {
+            const mountPlaceholder = async (placeholder: HTMLElement) => {
+                const unmounting = unmountPromises.get(placeholder);
+                if (unmounting) await unmounting;
                 if (destroyed || mountedWidgets.has(placeholder)) return;
-                if (mountPromises.has(placeholder)) return mountPromises.get(placeholder);
+                if (mountPromises.has(placeholder))
+                    return mountPromises.get(placeholder);
 
                 // Guard against repeated visibility events or rapid DOM churn
                 // by tracking an in-flight mount promise per placeholder.
-                const promise = (async() => {
+                const promise = (async () => {
                     const api = await getApi();
 
                     if (destroyed || mountedWidgets.has(placeholder)) {
                         return;
                     }
 
-                    const container = ctx.services.placeholder.createContainer(placeholder);
+                    const container =
+                        ctx.services.placeholder.createContainer(placeholder);
                     // Providers always render into a fresh container so the
                     // shared services can safely tear down and rebuild
                     // placeholder DOM.
@@ -349,16 +438,25 @@ export function createManagedCaptchaModule<
             const visibility = ctx.services.placeholder.observe(
                 (placeholder) => {
                     activePlaceholder = placeholder;
-                    void mountPlaceholder(placeholder).catch((error) => { initializationError = error; });
+                    void mountPlaceholder(placeholder).catch((error) => {
+                        initializationError = error;
+                    });
                 },
                 (placeholder) => {
-                    void unmountPlaceholder(placeholder);
+                    if (!destroyed) {
+                        void unmountPlaceholder(placeholder).catch((error) => {
+                            initializationError = error;
+                        });
+                    }
                 },
             );
 
             cleanups.push(visibility.cleanup);
 
-            const rerenderVisiblePlaceholders = async(reason: 'submit-result' | 'reset-state') => {
+            const rerenderVisiblePlaceholders = async (
+                reason: 'submit-result' | 'reset-state',
+            ) => {
+                if (destroyed) return;
                 // Some providers can cheaply reset in-place, while others are
                 // safer to unmount and mount again. The provider advertises
                 // that through the optional `reset()` hook.
@@ -369,9 +467,9 @@ export function createManagedCaptchaModule<
                     const api = await getApi();
 
                     for (const placeholder of placeholdersToMount) {
-                        const widget = mountedWidgets.get(placeholder);
+                        const widget = mountedWidgets.get(placeholder) as TWidget;
 
-                        if (!widget) {
+                        if (!mountedWidgets.has(placeholder)) {
                             await mountPlaceholder(placeholder);
                             continue;
                         }
@@ -405,57 +503,94 @@ export function createManagedCaptchaModule<
                 visibility.reconcile();
             };
 
-            cleanups.push(ctx.services.events.onRoot('formie:submit:result', (event) => {
-                const detail = event instanceof CustomEvent ? event.detail as FormSubmitResult : null;
+            cleanups.push(
+                ctx.services.events.onRoot('formie:submit:result', (event) => {
+                    const detail =
+                        event instanceof CustomEvent
+                            ? (event.detail as FormSubmitResult)
+                            : null;
 
-                if (detail?.stage === 'validate') {
-                    return;
-                }
+                    if (detail?.stage === 'validate') {
+                        return;
+                    }
 
-                if (detail?.ok === false && detail?.stage === 'challenge') {
-                    return;
-                }
+                    if (detail?.ok === false && detail?.stage === 'challenge') {
+                        return;
+                    }
 
-                if (detail?.ok === true) {
-                    return;
-                }
+                    if (detail?.ok === true) {
+                        return;
+                    }
 
-                void rerenderVisiblePlaceholders('submit-result');
-            }));
+                    void rerenderVisiblePlaceholders('submit-result');
+                }),
+            );
 
             if (ctx.form) {
-                cleanups.push(ctx.services.events.onForm(getFormStateEventName('reset'), () => {
-                    activePlaceholder = ctx.services.placeholder.getPrimary() || activePlaceholder;
+                cleanups.push(
+                    ctx.services.events.onForm(
+                        getFormStateEventName('reset'),
+                        () => {
+                            activePlaceholder =
+                                ctx.services.placeholder.getPrimary() ||
+                                activePlaceholder;
 
-                    window.setTimeout(() => {
-                        void rerenderVisiblePlaceholders('reset-state');
-                    }, 0);
-                }));
+                            window.setTimeout(() => {
+                                void rerenderVisiblePlaceholders('reset-state');
+                            }, 0);
+                        },
+                    ),
+                );
             }
+
+            const destroy = (): Promise<void> => {
+                if (destructionPromise) return destructionPromise;
+                destroyed = true;
+                destructionPromise = (async () => {
+                    cleanups.forEach((cleanup) => cleanup());
+                    await Promise.allSettled([...mountPromises.values()]);
+                    const results = await Promise.allSettled(
+                        new Set([
+                            ...unmountPromises.values(),
+                            ...Array.from(
+                                mountedWidgets.keys(),
+                                unmountPlaceholder,
+                            ),
+                        ]),
+                    );
+                    const errors = results.flatMap((result) =>
+                        result.status === 'rejected' ? [result.reason] : [],
+                    );
+                    if (errors.length)
+                        throw new AggregateError(
+                            errors,
+                            'CAPTCHA widgets could not clean up.',
+                        );
+                })();
+                return destructionPromise;
+            };
 
             visibility.reconcileImmediate();
             try {
                 await Promise.all([...mountPromises.values()]);
                 if (initializationError) throw initializationError;
             } catch (error) {
-                destroyed = true;
-                cleanups.forEach((cleanup) => cleanup());
+                // Setup can fail after another placeholder has already mounted.
+                // Preserve the setup error while still releasing every widget.
+                await destroy().catch((cleanupError) => {
+                    debug.warn('Captcha cleanup after failed setup.', {
+                        error: cleanupError,
+                    });
+                });
                 throw error;
             }
 
             return {
-                assertReady: () => { if (initializationError) throw initializationError; },
-                destroy: async() => {
-                    destroyed = true;
-                    cleanups.forEach((cleanup) => {
-                        cleanup();
-                    });
-
-                    for (const placeholder of Array.from(mountedWidgets.keys())) {
-                        await unmountPlaceholder(placeholder);
-                    }
+                assertReady: () => {
+                    if (initializationError) throw initializationError;
                 },
-                beforeSubmit: async(stageCtx) => {
+                destroy,
+                beforeSubmit: async (stageCtx) => {
                     if (stageCtx.action !== 'submit') {
                         return;
                     }
@@ -475,22 +610,27 @@ export function createManagedCaptchaModule<
                         return;
                     }
 
-                    let placeholder = visiblePlaceholders.find((candidate) => candidate === activePlaceholder)
-                        || visiblePlaceholders[0];
+                    let placeholder =
+                        visiblePlaceholders.find(
+                            (candidate) => candidate === activePlaceholder,
+                        ) || visiblePlaceholders[0];
 
                     await mountPlaceholder(placeholder);
                     placeholder = activePlaceholder || placeholder;
 
                     ctx.services.errors.clear(placeholder);
 
-                    const widget = mountedWidgets.get(placeholder);
+                    const widget = mountedWidgets.get(placeholder) as TWidget;
 
-                    if (!widget) {
+                    if (!mountedWidgets.has(placeholder)) {
                         const message = ctx.services.errors.getDefaultMessage();
                         ctx.services.errors.show(message, placeholder);
-                        debug.warn('Captcha widget unavailable at challenge stage.', {
-                            moduleId: adapter.moduleId,
-                        });
+                        debug.warn(
+                            'Captcha widget unavailable at challenge stage.',
+                            {
+                                moduleId: adapter.moduleId,
+                            },
+                        );
                         stageCtx.abort(message);
                         return;
                     }

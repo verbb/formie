@@ -137,6 +137,32 @@ document.addEventListener('formie:theme:applied', (event) => {
 });
 ```
 
+### Unload Warnings
+
+#### The `formie:unload-warning:collect-exclusions` Event
+
+The event that is triggered synchronously on the form whenever Formie checks for unsaved changes. Integrations can exclude automatically updated transport fields by calling `event.detail.exclude()` with their exact HTML `name` values. The event bubbles, so a document listener can handle forms mounted later too.
+
+For example, add this listener to your site's JavaScript when a third-party integration updates a hidden verification token:
+
+```js
+document.addEventListener('formie:unload-warning:collect-exclusions', (event) => {
+  const { form, exclude } = event.detail;
+
+  if (form.querySelector('[data-example-verification]')) {
+    exclude('example-verification-token', 'example-verification-expiry');
+  }
+});
+```
+
+Pass each complete name, including brackets for array inputs, such as `verification[tokens][]`. Matching is exact: excluding `verification` does not exclude `verificationExtra` or `verification[tokens][]`. Every submitted value with a matching name is excluded. Register listeners on the form for one instance, or check `event.detail.form` in a document listener before declaring exclusions.
+
+Use `exclude()` during the listener, before any `await`. Formie collects a fresh set for every check and applies it to both the original baseline and current values. Adding a listener after initialization works without resetting visitor edits. Remove the listener when your integration is destroyed to restore normal tracking. This event is not cancellable; it changes which fields are compared, and does not change submitted values, validation or spam verification. The TypeScript payload is exported as `FormUnloadWarningExclusionsEventDetail` from `@verbb/formie-browser`.
+
+Use native `addEventListener()` listeners for this synchronous DOM hook. It is not dispatched through the asynchronous module event bus or the `formie()` `onEvent` callback. Within a shadow root, listen on the form or its root; this event does not cross the shadow boundary.
+
+CAPTCHA modules created with `defineCaptchaModule()` or `definePassiveCaptchaModule()` automatically declare their transport names, including refreshed `sessionKey` values and custom names passed to `services.tokens.write()`. Custom integrations that manage their own fields can use this event. Keep ordinary content fields tracked, including hidden fields that store answers.
+
 ### Submit Lifecycle
 
 These events cover the submission flow. On multi-page forms, `formie:submit:*` events can run on each page submit attempt, while `formie:submit:final:*` events are reserved for the final submit when the form is actually being completed.
