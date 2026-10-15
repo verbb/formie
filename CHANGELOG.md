@@ -10,6 +10,7 @@
 
 ### Fixed
 - Fix integration lists rendering as an empty pane instead of configured integrations or the empty-state message.
+- Fix integration type icons appearing oversized or stretched in integration lists.
 - Fix Zendesk tickets being rejected when the mapped requester name is blank.
 - Fix submission status color migrations failing when legacy status event handlers are registered.
 - Fix an error when upgrading multi-site installs from Formie 3 to Formie 4. ([#3007](https://github.com/verbb/formie/issues/3007))
