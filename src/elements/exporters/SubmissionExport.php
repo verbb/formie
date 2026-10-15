@@ -1,12 +1,14 @@
 <?php
 namespace verbb\formie\elements\exporters;
 
+use verbb\formie\elements\Form;
 use verbb\formie\Formie;
 use verbb\formie\events\ModifySubmissionExportDataEvent;
 
 use Craft;
 use craft\base\ElementExporter;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 
 use DateTime;
@@ -43,7 +45,10 @@ class SubmissionExport extends ElementExporter
     public function export(ElementQueryInterface $query): array
     {
         try {
+            App::maxPowerCaptain();
+
             $data = [];
+            $forms = [];
 
             $attributes = [
                 'id' => Craft::t('site', 'ID'),
@@ -64,6 +69,24 @@ class SubmissionExport extends ElementExporter
             ];
 
             foreach ($query->each() as $element) {
+                if ($element->formId) {
+                    $cacheKey = $element->formId . ($element->trashed ? ':trashed' : '');
+
+                    if (!array_key_exists($cacheKey, $forms)) {
+                        $formQuery = Form::find()->id($element->formId);
+
+                        if ($element->trashed) {
+                            $formQuery->trashed(true);
+                        }
+
+                        $forms[$cacheKey] = $formQuery->one();
+                    }
+
+                    if ($forms[$cacheKey]) {
+                        $element->setForm($forms[$cacheKey]);
+                    }
+                }
+
                 // Fetch the attributes for the element
                 $values = [];
 

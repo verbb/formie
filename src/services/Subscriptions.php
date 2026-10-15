@@ -460,7 +460,7 @@ class Subscriptions extends Component
         return true;
     }
 
-    public function expireSubscription(Subscription $subscription, DateTime $dateTime = null): bool
+    public function expireSubscription(Subscription $subscription, ?DateTime $dateTime = null): bool
     {
         $subscription->status = SubscriptionStatus::COMPLETED;
         $subscription->endedAt = $dateTime;

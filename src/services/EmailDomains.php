@@ -83,7 +83,7 @@ class EmailDomains extends Component
                     }
 
                     // Support either a single-column CSV or plain text list.
-                    $parts = str_getcsv($line);
+                    $parts = str_getcsv($line, ',', '"', '');
                     $domains[] = $parts[0] ?? '';
                 }
             }

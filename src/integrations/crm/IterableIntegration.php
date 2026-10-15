@@ -244,6 +244,7 @@ class IterableIntegration extends Crm
         $rules = parent::defineRules();
 
         $rules[] = [['apiKey'], 'required'];
+        $rules[] = [['messageTypeId'], 'safe', 'on' => [Integration::SCENARIO_FORM]];
 
         $user = $this->getConfigValue('user');
 

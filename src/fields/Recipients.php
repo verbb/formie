@@ -850,7 +850,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         ]);
     }
 
-    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ?ElementInterface $element = null): string
     {
         if ($value instanceof RecipientsFieldValue) {
             return (string)$value;
@@ -863,7 +863,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         return (string)$value;
     }
 
-    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ?ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
             if ($value instanceof RecipientsFieldValue) {
@@ -886,7 +886,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ?ElementInterface $element = null): string
     {
         if ($value instanceof RecipientsFieldValue) {
             return implode(', ', $value->labels());

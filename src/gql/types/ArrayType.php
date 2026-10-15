@@ -43,7 +43,7 @@ class ArrayType extends ScalarType
         return $value;
     }
 
-    public function parseLiteral($valueNode, array $variables = null)
+    public function parseLiteral($valueNode, ?array $variables = null)
     {
         return AST::valueFromASTUntyped($valueNode, $variables);
     }

@@ -10,12 +10,12 @@ abstract class Position extends Component implements PositionInterface
     // Static Methods
     // =========================================================================
 
-    public static function supports(FieldInterface $field = null): bool
+    public static function supports(?FieldInterface $field = null): bool
     {
         return true;
     }
 
-    public static function fallback(FieldInterface $field = null): ?string
+    public static function fallback(?FieldInterface $field = null): ?string
     {
         return null;
     }

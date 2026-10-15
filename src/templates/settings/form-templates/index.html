@@ -1,11 +1,14 @@
 {% extends 'formie/_layouts/settings' %}
 {% set title = 'Form Templates' | t('formie') %}
 
+{% set selectedTab = 'form-templates' %}
+{% set title = 'Form Templates' | t('formie') %}
+
 {% block actionButton %}
     <a href="{{ url('formie/settings/form-templates/new') }}" class="btn submit add icon">{{ 'New Template' | t('formie') }}</a>
 {% endblock %}
 
-{% block content %}
+{% block settingsContent %}
     <div id="form-templates-vue-admin-table"></div>
 {% endblock %}
 
@@ -38,7 +41,7 @@
 
     new Craft.VueAdminTable({
         columns: columns,
-        container: '#form-templates-vue-admin-table',
+        container: '#{{ 'form-templates-vue-admin-table' | namespaceInputId('settings') }}',
         deleteAction: 'formie/form-templates/delete',
         reorderAction: 'formie/form-templates/reorder',
         reorderSuccessMessage: Craft.t('formie', 'Templates reordered.'),
