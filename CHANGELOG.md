@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix unnecessary `EVENT_MODIFY_HTML_TAG` deprecation warnings when rendering forms with the debug toolbar enabled. ([#3009](https://github.com/verbb/formie/issues/3009))
+
 ## 4.0.0 - 2026-10-16
 
 > {warning} Before upgrading to Formie 4, review the [Upgrading from v3](https://verbb.io/craft-plugins/formie/docs/v4/get-started/upgrading-from-v3) guide for breaking changes and required migration steps.

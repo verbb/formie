@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\deprecations;
 
+use verbb\formie\compatibility\events\DeprecatedEvents;
 use verbb\formie\events\ModifyFormHtmlTagEvent;
 use verbb\formie\events\ModifyFormSlotTagEvent;
 
@@ -37,8 +38,10 @@ trait FormDeprecations
             return;
         }
 
-        // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(static::class . '::EVENT_MODIFY_HTML_TAG', 'Form `EVENT_MODIFY_HTML_TAG` has been deprecated. Use `EVENT_MODIFY_SLOT_TAG` instead.');
+        if (DeprecatedEvents::hasNamedHandlers($this, static::EVENT_MODIFY_HTML_TAG)) {
+            // Deprecated in 4.0.0
+            Craft::$app->getDeprecator()->log(static::class . '::EVENT_MODIFY_HTML_TAG', 'Form `EVENT_MODIFY_HTML_TAG` has been deprecated. Use `EVENT_MODIFY_SLOT_TAG` instead.');
+        }
 
         $legacyEvent = new ModifyFormHtmlTagEvent([
             'form' => $event->form,

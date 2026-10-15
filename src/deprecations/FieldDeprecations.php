@@ -2,6 +2,7 @@
 namespace verbb\formie\deprecations;
 
 use verbb\formie\Formie;
+use verbb\formie\compatibility\events\DeprecatedEvents;
 use verbb\formie\compatibility\fields\FieldCompatibility;
 use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\elements\Submission;
@@ -240,8 +241,10 @@ trait FieldDeprecations
             return;
         }
 
-        // Deprecated in 4.0.0
-        Craft::$app->getDeprecator()->log(static::class . '::EVENT_MODIFY_HTML_TAG', 'Field `EVENT_MODIFY_HTML_TAG` has been deprecated. Use `EVENT_MODIFY_SLOT_TAG` instead.');
+        if (DeprecatedEvents::hasNamedHandlers($this, static::EVENT_MODIFY_HTML_TAG)) {
+            // Deprecated in 4.0.0
+            Craft::$app->getDeprecator()->log(static::class . '::EVENT_MODIFY_HTML_TAG', 'Field `EVENT_MODIFY_HTML_TAG` has been deprecated. Use `EVENT_MODIFY_SLOT_TAG` instead.');
+        }
 
         $legacyEvent = new ModifyFieldHtmlTagEvent([
             'field' => $event->field,
