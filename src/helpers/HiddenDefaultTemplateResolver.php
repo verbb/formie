@@ -24,7 +24,7 @@ class HiddenDefaultTemplateResolver
     {
         $template = trim((string)$field->defaultTemplate);
 
-        if ($template === '' || !$field->usesTemplateDefault()) {
+        if (!FieldBuilderPolicy::allowHiddenFieldTemplates() || $template === '' || !$field->usesTemplateDefault()) {
             return '';
         }
 

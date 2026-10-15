@@ -179,3 +179,33 @@ it('routes the settings landing page to the first permitted page', function(bool
         }
     }, ['method' => 'GET']);
 })->with([true, false]);
+
+it('protects field template policies from generic settings saves', function (bool $admin, bool $allowAdminChanges): void {
+    $name = 'templatePolicySettings' . bin2hex(random_bytes(6));
+    $user = new User(['username' => $name, 'email' => $name . '@example.test', 'admin' => $admin]);
+    expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+    if (!$admin) {
+        expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+            'accessCp', 'accessPlugin-formie', 'formie-accessSettings',
+        ]))->toBeTrue();
+    }
+    $config = Craft::$app->getProjectConfig();
+    $original = $config->get('plugins.formie.settings');
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($user, $config, $original, $allowAdminChanges): void {
+        Craft::$app->getConfig()->getGeneral()->allowAdminChanges = $allowAdminChanges;
+        Craft::$app->set('projectConfig', $config);
+        $request->setIsCpRequest(true);
+        Craft::$app->getUser()->setIdentity($user);
+        $request->setBodyParams([
+            $request->csrfParam => $request->getCsrfToken(),
+            'page' => 'general',
+            'settings' => ['allowHtmlFieldTwig' => true],
+        ]);
+        expect(fn() => (new SettingsController('settings', Formie::$plugin))->runAction('save-settings'))
+            ->toThrow(ForbiddenHttpException::class);
+        expect($config->get('plugins.formie.settings'))->toBe($original);
+    }, ['method' => 'POST']);
+})->with([
+    'settings role cannot grant Twig' => [false, true],
+    'administrator cannot bypass project config lock' => [true, false],
+]);

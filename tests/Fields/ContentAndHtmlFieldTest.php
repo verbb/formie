@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 use verbb\formie\models\RichText;
 
+beforeEach(function (): void {
+    \verbb\formie\Formie::$plugin->getSettings()->allowHtmlFieldTwig = true;
+    \verbb\formie\Formie::$plugin->getSettings()->requireHtmlPurification = false;
+});
+
 it('renders rich text content field output on the front end', function (): void {
     $form = formie()
         ->form(['title' => 'Rich Text Content Field'])

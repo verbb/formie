@@ -2,9 +2,11 @@
 namespace verbb\formie\services;
 
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\References;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\references\ReferenceOutputContext;
+use verbb\formie\web\twig\HtmlTemplateLoader;
 
 use Craft;
 
@@ -22,6 +24,8 @@ class Templates extends BaseTemplates
     public array $additionalAllowedFunctions = [];
     public array $additionalAllowedMethods = [];
     public array $additionalAllowedProperties = [];
+
+    private ?BaseTemplates $_htmlFieldTemplates = null;
 
 
     // Public Methods
@@ -101,6 +105,37 @@ class Templates extends BaseTemplates
     public function renderSandboxedString(string $template, array $variables = [], string|false|null $autoescape = null): string
     {
         return parent::renderSandboxedString($template, $variables, $autoescape);
+    }
+
+    public function renderHtmlFieldTemplate(string $template, array $variables = []): string
+    {
+        // Check every render, including after a policy change in a long-lived worker.
+        // Never return authored Twig source as HTML when execution is disabled.
+        if (!FieldBuilderPolicy::allowHtmlFieldTwig()) {
+            return '';
+        }
+
+        if (!FieldBuilderPolicy::allowHtmlFieldTemplateIncludes()) {
+            return $this->renderSandboxedString($template, $variables);
+        }
+
+        if ($this->_htmlFieldTemplates === null) {
+            // HTML's explicit opt-in must not widen the shared string/object sandbox.
+            $this->_htmlFieldTemplates = new BaseTemplates([
+                'pluginClass' => $this->pluginClass,
+                'allowedTags' => array_values(array_unique([...$this->allowedTags, 'include'])),
+                'allowedFunctions' => array_values(array_unique([...$this->allowedFunctions, 'include'])),
+                'allowedFilters' => $this->allowedFilters,
+                'allowedMethods' => $this->allowedMethods,
+                'allowedProperties' => $this->allowedProperties,
+                'allowedClasses' => $this->allowedClasses,
+                'allowedTests' => $this->allowedTests,
+                'sandboxedAutoescape' => $this->sandboxedAutoescape,
+            ]);
+            $this->_htmlFieldTemplates->getSandboxedTwig()->setLoader(new HtmlTemplateLoader(Craft::$app->getView()));
+        }
+
+        return $this->_htmlFieldTemplates->renderSandboxedString($template, $variables + $this->getSandboxedVariables());
     }
 
     public function getSandboxedVariables(): array

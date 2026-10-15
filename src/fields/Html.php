@@ -6,6 +6,7 @@ use verbb\formie\base\CosmeticField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPurifierConfigEvent;
+use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\HtmlHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
@@ -88,10 +89,10 @@ class Html extends CosmeticField
         $htmlContent = trim((string)$this->htmlContent);
 
         if ($htmlContent && $this->allowTwig) {
-            $htmlContent = Formie::$plugin->getTemplates()->renderSandboxedString($htmlContent, $variables);
+            $htmlContent = Formie::$plugin->getTemplates()->renderHtmlFieldTemplate($htmlContent, $variables);
         }
 
-        if ($this->purifyContent) {
+        if (FieldBuilderPolicy::requireHtmlPurification() || $this->purifyContent) {
             return HtmlPurifier::process($htmlContent, $this->_getPurifierConfig());
         }
 
@@ -117,7 +118,13 @@ class Html extends CosmeticField
     public function defineFormBuilderPreviewSchema(): array
     {
         return [
-            SchemaHelper::previewHtml(),
+            SchemaHelper::previewHtml([
+                // An empty server result must not fall back to blocked Twig or
+                // unpurified authored HTML in the builder preview.
+                'fallbackHtml' => FieldBuilderPolicy::requireHtmlPurification() || !FieldBuilderPolicy::allowHtmlFieldTwig()
+                    ? ''
+                    : SchemaHelper::previewBind('field.htmlContent', ''),
+            ]),
         ];
     }
 
@@ -169,7 +176,7 @@ class Html extends CosmeticField
             SchemaHelper::labelField(),
             SchemaHelper::htmlEditorField(array_merge([
                 'label' => Craft::t('formie', 'HTML Content'),
-                'instructions' => Craft::t('formie', 'Enter HTML or Twig content to be rendered for this field.'),
+                'instructions' => FieldBuilderPolicy::allowHtmlFieldTwig() ? Craft::t('formie', 'Enter HTML or Twig content to be rendered for this field.') : Craft::t('formie', 'Enter HTML content to be rendered for this field.'),
                 'name' => 'htmlContent',
                 'validation' => 'required',
                 'required' => true,
@@ -199,12 +206,15 @@ class Html extends CosmeticField
                 'label' => Craft::t('formie', 'Allow Twig'),
                 'instructions' => Craft::t('formie', 'Whether to parse Twig in this field’s content when rendering the form. Twig is evaluated in Formie’s sandbox and cannot access Craft’s full template environment.'),
                 'name' => 'allowTwig',
+                'warning' => FieldBuilderPolicy::allowHtmlFieldTwig() ? false : Craft::t('formie', 'Twig is disabled in Settings → Fields. This field produces no output until Allow Twig is turned off or an administrator enables Twig.'),
+                // Existing fields can turn Twig off, but cannot opt back in.
+                ...(FieldBuilderPolicy::allowHtmlFieldTwig() ? [] : ['if' => 'allowTwig']),
             ]),
-            SchemaHelper::lightswitchField([
+            ...(FieldBuilderPolicy::requireHtmlPurification() ? [] : [SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Purify Content'),
                 'instructions' => Craft::t('formie', 'Whether to run [HTML Purifier](http://htmlpurifier.org) over the content to prevent malicious or invalid code being included.'),
                 'name' => 'purifyContent',
-            ]),
+            ])]),
         ];
     }
 
@@ -237,6 +247,18 @@ class Html extends CosmeticField
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineRules(): array
+    {
+        return [
+            ...parent::defineRules(),
+            [['allowTwig'], function(): void {
+                if ($this->allowTwig && !FieldBuilderPolicy::allowHtmlFieldTwig()) {
+                    $this->addError('allowTwig', Craft::t('formie', 'Twig in HTML fields is disabled in Settings → Fields. Turn off Allow Twig or ask an administrator to enable it.'));
+                }
+            }],
+        ];
+    }
 
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {

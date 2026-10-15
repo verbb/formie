@@ -8,20 +8,24 @@ Hidden fields are useful for context, attribution, and routing data. Do not rely
 
 - **Default value** - Set the value submitted with the form.
 - **Value source** - Populate from a preset, **Custom Value**, **Template**, query string parameter, or cookie where supported.
-- **Custom Value** - Literal text with optional variable-picker tokens (`{field:handle}`, `{form:handle}`, and so on). If the visitor submits a non-empty value, that posted value is stored.
-- **Template** - A Craft [object template](https://craftcms.com/docs/5.x/system/object-templates.html) resolved **only on the server**. Posted values are ignored. Use this for trusted computed values such as event context, custom `currentUser` fields, or query parameters via `{request.param.myParam}`.
+- **Custom Value** - Literal text with optional variable-picker tokens (`{field:handle}`, `{form:handle}`, and so on). The posted value is stored, including an explicitly empty value.
+- **Template** - An explicit opt-in to sandboxed Twig, using Craft [object-template syntax](https://craftcms.com/docs/5.x/system/object-templates.html), resolved **only on the server**. Posted values are ignored. Use this for trusted computed values such as event context, custom `currentUser` fields, or query parameters via `{request.param.myParam}`.
 - **Prefill query parameter** - Read a value from a specific query string parameter.
 - **Handle** - Choose a stable field handle for integrations, templates and exports.
+
+## Template Availability
+
+An administrator must enable **Settings → Fields → Allow Hidden Field Templates** before editors can choose Template. It is off on new installs; upgrades preserve availability. When disabled later, existing Template fields return an empty value and still ignore posted input. Their source is retained. To save an affected form, choose another source or ask an administrator to restore template access.
 
 ## Custom Value vs Template
 
 | | Custom Value | Template |
 |---|---|---|
 | Editor | Variable picker | Object-template code editor |
-| Posted value | Stored when non-empty | **Ignored** — server re-resolves on every save |
+| Posted value | Stored, including an empty value | **Ignored** — server re-resolves on every save |
 | Trust model | User-modifiable | Server-authoritative |
 
-Use **Template** when the hidden value must not be tampered with (for example event cost, entitlement flags, or routing metadata). Use **Custom Value** for tracking tokens or values that may legitimately vary per submission.
+Use **Template** when you need Twig logic and the browser must not override its result. For example, `{form.handle}` reads the form handle, while a Twig conditional can choose a value from the available context. The sandbox restricts which Twig features and object properties are available. Values read from visitor-controlled sources, such as query parameters, still need validation. Use **Custom Value** for text and references that may legitimately vary per submission.
 
 Extend template context in PHP with `HiddenDefaultTemplateResolver::EVENT_DEFINE_CONTEXT` when you need entry lookups or other project-specific variables.
 

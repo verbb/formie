@@ -9,6 +9,10 @@ use verbb\formie\helpers\HiddenDefaultTemplateResolver;
 
 use yii\base\Event;
 
+beforeEach(function (): void {
+    \verbb\formie\Formie::$plugin->getSettings()->allowHiddenFieldTemplates = true;
+});
+
 it('resolves template defaults from form context for initial values', function (): void {
     $form = formie()
         ->form(['title' => 'Event Registration', 'handle' => 'eventRegistration'])

@@ -326,6 +326,40 @@ Controls whether form editors can enable the country code selector on Phone Numb
 
 
 ::: reference
+#### `allowHiddenFieldTemplates`
+
+**Type:** `bool` · **Default:** `false` on new installs; `true` after upgrading
+
+Allows form editors to select **Template** as a Hidden field’s default value source. Configure in **Settings → Fields**. When disabled, stored Template fields return an empty value and continue to ignore posted input. Their template source is retained. Choose another source before saving an affected form, or re-enable the capability. **Custom Value** and references remain available.
+:::
+
+::: reference
+#### `allowHtmlFieldTwig`
+
+**Type:** `bool` · **Default:** `false` on new installs; `true` after upgrading
+
+Allows form editors to enable **Allow Twig** on HTML fields. Each field must also opt in. When disabled, HTML fields already configured for Twig produce no output, and new fields cannot opt in. Stored content is retained. Existing fields can turn off **Allow Twig** before saving, or an administrator can restore the capability. Configure in **Settings → Fields**.
+:::
+
+::: reference
+#### `allowHtmlFieldTemplateIncludes`
+
+**Type:** `bool` · **Default:** `false` on new installs; `true` after upgrading
+
+Allows sandboxed site-template includes in HTML fields. Requires `allowHtmlFieldTwig` and the field’s **Allow Twig** setting. When disabled, includes fail with a Twig sandbox error; ordinary permitted Twig expressions still work. This setting does not enable includes in Hidden fields, PDF filenames or other inline templates. Configure in **Settings → Fields**.
+:::
+
+::: reference
+#### `requireHtmlPurification`
+
+**Type:** `bool` · **Default:** `true` on new installs; `false` after upgrading
+
+Always purifies HTML field output, including output from Twig and included templates, and hides the field’s **Purify Content** control. Existing per-field preferences are retained but cannot bypass this requirement. When `false`, each field’s **Purify Content** setting applies; new HTML fields still default to purification enabled. Configure in **Settings → Fields**.
+:::
+
+These four controls are site-wide policies, not defaults for new fields. They apply to existing fields, imports, duplicated forms, previews and runtime overrides. Administrators can change them when Craft’s `allowAdminChanges` is enabled, or developers can set them in `config/formie.php`. Form groups and field defaults cannot loosen these policies. Review existing Hidden Template fields and HTML fields using Twig, includes or unpurified markup before tightening them, then clear any application or CDN caches containing previously rendered forms. Settings changes do not rewrite already-cached HTML.
+
+::: reference
 #### `enableLargeFieldStorage`
 
 **Type:** `bool` · **Default:** `false`

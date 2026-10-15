@@ -8,6 +8,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\fields\definitions\FieldValueType;
+use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\HiddenDefaultTemplateResolver;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
@@ -236,6 +237,7 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Default Value'),
                 'instructions' => Craft::t('formie', 'Select an option for the default value.'),
+                'warning' => FieldBuilderPolicy::allowHiddenFieldTemplates() ? false : Craft::t('formie', 'Template defaults are disabled in Settings → Fields. Existing templates return an empty value. Choose another source to save a field that uses Template.'),
                 'name' => 'valueSource',
                 'options' => [
                     ['label' => Craft::t('formie', 'Date (mm/dd/yyyy)'), 'value' => 'dateUs'],
@@ -251,15 +253,15 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
                     ['label' => Craft::t('formie', 'Cookie Value'), 'value' => 'cookie'],
                     ['label' => Craft::t('formie', 'Query Parameter'), 'value' => 'query'],
                     ['label' => Craft::t('formie', 'Custom Value'), 'value' => 'custom'],
-                    ['label' => Craft::t('formie', 'Template'), 'value' => self::DEFAULT_OPTION_TEMPLATE],
+                    ...(FieldBuilderPolicy::allowHiddenFieldTemplates() ? [['label' => Craft::t('formie', 'Template'), 'value' => self::DEFAULT_OPTION_TEMPLATE]] : []),
                 ],
             ]),
-            SchemaHelper::objectTemplateField([
+            ...(FieldBuilderPolicy::allowHiddenFieldTemplates() ? [SchemaHelper::objectTemplateField([
                 'label' => Craft::t('formie', 'Default Template'),
                 'instructions' => Craft::t('formie', 'Set a server-resolved default using Craft object template syntax. Submitted values are ignored for this field. See [object templates](https://craftcms.com/docs/5.x/system/object-templates.html). Available: `{form.handle}`, `{form.title}`, `{currentUser.email}`, `{site.handle}`, `{request.param.myParam}`, `{submission.id}`.'),
                 'name' => 'defaultTemplate',
                 'if' => 'valueSource == "template"',
-            ]),
+            ])] : []),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Default Value'),
                 'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
@@ -319,7 +321,15 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
 
     protected function defineRules(): array
     {
-        return [...parent::defineRules(), [['valueSource'], 'in', 'range' => ['custom', 'template', 'dateUs', 'dateInt', 'userId', 'username', 'userEmail', 'userIp', 'userAgent', 'referUrl', 'currentUrl', 'currentUrlNoQueryString', 'query', 'cookie']]];
+        return [
+            ...parent::defineRules(),
+            [['valueSource'], 'in', 'range' => ['custom', 'template', 'dateUs', 'dateInt', 'userId', 'username', 'userEmail', 'userIp', 'userAgent', 'referUrl', 'currentUrl', 'currentUrlNoQueryString', 'query', 'cookie']],
+            [['valueSource'], function(): void {
+                if ($this->usesTemplateDefault() && !FieldBuilderPolicy::allowHiddenFieldTemplates()) {
+                    $this->addError('valueSource', Craft::t('formie', 'Hidden field templates are disabled in Settings → Fields. Choose another default value source.'));
+                }
+            }],
+        ];
     }
 
     protected function supportedDefaults(): array

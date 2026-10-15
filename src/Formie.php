@@ -23,6 +23,7 @@ use verbb\formie\gql\queries\FormQuery;
 use verbb\formie\gql\queries\HtmlFormQuery;
 use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\helpers\CrossOriginRequestHelper;
+use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\Gql as GqlHelper;
 use verbb\formie\helpers\Plugin as PluginHelper;
 use verbb\formie\helpers\ProjectConfigHelper;
@@ -123,7 +124,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.81';
+    public string $schemaVersion = '4.0.82';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -260,7 +261,11 @@ class Formie extends Plugin
 
     protected function createSettingsModel(): Settings
     {
-        return new Settings();
+        // Earlier upgrade migrations serialize the settings model. Preserve legacy
+        // capabilities until their explicit project-config migration has run.
+        $schemaVersion = Craft::$app->getPlugins()->getStoredPluginInfo($this->id)['schemaVersion'] ?? null;
+
+        return new Settings(FieldBuilderPolicy::templateSettingsForSchema($schemaVersion));
     }
 
 

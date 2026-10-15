@@ -239,6 +239,15 @@ class SettingsController extends SettingsAccessController
         $settingsParams = $request->getParam('settings');
 
         if (is_array($settingsParams)) {
+            // The generic settings action must not bypass the protected Fields page.
+            if (array_intersect(array_keys($settingsParams), array_keys(FieldBuilderPolicy::legacyTemplateSettings()))) {
+                $this->requireAdmin(false);
+
+                if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+                    throw new ForbiddenHttpException('Field template settings cannot be changed when allowAdminChanges is disabled.');
+                }
+            }
+
             if (!$permissions->canAccessSettings($user) && array_diff(array_keys($settingsParams), self::PAGE_SETTINGS[$page] ?? [])) {
                 throw new ForbiddenHttpException('User is not permitted to perform this action');
             }

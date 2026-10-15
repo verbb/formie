@@ -19,7 +19,48 @@ class FieldBuilderPolicy
             'allowPublicVolumes',
             'allowMultiSelectDropdowns',
             'allowPhoneCountrySelector',
+            'allowHiddenFieldTemplates',
+            'allowHtmlFieldTwig',
+            'allowHtmlFieldTemplateIncludes',
+            'requireHtmlPurification',
         ];
+    }
+
+    public static function legacyTemplateSettings(): array
+    {
+        return [
+            'allowHiddenFieldTemplates' => true,
+            'allowHtmlFieldTwig' => true,
+            'allowHtmlFieldTemplateIncludes' => true,
+            'requireHtmlPurification' => false,
+        ];
+    }
+
+    public static function templateSettingsForSchema(?string $schemaVersion): array
+    {
+        return $schemaVersion !== null && version_compare($schemaVersion, '4.0.82', '<')
+            ? self::legacyTemplateSettings()
+            : [];
+    }
+
+    public static function allowHiddenFieldTemplates(): bool
+    {
+        return Formie::$plugin?->getSettings()->allowHiddenFieldTemplates ?? false;
+    }
+
+    public static function allowHtmlFieldTwig(): bool
+    {
+        return Formie::$plugin?->getSettings()->allowHtmlFieldTwig ?? false;
+    }
+
+    public static function allowHtmlFieldTemplateIncludes(): bool
+    {
+        return self::allowHtmlFieldTwig() && (Formie::$plugin?->getSettings()->allowHtmlFieldTemplateIncludes ?? false);
+    }
+
+    public static function requireHtmlPurification(): bool
+    {
+        return Formie::$plugin?->getSettings()->requireHtmlPurification ?? true;
     }
 
     public static function allowPublicVolumes(): bool

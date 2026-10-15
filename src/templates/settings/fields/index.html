@@ -53,6 +53,49 @@
             errors: settings.getErrors('allowPhoneCountrySelector'),
             warning: macros.configWarning('allowPhoneCountrySelector', 'formie'),
         }) }}
+
+        <hr>
+        <h3>{{ 'Templates and HTML' | t('formie') }}</h3>
+        <p>{{ 'These controls apply to all forms, including existing fields, imports and runtime overrides. Disabling Twig leaves stored templates intact but stops their output. Review existing forms before changing these settings.' | t('formie') }}</p>
+
+        {{ forms.lightswitchField({
+            label: 'Allow Hidden Field Templates' | t('formie'),
+            instructions: 'Allow the Template default value source on Hidden fields. Custom Value and its references remain available when this is off.' | t('formie'),
+            name: 'allowHiddenFieldTemplates',
+            on: settings.allowHiddenFieldTemplates,
+            errors: settings.getErrors('allowHiddenFieldTemplates'),
+            warning: macros.configWarning('allowHiddenFieldTemplates', 'formie'),
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Allow Twig in HTML Fields' | t('formie'),
+            instructions: 'Allow form editors to opt into sandboxed Twig for HTML fields.' | t('formie'),
+            name: 'allowHtmlFieldTwig',
+            on: settings.allowHtmlFieldTwig,
+            toggle: 'html-template-includes',
+            errors: settings.getErrors('allowHtmlFieldTwig'),
+            warning: macros.configWarning('allowHtmlFieldTwig', 'formie'),
+        }) }}
+
+        <div id="html-template-includes" class="{{ not settings.allowHtmlFieldTwig ? 'hidden' }}">
+            {{ forms.lightswitchField({
+                label: 'Allow Template Includes in HTML Fields' | t('formie'),
+                instructions: 'Allow HTML fields with Allow Twig to include site templates. Included templates remain sandboxed. This does not enable includes in Hidden fields or PDF filenames.' | t('formie'),
+                name: 'allowHtmlFieldTemplateIncludes',
+                on: settings.allowHtmlFieldTemplateIncludes,
+                errors: settings.getErrors('allowHtmlFieldTemplateIncludes'),
+                warning: macros.configWarning('allowHtmlFieldTemplateIncludes', 'formie'),
+            }) }}
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Require HTML Purification' | t('formie'),
+            instructions: 'Always purify HTML field output, including Twig output, and hide the field’s Purify Content toggle. Turning this off lets each field control purification.' | t('formie'),
+            name: 'requireHtmlPurification',
+            on: settings.requireHtmlPurification,
+            errors: settings.getErrors('requireHtmlPurification'),
+            warning: macros.configWarning('requireHtmlPurification', 'formie'),
+        }) }}
     {% endnamespace %}
 </div>
 

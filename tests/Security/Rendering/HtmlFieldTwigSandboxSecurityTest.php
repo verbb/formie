@@ -6,6 +6,11 @@ use Tests\Support\MaliciousPayloads;
 use verbb\formie\fields\Html;
 use Twig\Error\Error;
 
+beforeEach(function (): void {
+    \verbb\formie\Formie::$plugin->getSettings()->allowHtmlFieldTwig = true;
+    \verbb\formie\Formie::$plugin->getSettings()->requireHtmlPurification = false;
+});
+
 it('defaults html fields to twig disabled', function (): void {
     $field = new Html();
 

@@ -87,6 +87,10 @@ class Settings extends Model
     public bool $allowPublicVolumes = true;
     public bool $allowMultiSelectDropdowns = true;
     public bool $allowPhoneCountrySelector = true;
+    public bool $allowHiddenFieldTemplates = false;
+    public bool $allowHtmlFieldTwig = false;
+    public bool $allowHtmlFieldTemplateIncludes = false;
+    public bool $requireHtmlPurification = true;
     public bool $enableLargeFieldStorage = false;
     public bool $includeFlatpickrCss = true;
     public string $plainTextHtmlSanitizationMode = self::PLAIN_TEXT_HTML_SANITIZATION_MODE_PRESERVE;
@@ -482,7 +486,7 @@ class Settings extends Model
             self::ALLOWED_SUBMIT_METHODS_AJAX,
             self::ALLOWED_SUBMIT_METHODS_PAGE_RELOAD,
         ]];
-        $rules[] = [['enableMultiPageForms'], 'boolean'];
+        $rules[] = [['enableMultiPageForms', 'allowHiddenFieldTemplates', 'allowHtmlFieldTwig', 'allowHtmlFieldTemplateIncludes', 'requireHtmlPurification'], 'boolean'];
 
         return $rules;
     }
