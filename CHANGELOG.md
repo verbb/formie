@@ -5,6 +5,9 @@
 ### Added
 - Add the `formie:unload-warning:collect-exclusions` browser event for integrations to exclude automatically updated transport fields from unsaved-changes checks. ([#3008](https://github.com/verbb/formie/issues/3008))
 
+### Changed
+- Update the minimum Auth requirement to `2.0.53`.
+
 ### Fixed
 - Fix integration lists rendering as an empty pane when configured integrations exist.
 - Fix Zendesk tickets being rejected when the mapped requester name is blank.
