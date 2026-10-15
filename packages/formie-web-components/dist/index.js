@@ -1038,7 +1038,7 @@ function Dt(e, t) {
 		o([...c, l(n)]);
 	}}
             >
-                ${String(u.addLabel ?? "Add another row")}
+                ${String(u.addRowLabel ?? "Add another row")}
             </button>
         </div>
     `;

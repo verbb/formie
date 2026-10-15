@@ -357,7 +357,7 @@ function G({ field: e, value: t, errorKey: n, disabled: r, setValue: a }) {
 			onClick: () => {
 				a([...c, h(e)]);
 			}
-		}, String(l.addLabel ?? "Add another row")),
+		}, String(l.addRowLabel ?? "Add another row")),
 		o.errors.fields[n] && o.errors.fields[n].length > 0 ? i("ul", {
 			key: "errors",
 			className: "formie-react-field-errors"

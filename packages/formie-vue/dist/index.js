@@ -524,7 +524,7 @@ var F = i({
 					onClick: () => {
 						e.setValue([...i, v(e.field)]);
 					}
-				}, String(o.addLabel ?? "Add another row")),
+				}, String(o.addRowLabel ?? "Add another row")),
 				n.errors.fields[e.errorKey] && n.errors.fields[e.errorKey].length > 0 ? a("ul", {
 					key: "errors",
 					class: "formie-vue-field-errors"
