@@ -2,12 +2,12 @@
 
 Formie schemas are PHP arrays that describe settings controls in the form builder, including field tabs, integrations, notifications and page buttons. You define the inputs, defaults and validation rules, and [SchemaForm](https://verbb.io/plugin-kit/forms/overview) renders them. This guide shows how to build settings interfaces for your own fields and integrations.
 
-For node anatomy, `SchemaHelper` method tables, conditions, layout nodes, table fields, and preview schema, see [Schema](/developers/schema).
+For node anatomy, `SchemaHelper` method tables, conditions, layout nodes, table fields, and preview schema, see [UI Schemas](/developers/ui-schemas).
 
 ## Prerequisites
 
-- [Schema](/developers/schema) reference
-- [Custom Field](/developers/custom-field) or [Custom Integration](/developers/custom-integration/overview) docs open for your use case
+- [UI Schemas](/developers/ui-schemas) reference
+- [Custom Field](/developers/custom-field/overview) or [Custom Integration](/developers/custom-integration/overview) docs open for your use case
 - [SchemaForm overview](https://verbb.io/plugin-kit/forms/overview) — the shared form engine Formie builds on
 
 The schemas here define **control panel settings interfaces**. For data queried through GraphQL, see [Query Forms](/graphql/query-forms).
@@ -61,7 +61,7 @@ Formie's `SchemaHelper` methods are convenience wrappers around that same idea �
 
 A schema is an ordered array of **nodes**. Each node describes an input, layout wrapper, or registered component. The form builder renders the array; saved values map to setting keys on the field, form, or integration model.
 
-Prefer `SchemaHelper` for common inputs and Formie field settings. Use raw nodes when you need a field or layout the helper does not cover. See [Schema](/developers/schema) for the intro example, [Helpers](/developers/schema#helpers), [Schema Nodes](/developers/schema#schema-nodes), [Conditions](/developers/schema#conditions), [Layout and HTML](/developers/schema#layout-and-html), and [Tables](/developers/schema#tables).
+Prefer `SchemaHelper` for common inputs and Formie field settings. Use raw nodes when you need a field or layout the helper does not cover. See [UI Schemas](/developers/ui-schemas) for the intro example, [Helpers](/developers/ui-schemas#helpers), [Schema Nodes](/developers/ui-schemas#schema-nodes), [Conditions](/developers/ui-schemas#conditions), [Layout and HTML](/developers/ui-schemas#layout-and-html), and [Tables](/developers/ui-schemas#tables).
 
 ## Field Schema Methods
 
@@ -77,7 +77,7 @@ Custom fields implement tab-specific methods:
 
 Implement the tab-specific methods above for custom fields. Each method returns an array of schema nodes for that part of the builder.
 
-Field previews in the builder palette use `defineFormBuilderPreviewSchema()` — see [Preview Schema](/developers/schema#preview-schema).
+Field previews in the builder palette use `defineFormBuilderPreviewSchema()` — see [Preview Schema](/developers/ui-schemas#preview-schema).
 
 ## Integration Form Settings Schema
 

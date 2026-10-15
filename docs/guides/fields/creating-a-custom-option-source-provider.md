@@ -4,12 +4,12 @@ In this guide we build **Club contacts** — a custom option source provider tha
 
 Dropdown, Radio, Checkboxes, and Recipients fields can pull options from several built-in sources. When your options come from **local Craft data** (entries, categories, users) without OAuth or remote APIs, a custom **option source provider** is the right tool.
 
-This guide complements the [Custom Option Source Providers](/developers/custom-option-source-providers) developer reference. Read [Option Sources](/fields/option-sources) for built-in source types; [Dynamic option sources in practice](/guides/fields/dynamic-option-sources-in-practice) helps you choose between them.
+This guide complements the [Field Option Sources](/developers/custom-field/option-sources) developer reference. Read [Option Sources](/fields/option-sources) for built-in source types; [Dynamic option sources in practice](/guides/fields/dynamic-option-sources-in-practice) helps you choose between them.
 
 ## Prerequisites
 
 - A Craft module (see [Craft's module documentation](https://craftcms.com/docs/5.x/extend/module-guide.html))
-- Familiarity with the option source contract in [Custom Option Source Providers](/developers/custom-option-source-providers)
+- Familiarity with the option source contract in [Field Option Sources](/developers/custom-field/option-sources)
 
 ## Create Your Module
 

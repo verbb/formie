@@ -78,5 +78,5 @@ Disable or uninstall Freeform only after you are confident Formie owns all activ
 Migrated forms land as standard Formie forms — submission guards, spam settings, client events, and database-backed save-and-continue apply immediately. Review:
 
 - [Spam Protection](/forms/spam-protection) — legacy Freeform honeypot maps to submission guards
-- [Submission Screening](/forms/submission-screening) — understand the `screen` stage
+- [Submission Workflow](/developers/submission-workflow#screen) — understand the `screen` stage
 - [Upgrading From v3](/get-started/upgrading-from-v3) if you are also upgrading from an older Formie install

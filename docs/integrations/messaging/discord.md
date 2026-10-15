@@ -27,4 +27,4 @@ Connect Discord to send a message when a visitor completes your form. You need a
 
 Save the form, open it on your site and submit recognisable test values. Check the intended recipient or channel for the test message and verify that its values match the submission.
 
-If nothing arrives, check whether integration conditions matched, whether the submission was complete and non-spam, and whether Craft’s queue has processed the job. A successful connection check verifies credentials; it does not prove that field mapping and delivery work. See [Connect and Test an Integration](/integrations/connect-and-test-an-integration) for a complete mapping and verification workflow.
+If nothing arrives, check whether integration conditions matched, whether the submission was complete and non-spam, and whether Craft’s queue has processed the job. A successful connection check verifies credentials; it does not prove that field mapping and delivery work. See [Integrations Overview](/integrations/overview) for the shared connection, mapping and verification workflow.

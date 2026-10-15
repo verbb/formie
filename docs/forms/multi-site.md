@@ -1,4 +1,4 @@
-# Multi-Site & Translation
+# Multi-Site
 
 ::: tip
 For a full translation workflow across Craft sites, see [Translating forms across Craft sites](/guides/control-panel-admin/translating-forms-across-craft-sites).
@@ -6,7 +6,7 @@ For a full translation workflow across Craft sites, see [Translating forms acros
 
 If your Craft project runs [multiple sites](https://craftcms.com/docs/5.x/system/sites.html), Formie activates multi-site features automatically. There is no plugin setting to turn this on or off — when Craft is multi-site, Formie is too.
 
-This page explains the two things Formie handles in a multi-site setup, how to configure them, and what you will see in the control panel and on the front end.
+Use form groups to choose where forms are available, and the form builder’s site switcher to translate form content for each site. The field layout stays shared across those sites.
 
 ## Different to Your Usual Multi-Site
 
@@ -23,7 +23,7 @@ For example, an enquiry form can ask the same questions on English and French si
 
 Configure **site availability** to choose where a form appears, and **content translation** to choose its wording on each site.
 
-For how Formie translations relate to static translation files (`formie.php`, `site.php`), see [Translations](/forms/translations).
+To translate built-in interface text such as validation errors and upload prompts, see [Static Translations](/forms/static-translations). Form labels and messages edited in the builder use the site overrides described below.
 
 ## Two Separate Ideas
 

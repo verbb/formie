@@ -58,7 +58,7 @@ document.addEventListener('formie:validator:ready', (event) => {
 });
 ```
 
-This keeps your custom rule inside Formie's normal validation and error-display flow. Use [Build a custom validator](/browser/validation/build-a-custom-validator) for the full authoring pattern.
+This keeps your custom rule inside Formie's normal validation and error-display flow. Use [Validation](https://verbb.io/craft-plugins/formie/docs/v4/developers/validation) for the paired PHP and JavaScript authoring pattern.
 
 ## Loading and Action State
 

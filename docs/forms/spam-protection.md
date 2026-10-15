@@ -10,7 +10,13 @@ Formie gives you a few layers to work with, so you can start with lighter filter
 
 That page brings together spam handling, keyword rules, built-in submission guards, and captcha provider credentials in one place.
 
-Captcha failures, keyword matches, submission guard failures, and related signals are evaluated together in the submission workflow’s **`screen`** stage. For how that stage is ordered, how it relates to validation, and how to extend it, see [Submission Screening](/forms/submission-screening).
+## When Checks Run
+
+Request safeguards run before Formie processes a form, including draft saves and page changes. Content rules and CAPTCHA checks run when a visitor completes the form, after field validation so visitors can correct mistakes first.
+
+Formie checks email rules, suspicious text, link limits, spam keywords and IP rules before running the enabled CAPTCHA providers. If a content rule has already identified spam, CAPTCHA checks are skipped. Draft saves and edits to existing submissions skip content screening; a payment returning from its provider continues the already-checked submission.
+
+To add project-specific checks in PHP, see the [Screen stage](/developers/submission-workflow#screen) and [custom workflow task guide](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch).
 
 ## Spam Handling
 
@@ -162,8 +168,6 @@ Use this when you want to reject stale form sessions left open for hours or days
 Replay protection uses the existing per-render `requestToken` that Formie already issues for browser forms. Formie records the operation in the database. Retrying the same completed operation recovers its result; reusing its identity for different submitted content is rejected.
 
 This is separate from save-and-continue draft tokens and static-cache refresh behaviour. It targets repeat POST abuse, not legitimate multi-page navigation.
-
-For the full screening order and extension points, see [Submission Screening](/forms/submission-screening).
 
 ## Captchas
 

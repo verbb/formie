@@ -22,7 +22,7 @@ Blank group settings inherit from global **Formie → Settings** defaults.
 
 On multi-site Craft installs, each group can restrict **which sites** forms in the group exist on, and how new forms **propagate** across those sites. Configure this under the **General** tab → **Site Policy** (**Enabled Sites** and **Site Propagation**).
 
-See [Multi-Site & Translation](/forms/multi-site-and-translation) for how availability differs from content translation, propagation modes, and form builder behaviour.
+See [Multi-Site](/forms/multi-site) for how availability differs from content translation, propagation modes, and form builder behaviour.
 
 ### Allowed Submission Statuses
 

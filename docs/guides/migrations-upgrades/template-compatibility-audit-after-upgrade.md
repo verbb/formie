@@ -86,7 +86,7 @@ Update `#{{ id }}` selectors in `{% js %}` blocks and analytics snippets.
 
 Use the helper that matches the job:
 
-- `getFieldValue()` — natural shape
+- `getFieldValue()` — normal field value
 - `getFieldValueAsString()` — display, logs
 - `getFieldValueAsData()` — structured fields
 - `getFieldValueForExport()` — CSV/reports

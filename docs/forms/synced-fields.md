@@ -49,7 +49,7 @@ Project stencils resolve synced fields by handle, so the shared definition shoul
 
 Synced fields store their shared label, handle, and definition settings in one global field definition. Every placement on every form points at that same definition.
 
-On multi-site projects, [content translation overrides](/forms/multi-site-and-translation#content-translation) for definition-owned content such as labels continue to follow the shared definition. The **Required** state is different because it belongs to the field placement. That means:
+On multi-site projects, [content translation overrides](/forms/multi-site#content-translation) for definition-owned content such as labels continue to follow the shared definition. The **Required** state is different because it belongs to the field placement. That means:
 
 - editing a synced field on the form’s **source site** updates the shared definition, which affects every form and every site that does not have a site override for that placement
 - translating definition-owned content on a **secondary site** leaves the source definition unchanged while applying that translation wherever the definition is used on that site

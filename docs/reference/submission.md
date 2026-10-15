@@ -196,7 +196,7 @@ Returns the field value as a string.
 
 **Returns:** `mixed`
 
-Returns the natural JSON-safe field value. Primitive fields return scalars; structured fields return explicit named data.
+Returns the JSON-safe field value. Primitive fields return scalars; structured fields return explicit named data.
 :::
 
 ::: reference
@@ -252,7 +252,7 @@ Returns all submitted field values as strings.
 
 **Returns:** `array`
 
-Returns a handle-keyed map of natural JSON-safe field data. Individual values may be scalars, null or structured arrays.
+Returns a handle-keyed map of JSON-safe field data. Individual values may be scalars, null or structured arrays.
 :::
 
 ::: reference

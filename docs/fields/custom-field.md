@@ -36,4 +36,4 @@ When a Link field allows one link type, Formie renders a single value input and 
 
 Custom Field is not automatic support for every Craft field class. A Craft field needs a Formie adapter so its value can be submitted, stored, displayed and exported consistently.
 
-For adapter development, see [Custom Field adapters](/developers/custom-field#custom-field-adapters).
+For adapter development, see [Custom Field adapters](/developers/custom-field/adapters).

@@ -5,8 +5,8 @@ You can use the same contact form on English and French sites, with labels and m
 ## Prerequisites
 
 - Craft multi-site enabled with at least two sites
-- [Multi-Site & Translation](/forms/multi-site-and-translation)
-- [Translations](/forms/translations) — three layers of text in Formie
+- [Multi-Site](/forms/multi-site)
+- [Static Translations](/forms/static-translations) — built-in interface messages and project strings
 
 ## Two Separate Concerns
 
@@ -106,7 +106,7 @@ Keep `formie.php` for **Formie-owned UI strings** only:
 '(optional)' => '…',
 ```
 
-See [Translations](/forms/translations) for the full split.
+See [Static Translations](/forms/static-translations) for translating built-in messages and project strings.
 
 ## Step 7 — Notifications
 

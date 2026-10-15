@@ -386,7 +386,9 @@ In PHP or Twig render options, use `html` when you need markup rather than text.
 
 ### Attribute Authority
 
-Theme config preserves the attributes Formie needs for submission, JavaScript behaviour and accessibility. PHP developers needing to override those attributes can use `EVENT_MODIFY_SLOT_TAG`; see [Theme and Rendering Architecture](/developers/theme-rendering-architecture#attribute-merge-order) for the event order.
+Theme and render-option attributes merge first. Formie’s required submission, JavaScript and accessibility attributes merge last, so theme config cannot remove them.
+
+The PHP `EVENT_MODIFY_SLOT_TAG` events run after that merge and can replace or remove required attributes. Preserve the attributes your form needs when using these events; see the [PHP event examples](#events-php).
 
 Use `false` or `null` to remove optional attributes. CSS custom property names in `cssVars` must begin with `--`.
 

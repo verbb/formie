@@ -1,8 +1,8 @@
-# Custom Option Source Providers
+# Field Option Sources
 
 Register lightweight server-resolved option lists for Dropdown, Radio, Checkboxes, and Recipients fields. Custom providers appear in the form builder as **Custom Provider** when they declare support for the current field usage.
 
-Use this API when you need local Craft data — such as entries, categories, or users — without building a full Formie integration.
+Use this API when you need local Craft data — such as entries, categories, or users — without building a full Formie integration. Providers can supply options to the existing fields listed above; you do not need to register a new field type.
 
 ::: tip
 For a full module walkthrough with a complete provider class, see [Creating a custom option source provider](/guides/fields/creating-a-custom-option-source-provider).

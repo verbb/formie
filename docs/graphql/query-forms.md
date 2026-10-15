@@ -114,4 +114,4 @@ Querying the form does not grant access to saved submissions. A client that subm
 
 ## Detailed Reference
 
-See [GraphQL Form Reference](/reference/graphql-form-reference) for the complete lookup, including types and field-specific options.
+See [GraphQL Form Reference](/graphql/graphql-form-reference) for the complete lookup, including types and field-specific options.

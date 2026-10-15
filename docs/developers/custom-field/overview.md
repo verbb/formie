@@ -1,8 +1,8 @@
-# Custom Field
+# Overview
 
-You can add your own fields to Formie in two ways: register a full Formie field type, or register an adapter for the built-in **Custom Field** field type when you want to expose a Craft field through Formie.
+Create a custom Formie field type when you need your own field behaviour, settings, and rendering. Register the field with Formie, then define its form-builder schema, value handling, and templates.
 
-Use a full Formie field when you own the complete field behaviour. Use a Custom Field adapter when you want one Formie field type to bridge to a Craft field or plugin-provided Craft field with explicit support for server-rendered markup, value handling, exports, integrations and GraphQL.
+To expose an existing Craft field through Formie’s built-in **Custom Field** field type, see [Field Adapters](/developers/custom-field/adapters).
 
 ## Register a Formie Field Type
 
@@ -23,17 +23,23 @@ Event::on(Fields::class, Fields::EVENT_REGISTER_FIELDS, function(RegisterFieldsE
 
 Fields must extend `verbb\formie\base\Field`. This gives your field the form-builder schema, server-rendered markup, value handling, optional client-rendered configuration, and reference / reference-block rendering behaviour Formie expects.
 
+Formie fields are Formie components, not Craft custom fields. Some concepts will feel familiar if you have built Craft fields before, but use Formie’s field base classes and methods rather than Craft’s `Field` class. Refer to the [Field](/reference/field) object documentation for the data available on a field instance.
+
+::: tip
+There is also a [step-by-step guide for creating a Formie field type](/guides/fields/creating-a-formie-field-type-from-scratch) that walks through building a field from scratch.
+:::
+
+### Nested Fields
+
 For fields that contain other fields, extend the parent field class that matches the behaviour you need:
 
 - `ContainerParentField` for an editable group of nested fields. `ParentField` supplies shared behaviour for the parent classes listed here.
 - `FixedParentField` for fields with a fixed set of child fields, such as Name, Address or Date/Time.
 - `RepeatableParentField` for fields that repeat a group of nested fields.
 
-Formie fields are Formie components, not Craft custom fields. Some concepts will feel familiar if you have built Craft fields before, but use Formie’s field base classes and methods rather than Craft’s `Field` class. Refer to the [Field](/reference/field) object documentation for the data available on a field instance.
+`ParentFieldInterface` identifies a field that contains other fields. Fixed parts, such as a Name field’s `firstName`, implement `ChildFieldInterface`. Fields added by an author inside a Group or Repeater are ordinary field instances.
 
-::: tip
-There is also a [step-by-step guide for creating a Formie field type](/guides/fields/creating-a-formie-field-type-from-scratch) that walks through building a field from scratch.
-:::
+Use `getFields()` to read a parent’s immediate fields, `getEnabledFields()` to omit disabled fields, or `getFieldsRecursively()` to include all nested levels. For a Repeater, `getFields($rowKey)` returns fields with their input context set to that row.
 
 ## Methods
 
@@ -120,19 +126,25 @@ Defines the schema for the `Conditions` tab in the field edit modal.
 ::: reference
 ### `supportedDefaults()`
 
-Returns setting handles that can be configured as organisation-wide defaults in **Settings → Defaults**. See [Field Defaults](/developers/field-defaults).
+Returns setting handles that can be configured as organisation-wide defaults in **Settings → Defaults**. See [Field Defaults](/developers/custom-field/field-defaults).
 :::
 
 ::: reference
 ### `defineBrowserValidationRules()`
 
-Defines the validation rules sent to Formie’s browser assets.
+Defines the rules sent to Formie’s browser assets. Pair them with submission rules and browser registration as shown in [Validation](/developers/validation#submission-rules-and-browser-definitions).
+:::
+
+::: reference
+### `getElementValidationRules()`
+
+Defines validators for the visitor’s submitted field value. Keep the parent rules and pair your custom rule with browser feedback; [Validation](/developers/validation) explains the PHP and JavaScript APIs.
 :::
 
 ::: reference
 ### `defineRules()`
 
-Defines server-side Yii validation rules for the field model.
+Defines Yii validation rules for the field model’s settings. For submitted answers, use `getElementValidationRules()`; see [Validation](/developers/validation#submission-rules-and-browser-definitions).
 :::
 
 ::: reference
@@ -176,7 +188,7 @@ Returns immutable browser-module declarations completed for the current form, fi
 
 **Returns:** `verbb\formie\fields\definitions\FieldReferenceValue[]`
 
-Declares the field values available to reference tokens, field selectors and the Variable Picker. Use `FieldReferenceValue::primary()` for the field’s natural value and `FieldReferenceValue::selector()` for deliberate projections such as an Address field’s city. Each declaration provides semantic types, inline or block shape, authoring availability and any structured setting condition; the same declaration is enforced when the token resolves.
+Declares the field values available to reference tokens, field selectors and the Variable Picker. Use `FieldReferenceValue::primary()` for the field’s primary reference value and `FieldReferenceValue::selector()` for deliberate projections such as an Address field’s city. Each declaration provides semantic types, inline or block shape, authoring availability and any structured setting condition; the same declaration is enforced when the token resolves.
 :::
 
 ::: reference
@@ -218,7 +230,7 @@ Defines the field value when Formie needs a string value.
 ::: reference
 ### `defineValueAsData()`
 
-Defines the natural JSON-safe value. Return useful scalars for primitive fields and explicit named data for structured fields.
+Defines the JSON-safe value. Return useful scalars for primitive fields and explicit named data for structured fields.
 :::
 
 ::: reference
@@ -307,7 +319,7 @@ Use the method intended for each operation:
 | `defineValueForDb()` | Return a deliberate, lossless scalar/array storage representation |
 | `serializeValueForDb()` | Final persistence entry point; applies whole-value encryption after the owning storage hook |
 | `defineValueAsData()` | Return JSON-safe data for templates and application code |
-| `serializeValueForClientInput()` | Return the browser input shape, which may differ from natural data |
+| `serializeValueForClientInput()` | Return the browser input shape, which may differ from the data representation |
 | `defineValueForCondition()` | Return comparable values without using database serialisation |
 
 Formie decodes trusted stored values before ordinary normalisation. Do not call storage decoding from request handlers. The base serializer rejects arbitrary objects, including objects implementing Arrayable or Serializable. A rich field must deliberately turn its domain parts into storage data. Nested storage uses child instance UIDs, and nested public data composes each contextual child's data projection.
@@ -323,122 +335,6 @@ For a form containing a Name field with handle `contactName`, these Twig calls s
 ```
 
 `name` is the immutable Name value in both UI modes. `parts` contains `name`, `prefix`, `prefixOption`, `firstName`, `middleName` and `lastName`; the single-name input uses `name`. Option data contains selected value, label and validity metadata without the available-option catalogue. Relation data is a list of selected `id`, `title` and `url` records; File Upload also includes `filename`. The Link adapter returns an immutable `CustomLinkFieldValue` with URL, label and submitted attributes; native Craft input rendering receives a separate reconstructed object. Use the field's integration, export or reference methods when those consumers require a different shape.
-
-## Custom Field Adapters
-
-::: tip
-For a walkthrough, see [Bringing your Craft field into Formie (Custom Field adapters)](/guides/fields/bringing-your-craft-field-into-formie-custom-field-adapters).
-:::
-
-The built-in **Custom Field** field type lets Formie expose supported Craft fields without adding a separate Formie field type for every provider. Adapters are opt-in because Formie needs more than a Craft field class name to submit reliably.
-
-Each adapter is responsible for:
-
-- declaring the Craft field classes it supports,
-- defining adapter-specific form-builder settings,
-- rendering server-rendered and control panel submission inputs,
-- normalizing and serializing submitted values,
-- returning string, natural data, browser input, reference, summary, export and integration values,
-- declaring GraphQL content and mutation shapes,
-- declaring client-rendered input metadata.
-
-Adapters declare `valueType($field)` and implement `serializeValueForClientInput()` independently of `getValueAsData()`. Use `decodeValueFromStorage()` for trusted legacy shapes; it is never called for request input. The default browser method deliberately shares the adapter data shape; override it when browser inputs require a different representation.
-
-Built-in adapters include:
-
-- **Link** — URL, email, phone and SMS link values using Craft’s Link field concepts, available without an extra plugin. Element link types are intentionally omitted until a public element-picker adapter exists.
-- **Address (Google Maps)** — structured map values when a supported Google Maps Craft field class is installed.
-- **Maps** — structured map values when a supported Maps/SimpleMap Craft field class is installed.
-
-### Register an Adapter
-
-Register adapters with `CustomFields::EVENT_REGISTER_CUSTOM_FIELD_ADAPTERS`:
-
-```php
-use modules\formie\fields\ExampleCustomFieldAdapter;
-
-use verbb\formie\events\RegisterCustomFieldAdaptersEvent;
-use verbb\formie\services\CustomFields;
-
-use yii\base\Event;
-
-Event::on(CustomFields::class, CustomFields::EVENT_REGISTER_CUSTOM_FIELD_ADAPTERS, function(RegisterCustomFieldAdaptersEvent $event) {
-    $event->adapters[] = ExampleCustomFieldAdapter::class;
-});
-```
-
-Adapters must implement `verbb\formie\fields\custom\CustomFieldAdapterInterface`. Most adapters should extend `verbb\formie\fields\custom\AbstractCustomFieldAdapter` and override only the pieces that differ from the scalar default.
-
-```php
-use verbb\formie\fields\CustomField;
-use verbb\formie\fields\custom\AbstractCustomFieldAdapter;
-use verbb\formie\helpers\SchemaHelper;
-
-use Craft;
-
-class ExampleCustomFieldAdapter extends AbstractCustomFieldAdapter
-{
-    public static function handle(): string
-    {
-        return 'example';
-    }
-
-    public static function displayName(): string
-    {
-        return Craft::t('site', 'Example');
-    }
-
-    public static function craftFieldClasses(): array
-    {
-        return [
-            'modules\\fields\\ExampleField',
-        ];
-    }
-
-    public function getFormBuilderSettingsSchema(CustomField $field): array
-    {
-        return [
-            SchemaHelper::textField([
-                'label' => Craft::t('site', 'Placeholder'),
-                'name' => $this->settingName('placeholder'),
-            ]),
-        ];
-    }
-}
-```
-
-`craftFieldClasses()` is advisory metadata and availability detection. It does not make arbitrary Craft fields work automatically. If the field needs custom JavaScript, structured storage or provider-specific formatting, implement those methods on the adapter.
-
-Adapter-owned settings should be stored under `customFieldAdapterSettings` by using `settingName()` in schema nodes and `getSetting()` when reading values. This keeps the base Custom Field contract stable as adapters add provider-specific settings:
-
-```php
-SchemaHelper::textField([
-    'label' => Craft::t('site', 'Placeholder'),
-    'name' => $this->settingName('placeholder'),
-]);
-
-$placeholder = $this->getSetting($field, 'placeholder');
-```
-
-### Value Storage
-
-Custom Field uses JSON storage so adapters can support scalar and structured values through one Formie field type. Scalar adapters can return strings; structured adapters can return arrays or value objects and decide how those values appear in references, exports and integrations.
-
-The adapter is selected when the field is created and is not editable afterward. Treat the adapter class stored in `customFieldAdapter` as part of the field’s storage contract.
-
-The selected adapter’s builder settings are stored in `customFieldAdapterSettings`. The adapter owns the meaning of those settings, including defaults used by `getDefaultValue()`, server-rendered markup and client input metadata.
-
-When an adapter supports a structured value, implement these methods together:
-
-- `normalizeValue()`
-- `serializeValueForDb()`
-- `isValueEmpty()`
-- `getValueAsString()`
-- `getValueAsData()`
-- `getContentGqlType()`
-- `getContentGqlMutationArgumentType()`
-
-This keeps server-rendered submissions, GraphQL submissions, email summaries, exports and integrations aligned.
 
 ## Settings Schema
 Custom field settings are defined with schema, not Twig templates. The schema tells the form builder which inputs to show, which setting each input saves to, and how the UI should be grouped.
@@ -507,9 +403,17 @@ public function defineFormBuilderGeneralSchema(): array
 }
 ```
 
-The schema system is shared by fields, notifications, integrations and other form-builder UIs, so it is covered in more detail in [Schema](/developers/schema).
+The schema system is shared by fields, notifications, integrations and other form-builder UIs, so it is covered in more detail in [UI Schemas](/developers/ui-schemas).
 
-To expose organisation-wide defaults for your field type, opt in with `supportedDefaults()`. See [Field Defaults](/developers/field-defaults).
+To expose organisation-wide defaults for your field type, opt in with `supportedDefaults()`. See [Field Defaults](/developers/custom-field/field-defaults).
+
+### Shared and Per-Form Settings
+
+[Synced Fields](/forms/synced-fields) share a definition containing settings such as labels, placeholders, and options. Each placement of that field is a separate instance with its own `required` setting. For example, the same synced Email field can be required on a registration form and optional on a feedback form.
+
+Custom fields inherit this behaviour. If your field needs additional settings that vary between placements, override `getInstanceSettings()` and `applyInstanceSettings()`, calling the parent methods to preserve the built-in `required` setting. `getDefinitionSettings()` returns the shared settings, excluding those declared by `getInstanceSettings()`.
+
+When reading submission values, continue to use the field handle. For code that needs to identify a field or its shared definition, see the instance and definition properties in the [Field reference](/reference/field#id).
 
 ## Templates
 There are also a number of rendering pieces custom fields should provide. These are namely:
@@ -560,6 +464,8 @@ For value handling, override the protected `defineValue*()` methods, not the pub
 Use **reference** methods for singular value contexts, and **reference block** methods for richer looped output. Notification bodies are the main consumer of reference blocks today, but the concept is broader than “email HTML”.
 
 Avoid overriding `renderInput()` or `getReferenceBlockHtml()` unless your field cannot be handled with templates and template variables. Keeping rendering in templates makes the field easier to override with Form Templates and Theme Config.
+
+For reference blocks, `getReferenceBlockOptions($submission, $notification, $value, $renderOptions = [])` supplies template variables. `hasReferenceBlockLabel()` controls whether the surrounding block shows the field label, and `hasReferenceBlockPlaceholder()` controls the empty-value placeholder. These public methods can be overridden on a native field subclass; call the corresponding parent method when extending its behaviour. A custom `getReferenceBlockHtml($submission, $notification, $value, $renderOptions = [])` can return HTML, or `false`/`null` to omit the field’s output.
 
 ### Theme Config
 You may opt to add support for [Theme Config](/theming/theme-config) in your custom field. To do this, keep the main HTML tags and attributes in your field class, and output them with `fieldtag()` in your Twig templates. This allows the tag to be changed by Theme Config.
@@ -616,19 +522,3 @@ protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     return parent::defineSlotTag($key, $context);
 }
 ```
-
-## Definition and Instance Identity
-
-A `Field` is the full runtime object for one form field. Its `id`, `uid` and stable `reference` identify that instance. Its `definitionId` and `definitionUid` identify the shared field definition. Synced Fields use the same definition while retaining their own top-level instance identities. Label, handle, instructions, placeholder, options and defaults belong to the definition; `required` belongs to the instance.
-
-Use instance identity when working with submission content, client field IDs or errors. Keep the established handle-based native input names and value accessors; do not substitute a definition ID. For example, a saved field's `getCpEditConfig()['id']` identifies the form field, while `$field->definitionId` is suitable for finding its shared metadata. `Fields::getFieldDefinitionById()` returns an immutable internal `FieldDefinition`, without runtime rendering or save methods. `Fields::getAllFields()` continues to return fully hydrated runtime fields.
-
-Definition configuration is returned by `getDefinitionSettings()`. Override `getInstanceSettings()` and `applyInstanceSettings()` only when a field has additional per-form-instance configuration that must not be shared with other instances of a Synced Field. Call the parent methods so the built-in `required` setting remains part of the instance contract.
-
-Registration requires a concrete subclass of `Field`. `FieldInterface` is available for type hints; implementing that interface independently does not register a valid field. Declare metadata with `defineFieldType()` and the ordinary static methods. The base general-settings and preview schemas are valid defaults. Metadata requests use fresh field prototypes, so extensions must not rely on mutations to a previously returned prototype.
-
-`ParentFieldInterface` identifies a nested container. `ChildFieldInterface` identifies an intrinsic child, such as `firstName`, with a fixed parent/type/handle relationship. A Repeater's arbitrary nested fields are ordinary field instances, not intrinsic children. Use `FixedParentField` for intrinsic parts and `RepeatableParentField` for repeated arbitrary fields.
-
-Use `getFields()` for immediate fields, `getEnabledFields()` to omit disabled fields and `getFieldsRecursively()` for the complete nested graph. Pages and layouts flatten their immediate rows; recursive traversal descends into parent fields. Repeater callers can pass a row key to `getFields($rowKey)` to receive fields with that row's input context.
-
-Field settings returned to the builder are editable data, not permission to replace the field's identity. Builder creation accepts registered types and declared setting attributes. Existing instances must belong to the form, and Synced Fields selections use a server-issued selection token. Do not construct request-supplied component classes or use posted definition IDs as authority.

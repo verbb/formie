@@ -294,7 +294,7 @@ Sets the default instruction position for new forms and fields.
 
 **Type:** `array` · **Default:** `[]`
 
-Sets per-field-type defaults applied when new fields are added to a form. Keys are field class names; values are arrays of setting handles and values. Field types opt in via `supportedDefaults()`. Leave a value empty or `null` to inherit Formie’s built-in behaviour. For example, set File Upload, Date, Phone, Agree, Email, Number, element field, and other supported field defaults with their field class names as keys. Custom field types can opt in via [Field Defaults](/developers/field-defaults).
+Sets per-field-type defaults applied when new fields are added to a form. Keys are field class names; values are arrays of setting handles and values. Field types opt in via `supportedDefaults()`. Leave a value empty or `null` to inherit Formie’s built-in behaviour. For example, set File Upload, Date, Phone, Agree, Email, Number, element field, and other supported field defaults with their field class names as keys. Custom field types can opt in via [Field Defaults](/developers/custom-field/field-defaults).
 :::
 
 
@@ -321,7 +321,7 @@ Controls whether form editors can enable “Allow Multiple” on Dropdown and el
 
 **Type:** `bool` · **Default:** `true`
 
-Controls whether form editors can enable the country code selector on Phone Number fields. When disabled, the setting is hidden in the form builder and existing values are forced off. For default-off behaviour on new phone fields without hiding the setting, use [Field Defaults](/developers/field-defaults) (`countryEnabled: false`). Configure in **Settings → Fields**.
+Controls whether form editors can enable the country code selector on Phone Number fields. When disabled, the setting is hidden in the form builder and existing values are forced off. For default-off behaviour on new phone fields without hiding the setting, use [Field Defaults](/developers/custom-field/field-defaults) (`countryEnabled: false`). Configure in **Settings → Fields**.
 :::
 
 

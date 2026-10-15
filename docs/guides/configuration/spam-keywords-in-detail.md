@@ -5,7 +5,6 @@ Spam keywords are Formie's built-in content screening tool — match words, phra
 ## Prerequisites
 
 - [Spam Protection](/forms/spam-protection)
-- [Submission Screening](/forms/submission-screening) — how keyword checks fit with other spam checks
 
 Configure keywords under **Formie → Settings → Spam Protection → Content Rules → Spam Keywords**. Values live in Formie's [control panel settings store](/guides/configuration/project-config-environment-and-control-panel-settings) — not in `config/formie.php` by default.
 
@@ -18,7 +17,7 @@ Configure keywords under **Formie → Settings → Spam Protection → Content R
 
 Keywords check the **whole submission** — all field values combined — not individual fields in isolation.
 
-Evaluation order within spam checks (simplified): email rules → text rules → spam keywords → captcha/scoring integrations. See [Submission Screening](/forms/submission-screening) for the full pipeline.
+Evaluation order within spam checks (simplified): email rules → text rules → spam keywords → captcha/scoring integrations. See [When Checks Run](/forms/spam-protection#when-checks-run) for how these checks fit into form submission.
 
 ## Keyword Definition Syntax
 

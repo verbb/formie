@@ -4,7 +4,6 @@ Use Formie's spam settings to block automated submissions while allowing legitim
 
 ## Prerequisites
 
-- [Submission Screening](/forms/submission-screening)
 - [Spam Protection](/forms/spam-protection)
 
 ## Where Screening Runs
@@ -109,4 +108,4 @@ Under **Spam Protection → Spam handling**, choose:
 
 Submit a realistic enquiry and check that it reaches the expected success page and notification recipient. Then try a keyword that your rules block and confirm the configured spam response. Review saved spam for false positives before tightening the rules.
 
-If a project needs a custom spam check, a developer can add a [workflow task](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch). The [workflow reference](/developers/submission-workflow#stages-and-public-anchors) lists where it can run.
+If a project needs a custom spam check, a developer can add a [workflow task](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch). The [workflow reference](/developers/submission-workflow#workflow-stages) lists where it can run.

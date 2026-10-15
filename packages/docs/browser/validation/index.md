@@ -2,6 +2,8 @@
 
 Formie uses its own browser-side validator so field rules, error rendering, multi-page state, and module-enhanced inputs all stay inside the same client-side form flow instead of falling back to native browser validation UI.
 
+For custom PHP rules, browser definitions, and JavaScript registration, see [Validation](https://verbb.io/craft-plugins/formie/docs/v4/developers/validation). This page describes the browser validator’s interaction settings and payload.
+
 ## What Formie Validates
 
 The validator:
@@ -36,7 +38,7 @@ After the first submit attempt, Formie keeps validation live while the user fixe
 
 ## Rule Payload Shape
 
-Rules live on the field wrapper as a JSON array. Each rule needs a `type`, and rules can carry extra options for that validator.
+The [built-in rules](/browser/validation/built-in-rules) describe the available rule names and options. Rules live on the field wrapper as a JSON array. Each rule needs a `type`, and rules can carry extra options for that validator.
 
 ```html
 <div
@@ -66,15 +68,4 @@ document.addEventListener('formie:validator:ready', (event) => {
 
 If you already have the form element, the same instance is also available as `form.formieValidation`.
 
-## What to Read Next
-
-- Use [Built-in rules](/browser/validation/built-in-rules) for the shipped rule names and payload shapes.
-- Use [Build a custom validator](/browser/validation/build-a-custom-validator) to register your own rules.
-- Use [JavaScript events](/browser/behavior/javascript-events) if you only need the event reference.
-
-## Related Pages
-
-- [Built-in rules](/browser/validation/built-in-rules)
-- [Build a custom validator](/browser/validation/build-a-custom-validator)
-- [JavaScript events](/browser/behavior/javascript-events)
-- [Submission handling](/browser/behavior/submission-handling)
+For other lifecycle hooks, see [JavaScript Events](/browser/behavior/javascript-events). The [submission handling flow](/browser/behavior/submission-handling) explains how validation fits into a submit attempt.

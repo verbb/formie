@@ -3,6 +3,10 @@
 Connecting forms to CRMs, marketing tools, automations, and custom providers.
 
 
+## [Connect a Newsletter Form to Beehiiv](/guides/integrations/connect-a-newsletter-form-to-beehiiv)
+
+Create a newsletter signup form, map its email address to Beehiiv, add an opt-in condition and test that subscribers reach the correct publication.
+
 ## [Building a CRM Integration from Scratch](/guides/integrations/building-a-crm-integration-from-scratch)
 
 Formie ships with dozens of CRM integrations, but you can register your own when your provider is not covered. This walkthrough builds a complete multi-object CRM connector from a Craft module — connection settings, field mapping, and sending payloads — step by step.

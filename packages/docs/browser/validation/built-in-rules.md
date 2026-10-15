@@ -91,8 +91,4 @@ Checks that the field matches another field by Formie field handle.
 
 `match` resolves by `fieldHandle`, not raw input `name`, so it stays aligned with the rest of Formie's field-level DOM contract.
 
-## Related Pages
-
-- [Overview](/browser/validation/)
-- [Build a custom validator](/browser/validation/build-a-custom-validator)
-- [Submission handling](/browser/behavior/submission-handling)
+When the built-in rules do not cover your requirement, follow [Validation](https://verbb.io/craft-plugins/formie/docs/v4/developers/validation) to implement and test a matching PHP and JavaScript rule. The [browser validation overview](/browser/validation/) explains when the rules run and how their payload is read.

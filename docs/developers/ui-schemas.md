@@ -1,12 +1,24 @@
-# Schema
+# UI Schemas
 
-::: tip
-For the Craft macros analogy, field and integration patterns, and debugging schema issues, see [Everything you need to know about Formie schemas](/guides/developers/everything-you-need-to-know-about-formie-schemas).
-:::
+A UI schema describes a settings interface using a PHP array. You define the controls an editor should see, their labels and instructions, how they are arranged, and which settings their values belong to. Formie’s form builder reads that description and renders the interface.
 
-Formie uses PHP-defined schema to render many parts of the form builder, including field settings, notification settings, page button settings and integration form settings. A schema is an array of nodes that describe the UI the builder should render and the settings those inputs should save.
+For example, a custom field might need a text input for its placeholder and a switch that makes the field required. Its schema describes those two controls. The editor uses them in the control panel, and the values they choose become settings on that field. Your field’s rendering and validation code then uses those settings when a visitor fills out the form.
 
-Most schemas are built with `SchemaHelper` methods. You can also write raw schema nodes when you need a field or layout the helper does not cover.
+## Where Schemas Are Used
+
+Formie uses UI schemas throughout the form builder: field settings tabs, notification settings, page and button settings, and the settings for an integration on a particular form. The same schema format can describe a text input in a field’s Appearance tab or a list selector in an integration’s settings.
+
+You’ll usually write a schema when extending Formie with your own field or integration. A [custom field](/developers/custom-field/overview) returns schemas from methods such as `defineFormBuilderGeneralSchema()` and `defineFormBuilderAppearanceSchema()`. A [custom integration](/developers/custom-integration/overview#form-settings-schema) uses `defineFormSettingsSchema()` for its form-level settings. The method determines where the controls appear; the returned schema describes what appears there.
+
+These schemas describe the editor’s control panel interface. The form shown to visitors has its own rendering and behaviour, and a UI schema does not define a GraphQL schema or create database columns. Formie also supports schemas for field previews inside the builder, covered under [Preview Schema](#preview-schema).
+
+## How a Schema Describes Controls
+
+A schema is an ordered array of **nodes**. A node can describe an input, a layout wrapper containing other nodes, or display content. An input node specifies its control type, a `name` that identifies the setting it edits, and presentation details such as its label and instructions. Nodes can also include options, validation rules and conditions that determine when a control appears.
+
+`SchemaHelper` provides PHP methods that create these nodes for you. For example, `textField()` creates a text input node and `lightswitchField()` creates a switch node. Both return arrays in the same schema format; you can use raw arrays when you need to describe a node directly.
+
+The following example is a schema-method body for an existing custom field with `placeholder` and `required` settings. Add the imports at the top of the PHP field class file, and return the array from its `defineFormBuilderGeneralSchema()` method:
 
 ```php
 use Craft;
@@ -25,6 +37,10 @@ return [
     ]),
 ];
 ```
+
+The builder displays a text input labelled **Placeholder**, followed by a **Required Field** switch. The `name` values connect those controls to the field’s `placeholder` and `required` settings. Changing a label changes what the editor sees; changing a name changes which setting the control edits. The schema describes the controls, while the field supplies their current values and implements the behaviour of the saved settings.
+
+For a longer walkthrough of field and integration schemas, including the comparison with Craft’s Twig form macros, see [Everything You Need to Know About Formie Schemas](/guides/developers/everything-you-need-to-know-about-formie-schemas).
 
 ## Schema Nodes
 A field node uses `$field` to choose the input type, and `name` to choose the setting key that will be saved. Common attributes include `label`, `instructions`, `required`, `validation`, `options`, `placeholder` and `if`.

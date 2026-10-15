@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitepress';
+import sidebarEntries from '../.sidebar.json';
 
 type SidebarEntry = string | SidebarGroup;
 
@@ -14,7 +15,7 @@ type SidebarGroup = {
 };
 
 const docsRoot = fileURLToPath(new URL('..', import.meta.url));
-const sidebarConfig = JSON.parse(fs.readFileSync(path.join(docsRoot, '.sidebar.json'), 'utf8')) as SidebarGroup[];
+const sidebarConfig = sidebarEntries as SidebarGroup[];
 
 const h1Regex = /^#\s+(.+)$/m;
 const zeroWidthRegex = /[\u200B-\u200D\uFEFF]/g;

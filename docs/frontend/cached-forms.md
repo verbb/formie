@@ -12,6 +12,12 @@ Static-cache support is enabled automatically when Blitz is installed and enable
 
 In most cases, Formie can support cached forms without extra JavaScript on the site.
 
+## Cached Form Lifetime
+
+Re-render cached form HTML within seven days when using per-render configuration or Summary fields. Summary refresh requests use an expiring access token to restore the original theme; expired tokens or missing theme state cause the refresh to be rejected. Automatic request-token refresh does not re-render the cached page.
+
+If the site runs on multiple web servers, they must share the database and Craft security key so each server can read the saved configuration.
+
 ## Craft Cloud and Async CSRF
 
 On Craft Cloud and other full-page caches, a synchronous CSRF token in the rendered HTML can prevent the page from being cache-eligible in the first place — even if Formie refreshes tokens on initialisation.

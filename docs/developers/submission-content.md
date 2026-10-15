@@ -4,11 +4,9 @@
 For querying submissions, field-type recipes, and common mistakes, see [The complete guide to rendering submission content](/guides/templating-theming/the-complete-guide-to-rendering-submission-content).
 :::
 
-Formie stores a submission once, then returns that content in different shapes depending on what you are doing with it.
+Formie returns submission content in different shapes depending on what you are doing with it.
 
 That is why the same field can look different in a template, an export, a summary screen, an email, or an integration payload. A simple text field might come back as a plain string in one place, while an address, name, or repeater field may need a structured array in another.
-
-When a value does not look the way you expect, the first question to ask is not "is this field wrong?" but "am I reading it in the right format for this job?"
 
 To protect selected values while they are stored, see [Content Encryption](/submissions/content-encryption). It covers key setup, shared environments, encrypted fields, unavailable values, recovery and rotation.
 
@@ -73,9 +71,11 @@ $values = $submission->getValuesAsString();
 ```
 :::
 
-### Get Natural Data
+### Get Field Data
 
-Use `getFieldValueAsData()` when a field has meaningful structure that you want to preserve. This is common for Address, Name, and more complex custom or nested fields.
+Use `getFieldValueAsData()` to read a field as plain data that can be encoded as JSON. Depending on the field, the result may be a string, number, boolean, array, or `null`.
+
+A text field still returns a string such as `"Hello"`. The difference is more useful for structured fields: an Address field returns an associative array with parts such as `address1`, `city`, and `zip`, instead of its field value model. You can work with those parts directly or include the array in an API payload.
 
 ::: code-group
 ```php [PHP]
@@ -105,8 +105,6 @@ $values = $submission->getValuesAsData();
 {% set values = submission.getValuesAsData() %}
 ```
 :::
-
-This is usually the safest format when you are building your own payloads or working with field data that is more than a single text value.
 
 ### Get Export Values
 

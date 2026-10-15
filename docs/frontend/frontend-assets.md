@@ -40,40 +40,7 @@ form?.addEventListener('formie:submit:final:after', (event) => {
 });
 ```
 
-Or, you could register your own validation:
-
-```js
-document.addEventListener('formie:validator:ready', (event) => {
-  const { validator } = event.detail;
-
-  validator.addValidator(
-    'company-email',
-    ({ input, getRule }) => {
-      const rule = getRule('company-email');
-
-      if (!rule || !input.value) {
-        return true;
-      }
-
-      const domain = typeof rule === 'object' && typeof rule.domain === 'string'
-        ? rule.domain
-        : 'example.com';
-
-      return input.value.toLowerCase().endsWith(`@${domain.toLowerCase()}`);
-    },
-    ({ label, getRule }) => {
-      const rule = getRule('company-email');
-      const domain = typeof rule === 'object' && typeof rule.domain === 'string'
-        ? rule.domain
-        : 'example.com';
-
-      return `${label} must use an @${domain} address.`;
-    },
-  );
-});
-```
-
-That sort of extension is useful when you want to adjust behaviour without replacing Formie's rendered markup.
+For custom validation rules and browser registration, see [Validation](/developers/validation). For a complete field implementation and testing walkthrough, follow [Adding a Custom Validation Rule](/guides/developers/adding-a-custom-validation-rule).
 
 Read more in the [Browser package docs](https://docs.verbb.io/formie/browser/).
 

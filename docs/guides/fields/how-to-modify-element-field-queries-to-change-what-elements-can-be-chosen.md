@@ -103,7 +103,7 @@ The exact theme/template key depends on how your Form Template is registered. Se
 
 ## GraphQL and Headless Forms
 
-Template overrides only run when Formie renders through Twig. For GraphQL or client-rendered forms, element field options come from the server-side query configured on the field. If you need dynamic filtering in headless flows, use a [Custom Provider](/developers/custom-option-source-providers) or listen for the `modifyElementQuery` event in PHP:
+Template overrides only run when Formie renders through Twig. For GraphQL or client-rendered forms, element field options come from the server-side query configured on the field. If you need dynamic filtering in headless flows, use a [Custom Provider](/developers/custom-field/option-sources) or listen for the `modifyElementQuery` event in PHP:
 
 ```php
 use verbb\formie\events\ModifyElementFieldQueryEvent;

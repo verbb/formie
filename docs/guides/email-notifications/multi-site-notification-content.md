@@ -6,8 +6,8 @@ Multi-site forms often need notification emails in the right language with the r
 
 - Craft multi-site with Formie forms enabled on multiple sites
 - [Email Notifications](/forms/email-notifications)
-- [Multi-Site & Translation](/forms/multi-site-and-translation)
-- [Translations](/forms/translations)
+- [Multi-Site](/forms/multi-site)
+- [Static Translations](/forms/static-translations)
 
 ## The Problem
 
@@ -17,7 +17,7 @@ A contact form runs on English and French sites. You need:
 - English copy for English submissions
 - Possibly different internal recipients per region
 
-Form field labels use [site overrides](/forms/multi-site-and-translation#content-translation). Notifications need a deliberate strategy too.
+Form field labels use [site overrides](/forms/multi-site#content-translation). Notifications need a deliberate strategy too.
 
 ## Pattern 1 — Per-Site Notification Overrides (Builder)
 
@@ -75,7 +75,7 @@ Or custom Twig in an [email template](/guides/email-notifications/building-an-em
 
 ## What About Translation Files?
 
-Do **not** put notification subject/body in `translations/*/formie.php`. Notification copy edited in the builder belongs in the database (or site overrides) — same rule as field labels. See [Translations](/forms/translations).
+Do **not** put notification subject/body in `translations/*/formie.php`. Notification copy edited in the builder belongs in the database (or site overrides) — same rule as field labels. See [Static Translations](/forms/static-translations).
 
 Plugin-owned strings in email *templates* (button labels, footer legal boilerplate shared across notifications) can use `site.php` or Twig `craft.app.language`.
 
@@ -83,7 +83,7 @@ Plugin-owned strings in email *templates* (button labels, footer legal boilerpla
 
 Submissions store `siteId`. When Formie sends notifications:
 
-1. The submission's site determines which [site overrides](/forms/multi-site-and-translation) merge into field values in `{allFields}` output
+1. The submission's site determines which [site overrides](/forms/multi-site) merge into field values in `{allFields}` output
 2. Conditions evaluate against submission context
 3. Variable tokens resolve for that site
 

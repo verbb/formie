@@ -2,12 +2,12 @@
 
 In this guide we build a URL field from scratch — similar to Single-line Text, but with URL validation and optional front-end behaviour. By the end you will have a field that appears in the form builder palette, renders on the front end, validates submissions, and supports Theme Config.
 
-This guide complements the [Custom Field developer reference](/developers/custom-field). Read that page for the full method list; this walkthrough focuses on the pieces you touch most often.
+This guide complements the [Custom Field developer reference](/developers/custom-field/overview). Read that page for the full method list; this walkthrough focuses on the pieces you touch most often.
 
 ## Prerequisites
 
 - A Craft module (see [Craft's module documentation](https://craftcms.com/docs/5.x/extend/module.html))
-- Familiarity with [Schema](/developers/schema) for form-builder settings
+- Familiarity with [UI Schemas](/developers/ui-schemas) for form-builder settings
 
 ## Create Your Module
 
@@ -186,6 +186,14 @@ class UrlField extends Field
         return $rules;
     }
 
+    protected function defineBrowserValidationRules(): array
+    {
+        $rules = parent::defineBrowserValidationRules();
+        $rules[] = ['type' => 'url'];
+
+        return $rules;
+    }
+
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie-url-field/input', [
@@ -235,7 +243,7 @@ class UrlField extends Field
 
 ### Form Builder Settings
 
-Each settings tab in the form builder maps to a `defineFormBuilder*Schema()` method — General, Validation, Appearance, Advanced, Conditions. Return schema nodes from [SchemaHelper](/developers/schema) or raw arrays. See [Everything you need to know about Formie schemas](/guides/developers/everything-you-need-to-know-about-formie-schemas) for patterns.
+Each settings tab in the form builder maps to a `defineFormBuilder*Schema()` method — General, Validation, Appearance, Advanced, Conditions. Return schema nodes from [SchemaHelper](/developers/ui-schemas) or raw arrays. See [Everything you need to know about Formie schemas](/guides/developers/everything-you-need-to-know-about-formie-schemas) for patterns.
 
 The preview palette uses `defineFormBuilderPreviewSchema()` with helpers like `previewInput()`.
 
@@ -247,7 +255,7 @@ For Theme Config overrides, implement `defineSlotTag()` and return a `SlotTag` f
 
 ### Validation
 
-Add rules in `getElementValidationRules()`. The URL field uses Craft's `UrlValidator` with Formie's standard required-field handling from the Validation tab schema.
+The URL field pairs Craft’s `UrlValidator` in `getElementValidationRules()` with the built-in browser `url` rule from `defineBrowserValidationRules()`. Formie handles required answers separately. For the full validation flow, custom rule registration and testing both paths, follow [Validation](/developers/validation).
 
 ### Reference Blocks
 
@@ -284,7 +292,7 @@ Add an SVG icon at `templates/icon.svg` for the form builder palette.
 
 ## Test It
 
-Reload the control panel. Your **URL** field should appear in the field picker. Add it to a form, save, and preview on the front end. Enter invalid text — validation should reject it with a URL error.
+Reload the control panel. Your **URL** field should appear in the field picker. Add it to a form, save, and preview on the front end. Enter invalid text and confirm that browser validation shows a URL error. Also verify that PHP rejects the same value using the [server validation check](/guides/developers/adding-a-custom-validation-rule#test-the-complete-rule), adapted to your URL field handle.
 
 ## Add a Client Module (Optional)
 

@@ -1,9 +1,8 @@
 # Conditions and Validation
 
-All Formie browser packages share condition and validation rules through `@verbb/formie-core`. Use the `mode`, `effect` and `rules` definitions returned by Formie. Text comparisons use alphabetical order; numeric comparisons require a complete number; selected options match whole values. An invalid show rule keeps a field hidden, an invalid hide rule keeps it visible, and an invalid navigation rule prevents moving forward.
+Formie’s PHP implementation and browser packages work together to evaluate conditions and validate answers. The developer documentation provides the shared explanation and worked examples:
 
-Server validation remains authoritative. Submit and page-transition results retain full nested errors such as `123.1.email`, rooted at the form-field instance ID. Render messages as plain text and focus the exact control. Derive page summaries from field errors and the current definition.
+- [Conditions](https://verbb.io/craft-plugins/formie/docs/v4/developers/conditions) covers the condition model, operators, browser compilation and visibility behaviour.
+- [Validation](https://verbb.io/craft-plugins/formie/docs/v4/developers/validation) covers PHP rules, their browser definitions, JavaScript registration, validation scopes and submission errors.
 
-REST returns 422 validation, 409 stale state, 429 rate limits and 403 authorization. GraphQL submit and page mutations return expected domain failures in result data. A rejected page transition leaves the current page unchanged. Use the returned session when present.
-
-Custom browser modules can add validation with `registerBrowserValidationRule(type, rule)` and remove it using the returned cleanup function. Formie supplies translated error messages and checks submissions again on the server, including rules the browser does not recognise.
+For browser controls, use the [validation overview](/browser/validation/) to configure interaction and inspect the rule payload, and [Built-in Rules](/browser/validation/built-in-rules) for the available rule definitions. Custom clients must preserve the server’s full nested error paths and treat messages as plain text, as described under [Submission Errors and Messages](https://verbb.io/craft-plugins/formie/docs/v4/developers/validation#submission-errors-and-messages).

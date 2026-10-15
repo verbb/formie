@@ -131,4 +131,4 @@ A common pattern: Survey fields for demographic questions, Quiz fields for the s
 
 ## Screening and Incomplete Submissions
 
-Quiz scoring runs when complete, non-spam submissions are saved. Draft saves and spam submissions are excluded. Configure [submission screening](/forms/submission-screening) and [spam protection](/forms/spam-protection) so automated abuse does not pollute poll or quiz results.
+Quiz scoring runs when complete, non-spam submissions are saved. Draft saves and spam submissions are excluded. Configure [Spam Protection](/forms/spam-protection) so automated abuse does not pollute poll or quiz results.

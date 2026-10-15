@@ -230,7 +230,7 @@ Retrying a successful request with the same input recovers its result if the res
 
 The honeypot input and `formStartedAt` timestamp are rendered automatically for browser forms. Replay protection reuses Formie’s existing per-render `requestToken`.
 
-See [Submission Screening](/forms/submission-screening) for the full screening order and [Spam Protection](/forms/spam-protection#submission-guards) for configuration detail.
+See [Submission Workflow](/developers/submission-workflow#screen) for the full screening order and [Spam Protection](/forms/spam-protection#submission-guards) for configuration detail.
 
 ### Settings and Storage Changes
 
@@ -246,7 +246,7 @@ If you had custom code or front-end automation that targeted the old Duplicate, 
 - Switch spam-related checks to the replacement captcha integration handles you enable (for example `turnstile`, `recaptcha`), or hook into the screening stage if you need custom server-side checks.
 - Update any GraphQL mutation arguments that referenced the removed captcha types.
 
-Provider-backed captchas and spam rules still evaluate together in the **`screen`** stage. See [Submission Screening](/forms/submission-screening) for how that stage orders checks and how that relates to validation and saves.
+Provider-backed captchas and spam rules still evaluate together in the **`screen`** stage. See [Submission Workflow](/developers/submission-workflow#screen) for how that stage orders checks and how that relates to validation and saves.
 
 ## Front-End JavaScript Events
 
@@ -654,7 +654,7 @@ If you previously overrode a field-specific unique message via translation files
 
 ## Form Content Translations
 
-Formie no longer passes user-authored form copy through the `formie` translation category at render time. Labels, placeholders, messages, and option labels come from the database (with [site overrides](/forms/multi-site-and-translation#content-translation) on multi-site projects).
+Formie no longer passes user-authored form copy through the `formie` translation category at render time. Labels, placeholders, messages, and option labels come from the database (with [site overrides](/forms/multi-site#content-translation) on multi-site projects).
 
 This replaces an older workaround that mutated the plugin `sourceLanguage` on front-end requests so German (or other non-English) canonical labels would not be reverse-translated to English via `formie.php`.
 
@@ -694,7 +694,7 @@ The same applies to user field labels stored in `translations/*/site.php`. Prefe
 
 Edit the form in the control panel. You do not need translation file entries for field labels.
 
-Learn more in [Translations](/forms/translations).
+Learn more in [Static Translations](/forms/static-translations).
 
 ## Sub-Field Label Position
 
@@ -1117,7 +1117,7 @@ Even when using `SchemaHelper`, check these schema changes:
 - `help` is now `instructions`
 - old `if` expressions such as `$get(required).value` should be updated to the current expression format
 
-See [Schema](/developers/schema) for the current schema syntax.
+See [UI Schemas](/developers/ui-schemas) for the current schema syntax.
 
 ## Field Values
 
@@ -1154,7 +1154,7 @@ GraphQL `includeInEmail` | `includeInEmailFieldSummaries`
 `includeInEmailField()` | `includeInEmailFieldSummariesField()`
 `emailNotificationValue()` | `emailFieldSummaryValue()`
 
-For field/form `modifyHtmlTag` event replacements, see [Field and Form Slot Tag Events](#field-and-form-slot-tag-events). For custom previews, replace template-string previews with the schema described in [Schema](/developers/schema).
+For field/form `modifyHtmlTag` event replacements, see [Field and Form Slot Tag Events](#field-and-form-slot-tag-events). For custom previews, replace template-string previews with the schema described in [UI Schemas](/developers/ui-schemas).
 
 ## Field Paths
 
@@ -1230,7 +1230,7 @@ The Formie 3 theme grammar remains supported, including flat attribute shorthand
 
 Purge cached form HTML during deployment and regenerate saved Summary and Signature links by rendering the form or requesting a fresh image/download URL. Custom Summary refresh requests must use the issued token. Summary tokens expire after seven days, so refresh cached forms within that period. Signature image links retain their existing lifetime. If you run multiple web servers, they must share the database and Formie security key.
 
-See [Custom Field](/developers/custom-field) for the current custom field guide.
+See [Custom Field](/developers/custom-field/overview) for the current custom field guide.
 
 ## PHP Events
 
@@ -1442,7 +1442,7 @@ Submission processing is no longer one large save step. Formie now runs submissi
 
 That makes custom submission handling more predictable. If you need to run your own logic during processing, it is a better fit to add a workflow task or hook into the workflow events than to try to replace the whole pipeline.
 
-The **`screen`** stage now runs built-in submission guards (honeypot, minimum submit time, replay protection) before captcha integrations and spam keyword checks. See [Submission Screening](/forms/submission-screening).
+The **`screen`** stage now runs built-in submission guards (honeypot, minimum submit time, replay protection) before captcha integrations and spam keyword checks. See [Submission Workflow](/developers/submission-workflow#screen).
 
 ### Spam Protection Settings
 
@@ -1649,7 +1649,7 @@ Existing exports remain importable. Review the import preview before applying ch
 
 Unknown, disabled or unregistered imported field types remain recoverable Missing Fields with their settings. Restore and register the owning extension before recovering them. Portable synced links use `syncedDefinitionUid`. A stencil whose shared definition cannot be resolved creates an independent definition; verify shared-field links after importing.
 
-Changing a stencil or default after creating a form does not update that form. Custom field developers should review [field definitions and instances](/developers/custom-field#definition-and-instance-identity) when adapting settings or translations.
+Changing a stencil or default after creating a form does not update that form. Custom field developers should review [field definitions and instances](/developers/custom-field/overview#shared-and-per-form-settings) when adapting settings or translations.
 
 ## Custom Parent Fields
 
@@ -1662,7 +1662,7 @@ Update custom nested field bases to the Formie 4 classes:
 | `SubField` with intrinsic parts, such as Name | `FixedParentField` |
 | `MultiNestedField` | `RepeatableParentField` |
 
-See [Custom Fields](/developers/custom-field) for child definitions, storage and rendering. The custom Craft-field adapter interface uses `serializeValueForDb()` for persistence; earlier Formie 4 beta adapters should rename their `serializeValue()` implementation.
+See [Custom Field](/developers/custom-field/overview) for child definitions, storage and rendering. The custom Craft-field adapter interface uses `serializeValueForDb()` for persistence; earlier Formie 4 beta adapters should rename their `serializeValue()` implementation.
 
 ## Field Value Contracts
 
@@ -1748,7 +1748,7 @@ Test conditions that compare text, numbers, dates or selected options. Text comp
 
 Hidden and disabled public values are cleared recursively before validation, including nested and repeater values. Browser-posted page targets cannot bypass progression rules. Validation errors are plain text and retain complete nested paths. Stable Formie 3 AJAX still uses handle-based error keys and may return HTTP 200; the client-rendered APIs use form-field instance IDs and typed domain outcomes.
 
-For custom front-end validation, follow [Custom Front-End Validation](#custom-front-end-validation) and [Conditions and Validation](/developers/conditions-and-validation).
+For custom front-end validation, follow [Custom Front-End Validation](#custom-front-end-validation) and [Conditions](/developers/conditions) and [Validation](/developers/validation).
 
 ### Browser Translation Event
 

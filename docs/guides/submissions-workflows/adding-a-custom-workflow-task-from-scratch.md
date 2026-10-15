@@ -79,7 +79,7 @@ if ($context->command->form->handle !== 'orders') {
 
 ## Choose a Position
 
-`insertTaskBefore()` and `insertTaskAfter()` take a public anchor and a `TaskDefinition`. `prepend()` and `append()` place a task at a stage boundary. An unknown or internal anchor throws an exception, so use the [public anchor reference](/developers/submission-workflow#stages-and-public-anchors) when choosing a position.
+`insertTaskBefore()` and `insertTaskAfter()` take a supported task ID or `Task` enum value and a `TaskDefinition`. `prepend()` and `append()` place a task at the start or end of a stage. Unknown task IDs and attempts to place a task relative to an internal task throw an exception, so use the [workflow stages and task IDs](/developers/submission-workflow#workflow-stages) when choosing a position.
 
 To check valid input before spam screening, the example's position after `validate.submission` is appropriate. To enqueue work for a completed submission before integrations, register a task in Dispatch before `Task::DISPATCH_TRIGGER_INTEGRATIONS`. The submission has been saved at that point. Queued work still needs its own delivery and retry policy; an after-task event does not prove that a remote request has completed.
 

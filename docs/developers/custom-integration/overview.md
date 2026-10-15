@@ -131,7 +131,7 @@ protected function defineFormSettingsSchema(FormInterface $form): array
 }
 ```
 
-For a broader explanation of schema nodes, helpers, conditions and layout, see [Schema](/developers/schema).
+For a broader explanation of schema nodes, helpers, conditions and layout, see [UI Schemas](/developers/ui-schemas).
 
 ## Integration Config
 

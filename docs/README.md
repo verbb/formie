@@ -5,7 +5,7 @@ Formie’s docs are structured to help you install the plugin, build forms, put 
 ## Sections
 
 - [Get Started](/get-started/installation-setup) for installation, requirements, configuration, troubleshooting, and upgrading.
-- [Forms](/forms/form-builder) for building forms, configuring behaviour, spam protection, [submission screening](/forms/submission-screening), and setting up notifications.
+- [Forms](/forms/form-builder) for building forms, configuring behaviour, [spam protection](/forms/spam-protection), and setting up notifications.
 - [Submissions](/submissions/submissions) for understanding saved records, statuses, exports, relations, and editing patterns.
 - [Fields](/fields/address) for choosing field types and understanding the settings that actually affect behaviour.
 - [Templates](/templates/rendering-forms) for Twig and Craft implementation patterns.

@@ -6,22 +6,66 @@ A `SubmissionCommand` describes the requested operation: the form and submission
 
 Administrative GraphQL `saveSubmission` mutations are persistence-only: schema permissions, content validation, expected-version checks and upload ownership still apply, but visitor progression, screening, payment processing, redirects and delivery dispatch do not run. Administrative and workflow saves share `SubmissionPersistence`, including upload promotion and atomic completion. Public GraphQL visitor submission uses the visitor command path instead.
 
-## Stages and Public Anchors
+## Workflow Stages
 
-`WorkflowManifest` defines stage order, built-in task order, handlers and applicable operations. The public task anchors below are named positions you can use to place a custom task before or after a built-in task. Extensions can add tasks, but cannot add, replace or reorder stages.
+`WorkflowManifest` defines the order of the six stages, their built-in tasks, the code that handles each task and the operations each task applies to. Extensions can add tasks, but cannot add, replace or reorder stages. Use the task IDs listed below to place your own task before or after a supported built-in task.
 
-| Stage | Public Task Anchors |
-| --- | --- |
-| `preflight` | `preflight.applySubmissionDefaults`, `preflight.clearHiddenValues`, `preflight.resolveTransition`, `preflight.captureMetadata`, `preflight.applyStatusRules` |
-| `validate` | `validate.submission` |
-| `screen` | `screen.evaluateSpam`, `screen.verifyCaptcha` |
-| `persist` | `persist.submission`, `persist.processPayment`, `persist.questionnaireResult` |
-| `dispatch` | `dispatch.sendNotifications`, `dispatch.triggerIntegrations`, `dispatch.sendSpamNotifications` |
-| `finalize` | Stage boundary only |
+Some tasks are internal implementation details and cannot be used for relative placement. These include navigation-state resolution, progression enforcement, persistence planning, revision follow-ups and finalisation bookkeeping. Task observation events expose only supported tasks; stage events let you observe every stage, including Finalize.
 
-Preflight applies defaults and conditions before selecting the next page. Validate checks the current page or the whole submission and questionnaire retake eligibility. Validation errors stop processing before content spam checks or CAPTCHA. Persist plans the write, stores the submission, processes payment and recalculates questionnaire results. Payment submissions remain incomplete until payment succeeds. Dispatch starts the applicable notification and integration work. Finalize applies spam policy, progression, upload bookkeeping, token consumption and the terminal outcome. Transport adapters build the HTML, AJAX, REST or GraphQL response.
+### Preflight
 
-Navigation-state resolution, progression enforcement, persistence planning, revision follow-ups and finalisation bookkeeping are internal tasks, not public anchors. The task observation events only expose public anchors. Stage events still expose Finalize.
+The `preflight` stage prepares the submission before validation. It applies defaults and conditions, clears hidden values and checks progression before selecting the next page. It also captures submission metadata and applies status rules where the operation requires them.
+
+Supported task IDs, in execution order:
+
+- `preflight.applySubmissionDefaults`
+- `preflight.clearHiddenValues`
+- `preflight.resolveTransition`
+- `preflight.captureMetadata`
+- `preflight.applyStatusRules`
+
+### Validate
+
+The `validate` stage checks the current page or the whole submission, depending on the operation and navigation, and checks questionnaire retake eligibility. Validation errors stop processing before spam checks, CAPTCHA or persistence.
+
+Supported task ID:
+
+- `validate.submission`
+
+### Screen
+
+The `screen` stage checks the submission for spam and verifies its CAPTCHA when the operation requires screening. The selected spam policy determines how a flagged submission is handled. Use validation tasks for errors visitors can correct, and screening tasks for spam decisions. See [Registering Tasks](#registering-tasks) to add your own checks.
+
+Supported task IDs, in execution order:
+
+- `screen.evaluateSpam`
+- `screen.verifyCaptcha`
+
+### Persist
+
+The `persist` stage plans the write, saves the submission, processes payment and recalculates questionnaire results as applicable. Payment submissions remain incomplete until payment succeeds.
+
+Supported task IDs, in execution order:
+
+- `persist.submission`
+- `persist.processPayment`
+- `persist.questionnaireResult`
+
+### Dispatch
+
+The `dispatch` stage starts the notification and integration work that applies to the submission. Delivery may run through the queue, so reaching the end of this stage does not mean every email or integration request has finished.
+
+Supported task IDs, in execution order:
+
+- `dispatch.sendNotifications`
+- `dispatch.triggerIntegrations`
+- `dispatch.sendSpamNotifications`
+
+### Finalize
+
+The `finalize` stage applies the spam response policy, updates visitor progress, consumes the request token where appropriate and returns the workflow outcome. For a completed submission, it also resolves and stores completion details. Transport adapters then build the HTML, AJAX, REST or GraphQL response.
+
+This stage has no supported built-in task IDs for relative placement. Use `prepend()` to run a custom task at the start of the stage. The built-in finalisation task returns an outcome and stops processing, so tasks appended after it are not reached.
 
 ## Operations and Navigation
 
@@ -65,7 +109,7 @@ Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_REGISTER_STAGE_TA
 });
 ```
 
-`insertTaskBefore()` and `insertTaskAfter()` accept a public `Task` enum or registered public task ID. `prepend()` and `append()` insert at stage boundaries without artificial start/end anchors. Formie combines registrations in a consistent order. Duplicate IDs and unknown or internal anchors throw an exception. Applicable operations are mandatory; a Submit task does not automatically run on drafts or payment replay.
+`insertTaskBefore()` and `insertTaskAfter()` accept a `Task` enum value or a registered task ID that supports relative placement. `prepend()` and `append()` insert at the start or end of a stage. Formie combines registrations in a consistent order. Duplicate IDs, unknown task IDs and attempts to place a task relative to an internal task throw an exception. Applicable operations are mandatory; a Submit task does not automatically run on drafts or payment replay.
 
 ## Execution Results and Events
 
@@ -133,4 +177,4 @@ If the deleted submission had an interrupted promotion, cleanup checks the recor
 
 Scheduled cleanup expires grants and abandoned progress/uploads. Referenced assets and valid bound/finalized uploads are protected from abandoned-upload cleanup. An interrupted claim that never persisted a submission reference can expire after its lease; removal or replacement of a field value releases only unreferenced uploads. Files shared by other submissions remain protected. Grant expiry is capped by progress and target-submission retention, including form data retention. Upload view, attach and delete capabilities expire with their upload record; rendering refreshes capabilities only while the record remains available. These records contain sensitive scope and lifecycle metadata: restrict database and maintenance access to administrators, and use the configured retention settings rather than exporting them to application logs.
 
-Preflight applies defaults, clears hidden values, enforces progression and resolves the transition in that order. Validate consumes that transition to choose current-page or whole-submission validation; it does not resolve the route again. A failed validation stops before Screen, persistence or page advancement. See [Conditions and Validation](/developers/conditions-and-validation) for visibility, clearing, scopes and error identity.
+Preflight applies defaults, clears hidden values, enforces progression and resolves the transition in that order. Validate consumes that transition to choose current-page or whole-submission validation; it does not resolve the route again. A failed validation stops before Screen, persistence or page advancement. See [Conditions](/developers/conditions) for visibility and clearing, and [Validation](/developers/validation) for validation scopes, custom rules and error identity.

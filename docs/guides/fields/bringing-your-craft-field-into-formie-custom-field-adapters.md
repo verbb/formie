@@ -4,7 +4,7 @@ Your Craft site may already have field types from custom plugins — [Maps](http
 
 Each supported option is an **adapter** — explicit Formie code that handles front-end rendering, validation, storage, exports, integrations, and GraphQL for a specific Craft field class. This guide explains when an adapter is the right choice, how Formie's built-in adapters work, and how to register your own from a Craft module.
 
-Read the [Custom Field reference](/fields/custom-field) and [Custom Field adapters (developer reference)](/developers/custom-field#custom-field-adapters) before implementing — adapters touch more surfaces than a typical Craft field because Formie must submit, export, and integrate reliably on the front end.
+Read the [Custom Field reference](/fields/custom-field) and [Custom Field adapters (developer reference)](/developers/custom-field/adapters) before implementing — adapters touch more surfaces than a typical Craft field because Formie must submit, export, and integrate reliably on the front end.
 
 ## Full Field Type vs Adapter
 

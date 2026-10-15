@@ -150,7 +150,7 @@ Pass `siteId` and `locale` when the form should render for a specific Craft site
 />
 ```
 
-Formie merges [site translation overrides](/forms/multi-site-and-translation#content-translation) automatically. You do not need separate forms per language for label changes.
+Formie merges [site translation overrides](/forms/multi-site#content-translation) automatically. You do not need separate forms per language for label changes.
 
 ## Step 6 — Static Caching
 

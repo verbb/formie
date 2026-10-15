@@ -127,7 +127,7 @@ The field settings.
 
 ## Methods
 
-The methods below help you render fields and read their values. For implementing storage and value handling in your own field type, see [Custom Field](/developers/custom-field#normalised-values-and-projections).
+The methods below help you render fields and read their values. For implementing storage and value handling in your own field type, see [Custom Field](/developers/custom-field/overview#normalised-values-and-projections).
 
 
 ::: reference
@@ -211,7 +211,7 @@ Returns a string representation of a submitted value.
 
 **Returns:** `mixed`
 
-Returns natural JSON-safe data: scalars for primitive fields, named parts or selected records for rich fields.
+Returns JSON-safe data: scalars for primitive fields, named parts or selected records for rich fields.
 :::
 
 ::: reference

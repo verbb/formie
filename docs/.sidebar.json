@@ -18,8 +18,6 @@
         "children": [
             "forms/form-builder",
             "forms/form-groups",
-            "forms/multi-site-and-translation",
-            "forms/translations",
             {
                 "title": "Fields",
                 "collapsable": true,
@@ -67,9 +65,10 @@
             "forms/synced-fields",
             "forms/spam-protection",
             "forms/submission-limits",
-            "forms/submission-screening",
             "forms/stencils",
             "forms/import-export",
+            "forms/multi-site",
+            "forms/static-translations",
             "forms/element-field"
         ]
     },
@@ -140,7 +139,7 @@
         "title": "Integrations",
         "collapsable": false,
         "children": [
-            "integrations/connect-and-test-an-integration",
+            "integrations/overview",
             {
                 "title": "Address Providers",
                 "collapsable": true,
@@ -336,19 +335,42 @@
                     "developers/events/utility-events"
                 ]
             },
-            "developers/submission-workflow",
-            "developers/conditions-and-validation",
-            "developers/theme-rendering-architecture",
-            "developers/performance-profiling",
-            "developers/submission-content",
-            "developers/schema",
-            "developers/custom-field",
-            "developers/field-defaults",
-            "developers/reference-tokens",
-            "developers/tiptap-extensions",
-            "developers/custom-variable-sources",
-            "developers/custom-option-source-providers",
-            "developers/custom-client-event-templates",
+            {
+                "title": "Submissions",
+                "collapsable": true,
+                "children": [
+                    "developers/submission-workflow",
+                    "developers/conditions",
+                    "developers/validation",
+                    "developers/submission-content"
+                ]
+            },
+            {
+                "title": "Custom Field",
+                "collapsable": true,
+                "children": [
+                    "developers/custom-field/overview",
+                    "developers/custom-field/field-defaults",
+                    "developers/custom-field/option-sources",
+                    "developers/custom-field/adapters"
+                ]
+            },
+            {
+                "title": "Form Builder",
+                "collapsable": true,
+                "children": [
+                    "developers/ui-schemas",
+                    "developers/tiptap-extensions"
+                ]
+            },
+            {
+                "title": "Variables and References",
+                "collapsable": true,
+                "children": [
+                    "developers/reference-tokens",
+                    "developers/custom-variable-sources"
+                ]
+            },
             {
                 "title": "Custom Integration",
                 "collapsable": true,
@@ -368,19 +390,21 @@
                     "developers/custom-integration/payment-integration"
                 ]
             },
-            "developers/console-commands",
-            {
-                "title": "GraphQL",
-                "collapsable": false,
-                "children": [
-                    "graphql/query-forms",
-                    "graphql/query-submissions",
-                    "graphql/rendering-forms",
-                    "graphql/create-submissions",
-                    "graphql/headless-payments",
-                    "graphql/payments/stripe-headless"
-                ]
-            }
+            "developers/custom-client-event-templates",
+            "developers/console-commands"
+        ]
+    },
+    {
+        "title": "GraphQL",
+        "collapsable": false,
+        "children": [
+            "graphql/query-forms",
+            "graphql/query-submissions",
+            "graphql/rendering-forms",
+            "graphql/create-submissions",
+            "graphql/headless-payments",
+            "graphql/payments/stripe-headless",
+            "graphql/graphql-form-reference"
         ]
     },
     {
@@ -392,7 +416,6 @@
             "reference/field",
             "reference/submission",
             "reference/notification",
-            "reference/graphql-form-reference",
             "reference/theme-tag-reference",
             "reference/browser-theme-state"
         ]
