@@ -75,8 +75,8 @@ class m260927_000000_delivery_attempts extends Migration
             $this->update(Table::FORMIE_NOTIFICATIONS, ['dispatchTiming' => 'afterFinalizedDeliveryAttempts'], ['dispatchTiming' => 'afterIntegrations']);
         }
 
-        // Connection metadata predates the versioned cache and must be fetched again.
-        $this->update(Table::FORMIE_INTEGRATIONS, ['cache' => null]);
+        // Keep connection state and provider field metadata used by existing mappings.
+        // IntegrationConfig safely reads legacy metadata and marks it stale until refreshed.
 
         return true;
     }
