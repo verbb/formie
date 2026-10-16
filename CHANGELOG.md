@@ -6,6 +6,9 @@
 - Update the minimum Auth requirement to `2.0.55`.
 - Update the minimum Tiptap requirement to `1.0.5`.
 
+### Fixed
+- Fix SuiteCRM Contact fields not loading for field mapping with the V8 API. ([#3010](https://github.com/verbb/formie/issues/3010))
+
 ## 4.0.1 - 2026-10-16
 
 ### Added
