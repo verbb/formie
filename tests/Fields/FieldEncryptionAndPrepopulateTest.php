@@ -257,6 +257,10 @@ it('deliberately re-encrypts readable legacy values under the active key', funct
     $controller->keyId = ContentEncryption::currentKey()->id;
     $controller->batchSize = 10;
 
+    // Other tests deliberately leave submissions with unavailable/deleted forms.
+    // Resume at this fixture so this success case does not scan unrelated data.
+    ContentEncryption::setReencryptCursor($controller->keyId, (int)$submission->id - 1);
+
     expect($controller->actionReencrypt())->toBe(\yii\console\ExitCode::OK);
     $stored = Json::decode((string)(new Query())
         ->select(['content'])

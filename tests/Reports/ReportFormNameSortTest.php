@@ -25,7 +25,9 @@ it('sorts report pages and exports by the displayed form name', function (string
     $expected = $direction === 'asc' ? [$ids[1], $ids[3], $ids[2], $ids[0]] : [$ids[0], $ids[2], $ids[1], $ids[3]];
     $report = new Report(['name' => 'Name sort', 'handle' => 'nameSort' . uniqid()]);
     $report->setSettingsModel(ReportSettings::fromArray([
-        'filters' => ['formIds' => $formIds], 'display' => ['fieldColumnsMode' => 'none'],
+        // Fixed timestamps exercise tie-breaking, not the rolling default date window.
+        'filters' => ['formIds' => $formIds, 'startBound' => ['option' => ''], 'endBound' => ['option' => '']],
+        'display' => ['fieldColumnsMode' => 'none'],
         'columns' => [['type' => 'attribute', 'handle' => 'id', 'label' => 'ID', 'enabled' => true]],
     ]));
     $service = Formie::$plugin->getReportQuery();
