@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Changed
-- Update the minimum Auth requirement to `2.0.54`.
+- Update the minimum Auth requirement to `2.0.55`.
 - Update the minimum Tiptap requirement to `1.0.5`.
 
 ## 4.0.1 - 2026-10-16
