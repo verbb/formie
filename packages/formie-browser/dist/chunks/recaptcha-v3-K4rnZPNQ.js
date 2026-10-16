@@ -1,5 +1,5 @@
 import { t as e } from "./api-C2fmBZFA.js";
-import { n as t, t as n } from "./recaptcha-shared-DIPQsYwB.js";
+import { n as t, t as n } from "./recaptcha-shared-CE_gRQGd.js";
 //#region src/js/modules/captchas/recaptcha-v3.ts
 var r = e({
 	moduleId: "formie:recaptcha-v3",

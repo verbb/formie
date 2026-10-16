@@ -109,7 +109,7 @@ export const recaptchaEnterpriseModule = defineCaptchaModule<RecaptchaEnterprise
                 // Fallback branch for any future Enterprise widget-like mode.
                 enterpriseApi.execute(widget);
             }
-        });
+        }, true);
 
         const hasToken = await services.tokens.wait(CAPTCHA_EXECUTE_WAIT_FOR_VALUE_MS);
 

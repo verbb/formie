@@ -1,4 +1,5 @@
-import { loadScriptAndEnsureGlobal } from '#utils/scripts';
+import { loadExternalScript } from '#utils/scripts';
+import { waitFor } from '#utils/async';
 import { CAPTCHA_PROVIDER_LOAD_TIMEOUT_MS } from '#modules/captchas/constants';
 import { getScriptAttributes } from '#modules/captchas/utils';
 
@@ -59,20 +60,37 @@ export async function loadRecaptchaGlobal(
         src.searchParams.set('badge', options.badge.trim());
     }
 
-    return loadScriptAndEnsureGlobal<RecaptchaGlobal>('grecaptcha', {
+    // Both SDKs share `grecaptcha`, but loading one does not load the other.
+    // A ready() stub can also exist before either SDK has attached its methods.
+    const getLoadedApi = (): RecaptchaGlobal | null => {
+        const api = (window as Window & { grecaptcha?: RecaptchaGlobal }).grecaptcha;
+        const target = enterprise ? api?.enterprise : api;
+
+        return api && target && typeof target.ready === 'function' && typeof target.execute === 'function'
+            && typeof target.render === 'function' ? api : null;
+    };
+    const existing = getLoadedApi();
+
+    if (existing) {
+        return existing;
+    }
+
+    await loadExternalScript({
         id: enterprise ? 'FORMIE_RECAPTCHA_ENTERPRISE_SCRIPT' : 'FORMIE_RECAPTCHA_SCRIPT',
         src: src.toString(),
         async,
         defer,
-        timeoutMs: CAPTCHA_PROVIDER_LOAD_TIMEOUT_MS,
     });
+
+    return waitFor(getLoadedApi, { timeoutMs: CAPTCHA_PROVIDER_LOAD_TIMEOUT_MS });
 }
 
-export function whenRecaptchaReady(api: RecaptchaGlobal, callback: () => void | Promise<void>): Promise<void> {
-    const readyApi = api.enterprise || api;
+export function whenRecaptchaReady(api: RecaptchaGlobal, callback: () => void | Promise<void>, enterprise = false): Promise<void> {
+    const readyApi = enterprise ? api.enterprise : api;
 
     return new Promise((resolve, reject) => {
         try {
+            if (!readyApi) throw new Error('The reCAPTCHA API is unavailable.');
             readyApi.ready(() => {
                 Promise.resolve(callback()).then(resolve).catch(reject);
             });

@@ -1,5 +1,5 @@
 import { t as e } from "./api-C2fmBZFA.js";
-import { n as t, t as n } from "./recaptcha-shared-DIPQsYwB.js";
+import { n as t, t as n } from "./recaptcha-shared-CE_gRQGd.js";
 //#region src/js/modules/captchas/recaptcha-enterprise.ts
 var r = e({
 	moduleId: "formie:recaptcha-enterprise",
@@ -46,7 +46,7 @@ var r = e({
 				let e = await s.execute(r.siteKey || "", { action: r.action || "submit" });
 				typeof e == "string" && e.trim() !== "" && a.tokens.write(e.trim());
 			} else s.execute(n);
-		}), !await a.tokens.wait(12e4))) {
+		}, !0), !await a.tokens.wait(12e4))) {
 			let e = a.errors.getDefaultMessage();
 			a.errors.show(e, i), o.abort(e);
 		}

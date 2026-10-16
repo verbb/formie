@@ -8,6 +8,7 @@
 
 ### Fixed
 - Fix Salesforce Client Credentials connections using generic login endpoints instead of their saved instance domain, and clarify the My Domain requirement.
+- Fix reCAPTCHA initialization when another reCAPTCHA SDK is already present on the page.
 - Fix AWeber OAuth provider resolution on case-sensitive filesystems.
 - Fix missing class references affecting CAPTCHA language detection, integrations, GraphQL, element conditions, submission editing, and plugin migrations. ([#3012](https://github.com/verbb/formie/pull/3012))
 - Fix Events integration date mappings failing and preserve mapped timezones.

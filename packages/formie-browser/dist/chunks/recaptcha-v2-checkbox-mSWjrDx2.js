@@ -1,5 +1,5 @@
 import { t as e } from "./api-C2fmBZFA.js";
-import { t } from "./recaptcha-shared-DIPQsYwB.js";
+import { t } from "./recaptcha-shared-CE_gRQGd.js";
 //#region src/js/modules/captchas/recaptcha-v2-checkbox.ts
 var n = e({
 	moduleId: "formie:recaptcha-v2-checkbox",
