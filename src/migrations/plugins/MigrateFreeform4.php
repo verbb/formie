@@ -25,6 +25,7 @@ use verbb\formie\fields\Phone;
 use verbb\formie\fields\Radio;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\fields\Table;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;

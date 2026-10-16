@@ -47,6 +47,7 @@ use verbb\formie\workflow\WorkflowContext;
 use Craft;
 use craft\base\Component;
 use craft\base\Element;
+use craft\base\InlineEditableFieldInterface;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
 use craft\elements\actions\Delete;

@@ -2,9 +2,7 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\integrations\crm\Klaviyo as KlaviyoCRM;
-use verbb\formie\integrations\crm\KlaviyoLegacy as KlaviyoCRMLegacy;
 use verbb\formie\integrations\emailmarketing\Klaviyo as KlaviyoEM;
-use verbb\formie\integrations\emailmarketing\KlaviyoLegacy as KlaviyoEMLegacy;
 
 use craft\db\Migration;
 
@@ -15,8 +13,9 @@ class m240614_000000_klaviyo extends Migration
 
     public function safeUp(): bool
     {
-        $this->update('{{%formie_integrations}}', ['type' => KlaviyoEMLegacy::class], ['type' => KlaviyoEM::class]);
-        $this->update('{{%formie_integrations}}', ['type' => KlaviyoCRMLegacy::class], ['type' => KlaviyoCRM::class]);
+        // These are historical stored type names; the legacy classes no longer ship.
+        $this->update('{{%formie_integrations}}', ['type' => 'verbb\\formie\\integrations\\emailmarketing\\KlaviyoLegacy'], ['type' => KlaviyoEM::class]);
+        $this->update('{{%formie_integrations}}', ['type' => 'verbb\\formie\\integrations\\crm\\KlaviyoLegacy'], ['type' => KlaviyoCRM::class]);
 
         return true;
     }

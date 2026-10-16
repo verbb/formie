@@ -1,7 +1,7 @@
 name: Tests
 on:
   push:
-    branches: [beta]
+    branches: [beta, craft-5]
   pull_request:
   workflow_dispatch:
   schedule:
@@ -36,6 +36,8 @@ jobs:
           autostart: false
       - name: Clean-install integration tests
         run: ddev test --order-by=${{ matrix.order }} --random-order-seed=9122026
+      - name: Production class resolution
+        run: ddev exec php tests/runtime/pest.php --configuration=phpunit.craft.xml --filter=ClassResolutionTest
       - name: Test diagnostics
         if: always()
         uses: actions/upload-artifact@v4

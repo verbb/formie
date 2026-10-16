@@ -31,8 +31,8 @@ use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\PaymentAction;
 use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\PaymentMoney;
-use verbb\formie\models\SlotTag;
 use verbb\formie\models\payments\PaymentSessionCommand;
+use verbb\formie\models\SlotTag;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -427,7 +427,7 @@ class Opayo extends Payment
         $rowConfigs = [
             [
                 [
-                    'type' => SingleLineText::class,
+                    'type' => FormieSingleLineText::class,
                     'label' => Craft::t('formie', 'Cardholder Name'),
                     'handle' => 'cardName',
                     'required' => true,
@@ -449,7 +449,7 @@ class Opayo extends Payment
             ],
             [
                 [
-                    'type' => SingleLineText::class,
+                    'type' => FormieSingleLineText::class,
                     'label' => Craft::t('formie', 'Card Number'),
                     'handle' => 'cardNumber',
                     'required' => true,
@@ -470,7 +470,7 @@ class Opayo extends Payment
                     ],
                 ],
                 [
-                    'type' => SingleLineText::class,
+                    'type' => FormieSingleLineText::class,
                     'label' => Craft::t('formie', 'Expiry'),
                     'handle' => 'cardExpiry',
                     'required' => true,
@@ -491,7 +491,7 @@ class Opayo extends Payment
                     ],
                 ],
                 [
-                    'type' => SingleLineText::class,
+                    'type' => FormieSingleLineText::class,
                     'label' => Craft::t('formie', 'CVC'),
                     'handle' => 'cardCvc',
                     'required' => true,

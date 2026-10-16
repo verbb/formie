@@ -26,6 +26,7 @@ use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
+use craft\base\conditions\ConditionInterface;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\db\Query;
