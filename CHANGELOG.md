@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Update the minimum Auth requirement to `2.0.55`.
+
+### Fixed
+- Fix SuiteCRM Contact fields not loading for field mapping with the V8 API. ([#3010](https://github.com/verbb/formie/issues/3010))
+
 ## 3.1.48 - 2026-10-15
 
 ### Changed

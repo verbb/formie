@@ -75,8 +75,8 @@ class SuiteCrm extends Crm implements OAuthProviderInterface
 
         try {
             if ($this->mapToContact) {
-                $response = $this->request('GET', 'meta/Contacts');
-                $fields = $response['meta']['fields'] ?? [];
+                $response = $this->request('GET', 'meta/fields/Contacts');
+                $fields = $response['data']['attributes'] ?? [];
 
                 $settings['contact'] = $this->_getCustomFields($fields);
             }
@@ -158,8 +158,8 @@ class SuiteCrm extends Crm implements OAuthProviderInterface
     {
         $customFields = [];
 
-        foreach ($fields as $field) {
-            $handle = $field['name'] ?? null;
+        // V8 metadata keys are the field handles, including custom fields.
+        foreach ($fields as $handle => $field) {
             $type = $field['type'] ?? 'string';
             $readOnly = $field['read_only'] ?? false;
 
