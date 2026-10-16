@@ -31,6 +31,8 @@ use craft\helpers\App;
 use craft\helpers\Component;
 use craft\web\Response;
 
+use yii\base\Event;
+
 use Exception;
 use Throwable;
 

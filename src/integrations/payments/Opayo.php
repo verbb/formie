@@ -427,7 +427,7 @@ class Opayo extends Payment
         $rowConfigs = [
             [
                 [
-                    'type' => SingleLineText::class,
+                    'type' => FormieSingleLineText::class,
                     'label' => Craft::t('formie', 'Cardholder Name'),
                     'handle' => 'cardName',
                     'required' => true,
@@ -449,7 +449,7 @@ class Opayo extends Payment
             ],
             [
                 [
-                    'type' => SingleLineText::class,
+                    'type' => FormieSingleLineText::class,
                     'label' => Craft::t('formie', 'Card Number'),
                     'handle' => 'cardNumber',
                     'required' => true,
@@ -470,7 +470,7 @@ class Opayo extends Payment
                     ],
                 ],
                 [
-                    'type' => SingleLineText::class,
+                    'type' => FormieSingleLineText::class,
                     'label' => Craft::t('formie', 'Expiry'),
                     'handle' => 'cardExpiry',
                     'required' => true,
@@ -491,7 +491,7 @@ class Opayo extends Payment
                     ],
                 ],
                 [
-                    'type' => SingleLineText::class,
+                    'type' => FormieSingleLineText::class,
                     'label' => Craft::t('formie', 'CVC'),
                     'handle' => 'cardCvc',
                     'required' => true,

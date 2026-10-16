@@ -6,6 +6,7 @@ use verbb\formie\base\Captcha;
 use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\LanguageOptions;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\BrowserModuleContext;
