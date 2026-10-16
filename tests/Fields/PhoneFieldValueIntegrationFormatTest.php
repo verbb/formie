@@ -68,6 +68,27 @@ it('resolves phone references and queries stored numbers without presentation st
         ->and(\verbb\formie\elements\Submission::find()->formId($form->id)->field('phone', '0400000000')->ids())->toBe([$submission->id]);
 });
 
+it('preserves empty Formie 3 phone models when their nullable number was omitted from storage', function (array $legacy): void {
+    $field = new Phone();
+    $value = $field->normalizeValueFromStorage(json_encode($legacy));
+
+    expect($value->isEmpty())->toBeTrue()
+        ->and($value->number)->toBe('')
+        ->and($field->normalizeValueFromStorage($field->serializeValueForDb($value))->number)->toBe('');
+})->with([
+    'serialized legacy empty value' => [['countryCode' => '', 'countryName' => '', 'hasCountryCode' => false]],
+    'explicit null number' => [['number' => null, 'country' => null, 'hasCountryCode' => false]],
+    'country-only legacy value' => [['country' => 'AU', 'countryCode' => '+61', 'countryName' => 'Australia', 'hasCountryCode' => true]],
+]);
+
+it('does not discard unknown stored phone input while recognizing legacy empty models', function (): void {
+    $field = new Phone();
+    $unknown = ['countryCode' => '', 'unexpected' => 'preserve me'];
+
+    expect($field->normalizeValueFromStorage($unknown)->number)->toContain('preserve me')
+        ->and($field->normalizeValueFromRequest(['countryCode' => '', 'countryName' => '', 'hasCountryCode' => false], null)->isEmpty())->toBeFalse();
+});
+
 it('formats phone numbers as E164 for integration mapping', function (): void {
     $value = (new Phone())->normalizeFieldValue([
         'number' => '400000000',

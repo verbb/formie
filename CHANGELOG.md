@@ -12,6 +12,7 @@
 - Fix saving upgraded Date fields resetting their child-field identities and settings.
 - Fix Date year dropdowns losing their available years and rejecting valid submissions after upgrading.
 - Fix Date migrations overriding explicitly configured future year ranges.
+- Fix empty legacy Phone values displaying serialized country metadata after upgrading to Formie 4.
 - Fix integration lists rendering as an empty pane instead of configured integrations or the empty-state message.
 - Fix integration type icons appearing oversized or stretched in integration lists.
 - Fix Zendesk tickets being rejected when the mapped requester name is blank.
