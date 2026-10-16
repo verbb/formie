@@ -3,7 +3,7 @@ namespace verbb\formie\models\payments;
 
 use Craft;
 
-use yii\web\RequestEntityTooLargeHttpException;
+use yii\web\HttpException;
 
 final class PaymentWebhookCommand
 {
@@ -16,13 +16,13 @@ final class PaymentWebhookCommand
         $contentLength = (int)$request->getHeaders()->get('Content-Length', 0);
 
         if ($contentLength > self::MAX_BODY_BYTES) {
-            throw new RequestEntityTooLargeHttpException('Payment webhook payload is too large.');
+            throw new HttpException(413, 'Payment webhook payload is too large.');
         }
 
         $body = $request->getRawBody();
 
         if (strlen($body) > self::MAX_BODY_BYTES) {
-            throw new RequestEntityTooLargeHttpException('Payment webhook payload is too large.');
+            throw new HttpException(413, 'Payment webhook payload is too large.');
         }
 
         // Capture before an adapter parses or verifies the payload.

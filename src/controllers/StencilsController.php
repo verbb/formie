@@ -18,8 +18,8 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
-use craft\web\ForbiddenHttpException;
 
+use yii\web\ForbiddenHttpException;
 use yii\web\HttpException;
 use yii\web\Response;
 
