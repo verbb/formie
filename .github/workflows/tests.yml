@@ -1,5 +1,7 @@
 name: Tests
 on:
+  push:
+    branches: [beta]
   pull_request:
   workflow_dispatch:
   schedule:
@@ -46,7 +48,7 @@ jobs:
             .cache/verbb-tests/result.json
             .cache/verbb-tests/app/storage/logs/
   extended:
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -102,9 +104,16 @@ jobs:
             .cache/verbb-tests/app/storage/logs/
             test-results/
   upgrade:
-    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - sites: single
+            args: --single-site
+          - sites: multiple
+            args: ''
     steps:
       - uses: actions/checkout@v5
       - uses: ddev/github-action-setup-ddev@v1
@@ -112,14 +121,17 @@ jobs:
           version: '1.25.4'
           autostart: false
       - run: ddev test --task=lifecycle
-      - run: ddev test --task=upgrade
+      - run: ddev test --task=upgrade ${{ matrix.args }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: populated-upgrade-results
+          name: populated-upgrade-${{ matrix.sites }}
           include-hidden-files: true
           path: |
             .cache/verbb-tests/latest.log
             .cache/verbb-tests/result.json
             .cache/verbb-tests/upgrade-fixture.json
+            .cache/verbb-tests/upgrade-app/coverage-map.json
+            .cache/verbb-tests/upgrade-app/round-two-map.json
+            .cache/verbb-tests/upgrade-app/.state/
             .cache/verbb-tests/upgrade-app/storage/logs/

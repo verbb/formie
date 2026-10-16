@@ -3,9 +3,12 @@
 require __DIR__ . '/bootstrap.php';
 $root = dirname(__DIR__, 2);
 $dir = $root . '/.cache/verbb-tests/upgrade-app';
-foreach ([$dir, $dir . '/config', $dir . '/storage', $dir . '/web'] as $path) {
+foreach ([$dir, $dir . '/config', $dir . '/storage', $dir . '/web', $dir . '/.state'] as $path) {
     if (is_link($path)) { throw new RuntimeException('Refusing symlinked upgrade fixture.'); }
     if (!is_dir($path)) { mkdir($path, 0775, true); }
+}
+foreach (['checks.json', 'coverage-behaviour.json', 'form-edit.json', 'probe-notification.json', 'probe-form-settings.json', 'probe-submission.json', 'snapshot-4.json'] as $file) {
+    if (is_file($dir . '/.state/' . $file)) { unlink($dir . '/.state/' . $file); }
 }
 $run = function (array $command, ?string $cwd = null): void {
     $process = proc_open($command, [STDIN, STDOUT, STDERR], $pipes, $cwd);
@@ -29,6 +32,17 @@ $db->exec('SET FOREIGN_KEY_CHECKS=1');
 $run(['php', 'tests/runtime/upgrade-craft.php', 'install/craft', '--interactive=0', '--username=admin', '--email=admin@example.test', '--password=testing-only-password', '--siteName=Upgrade fixture', '--siteUrl=https://formie-react-tests.ddev.site', '--language=en-US']);
 $run(['php', 'tests/runtime/upgrade-craft.php', 'plugin/install', 'formie', '--interactive=0']);
 $run(['php', 'tests/runtime/upgrade-seed.php', ...(in_array('--single-site', $argv, true) ? ['--single-site'] : [])]);
+$siteArgs = in_array('--single-site', $argv, true) ? ['--single-site'] : [];
+// These files belong to this disposable fixture, and must never survive its database reset.
+foreach (['coverage-map.json', 'round-two-map.json'] as $file) {
+    if (is_file($dir . '/' . $file)) { unlink($dir . '/' . $file); }
+}
+$run(['php', 'tests/runtime/upgrade-corpus.php', 'seed', ...$siteArgs]);
+$run(['php', 'tests/runtime/upgrade-corpus.php', 'enrich']);
+$run(['php', 'tests/runtime/upgrade-corpus.php', 'permissions']);
+$run(['php', 'tests/runtime/upgrade-corpus.php', 'capture']);
+$sourceFiles = [$dir . '/coverage-map.json', $dir . '/round-two-map.json', $root . '/.cache/verbb-tests/upgrade-fixture.json'];
+$sourceHashes = array_map(fn($file) => hash_file('sha256', $file), $sourceFiles);
 // Remove only the old Composer package before installing a path dependency inside its source tree.
 // The installed plugin and populated database remain in place for Craft's upgrade migrations.
 $run(['composer', 'remove', 'verbb/formie', '--no-interaction', '--no-progress'], $dir);
@@ -40,3 +54,22 @@ file_put_contents($dir . '/composer.json', json_encode($manifest, JSON_PRETTY_PR
 $run(['composer', 'update', '--no-interaction', '--prefer-dist', '--no-progress', '--with-all-dependencies'], $dir);
 $run(['php', 'tests/runtime/upgrade-craft.php', 'migrate/all', '--interactive=0']);
 $run(['php', 'tests/runtime/upgrade-verify.php']);
+$run(['php', 'tests/runtime/upgrade-corpus.php', 'verify']);
+// Fresh processes prevent rolled-back behaviour checks or service caches from tainting probes.
+$run(['php', 'tests/runtime/upgrade-corpus.php', 'behaviour']);
+$run(['php', 'tests/runtime/upgrade-corpus.php', 'relationships']);
+$run(['php', 'tests/runtime/upgrade-corpus.php', 'check']);
+foreach (['notification', 'form-settings', 'submission'] as $area) {
+    $run(['php', 'tests/runtime/upgrade-corpus.php', 'probe:' . $area]);
+}
+$run(['php', 'tests/runtime/upgrade-corpus.php', 'snapshot']);
+$firstSnapshot = file_get_contents($dir . '/.state/snapshot-4.json');
+$run(['php', 'tests/runtime/upgrade-craft.php', 'migrate/all', '--interactive=0']);
+$run(['php', 'tests/runtime/upgrade-corpus.php', 'snapshot']);
+if ($firstSnapshot !== file_get_contents($dir . '/.state/snapshot-4.json')) {
+    throw new RuntimeException('A second migration run changed the upgraded corpus.');
+}
+if ($sourceHashes !== array_map(fn($file) => hash_file('sha256', $file), $sourceFiles)) {
+    throw new RuntimeException('Verification modified the historical expectations.');
+}
+echo "Historical source expectations unchanged; repeated migration is stable.\n";

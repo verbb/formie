@@ -7,6 +7,11 @@ use verbb\formie\models\{FieldLayout, Notification};
 use verbb\formie\fields\{Group, Signature, SingleLineText};
 
 if (Formie::$plugin->version !== '3.1.39') { throw new RuntimeException('The fixture must start on the pinned Formie 3 release.'); }
+$statuses = Formie::$plugin->getStatuses();
+$defaultStatus = $statuses->getStatusByHandle('new');
+if (!$defaultStatus || $defaultStatus->color !== 'green') { throw new RuntimeException('The historical default status must exercise the green color migration.'); }
+$customStatus = new \verbb\formie\models\Status(['name' => 'Custom green', 'handle' => 'customGreen', 'color' => 'green']);
+if (!$statuses->saveStatus($customStatus)) { throw new RuntimeException('Unable to seed a custom submission status.'); }
 // Exercise migrations against a genuinely multisite legacy installation.
 $primarySite = $app->getSites()->getPrimarySite();
 $secondarySite = null;
@@ -74,6 +79,8 @@ foreach (['success', 'pending'] as $status) {
 $app->getProjectConfig()->saveModifiedConfigData();
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/upgrade-fixture.json', json_encode([
     'primarySiteId' => $primarySite->id, 'secondarySiteId' => $secondarySite?->id,
+    'defaultStatusId' => $defaultStatus->id, 'customStatusId' => $customStatus->id,
+    'defaultStatusUid' => $defaultStatus->uid, 'customStatusUid' => $customStatus->uid,
     'integrationProjectConfig' => $app->getProjectConfig()->get('formie.integrations', true),
     'subscriptionIds' => $subscriptionIds, 'paymentIds' => $paymentIds, 'from' => Formie::$plugin->version, 'formId' => $form->id, 'sharedFormId' => $shared->id, 'submissionId' => $submission->id,
     'fieldUid' => $form->getFieldByHandle('fullName')->uid, 'signatureFieldId' => $form->getFieldByHandle('signature')->id,

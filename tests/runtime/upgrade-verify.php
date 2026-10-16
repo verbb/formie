@@ -11,6 +11,10 @@ $check = static function (bool $condition, string $message): void {
 };
 $check(str_starts_with(realpath((new ReflectionClass(Formie::class))->getFileName()), realpath(dirname(__DIR__, 2) . '/src') . '/'), 'current checkout loaded after real Composer upgrade');
 $check(!$app->getPlugins()->isPluginUpdatePending(Formie::$plugin), 'all Formie upgrade migrations applied');
+$defaultStatus = Formie::$plugin->getSubmissionStatuses()->getStatusById($fixture['defaultStatusId']);
+$customStatus = Formie::$plugin->getSubmissionStatuses()->getStatusById($fixture['customStatusId']);
+$check($defaultStatus?->uid === $fixture['defaultStatusUid'] && $defaultStatus->color === 'turquoise', 'default status migrates with its identity preserved and legacy listeners registered');
+$check($customStatus?->uid === $fixture['customStatusUid'] && $customStatus->color === 'green', 'custom status color and identity remain unchanged');
 $form = Form::find()->id($fixture['formId'])->status(null)->one();
 $shared = Form::find()->id($fixture['sharedFormId'])->status(null)->one();
 $submission = Submission::find()->id($fixture['submissionId'])->status(null)->one();
