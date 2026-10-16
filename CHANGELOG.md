@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.1 - 2026-10-16
 
 ### Added
 - Add the `formie:unload-warning:collect-exclusions` browser event for integrations to exclude automatically updated transport fields from unsaved-changes checks. ([#3008](https://github.com/verbb/formie/issues/3008))
