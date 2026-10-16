@@ -7,6 +7,7 @@
 - Update the minimum Tiptap requirement to `1.0.5`.
 
 ### Fixed
+- Fix Events integration date mappings failing and preserve mapped timezones.
 - Fix oversized payment webhooks failing instead of returning HTTP 413, and stencil permission failures returning the wrong error.
 - Fix unnecessary predefined option and submission status deprecation errors with the debug toolbar enabled.
 - Fix IP submission throttling using an incorrect time window on sites with a non-UTC timezone. ([#3013](https://github.com/verbb/formie/issues/3013))
