@@ -10108,16 +10108,16 @@
         },
         {
             "name": "symfony/expression-language",
-            "version": "v7.4.18",
+            "version": "v7.4.21",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/expression-language.git",
-                "reference": "b73866506ff02800836a40fa1f95614a71064f35"
+                "reference": "51c52817a02119ecd46a3369a2b38fc7f24dbf5e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/expression-language/zipball/b73866506ff02800836a40fa1f95614a71064f35",
-                "reference": "b73866506ff02800836a40fa1f95614a71064f35",
+                "url": "https://api.github.com/repos/symfony/expression-language/zipball/51c52817a02119ecd46a3369a2b38fc7f24dbf5e",
+                "reference": "51c52817a02119ecd46a3369a2b38fc7f24dbf5e",
                 "shasum": ""
             },
             "require": {
@@ -10152,7 +10152,7 @@
             "description": "Provides an engine that can compile and evaluate expressions",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/expression-language/tree/v7.4.18"
+                "source": "https://github.com/symfony/expression-language/tree/v7.4.21"
             },
             "funding": [
                 {
@@ -10172,7 +10172,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-08-30T00:47:26+00:00"
+            "time": "2026-10-09T13:57:53+00:00"
         },
         {
             "name": "symfony/filesystem",
@@ -13051,16 +13051,16 @@
         },
         {
             "name": "verbb/auth",
-            "version": "2.0.51",
+            "version": "2.0.53",
             "source": {
                 "type": "git",
                 "url": "https://github.com/verbb/auth.git",
-                "reference": "4f0dc3ac81dbc2e6c8917d98a810836cb0ed1302"
+                "reference": "4f76bbfd613f9764a9de7bb3d85b950e200c6736"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/verbb/auth/zipball/4f0dc3ac81dbc2e6c8917d98a810836cb0ed1302",
-                "reference": "4f0dc3ac81dbc2e6c8917d98a810836cb0ed1302",
+                "url": "https://api.github.com/repos/verbb/auth/zipball/4f76bbfd613f9764a9de7bb3d85b950e200c6736",
+                "reference": "4f76bbfd613f9764a9de7bb3d85b950e200c6736",
                 "shasum": ""
             },
             "require": {
@@ -13105,7 +13105,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-09T10:54:51+00:00"
+            "time": "2026-10-15T23:11:12+00:00"
         },
         {
             "name": "verbb/base",
@@ -13159,11 +13159,11 @@
         },
         {
             "name": "verbb/formie",
-            "version": "4.0.0-beta.17",
+            "version": "4.0.0",
             "dist": {
                 "type": "path",
                 "url": "../../..",
-                "reference": "ead4d867e048bc136f5d0eb0dc4874f0b73ead94"
+                "reference": "96d3aff7bcaeb2bb47990ba5391274a21744a51f"
             },
             "require": {
                 "commerceguys/addressing": "^2.1.1",
@@ -13180,7 +13180,7 @@
                 "php": "^8.2",
                 "stripe/stripe-php": "^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0 || ^12.0 || ^13.0 || ^14.0 || ^15.0 || ^16.0",
                 "symfony/expression-language": "^5.0 || ^6.0 || ^7.0",
-                "verbb/auth": "^2.0.50",
+                "verbb/auth": "^2.0.53",
                 "verbb/base": "^3.0.20",
                 "verbb/tiptap": "^1.0.3"
             },
