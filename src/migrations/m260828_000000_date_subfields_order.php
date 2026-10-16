@@ -159,7 +159,9 @@ class m260828_000000_date_subfields_order extends Migration
             $minYearRange = $subFieldSettings['minYearRange'] ?? null;
             $maxYearRange = $subFieldSettings['maxYearRange'] ?? null;
 
-            if ($minYearRange !== null && (int)$minYearRange !== 100) {
+            // Only the old default 100/100 sentinel needs repair. An explicit
+            // future range can legitimately start at +100 and must be preserved.
+            if ($minYearRange !== null && ((int)$minYearRange !== 100 || (int)($maxYearRange ?? 100) !== 100)) {
                 continue;
             }
 

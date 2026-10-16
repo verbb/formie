@@ -2322,7 +2322,40 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         }
 
         $rows = is_array($this->layouts) ? ($this->layouts[$layoutKey] ?? null) : null;
-        $rows = (is_array($rows) && $rows) ? $rows : $this->_getRowsForLayoutKey($layoutKey);
+
+        if (!is_array($rows) || !$rows) {
+            $defaultRows = $this->_getRowsForLayoutKey($layoutKey);
+
+            if ($defaultRows === null) {
+                return;
+            }
+
+            // Older fields have a persisted nested layout but no variant map.
+            // Preserve its children unless the display variant requires different types.
+            $types = [];
+
+            foreach ($defaultRows as $row) {
+                foreach ($row['fields'] as $field) {
+                    $types[$field['handle']] = $field['type'];
+                }
+            }
+
+            $matchesLayout = true;
+            $rows = array_map(function(FieldLayoutRow $row) use ($types, &$matchesLayout) {
+                $config = $row->getFormBuilderConfig();
+
+                foreach ($config['fields'] as $field) {
+                    if (($types[$field['handle']] ?? null) !== $field['type']) {
+                        $matchesLayout = false;
+                    }
+                }
+
+                unset($config['errors']);
+
+                return $config;
+            }, $this->getRows());
+            $rows = $matchesLayout ? $this->normalizeSubFieldRows($rows, $defaultRows) : $defaultRows;
+        }
 
         if (is_array($rows)) {
             $this->setRows($rows);

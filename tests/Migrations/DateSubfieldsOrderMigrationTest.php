@@ -11,6 +11,19 @@ use verbb\formie\fields\subfields\DateYearDropdown;
 use verbb\formie\helpers\Table;
 use verbb\formie\migrations\m260828_000000_date_subfields_order;
 
+it('preserves explicitly configured child year ranges during the historical repair', function (int $start, int $end): void {
+    $form = formie()->form()->dateField('date', ['displayType' => 'dropdowns'])->create();
+    $field = $form->getFieldByHandle('date')->getFieldByHandle('year');
+    $settings = ['minYearRange' => $start, 'maxYearRange' => $end];
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_FIELDS, ['settings' => Json::encode($settings)], ['id' => $field->definitionId])->execute();
+    $migration = new m260828_000000_date_subfields_order();
+
+    expect($migration->safeUp())->toBeTrue()
+        ->and($migration->safeUp())->toBeTrue();
+    $stored = Json::decode((new Query())->select('settings')->from(Table::FORMIE_FIELDS)->where(['id' => $field->definitionId])->scalar());
+    expect($stored)->toBe($settings);
+})->with([[100, 101], [100, 150], [10, 20], [-50, 25]]);
+
 it('reorders default date subfields and repairs year range on formie_form_fields layouts', function (): void {
     $db = Craft::$app->getDb();
 

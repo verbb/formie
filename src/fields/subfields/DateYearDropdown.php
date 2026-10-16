@@ -44,10 +44,10 @@ class DateYearDropdown extends DateDropdown implements ChildFieldInterface
 
         $date = DateFieldValue::toDateTime($this->parentField?->getInitialValue()) ?: new DateTime();
         $year = (int)$date->format('Y');
-        $minYear = $year - $this->minYearRange;
+        $minYear = $year + $this->minYearRange;
         $maxYear = $year + $this->maxYearRange;
 
-        for ($y = $minYear; $y < $maxYear; $y++) {
+        for ($y = $minYear; $y <= $maxYear; $y++) {
             $options[] = ['value' => $y, 'label' => $y];
         }
 
