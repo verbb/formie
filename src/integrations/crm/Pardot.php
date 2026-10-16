@@ -561,8 +561,8 @@ class Pardot extends Crm implements OAuthProviderInterface
         $payload = $payloadData['submission'] ?? [];
 
         // Option fields are encoded as option objects (or arrays of them) for JSON export. Flattening
-        // those produces keys like `Industry.value` or `Services.0.value` which Pardot form handlers
-        // cannot map to a single external field. Keep multi-select values in their established
+        // those produces keys like `Industry.value` or `Services.0.value`. Provide scalar field names
+        // while preserving legacy single-select mappings. Keep multi-select values in their established
         // semicolon-delimited event format; they are expanded for transport after listeners run.
         foreach ($submission->getFields() as $field) {
             if ($field->getIsCosmetic() || !$field instanceof OptionsField) {
@@ -579,6 +579,10 @@ class Pardot extends Crm implements OAuthProviderInterface
                 $payload[$field->handle] = implode(';', $values);
             } else {
                 $payload[$field->handle] = $field->getValueAsString($value, $submission);
+
+                // Existing handlers may still require the pre-3.1.38 external name, e.g. country.value.
+                // Add the alias before the payload event so listeners can override or remove it.
+                $payload[$field->handle . '.value'] = $payload[$field->handle];
             }
         }
 
