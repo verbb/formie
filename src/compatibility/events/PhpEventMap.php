@@ -50,7 +50,7 @@ class PhpEventMap
         });
 
         Event::on(OptionSources::class, OptionSources::EVENT_REGISTER_PREDEFINED_OPTIONS, static function(RegisterPredefinedOptionsEvent $event) {
-            if (!Event::hasHandlers(self::LEGACY_PREDEFINED_OPTIONS_CLASS, OptionSources::EVENT_REGISTER_PREDEFINED_OPTIONS)) {
+            if (!DeprecatedEvents::hasNamedHandlers(self::LEGACY_PREDEFINED_OPTIONS_CLASS, OptionSources::EVENT_REGISTER_PREDEFINED_OPTIONS)) {
                 return;
             }
 
@@ -77,7 +77,7 @@ class PhpEventMap
 
         foreach ($events as $eventName) {
             Event::on(SubmissionStatuses::class, $eventName, static function(SubmissionStatusEvent $event) use ($eventName) {
-                if (!Event::hasHandlers(self::LEGACY_STATUSES_CLASS, $eventName)) {
+                if (!DeprecatedEvents::hasNamedHandlers(self::LEGACY_STATUSES_CLASS, $eventName)) {
                     return;
                 }
 

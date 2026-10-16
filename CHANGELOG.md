@@ -7,6 +7,7 @@
 - Update the minimum Tiptap requirement to `1.0.5`.
 
 ### Fixed
+- Fix unnecessary predefined option and submission status deprecation errors with the debug toolbar enabled.
 - Fix SuiteCRM Contact fields not loading for field mapping with the V8 API. ([#3010](https://github.com/verbb/formie/issues/3010))
 - Fix SuiteCRM Contact mappings being omitted from record payloads after a full integration refresh. ([#3011](https://github.com/verbb/formie/issues/3011))
 

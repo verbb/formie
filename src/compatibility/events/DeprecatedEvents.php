@@ -12,21 +12,28 @@ class DeprecatedEvents
     // Static Methods
     // =========================================================================
 
-    public static function hasNamedHandlers(Component $component, string $name): bool
+    public static function hasNamedHandlers(Component|string $component, string $name): bool
     {
-        $component->ensureBehaviors();
-
         // Yii's public checks include wildcard observers, such as the debug toolbar.
         // Inspect only registrations naming this event to establish deprecated API use.
         static $instanceEvents = new ReflectionProperty(Component::class, '_events');
         static $classEvents = new ReflectionProperty(Event::class, '_events');
         static $wildcardEvents = new ReflectionProperty(Event::class, '_eventWildcards');
 
-        if (!empty($instanceEvents->getValue($component)[$name])) {
-            return true;
+        if ($component instanceof Component) {
+            $component->ensureBehaviors();
+
+            if (!empty($instanceEvents->getValue($component)[$name])) {
+                return true;
+            }
+
+            $class = get_class($component);
+        } else {
+            // Preserve alias names because Yii stores registrations under the supplied name.
+            $class = ltrim($component, '\\');
         }
 
-        $classes = [get_class($component), ...class_parents($component), ...class_implements($component)];
+        $classes = [$class, ...class_parents($class), ...class_implements($class)];
         $handlers = $classEvents->getValue()[$name] ?? [];
 
         foreach ($classes as $class) {
