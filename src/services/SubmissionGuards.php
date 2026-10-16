@@ -13,12 +13,14 @@ use Craft;
 use craft\base\Component;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
+use craft\helpers\Db;
 use craft\helpers\Json;
 
 use yii\web\ForbiddenHttpException;
 use yii\web\TooManyRequestsHttpException;
 
 use DateTimeImmutable;
+use DateTimeZone;
 
 class SubmissionGuards extends Component
 {
@@ -199,7 +201,8 @@ class SubmissionGuards extends Component
             return null;
         }
 
-        $since = (new DateTimeImmutable("-{$minutes} minutes"))->format('Y-m-d H:i:s');
+        // Calculate elapsed minutes in UTC so daylight-saving changes cannot shift the window.
+        $since = Db::prepareDateForDb(new DateTimeImmutable("-{$minutes} minutes", new DateTimeZone('UTC')));
         $query = (new Query())
             ->from(['s' => Table::FORMIE_SUBMISSIONS])
             ->innerJoin(

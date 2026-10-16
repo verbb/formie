@@ -8,6 +8,7 @@
 
 ### Fixed
 - Fix unnecessary predefined option and submission status deprecation errors with the debug toolbar enabled.
+- Fix IP submission throttling using an incorrect time window on sites with a non-UTC timezone. ([#3013](https://github.com/verbb/formie/issues/3013))
 - Fix SuiteCRM Contact fields not loading for field mapping with the V8 API. ([#3010](https://github.com/verbb/formie/issues/3010))
 - Fix SuiteCRM Contact mappings being omitted from record payloads after a full integration refresh. ([#3011](https://github.com/verbb/formie/issues/3011))
 
