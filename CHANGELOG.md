@@ -7,6 +7,7 @@
 - Update the minimum Tiptap requirement to `1.0.5`.
 
 ### Fixed
+- Fix AWeber OAuth provider resolution on case-sensitive filesystems.
 - Fix missing class references affecting CAPTCHA language detection, integrations, GraphQL, element conditions, submission editing, and plugin migrations. ([#3012](https://github.com/verbb/formie/pull/3012))
 - Fix Events integration date mappings failing and preserve mapped timezones.
 - Fix oversized payment webhooks failing instead of returning HTTP 413, and stencil permission failures returning the wrong error.

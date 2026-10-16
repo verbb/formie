@@ -14,13 +14,16 @@ it('resolves every static class reference in production PHP', function() {
     expect($sources)->not->toBeEmpty();
 
     // Loading every integration would execute optional plugin code. Resolve files without autoloading them.
-    $exists = static function(string $name): bool {
+    $scanner = new ClassReferences();
+    $exists = static function(string $name) use ($scanner): bool {
         if (class_exists($name, false) || interface_exists($name, false) || trait_exists($name, false)) {
             return (new ReflectionClass($name))->getName() === $name;
         }
         foreach (ClassLoader::getRegisteredLoaders() as $loader) {
-            if ($loader->findFile($name)) {
-                return true;
+            if ($file = $loader->findFile($name)) {
+                // A case-insensitive filesystem can find a differently cased dependency file.
+                // Verify the declaration too, so Linux-only autoload failures cannot pass here.
+                return in_array($name, $scanner->inspect(file_get_contents($file))['declarations'], true);
             }
         }
         return false;
@@ -29,7 +32,7 @@ it('resolves every static class reference in production PHP', function() {
     foreach (array_keys($optional) as $name) {
         expect(str_starts_with($name, 'verbb\\formie\\'))->toBeFalse('Optional dependencies must not hide missing Formie classes.');
     }
-    $errors = (new ClassReferences())->unresolved($sources, $exists, $optional);
+    $errors = $scanner->unresolved($sources, $exists, $optional);
     expect($errors)->toBe([], implode("\n", $errors));
 });
 

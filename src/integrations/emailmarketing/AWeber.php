@@ -16,7 +16,7 @@ use craft\helpers\Json;
 use Throwable;
 
 use verbb\auth\base\OAuthProviderInterface;
-use verbb\auth\providers\AWeber as AWeberProvider;
+use verbb\auth\providers\Aweber as AWeberProvider;
 
 class AWeber extends EmailMarketing implements OAuthProviderInterface
 {
