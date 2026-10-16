@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Update the minimum Tiptap requirement to `1.0.5`.
+
 ## 4.0.1 - 2026-10-16
 
 ### Added
