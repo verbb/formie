@@ -29,7 +29,9 @@ Copy the Current My Domain URL from Salesforce’s **My Domain** settings. It no
 ### Step 4. Enter the Credentials in Formie
 Copy the External Client App’s **Consumer Key** and **Consumer Secret** into the corresponding Formie fields, then select the matching **Grant**.
 
-For Client Credentials, enter the Salesforce My Domain URL in **Authentication Domain**. You can leave this field empty to use `https://login.salesforce.com`, or `https://test.salesforce.com` when **Use Sandbox** is enabled.
+For Client Credentials, enter the Salesforce My Domain URL in **Authentication Domain**. Salesforce does not support this grant at `https://login.salesforce.com` or `https://test.salesforce.com`. For a sandbox, use its own My Domain URL, such as `https://example--sandbox.sandbox.my.salesforce.com`. Existing connections can reuse their saved instance URL when this field is blank; if that URL is no longer valid, enter the current My Domain URL explicitly.
+
+Client Credentials does not send a callback URL to Salesforce during the token exchange, so changing the callback URL or PKCE setting will not resolve an `unsupported_grant_type` error for this grant.
 
 For the Password grant, enter the Salesforce username and password. These fields are not used by Client Credentials because Salesforce obtains the user identity from the app’s **Run As** policy.
 

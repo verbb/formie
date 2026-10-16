@@ -50,7 +50,7 @@
 <div class="salesforce-oauth-settings-client_credentials {{ grant != 'client_credentials' ? 'hidden' }}">
     {{ macros.proxyField(fieldVariables, 'autosuggestField', {
         label: 'Authentication Domain' | t('formie'),
-        instructions: 'Enter your Salesforce My Domain URL, or leave this blank to use the selected production or sandbox domain.' | t('formie'),
+        instructions: 'Enter your Salesforce My Domain URL, such as https://example.my.salesforce.com. Client Credentials cannot use login.salesforce.com or test.salesforce.com. Existing connections can reuse their saved instance URL when this is blank.' | t('formie'),
         name: 'authDomain',
         suggestEnvVars: true,
         value: integration.settings.authDomain ?? '',

@@ -245,7 +245,19 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     public function getApiDomain(): string
     {
-        if ($domain = $this->getAuthDomain()) {
+        $domain = $this->getAuthDomain();
+
+        if ($this->getGrant() === self::GRANT_CLIENT_CREDENTIALS) {
+            // Existing connections already retain Salesforce's instance URL. Keep
+            // using it unless an explicit authentication domain overrides it.
+            $domain ??= $this->getInstanceUrl($this->getToken());
+
+            if (!$domain || in_array(strtolower((string)parse_url($domain, PHP_URL_HOST)), ['login.salesforce.com', 'test.salesforce.com'], true)) {
+                throw new IntegrationException(Craft::t('formie', 'Enter your Salesforce My Domain URL in Authentication Domain to use Client Credentials. The generic login and test domains do not support this grant.'));
+            }
+        }
+
+        if ($domain) {
             return $domain;
         }
 
