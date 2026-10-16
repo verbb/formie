@@ -53,7 +53,7 @@ class SuiteCrmContactPayloadFixture extends SuiteCrm
     }
 }
 
-it('loads SuiteCRM V8 contact metadata for targeted refreshes', function(?string $dataKey): void {
+it('loads SuiteCRM V8 contact metadata for targeted and full refreshes', function(?string $dataKey): void {
     $integration = new SuiteCrmContactPayloadFixture([
         'mapToContact' => true,
         'settingsContext' => new IntegrationSettingsContext(['dataKey' => $dataKey]),
@@ -64,7 +64,7 @@ it('loads SuiteCRM V8 contact metadata for targeted refreshes', function(?string
         ->and(array_column($fields, 'handle'))->toBe(['first_name', 'last_name', 'email1', 'do_not_call', 'score_c'])
         ->and($fields[3]->type)->toBe(IntegrationField::TYPE_BOOLEAN)
         ->and($fields[4]->type)->toBe(IntegrationField::TYPE_NUMBER);
-})->with(['contact']);
+})->with(['contact', null]);
 
 it('sends mapped SuiteCRM contact values as a V8 JSON API record', function(?string $dataKey): void {
     $form = formie()->form()->singleLineTextField('firstName')->singleLineTextField('lastName')->emailField('email')->create();
@@ -108,7 +108,7 @@ it('sends mapped SuiteCRM contact values as a V8 JSON API record', function(?str
                 'score_c' => 0,
             ],
         ]]);
-})->with(['contact']);
+})->with(['contact', null]);
 
 it('does not fetch SuiteCRM contacts for disabled or unrelated mappings', function(bool $enabled, ?string $dataKey): void {
     $integration = new SuiteCrmContactPayloadFixture([

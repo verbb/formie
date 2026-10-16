@@ -78,7 +78,8 @@ class SuiteCrm extends Crm implements OAuthProviderInterface
         $settings = [];
 
         try {
-            if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
+            // Full refreshes have no data key, but still need the schema used to resolve Contact mappings.
+            if ($this->mapToContact && (!$this->settingsContext->dataKey || $this->settingsContext->dataKey === 'contact')) {
                 $response = $this->request('GET', 'meta/fields/Contacts');
                 $fields = $response['data']['attributes'] ?? [];
 

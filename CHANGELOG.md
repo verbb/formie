@@ -8,6 +8,7 @@
 
 ### Fixed
 - Fix SuiteCRM Contact fields not loading for field mapping with the V8 API. ([#3010](https://github.com/verbb/formie/issues/3010))
+- Fix SuiteCRM Contact mappings being omitted from record payloads after a full integration refresh. ([#3011](https://github.com/verbb/formie/issues/3011))
 
 ## 4.0.1 - 2026-10-16
 
