@@ -11,12 +11,6 @@ Pick **one** primary package for your stack. Each installs what it needs (`@verb
 
 `@verbb/formie-core` is the shared **definition + form engine + transport** layer. App authors normally depend on it only indirectly.
 
-## Monorepo development
-
-Inside this workspace, package manifests use the same semver dependencies published to npm. After changing versions or `package.json`, run **`npm install`** from the workspace root so the lockfile and local workspace links stay current.
-
-**Publishing to npm:** publish in dependency order: `@verbb/formie-core`, `@verbb/formie-browser`, then the framework packages.
-
 ## Styling Client-rendered Forms
 
 Default page buttons are wrapped in **`formie-page-actions`** (React, Vue, and Lit). Target that class for submit/secondary button styling instead of framework-specific names.
