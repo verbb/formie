@@ -7,6 +7,7 @@
 - Update the minimum Tiptap requirement to `1.0.5`.
 
 ### Fixed
+- Fix calculations using another calculation with a number prefix or suffix returning incorrect results.
 - Fix spam submissions configured to show success failing to display completion messages or redirect.
 - Fix fresh forms retaining an earlier submission’s spam-protection timer.
 - Fix form schedules accepting an end date before their start date.

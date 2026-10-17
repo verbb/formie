@@ -7,6 +7,7 @@ export type CalculationVariable = {
     index?: string;
     rows?: string;
     fieldKind?: string;
+    numberFormat?: { prefix?: string; suffix?: string };
 };
 
 export type CalculationFormula = {
@@ -117,6 +118,18 @@ export function formatCalculationValue(value: unknown, options: CalculationOptio
 }
 
 export function readCalculationVariableValue(variable: CalculationVariable, value: string | string[]): unknown {
+    if (variable.numberFormat) {
+        const { prefix = '', suffix = '' } = variable.numberFormat;
+        const readNumber = (formatted: string): number => {
+            // Remove only the source field's configured affixes, which may themselves contain digits.
+            let numeric = formatted;
+            if (prefix && numeric.startsWith(prefix)) numeric = numeric.slice(prefix.length);
+            if (suffix && numeric.endsWith(suffix)) numeric = numeric.slice(0, -suffix.length);
+            return Number(numeric || 0);
+        };
+        return Array.isArray(value) ? value.map(readNumber) : readNumber(value);
+    }
+
     const isNumberVariable = variable.type?.endsWith('\\Number');
     const isCheckboxVariable = variable.type?.endsWith('\\Checkboxes');
 

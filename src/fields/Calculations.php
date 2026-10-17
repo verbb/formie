@@ -154,6 +154,8 @@ class Calculations extends Field implements PreviewableFieldInterface
                 $variableConfig['fieldKind'] = Table::KIND_TABLE;
             } elseif ($referencedField instanceof RepeatableParentFieldInterface) {
                 $variableConfig['fieldKind'] = 'repeater';
+            } elseif ($referencedField instanceof self && $referencedField->formatting === 'number') {
+                $variableConfig['numberFormat'] = ['prefix' => $referencedField->prefix, 'suffix' => $referencedField->suffix];
             }
 
             foreach ($scopeParams as $paramKey => $paramValue) {

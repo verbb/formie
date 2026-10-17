@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Fixed calculations using formatted calculation values as numeric inputs.
+
 ## 1.0.15 - 2026-10-15
 
 ### Changed

@@ -6,6 +6,7 @@
 - Add the `formie:unload-warning:collect-exclusions` event for integrations to exclude automatically updated transport fields from unsaved-changes checks.
 
 ### Fixed
+- Fixed dependent calculations using number prefixes or suffixes returning incorrect results.
 - Fixed fresh visits and completed submissions retaining an earlier spam-protection timer.
 - Fixed forms freezing when live validation and disabling the submit button until valid are both enabled.
 - Fixed native file input metadata requests omitting CSRF tokens and form context after navigating between pages.
