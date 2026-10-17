@@ -7,6 +7,8 @@
 - Update the minimum Tiptap requirement to `1.0.5`.
 
 ### Fixed
+- Fix text, name, dropdown, email, phone, number and hidden field labels not identifying their inputs in the submission editor.
+- Fix text minimum limits using the maximum limit's unit in the submission editor.
 - Fix static table fields allowing rows to be added or removed in the submission editor.
 - Fix custom radio answers missing from the submission editor.
 - Fix checkbox toggles sharing option labels and being included in submission values and validation.
