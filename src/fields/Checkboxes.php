@@ -319,14 +319,17 @@ class Checkboxes extends OptionsField
         }
 
         if ($key === 'fieldInput') {
-            $optionValue = $this->getFieldInputOptionValue($context->toArray());
+            $isToggle = (bool)$context->get('isCheckboxToggle');
+            $optionValue = $isToggle ? 'toggle' : $this->getFieldInputOptionValue($context->toArray());
 
             return SlotTag::make('input')
                 ->core(array_merge([
                     'type' => 'checkbox',
                     'id' => $this->getHtmlId($form, $optionValue),
-                    'name' => $this->getHtmlName('[]'),
-                    'required' => $this->required ? true : null,
+                    'name' => $isToggle ? null : $this->getHtmlName('[]'),
+                    'required' => !$isToggle && $this->required ? true : null,
+                    'data-checkbox-toggle' => $isToggle ? true : null,
+                    'data-formie-validation-skip' => $isToggle ? true : null,
                     'data-formie-input' => true,
                     'data-formie-checkbox-input' => true,
                     'data-formie-input-id' => $this->getHtmlDataId($form, $optionValue),
@@ -342,7 +345,7 @@ class Checkboxes extends OptionsField
         }
 
         if ($key === 'fieldOptionLabel') {
-            $optionValue = $this->getFieldInputOptionValue($context->toArray());
+            $optionValue = $context->get('isCheckboxToggle') ? 'toggle' : $this->getFieldInputOptionValue($context->toArray());
 
             return SlotTag::make('label')
                 ->core([

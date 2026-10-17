@@ -1,15 +1,13 @@
 {% set toggleCheckbox %}
-    {% fieldtag 'fieldOption' %}
-        {{ fieldtag('fieldInput', {
-            'name': '',
-            'value': '',
-            'data-checkbox-toggle': true,
-        }) }}
+    {% with { isCheckboxToggle: true } %}
+        {% fieldtag 'fieldOption' %}
+            {{ fieldtag('fieldInput') }}
 
-        {% fieldtag 'fieldOptionLabel' %}
-            {{- field.toggleCheckboxLabel | purify | md(inlineOnly=true) | raw -}}
+            {% fieldtag 'fieldOptionLabel' %}
+                {{- field.toggleCheckboxLabel | purify | md(inlineOnly=true) | raw -}}
+            {% endfieldtag %}
         {% endfieldtag %}
-    {% endfieldtag %}
+    {% endwith %}
 {% endset %}
 
 {{ hiddenInput(field.getHtmlName(), '') }}
