@@ -9,6 +9,8 @@
 ### Fixed
 - Fix summary fields remaining blank after AJAX page navigation.
 - Fix summary fields repeatedly retrying failed requests.
+- Fix multi-row Likert answers not saving when editing submissions in the control panel.
+- Fix rank selectors missing labels in the submission editor.
 - Fix passwords containing only `0` not being stored correctly.
 - Fix cleared number fields restoring their default value when submissions are saved or loaded.
 - Fix hidden query prefills replacing submitted values after native form validation errors.

@@ -1,3 +1,5 @@
+{% import '_includes/forms' as forms %}
+
 {%- set fieldOptions = fieldOptions ?? field.getFieldOptions() %}
 {%- set values = values ?? [] %}
 {%- set rankedOptions = fieldOptions | filter(option => option.optgroup is not defined) %}
@@ -9,12 +11,12 @@
     {% for i in 0..(optionCount - 1) %}
         {% set selectedValue = values[i] ?? '' %}
 
-        {% include '_includes/forms/select' with {
+        {{ forms.selectField({
             id: field.handle ~ '-rank-' ~ i,
             name: name ~ '[]',
             label: 'Rank #{num}' | t('formie', { num: i + 1 }),
             value: selectedValue,
             options: rankedOptions,
-        } only %}
+        }) }}
     {% endfor %}
 </div>

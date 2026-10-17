@@ -35,7 +35,7 @@
                                         <input
                                             type="radio"
                                             id="{{ inputId }}"
-                                            name="{{ field.getHtmlName(likertRow.value) }}"
+                                            name="{{ name ~ '[' ~ likertRow.value ~ ']' }}"
                                             value="{{ optionValue }}"
                                             {% if (optionValue ~ '') is same as (selectedValue ~ '') %}checked{% endif %}
                                             aria-label="{{ (likertRow.label | striptags) ~ ': ' ~ (option.label | striptags) }}"
