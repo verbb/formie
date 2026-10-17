@@ -175,6 +175,9 @@ final class WebRequestTestHelper
         // Application initialization can load plugins before state is mirrored below.
         // Reuse their initialized registry so global listeners are not registered again.
         $config['components']['plugins'] = clone $originalApp->getPlugins();
+        // Mirrored plugins skip initialization. Their translations must already
+        // exist when startup listeners and garbage collection load plugin models.
+        $config['components']['i18n'] = clone $originalApp->getI18n();
         foreach ($originalApp->getPlugins()->getAllPlugins() as $handle => $plugin) {
             $config['modules'][$handle] = $plugin;
             $config['loadedModules'][get_class($plugin)] = $plugin;
