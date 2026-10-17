@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\enums\NavigationIntent;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\enums\SubmissionOutcomeType;
+use verbb\formie\fields\Summary;
 
 use craft\base\Model;
 
@@ -74,4 +75,29 @@ class SubmissionResponse extends Model
     public ?FieldLayoutPage $nextPage = null;
     public ?array $payment = null;
     public ?array $quizResult = null;
+
+
+    // Public Methods
+    // =========================================================================
+
+    public function getSummaryTokens(): array
+    {
+        // The initial render has no saved submission. Issue field-scoped access
+        // only after an accepted save, never for rejected or simulated success.
+        if (!$this->success || !$this->submission?->id || $this->submission->isSpam || ($this->outcome?->data['fakeSuccess'] ?? false)) {
+            return [];
+        }
+
+        $tokens = [];
+
+        foreach ($this->form->getFields() as $field) {
+            if ($field instanceof Summary && !$field->getIsDisabled()) {
+                if ($token = $field->getFieldAccessToken($this->submission)) {
+                    $tokens[$field->uid] = $token;
+                }
+            }
+        }
+
+        return $tokens;
+    }
 }

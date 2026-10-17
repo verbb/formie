@@ -461,6 +461,15 @@ function resetSubmissionState(form: HTMLFormElement, options: ResetSubmissionSta
     // A full state reset is broader than the native form reset: it also clears
     // hidden continuity inputs, resume-token state, page UI, and live validation.
     form.reset();
+    // Summary modules on hidden pages are unmounted and cannot clear themselves.
+    form.querySelectorAll('[data-formie-summary-token]').forEach((element) => {
+        if (element instanceof HTMLInputElement) {
+            element.remove();
+        } else {
+            element.removeAttribute('data-formie-summary-token');
+        }
+    });
+    form.querySelectorAll('[data-formie-summary-blocks]').forEach((element) => element.replaceChildren());
     if (!options.preserveHiddenState) {
         setFormHiddenState(form, false);
     }

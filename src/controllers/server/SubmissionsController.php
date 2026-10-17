@@ -267,6 +267,8 @@ class SubmissionsController extends Controller
             $payload['isFinalPage'] = $nextPageId === null;
         }
 
+        $payload['summaryTokens'] = $response->getSummaryTokens();
+
         $payload['completion'] = $response->outcome->data['completion'] ?? null;
         $payload['redirect'] = $response->outcome->data['redirect'] ?? null;
 

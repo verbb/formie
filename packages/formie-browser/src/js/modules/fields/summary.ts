@@ -1,6 +1,7 @@
 import summaryCss from '#theme-css/fields/_summary.css?inline';
 
 import type { BrowserModuleDefinition } from '#contracts/modules';
+import type { FormSubmitResult } from '#contracts/schema';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
 import { toggleThemeClasses } from '#theme/theme-classes';
@@ -28,8 +29,10 @@ function getSummaryRequestUrl(): string {
 }
 
 function getSummaryRequestState(field: HTMLElement): SummaryRequestState {
-    const summaryTokenInput = field.querySelector('[data-formie-summary-token]') as HTMLInputElement | null;
-    const accessToken = summaryTokenInput?.value?.trim() || null;
+    const tokenElement = field.querySelector('[data-formie-summary-token]');
+    const accessToken = (tokenElement instanceof HTMLInputElement
+        ? tokenElement.value
+        : tokenElement?.getAttribute('data-formie-summary-token'))?.trim() || null;
 
     return {
         accessToken,
@@ -71,6 +74,9 @@ function initSummaryField(field: HTMLElement, root: Element): () => void {
     let dirtyVersion = 0;
     let requestVersion = 0;
     let activeRequest: AbortController | null = null;
+    let destroyed = false;
+    const initialState = getSummaryRequestState(field);
+    let accessToken = initialState.accessToken;
 
     const getBlocks = (): HTMLElement | null => {
         const blocks = field.querySelector(BLOCKS_SELECTOR);
@@ -101,11 +107,10 @@ function initSummaryField(field: HTMLElement, root: Element): () => void {
         toggleThemeClasses(blocks, form, 'loading', false);
     };
 
-    const initialState = getSummaryRequestState(field);
     setLoadingState(!!initialState.accessToken);
 
     const queueFetch = (): void => {
-        if (!isVisible || (hasFetched && !isDirty)) {
+        if (destroyed || !isVisible || (hasFetched && !isDirty)) {
             return;
         }
 
@@ -114,7 +119,11 @@ function initSummaryField(field: HTMLElement, root: Element): () => void {
     };
 
     const fetchSummary = debounce(async() => {
-        const state = getSummaryRequestState(field);
+        if (destroyed) {
+            return;
+        }
+
+        const state = { accessToken };
 
         if (!getBlocks() || !state.accessToken) {
             debug.warn('Missing state for fetch.', state);
@@ -170,7 +179,9 @@ function initSummaryField(field: HTMLElement, root: Element): () => void {
                 setLoadingState(false);
                 activeRequest = null;
 
-                if (isDirty) {
+                // Retry only when newer input arrived during this request. A
+                // failed request alone must not create an endless retry loop.
+                if (isDirty && dirtyVersion !== requestDirtyVersion) {
                     queueFetch();
                 }
             }
@@ -194,16 +205,54 @@ function initSummaryField(field: HTMLElement, root: Element): () => void {
         queueFetch();
     };
 
-    const handleSubmitResult = (): void => {
-        isDirty = true;
-        debug.log('Submit result received; refreshing.');
+    const handleSubmitResult = (event: Event): void => {
+        const result = (event as CustomEvent<FormSubmitResult>).detail;
+        const tokens = result?.meta?.summaryTokens;
+        const uid = field.dataset.formieFieldUid;
+
+        // AJAX navigation reuses the initial markup, which had no submission
+        // token. The accepted save now grants access to this summary field.
+        if (uid && tokens && typeof tokens === 'object') {
+            const token = (tokens as Record<string, unknown>)[uid];
+
+            if (typeof token === 'string' && token) {
+                accessToken = token;
+                // Page navigation can remount modules with updated configuration.
+                getContainer()?.setAttribute('data-formie-summary-token', token);
+            }
+        }
+
+        markDirty();
+        debug.log('Submit result received; refreshing.', { uid, hasToken: !!accessToken });
         queueFetch();
     };
 
     const handlePageNavigate = (): void => {
-        isDirty = true;
+        markDirty();
         debug.log('Page navigation received; refreshing.');
         queueFetch();
+    };
+
+    const handleReset = (event: Event): void => {
+        queueMicrotask(() => {
+            if (event.defaultPrevented || destroyed) {
+                return;
+            }
+
+            // A new submission must not display or fetch the previous visitor's
+            // completed values while its initial markup is reused.
+            requestVersion += 1;
+            activeRequest?.abort();
+            activeRequest = null;
+            accessToken = null;
+            getContainer()?.removeAttribute('data-formie-summary-token');
+            field.querySelectorAll('input[data-formie-summary-token]').forEach((input) => input.remove());
+            hasFetched = false;
+            getBlocks()?.replaceChildren();
+            setLoadingState(false);
+            markDirty();
+            queueFetch();
+        });
     };
 
     // Defer the summary fetch until the field is near view. This avoids extra
@@ -228,14 +277,18 @@ function initSummaryField(field: HTMLElement, root: Element): () => void {
     observer.observe(field);
     form.addEventListener('input', handleFieldMutation);
     form.addEventListener('change', handleFieldMutation);
+    form.addEventListener('reset', handleReset);
     root.addEventListener('formie:page:navigate:after', handlePageNavigate as EventListener);
     root.addEventListener('formie:submit:result', handleSubmitResult as EventListener);
 
     return () => {
+        destroyed = true;
+        requestVersion += 1;
         activeRequest?.abort();
         observer.disconnect();
         form.removeEventListener('input', handleFieldMutation);
         form.removeEventListener('change', handleFieldMutation);
+        form.removeEventListener('reset', handleReset);
         root.removeEventListener('formie:page:navigate:after', handlePageNavigate as EventListener);
         root.removeEventListener('formie:submit:result', handleSubmitResult as EventListener);
         debug.log('Field destroyed.');

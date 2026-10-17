@@ -7,6 +7,8 @@
 - Update the minimum Tiptap requirement to `1.0.5`.
 
 ### Fixed
+- Fix summary fields remaining blank after AJAX page navigation.
+- Fix summary fields repeatedly retrying failed requests.
 - Fix passwords containing only `0` not being stored correctly.
 - Fix cleared number fields restoring their default value when submissions are saved or loaded.
 - Fix hidden query prefills replacing submitted values after native form validation errors.

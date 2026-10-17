@@ -6,6 +6,8 @@
 - Add the `formie:unload-warning:collect-exclusions` event for integrations to exclude automatically updated transport fields from unsaved-changes checks.
 
 ### Fixed
+- Fixed summary fields remaining blank after AJAX page navigation.
+- Fixed summary fields repeatedly retrying failed requests.
 - Fixed text counters and phone countries not returning to their initial values when forms reset.
 - Fixed rich-text validation errors failing to focus and describe the editable control.
 - Fixed required table fields incorrectly requiring every cell to have a value.

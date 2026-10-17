@@ -407,6 +407,20 @@ export function applySubmitResultUi(form: HTMLFormElement, result: FormSubmitRes
     clearAriaInvalid(form);
 
     if (result.ok) {
+        const summaryTokens = result.meta?.summaryTokens;
+
+        // Hidden-page modules mount only after navigation. Persist access before
+        // that happens so the new summary instance can read its saved submission.
+        if (summaryTokens && typeof summaryTokens === 'object') {
+            form.querySelectorAll<HTMLElement>('[data-formie-field-uid]').forEach((field) => {
+                const token = (summaryTokens as Record<string, unknown>)[field.dataset.formieFieldUid || ''];
+
+                if (typeof token === 'string' && token) {
+                    field.querySelector('[data-formie-summary-container]')?.setAttribute('data-formie-summary-token', token);
+                }
+            });
+        }
+
         if (shouldRenderSuccessMessage(form, result)) {
             // Saving progress acknowledges persistence without completing the form.
             renderFormSuccess(form, result.message || '', { hideForm: result.action !== 'save' });

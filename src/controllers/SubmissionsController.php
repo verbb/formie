@@ -880,6 +880,8 @@ class SubmissionsController extends Controller
             $payload['successMessage'] = Craft::t('formie', 'Your progress has been saved.');
         }
 
+        $payload['summaryTokens'] = $response->getSummaryTokens();
+
         $payload['completion'] = $response->outcome->data['completion'] ?? null;
         $payload['redirect'] = $response->outcome->data['redirect'] ?? null;
 
