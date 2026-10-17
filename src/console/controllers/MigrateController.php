@@ -13,7 +13,7 @@ use Throwable;
 use yii\console\ExitCode;
 
 use barrelstrength\sproutforms\elements\Form as SproutFormsForm;
-use solspace\freeform\Freeform;
+use Solspace\Freeform\Freeform;
 
 /**
  * Manages Formie migrations from other plugins.

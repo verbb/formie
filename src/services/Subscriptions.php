@@ -6,6 +6,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\SubscriptionEvent;
 use verbb\formie\models\Subscription;
 use verbb\formie\records\Subscription as SubscriptionRecord;
+use verbb\formie\Formie;
 
 use Craft;
 use craft\base\Component;
@@ -300,7 +301,7 @@ class Subscriptions extends Component
 
     // Private Methods
     // =========================================================================
-    
+
     /**
      * Returns a memoizable array of all subscriptions.
      *

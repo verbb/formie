@@ -5,6 +5,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\events\PlanEvent;
 use verbb\formie\models\Plan;
 use verbb\formie\records\Plan as PlanRecord;
+use verbb\formie\Formie;
 
 use Craft;
 use craft\base\Component;
@@ -235,7 +236,7 @@ class Plans extends Component
 
     // Private Methods
     // =========================================================================
-    
+
     /**
      * Returns a memoizable array of all plans.
      *

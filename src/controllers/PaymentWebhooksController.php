@@ -16,6 +16,8 @@ use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
+use Throwable;
+
 class PaymentWebhooksController extends Controller
 {
     // Properties

@@ -23,6 +23,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\records\EntryType as EntryTypeRecord;
+use craft\gql\resolvers\elements\Entry as EntryResolver;
 
 use GraphQL\Type\Definition\Type;
 
@@ -194,7 +195,7 @@ class Entries extends CraftEntries implements FormFieldInterface
                 // Apply the criteria on our query
                 Craft::configure($query, $criteria);
             }
-        } else if ($this->sourceType === 'elements') {
+        } elseif ($this->sourceType === 'elements') {
             $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
         }
 

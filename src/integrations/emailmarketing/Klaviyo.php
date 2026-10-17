@@ -11,6 +11,7 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
 
 use GuzzleHttp\Client;
 
@@ -258,7 +259,7 @@ class Klaviyo extends EmailMarketing
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 

@@ -23,6 +23,7 @@ use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 
 use craft\models\UserGroup;
+use craft\gql\resolvers\elements\User as UserResolver;
 
 use GraphQL\Type\Definition\Type;
 
@@ -190,7 +191,7 @@ class Users extends CraftUsers implements FormFieldInterface
                 // Apply the criteria on our query
                 Craft::configure($query, $criteria);
             }
-        } else if ($this->sourceType === 'elements') {
+        } elseif ($this->sourceType === 'elements') {
             $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
         }
 
@@ -226,7 +227,7 @@ class Users extends CraftUsers implements FormFieldInterface
             'query' => $query,
             'field' => $this,
         ]);
-        
+
         $this->trigger(self::EVENT_MODIFY_ELEMENT_QUERY, $event);
 
         return $event->query;

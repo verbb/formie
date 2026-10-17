@@ -27,6 +27,7 @@ use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\models\TagGroup;
+use craft\gql\resolvers\elements\Tag as TagResolver;
 
 use GraphQL\Type\Definition\Type;
 
@@ -128,6 +129,7 @@ class Tags extends CraftTags implements FormFieldInterface
         $value = array_filter($value);
 
         $tagsIds = [];
+
         foreach ($value as $tagJson) {
             if (!isset($tagJson['id'])) {
                 $tag = Tag::find()
@@ -306,7 +308,7 @@ class Tags extends CraftTags implements FormFieldInterface
         if ($this->sourceType === 'elements') {
             $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
         }
-        
+
         if ($group = $this->_getTagGroup()) {
             $query->group($group);
         }

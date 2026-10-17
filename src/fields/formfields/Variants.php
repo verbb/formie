@@ -26,6 +26,7 @@ use craft\commerce\fields\Variants as CommerceVariants;
 use craft\commerce\gql\arguments\elements\Variant as VariantArguments;
 use craft\commerce\gql\interfaces\elements\Variant as VariantInterface;
 use craft\commerce\models\ProductType;
+use craft\commerce\gql\resolvers\elements\Variant as VariantResolver;
 
 use GraphQL\Type\Definition\Type;
 
@@ -197,7 +198,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
                     $rule->modifyQuery($query);
                 }
             }
-        } else if ($this->sourceType === 'elements') {
+        } elseif ($this->sourceType === 'elements') {
             $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
         }
 

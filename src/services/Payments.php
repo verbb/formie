@@ -6,6 +6,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\PaymentEvent;
 use verbb\formie\models\Payment;
 use verbb\formie\records\Payment as PaymentRecord;
+use verbb\formie\Formie;
 
 use Craft;
 use craft\base\Component;
@@ -223,7 +224,7 @@ class Payments extends Component
 
     // Private Methods
     // =========================================================================
-    
+
     /**
      * Returns a memoizable array of all payments.
      *

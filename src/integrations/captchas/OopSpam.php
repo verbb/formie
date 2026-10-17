@@ -9,6 +9,9 @@ use Craft;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\web\View;
+use craft\helpers\ArrayHelper;
+
+use Throwable;
 
 class OopSpam extends Captcha
 {
@@ -35,7 +38,7 @@ class OopSpam extends Captcha
     public function getSettingsHtml(): ?string
     {
         $variables = $this->getSettingsHtmlVariables();
-        
+
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/oop-spam/_plugin-settings', $variables);
     }
 

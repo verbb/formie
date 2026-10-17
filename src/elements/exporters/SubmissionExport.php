@@ -2,6 +2,7 @@
 namespace verbb\formie\elements\exporters;
 
 use verbb\formie\events\ModifySubmissionExportDataEvent;
+use verbb\formie\Formie;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
@@ -14,13 +15,15 @@ use craft\helpers\ElementHelper;
 
 use DateTime;
 
+use Throwable;
+
 class SubmissionExport extends ElementExporter
 {
     // Constants
     // =========================================================================
 
     public const EVENT_MODIFY_EXPORT_DATA = 'modifyExportData';
-    
+
 
     // Static Methods
     // =========================================================================
@@ -33,7 +36,7 @@ class SubmissionExport extends ElementExporter
 
     // Public Methods
     // =========================================================================
-    
+
     public function getFilename(): string
     {
         return 'formie-submissions-' . (new DateTime())->format('Y-m-d-H-i');
@@ -90,7 +93,7 @@ class SubmissionExport extends ElementExporter
 
                 $row = array_combine(array_values($attributes), $values);
 
-                // Because Craft doesn't suppport querying elements across multiple content tables in one go, 
+                // Because Craft doesn't suppport querying elements across multiple content tables in one go,
                 // we need to do some extra work to handle custom fields across multiple forms (and content tables).
                 // This can be a little un-performant.
                 $this->_populateElementContent($element);
@@ -102,11 +105,11 @@ class SubmissionExport extends ElementExporter
             }
 
             // Normalise the columns. Due to repeaters/table fields, some rows might not have the correct columns.
-            // We need to have all rows have the same column definitions. 
+            // We need to have all rows have the same column definitions.
             // First, find the row with the largest columns to use as our template for all other rows
             $exportData = [];
             $counts = array_map('count', $data);
-            
+
             if ($counts) {
                 $key = array_flip($counts)[max($counts)];
                 $largestRow = $data[$key];

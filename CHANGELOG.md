@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed missing class references in GraphQL field resolvers, integrations, payments, exports and migrations.
+
 ## 2.2.39 - 2026-10-15
 
 ### Fixed

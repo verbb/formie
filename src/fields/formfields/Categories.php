@@ -25,6 +25,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\CategoryGroup;
+use craft\gql\resolvers\elements\Category as CategoryResolver;
 
 use GraphQL\Type\Definition\Type;
 
@@ -238,7 +239,7 @@ class Categories extends CraftCategories implements FormFieldInterface
                 // Apply the criteria on our query
                 Craft::configure($query, $criteria);
             }
-        } else if ($this->sourceType === 'elements') {
+        } elseif ($this->sourceType === 'elements') {
             $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
         }
 

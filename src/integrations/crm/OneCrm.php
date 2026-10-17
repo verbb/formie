@@ -7,6 +7,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\Formie;
 
 use Craft;
 use craft\helpers\App;
@@ -363,7 +364,7 @@ class OneCrm extends Crm
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
 
