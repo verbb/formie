@@ -8,6 +8,7 @@
 
 ### Fixed
 - Fix text counters and phone countries not returning to their initial values when forms reset.
+- Fix rich-text validation errors failing to focus and describe the editable control.
 - Fix text, name, dropdown, email, phone, number and hidden field labels not identifying their inputs in the submission editor.
 - Fix text minimum limits using the maximum limit's unit in the submission editor.
 - Fix static table fields allowing rows to be added or removed in the submission editor.

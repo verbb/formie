@@ -168,6 +168,37 @@ function initRichTextField(container: HTMLElement, input: RichTextInput, options
     input.richText = editor;
     editor.content.innerHTML = input.value || '';
 
+    editor.content.setAttribute('role', 'textbox');
+    editor.content.setAttribute('aria-multiline', 'true');
+
+    const labels = Array.from(input.labels || []);
+    const ariaAttributes = ['aria-label', 'aria-labelledby', 'aria-invalid', 'aria-describedby', 'aria-errormessage'];
+    const syncAccessibility = () => {
+        ariaAttributes.forEach((attribute) => {
+            const value = input.getAttribute(attribute);
+
+            if (value !== null) {
+                editor.content.setAttribute(attribute, value);
+            } else {
+                editor.content.removeAttribute(attribute);
+            }
+        });
+
+        if (!input.hasAttribute('aria-label') && !input.hasAttribute('aria-labelledby') && labels.length) {
+            editor.content.setAttribute('aria-label', labels.map((label) => label.textContent?.trim() || '').join(' '));
+        }
+
+        editor.content.setAttribute('aria-required', input.getAttribute('aria-required') || String(input.required));
+    };
+    syncAccessibility();
+
+    // Validation updates the submitted textarea; expose the same state on the editor.
+    const accessibilityObserver = new MutationObserver(syncAccessibility);
+    accessibilityObserver.observe(input, { attributes: true, attributeFilter: [...ariaAttributes, 'aria-required', 'required'] });
+
+    const onLabelClick = () => editor.content.focus();
+    labels.forEach((label) => label.addEventListener('click', onLabelClick));
+
     const form = input.form;
     const onReset = (event: Event) => {
         // Wait for the textarea to regain its default value before updating Pell.
@@ -188,6 +219,8 @@ function initRichTextField(container: HTMLElement, input: RichTextInput, options
     });
 
     return () => {
+        accessibilityObserver.disconnect();
+        labels.forEach((label) => label.removeEventListener('click', onLabelClick));
         form?.removeEventListener('reset', onReset);
         container.innerHTML = '';
         delete input.richText;

@@ -14,20 +14,34 @@ function getFirstErroredField(form: HTMLFormElement): HTMLElement | null {
     }) || null;
 }
 
+function getVisibleControl(control: HTMLElement): HTMLElement {
+    if (control instanceof HTMLTextAreaElement) {
+        const richText = (control as HTMLTextAreaElement & { richText?: { content: HTMLElement } }).richText;
+
+        if (richText) {
+            return richText.content;
+        }
+    }
+
+    return control;
+}
+
 function getFieldFocusTarget(field: HTMLElement): HTMLElement | null {
     const invalidControl = Array.from(field.querySelectorAll('[aria-invalid="true"]')).find((node) => {
         return !isValidationSkipped(node);
     }) as HTMLElement | undefined;
 
     if (invalidControl) {
-        return invalidControl;
+        return getVisibleControl(invalidControl);
     }
 
-    return Array.from(field.querySelectorAll(
+    const control = Array.from(field.querySelectorAll(
         'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])',
     )).find((node) => {
         return !isValidationSkipped(node);
-    }) as HTMLElement | undefined ?? null;
+    }) as HTMLElement | undefined;
+
+    return control ? getVisibleControl(control) : null;
 }
 
 function getFormLevelErrorTarget(form: HTMLFormElement): HTMLElement | null {

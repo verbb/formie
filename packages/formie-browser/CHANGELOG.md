@@ -7,6 +7,7 @@
 
 ### Fixed
 - Fixed text counters and phone countries not returning to their initial values when forms reset.
+- Fixed rich-text validation errors failing to focus and describe the editable control.
 - Fixed required table fields incorrectly requiring every cell to have a value.
 - Fixed dependent calculations using number prefixes or suffixes returning incorrect results.
 - Fixed fresh visits and completed submissions retaining an earlier spam-protection timer.
