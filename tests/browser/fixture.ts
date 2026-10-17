@@ -73,6 +73,9 @@ import { buildAddressFromComponents } from '../../packages/formie-browser/src/js
 import { evaluateCondition } from '../../packages/formie-core/src/index';
 (globalThis as any).conditionBoundary = { evaluateCondition };
 
+import { fileUploadModule } from '../../packages/formie-browser/src/js/modules/fields/file-upload';
+(globalThis as any).fileUploadBoundary = fileUploadModule;
+
 import { submitForm } from '../../packages/formie-browser/src/js/transport/forms-api';
 import { applySubmitResultState } from '../../packages/formie-browser/src/js/core/submit-result-state';
 import { applySubmitResultUi } from '../../packages/formie-browser/src/js/core/submit-result-ui';

@@ -368,10 +368,6 @@ class FileUpload extends ElementField
 
         $rules[] = [$this->handle, 'validateFileType'];
 
-        if ($this->restrictFiles) {
-            $rules[] = [$this->handle, 'validateFileType'];
-        }
-
         if ($this->maxFiles) {
             $rules[] = [$this->handle, 'validateFileLimit'];
         }

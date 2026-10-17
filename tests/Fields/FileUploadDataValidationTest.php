@@ -6,6 +6,20 @@ use Tests\Support\UploadTestHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\gql\types\input\FileUploadInputType;
 
+it('reports a disallowed upload only once during submission validation', function (): void {
+    UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form()->fileUploadField('upload', ['restrictFiles' => true, 'allowedKinds' => ['image']])->create();
+    $submission = new Submission();
+    $submission->setForm($form);
+    $submission->setFieldValueFromRequest('upload', FileUploadInputType::normalizeValue([
+        ['filename' => 'disallowed.txt', 'fileData' => 'data:text/plain;base64,' . base64_encode('Disallowed text upload')],
+    ]));
+    $submission->validate();
+
+    expect($submission->getErrors('upload'))->toHaveCount(1)
+        ->and($submission->getErrors('upload')[0])->toContain('disallowed.txt');
+});
+
 it('validates decoded data uploads against file constraints', function (array $settings, string $filename, string $contents, bool $valid): void {
     UploadTestHelper::ensureUploadVolume();
     $form = formie()->form()->fileUploadField('upload', ['restrictFiles' => false] + $settings)->create();

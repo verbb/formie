@@ -3,6 +3,7 @@ import fileUploadCss from '#theme-css/fields/_file.css?inline';
 import type { BrowserModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';
 import { ensureModuleStyles } from '#modules/styles';
+import { appendFormCsrfToFormData } from '#utils/csrf';
 import { getFieldModuleEventName, getFileUploadEventName, getFormStateEventName } from '#utils/event-names';
 import { requestJson } from '#utils/http';
 
@@ -429,11 +430,15 @@ function buildHydrateFormData(field: HTMLElement, input: HTMLInputElement, asset
         body.append('fieldHandle', fieldHandle);
     }
 
-    const submissionUidInput = form?.querySelector('input[name="submissionUid"]');
+    const passthroughNames = ['submissionUid', 'resumeToken', 'submissionEditToken', 'siteId', 'renderId', 'draftContext', 'draftContextToken'] as const;
 
-    if (submissionUidInput instanceof HTMLInputElement && submissionUidInput.value.trim()) {
-        body.append('submissionUid', submissionUidInput.value.trim());
-    }
+    passthroughNames.forEach((name) => {
+        const contextInput = form?.querySelector(`input[name="${name}"]`);
+
+        if (contextInput instanceof HTMLInputElement && contextInput.value.trim()) {
+            body.append(name, contextInput.value.trim());
+        }
+    });
 
     assets.forEach((asset) => {
         if (asset.assetId) {
@@ -443,6 +448,8 @@ function buildHydrateFormData(field: HTMLElement, input: HTMLInputElement, asset
             }
         }
     });
+
+    appendFormCsrfToFormData(body, form);
 
     return body;
 }
