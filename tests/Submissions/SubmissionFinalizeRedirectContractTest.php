@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
-use Craft;
 use craft\elements\Entry;
 
 dataset('redirect_tabs', ['same-tab', 'new-tab']);
 
-beforeEach(function () { \verbb\formie\Formie::$plugin->getSettings()->completionRedirectAllowedOrigins = ['https://example.test', 'http://formie-react-tests.ddev.site']; });
+beforeEach(function () {
+    // Console fixtures generate HTTP entry URLs even with an HTTPS site base.
+    $siteUrl = \craft\helpers\UrlHelper::urlWithScheme(Craft::$app->getSites()->getPrimarySite()->getBaseUrl(), 'http');
+    \verbb\formie\Formie::$plugin->getSettings()->completionRedirectAllowedOrigins = ['https://example.test', $siteUrl];
+});
 
 it('resolves url redirect targets and tab behavior contract from form settings', function (string $tab): void {
     $form = formie()

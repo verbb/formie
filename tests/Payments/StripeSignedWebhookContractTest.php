@@ -33,12 +33,13 @@ it('accepts a signed Stripe event once and ignores a tampered event without chan
         expect($payments->savePayment($payment))->toBeTrue();
         $rows[$key] = $payment;
     }
+    $eventId = 'evt_contract_' . bin2hex(random_bytes(8));
     $completed = [];
     $handler = function ($event) use (&$completed): void { $completed[] = $event->submission->id; };
     Event::on(Submission::class, Submission::EVENT_AFTER_COMPLETE, $handler);
-    $send = function (string $reference, bool $tampered = false) use ($integration): void {
-        WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration, $reference, $tampered): void {
-            $body = json_encode(['id' => 'evt_contract', 'type' => 'payment_intent.succeeded', 'data' => ['object' => ['id' => $reference, 'status' => 'succeeded', 'amount' => 2500, 'currency' => 'usd']]], JSON_THROW_ON_ERROR);
+    $send = function (string $reference, bool $tampered = false) use ($integration, $eventId): void {
+        WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration, $reference, $tampered, $eventId): void {
+            $body = json_encode(['id' => $eventId, 'type' => 'payment_intent.succeeded', 'data' => ['object' => ['id' => $reference, 'status' => 'succeeded', 'amount' => 2500, 'currency' => 'usd']]], JSON_THROW_ON_ERROR);
             $time = time();
             $_SERVER['HTTP_STRIPE_SIGNATURE'] = 't=' . $time . ',v1=' . hash_hmac('sha256', $time . '.' . $body, 'whsec_local_contract');
             $request->setRawBody($tampered ? $body . ' ' : $body);

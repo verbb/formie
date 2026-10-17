@@ -10,7 +10,11 @@ use verbb\formie\services\SubmissionWorkflow;
 dataset('finalize_submit_methods', ['ajax', 'page-reload']);
 dataset('finalize_actions', ['message', 'reload', 'reset', 'url', 'entry']);
 
-beforeEach(function () { \verbb\formie\Formie::$plugin->getSettings()->completionRedirectAllowedOrigins = ['https://example.test', 'http://formie-react-tests.ddev.site']; });
+beforeEach(function () {
+    // Console fixtures generate HTTP entry URLs even with an HTTPS site base.
+    $siteUrl = \craft\helpers\UrlHelper::urlWithScheme(Craft::$app->getSites()->getPrimarySite()->getBaseUrl(), 'http');
+    \verbb\formie\Formie::$plugin->getSettings()->completionRedirectAllowedOrigins = ['https://example.test', $siteUrl];
+});
 
 it('keeps finalize submit actions stable across ajax and page-reload submit methods', function (string $submitMethod, string $submitAction): void {
     $form = formie()

@@ -1,6 +1,7 @@
 <?php
 
 use craft\elements\conditions\entries\EntryCondition;
+use craft\i18n\Locale;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\Entries;
 use verbb\formie\fields\Payment;
@@ -12,15 +13,18 @@ use verbb\formie\integrations\payments\Opayo;
 use verbb\formie\models\BrowserModuleContext;
 
 it('builds captcha browser configuration using automatic locale matching', function(string $provider, string $locale, string $expected) {
-    $previous = Craft::$app->language;
+    $previousLanguage = Craft::$app->language;
+    $previousLocale = Craft::$app->getLocale();
     Craft::$app->language = $locale;
+    Craft::$app->set('locale', new Locale($locale));
     try {
         $captcha = new $provider(['language' => 'auto', 'siteKey' => 'test-key']);
         $module = $captcha->getBrowserModule(new BrowserModuleContext(['form' => new Form(['id' => 123])]));
         expect($module)->not->toBeNull()
             ->and($module->config['language'])->toBe($expected);
     } finally {
-        Craft::$app->language = $previous;
+        Craft::$app->language = $previousLanguage;
+        Craft::$app->set('locale', $previousLocale);
     }
 })->with([FriendlyCaptcha::class, Hcaptcha::class])->with([
     ['de', 'de'],
