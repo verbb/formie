@@ -70,8 +70,8 @@ class FinalizeTask implements TaskInterface
             'quizResultId' => ($context->taskState['questionnaireScoring.result'] ?? null)?->id,
         ];
 
-        if ($type === SubmissionOutcomeType::COMPLETED) {
-            $completion = (new CompletionResolver())->resolve($submission->getForm(), $submission);
+        if ($type === SubmissionOutcomeType::COMPLETED || $fakeSuccess) {
+            $completion = (new CompletionResolver())->resolve($submission->getForm(), $submission, raiseEvents: !$fakeSuccess);
             $data['completion'] = $completion->toArray();
 
             if ($submission->id) {

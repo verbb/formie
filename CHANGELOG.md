@@ -7,6 +7,9 @@
 - Update the minimum Tiptap requirement to `1.0.5`.
 
 ### Fixed
+- Fix spam submissions configured to show success failing to display completion messages or redirect.
+- Fix fresh forms retaining an earlier submission’s spam-protection timer.
+- Fix save-and-resume links losing the form page after saving a resumed submission.
 - Fix forms freezing when live validation and disabling the submit button until valid are both enabled.
 - Fix file upload names failing to refresh after navigating between form pages.
 - Fix duplicate validation errors for disallowed file uploads.

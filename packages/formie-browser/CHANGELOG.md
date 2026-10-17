@@ -6,6 +6,7 @@
 - Add the `formie:unload-warning:collect-exclusions` event for integrations to exclude automatically updated transport fields from unsaved-changes checks.
 
 ### Fixed
+- Fixed fresh visits and completed submissions retaining an earlier spam-protection timer.
 - Fixed forms freezing when live validation and disabling the submit button until valid are both enabled.
 - Fixed native file input metadata requests omitting CSRF tokens and form context after navigating between pages.
 - Fixed reCAPTCHA loading the wrong SDK or readiness queue when standard and Enterprise APIs share a page.

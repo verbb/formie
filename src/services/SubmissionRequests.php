@@ -330,6 +330,14 @@ class SubmissionRequests extends Component
             return $fallbackUrl;
         }
 
+        // Resumed pages use an origin-only referrer policy. Keep their POST URL
+        // instead of replacing the form path and query with the site root.
+        $candidatePath = parse_url($candidateUrl, PHP_URL_PATH);
+
+        if (in_array($candidatePath, [null, '', '/'], true) && !parse_url($candidateUrl, PHP_URL_QUERY)) {
+            return $fallbackUrl;
+        }
+
         return $candidateUrl;
     }
 
@@ -561,9 +569,18 @@ class SubmissionRequests extends Component
         $guardReason = Formie::$plugin->getSubmissionGuards()->validateRequest($command, $browser);
         $outcome = $guardReason === null
             ? Formie::$plugin->getSubmissionProcessor()->executeCommand($command, $populate)
-            : $operations->execute($command, static fn() => new SubmissionOutcome(SubmissionOutcomeType::REJECTED, data: [
-                'fakeSuccess' => Formie::$plugin->getSettings()->spamBehaviour === Settings::SPAM_BEHAVIOUR_SUCCESS,
-            ]));
+            : $operations->execute($command, static function() use ($form, $submission): SubmissionOutcome {
+                $fakeSuccess = Formie::$plugin->getSettings()->spamBehaviour === Settings::SPAM_BEHAVIOUR_SUCCESS;
+                $data = ['fakeSuccess' => $fakeSuccess];
+
+                if ($fakeSuccess) {
+                    $completion = (new CompletionResolver())->resolve($form, $submission, raiseEvents: false);
+                    $data['completion'] = $completion->toArray();
+                    $data['redirect'] = $completion->url ? ['url' => $completion->url, 'target' => $completion->target->value] : null;
+                }
+
+                return new SubmissionOutcome(SubmissionOutcomeType::REJECTED, data: $data);
+            });
 
         // A lost-response retry may resolve a new in-memory element. Restore the durable identity for adapters.
         if ($outcome->submissionId && (int)$submission->id !== $outcome->submissionId) {

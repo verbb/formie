@@ -5,6 +5,7 @@ import { dispatchPageClientEventForSubmit, dispatchResolvedClientEvents } from '
 import { syncPageTabErrors } from '#core/page-tab-errors';
 import { addThemeClasses, removeThemeClasses, toggleThemeClasses } from '#theme/theme-classes';
 import { createDebug } from '#utils/debug';
+import { resetFormStartedAt } from '#utils/form-started-at';
 import { getFormStateEventName, normalizeFormieEventName } from '#utils/event-names';
 import type { FormieValidator } from '#validation/validator';
 import { syncSubmitReadiness } from '#validation/submit-readiness';
@@ -469,6 +470,7 @@ function resetSubmissionState(form: HTMLFormElement, options: ResetSubmissionSta
     removeHiddenInput(form, 'progressId');
     removeHiddenInput(form, 'pageId');
     clearResumeTokenState(form);
+    resetFormStartedAt(form);
     validator?.resetLiveState();
 
     if (firstPageId) {
