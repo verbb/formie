@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Craft;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Name;
 

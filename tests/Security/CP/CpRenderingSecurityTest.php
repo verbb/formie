@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Tests\Support\MaliciousPayloads;
 use Tests\Support\WebRequestTestHelper;
-use Craft;
 use craft\web\View;
 use yii\web\ForbiddenHttpException;
 use verbb\formie\controllers\SentNotificationsController;

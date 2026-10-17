@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Tests\Support\WebRequestTestHelper;
-use Craft;
 use craft\elements\User;
 use verbb\formie\elements\Submission;
 

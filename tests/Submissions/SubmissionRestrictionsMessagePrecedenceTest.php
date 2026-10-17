@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use DateTime;
 
 function resolveRestrictionMessage(mixed $form): ?string
 {

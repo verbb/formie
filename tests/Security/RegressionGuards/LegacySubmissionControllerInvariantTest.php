@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Tests\Support\WebRequestTestHelper;
-use Craft;
 use verbb\formie\Formie;
 use yii\web\BadRequestHttpException;
 use yii\web\MethodNotAllowedHttpException;

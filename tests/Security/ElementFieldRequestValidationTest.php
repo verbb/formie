@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use verbb\formie\elements\Submission;
 
-use Craft;
 use craft\elements\Tag;
 use craft\elements\User;
 

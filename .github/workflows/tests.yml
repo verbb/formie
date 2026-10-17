@@ -9,6 +9,47 @@ on:
 permissions:
   contents: read
 jobs:
+  php-check:
+    name: PHP 8.2.0 syntax and imports
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2.0'
+          extensions: bcmath, curl, dom, fileinfo, gd, iconv, intl, mbstring, pdo_mysql, sodium, zip
+          coverage: none
+          tools: composer:v2
+          ini-values: memory_limit=1G
+      - name: Verify exact minimum interpreter
+        run: |
+          php -r 'echo PHP_VERSION, PHP_EOL; exit(PHP_VERSION === "8.2.0" ? 0 : 1);'
+      - name: Verify integration dependency lock
+        run: php .github/scripts/check-runtime-lock.php
+      - name: Install class checker
+        run: composer install --working-dir=tests/php-check --no-interaction --prefer-dist --no-progress --no-plugins --no-scripts
+      - name: Class checker regression tests
+        run: php tests/php-check/tests/run.php
+      - name: Check validation tooling
+        run: php tests/php-check/bin/check.php --project tests/php-check --vendor tests/php-check/vendor tests/php-check/src tests/php-check/bin tests/php-check/prepare.php tests/php-check/tests .github/scripts/check-runtime-lock.php
+      - name: Prepare minimum PHP dependencies
+        run: php tests/php-check/prepare.php
+      - name: Resolve dependencies on PHP 8.2.0
+        run: composer update --working-dir=.cache/php-check --no-interaction --prefer-dist --no-progress --no-plugins --no-scripts
+      - name: Verify dependency platform requirements
+        run: composer check-platform-reqs --working-dir=.cache/php-check --no-plugins
+      - name: Check all production PHP
+        run: php tests/php-check/bin/check.php --project . --vendor .cache/php-check/vendor --optional tests/Support/StaticAnalysis/optional-classes.php src
+      - name: Dependency diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-8.2.0-dependencies
+          include-hidden-files: true
+          path: |
+            .cache/php-check/composer.json
+            .cache/php-check/composer.lock
   javascript:
     runs-on: ubuntu-latest
     steps:
@@ -34,6 +75,8 @@ jobs:
         with:
           version: '1.25.4'
           autostart: false
+      - name: Verify DDEV test runtime
+        run: bash .github/scripts/configure-ddev.sh 8.3
       - name: Clean-install integration tests
         run: ddev test --order-by=${{ matrix.order }} --random-order-seed=9122026
       - name: Production class resolution
@@ -63,6 +106,8 @@ jobs:
         with:
           version: '1.25.4'
           autostart: false
+      - name: Verify DDEV test runtime
+        run: bash .github/scripts/configure-ddev.sh 8.3
       - run: ddev test --suite=${{ matrix.suite }}
       - name: Targeted mutation checks
         if: matrix.suite == 'migration'
@@ -92,6 +137,8 @@ jobs:
         with:
           version: '1.25.4'
           autostart: false
+      - name: Verify DDEV test runtime
+        run: bash .github/scripts/configure-ddev.sh 8.3
       - run: npm ci --legacy-peer-deps
       - run: npx playwright install --with-deps chromium
       - run: ddev test --task=browser-fixture
@@ -122,6 +169,8 @@ jobs:
         with:
           version: '1.25.4'
           autostart: false
+      - name: Verify DDEV test runtime
+        run: bash .github/scripts/configure-ddev.sh 8.3
       - run: ddev test --task=lifecycle
       - run: ddev test --task=upgrade ${{ matrix.args }}
       - uses: actions/upload-artifact@v4

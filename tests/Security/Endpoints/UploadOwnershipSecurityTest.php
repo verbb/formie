@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Craft;
 use Tests\Support\UploadTestHelper;
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\controllers\FileUploadController;

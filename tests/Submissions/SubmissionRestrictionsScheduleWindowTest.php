@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use DateTime;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\SubmissionCommand;
 use verbb\formie\services\SubmissionWorkflow;

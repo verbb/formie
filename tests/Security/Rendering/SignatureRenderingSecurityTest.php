@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Craft;
 use craft\web\View;
 
 it('does not render submitted signature values as standalone image sources in edit HTML', function (): void {

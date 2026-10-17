@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Craft;
 use verbb\formie\fields\Content;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\fields\Html;

@@ -10,7 +10,6 @@ use verbb\formie\models\ReportExportFile;
 use verbb\formie\models\ReportSettings;
 use verbb\formie\services\ReportColumns;
 
-use DateTime;
 
 it('builds report export filename variable picker config', function (): void {
     $config = Variables::getReportExportFilenameVariableConfig();

@@ -55,3 +55,4 @@ node_modules
 /packages/docs/.vitepress/cache
 /packages/docs/.vitepress/dist
 /docs/package-lock.json
+/.ddev/config.zz-ci.yaml

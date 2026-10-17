@@ -1,6 +1,5 @@
 <?php
 
-use Craft;
 use craft\helpers\App;
 
 return [

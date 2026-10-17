@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Tests\Support\UploadTestHelper;
-use Craft;
 use craft\db\Query;
 use craft\elements\Asset;
 use verbb\formie\Formie;

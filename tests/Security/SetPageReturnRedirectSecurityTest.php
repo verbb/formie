@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Craft;
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\helpers\SetPageReturnUrlHelper;
