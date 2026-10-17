@@ -7,6 +7,7 @@
 - Update the minimum Tiptap requirement to `1.0.5`.
 
 ### Fixed
+- Fix forms freezing when live validation and disabling the submit button until valid are both enabled.
 - Fix Salesforce Client Credentials connections using generic login endpoints instead of their saved instance domain, and clarify the My Domain requirement.
 - Fix reCAPTCHA initialization when another reCAPTCHA SDK is already present on the page.
 - Fix AWeber OAuth provider resolution on case-sensitive filesystems.

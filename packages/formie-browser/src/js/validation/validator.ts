@@ -25,6 +25,7 @@ type ValidatorDefinition = {
 
 type ValidateOptions = {
     includeHiddenPages?: boolean;
+    renderErrors?: boolean;
 };
 
 const DEFAULT_PATTERNS: Record<string, RegExp> = {
@@ -161,6 +162,7 @@ export class FormieValidator {
 
         this.inputs(inputOrSelector).forEach((input) => {
             let errorShown = false;
+            const renderErrors = options.renderErrors !== false && this.shouldShowError(input);
 
             if (!this.isVisible(input, options)) {
                 return;
@@ -179,7 +181,7 @@ export class FormieValidator {
                 seenGroups.add(groupKey);
             }
 
-            if (this.shouldShowError(input)) {
+            if (renderErrors) {
                 this.removeError(input);
             }
 
@@ -191,7 +193,7 @@ export class FormieValidator {
                 if (!isValid) {
                     const errorMessage = this.getErrorMessage(input, validatorName, validatorConfig, opts);
 
-                    if (this.shouldShowError(input) && !errorShown) {
+                    if (renderErrors && !errorShown) {
                         this.showError(input, validatorName, errorMessage);
                     }
 
@@ -208,7 +210,7 @@ export class FormieValidator {
                 }
             });
 
-            if (!errorShown && this.shouldShowError(input)) {
+            if (!errorShown && renderErrors) {
                 this.removeError(input);
             }
         });

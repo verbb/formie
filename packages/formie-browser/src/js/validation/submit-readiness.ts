@@ -33,8 +33,10 @@ export function syncSubmitReadiness(form: HTMLFormElement, validator: FormieVali
     }
 
     const { scope, final } = getValidationScope(form);
+    // Readiness observes DOM changes; redrawing errors here would retrigger it indefinitely.
     const isReady = validator.isValid(scope, {
         includeHiddenPages: final,
+        renderErrors: false,
     });
 
     form.setAttribute(SUBMIT_READY_ATTR, isReady ? 'true' : 'false');
