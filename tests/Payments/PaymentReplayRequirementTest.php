@@ -63,7 +63,7 @@ class ReplayCompletionMollie extends \verbb\formie\integrations\payments\Mollie
 }
 
 it('reconciles hosted payment completion with the current submission requirement', function (int $currentAmount): void {
-    $integration = new ReplayCompletionMollie(['name' => 'Replay audit', 'handle' => 'replayAudit' . bin2hex(random_bytes(5)), 'apiKey' => 'test-audit']);
+    $integration = new ReplayCompletionMollie(['enabled' => true, 'name' => 'Replay audit', 'handle' => 'replayAudit' . bin2hex(random_bytes(5)), 'apiKey' => 'test-audit']);
     Formie::$plugin->getIntegrations()->saveIntegration($integration, false);
     $form = formie()->form()->numberField('total')->paymentField('payment', [
         'paymentIntegration' => $integration->handle, 'paymentIntegrationType' => ReplayCompletionMollie::class,

@@ -28,6 +28,7 @@ function createStripeGraphqlPaymentFixture(): array
         ->paymentField('payment', [
             'paymentIntegration' => $integration->handle,
             'paymentIntegrationType' => get_class($integration),
+            'providerSettings' => [$integration->handle => ['amountType' => 'fixed', 'amountFixed' => '25.00', 'currencyType' => 'fixed', 'currencyFixed' => 'USD']],
         ])
         ->create();
 

@@ -376,7 +376,7 @@ class AtomicBoundaryPayment extends \verbb\formie\base\Payment
 }
 
 it('rolls back the second payment and submission commit while retaining provider evidence for charge-free recovery', function (string $failure): void {
-    $integration = new AtomicBoundaryPayment(['name' => 'Atomic', 'handle' => 'atomic' . uniqid()]);
+    $integration = new AtomicBoundaryPayment(['enabled' => true, 'name' => 'Atomic', 'handle' => 'atomic' . uniqid()]);
     Formie::$plugin->getIntegrations()->saveIntegration($integration, false);
     $form = formie()->form()->settings(['disableCaptchas' => true])->paymentField('payment', [
         'paymentIntegration' => $integration->handle, 'paymentIntegrationType' => AtomicBoundaryPayment::class,

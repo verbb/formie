@@ -26,7 +26,7 @@ class PlanTask implements TaskInterface
 
         if ($context->attemptedCompletion && !$submission->isSpam) {
             foreach ($submission->getFields() as $field) {
-                if ($field instanceof Payment && !$field->getIsDisabled() && !$field->isConditionallyHidden($submission) && $field->getPaymentIntegration()) {
+                if ($field instanceof Payment && !$field->getIsDisabled() && !$field->isConditionallyHidden($submission)) {
                     $requiresPayment = true;
                     break;
                 }

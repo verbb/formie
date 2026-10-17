@@ -145,8 +145,11 @@ class ProcessPaymentTask implements TaskInterface
 
             $paymentIntegration = $field->getPaymentIntegration();
 
-            if (!$paymentIntegration) {
-                continue;
+            if (!$paymentIntegration || !$paymentIntegration->getEnabled()) {
+                $message = Craft::t('formie', 'The payment provider is unavailable. Please contact the form owner.');
+                $submission->addError($field->errorKey(), $message);
+
+                return PaymentDecision::failed($message);
             }
 
             // Validate the whole payment layout before any provider can charge.
@@ -199,7 +202,10 @@ class ProcessPaymentTask implements TaskInterface
             $paymentIntegration = $field->getPaymentIntegration();
 
             if (!$paymentIntegration) {
-                continue;
+                $message = Craft::t('formie', 'Unable to resolve the payment provider for replay.');
+                $submission->addError($field->errorKey(), $message);
+
+                return PaymentDecision::failed($message);
             }
 
             $storedPayment = $this->_resolveLatestStoredPayment($payments, (int)$field->id, (int)($paymentIntegration->id ?? 0));

@@ -7,6 +7,7 @@
 - Update the minimum Tiptap requirement to `1.0.5`.
 
 ### Fixed
+- Fix disabled or missing payment providers allowing payment forms to complete.
 - Fix summary fields remaining blank after AJAX page navigation.
 - Fix summary fields repeatedly retrying failed requests.
 - Fix multi-row Likert answers not saving when editing submissions in the control panel.

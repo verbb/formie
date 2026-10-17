@@ -19,7 +19,7 @@ class PageCompletionEway extends Eway
 
 
 it('requires every enabled payment field to be on the final submission page', function (int $paymentPage): void {
-    $integration = new PageCompletionEway(['name' => 'Page audit', 'handle' => 'pageAudit' . bin2hex(random_bytes(5))]);
+    $integration = new PageCompletionEway(['enabled' => true, 'name' => 'Page audit', 'handle' => 'pageAudit' . bin2hex(random_bytes(5))]);
     Formie::$plugin->getIntegrations()->saveIntegration($integration, false);
     $form = formie()->form()->multiPage(2)->onPage($paymentPage)->paymentField('payment', [
         'paymentIntegration' => $integration->handle, 'paymentIntegrationType' => PageCompletionEway::class,
@@ -53,7 +53,7 @@ it('requires every enabled payment field to be on the final submission page', fu
 })->with(['earlier page' => 1, 'final page control' => 2]);
 
 it('checks all payment placements before sending any purchase', function (bool $disabled): void {
-    $integration = new PageCompletionEway(['name' => 'Multiple payment pages', 'handle' => 'multiPayment' . bin2hex(random_bytes(5))]);
+    $integration = new PageCompletionEway(['enabled' => true, 'name' => 'Multiple payment pages', 'handle' => 'multiPayment' . bin2hex(random_bytes(5))]);
     expect(Formie::$plugin->getIntegrations()->saveIntegration($integration, false))->toBeTrue();
     $settings = [
         'paymentIntegration' => $integration->handle,
