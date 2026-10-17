@@ -8,6 +8,7 @@
 
 ### Fixed
 - Fix static table fields allowing rows to be added or removed in the submission editor.
+- Fix custom radio answers missing from the submission editor.
 - Fix checkbox toggles sharing option labels and being included in submission values and validation.
 - Fix required table fields incorrectly requiring every cell to have a value.
 - Fix calculations using another calculation with a number prefix or suffix returning incorrect results.

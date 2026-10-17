@@ -315,10 +315,20 @@ class Radio extends OptionsField implements SortableFieldInterface
 
     protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
+        $options = $this->translatedOptions();
+        $hasOtherOption = $this->enableOtherOption && in_array(self::OTHER_OPTION_VALUE, array_column($options, 'value'), true);
+        $isOtherValue = $hasOtherOption && $this->isOtherOptionStoredValue($value);
+
         return Craft::$app->getView()->renderTemplate('formie/_formfields/radio/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'options' => $this->translatedOptions(),
+            'name' => $hasOtherOption ? $this->handle . '[value]' : $this->handle,
+            'value' => $isOtherValue ? self::OTHER_OPTION_VALUE : $value,
+            'options' => $options,
+            'otherOption' => $hasOtherOption ? [
+                'value' => self::OTHER_OPTION_VALUE,
+                'name' => $this->handle . '[other]',
+                'text' => $isOtherValue ? (string)$value : '',
+                'label' => Craft::t('formie', '{label}, please specify', ['label' => $this->getOtherOptionLabel()]),
+            ] : null,
         ]);
     }
 

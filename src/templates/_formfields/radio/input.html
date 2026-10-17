@@ -33,6 +33,14 @@
                 checked: (optionValue~'') is same as (value~''),
                 autofocus: loop.first and (autofocus ?? false) and not craft.app.request.isMobileBrowser(true),
             }|merge(option) only %}
+
+            {% if otherOption is defined and otherOption and (optionValue~'') == otherOption.value %}
+                {% include '_includes/forms/text' with {
+                    name: otherOption.name,
+                    value: otherOption.text,
+                    inputAttributes: { 'aria-label': otherOption.label },
+                } only %}
+            {% endif %}
         </div>
     {% endfor %}
 {% endtag %}
