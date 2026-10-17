@@ -773,9 +773,9 @@ abstract class Payment extends Integration
     protected function getPaymentFieldPayload(Submission $submission): PaymentFieldPayload
     {
         if ($field = $this->getField()) {
-            // Resolve as the field's array projection; payment integrations then
-            // interpret provider-specific keys from this canonical payload.
-            $value = $submission->getFieldValueAsData($field->valueKey());
+            // Only the provider may consume transient token data. Public field
+            // projections and persisted content deliberately omit credentials.
+            $value = $field->normalizeValue($submission->getFieldValue($field->valueKey()), $submission)->getAttributes();
 
             return new PaymentFieldPayload($this->handle ?? '', $field->valueKey(), is_array($value) ? $value : []);
         }

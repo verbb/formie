@@ -47,7 +47,7 @@ class PaymentFieldValue extends BaseFieldValue
 
     public function __toString(): string
     {
-        return Json::encode($this->parts);
+        return Json::encode($this->getSafeAttributes());
     }
 
     public function isEmpty(): bool
@@ -72,7 +72,18 @@ class PaymentFieldValue extends BaseFieldValue
 
     public function toArray(): array
     {
-        return $this->parts;
+        return $this->getSafeAttributes();
+    }
+
+    public function getSafeAttributes(): array
+    {
+        // Credentials belong to the in-flight provider request, not submission
+        // content, client prefills, or downstream integration payloads.
+        return array_diff_key($this->parts, array_flip([
+            'cardName', 'cardNumber', 'cardExpiry', 'cardCvc',
+            'ewayTokenData', 'bpointToken', 'opayoTokenId', 'opayoSessionKey',
+            'monerisTokenId', 'paywayTokenId', 'squarePaymentId',
+        ]));
     }
 
     public function getAttributes(): array

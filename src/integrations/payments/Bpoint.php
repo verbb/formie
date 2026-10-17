@@ -166,7 +166,7 @@ class Bpoint extends Payment
             [
                 [
                     'type' => SingleLineText::class,
-                    'name' => Craft::t('formie', 'Cardholder Name'),
+                    'label' => Craft::t('formie', 'Cardholder Name'),
                     'handle' => 'cardName',
                     'required' => true,
                     'inputAttributes' => [
@@ -179,7 +179,7 @@ class Bpoint extends Payment
             [
                 [
                     'type' => SingleLineText::class,
-                    'name' => Craft::t('formie', 'Card Number'),
+                    'label' => Craft::t('formie', 'Card Number'),
                     'handle' => 'cardNumber',
                     'required' => true,
                     'placeholder' => '•••• •••• •••• ••••',
@@ -191,7 +191,7 @@ class Bpoint extends Payment
                 ],
                 [
                     'type' => SingleLineText::class,
-                    'name' => Craft::t('formie', 'Expiry'),
+                    'label' => Craft::t('formie', 'Expiry'),
                     'handle' => 'cardExpiry',
                     'required' => true,
                     'placeholder' => 'MM/YY',
@@ -203,7 +203,7 @@ class Bpoint extends Payment
                 ],
                 [
                     'type' => SingleLineText::class,
-                    'name' => Craft::t('formie', 'CVC'),
+                    'label' => Craft::t('formie', 'CVC'),
                     'handle' => 'cardCvc',
                     'required' => true,
                     'placeholder' => '•••',

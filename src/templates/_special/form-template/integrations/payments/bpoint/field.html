@@ -1,0 +1,12 @@
+<input type="hidden" name="{{ field.getHtmlName() }}">
+<input type="hidden" name="{{ field.getHtmlName('bpointToken') }}">
+
+{% fieldtag 'subFieldRows' %}
+    {% for row in field.getPaymentSubFields() %}
+        {% fieldtag 'subFieldRow' %}
+            {% for subField in row %}
+                {{ craft.formie.renderField(form, subField) }}
+            {% endfor %}
+        {% endfieldtag %}
+    {% endfor %}
+{% endfieldtag %}

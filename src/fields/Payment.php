@@ -84,11 +84,12 @@ class Payment extends Field
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         $value = parent::normalizeValue($value, $element);
-        $value = Json::decodeIfJson($value);
 
         if ($value instanceof PaymentFieldValue) {
             return $value;
         }
+
+        $value = Json::decodeIfJson($value);
 
         if (!is_array($value)) {
             $value = [];
@@ -118,7 +119,7 @@ class Payment extends Field
 
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
-        return $this->normalizeValue($value, $element)->getAttributes();
+        return $this->normalizeValue($value, $element)->getSafeAttributes();
     }
 
     public function defineFormBuilderPreviewSchema(): array
@@ -307,7 +308,7 @@ class Payment extends Field
 
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
-        return $this->normalizeValue($value, $element)->getAttributes();
+        return $this->normalizeValue($value, $element)->getSafeAttributes();
     }
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
@@ -318,8 +319,8 @@ class Payment extends Field
             return [];
         }
 
-        // Keep persisted payload canonical as primitive array data.
-        return $value->getAttributes();
+        // Payment records retain transaction details; credentials stay request-scoped.
+        return $value->getSafeAttributes();
     }
 
     protected function defineValueForExport(mixed $value, ?ElementInterface $element = null): array
@@ -384,15 +385,7 @@ class Payment extends Field
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
-        if ($value instanceof PaymentFieldValue) {
-            return Json::encode($value->getAttributes());
-        }
-
-        if (is_array($value) || is_object($value)) {
-            return Json::encode($value);
-        }
-
-        return (string)$value;
+        return Json::encode($this->normalizeValue($value, $element)->getSafeAttributes());
     }
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed

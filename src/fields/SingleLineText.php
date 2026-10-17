@@ -236,12 +236,14 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
 
         if ($key === 'fieldInput') {
             $value = $context->get('value');
+            // Gateway SDKs own these inputs; raw card details must not enter FormData.
+            $omitName = $this->getParentField() instanceof Payment && ($this->getInputAttributes()['name'] ?? null) === false;
 
             return SlotTag::make('input')
                 ->core($this->applyTextLimitInputAttributes([
                     'type' => 'text',
                     'id' => $id,
-                    'name' => $this->getHtmlName(),
+                    'name' => $omitName ? null : $this->getHtmlName(),
                     'value' => $value ?? false,
                     'placeholder' => $this->placeholder ?: null,
                     'required' => $this->required ? true : null,

@@ -8,6 +8,9 @@
 
 ### Fixed
 - Fix disabled or missing payment providers allowing payment forms to complete.
+- Fix card details and temporary payment credentials being included in saved submissions and integration payloads.
+- Fix Bpoint payment fields not rendering their card inputs.
+- Fix Eway and Bpoint payment summaries missing from the submission editor.
 - Fix summary fields remaining blank after AJAX page navigation.
 - Fix summary fields repeatedly retrying failed requests.
 - Fix multi-row Likert answers not saving when editing submissions in the control panel.
