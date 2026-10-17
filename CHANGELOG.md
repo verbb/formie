@@ -10,6 +10,7 @@
 - Fix forms freezing when live validation and disabling the submit button until valid are both enabled.
 - Fix file upload names failing to refresh after navigating between form pages.
 - Fix duplicate validation errors for disallowed file uploads.
+- Fix users with create-only submission permissions being unable to save new submissions in the control panel.
 - Fix Salesforce Client Credentials connections using generic login endpoints instead of their saved instance domain, and clarify the My Domain requirement.
 - Fix reCAPTCHA initialization when another reCAPTCHA SDK is already present on the page.
 - Fix AWeber OAuth provider resolution on case-sensitive filesystems.

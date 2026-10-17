@@ -614,7 +614,16 @@ class Submission extends Element
             return true;
         }
 
-        return Formie::$plugin->getPermissions()->canSaveSubmissions($user, $this->getForm());
+        $permissions = Formie::$plugin->getPermissions();
+        $form = $this->getForm();
+
+        if (!$this->id) {
+            return $user->can('formie-createSubmissions')
+                || ($form && ($user->can('formie-createSubmissions:' . $form->uid)
+                    || $user->can('formie-createSubmissions:' . $permissions->groupScope($permissions->getFormGroupHandle($form)))));
+        }
+
+        return $permissions->canSaveSubmissions($user, $form);
     }
 
     public function hasLockedContent(): bool

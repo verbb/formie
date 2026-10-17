@@ -15,6 +15,15 @@ test('shows assigned forms and submission sources without permission to create f
     await expect(sources.filter({ hasText: 'Scoped role form' })).toBeVisible();
     await expect(sources.filter({ hasText: 'Other role form' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'New submission', exact: true })).toBeVisible();
-    const editable = await page.evaluate(() => (window as any).Craft.Formie.editableForms.map(form => form.handle));
+    const editable = await page.evaluate(() => (window as any).Craft.Formie.editableForms.map((form: { handle: string }) => form.handle));
     expect(editable).toEqual(['scopedRoleForm']);
+
+    await page.getByRole('button', { name: 'New submission', exact: true }).click();
+    const title = `Create-only submission ${Date.now()}`;
+    await page.getByRole('textbox', { name: 'Title', exact: true }).fill(title);
+    await page.locator('[name="fields[message]"]').fill('Created without edit permission');
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.getByRole('link', { name: title, exact: true }).click();
+    await expect(page.locator('[name="fields[message]"]')).toHaveValue('Created without edit permission');
+    await expect(page.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
 });

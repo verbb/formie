@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use craft\elements\User;
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
 use verbb\formie\models\FormGroup;
 use verbb\formie\services\Permissions;
 
@@ -14,6 +15,26 @@ it('builds stable group-scoped permission keys', function (): void {
         ->and($permissions->scopedPermission(Permissions::PERM_MANAGE_FORMS, 'group:marketing'))
         ->toBe('formie-manageForms:group:marketing');
 });
+
+it('allows creating a submission without granting permission to edit saved submissions', function (string $scope): void {
+    $form = formie()->form()->singleLineTextField('message')->create();
+    $permissions = Formie::$plugin->getPermissions();
+    $allowed = match ($scope) {
+        'form' => 'formie-createSubmissions:' . $form->uid,
+        'group' => 'formie-createSubmissions:' . $permissions->groupScope($permissions->getFormGroupHandle($form)),
+        default => 'formie-createSubmissions',
+    };
+    $user = new class($allowed) extends User {
+        public function __construct(private string $allowedPermission) { parent::__construct(); }
+        public function can(string $permission): bool { return $permission === $this->allowedPermission; }
+    };
+    $submission = new Submission();
+    $submission->setForm($form);
+    expect($submission->canSave($user))->toBeTrue();
+
+    $saved = formie()->submission($form)->with(['message' => 'Existing submission'])->save();
+    expect($saved->canSave($user))->toBeFalse();
+})->with(['global', 'form', 'group']);
 
 it('resolves ungrouped forms to the ungrouped permission bucket', function (): void {
     $permissions = Formie::$plugin->getPermissions();
