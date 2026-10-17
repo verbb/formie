@@ -7,6 +7,7 @@
 - Update the minimum Tiptap requirement to `1.0.5`.
 
 ### Fixed
+- Fix cleared number fields restoring their default value when submissions are saved or loaded.
 - Fix hidden query prefills replacing submitted values after native form validation errors.
 - Fix editing submissions in the control panel replacing captured hidden values with the current administrator, date or IP address.
 - Fix text counters and phone countries not returning to their initial values when forms reset.

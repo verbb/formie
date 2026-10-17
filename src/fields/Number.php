@@ -133,10 +133,6 @@ class Number extends Field implements SortableFieldInterface, PreviewableFieldIn
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         if ($value === null) {
-            if ($this->defaultValue !== null) {
-                return (string)$this->defaultValue;
-            }
-
             return null;
         }
 
