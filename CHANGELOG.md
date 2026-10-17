@@ -7,6 +7,8 @@
 - Update the minimum Tiptap requirement to `1.0.5`.
 
 ### Fixed
+- Fix JSON report exports failing to download in the control panel.
+- Fix reports ignoring the option to display choice labels instead of values.
 - Fix disabled or missing payment providers allowing payment forms to complete.
 - Fix card details and temporary payment credentials being included in saved submissions and integration payloads.
 - Fix Bpoint payment fields not rendering their card inputs.

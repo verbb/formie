@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\base\OptionsField;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Content;
 use verbb\formie\fields\Heading;
@@ -647,6 +648,10 @@ class ReportColumns extends Component
 
         if (!$form || !$form->getFieldByHandle($handle)) {
             return null;
+        }
+
+        if ($display['useOptionLabels'] && $form->getFieldByHandle($handle) instanceof OptionsField) {
+            return $submission->getFieldValueForSummary($handle);
         }
 
         $value = $submission->getFieldValueForExport($handle);

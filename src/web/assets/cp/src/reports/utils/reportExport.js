@@ -114,8 +114,10 @@ export const runReportExport = async ({
     });
 
     const contentType = response.headers.get('content-type') || '';
+    const contentDisposition = response.headers.get('content-disposition') || '';
 
-    if (contentType.includes('application/json')) {
+    // JSON attachments are export files; only API responses contain queue status or errors.
+    if (contentType.includes('application/json') && !/^attachment(?:;|$)/i.test(contentDisposition)) {
         const payload = await response.json();
 
         if (!response.ok || payload.error) {
@@ -154,7 +156,7 @@ export const runReportExport = async ({
 
     const blob = await response.blob();
     const filename = getFilenameFromDisposition(
-        response.headers.get('content-disposition'),
+        contentDisposition,
         `report-export.${format}`,
     );
 
