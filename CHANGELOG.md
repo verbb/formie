@@ -29,6 +29,7 @@
 - Fix custom radio answers missing from the submission editor.
 - Fix checkbox toggles sharing option labels and being included in submission values and validation.
 - Fix required table fields incorrectly requiring every cell to have a value.
+- Fix Pardot form handlers rejecting submissions with existing single-select mappings such as `country.value`, while retaining plain field names and separate multi-select values.
 - Fix calculations using another calculation with a number prefix or suffix returning incorrect results.
 - Fix spam submissions configured to show success failing to display completion messages or redirect.
 - Fix fresh forms retaining an earlier submission’s spam-protection timer.
