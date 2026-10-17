@@ -164,6 +164,27 @@ function initPhoneField(phoneInput: PhoneInput, countryInput: HTMLInputElement, 
     phoneInput.addEventListener('blur', syncCountry);
     syncCountry();
 
+    // Hidden input values also change their native reset default, so retain the initial country.
+    let defaultCountry = countryInput.value;
+    let destroyed = false;
+    void validator.promise.then(() => {
+        if (!destroyed) {
+            defaultCountry ||= validator.getSelectedCountryData()?.iso2?.toUpperCase() || '';
+        }
+    }, () => {});
+
+    const form = phoneInput.form;
+    const onReset = (event: Event) => {
+        queueMicrotask(() => {
+            if (!destroyed && !event.defaultPrevented && defaultCountry) {
+                validator.setCountry(defaultCountry.toLowerCase() as IntlCountryCode);
+                validator.setNumber(phoneInput.defaultValue);
+                syncCountry();
+            }
+        });
+    };
+    form?.addEventListener('reset', onReset);
+
     // Keep the country dropdown button in sync when the tel input is enabled/disabled after
     // init (multi-page page-hidden, or conditions). intl-tel-input disables the button to match
     // a disabled input at init, but won't re-enable it when `disabled` is later removed.
@@ -199,6 +220,8 @@ function initPhoneField(phoneInput: PhoneInput, countryInput: HTMLInputElement, 
     });
 
     return () => {
+        destroyed = true;
+        form?.removeEventListener('reset', onReset);
         phoneInput.removeEventListener('countrychange', syncCountry);
         phoneInput.removeEventListener('blur', syncCountry);
         countryButtonObserver.disconnect();

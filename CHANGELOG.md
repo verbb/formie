@@ -7,6 +7,7 @@
 - Update the minimum Tiptap requirement to `1.0.5`.
 
 ### Fixed
+- Fix text counters and phone countries not returning to their initial values when forms reset.
 - Fix text, name, dropdown, email, phone, number and hidden field labels not identifying their inputs in the submission editor.
 - Fix text minimum limits using the maximum limit's unit in the submission editor.
 - Fix static table fields allowing rows to be added or removed in the submission editor.

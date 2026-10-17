@@ -323,12 +323,23 @@ export const textLimitModule: BrowserModuleDefinition = {
             };
         });
 
+        const onReset = (event: Event) => {
+            // Native reset restores input values after the reset event.
+            queueMicrotask(() => {
+                if (!event.defaultPrevented) {
+                    counterInputs.forEach(updateCounter);
+                }
+            });
+        };
+        ctx.form?.addEventListener('reset', onReset);
+
         await ctx.emit('formie:module:text-limit:init', {
             count: inputs.length,
         });
 
         return {
             destroy: () => {
+                ctx.form?.removeEventListener('reset', onReset);
                 unbinds.forEach((unbind) => {
                     unbind();
                 });

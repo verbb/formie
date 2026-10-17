@@ -58,7 +58,9 @@ declare module 'flatpickr/dist/l10n/index.js' {
 
 declare module 'intl-tel-input' {
     type IntlTelInputInstance = {
+        readonly promise: Promise<void>;
         setCountry(country: string): void;
+        setNumber(number: string): void;
         isValidNumber(): boolean;
         getSelectedCountryData(): { iso2?: string } | null;
         getValidationError(): number;
