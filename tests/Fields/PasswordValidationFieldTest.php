@@ -131,3 +131,13 @@ it('still enforces match field validation for password fields', function (): voi
 
     expect($invalid)->toHaveFieldError('confirmPassword');
 });
+
+it('hashes a zero password when no strength rule excludes it', function (): void {
+    $form = formie()->form()->passwordField('password', ['required' => true])->create();
+    $submission = formie()->submission($form)->with(['password' => '0'])->save();
+    $saved = \verbb\formie\elements\Submission::find()->id($submission->id)->status(null)->one();
+    $hash = $saved->getFieldValue('password');
+
+    expect($hash)->toBeString()->not->toBe('0');
+    expect(password_verify('0', $hash))->toBeTrue();
+});

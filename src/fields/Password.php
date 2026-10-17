@@ -310,12 +310,15 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {
+        // A zero string is a password value, even though PHP considers it falsey.
+        $hasValue = $value !== null && $value !== '';
+
         // Only save the password as a hash
-        if ($value && password_get_info((string)$value)['algo'] !== null) {
+        if ($hasValue && password_get_info((string)$value)['algo'] !== null) {
             return $value;
         }
 
-        if ($value) {
+        if ($hasValue) {
             $value = Craft::$app->getSecurity()->hashPassword($value);
         } else {
             // Important to reset to null, to prevent hash discovery from an empty string
