@@ -7,6 +7,8 @@
 - Update the minimum Tiptap requirement to `1.0.5`.
 
 ### Fixed
+- Fix hidden query prefills replacing submitted values after native form validation errors.
+- Fix editing submissions in the control panel replacing captured hidden values with the current administrator, date or IP address.
 - Fix text counters and phone countries not returning to their initial values when forms reset.
 - Fix rich-text validation errors failing to focus and describe the editable control.
 - Fix text, name, dropdown, email, phone, number and hidden field labels not identifying their inputs in the submission editor.

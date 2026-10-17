@@ -313,7 +313,7 @@ final class RuntimeConfiguration
             return [$config->forced[$field->uid], true];
         }
 
-        if ($field instanceof Hidden && $field->isAuthoritativeSource()) {
+        if ($field instanceof Hidden && $field->shouldResolveSource($submission)) {
             return [$field->getDefaultValue(), true];
         }
 

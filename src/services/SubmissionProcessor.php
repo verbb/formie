@@ -43,19 +43,28 @@ class SubmissionProcessor extends Component
                 }
             }
 
-            if ($populate) {
-                $populate();
+            // Request normalization needs the authorized command, including whether
+            // this is an editor correcting captured values or a visitor submitting them.
+            WorkflowContext::push(new WorkflowContext($command));
+
+            try {
+                if ($populate) {
+                    $populate();
+                }
+
+                // Replay settles accepted values; administrative GraphQL writes have
+                // their own value contract and do not apply visitor defaults.
+                if ($command->authority->type !== SubmissionAuthorityType::GRAPHQL_ADMIN && $command->operation !== SubmissionOperation::PAYMENT_REPLAY) {
+                    (new RuntimeConfiguration())->applyValues($command->submission);
+                }
+            } finally {
+                WorkflowContext::pop();
             }
 
             if ($command->authority->type === SubmissionAuthorityType::GRAPHQL_ADMIN) {
                 return $this->_persistAdministrative($command);
             }
 
-            // Replay settles the accepted record. Reapplying values here would undo
-            // conditional clearing and reevaluate Hidden sources in the callback's context.
-            if ($command->operation !== SubmissionOperation::PAYMENT_REPLAY) {
-                (new RuntimeConfiguration())->applyValues($command->submission);
-            }
             return Formie::$plugin->getSubmissionWorkflow()->process($command);
         });
     }

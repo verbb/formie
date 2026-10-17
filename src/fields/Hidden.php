@@ -6,6 +6,7 @@ use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\FieldBuilderPolicy;
@@ -17,6 +18,7 @@ use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\theme\context\RenderContext;
+use verbb\formie\workflow\WorkflowContext;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -100,6 +102,19 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
         return in_array($this->valueSource, ['template', 'dateUs', 'dateInt', 'userId', 'username', 'userEmail', 'userIp'], true);
     }
 
+    public function shouldResolveSource(?ElementInterface $element): bool
+    {
+        $command = WorkflowContext::current()?->command;
+
+        // Existing CP submissions contain captured visitor data. Trust authorized
+        // editor corrections instead of replacing it with the current admin/date/IP.
+        if ($element instanceof Submission && $element->id && $command?->submission === $element && $command->authority->type === SubmissionAuthorityType::CONTROL_PANEL) {
+            return false;
+        }
+
+        return $this->isAuthoritativeSource();
+    }
+
     public function runtimeOverridableSettings(): array
     {
         return [...parent::runtimeOverridableSettings(), 'valueSource', 'defaultTemplate', 'queryParameter', 'cookieName'];
@@ -170,7 +185,7 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
 
     public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
     {
-        if ($this->isAuthoritativeSource()) {
+        if ($this->shouldResolveSource($element)) {
             $value = $this->getDefaultValue();
         }
 
@@ -197,7 +212,10 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
         // Only field-authored custom defaults resolve reference tokens, and only
         // when a submission context exists. Template/query prefills remain literal.
         if ($hasPrefill) {
-            $inputOptions['value'] = $prefillValue;
+            // Explicit values include failed submissions and intentionally cleared fields.
+            if ($value === null) {
+                $inputOptions['value'] = $prefillValue;
+            }
         } elseif ($this->usesTemplateDefault()) {
             $inputOptions['value'] = $this->getInitialValue($submission ?: $form);
         }
