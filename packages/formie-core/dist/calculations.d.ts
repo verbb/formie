@@ -5,6 +5,10 @@ export type CalculationVariable = {
     index?: string;
     rows?: string;
     fieldKind?: string;
+    numberFormat?: {
+        prefix?: string;
+        suffix?: string;
+    };
 };
 export type CalculationFormula = {
     formula?: string;

@@ -5,6 +5,7 @@ type ValidatorDefinition = {
 };
 type ValidateOptions = {
     includeHiddenPages?: boolean;
+    renderErrors?: boolean;
 };
 export declare class FormieValidator {
     form: HTMLFormElement;

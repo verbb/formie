@@ -1,20 +1,20 @@
 import { n as e } from "./chunks/request-profile-DhwkeCpS.js";
-import { i as t, m as n, t as r } from "./chunks/dist-XgDbVf-N.js";
+import { i as t, m as n, t as r } from "./chunks/dist-KtmTckA3.js";
 import { c as i, d as a, l as o, o as s, r as c, t as l, u } from "./chunks/event-names-BCI2FLD8.js";
-import { a as d, c as f, d as p, f as m, i as h, l as g, n as _, o as v, p as y, r as b, s as x, t as S, u as C } from "./chunks/api-BjXpOI9Q.js";
-import { a as ee, i as te, n as ne, r as w, t as T } from "./chunks/debug-BV0DvdHx.js";
-import { i as E, r as re, t as D } from "./chunks/theme-classes-DAQuEqdP.js";
+import { a as d, c as f, d as p, f as m, i as h, l as g, m as _, n as v, o as y, p as b, r as x, s as ee, t as te, u as S } from "./chunks/api-CbcadhXB.js";
+import { a as C, i as ne, n as re, r as w, t as T } from "./chunks/debug-BV0DvdHx.js";
+import { i as E, r as ie, t as D } from "./chunks/theme-classes-DAQuEqdP.js";
 import { n as O } from "./chunks/skip-CEW89ExY.js";
-import { i as ie, t as ae } from "./chunks/csrf-DxHg_ZYt.js";
-import { n as k, t as oe } from "./chunks/http-CT-rsaIW.js";
-import { i as se } from "./chunks/async-2GdXNFCE.js";
-import { a as ce, i as A, n as le, r as ue, t as de } from "./chunks/i18n-BY1ds1BL.js";
-import { n as fe, t as pe } from "./chunks/api-C2fmBZFA.js";
-import { n as me, r as he, t as ge } from "./chunks/field-references.keys-58ZSTrCW.js";
-import { i as _e, n as ve, r as ye, t as be } from "./chunks/field-references.resolver-CCRNwJ73.js";
-import { t as xe } from "./chunks/api-ghNr2uxX.js";
+import { i as ae, t as oe } from "./chunks/csrf-DxHg_ZYt.js";
+import { n as k, t as se } from "./chunks/http-DERPbgED.js";
+import { i as ce } from "./chunks/async-2GdXNFCE.js";
+import { a as le, i as A, n as ue, r as de, t as fe } from "./chunks/i18n-BY1ds1BL.js";
+import { n as pe, t as me } from "./chunks/api-C2fmBZFA.js";
+import { n as he, r as ge, t as _e } from "./chunks/field-references.keys-58ZSTrCW.js";
+import { i as ve, n as ye, r as be, t as xe } from "./chunks/field-references.resolver-DC7vOSqg.js";
+import { t as Se } from "./chunks/api-ghNr2uxX.js";
 //#region src/js/compatibility/event-map.ts
-var Se = [
+var Ce = [
 	{
 		legacyEvent: "onFormieLoaded",
 		canonicalEvent: "formie:mount:after",
@@ -67,7 +67,7 @@ var Se = [
 		canonicalEvent: "formie:submit:after",
 		disposition: "approximate"
 	}
-], Ce = [
+], we = [
 	{
 		legacyEvent: "formieValidatorInitialized",
 		canonicalEvent: "formie:validator:ready",
@@ -89,7 +89,7 @@ var Se = [
 		disposition: "safe"
 	}
 ];
-function we(e) {
+function Te(e) {
 	if (!e) return {
 		enabled: !1,
 		legacyDomEvents: !1,
@@ -109,18 +109,18 @@ function we(e) {
 }
 //#endregion
 //#region src/js/compatibility/dom-adapter.ts
-function Te(e, t, n) {
+function Ee(e, t, n) {
 	e.dispatchEvent(new CustomEvent(t, {
 		bubbles: !0,
 		detail: n
 	}));
 }
-function Ee(e, t) {
+function De(e, t) {
 	if (e.canonicalEvent !== "formie:submit:result") return !0;
 	let n = t;
 	return e.legacyEvent === "onAfterFormieSubmit" ? !!n?.ok : e.legacyEvent !== "onFormieSubmitError" || n?.ok === !1;
 }
-function De(e, t) {
+function Oe(e, t) {
 	let n = t && typeof t == "object" ? t : {}, r = typeof n.pageId == "string" ? n.pageId : "", i = Array.from(e.querySelectorAll("[data-formie-page-id]"));
 	return { data: {
 		nextPageId: r,
@@ -128,7 +128,7 @@ function De(e, t) {
 		totalPages: i.length
 	} };
 }
-function Oe(e, t, n, r, i) {
+function ke(e, t, n, r, i) {
 	let a = globalThis.Formie || i;
 	return e.legacyEvent === "onFormieLoaded" ? { formie: a } : e.legacyEvent === "onFormieInit" ? {
 		formie: a,
@@ -140,12 +140,12 @@ function Oe(e, t, n, r, i) {
 		form: r,
 		target: n,
 		instance: i
-	} : e.legacyEvent === "onFormiePageToggle" ? De(r, t) : t;
+	} : e.legacyEvent === "onFormiePageToggle" ? Oe(r, t) : t;
 }
-function ke({ target: e, form: t, instance: n, options: r, unbinds: i }) {
-	r.legacyDomEvents && Se.forEach((r) => {
+function Ae({ target: e, form: t, instance: n, options: r, unbinds: i }) {
+	r.legacyDomEvents && Ce.forEach((r) => {
 		let o = (i) => {
-			i instanceof CustomEvent && Ee(r, i.detail) && Te(r.target === "document" ? document : t, r.legacyEvent, Oe(r, i.detail, e, t, n));
+			i instanceof CustomEvent && De(r, i.detail) && Ee(r.target === "document" ? document : t, r.legacyEvent, ke(r, i.detail, e, t, n));
 		};
 		e.addEventListener(a(r.canonicalEvent), o), i.push(() => {
 			e.removeEventListener(a(r.canonicalEvent), o);
@@ -163,7 +163,7 @@ function j(e, t, n) {
 function M(e, t) {
 	return !!e && typeof e == "object" && e.validator === t;
 }
-function Ae({ target: e, form: t, validatorDetail: n, options: r, unbinds: i }) {
+function je({ target: e, form: t, validatorDetail: n, options: r, unbinds: i }) {
 	if (!r.legacyValidatorEvents || !n) return;
 	let { validator: a, addValidator: o, removeValidator: s } = n, c = {
 		...n,
@@ -199,17 +199,17 @@ function Ae({ target: e, form: t, validatorDetail: n, options: r, unbinds: i }) 
 }
 //#endregion
 //#region src/js/core/error-aria-live.ts
-function N(e) {
+function Me(e) {
 	let t = (e.dataset.formieErrorAriaLive || "polite").trim().toLowerCase();
 	return t === "assertive" || t === "off" ? t : "polite";
 }
-function je(e, t) {
+function Ne(e, t) {
 	return e === "off" ? null : t ? e : "polite";
 }
-function Me(e) {
+function Pe(e) {
 	return e === "off" ? null : e;
 }
-function Ne(e, t) {
+function Fe(e, t) {
 	if (t) {
 		e.setAttribute("aria-live", t), e.setAttribute("aria-atomic", "true");
 		return;
@@ -218,11 +218,11 @@ function Ne(e, t) {
 }
 //#endregion
 //#region src/js/core/field-error-aria.ts
-function Pe(e, t) {
+function Ie(e, t) {
 	let n = (e.getAttribute("aria-describedby") || "").trim(), r = n ? n.split(/\s+/) : [];
 	r.includes(t) || r.push(t), e.setAttribute("aria-describedby", r.join(" ").trim());
 }
-function Fe(e, t = document) {
+function Le(e, t = document) {
 	let n = (e.getAttribute("aria-describedby") || "").trim();
 	if (!n) return;
 	let r = n.split(/\s+/).filter((e) => !!e && !!t.getElementById(e));
@@ -232,26 +232,36 @@ function Fe(e, t = document) {
 	}
 	e.removeAttribute("aria-describedby");
 }
-function Ie(e, t) {
-	e.setAttribute("aria-errormessage", t), Pe(e, t);
+function Re(e, t) {
+	e.setAttribute("aria-errormessage", t), Ie(e, t);
 }
-function Le(e, t = []) {
+function ze(e, t = []) {
 	t.forEach((t) => {
 		e.getAttribute("aria-errormessage") === t && e.removeAttribute("aria-errormessage");
-	}), !t.length && e.hasAttribute("aria-errormessage") && e.removeAttribute("aria-errormessage"), Fe(e);
+	}), !t.length && e.hasAttribute("aria-errormessage") && e.removeAttribute("aria-errormessage"), Le(e);
 }
 //#endregion
 //#region src/js/core/validation-focus.ts
-function Re(e) {
+function Be(e) {
 	return Array.from(e.querySelectorAll("[data-formie-field-handle]")).find((e) => e.getAttribute("data-formie-field-has-error") === "true" || e.querySelector("[data-formie-field-error]") !== null) || null;
 }
-function ze(e) {
-	return Array.from(e.querySelectorAll("[aria-invalid=\"true\"]")).find((e) => !O(e)) || (Array.from(e.querySelectorAll("input:not([type=\"hidden\"]):not([disabled]), select:not([disabled]), textarea:not([disabled])")).find((e) => !O(e)) ?? null);
+function Ve(e) {
+	if (e instanceof HTMLTextAreaElement) {
+		let t = e.richText;
+		if (t) return t.content;
+	}
+	return e;
 }
-function Be(e) {
+function He(e) {
+	let t = Array.from(e.querySelectorAll("[aria-invalid=\"true\"]")).find((e) => !O(e));
+	if (t) return Ve(t);
+	let n = Array.from(e.querySelectorAll("input:not([type=\"hidden\"]):not([disabled]), select:not([disabled]), textarea:not([disabled])")).find((e) => !O(e));
+	return n ? Ve(n) : null;
+}
+function Ue(e) {
 	return e.querySelector("[data-formie-message-error], [data-formie-error-container], [data-formie-errors]");
 }
-function Ve(e) {
+function We(e) {
 	e.querySelectorAll("[data-formie-field-handle]").forEach((t) => {
 		let n = t;
 		if (n.getAttribute("data-formie-field-has-error") !== "true" && n.querySelector("[data-formie-field-error]") === null) return;
@@ -260,19 +270,19 @@ function Ve(e) {
 		n.querySelectorAll("input, select, textarea").forEach((t) => {
 			let i = t;
 			if (O(i)) return;
-			i.setAttribute("aria-invalid", "true"), D(i, e, "fieldControlError"), i.setAttribute("data-formie-input-has-error", "true"), r && Ie(i, r);
+			i.setAttribute("aria-invalid", "true"), D(i, e, "fieldControlError"), i.setAttribute("data-formie-input-has-error", "true"), r && Re(i, r);
 			let a = n.querySelector("[data-formie-instructions]");
-			a?.id && Pe(i, a.id);
+			a?.id && Ie(i, a.id);
 		});
 	});
 }
-function He(e) {
-	return !!Re(e) || !!Be(e);
+function Ge(e) {
+	return !!Be(e) || !!Ue(e);
 }
-function Ue(e) {
-	let t = Re(e);
+function Ke(e) {
+	let t = Be(e);
 	if (t) {
-		let e = ze(t);
+		let e = He(t);
 		if (e) {
 			if (e.scrollIntoView({
 				behavior: "smooth",
@@ -289,7 +299,7 @@ function Ue(e) {
 			block: "center"
 		}), !0;
 	}
-	let n = Be(e);
+	let n = Ue(e);
 	return n ? (n.scrollIntoView({
 		behavior: "smooth",
 		block: "center"
@@ -297,8 +307,8 @@ function Ue(e) {
 }
 //#endregion
 //#region src/js/transport/forms-api.ts
-var P = T("general", "transport");
-function We(e) {
+var N = T("general", "transport");
+function qe(e) {
 	let t = {};
 	return [
 		"theme",
@@ -309,7 +319,7 @@ function We(e) {
 		e[n] !== void 0 && (t[n] = e[n]);
 	}), t;
 }
-function Ge(e, t) {
+function Je(e, t) {
 	let n = e.success === !0, r = e.completion && typeof e.completion == "object" ? e.completion : null, i = e.payment && typeof e.payment == "object" ? e.payment : null, a = [
 		"requiresAction",
 		"pending",
@@ -350,12 +360,12 @@ function Ge(e, t) {
 		meta: e
 	};
 }
-async function Ke(e, t, n = {}, r = {}) {
+async function Ye(e, t, n = {}, r = {}) {
 	let i = JSON.stringify({
 		handle: t,
 		renderOptions: n
 	});
-	P.log("requestRender start.", {
+	N.log("requestRender start.", {
 		endpoint: e,
 		handle: t
 	});
@@ -365,17 +375,17 @@ async function Ke(e, t, n = {}, r = {}) {
 		body: i,
 		headers: { "Content-Type": "application/json" }
 	});
-	return P.log("requestRender complete.", { hasHtml: !!a.html }), a;
+	return N.log("requestRender complete.", { hasHtml: !!a.html }), a;
 }
-async function qe(e, t, n = {}, r = {}) {
+async function Xe(e, t, n = {}, r = {}) {
 	let i = JSON.stringify({
 		query: "\nquery FormieHtmlForm($handle: String!, $input: ServerRenderPayloadInput) {\n  formieHtmlForm(handle: $handle, input: $input) {\n    html\n  }\n}",
 		variables: {
 			handle: t,
-			input: We(n)
+			input: qe(n)
 		}
 	});
-	P.log("requestGraphqlRender start.", {
+	N.log("requestGraphqlRender start.", {
 		endpoint: e,
 		handle: t
 	});
@@ -388,19 +398,19 @@ async function qe(e, t, n = {}, r = {}) {
 	if (Array.isArray(a.errors) && a.errors.length > 0) throw Error(a.errors.map((e) => e.message || "Unknown GraphQL error").join("; "));
 	if (!a.data?.formieHtmlForm) throw Error(`Form not found for handle "${t}".`);
 	let o = a.data.formieHtmlForm;
-	return P.log("requestGraphqlRender complete.", { hasHtml: !!o.html }), o;
+	return N.log("requestGraphqlRender complete.", { hasHtml: !!o.html }), o;
 }
-async function Je(e, t, n, r = {}, i) {
+async function Ze(e, t, n, r = {}, i) {
 	let a = new URL(e, window.location.origin);
-	a.searchParams.set("handle", t), n && a.searchParams.set("renderId", n), i && a.searchParams.set("requestToken", i), P.log("requestRefreshTokens start.", {
+	a.searchParams.set("handle", t), n && a.searchParams.set("renderId", n), i && a.searchParams.set("requestToken", i), N.log("requestRefreshTokens start.", {
 		endpoint: a.toString(),
 		handle: t,
 		hasRenderId: !!n
 	});
 	let o = await k(a.toString(), r);
-	return P.log("requestRefreshTokens complete.", { hasRefreshTokens: !!o.refreshTokens }), o.refreshTokens || o;
+	return N.log("requestRefreshTokens complete.", { hasRefreshTokens: !!o.refreshTokens }), o.refreshTokens || o;
 }
-async function Ye(e, t, n) {
+async function Qe(e, t, n) {
 	let r = new URL(e, window.location.origin), i = new FormData();
 	if (n && i.append("pageId", n), t) {
 		[
@@ -414,14 +424,14 @@ async function Ye(e, t, n) {
 		].forEach((e) => {
 			let n = t.querySelector(`input[name="${e}"]`)?.value?.trim();
 			n && i.append(e, n);
-		}), ae(i, t);
+		}), oe(i, t);
 		for (let [e, n] of new FormData(t)) e.startsWith("fields[") && i.append(e, n);
 	}
-	P.log("requestSetPage start.", {
+	N.log("requestSetPage start.", {
 		requestUrl: r.toString(),
 		pageId: n || null
 	});
-	let a = await (await oe(r.toString(), {
+	let a = await (await se(r.toString(), {
 		method: "POST",
 		body: i,
 		profile: t?.dataset.formieRequestProfile
@@ -430,9 +440,9 @@ async function Ye(e, t, n) {
 		let e = a.session, n = t.querySelector("input[name=\"expectedVersion\"]"), r = t.querySelector("input[name=\"requestToken\"]");
 		n && (n.value = String(e.version)), r && e.tokens?.request && (r.value = e.tokens.request);
 	}
-	return P.log("requestSetPage complete.", a), a;
+	return N.log("requestSetPage complete.", a), a;
 }
-function Xe(e, t) {
+function $e(e, t) {
 	let n = new URL(e, window.location.origin), i = new FormData();
 	[
 		"handle",
@@ -442,7 +452,7 @@ function Xe(e, t) {
 	].forEach((e) => {
 		let n = t.querySelector(`input[name="${e}"]`)?.value?.trim();
 		n && i.append(e, n);
-	}), ae(i, t), P.log("clearSubmissionOnUnload start.", { requestUrl: n.toString() });
+	}), oe(i, t), N.log("clearSubmissionOnUnload start.", { requestUrl: n.toString() });
 	try {
 		if (t.dataset.formieRequestProfile !== "cross-origin-public" && typeof navigator.sendBeacon == "function" && navigator.sendBeacon(n.toString(), i)) return;
 	} catch {}
@@ -453,9 +463,9 @@ function Xe(e, t) {
 		headers: { Accept: "application/json" }
 	}, { profile: t.dataset.formieRequestProfile });
 }
-async function Ze(e, t) {
+async function et(e, t) {
 	let n = (e.getAttribute("method") || "POST").toUpperCase(), i = e.getAttribute("action") || window.location.href, a = e.dataset.formieErrorMessage?.trim() || "Submission failed.";
-	P.log("submitForm start.", {
+	N.log("submitForm start.", {
 		method: n,
 		action: i,
 		submitAction: t.get("submitAction")
@@ -465,13 +475,13 @@ async function Ze(e, t) {
 		body: t,
 		headers: { Accept: "application/json" }
 	}, { profile: e.dataset.formieRequestProfile }), s = o.headers.get("content-type") || "";
-	if (!s.includes("application/json")) return o.ok ? (P.log("submitForm non-JSON success response.", {
+	if (!s.includes("application/json")) return o.ok ? (N.log("submitForm non-JSON success response.", {
 		status: o.status,
 		contentType: s
 	}), {
 		ok: !0,
 		message: "Submission completed."
-	}) : (P.warn("submitForm non-JSON HTTP error.", {
+	}) : (N.warn("submitForm non-JSON HTTP error.", {
 		status: o.status,
 		contentType: s
 	}), {
@@ -480,8 +490,8 @@ async function Ze(e, t) {
 		message: `Request failed (${o.status}).`,
 		formErrors: [`Request failed (${o.status}).`]
 	});
-	let c = Ge(await o.json(), a);
-	return P.log("submitForm JSON response normalized.", {
+	let c = Je(await o.json(), a);
+	return N.log("submitForm JSON response normalized.", {
 		ok: c.ok,
 		code: c.code,
 		hasRedirect: !!c.redirect?.url,
@@ -490,20 +500,20 @@ async function Ze(e, t) {
 }
 //#endregion
 //#region src/js/submit/pipeline.ts
-var Qe = [
+var tt = [
 	"prepare",
 	"validate",
 	"challenge",
 	"payment",
 	"send",
 	"result"
-], $e = [
+], nt = [
 	"prepare",
 	"validate",
 	"challenge",
 	"payment"
-], F = T("general", "pipeline");
-function et(e, t) {
+], P = T("general", "pipeline");
+function rt(e, t) {
 	return {
 		ok: !1,
 		stage: e,
@@ -512,13 +522,13 @@ function et(e, t) {
 		formErrors: [t || "Submission aborted."]
 	};
 }
-function tt(e) {
+function it(e) {
 	return e instanceof HTMLInputElement || e instanceof HTMLSelectElement || e instanceof HTMLTextAreaElement;
 }
-function nt(e) {
+function at(e) {
 	return !(!e.name || e.disabled || e instanceof HTMLInputElement && (e.type === "submit" || e.type === "button" || e.type === "reset" || e.type === "image" || (e.type === "checkbox" || e.type === "radio") && !e.checked || e.type === "file" && (!e.files || e.files.length === 0)));
 }
-function rt(e, t) {
+function ot(e, t) {
 	if (t instanceof HTMLInputElement) {
 		if (t.type === "file") {
 			Array.from(t.files || []).forEach((n) => {
@@ -537,49 +547,49 @@ function rt(e, t) {
 	}
 	e.append(t.name, t.value);
 }
-function it(e, t) {
+function st(e, t) {
 	t.querySelectorAll("input, select, textarea").forEach((t) => {
-		let n = tt(t) ? t : null;
-		n && !n.closest("[data-formie-page]") && nt(n) && rt(e, n);
+		let n = it(t) ? t : null;
+		n && !n.closest("[data-formie-page]") && at(n) && ot(e, n);
 	});
 }
-function at(e, t) {
+function ct(e, t) {
 	let n = /* @__PURE__ */ new Set();
 	return t.querySelectorAll("input, select, textarea").forEach((t) => {
-		let r = tt(t) ? t : null;
-		r && r.name && !r.disabled && (r instanceof HTMLInputElement && (r.type === "submit" || r.type === "button" || r.type === "reset" || r.type === "image") || (r.name.startsWith("fields[") && n.add(r.name), nt(r) && rt(e, r)));
+		let r = it(t) ? t : null;
+		r && r.name && !r.disabled && (r instanceof HTMLInputElement && (r.type === "submit" || r.type === "button" || r.type === "reset" || r.type === "image") || (r.name.startsWith("fields[") && n.add(r.name), at(r) && ot(e, r)));
 	}), n;
 }
-function ot(e, t) {
+function lt(e, t) {
 	t.forEach((t) => {
 		e.has(t) || e.append(t, "");
 	});
 }
-function st(e, t) {
-	let n = f(e), r = n.find((e) => !e.hasAttribute("data-formie-page-hidden")) || null;
+function ut(e, t) {
+	let n = g(e), r = n.find((e) => !e.hasAttribute("data-formie-page-hidden")) || null;
 	if (!n.length || !r) {
 		let n = new FormData(e);
 		return n.set("submitAction", t), n;
 	}
 	let i = new FormData();
-	return it(i, e), ot(i, at(i, r)), i.set("submitAction", t), i;
+	return st(i, e), lt(i, ct(i, r)), i.set("submitAction", t), i;
 }
-function ct(e, t) {
+function dt(e, t) {
 	if (t !== "submit") return !1;
-	let n = f(e);
+	let n = g(e);
 	return !n.length || (n.find((e) => !e.hasAttribute("data-formie-page-hidden")) || n[n.length - 1]) === n[n.length - 1];
 }
-async function lt(e, t, n, r = {}) {
-	F.log("Starting submit pipeline.", {
+async function ft(e, t, n, r = {}) {
+	P.log("Starting submit pipeline.", {
 		action: t,
 		preflightOnly: r.preflightOnly === !0
 	});
-	let i = !1, a, o = null, s = ct(e, t), c = {
+	let i = !1, a, o = null, s = dt(e, t), c = {
 		form: e,
 		action: t,
-		formData: st(e, t),
+		formData: ut(e, t),
 		abort: (e) => {
-			i = !0, a = e, F.warn("Pipeline aborted.", { reason: e });
+			i = !0, a = e, P.warn("Pipeline aborted.", { reason: e });
 		},
 		isAborted: () => i,
 		abortReason: () => a
@@ -591,7 +601,7 @@ async function lt(e, t, n, r = {}) {
 		validate: async (e) => {
 			if (e.action !== "submit" || r.validateOnSubmit === !1) return null;
 			if (r.validator) {
-				let { scope: t, final: n } = g(e.form), i = r.validator.submit(n ? e.form : t, { final: n });
+				let { scope: t, final: n } = S(e.form), i = r.validator.submit(n ? e.form : t, { final: n });
 				if (i.length > 0) {
 					let e = i[0]?.input;
 					if (e) {
@@ -627,68 +637,68 @@ async function lt(e, t, n, r = {}) {
 		challenge: async () => null,
 		payment: async () => null,
 		send: async (e) => {
-			e.formData = st(e.form, e.action);
-			let t = await Ze(e.form, e.formData);
+			e.formData = ut(e.form, e.action);
+			let t = await et(e.form, e.formData);
 			return o = t, t;
 		},
 		result: async (e) => (o && o.ok && o.redirect?.url && (o.redirect.target === "new-tab" ? window.open(o.redirect.url, "_blank", "noopener,noreferrer") : (e.form.setAttribute("data-formie-internal-navigation", "redirect"), window.location.href = o.redirect.url)), null)
 	};
 	{
 		let e = await n.emitSafe("formie:submit:before", c);
-		e.failed.length > 0 && F.warn("Submit before listeners failed.", {
+		e.failed.length > 0 && P.warn("Submit before listeners failed.", {
 			eventName: e.eventName,
 			failed: e.failed.length
 		});
 	}
 	if (s) {
 		let e = await n.emitSafe("formie:submit:final:before", c);
-		e.failed.length > 0 && F.warn("Final submit before listeners failed.", {
+		e.failed.length > 0 && P.warn("Final submit before listeners failed.", {
 			eventName: e.eventName,
 			failed: e.failed.length
 		});
 	}
-	let u = r.preflightOnly ? $e : Qe;
+	let u = r.preflightOnly ? nt : tt;
 	for (let e of u) {
-		if (F.log("Stage start.", {
+		if (P.log("Stage start.", {
 			stage: e,
 			action: t
-		}), i) return F.warn("Stage skipped due to abort.", {
+		}), i) return P.warn("Stage skipped due to abort.", {
 			stage: e,
 			reason: a
-		}), et(e, a);
+		}), rt(e, a);
 		{
 			let t = await n.emitSafe(`formie:stage:${e}:before`, {
 				...c,
 				stage: e
 			});
-			t.failed.length > 0 && F.warn("Stage before listeners failed.", {
+			t.failed.length > 0 && P.warn("Stage before listeners failed.", {
 				stage: e,
 				failed: t.failed.length
 			});
 		}
 		if (i) {
-			let t = et(e, a);
+			let t = rt(e, a);
 			{
 				let r = await n.emitSafe("formie:submit:after", t);
-				r.failed.length > 0 && F.warn("Submit after listeners failed (abort before stage).", {
+				r.failed.length > 0 && P.warn("Submit after listeners failed (abort before stage).", {
 					stage: e,
 					failed: r.failed.length
 				});
 			}
 			if (s) {
 				let r = await n.emitSafe("formie:submit:final:after", t);
-				r.failed.length > 0 && F.warn("Final submit after listeners failed (abort before stage).", {
+				r.failed.length > 0 && P.warn("Final submit after listeners failed (abort before stage).", {
 					stage: e,
 					failed: r.failed.length
 				});
 			}
-			return F.warn("Aborted after stage before-hooks.", {
+			return P.warn("Aborted after stage before-hooks.", {
 				stage: e,
 				reason: a
 			}), t;
 		}
 		let r = await l[e](c);
-		F.log("Stage runner complete.", {
+		P.log("Stage runner complete.", {
 			stage: e,
 			hasResult: !!r,
 			ok: r ? r.ok : void 0,
@@ -700,28 +710,28 @@ async function lt(e, t, n, r = {}) {
 				stage: e,
 				result: r
 			});
-			t.failed.length > 0 && F.warn("Stage after listeners failed.", {
+			t.failed.length > 0 && P.warn("Stage after listeners failed.", {
 				stage: e,
 				failed: t.failed.length
 			});
 		}
 		if (i) {
-			let t = et(e, a);
+			let t = rt(e, a);
 			{
 				let r = await n.emitSafe("formie:submit:after", t);
-				r.failed.length > 0 && F.warn("Submit after listeners failed (abort after stage).", {
+				r.failed.length > 0 && P.warn("Submit after listeners failed (abort after stage).", {
 					stage: e,
 					failed: r.failed.length
 				});
 			}
 			if (s) {
 				let r = await n.emitSafe("formie:submit:final:after", t);
-				r.failed.length > 0 && F.warn("Final submit after listeners failed (abort after stage).", {
+				r.failed.length > 0 && P.warn("Final submit after listeners failed (abort after stage).", {
 					stage: e,
 					failed: r.failed.length
 				});
 			}
-			return F.warn("Aborted after stage after-hooks.", {
+			return P.warn("Aborted after stage after-hooks.", {
 				stage: e,
 				reason: a
 			}), t;
@@ -729,19 +739,19 @@ async function lt(e, t, n, r = {}) {
 		if (r && !r.ok) {
 			{
 				let t = await n.emitSafe("formie:submit:after", r);
-				t.failed.length > 0 && F.warn("Submit after listeners failed (failed stage).", {
+				t.failed.length > 0 && P.warn("Submit after listeners failed (failed stage).", {
 					stage: e,
 					failed: t.failed.length
 				});
 			}
 			if (s) {
 				let t = await n.emitSafe("formie:submit:final:after", r);
-				t.failed.length > 0 && F.warn("Final submit after listeners failed (failed stage).", {
+				t.failed.length > 0 && P.warn("Final submit after listeners failed (failed stage).", {
 					stage: e,
 					failed: t.failed.length
 				});
 			}
-			return F.warn("Pipeline short-circuited by failed stage.", {
+			return P.warn("Pipeline short-circuited by failed stage.", {
 				stage: e,
 				code: r.code,
 				message: r.message
@@ -756,13 +766,13 @@ async function lt(e, t, n, r = {}) {
 	};
 	{
 		let e = await n.emitSafe("formie:submit:after", d);
-		e.failed.length > 0 && F.warn("Submit after listeners failed (success).", { failed: e.failed.length });
+		e.failed.length > 0 && P.warn("Submit after listeners failed (success).", { failed: e.failed.length });
 	}
 	if (s) {
 		let e = await n.emitSafe("formie:submit:final:after", d);
-		e.failed.length > 0 && F.warn("Final submit after listeners failed (success).", { failed: e.failed.length });
+		e.failed.length > 0 && P.warn("Final submit after listeners failed (success).", { failed: e.failed.length });
 	}
-	return F.log("Pipeline completed.", {
+	return P.log("Pipeline completed.", {
 		ok: d.ok,
 		stage: d.stage,
 		code: d.code
@@ -770,84 +780,84 @@ async function lt(e, t, n, r = {}) {
 }
 //#endregion
 //#region src/js/core/field-error-container.ts
-function ut(e) {
+function pt(e) {
 	return e.querySelector("[data-formie-field-layout]")?.getAttribute("data-formie-error-position")?.trim() === "above" ? "above" : "below";
 }
-function dt(e, t) {
+function mt(e, t) {
 	let n = e.querySelector("[data-formie-field-errors]");
 	if (n) return n;
-	let r = e.querySelector("[data-formie-field-content]"), i = e.querySelector("[data-formie-field-control]"), a = ut(e), o = document.createElement("div");
+	let r = e.querySelector("[data-formie-field-content]"), i = e.querySelector("[data-formie-field-control]"), a = pt(e), o = document.createElement("div");
 	return o.setAttribute("data-formie-field-errors", "true"), t?.(o), r && i ? a === "above" ? r.insertBefore(o, i) : r.appendChild(o) : e.appendChild(o), o;
 }
 //#endregion
 //#region src/js/core/submit-result-ui.ts
-var I = /* @__PURE__ */ new WeakMap();
-function ft(e) {
+var F = /* @__PURE__ */ new WeakMap();
+function ht(e) {
 	return (e.dataset.formieCompletionBehavior || e.dataset.formieSubmitAction || "").trim();
 }
-function pt(e) {
+function gt(e) {
 	return (e.dataset.formieErrorMessagePosition || "top-form").trim() || "top-form";
 }
-function mt(e) {
+function _t(e) {
 	return (e.dataset.formieSuccessMessagePosition || e.dataset.formieSubmitActionMessagePosition || "").trim();
 }
-function ht(e) {
+function vt(e) {
 	let t = (e.dataset.formieSuccessMessageTimeout || e.dataset.formieSubmitActionMessageTimeout || "").trim();
 	if (!t) return null;
 	let n = Number.parseFloat(t);
 	return !Number.isFinite(n) || n < 0 ? null : Math.round(n * 1e3);
 }
-function gt(e) {
+function yt(e) {
 	let t = e.dataset.formieHideFormAfterSubmit ?? e.dataset.formieSubmitActionFormHide;
 	if (t === void 0) return !1;
 	let n = t.trim().toLowerCase();
 	return n === "true" || n === "1" || n === "";
 }
-function _t(e) {
-	let t = I.get(e);
-	typeof t == "number" && (window.clearTimeout(t), I.delete(e));
+function bt(e) {
+	let t = F.get(e);
+	typeof t == "number" && (window.clearTimeout(t), F.delete(e));
 }
-function vt(e) {
+function xt(e) {
 	return e.querySelector("[data-formie-form-messages-top]") || e;
 }
-function yt(e) {
+function St(e) {
 	return e.querySelector("[data-formie-form-messages-bottom]") || e;
 }
-function bt(e, t) {
-	return t === "bottom-form" ? yt(e) : vt(e);
-}
-function xt(e, t) {
-	return t === "top-form" ? vt(e) : t === "bottom-form" && !gt(e) ? yt(e) : e;
-}
-function St(e) {
-	let t = pt(e), n = bt(e, t), r = n.querySelector("[data-formie-error-container], [data-formie-errors]");
-	return r || (r = document.createElement("div"), r.setAttribute("data-formie-errors", "true"), D(r, e, "errors")), r.setAttribute("data-formie-error-container", "true"), t === "bottom-form" ? n.append(r) : n.prepend(r), r;
-}
 function Ct(e, t) {
-	let n = t.querySelector("[data-formie-error-message-container], [data-formie-message][data-formie-message-error]");
-	return n || (n = document.createElement("div"), n.setAttribute("data-formie-error-message-container", "true"), t.appendChild(n)), n.setAttribute("data-formie-message", "true"), n.setAttribute("data-formie-message-error", "true"), D(n, e, "message", "messageError"), n.setAttribute("role", "alert"), Ne(n, Me(N(e))), n;
+	return t === "bottom-form" ? St(e) : xt(e);
 }
 function wt(e, t) {
-	let n = e.querySelector("[data-formie-success-container]"), r = xt(e, t);
-	return n || (n = document.createElement("div"), n.setAttribute("data-formie-success-container", "true"), D(n, e, "successes")), t === "bottom-form" ? r.append(n) : r.prepend(n), n;
+	return t === "top-form" ? xt(e) : t === "bottom-form" && !yt(e) ? St(e) : e;
 }
 function Tt(e) {
-	return dt(e, (t) => {
+	let t = gt(e), n = Ct(e, t), r = n.querySelector("[data-formie-error-container], [data-formie-errors]");
+	return r || (r = document.createElement("div"), r.setAttribute("data-formie-errors", "true"), D(r, e, "errors")), r.setAttribute("data-formie-error-container", "true"), t === "bottom-form" ? n.append(r) : n.prepend(r), r;
+}
+function Et(e, t) {
+	let n = t.querySelector("[data-formie-error-message-container], [data-formie-message][data-formie-message-error]");
+	return n || (n = document.createElement("div"), n.setAttribute("data-formie-error-message-container", "true"), t.appendChild(n)), n.setAttribute("data-formie-message", "true"), n.setAttribute("data-formie-message-error", "true"), D(n, e, "message", "messageError"), n.setAttribute("role", "alert"), Fe(n, Pe(Me(e))), n;
+}
+function Dt(e, t) {
+	let n = e.querySelector("[data-formie-success-container]"), r = wt(e, t);
+	return n || (n = document.createElement("div"), n.setAttribute("data-formie-success-container", "true"), D(n, e, "successes")), t === "bottom-form" ? r.append(n) : r.prepend(n), n;
+}
+function Ot(e) {
+	return mt(e, (t) => {
 		D(t, e, "fieldErrors");
 	});
 }
-function Et(e) {
+function kt(e) {
 	e.querySelectorAll("[data-formie-field-handle]").forEach((t) => {
 		let n = t, r = n.querySelector("[data-formie-field-errors]"), i = Array.from(n.querySelectorAll("[data-formie-field-error]")).map((e) => e.id).filter(Boolean);
 		E(n, e, "fieldLayoutError"), n.removeAttribute("data-formie-field-has-error"), n.querySelectorAll("[data-formie-field-error]").forEach((e) => {
 			e.remove();
 		}), r && !r.querySelector("[data-formie-field-error]") && (r.innerHTML = ""), n.querySelectorAll("input, select, textarea").forEach((t) => {
 			let n = t;
-			n.removeAttribute("aria-invalid"), E(n, e, "fieldControlError"), n.removeAttribute("data-formie-input-has-error"), Le(n, i);
+			n.removeAttribute("aria-invalid"), E(n, e, "fieldControlError"), n.removeAttribute("data-formie-input-has-error"), ze(n, i);
 		});
-	}), C(e);
+	}), p(e);
 }
-function Dt(e) {
+function At(e) {
 	e.querySelectorAll("[data-formie-error-container], [data-formie-errors]").forEach((t) => {
 		let n = t;
 		n.querySelectorAll("[data-formie-error]").forEach((e) => {
@@ -855,105 +865,109 @@ function Dt(e) {
 		}), E(n, e, "message", "messageError"), n.removeAttribute("data-formie-message"), n.removeAttribute("data-formie-message-error"), n.removeAttribute("role"), n.removeAttribute("aria-live"), n.removeAttribute("aria-atomic"), n.querySelector("[data-formie-error]") || (n.innerHTML = "");
 	});
 }
-function Ot(e) {
-	_t(e), e.querySelectorAll("[data-formie-message-success]:not([data-formie-success-container])").forEach((e) => {
+function I(e) {
+	bt(e), e.querySelectorAll("[data-formie-message-success]:not([data-formie-success-container])").forEach((e) => {
 		e.remove();
 	}), e.querySelectorAll("[data-formie-success-container]").forEach((t) => {
 		let n = t;
 		n.querySelectorAll("[data-formie-success]").forEach((e) => {
 			e.remove();
 		}), E(n, e, "message", "messageSuccess"), n.removeAttribute("data-formie-message"), n.removeAttribute("data-formie-message-success"), n.removeAttribute("role"), n.removeAttribute("aria-live"), n.removeAttribute("aria-atomic"), n.querySelector("[data-formie-success]") || (n.innerHTML = "");
-	}), ft(e) === "message" && gt(e) || d(e, !1);
+	}), ht(e) === "message" && yt(e) || d(e, !1);
 }
-function kt(e) {
+function jt(e) {
 	e.querySelectorAll("[aria-invalid=\"true\"]").forEach((e) => {
 		e.removeAttribute("aria-invalid");
 	});
 }
-function At(e, t) {
-	let n = Me(N(e));
+function Mt(e, t) {
+	let n = Pe(Me(e));
 	Object.entries(t).forEach(([t, r]) => {
 		let i = `fields[${t.split(".").join("][")}]`, a = e.querySelector(`[name="${CSS.escape(i)}"], [name="${CSS.escape(i + "[]")}"]`)?.closest("[data-formie-field-handle]") || e.querySelector(`[data-formie-field-handle="${CSS.escape(t)}"]`);
 		if (!a) return;
-		let o = Tt(a), s = o.id && o.id.trim() ? o.id : `${t}-errors`;
-		o.id = s, Ne(o, n), D(a, e, "fieldLayoutError"), a.setAttribute("data-formie-field-has-error", "true"), r.forEach((t, n) => {
+		let o = Ot(a), s = o.id && o.id.trim() ? o.id : `${t}-errors`;
+		o.id = s, Fe(o, n), D(a, e, "fieldLayoutError"), a.setAttribute("data-formie-field-has-error", "true"), r.forEach((t, n) => {
 			let r = document.createElement("div");
 			r.setAttribute("data-formie-field-error", "true"), r.id = `${s}-${n + 1}`, D(r, e, "fieldError"), r.textContent = t, o.appendChild(r);
 		});
 		let c = o.querySelector("[data-formie-field-error]")?.id;
 		a.querySelectorAll("input, select, textarea").forEach((t) => {
 			let n = t;
-			n.setAttribute("aria-invalid", "true"), D(n, e, "fieldControlError"), n.setAttribute("data-formie-input-has-error", "true"), c && Ie(n, c);
+			n.setAttribute("aria-invalid", "true"), D(n, e, "fieldControlError"), n.setAttribute("data-formie-input-has-error", "true"), c && Re(n, c);
 			let r = a.querySelector("[data-formie-instructions]");
-			r?.id && Pe(n, r.id);
+			r?.id && Ie(n, r.id);
 		});
-	}), C(e);
+	}), p(e);
 }
 function L(e, t) {
-	let n = St(e), r = Ct(e, n);
+	let n = Tt(e), r = Et(e, n);
 	D(n, e, "errors"), t.forEach((t) => {
 		let n = document.createElement("div");
 		n.setAttribute("data-formie-error", "true"), n.setAttribute("role", "alert"), D(n, e, "error"), n.innerHTML = t, r.appendChild(n);
 	});
 }
-function jt(e) {
+function Nt(e) {
 	if (e.ok || e.keepSubmitLoading !== !0) return !1;
 	let t = e.payment?.status;
 	return t === "requiresAction" || t === "pending" || t === "unknown";
 }
-function Mt(e, t) {
-	let n = St(e), r = Ct(e, n);
+function Pt(e, t) {
+	let n = Tt(e), r = Et(e, n);
 	D(n, e, "errors");
 	let i = document.createElement("div");
 	i.setAttribute("data-formie-notice", "true"), i.setAttribute("role", "status"), D(i, e, "message"), i.textContent = t, r.appendChild(i);
 }
-function Nt(e, t) {
-	return !t.message || t.nextPage || t.redirect ? !1 : t.action === "save" || ft(e) === "message" && mt(e) !== "";
+function Ft(e, t) {
+	return !t.message || t.nextPage || t.redirect ? !1 : t.action === "save" || ht(e) === "message" && _t(e) !== "";
 }
-function Pt(e, t, n = {}) {
-	let r = mt(e);
+function It(e, t, n = {}) {
+	let r = _t(e);
 	if (!r) return;
-	let i = wt(e, r);
+	let i = Dt(e, r);
 	D(i, e, "message", "messageSuccess"), i.setAttribute("data-formie-message", "true"), i.setAttribute("data-formie-message-success", "true"), i.setAttribute("role", "status"), i.setAttribute("aria-live", "polite"), i.setAttribute("aria-atomic", "true");
 	let a = document.createElement("div");
-	a.setAttribute("data-formie-success", "true"), D(a, e, "success"), a.innerHTML = t, i.appendChild(a), n.hideForm !== !1 && gt(e) && d(e, !0);
-	let o = ht(e);
+	a.setAttribute("data-formie-success", "true"), D(a, e, "success"), a.innerHTML = t, i.appendChild(a), n.hideForm !== !1 && yt(e) && d(e, !0);
+	let o = vt(e);
 	if (o !== null) {
 		let t = window.setTimeout(() => {
-			I.delete(e), Ot(e);
+			F.delete(e), I(e);
 		}, o);
-		I.set(e, t);
+		F.set(e, t);
 	}
 }
 function R(e, t) {
-	if (Et(e), Dt(e), Ot(e), kt(e), t.ok) {
-		Nt(e, t) && Pt(e, t.message || "", { hideForm: t.action !== "save" });
+	if (kt(e), At(e), I(e), jt(e), t.ok) {
+		let n = t.meta?.summaryTokens;
+		n && typeof n == "object" && e.querySelectorAll("[data-formie-field-uid]").forEach((e) => {
+			let t = n[e.dataset.formieFieldUid || ""];
+			typeof t == "string" && t && e.querySelector("[data-formie-summary-container]")?.setAttribute("data-formie-summary-token", t);
+		}), Ft(e, t) && It(e, t.message || "", { hideForm: t.action !== "save" });
 		return;
 	}
 	if (!t.ok) {
-		if (jt(t)) {
+		if (Nt(t)) {
 			let n = String(t.payment?.message || "").trim();
-			n && Mt(e, n);
+			n && Pt(e, n);
 			return;
 		}
-		t.fieldErrors && At(e, t.fieldErrors), t.formErrors?.length ? L(e, t.formErrors) : !t.fieldErrors && t.message && L(e, [t.message]), Ue(e);
+		t.fieldErrors && Mt(e, t.fieldErrors), t.formErrors?.length ? L(e, t.formErrors) : !t.fieldErrors && t.message && L(e, [t.message]), Ke(e);
 	}
 }
 //#endregion
 //#region src/js/core/submit-flow.ts
-var Ft = T("general", "submit-flow");
-function It(e) {
+var Lt = T("general", "submit-flow");
+function Rt(e) {
 	return !(!e.ok && e.stage === "validate");
 }
-function Lt(e) {
+function zt(e) {
 	return e ? !!(e.keepSubmitLoading === !0 || e.ok && e.redirect?.url && e.redirect.target !== "new-tab") : !1;
 }
 function z(e) {
-	Et(e), Dt(e), Ot(e), kt(e);
+	kt(e), At(e), I(e), jt(e);
 }
-async function Rt(e) {
+async function Bt(e) {
 	let { id: t, target: n, form: r, bus: i, validator: a, validateOnSubmit: o, action: s, submitter: c, waitForSubmitDelay: l, onRefreshTokensAfterSubmit: u, dispatchSubmitResult: d } = e;
-	z(r), v(r, c || null);
+	z(r), y(r, c || null);
 	let f = {
 		ok: !1,
 		code: "SUBMIT_ERROR",
@@ -961,30 +975,30 @@ async function Rt(e) {
 		formErrors: ["Submission failed."]
 	};
 	try {
-		await l(r), f = await lt(r, s, i, {
+		await l(r), f = await ft(r, s, i, {
 			validator: a,
 			validateOnSubmit: o
-		}), R(r, f), d(f), b(r, f, s), It(f) && await u(f);
+		}), R(r, f), d(f), x(r, f, s), Rt(f) && await u(f);
 	} catch (e) {
 		f = {
 			ok: !1,
 			code: "SUBMIT_ERROR",
 			message: e instanceof Error ? e.message : "Submission failed.",
 			formErrors: [e instanceof Error ? e.message : "Submission failed."]
-		}, R(r, f), d(f), Ft.warn("Submit failed with exception.", {
+		}, R(r, f), d(f), Lt.warn("Submit failed with exception.", {
 			id: t,
 			action: s,
 			target: n,
 			error: e instanceof Error ? e.message : e
 		});
 	} finally {
-		Lt(f) || h(r);
+		zt(f) || h(r);
 	}
 	return f;
 }
 //#endregion
 //#region src/js/events/event-bus.ts
-var zt = class {
+var Vt = class {
 	listeners = /* @__PURE__ */ new Map();
 	on(e, t) {
 		return this.listeners.has(e) || this.listeners.set(e, /* @__PURE__ */ new Set()), this.listeners.get(e)?.add(t), () => {
@@ -1064,12 +1078,12 @@ var zt = class {
 	getAll() {
 		return Array.from(this.modules.values());
 	}
-}, Bt = new B(), Vt = {
+}, Ht = new B(), Ut = {
 	"address-finder": () => import("./chunks/address-finder-BWGINCSA.js").then((e) => e.addressFinderModule),
-	"google-address": () => import("./chunks/google-address-CXHprqwc.js").then((e) => e.googleAddressModule),
+	"google-address": () => import("./chunks/google-address-CLX96eyd.js").then((e) => e.googleAddressModule),
 	loqate: () => import("./chunks/loqate-m51iPyO1.js").then((e) => e.loqateModule),
 	"place-kit": () => import("./chunks/place-kit-BnZGQ-L1.js").then((e) => e.placeKitModule)
-}, Ht = {
+}, Wt = {
 	"captcha-eu": () => import("./chunks/captcha-eu-BHgZYF2n.js").then((e) => e.captchaEuModule),
 	"friendly-captcha-v1": () => import("./chunks/friendly-captcha-v1-Bw0f1O0c.js").then((e) => e.friendlyCaptchaV1Module),
 	"friendly-captcha-v2": () => import("./chunks/friendly-captcha-v2-Di8PzrqZ.js").then((e) => e.friendlyCaptchaV2Module),
@@ -1080,50 +1094,50 @@ var zt = class {
 	"recaptcha-v3": () => import("./chunks/recaptcha-v3-K4rnZPNQ.js").then((e) => e.recaptchaV3Module),
 	snaptcha: () => import("./chunks/snaptcha-CibXqXOR.js").then((e) => e.snaptchaModule),
 	turnstile: () => import("./chunks/turnstile-CFu1QWgY.js").then((e) => e.turnstileModule)
-}, Ut = {
-	calculations: () => import("./chunks/calculations-BzxipzLt.js").then((e) => e.calculationsModule),
+}, Gt = {
+	calculations: () => import("./chunks/calculations-Dl65hl2R.js").then((e) => e.calculationsModule),
 	"checkbox-radio": () => import("./chunks/checkbox-radio-gsm8QPJg.js").then((e) => e.checkboxRadioModule),
 	combobox: () => import("./chunks/combobox-Ba08_cHL.js").then((e) => e.comboboxModule),
-	conditions: () => import("./chunks/conditions-CxFrXWPw.js").then((e) => e.conditionsModule),
+	conditions: () => import("./chunks/conditions-D-IF1nKx.js").then((e) => e.conditionsModule),
 	"custom-google-maps": () => import("./chunks/custom-google-maps-C4l2S3GO.js").then((e) => e.customGoogleMapsModule),
 	"custom-link": () => import("./chunks/custom-link-CLazgKYH.js").then((e) => e.customLinkModule),
 	"custom-maps": () => import("./chunks/custom-maps-DqcAlD0v.js").then((e) => e.customMapsModule),
 	"date-picker": () => import("./chunks/date-picker-DaPvMrop.js").then((e) => e.datePickerModule),
-	"file-upload": () => import("./chunks/file-upload-0AAq0cWS.js").then((e) => e.fileUploadModule),
-	"upload-manager": () => import("./chunks/upload-manager-BSKJ9gfD.js").then((e) => e.uploadManagerModule),
+	"file-upload": () => import("./chunks/file-upload-BLs9H1UG.js").then((e) => e.fileUploadModule),
+	"upload-manager": () => import("./chunks/upload-manager-Cc8C3r41.js").then((e) => e.uploadManagerModule),
 	hidden: () => import("./chunks/hidden-BZhXnNPe.js").then((e) => e.hiddenModule),
-	"phone-country": () => import("./chunks/phone-country-CuBoNnUd.js").then((e) => e.phoneCountryModule),
-	"password-validation": () => import("./chunks/password-validation-NYrH1Aza.js").then((e) => e.passwordValidationModule),
-	"address-country": () => import("./chunks/address-country-OiIRSfAF.js").then((e) => e.addressCountryModule),
-	"address-state": () => import("./chunks/address-state-sZ3rcSyf.js").then((e) => e.addressStateModule),
+	"phone-country": () => import("./chunks/phone-country-9BiUEDUS.js").then((e) => e.phoneCountryModule),
+	"password-validation": () => import("./chunks/password-validation-D_Lx_EmA.js").then((e) => e.passwordValidationModule),
+	"address-country": () => import("./chunks/address-country-Cqo45WFg.js").then((e) => e.addressCountryModule),
+	"address-state": () => import("./chunks/address-state-CzTUdq20.js").then((e) => e.addressStateModule),
 	repeater: () => import("./chunks/repeater-CyhDbozO.js").then((e) => e.repeaterModule),
-	"rich-text": () => import("./chunks/rich-text-uV4o_pGk.js").then((e) => e.richTextModule),
+	"rich-text": () => import("./chunks/rich-text-Cgo1Q4Tm.js").then((e) => e.richTextModule),
 	signature: () => import("./chunks/signature-7cldFbqj.js").then((e) => e.signatureModule),
-	summary: () => import("./chunks/summary-CoaFtn1V.js").then((e) => e.summaryModule),
+	summary: () => import("./chunks/summary-eO3Wcw6l.js").then((e) => e.summaryModule),
 	"survey-likert": () => import("./chunks/survey-likert-fk1hUPff.js").then((e) => e.surveyLikertModule),
 	"survey-rank": () => import("./chunks/survey-rank-BsLGl2LX.js").then((e) => e.surveyRankModule),
 	"survey-rating": () => import("./chunks/survey-rating-DVS6e6fM.js").then((e) => e.surveyRatingModule),
 	table: () => import("./chunks/table-j7MlLLCc.js").then((e) => e.tableModule),
-	"text-limit": () => import("./chunks/text-limit-mvpgW1gI.js").then((e) => e.textLimitModule)
-}, Wt = {
-	bpoint: () => import("./chunks/bpoint-CzXUbyaw.js").then((e) => e.bpointModule),
-	eway: () => import("./chunks/eway-B30UDzld.js").then((e) => e.ewayModule),
-	"go-cardless": () => import("./chunks/go-cardless-D6wfNfi4.js").then((e) => e.goCardlessModule),
-	mollie: () => import("./chunks/mollie-CKXKBjzp.js").then((e) => e.mollieModule),
-	moneris: () => import("./chunks/moneris-Dqe_StsU.js").then((e) => e.monerisModule),
-	opayo: () => import("./chunks/opayo-Bm3Hb7ue.js").then((e) => e.opayoModule),
-	paddle: () => import("./chunks/paddle-BAvLmE60.js").then((e) => e.paddleModule),
-	paypal: () => import("./chunks/paypal-BpG0lSLf.js").then((e) => e.paypalModule),
-	payway: () => import("./chunks/payway-Br0UTxCe.js").then((e) => e.paywayModule),
-	square: () => import("./chunks/square-D6eWvdVT.js").then((e) => e.squareModule),
-	stripe: () => import("./chunks/stripe-DszGkwoO.js").then((e) => e.stripeModule)
-}, Gt = {
+	"text-limit": () => import("./chunks/text-limit-BbvE2sjo.js").then((e) => e.textLimitModule)
+}, Kt = {
+	bpoint: () => import("./chunks/bpoint-t2D5IP9P.js").then((e) => e.bpointModule),
+	eway: () => import("./chunks/eway-D6BLCGtO.js").then((e) => e.ewayModule),
+	"go-cardless": () => import("./chunks/go-cardless-CXN8eifz.js").then((e) => e.goCardlessModule),
+	mollie: () => import("./chunks/mollie-C9D_j7Cu.js").then((e) => e.mollieModule),
+	moneris: () => import("./chunks/moneris-BiWEpaa7.js").then((e) => e.monerisModule),
+	opayo: () => import("./chunks/opayo-B7PZdsho.js").then((e) => e.opayoModule),
+	paddle: () => import("./chunks/paddle-CM0IZn78.js").then((e) => e.paddleModule),
+	paypal: () => import("./chunks/paypal-DyYMb9ni.js").then((e) => e.paypalModule),
+	payway: () => import("./chunks/payway-BpybmDSr.js").then((e) => e.paywayModule),
+	square: () => import("./chunks/square-DnpxwbnV.js").then((e) => e.squareModule),
+	stripe: () => import("./chunks/stripe-BCc-XDaB.js").then((e) => e.stripeModule)
+}, qt = {
+	...Gt,
 	...Ut,
-	...Vt,
-	...Ht,
-	...Wt
+	...Wt,
+	...Kt
 }, V = /* @__PURE__ */ new Map();
-function Kt(e) {
+function Jt(e) {
 	if (e instanceof Error) return {
 		name: e.name || "Error",
 		message: e.message || "No error message was provided.",
@@ -1145,7 +1159,7 @@ function Kt(e) {
 		};
 	}
 }
-function qt(e, t, n) {
+function Yt(e, t, n) {
 	let r = [...t].filter((e) => e.required), i = [
 		"Formie browser module diagnostics",
 		`Surface: ${e}`,
@@ -1156,7 +1170,7 @@ function qt(e, t, n) {
 		i.push("", `Failure ${r + 1}`, `Module: ${t.moduleId}`, `Key: ${t.key}`, `Code: ${t.code}`), e === "cp-edit" && a && (i.push(`Error: ${a.name}: ${a.message}`), a.stack && i.push("Stack:", a.stack));
 	}), i.join("\n");
 }
-async function Jt(e) {
+async function Xt(e) {
 	if (navigator.clipboard?.writeText) {
 		await navigator.clipboard.writeText(e);
 		return;
@@ -1169,10 +1183,10 @@ async function Jt(e) {
 		t.remove();
 	}
 }
-async function Yt(e, t) {
+async function Zt(e, t) {
 	let n = t.get(e);
 	if (n) return n;
-	let r = e.startsWith("formie:") && Object.prototype.hasOwnProperty.call(Gt, e.slice(7)) ? Gt[e.slice(7)] : void 0;
+	let r = e.startsWith("formie:") && Object.prototype.hasOwnProperty.call(qt, e.slice(7)) ? qt[e.slice(7)] : void 0;
 	if (!r) throw Error(`Browser module ${e} is not registered.`);
 	V.has(e) || V.set(e, r().catch((t) => {
 		throw V.delete(e), t;
@@ -1181,14 +1195,14 @@ async function Yt(e, t) {
 	if (i.moduleId !== e) throw Error(`Module definition does not match ${e}.`);
 	return t.register(i), i;
 }
-function Xt(e, t, n) {
+function Qt(e, t, n) {
 	return [...new Set(e.targets.flatMap((e) => {
 		if (e.type === "form") return [n || t];
 		let r = e.type === "selector" ? e.selector : e.type === "field" ? `[data-formie-field-uid="${CSS.escape(e.uid)}"]` : e.type === "page" ? `[data-formie-page-id="${CSS.escape(e.id)}"]` : `[data-formie-action="${CSS.escape(e.action)}"]`;
 		return [...t.matches(r) ? [t] : [], ...t.querySelectorAll(r)];
 	}))].filter((e) => !e.closest("[hidden], [data-formie-hidden=\"true\"], [data-formie-conditionally-hidden], [data-formie-page-hidden]"));
 }
-async function Zt(e, t) {
+async function $t(e, t) {
 	n(e);
 	let r = e.surface;
 	if (t.matchContext.surface !== r || t.setupContext.surface !== r) throw Error(`Browser module manifest surface ${r} cannot mount as ${t.matchContext.surface}.`);
@@ -1201,7 +1215,7 @@ async function Zt(e, t) {
 			code: "MODULE_UNAVAILABLE",
 			message: "A form feature could not start. Reload the page or contact the site administrator."
 		};
-		s.set(e.key, i), c.set(e.key, Kt(n)), console.error("[formie] Browser module failure", i, n), await t.setupContext.emit("formie:browser:module:error", i);
+		s.set(e.key, i), c.set(e.key, Jt(n)), console.error("[formie] Browser module failure", i, n), await t.setupContext.emit("formie:browser:module:error", i);
 	}, m = async (e) => {
 		try {
 			await e.destroy();
@@ -1243,7 +1257,7 @@ async function Zt(e, t) {
 				let d = document.createElement("span");
 				d.className = "formie-module-error__copy-status", d.setAttribute("role", "status"), d.setAttribute("aria-live", "polite"), u.addEventListener("click", async () => {
 					try {
-						await Jt(n.textContent || ""), d.textContent = "Details copied.";
+						await Xt(n.textContent || ""), d.textContent = "Details copied.";
 					} catch {
 						d.textContent = "Copy failed. Select the details above and copy them manually.";
 						let e = document.createRange();
@@ -1253,7 +1267,7 @@ async function Zt(e, t) {
 			}
 			e.dataset.formieModuleError = "true", i !== a && a.contains(i) ? i.before(e) : a.prepend(e);
 		}
-		let t = e.querySelector("[data-formie-module-error-details]"), n = qt(r, s.values(), c);
+		let t = e.querySelector("[data-formie-module-error-details]"), n = Yt(r, s.values(), c);
 		t && t.textContent !== n && (t.textContent = n);
 	}, _ = (e) => {
 		h() && (e.preventDefault(), e.stopImmediatePropagation(), g());
@@ -1272,7 +1286,7 @@ async function Zt(e, t) {
 			});
 			let d;
 			try {
-				d = Xt(n, i, a);
+				d = Qt(n, i, a);
 			} catch (e) {
 				s.has(n.key) || await p(n, e);
 				continue;
@@ -1282,7 +1296,7 @@ async function Zt(e, t) {
 			for (let [e, t] of Array.from(f.entries()).reverse()) d.includes(e) || (await m(t.instance), f.delete(e), l.splice(l.indexOf(t.instance), 1));
 			let h;
 			try {
-				h = await Yt(n.moduleId, t.registry);
+				h = await Zt(n.moduleId, t.registry);
 			} catch (e) {
 				s.has(n.key) || await p(n, e);
 				continue;
@@ -1405,15 +1419,6 @@ async function Zt(e, t) {
 	};
 }
 //#endregion
-//#region src/js/utils/form-started-at.ts
-var Qt = "formie:formStartedAt:";
-function $t(e) {
-	let t = e.querySelector("input[name=\"formStartedAt\"]");
-	if (!t) return;
-	let n = e.querySelector("input[name=\"renderId\"]")?.value?.trim() ?? "", r = n ? `${Qt}${n}` : null, i = r ? sessionStorage.getItem(r) : null;
-	i || (i = String(Date.now()), r && sessionStorage.setItem(r, i)), t.value = i;
-}
-//#endregion
 //#region src/js/utils/unload-warning.ts
 var en = /* @__PURE__ */ new Set([
 	"action",
@@ -1430,7 +1435,7 @@ var en = /* @__PURE__ */ new Set([
 ]);
 function tn(e) {
 	let t = /* @__PURE__ */ new Set(), n = !0;
-	return y(e, "formie:unload-warning:collect-exclusions", {
+	return _(e, "formie:unload-warning:collect-exclusions", {
 		form: e,
 		exclude: (...e) => {
 			n && e.forEach((e) => {
@@ -1461,7 +1466,7 @@ function nn(e) {
 function rn(e, t) {
 	if (!e) return !1;
 	let n = e.endsWith("[]") ? e.slice(0, -2) : e;
-	return !ie(n, t) && !en.has(n);
+	return !ae(n, t) && !en.has(n);
 }
 function an(e, t, n) {
 	return nn(e.filter(([e]) => !n.has(e) && rn(String(e || ""), t)));
@@ -1527,7 +1532,7 @@ function ln(e) {
 var un = {
 	required: {
 		rule: ({ input: e, getRule: n }) => {
-			if (!n("required") || e.type === "hidden") return !0;
+			if (!n("required") || e.type === "hidden" || e.closest("[data-formie-field-handle]")?.getAttribute("data-formie-field-type") === "table") return !0;
 			if (e instanceof HTMLInputElement && e.type === "file") {
 				if (e.files?.length) return !0;
 				let t = e.closest("[data-formie-field-handle]"), n = e.name.replace(/\[\]$/, "");
@@ -1653,28 +1658,28 @@ var pn = class {
 		this.errors = [];
 		let n = /* @__PURE__ */ new Set();
 		return this.inputs(e).forEach((e) => {
-			let r = !1;
+			let r = !1, i = t.renderErrors !== !1 && this.shouldShowError(e);
 			if (!this.isVisible(e, t)) return;
-			let i = e.closest("[data-formie-field-handle]"), a = e instanceof HTMLInputElement && (e.type === "checkbox" || e.type === "radio") ? `${i?.getAttribute("data-formie-field-handle") || ""}:${e.name}` : null;
-			if (a) {
-				if (n.has(a)) return;
-				n.add(a);
+			let a = e.closest("[data-formie-field-handle]"), o = e instanceof HTMLInputElement && (e.type === "checkbox" || e.type === "radio") ? `${a?.getAttribute("data-formie-field-handle") || ""}:${e.name}` : null;
+			if (o) {
+				if (n.has(o)) return;
+				n.add(o);
 			}
-			this.shouldShowError(e) && this.removeError(e);
-			let o = this.getValidatorCallbackOptions(e);
+			i && this.removeError(e);
+			let s = this.getValidatorCallbackOptions(e);
 			Object.entries(this.validators).forEach(([t, n]) => {
-				if (!n.validate(o)) {
-					let i = this.getErrorMessage(e, t, n, o);
-					this.shouldShowError(e) && !r && this.showError(e, t, i), this.errors.push({
+				if (!n.validate(s)) {
+					let a = this.getErrorMessage(e, t, n, s);
+					i && !r && this.showError(e, t, a), this.errors.push({
 						input: e,
-						field: o.field,
+						field: s.field,
 						validator: t,
-						message: i,
-						handle: o.field?.getAttribute("data-formie-field-handle") || null,
+						message: a,
+						handle: s.field?.getAttribute("data-formie-field-handle") || null,
 						result: !1
 					}), r = !0;
 				}
-			}), !r && this.shouldShowError(e) && this.removeError(e);
+			}), !r && i && this.removeError(e);
 		}), U.log("Validation pass complete.", {
 			errorCount: this.errors.length,
 			includeHiddenPages: t.includeHiddenPages === !0
@@ -1696,33 +1701,33 @@ var pn = class {
 			e.remove();
 		}), n && (n.innerHTML = ""), t.querySelectorAll("input, select, textarea").forEach((e) => {
 			let t = e;
-			t.removeAttribute("aria-invalid"), this.config.inputErrorClass.length && t.classList.remove(...this.config.inputErrorClass), t.removeAttribute("data-formie-input-has-error"), Le(t, r);
+			t.removeAttribute("aria-invalid"), this.config.inputErrorClass.length && t.classList.remove(...this.config.inputErrorClass), t.removeAttribute("data-formie-input-has-error"), ze(t, r);
 		});
 		for (let e = t; e; e = e.parentElement?.closest("[data-formie-field-handle]")) this.config.fieldContainerErrorClass.length && e.classList.remove(...this.config.fieldContainerErrorClass), e.removeAttribute("data-formie-field-has-error");
-		this.emitEvent(e, o("clear-error"), { validator: this }), C(this.form);
+		this.emitEvent(e, o("clear-error"), { validator: this }), p(this.form);
 	}
 	showError(e, t, n) {
 		let r = e.closest("[data-formie-field-handle]");
 		if (!r) return;
 		let i = r.querySelector("[data-formie-field-errors]");
-		i ||= dt(r, (e) => {
+		i ||= mt(r, (e) => {
 			this.config.messagesClass.length && e.classList.add(...this.config.messagesClass);
 		}), this.config.messagesClass.length && i.classList.add(...this.config.messagesClass), i.innerHTML = "";
 		let a = r.getAttribute("data-formie-field-handle") || "field";
 		i.id = i.id || `${e.id || `${this.form.id}-${a}`}-errors`;
 		let s = `${i.id}-1`;
-		Ne(i, je(this.config.errorAriaLive, this.submitted));
+		Fe(i, Ne(this.config.errorAriaLive, this.submitted));
 		let c = document.createElement("div");
 		c.setAttribute("data-formie-field-error", "true"), c.setAttribute(`data-formie-field-error-${t}`, "true"), c.setAttribute("id", s), this.config.messageClass.length && c.classList.add(...this.config.messageClass), c.textContent = n, i.appendChild(c), r.setAttribute("data-formie-field-has-error", "true"), r.querySelectorAll("input, select, textarea").forEach((e) => {
 			let t = e;
-			O(t) || (t.setAttribute("aria-invalid", "true"), this.config.inputErrorClass.length && t.classList.add(...this.config.inputErrorClass), t.setAttribute("data-formie-input-has-error", "true"), Ie(t, s));
+			O(t) || (t.setAttribute("aria-invalid", "true"), this.config.inputErrorClass.length && t.classList.add(...this.config.inputErrorClass), t.setAttribute("data-formie-input-has-error", "true"), Re(t, s));
 		});
 		for (let e = r; e; e = e.parentElement?.closest("[data-formie-field-handle]")) this.config.fieldContainerErrorClass.length && e.classList.add(...this.config.fieldContainerErrorClass), e.setAttribute("data-formie-field-has-error", "true");
 		this.emitEvent(e, o("show-error"), {
 			validator: this,
 			validatorName: t,
 			errorMessage: n
-		}), C(this.form);
+		}), p(this.form);
 	}
 	getValidatorCallbackOptions(e) {
 		let t = e.closest("[data-formie-field-handle]"), n = t?.querySelector("[data-formie-field-label]")?.childNodes[0]?.textContent?.trim() ?? "", r = this.parseValidationRules(t?.getAttribute("data-formie-validation"));
@@ -1836,7 +1841,7 @@ function hn(e, t) {
 	return Array.from(n).some((e) => !mn(e));
 }
 function gn(e) {
-	let { final: t } = g(e);
+	let { final: t } = S(e);
 	return "submit";
 }
 function _n(e) {
@@ -2061,7 +2066,7 @@ async function nr(e, t) {
 		siteId: t.siteId,
 		theme: t.theme,
 		themeConfig: t.themeConfig
-	}, s = r === "graphql" ? Fn(t, e) : Pn(t, e), c = r === "graphql" ? await qe(s, a, o, t) : await Ke(s, a, {
+	}, s = r === "graphql" ? Fn(t, e) : Pn(t, e), c = r === "graphql" ? await Xe(s, a, o, t) : await Ye(s, a, {
 		...o,
 		endpoint: s
 	}, t);
@@ -2071,8 +2076,8 @@ async function rr(e, t, n) {
 	if (t.refreshTokens === !1) return;
 	let r = t.formHandle || e.dataset.formieHandle;
 	if (!r) return;
-	let i = await Je(In(t, e), r, n.querySelector("input[name=\"renderId\"]")?.value || void 0, t, n?.querySelector("input[name=\"requestToken\"]")?.value);
-	tr(n, i), y(e, "formie:refresh-tokens:refreshed", i);
+	let i = await Ze(In(t, e), r, n.querySelector("input[name=\"renderId\"]")?.value || void 0, t, n?.querySelector("input[name=\"requestToken\"]")?.value);
+	tr(n, i), _(e, "formie:refresh-tokens:refreshed", i);
 }
 function ir(e, t, n, r, i, a) {
 	t.dataset.formieRequestProfile = n.profile ?? "same-origin-browser", n.profile === "cross-origin-public" && (t.dataset.formieSubmitMethod = "ajax");
@@ -2112,24 +2117,24 @@ function ir(e, t, n, r, i, a) {
 			n.preventDefault();
 			let r = n.currentTarget, i = r?.getAttribute("data-formie-page-id"), a = r?.getAttribute("href");
 			if (i && a) {
-				y(e, "formie:page:navigate", {
+				_(e, "formie:page:navigate", {
 					pageId: i,
 					href: a
 				});
 				try {
-					let n = await Ye(a, t, i);
-					if (n.pageId && _(t, String(n.pageId)), !n.success) {
+					let n = await Qe(a, t, i);
+					if (n.pageId && v(t, String(n.pageId)), !n.success) {
 						let { form: e = [], ...r } = n.errors ?? {};
-						z(t), At(t, r), L(t, e), Ue(t);
+						z(t), Mt(t, r), L(t, e), Ke(t);
 						return;
 					}
-					y(e, "formie:page:navigate:after", {
+					_(e, "formie:page:navigate:after", {
 						pageId: i,
 						href: a,
 						response: n
 					});
 				} catch (t) {
-					console.error("[formie] Failed to persist page navigation state.", t), y(e, "formie:page:navigate:error", {
+					console.error("[formie] Failed to persist page navigation state.", t), _(e, "formie:page:navigate:error", {
 						pageId: i,
 						href: a,
 						error: t
@@ -2142,7 +2147,7 @@ function ir(e, t, n, r, i, a) {
 		});
 	}), !Bn(t)) {
 		let e = !1, n = () => {
-			e || Gn(t) || qn(t) || (e = !0, Xe(s, t));
+			e || Gn(t) || qn(t) || (e = !0, $e(s, t));
 		};
 		window.addEventListener("pagehide", n), window.addEventListener("beforeunload", n), a.push(() => {
 			window.removeEventListener("pagehide", n), window.removeEventListener("beforeunload", n);
@@ -2155,34 +2160,34 @@ function ir(e, t, n, r, i, a) {
 			if (t.getAttribute("data-formie-internal-resubmit") !== "true") return;
 			t.removeAttribute("data-formie-internal-resubmit");
 		} else t.removeAttribute("data-formie-internal-resubmit");
-		let l = a.submitter, d = l?.getAttribute("data-formie-action"), f = t.getAttribute("data-formie-pending-action"), m = t.querySelector("input[name=\"submitAction\"]"), _ = d || f || m?.value || "submit", b = null, x = !1;
+		let l = a.submitter, d = l?.getAttribute("data-formie-action"), f = t.getAttribute("data-formie-pending-action"), p = t.querySelector("input[name=\"submitAction\"]"), g = d || f || p?.value || "submit", v = null, b = !1;
 		try {
-			if (s) b = await Rt({
+			if (s) v = await Bt({
 				target: e,
 				form: t,
 				bus: r,
 				validator: i,
 				validateOnSubmit: X(t),
-				action: _,
+				action: g,
 				submitter: l,
 				waitForSubmitDelay: Z,
 				onRefreshTokensAfterSubmit: async () => {
 					await rr(e, n, t);
 				},
 				dispatchSubmitResult: (t) => {
-					y(e, "formie:submit:result", t);
+					_(e, "formie:submit:result", t);
 				}
 			});
 			else {
-				if (z(t), v(t, l), await Z(t), b = await lt(t, _, r, {
+				if (z(t), y(t, l), await Z(t), v = await ft(t, g, r, {
 					validator: i,
 					validateOnSubmit: X(t),
 					preflightOnly: !0
-				}), b.ok) {
-					p(t, _), c = !0, Un(t, "submit"), u(null);
+				}), v.ok) {
+					m(t, g), c = !0, Un(t, "submit"), u(null);
 					let e = !1, n = () => {
 						if (e = !0, c = !1, Wn(t), h(t), i && X(t)) {
-							let { scope: e, final: n } = g(t), r = i.submit(n ? t : e, { final: n });
+							let { scope: e, final: n } = S(t), r = i.submit(n ? t : e, { final: n });
 							r.length > 0 && R(t, {
 								ok: !1,
 								stage: "validate",
@@ -2202,20 +2207,20 @@ function ir(e, t, n, r, i, a) {
 						}
 					} else t.submit();
 					if (e) return;
-					x = !0;
+					b = !0;
 					return;
 				}
-				R(t, b), y(e, "formie:submit:result", b), Wn(t);
+				R(t, v), _(e, "formie:submit:result", v), Wn(t);
 			}
 		} catch (n) {
-			c = !1, b = {
+			c = !1, v = {
 				ok: !1,
 				code: "SUBMIT_ERROR",
 				message: n instanceof Error ? n.message : "Submission failed.",
 				formErrors: [n instanceof Error ? n.message : "Submission failed."]
-			}, R(t, b), y(e, "formie:submit:result", b), Wn(t);
+			}, R(t, v), _(e, "formie:submit:result", v), Wn(t);
 		} finally {
-			u(null), !s && !x && !Lt(b) && h(t);
+			u(null), !s && !b && !zt(v) && h(t);
 		}
 	};
 	t.addEventListener("submit", d), a.push(() => {
@@ -2226,8 +2231,8 @@ async function ar(e, t, n) {
 	if (t.refreshTokens === !1 || !t.staticCache) return;
 	let r = t.formHandle || e.dataset.formieHandle, i = In(t, e), a = n?.querySelector("input[name=\"renderId\"]")?.value || void 0;
 	if (!r) return;
-	let o = await Je(i, r, a, t, n?.querySelector("input[name=\"requestToken\"]")?.value);
-	o && n && (tr(n, o), y(e, "formie:refresh-tokens:after", o));
+	let o = await Ze(i, r, a, t, n?.querySelector("input[name=\"requestToken\"]")?.value);
+	o && n && (tr(n, o), _(e, "formie:refresh-tokens:after", o));
 }
 function or() {
 	let t = /* @__PURE__ */ new Map(), r = new B(), i = /* @__PURE__ */ new Map(), a = /* @__PURE__ */ new Map(), o = [
@@ -2253,9 +2258,9 @@ function or() {
 				K.log("Unmount skipped (no mounted state).", { target: Q(e) });
 				return;
 			}
-			y(e, "formie:unmount:before", { id: r.instance.id }), r.unbinds.forEach((e) => {
+			_(e, "formie:unmount:before", { id: r.instance.id }), r.unbinds.forEach((e) => {
 				e();
-			}), r.unbinds = [], r.validator?.destroy(), r.validator = null, await r.modules.destroy(), r.bus.clear(), t.delete(e), y(e, "formie:unmount:after", { id: r.instance.id }), K.log("Unmount complete.", {
+			}), r.unbinds = [], r.validator?.destroy(), r.validator = null, await r.modules.destroy(), r.bus.clear(), t.delete(e), _(e, "formie:unmount:after", { id: r.instance.id }), K.log("Unmount complete.", {
 				id: r.instance.id,
 				target: Q(e)
 			});
@@ -2276,79 +2281,79 @@ function or() {
 			id: u.instance.id,
 			target: Q(a)
 		}), u.instance;
-		let d = new zt(), f = [], p = a?.id || `formie-${t.size + 1}`, h = J(a), g = {
-			...h,
+		let d = new Vt(), m = [], h = a?.id || `formie-${t.size + 1}`, g = J(a), v = {
+			...g,
 			...c,
-			mode: kn(c.mode ?? h.mode),
-			transport: An(c.transport ?? h.transport)
-		}, _ = await nr(a, g), v = jn(a);
-		c.compatibility === void 0 && v?.hasAttribute("data-formie-compatibility") && (g.compatibility = J(v).compatibility);
-		let b = we(g.compatibility);
-		v && e(v, g), g.staticCache = c.staticCache ?? On(v ? v.dataset : a.dataset);
+			mode: kn(c.mode ?? g.mode),
+			transport: An(c.transport ?? g.transport)
+		}, y = await nr(a, v), x = jn(a);
+		c.compatibility === void 0 && x?.hasAttribute("data-formie-compatibility") && (v.compatibility = J(x).compatibility);
+		let te = Te(v.compatibility);
+		x && e(x, v), v.staticCache = c.staticCache ?? On(x ? x.dataset : a.dataset);
 		let S;
 		try {
-			S = Qn(a, v), _?.modules && n(_.modules), S?.modules && n(S.modules);
+			S = Qn(a, x), y?.modules && n(y.modules), S?.modules && n(S.modules);
 		} catch (e) {
-			if (v) {
-				v.addEventListener("submit", (e) => {
+			if (x) {
+				x.addEventListener("submit", (e) => {
 					e.preventDefault(), e.stopImmediatePropagation();
 				}, !0);
 				let e = document.createElement("div");
-				e.setAttribute("role", "alert"), e.textContent = "This form requires a compatible Formie browser package. Update Formie and its browser packages together.", v.prepend(e);
+				e.setAttribute("role", "alert"), e.textContent = "This form requires a compatible Formie browser package. Update Formie and its browser packages together.", x.prepend(e);
 			}
 			throw e;
 		}
-		let ee = _ || S ? {
-			..._ || {},
+		let C = y || S ? {
+			...y || {},
 			...S || {}
-		} : null, te = ee?.theme, ne = {}, w = ee?.modules ?? {
+		} : null, ne = C?.theme, re = {}, w = C?.modules ?? {
 			contractVersion: 2,
 			surface: "server-rendered",
 			entries: []
 		};
 		n(w), K.log("Resolved mount payload.", {
 			target: Q(a),
-			hasRenderPayload: !!_,
+			hasRenderPayload: !!y,
 			hasEmbeddedPayload: !!S,
 			moduleCount: w.entries.length
 		});
-		let T = re(a, te, v), E = v ? new pn(v, {
-			live: zn(v.dataset.formieValidationOnFocus),
-			errorAriaLive: N(v),
-			errorMessage: v.dataset.formieErrorMessage || "",
+		let T = ie(a, ne, x), E = x ? new pn(x, {
+			live: zn(x.dataset.formieValidationOnFocus),
+			errorAriaLive: Me(x),
+			errorMessage: x.dataset.formieErrorMessage || "",
 			fieldContainerErrorClass: T.fieldLayoutError || [],
 			inputErrorClass: T.fieldControlError || [],
 			messagesClass: T.fieldErrors || [],
 			messageClass: T.fieldError || []
 		}) : null;
-		if (v && E) {
-			let e = v;
-			e.formieValidation = E, ne.validation = E;
+		if (x && E) {
+			let e = x;
+			e.formieValidation = E, re.validation = E;
 			let t = {
 				validator: E,
 				addValidator: E.addValidator.bind(E),
 				removeValidator: E.removeValidator.bind(E)
 			};
-			y(v, "formie:validator:ready", t), y(a, "formie:validator:ready", t);
+			_(x, "formie:validator:ready", t), _(a, "formie:validator:ready", t);
 		}
-		v && ($t(v), (_ || g.endpoint || a.dataset.formieEndpoint) && Rn(a, v, g), g.mode === "server-rendered" && He(v) && (Ve(v), Ue(v)), C(v)), Object.keys(T).length && y(a, "formie:theme:applied", { hasClasses: !0 }), v?.querySelector("craft-csrf-input") && await se("craft-csrf-input", v);
-		let D = await Zt(w, {
+		x && (f(x), (y || v.endpoint || a.dataset.formieEndpoint) && Rn(a, x, v), v.mode === "server-rendered" && Ge(x) && (We(x), Ke(x)), p(x)), Object.keys(T).length && _(a, "formie:theme:applied", { hasClasses: !0 }), x?.querySelector("craft-csrf-input") && await ce("craft-csrf-input", x);
+		let D = await $t(w, {
 			registry: r,
 			matchContext: {
 				root: a,
-				form: v,
+				form: x,
 				surface: w.surface
 			},
 			setupContext: {
-				formId: p,
+				formId: h,
 				root: a,
-				form: v,
+				form: x,
 				target: a,
 				scope: "form",
 				surface: w.surface,
-				state: ne,
+				state: re,
 				on: (e, t) => d.on(e, t),
-				emit: (e, t) => (y(a, e, t), d.emitSafe(e, t).then((t) => {
+				emit: (e, t) => (_(a, e, t), d.emitSafe(e, t).then((t) => {
 					t.failed.length > 0 && K.warn("Lifecycle listeners failed.", {
 						eventName: e,
 						failed: t.failed.length
@@ -2361,45 +2366,45 @@ function or() {
 			moduleInstances: D.instances.length
 		});
 		let O = {
-			id: p,
+			id: h,
 			root: a,
 			submit: async (e = "submit") => {
 				if (K.log("Submit requested.", {
-					id: p,
+					id: h,
 					target: Q(a),
 					action: e
-				}), !v) return {
+				}), !x) return {
 					ok: !1,
 					code: "FORM_NOT_FOUND",
 					message: "No form element found for mount target.",
 					formErrors: ["No form element found for mount target."]
 				};
-				let t = v.querySelector("input[name=\"submitAction\"]");
-				if (t && (t.value = e), v.getAttribute("data-formie-loading") === "true") return {
+				let t = x.querySelector("input[name=\"submitAction\"]");
+				if (t && (t.value = e), x.getAttribute("data-formie-loading") === "true") return {
 					ok: !1,
 					code: "SUBMIT_IN_PROGRESS",
 					message: "Submission already in progress.",
 					formErrors: []
 				};
-				let n = v.querySelector(`[data-formie-action="${e}"]`), r = await Rt({
-					id: p,
+				let n = x.querySelector(`[data-formie-action="${e}"]`), r = await Bt({
+					id: h,
 					target: a,
-					form: v,
+					form: x,
 					bus: d,
 					validator: E,
-					validateOnSubmit: X(v),
+					validateOnSubmit: X(x),
 					action: e,
 					submitter: n,
 					waitForSubmitDelay: Z,
 					onRefreshTokensAfterSubmit: async () => {
-						await rr(a, g, v);
+						await rr(a, v, x);
 					},
 					dispatchSubmitResult: (e) => {
-						y(a, "formie:submit:result", e);
+						_(a, "formie:submit:result", e);
 					}
 				});
 				return K.log("Submit completed.", {
-					id: p,
+					id: h,
 					action: e,
 					ok: r.ok,
 					code: r.code,
@@ -2411,25 +2416,25 @@ function or() {
 			},
 			on: (e, t) => d.on(e, t)
 		};
-		v && (Ae({
+		x && (je({
 			target: a,
-			form: v,
+			form: x,
 			validatorDetail: E ? {
 				validator: E,
 				addValidator: E.addValidator.bind(E),
 				removeValidator: E.removeValidator.bind(E)
 			} : null,
-			options: b,
-			unbinds: f
-		}), ke({
+			options: te,
+			unbinds: m
+		}), Ae({
 			target: a,
-			form: v,
+			form: x,
 			instance: O,
-			options: b,
-			unbinds: f
-		})), v && (ir(a, v, g, d, E, f), E && (f.push(x(v, E, a)), f.push(vn(v))), await ar(a, g, v)), o.forEach((e) => {
+			options: te,
+			unbinds: m
+		})), x && (ir(a, x, v, d, E, m), E && (m.push(ee(x, E, a)), m.push(vn(x))), await ar(a, v, x)), o.forEach((e) => {
 			let t = d.on(`formie:stage:${e}:before`, async (t) => {
-				y(a, `formie:stage:${e}:before`, t);
+				_(a, `formie:stage:${e}:before`, t);
 			}), n = d.on(`formie:stage:${e}:before`, async (t) => {
 				let n = {
 					core: "prepare",
@@ -2456,42 +2461,42 @@ function or() {
 					});
 				}
 			}), r = d.on(`formie:stage:${e}:after`, async (t) => {
-				y(a, `formie:stage:${e}:after`, t);
+				_(a, `formie:stage:${e}:after`, t);
 			});
-			f.push(t, n, r);
+			m.push(t, n, r);
 		});
-		let ie = d.on("formie:submit:before", async (e) => {
-			y(a, "formie:submit:before", e);
-		}), ae = d.on("formie:submit:after", async (e) => {
-			if (y(a, "formie:submit:after", e), !v) return;
+		let ae = d.on("formie:submit:before", async (e) => {
+			_(a, "formie:submit:before", e);
+		}), oe = d.on("formie:submit:after", async (e) => {
+			if (_(a, "formie:submit:after", e), !x) return;
 			let t = e;
 			if (t.code === "PREFLIGHT_COMPLETE") return;
 			let n = {
-				form: v,
+				form: x,
 				action: t.action ?? "submit",
-				formData: new FormData(v)
+				formData: new FormData(x)
 			};
 			for (let e of D.instances) await e.afterSubmit?.(n, t);
 		}), k = d.on("formie:submit:final:before", async (e) => {
-			y(a, "formie:submit:final:before", e);
-		}), oe = d.on("formie:submit:final:after", async (e) => {
-			y(a, "formie:submit:final:after", e);
+			_(a, "formie:submit:final:before", e);
+		}), se = d.on("formie:submit:final:after", async (e) => {
+			_(a, "formie:submit:final:after", e);
 		});
-		return f.push(ie, ae, k, oe), t.set(a, {
-			options: g,
+		return m.push(ae, oe, k, se), t.set(a, {
+			options: v,
 			bus: d,
-			form: v,
+			form: x,
 			validator: E,
 			modules: D,
-			unbinds: f,
+			unbinds: m,
 			instance: O
-		}), y(a, "formie:mount:after", {
-			id: p,
-			mode: g.mode
-		}), v instanceof HTMLFormElement && m(v), K.log("Mount complete.", {
-			id: p,
+		}), _(a, "formie:mount:after", {
+			id: h,
+			mode: v.mode
+		}), x instanceof HTMLFormElement && b(x), K.log("Mount complete.", {
+			id: h,
 			target: Q(a),
-			mode: g.mode
+			mode: v.mode
 		}), O;
 	}, l = (e, n) => {
 		if (!n.autoVisible || $n(e) || typeof IntersectionObserver > "u") return c(e, n);
@@ -2521,8 +2526,8 @@ function or() {
 				...r.options,
 				...n
 			};
-			let i = n.payload?.theme || r.options.payload?.theme || Qn(e, r.form)?.theme, a = re(e, i, r.form);
-			return r.validator && (r.validator.config.fieldContainerErrorClass = a.fieldLayoutError || [], r.validator.config.inputErrorClass = a.fieldControlError || [], r.validator.config.messagesClass = a.fieldErrors || [], r.validator.config.messageClass = a.fieldError || []), Object.keys(a).length && y(e, "formie:theme:applied", {
+			let i = n.payload?.theme || r.options.payload?.theme || Qn(e, r.form)?.theme, a = ie(e, i, r.form);
+			return r.validator && (r.validator.config.fieldContainerErrorClass = a.fieldLayoutError || [], r.validator.config.inputErrorClass = a.fieldControlError || [], r.validator.config.messagesClass = a.fieldErrors || [], r.validator.config.messageClass = a.fieldError || []), Object.keys(a).length && _(e, "formie:theme:applied", {
 				hasClasses: !0,
 				reason: "update"
 			}), r.instance;
@@ -2545,8 +2550,8 @@ function or() {
 				K.warn("refreshForCache found no form handle for target.", { target: Q(n) });
 				return;
 			}
-			let l = await Je(s, o, c, a, i?.querySelector("input[name=\"requestToken\"]")?.value);
-			l && (tr(i, l), y(n, "formie:refresh-tokens:after", l));
+			let l = await Ze(s, o, c, a, i?.querySelector("input[name=\"requestToken\"]")?.value);
+			l && (tr(i, l), _(n, "formie:refresh-tokens:after", l));
 		},
 		registerModule: (e, t) => r.register(e, t),
 		unregisterModule: (e) => {
@@ -2610,7 +2615,7 @@ async function cr(e) {
 		contractVersion: 2,
 		surface: r,
 		entries: []
-	}, a = e.registry ?? new B(), o = new zt(), s = await Zt(i, {
+	}, a = e.registry ?? new B(), o = new Vt(), s = await $t(i, {
 		registry: a,
 		setupContext: {
 			formId: n?.id || t.id || "formie-modules",
@@ -2824,7 +2829,7 @@ var yr = {
 		reason: "The adapter renders the structured date input contract."
 	}
 };
-async function br(t, n, r = Bt) {
+async function br(t, n, r = Ht) {
 	for (let [e, t] of Object.entries(yr)) {
 		let n = `formie:${e}`;
 		r.get(n) || r.register({
@@ -2887,4 +2892,4 @@ async function br(t, n, r = Bt) {
 	};
 }
 //#endregion
-export { l as FORMIE_HTML_EVENT_NAMES, pn as FormieValidator, Se as LEGACY_FORMIE_DOM_EVENT_BRIDGES, Ce as LEGACY_FORMIE_VALIDATOR_EVENT_BRIDGES, B as ModuleRegistry, ke as bindLegacyDomEventCompatibility, Ae as bindLegacyValidatorCompatibility, ye as buildFieldValueRegistry, Bt as clientRenderedModuleRegistry, T as createDebug, or as createFormieClient, ne as debugLog, w as debugWarn, xe as defineAddressModule, pe as defineCaptchaModule, fe as definePassiveCaptchaModule, S as definePaymentModule, ge as fieldKeyToInputName, vr as formie, c as getFieldModuleEventName, de as getFormieTranslations, s as getGlobalModuleLifecycleEventName, i as getScopedModuleLifecycleEventName, cr as hydrateFormieModules, me as inputNameToFieldKey, te as isFormieDebugEnabled, le as mergeFormieTranslations, br as mountClientRenderedModules, he as normalizeFieldKey, u as normalizeFormieEventName, _e as parseFieldReference, be as resolveFieldReferenceFromFormData, ve as resolveFieldReferenceLive, we as resolveLegacyCompatibilityOptions, ee as setFormieDebugEnabled, ue as setFormieTranslations, A as t, a as toDomEventName, ce as translate };
+export { l as FORMIE_HTML_EVENT_NAMES, pn as FormieValidator, Ce as LEGACY_FORMIE_DOM_EVENT_BRIDGES, we as LEGACY_FORMIE_VALIDATOR_EVENT_BRIDGES, B as ModuleRegistry, Ae as bindLegacyDomEventCompatibility, je as bindLegacyValidatorCompatibility, be as buildFieldValueRegistry, Ht as clientRenderedModuleRegistry, T as createDebug, or as createFormieClient, re as debugLog, w as debugWarn, Se as defineAddressModule, me as defineCaptchaModule, pe as definePassiveCaptchaModule, te as definePaymentModule, _e as fieldKeyToInputName, vr as formie, c as getFieldModuleEventName, fe as getFormieTranslations, s as getGlobalModuleLifecycleEventName, i as getScopedModuleLifecycleEventName, cr as hydrateFormieModules, he as inputNameToFieldKey, ne as isFormieDebugEnabled, ue as mergeFormieTranslations, br as mountClientRenderedModules, ge as normalizeFieldKey, u as normalizeFormieEventName, ve as parseFieldReference, xe as resolveFieldReferenceFromFormData, ye as resolveFieldReferenceLive, Te as resolveLegacyCompatibilityOptions, C as setFormieDebugEnabled, de as setFormieTranslations, A as t, a as toDomEventName, le as translate };

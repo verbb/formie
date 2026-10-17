@@ -4013,6 +4013,13 @@ function Q(e, t) {
 	return `${t.prefix || ""}${i}${t.suffix || ""}`;
 }
 function Re(e, t) {
+	if (e.numberFormat) {
+		let { prefix: n = "", suffix: r = "" } = e.numberFormat, i = (e) => {
+			let t = e;
+			return n && t.startsWith(n) && (t = t.slice(n.length)), r && t.endsWith(r) && (t = t.slice(0, -r.length)), Number(t || 0);
+		};
+		return Array.isArray(t) ? t.map(i) : i(t);
+	}
 	let n = e.type?.endsWith("\\Number");
 	return e.type?.endsWith("\\Checkboxes") ? Array.isArray(t) ? t.length ? t : "" : t ? [t] : "" : Array.isArray(t) ? t.length ? n ? t.map((e) => Number(e || 0)) : t : "" : n ? Number(t || 0) : t;
 }
