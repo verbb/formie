@@ -139,3 +139,34 @@ it('preserves rich text settings during partial attribute updates', function ():
     expect($settings->getSuccessMessage())->toContain('Keep this success message.')
         ->and($settings->getErrorMessage())->toContain('Keep this error message.');
 });
+
+it('rejects an enabled schedule whose end is before its start', function (): void {
+    $form = formie()->form(['title' => 'Invalid Schedule Window'])->singleLineTextField('name')->create();
+    $form->settings->setAttributes([
+        'scheduleForm' => true,
+        'scheduleFormStart' => '2026-10-18 09:00:00',
+        'scheduleFormEnd' => '2026-10-17 17:00:00',
+    ], false);
+
+    expect(Craft::$app->elements->saveElement($form))->toBeFalse()
+        ->and($form->hasErrors('settings.scheduleFormEnd'))->toBeTrue();
+
+    $form->settings->scheduleFormEnd = new DateTime('2026-10-19 17:00:00');
+    expect(Craft::$app->elements->saveElement($form))->toBeTrue();
+});
+
+it('allows open-ended and disabled schedule windows', function (bool $enabled, ?string $start, ?string $end): void {
+    $settings = new FormSettings([
+        'scheduleForm' => $enabled,
+        'scheduleFormStart' => $start,
+        'scheduleFormEnd' => $end,
+    ]);
+
+    expect($settings->validate(['scheduleFormEnd']))->toBeTrue();
+})->with([
+    'start only' => [true, '2026-10-18 09:00:00', null],
+    'end only' => [true, null, '2026-10-19 17:00:00'],
+    'no bounds' => [true, null, null],
+    'disabled reversed window' => [false, '2026-10-18 09:00:00', '2026-10-17 17:00:00'],
+    'ordered offset instants' => [true, '2026-10-18T09:00:00+11:00', '2026-10-17T23:00:00+00:00'],
+]);

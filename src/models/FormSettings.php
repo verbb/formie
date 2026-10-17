@@ -623,6 +623,15 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         );
     }
 
+    public function validateScheduleWindow(string $attribute): void
+    {
+        // Open-ended schedules are valid, but a bounded window must be ordered.
+        if ($this->scheduleForm && $this->scheduleFormStart && $this->scheduleFormEnd
+            && $this->scheduleFormEnd < $this->scheduleFormStart) {
+            $this->addError($attribute, Craft::t('formie', 'Schedule End Date must not be before Schedule Start Date.'));
+        }
+    }
+
     public function validateSubmissionLimitCollection(string $attribute): void
     {
         if (!SubmissionLimitHelper::isEnabled($this) || SubmissionLimitHelper::getLimit($this) < 1) {
@@ -650,6 +659,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         $rules[] = [['integrations'], 'validateIntegrations'];
         $rules[] = [['submitMethod'], 'validateSubmitMethod'];
         $rules[] = [['limitSubmissionsScope'], 'validateSubmissionLimitCollection'];
+        $rules[] = [['scheduleFormEnd'], 'validateScheduleWindow'];
         $rules[] = [['completionBehavior'], 'in', 'range' => ['message', 'redirect', 'reload', 'reset']];
         $rules[] = [['completionRedirectSource'], 'in', 'range' => ['url', 'entry']];
         $rules[] = [['redirectTarget'], 'in', 'range' => ['same-tab', 'new-tab']];

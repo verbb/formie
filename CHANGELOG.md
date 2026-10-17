@@ -9,6 +9,7 @@
 ### Fixed
 - Fix spam submissions configured to show success failing to display completion messages or redirect.
 - Fix fresh forms retaining an earlier submission’s spam-protection timer.
+- Fix form schedules accepting an end date before their start date.
 - Fix save-and-resume links losing the form page after saving a resumed submission.
 - Fix forms freezing when live validation and disabling the submit button until valid are both enabled.
 - Fix file upload names failing to refresh after navigating between form pages.
