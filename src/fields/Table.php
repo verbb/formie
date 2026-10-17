@@ -1057,7 +1057,7 @@ class Table extends Field
             'minRows' => $this->minRows,
             'maxRows' => $this->maxRows,
             'static' => false,
-            'staticRows' => $this->staticRows,
+            'staticRows' => $this->static || $this->staticRows,
             'allowAdd' => true,
             'allowDelete' => true,
             'allowReorder' => true,

@@ -7,6 +7,12 @@ const required: ValidationRuleDefinition = {
             return true;
         }
 
+        // Required tables need rows, not a value in every cell. Cell values are
+        // optional, including unchecked checkboxes and blank email addresses.
+        if (input.closest('[data-formie-field-handle]')?.getAttribute('data-formie-field-type') === 'table') {
+            return true;
+        }
+
         if (input instanceof HTMLInputElement && input.type === 'file') {
             if (input.files?.length) {
                 return true;
