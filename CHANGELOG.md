@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix reCAPTCHA v3 failing when its script is already loaded without the configured site key.
 - Fix slow submission and sent notification indexes in the control panel on sites with many forms.
 
 ## 4.0.2 - 2026-10-17

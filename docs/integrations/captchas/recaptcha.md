@@ -36,6 +36,12 @@ Follow the below steps to connect Formie to Google reCAPTCHA.
 
 For most forms, **reCAPTCHA v3** is the best starting point. Use the checkbox or Enterprise challenge modes only when you need a visible challenge.
 
+## Script Loading
+
+Formie loads the Google reCAPTCHA script automatically when its browser runtime initializes a protected form. You do not need to add an `api.js` script tag to your Craft layout for Formie. If another feature also uses reCAPTCHA, Formie can reuse the loaded standard API and registers its own v3 client with the configured site key.
+
+If Google reports an invalid site key, check that the key is for reCAPTCHA v3 and allows your site’s domain. Loading the JavaScript API does not make an invalid key valid.
+
 ## Score-Based Challenges and Low Scores
 
 reCAPTCHA v3 and **Enterprise score-based** modes return a score when the user submits. Formie compares that score to your **Minimum Score** threshold (globally under **Settings → Spam Protection**, or per form when you override it). Submissions below the threshold are treated as spam.

@@ -17,21 +17,25 @@ export const recaptchaV3Module = defineCaptchaModule<RecaptchaProviderOptions, R
     defaultPlaceholderSelector: '[data-recaptcha-placeholder]',
     defaultTokenFieldNames: ['g-recaptcha-response'],
     load: ({ options }) => {
-        // Score-based flows use a site-key `render=` mode instead of an
-        // explicit widget render, so the loader needs the site key up front.
-        return loadRecaptchaGlobal(options.provider, false, options.provider.siteKey || undefined);
+        return loadRecaptchaGlobal(options.provider);
     },
-    mount: ({ api, provider }) => {
-        return new Promise((resolve) => {
-            api.ready(() => {
-                // There is no real widget id for v3. We store the site key as
-                // the "widget" value purely so the managed factory can treat
-                // this provider like every other captcha module instance.
-                resolve(provider.siteKey || 'recaptcha-v3');
-            });
+    mount: ({ api, container, provider, services }) => {
+        return new Promise((resolve, reject) => {
+            // An existing api.js may have loaded without render=<our site key>.
+            // Register this form explicitly, then execute its returned client ID.
+            void whenRecaptchaReady(api, async() => {
+                resolve(api.render(container, {
+                    sitekey: provider.siteKey || '',
+                    size: 'invisible',
+                    badge: provider.badge || 'bottomright',
+                    theme: provider.theme || 'light',
+                    'expired-callback': () => services.tokens.clear(),
+                    'error-callback': () => services.tokens.clear(),
+                }));
+            }).catch(reject);
         });
     },
-    challenge: async({ api, provider, placeholder, services, stageCtx }) => {
+    challenge: async({ api, widget, provider, placeholder, services, stageCtx }) => {
         // If a token already exists we can skip execution, which matters for
         // re-renders or multi-step flows where the same challenge was already
         // completed very recently.
@@ -42,7 +46,7 @@ export const recaptchaV3Module = defineCaptchaModule<RecaptchaProviderOptions, R
         // v3 returns its token directly from `execute()`, unlike widget-based
         // captchas that signal completion later via callbacks.
         await whenRecaptchaReady(api, async() => {
-            const token = await api.execute(provider.siteKey || '', { action: provider.action || 'submit' });
+            const token = await api.execute(widget, { action: provider.action || 'submit' });
 
             if (typeof token === 'string' && token.trim() !== '') {
                 services.tokens.write(token.trim());
@@ -59,7 +63,12 @@ export const recaptchaV3Module = defineCaptchaModule<RecaptchaProviderOptions, R
             stageCtx.abort(message);
         }
     },
-    unmount: ({ services }) => {
+    reset: ({ api, widget, services }) => {
+        api.reset(widget);
+        services.tokens.clear();
+    },
+    unmount: ({ api, widget, services }) => {
+        api.reset(widget);
         services.tokens.clear();
     },
 });

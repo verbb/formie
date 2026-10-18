@@ -1091,7 +1091,7 @@ var Vt = class {
 	"recaptcha-enterprise": () => import("./chunks/recaptcha-enterprise-DLiVTBVV.js").then((e) => e.recaptchaEnterpriseModule),
 	"recaptcha-v2-checkbox": () => import("./chunks/recaptcha-v2-checkbox-mSWjrDx2.js").then((e) => e.recaptchaV2CheckboxModule),
 	"recaptcha-v2-invisible": () => import("./chunks/recaptcha-v2-invisible-CRohobVl.js").then((e) => e.recaptchaV2InvisibleModule),
-	"recaptcha-v3": () => import("./chunks/recaptcha-v3-K4rnZPNQ.js").then((e) => e.recaptchaV3Module),
+	"recaptcha-v3": () => import("./chunks/recaptcha-v3-qadm_sg2.js").then((e) => e.recaptchaV3Module),
 	snaptcha: () => import("./chunks/snaptcha-CibXqXOR.js").then((e) => e.snaptchaModule),
 	turnstile: () => import("./chunks/turnstile-CFu1QWgY.js").then((e) => e.turnstileModule)
 }, Gt = {

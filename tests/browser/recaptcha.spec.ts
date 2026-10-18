@@ -60,9 +60,10 @@ test('standard reCAPTCHA uses its own ready queue when Enterprise also exists', 
     expect(calls).toEqual(['standard', 'execute']);
 });
 
-for (const initialApi of ['absent', 'ready-stub', 'enterprise', 'blocked']) {
+for (const initialApi of ['absent', 'ready-stub', 'enterprise', 'blocked', 'layout-generic', 'layout-other-key', 'layout-matching-key', 'invalid-site-key']) {
     test(`production v3 module handles submission with ${initialApi} SDK state`, async ({ page }) => {
         const requestedAssets: string[] = [];
+        const requestedScripts: string[] = [];
         await page.route('https://formie.example.test/**', async (route) => {
             const url = new URL(route.request().url());
             if (url.pathname.startsWith('/browser/')) {
@@ -73,21 +74,45 @@ for (const initialApi of ['absent', 'ready-stub', 'enterprise', 'blocked']) {
             }
             await route.fulfill({ contentType: 'text/html', body: '<form><label>Message<input name="message" value="Hello"></label><div data-recaptcha-placeholder></div><button>Send</button><output></output></form>' });
         });
-        await page.route('https://www.recaptcha.net/recaptcha/api.js*', async (route) => {
+        await page.route(/https:\/\/www\.(google\.com|recaptcha\.net)\/recaptcha\/api\.js/, async (route) => {
+            requestedScripts.push(route.request().url());
             if (initialApi === 'blocked') {
                 await route.abort('failed');
                 return;
             }
-            // Match the two-stage SDK load: api.js can finish before its API is ready.
+            // Only keys registered by render= or an explicit widget can execute.
+            // A usable API alone must not imply that Formie's site key is loaded.
+            const autoKey = new URL(route.request().url()).searchParams.get('render');
             await route.fulfill({ contentType: 'application/javascript', body: `
                 window.grecaptcha ||= {};
+                window.recaptchaRenders = [];
+                window.recaptchaResets = [];
+                const clients = new Map();
+                const autoKey = ${JSON.stringify(autoKey)};
+                if (autoKey && autoKey !== 'explicit') clients.set(autoKey, autoKey);
                 setTimeout(() => Object.assign(window.grecaptcha, {
-                    ready: cb => cb(), render: () => 0, reset: () => {},
-                    execute: async (key, options) => key + ':' + options.action,
+                    ready: cb => cb(),
+                    render: (container, options) => {
+                        if (options.sitekey === 'invalid') throw new Error('Invalid site key');
+                        const id = window.recaptchaRenders.length;
+                        window.recaptchaRenders.push(options);
+                        clients.set(id, options.sitekey);
+                        return id;
+                    },
+                    reset: id => window.recaptchaResets.push(id),
+                    execute: async (id, options) => {
+                        if (!clients.has(id)) throw new Error('Invalid site key or not loaded in api.js: ' + id);
+                        return clients.get(id) + ':' + options.action;
+                    },
                 }), 30);
             ` });
         });
         await page.goto('https://formie.example.test/');
+        if (initialApi.startsWith('layout-')) {
+            const query = initialApi === 'layout-generic' ? '' : `?render=${initialApi === 'layout-other-key' ? 'other-key' : 'v3-test-key'}`;
+            await page.addScriptTag({ url: `https://www.google.com/recaptcha/api.js${query}` });
+            await page.waitForFunction(() => typeof (window as any).grecaptcha?.execute === 'function');
+        }
         await page.evaluate(async (initialApi) => {
             if (initialApi === 'ready-stub') (window as any).grecaptcha = { ready: () => {} };
             if (initialApi === 'enterprise') (window as any).grecaptcha = { enterprise: { ready: (cb: () => void) => cb() } };
@@ -99,7 +124,7 @@ for (const initialApi of ['absent', 'ready-stub', 'enterprise', 'blocked']) {
                 modules: { contractVersion: 2, surface: 'server-rendered', entries: [{
                     key: 'captcha', moduleId: 'formie:recaptcha-v3', kind: 'captcha',
                     targets: [{ type: 'form' }], required: true,
-                    config: { siteKey: 'v3-test-key', action: 'contact', handle: 'recaptcha' },
+                    config: { siteKey: initialApi === 'invalid-site-key' ? 'invalid' : 'v3-test-key', action: 'contact', handle: 'recaptcha', badge: 'inline', theme: 'dark' },
                 }] },
             });
             (window as any).captchaHost = host;
@@ -109,7 +134,7 @@ for (const initialApi of ['absent', 'ready-stub', 'enterprise', 'blocked']) {
                 form.querySelector('output')!.textContent = tokens['g-recaptcha-response'];
             });
         }, initialApi);
-        if (initialApi === 'blocked') {
+        if (initialApi === 'blocked' || initialApi === 'invalid-site-key') {
             await expect(page.locator('[data-formie-module-error]')).toBeVisible();
             await page.getByRole('button', { name: 'Send' }).click();
             await expect(page.locator('output')).toBeEmpty();
@@ -118,8 +143,21 @@ for (const initialApi of ['absent', 'ready-stub', 'enterprise', 'blocked']) {
             await expect(page.locator('output')).toHaveText('v3-test-key:contact');
             await expect(page.locator('[data-formie-module-error]')).toHaveCount(0);
             expect(await page.evaluate(() => (window as any).captchaHost.failures)).toEqual([]);
+            expect(await page.evaluate(() => (window as any).recaptchaRenders)).toEqual([
+                expect.objectContaining({ sitekey: 'v3-test-key', size: 'invisible', badge: 'inline', theme: 'dark' }),
+            ]);
+            // Expiry invalidates an existing token, and another submit obtains a fresh one.
+            await page.evaluate(() => (window as any).recaptchaRenders[0]['expired-callback']());
+            await expect(page.locator('input[name="g-recaptcha-response"]')).toHaveValue('');
+            await page.getByRole('button', { name: 'Send' }).click();
+            await expect(page.locator('input[name="g-recaptcha-response"]')).toHaveValue('v3-test-key:contact');
         }
         expect(requestedAssets.some((asset) => /recaptcha-v3-/.test(asset))).toBe(true);
+        expect(requestedScripts).toHaveLength(1);
         await page.evaluate(() => (window as any).captchaHost.destroy());
+        if (initialApi !== 'blocked' && initialApi !== 'invalid-site-key') {
+            expect(await page.evaluate(() => (window as any).recaptchaResets)).toEqual([0]);
+            await expect(page.locator('input[name="g-recaptcha-response"]')).toHaveValue('');
+        }
     });
 }
