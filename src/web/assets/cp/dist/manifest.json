@@ -7,6 +7,10 @@
       "_dndkit-Tbq_EQgB.js"
     ]
   },
+  "_FormieElementIndex-B7gDDK7v.js": {
+    "file": "assets/FormieElementIndex-B7gDDK7v.js",
+    "name": "FormieElementIndex"
+  },
   "_createUid-BtKO1cQV.js": {
     "file": "assets/createUid-BtKO1cQV.js",
     "name": "createUid"
@@ -253,7 +257,8 @@
       "_rolldown-runtime-hePW80VL.js",
       "_plugin-kit-BnZBXzch.js",
       "_dndkit-Tbq_EQgB.js",
-      "_utils-BgVOGQ8b.js"
+      "_utils-BgVOGQ8b.js",
+      "_FormieElementIndex-B7gDDK7v.js"
     ],
     "css": [
       "sent-notifications/css/formie-sent-notifications.css"
@@ -270,7 +275,8 @@
       "_dndkit-Tbq_EQgB.js",
       "_utils-BgVOGQ8b.js",
       "_formie-browser-CSDCLYAO.js",
-      "_dist-B0-K5nhv.js"
+      "_dist-B0-K5nhv.js",
+      "_FormieElementIndex-B7gDDK7v.js"
     ],
     "css": [
       "submissions/css/formie-submissions.css"

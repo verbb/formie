@@ -2,16 +2,18 @@ import { createElement } from 'react';
 import { AppErrorBoundary } from '@verbb/plugin-kit-react/utils';
 
 import { bootstrapShadowReactApp, mountFormieReactApp } from '@utils';
+import { FormieElementIndex } from '../../../utils/FormieElementIndex.js';
 import { SendNotificationDialog } from '../../SendNotificationDialog.jsx';
 
 if (typeof Craft.Formie === typeof undefined) {
     Craft.Formie = {};
 }
 
-Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
+Craft.Formie.SubmissionIndex = FormieElementIndex.extend({
     editableForms: [],
     $newSubmissionBtnGroup: null,
     $newSubmissionBtn: null,
+    newSubmissionMenu: null,
     startDate: null,
     endDate: null,
 
@@ -179,6 +181,8 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
         let i, href, label;
 
         if (this.editableForms.length) {
+            this._destroyNewSubmissionMenu();
+
             // Remove the old button, if there is one
             if (this.$newSubmissionBtnGroup) {
                 this.$newSubmissionBtnGroup.remove();
@@ -238,10 +242,17 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
 
                 menuHtml += '</ul></div>';
 
-                $(menuHtml).appendTo(this.$newSubmissionBtnGroup);
-                const menuBtn = new Garnish.MenuBtn($menuBtn);
+                const $menu = $(menuHtml).appendTo(this.$newSubmissionBtnGroup);
 
-                if (this.settings.context !== 'index') {
+                if (this.settings.context === 'index') {
+                    // Craft's disclosure menu handles links without sorting an ARIA
+                    // option collection for every form during page initialization.
+                    const menuId = `formie-new-submission-${crypto.randomUUID()}`;
+                    $menu.attr('id', menuId).addClass('menu--disclosure');
+                    $menuBtn.attr('aria-controls', menuId);
+                    this.newSubmissionMenu = new Garnish.DisclosureMenu($menuBtn);
+                } else {
+                    const menuBtn = new Garnish.MenuBtn($menuBtn);
                     menuBtn.on('optionSelect', (ev) => {
                         this._openCreateSubmissionModal(ev.option.getAttribute('data-id'));
                     });
@@ -260,6 +271,20 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
 
             Craft.setPath(uri);
         }
+    },
+
+    _destroyNewSubmissionMenu() {
+        if (this.newSubmissionMenu) {
+            this.newSubmissionMenu.hide();
+            this.newSubmissionMenu.destroy();
+            this.newSubmissionMenu.$container.remove();
+            this.newSubmissionMenu = null;
+        }
+    },
+
+    destroy() {
+        this._destroyNewSubmissionMenu();
+        this.base();
     },
 
     getViewParams() {

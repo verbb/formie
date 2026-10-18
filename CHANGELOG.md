@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix slow submission and sent notification indexes in the control panel on sites with many forms.
+
 ## 4.0.2 - 2026-10-17
 
 ### Changed

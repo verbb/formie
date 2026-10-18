@@ -14,9 +14,12 @@ import '../scss/formie-sent-notifications.scss';
 import resendStyles from '../scss/formie-sent-notifications.scss?inline';
 
 import { bootstrapShadowReactApp, mountFormieReactApp } from '@utils';
+import { FormieElementIndex } from '../../utils/FormieElementIndex.js';
 import { ResendNotificationDialog } from '../ResendNotificationDialog.jsx';
 
 Craft.Formie ||= {};
+Craft.Formie.SentNotificationIndex = FormieElementIndex.extend({});
+Craft.registerElementIndexClass('verbb\\formie\\elements\\SentNotification', Craft.Formie.SentNotificationIndex);
 
 let activeDialogCleanup = null;
 

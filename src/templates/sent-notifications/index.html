@@ -22,3 +22,34 @@
 }
 
 {% endcss %}
+
+{% block initJs %}
+    (() => {
+        const initSentNotificationIndex = (attempt = 0) => {
+            // The sent notifications asset is loaded as a module, so wait for it before
+            // creating the index instead of booting Craft's stock element index.
+            if (!Craft.Formie?.SentNotificationIndex) {
+                if (attempt < 100) {
+                    setTimeout(() => initSentNotificationIndex(attempt + 1), 25);
+                }
+
+                return;
+            }
+
+            Craft.elementIndex = Craft.createElementIndex('{{ elementType|e("js") }}', $('#page-container'), {
+                canHaveDrafts: {{ canHaveDrafts ? 'true' : 'false' }},
+                context: '{{ context }}',
+                criteria: Craft.defaultIndexCriteria,
+                defaultSource: {{ (defaultSource ?? null)|json_encode|raw }},
+                defaultSourcePath: {{ (defaultSourcePath ?? null)|json_encode|raw }},
+                elementTypeName: '{{ elementDisplayName|e("js") }}',
+                elementTypePluralName: '{{ elementPluralDisplayName|e("js") }}',
+                page: {{ (page ?? null)|json_encode|raw }},
+                storageKey: 'elementindex.{{ elementType|e("js") }}',
+                toolbarSelector: '#toolbar',
+            });
+        };
+
+        initSentNotificationIndex();
+    })();
+{% endblock %}
