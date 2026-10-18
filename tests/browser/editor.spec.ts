@@ -52,8 +52,12 @@ test('preserves a dynamic payment amount field after reload', async ({ page }) =
     await dialog.getByRole('button', { name: 'Select an option', exact: true }).first().click();
     await page.getByRole('option', { name: 'Browser Stripe', exact: true }).click();
     await dialog.getByRole('button', { name: 'Fixed Value', exact: true }).first().click();
-    await page.getByRole('option', { name: 'Dynamic Value', exact: true }).click();
-    await dialog.getByRole('combobox').first().click();
+    await dialog.locator('pk-field[data-name="amountType"]').getByRole('option', { name: 'Dynamic Value', exact: true }).click();
+    // WebKit can misidentify the slotted input during click preflight; use keyboard navigation.
+    const amountInput = dialog.locator('pk-field[data-name="amountVariable"]').getByRole('combobox');
+    await dialog.locator('pk-field[data-name="amountType"]').getByRole('button', { name: 'Dynamic Value', exact: true }).press('Tab');
+    await expect(amountInput).toBeFocused();
+    await amountInput.press('ArrowDown');
     await page.getByRole('option', { name: 'Payment total', exact: true }).click();
     await expect(dialog.getByRole('button', { name: 'Dynamic Value', exact: true }).first()).toBeVisible();
     await expect(dialog.getByRole('combobox').first()).toHaveValue('Payment total');
