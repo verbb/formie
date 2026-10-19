@@ -6,7 +6,7 @@ Spam keywords are Formie's built-in content screening tool — match words, phra
 
 - [Spam Protection](/forms/spam-protection)
 
-Configure keywords under **Formie → Settings → Spam Protection → Content Rules → Spam Keywords**. Values live in Formie's [control panel settings store](/guides/configuration/project-config-environment-and-control-panel-settings) — not in `config/formie.php` by default.
+Configure keywords under **Formie → Settings → Spam Protection → Content Rules → Spam Keywords**. Keywords share the scope of the other spam settings; review [Spam Settings](/forms/spam-protection#spam-settings) to decide how your team should maintain and deploy production rules.
 
 ## How Matching Works
 
@@ -93,7 +93,7 @@ Formie checks IP rules alongside `[match:]` keyword rules.
 
 ## Referencing External Content
 
-Keywords are stored in control panel settings, which are awkward to edit on production when project-scoped. Reference a Global Set field instead:
+To let content editors maintain keywords without access to the Spam Protection settings page, reference a Global Set field:
 
 ```text
 {forms.spamKeywords}
@@ -208,11 +208,10 @@ Browser-only guards (honeypot, minimum submit time) do **not** run on GraphQL; k
 
 **Rule not firing**
 
-- Confirm the keyword setting is saved on the correct site scope (multi-site)
+- Confirm the keyword setting is saved on the Craft instance receiving the submission
 - Check Global Set reference resolves on production
 - Verify screening stage is not skipped by an earlier workflow customisation
 
 **Keywords lost after deploy**
 
-- Confirm keywords are saved under **Settings → Spam Protection**, not in project config YAML
-- See [Project config, environment, and control panel settings](/guides/configuration/project-config-environment-and-control-panel-settings)
+Instance-level rules survive project config sync. If keywords change after deployment, check whether the settings were still project-managed or whether a database copy replaced the local values. Review the [deployment guide](/guides/configuration/project-config-environment-and-control-panel-settings#after-copying-a-database-between-environments) for the checks to make on the target environment.

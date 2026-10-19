@@ -24,7 +24,7 @@ Formie includes a default `Contact Form` stencil as a general starting point, an
 
 Create and manage stencils under **Formie → Stencils** (requires the **Access stencils** permission). Building a stencil works much like building a normal form, so you can define the layout, notifications, and form settings you want to reuse.
 
-Choose **New stencil** to create one you can edit in the control panel. Once a stencil exists, it becomes an option when creating a new form. Choosing a stencil gives you a quick starting point, and from there the form becomes its own form that can be changed independently.
+Choose **New Stencil**, or open the arrow beside it and choose **New project stencil**, using the [storage and deployment guidance below](#project-stencils-developers). Both use the same builder. Once saved, the stencil becomes an option when creating a new form.
 
 Saving a form as a stencil from the form builder creates a new stencil you can edit later.
 
@@ -42,11 +42,16 @@ Stencils are best treated as starting templates, not shared live forms. Changes 
 
 ## Project Stencils (Developers)
 
-Some stencils are created as **project stencils** and stored in project config (`formie.stencils`). They are useful for starter kits and defaults that should be versioned with the site and shared across a team.
+The choice between an instance-level stencil and a project stencil controls storage, deployment and editing permissions. An **instance** is a Craft installation, such as development, staging or production, rather than an individual site in a multisite installation.
 
-Handles must be unique across both regular and project stencils.
+**New Stencil** creates an instance-level stencil stored in that installation’s database. It is not included in project config, and users with **Access stencils** can create, edit and delete it even when Craft’s `allowAdminChanges` is `false`. Choose this option for starter forms a client maintains on the live site, such as an enquiry template they adjust as their requirements change.
 
-On sites where admin changes are disabled, project stencils are **view-only** in the control panel. You can still open them and use **Save a copy** to create an editable stencil of your own.
+**New project stencil** stores the stencil under `formie.stencils` in project config, ready to commit and deploy with your Craft project. This option is available when admin changes are enabled; creating, editing and deleting project stencils also requires **Access stencils**. When admin changes are disabled, they are view-only. Choose this option for an application template your development team maintains in version control and deploys across environments.
 
-- **New stencil** — available to everyone with stencil access.
-- **New project stencil** — only when admin changes are enabled (typically local or staging).
+Project stencils display **Project** in the list’s **Scope** column; instance-level stencils leave it blank. Handles must be unique across both types.
+
+Project config sync leaves instance-level stencils unchanged, including those in the trash. Updates and removal in project config apply only to project stencils.
+
+When a project stencil is view-only, users with **Access stencils** can still open it and use **Save a copy** to create an editable, database-only stencil. The original stays managed by project config, and later changes to it do not update the copy.
+
+Both kinds can create forms when admin changes are disabled, subject to form-creation permissions. The resulting forms are database content; deploying a project stencil does not deploy forms previously created from it.

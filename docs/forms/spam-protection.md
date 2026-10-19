@@ -10,6 +10,8 @@ Formie gives you a few layers to work with, so you can start with lighter filter
 
 That page brings together spam handling, keyword rules, built-in submission guards, and captcha provider credentials in one place.
 
+Users with the relevant settings permissions can edit this page even when Craft’s `allowAdminChanges` is `false`. See [Control Panel Settings](#control-panel-settings) for how saves affect project and instance settings.
+
 ## When Checks Run
 
 Request safeguards run before Formie processes a form, including draft saves and page changes. Content rules and CAPTCHA checks run when a visitor completes the form, after field validation so visitors can correct mistakes first.
@@ -78,7 +80,7 @@ You can define each rule on a new line, and you can use parentheses to group log
 
 #### Referencing Other Content
 
-Spam keywords are stored in the spam settings store (with optional project-config defaults), which means they are not always convenient to edit directly on staging or production when those values are project-scoped. If you want content admins to manage them, or you need them to vary by environment, you can reference another field instead.
+If you want content editors to manage the keyword text without access to the Spam Protection settings page, you can reference another field instead.
 
 This is commonly done with a Global Set. For example, if you had a Global Set called `Forms` and a field called `Spam Keywords`, you could reference it in the Formie spam keywords setting with `{forms.spamKeywords}`.
 
@@ -181,6 +183,18 @@ See [Captchas](/integrations/captchas/) for provider-specific setup guides.
 
 ## Control Panel Settings
 
-Spam handling, keyword rules, submission guards, and captcha provider credentials are stored in Formie’s dedicated settings tables rather than `config/project` plugin settings. That lets privileged admins edit production values when `allowAdminChanges` is `false`.
+Spam settings can be project-managed or instance-level. An **instance** is a Craft installation, such as development, staging or production, rather than an individual site in a multisite installation.
 
-Project-scoped rows can still deploy through project config. Site-scoped rows remain environment-local.
+### Spam Settings
+
+Spam handling, content rules, submission guards and throttling share one scope. Project-managed settings are stored under `formie.spamSettings` in project config. There is no scope selector on this page; saving follows the existing scope and Craft’s admin-change setting.
+
+While spam settings are project-managed and admin changes are enabled, saving updates project config so you can commit and deploy the changes. If you save with `allowAdminChanges` set to `false`, the settings become instance-level and are saved only in that environment’s database. This lets permitted users maintain production rules directly. Subsequent saves remain local, even if admin changes are later enabled.
+
+For example, a developer can deploy an initial set of spam keywords through project config. An authorised editor can then save revised keywords on production with admin changes disabled; that saves the spam settings locally on production. The scope applies to the whole set of spam settings, not only the keyword field that changed.
+
+Project config sync leaves instance-level spam settings unchanged. Project-managed settings still receive updates and reset to defaults if `formie.spamSettings` is removed from project config.
+
+### Captcha Provider Settings
+
+Saving a captcha provider always makes its settings instance-level, regardless of `allowAdminChanges`. Each provider has its own settings, separate from the shared spam rules above. See [Captcha Provider Settings](/integrations/overview#captcha-provider-settings) for deployment and credential handling.

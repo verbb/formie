@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Clarify project and instance settings for integrations, stencils, spam protection and captcha providers, including deployment and editing permissions.
+
 ### Fixed
 - Fix project config sync overwriting or removing instance-level integrations, stencils and spam protection settings.
 - Fix notification and submission properties rendering empty or being blocked by the Twig sandbox in PDF attachment filenames. ([#3018](https://github.com/verbb/formie/issues/3018))

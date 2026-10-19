@@ -14,14 +14,14 @@ Stencils are reusable starter forms — layout, notifications, integrations, and
 | --- | --- | --- |
 | Purpose | Starting template | Live, editable form |
 | Changes affect | Future forms only | That form's submissions |
-| Storage | CP stencils + optional project config | Database |
+| Storage | Database for instance-level stencils; project config for project stencils | Database |
 
 Treat stencils as starting points, not shared live forms.
 
 ## Step 1 — Build the Canonical Enquiry Stencil
 
 1. Go to **Formie → Stencils**
-2. Click **New stencil**
+2. For this deployable template, open the arrow beside **New Stencil** and choose **New project stencil**. This requires admin changes to be enabled.
 3. Name it `Enquiry Form` (handle `enquiryForm`)
 4. Build the layout you want every enquiry to start with:
    - Name, Email, Phone, Message fields
@@ -77,21 +77,9 @@ Useful when a one-off form became the de facto standard and you want to codify i
 
 ## Step 6 — Project Stencils (Developers)
 
-For starter kits versioned with the site, create **project stencils** stored in project config:
+The enquiry stencil created in Step 1 is managed by your development team. On production with admin changes disabled, authors can use it to create forms but cannot edit the stencil itself.
 
-```yaml
-# config/project/formie/stencils/…
-```
-
-Project stencils:
-
-- Require admin changes enabled to create/edit in CP (typically local/staging)
-- Are **view-only** on production when admin changes are disabled
-- Support **Save a copy** to fork into an editable CP stencil
-
-Handles must be unique across regular and project stencils.
-
-On deploy, project stencils appear in the **New Form** stencil picker alongside CP stencils.
+If a client needs a variation, they can open the view-only stencil and choose **Save a copy**. Give the copy a unique handle, such as `clientEnquiryForm`. It becomes an independent instance-level stencil, so future deployments of `enquiryForm` leave the client’s copy unchanged. See [Project Stencils](/forms/stencils#project-stencils-developers) for the full storage and permission rules.
 
 ## Step 7 — Combine with Form Groups
 
@@ -101,13 +89,15 @@ See [Form groups and defaults at scale](/guides/control-panel-admin/form-groups-
 
 ## Step 8 — Deploy Across Environments
 
-Project stencils travel via `project-config/sync`. CP-created stencils are database content — export/import them with [Import and export between environments](/guides/control-panel-admin/import-and-export-between-environments) or include them in your content migration process.
+Commit the enquiry stencil’s project config and apply it on the target environment with `project-config/sync`. Instance-level stencils require a separate content migration. Forms already created from either type of stencil also remain database content; use [Import and export between environments](/guides/control-panel-admin/import-and-export-between-environments) to move those forms.
 
 Order of operations on a fresh environment:
 
-1. Deploy project config (project stencils, synced field definitions, form groups)
-2. Import or sync CP stencils if needed
+1. Deploy project config, including project stencils and form groups
+2. Migrate any instance-level stencils and shared field definitions the templates require
 3. Verify synced field handles resolve before authors create forms from stencils
+
+On the target environment, confirm that **Enquiry Form** appears in the **New Form** stencil picker, then create a test form and check its fields, notifications and settings.
 
 ## Included Default
 

@@ -1903,6 +1903,12 @@ Existing providers returning `bool` or `IntegrationResponse` still work through 
 
 After upgrading, inspect **Formie delivery diagnostics** on failed jobs in **Utilities → Queue Manager** and reconcile uncertain outcomes before retrying. See [Custom Integrations](/developers/custom-integration/overview#results-and-safe-retries) for the provider API.
 
+### Integration Scope
+
+Existing integrations remain project integrations after upgrading, so their configuration continues to deploy through Craft’s project config. In the integration list, these connections display **Project** in the **Scope** column.
+
+For new connections, **New Integration** creates an instance-level integration. Choose **New project integration** from the arrow beside the button to continue managing new connections through project config. See [Integrations and Project Integrations](/integrations/overview#integrations-and-project-integrations) for permissions, deployment and credential handling.
+
 ### Integration Connection Checks
 
 `checkConnection()` now returns `false` when the connection status is `fail`.

@@ -6,9 +6,31 @@ Choose a provider from the categories in this section for its account requiremen
 
 ## Connect a Provider
 
-For integrations that require an account, start in **Formie → Settings** and open the relevant integration category. Create an integration, select its provider and enter the credentials or connect the account as described on the provider’s page. Give the integration a name that identifies the account or purpose, especially if you use more than one connection to the same service.
+For integrations that require an account, open **Formie → Integrations** and select the relevant category. Choose **New Integration**, or open the arrow beside it and choose **New project integration**, as explained below. Select the provider and enter the credentials or connect the account as described on the provider’s page. Give the integration a name that identifies the account or purpose, especially if you use more than one connection to the same service.
 
 These settings belong to the connection and can be reused by multiple forms. A successful **Refresh** or **Connect** action confirms access to the provider; it does not prove that a form’s values will be accepted or delivered to the intended destination.
+
+### Integrations and Project Integrations
+
+Both options have the same provider settings and work the same way when used by a form. The choice controls storage, deployment and editing permissions. An **instance** is a Craft installation, such as development, staging or production, rather than an individual site in a multisite installation.
+
+**New Integration** creates an instance-level connection stored in that installation’s database. It is not included in project config, so you configure it separately in each environment. Users with permission to access integrations can create, edit and delete it even when Craft’s `allowAdminChanges` is `false`. Choose this option when a client needs to manage a connection directly on the live site, such as updating their newsletter account.
+
+**New project integration** stores the connection’s configuration in Craft’s project config so you can commit and deploy it with your project. This option is available when admin changes are enabled; creating, editing and deleting project integrations also requires the relevant Formie permissions. Choose it when your development team wants to configure a CRM connection locally, review it in Git and deploy it to staging and production. When admin changes are disabled, existing project integrations continue to work but cannot be edited or deleted through the control panel.
+
+In the integration list, project integrations display **Project** in the **Scope** column; instance-level integrations leave it blank.
+
+Project config sync leaves instance-level integrations unchanged, including those in the trash. Updates and removal in project config apply only to project integrations.
+
+For project integrations, use environment variable references such as `$MAILCHIMP_API_KEY` in credential fields that support them, and set the corresponding value in each environment. The reference is stored in project config; entering a literal credential can put that value in project config instead. OAuth connections must be authorised in each environment; deploying the configuration does not transfer the connected account’s tokens.
+
+The choice applies to the reusable connection. Each form’s enabled integrations, destinations and field mappings are still saved with the form. See [Project Config, Environment, and Control Panel Settings](/guides/configuration/project-config-environment-and-control-panel-settings) for how connection configuration and form content move between environments.
+
+### Captcha Provider Settings
+
+Captcha providers are configured under **Formie → Settings → Spam Protection → Captchas**, without a **New project integration** option. Saving a provider’s credentials, enabled state and settings creates an instance-level override, even when admin changes are enabled. Users with the relevant settings permissions can edit it when admin changes are disabled too. Project config under `formie.captchaProviders` can supply initial settings, but later project-config updates or removal leave a locally saved provider unchanged.
+
+Configure and verify each provider in the environment where it will run, using environment variable references in credential fields that support them. For example, production and staging can use separate Turnstile keys registered for their hostnames. A database copy can still replace local credentials, so check them and submit a test form afterward. Enabling the provider on an individual form is saved with that form.
 
 ## Configure an Individual Form
 

@@ -2,7 +2,7 @@
 
 Formie does not store everything in one place. Some settings version with your Craft project, some live in `config/formie.php` on each server, and some stay in the database so privileged admins can edit them in production even when `allowAdminChanges` is off.
 
-This guide gives you a mental model for **where to change a setting** and **what happens when you deploy** — so staging promotions do not silently break captchas, spam rules, or integrations on production.
+This guide explains where to change settings and what moves when you deploy from staging to production.
 
 ## Prerequisites
 
@@ -14,22 +14,20 @@ This guide gives you a mental model for **where to change a setting** and **what
 
 These situations usually mean a setting is in the wrong scope — or you expected it to sync when it does not:
 
-- Production Turnstile keys disappeared after `project-config/sync`
+- Production Turnstile keys changed after copying the staging database
 - Spam keywords on staging never showed up on production
 - OAuth integrations worked on staging but fail after a database copy
 - A form group change deployed, but the contact form layout did not
 
-The fix is not memorising every table and YAML key. It is knowing which of three scopes owns the thing you are changing.
+Before deploying, establish where the configuration is stored and which environment should manage it.
 
-## Three Scopes — One Sentence Each
+<span id="three-scopes-—-one-sentence-each"></span>
 
-| Scope | One-line summary |
-| --- | --- |
-| **Project config** | Structure you want in git — form groups, project stencils, statuses, reports |
-| **Environment config** | Developer-controlled behaviour in `config/formie.php` — queues, defaults, dev tunnels |
-| **Control panel settings** | Secrets and policy admins edit in the CP — spam keywords, captcha keys, integration credentials |
+## Where Settings Are Stored
 
-Forms themselves (fields, notifications, layout) are **database content**. They do not move with project config alone. Use [Import and export between environments](/guides/control-panel-admin/import-and-export-between-environments) to promote form structure.
+**Project config** stores configuration you commit and deploy with Craft, including form groups, project integrations and project stencils. **Environment config** provides developer-controlled overrides in `config/formie.php`, such as queue behaviour and development webhook URLs.
+
+**Instance-level settings** stay in the current installation’s database. An **instance** is a Craft installation, such as development, staging or production, rather than an individual site in a multisite installation. Editing something in the control panel does not determine its storage: project-managed configuration is edited there too.
 
 ## Walkthrough — Promoting Staging to Production
 
@@ -41,8 +39,10 @@ When production runs `project-config/sync`, Formie updates versioned resources s
 
 - Form groups (including which sites a group applies to)
 - Project stencils
+- Project integrations created with **New project integration**
 - Submission and form statuses
 - Reports and scheduled report definitions
+- Project-managed spam settings
 
 These are the things your team typically wants identical across environments — checked into `config/project/` and deployed with Craft.
 
@@ -61,19 +61,15 @@ Typical per-environment differences:
 
 See [Configuration](/get-started/configuration) for every option. The point for deployment: **changing `formie.php` on staging does nothing to production until you deploy that file**.
 
-### 3. Control Panel Settings Stay Environment-Local
+<span id="_3-control-panel-settings-stay-environment-local"></span>
 
-Spam keywords, captcha provider secrets, and integration API keys live in dedicated database tables — **Settings → Spam Protection** and the integrations control panel — not in `plugins.formie.settings` project YAML.
+### 3. Instance-Level Settings Stay Local
 
-That is deliberate:
+Project config sync leaves instance-level integrations, stencils, spam settings and captcha overrides unchanged, whether project configuration is updated or removed. Users with the relevant permissions can manage these local settings even when `allowAdminChanges` is `false`.
 
-- Privileged admins can update production captcha keys when the CP is otherwise read-only
-- Secrets do not land in git through project config exports
-- Some rows can be project-scoped defaults (seeded on deploy) while site-scoped rows stay local
+How settings become instance-level depends on the feature. Integrations and stencils offer separate creation choices. Spam settings become local when saved with admin changes disabled; saving a captcha provider always creates a local override. Check [integration scope](/integrations/overview#integrations-and-project-integrations), [stencil scope](/forms/stencils#project-stencils-developers), [spam settings](/forms/spam-protection#spam-settings) or [captcha provider settings](/integrations/overview#captcha-provider-settings) before choosing where your team will maintain them.
 
-So after `project-config/sync`, **these database rows are not replaced wholesale**. If you copied a staging database to production, you may have copied staging secrets — which is often wrong. Re-enter production captcha keys and reconnect OAuth integrations on the target environment.
-
-For keyword syntax and examples, see [Spam keywords in detail](/guides/configuration/spam-keywords-in-detail).
+A database copy can overwrite local settings and content. Follow the [checks after copying a database](#after-copying-a-database-between-environments) before accepting submissions on the target environment.
 
 ### 4. Forms Do Not Ride Along with Project Config
 
@@ -88,16 +84,18 @@ Use this when you know *what* you want to change but not *where*:
 | I want to change… | Where |
 | --- | --- |
 | Default submit method for new forms | `formDefaults` in `formie.php`, or **Settings → Defaults** |
-| Spam keywords | **Settings → Spam Protection** |
+| Spam keywords | **Settings → Spam Protection** — project-managed or instance-level depending on the [spam settings scope](/forms/spam-protection#spam-settings) |
 | Turnstile or reCAPTCHA secret | **Settings → Spam Protection → Captchas** |
 | Which sites a form group applies to | **Settings → Form Groups** (project config) |
-| A reusable starter layout for new forms | **Stencils** — CP stencils in the database, or project stencils in YAML ([Stencils guide](/guides/control-panel-admin/stencils-for-repeatable-form-types)) |
+| A reusable starter layout for new forms | **Formie → Stencils** — choose instance-level or project storage ([Stencil scope](/forms/stencils#project-stencils-developers)) |
 | Fields and notifications on a live form | Form builder (database) — or import/export between environments |
 | French field labels on one site | Form builder site switcher (database overrides) |
 | Stripe webhook proxy for local dev | `paymentWebhookProxyUrl` in `formie.php` |
+| A client-managed integration connection | **Formie → Integrations → New Integration** (database) |
+| An integration connection deployed with the project | **Formie → Integrations**, then **New project integration** from the button’s arrow menu (project config) |
 | Mailchimp OAuth token | Integrations CP — reconnect after DB copy |
 
-Integration settings can reference Craft env syntax (`$STRIPE_SECRET_KEY`) in the CP; values are resolved when Formie reads them, not stored in exported project YAML.
+Before deploying a project integration, configure its [credentials and OAuth connection](/integrations/overview#integrations-and-project-integrations) for the target environment. Deploying its configuration does not transfer OAuth tokens.
 
 ## After Copying a Database Between Environments
 
@@ -112,14 +110,7 @@ Project config sync alone does not undo a bad database copy.
 
 ## Stencils — Two Types, Two Scopes
 
-Stencils confuse people because both kinds look similar in the CP:
-
-| Type | Scope | On production with `allowAdminChanges: false` |
-| --- | --- | --- |
-| CP stencil | Database | Editable when admin changes are allowed |
-| Project stencil | Project config | View-only; use **Save a copy** to fork into a CP stencil |
-
-Handles must be unique across both types. See [Stencils for repeatable form types](/guides/control-panel-admin/stencils-for-repeatable-form-types) for when to use each.
+Deploying a project stencil makes its starter template available on the target environment. It does not deploy forms created from that stencil or instance-level copies made with **Save a copy**. Follow [Stencils for Repeatable Form Types](/guides/control-panel-admin/stencils-for-repeatable-form-types#step-8-—-deploy-across-environments) for the deployment sequence and checks.
 
 ## Security Habits Worth Keeping
 
