@@ -51,9 +51,10 @@ class FormDefaults extends Component
                 'formTemplates' => $this->_formTemplateOptions(),
                 'stencils' => $this->_stencilOptions(),
                 'emailTemplates' => $this->_emailTemplateOptions(),
-                'labelPositions' => Formie::$plugin->getFields()->getLabelPositionsOptions(),
-                'instructionsPositions' => Formie::$plugin->getFields()->getInstructionsPositionsOptions(),
-                'errorMessagePositions' => Formie::$plugin->getFields()->getErrorMessagePositionsOptions(),
+                // Registration handlers can leave gaps or named keys; selects require JSON lists.
+                'labelPositions' => array_values(Formie::$plugin->getFields()->getLabelPositionsOptions()),
+                'instructionsPositions' => array_values(Formie::$plugin->getFields()->getInstructionsPositionsOptions()),
+                'errorMessagePositions' => array_values(Formie::$plugin->getFields()->getErrorMessagePositionsOptions()),
                 'integrationCaptchas' => $this->getIntegrationCaptchaOptions(),
             ],
             'formDefaultsSchema' => $formDefaultsSchema['schema'],

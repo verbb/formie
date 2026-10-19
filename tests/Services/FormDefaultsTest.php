@@ -15,6 +15,34 @@ use verbb\formie\fields\SingleLineText;
 use verbb\formie\fields\Users;
 use verbb\formie\Formie;
 use verbb\formie\models\Notification;
+use verbb\formie\events\RegisterFieldOptionsEvent;
+use verbb\formie\positions\BelowInput;
+use verbb\formie\services\Fields;
+use yii\base\Event;
+
+it('serializes filtered field positions as option lists for the defaults editor', function (string $eventName, string $optionName): void {
+    $handler = static function (RegisterFieldOptionsEvent $event): void {
+        // Modules can remove positions without reindexing the registered options.
+        $event->options = [3 => BelowInput::class];
+    };
+    Event::on(Fields::class, $eventName, $handler);
+
+    try {
+        $config = Formie::$plugin->getFormDefaults()->getEditorConfig();
+        $decoded = json_decode(json_encode($config));
+
+        expect($decoded->options->{$optionName})->toBeArray()
+            ->and($config['options'][$optionName])->toBe([
+                ['label' => BelowInput::displayName(), 'value' => BelowInput::class],
+            ]);
+    } finally {
+        Event::off(Fields::class, $eventName, $handler);
+    }
+})->with([
+    [Fields::EVENT_REGISTER_LABEL_POSITIONS, 'labelPositions'],
+    [Fields::EVENT_REGISTER_INSTRUCTIONS_POSITIONS, 'instructionsPositions'],
+    [Fields::EVENT_REGISTER_ERROR_MESSAGE_POSITIONS, 'errorMessagePositions'],
+]);
 
 it('bootstraps registered fields without recursion when applying field defaults', function (): void {
     $fields = Formie::$plugin->getFields()->getRegisteredFields(false);
