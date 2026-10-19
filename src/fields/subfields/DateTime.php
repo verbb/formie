@@ -40,6 +40,11 @@ class DateTime extends SingleLineText implements ChildFieldInterface
     {
         $tag = parent::defineSlotTag($key, $context);
 
+        if ($key === 'fieldInput') {
+            // Core attributes take precedence over the saved sub-field input attributes.
+            $tag?->mergeCoreAttributes(['type' => 'time']);
+        }
+
         if ($key === 'fieldInput' && $this->getParentField()?->getDisplayType() === 'datePicker') {
             $attributes = array_filter(
                 $this->getInputAttributes(),

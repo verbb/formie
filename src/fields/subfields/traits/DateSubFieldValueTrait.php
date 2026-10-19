@@ -77,6 +77,17 @@ trait DateSubFieldValueTrait
             return null;
         }
 
+        // Native controls require machine-readable values, even when picker formats are retained.
+        if ($parent->getDisplayType() === 'calendar' && in_array($this->handle, ['date', 'time'], true)) {
+            $date = $value instanceof DateFieldValue ? $value : new DateFieldValue($value);
+
+            if ($date->getRawInput() === null) {
+                return $this->handle === 'date'
+                    ? DateFieldValue::formatDateWithSettings($date->getParts(), 'Y-m-d')
+                    : DateFieldValue::formatTimeWithSettings($date->getParts(), str_contains($parent->getTimeFormat() ?? '', 's') ? 'H:i:s' : 'H:i');
+            }
+        }
+
         // Date picker datetime mode posts a single `datetime` input, so render the
         // combined parent value instead of the date-only sub-field projection.
         if (

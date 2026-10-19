@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix Date fields using Calendar (Simple) rendering text inputs instead of native date and time pickers. ([#3014](https://github.com/verbb/formie/issues/3014))
 - Fix reCAPTCHA v3 failing when its script is already loaded without the configured site key.
 - Fix slow submission and sent notification indexes in the control panel on sites with many forms.
 
