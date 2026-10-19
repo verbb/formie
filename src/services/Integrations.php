@@ -975,10 +975,16 @@ class Integrations extends Component
             return;
         }
 
+        $integrationRecord = $this->_getIntegrationRecord($integrationUid, true);
+
+        // Project config must not overwrite or restore an instance-owned connection.
+        if ($integrationRecord->scope === self::SCOPE_SITE) {
+            return;
+        }
+
         $transaction = Craft::$app->getDb()->beginTransaction();
 
         try {
-            $integrationRecord = $this->_getIntegrationRecord($integrationUid, true);
             $isNewIntegration = $integrationRecord->getIsNewRecord();
 
             $settings = $data['settings'] ?? [];
@@ -1153,7 +1159,8 @@ class Integrations extends Component
         $uid = $event->tokenMatches[0];
         $integrationRecord = $this->_getIntegrationRecord($uid);
 
-        if ($integrationRecord->getIsNewRecord()) {
+        // Ignore stale project config before applying deletion hooks to local connections.
+        if ($integrationRecord->getIsNewRecord() || $integrationRecord->scope === self::SCOPE_SITE) {
             return;
         }
 

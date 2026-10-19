@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix project config sync overwriting or removing instance-level integrations, stencils and spam protection settings.
 - Fix notification and submission properties rendering empty or being blocked by the Twig sandbox in PDF attachment filenames. ([#3018](https://github.com/verbb/formie/issues/3018))
 - Fix the Defaults settings page failing to load when custom field positions use non-sequential keys. ([#3017](https://github.com/verbb/formie/issues/3017))
 - Fix Date fields using Calendar (Simple) rendering text inputs instead of native date and time pickers. ([#3014](https://github.com/verbb/formie/issues/3014))

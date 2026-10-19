@@ -362,6 +362,13 @@ class Stencils extends Component
     public function handleChangedStencil(ConfigEvent $event): void
     {
         $stencilUid = $event->tokenMatches[0];
+        $stencilRecord = $this->_getStencilsRecord($stencilUid);
+
+        // Preserve instance-owned stencils, including trashed ones, before syncing dependencies.
+        if ($stencilRecord->scope === self::SCOPE_SITE) {
+            return;
+        }
+
         $data = ProjectConfigHelper::unpackAssociativeArray($event->newValue);
 
         $projectConfig = Craft::$app->getProjectConfig();
@@ -384,7 +391,6 @@ class Stencils extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
 
         try {
-            $stencilRecord = $this->_getStencilsRecord($stencilUid);
             $isNewStencil = $stencilRecord->getIsNewRecord();
 
             $stencilRecord->name = $data['name'];
@@ -478,6 +484,12 @@ class Stencils extends Component
     public function handleDeletedStencil(ConfigEvent $event): void
     {
         $stencilUid = $event->tokenMatches[0];
+        $stencilRecord = $this->_getStencilsRecord($stencilUid);
+
+        // Removing project config cannot delete an instance-owned stencil or invoke its hooks.
+        if ($stencilRecord->getIsNewRecord() || $stencilRecord->scope === self::SCOPE_SITE) {
+            return;
+        }
 
         $stencil = $this->getStencilByUid($stencilUid);
 
@@ -490,7 +502,6 @@ class Stencils extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
 
         try {
-            $stencilRecord = $this->_getStencilsRecord($stencilUid);
             $stencilRecord->softDelete();
             $transaction->commit();
         } catch (Throwable $e) {

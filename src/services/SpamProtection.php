@@ -397,6 +397,12 @@ class SpamProtection extends Component
     {
         $data = $event->newValue;
         $row = $this->getRow();
+
+        // Preserve instance overrides during deployment, just like captcha provider settings.
+        if ($this->isSiteScope()) {
+            return;
+        }
+
         $isNew = $row === null;
         $transaction = Craft::$app->getDb()->beginTransaction();
 
@@ -438,7 +444,8 @@ class SpamProtection extends Component
     {
         $row = $this->getRow();
 
-        if (!$row) {
+        // Removing project defaults must not reset instance-owned spam rules.
+        if (!$row || $this->isSiteScope()) {
             return;
         }
 
