@@ -9,6 +9,7 @@ use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\models\Settings;
 use verbb\formie\services\SpamProtection;
+use verbb\formie\variables\Formie as FormieVariable;
 
 use Craft;
 use craft\helpers\Json;
@@ -51,8 +52,9 @@ class SettingsController extends SettingsAccessController
             ]);
         }
 
-        foreach (array_keys($permissions->getSettingsPageDefinitions()) as $page) {
-            if (!$permissions->canAccessSettingsPage($user, $page)) {
+        // Follow the visible navigation so production never redirects back to General Settings.
+        foreach ((new FormieVariable())->getSettingsNavItems() as $page => $item) {
+            if (isset($item['heading'])) {
                 continue;
             }
 
