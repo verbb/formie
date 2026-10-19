@@ -46,6 +46,33 @@ it('loads captcha providers from the database store', function (): void {
         ->and($turnstile)->toBeInstanceOf(Turnstile::class);
 });
 
+it('makes instance-configured Turnstile available to forms with admin changes disabled', function (): void {
+    Craft::$app->getConfig()->getGeneral()->allowAdminChanges = false;
+    $integrations = Formie::$plugin->getIntegrations();
+    $turnstile = $integrations->getCaptchaByHandle('turnstile');
+    $turnstile->setEnabled(false);
+    expect($integrations->saveCaptcha($turnstile))->toBeTrue();
+
+    $form = new \verbb\formie\elements\Form();
+    $form->handle = 'productionTurnstile';
+    $form->settings->integrations = ['turnstile' => ['enabled' => true]];
+
+    // The form's enabled flag cannot enable a provider on another installation.
+    expect($integrations->getAllEnabledCaptchasForForm($form))->toBeEmpty();
+
+    $turnstile->setEnabled(true);
+    $turnstile->siteKey = 'production-site-key';
+    $turnstile->secretKey = 'production-secret-key';
+    expect($integrations->saveCaptcha($turnstile))->toBeTrue();
+
+    $captchas = $integrations->getAllEnabledCaptchasForForm($form);
+    expect($captchas)->toHaveCount(1)
+        ->and($captchas[0])->toBeInstanceOf(Turnstile::class)
+        ->and($captchas[0]->hasValidSettings())->toBeTrue()
+        ->and($captchas[0]->siteKey)->toBe('production-site-key')
+        ->and($integrations->getIntegrationFormSettingsConfig('turnstile', $form))->not->toBeNull();
+});
+
 it('saves site-scoped captcha providers when admin changes are disabled', function (): void {
     Craft::$app->getConfig()->getGeneral()->allowAdminChanges = false;
 
