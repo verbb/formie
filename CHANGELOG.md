@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Add sanitised installation, permissions and integration diagnostics to support bundles, with guidance to send requests from the affected environment.
+
 ### Changed
 - Clarify project and instance settings for integrations, stencils, spam protection and captcha providers, including deployment and editing permissions.
 

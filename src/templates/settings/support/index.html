@@ -15,7 +15,9 @@
 
     <p>{{ 'Having issues using {name}? Enter your details below, so we can assist.' | t('formie', { name: craft.formie.getPluginName() }) }}</p>
 
-    <p><em>{{ 'We only collect data specifically for your form, nothing else related to your install. We collect:' | t('formie') }}</em></p>
+    <p>{{ 'Send this request from the environment where the issue occurs. This report describes only this installation; a request sent from your local site cannot show your production settings.' | t('formie') }}</p>
+
+    <p>{{ 'Your request includes your contact details, message, attachments, and the following information to help diagnose the issue:' | t('formie') }}</p>
 
     <ul class="formie-info">
         <li>{{ 'Your Craft version' | t('formie') }}</li>
@@ -23,8 +25,13 @@
         <li>{{ 'Your {name} log file(s)' | t('formie', { name: craft.formie.getPluginName() }) }}</li>
         <li>{{ 'Your `composer.json` and `composer.lock` files' | t('formie') }}</li>
         <li>{{ 'Your form (selected below) settings, fields, and notifications' | t('formie') }}</li>
-        <li>{{ 'Your custom form/email templates (if using any)' | t('formie') }}</li>
+        <li>{{ 'Your custom form, email, and PDF templates (if using any)' | t('formie') }}</li>
+        <li>{{ 'Installation diagnostics: environment name, hostname, collection time, PHP version, development mode, and whether admin changes are allowed' | t('formie') }}</li>
+        <li>{{ 'Your administrator status and relevant Formie permissions' | t('formie') }}</li>
+        <li>{{ 'CAPTCHA providers and integrations referenced by your form: availability, enabled state, project or instance scope, and credential presence and resolution status' | t('formie') }}</li>
     </ul>
+
+    <p>{{ 'The diagnostics file contains no credential values or environment-variable names. Logs, templates, form content, and files you attach may contain sensitive information; check them before sending and do not attach your .env file or credentials.' | t('formie') }}</p>
 
     <div class="formie-help-form">
         <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">

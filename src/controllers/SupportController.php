@@ -4,6 +4,7 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\helpers\ImportExportHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\SupportDiagnostics;
 use verbb\formie\models\Settings;
 use verbb\formie\models\Support;
 
@@ -110,6 +111,15 @@ class SupportController extends SettingsAccessController
             if ($zip->open($zipPath, ZipArchive::CREATE) !== true) {
                 throw new Exception('Cannot create zip at ' . $zipPath . '.');
             }
+
+            // Diagnostics describe only the installation sending this request.
+            try {
+                $diagnostics = SupportDiagnostics::collect($form);
+            } catch (Throwable) {
+                $diagnostics = ['schemaVersion' => 1, 'collectionErrors' => ['diagnostics-unavailable']];
+            }
+
+            $zip->addFromString('diagnostics.json', Json::encode($diagnostics, JSON_PRETTY_PRINT));
 
             // Composer files
             try {
