@@ -6,6 +6,7 @@
 - Update the minimum Auth requirement to `2.0.55`.
 
 ### Fixed
+- Fix Date/Time field variables rendering blank in email notification subjects and legacy whole-field variables rendering blank in subjects and content. ([#3015](https://github.com/verbb/formie/issues/3015))
 - Fix Pardot form handlers rejecting submissions with existing single-select mappings such as `country.value`, while retaining plain field names and separate multi-select values.
 - Fix SuiteCRM Contact fields not loading for field mapping with the V8 API. ([#3010](https://github.com/verbb/formie/issues/3010))
 

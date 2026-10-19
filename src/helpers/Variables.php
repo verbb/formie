@@ -280,6 +280,27 @@ class Variables
         // where these tags render as empty, without making unrelated missing Twig variables permissive.
         $variables = self::_setMissingFieldVariables($value, $variables);
 
+        // Legacy whole-field tokens need the same string value as the variable picker,
+        // while keeping the component array available for subfield tokens and Twig.
+        $value = preg_replace_callback('/(?<!\{)\{field\.([a-zA-Z][a-zA-Z0-9_.]*)\}(?!\})/', static function(array $matches) use ($variables): string {
+            $fieldValue = $variables['field'] ?? [];
+
+            // Only inspect arrays here; object access must remain inside the Twig sandbox.
+            foreach (explode('.', $matches[1]) as $key) {
+                if (!is_array($fieldValue) || !array_key_exists($key, $fieldValue)) {
+                    return $matches[0];
+                }
+
+                $fieldValue = $fieldValue[$key];
+            }
+
+            if (is_array($fieldValue) && array_key_exists('__toString', $fieldValue)) {
+                return '{field.' . $matches[1] . '.__toString}';
+            }
+
+            return $matches[0];
+        }, $value);
+
         // Parse each variable on it's own to handle .env vars
         foreach ($variables as $key => $variable) {
             if (is_string($variable)) {

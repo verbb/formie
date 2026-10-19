@@ -48,6 +48,7 @@ use yii\validators\RequiredValidator;
 use yii\validators\Validator;
 
 use DateTimeZone;
+use Exception;
 
 class Date extends SubField implements InlineEditableFieldInterface, PreviewableFieldInterface, SortableFieldInterface
 {
@@ -136,7 +137,7 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                 if (!($config['defaultValue'] instanceof DateTime)) {
                     $config['defaultValue'] = DateTimeHelper::toDateTime($config['defaultValue'], false, false) ?: null;
                 }
-            } else if ($config['defaultOption'] === 'today') {
+            } elseif ($config['defaultOption'] === 'today') {
                 $config['defaultValue'] = DateTimeHelper::toDateTime(new DateTime('today'), false, false);
             } else {
                 $config['defaultValue'] = null;
@@ -287,9 +288,9 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
         if ($value) {
             if ($this->getIsDateTime()) {
                 $html = Craft::$app->getFormatter()->asDatetime($value, Locale::LENGTH_SHORT);
-            } else if ($this->getIsTime()) {
+            } elseif ($this->getIsTime()) {
                 $html = Craft::$app->getFormatter()->asTime($value, Locale::LENGTH_SHORT);
-            } else if ($this->getIsDate()) {
+            } elseif ($this->getIsDate()) {
                 $html = Craft::$app->getFormatter()->asDate($value, Locale::LENGTH_SHORT);
             }
         }
@@ -329,20 +330,25 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                 if (!$monthEnabled) {
                     $month = 1;
                 }
+
                 if (!$dayEnabled) {
                     $day = 1;
                 }
+
                 if (!$hourEnabled) {
                     $hour = 0;
                 }
+
                 if (!$minuteEnabled) {
                     $minute = 0;
                 }
+
                 if (!$secondEnabled) {
                     $second = 0;
                 }
 
                 $anyDateEnabled = $yearEnabled || $monthEnabled || $dayEnabled;
+
                 if (!$anyDateEnabled) {
                     $year = $year ?? 1970;
                     $month = 1;
@@ -363,11 +369,11 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                     $value = sprintf('%04d-%02d-%02d %02d:%02d:%02d', $year, $month, $day, $hour, $minute, $second);
                 }
             }
-        } else if ($this->displayType === 'calendar') {
+        } elseif ($this->displayType === 'calendar') {
             if (is_array($value)) {
                 $value = array_filter($value);
             }
-        } else if ($this->displayType === 'datePicker') {
+        } elseif ($this->displayType === 'datePicker') {
             if (is_array($value)) {
                 // Promote "date" or "time" to datetime if they contain a full datetime.
                 foreach (['date', 'time'] as $k) {
@@ -693,7 +699,7 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
             $this->maxDate = Db::prepareDateForDb($this->maxDate);
         }
 
-        // If we've switched display types, we should cleanup field layouts. 
+        // If we've switched display types, we should cleanup field layouts.
         // Do this before `parent::beforeSave` which will save the layout.
         if ($this->id) {
             if ($savedField = Formie::$plugin->getFields()->getFieldById($this->id)) {
@@ -723,7 +729,7 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                 }
             }
         }
-        
+
         return parent::beforeSave($isNew);
     }
 
@@ -1485,22 +1491,22 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
             // Check if we're mapping sub-fields
             if ($fieldKey === 'year') {
                 $format = 'Y';
-            } else if ($fieldKey === 'month') {
+            } elseif ($fieldKey === 'month') {
                 $format = 'm';
-            } else if ($fieldKey === 'day') {
+            } elseif ($fieldKey === 'day') {
                 $format = 'd';
-            } else if ($fieldKey === 'date') {
+            } elseif ($fieldKey === 'date') {
                 $format = $this->getDateFormat();
                 $isDateTimeSubField = true;
-            } else if ($fieldKey === 'hour') {
+            } elseif ($fieldKey === 'hour') {
                 $format = 'H';
-            } else if ($fieldKey === 'minute') {
+            } elseif ($fieldKey === 'minute') {
                 $format = 'i';
-            } else if ($fieldKey === 'second') {
+            } elseif ($fieldKey === 'second') {
                 $format = 's';
-            } else if ($fieldKey === 'ampm') {
+            } elseif ($fieldKey === 'ampm') {
                 $format = 'A';
-            } else if ($fieldKey === 'time') {
+            } elseif ($fieldKey === 'time') {
                 $format = $this->getTimeFormat();
                 $isDateTimeSubField = true;
             }
@@ -1561,7 +1567,9 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
             'ampm' => 'a',
         ];
 
-        $values = [];
+        $values = [
+            '__toString' => $this->defineValueAsString($value),
+        ];
 
         if ($value) {
             if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
@@ -1575,15 +1583,18 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                     $values[$k] = $formattedValue;
                 }
             } else {
-                $values = [
-                    '__toString' => $this->defineValueAsString($value),
-                    'date' => $value->format($this->getDateFormat()),
-                    'time' => $value->format($this->getTimeFormat()),
-                ];
+                $values['date'] = $value->format($this->getDateFormat());
+                $values['time'] = $value->format($this->getTimeFormat());
             }
         }
 
         return $values;
+    }
+
+    protected function defineValueForVariableRaw(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        // Date components come from one stored date, not separately stored subfields.
+        return $this->defineValueForVariable($value, $submission, $notification);
     }
 
     public function getValueForCondition(mixed $value, Submission $submission): mixed
@@ -1652,6 +1663,7 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
     {
         // Handle case when defaultValue is a string or null
         $defaultValue = $this->defaultValue;
+
         if (is_string($defaultValue)) {
             try {
                 $defaultValue = new DateTime($defaultValue);
