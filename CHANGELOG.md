@@ -11,6 +11,7 @@
 - Fix the Defaults settings page failing to load when custom field positions use non-sequential keys. ([#3017](https://github.com/verbb/formie/issues/3017))
 - Fix Date fields using Calendar (Simple) rendering text inputs instead of native date and time pickers. ([#3014](https://github.com/verbb/formie/issues/3014))
 - Fix reCAPTCHA v3 failing when its script is already loaded without the configured site key.
+- Fix reCAPTCHA v3 inline badges rendering outside the form. ([#3016](https://github.com/verbb/formie/issues/3016))
 - Fix slow submission and sent notification indexes in the control panel on sites with many forms.
 
 ## 4.0.2 - 2026-10-17

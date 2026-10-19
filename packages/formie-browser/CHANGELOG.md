@@ -16,6 +16,7 @@
 - Fixed forms freezing when live validation and disabling the submit button until valid are both enabled.
 - Fixed native file input metadata requests omitting CSRF tokens and form context after navigating between pages.
 - Fixed reCAPTCHA loading the wrong SDK or readiness queue when standard and Enterprise APIs share a page, and v3 failing when an existing script has not loaded the configured site key.
+- Fixed reCAPTCHA v3 inline badges rendering outside the form. ([#3016](https://github.com/verbb/formie/issues/3016))
 - Fixed CAPTCHA token updates triggering unsaved-changes warnings on untouched forms, including custom or changing token field names. ([#3008](https://github.com/verbb/formie/issues/3008))
 - Fixed initial conditional field visibility triggering an unsaved-changes warning after native submissions.
 - Fixed edits made immediately after mounting a form being treated as saved.

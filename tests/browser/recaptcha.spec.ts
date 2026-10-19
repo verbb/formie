@@ -89,7 +89,18 @@ for (const initialApi of ['absent', 'ready-stub', 'enterprise', 'blocked', 'layo
                 window.recaptchaResets = [];
                 const clients = new Map();
                 const autoKey = ${JSON.stringify(autoKey)};
-                if (autoKey && autoKey !== 'explicit') clients.set(autoKey, autoKey);
+                const renderBadge = (container) => {
+                    const badge = document.createElement('div');
+                    badge.className = 'grecaptcha-badge';
+                    badge.textContent = 'reCAPTCHA';
+                    container.appendChild(badge);
+                };
+                // Automatic site-key loading owns a body-level badge; explicit
+                // rendering must instead receive this form's placeholder.
+                if (autoKey && autoKey !== 'explicit') {
+                    clients.set(autoKey, autoKey);
+                    renderBadge(document.body);
+                }
                 setTimeout(() => Object.assign(window.grecaptcha, {
                     ready: cb => cb(),
                     render: (container, options) => {
@@ -97,6 +108,7 @@ for (const initialApi of ['absent', 'ready-stub', 'enterprise', 'blocked', 'layo
                         const id = window.recaptchaRenders.length;
                         window.recaptchaRenders.push(options);
                         clients.set(id, options.sitekey);
+                        renderBadge(container);
                         return id;
                     },
                     reset: id => window.recaptchaResets.push(id),
@@ -124,14 +136,15 @@ for (const initialApi of ['absent', 'ready-stub', 'enterprise', 'blocked', 'layo
                 modules: { contractVersion: 2, surface: 'server-rendered', entries: [{
                     key: 'captcha', moduleId: 'formie:recaptcha-v3', kind: 'captcha',
                     targets: [{ type: 'form' }], required: true,
-                    config: { siteKey: initialApi === 'invalid-site-key' ? 'invalid' : 'v3-test-key', action: 'contact', handle: 'recaptcha', badge: 'inline', theme: 'dark' },
+                    config: { siteKey: initialApi === 'invalid-site-key' ? 'invalid' : 'v3-test-key', action: 'contact', handle: 'recaptcha', badge: 'inline', theme: 'dark', loadingMethod: 'asyncDefer' },
                 }] },
             });
             (window as any).captchaHost = host;
             form.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 const tokens = await host.prepare('submit');
-                form.querySelector('output')!.textContent = tokens['g-recaptcha-response'];
+                const token = tokens['g-recaptcha-response'];
+                form.querySelector('output')!.textContent = typeof token === 'string' ? token : '';
             });
         }, initialApi);
         if (initialApi === 'blocked' || initialApi === 'invalid-site-key') {
@@ -139,6 +152,11 @@ for (const initialApi of ['absent', 'ready-stub', 'enterprise', 'blocked', 'layo
             await page.getByRole('button', { name: 'Send' }).click();
             await expect(page.locator('output')).toBeEmpty();
         } else {
+            await expect(page.locator('form [data-recaptcha-placeholder] .grecaptcha-badge')).toBeVisible();
+            await expect(page.locator('form .grecaptcha-badge')).toHaveCount(1);
+            if (!initialApi.startsWith('layout-')) {
+                await expect(page.locator('.grecaptcha-badge')).toHaveCount(1);
+            }
             await page.getByRole('button', { name: 'Send' }).click();
             await expect(page.locator('output')).toHaveText('v3-test-key:contact');
             await expect(page.locator('[data-formie-module-error]')).toHaveCount(0);
