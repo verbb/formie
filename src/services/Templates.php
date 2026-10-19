@@ -3,6 +3,7 @@ namespace verbb\formie\services;
 
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\data\ElementFieldData;
+use verbb\formie\models\Notification;
 
 use Craft;
 
@@ -43,6 +44,12 @@ class Templates extends BaseTemplates
         }
 
         $this->allowedProperties = $this->getDefaultSandboxedAllowedProperties();
+        // Expose template data explicitly, without granting access to settings, services or mutating methods.
+        $this->allowedProperties[Notification::class] = [
+            'id', 'uid', 'formId', 'templateId', 'pdfTemplateId', 'name', 'handle', 'enabled',
+            'subject', 'to', 'cc', 'bcc', 'replyTo', 'replyToName', 'from', 'fromName', 'sender', 'content',
+        ];
+        $this->allowedProperties[Submission::class] = ['formName', 'formHandle', 'siteName', 'siteHandle'];
         $this->allowedProperties[ElementFieldData::class] = static function(ElementFieldData $value, string $property): bool {
             return ctype_digit($property);
         };
