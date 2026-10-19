@@ -236,6 +236,9 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
     public function __construct($config = [])
     {
+        // Honeypot is now a submission guard; legacy bindings must not become missing integrations.
+        unset($config['integrations']['honeypot']);
+
         $config = self::_normalizeCompletionAttributes($config);
         CompletionBehavior::from($config['completionBehavior']);
         RedirectSource::from($config['completionRedirectSource']);
@@ -322,6 +325,9 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     public function setAttributes($values, $safeOnly = true): void
     {
         if (is_array($values)) {
+            // Older builder payloads and stencils can still contain the retired CAPTCHA binding.
+            unset($values['integrations']['honeypot']);
+
             $values = self::_normalizeCompletionAttributes($values, false);
             $values = $this->_normalizeRichTextAttributes($values, false);
             $values = $this->_normalizeScheduleDateTimeAttributes($values);
