@@ -4,8 +4,10 @@ namespace verbb\formie\services;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\References;
+use verbb\formie\models\Notification;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\references\ReferenceOutputContext;
+use verbb\formie\references\ReferenceParser;
 use verbb\formie\web\twig\HtmlTemplateLoader;
 
 use Craft;
@@ -46,6 +48,12 @@ class Templates extends BaseTemplates
         }
 
         $this->allowedProperties = $this->getDefaultSandboxedAllowedProperties();
+        // Expose template data explicitly, without granting access to settings, services or mutating methods.
+        $this->allowedProperties[Notification::class] = [
+            'id', 'uid', 'formId', 'templateId', 'pdfTemplateId', 'name', 'handle', 'enabled',
+            'subject', 'to', 'cc', 'bcc', 'replyTo', 'replyToName', 'from', 'fromName', 'sender', 'content',
+        ];
+        $this->allowedProperties[Submission::class] = ['formName', 'formHandle', 'siteName', 'siteHandle'];
 
         foreach ($this->additionalAllowedProperties as $class => $additional) {
             $default = $this->allowedProperties[$class] ?? null;
@@ -79,9 +87,12 @@ class Templates extends BaseTemplates
             $template = preg_replace_callback('/(?<!\{)\{([a-zA-Z][^{}]*)\}(?!\})/', static function(array $match) use (&$aliases, $prefix, $context, $autoescape): string {
                 $reference = $match[0];
 
-                // User paths are legacy Craft object-template expressions. Leave
-                // them for the sandbox so safe filters such as `kebab` still run.
-                if (str_starts_with($match[1], 'user.')) {
+                // Keep registered reference aliases, but send other dotted object
+                // expressions through the sandbox so properties and safe filters work.
+                $source = preg_split('/[|;]/', $match[1], 2)[0];
+
+                if (str_starts_with($match[1], 'user.')
+                    || (preg_match('/^(?:notification|submission|form)\./', $match[1]) && !isset(ReferenceParser::legacyAliases()[$source]))) {
                     return $reference;
                 }
 
