@@ -35,6 +35,14 @@ Use the Variable Picker to add references to the upload subpath and filename for
 
 These settings resolve references only. Twig expressions, filters and object-template shorthand are not evaluated. Use a [custom variable source](/developers/custom-variable-sources) when your destination needs a value computed by PHP.
 
+To group uploads by the submitting user's name and ID, select **Kebab Case** for the user full name variable:
+
+```text
+{user:fullName;transform=kebab}-{user:id}
+```
+
+For a user named Ada Lovelace with ID 123, this creates the folder `ada-lovelace-123`. The form must collect the submitting user, and the person submitting must be logged in for these user values to resolve.
+
 ## Submitted Value
 
 File Upload stores references to uploaded Craft assets. In templates, exports, summaries and integrations, treat the value as uploaded asset data rather than the original browser file input.

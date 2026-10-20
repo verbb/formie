@@ -58,10 +58,13 @@ Some contexts support transforms and extra metadata on the token body:
 
 ```text
 {timestamp;transform=format;preset=isoDate}
+{user:fullName;transform=kebab}
 {field:child-reference;scope=all}
 ```
 
 The variable picker configures these for you. When building tokens manually, match the picker output. See [Calculations](/fields/calculations) for transform examples on field references.
+
+The **Kebab Case** text transform converts a value such as `Ada Lovelace` to `ada-lovelace`, using Craft's kebab-case rules. It is useful for [upload subpaths and filenames](/fields/file-upload#upload-subpaths-and-filenames).
 
 ## Built-in Tokens
 

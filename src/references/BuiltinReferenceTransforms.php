@@ -5,6 +5,7 @@ use verbb\formie\fields\values\DateFieldValue;
 use verbb\formie\helpers\Variables;
 
 use Craft;
+use craft\helpers\StringHelper;
 
 use Stringable;
 use Throwable;
@@ -114,6 +115,10 @@ final class BuiltinReferenceTransforms
 
                     return ucfirst($text);
                 }
+            }
+
+            case 'kebab': {
+                return StringHelper::toKebabCase(self::_stringifyVariableValue($value));
             }
 
             case 'replace': {
@@ -266,6 +271,12 @@ final class BuiltinReferenceTransforms
                     'id' => 'capitalize',
                     'label' => Craft::t('formie', 'Capitalize First Letter'),
                     'description' => Craft::t('formie', 'Capitalize only the first letter of the text.'),
+                    'params' => [],
+                ],
+                [
+                    'id' => 'kebab',
+                    'label' => Craft::t('formie', 'Kebab Case'),
+                    'description' => Craft::t('formie', 'Convert text to lowercase words separated by hyphens.'),
                     'params' => [],
                 ],
                 [

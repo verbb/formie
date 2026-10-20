@@ -50,7 +50,7 @@ final class ReferenceResolver
             }
             $projection = $result->fieldProjection;
 
-            if (in_array($expression->transformerId, ['lower', 'upper', 'title', 'capitalize', 'replace', 'truncate'], true)) {
+            if (in_array($expression->transformerId, ['lower', 'upper', 'title', 'capitalize', 'kebab', 'replace', 'truncate'], true)) {
                 // Text transforms have already applied the specialist projection.
                 $projection = 'none';
             } elseif ($projection === 'collection' && in_array($expression->transformerId, ['first', 'last'], true)) {
@@ -171,11 +171,11 @@ final class ReferenceResolver
             throw new ReferenceException(ReferenceDiagnostic::InvalidType);
         }
 
-        if (in_array($id, ['lower', 'upper', 'title', 'capitalize', 'replace', 'truncate'], true) && $field && $field->valueType()->accepts($value)) {
+        if (in_array($id, ['lower', 'upper', 'title', 'capitalize', 'kebab', 'replace', 'truncate'], true) && $field && $field->valueType()->accepts($value)) {
             $value = FieldCompatibility::withReferenceNotification($field, $context->notification, fn() => $field->getValueForReference($value, $context->submission));
         }
 
-        if (in_array($id, ['lower', 'upper', 'title', 'capitalize', 'replace', 'truncate'], true) && !is_scalar($value) && $value !== null) {
+        if (in_array($id, ['lower', 'upper', 'title', 'capitalize', 'kebab', 'replace', 'truncate'], true) && !is_scalar($value) && $value !== null) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidType);
         }
         return BuiltinReferenceTransforms::apply($value, $id, $expression->transformerParams);

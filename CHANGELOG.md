@@ -2,7 +2,11 @@
 
 ## Unreleased
 
+### Added
+- Add a Kebab Case text transform for reference tokens, including File Upload subpaths and filenames.
+
 ### Fixed
+- Fix built-in variables hiding available transforms in the variable picker.
 - Fix Date sub-field labels and settings reverting after saving the form builder. ([#3026](https://github.com/verbb/formie/issues/3026))
 - Fix field variables in notification subjects appearing literally in PDF attachment filenames. ([#3025](https://github.com/verbb/formie/issues/3025))
 - Fix forms created on secondary sites using the primary site as their source and failing when saving their first field. ([#3024](https://github.com/verbb/formie/issues/3024))

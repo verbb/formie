@@ -153,6 +153,31 @@ it('resolves submission user references in upload location subpaths', function (
     expect($folder->path)->toBe('user-' . $user->id . '/');
 })->group('security');
 
+it('resolves kebab case user names in upload location subpaths', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $user = User::find()->status(null)->username('formie-seed-user')->one();
+    $originalFullName = $user->fullName;
+    $user->fullName = 'Ada Lovelace';
+
+    try {
+        expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+        $field = new FileUpload([
+            'uploadLocationSource' => 'folder:' . $volume->uid,
+            'uploadLocationSubpath' => '{user:fullName;transform=kebab}-{user:id}',
+        ]);
+        $form = formie()->form()->create();
+        $submission = new Submission(['userId' => $user->id]);
+        $submission->setForm($form);
+
+        $folder = (new ReflectionMethod(FileUpload::class, '_findFolder'))->invoke($field, $submission);
+
+        expect($folder->path)->toBe('ada-lovelace-' . $user->id . '/');
+    } finally {
+        $user->fullName = $originalFullName;
+        Craft::$app->getElements()->saveElement($user);
+    }
+});
+
 it('rejects Twig and invalid upload paths without creating folders', function (string $subpath): void {
     $volume = UploadTestHelper::ensureUploadVolume();
     $form = formie()->form()->create();

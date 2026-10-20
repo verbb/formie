@@ -65,7 +65,8 @@ final readonly class ReferenceDefinition
             'value' => $token,
             'category' => $this->category,
             'valueType' => $this->valueType->toArray(),
-            'transforms' => $this->transforms,
+            // Only custom sources enumerate transforms; built-ins use compatible registry entries.
+            'transforms' => str_starts_with($token, '{custom:') ? $this->transforms : null,
             'shape' => $this->shape->value,
             'types' => array_map(static fn(ReferenceType $type): string => $type->value, $this->types),
             'allowTransforms' => $this->allowTransforms,
