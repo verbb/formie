@@ -79,6 +79,10 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         // Create the new layout/page/row/fields tables
         $this->_addNewLayoutTables();
 
+        // Payment fields load their providers while layouts are converted. Prepare
+        // the scope column before those reads; its later migration is idempotent.
+        (new m260613_000000_integration_scopes(['db' => $this->db]))->safeUp();
+
         // We aren't using field layouts, so update title's manually
         $this->_updateFormTitles();
         $this->_updateSubmissionTitles();

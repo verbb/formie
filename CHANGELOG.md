@@ -14,6 +14,7 @@
 
 ### Fixed
 - Fix upgrading from Formie 2 failing on Date fields before form statuses have been migrated.
+- Fix upgrading from Formie 2 failing on Payment fields before integration scopes have been migrated.
 - Fix an error when upgrading from Formie 3 with an empty or invalid default date. ([#3022](https://github.com/verbb/formie/issues/3022))
 - Fix the Settings page redirecting repeatedly when admin changes are disabled.
 - Fix legacy Honeypot settings preventing forms from being created or saved, including from stencils.
