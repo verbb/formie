@@ -595,29 +595,25 @@ class FileUpload extends ElementField
                     ['label' => Craft::t('formie', 'Upload Manager (Advanced)'), 'value' => 'uploadManager'],
                 ],
             ]),
-            SchemaHelper::fieldWrap([
+            SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Upload Location'),
-                'instructions' => Craft::t('formie', 'Choose a subfolder path using the variable picker, for example uploads/{form:handle}/{submission:id}. Twig expressions are not supported.'),
+                'instructions' => Craft::t('formie', 'Choose where uploaded files should be saved.'),
+                'name' => 'uploadLocationSource',
+                'options' => $this->getSourceOptions(),
+                'validation' => 'required',
                 'required' => true,
-                'children' => [
-                    SchemaHelper::selectField([
-                        'name' => 'uploadLocationSource',
-                        'options' => $this->getSourceOptions(),
-                        'validation' => 'required',
-                        'required' => true,
-                    ]),
-                    SchemaHelper::variableTextField([
-                        'name' => 'uploadLocationSubpath',
-                        'variableConfig' => [
-                            'shapes' => ['inline'],
-                            'types' => [Variables::TYPE_TEXT],
-                            'groups' => [Variables::STATIC_FIELDS, Variables::STATIC_FORM, Variables::STATIC_GENERAL, Variables::STATIC_SITE],
-                        ],
-                        'class' => 'text flex-grow fullwidth',
-                        'outerClass' => 'flex-grow',
-                        'placeholder' => 'path/to/subfolder',
-                    ]),
+            ]),
+            SchemaHelper::variableTextField([
+                'label' => Craft::t('formie', 'Subfolder Path'),
+                'instructions' => Craft::t('formie', 'Optionally save files in a subfolder. Use the variable picker to include form or submission details.'),
+                'name' => 'uploadLocationSubpath',
+                'if' => 'uploadLocationSource',
+                'variableConfig' => [
+                    'shapes' => ['inline'],
+                    'types' => [Variables::TYPE_TEXT],
+                    'groups' => [Variables::STATIC_FIELDS, Variables::STATIC_FORM, Variables::STATIC_GENERAL, Variables::STATIC_SITE],
                 ],
+                'placeholder' => Craft::t('formie', 'Optional subfolder'),
             ]),
         ];
     }

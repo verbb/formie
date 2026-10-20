@@ -6,6 +6,7 @@
 - Add a Kebab Case text transform for reference tokens, including File Upload subpaths and filenames.
 
 ### Fixed
+- Fix duplicate Upload Location validation errors and an unusably narrow subfolder editor. Only show the subfolder editor after selecting a location, with simpler instructions.
 - Fix built-in variables hiding available transforms in the variable picker.
 - Clarify upgrade guidance for settings that resolve references instead of Twig, including upload paths and filenames, supported transforms, and settings that retain Twig support.
 - Fix Date sub-field labels and settings reverting after saving the form builder. ([#3026](https://github.com/verbb/formie/issues/3026))

@@ -13,17 +13,11 @@ it('requires upload location in the form builder schema', function (): void {
     $field = new FileUpload();
     $schema = $field->defineFormBuilderGeneralSchema();
 
-    $uploadLocationWrap = collect($schema)
-        ->first(fn(array $item) => ($item['$cmp'] ?? null) === 'FieldWrap' && ($item['label'] ?? null) === Craft::t('formie', 'Upload Location'));
-
     $uploadLocationField = collect($schema)
-        ->flatMap(fn(array $item) => $item['children'] ?? [$item])
-        ->flatMap(fn(array $item) => $item['children'] ?? [$item])
         ->first(fn(array $item) => ($item['name'] ?? null) === 'uploadLocationSource');
 
-    expect($uploadLocationWrap)->not->toBeNull()
-        ->and($uploadLocationWrap['required'] ?? false)->toBeTrue()
-        ->and($uploadLocationField)->not->toBeNull()
+    expect($uploadLocationField)->not->toBeNull()
+        ->and($uploadLocationField['label'] ?? null)->toBe(Craft::t('formie', 'Upload Location'))
         ->and($uploadLocationField['required'] ?? false)->toBeTrue()
         ->and($uploadLocationField['validation'] ?? null)->toBe('required');
 });
