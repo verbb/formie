@@ -19,6 +19,7 @@
 - Fix reCAPTCHA v3 failing when its script is already loaded without the configured site key.
 - Fix reCAPTCHA v3 inline badges rendering outside the form. ([#3016](https://github.com/verbb/formie/issues/3016))
 - Fix slow submission and sent notification indexes in the control panel on sites with many forms.
+- Fix encryption warning icons appearing on a separate line from their text.
 
 ## 4.0.2 - 2026-10-17
 

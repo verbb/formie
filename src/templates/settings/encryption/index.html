@@ -14,25 +14,17 @@
             <p class="light">{{ 'Key ID: {id}' | t('formie', { id: encryptionStatus.keyId }) }}</p>
         </div>
     {% elseif encryptionStatus.state == 'ready' %}
-        <div class="warning with-icon">
-            <p>{{ 'A Formie encryption key is configured, but v2 writes have not been activated. Deploy this version to every web and queue process, then run `php craft formie/encryption/activate`.' | t('formie') }}</p>
-        </div>
+        <p class="warning with-icon">{{ 'A Formie encryption key is configured, but v2 writes have not been activated. Deploy this version to every web and queue process, then run `php craft formie/encryption/activate`.' | t('formie') }}</p>
     {% elseif encryptionStatus.state == 'error' %}
-        <div class="error with-icon">
-            <p>{{ encryptionStatus.error }}</p>
-        </div>
+        <p class="error with-icon">{{ encryptionStatus.error }}</p>
     {% elseif hasEncryptedFields %}
-        <div class="warning with-icon">
-            <p>{{ 'Existing encrypted fields are using compatibility mode. A developer should add FORMIE_ENCRYPTION_KEY before migrating stored content to the dedicated key.' | t('formie') }}</p>
-        </div>
+        <p class="warning with-icon">{{ 'Existing encrypted fields are using compatibility mode. A developer should add FORMIE_ENCRYPTION_KEY before migrating stored content to the dedicated key.' | t('formie') }}</p>
     {% else %}
         <p class="light">{{ 'Encryption has not been configured because this site does not currently use encrypted fields. No action is required.' | t('formie') }}</p>
     {% endif %}
 
     {% if encryptionStatus.expectedKeyId and encryptionStatus.keyId and encryptionStatus.expectedKeyId != encryptionStatus.keyId %}
-        <div class="warning with-icon">
-            <p>{{ 'This environment expects key {expected}, but {actual} is configured. Add the old key to FORMIE_ENCRYPTION_PREVIOUS_KEYS before re-encrypting stored values.' | t('formie', { expected: encryptionStatus.expectedKeyId, actual: encryptionStatus.keyId }) }}</p>
-        </div>
+        <p class="warning with-icon">{{ 'This environment expects key {expected}, but {actual} is configured. Add the old key to FORMIE_ENCRYPTION_PREVIOUS_KEYS before re-encrypting stored values.' | t('formie', { expected: encryptionStatus.expectedKeyId, actual: encryptionStatus.keyId }) }}</p>
     {% endif %}
 
     <p><a href="https://verbb.io/craft-plugins/formie/docs/submissions/content-encryption" target="_blank" rel="noopener">{{ 'Read about content encryption' | t('formie') }}</a></p>
