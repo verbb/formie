@@ -264,14 +264,14 @@ function Integrations({ schema }) {
 
     useEffect(() => {
         if (!showDispatchSettings && isDispatchSettingsActive && integrations?.length) {
-            router.navigateToIntegration(integrations[0].handle, { replace: true });
+            router.navigateToIntegration(integrations[0].handle);
         }
     }, [showDispatchSettings, isDispatchSettingsActive, integrations, router]);
 
     useEffect(() => {
         if (!activeIntegrationHandle && integrations && integrations.length) {
             const firstIntegration = integrations[0];
-            router.navigateToIntegration(firstIntegration.handle, { replace: true });
+            router.navigateToIntegration(firstIntegration.handle);
         }
     }, [integrations, activeIntegrationHandle, router]);
 

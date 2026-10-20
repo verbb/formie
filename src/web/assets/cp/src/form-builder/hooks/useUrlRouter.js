@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { buildBuilderRouteUrl, getBuilderPathname } from '../utils/builderRouteUrl';
 import useAppStore from './useAppStore';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
@@ -120,74 +120,40 @@ function useUrlRouter() {
         setActiveIntegrationHandle,
     } = useFormBuilderApp();
 
-    // Since we initialize outside of React, we can assume the router is ready
-    const isInitialized = useRef(true);
-    const hasSyncedInitialUrlRef = useRef(false);
-    const pendingHistoryModeRef = useRef('push');
-
-    // Generate URL from route state
-    const generateUrl = (state) => {
-        return buildBuilderRouteUrl(baseUrl, getRoutePath(state), window.location.href, Craft.pathParam || 'p');
-    };
-
-    // Update URL without triggering navigation
-    const updateUrl = (state, options = {}) => {
-        const { replace = false } = options;
-        const newUrl = generateUrl(state);
-
-        if (replace) {
-            window.history.replaceState(state, '', newUrl);
-            return;
-        }
-
-        window.history.pushState(state, '', newUrl);
-    };
-
     // Update URL when state changes
     useEffect(() => {
-        if (!isInitialized.current) { return; }
-
         const currentState = {
             activeTab: activeTab || DEFAULTS.activeTab,
             activePageHandle: activePageHandle !== null ? activePageHandle : DEFAULTS.activePageHandle,
             activeIntegrationHandle: activeIntegrationHandle || DEFAULTS.activeIntegrationHandle,
         };
-        const expectedUrl = generateUrl(currentState);
+        const expectedUrl = buildBuilderRouteUrl(baseUrl, getRoutePath(currentState), window.location.href, Craft.pathParam || 'p');
         const expectedLocation = new URL(expectedUrl);
         const currentPath = window.location.pathname;
         const currentSearch = window.location.search;
 
         // Only update URL if it doesn't match expected state
         if (currentPath !== expectedLocation.pathname || currentSearch !== expectedLocation.search) {
-            const shouldReplace = !hasSyncedInitialUrlRef.current || pendingHistoryModeRef.current === 'replace';
-            updateUrl(currentState, { replace: shouldReplace });
+            // Builder selections share one history entry so Back returns to the previous page.
+            window.history.replaceState(currentState, '', expectedUrl);
         }
-
-        if (!hasSyncedInitialUrlRef.current) {
-            hasSyncedInitialUrlRef.current = true;
-        }
-
-        pendingHistoryModeRef.current = 'push';
     }, [activeTab, activePageHandle, activeIntegrationHandle, baseUrl]);
 
 
     // Public API
     return {
         // Navigate to a specific tab
-        navigateToTab: (tab, options = {}) => {
-            pendingHistoryModeRef.current = options.replace ? 'replace' : 'push';
+        navigateToTab: (tab) => {
             setActiveTab(tab);
         },
 
         // Navigate to a specific page (within fields tab)
-        navigateToPage: (pageHandle, options = {}) => {
-            pendingHistoryModeRef.current = options.replace ? 'replace' : 'push';
+        navigateToPage: (pageHandle) => {
             setActivePageHandle(pageHandle);
         },
 
         // Navigate to a specific integration
-        navigateToIntegration: (integrationHandle, options = {}) => {
-            pendingHistoryModeRef.current = options.replace ? 'replace' : 'push';
+        navigateToIntegration: (integrationHandle) => {
             setActiveIntegrationHandle(integrationHandle);
         },
     };

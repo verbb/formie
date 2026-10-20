@@ -6,6 +6,7 @@
 - Add a Kebab Case text transform for reference tokens, including File Upload subpaths and filenames.
 
 ### Fixed
+- Fix form builder tab navigation adding browser history entries, so Back returns to the previous page. ([#3029](https://github.com/verbb/formie/issues/3029))
 - Fix File Upload subfolder and filename variable pickers including the field being edited, including unnamed fields.
 - Fix duplicate Upload Location validation errors and an unusably narrow subfolder editor. Only show the subfolder editor after selecting a location, with simpler instructions.
 - Fix built-in variables hiding available transforms in the variable picker.

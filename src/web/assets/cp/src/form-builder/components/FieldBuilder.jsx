@@ -211,7 +211,7 @@ function FieldBuilder({ fields }) {
         if (!activePage && pages && pages.length) {
             const firstPage = pages[0];
 
-            router.navigateToPage(firstPage._handle, { replace: true });
+            router.navigateToPage(firstPage._handle);
         }
     }, [pages, activePage, router]);
 

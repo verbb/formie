@@ -128,7 +128,7 @@ function PageTabs({ isAnyDragActive = false }) {
         }
 
         if (!activePageHandle || !validPageHandles.includes(activePageHandle)) {
-            router.navigateToPage(firstPageHandle, { replace: true });
+            router.navigateToPage(firstPageHandle);
         }
     }, [activeTab, activePageHandle, hasPages, pages, router]);
 
