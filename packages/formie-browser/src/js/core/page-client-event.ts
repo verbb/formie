@@ -1,3 +1,4 @@
+import { dispatchFormieDomEvent } from '#core/dom-events';
 import { createDebug } from '#utils/debug';
 
 const debug = createDebug('general', 'page-client-event');
@@ -114,13 +115,10 @@ export function dispatchResolvedClientEvents(form: HTMLFormElement, events: Reso
     events.forEach((item) => {
         win.dataLayer!.push(item.payload);
 
-        form.dispatchEvent(new CustomEvent('formie:client-event', {
-            bubbles: true,
-            detail: {
-                event: item.event,
-                payload: item.payload,
-            },
-        }));
+        dispatchFormieDomEvent(form, 'formie:client-event', {
+            event: item.event,
+            payload: item.payload,
+        });
     });
 
     debug.log('Dispatched resolved client events.', {

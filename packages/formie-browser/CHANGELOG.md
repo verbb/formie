@@ -7,6 +7,7 @@
 
 ### Fixed
 - Fixed page-reload submissions stalling when the submit delay is zero.
+- Fixed mounted form lifecycle events omitting the form instance, including submission, page navigation, token refresh and teardown hooks. ([#3032](https://github.com/verbb/formie/issues/3032))
 - Fixed “Scroll To Top” having no effect after successful AJAX submissions. ([#3023](https://github.com/verbb/formie/issues/3023))
 - Fixed summary fields remaining blank after AJAX page navigation.
 - Fixed summary fields repeatedly retrying failed requests.

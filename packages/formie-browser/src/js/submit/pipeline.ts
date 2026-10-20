@@ -1,5 +1,7 @@
+import type { FormieFormInstance } from '#contracts/client';
 import type { FormAction, SubmitStage } from '#contracts/common';
 import type { FormSubmitResult } from '#contracts/schema';
+import { withFormEventInstance } from '#core/dom-events';
 import { EventBus } from '#events/event-bus';
 import { submitForm } from '#transport/forms-api';
 import { createDebug } from '#utils/debug';
@@ -7,6 +9,7 @@ import { getFormPages, getValidationScope } from '#validation/scope';
 import type { FormieValidator } from '#validation/validator';
 
 export type SubmitPipelineContext = {
+    instance?: FormieFormInstance;
     form: HTMLFormElement;
     action: FormAction;
     formData: FormData;
@@ -207,7 +210,7 @@ export async function runSubmitPipeline(
     let dispatchResult: FormSubmitResult | null = null;
     const finalSubmitAttempt = isFinalSubmitAttempt(form, action);
 
-    const context: SubmitPipelineContext = {
+    const context: SubmitPipelineContext = withFormEventInstance(form, {
         form,
         action,
         formData: buildSubmitFormData(form, action),
@@ -218,6 +221,10 @@ export async function runSubmitPipeline(
         },
         isAborted: () => aborted,
         abortReason: () => abortReason,
+    });
+
+    const emitSubmitResult = (eventName: string, result: FormSubmitResult) => {
+        return bus.emitSafe(eventName, withFormEventInstance(form, result));
     };
 
     const runners: Record<SubmitStage, StageRunner> = {
@@ -368,7 +375,7 @@ export async function runSubmitPipeline(
         if (aborted) {
             const abortedResult = getAbortedResult(stage, abortReason);
             {
-                const emitReport = await bus.emitSafe('formie:submit:after', abortedResult);
+                const emitReport = await emitSubmitResult('formie:submit:after', abortedResult);
                 if (emitReport.failed.length > 0) {
                     debug.warn('Submit after listeners failed (abort before stage).', {
                         stage,
@@ -377,7 +384,7 @@ export async function runSubmitPipeline(
                 }
             }
             if (finalSubmitAttempt) {
-                const emitReport = await bus.emitSafe('formie:submit:final:after', abortedResult);
+                const emitReport = await emitSubmitResult('formie:submit:final:after', abortedResult);
                 if (emitReport.failed.length > 0) {
                     debug.warn('Final submit after listeners failed (abort before stage).', {
                         stage,
@@ -414,7 +421,7 @@ export async function runSubmitPipeline(
         if (aborted) {
             const abortedResult = getAbortedResult(stage, abortReason);
             {
-                const emitReport = await bus.emitSafe('formie:submit:after', abortedResult);
+                const emitReport = await emitSubmitResult('formie:submit:after', abortedResult);
                 if (emitReport.failed.length > 0) {
                     debug.warn('Submit after listeners failed (abort after stage).', {
                         stage,
@@ -423,7 +430,7 @@ export async function runSubmitPipeline(
                 }
             }
             if (finalSubmitAttempt) {
-                const emitReport = await bus.emitSafe('formie:submit:final:after', abortedResult);
+                const emitReport = await emitSubmitResult('formie:submit:final:after', abortedResult);
                 if (emitReport.failed.length > 0) {
                     debug.warn('Final submit after listeners failed (abort after stage).', {
                         stage,
@@ -439,7 +446,7 @@ export async function runSubmitPipeline(
         // matching stage after-hook so modules can clean up their own state.
         if (stageResult && !stageResult.ok) {
             {
-                const emitReport = await bus.emitSafe('formie:submit:after', stageResult);
+                const emitReport = await emitSubmitResult('formie:submit:after', stageResult);
                 if (emitReport.failed.length > 0) {
                     debug.warn('Submit after listeners failed (failed stage).', {
                         stage,
@@ -448,7 +455,7 @@ export async function runSubmitPipeline(
                 }
             }
             if (finalSubmitAttempt) {
-                const emitReport = await bus.emitSafe('formie:submit:final:after', stageResult);
+                const emitReport = await emitSubmitResult('formie:submit:final:after', stageResult);
                 if (emitReport.failed.length > 0) {
                     debug.warn('Final submit after listeners failed (failed stage).', {
                         stage,
@@ -473,7 +480,7 @@ export async function runSubmitPipeline(
     };
 
     {
-        const emitReport = await bus.emitSafe('formie:submit:after', successResult);
+        const emitReport = await emitSubmitResult('formie:submit:after', successResult);
         if (emitReport.failed.length > 0) {
             debug.warn('Submit after listeners failed (success).', {
                 failed: emitReport.failed.length,
@@ -481,7 +488,7 @@ export async function runSubmitPipeline(
         }
     }
     if (finalSubmitAttempt) {
-        const emitReport = await bus.emitSafe('formie:submit:final:after', successResult);
+        const emitReport = await emitSubmitResult('formie:submit:final:after', successResult);
         if (emitReport.failed.length > 0) {
             debug.warn('Final submit after listeners failed (success).', {
                 failed: emitReport.failed.length,

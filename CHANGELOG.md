@@ -9,6 +9,7 @@
 ### Fixed
 - Fixed variable tags not showing their configured transform name or default-value indicator.
 - Fix page-reload submissions stalling when the submit delay is zero.
+- Fix mounted form lifecycle events omitting the form instance, including submission, page navigation, token refresh and teardown hooks. ([#3032](https://github.com/verbb/formie/issues/3032))
 - Fix form builder tab navigation adding browser history entries, so Back returns to the previous page. ([#3029](https://github.com/verbb/formie/issues/3029))
 - Fix File Upload subfolder and filename variable pickers including the field being edited, including unnamed fields.
 - Fix duplicate Upload Location validation errors and an unusably narrow subfolder editor. Only show the subfolder editor after selecting a location, with simpler instructions.

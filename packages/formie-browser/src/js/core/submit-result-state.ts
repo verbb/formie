@@ -484,12 +484,12 @@ function resetSubmissionState(form: HTMLFormElement, options: ResetSubmissionSta
 
     if (firstPageId) {
         applyPageState(form, firstPageId);
-        form.dispatchEvent(new CustomEvent(getFormStateEventName('reset'), { bubbles: true }));
+        dispatchFormieDomEvent(form, getFormStateEventName('reset'), undefined);
         return;
     }
 
     syncPageTabErrors(form);
-    form.dispatchEvent(new CustomEvent(getFormStateEventName('reset'), { bubbles: true }));
+    dispatchFormieDomEvent(form, getFormStateEventName('reset'), undefined);
 }
 
 function shouldResetSubmissionState(result: FormSubmitResult): boolean {

@@ -12,7 +12,7 @@ import type { FormAction, FormMode, FormTransport } from '#contracts/common';
 import type { BrowserModuleDefinition, BrowserModuleInstance } from '#contracts/modules';
 import type { FormEndpointPayload, BrowserModuleEntry, FormSubmitResult } from '#contracts/schema';
 import type { ThemeClassMap } from '#contracts/theme';
-import { dispatchFormieDomEvent } from '#core/dom-events';
+import { bindFormEventInstance, dispatchFormieDomEvent } from '#core/dom-events';
 import { getErrorAriaLivePreference } from '#core/error-aria-live';
 import { dispatchPageClientEventForSubmit, dispatchPendingClientEventsFromForm } from '#core/page-client-event';
 import { syncPageTabErrors } from '#core/page-tab-errors';
@@ -47,6 +47,7 @@ type InternalInstanceState = {
     modules: BrowserModuleRuntime;
     unbinds: Array<() => void>;
     instance: FormieFormInstance;
+    unbindEventContext: () => void;
 };
 
 type FormWithValidationApi = HTMLFormElement & {
@@ -945,6 +946,7 @@ export function createFormieClient(): FormieClient {
         dispatchFormieDomEvent(target, 'formie:unmount:after', {
             id: state.instance.id,
         });
+        state.unbindEventContext();
         debug.log('Unmount complete.', { id: state.instance.id, target: getTargetDebugLabel(target) });
         })().finally(() => {
             pendingUnmounts.delete(target);
@@ -1198,6 +1200,8 @@ export function createFormieClient(): FormieClient {
             },
         };
 
+        const unbindEventContext = bindFormEventInstance(target, form, instance);
+
         if (form) {
             bindLegacyValidatorCompatibility({
                 target,
@@ -1230,7 +1234,13 @@ export function createFormieClient(): FormieClient {
                 unbinds.push(bindEnterKeyGuard(form));
             }
 
-            await refreshTokensIfNeeded(target, normalizedOptions, form);
+            try {
+                await refreshTokensIfNeeded(target, normalizedOptions, form);
+            } catch (error) {
+                // A failed mount must not supply an abandoned instance on retry.
+                unbindEventContext();
+                throw error;
+            }
         }
 
         stageNames.forEach((stageName) => {
@@ -1302,11 +1312,13 @@ export function createFormieClient(): FormieClient {
             modules,
             unbinds,
             instance,
+            unbindEventContext,
         });
 
         dispatchFormieDomEvent(target, 'formie:mount:after', {
             id,
             mode: normalizedOptions.mode as FormMode,
+            instance,
         });
 
         if (form instanceof HTMLFormElement) {
