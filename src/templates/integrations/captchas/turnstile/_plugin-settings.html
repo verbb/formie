@@ -1,4 +1,3 @@
-{% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set displayName = integration.displayName() %}
@@ -21,16 +20,8 @@
     warning: macros.configWarning('secretKey', 'formie'),
 }) }}
 
-{% set turnstileWidgetModeNotice %}
-    <p>{{ 'Turnstile widget mode (Managed, Non-interactive, Invisible) is configured in your Cloudflare dashboard for the selected site key, not in Formie. Choose the site key that matches the widget mode you want to use.' | t('formie') }}</p>
-{% endset %}
 {% set turnstileAppearanceValue = (integration.settings.appearance ?? 'always') == 'execute' ? 'always' : (integration.settings.appearance ?? 'always') %}
 {% set turnstileExecutionValue = integration.settings.execution ?? ((integration.settings.appearance ?? 'always') == 'execute' ? 'execute' : 'render') %}
-
-{{ forms.field({
-    label: 'Widget Mode' | t('formie'),
-    instructions: 'Configured in Cloudflare' | t('formie'),
-}, turnstileWidgetModeNotice) }}
 
 {{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Script Loading Method' | t('formie'),

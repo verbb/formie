@@ -7,6 +7,7 @@
 
 ### Changed
 - Clarify project and instance settings for integrations, stencils, spam protection and captcha providers, including deployment and editing permissions.
+- Remove the informational Widget Mode field from Cloudflare Turnstile settings.
 
 ### Fixed
 - Fix the Settings page redirecting repeatedly when admin changes are disabled.
