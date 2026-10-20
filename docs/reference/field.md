@@ -171,9 +171,9 @@ Returns attributes for the field input, where applicable.
 :::
 
 ::: reference
-### `getFrontEndInputHtml()`
+### `renderInput(form, value)`
 
-Returns the field’s front-end input HTML.
+Returns the field's input HTML. This omits the surrounding label, validation rules and error container. Use `craft.formie.renderField(form, field)` when [custom rendering](/theming/custom-rendering) needs a complete field.
 :::
 
 ::: reference

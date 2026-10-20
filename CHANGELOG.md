@@ -23,6 +23,7 @@
 - Fix reCAPTCHA v3 inline badges rendering outside the form. ([#3016](https://github.com/verbb/formie/issues/3016))
 - Fix slow submission and sent notification indexes in the control panel on sites with many forms.
 - Fix encryption warning icons appearing on a separate line from their text.
+- Fix custom rendering documentation using removed methods and omitting validation markup and spam-protection inputs.
 
 ## 4.0.2 - 2026-10-17
 
