@@ -1799,7 +1799,8 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
     {
         $fields = [];
 
-        $date = DateFieldValue::toDateTime($this->getInitialValue()) ?: new DateTime();
+        // Persist year bounds from the configured default, without resolving visitor prefills.
+        $date = DateFieldValue::toDateTime($this->getDefaultValue()) ?: new DateTime();
         $year = (int)$date->format('Y');
         $minYear = $year - 100;
         $maxYear = $year + 100;
@@ -2888,6 +2889,8 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             return null;
         }
 
-        return $this->_normalizeBuilderSubFieldDefaultValue($this->getInitialValue(), $handle);
+        // These values become stored field settings. Resolving visitor prefills here
+        // also loads forms before their schema is ready during historical upgrades.
+        return $this->_normalizeBuilderSubFieldDefaultValue($this->getDefaultValue(), $handle);
     }
 }

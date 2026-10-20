@@ -28,5 +28,5 @@ it('keeps visitor prefills out of persisted date child defaults', function(strin
     $time = $field->getFieldByHandle('time');
 
     expect($date->defaultValue)->toBe('2024-06-15')
-        ->and($time->defaultValue)->toBe('14:30:00');
+        ->and($time->defaultValue)->toBe('14:30');
 })->with(['calendar', 'datePicker']);
