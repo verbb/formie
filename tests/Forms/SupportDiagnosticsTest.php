@@ -192,7 +192,7 @@ it('attaches diagnostics to the support zip without sending a real request', fun
         $zip = new ZipArchive();
         expect($zip->open($path))->toBeTrue();
         $data = json_decode($zip->getFromName('diagnostics.json'), true);
-        expect($data['schemaVersion'])->toBe(1)
+        expect($data['schemaVersion'])->toBe(3)
             ->and($data['form']['handle'])->toBe($form->handle)
             ->and($data['user']['admin'])->toBeTrue()
             ->and($data['collectionErrors'])->toBe([]);

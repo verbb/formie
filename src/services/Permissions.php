@@ -22,6 +22,8 @@ class Permissions extends Component
 
     public const PERM_ACCESS_FORMS = 'formie-accessForms';
     public const PERM_ACCESS_INTEGRATIONS = 'formie-accessIntegrations';
+    public const PERM_MANAGE_CAPTCHAS = 'formie-manageCaptchas';
+    public const PERM_MANAGE_SPAM_RULES = 'formie-manageSpamRules';
     public const PERM_ACCESS_SETTINGS = 'formie-accessSettings';
     public const PERM_ACCESS_REPORTS = 'formie-accessReports';
     public const PERM_MANAGE_REPORTS = 'formie-manageReports';
@@ -92,6 +94,16 @@ class Permissions extends Component
     public function canAccessSettings(?User $user): bool
     {
         return $this->_can($user, self::PERM_ACCESS_SETTINGS);
+    }
+
+    public function canManageCaptchas(?User $user): bool
+    {
+        return $this->_can($user, self::PERM_MANAGE_CAPTCHAS) || $this->canAccessSettingsPage($user, 'spam-protection');
+    }
+
+    public function canManageSpamRules(?User $user): bool
+    {
+        return $this->_can($user, self::PERM_MANAGE_SPAM_RULES) || $this->canAccessSettingsPage($user, 'spam-protection');
     }
 
     public function canAccessReports(?User $user): bool
@@ -235,7 +247,7 @@ class Permissions extends Component
             'submissions' => Craft::t('formie', 'Submissions settings'),
             'scheduled-reports' => Craft::t('formie', 'Scheduled Reports'),
             'integrations-settings' => Craft::t('formie', 'Integrations settings'),
-            'spam-protection' => Craft::t('formie', 'Spam Protection'),
+            'spam-protection' => Craft::t('formie', 'Manage all Spam Protection (legacy permission)'),
             'form-templates' => Craft::t('formie', 'Form Templates'),
             'email-templates' => Craft::t('formie', 'Email Templates'),
             'pdf-templates' => Craft::t('formie', 'PDF Templates'),
@@ -253,6 +265,9 @@ class Permissions extends Component
         foreach ($this->getSettingsPageDefinitions() as $page => $label) {
             $definitions[$this->settingsPagePermissionKey($page)] = ['label' => $label];
         }
+
+        $definitions[$this->settingsPagePermissionKey('spam')] = ['label' => Craft::t('formie', 'Manage all Spam Protection (legacy spam permission)')];
+        $definitions[$this->settingsPagePermissionKey('captchas')] = ['label' => Craft::t('formie', 'Manage all Spam Protection (legacy CAPTCHA permission)')];
 
         return $definitions;
     }

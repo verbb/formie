@@ -38,7 +38,7 @@ Formie splits “who can submit and how often” across three layers:
 | --- | --- | --- | --- |
 | **Availability** | Form → Settings → Behaviour | Schedule, manual disable, require login | Form hidden or unavailable message |
 | **Submission limits** | Form → Settings → Behaviour | Entry caps by form, IP, or user | Form closes (form scope) or validation error (IP/user scope) |
-| **Submission throttling** | **Settings → Spam Protection** | Abuse and flood protection | Submission marked as spam |
+| **Submission throttling** | **Spam Protection** | Abuse and flood protection | Submission marked as spam |
 
 Use **Availability** when the form should not be shown yet, or only to certain audiences.
 

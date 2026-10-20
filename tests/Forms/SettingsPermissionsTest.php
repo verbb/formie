@@ -45,7 +45,9 @@ it('registers a settings permission definition for every settings page', functio
     $pages = array_keys($permissions->getSettingsPageDefinitions());
     $definitions = $permissions->getSettingsPermissionDefinitions();
 
-    expect(count($definitions))->toBe(count($pages));
+    expect(count($definitions))->toBe(count($pages) + 2)
+        ->and($definitions)->toHaveKey($permissions->settingsPagePermissionKey('spam'))
+        ->and($definitions)->toHaveKey($permissions->settingsPagePermissionKey('captchas'));
 
     foreach ($pages as $page) {
         expect($definitions)->toHaveKey($permissions->settingsPagePermissionKey($page));

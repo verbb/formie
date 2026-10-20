@@ -66,6 +66,8 @@ final class RoundTwoFixture
             // Formie 4's payment contract renamed successful payments, without replaying them.
             if ($expected['payment']['status'] === 'success') $expected['payment']['status'] = 'succeeded';
             $expected['subscription']['data']['requiresAction'] = false;
+            // The upgrade deliberately makes spam protection local; its values still match the source snapshot.
+            if ($this->version === 4) $expected['configurationScopes'] = ['captcha' => 'site', 'spam' => 'site'];
             $this->compare('roundTwo', $expected, $this->snapshot());
             $this->behaviour();
             $report = $this->read('.state/checks.json');

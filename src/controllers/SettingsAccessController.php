@@ -42,6 +42,10 @@ class SettingsAccessController extends Controller
             ? $permissions->canAccessAnySettings($user)
             : $permissions->canAccessSettingsPage($user, $page);
 
+        if ($permissions->normalizeSettingsPage($page) === 'spam-protection') {
+            $canAccess = $permissions->canManageCaptchas($user) || $permissions->canManageSpamRules($user);
+        }
+
         if (!$canAccess) {
             throw new ForbiddenHttpException('User is not permitted to perform this action');
         }

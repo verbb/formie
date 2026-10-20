@@ -278,7 +278,6 @@ class Formie
                 'submissions' => ['title' => Craft::t('formie', 'Submissions')],
                 'scheduled-reports' => ['title' => Craft::t('formie', 'Scheduled Reports')],
                 'integrations-settings' => ['title' => Craft::t('formie', 'Integrations')],
-                'spam-protection' => ['title' => Craft::t('formie', 'Spam Protection')],
 
                 'appearance-heading' => ['heading' => Craft::t('formie', 'Appearance')],
                 'form-templates' => ['title' => Craft::t('formie', 'Form Templates')],
@@ -288,7 +287,6 @@ class Formie
         } else {
             $navItems = [
                 'import-export' => ['title' => Craft::t('formie', 'Import/Export')],
-                'spam-protection' => ['title' => Craft::t('formie', 'Spam Protection')],
             ];
         }
 

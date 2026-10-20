@@ -14,6 +14,8 @@ beforeEach(function (): void {
 
 afterEach(function (): void {
     $this->captchaTransaction->rollBack();
+    Craft::$app->getInfo()->configVersion = (new \craft\db\Query())->select('configVersion')->from(\craft\db\Table::INFO)->scalar();
+    Craft::$app->getProjectConfig()->reset();
     // The provider store separately caches database rows; rollback cannot invalidate them.
     $providers = Formie::$plugin->getCaptchaProviders();
     (new ReflectionMethod($providers, '_resetCache'))->invoke($providers);
@@ -92,43 +94,22 @@ it('saves site-scoped captcha providers when admin changes are disabled', functi
         ->and($reloaded->siteKey)->toBe('test-site-key');
 });
 
-it('promotes project-scoped captcha saves to site scope when admin changes are disabled', function (): void {
-    Craft::$app->getConfig()->getGeneral()->allowAdminChanges = false;
-
+it('saves formerly project-scoped providers locally regardless of admin changes', function (bool $allowAdminChanges): void {
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_CAPTCHA_PROVIDERS, ['scope' => 'project'], ['handle' => 'turnstile'])->execute();
+    \verbb\formie\helpers\SpamProtectionSettings::resetCaches();
+    Craft::$app->getConfig()->getGeneral()->allowAdminChanges = $allowAdminChanges;
+    $beforeConfig = Craft::$app->getProjectConfig()->get('formie');
     $turnstile = Formie::$plugin->getIntegrations()->getCaptchaByHandle('turnstile');
-    $turnstile->scope = Integrations::SCOPE_PROJECT;
+    $turnstile->siteKey = 'local-site-key';
+    $turnstile->secretKey = 'local-secret-key';
     $turnstile->setEnabled(true);
-
     expect(Formie::$plugin->getIntegrations()->saveCaptcha($turnstile))->toBeTrue();
-
     $reloaded = Formie::$plugin->getIntegrations()->getCaptchaByHandle('turnstile');
-
     expect($reloaded->isSiteScope())->toBeTrue()
-        ->and($reloaded->getEnabled())->toBeTrue();
-});
-
-it('promotes project-scoped captcha saves to site scope when admin changes are enabled', function (): void {
-    Craft::$app->getConfig()->getGeneral()->allowAdminChanges = true;
-
-    $turnstile = Formie::$plugin->getIntegrations()->getCaptchaByHandle('turnstile');
-    $turnstile->scope = Integrations::SCOPE_PROJECT;
-    $turnstile->setEnabled(true);
-    $turnstile->siteKey = 'project-site-key';
-    $turnstile->secretKey = 'project-secret-key';
-
-    expect(Formie::$plugin->getIntegrations()->saveCaptcha($turnstile))->toBeTrue();
-
-    $reloaded = Formie::$plugin->getIntegrations()->getCaptchaByHandle('turnstile');
-
-    expect($reloaded->isSiteScope())->toBeTrue()
-        ->and($reloaded->getEnabled())->toBeTrue()
-        ->and($reloaded->siteKey)->toBe('project-site-key')
-        ->and($reloaded->secretKey)->toBe('project-secret-key');
-
-    $config = \verbb\formie\helpers\ProjectConfigHelper::rebuildProjectConfig();
-
-    expect($config['captchaProviders']['turnstile'] ?? null)->toBeNull();
-});
+        ->and($reloaded->secretKey)->toBe('local-secret-key')
+        ->and(Craft::$app->getProjectConfig()->get('formie'))->toEqual($beforeConfig)
+        ->and(\verbb\formie\helpers\ProjectConfigHelper::rebuildProjectConfig())->not->toHaveKey('captchaProviders');
+})->with([false, true]);
 
 it('does not export site-scoped captcha providers in project config rebuild data', function (): void {
     Craft::$app->getConfig()->getGeneral()->allowAdminChanges = true;

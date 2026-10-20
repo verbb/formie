@@ -3,10 +3,22 @@
 declare(strict_types=1);
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\SpamProtectionSettings as Management;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Settings;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\SpamProtection;
+
+beforeEach(function(): void {
+    $this->spamTransaction = Craft::$app->getDb()->beginTransaction();
+    Management::resetCaches();
+});
+afterEach(function(): void {
+    $this->spamTransaction->rollBack();
+    Craft::$app->getInfo()->configVersion = (new \craft\db\Query())->select('configVersion')->from(\craft\db\Table::INFO)->scalar();
+    Craft::$app->getProjectConfig()->reset();
+    Management::resetCaches();
+});
 
 it('stores spam settings in the runtime database table', function (): void {
     $spamProtection = Formie::$plugin->getSpamProtection();
@@ -58,19 +70,15 @@ it('saves site-scoped spam settings when admin changes are disabled', function (
         ->and($settings->spamLimit)->toBe(99);
 });
 
-it('promotes project-scoped spam settings to site scope on production save', function (): void {
-    Craft::$app->getConfig()->getGeneral()->allowAdminChanges = true;
-    Formie::$plugin->getSpamProtection()->saveValues(array_merge(
-        Formie::$plugin->getSpamProtection()->getSettingsValues(),
-        ['scope' => Integrations::SCOPE_PROJECT],
-    ));
+it('allows production editing of formerly project-scoped spam rules', function (): void {
+    Craft::$app->getDb()->createCommand()->update(Table::FORMIE_SPAM_SETTINGS, ['scope' => 'project'])->execute();
+    Management::resetCaches();
     Craft::$app->getConfig()->getGeneral()->allowAdminChanges = false;
-
     $settings = Formie::$plugin->getSettings();
-    $settings->spamKeywords = 'promoted-keyword';
-
+    $settings->spamKeywords = 'production-rule';
     expect(Formie::$plugin->getSpamProtection()->saveFromSettings($settings))->toBeTrue()
-        ->and(Formie::$plugin->getSpamProtection()->isSiteScope())->toBeTrue();
+        ->and(Formie::$plugin->getSpamProtection()->isSiteScope())->toBeTrue()
+        ->and(Formie::$plugin->getSpamProtection()->getSettingsValues()['spamKeywords'])->toBe('production-rule');
 });
 
 it('strips spam keys from plugin settings payloads', function (): void {
@@ -85,41 +93,12 @@ it('strips spam keys from plugin settings payloads', function (): void {
         ->and($stripped)->not->toHaveKey('spamKeywords');
 });
 
-it('saves project-scoped spam settings to project config when admin changes are enabled', function (): void {
+it('never exports spam rules even when callers request project scope', function (): void {
     Craft::$app->getConfig()->getGeneral()->allowAdminChanges = true;
-
-    expect(Formie::$plugin->getSpamProtection()->saveValues(array_merge(
-        Formie::$plugin->getSpamProtection()->getSettingsValues(),
-        [
-            'scope' => Integrations::SCOPE_PROJECT,
-            'spamKeywords' => 'project-config-keyword',
-        ],
-    )))->toBeTrue();
-
-    $settings = Formie::$plugin->getSettings();
-    Formie::$plugin->getSpamProtection()->hydrateSettings($settings);
-
-    expect($settings->spamKeywords)->toBe('project-config-keyword')
-        ->and(Formie::$plugin->getSpamProtection()->isProjectScope())->toBeTrue();
-
-    $config = \verbb\formie\helpers\ProjectConfigHelper::rebuildProjectConfig();
-
-    expect($config['spamSettings']['spamKeywords'] ?? null)->toBe('project-config-keyword');
-});
-
-it('exports project-scoped spam settings in project config rebuild data', function (): void {
-    Craft::$app->getConfig()->getGeneral()->allowAdminChanges = true;
-
-    Formie::$plugin->getSpamProtection()->saveValues(array_merge(
-        Formie::$plugin->getSpamProtection()->getSettingsValues(),
-        [
-            'scope' => Integrations::SCOPE_PROJECT,
-            'spamKeywords' => 'rebuild-keyword',
-        ],
-    ));
-
-    $config = \verbb\formie\helpers\ProjectConfigHelper::rebuildProjectConfig();
-
-    expect($config['spamSettings'] ?? null)->toBeArray()
-        ->and($config['spamSettings']['spamKeywords'])->toBe('rebuild-keyword');
+    $before = Craft::$app->getProjectConfig()->get('formie');
+    $service = Formie::$plugin->getSpamProtection();
+    expect($service->saveValues([...$service->getSettingsValues(), 'scope' => 'project', 'spamKeywords' => 'local-only']))->toBeTrue();
+    expect($service->isSiteScope())->toBeTrue()
+        ->and(Craft::$app->getProjectConfig()->get('formie'))->toEqual($before)
+        ->and(\verbb\formie\helpers\ProjectConfigHelper::rebuildProjectConfig())->not->toHaveKey('spamSettings');
 });

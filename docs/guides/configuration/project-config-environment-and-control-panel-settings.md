@@ -42,7 +42,6 @@ When production runs `project-config/sync`, Formie updates versioned resources s
 - Project integrations created with **New project integration**
 - Submission and form statuses
 - Reports and scheduled report definitions
-- Project-managed spam settings
 
 These are the things your team typically wants identical across environments — checked into `config/project/` and deployed with Craft.
 
@@ -65,9 +64,9 @@ See [Configuration](/get-started/configuration) for every option. The point for 
 
 ### 3. Instance-Level Settings Stay Local
 
-Project config sync leaves instance-level integrations, stencils, spam settings and captcha overrides unchanged, whether project configuration is updated or removed. Users with the relevant permissions can manage these local settings even when `allowAdminChanges` is `false`.
+Project config sync leaves instance-level integrations, stencils, spam rules and provider settings unchanged, whether project configuration is updated or removed. Users with the relevant permissions can manage these local settings even when `allowAdminChanges` is `false`.
 
-How settings become instance-level depends on the feature. Integrations and stencils offer separate creation choices. Spam settings become local when saved with admin changes disabled; saving a captcha provider always creates a local override. Check [integration scope](/integrations/overview#integrations-and-project-integrations), [stencil scope](/forms/stencils#project-stencils-developers), [spam settings](/forms/spam-protection#spam-settings) or [captcha provider settings](/integrations/overview#captcha-provider-settings) before choosing where your team will maintain them.
+Integrations and stencils offer separate instance-level and project creation choices. Spam rules and CAPTCHA/spam filtering provider settings always stay in the installation’s database. Configure them on production to let authorised clients manage them there. See [integration scope](/integrations/overview#integrations-and-project-integrations), [stencil scope](/forms/stencils#project-stencils-developers) and [production spam protection setup](/forms/spam-protection#setting-up-production).
 
 A database copy can overwrite local settings and content. Follow the [checks after copying a database](#after-copying-a-database-between-environments) before accepting submissions on the target environment.
 
@@ -84,8 +83,8 @@ Use this when you know *what* you want to change but not *where*:
 | I want to change… | Where |
 | --- | --- |
 | Default submit method for new forms | `formDefaults` in `formie.php`, or **Settings → Defaults** |
-| Spam keywords | **Settings → Spam Protection** — project-managed or instance-level depending on the [spam settings scope](/forms/spam-protection#spam-settings) |
-| Turnstile or reCAPTCHA secret | **Settings → Spam Protection → Captchas** |
+| Spam keywords | **Spam Protection → Spam Rules** — stored in the installation’s database |
+| Turnstile or reCAPTCHA secret | **Spam Protection → CAPTCHAs** |
 | Which sites a form group applies to | **Settings → Form Groups** (project config) |
 | A reusable starter layout for new forms | **Formie → Stencils** — choose instance-level or project storage ([Stencil scope](/forms/stencils#project-stencils-developers)) |
 | Fields and notifications on a live form | Form builder (database) — or import/export between environments |

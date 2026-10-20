@@ -38,7 +38,7 @@ Open the **Field Palette** tab and enable **Use custom field palette**. Forms in
 
 If your group often uses per-user or per-IP limits, preset **Collect User** or **Collect IP** on the group **Form Defaults** tab so new forms inherit the privacy settings those limits rely on.
 
-Global abuse throttling lives under **Settings → Spam Protection** and applies site-wide — it is separate from form submission limits.
+Global abuse throttling lives under **Spam Protection** and applies site-wide — it is separate from form submission limits.
 
 ## When to Use Form Groups
 

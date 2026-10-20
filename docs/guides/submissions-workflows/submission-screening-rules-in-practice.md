@@ -14,7 +14,7 @@ Draft saves and edits to existing submissions skip content screening. Draft save
 
 ## Layer 1: Submission Guards
 
-Guards are global passive checks under **Formie → Settings → Spam Protection → Submission Guards**. They are not captcha integrations and do not appear in the form builder captcha picker.
+Guards are global passive checks under **Formie → Spam Protection → Spam Rules → Submission Guards**. They are not captcha integrations and do not appear in the form builder captcha picker.
 
 | Guard | Default | Purpose |
 | --- | --- | --- |
@@ -35,7 +35,7 @@ Formie’s standard form rendering includes the fields and tokens these safeguar
 
 Enable captchas per form when guards and keywords are not enough:
 
-1. Configure provider credentials under **Settings → Spam Protection → Captchas**.
+1. Configure provider credentials under **Spam Protection → CAPTCHAs**.
 2. Enable providers on the form in the form builder.
 
 Services such as Akismet, CleanTalk and OOPSpam check content without showing visitors a puzzle. Configure them in the same Captchas area.

@@ -42,7 +42,7 @@ Common examples are:
 
 This is the part of Formie that turns a form from a collection of fields into something a little more deliberate and controlled.
 
-Sitewide spam throttling under **Settings → Spam Protection** is separate from per-form submission limits. See [Spam Protection](/forms/spam-protection#submission-throttling) when you need flood protection rather than entry caps.
+Sitewide spam throttling under **Spam Protection** is separate from per-form submission limits. See [Spam Protection](/forms/spam-protection#submission-throttling) when you need flood protection rather than entry caps.
 
 Form settings also control what a saved submission looks like and how long it is kept.
 

@@ -30,7 +30,7 @@ class SupportDiagnostics
 
         // Build an allowlisted snapshot; never serialize config, user or integration objects.
         $diagnostics = [
-            'schemaVersion' => 1,
+            'schemaVersion' => 3,
             'collectedAt' => gmdate('Y-m-d\TH:i:s\Z'),
             'installation' => [
                 'environment' => $config->env,
@@ -47,12 +47,15 @@ class SupportDiagnostics
                 'canViewForm' => $permissions->canViewForm($user, $form),
                 'canManageForm' => $permissions->canManageForm($user, $form),
                 'canAccessIntegrations' => $permissions->canAccessIntegrations($user),
+                'canManageCaptchas' => $permissions->canManageCaptchas($user),
+                'canManageSpamRules' => $permissions->canManageSpamRules($user),
                 'settingsPages' => $settingsPermissions,
             ],
             'form' => [
                 'handle' => $form->handle,
                 'disableCaptchas' => (bool)$form->settings->disableCaptchas,
             ],
+            'spamRules' => ['scope' => 'site'],
             'integrations' => [],
             'collectionErrors' => [],
         ];

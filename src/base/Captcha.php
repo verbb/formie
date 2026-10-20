@@ -189,7 +189,15 @@ abstract class Captcha extends Integration
 
     protected function getMissingSettingsWarningSchema(string $providerName, string $settingsTab): array
     {
-        $settingsUrl = UrlHelper::cpUrl("formie/settings/spam-protection#tab-{$settingsTab}");
+        $settingsUrl = UrlHelper::cpUrl("formie/spam-protection/captchas/{$settingsTab}");
+
+        if (!Formie::$plugin->getPermissions()->canManageCaptchas(Craft::$app->getUser()->getIdentity())) {
+            return [
+                '$el' => 'p',
+                'attrs' => ['class' => 'warning with-icon'],
+                'children' => Craft::t('formie', 'This CAPTCHA provider is not configured. Ask an administrator to configure {name} in Spam Protection.', ['name' => $providerName]),
+            ];
+        }
 
         return [
             '$el' => 'p',

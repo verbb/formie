@@ -41,7 +41,7 @@ Most common Sprout field types (Single Line, Paragraph, Dropdown, Email, Number,
 
 - Verify each form in the form builder
 - Update Twig from Sprout embed syntax to `craft.formie.renderForm()`
-- Configure spam protection (**Settings → Spam Protection**) — Sprout's approach may differ
+- Configure spam protection (**Spam Protection**) — Sprout's approach may differ
 - Set up email notifications if Sprout used different notification mechanics
 - Test front-end submit and admin notification delivery
 - Compare submission counts

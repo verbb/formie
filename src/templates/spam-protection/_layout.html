@@ -1,0 +1,53 @@
+{% extends 'formie/_layouts/index' %}
+{% set title = title ?? 'Spam Protection' | t('formie') %}
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Spam Protection' | t('formie'), url: url('formie/spam-protection') },
+] %}
+{% set selectedSubnavItem = 'spam-protection' %}
+{% do craft.formie.getPlugin().registerCpPluginSettingsAssets() %}
+
+{% block sidebar %}
+    <nav aria-label="{{ 'Spam Protection' | t('formie') }}">
+        <ul>
+            {% if canManageSpamRules %}
+                <li class="heading"><span>{{ 'Spam' | t('formie') }}</span></li>
+                <li>
+                    <a href="{{ url('formie/spam-protection/rules') }}" class="{{ subject == 'spam-rules' ? 'sel' }}" {% if subject == 'spam-rules' %}aria-current="page"{% endif %}>
+                        <span class="label">{{ 'Spam Rules' | t('formie') }}</span>
+                    </a>
+                </li>
+            {% endif %}
+            {% for group in ['CAPTCHAs', 'Spam Filtering Services'] %}
+                {% set groupProviders = providers | filter(item => item.group == group) %}
+                {% if groupProviders %}
+                <li class="heading"><span>{{ group | t('formie') }}</span></li>
+                {% for item in groupProviders %}
+                    {% set isSelected = subject == 'captcha:' ~ item.handle %}
+                    <li>
+                        <a href="{{ url('formie/spam-protection/captchas/' ~ item.handle) }}" class="{{ isSelected ? 'sel' }}" {% if isSelected %}aria-current="page"{% endif %}>
+                            {% if item.iconUrl %}<img class="icon" src="{{ item.iconUrl }}" alt="" width="16" height="16">{% endif %}
+                            <span class="label">{{ item.name }}</span>
+                            <span class="status mr-0 {{ item.enabled ? 'on' : 'disabled' }}" title="{{ (item.enabled ? 'Enabled' : 'Disabled') | t('formie') }}"></span>
+                        </a>
+                    </li>
+                {% endfor %}
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+{% endblock %}
+
+{% block blockContent %}
+    <h2>{{ title }}</h2>
+    {% block protectionContent %}{% endblock %}
+{% endblock %}
+
+{% js at head %}
+    /* global window */
+    const legacyCaptchaUrls = {{ legacyCaptchaUrls | json_encode | raw }};
+    const legacyCaptchaAnchor = window.location.hash.slice(1);
+    if (Object.prototype.hasOwnProperty.call(legacyCaptchaUrls, legacyCaptchaAnchor)) {
+        window.location.replace(legacyCaptchaUrls[legacyCaptchaAnchor]);
+    }
+{% endjs %}

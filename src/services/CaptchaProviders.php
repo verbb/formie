@@ -6,6 +6,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\events\IntegrationEvent;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\SpamProtectionSettings;
 use verbb\formie\helpers\Table;
 use verbb\formie\records\CaptchaProvider as CaptchaProviderRecord;
 
@@ -62,7 +63,7 @@ class CaptchaProviders extends Component
             $config = [
                 'handle' => $handle,
                 'type' => $captchaClass,
-                'scope' => Integrations::SCOPE_PROJECT,
+                'scope' => Integrations::SCOPE_SITE,
                 'enabled' => false,
                 'settings' => [],
             ];
@@ -71,108 +72,91 @@ class CaptchaProviders extends Component
         return $config;
     }
 
+    /** @deprecated Providers are always local; no providers are exported to project config. */
     public function getProjectScopedProviders(): array
     {
-        $providers = [];
-
-        foreach ($this->_getProvidersByHandle() as $handle => $row) {
-            if (($row['scope'] ?? Integrations::SCOPE_PROJECT) !== Integrations::SCOPE_PROJECT) {
-                continue;
-            }
-
-            $providers[$handle] = Formie::$plugin->getIntegrations()->createIntegration(
-                $this->_rowToIntegrationConfig($row),
-            );
-        }
-
-        return $providers;
+        return [];
     }
 
     public function saveProvider(IntegrationInterface $integration): bool
     {
-        $integrations = Formie::$plugin->getIntegrations();
+        return SpamProtectionSettings::atomic(function() use ($integration) {
+            SpamProtectionSettings::requireManager('captcha:' . $integration->getHandle());
+            $this->resetCache();
 
-        if ($integrations->hasEventHandlers(Integrations::EVENT_BEFORE_SAVE_INTEGRATION)) {
-            $integrations->trigger(Integrations::EVENT_BEFORE_SAVE_INTEGRATION, new IntegrationEvent([
-                'integration' => $integration,
-            ]));
-        }
-
-        if (!$integration->beforeSave(false)) {
-            return false;
-        }
-
-        $handle = $integration->getHandle();
-        $row = $this->getProviderRowByHandle($handle);
-        $wasProjectScoped = $row && ($row['scope'] ?? Integrations::SCOPE_PROJECT) === Integrations::SCOPE_PROJECT;
-
-        // Captcha credentials and enabled state are environment-specific. CP saves always
-        // persist as site-scoped overrides so they are editable on every environment.
-        if ($integration->isProjectScope()) {
+            $handle = $integration->getHandle();
+            $row = $this->getProviderRowByHandle($handle);
             $integration->scope = Integrations::SCOPE_SITE;
-        }
 
-        if (!$integration->canEdit()) {
-            $integration->addError('name', Craft::t('formie', 'This integration cannot be edited in the current environment.'));
+            $integrations = Formie::$plugin->getIntegrations();
 
-            return false;
-        }
-
-        if ($wasProjectScoped) {
-            $configPath = self::CONFIG_CAPTCHA_PROVIDERS_KEY . '.' . $handle;
-
-            if (Craft::$app->getProjectConfig()->get($configPath) !== null) {
-                Craft::$app->getProjectConfig()->remove(
-                    $configPath,
-                    "Promote the “{$handle}” captcha provider to a site-scoped override",
-                );
+            if ($integrations->hasEventHandlers(Integrations::EVENT_BEFORE_SAVE_INTEGRATION)) {
+                $integrations->trigger(Integrations::EVENT_BEFORE_SAVE_INTEGRATION, new IntegrationEvent([
+                    'integration' => $integration,
+                ]));
             }
-        }
 
-        $isNew = $row === null;
+            if (!$integration->beforeSave(false)) {
+                return false;
+            }
 
-        if ($isNew) {
-            $integration->scope = $integration->scope ?: Integrations::resolveScopeForNew();
-            $integration->uid = $integration->uid ?: StringHelper::UUID();
-        } else {
-            $integration->id = (int)$row['id'];
-            $integration->uid = $integration->uid ?: $row['uid'];
-            $integration->scope = $integration->scope ?: $row['scope'];
-        }
+            $integration->scope = Integrations::SCOPE_SITE;
 
-        if ($integration->isProjectScope()) {
-            $saved = $this->_saveProjectProvider($integration, $isNew);
-        } else {
-            $saved = $this->_saveProviderRow($integration, $isNew);
-        }
+            if ($integration->getHandle() !== $handle) {
+                $integration->addError('handle', Craft::t('formie', 'A CAPTCHA provider’s handle cannot be changed.'));
+                return false;
+            }
 
-        if (!$saved) {
-            return false;
-        }
+            if (!$integration->validate(array_keys($integration->getSettings()))) {
+                return false;
+            }
 
-        if ($integrations->hasEventHandlers(Integrations::EVENT_AFTER_SAVE_INTEGRATION)) {
-            $integrations->trigger(Integrations::EVENT_AFTER_SAVE_INTEGRATION, new IntegrationEvent([
-                'integration' => $integration,
-            ]));
-        }
+            $isNew = $row === null;
 
-        $integration->afterSave(false);
+            if ($isNew) {
+                $integration->scope = Integrations::SCOPE_SITE;
+                $integration->uid = $integration->uid ?: StringHelper::UUID();
+            } else {
+                $integration->id = (int)$row['id'];
+                $integration->uid = $integration->uid ?: $row['uid'];
+            }
 
-        $this->_resetCache();
-        $integrations->resetCaptchaCaches();
+            if (!$this->_saveProviderRow($integration, $isNew)) {
+                return false;
+            }
 
-        return true;
+            SpamProtectionSettings::afterCommit(function() use ($integrations, $integration) {
+                if ($integrations->hasEventHandlers(Integrations::EVENT_AFTER_SAVE_INTEGRATION)) {
+                    $integrations->trigger(Integrations::EVENT_AFTER_SAVE_INTEGRATION, new IntegrationEvent(['integration' => $integration]));
+                }
+                $integration->afterSave(false);
+            });
+
+            $this->resetCache();
+            $integrations->resetCaptchaCaches();
+
+            return true;
+
+        });
     }
 
     public function seedRegistryFromLegacySettings(array $legacyCaptchas = []): void
     {
         $integrations = Formie::$plugin->getIntegrations();
         $now = Db::prepareDateForDb(new DateTime());
+        $providerTypes = [];
 
         foreach ($integrations->getIntegrationTypes(Integration::TYPE_CAPTCHA) as $captchaClass) {
             $class = new $captchaClass();
-            $handle = $class->getHandle();
+            $providerTypes[$class->getHandle()] = $captchaClass;
+        }
 
+        // Retain unregistered legacy providers without loading their unavailable classes.
+        foreach ($legacyCaptchas as $handle => $legacy) {
+            $providerTypes[$handle] ??= $legacy['type'] ?? '';
+        }
+
+        foreach ($providerTypes as $handle => $captchaClass) {
             if ($this->getProviderRowByHandle($handle)) {
                 continue;
             }
@@ -184,7 +168,7 @@ class CaptchaProviders extends Component
                 ->insert(Table::FORMIE_CAPTCHA_PROVIDERS, [
                     'handle' => $handle,
                     'type' => $legacy['type'] ?? $captchaClass,
-                    'scope' => Integrations::SCOPE_PROJECT,
+                    'scope' => Integrations::SCOPE_SITE,
                     'enabled' => $this->_normalizeEnabledValue($legacy['enabled'] ?? false),
                     'saveSpam' => array_key_exists('saveSpam', $legacy) ? (bool)$legacy['saveSpam'] : null,
                     'settings' => Json::encode($settings),
@@ -193,9 +177,10 @@ class CaptchaProviders extends Component
                     'uid' => StringHelper::UUID(),
                 ])
                 ->execute();
+
         }
 
-        $this->_resetCache();
+        $this->resetCache();
     }
 
     public function createProviderConfig(IntegrationInterface $integration): array
@@ -214,68 +199,14 @@ class CaptchaProviders extends Component
         return $config;
     }
 
+    /** @deprecated Provider settings are local; legacy project config is ignored. */
     public function handleChangedProvider(ConfigEvent $event): void
     {
-        $handle = $event->tokenMatches[0];
-        $data = $event->newValue;
-        $existing = CaptchaProviderRecord::findOne(['handle' => $handle]);
-
-        // Site-scoped captcha credentials are environment-specific and must not be overwritten by project config sync.
-        if ($existing && ($existing->scope ?? Integrations::SCOPE_PROJECT) === Integrations::SCOPE_SITE) {
-            return;
-        }
-
-        $settings = ProjectConfig::unpackAssociativeArrays($data['settings'] ?? []);
-        $transaction = Craft::$app->getDb()->beginTransaction();
-
-        try {
-            $record = CaptchaProviderRecord::findOne(['handle' => $handle]) ?? new CaptchaProviderRecord();
-            $isNew = $record->getIsNewRecord();
-
-            if ($isNew) {
-                $record->uid = StringHelper::UUID();
-            }
-
-            $record->handle = $handle;
-            $record->type = $data['type'];
-            $record->scope = Integrations::SCOPE_PROJECT;
-            $record->enabled = $this->_normalizeEnabledValue($data['enabled'] ?? false);
-            $record->saveSpam = array_key_exists('saveSpam', $data) ? (bool)$data['saveSpam'] : null;
-            $record->settings = $settings;
-            $record->save(false);
-
-            $transaction->commit();
-        } catch (Throwable $e) {
-            $transaction->rollBack();
-            throw $e;
-        }
-
-        $this->_resetCache();
-        Formie::$plugin->getIntegrations()->resetCaptchaCaches();
     }
 
+    /** @deprecated Removing legacy project config must not clear local credentials. */
     public function handleDeletedProvider(ConfigEvent $event): void
     {
-        $handle = $event->tokenMatches[0];
-        $record = CaptchaProviderRecord::findOne(['handle' => $handle]);
-
-        if (!$record) {
-            return;
-        }
-
-        // Site-scoped captcha credentials are environment-specific and must not be cleared by project config sync.
-        if (($record->scope ?? Integrations::SCOPE_PROJECT) === Integrations::SCOPE_SITE) {
-            return;
-        }
-
-        $record->enabled = 'false';
-        $record->saveSpam = null;
-        $record->settings = [];
-        $record->scope = Integrations::SCOPE_PROJECT;
-        $record->save(false);
-
-        $this->_resetCache();
-        Formie::$plugin->getIntegrations()->resetCaptchaCaches();
     }
 
     public function stripFromPluginSettingsArray(array $settings): array
@@ -336,7 +267,7 @@ class CaptchaProviders extends Component
             'id' => (int)$row['id'],
             'handle' => $row['handle'],
             'type' => $row['type'],
-            'scope' => $row['scope'] ?: Integrations::SCOPE_PROJECT,
+            'scope' => Integrations::SCOPE_SITE,
             'enabled' => $row['enabled'],
             'settings' => $row['settings'],
             'uid' => $row['uid'],
@@ -368,7 +299,7 @@ class CaptchaProviders extends Component
 
             $record->handle = (string)$integration->getHandle();
             $record->type = get_class($integration);
-            $record->scope = $integration->getScope();
+            $record->scope = Integrations::SCOPE_SITE;
             $record->enabled = $this->_normalizeEnabledValue($integration->getEnabled(false));
             $record->saveSpam = $integration->saveSpam;
             $record->settings = $settings;
@@ -387,40 +318,18 @@ class CaptchaProviders extends Component
         return true;
     }
 
-    private function _saveProjectProvider(IntegrationInterface $integration, bool $isNew): bool
-    {
-        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            $integration->addError('name', Craft::t('formie', 'Project integrations cannot be saved when admin changes are disabled.'));
-
-            return false;
-        }
-
-        $integration->scope = Integrations::SCOPE_PROJECT;
-        $handle = $integration->getHandle();
-        $configPath = self::CONFIG_CAPTCHA_PROVIDERS_KEY . '.' . $handle;
-
-        Craft::$app->getProjectConfig()->set(
-            $configPath,
-            $this->createProviderConfig($integration),
-            "Save the “{$handle}” captcha provider",
-        );
-
-        $saved = $this->_saveProviderRow($integration, $isNew);
-
-        if ($isNew) {
-            $integration->id = (int)(new Query())
-                ->select(['id'])
-                ->from([Table::FORMIE_CAPTCHA_PROVIDERS])
-                ->where(['handle' => $handle])
-                ->scalar();
-        }
-
-        return $saved;
-    }
-
     private function _normalizeEnabledValue(mixed $enabled): string
     {
+        if (is_string($enabled) && str_starts_with($enabled, '$')) {
+            return $enabled;
+        }
+
         return App::parseBooleanEnv($enabled) ? 'true' : 'false';
+    }
+
+    public function resetCache(): void
+    {
+        $this->_resetCache();
     }
 
     private function _resetCache(): void

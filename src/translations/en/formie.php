@@ -1,6 +1,29 @@
 <?php
 
 return [
+  'A CAPTCHA provider’s handle cannot be changed.' => 'A CAPTCHA provider’s handle cannot be changed.',
+  'A configured environment variable is unavailable on this site.' => 'A configured environment variable is unavailable on this site.',
+  'Access all settings and Spam Protection' => 'Access all settings and Spam Protection',
+  'CAPTCHA providers and integrations referenced by your form: availability, enabled state, storage scope, and credential presence and resolution status' => 'CAPTCHA providers and integrations referenced by your form: availability, enabled state, storage scope, and credential presence and resolution status',
+  'CAPTCHA settings saved.' => 'CAPTCHA settings saved.',
+  'CAPTCHAs' => 'CAPTCHAs',
+  'Complete the required CAPTCHA settings before enabling this provider.' => 'Complete the required CAPTCHA settings before enabling this provider.',
+  'Couldn’t save spam rules. Check the entered values.' => 'Couldn’t save spam rules. Check the entered values.',
+  'Enabled (credentials have not been verified)' => 'Enabled (credentials have not been verified)',
+  'Manage spam protection providers' => 'Manage spam protection providers',
+  'Manage all Spam Protection (legacy CAPTCHA permission)' => 'Manage all Spam Protection (legacy CAPTCHA permission)',
+  'Manage all Spam Protection (legacy permission)' => 'Manage all Spam Protection (legacy permission)',
+  'Manage all Spam Protection (legacy spam permission)' => 'Manage all Spam Protection (legacy spam permission)',
+  'Manage spam rules' => 'Manage spam rules',
+  'Provider unavailable. Saved settings and form references have been preserved.' => 'Provider unavailable. Saved settings and form references have been preserved.',
+  'Setting' => 'Setting',
+  'Settings required' => 'Settings required',
+  'Spam Filtering Services' => 'Spam Filtering Services',
+  'Spam Rules' => 'Spam Rules',
+  'Spam protection is being updated. Please try again.' => 'Spam protection is being updated. Please try again.',
+  'Spam rules saved.' => 'Spam rules saved.',
+  'These settings have changed. Reload the page before saving.' => 'These settings have changed. Reload the page before saving.',
+  'Unavailable' => 'Unavailable',
   'Your progress has been saved.' => 'Your progress has been saved.',
   '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.' => '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.',
   '(GDPR) {text}' => '(GDPR) {text}',
@@ -3631,4 +3654,8 @@ To review it please log into your control panel.
   '{startTag}{num}{endTag} character left' => '{startTag}{num}{endTag} character left',
   '{startTag}{num}{endTag} word left' => '{startTag}{num}{endTag} word left',
 
+  'Provider unavailable' => 'Provider unavailable',
+  'Forms using this provider' => 'Forms using this provider',
+  'Disabling or removing this provider affects these forms. Other installations may have different form settings.' => 'Disabling or removing this provider affects these forms. Other installations may have different form settings.',
+  '{name} is selected for this form but is not ready to protect it: {reason}. Ask an administrator to review it in Spam Protection.' => '{name} is selected for this form but is not ready to protect it: {reason}. Ask an administrator to review it in Spam Protection.',
 ];

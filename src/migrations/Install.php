@@ -10,12 +10,10 @@ use verbb\formie\helpers\Table;
 use verbb\formie\models\FormStatus;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\SubmissionStatus;
-use verbb\formie\services\CaptchaProviders;
 use verbb\formie\services\FormGroups;
 use verbb\formie\services\FormStatuses;
 use verbb\formie\services\Reports;
 use verbb\formie\services\ScheduledReports;
-use verbb\formie\services\SpamProtection;
 use verbb\formie\services\Stencils;
 use verbb\formie\services\SubmissionStatuses;
 
@@ -241,7 +239,7 @@ class Install extends Migration
             'id' => $this->primaryKey(),
             'handle' => $this->string(64)->notNull(),
             'type' => $this->string()->notNull(),
-            'scope' => $this->string(16)->notNull()->defaultValue('project'),
+            'scope' => $this->string(16)->notNull()->defaultValue('site'),
             'enabled' => $this->string()->notNull()->defaultValue('false'),
             'saveSpam' => $this->boolean(),
             'settings' => $this->mediumText(),
@@ -253,7 +251,7 @@ class Install extends Migration
         $this->archiveTableIfExists(Table::FORMIE_SPAM_SETTINGS);
         $this->createTable(Table::FORMIE_SPAM_SETTINGS, [
             'id' => $this->primaryKey(),
-            'scope' => $this->string(16)->notNull()->defaultValue('project'),
+            'scope' => $this->string(16)->notNull()->defaultValue('site'),
             'saveSpam' => $this->boolean()->notNull()->defaultValue(true),
             'spamLimit' => $this->integer()->notNull()->defaultValue(500),
             'spamEmailNotifications' => $this->boolean()->notNull()->defaultValue(false),
@@ -1122,15 +1120,7 @@ class Install extends Migration
                 $projectConfig->processConfigChanges(ScheduledReports::CONFIG_SCHEDULED_REPORTS_KEY . '.' . $scheduledReportUid, true);
             }
 
-            $captchaProviders = $projectConfig->get(CaptchaProviders::CONFIG_CAPTCHA_PROVIDERS_KEY, true) ?? [];
 
-            foreach (array_keys($captchaProviders) as $handle) {
-                $projectConfig->processConfigChanges(CaptchaProviders::CONFIG_CAPTCHA_PROVIDERS_KEY . '.' . $handle, true);
-            }
-
-            if ($projectConfig->get(SpamProtection::CONFIG_SPAM_SETTINGS_KEY, true) !== null) {
-                $projectConfig->processConfigChanges(SpamProtection::CONFIG_SPAM_SETTINGS_KEY, true);
-            }
         }
     }
 

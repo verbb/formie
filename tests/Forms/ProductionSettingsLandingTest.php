@@ -29,7 +29,7 @@ it('routes production settings to an available permitted page', function(bool $a
 
         $response = $controller->runAction('index');
         expect($response->statusCode)->toBe(302)
-            ->and($response->headers->get('Location'))->toContain('formie/settings/' . $page)
+            ->and($response->headers->get('Location'))->toContain($page === 'spam-protection' ? 'formie/spam-protection' : 'formie/settings/' . $page)
             ->and($response->headers->get('Location'))->not->toContain('formie/settings/general');
     });
 })->with([

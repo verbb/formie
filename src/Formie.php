@@ -124,7 +124,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.83';
+    public string $schemaVersion = '4.0.85';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -245,7 +245,18 @@ class Formie extends Plugin
             ];
         }
 
-        if ($this->getPermissions()->canAccessAnySettings(Craft::$app->getUser()->getIdentity())) {
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if ($this->getPermissions()->canManageCaptchas($user) || $this->getPermissions()->canManageSpamRules($user)) {
+            $nav['subnav']['spam-protection'] = [
+                'label' => Craft::t('formie', 'Spam Protection'),
+                'url' => 'formie/spam-protection',
+            ];
+        }
+
+        $settingsPages = array_filter((new FormieVariable())->getSettingsNavItems(), static fn($item) => !isset($item['heading']));
+
+        if ($settingsPages) {
             $nav['subnav']['settings'] = [
                 'label' => Craft::t('formie', 'Settings'),
                 'url' => 'formie/settings',
@@ -367,6 +378,11 @@ class Formie extends Plugin
 
             $event->rules['formie/sent-notifications'] = 'formie/sent-notifications/index';
             $event->rules['formie/sent-notifications/edit/<sentNotificationId:\d+>'] = 'formie/sent-notifications/edit';
+
+            $event->rules['formie/spam-protection'] = 'formie/spam-protection/index';
+            $event->rules['formie/spam-protection/rules'] = 'formie/spam-protection/rules';
+            $event->rules['formie/spam-protection/captchas'] = 'formie/spam-protection/captchas';
+            $event->rules['formie/spam-protection/captchas/<handle:{handle}>'] = 'formie/spam-protection/captchas';
 
             $event->rules['formie/settings'] = 'formie/settings/index';
             $event->rules['formie/settings/general'] = 'formie/settings/index';
@@ -504,8 +520,10 @@ class Formie extends Plugin
                     ],
                     'formie-accessStencils' => ['label' => Craft::t('formie', 'Access stencils')],
                     Permissions::PERM_ACCESS_INTEGRATIONS => ['label' => Craft::t('formie', 'Access integrations')],
+                    Permissions::PERM_MANAGE_CAPTCHAS => ['label' => Craft::t('formie', 'Manage spam protection providers')],
+                    Permissions::PERM_MANAGE_SPAM_RULES => ['label' => Craft::t('formie', 'Manage spam rules')],
                     Permissions::PERM_ACCESS_SETTINGS => [
-                        'label' => Craft::t('formie', 'Access all settings'),
+                        'label' => Craft::t('formie', 'Access all settings and Spam Protection'),
                     ],
                     ...$permissions->getSettingsPermissionDefinitions(),
                 ],
@@ -812,18 +830,6 @@ class Formie extends Plugin
             ->onAdd(IntegrationsService::CONFIG_INTEGRATIONS_KEY . '.{uid}', [$integrationsService, 'handleChangedIntegration'])
             ->onUpdate(IntegrationsService::CONFIG_INTEGRATIONS_KEY . '.{uid}', [$integrationsService, 'handleChangedIntegration'])
             ->onRemove(IntegrationsService::CONFIG_INTEGRATIONS_KEY . '.{uid}', [$integrationsService, 'handleDeletedIntegration']);
-
-        $captchaProvidersService = $this->getCaptchaProviders();
-        $projectConfigService
-            ->onAdd(CaptchaProvidersService::CONFIG_CAPTCHA_PROVIDERS_KEY . '.{handle}', [$captchaProvidersService, 'handleChangedProvider'])
-            ->onUpdate(CaptchaProvidersService::CONFIG_CAPTCHA_PROVIDERS_KEY . '.{handle}', [$captchaProvidersService, 'handleChangedProvider'])
-            ->onRemove(CaptchaProvidersService::CONFIG_CAPTCHA_PROVIDERS_KEY . '.{handle}', [$captchaProvidersService, 'handleDeletedProvider']);
-
-        $spamProtectionService = $this->getSpamProtection();
-        $projectConfigService
-            ->onAdd(SpamProtectionService::CONFIG_SPAM_SETTINGS_KEY, [$spamProtectionService, 'handleChangedSettings'])
-            ->onUpdate(SpamProtectionService::CONFIG_SPAM_SETTINGS_KEY, [$spamProtectionService, 'handleChangedSettings'])
-            ->onRemove(SpamProtectionService::CONFIG_SPAM_SETTINGS_KEY, [$spamProtectionService, 'handleDeletedSettings']);
 
         Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $event) {
             $event->config['formie'] = ProjectConfigHelper::rebuildProjectConfig();

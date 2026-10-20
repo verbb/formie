@@ -1,0 +1,21 @@
+{% extends 'formie/spam-protection/_layout' %}
+{% import '_includes/forms' as forms %}
+{% set title = providerName %}
+{% set fullPageForm = provider is not null %}
+
+{% block protectionContent %}
+    {% if provider %}{{ provider.getDescription() | md }}{% endif %}
+    {% if warning %}<p class="warning with-icon">{{ warning }}</p>{% endif %}
+    {% if provider %}
+        {{ actionInput('formie/spam-protection/save-captcha') }}
+        {{ hiddenInput('handle', provider.handle) }}
+        {{ hiddenInput('token', settingsToken) }}
+        <fieldset>
+            {{ forms.booleanMenuField({ label: 'Enabled' | t('formie'), name: 'provider[enabled]', includeEnvVars: true, value: provider.getEnabledMenuValue() }) }}
+            {{ forms.lightswitchField({ label: 'Save Spam Submissions' | t('formie'), name: 'provider[saveSpam]', on: provider.saveSpam ?? craft.formie.getPlugin().settings.saveSpam }) }}
+            {% namespace 'provider[settings]' %}
+                {{ provider.getSettingsHtml() | raw }}
+            {% endnamespace %}
+        </fieldset>
+    {% endif %}
+{% endblock %}

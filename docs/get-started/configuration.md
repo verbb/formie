@@ -578,6 +578,8 @@ Sets the number of days to keep sent notifications before they are deleted by sc
 
 ### Spam
 
+Current spam rules are read from their dedicated store. Configure them under **Formie → Spam Protection → Spam Rules** on each installation. These settings are not deployed through project config. The legacy keys below describe those values and remain upgrade inputs; placing them in `config/formie.php` does not override the dedicated store.
+
 ::: reference
 #### `saveSpam`
 
@@ -734,7 +736,7 @@ Outputs Formie’s front-end CSS inside a CSS cascade layer.
 
 **Type:** `array` · **Default:** `[]`
 
-Stores project-config-backed captcha settings.
+Legacy upgrade input for CAPTCHA configuration. Manage current providers under **Formie → Spam Protection → CAPTCHAs** or **Spam Filtering Services**. Provider settings are stored in the installation’s database; configure them separately on production. See [Setting Up Production](/forms/spam-protection#setting-up-production).
 :::
 
 

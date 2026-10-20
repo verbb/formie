@@ -50,14 +50,14 @@ The following Freeform field types are **not** migrated and require manual recre
 | Rich Text (Pro) | Use Multi-Line Text with rich text enabled |
 | Dynamic Recipient | Use Recipients field or notification conditions |
 | Mailing List | Use email marketing integration |
-| Recaptcha | Enable Turnstile/reCAPTCHA under **Settings → Spam Protection** |
+| Recaptcha | Enable Turnstile/reCAPTCHA under **Spam Protection** |
 
 Submissions for unsupported fields may lose that column's data — export from Freeform first if you need archives.
 
 ## After Migration Checklist
 
 - Open each migrated form in the builder — verify field layout and handles
-- Reconfigure captchas on **Settings → Spam Protection** and per form
+- Reconfigure captchas on **Spam Protection** and per form
 - Reconnect CRM/marketing integrations (OAuth tokens do not copy)
 - Update Twig templates from Freeform tags to Formie render helpers
 - Update headless/GraphQL clients to Formie endpoints

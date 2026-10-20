@@ -95,7 +95,7 @@ See [Stencils for repeatable form types](/guides/control-panel-admin/stencils-fo
 - Field handles unchanged (or migration plan for submission data)
 - Email notifications send from correct domain on target environment
 - Integrations reconnected with production credentials
-- Captcha keys set under **Settings → Spam Protection**
+- Captcha keys set under **Spam Protection**
 - Form enabled on expected sites (form group site policy)
 - Front-end template or headless app points at correct form handle
 - Test submit on production

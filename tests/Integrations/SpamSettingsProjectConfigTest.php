@@ -15,7 +15,7 @@ afterEach(function (): void {
     $this->spamSettingsTransaction->rollBack();
 });
 
-it('preserves instance spam settings during project config sync while applying project settings', function (string $scope, bool $delete): void {
+it('preserves all local spam settings when obsolete project config handlers are called', function (string $scope, bool $delete): void {
     Craft::$app->getConfig()->getGeneral()->allowAdminChanges = false;
     $spam = new SpamProtection();
     $localValues = array_merge($spam->getDefaultValues(), [
@@ -51,17 +51,11 @@ it('preserves instance spam settings during project config sync while applying p
     // Reload to verify persisted state, not just the service's cached values.
     $reloaded = new SpamProtection();
 
-    if ($scope === Integrations::SCOPE_SITE) {
-        expect($reloaded->getRow())->toBe($before)
-            ->and($spam->getSettingsValues())->toBe($reloaded->getSettingsValues());
-    } else {
-        expect($reloaded->getScope())->toBe(Integrations::SCOPE_PROJECT)
-            ->and($reloaded->getSettingsValues())->toEqual($delete ? $spam->getDefaultValues() : $projectValues)
-            ->and($reloaded->getRow()['id'])->toBe($before['id']);
-    }
+    expect($reloaded->getRow())->toBe($before)
+        ->and($spam->getSettingsValues())->toBe($reloaded->getSettingsValues());
 })->with([Integrations::SCOPE_SITE, Integrations::SCOPE_PROJECT])->with([false, true]);
 
-it('initialises spam settings from project config when no local record exists', function (): void {
+it('ignores obsolete project config even when no local record exists', function (): void {
     Craft::$app->getDb()->createCommand()->delete(Table::FORMIE_SPAM_SETTINGS)->execute();
     $spam = new SpamProtection();
     $values = array_merge($spam->getDefaultValues(), ['spamKeywords' => 'initial-project-keyword']);
@@ -69,6 +63,6 @@ it('initialises spam settings from project config when no local record exists', 
     $spam->handleChangedSettings(new ConfigEvent(['name' => 'add', 'newValue' => $values]));
 
     $reloaded = new SpamProtection();
-    expect($reloaded->getScope())->toBe(Integrations::SCOPE_PROJECT)
-        ->and($reloaded->getSettingsValues())->toEqual($values);
+    expect($reloaded->getRow())->toBeNull()
+        ->and($reloaded->getSettingsValues())->toEqual($reloaded->getDefaultValues());
 });

@@ -18,7 +18,7 @@ These changes are required **only if your project uses the affected API or depen
 - **Custom frontend code:** review [JavaScript event behaviour](#javascript-event-behaviour), [validators](#custom-front-end-validation), [GraphQL queries](#graphql), [submission clients and uploads](#continuity-and-upload-upgrade-actions), and [CSS selectors](#default-theme-classes).
 - **Templates and configuration:** review [field values](#field-value-contracts), [references](#references-and-variable-picker), [redirects and overrides](#completion-and-setting-overrides), [plugin translations](#translation-strings) and [form content translations](#form-content-translations).
 - **Custom PHP and SQL:** update [submission hooks](#submission-workflow), [payment providers](#payment-and-subscription-boundary) and [literal status-table references](#submission-status-database-table).
-- **Spam protection and conditions:** replace references to [removed captcha types](#removed-legacy-captchas) and test [conditions and validation](#conditions-and-validation) that depend on changed comparisons.
+- **Spam protection and conditions:** configure [spam protection per installation](#local-spam-protection-settings), replace references to [removed captcha types](#removed-legacy-captchas) and test [conditions and validation](#conditions-and-validation) that depend on changed comparisons.
 
 ### Custom Fields
 
@@ -518,6 +518,12 @@ Move custom checks from `spamChecks()`, `beforeSpamCheck` or `afterSpamCheck` in
 Direct element saves persist data but do not run the submission workflow or automatically dispatch notifications and integrations. Code that submits a form programmatically must use [SubmissionProcessor](/developers/submission-workflow). Existing notification and integration forwarding methods are covered under [Custom Integration Dispatch](#custom-integration-dispatch).
 
 Next, review the [notification and integration event changes](#php-events) before disabling compatibility mode.
+
+### Local Spam Protection Settings
+
+Spam settings and provider credentials migrate automatically into local database storage. The upgrade preserves each installation’s effective values, enabled state and credential references, including settings previously managed through project config. Authorised clients can edit them directly in **Spam Protection** with admin changes disabled. The old **Settings → Spam** and **Settings → Captchas** URLs redirect there.
+
+Spam rules and provider credentials are not exported to or updated by project config. Configure each installation separately; a database copy still carries these settings. Existing `formie.captchaProviders` and `formie.spamSettings` entries are ignored. Rebuilding project config removes those obsolete entries. Upgrade all installations before deploying that removal, because older versions can interpret it as an instruction to clear settings. See [Setting Up Production](/forms/spam-protection#setting-up-production).
 
 ### Removed Legacy Captchas
 
@@ -1804,7 +1810,7 @@ Stored form settings and content are migrated automatically unless a section abo
 
 Formie 3 | Formie 4
 --- | ---
-**Settings → Spam** and **Settings → Captchas** | **Settings → Spam Protection**
+**Settings → Spam** and **Settings → Captchas** | **Spam Protection**
 **Settings → Statuses** | **Settings → Submission Statuses**; form statuses are a separate feature.
 Session-based form progress | Database-backed progress and separate links for resuming drafts and editing completed submissions.
 Integration field-mapping tokens | Migrated reference values; existing notification and form tokens retain compatibility parsing.
@@ -1813,7 +1819,7 @@ Custom frontends should review [Frontend Assets](/frontend/frontend-assets) when
 
 ### Spam Protection
 
-Spam settings and provider credentials migrate automatically to dedicated storage. The old **Settings → Spam** and **Settings → Captchas** URLs redirect to **Settings → Spam Protection**.
+Spam settings and provider credentials migrate automatically into local storage. Review [Local Spam Protection Settings](#local-spam-protection-settings) for the deployment and permission changes.
 
 Built-in captcha configuration is replaced by submission guards:
 
@@ -1823,7 +1829,7 @@ Formie 3 | Formie 4
 **JavaScript** captcha | **Minimum submit time** submission guard
 **Duplicate** captcha | **Replay protection** submission guard
 
-All three guards are enabled by default, with a three-second minimum submit time. They apply to every form, and standard rendering supplies the required inputs. Review **Formie → Settings → Spam Protection → Submission Guards** after upgrading. Custom references to the [removed captcha types](#removed-legacy-captchas) still need updating.
+All three guards are enabled by default, with a three-second minimum submit time. They apply to every form, and standard rendering supplies the required inputs. Review **Formie → Spam Protection → Spam Rules → Submission Guards** after upgrading. Custom references to the [removed captcha types](#removed-legacy-captchas) still need updating.
 
 ### Encrypted Submission Fields
 

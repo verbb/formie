@@ -6,7 +6,7 @@ Spam keywords are Formie's built-in content screening tool — match words, phra
 
 - [Spam Protection](/forms/spam-protection)
 
-Configure keywords under **Formie → Settings → Spam Protection → Content Rules → Spam Keywords**. Keywords share the scope of the other spam settings; review [Spam Settings](/forms/spam-protection#spam-settings) to decide how your team should maintain and deploy production rules.
+Configure keywords under **Formie → Spam Protection → Spam Rules → Content Rules → Spam Keywords**. Keywords share the scope of the other spam settings; review [Spam Settings](/forms/spam-protection#spam-settings) to decide how your team should maintain and deploy production rules.
 
 ## How Matching Works
 

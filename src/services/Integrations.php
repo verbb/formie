@@ -2,6 +2,8 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\SpamProtectionEditor;
+use verbb\formie\helpers\SpamProtectionSettings;
 use verbb\formie\compatibility\integrations\LegacyIntegrationApiTrait;
 use verbb\formie\base\Captcha;
 use verbb\formie\base\DispatchableIntegrationInterface;
@@ -1555,20 +1557,16 @@ class Integrations extends Component
                 'saveSpam' => $existing->saveSpam,
                 'settings' => $existing->getSettings(),
             ];
-        } elseif (!empty($postedConfig['type'])) {
-            $config['type'] = $postedConfig['type'];
+        } else {
+            throw new InvalidArgumentException('Unknown CAPTCHA provider.');
         }
 
         if (array_key_exists('enabled', $postedConfig)) {
-            $config['enabled'] = App::parseBooleanEnv($postedConfig['enabled']) ? '1' : '0';
+            $config['enabled'] = $postedConfig['enabled'];
         }
 
         if (array_key_exists('saveSpam', $postedConfig)) {
             $config['saveSpam'] = (bool)$postedConfig['saveSpam'];
-        }
-
-        if (!empty($postedConfig['type']) && class_exists((string)$postedConfig['type'])) {
-            $config['type'] = $postedConfig['type'];
         }
 
         $postedSettings = $postedConfig['settings'] ?? [];
@@ -1580,7 +1578,7 @@ class Integrations extends Component
         $integration = $this->createIntegration($config);
 
         if (array_key_exists('enabled', $postedConfig)) {
-            $integration->setEnabled(App::parseBooleanEnv($postedConfig['enabled']) ? '1' : '0');
+            $integration->setEnabled($postedConfig['enabled']);
         }
 
         return $integration;
@@ -1598,34 +1596,33 @@ class Integrations extends Component
             return false;
         }
 
-        $errors = [];
-        $savedCount = 0;
+        return SpamProtectionSettings::atomic(function() use ($integrations) {
+            SpamProtectionSettings::requireManager('captcha:all');
+            SpamProtectionSettings::resetCaches();
+            $providers = [];
 
-        foreach ($integrations as $handle => $integrationConfig) {
-            if (!is_string($handle) || !is_array($integrationConfig)) {
-                continue;
+            foreach ($integrations as $handle => $config) {
+                if (!is_string($handle) || !is_array($config)) {
+                    throw new \yii\web\BadRequestHttpException('Invalid CAPTCHA settings.');
+                }
+
+                if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
+                    SpamProtectionSettings::assertCurrent('captcha:' . $handle, (string)($config['token'] ?? ''));
+                }
+
+                $providers[] = SpamProtectionEditor::postedProvider($handle, $config);
             }
 
-            $savedCount++;
-            $integration = $this->buildCaptchaFromPostedConfig($handle, $integrationConfig);
-
-            if (!$this->saveCaptcha($integration)) {
-                $errors[$handle] = $integration->getErrors();
+            foreach ($providers as $provider) {
+                if (!$this->saveCaptcha($provider)) {
+                    throw new \yii\web\BadRequestHttpException('Couldn’t save CAPTCHA settings.');
+                }
             }
-        }
 
-        if ($savedCount === 0 && $integrations !== []) {
-            return false;
-        }
-
-        $this->_lastCaptchaSaveErrors = $errors;
-
-        if ($errors !== []) {
-            Formie::error('Couldn’t save captcha settings - {e}.', ['e' => Json::encode($errors)]);
-        }
-
-        return $errors === [];
+            return true;
+        });
     }
+
 
     public function getLastCaptchaSaveErrors(): array
     {

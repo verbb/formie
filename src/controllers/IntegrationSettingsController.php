@@ -36,7 +36,7 @@ class IntegrationSettingsController extends Controller
 
     public function actionCaptchaIndex(): Response
     {
-        return $this->redirect('formie/settings/spam-protection#captchas');
+        return $this->redirect('formie/spam-protection/captchas');
     }
 
     public function actionSaveCaptchas(): ?Response
@@ -272,7 +272,7 @@ class IntegrationSettingsController extends Controller
         $user = Craft::$app->getUser()->getIdentity();
 
         if (in_array($actionId, ['captcha-index', 'save-captchas'], true)) {
-            if (!$permissions->canAccessSettingsPage($user, 'spam-protection')) {
+            if (!$permissions->canManageCaptchas($user)) {
                 throw new ForbiddenHttpException('User is not permitted to perform this action');
             }
 

@@ -3,7 +3,7 @@
 Follow the below steps to connect Formie to Google reCAPTCHA.
 
 ### Step 1. Open the Captcha Settings
-1. Navigate to **Formie** → **Settings** → **Spam Protection** → **Captchas**.
+1. Navigate to **Formie** → **Spam Protection** → **CAPTCHAs**.
 1. Select **reCAPTCHA** in the left-hand sidebar.
 1. Turn on **Enabled**.
 
@@ -31,7 +31,7 @@ Follow the below steps to connect Formie to Google reCAPTCHA.
 1. Go to the form you want to protect.
 1. Enable **reCAPTCHA** for that form.
 1. For multi-page forms, turn on **Show on All Pages** if reCAPTCHA should run on every page instead of only the final submit step.
-1. For **reCAPTCHA v3** or **Enterprise score-based** keys, optionally override the global **Action** or **Minimum Score** for this form only. Leave these blank to inherit the values from **Settings → Spam Protection**.
+1. For **reCAPTCHA v3** or **Enterprise score-based** keys, optionally override the global **Action** or **Minimum Score** for this form only. Leave these blank to inherit the values from **Spam Protection**.
 1. Save the form.
 
 For most forms, **reCAPTCHA v3** is the best starting point. Use the checkbox or Enterprise challenge modes only when you need a visible challenge.
@@ -44,7 +44,7 @@ If Google reports an invalid site key, check that the key is for reCAPTCHA v3 an
 
 ## Score-Based Challenges and Low Scores
 
-reCAPTCHA v3 and **Enterprise score-based** modes return a score when the user submits. Formie compares that score to your **Minimum Score** threshold (globally under **Settings → Spam Protection**, or per form when you override it). Submissions below the threshold are treated as spam.
+reCAPTCHA v3 and **Enterprise score-based** modes return a score when the user submits. Formie compares that score to your **Minimum Score** threshold (globally under **Spam Protection**, or per form when you override it). Submissions below the threshold are treated as spam.
 
 Formie does **not** support a second captcha as a fallback when a score is too low — for example, automatically showing a v2 checkbox after Enterprise returns a low score. That would require different API keys, a different user flow, and server-side "soft fail" handling that Formie does not provide today.
 

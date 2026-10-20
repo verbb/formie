@@ -34,6 +34,7 @@ use verbb\formie\helpers\References;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\RuntimeConfigurationMigration;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\SpamProtectionEditor;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\SubmissionLimitHelper;
 use verbb\formie\helpers\Table;
@@ -2945,6 +2946,7 @@ class Form extends Element implements FormInterface
     public function defineIntegrationsSchema(): array
     {
         return SchemaHelper::schemaNode([
+            ...SpamProtectionEditor::formWarnings($this),
             [
                 '$cmp' => 'Integrations',
             ],

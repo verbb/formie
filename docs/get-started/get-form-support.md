@@ -1,14 +1,17 @@
 # Get Form Support
-We offer several support methods when it comes to getting help with Formie. However, you can use the in-built support form to send us a bunch of detail about your form, including fields and settings. This greatly improves changes of the support team replicating your issue if we have your same setup.
 
-Navigate to **Formie** → **Settings** → **Get Support** and follow the instructions to fill out a support request.
+Open **Formie → Settings → Get Support** to send a support request with the information needed to investigate your form.
 
-We only collect the information that we require to troubleshoot a forms issue:
-- Your Craft version
-- Your Formie version and license
-- Your Formie log file(s)
-- Your `composer.json` and `composer.lock` files
-- Your form (selected below) settings, fields, and notifications
-- Your custom form/email templates (if using any)
+Send the request from the installation where the issue occurs. For a production issue, use the production control panel. A request sent from your local site describes only that installation and cannot show production configuration or permissions.
 
-Any other content such as your content in entries, user data, orders, products, etc. is not sent to support.
+Your request includes your contact details, message, chosen attachments and:
+
+- Craft and Formie versions, and the Formie license.
+- Formie logs and your `composer.json` and `composer.lock` files.
+- The selected form’s settings, fields and notifications.
+- Custom form, email and PDF templates, when used.
+- Installation diagnostics: environment name, hostname, collection time, PHP version, development mode and whether admin changes are allowed.
+- Your administrator status and relevant Formie permissions.
+- CAPTCHA providers and integrations referenced by the form: availability, enabled state, storage scope, and credential presence and resolution status. Spam rules and provider settings are local to the installation sending the request.
+
+The diagnostics file contains no credential values, environment-variable names or spam-rule contents. Logs, templates, form content and attachments can contain sensitive information; review them before sending. Do not attach your `.env` file or credentials.

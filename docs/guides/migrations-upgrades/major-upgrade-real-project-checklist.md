@@ -30,7 +30,7 @@ return [
 - Update Formie via Composer on staging
 - Run pending Craft migrations / `project-config/sync`
 - Confirm `compatibilityMode` is `true` in config
-- Open **Formie → Settings → Spam Protection** — verify guards and captcha providers seeded from legacy settings
+- Open **Formie → Spam Protection** — verify guards and captcha providers seeded from legacy settings
 - Remove obsolete config keys: `enableGatsbyCompatibility`, `submissionStateMode`, `submissionStore`
 - Clear deprecation log baseline: `./craft clear-deprecations`
 

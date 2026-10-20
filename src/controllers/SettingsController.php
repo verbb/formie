@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\SpamProtectionSettings;
 use verbb\formie\content\ContentEncryption;
 use verbb\formie\helpers\FieldTraversal;
 use verbb\formie\helpers\FieldBuilderPolicy;
@@ -59,6 +60,10 @@ class SettingsController extends SettingsAccessController
             }
 
             return $this->redirect("formie/settings/$page");
+        }
+
+        if ($permissions->canManageCaptchas($user) || $permissions->canManageSpamRules($user)) {
+            return $this->redirect('formie/spam-protection');
         }
 
         throw new ForbiddenHttpException('User is not permitted to perform this action');
@@ -205,19 +210,12 @@ class SettingsController extends SettingsAccessController
 
     public function actionSpam(): Response
     {
-        return $this->redirect('formie/settings/spam-protection');
+        return $this->redirect('formie/spam-protection/rules');
     }
 
     public function actionSpamProtection(): Response
     {
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
-        $groupedIntegrations = Formie::$plugin->getIntegrations()->getAllGroupedCaptchas();
-
-        return $this->renderTemplate('formie/settings/spam-protection/index', compact(
-            'settings',
-            'groupedIntegrations',
-        ));
+        return $this->redirect('formie/spam-protection');
     }
 
     public function actionSaveSettings(): ?Response
@@ -230,7 +228,11 @@ class SettingsController extends SettingsAccessController
             (string)$this->request->getBodyParam('page', 'general'),
         );
 
-        if (!$permissions->canAccessSettingsPage($user, $page)) {
+        $canSavePage = $page === 'spam-protection'
+            ? $permissions->canManageSpamRules($user)
+            : $permissions->canAccessSettingsPage($user, $page);
+
+        if (!$canSavePage) {
             throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 
@@ -260,39 +262,27 @@ class SettingsController extends SettingsAccessController
         $settings->setAttributes($settingsParams, false);
 
         if ($page === 'spam' || $page === 'spam-protection') {
-            if (!$settings->validate()) {
-                $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));
+            SpamProtectionSettings::requireManager(SpamProtectionSettings::RULES);
+            SpamProtectionSettings::atomic(function() use ($settings, $request) {
+                SpamProtectionSettings::assertCurrent(SpamProtectionSettings::RULES, (string)$request->getBodyParam('token', ''));
 
-                Craft::$app->getUrlManager()->setRouteParams([
-                    'settings' => $settings,
-                ]);
+                if (!$settings->validate(SpamProtection::SETTING_KEYS) || !Formie::$plugin->getSpamProtection()->canEdit()) {
+                    throw new ForbiddenHttpException('These spam rules cannot be saved. Reload Spam Protection and try again.');
+                }
 
-                return null;
-            }
+                $integrations = $request->getBodyParam('integrations');
 
-            if (!Formie::$plugin->getSpamProtection()->saveFromSettings($settings)) {
-                $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));
+                if ($integrations !== null && !Formie::$plugin->getIntegrations()->savePostedCaptchaConfigs($integrations)) {
+                    throw new \yii\web\BadRequestHttpException('Couldn’t save CAPTCHA settings.');
+                }
 
-                Craft::$app->getUrlManager()->setRouteParams([
-                    'settings' => $settings,
-                ]);
-
-                return null;
-            }
-
-            if ($page === 'spam-protection' && !$this->_saveCaptchaIntegrations($request->getParam('integrations'))) {
-                $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));
-
-                Craft::$app->getUrlManager()->setRouteParams([
-                    'settings' => $settings,
-                ]);
-
-                return null;
-            }
+                if (!Formie::$plugin->getSpamProtection()->saveFromSettings($settings)) {
+                    throw new \yii\web\BadRequestHttpException('Couldn’t save spam rules.');
+                }
+            });
 
             $this->setSuccessFlash(Craft::t('formie', 'Settings saved.'));
-
-            return $this->redirectToPostedUrl();
+            return $this->redirect('formie/spam-protection');
         }
 
         if (!$settings->validate()) {

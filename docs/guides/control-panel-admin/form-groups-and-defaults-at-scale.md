@@ -62,7 +62,7 @@ New forms created in the group pick up these defaults. Existing forms are unchan
 
 [Submission limits](/forms/submission-limits) are **per form**, not per group. If your group often uses per-user or per-IP limits, preset **Collect User** or **Collect IP** on the group **Form Defaults** tab so new forms inherit the privacy settings those limits need.
 
-Global abuse throttling lives under **Settings → Spam Protection** — separate from form submission limits.
+Global abuse throttling lives under **Spam Protection** — separate from form submission limits.
 
 ## Step 4 — Custom Field Palette
 

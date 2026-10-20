@@ -6,11 +6,11 @@ For keyword syntax and examples, see [Spam keywords in detail](/guides/configura
 
 Spam protection is about reducing junk submissions without making the form harder for real people to use.
 
-Formie gives you a few layers to work with, so you can start with lighter filtering and add stronger checks only where they are needed. Most of the control lives in **Formie → Settings → Spam Protection**.
+Formie gives you a few layers to work with, so you can start with lighter filtering and add stronger checks only where they are needed. Most of the control lives in **Formie → Spam Protection**.
 
 That page brings together spam handling, keyword rules, built-in submission guards, and captcha provider credentials in one place.
 
-Users with the relevant settings permissions can edit this page even when Craft’s `allowAdminChanges` is `false`. See [Control Panel Settings](#control-panel-settings) for how saves affect project and instance settings.
+Users with the relevant permissions can edit spam protection settings even when Craft’s `allowAdminChanges` is `false`. Settings are saved in the current installation’s database. See [Control Panel Settings](#control-panel-settings) for permissions and production setup.
 
 ## When Checks Run
 
@@ -90,7 +90,7 @@ Keyword rules can include `[match:]` comparisons, `[ip:]` ranges and CIDR notati
 
 Global email rules apply to every **Email Address** field on every form during the **`screen`** stage. They mark matching submissions as spam rather than showing a field validation error.
 
-Configure them under **Formie → Settings → Spam Protection → Content Rules → Email Rules**:
+Configure them under **Formie → Spam Protection → Spam Rules → Content Rules → Email Rules**:
 
 - **Allowed domains** — one domain or full email address per line (for example `company.com` or `user@company.com`). Allowlisted addresses skip global blocked-domain and free-provider checks only; keywords, captchas, guards, and other spam rules still apply.
 - **Blocked domains** — one domain per line (for example `mailinator.com`)
@@ -100,7 +100,7 @@ Per-field email settings such as **Blocked Domains**, **Block Free Email Provide
 
 ### Text Rules
 
-Configure these under **Formie → Settings → Spam Protection → Content Rules → Text Rules**:
+Configure these under **Formie → Spam Protection → Spam Rules → Content Rules → Text Rules**:
 
 - **Suspicious text detection** — flags keyboard spam, random character strings, and other low-quality filler text in submission fields. Add **Allowed terms** (one per line) for abbreviations or product codes that should not be flagged.
 - **Maximum links** — marks submissions as spam when the total number of links across all fields exceeds the configured limit.
@@ -109,7 +109,7 @@ Formie checks these rules after email rules and before spam keywords.
 
 ## Submission Throttling
 
-Submission throttling is **abuse protection**, not entry caps. It limits how quickly forms can be submitted during floods or rapid repeat attempts. Configure it under **Formie → Settings → Spam Protection → Submission Throttling**.
+Submission throttling is **abuse protection**, not entry caps. It limits how quickly forms can be submitted during floods or rapid repeat attempts. Configure it under **Formie → Spam Protection → Spam Rules → Submission Throttling**.
 
 For contest, registration, or quota-style caps, use per-form **[Submission limits](/forms/submission-limits)** in the form builder instead. Throttling rejects excess requests with a too-many-requests response (HTTP 429); submission limits close the form or show a validation error according to your business rules.
 
@@ -126,7 +126,7 @@ Use conservative values for global throttling. For example, `1 per minute` acros
 
 Submission guards are built-in passive checks that run **before** captcha integrations and keyword rules.
 
-Configure them under **Formie → Settings → Spam Protection → Submission Guards**.
+Configure them under **Formie → Spam Protection → Spam Rules → Submission Guards**.
 
 | Guard | What It Does |
 | --- | --- |
@@ -175,26 +175,30 @@ This is separate from save-and-continue draft tokens and static-cache refresh be
 
 Formie also supports captcha integrations when you need a stronger challenge layer.
 
-Configure provider credentials under **Formie → Settings → Spam Protection → Captchas**, then enable the providers you need per form in the form builder.
+Configure provider credentials under **Formie → Spam Protection → CAPTCHAs**, then enable the providers you need per form in the form builder.
 
-Use captchas when keyword matching and submission guards are not enough, or when the form is a common attack target. Third-party spam scoring services such as Akismet, CleanTalk, and OOPSpam are configured here too, even though they classify content rather than show a visible challenge.
+Use captchas when keyword matching and submission guards are not enough, or when the form is a common attack target. Third-party spam scoring services such as Akismet, CleanTalk and OOPSpam are configured under **Spam Filtering Services**. They classify submission content and can be used alongside a CAPTCHA.
 
 See [Captchas](/integrations/captchas/) for provider-specific setup guides.
 
 ## Control Panel Settings
 
-Spam settings can be project-managed or instance-level. An **instance** is a Craft installation, such as development, staging or production, rather than an individual site in a multisite installation.
+Open **Formie → Spam Protection**. **Spam Rules** contains spam handling, content rules, submission guards and throttling. **CAPTCHAs** contains visitor-verification tools such as Turnstile and reCAPTCHA. **Spam Filtering Services** contains Akismet, CleanTalk and OOPSpam, which analyse submissions. Both groups have separate settings and a Save button for each provider. You can use a CAPTCHA and a spam filtering service together.
 
 ### Spam Settings
 
-Spam handling, content rules, submission guards and throttling share one scope. Project-managed settings are stored under `formie.spamSettings` in project config. There is no scope selector on this page; saving follows the existing scope and Craft’s admin-change setting.
+**Manage spam rules** and **Manage spam protection providers** are separate permissions. Authorised users can edit these settings directly, including on production with admin changes disabled. Form editors can use configured providers without permission to change their credentials. **Access all settings and Spam Protection** and legacy Spam Protection grants also grant both capabilities; remove those broad grants when narrowing a role.
 
-While spam settings are project-managed and admin changes are enabled, saving updates project config so you can commit and deploy the changes. If you save with `allowAdminChanges` set to `false`, the settings become instance-level and are saved only in that environment’s database. This lets permitted users maintain production rules directly. Subsequent saves remain local, even if admin changes are later enabled.
+Spam rules and provider settings are stored in the current installation’s database. They are shared by the sites within a Craft multisite installation. Saving a provider changes only that provider; saving spam rules does not change provider credentials. Project config does not include or apply these settings.
 
-For example, a developer can deploy an initial set of spam keywords through project config. An authorised editor can then save revised keywords on production with admin changes disabled; that saves the spam settings locally on production. The scope applies to the whole set of spam settings, not only the keyword field that changed.
+### Setting Up Production
 
-Project config sync leaves instance-level spam settings unchanged. Project-managed settings still receive updates and reset to defaults if `formie.spamSettings` is removed from project config.
+Open **Formie → Spam Protection** on production, configure and enable the providers you need, and save. Then enable each provider on the required forms. Configuring Turnstile on your development installation does not configure it on production. A fresh installation starts with the default spam rules and disabled providers.
+
+Credential fields accept environment-variable references where indicated. For example, enter `$TURNSTILE_SECRET_KEY` and supply its value on that installation. References remain editable; resolved secrets are not displayed. Literal saved credentials are masked: leave the dots to keep a key, replace them to change it, or empty the field to remove it. Disable a provider before clearing credentials it requires.
+
+Copying a database also copies spam rules and provider settings. Check the credentials and submit a test form after importing a database. Form exports carry the form’s provider selections, so configure the corresponding providers on the destination installation too.
 
 ### Captcha Provider Settings
 
-Saving a captcha provider always makes its settings instance-level, regardless of `allowAdminChanges`. Each provider has its own settings, separate from the shared spam rules above. See [Captcha Provider Settings](/integrations/overview#captcha-provider-settings) for deployment and credential handling.
+Configure and save each provider independently under **CAPTCHAs** or **Spam Filtering Services**, then enable it on the required forms. See [Captcha Provider Settings](/integrations/overview#captcha-provider-settings) and the provider’s setup guide for credential requirements. The form editor warns when a saved provider selection is disabled, missing or lacks required configuration. A saved key does not establish that the provider accepts it; submit a test form to check the connection.

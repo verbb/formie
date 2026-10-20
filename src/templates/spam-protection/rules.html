@@ -1,0 +1,12 @@
+{% extends 'formie/spam-protection/_layout' %}
+{% set title = 'Spam Rules' | t('formie') %}
+{% set fullPageForm = true %}
+{% set bodyClass = (bodyClass ?? '') ~ ' formie-settings-spam-protection' %}
+
+{% block protectionContent %}
+    {{ actionInput('formie/spam-protection/save-rules') }}
+    {{ hiddenInput('token', settingsToken) }}
+    {% include 'formie/settings/spam-protection/_spam-handling' with { settings: settings } only %}
+    {% include 'formie/settings/spam-protection/_submission-guards' with { settings: settings } only %}
+    {% include 'formie/settings/spam-protection/_throttling' with { settings: settings } only %}
+{% endblock %}
