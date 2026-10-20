@@ -927,11 +927,20 @@ function It(e, t, n = {}) {
 	D(i, e, "message", "messageSuccess"), i.setAttribute("data-formie-message", "true"), i.setAttribute("data-formie-message-success", "true"), i.setAttribute("role", "status"), i.setAttribute("aria-live", "polite"), i.setAttribute("aria-atomic", "true");
 	let a = document.createElement("div");
 	a.setAttribute("data-formie-success", "true"), D(a, e, "success"), a.innerHTML = t, i.appendChild(a), n.hideForm !== !1 && yt(e) && d(e, !0);
-	let o = vt(e);
-	if (o !== null) {
+	let o = e.dataset.formieScrollToTop?.trim().toLowerCase();
+	o !== void 0 && [
+		"",
+		"true",
+		"1"
+	].includes(o) && i.scrollIntoView({
+		behavior: "smooth",
+		block: "start"
+	});
+	let s = vt(e);
+	if (s !== null) {
 		let t = window.setTimeout(() => {
 			F.delete(e), I(e);
-		}, o);
+		}, s);
 		F.set(e, t);
 	}
 }

@@ -13,6 +13,7 @@
 - Remove the informational Widget Mode field from Cloudflare Turnstile settings.
 
 ### Fixed
+- Fix “Scroll To Top” having no effect after successful AJAX submissions. ([#3023](https://github.com/verbb/formie/issues/3023))
 - Fix upgrading from Formie 2 failing on Date fields before form statuses have been migrated.
 - Fix upgrading from Formie 2 failing on Payment fields before integration scopes have been migrated.
 - Fix later migrations failing after an interrupted field-table rename, and report when missing field definitions require restoring a backup.

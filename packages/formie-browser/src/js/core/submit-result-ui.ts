@@ -388,6 +388,13 @@ export function renderFormSuccess(form: HTMLFormElement, message: string, option
         setFormHiddenState(form, true);
     }
 
+    const scrollToTop = form.dataset.formieScrollToTop?.trim().toLowerCase();
+
+    if (scrollToTop !== undefined && ['', 'true', '1'].includes(scrollToTop)) {
+        // Scroll after hiding the form so the message's final position is used.
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
     const timeoutMs = getSuccessMessageTimeoutMs(form);
 
     if (timeoutMs !== null) {
