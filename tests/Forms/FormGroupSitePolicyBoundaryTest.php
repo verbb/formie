@@ -8,8 +8,9 @@ use Tests\Support\WebRequestTestHelper;
 use verbb\formie\controllers\FormGroupsController;
 use verbb\formie\Formie;
 use verbb\formie\models\FormGroup;
+use yii\web\ForbiddenHttpException;
 
-it('preserves shared group availability when a limited-site manager edits another setting', function (bool $includesEditorSite): void {
+it('preserves shared group settings when a limited-site manager attempts an edit with a retired grant', function (bool $includesEditorSite): void {
     if (!Craft::$app->getIsMultiSite()) {
         $this->markTestSkipped('Multi-site contract.');
     }
@@ -31,19 +32,19 @@ it('preserves shared group availability when a limited-site manager edits anothe
         Craft::$app->set('projectConfig', $projectConfig);
         Craft::$app->getUser()->setIdentity(User::find()->id($user->id)->status(null)->one());
         $request->setIsCpRequest(true);
-        expect(Formie::$plugin->getPermissions()->canAccessSettingsPage(Craft::$app->getUser()->getIdentity(), 'form-groups'))->toBeTrue();
+        expect(Formie::$plugin->getPermissions()->canAccessSettingsPage(Craft::$app->getUser()->getIdentity(), 'form-groups'))->toBeFalse();
         $payload = Formie::$plugin->getFormGroupDefaults()->getEditorValues($group);
         $payload['name'] = 'Renamed shared policy';
         $request->setBodyParams([
             $request->csrfParam => $request->getCsrfToken(), 'id' => $group->id,
             'name' => $group->name, 'handle' => $group->handle, 'settings' => json_encode($payload),
         ]);
-        $response = (new FormGroupsController('form-groups', Formie::$plugin))->runAction('save');
-        expect($response?->statusCode)->toBe(302);
+        expect(fn() => (new FormGroupsController('form-groups', Formie::$plugin))->runAction('save'))
+            ->toThrow(ForbiddenHttpException::class);
     }, ['method' => 'POST']);
 
     $reloaded = Formie::$plugin->getFormGroups()->getGroupById($group->id);
-    expect($reloaded->name)->toBe('Renamed shared policy');
+    expect($reloaded->name)->toBe('Shared policy');
     expect($reloaded->getSettingsModel()->getSitePolicyModel()->enabledSiteIds)->toBe($policySites);
     $enabledIds = array_map('intval', (new Query())->select('siteId')->from('{{%elements_sites}}')
         ->where(['elementId' => $form->id, 'enabled' => true])->orderBy('siteId')->column());
@@ -63,7 +64,7 @@ it('validates selected group sites while retaining an explicit unrestricted choi
     expect($group->getSettingsModel()->getSitePolicyModel()->enabledSiteIds)->toBeNull();
 });
 
-it('applies group availability changes to regional forms outside the current editor site', function (bool $limited): void {
+it('only lets administrators change group availability for regional forms outside the current editor site', function (bool $limited): void {
     if (!Craft::$app->getIsMultiSite()) {
         $this->markTestSkipped('Multi-site contract.');
     }
@@ -98,16 +99,20 @@ it('applies group availability changes to regional forms outside the current edi
             $request->csrfParam => $request->getCsrfToken(), 'id' => $group->id, 'siteId' => $sites[0],
             'name' => $group->name, 'handle' => $group->handle, 'settings' => json_encode($payload),
         ]);
-        $response = (new FormGroupsController('form-groups', Formie::$plugin))->runAction('save');
-        expect($response?->statusCode)->toBe(302);
         if ($limited) {
+            expect(fn() => (new FormGroupsController('form-groups', Formie::$plugin))->runAction('save'))
+                ->toThrow(ForbiddenHttpException::class);
             expect(fn() => Craft::configure(\verbb\formie\elements\Form::find(), ['forProjectConfig' => true]))
                 ->toThrow(\yii\base\UnknownPropertyException::class);
             expect(\verbb\formie\elements\Form::find()->id($form->id)->site('*')->status(null)->all())->toBe([]);
+        } else {
+            $response = (new FormGroupsController('form-groups', Formie::$plugin))->runAction('save');
+            expect($response?->statusCode)->toBe(302);
         }
     }, ['method' => 'POST']);
-    expect($enabledIds())->toBe([(int)$sites[2]]);
-    $reloaded = \verbb\formie\elements\Form::find()->id($form->id)->siteId($sites[2])->one();
+    $expectedSite = $limited ? $sites[1] : $sites[2];
+    expect($enabledIds())->toBe([(int)$expectedSite]);
+    $reloaded = \verbb\formie\elements\Form::find()->id($form->id)->siteId($expectedSite)->one();
     expect($reloaded?->getFieldByHandle('message'))->not->toBeNull();
     expect((int)$reloaded->sourceSiteId)->toBe((int)$sites[1]);
 })->with(['administrator' => false, 'settings-only manager' => true]);

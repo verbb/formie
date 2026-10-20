@@ -26,6 +26,13 @@ final class WebRequestTestHelper
         $originalRequestUri = $_SERVER['REQUEST_URI'] ?? null;
         $originalRemoteAddr = $_SERVER['REMOTE_ADDR'] ?? null;
         $originalCookies = $_COOKIE;
+        // Craft's application listeners capture each simulated app. Restore the
+        // process-wide registry so completed requests do not stay alive all suite.
+        $eventProperties = [
+            new \ReflectionProperty(\yii\base\Event::class, '_events'),
+            new \ReflectionProperty(\yii\base\Event::class, '_eventWildcards'),
+        ];
+        $originalEvents = array_map(static fn(\ReflectionProperty $property) => $property->getValue(), $eventProperties);
 
         $_SERVER['REQUEST_METHOD'] = strtoupper((string)($options['method'] ?? 'GET'));
         $_SERVER['SERVER_NAME'] = (string)($options['serverName'] ?? 'craft.example.test');
@@ -35,6 +42,9 @@ final class WebRequestTestHelper
         $_SERVER['REMOTE_ADDR'] = (string)($options['remoteAddr'] ?? '127.0.0.1');
 
         try {
+            // Finish console writes while their owning mutex is still current.
+            // Shared ProjectConfig instances resolve their lock through Craft::$app.
+            $originalApp->getProjectConfig()->flush();
             /** @var Application $app */
             $app = self::createWebApplication($originalApp);
             $app->edition = $originalApp->edition;
@@ -67,7 +77,14 @@ final class WebRequestTestHelper
             try {
                 return $callback($request, $response, $session);
             } finally {
-                Craft::$app = $originalCraftApp;
+                try {
+                    // Simulated requests do not dispatch Craft's after-request event.
+                    // Flush before changing apps or closing request-owned DB locks,
+                    // including when an assertion or controller throws.
+                    $app->getProjectConfig()->flush();
+                } finally {
+                    Craft::$app = $originalCraftApp;
+                }
             }
         } finally {
             if (isset($session) && $session->getIsActive()) {
@@ -94,6 +111,9 @@ final class WebRequestTestHelper
             }
 
             Craft::$app = $originalApp;
+            foreach ($eventProperties as $index => $property) {
+                $property->setValue(null, $originalEvents[$index]);
+            }
             \craft\helpers\Session::reset();
             $_COOKIE = $originalCookies;
             Formie::$plugin = $originalPlugin;

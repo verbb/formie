@@ -11,7 +11,8 @@ it('requires POST before processing a control panel mutation', function (string 
         $request->setIsCpRequest(true);
         Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
         $class = 'verbb\\formie\\controllers\\' . $controllerName . 'Controller';
-        $controller = new $class('method-contract', Formie::$plugin);
+        // Settings authorization resolves the page from the real controller route.
+        $controller = new $class(\craft\helpers\StringHelper::toKebabCase($controllerName), Formie::$plugin);
 
         expect(fn() => $controller->runAction($action))
             ->toThrow(MethodNotAllowedHttpException::class, 'Post request required');

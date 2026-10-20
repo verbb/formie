@@ -92,13 +92,21 @@ it('redacts captcha credentials from transport failure logs', function (): void 
     ], $history));
     $form = formie()->form(['title' => 'Captcha Log Security'])->singleLineTextField('message')->create();
     $submission = formie()->submission($form)->with(['message' => 'Hello'])->save();
-    $messageOffset = count(Craft::getLogger()->messages);
+    $logger = Craft::getLogger();
+    $flushInterval = $logger->flushInterval;
+    // Earlier tests can leave the buffer near its automatic flush threshold.
+    // Keep this request's messages available until the assertion captures them.
+    $logger->flushInterval = 0;
+    $messageOffset = count($logger->messages);
 
-    WebRequestTestHelper::withWebRequestContext(function () use ($akismet, $submission): void {
-        expect($akismet->validateSubmission($submission))->toBeFalse();
-    }, ['method' => 'POST']);
-
-    $messages = array_column(array_slice(Craft::getLogger()->messages, $messageOffset), 0);
+    try {
+        WebRequestTestHelper::withWebRequestContext(function () use ($akismet, $submission): void {
+            expect($akismet->validateSubmission($submission))->toBeFalse();
+        }, ['method' => 'POST']);
+        $messages = array_column(array_slice($logger->messages, $messageOffset), 0);
+    } finally {
+        $logger->flushInterval = $flushInterval;
+    }
     $captchaLog = implode("\n", array_filter($messages, fn(string $message): bool => str_contains($message, 'Captcha validation failed')));
     expect($captchaLog)
         ->toContain('[redacted]')

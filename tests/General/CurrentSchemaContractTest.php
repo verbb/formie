@@ -8,6 +8,8 @@ it('keeps schema inspection at migration and repair boundaries', function (): vo
     $sourceRoot = dirname(__DIR__, 2) . '/src';
     $allowed = [
         $sourceRoot . '/helpers/DbSchema.php',
+        // Interrupted-upgrade recovery is shared by migrations through this helper.
+        $sourceRoot . '/helpers/MigrationHelper.php',
         $sourceRoot . '/services/Repair.php',
     ];
     $violations = [];
