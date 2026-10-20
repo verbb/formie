@@ -16,7 +16,7 @@ These changes are required **only if your project uses the affected API or depen
 
 - **Custom fields and integrations:** update [field UI/templates](#custom-fields), [parent fields](#custom-parent-fields), [field traversal](#field-and-row-traversal), [integration settings](#custom-integrations) and [browser modules](#browser-module-declarations).
 - **Custom frontend code:** review [JavaScript event behaviour](#javascript-event-behaviour), [validators](#custom-front-end-validation), [GraphQL queries](#graphql), [submission clients and uploads](#continuity-and-upload-upgrade-actions), and [CSS selectors](#default-theme-classes).
-- **Templates and configuration:** review [field values](#field-value-contracts), [references](#references-and-variable-picker), [redirects and overrides](#completion-and-setting-overrides), [plugin translations](#translation-strings) and [form content translations](#form-content-translations).
+- **Templates and configuration:** review [field values](#field-value-contracts), [references](#references-and-variable-picker), [Twig in saved settings](#twig-expressions-in-references), [redirects and overrides](#completion-and-setting-overrides), [plugin translations](#translation-strings) and [form content translations](#form-content-translations).
 - **Custom PHP and SQL:** update [submission hooks](#submission-workflow), [payment providers](#payment-and-subscription-boundary) and [literal status-table references](#submission-status-database-table).
 - **Spam protection and conditions:** configure [spam protection per installation](#local-spam-protection-settings), replace references to [removed captcha types](#removed-legacy-captchas) and test [conditions and validation](#conditions-and-validation) that depend on changed comparisons.
 
@@ -788,17 +788,44 @@ This also applies to authored notification `$NAME` aliases. A `FORMIE_` prefix d
 
 #### Twig Expressions in References
 
-Stored references, automation URLs, Hidden Custom Value defaults, upload subpaths and uploaded filenames do not evaluate Twig expressions. Move computed values into a [custom variable source](/developers/custom-variable-sources), then select that source in the Variable Picker. Hidden fields using **Template**, HTML fields with **Allow Twig** enabled and PDF filenames retain sandboxed Twig support.
+Formie 3 passed many variable-aware settings through Craft's object-template renderer, which also allowed sandboxed Twig expressions and filters. Formie 4 resolves [reference tokens](/developers/reference-tokens) in these settings instead. Review any saved settings containing Twig output, Twig tags, filters or object-property expressions. Compatibility mode does not restore Twig evaluation in reference-only settings.
 
-Review File Upload subpaths that use Craft object-template shorthand or Twig filters. Replace them with references before accepting uploads:
+The settings to review include:
 
-| Previous Subpath | Reference Subpath |
+| Setting | Formie 4 Behaviour |
 | --- | --- |
-| `uploads/{id}` | `uploads/{submission:id}` |
-| `uploads/{myFieldHandle}` | `uploads/{field:myFieldHandle}` |
-| `uploads/{user.id}` | `uploads/{user:id}` |
+| File Upload **Upload Location** subpath and **Filename Format** | Resolve references and supported transforms. Uploaded asset filenames have the same reference-only behaviour as subpaths. |
+| Hidden **Custom Value** defaults | Resolve references in the authored default. Use the separate **Template** source if the field needs sandboxed Twig. |
+| Form **Submission Title Format** | Resolve references and supported transforms. |
+| Notification subject, sender and recipient settings, and authored **Email Content** | Resolve references. Twig in the notification's content setting is not evaluated. |
+| Variable-aware form messages and completion redirect URLs | Resolve references. A redirect URL containing Twig output or tags is rejected. |
+| Automation URLs, reference-aware integration mappings and payment settings | Use references for dynamic values; custom text does not become a Twig template. |
 
-Use the picker to select any supported transform. Arbitrary Twig filters, method calls and custom user properties require a registered PHP source. Submit a test file and verify its final asset folder after making these changes.
+Replace straightforward values and filters with the tokens inserted by the Variable Picker. For example:
+
+| Setting | Formie 3 | Formie 4 |
+| --- | --- | --- |
+| Upload subpath using a submission ID | `uploads/{id}` | `uploads/{submission:id}` |
+| Upload subpath using the submitting user | `{user.fullName\|kebab}-{user.id}` | `{user:fullName;transform=kebab}-{user:id}` |
+| Upload subpath using a form field | `uploads/{myFieldHandle}` | `uploads/{field:a1b2c3}` |
+| Uploaded filename using a form handle and submission ID | `{form.handle}-{id}` | `{form:handle}-{submission:id}` |
+| Hidden Custom Value using an uppercase form handle | `{form.handle\|upper}` | `{form:handle;transform=upper}` |
+| Submission title using the current date | `{{ "now"\|date("Y-m-d") }}` | `{timestamp;transform=format;preset=isoDate}` |
+| Notification subject using an uppercase form name | `{formName\|upper}` | `{form:name;transform=upper}` |
+
+`a1b2c3` represents the field's stable reference, not its handle. Insert that token with the Variable Picker; do not copy the placeholder or type `{field:myFieldHandle}`. For the user-based subpath, enable **Collect User** and require the person submitting to be logged in. A user named Ada Lovelace with ID 123 produces `ada-lovelace-123`.
+
+Transforms use `;transform=...`, such as `;transform=kebab` or `;transform=upper`. A pipe in a reference token introduces an empty-value fallback, not a Twig filter: `{user:fullName|Anonymous}` returns `Anonymous` when the full name is empty. Use the picker to configure the available transforms and their parameters.
+
+Twig conditionals, method calls, custom user properties and filters without a built-in transform need a [custom variable source](/developers/custom-variable-sources). Move that calculation into the source's PHP resolver, register it, then select it in the Variable Picker. Replace expressions manually where no equivalent reference or transform exists.
+
+##### Settings That Still Support Twig
+
+Hidden fields using **Template**, HTML fields with **Allow Twig** enabled and PDF template **Filename Format** retain sandboxed Twig support. Hidden and HTML template availability is controlled in **Settings → Field Types and Restrictions**; see [Field Templates and HTML Purification](#field-templates-and-html-purification). Changing a Hidden field from **Custom Value** to **Template** also changes its submitted-value behaviour: Formie re-resolves the value on the server and ignores posted input. See [Hidden fields](/fields/hidden#custom-value-vs-template) before switching sources.
+
+PDF attachment filenames are separate from uploaded asset filenames: a PDF filename template can still use sandboxed Twig, while a File Upload field's filename format cannot. Your own Twig template files, including form, email and PDF templates, also remain Twig templates.
+
+After updating the affected settings, render and submit the form. Check the saved submission title, messages and redirect, send a test notification, and check any affected integration values. For File Upload fields, upload a test file and verify both its final asset folder and filename.
 
 <span id="missing-and-repeated-fields"></span>
 
