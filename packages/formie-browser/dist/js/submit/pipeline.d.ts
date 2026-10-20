@@ -1,8 +1,10 @@
+import type { FormieFormInstance } from '#contracts/client';
 import type { FormAction } from '#contracts/common';
 import type { FormSubmitResult } from '#contracts/schema';
 import { EventBus } from '#events/event-bus';
 import type { FormieValidator } from '#validation/validator';
 export type SubmitPipelineContext = {
+    instance?: FormieFormInstance;
     form: HTMLFormElement;
     action: FormAction;
     formData: FormData;
