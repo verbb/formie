@@ -5,6 +5,7 @@
 ### Added
 - Add a dedicated Spam Protection area with grouped navigation in Craft’s standard sidebar, matching page and panel headings, standard header Save buttons, separate provider and spam-rule permissions, and independent provider saves.
 - Add sanitised installation, permissions and integration diagnostics to support bundles, with guidance to send requests from the affected environment.
+- Add Salesforce token-request logging with the endpoint and grant type, excluding OAuth credentials.
 
 ### Changed
 - Store CAPTCHA, spam filtering and spam-rule settings locally on each installation. Existing values are preserved during upgrade; these settings are no longer deployed through project config.

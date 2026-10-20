@@ -33,6 +33,7 @@ use DateTimeZone;
 use Throwable;
 
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Psr7\Uri;
 use League\OAuth1\Client\Credentials\TokenCredentials as OAuth1Token;
 use League\OAuth2\Client\Token\AccessToken as OAuth2Token;
 use verbb\auth\base\OAuthProviderInterface;
@@ -343,10 +344,15 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     public function getAccessToken(): OAuth1Token|OAuth2Token|null
     {
+        $oauthProvider = $this->getOAuthProvider();
+        $endpoint = new Uri($oauthProvider->getBaseAccessTokenUrl([]));
+        Integration::info($this, 'Token request: ' . Json::encode([
+            'endpoint' => (string)$endpoint->withUserInfo('')->withQuery('')->withFragment(''),
+            'grant_type' => $this->getGrant(),
+        ]));
+
         // Retain the legacy password grant for existing service-user integrations.
         if ($this->getGrant() === self::GRANT_PASSWORD) {
-            $oauthProvider = $this->getOAuthProvider();
-
             $token = $oauthProvider->getAccessToken(self::GRANT_PASSWORD, [
                 'client_id' => $this->getClientId(),
                 'client_secret' => $this->getClientSecret(),
