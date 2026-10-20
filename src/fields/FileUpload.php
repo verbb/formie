@@ -609,6 +609,7 @@ class FileUpload extends ElementField
                 'name' => 'uploadLocationSubpath',
                 'if' => 'uploadLocationSource',
                 'variableConfig' => [
+                    'excludeSelf' => true,
                     'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [Variables::STATIC_FIELDS, Variables::STATIC_FORM, Variables::STATIC_GENERAL, Variables::STATIC_SITE],
@@ -635,6 +636,7 @@ class FileUpload extends ElementField
                 'instructions' => Craft::t('formie', 'Enter the format for uploaded files to be renamed as. Do not include the extension.'),
                 'name' => 'filenameFormat',
                 'variableConfig' => [
+                    'excludeSelf' => true,
                     'shapes' => ['inline'],
                     'types' => [Variables::TYPE_TEXT],
                     'groups' => [

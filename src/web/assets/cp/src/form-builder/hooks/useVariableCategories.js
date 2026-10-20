@@ -256,7 +256,11 @@ export function resolveVariableCategories(config, formValues, variableConfig, op
         maxPageIndex: requestedMaxPageIndex = null,
     } = request;
 
-    const excludeByHandle = excludeSelf && options.form
+    // Draft fields can have neither a label nor a handle; use their editor identity first.
+    const currentFieldId = excludeSelfFieldId || (excludeSelf
+        ? options.form?.getFieldValue?.('_id') || options.form?.getFieldValue?.('id')
+        : null);
+    const excludeByHandle = excludeSelf && !currentFieldId && options.form
         ? options.form.getFieldValue?.('handle') ?? null
         : null;
 
@@ -283,7 +287,7 @@ export function resolveVariableCategories(config, formValues, variableConfig, op
         excludedTypes: excludedTypes.length ? excludedTypes : undefined,
         excludedFields: [],
         excludeSelf,
-        excludeSelfFieldId: excludeSelfFieldId || undefined,
+        excludeSelfFieldId: currentFieldId || undefined,
         excludeByHandle: excludeByHandle || undefined,
         maxPageIndex,
     });
