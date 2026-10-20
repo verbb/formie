@@ -2,6 +2,7 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\compatibility\fields\FieldConfigNormalizer;
+use verbb\formie\helpers\MigrationHelper;
 use verbb\formie\helpers\Table;
 
 use Craft;
@@ -28,6 +29,8 @@ class m260418_000000_field_definitions_and_form_fields extends Migration
         }
 
         if (!$fieldsTableExists) {
+            MigrationHelper::assertFieldDefinitionsRecoverable($this->db);
+
             $this->createTable(Table::FORMIE_FIELDS, [
                 'id' => $this->primaryKey(),
                 'type' => $this->string()->notNull(),

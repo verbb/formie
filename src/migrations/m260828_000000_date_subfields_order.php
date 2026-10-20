@@ -5,6 +5,7 @@ use verbb\formie\fields\Date;
 use verbb\formie\fields\subfields;
 use verbb\formie\fields\subfields\DateYearDropdown;
 use verbb\formie\helpers\DateTimeHelper;
+use verbb\formie\helpers\MigrationHelper;
 use verbb\formie\helpers\Table;
 
 use craft\db\Migration;
@@ -24,6 +25,8 @@ class m260828_000000_date_subfields_order extends Migration
 
     public function safeUp(): bool
     {
+        MigrationHelper::ensureFieldDefinitions($this->db);
+
         $fields = (new Query())
             ->select(['*'])
             ->from([Table::FORMIE_FIELDS])

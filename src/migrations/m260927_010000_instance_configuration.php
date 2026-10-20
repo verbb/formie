@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\migrations;
 
+use verbb\formie\helpers\MigrationHelper;
 use verbb\formie\helpers\RuntimeConfigurationMigration;
 use verbb\formie\helpers\Table;
 
@@ -17,6 +18,8 @@ class m260927_010000_instance_configuration extends Migration
 
     public function safeUp(): bool
     {
+        MigrationHelper::ensureFieldDefinitions($this->db);
+
         if (!$this->db->tableExists('{{%formie_instance_configs}}')) {
             $this->createTable('{{%formie_instance_configs}}', [
                 'id' => $this->primaryKey(), 'tokenHash' => $this->string(64)->notNull(),
