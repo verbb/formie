@@ -86,9 +86,14 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
 
     public function __construct(array $config = [])
     {
-        // Setuo defaults for some values which can't in in the property definition
+        // Set up defaults for values which can't be set in the property definition.
         $config['defaultValue'] = $config['defaultValue'] ?? false;
-        $config['labelPosition'] = $config['labelPosition'] ?? HiddenPosition::class;
+
+        // An explicit null means Form Default; only new fields default to Hidden.
+        if (!array_key_exists('labelPosition', $config)) {
+            $config['labelPosition'] = HiddenPosition::class;
+        }
+
         $config['checkedValue'] = $config['checkedValue'] ?? Craft::t('app', 'Yes');
         $config['uncheckedValue'] = $config['uncheckedValue'] ?? Craft::t('app', 'No');
         $config['description'] = RichText::from($config['description'] ?? null);
@@ -313,9 +318,10 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
     {
         $form = $context->form;
         $id = $this->getHtmlId($form);
-        $labelPosition = is_object($this->labelPosition) ? get_class($this->labelPosition) : (string)$this->labelPosition;
+        $position = $this->labelPosition ?? $context->get('labelPosition');
+        $labelPosition = is_object($position) ? get_class($position) : (string)$position;
         $labelPosition = strtolower($labelPosition);
-        $resolvedLabelPosition = str_contains($labelPosition, 'left') ? 'left' : (str_contains($labelPosition, 'right') ? 'right' : (str_contains($labelPosition, 'hidden') ? 'hidden' : 'above'));
+        $resolvedLabelPosition = str_contains($labelPosition, 'left') ? 'left' : (str_contains($labelPosition, 'right') ? 'right' : (str_contains($labelPosition, 'hidden') ? 'hidden' : (str_contains($labelPosition, 'below') ? 'below' : 'above')));
         $isHiddenLabel = $context->get('labelPosition') instanceof HiddenPosition || $resolvedLabelPosition === 'hidden';
 
         if ($key === 'fieldLayout') {
