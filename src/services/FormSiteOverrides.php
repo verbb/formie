@@ -24,6 +24,7 @@ use craft\helpers\Cp;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\Site;
+use craft\web\Request;
 
 use yii\base\Component;
 
@@ -111,15 +112,15 @@ class FormSiteOverrides extends Component
             return (int)$form->sourceSiteId;
         }
 
-        if ($form->siteId) {
-            return (int)$form->siteId;
-        }
-
         $request = Craft::$app->getRequest();
-        $requestedSite = Cp::requestedSite();
+        $requestedSite = $request instanceof Request ? Cp::requestedSite() : null;
+
+        // Craft initializes new elements on the primary site before the selected
+        // creation site is applied. Resolve the request before that default.
         $candidateIds = array_filter([
-            $request->getParam('siteId'),
+            $request instanceof Request ? $request->getParam('siteId') : null,
             $requestedSite?->id,
+            $form->siteId,
             Craft::$app->getSites()->getCurrentSite()->id,
         ], fn(mixed $siteId) => $siteId !== null && $siteId !== '');
 
