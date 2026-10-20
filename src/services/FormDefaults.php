@@ -590,7 +590,12 @@ class FormDefaults extends Component
             }
 
             if (!empty($settings['defaultDateTime'])) {
-                $legacyDateDefaults['defaultValue'] = DateTimeHelper::toDateTime($settings['defaultDateTime'])?->format('Y-m-d H:i:s');
+                $date = DateTimeHelper::toDateTime($settings['defaultDateTime']);
+
+                // Blank Craft date inputs are non-empty arrays but parse to false.
+                if ($date !== false) {
+                    $legacyDateDefaults['defaultValue'] = $date->format('Y-m-d H:i:s');
+                }
             }
 
             if ($legacyDateDefaults !== []) {

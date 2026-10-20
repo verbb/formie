@@ -71,6 +71,49 @@ it('migrates legacy file upload and date default settings into fieldDefaults', f
         ->and($migrated)->not->toHaveKey('defaultDateTime');
 });
 
+it('ignores empty or invalid legacy default dates while preserving other defaults', function (mixed $value): void {
+    $migrated = Formie::$plugin->getFormDefaults()->migrateLegacyFieldDefaults([
+        'defaultDateDisplayType' => 'datePicker',
+        'defaultDateValueOption' => 'today',
+        'defaultDateTime' => $value,
+        'defaultFileUploadVolume' => 'folder:legacy-volume',
+    ]);
+
+    expect($migrated['fieldDefaults'][Date::class])->toBe([
+        'displayType' => 'datePicker',
+        'defaultOption' => 'today',
+    ])
+        ->and($migrated['fieldDefaults'][FileUpload::class]['uploadLocationSource'])->toBe('folder:legacy-volume')
+        ->and($migrated)->not->toHaveKey('defaultDateTime');
+})->with([
+    'blank Craft date input' => [['date' => '', 'timezone' => 'Australia/Adelaide', 'time' => '']],
+    'invalid date' => ['not-a-date'],
+    'empty array' => [[]],
+    'empty string' => [''],
+    'null' => [null],
+    'false' => [false],
+]);
+
+it('migrates a populated legacy Craft date input', function (): void {
+    $migrated = Formie::$plugin->getFormDefaults()->migrateLegacyFieldDefaults([
+        'defaultDateTime' => ['date' => '2024-01-15', 'timezone' => 'UTC', 'time' => '09:00'],
+    ]);
+
+    expect($migrated['fieldDefaults'][Date::class]['defaultValue'])->toBe('2024-01-15 09:00:00')
+        ->and($migrated)->not->toHaveKey('defaultDateTime');
+});
+
+it('preserves existing date defaults when a blank legacy date input is present', function (): void {
+    $defaults = ['defaultOption' => 'specific', 'defaultValue' => '2024-01-15 09:00:00'];
+    $migrated = Formie::$plugin->getFormDefaults()->migrateLegacyFieldDefaults([
+        'fieldDefaults' => [Date::class => $defaults],
+        'defaultDateTime' => ['date' => '', 'timezone' => 'Australia/Adelaide', 'time' => ''],
+    ]);
+
+    expect($migrated['fieldDefaults'][Date::class])->toBe($defaults)
+        ->and($migrated)->not->toHaveKey('defaultDateTime');
+});
+
 it('applies form defaults to new forms when values are not posted', function (): void {
     $settings = Formie::$plugin->getSettings();
     $settings->formDefaults = [

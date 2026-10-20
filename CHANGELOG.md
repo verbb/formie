@@ -13,6 +13,7 @@
 - Remove the informational Widget Mode field from Cloudflare Turnstile settings.
 
 ### Fixed
+- Fix an error when upgrading from Formie 3 with an empty or invalid default date. ([#3022](https://github.com/verbb/formie/issues/3022))
 - Fix the Settings page redirecting repeatedly when admin changes are disabled.
 - Fix legacy Honeypot settings preventing forms from being created or saved, including from stencils.
 - Fix project config sync overwriting or removing instance-level integrations, stencils and spam protection settings.
