@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.3 - 2026-10-20
 
 ### Added
 - Add a dedicated Spam Protection area with grouped navigation in Craft’s standard sidebar, matching page and panel headings, standard header Save buttons, separate provider and spam-rule permissions, and independent provider saves.
