@@ -124,7 +124,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.85';
+    public string $schemaVersion = '4.0.86';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -497,37 +497,7 @@ class Formie extends Plugin
     private function _registerPermissions(): void
     {
         Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS, function(RegisterUserPermissionsEvent $event) {
-            $permissions = $this->getPermissions();
-
-            $event->permissions[] = [
-                'heading' => Craft::t('formie', 'Formie'),
-                'permissions' => [
-                    Permissions::PERM_ACCESS_FORMS => [
-                        'label' => Craft::t('formie', 'Access forms'),
-                        'nested' => $permissions->getFormPermissionDefinitions(),
-                    ],
-                    Permissions::PERM_ACCESS_SUBMISSIONS => [
-                        'label' => Craft::t('formie', 'Access submissions'),
-                        'nested' => $permissions->getSubmissionPermissionDefinitions(),
-                    ],
-                    Permissions::PERM_ACCESS_REPORTS => [
-                        'label' => Craft::t('formie', 'Access reports'),
-                        'nested' => $permissions->getReportPermissionDefinitions(),
-                    ],
-                    'formie-accessSentNotifications' => [
-                        'label' => Craft::t('formie', 'Access sent notifications'),
-                        'nested' => $permissions->getSentNotificationPermissionDefinitions(),
-                    ],
-                    'formie-accessStencils' => ['label' => Craft::t('formie', 'Access stencils')],
-                    Permissions::PERM_ACCESS_INTEGRATIONS => ['label' => Craft::t('formie', 'Access integrations')],
-                    Permissions::PERM_MANAGE_CAPTCHAS => ['label' => Craft::t('formie', 'Manage spam protection providers')],
-                    Permissions::PERM_MANAGE_SPAM_RULES => ['label' => Craft::t('formie', 'Manage spam rules')],
-                    Permissions::PERM_ACCESS_SETTINGS => [
-                        'label' => Craft::t('formie', 'Access all settings and Spam Protection'),
-                    ],
-                    ...$permissions->getSettingsPermissionDefinitions(),
-                ],
-            ];
+            array_push($event->permissions, ...$this->getPermissions()->getPermissionGroups());
         });
     }
 

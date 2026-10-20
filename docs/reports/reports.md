@@ -82,7 +82,8 @@ Reports use dedicated Craft user permissions:
 | --- | --- |
 | **Access reports** | View the Reports section and run saved reports |
 | **Manage reports** | Create, edit, and delete reports; export data |
-| **Manage scheduled reports** | Configure scheduled email delivery under **Settings → Scheduled Reports** and on a report’s **Scheduled** tab |
+| **View scheduled reports** | Inspect saved deliveries under **Settings → Scheduled Reports** |
+| **Send scheduled report test emails** | Send a saved scheduled report to your own email address |
 
 Users with **Export submissions** can also export from reports without full manage access.
 

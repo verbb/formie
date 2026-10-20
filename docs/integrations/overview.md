@@ -28,7 +28,7 @@ The choice applies to the reusable connection. Each form’s enabled integration
 
 ### Captcha Provider Settings
 
-Configure visitor-verification providers under **Formie → Spam Protection → CAPTCHAs**, and Akismet, CleanTalk and OOPSpam under **Spam Filtering Services**. Users with **Manage spam protection providers** can configure and save each provider independently, including on production with admin changes disabled.
+Configure visitor-verification providers under **Formie → Spam Protection → CAPTCHAs**, and Akismet, CleanTalk and OOPSpam under **Spam Filtering Services**. Users with **Manage CAPTCHAs and spam filtering services** can configure and save each provider independently, including on production with admin changes disabled.
 
 Provider settings are saved in the current installation’s database and are not included in project config. Configure production credentials on production. Environment-variable references are supported where indicated, and each installation must supply the referenced values. See [Setting Up Production](/forms/spam-protection#setting-up-production) for the workflow.
 

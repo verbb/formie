@@ -1,6 +1,6 @@
 # Field Defaults
 
-Formie can apply organisation-wide defaults when a new field is added to a form. Site owners configure these under **Formie → Settings → Defaults**, or in [project config](/get-started/configuration) via `fieldDefaults`.
+Formie can apply organisation-wide defaults when a new field is added to a form. Site owners configure these under **Formie → Settings → Form Builder Defaults**, or in [project config](/get-started/configuration) via `fieldDefaults`.
 
 Third-party fields do not participate automatically. Each field type must opt in by declaring which settings can be defaulted, and those settings must already exist in the field’s form-builder schema.
 
@@ -61,7 +61,7 @@ class ExampleField extends Field
 }
 ```
 
-Return an empty array, or omit the override, to keep the field out of **Settings → Defaults**.
+Return an empty array, or omit the override, to keep the field out of **Settings → Form Builder Defaults**.
 
 Each handle in `supportedDefaults()` must match a schema field `name` in one of these tabs:
 
@@ -205,5 +205,5 @@ Registered third-party fields appear automatically in `getFieldTypeDefaultsConfi
 1. Add public properties for the settings you want to default.
 2. Define the settings in your form-builder schema with matching `name` handles.
 3. Override `supportedDefaults()` and return those handles.
-4. Confirm the field appears under **Settings → Defaults → Fields**.
+4. Confirm the field appears under **Settings → Form Builder Defaults → Fields**.
 5. Document recommended project config for your users if you expose policy-style settings.

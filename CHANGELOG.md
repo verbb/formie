@@ -8,12 +8,15 @@
 - Add Salesforce token-request logging with the endpoint and grant type, excluding OAuth credentials.
 
 ### Changed
+- Clarify user permission labels, order spam rules before CAPTCHA and spam filtering services, remove permission info tooltips, align permission nesting with Formie’s navigation while retaining a single Select All control, limit settings permissions to production-accessible tools, and migrate legacy grants to preserve production access.
 - Store CAPTCHA, spam filtering and spam-rule settings locally on each installation. Existing values are preserved during upgrade; these settings are no longer deployed through project config.
 - Clarify project and instance settings for integrations, stencils, spam protection and captcha providers, including deployment and editing permissions.
 - Remove the informational Widget Mode field from Cloudflare Turnstile settings.
 
 ### Fixed
 - Fix “Scroll To Top” having no effect after successful AJAX submissions. ([#3023](https://github.com/verbb/formie/issues/3023))
+- Fix production settings navigation hiding permitted read-only pages and scheduled reports exposing unavailable editing controls.
+- Fix form import, report export and scheduled report permissions depending on unrelated management permissions.
 - Fix upgrading from Formie 2 failing on Date fields before form statuses have been migrated.
 - Fix upgrading from Formie 2 failing on Payment fields before integration scopes have been migrated.
 - Fix later migrations failing after an interrupted field-table rename, and report when missing field definitions require restoring a backup.

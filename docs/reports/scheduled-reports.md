@@ -67,7 +67,7 @@ Actions in the save menu (**Send Test Email**, **Delete**) use the scheduled rep
 
 ## Permissions
 
-Users need **Manage scheduled reports** to create, edit, delete, or test scheduled delivery. Viewing the **Scheduled** tab on a report requires the same permission.
+Creating, editing and deleting scheduled deliveries requires a Craft administrator with admin changes enabled. The **Scheduled** tab on a report is available to those administrators. To let someone inspect existing schedules on production, grant **Access settings → View scheduled reports**. Its nested **Send scheduled report test emails** permission allows a test delivery to the person’s own email address without enabling configuration changes.
 
 ## Troubleshooting
 

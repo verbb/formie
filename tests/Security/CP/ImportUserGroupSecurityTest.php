@@ -36,13 +36,13 @@ function withImportGroupActor(callable $callback, bool $authorized = false, bool
         $actor = new User(['username' => 'importActor' . $suffix, 'email' => 'importActor' . $suffix . '@example.test']);
         expect(Craft::$app->getElements()->saveElement($actor))->toBeTrue();
         Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-        expect(Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, [
+        expect(Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, \Tests\Support\PermissionTestHelper::withParents([
             'accessCp', 'accessPlugin-formie', Permissions::PERM_IMPORT_FORMS,
             Permissions::PERM_ACCESS_FORMS, Permissions::PERM_MANAGE_FORMS,
             Formie::$plugin->getPermissions()->settingsPagePermissionKey('import-export'),
             ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
             ...($authorized ? ['viewUsers', 'editUsers', 'assignUserGroup:' . $group->uid] : []),
-        ]))->toBeTrue();
+        ])))->toBeTrue();
         $form = formie()->form()->singleLineTextField('email')->integrations([
             'importedUsers' => ['enabled' => true, 'groupUids' => []],
         ])->create();
@@ -163,11 +163,11 @@ it('requires import and existing form permissions at the user-aware helper bound
         $payload = ImportExportHelper::generateFormExport($form);
         $payload['settings'] = Json::decodeIfJson($payload['settings']);
         Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-        Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, []);
+        Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, \Tests\Support\PermissionTestHelper::withParents([]));
         $actor = User::find()->id($actor->id)->status(null)->one();
         expect(fn() => ImportExportHelper::importForUser($payload, null, $actor))->toThrow(ForbiddenHttpException::class, 'User is not permitted to import forms');
         Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-        Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, ['accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_FORMS, Permissions::PERM_IMPORT_FORMS, Formie::$plugin->getPermissions()->settingsPagePermissionKey('import-export')]);
+        Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, \Tests\Support\PermissionTestHelper::withParents(['accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_FORMS, Permissions::PERM_IMPORT_FORMS, Formie::$plugin->getPermissions()->settingsPagePermissionKey('import-export')]));
         $actor = User::find()->id($actor->id)->status(null)->one();
         expect(fn() => ImportExportHelper::importForUser($payload, $form, $actor))->toThrow(ForbiddenHttpException::class, 'User is not permitted to update this form');
     });

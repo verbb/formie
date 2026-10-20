@@ -42,7 +42,7 @@ Form content is output as written in the builder after applying any site overrid
 
 **Validation messages stay in English**
 
-Check that the file is in the directory for the active locale and that its keys match the English source strings. If a field has its own validation message configured in the builder, edit that message there. Plugin-wide defaults can be configured under **Formie → Settings → Defaults**.
+Check that the file is in the directory for the active locale and that its keys match the English source strings. If a field has its own validation message configured in the builder, edit that message there. Plugin-wide defaults can be configured under **Formie → Settings → Form Builder Defaults**.
 
 **Field labels or notification copy do not change**
 

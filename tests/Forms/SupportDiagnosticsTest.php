@@ -33,7 +33,7 @@ it('reports the sending environment and effective permissions without user detai
     $name = 'supportDiagnostics' . bin2hex(random_bytes(6));
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, ['accessCp', 'formie-settingsSpamProtection']))->toBeTrue();
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents(['accessCp', 'formie-manageCaptchas', 'formie-manageSpamRules'])))->toBeTrue();
 
     WebRequestTestHelper::withWebRequestContext(function () use ($user): void {
         Craft::$app->getConfig()->env = 'production';
@@ -53,8 +53,9 @@ it('reports the sending environment and effective permissions without user detai
         ])->and($data['collectedAt'])->toMatch('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/')
             ->and($data['user']['admin'])->toBeFalse()
             ->and($data['user']['canManageForm'])->toBeFalse()
-            ->and($data['user']['settingsPages']['spam-protection'])->toBeTrue()
-            ->and($data['user']['settingsPages']['general'])->toBeFalse()
+            ->and($data['user']['canManageSpamRules'])->toBeTrue()
+            ->and($data['user']['settingsPages'])->not->toHaveKey('general')
+            ->and($data['user']['settingsPages']['support'])->toBeFalse()
             ->and(json_encode($data))->not->toContain($user->email, $user->username);
     });
 });

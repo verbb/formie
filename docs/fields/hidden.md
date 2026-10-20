@@ -15,7 +15,7 @@ Hidden fields are useful for context, attribution, and routing data. Do not rely
 
 ## Template Availability
 
-An administrator must enable **Settings → Fields → Allow Hidden Field Templates** before editors can choose Template. It is off on new installs; upgrades preserve availability. When disabled later, existing Template fields return an empty value and still ignore posted input. Their source is retained. To save an affected form, choose another source or ask an administrator to restore template access.
+A Craft administrator with admin changes enabled must enable **Settings → Field Types and Restrictions → Allow Hidden Field Templates** before editors can choose Template. It is off on new installs; upgrades preserve availability. When disabled later, existing Template fields return an empty value and still ignore posted input. Their source is retained. To save an affected form, choose another source or ask an administrator to restore template access.
 
 ## Custom Value vs Template
 

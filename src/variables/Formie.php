@@ -267,8 +267,8 @@ class Formie
                 'forms' => ['title' => Craft::t('formie', 'Forms')],
                 'form-groups' => ['title' => Craft::t('formie', 'Form Groups')],
                 'synced-fields' => ['title' => Craft::t('formie', 'Synced Fields')],
-                'defaults' => ['title' => Craft::t('formie', 'Defaults')],
-                'fields' => ['title' => Craft::t('formie', 'Fields')],
+                'defaults' => ['title' => Craft::t('formie', 'Form Builder Defaults')],
+                'fields' => ['title' => Craft::t('formie', 'Field Types and Restrictions')],
 
                 'behavior-heading' => ['heading' => Craft::t('formie', 'Behavior')],
                 'notifications' => ['title' => Craft::t('formie', 'Email Notifications')],
@@ -286,7 +286,10 @@ class Formie
             ];
         } else {
             $navItems = [
+                'encryption' => ['title' => Craft::t('formie', 'Encryption')],
                 'import-export' => ['title' => Craft::t('formie', 'Import/Export')],
+                'synced-fields' => ['title' => Craft::t('formie', 'Synced Fields')],
+                'scheduled-reports' => ['title' => Craft::t('formie', 'Scheduled Reports')],
             ];
         }
 

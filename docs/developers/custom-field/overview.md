@@ -143,7 +143,7 @@ Defines the schema for the `Conditions` tab in the field edit modal.
 ::: reference
 ### `supportedDefaults()`
 
-Returns setting handles that can be configured as organisation-wide defaults in **Settings → Defaults**. See [Field Defaults](/developers/custom-field/field-defaults).
+Returns setting handles that can be configured as organisation-wide defaults in **Settings → Form Builder Defaults**. See [Field Defaults](/developers/custom-field/field-defaults).
 :::
 
 ::: reference

@@ -13,9 +13,9 @@ HTML is a cosmetic field for developers and agencies who need custom markup, san
 
 ## Site-Wide Controls
 
-Administrators control these options in **Settings → Fields**. New installs have **Allow Twig in HTML Fields** and **Allow Template Includes in HTML Fields** off, and **Require HTML Purification** on. Upgrades preserve existing availability and per-field purification choices.
+Craft administrators with admin changes enabled control these options in **Settings → Field Types and Restrictions**. New installs have **Allow Twig in HTML Fields** and **Allow Template Includes in HTML Fields** off, and **Require HTML Purification** on. Upgrades preserve existing availability and per-field purification choices.
 
-When Twig is disabled site-wide, HTML fields already using Twig produce no output and retain their source. Turn off the field’s **Allow Twig** setting before saving an affected form, or ask an administrator to restore access. When purification is required, the field’s Purify Content toggle is hidden and all HTML output is purified regardless of its stored preference.
+When Twig is disabled site-wide, HTML fields already using Twig produce no output and retain their source. Turn off the field’s **Allow Twig** setting before saving an affected form, or ask someone with that permission to restore access. When purification is required, the field’s Purify Content toggle is hidden and all HTML output is purified regardless of its stored preference.
 
 ## Including a Template
 

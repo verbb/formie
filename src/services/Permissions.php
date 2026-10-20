@@ -25,10 +25,15 @@ class Permissions extends Component
     public const PERM_MANAGE_CAPTCHAS = 'formie-manageCaptchas';
     public const PERM_MANAGE_SPAM_RULES = 'formie-manageSpamRules';
     public const PERM_ACCESS_SETTINGS = 'formie-accessSettings';
+    public const PERM_ACCESS_SETTINGS_SECTION = 'formie-accessSettingsSection';
+    public const PERM_ACCESS_STENCILS_SECTION = 'formie-accessStencilsSection';
+    public const PERM_ACCESS_INTEGRATIONS_SECTION = 'formie-accessIntegrationsSection';
+    public const PERM_ACCESS_SPAM_PROTECTION = 'formie-accessSpamProtection';
     public const PERM_ACCESS_REPORTS = 'formie-accessReports';
     public const PERM_MANAGE_REPORTS = 'formie-manageReports';
     public const PERM_EXPORT_SUBMISSIONS = 'formie-exportSubmissions';
     public const PERM_MANAGE_SCHEDULED_REPORTS = 'formie-manageScheduledReports';
+    public const PERM_TEST_SCHEDULED_REPORTS = 'formie-testScheduledReports';
     public const PERM_ACCESS_SUBMISSIONS = 'formie-accessSubmissions';
     public const PERM_CREATE_FORMS = 'formie-createForms';
     public const PERM_DELETE_FORMS = 'formie-deleteForms';
@@ -93,17 +98,17 @@ class Permissions extends Component
 
     public function canAccessSettings(?User $user): bool
     {
-        return $this->_can($user, self::PERM_ACCESS_SETTINGS);
+        return $this->_isElevated($user) && Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
     }
 
     public function canManageCaptchas(?User $user): bool
     {
-        return $this->_can($user, self::PERM_MANAGE_CAPTCHAS) || $this->canAccessSettingsPage($user, 'spam-protection');
+        return $this->_can($user, self::PERM_MANAGE_CAPTCHAS);
     }
 
     public function canManageSpamRules(?User $user): bool
     {
-        return $this->_can($user, self::PERM_MANAGE_SPAM_RULES) || $this->canAccessSettingsPage($user, 'spam-protection');
+        return $this->_can($user, self::PERM_MANAGE_SPAM_RULES);
     }
 
     public function canAccessReports(?User $user): bool
@@ -131,7 +136,12 @@ class Permissions extends Component
 
     public function canManageScheduledReports(?User $user): bool
     {
-        return $this->_can($user, self::PERM_MANAGE_SCHEDULED_REPORTS);
+        return $this->canAccessSettings($user);
+    }
+
+    public function canTestScheduledReports(?User $user): bool
+    {
+        return $this->_can($user, self::PERM_TEST_SCHEDULED_REPORTS);
     }
 
     public function settingsPagePermissionKey(string $page): string
@@ -143,39 +153,35 @@ class Permissions extends Component
 
     public function canAccessSettingsPage(?User $user, string $page): bool
     {
-        if ($this->_isElevated($user)) {
-            return true;
+        $page = $this->normalizeSettingsPage($page);
+
+        // Configuration belongs to administrators on editable environments. Retired
+        // grants must not keep these endpoints available to delegated users.
+        if (in_array($page, [
+            'general', 'forms', 'form-groups', 'defaults', 'fields', 'notifications',
+            'sent-notifications', 'submission-statuses', 'form-statuses', 'submissions',
+            'integrations-settings', 'form-templates', 'email-templates', 'pdf-templates',
+        ], true)) {
+            return $this->canAccessSettings($user);
         }
 
-        if (!$user) {
+        if ($page === 'spam-protection') {
+            return $this->canManageCaptchas($user) || $this->canManageSpamRules($user);
+        }
+
+        if (!array_key_exists($page, $this->getSettingsPageDefinitions())) {
             return false;
         }
 
-        if ($user->can(self::PERM_ACCESS_SETTINGS)) {
+        if ($this->_can($user, $this->settingsPagePermissionKey($page))) {
             return true;
         }
 
-        if ($user->can($this->settingsPagePermissionKey($page))) {
-            return true;
+        if ($page === 'import-export') {
+            return $this->canImportForms($user) || $this->canExportForms($user);
         }
 
-        $page = $this->normalizeSettingsPage($page);
-
-        if ($page === 'spam-protection') {
-            return $user->can($this->settingsPagePermissionKey('spam-protection'))
-                || $user->can($this->settingsPagePermissionKey('spam'))
-                || $user->can($this->settingsPagePermissionKey('captchas'));
-        }
-
-        if ($page === 'scheduled-reports') {
-            return $this->canManageScheduledReports($user);
-        }
-
-        if (in_array($page, ['submission-statuses', 'form-statuses'], true)) {
-            return $user->can($this->settingsPagePermissionKey('statuses'));
-        }
-
-        return $user->can($this->settingsPagePermissionKey($page));
+        return $page === 'scheduled-reports' && $this->canTestScheduledReports($user);
     }
 
     public function normalizeSettingsPage(string $page): string
@@ -184,8 +190,8 @@ class Permissions extends Component
             return 'spam-protection';
         }
 
-        if ($page === 'submission-statuses' || $page === 'form-statuses') {
-            return 'statuses';
+        if ($page === 'statuses') {
+            return 'submission-statuses';
         }
 
         return $page;
@@ -231,30 +237,14 @@ class Permissions extends Component
     public function getSettingsPageDefinitions(): array
     {
         return [
-            'general' => Craft::t('formie', 'General Settings'),
-            'encryption' => Craft::t('formie', 'Encryption'),
-            'import-export' => Craft::t('formie', 'Import/Export'),
-            'forms' => Craft::t('formie', 'Forms settings'),
-            'form-groups' => Craft::t('formie', 'Form Groups'),
-            'synced-fields' => Craft::t('formie', 'Synced Fields'),
-            'defaults' => Craft::t('formie', 'Defaults'),
-            'fields' => Craft::t('formie', 'Fields'),
-            'notifications' => Craft::t('formie', 'Email notifications settings'),
-            'sent-notifications' => Craft::t('formie', 'Sent notifications settings'),
-            'submission-statuses' => Craft::t('formie', 'Submission Statuses'),
-            'form-statuses' => Craft::t('formie', 'Form Statuses'),
-            'statuses' => Craft::t('formie', 'Submission Statuses'),
-            'submissions' => Craft::t('formie', 'Submissions settings'),
-            'scheduled-reports' => Craft::t('formie', 'Scheduled Reports'),
-            'integrations-settings' => Craft::t('formie', 'Integrations settings'),
-            'spam-protection' => Craft::t('formie', 'Manage all Spam Protection (legacy permission)'),
-            'form-templates' => Craft::t('formie', 'Form Templates'),
-            'email-templates' => Craft::t('formie', 'Email Templates'),
-            'pdf-templates' => Craft::t('formie', 'PDF Templates'),
-            'support' => Craft::t('formie', 'Get Support'),
-            'migrate/freeform4' => Craft::t('formie', 'Migrate {source}', ['source' => 'Freeform 4']),
-            'migrate/freeform5' => Craft::t('formie', 'Migrate {source}', ['source' => 'Freeform 5']),
-            'migrate/sprout-forms' => Craft::t('formie', 'Migrate {source}', ['source' => 'Sprout Forms']),
+            'encryption' => Craft::t('formie', 'View encryption status'),
+            'import-export' => Craft::t('formie', 'Access import/export'),
+            'synced-fields' => Craft::t('formie', 'View synced field usage'),
+            'scheduled-reports' => Craft::t('formie', 'View scheduled reports'),
+            'support' => Craft::t('formie', 'Access support and diagnostics'),
+            'migrate/freeform4' => Craft::t('formie', 'Migrate forms from {source}', ['source' => 'Freeform 4']),
+            'migrate/freeform5' => Craft::t('formie', 'Migrate forms from {source}', ['source' => 'Freeform 5']),
+            'migrate/sprout-forms' => Craft::t('formie', 'Migrate forms from {source}', ['source' => 'Sprout Forms']),
         ];
     }
 
@@ -266,10 +256,52 @@ class Permissions extends Component
             $definitions[$this->settingsPagePermissionKey($page)] = ['label' => $label];
         }
 
-        $definitions[$this->settingsPagePermissionKey('spam')] = ['label' => Craft::t('formie', 'Manage all Spam Protection (legacy spam permission)')];
-        $definitions[$this->settingsPagePermissionKey('captchas')] = ['label' => Craft::t('formie', 'Manage all Spam Protection (legacy CAPTCHA permission)')];
-
         return $definitions;
+    }
+
+    public function getPermissionGroups(): array
+    {
+        $settings = $this->getSettingsPermissionDefinitions();
+        $settings[$this->settingsPagePermissionKey('import-export')]['nested'] = [
+            self::PERM_IMPORT_FORMS => ['label' => Craft::t('formie', 'Import forms')],
+            self::PERM_EXPORT_FORMS => ['label' => Craft::t('formie', 'Export forms')],
+        ];
+        $settings[$this->settingsPagePermissionKey('scheduled-reports')]['nested'] = [
+            self::PERM_TEST_SCHEDULED_REPORTS => ['label' => Craft::t('formie', 'Send scheduled report test emails')],
+        ];
+        $forms = $this->getFormPermissionDefinitions();
+        unset($forms[self::PERM_IMPORT_FORMS], $forms[self::PERM_EXPORT_FORMS]);
+
+        return [
+            [
+                'heading' => Craft::t('formie', 'Formie'),
+                'permissions' => [
+                    self::PERM_ACCESS_FORMS => ['label' => Craft::t('formie', 'Access forms'), 'nested' => $forms],
+                    self::PERM_ACCESS_SUBMISSIONS => ['label' => Craft::t('formie', 'Access submissions'), 'nested' => $this->getSubmissionPermissionDefinitions()],
+                    self::PERM_ACCESS_REPORTS => ['label' => Craft::t('formie', 'Access reports'), 'nested' => $this->getReportPermissionDefinitions()],
+                    'formie-accessSentNotifications' => ['label' => Craft::t('formie', 'Access sent notifications'), 'nested' => $this->getSentNotificationPermissionDefinitions()],
+                    self::PERM_ACCESS_STENCILS_SECTION => [
+                        'label' => Craft::t('formie', 'Access stencils'),
+                        'nested' => ['formie-accessStencils' => ['label' => Craft::t('formie', 'Manage stencils')]],
+                    ],
+                    self::PERM_ACCESS_INTEGRATIONS_SECTION => [
+                        'label' => Craft::t('formie', 'Access integrations'),
+                        'nested' => [self::PERM_ACCESS_INTEGRATIONS => ['label' => Craft::t('formie', 'Manage integrations')]],
+                    ],
+                    self::PERM_ACCESS_SPAM_PROTECTION => [
+                        'label' => Craft::t('formie', 'Access spam protection'),
+                        'nested' => [
+                            self::PERM_MANAGE_SPAM_RULES => ['label' => Craft::t('formie', 'Manage spam rules')],
+                            self::PERM_MANAGE_CAPTCHAS => ['label' => Craft::t('formie', 'Manage CAPTCHAs and spam filtering services')],
+                        ],
+                    ],
+                    self::PERM_ACCESS_SETTINGS_SECTION => [
+                        'label' => Craft::t('formie', 'Access settings'),
+                        'nested' => $settings,
+                    ],
+                ],
+            ],
+        ];
     }
 
     public function canCreateForms(?User $user): bool
@@ -804,13 +836,8 @@ class Permissions extends Component
     public function getReportPermissionDefinitions(): array
     {
         return [
-            self::PERM_MANAGE_REPORTS => [
-                'label' => Craft::t('formie', 'Manage reports'),
-                'nested' => [
-                    self::PERM_EXPORT_SUBMISSIONS => ['label' => Craft::t('formie', 'Export submissions')],
-                    self::PERM_MANAGE_SCHEDULED_REPORTS => ['label' => Craft::t('formie', 'Manage scheduled reports')],
-                ],
-            ],
+            self::PERM_MANAGE_REPORTS => ['label' => Craft::t('formie', 'Manage reports')],
+            self::PERM_EXPORT_SUBMISSIONS => ['label' => Craft::t('formie', 'Export submissions')],
         ];
     }
 
@@ -924,12 +951,12 @@ class Permissions extends Component
         $suffix = $scope ? ":{$scope}" : '';
 
         return [
-            "formie-createFormAppearance{$suffix}" => ['label' => Craft::t('formie', 'Show form appearance tab')],
-            "formie-createFormBehavior{$suffix}" => ['label' => Craft::t('formie', 'Show form behaviour tab')],
-            "formie-createNotifications{$suffix}" => ['label' => Craft::t('formie', 'Show form email notifications tab')],
-            "formie-createFormIntegrations{$suffix}" => ['label' => Craft::t('formie', 'Show form integrations tab')],
-            "formie-createFormUsage{$suffix}" => ['label' => Craft::t('formie', 'Show form usage tab')],
-            "formie-createFormSettings{$suffix}" => ['label' => Craft::t('formie', 'Show form settings tab')],
+            "formie-createFormAppearance{$suffix}" => ['label' => Craft::t('formie', 'Access form appearance tab')],
+            "formie-createFormBehavior{$suffix}" => ['label' => Craft::t('formie', 'Access form behaviour tab')],
+            "formie-createNotifications{$suffix}" => ['label' => Craft::t('formie', 'Access form email notifications tab')],
+            "formie-createFormIntegrations{$suffix}" => ['label' => Craft::t('formie', 'Access form integrations tab')],
+            "formie-createFormUsage{$suffix}" => ['label' => Craft::t('formie', 'Access form usage tab')],
+            "formie-createFormSettings{$suffix}" => ['label' => Craft::t('formie', 'Access form settings tab')],
         ];
     }
 
@@ -938,18 +965,18 @@ class Permissions extends Component
         $suffix = $scope ? ":{$scope}" : '';
 
         return [
-            "formie-showFormAppearance{$suffix}" => ['label' => Craft::t('formie', 'Show form appearance tab')],
-            "formie-showFormBehavior{$suffix}" => ['label' => Craft::t('formie', 'Show form behaviour tab')],
+            "formie-showFormAppearance{$suffix}" => ['label' => Craft::t('formie', 'Access form appearance tab')],
+            "formie-showFormBehavior{$suffix}" => ['label' => Craft::t('formie', 'Access form behaviour tab')],
             "formie-showNotifications{$suffix}" => [
-                'label' => Craft::t('formie', 'Show form email notifications tab'),
+                'label' => Craft::t('formie', 'Access form email notifications tab'),
                 'nested' => [
-                    "formie-showNotificationsAdvanced{$suffix}" => ['label' => Craft::t('formie', 'Show email notification advanced tab')],
-                    "formie-showNotificationsTemplates{$suffix}" => ['label' => Craft::t('formie', 'Show email notification templates tab')],
+                    "formie-showNotificationsAdvanced{$suffix}" => ['label' => Craft::t('formie', 'Access email notification advanced tab')],
+                    "formie-showNotificationsTemplates{$suffix}" => ['label' => Craft::t('formie', 'Access email notification templates tab')],
                 ],
             ],
-            "formie-showFormIntegrations{$suffix}" => ['label' => Craft::t('formie', 'Show form integrations tab')],
-            "formie-showFormUsage{$suffix}" => ['label' => Craft::t('formie', 'Show form usage tab')],
-            "formie-showFormSettings{$suffix}" => ['label' => Craft::t('formie', 'Show form settings tab')],
+            "formie-showFormIntegrations{$suffix}" => ['label' => Craft::t('formie', 'Access form integrations tab')],
+            "formie-showFormUsage{$suffix}" => ['label' => Craft::t('formie', 'Access form usage tab')],
+            "formie-showFormSettings{$suffix}" => ['label' => Craft::t('formie', 'Access form settings tab')],
         ];
     }
 

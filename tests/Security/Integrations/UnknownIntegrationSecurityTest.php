@@ -38,12 +38,12 @@ function withUnknownIntegrationEditor(callable $callback, bool $missingClass = f
         $actor = new User(['username' => 'unknownEditor' . $suffix, 'email' => 'unknownEditor' . $suffix . '@example.test']);
         expect(Craft::$app->getElements()->saveElement($actor))->toBeTrue();
         Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-        expect(Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, [
+        expect(Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, \Tests\Support\PermissionTestHelper::withParents([
             'accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_FORMS, Permissions::PERM_MANAGE_FORMS,
             Permissions::PERM_IMPORT_FORMS, 'formie-accessStencils',
             ...($integrationTab ? ['formie-showFormIntegrations'] : []),
             ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
-        ]))->toBeTrue();
+        ])))->toBeTrue();
         $form = formie()->form(['handle' => 'unknownForm' . $suffix])->singleLineTextField('email')->create();
         $projectConfig = Craft::$app->getProjectConfig();
         $mutex = Craft::$app->getMutex();

@@ -22,12 +22,12 @@ it('keeps existing field selections within the current user form access', functi
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
     // Register permissions after this test's forms have been created.
     Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents([
         'accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_FORMS,
         Permissions::PERM_MANAGE_FORMS . ':' . $destination->uid,
         Permissions::PERM_MANAGE_FORMS . ':' . $allowed->uid,
         ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
-    ]))->toBeTrue();
+    ])))->toBeTrue();
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($destination, $allowed, $restricted, $user): void {
         $request->setIsCpRequest(true);
@@ -73,7 +73,7 @@ it('keeps existing notifications within form and notification permissions', func
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
     Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents([
         'accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_FORMS,
         Permissions::PERM_MANAGE_FORMS . ':' . $destination->uid,
         Permissions::PERM_MANAGE_FORMS . ':' . $allowed->uid,
@@ -81,7 +81,7 @@ it('keeps existing notifications within form and notification permissions', func
         'formie-showNotifications:' . $destination->uid,
         'formie-showNotifications:' . $allowed->uid,
         ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
-    ]))->toBeTrue();
+    ])))->toBeTrue();
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($destination, $allowed, $restricted, $user): void {
         $request->setIsCpRequest(true);
@@ -118,11 +118,11 @@ it('rejects notification lookups without destination notification access', funct
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
     Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents([
         'accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_FORMS,
         Permissions::PERM_MANAGE_FORMS . ':' . $destination->uid,
         ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
-    ]))->toBeTrue();
+    ])))->toBeTrue();
 
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($destination, $user): void {
         $request->setIsCpRequest(true);
@@ -164,9 +164,9 @@ it('requires builder access while preserving stencil-only access', function (boo
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
     // Register permissions after this test's forms have been created.
     Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents([
         'accessCp', 'accessPlugin-formie', ...($canUseStencils ? ['formie-accessStencils'] : []),
-    ]))->toBeTrue();
+    ])))->toBeTrue();
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($user, $canUseStencils): void {
         $request->setIsCpRequest(true);
         Craft::$app->getUser()->setIdentity(User::find()->id($user->id)->status(null)->one());

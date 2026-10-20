@@ -32,11 +32,11 @@ function formUsageAclUser(array $permissions): User
 
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
     Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents([
         'accessCp',
         'accessPlugin-formie',
         ...$permissions,
-    ]))->toBeTrue();
+    ])))->toBeTrue();
 
     return $user;
 }

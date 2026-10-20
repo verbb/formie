@@ -144,8 +144,7 @@ class EmailController extends Controller
 
             // For stencil previews, hydrate a throwaway Form from the stencil.
             if ($isStencil && $handle) {
-                // Stencil editing lives under Formie settings
-                $this->requirePermission(Permissions::PERM_ACCESS_SETTINGS);
+                $this->requirePermission('formie-accessStencils');
 
                 $stencil = Formie::$plugin->getStencils()->getStencilByHandle($handle);
 

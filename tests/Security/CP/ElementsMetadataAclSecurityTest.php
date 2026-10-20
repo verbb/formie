@@ -15,11 +15,11 @@ function elementsMetadataAclUser(string $permission): User
     $username = 'elementsMetadataAcl' . bin2hex(random_bytes(6));
     $user = new User(['username' => $username, 'email' => $username . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents([
         'accessCp',
         'accessPlugin-formie',
         $permission,
-    ]))->toBeTrue();
+    ])))->toBeTrue();
 
     return $user;
 }

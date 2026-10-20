@@ -29,6 +29,22 @@ Before deploying, establish where the configuration is stored and which environm
 
 **Instance-level settings** stay in the current installation’s database. An **instance** is a Craft installation, such as development, staging or production, rather than an individual site in a multisite installation. Editing something in the control panel does not determine its storage: project-managed configuration is edited there too.
 
+## Delegating Production Access
+
+Craft’s user and group permissions keep all Formie capabilities under a single **Formie** heading. Use its **Select All** control to select every Formie permission, including nested permissions. The top-level permissions match Formie’s navigation: Forms, Submissions, Reports, Sent Notifications, Stencils, Integrations, Spam Protection, and Settings. Grant access to Craft’s control panel and Formie alongside the capabilities the person needs.
+
+Enable **Access settings**, then select the production tools or information the person needs beneath it. The parent alone does not open any settings page. These permissions cover encryption status, import/export, synced field usage, scheduled reports, support and migration tools.
+
+**Access** identifies a section or tools page; select the capabilities beneath it to grant the actions needed there. **View** permits reading records or information, while **Manage** permits editing. Specific actions use their own verbs, such as **Import forms** and **Export forms**.
+
+Under **Access settings → Access import/export**, select **Import forms**, **Export forms**, or both. Neither action requires access to Forms or grants the other action. Importing on production requires the form’s project-config dependencies, such as groups, statuses and templates, to exist already. Create and deploy missing dependencies from an environment where admin changes are enabled.
+
+**View synced field usage** opens a usage report. **View scheduled reports** allows someone to inspect saved schedules; its nested **Send scheduled report test emails** permission lets them send a test delivery to their own email address. **View encryption status** displays configuration information; encryption keys are managed outside the control panel.
+
+General settings, form groups, builder defaults, field restrictions, status and template definitions, and scheduled-report editing require a Craft administrator with `allowAdminChanges` enabled. These configuration tasks have no assignable settings permissions. Production viewers see scheduled reports without save, create or delete controls.
+
+Spam permissions belong under **Access spam protection**: **Manage spam rules**, followed by **Manage CAPTCHAs and spam filtering services**. Settings access does not grant either capability. Both spam-management permissions remain usable when `allowAdminChanges` is `false`.
+
 ## Walkthrough — Promoting Staging to Production
 
 Imagine you finished work on staging and you are about to deploy. Here is what each scope does in that moment.
@@ -82,7 +98,7 @@ Use this when you know *what* you want to change but not *where*:
 
 | I want to change… | Where |
 | --- | --- |
-| Default submit method for new forms | `formDefaults` in `formie.php`, or **Settings → Defaults** |
+| Default submit method for new forms | `formDefaults` in `formie.php`, or **Settings → Form Builder Defaults** |
 | Spam keywords | **Spam Protection → Spam Rules** — stored in the installation’s database |
 | Turnstile or reCAPTCHA secret | **Spam Protection → CAPTCHAs** |
 | Which sites a form group applies to | **Settings → Form Groups** (project config) |

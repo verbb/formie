@@ -20,6 +20,7 @@
     </p>
 {% endif %}
 
+<fieldset {{ not currentUser.can('formie-importForms') ? 'disabled' }}>
 <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
     {{ actionInput('formie/import-export/import') }}
     {{ redirectInput('formie/settings/import-export/import-configure/{filename}') }}
@@ -35,6 +36,7 @@
 
     <input type="submit" class="btn submit" value="{{ 'Review Import' | t('formie') }}">
 </form>
+</fieldset>
 
 <hr>
 
@@ -47,6 +49,7 @@
     </p>
 {% endif %}
 
+<fieldset {{ not currentUser.can('formie-exportForms') ? 'disabled' }}>
 <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
     {{ actionInput('formie/import-export/export') }}
     {{ csrfInput() }}
@@ -70,5 +73,6 @@
 
     <input type="submit" class="btn submit" value="{{ 'Export' | t('formie') }}">
 </form>
+</fieldset>
 
 {% endblock %}

@@ -1,11 +1,13 @@
 {% extends 'formie/_layouts/settings' %}
 
-{% set title = 'Defaults' | t('formie') %}
+{% set title = 'Form Builder Defaults' | t('formie') %}
 {% set bodyClass = 'formie-defaults-page' %}
-{% set fullPageForm = true %}
+{% set fullPageForm = craft.app.config.general.allowAdminChanges %}
 
 {% block actionButton %}
-    <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
+    {% if craft.app.config.general.allowAdminChanges %}
+        <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
+    {% endif %}
 {% endblock %}
 
 {% block content %}

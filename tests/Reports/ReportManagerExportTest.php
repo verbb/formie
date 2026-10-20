@@ -21,7 +21,6 @@ it('uses the report viewer export permission for immediate and queued downloads'
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
     $grants = ['accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_REPORTS, Permissions::PERM_ACCESS_SUBMISSIONS, Permissions::PERM_VIEW_SUBMISSIONS];
     if ($grant !== '') { $grants[] = $grant; }
-    if ($grant === Permissions::PERM_EXPORT_SUBMISSIONS) { $grants[] = Permissions::PERM_MANAGE_REPORTS; }
     Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
     expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, $grants))->toBeTrue();
     $files = Formie::$plugin->getReportExportFiles();
@@ -71,6 +70,6 @@ it('uses the report viewer export permission for immediate and queued downloads'
     }
 })->with([
     'report manager' => [Permissions::PERM_MANAGE_REPORTS, true],
-    'manager with export grant' => [Permissions::PERM_EXPORT_SUBMISSIONS, true],
+    'viewer with export grant' => [Permissions::PERM_EXPORT_SUBMISSIONS, true],
     'report viewer' => ['', false],
 ]);

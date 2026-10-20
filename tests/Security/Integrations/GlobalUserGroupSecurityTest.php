@@ -26,10 +26,10 @@ function withGlobalGroupManager(callable $callback, bool $authorized = false): v
     $actor = new User(['username' => 'globalManager' . $suffix, 'email' => 'globalManager' . $suffix . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($actor))->toBeTrue();
     Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, [
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, \Tests\Support\PermissionTestHelper::withParents([
         'accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_INTEGRATIONS,
         ...($authorized ? ['viewUsers', 'editUsers', 'assignUserGroup:' . $group->uid] : []),
-    ]))->toBeTrue();
+    ])))->toBeTrue();
     $projectConfig = Craft::$app->getProjectConfig();
     WebRequestTestHelper::withWebRequestContext(function($request) use ($actor, $group, $callback, $projectConfig): void {
         Craft::$app->set('projectConfig', $projectConfig);

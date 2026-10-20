@@ -12,9 +12,9 @@ it('routes production settings to an available permitted page', function(bool $a
     $name = 'productionSettings' . bin2hex(random_bytes(6));
     $user = new User(['username' => $name, 'email' => $name . '@example.test', 'admin' => $admin]);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents([
         'accessCp', 'accessPlugin-formie', ...$permissions,
-    ]))->toBeTrue();
+    ])))->toBeTrue();
 
     WebRequestTestHelper::withWebRequestContext(function($request) use ($user, $page): void {
         Craft::$app->getConfig()->getGeneral()->allowAdminChanges = false;
@@ -33,10 +33,13 @@ it('routes production settings to an available permitted page', function(bool $a
             ->and($response->headers->get('Location'))->not->toContain('formie/settings/general');
     });
 })->with([
-    'administrator' => [true, [], 'import-export'],
-    'all settings' => [false, ['formie-accessSettings'], 'import-export'],
-    'spam only' => [false, ['formie-settingsSpamProtection'], 'spam-protection'],
+    'administrator' => [true, [], 'encryption'],
+    'retired blanket grant' => [false, ['formie-accessSettingsSection', 'formie-accessSettings'], null],
+    'spam only' => [false, ['formie-manageSpamRules'], null],
+    'encryption only' => [false, ['formie-settingsEncryption'], 'encryption'],
+    'synced field usage only' => [false, ['formie-settingsSyncedFields'], 'synced-fields'],
+    'schedules only' => [false, ['formie-settingsScheduledReports'], 'scheduled-reports'],
     'support only' => [false, ['formie-settingsSupport'], 'support'],
-    'unavailable general settings' => [false, ['formie-settingsGeneral'], null],
+    'unavailable general settings' => [false, ['formie-accessSettingsSection', 'formie-settingsGeneral'], null],
     'no settings permission' => [false, [], null],
 ]);

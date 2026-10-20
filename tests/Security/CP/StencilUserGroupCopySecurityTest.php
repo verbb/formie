@@ -26,12 +26,12 @@ function withStencilGroupCopier(callable $callback, string $encoding = 'array', 
     $actor = new User(['username' => 'stencilCopier' . $suffix, 'email' => 'stencilCopier' . $suffix . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($actor))->toBeTrue();
     Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, [
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, \Tests\Support\PermissionTestHelper::withParents([
         'accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_FORMS, Permissions::PERM_MANAGE_FORMS, 'formie-accessStencils',
         ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
         ...($integrationTab ? ['formie-showFormIntegrations'] : []),
         ...($authorized ? ['viewUsers', 'editUsers', 'assignUserGroup:' . $group->uid] : []),
-    ]))->toBeTrue();
+    ])))->toBeTrue();
     $integration = new UserIntegration(['name' => 'Copied users', 'handle' => 'copiedUsers' . $suffix,
         'scope' => Integrations::SCOPE_SITE, 'enabled' => $globalEnabled, 'groupUids' => [$group->uid]]);
     expect(Formie::$plugin->getIntegrations()->saveIntegration($integration))->toBeTrue();

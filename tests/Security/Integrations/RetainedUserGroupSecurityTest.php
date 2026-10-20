@@ -41,12 +41,12 @@ function withRetainedGroupEditor(callable $callback, bool $authorized = false, b
     $actor = new User(['username' => 'retainedEditor' . $suffix, 'email' => 'retainedEditor' . $suffix . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($actor))->toBeTrue();
     Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, [
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, \Tests\Support\PermissionTestHelper::withParents([
         'accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_FORMS, Permissions::PERM_MANAGE_FORMS,
         Permissions::PERM_IMPORT_FORMS, Permissions::PERM_ACCESS_INTEGRATIONS, 'formie-accessStencils', 'formie-showFormIntegrations',
         ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
         ...($authorized ? ['viewUsers', 'editUsers', 'assignUserGroup:' . $group->uid] : []),
-    ]))->toBeTrue();
+    ])))->toBeTrue();
     $integration = new UserIntegration(['name' => 'Retained users', 'handle' => 'retainedUsers' . $suffix,
         'scope' => $scope, 'enabled' => true, 'groupUids' => [$group->uid]]);
     expect(Formie::$plugin->getIntegrations()->saveIntegration($integration))->toBeTrue();
@@ -476,8 +476,8 @@ it('requires assignment permission after an unresolved group UID is restored', f
         $settings = $before[$integration->handle];
         $settings['groupUids'] = [$uid];
         expect(fn() => retainedGroupSave($request, $form, $integration, $actor, $settings, 'form'))->toThrow(BadRequestHttpException::class);
-        $restored = new UserGroup(['uid' => $uid, 'name' => 'Restored group', 'handle' => 'restored' . bin2hex(random_bytes(5))]);
-        expect(Craft::$app->getUserGroups()->saveGroup($restored))->toBeTrue();
+        $restored = new UserGroup(['uid' => $uid, 'name' => 'Restored group ' . $uid, 'handle' => 'restored' . bin2hex(random_bytes(5))]);
+        expect(Craft::$app->getUserGroups()->saveGroup($restored))->toBeTrue(json_encode($restored->getErrors()));
         expect(fn() => retainedGroupSave($request, $form, $integration, $actor, $settings, 'form'))->toThrow(ForbiddenHttpException::class, $restored->name);
         expect(retainedGroupStored($form))->toBe($before);
     });

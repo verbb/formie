@@ -207,7 +207,7 @@ it('requires manage access before an import can update an existing form', functi
         Formie::$plugin->getPermissions()->settingsPagePermissionKey('import-export'),
     ];
 
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, $permissions))->toBeTrue();
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents($permissions)))->toBeTrue();
 
     $importFiles = new FormImportFiles(Craft::$app->getAssets()->getTempAssetUploadFs());
     $stream = fopen('php://temp', 'w+b');

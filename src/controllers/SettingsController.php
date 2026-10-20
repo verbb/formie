@@ -62,10 +62,6 @@ class SettingsController extends SettingsAccessController
             return $this->redirect("formie/settings/$page");
         }
 
-        if ($permissions->canManageCaptchas($user) || $permissions->canManageSpamRules($user)) {
-            return $this->redirect('formie/spam-protection');
-        }
-
         throw new ForbiddenHttpException('User is not permitted to perform this action');
     }
 
@@ -115,7 +111,6 @@ class SettingsController extends SettingsAccessController
     public function actionSaveFieldPalette(): ?Response
     {
         $this->requirePostRequest();
-        $this->requireAdmin(false);
 
         if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             $this->setFailFlash(Craft::t('formie', 'Field palette cannot be saved when allowAdminChanges is disabled.'));
@@ -157,7 +152,10 @@ class SettingsController extends SettingsAccessController
     public function actionSaveDefaults(): ?Response
     {
         $this->requirePostRequest();
-        $this->requireAdmin(false);
+
+        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            throw new ForbiddenHttpException('Form builder defaults cannot be changed when allowAdminChanges is disabled.');
+        }
 
         $settingsJson = $this->request->getBodyParam('settings');
 
@@ -230,7 +228,7 @@ class SettingsController extends SettingsAccessController
 
         $canSavePage = $page === 'spam-protection'
             ? $permissions->canManageSpamRules($user)
-            : $permissions->canAccessSettingsPage($user, $page);
+            : $permissions->canAccessSettings($user) && isset(self::PAGE_SETTINGS[$page]);
 
         if (!$canSavePage) {
             throw new ForbiddenHttpException('User is not permitted to perform this action');
@@ -245,7 +243,9 @@ class SettingsController extends SettingsAccessController
         if (is_array($settingsParams)) {
             // The generic settings action must not bypass the protected Fields page.
             if (array_intersect(array_keys($settingsParams), array_keys(FieldBuilderPolicy::legacyTemplateSettings()))) {
-                $this->requireAdmin(false);
+                if (!$permissions->canAccessSettingsPage($user, 'fields')) {
+                    throw new ForbiddenHttpException('User is not permitted to change field types and restrictions.');
+                }
 
                 if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
                     throw new ForbiddenHttpException('Field template settings cannot be changed when allowAdminChanges is disabled.');

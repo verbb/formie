@@ -47,7 +47,7 @@ it('authorizes form saves against the persisted group', function(): void {
         ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
     ];
 
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, $permissions))->toBeTrue();
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents($permissions)))->toBeTrue();
 
     WebRequestTestHelper::withWebRequestContext(function($request) use ($allowedGroup, $restrictedForm, $user): void {
         $request->setIsCpRequest(true);
@@ -102,7 +102,7 @@ it('preserves notifications when the form manager cannot access them', function(
         ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
     ];
 
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, $permissions))->toBeTrue();
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents($permissions)))->toBeTrue();
 
     WebRequestTestHelper::withWebRequestContext(function($request) use ($form, $notificationParams, $updatedTitle, $user): void {
         $request->setIsCpRequest(true);
@@ -158,7 +158,7 @@ it('allows trusted stencil hydration to include posted notifications', function(
         ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
     ];
 
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, $permissions))->toBeTrue();
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents($permissions)))->toBeTrue();
 
     WebRequestTestHelper::withWebRequestContext(function($request) use ($form, $user): void {
         $request->setIsCpRequest(true);

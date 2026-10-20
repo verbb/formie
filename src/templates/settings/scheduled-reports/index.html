@@ -2,9 +2,10 @@
 {% set title = 'Scheduled Reports' | t('formie') %}
 
 {% set selectedTab = 'scheduled-reports' %}
+{% set canManage = craft.formie.plugin.permissions.canManageScheduledReports(currentUser) %}
 
 {% block actionButton %}
-    {% if currentUser.can('formie-manageScheduledReports') %}
+    {% if canManage %}
         <a href="{{ url('formie/settings/scheduled-reports/new') }}" class="btn submit add icon">{{ 'New Scheduled Report' | t('formie') }}</a>
     {% endif %}
 {% endblock %}
@@ -29,7 +30,7 @@
         frequency: frequencyLabel,
         lastSent: scheduledReport.lastSentAt ? scheduledReport.lastSentAt|datetime('short') : '—',
         enabled: scheduledReport.enabled,
-        _showDelete: true,
+        _showDelete: canManage,
     }]) %}
 {% endfor %}
 

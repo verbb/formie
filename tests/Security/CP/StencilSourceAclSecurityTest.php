@@ -20,11 +20,11 @@ function stencilSourceUser(array $permissions): User
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
     Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents([
         'accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_FORMS,
         ...$permissions,
         ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
-    ]))->toBeTrue();
+    ])))->toBeTrue();
     return $user;
 }
 

@@ -75,7 +75,7 @@ it('allows a CAPTCHA manager to save production credentials independently of rul
     $name = 'captchaEditor' . bin2hex(random_bytes(5));
     $user = new \craft\elements\User(['username' => $name, 'email' => $name . '@example.test']);
     Craft::$app->getElements()->saveElement($user);
-    Craft::$app->getUserPermissions()->saveUserPermissions($user->id, ['accessCp', 'accessPlugin-formie', 'formie-manageCaptchas']);
+    Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents(['accessCp', 'accessPlugin-formie', 'formie-manageCaptchas']));
     $beforeRules = LocalSettings::record(LocalSettings::RULES);
     $beforeOther = LocalSettings::record('captcha:hcaptcha');
     $beforeConfig = Craft::$app->getProjectConfig()->get('formie');
@@ -104,18 +104,21 @@ it('migrates direct and group legacy permissions and continues interpreting old 
     $suffix = bin2hex(random_bytes(5));
     $group = new \craft\models\UserGroup(['name' => 'Spam legacy ' . $suffix, 'handle' => 'spamLegacy' . $suffix]);
     Craft::$app->getUserGroups()->saveGroup($group);
-    Craft::$app->getUserPermissions()->saveGroupPermissions($group->id, ['accessCp', 'accessPlugin-formie', 'formie-settingsSpam']);
+    Craft::$app->getProjectConfig()->set('users.groups.' . $group->uid . '.permissions', ['accesscp', 'accessplugin-formie', 'formie-settingsspam']);
     $user = new \craft\elements\User(['username' => 'spamGroup' . $suffix, 'email' => 'spamGroup' . $suffix . '@example.test']);
     Craft::$app->getElements()->saveElement($user);
     Craft::$app->getUsers()->assignUserToGroups($user->id, [$group->id]);
     $direct = new \craft\elements\User(['username' => 'spamDirect' . $suffix, 'email' => 'spamDirect' . $suffix . '@example.test']);
     Craft::$app->getElements()->saveElement($direct);
-    Craft::$app->getUserPermissions()->saveUserPermissions($direct->id, ['accessCp', 'accessPlugin-formie', 'formie-settingsCaptchas']);
+    // Seed the historical grant, which is no longer assignable in the editor.
+    Craft::$app->getDb()->createCommand()->upsert(Table::USERPERMISSIONS, ['name' => 'formie-settingscaptchas'], false)->execute();
+    $legacyId = (new \craft\db\Query())->select('id')->from(Table::USERPERMISSIONS)->where(['name' => 'formie-settingscaptchas'])->scalar();
+    Craft::$app->getDb()->createCommand()->insert(Table::USERPERMISSIONS_USERS, ['permissionId' => $legacyId, 'userId' => $direct->id])->execute();
     (new \verbb\formie\migrations\m261020_000000_local_spam_settings())->safeUp();
     foreach ([$user, $direct] as $principal) {
         expect($principal->can('formie-manageCaptchas'))->toBeTrue()->and($principal->can('formie-manageSpamRules'))->toBeTrue();
     }
-    Craft::$app->getUserPermissions()->saveGroupPermissions($group->id, ['accessCp', 'accessPlugin-formie', 'formie-settingsSpam']);
+    Craft::$app->getProjectConfig()->set('users.groups.' . $group->uid . '.permissions', ['accesscp', 'accessplugin-formie', 'formie-settingsspam']);
     Craft::$app->getUserPermissions()->reset();
     expect(Formie::$plugin->getPermissions()->canManageCaptchas($user))->toBeTrue()
         ->and(Formie::$plugin->getPermissions()->canManageSpamRules($user))->toBeTrue();
@@ -167,7 +170,7 @@ it('rejects a mixed legacy save in full when the user can manage only spam rules
     $name = 'ruleEditor' . bin2hex(random_bytes(5));
     $user = new \craft\elements\User(['username' => $name, 'email' => $name . '@example.test']);
     Craft::$app->getElements()->saveElement($user);
-    Craft::$app->getUserPermissions()->saveUserPermissions($user->id, ['accessCp', 'accessPlugin-formie', 'formie-manageSpamRules']);
+    Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents(['accessCp', 'accessPlugin-formie', 'formie-manageSpamRules']));
     $beforeRules = LocalSettings::record(LocalSettings::RULES);
     $beforeProvider = LocalSettings::record('captcha:turnstile');
     WebRequestTestHelper::withWebRequestContext(function($request) use ($user): void {
@@ -208,7 +211,7 @@ it('allows a spam-rule manager to save production rules without CAPTCHA access',
     $name = 'spamEditor' . bin2hex(random_bytes(5));
     $user = new \craft\elements\User(['username' => $name, 'email' => $name . '@example.test']);
     Craft::$app->getElements()->saveElement($user);
-    Craft::$app->getUserPermissions()->saveUserPermissions($user->id, ['accessCp', 'accessPlugin-formie', 'formie-manageSpamRules']);
+    Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents(['accessCp', 'accessPlugin-formie', 'formie-manageSpamRules']));
     $before = LocalSettings::record('captcha:turnstile');
     $config = Craft::$app->getProjectConfig()->get('formie');
     WebRequestTestHelper::withWebRequestContext(function($request) use ($user): void {

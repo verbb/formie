@@ -57,10 +57,10 @@ function withGroupNormalizationEditor(callable $callback, bool $authorized = fal
         $actor = new User(['username' => 'groupEditor' . $suffix, 'email' => 'groupEditor' . $suffix . '@example.test']);
         expect(Craft::$app->getElements()->saveElement($actor))->toBeTrue();
         Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-        expect(Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, [
+        expect(Craft::$app->getUserPermissions()->saveUserPermissions($actor->id, \Tests\Support\PermissionTestHelper::withParents([
             'accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_FORMS, Permissions::PERM_MANAGE_FORMS,
             'formie-showFormIntegrations', 'formie-accessStencils', ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()), ...($authorized ? ['viewUsers', 'editUsers', 'assignUserGroup:' . $group->uid] : []),
-        ]))->toBeTrue();
+        ])))->toBeTrue();
         $form = formie()->form()->singleLineTextField('email')->integrations([
             'userAccounts' => ['enabled' => true, 'groupUids' => []],
         ])->create();

@@ -10,6 +10,7 @@ use Craft;
 use craft\helpers\DateTimeHelper;
 use craft\web\Response;
 
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
 use Throwable;
@@ -31,8 +32,15 @@ class ScheduledReportsController extends SettingsAccessController
             return false;
         }
 
-        if (in_array($action->id, ['save', 'delete', 'test-send'], true)) {
-            $this->requirePermission(Permissions::PERM_MANAGE_SCHEDULED_REPORTS);
+        $permissions = Formie::$plugin->getPermissions();
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (in_array($action->id, ['save', 'delete'], true) && !$permissions->canManageScheduledReports($user)) {
+            throw new ForbiddenHttpException('Scheduled reports can only be changed by administrators when admin changes are enabled.');
+        }
+
+        if ($action->id === 'test-send') {
+            $this->requirePermission(Permissions::PERM_TEST_SCHEDULED_REPORTS);
         }
 
         return true;
@@ -62,6 +70,10 @@ class ScheduledReportsController extends SettingsAccessController
                     throw new NotFoundHttpException(Craft::t('formie', 'Scheduled report not found.'));
                 }
             } else {
+                if (!Formie::$plugin->getPermissions()->canManageScheduledReports(Craft::$app->getUser()->getIdentity())) {
+                    throw new ForbiddenHttpException('User is not permitted to create scheduled reports.');
+                }
+
                 $scheduledReport = new ScheduledReport([
                     'reportId' => $reportId ?: null,
                     'delivery' => (new ScheduledReportDelivery())->toStorageArray(),

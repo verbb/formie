@@ -14,7 +14,7 @@ When editing a form group under **Formie → Settings → Form Groups**, you can
 
 - **General** — name, handle, and allowed submission statuses
 - **Field Palette** — optional custom palette (toggle on tab; inherits global when off)
-- **Form Defaults**, **Field Defaults**, **Validation Messages**, **Notification Defaults**, **Integration Defaults** — same panels as global **Settings → Defaults**, with blank values inheriting from global settings
+- **Form Defaults**, **Field Defaults**, **Validation Messages**, **Notification Defaults**, **Integration Defaults** — same panels as global **Settings → Form Builder Defaults**, with blank values inheriting from global settings
 
 Blank group settings inherit from global **Formie → Settings** defaults.
 
@@ -30,7 +30,7 @@ Use the **Allowed Submission Statuses** control in **General** to restrict which
 
 ### Custom Field Palette
 
-Open the **Field Palette** tab and enable **Use custom field palette**. Forms in this group use that palette instead of the global one. When disabled, the group inherits the global palette from **Settings → Fields**.
+Open the **Field Palette** tab and enable **Use custom field palette**. Forms in this group use that palette instead of the global one. When disabled, the group inherits the global palette from **Settings → Field Types and Restrictions**.
 
 ### Submission Limits
 

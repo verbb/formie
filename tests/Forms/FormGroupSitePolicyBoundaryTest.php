@@ -23,9 +23,9 @@ it('preserves shared group availability when a limited-site manager edits anothe
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
     $permission = Formie::$plugin->getPermissions()->settingsPagePermissionKey('form-groups');
-    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+    expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents([
         'accessCp', 'accessPlugin-formie', $permission, 'editSite:' . Craft::$app->getSites()->getSiteById($sites[0])->uid,
-    ]))->toBeTrue();
+    ])))->toBeTrue();
     $projectConfig = Craft::$app->getProjectConfig();
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($user, $group, $projectConfig): void {
         Craft::$app->set('projectConfig', $projectConfig);
@@ -81,11 +81,11 @@ it('applies group availability changes to regional forms outside the current edi
         $name = 'regionalManager' . bin2hex(random_bytes(6));
         $user = new User(['username' => $name, 'email' => $name . '@example.test']);
         expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
-        expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
+        expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, \Tests\Support\PermissionTestHelper::withParents([
             'accessCp', 'accessPlugin-formie', Formie::$plugin->getPermissions()->settingsPagePermissionKey('form-groups'),
             'editSite:' . Craft::$app->getSites()->getSiteById($sites[0])->uid,
             'editSite:' . Craft::$app->getSites()->getSiteById($sites[2])->uid,
-        ]))->toBeTrue();
+        ])))->toBeTrue();
     }
     $projectConfig = Craft::$app->getProjectConfig();
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($user, $group, $sites, $projectConfig, $limited, $form): void {

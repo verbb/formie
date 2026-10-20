@@ -187,7 +187,7 @@ Open **Formie → Spam Protection**. **Spam Rules** contains spam handling, cont
 
 ### Spam Settings
 
-**Manage spam rules** and **Manage spam protection providers** are separate permissions. Authorised users can edit these settings directly, including on production with admin changes disabled. Form editors can use configured providers without permission to change their credentials. **Access all settings and Spam Protection** and legacy Spam Protection grants also grant both capabilities; remove those broad grants when narrowing a role.
+**Access spam protection** contains separate **Manage spam rules** and **Manage CAPTCHAs and spam filtering services** permissions. Authorised users can edit these settings directly, including on production with admin changes disabled. Form editors can use configured providers without permission to change their credentials. Settings permissions do not grant spam-rule or provider management.
 
 Spam rules and provider settings are stored in the current installation’s database. They are shared by the sites within a Craft multisite installation. Saving a provider changes only that provider; saving spam rules does not change provider credentials. Project config does not include or apply these settings.
 

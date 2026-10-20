@@ -45,9 +45,11 @@ it('registers a settings permission definition for every settings page', functio
     $pages = array_keys($permissions->getSettingsPageDefinitions());
     $definitions = $permissions->getSettingsPermissionDefinitions();
 
-    expect(count($definitions))->toBe(count($pages) + 2)
-        ->and($definitions)->toHaveKey($permissions->settingsPagePermissionKey('spam'))
-        ->and($definitions)->toHaveKey($permissions->settingsPagePermissionKey('captchas'));
+    expect(count($definitions))->toBe(count($pages))
+        ->and($definitions)->not->toHaveKey($permissions->settingsPagePermissionKey('spam'))
+        ->and($definitions)->not->toHaveKey($permissions->settingsPagePermissionKey('captchas'))
+        ->and($definitions)->not->toHaveKey($permissions->settingsPagePermissionKey('spam-protection'))
+        ->and($definitions)->not->toHaveKey($permissions->settingsPagePermissionKey('statuses'));
 
     foreach ($pages as $page) {
         expect($definitions)->toHaveKey($permissions->settingsPagePermissionKey($page));
@@ -88,3 +90,39 @@ it('authorizes a settings save using its posted page', function (string $page): 
         expect($controller->beforeAction(new \yii\base\Action('save-settings', $controller)))->toBeTrue();
     }, ['method' => 'POST', 'requestUri' => '/admin/formie/settings/save-settings']);
 })->with(['general', 'forms', 'spam']);
+
+
+it('registers each permission once under a single Formie heading', function(): void {
+    $groups = Formie::$plugin->getPermissions()->getPermissionGroups();
+    expect(array_column($groups, 'heading'))->toBe(['Formie']);
+    expect(array_column($groups[0]['permissions'], 'label'))->toBe([
+        'Access forms', 'Access submissions', 'Access reports', 'Access sent notifications',
+        'Access stencils', 'Access integrations', 'Access spam protection', 'Access settings',
+    ]);
+    $settings = $groups[0]['permissions'][Permissions::PERM_ACCESS_SETTINGS_SECTION]['nested'];
+    expect(array_keys($settings['formie-settingsImportExport']['nested']))->toBe([
+        Permissions::PERM_IMPORT_FORMS, Permissions::PERM_EXPORT_FORMS,
+    ]);
+    expect(array_keys($settings['formie-settingsScheduledReports']['nested']))->toBe([
+        Permissions::PERM_TEST_SCHEDULED_REPORTS,
+    ]);
+    foreach (array_keys(Formie::$plugin->getPermissions()->getSettingsPermissionDefinitions()) as $name) {
+        expect($settings)->toHaveKey($name);
+    }
+    $names = [];
+    $collect = function(array $definitions) use (&$collect, &$names): void {
+        foreach ($definitions as $name => $definition) {
+            expect($names)->not->toContain($name);
+            $names[] = $name;
+            if (isset($definition['nested'])) {
+                $collect($definition['nested']);
+            }
+        }
+    };
+    foreach ($groups as $group) {
+        $collect($group['permissions']);
+    }
+    foreach (array_keys(Formie::$plugin->getPermissions()->getSettingsPermissionDefinitions()) as $name) {
+        expect($names)->toContain($name);
+    }
+});

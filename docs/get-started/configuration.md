@@ -303,7 +303,7 @@ Sets per-field-type defaults applied when new fields are added to a form. Keys a
 
 **Type:** `bool` · **Default:** `true`
 
-Allows File Upload fields to use public asset volumes, and controls whether “Public URL” is available as an email summary value. Configure in **Settings → Fields**.
+Allows File Upload fields to use public asset volumes, and controls whether “Public URL” is available as an email summary value. Configure in **Settings → Field Types and Restrictions**.
 :::
 
 
@@ -312,7 +312,7 @@ Allows File Upload fields to use public asset volumes, and controls whether “P
 
 **Type:** `bool` · **Default:** `true`
 
-Controls whether form editors can enable “Allow Multiple” on Dropdown and element fields using a dropdown display type. When disabled, the setting is hidden in the form builder and existing values are forced off. Configure in **Settings → Fields**.
+Controls whether form editors can enable “Allow Multiple” on Dropdown and element fields using a dropdown display type. When disabled, the setting is hidden in the form builder and existing values are forced off. Configure in **Settings → Field Types and Restrictions**.
 :::
 
 
@@ -321,7 +321,7 @@ Controls whether form editors can enable “Allow Multiple” on Dropdown and el
 
 **Type:** `bool` · **Default:** `true`
 
-Controls whether form editors can enable the country code selector on Phone Number fields. When disabled, the setting is hidden in the form builder and existing values are forced off. For default-off behaviour on new phone fields without hiding the setting, use [Field Defaults](/developers/custom-field/field-defaults) (`countryEnabled: false`). Configure in **Settings → Fields**.
+Controls whether form editors can enable the country code selector on Phone Number fields. When disabled, the setting is hidden in the form builder and existing values are forced off. For default-off behaviour on new phone fields without hiding the setting, use [Field Defaults](/developers/custom-field/field-defaults) (`countryEnabled: false`). Configure in **Settings → Field Types and Restrictions**.
 :::
 
 
@@ -330,7 +330,7 @@ Controls whether form editors can enable the country code selector on Phone Numb
 
 **Type:** `bool` · **Default:** `false` on new installs; `true` after upgrading
 
-Allows form editors to select **Template** as a Hidden field’s default value source. Configure in **Settings → Fields**. When disabled, stored Template fields return an empty value and continue to ignore posted input. Their template source is retained. Choose another source before saving an affected form, or re-enable the capability. **Custom Value** and references remain available.
+Allows form editors to select **Template** as a Hidden field’s default value source. Configure in **Settings → Field Types and Restrictions**. When disabled, stored Template fields return an empty value and continue to ignore posted input. Their template source is retained. Choose another source before saving an affected form, or re-enable the capability. **Custom Value** and references remain available.
 :::
 
 ::: reference
@@ -338,7 +338,7 @@ Allows form editors to select **Template** as a Hidden field’s default value s
 
 **Type:** `bool` · **Default:** `false` on new installs; `true` after upgrading
 
-Allows form editors to enable **Allow Twig** on HTML fields. Each field must also opt in. When disabled, HTML fields already configured for Twig produce no output, and new fields cannot opt in. Stored content is retained. Existing fields can turn off **Allow Twig** before saving, or an administrator can restore the capability. Configure in **Settings → Fields**.
+Allows form editors to enable **Allow Twig** on HTML fields. Each field must also opt in. When disabled, HTML fields already configured for Twig produce no output, and new fields cannot opt in. Stored content is retained. Existing fields can turn off **Allow Twig** before saving, or an administrator can restore the capability. Configure in **Settings → Field Types and Restrictions**.
 :::
 
 ::: reference
@@ -346,7 +346,7 @@ Allows form editors to enable **Allow Twig** on HTML fields. Each field must als
 
 **Type:** `bool` · **Default:** `false` on new installs; `true` after upgrading
 
-Allows sandboxed site-template includes in HTML fields. Requires `allowHtmlFieldTwig` and the field’s **Allow Twig** setting. When disabled, includes fail with a Twig sandbox error; ordinary permitted Twig expressions still work. This setting does not enable includes in Hidden fields, PDF filenames or other inline templates. Configure in **Settings → Fields**.
+Allows sandboxed site-template includes in HTML fields. Requires `allowHtmlFieldTwig` and the field’s **Allow Twig** setting. When disabled, includes fail with a Twig sandbox error; ordinary permitted Twig expressions still work. This setting does not enable includes in Hidden fields, PDF filenames or other inline templates. Configure in **Settings → Field Types and Restrictions**.
 :::
 
 ::: reference
@@ -354,7 +354,7 @@ Allows sandboxed site-template includes in HTML fields. Requires `allowHtmlField
 
 **Type:** `bool` · **Default:** `true` on new installs; `false` after upgrading
 
-Always purifies HTML field output, including output from Twig and included templates, and hides the field’s **Purify Content** control. Existing per-field preferences are retained but cannot bypass this requirement. When `false`, each field’s **Purify Content** setting applies; new HTML fields still default to purification enabled. Configure in **Settings → Fields**.
+Always purifies HTML field output, including output from Twig and included templates, and hides the field’s **Purify Content** control. Existing per-field preferences are retained but cannot bypass this requirement. When `false`, each field’s **Purify Content** setting applies; new HTML fields still default to purification enabled. Configure in **Settings → Field Types and Restrictions**.
 :::
 
 These four controls are site-wide policies, not defaults for new fields. They apply to existing fields, imports, duplicated forms, previews and runtime overrides. Administrators can change them when Craft’s `allowAdminChanges` is enabled, or developers can set them in `config/formie.php`. Form groups and field defaults cannot loosen these policies. Review existing Hidden Template fields and HTML fields using Twig, includes or unpurified markup before tightening them, then clear any application or CDN caches containing previously rendered forms. Settings changes do not rewrite already-cached HTML.
@@ -797,7 +797,7 @@ Each report entry stores its analytical settings. Scheduled report entries store
 See [Reports](/reports/reports) and [Scheduled reports](/reports/scheduled-reports) for control panel behaviour and cron setup.
 
 ## Control Panel
-You can also manage many configuration settings through the control panel by visiting **Formie → Settings**. Form, field, and notification defaults are managed on the dedicated **Defaults** settings page.
+You can also manage many configuration settings through the control panel by visiting **Formie → Settings**. Form, field, and notification defaults are managed on the dedicated **Form Builder Defaults** settings page.
 
 ### Permissions
 
@@ -807,11 +807,12 @@ Formie registers Craft user permissions under **Settings → Users → {user gro
 | --- | --- |
 | **Access reports** | Open **Formie → Reports** and run saved reports |
 | **Manage reports** | Create, edit, and delete reports; export data |
-| **Manage scheduled reports** | Configure delivery under **Settings → Scheduled Reports** and on a report’s **Scheduled** tab |
+| **View scheduled reports** | Inspect saved deliveries under **Settings → Scheduled Reports** |
+| **Send scheduled report test emails** | Send a saved scheduled report to your own email address |
 
 Users with **Export submissions** can export from reports without **Manage reports**.
 
-To restrict settings access, assign individual page permissions such as **Forms settings** or **Email notifications settings**. Leave **Access all settings** unselected for these roles; that permission grants access to every settings page. Administrators retain access to all settings.
+Under **Access settings**, assign production tools such as import/export and support, or read-only access to encryption status, synced field usage and scheduled reports. Configuration editing, including scheduled-report definitions, requires a Craft administrator with admin changes enabled. Spam rules and CAPTCHA permissions are separate under **Access spam protection**.
 
 Scheduled email delivery requires a cron schedule. Use `./craft formie/cron/run` (recommended) or `./craft formie/reports/run-scheduled`. See [Scheduled reports](/reports/scheduled-reports).
 

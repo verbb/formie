@@ -5,7 +5,7 @@ When a project grows past a handful of forms, the control panel gets noisy and n
 ## Prerequisites
 
 - [Form Groups](/forms/form-groups)
-- [Configuration](/get-started/configuration) — global defaults in `config/formie.php` and **Settings → Defaults**
+- [Configuration](/get-started/configuration) — global defaults in `config/formie.php` and **Settings → Form Builder Defaults**
 
 ## When to Use Groups
 
@@ -46,7 +46,7 @@ See [Translating forms across Craft sites](/guides/control-panel-admin/translati
 
 ## Step 3 — Set Group Defaults
 
-Blank group settings inherit from global **Formie → Settings → Defaults**. Override only what the group needs:
+Blank group settings inherit from global **Formie → Settings → Form Builder Defaults**. Override only what the group needs:
 
 | Tab | Example override |
 | --- | --- |
@@ -68,7 +68,7 @@ Global abuse throttling lives under **Spam Protection** — separate from form s
 
 Enable **Use custom field palette** on the **Field Palette** tab when a team should only see a subset of field types — for example, no Payment or Repeater for marketing self-service authors.
 
-When disabled, the group inherits the global palette from **Settings → Fields**.
+When disabled, the group inherits the global palette from **Settings → Field Types and Restrictions**.
 
 ## Step 5 — Allowed Submission Statuses
 
@@ -110,7 +110,7 @@ return [
 Precedence in practice:
 
 1. **Global config** (`formie.php`) — baseline for all environments
-2. **Global CP defaults** — **Settings → Defaults**
+2. **Global CP defaults** — **Settings → Form Builder Defaults**
 3. **Group defaults** — override global where set
 4. **Individual form** — final authority once saved
 

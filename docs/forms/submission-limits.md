@@ -22,7 +22,7 @@ Use **Message** to customise what visitors see when a limit is reached.
 
 ### Per Logged-in User Limits
 
-Per-user limits require Formie to know who submitted. Enable **Collect User** under **Settings → Privacy** on the form (or preset it in **Formie → Settings → Defaults** or a form group’s **Form Defaults** tab).
+Per-user limits require Formie to know who submitted. Enable **Collect User** under **Settings → Privacy** on the form (or preset it in **Formie → Settings → Form Builder Defaults** or a form group’s **Form Defaults** tab).
 
 Anonymous visitors are not counted toward a per-user limit.
 

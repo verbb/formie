@@ -1799,7 +1799,7 @@ See [Field Events](/developers/events/field-events) and [Form Events](/developer
 
 Upgrading explicitly enables **Allow Hidden Field Templates**, **Allow Twig in HTML Fields** and **Allow Template Includes in HTML Fields**, and leaves **Require HTML Purification** off. This preserves existing field behavior, including each HTML field’s Purify Content choice. Previously configured values and `config/formie.php` overrides are respected. New installs use the opposite defaults.
 
-Review these controls in **Settings → Fields** before tightening them. Disabling Hidden templates makes their computed values empty while still ignoring posted input; disabling HTML Twig suppresses output from fields configured for Twig. Stored source is retained, but affected forms must switch away from disabled modes before they can be saved. Disabling includes rejects those Twig calls. Requiring purification can remove markup that existing fields previously allowed. Clear rendered-form caches after changing the policy. PDF filename templates remain unchanged.
+Review these controls in **Settings → Field Types and Restrictions** before tightening them. Disabling Hidden templates makes their computed values empty while still ignoring posted input; disabling HTML Twig suppresses output from fields configured for Twig. Stored source is retained, but affected forms must switch away from disabled modes before they can be saved. Disabling includes rejects those Twig calls. Requiring purification can remove markup that existing fields previously allowed. Clear rendered-form caches after changing the policy. PDF filename templates remain unchanged.
 
 
 Review these operational changes while testing the upgrade. They cover automatic migrations, editor workflows and settings you may need to adjust for your site.
@@ -1839,6 +1839,13 @@ Before enabling encryption on another field, generate `FORMIE_ENCRYPTION_KEY` wi
 
 Keep `FORMIE_SECURITY_KEY` and the previous Craft security key available until conversion is complete if the site has used both. You can supply old keys temporarily through `FORMIE_ENCRYPTION_PREVIOUS_KEYS`. Formie preserves and locks any value it cannot decrypt instead of displaying it as blank or overwriting it during a resave.
 
+
+### Production Settings Permissions
+
+Settings permissions cover tools available with admin changes disabled, including import/export, support, encryption status, synced field usage and viewing scheduled reports. Project configuration, such as form groups, defaults, statuses and templates, requires a Craft administrator in an environment with admin changes enabled.
+
+Upgrade migrations remove the retired configuration grants. Existing blanket settings grants become explicit production-page permissions and separate spam-rule and CAPTCHA management permissions. Existing scheduled-report management grants become **View scheduled reports** and **Send scheduled report test emails**. Direct user assignments, group assignments and their project-config entries are migrated; existing import and export grants remain independent.
+
 ### Reports and Submission Export
 
 The submissions index **Export** action has moved to **Formie → Reports**. Update editor permissions and workflows if they rely on it.
@@ -1855,7 +1862,8 @@ Submission export now lives in **[Reports](/reports/reports)**:
 | **Access reports** | Open **Formie → Reports** and run saved reports |
 | **Export submissions** | Export from reports (without full manage access) |
 | **Manage reports** | Create, edit, delete reports; includes export |
-| **Manage scheduled reports** | Configure delivery under **Settings → Scheduled Reports** and on a report’s **Scheduled** tab |
+| **View scheduled reports** | Inspect saved deliveries under **Settings → Scheduled Reports** |
+| **Send scheduled report test emails** | Send a saved scheduled report to your own email address |
 
 See [Reports](/reports/reports), [Saved reports and scheduled delivery](/guides/submissions-workflows/saved-reports-and-scheduled-delivery), and [Submissions overview](/submissions/submissions#export-submission-data).
 
