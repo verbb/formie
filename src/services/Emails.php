@@ -841,8 +841,11 @@ class Emails extends Component
             return;
         }
 
-        // Generate the filename correctly.
-        $fileName = Formie::$plugin->getPdfTemplates()->resolveSubmissionPdfFilename($submission, $template, $notification);
+        // Reuse the rendered subject without evaluating submitted text again or changing the saved settings.
+        $filenameNotification = clone $notification;
+        $filenameNotification->subject = $message->getSubject();
+
+        $fileName = Formie::$plugin->getPdfTemplates()->resolveSubmissionPdfFilename($submission, $template, $filenameNotification);
 
         $message->attach($pdfPath, ['fileName' => $fileName, 'contentType' => 'application/pdf']);
 
