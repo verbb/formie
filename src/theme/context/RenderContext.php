@@ -2,6 +2,7 @@
 namespace verbb\formie\theme\context;
 
 use verbb\formie\base\FieldInterface;
+use verbb\formie\conditions\ConditionVisibility;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\FieldLayoutPage;
@@ -145,7 +146,9 @@ final class RenderContext
             return false;
         }
 
-        return $this->field->isConditionallyHidden($this->submission);
+        // Ancestor wrappers already hide their descendants. Copying that state
+        // onto children leaves them hidden after the browser reveals the parent.
+        return ConditionVisibility::hidden($this->field, $this->submission, includeAncestors: false);
     }
 
     public function isMultipage(): bool

@@ -34,7 +34,7 @@ final class ConditionVisibility
         return $scope;
     }
 
-    public static function hidden(Field $field, Submission $submission): bool
+    public static function hidden(Field $field, Submission $submission, bool $includeAncestors = true): bool
     {
         if (!self::followsConditions($submission)) {
             return false;
@@ -47,6 +47,10 @@ final class ConditionVisibility
             if (!in_array($effect, ['enable', 'disable'], true) && ConditionsHelper::evaluate($settings, $submission, rows: self::rowScope($field))->hides($effect)) {
                 return true;
             }
+        }
+
+        if (!$includeAncestors) {
+            return false;
         }
 
         if (($parent = $field->getParentField()) instanceof Field && self::hidden($parent, $submission)) {
