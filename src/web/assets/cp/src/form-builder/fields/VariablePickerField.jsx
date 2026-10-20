@@ -73,6 +73,7 @@ export function VariablePickerField({ form, field }) {
                     ref={hostRef}
                     value={normalizePkTiptapStoreValue(value)}
                     variableCategories={resolvedVariableCategories}
+                    variableTransformerRegistry={variableTransformerRegistry}
                     variableTagConfigure={openConfigureSession}
                     onPkVariableTagConfigure={(event) => {
                         openConfigureSession(event?.detail);

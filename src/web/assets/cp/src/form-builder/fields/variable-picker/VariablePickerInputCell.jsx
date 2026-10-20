@@ -76,6 +76,7 @@ export function VariablePickerInputCell({
                 ref={hostRef}
                 value={stored}
                 variableCategories={variableCategories}
+                variableTransformerRegistry={resolvedRegistry}
                 variableTagConfigure={openConfigureSession}
                 onPkVariableTagConfigure={(event) => {
                     openConfigureSession(event?.detail);

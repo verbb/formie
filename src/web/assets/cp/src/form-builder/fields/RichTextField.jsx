@@ -72,6 +72,7 @@ export function RichTextField({ form, field }) {
                 <TiptapEditor
                     ref={hostRef}
                     value={normalizePkTiptapStoreValue(value)}
+                    variableTransformerRegistry={variableTransformerRegistry}
                     // Preferred bridge (parity with TiptapInput) + composed event fallback.
                     variableTagConfigure={openConfigureSession}
                     onPkVariableTagConfigure={(event) => {

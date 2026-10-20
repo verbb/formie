@@ -255,6 +255,7 @@ export function CalculationsField({ form, field }) {
                     buttons=""
                     rows={field.rows ?? 8}
                     placeholder={field.placeholder}
+                    variableTransformerRegistry={variableTransformerRegistry}
                     variableTagConfigure={openConfigureSession}
                     onPkVariableTagConfigure={(event) => {
                         openConfigureSession(event?.detail);
