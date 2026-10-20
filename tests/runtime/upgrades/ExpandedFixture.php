@@ -775,7 +775,8 @@ final class ExpandedFixture
 
     private function expectedValue(array $field, mixed $value): mixed
     {
-        if (in_array($field['type'], ['SingleLineText', 'MultiLineText'], true) && $value === null) return '';
+        // Formie 4's string-valued fields expose absent stored content as an empty string.
+        if (in_array($field['type'], ['SingleLineText', 'MultiLineText', 'Hidden'], true) && $value === null) return '';
         if (in_array($field['type'], ['Name', 'Address'], true) && is_array($value)) {
             foreach ($value as $key => &$part) {
                 if ($key !== 'country' && $part === null) $part = '';
