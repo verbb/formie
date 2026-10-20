@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix field variables in notification subjects appearing literally in PDF attachment filenames. ([#3025](https://github.com/verbb/formie/issues/3025))
+
 ## 3.1.49 - 2026-10-20
 
 ### Changed
