@@ -15,7 +15,6 @@ use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\ArrayHelper;
 
 use Faker\Generator as FakerFactory;
 
@@ -106,8 +105,8 @@ class Dropdown extends OptionsField implements SortableFieldInterface
 
         foreach ($settings['options'] as &$option) {
             if (isset($option['optgroup']) && $option['optgroup']) {
+                $option['label'] = $option['optgroup'];
                 $option['optgroup'] = true;
-                $option['label'] = ArrayHelper::remove($option, 'optgroup');
             } else {
                 $option['optgroup'] = false;
             }
