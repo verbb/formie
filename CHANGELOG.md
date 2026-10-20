@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.49 - 2026-10-20
 
 ### Changed
 - Update the minimum Auth requirement to `2.0.55`.
