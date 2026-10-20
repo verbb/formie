@@ -323,10 +323,8 @@ function shouldValidateOnSubmit(form: HTMLFormElement): boolean {
 async function waitForSubmitDelay(form: HTMLFormElement): Promise<void> {
     const delay = getSubmitDelayMs(form);
 
-    if (delay < 1) {
-        return;
-    }
-
+    // Even zero must yield to another task: requestSubmit() is ignored while
+    // the browser is still dispatching the original submit event.
     await new Promise((resolve) => {
         window.setTimeout(resolve, delay);
     });

@@ -6,6 +6,7 @@
 - Add the `formie:unload-warning:collect-exclusions` event for integrations to exclude automatically updated transport fields from unsaved-changes checks.
 
 ### Fixed
+- Fixed page-reload submissions stalling when the submit delay is zero.
 - Fixed “Scroll To Top” having no effect after successful AJAX submissions. ([#3023](https://github.com/verbb/formie/issues/3023))
 - Fixed summary fields remaining blank after AJAX page navigation.
 - Fixed summary fields repeatedly retrying failed requests.
