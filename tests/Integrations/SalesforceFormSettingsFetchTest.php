@@ -6,6 +6,7 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use verbb\formie\integrations\crm\Salesforce;
+use verbb\formie\models\FormIntegration;
 use verbb\formie\models\IntegrationSettingsContext;
 
 it('scopes Salesforce form settings refresh to the requested data key', function (): void {
@@ -68,3 +69,55 @@ it('detects Salesforce NOT_FOUND API errors', function (): void {
     expect($method->invoke($integration, $notFound))->toBeTrue()
         ->and($method->invoke($integration, $other))->toBeFalse();
 });
+
+it('refreshes Salesforce Lead fields before delivery is enabled and reports empty field results', function (bool $updateable, int $expectedCount): void {
+    $connection = new class(['name' => 'Salesforce', 'handle' => 'salesforce']) extends Salesforce {
+        public array $requests = [];
+        public bool $fieldUpdateable = true;
+
+        public static function supportsConnection(): bool { return false; }
+
+        public function request(string $method, string $uri, array $options = []): mixed
+        {
+            $this->requests[] = [$method, $uri];
+
+            if ($uri === 'query') {
+                return ['records' => []];
+            }
+
+            if ($uri !== 'sobjects/Lead/describe') {
+                throw new RuntimeException('Unexpected Salesforce request: ' . $uri);
+            }
+
+            return ['fields' => [[
+                'name' => 'LastName',
+                'label' => 'Last Name',
+                'type' => 'string',
+                'updateable' => $this->fieldUpdateable,
+                'createable' => $this->fieldUpdateable,
+                'nillable' => false,
+            ]]];
+        }
+    };
+    $connection->fieldUpdateable = $updateable;
+    $integration = FormIntegration::fromSettings($connection, [
+        'enabled' => false,
+        'mapToLead' => true,
+        'mapToContact' => true,
+    ])->createRuntime();
+    $integration->settingsContext = new IntegrationSettingsContext(['dataKey' => 'lead']);
+    $messageOffset = count(Craft::getLogger()->messages);
+    $config = $integration->refreshConfig();
+    $schema = $integration->createFieldMappingField(['dataKey' => 'lead', 'dataLabel' => 'Lead']);
+
+    expect($integration->getEnabled())->toBeFalse()
+        ->and($config->get('lead'))->toHaveCount($expectedCount)
+        ->and($schema['integrationFields'])->toHaveCount($expectedCount)
+        ->and($integration->requests)->toBe([['GET', 'query'], ['GET', 'sobjects/Lead/describe']]);
+
+    $messages = array_column(array_slice(Craft::getLogger()->messages, $messageOffset), 0);
+    expect(implode("\n", array_filter($messages, 'is_string')))
+        ->toContain('Salesforce: Fetching Salesforce Lead fields.')
+        ->toContain("Salesforce: Lead field refresh: received 1 fields, {$expectedCount} updateable, {$expectedCount} createable, {$expectedCount} available for mapping.")
+        ->not->toContain('LastName');
+})->with(['writable' => [true, 1], 'read-only' => [false, 0]]);

@@ -375,6 +375,11 @@ class Salesforce extends Crm implements OAuthProviderInterface
     {
         $settings = [];
 
+        Integration::info($this, 'Refreshing Salesforce field settings: ' . Json::encode([
+            'dataKey' => $this->settingsContext->dataKey,
+            'mapToLead' => $this->mapToLead,
+        ]));
+
         try {
             $this->_fetchSalesforceUsers();
         } catch (Throwable $e) {
@@ -1172,9 +1177,16 @@ class Salesforce extends Crm implements OAuthProviderInterface
     private function _fetchSObjectSettings(string $sObject, array $excludeNames = []): ?array
     {
         try {
+            Integration::info($this, "Fetching Salesforce {$sObject} fields.");
             $response = $this->request('GET', "sobjects/{$sObject}/describe");
+            $fields = $response['fields'] ?? [];
+            $customFields = $this->_getCustomFields($fields, $excludeNames);
+            $updateable = count(array_filter($fields, static fn(array $field) => !empty($field['updateable'])));
+            $createable = count(array_filter($fields, static fn(array $field) => !empty($field['createable'])));
 
-            return $this->_getCustomFields($response['fields'] ?? [], $excludeNames);
+            Integration::info($this, "{$sObject} field refresh: received " . count($fields) . " fields, {$updateable} updateable, {$createable} createable, " . count($customFields) . ' available for mapping.');
+
+            return $customFields;
         } catch (RequestException $e) {
             if ($this->_isSalesforceNotFoundError($e)) {
                 Integration::info($this, Craft::t('formie', 'Salesforce {object} object is not available for this org.', [
