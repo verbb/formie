@@ -17,6 +17,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\references\ReferenceContext;
 use verbb\formie\theme\context\RenderContext;
 use verbb\formie\workflow\WorkflowContext;
 
@@ -177,8 +178,14 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
 
         $value = $this->getDefaultValue();
 
-        if ($this->valueSource === 'custom' && $element instanceof Submission && is_string($value)) {
-            return References::parseContent($value, $element);
+        if ($this->valueSource === 'custom' && is_string($value)) {
+            // A fresh render has no submission yet, but form/site/time references
+            // must resolve before the browser posts the hidden value back.
+            $context = $element instanceof Submission
+                ? ReferenceContext::forSubmission($element)
+                : ReferenceContext::forForm($element instanceof Form ? $element : $this->getForm());
+
+            return References::interpolateText($value, $context);
         }
         return $value;
     }
@@ -208,9 +215,8 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
         $submission = $form->getCurrentSubmission();
         $prefillValue = $this->getPrefillValue($submission ?: $form, $hasPrefill);
 
-        // Hidden initial values are treated as literal data at render time.
-        // Only field-authored custom defaults resolve reference tokens, and only
-        // when a submission context exists. Template/query prefills remain literal.
+        // Only field-authored custom defaults resolve reference tokens through
+        // getInitialValue(). Submitted values and template/query prefills remain literal.
         if ($hasPrefill) {
             // Explicit values include failed submissions and intentionally cleared fields.
             if ($value === null) {
