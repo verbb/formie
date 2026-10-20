@@ -323,6 +323,20 @@ class FormSerializer
                 $config['nestedLayoutId'] = $existing->nestedLayoutId;
             }
 
+            if ($operation === 'builder' && $prototype instanceof Date) {
+                $key = match ($source['displayType'] ?? 'datePicker') {
+                    'dropdowns' => 'dropdowns', 'inputs' => 'inputs',
+                    'datePicker' => ($source['collectMode'] ?? 'single') === 'range' ? 'calendarRange' : 'calendar',
+                    default => 'calendar',
+                };
+
+                // The Date editor updates the selected variant, leaving the preview rows stale.
+                // Hydrate that variant as live children so existing identities and ownership checks apply.
+                if (isset($source['layouts'][$key]) && is_array($source['layouts'][$key])) {
+                    $source['rows'] = $source['layouts'][$key];
+                }
+            }
+
             if ($prototype instanceof FixedParentField && isset($source['layouts']) && is_array($source['layouts'])) {
                 $config['layouts'] = [];
 

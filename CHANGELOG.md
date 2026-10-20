@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix Date sub-field labels and settings reverting after saving the form builder. ([#3026](https://github.com/verbb/formie/issues/3026))
+
 ## 4.0.3 - 2026-10-20
 
 ### Added
