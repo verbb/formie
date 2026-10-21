@@ -108,8 +108,8 @@ final class IntegrationConfig
 
     public function __construct(array $data = [], string $invalidationKey = '', int $fetchedAt = 0)
     {
-        // Round-trip through the storage codec so callers always receive inert,
-        // redacted metadata while retaining the known value objects they expect.
+        // Round-trip through the storage codec to validate metadata structure and restore known value objects.
+        // Field values remain literal; diagnostic redaction must not alter operational metadata.
         $encoded = self::encode($data);
 
         if (strlen(json_encode($encoded, JSON_THROW_ON_ERROR)) > self::MAX_BYTES) {

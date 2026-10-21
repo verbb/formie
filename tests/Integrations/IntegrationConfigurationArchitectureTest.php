@@ -21,14 +21,14 @@ class SensitiveSettingFixture extends Freshdesk
     }
 }
 
-it('uses inherited sensitive metadata for non-obviously-named settings across storage and diagnostics', function() {
+it('preserves metadata values while using inherited sensitive annotations for diagnostics', function() {
     $connection = new class(['name' => 'Sensitive metadata', 'handle' => 'sensitiveMetadata', 'opaque' => 'synthetic-private-value']) extends SensitiveSettingFixture {};
     $secrets = $connection->getDiagnosticSecrets();
     expect(\verbb\formie\helpers\IntegrationSecrets::sensitiveAttributes($connection))->toContain('opaque', 'apiKey', 'clientSecret');
     expect($secrets)->toContain('synthetic-private-value');
-    expect(json_encode($connection->refreshConfig()->toStorage()))->not->toContain($connection->opaque);
+    expect($connection->refreshConfig()->get('fields')[0]->name)->toBe($connection->opaque);
     $connection->cache['config'] = (new IntegrationConfig(['oldLabel' => $connection->opaque], $connection->getIntegrationConfigKey(), time()))->toStorage();
-    expect(json_encode($connection->getConfig()->toStorage()))->not->toContain($connection->opaque);
+    expect($connection->getConfig()->get('oldLabel'))->toBe($connection->opaque);
     $form = formie()->form()->create();
     $submission = formie()->submission($form)->save();
     $attempts = \verbb\formie\Formie::$plugin->getDeliveryAttempts();

@@ -74,6 +74,7 @@ use yii\helpers\IpHelper;
 use Error;
 use Exception;
 use ReflectionClass;
+use ReflectionProperty;
 use Throwable;
 
 use GuzzleHttp\Client;
@@ -875,7 +876,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $cached = $this->_getCachedConfig();
 
             return new IntegrationConfig(
-                IntegrationSecrets::redactValues(IntegrationConfig::encode($settings->getSettings()), $this->getDiagnosticSecrets()),
+                $settings->getSettings(),
                 $cached->invalidationKey,
                 $cached->fetchedAt,
             );
@@ -1318,12 +1319,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function getDiagnosticSecrets(): array
     {
         $secrets = [];
-        $collect = function($value, bool $sensitive = false) use (&$collect, &$secrets): void {
+        $collect = function($value) use (&$collect, &$secrets): void {
             if (is_array($value)) {
-                foreach ($value as $key => $item) {
-                    $collect($item, $sensitive || (bool)preg_match('/secret|password|token|api.?key|httpAuth|authorization|webhook|credential|headers|url$/i', (string)$key));
+                foreach ($value as $item) {
+                    $collect($item);
                 }
-            } elseif ($sensitive && is_string($value) && $value !== '') {
+            } elseif (is_string($value) && $value !== '') {
                 $secrets[] = $value;
                 $parsed = App::parseEnv($value);
 
@@ -1334,11 +1335,25 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         };
         $attributes = $this->getAttributes();
 
+        // Built-in settings explicitly declare sensitivity; metadata and runtime state are not credentials.
         foreach (IntegrationSecrets::sensitiveAttributes($this) as $attribute) {
-            $collect($attributes[$attribute] ?? null, true);
+            $collect($attributes[$attribute] ?? null);
         }
-        // Retain conservative recognition for Formie 3 extensions without metadata.
-        $collect($attributes);
+
+        // Older add-ons may lack annotations. Recognize exact credential property names only,
+        // without searching their cache, context or unrelated settings for matching words.
+        foreach ((new ReflectionClass($this))->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
+            if ($property->isStatic() || str_starts_with($property->getDeclaringClass()->getName(), 'verbb\\formie\\')) {
+                continue;
+            }
+
+            $name = $property->getName();
+
+            if (preg_match('/^(?:clientSecret|apiKey|apiSecret|secretKey|password|apiPassword|accessToken|refreshToken|authToken|apiToken|token|credentials|authorization|httpAuth|headers|webhook|webhookUrl|webhookKey)$/i', $name)) {
+                $collect($attributes[$name] ?? null);
+            }
+        }
+
         return array_values(array_unique($secrets));
     }
 
@@ -1596,7 +1611,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $config = $legacyEvent->settings?->toConfig() ?? $legacyEvent->config ?? $config;
 
         $config = new IntegrationConfig(
-            IntegrationSecrets::redactValues(IntegrationConfig::encode($this->shouldCacheConfig() ? array_merge($previous->all(), $config->all()) : $config->all()), $this->getDiagnosticSecrets()),
+            $this->shouldCacheConfig() ? array_merge($previous->all(), $config->all()) : $config->all(),
             $this->getIntegrationConfigKey(),
             time(),
         );
@@ -2131,13 +2146,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             // compatibility; restore them before exposing config to callers.
             $stored = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($stored)));
 
-            $config = IntegrationConfig::fromStorage(IntegrationSecrets::redactValues($stored, $this->getDiagnosticSecrets()), $this->getIntegrationConfigKey());
+            // Read operational metadata unchanged; diagnostic redaction can invalidate keys and field handles.
+            $config = IntegrationConfig::fromStorage($stored, $this->getIntegrationConfigKey());
         } else {
             // Formie 3 stored the encoded metadata directly under `settings`.
             $legacy = $this->_getCache('settings') ?: [];
             $legacy = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($legacy)));
             $config = new IntegrationConfig(
-                IntegrationConfig::decode(IntegrationSecrets::redactValues($legacy, $this->getDiagnosticSecrets())),
+                IntegrationConfig::decode($legacy),
                 $this->getIntegrationConfigKey(),
                 0,
             );

@@ -10,6 +10,8 @@
 - Updated Markdown-it to 14.3.3 and the frontend build toolchain to Vite 8.3.4.
 
 ### Fixed
+- Fix integration metadata being altered or discarded by diagnostic redaction, including refreshed Salesforce fields disappearing.
+- Fix ordinary integration settings being mistaken for credentials in diagnostic logs.
 - Fixed variable tags not showing their configured transform name or default-value indicator.
 - Fix page-reload submissions stalling when the submit delay is zero.
 - Fix mounted form lifecycle events omitting the form instance, including submission, page navigation, token refresh and teardown hooks. ([#3032](https://github.com/verbb/formie/issues/3032))

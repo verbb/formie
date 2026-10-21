@@ -70,8 +70,8 @@ it('detects Salesforce NOT_FOUND API errors', function (): void {
         ->and($method->invoke($integration, $other))->toBeFalse();
 });
 
-it('refreshes Salesforce Lead fields before delivery is enabled and reports empty field results', function (bool $updateable, int $expectedCount): void {
-    $connection = new class(['name' => 'Salesforce', 'handle' => 'salesforce']) extends Salesforce {
+it('refreshes Salesforce Lead fields before delivery is enabled and reports empty field results', function (bool $updateable, int $expectedCount, bool|string $useCredentials = false): void {
+    $connection = new class(['name' => 'Salesforce', 'handle' => 'salesforce', 'useCredentials' => $useCredentials]) extends Salesforce {
         public array $requests = [];
         public bool $fieldUpdateable = true;
 
@@ -124,7 +124,12 @@ it('refreshes Salesforce Lead fields before delivery is enabled and reports empt
         ->toContain('"cachedFields":' . $expectedCount)
         ->toContain('"notUpdateable":' . (1 - $expectedCount))
         ->not->toContain('LastName');
-})->with(['writable' => [true, 1], 'read-only' => [false, 0]]);
+})->with([
+    'writable' => [true, 1],
+    'read-only' => [false, 0],
+    'saved credentials toggle off' => [true, 1, '0'],
+    'saved credentials toggle on' => [true, 1, '1'],
+]);
 
 
 it('explains each Salesforce field filter without logging field contents', function (): void {
@@ -161,3 +166,23 @@ it('reports refresh failure when the users query fails before Lead describe', fu
         ->and(implode("\n", $messages))->toContain('Fetching Salesforce users for field options.', 'Salesforce field settings failed:')
         ->not->toContain('Fetching Salesforce Lead fields.', 'Salesforce field refresh completed:');
 });
+
+
+it('keeps Salesforce credentials switches out of secrets while retaining real credentials', function (string $toggle): void {
+    $integration = new Salesforce([
+        'name' => 'Salesforce',
+        'useCredentials' => $toggle,
+        'clientSecret' => 'private-client-secret',
+        'password' => 'private-password',
+    ]);
+    expect($integration->getDiagnosticSecrets())->not->toContain($toggle)
+        ->toContain('private-client-secret', 'private-password');
+    $offset = count(Craft::getLogger()->messages);
+    \verbb\formie\base\Integration::info($integration, 'Status 200; fields 0; private-client-secret; private-password');
+    $messages = array_filter(array_column(array_slice(Craft::getLogger()->messages, $offset), 0), static fn($message) => is_string($message) && str_starts_with($message, 'Salesforce: '));
+    expect(implode("\n", $messages))->toContain('Status 200; fields 0; [redacted]; [redacted]')
+        ->not->toContain('private-client-secret', 'private-password');
+
+    $integration->password = $toggle;
+    expect($integration->getDiagnosticSecrets())->toContain($toggle);
+})->with(['0', '1']);
