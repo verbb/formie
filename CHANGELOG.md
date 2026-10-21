@@ -4,7 +4,7 @@
 
 ### Added
 - Add a Kebab Case text transform for reference tokens, including File Upload subpaths and filenames.
-- Add temporary Salesforce field-refresh diagnostics showing requested objects and returned and mappable field counts.
+- Add temporary Salesforce diagnostics for API requests, field filtering, cached settings and editor mappings.
 
 ### Fixed
 - Fixed variable tags not showing their configured transform name or default-value indicator.

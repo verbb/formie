@@ -36,6 +36,8 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Uri;
 use League\OAuth1\Client\Credentials\TokenCredentials as OAuth1Token;
 use League\OAuth2\Client\Token\AccessToken as OAuth2Token;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\clients\salesforce\token\SalesforceAccessToken;
 use verbb\auth\models\Token;
@@ -378,6 +380,15 @@ class Salesforce extends Crm implements OAuthProviderInterface
         Integration::info($this, 'Refreshing Salesforce field settings: ' . Json::encode([
             'dataKey' => $this->settingsContext->dataKey,
             'mapToLead' => $this->mapToLead,
+            'enabled' => $this->getEnabled(),
+            'objects' => array_keys(array_filter([
+                'contact' => $this->mapToContact,
+                'lead' => $this->mapToLead,
+                'opportunity' => $this->mapToOpportunity,
+                'account' => $this->mapToAccount,
+                'case' => $this->mapToCase,
+                'campaignMember' => $this->mapToCampaignMember,
+            ])),
         ]));
 
         try {
@@ -420,6 +431,28 @@ class Salesforce extends Crm implements OAuthProviderInterface
         return new IntegrationConfig($settings);
     }
 
+    public function getConfig(bool $useCache = true): IntegrationConfig
+    {
+        try {
+            $config = parent::getConfig($useCache);
+
+            if (!$useCache) {
+                Integration::info($this, 'Salesforce field refresh completed: ' . Json::encode([
+                    'integrationId' => $this->id,
+                    'dataKey' => $this->settingsContext->dataKey,
+                    'fieldCounts' => array_map(static fn($fields) => is_array($fields) ? count($fields) : null, $config->all()),
+                    'fetchedAt' => $config->fetchedAt,
+                    'stale' => $config->isStale(),
+                ]));
+            }
+
+            return $config;
+        } catch (Throwable $e) {
+            Integration::error($this, 'Salesforce field settings failed: ' . get_class($e));
+            throw $e;
+        }
+    }
+
     public function getMappedFieldValue(string $mappedFieldValue, Submission $submission, IntegrationField $integrationField): mixed
     {
         $value = parent::getMappedFieldValue($mappedFieldValue, $submission, $integrationField);
@@ -435,6 +468,27 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     // Protected Methods
     // =========================================================================
+
+    protected function createDeliveryHttpHandler(): callable
+    {
+        return $this->_withRequestDiagnostics(parent::createDeliveryHttpHandler());
+    }
+
+    protected function defineFieldMappingSchema(string $settingsKey, ?string $selectedCollectionField = null): array
+    {
+        $fields = parent::defineFieldMappingSchema($settingsKey, $selectedCollectionField);
+        $config = $this->getConfig();
+        Integration::info($this, 'Salesforce mapping schema: ' . Json::encode([
+            'integrationId' => $this->id,
+            'dataKey' => $settingsKey,
+            'fields' => count($fields),
+            'cachedFields' => is_array($config->get($settingsKey)) ? count($config->get($settingsKey)) : null,
+            'fetchedAt' => $config->fetchedAt,
+            'stale' => $config->isStale(),
+        ]));
+
+        return $fields;
+    }
 
 
     protected function modifyFieldMappingValue(ModifyFieldIntegrationValueEvent $event): void
@@ -1048,9 +1102,57 @@ class Salesforce extends Crm implements OAuthProviderInterface
         return addcslashes($value, "\\'");
     }
 
+    private function _withRequestDiagnostics(callable $handler): callable
+    {
+        // Temporary diagnostics at the transport include automatic token exchanges and retries.
+        return function(RequestInterface $request, array $options) use ($handler) {
+            $started = microtime(true);
+            $endpoint = $request->getUri()->withUserInfo('')->withQuery('')->withFragment('');
+            $path = preg_replace('~(/sobjects/[^/]+/)(?!describe(?:/|$))[^/]+~', '$1{recordId}', $endpoint->getPath());
+            $diagnostics = [
+                'requestId' => uniqid('salesforce-', true),
+                'integrationId' => $this->id,
+                'method' => $request->getMethod(),
+                'endpoint' => (string)$endpoint->withPath($path),
+                'grant_type' => $this->getGrant(),
+            ];
+            parse_str($request->getUri()->getQuery(), $query);
+
+            if (isset($query['q']) && is_string($query['q']) && preg_match('/\bFROM\s+([a-zA-Z_][a-zA-Z0-9_]*)/i', $query['q'], $match)) {
+                $diagnostics['queryObject'] = $match[1];
+            }
+
+            Integration::info($this, 'Salesforce HTTP request: ' . Json::encode($diagnostics));
+            $failed = function(Throwable $e) use ($diagnostics, $started): never {
+                Integration::error($this, 'Salesforce HTTP request failed: ' . Json::encode($diagnostics + [
+                    'durationMs' => (int)((microtime(true) - $started) * 1000),
+                    'exception' => get_class($e),
+                    'httpStatus' => $e instanceof RequestException ? $e->getResponse()?->getStatusCode() : null,
+                ]));
+                throw $e;
+            };
+
+            try {
+                $promise = $handler($request, $options);
+            } catch (Throwable $e) {
+                return $failed($e);
+            }
+
+            return $promise->then(function(ResponseInterface $response) use ($diagnostics, $started) {
+                Integration::info($this, 'Salesforce HTTP response: ' . Json::encode($diagnostics + [
+                    'durationMs' => (int)((microtime(true) - $started) * 1000),
+                    'httpStatus' => $response->getStatusCode(),
+                ]));
+
+                return $response;
+            }, $failed);
+        };
+    }
+
     private function _getCustomFields(array $fields, array $excludeNames = []): array
     {
         $customFields = [];
+        $skipped = ['notUpdateable' => 0, 'unsupportedTypes' => [], 'excludedNames' => 0];
 
         $supportedFields = [
             'string',
@@ -1073,16 +1175,19 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
         foreach ($fields as $key => $field) {
             if (!$field['updateable']) {
+                $skipped['notUpdateable']++;
                 continue;
             }
 
             // Only allow supported types
             if (!in_array($field['type'], $supportedFields)) {
+                $skipped['unsupportedTypes'][$field['type']] = ($skipped['unsupportedTypes'][$field['type']] ?? 0) + 1;
                 continue;
             }
 
             // Exclude any names
             if (in_array($field['name'], $excludeNames)) {
+                $skipped['excludedNames']++;
                 continue;
             }
 
@@ -1142,6 +1247,8 @@ class Salesforce extends Crm implements OAuthProviderInterface
             ]);
         }
 
+        Integration::info($this, 'Salesforce field filtering: ' . Json::encode($skipped));
+
         return $customFields;
     }
 
@@ -1162,9 +1269,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     private function _fetchSalesforceUsers(): void
     {
+        Integration::info($this, 'Fetching Salesforce users for field options.');
         $response = $this->request('GET', 'query', [
             'query' => ['q' => 'SELECT ID,Name FROM User LIMIT 20'],
         ]);
+
+        Integration::info($this, 'Salesforce user options received: ' . count($response['records'] ?? []));
 
         foreach ($response['records'] ?? [] as $user) {
             $this->users[] = [
@@ -1180,6 +1290,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
             Integration::info($this, "Fetching Salesforce {$sObject} fields.");
             $response = $this->request('GET', "sobjects/{$sObject}/describe");
             $fields = $response['fields'] ?? [];
+            Integration::info($this, "{$sObject} describe response: " . Json::encode([
+                'hasFields' => is_array($response) && array_key_exists('fields', $response),
+                'createable' => $response['createable'] ?? null,
+                'updateable' => $response['updateable'] ?? null,
+                'queryable' => $response['queryable'] ?? null,
+            ]));
             $customFields = $this->_getCustomFields($fields, $excludeNames);
             $updateable = count(array_filter($fields, static fn(array $field) => !empty($field['updateable'])));
             $createable = count(array_filter($fields, static fn(array $field) => !empty($field['createable'])));

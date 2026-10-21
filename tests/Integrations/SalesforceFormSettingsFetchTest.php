@@ -116,8 +116,48 @@ it('refreshes Salesforce Lead fields before delivery is enabled and reports empt
         ->and($integration->requests)->toBe([['GET', 'query'], ['GET', 'sobjects/Lead/describe']]);
 
     $messages = array_column(array_slice(Craft::getLogger()->messages, $messageOffset), 0);
-    expect(implode("\n", array_filter($messages, 'is_string')))
+    expect(implode("\n", array_filter($messages, static fn($message) => is_string($message) && str_starts_with($message, 'Salesforce: '))))
         ->toContain('Salesforce: Fetching Salesforce Lead fields.')
         ->toContain("Salesforce: Lead field refresh: received 1 fields, {$expectedCount} updateable, {$expectedCount} createable, {$expectedCount} available for mapping.")
+        ->toContain('Salesforce field refresh completed:')
+        ->toContain('Salesforce mapping schema:')
+        ->toContain('"cachedFields":' . $expectedCount)
+        ->toContain('"notUpdateable":' . (1 - $expectedCount))
         ->not->toContain('LastName');
 })->with(['writable' => [true, 1], 'read-only' => [false, 0]]);
+
+
+it('explains each Salesforce field filter without logging field contents', function (): void {
+    $integration = new Salesforce(['name' => 'Salesforce']);
+    $base = ['name' => 'private-field', 'label' => 'Private Label', 'type' => 'string', 'updateable' => true, 'createable' => true, 'nillable' => false];
+    $method = new ReflectionMethod($integration, '_getCustomFields');
+    $offset = count(Craft::getLogger()->messages);
+    $fields = $method->invoke($integration, [
+        array_replace($base, ['updateable' => false]),
+        array_replace($base, ['type' => 'location']),
+        array_replace($base, ['name' => 'excluded-field']),
+        $base,
+    ], ['excluded-field']);
+    $messages = array_filter(array_column(array_slice(Craft::getLogger()->messages, $offset), 0), static fn($message) => is_string($message) && str_starts_with($message, 'Salesforce: '));
+    expect($fields)->toHaveCount(1)
+        ->and(implode("\n", $messages))->toContain('"notUpdateable":1', '"unsupportedTypes":{"location":1}', '"excludedNames":1')
+        ->not->toContain('private-field', 'Private Label', 'excluded-field');
+});
+
+it('reports refresh failure when the users query fails before Lead describe', function (): void {
+    $integration = new class(['name' => 'Salesforce', 'mapToLead' => true]) extends Salesforce {
+        public array $requests = [];
+        public static function supportsConnection(): bool { return false; }
+        public function request(string $method, string $uri, array $options = []): mixed
+        {
+            $this->requests[] = $uri;
+            throw new RequestException('Forbidden', new Request($method, 'https://example.com/query'), new Response(403));
+        }
+    };
+    $offset = count(Craft::getLogger()->messages);
+    expect(fn() => $integration->refreshConfig())->toThrow(\verbb\formie\errors\IntegrationException::class);
+    $messages = array_filter(array_column(array_slice(Craft::getLogger()->messages, $offset), 0), static fn($message) => is_string($message) && str_starts_with($message, 'Salesforce: '));
+    expect($integration->requests)->toBe(['query'])
+        ->and(implode("\n", $messages))->toContain('Fetching Salesforce users for field options.', 'Salesforce field settings failed:')
+        ->not->toContain('Fetching Salesforce Lead fields.', 'Salesforce field refresh completed:');
+});
