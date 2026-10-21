@@ -22,6 +22,7 @@
 - Fix nested fields remaining hidden when a conditional Group or Repeater is revealed after continuing a multi-page form. ([#3031](https://github.com/verbb/formie/issues/3031))
 - Fix Agree fields reverting their Label Position from Form Default to Hidden after saving. ([#3030](https://github.com/verbb/formie/issues/3030))
 - Fix field variables in notification subjects appearing literally in PDF attachment filenames. ([#3025](https://github.com/verbb/formie/issues/3025))
+- Fix Hidden fields missing from notification email address variable pickers.
 - Fix forms created on secondary sites using the primary site as their source and failing when saving their first field. ([#3024](https://github.com/verbb/formie/issues/3024))
 - Fix custom hidden field defaults leaving reference tokens unresolved when rendering a new form. ([#3027](https://github.com/verbb/formie/issues/3027))
 - Fix dropdown optgroup labels being replaced with `true` and their optgroup setting being lost in the form builder. ([#3028](https://github.com/verbb/formie/issues/3028))

@@ -8,6 +8,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\events\ModifyFieldValueEvent;
+use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\HiddenDefaultTemplateResolver;
@@ -18,6 +19,7 @@ use verbb\formie\models\BrowserModule;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\references\ReferenceContext;
+use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
 use verbb\formie\workflow\WorkflowContext;
 
@@ -341,6 +343,14 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
     protected function defineValueType(): FieldValueType
     {
         return FieldValueType::string();
+    }
+
+    protected function defineReferenceValues(): array
+    {
+        // Hidden values can hold dynamically populated notification addresses.
+        return [
+            FieldReferenceValue::primary(types: [ReferenceType::Text, ReferenceType::Email]),
+        ];
     }
 
     protected function defineRules(): array
