@@ -1,0 +1,29 @@
+//#region src/js/utils/debug.ts
+function e() {
+	return globalThis;
+}
+function t() {
+	return e().__FORMIE_DEBUG__ === !0;
+}
+function n(t) {
+	e().__FORMIE_DEBUG__ = t;
+}
+function r(e, n, r) {
+	t() && (r === void 0 ? console.log(`[formie:${e}] ${n}`) : console.log(`[formie:${e}] ${n}`, r));
+}
+function i(e, n, r) {
+	t() && (r === void 0 ? console.warn(`[formie:${e}] ${n}`) : console.warn(`[formie:${e}] ${n}`, r));
+}
+function a(e, t) {
+	let n = t ? `${e}:${t}` : e;
+	return {
+		log: (e, t) => {
+			r(n, e, t);
+		},
+		warn: (e, t) => {
+			i(n, e, t);
+		}
+	};
+}
+//#endregion
+export { n as a, t as i, r as n, i as r, a as t };

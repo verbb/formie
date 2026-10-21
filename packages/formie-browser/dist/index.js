@@ -1,18 +1,18 @@
 import { n as e } from "./chunks/request-profile-DhwkeCpS.js";
-import { i as t, m as n, t as r } from "./chunks/dist-KtmTckA3.js";
+import { i as t, m as n, t as r } from "./chunks/dist-CJReDlDK.js";
 import { c as i, d as a, l as o, o as s, r as c, t as l, u } from "./chunks/event-names-BCI2FLD8.js";
-import { a as d, c as f, d as p, f as m, g as h, h as g, i as _, l as v, m as y, n as b, o as x, p as ee, r as te, s as ne, t as S, u as C } from "./chunks/api-BdZ4zajT.js";
-import { a as re, i as w, n as T, r as E, t as D } from "./chunks/debug-BV0DvdHx.js";
+import { a as d, c as f, d as p, f as m, g as h, h as g, i as _, l as v, m as y, n as b, o as x, p as ee, r as te, s as ne, t as S, u as C } from "./chunks/api-Cro_TjDi.js";
+import { a as re, i as w, n as T, r as E, t as D } from "./chunks/debug-rhzqP1j2.js";
 import { i as O, r as ie, t as k } from "./chunks/theme-classes-DAQuEqdP.js";
 import { n as A } from "./chunks/skip-CEW89ExY.js";
 import { i as ae, t as oe } from "./chunks/csrf-DxHg_ZYt.js";
-import { n as j, t as se } from "./chunks/http-DERPbgED.js";
+import { n as j, t as se } from "./chunks/http-Dj_skqaa.js";
 import { i as ce } from "./chunks/async-2GdXNFCE.js";
 import { a as le, i as ue, n as de, r as fe, t as pe } from "./chunks/i18n-BY1ds1BL.js";
-import { n as me, t as he } from "./chunks/api-C2fmBZFA.js";
+import { n as me, t as he } from "./chunks/api-BPtH5RBA.js";
 import { n as ge, r as _e, t as ve } from "./chunks/field-references.keys-58ZSTrCW.js";
-import { i as ye, n as be, r as xe, t as Se } from "./chunks/field-references.resolver-DC7vOSqg.js";
-import { t as Ce } from "./chunks/api-ghNr2uxX.js";
+import { i as ye, n as be, r as xe, t as Se } from "./chunks/field-references.resolver-uSHf5-NP.js";
+import { t as Ce } from "./chunks/api-CmuOZ0i3.js";
 //#region src/js/compatibility/event-map.ts
 var we = [
 	{
@@ -210,11 +210,7 @@ function Pe(e) {
 	return e === "off" ? null : e;
 }
 function Fe(e, t) {
-	if (t) {
-		e.setAttribute("aria-live", t), e.setAttribute("aria-atomic", "true");
-		return;
-	}
-	e.removeAttribute("aria-live"), e.removeAttribute("aria-atomic");
+	t ? (e.setAttribute("aria-live", t), e.setAttribute("aria-atomic", "true")) : (e.removeAttribute("aria-live"), e.removeAttribute("aria-atomic"));
 }
 //#endregion
 //#region src/js/core/field-error-aria.ts
@@ -226,11 +222,7 @@ function Le(e, t = document) {
 	let n = (e.getAttribute("aria-describedby") || "").trim();
 	if (!n) return;
 	let r = n.split(/\s+/).filter((e) => !!e && !!t.getElementById(e));
-	if (r.length) {
-		e.setAttribute("aria-describedby", r.join(" "));
-		return;
-	}
-	e.removeAttribute("aria-describedby");
+	r.length ? e.setAttribute("aria-describedby", r.join(" ")) : e.removeAttribute("aria-describedby");
 }
 function Re(e, t) {
 	e.setAttribute("aria-errormessage", t), Ie(e, t);
@@ -537,15 +529,9 @@ function ot(e, t) {
 			return;
 		}
 		e.append(t.name, t.value);
-		return;
-	}
-	if (t instanceof HTMLSelectElement && t.multiple) {
-		Array.from(t.selectedOptions).forEach((n) => {
-			e.append(t.name, n.value);
-		});
-		return;
-	}
-	e.append(t.name, t.value);
+	} else t instanceof HTMLSelectElement && t.multiple ? Array.from(t.selectedOptions).forEach((n) => {
+		e.append(t.name, n.value);
+	}) : e.append(t.name, t.value);
 }
 function st(e, t) {
 	t.querySelectorAll("input, select, textarea").forEach((t) => {
@@ -951,9 +937,7 @@ function R(e, t) {
 			let t = n[e.dataset.formieFieldUid || ""];
 			typeof t == "string" && t && e.querySelector("[data-formie-summary-container]")?.setAttribute("data-formie-summary-token", t);
 		}), Lt(e, t) && Rt(e, t.message || "", { hideForm: t.action !== "save" });
-		return;
-	}
-	if (!t.ok) {
+	} else if (!t.ok) {
 		if (Ft(t)) {
 			let n = String(t.payment?.message || "").trim();
 			n && It(e, n);
@@ -1048,11 +1032,7 @@ var Ut = class {
 			failed: []
 		};
 		return !n || n.size === 0 || (await Promise.allSettled(Array.from(n).map(async (e) => e(t)))).forEach((e, t) => {
-			if (e.status === "fulfilled") {
-				r.succeeded += 1;
-				return;
-			}
-			r.failed.push({
+			e.status === "fulfilled" ? r.succeeded += 1 : r.failed.push({
 				index: t,
 				error: e.reason
 			});
@@ -1088,58 +1068,58 @@ var Ut = class {
 		return Array.from(this.modules.values());
 	}
 }, Wt = new B(), Gt = {
-	"address-finder": () => import("./chunks/address-finder-BWGINCSA.js").then((e) => e.addressFinderModule),
-	"google-address": () => import("./chunks/google-address-CLX96eyd.js").then((e) => e.googleAddressModule),
-	loqate: () => import("./chunks/loqate-m51iPyO1.js").then((e) => e.loqateModule),
-	"place-kit": () => import("./chunks/place-kit-BnZGQ-L1.js").then((e) => e.placeKitModule)
+	"address-finder": () => import("./chunks/address-finder-QK1m1eyv.js").then((e) => e.addressFinderModule),
+	"google-address": () => import("./chunks/google-address-DQR6rsbh.js").then((e) => e.googleAddressModule),
+	loqate: () => import("./chunks/loqate-ZZClcacr.js").then((e) => e.loqateModule),
+	"place-kit": () => import("./chunks/place-kit-BKk8xDXf.js").then((e) => e.placeKitModule)
 }, Kt = {
-	"captcha-eu": () => import("./chunks/captcha-eu-BHgZYF2n.js").then((e) => e.captchaEuModule),
-	"friendly-captcha-v1": () => import("./chunks/friendly-captcha-v1-Bw0f1O0c.js").then((e) => e.friendlyCaptchaV1Module),
-	"friendly-captcha-v2": () => import("./chunks/friendly-captcha-v2-Di8PzrqZ.js").then((e) => e.friendlyCaptchaV2Module),
-	hcaptcha: () => import("./chunks/hcaptcha-C0G6JZyR.js").then((e) => e.hcaptchaModule),
-	"recaptcha-enterprise": () => import("./chunks/recaptcha-enterprise-DLiVTBVV.js").then((e) => e.recaptchaEnterpriseModule),
-	"recaptcha-v2-checkbox": () => import("./chunks/recaptcha-v2-checkbox-mSWjrDx2.js").then((e) => e.recaptchaV2CheckboxModule),
-	"recaptcha-v2-invisible": () => import("./chunks/recaptcha-v2-invisible-CRohobVl.js").then((e) => e.recaptchaV2InvisibleModule),
-	"recaptcha-v3": () => import("./chunks/recaptcha-v3-qadm_sg2.js").then((e) => e.recaptchaV3Module),
-	snaptcha: () => import("./chunks/snaptcha-CibXqXOR.js").then((e) => e.snaptchaModule),
-	turnstile: () => import("./chunks/turnstile-CFu1QWgY.js").then((e) => e.turnstileModule)
+	"captcha-eu": () => import("./chunks/captcha-eu-eU_M6snp.js").then((e) => e.captchaEuModule),
+	"friendly-captcha-v1": () => import("./chunks/friendly-captcha-v1-C_cF1WD2.js").then((e) => e.friendlyCaptchaV1Module),
+	"friendly-captcha-v2": () => import("./chunks/friendly-captcha-v2-BenESH-n.js").then((e) => e.friendlyCaptchaV2Module),
+	hcaptcha: () => import("./chunks/hcaptcha-COilLmRT.js").then((e) => e.hcaptchaModule),
+	"recaptcha-enterprise": () => import("./chunks/recaptcha-enterprise-Cx6HUpMa.js").then((e) => e.recaptchaEnterpriseModule),
+	"recaptcha-v2-checkbox": () => import("./chunks/recaptcha-v2-checkbox-DQ9BJzcv.js").then((e) => e.recaptchaV2CheckboxModule),
+	"recaptcha-v2-invisible": () => import("./chunks/recaptcha-v2-invisible-BP0T8Pan.js").then((e) => e.recaptchaV2InvisibleModule),
+	"recaptcha-v3": () => import("./chunks/recaptcha-v3-DKMGQ27K.js").then((e) => e.recaptchaV3Module),
+	snaptcha: () => import("./chunks/snaptcha-P3EoSQud.js").then((e) => e.snaptchaModule),
+	turnstile: () => import("./chunks/turnstile-Sp4ubowK.js").then((e) => e.turnstileModule)
 }, qt = {
-	calculations: () => import("./chunks/calculations-Dl65hl2R.js").then((e) => e.calculationsModule),
-	"checkbox-radio": () => import("./chunks/checkbox-radio-gsm8QPJg.js").then((e) => e.checkboxRadioModule),
-	combobox: () => import("./chunks/combobox-Ba08_cHL.js").then((e) => e.comboboxModule),
-	conditions: () => import("./chunks/conditions-D-IF1nKx.js").then((e) => e.conditionsModule),
-	"custom-google-maps": () => import("./chunks/custom-google-maps-C4l2S3GO.js").then((e) => e.customGoogleMapsModule),
-	"custom-link": () => import("./chunks/custom-link-CLazgKYH.js").then((e) => e.customLinkModule),
-	"custom-maps": () => import("./chunks/custom-maps-DqcAlD0v.js").then((e) => e.customMapsModule),
-	"date-picker": () => import("./chunks/date-picker-DaPvMrop.js").then((e) => e.datePickerModule),
-	"file-upload": () => import("./chunks/file-upload-BLs9H1UG.js").then((e) => e.fileUploadModule),
-	"upload-manager": () => import("./chunks/upload-manager-Cc8C3r41.js").then((e) => e.uploadManagerModule),
-	hidden: () => import("./chunks/hidden-BZhXnNPe.js").then((e) => e.hiddenModule),
-	"phone-country": () => import("./chunks/phone-country-9BiUEDUS.js").then((e) => e.phoneCountryModule),
-	"password-validation": () => import("./chunks/password-validation-D_Lx_EmA.js").then((e) => e.passwordValidationModule),
-	"address-country": () => import("./chunks/address-country-Cqo45WFg.js").then((e) => e.addressCountryModule),
-	"address-state": () => import("./chunks/address-state-CzTUdq20.js").then((e) => e.addressStateModule),
-	repeater: () => import("./chunks/repeater-CyhDbozO.js").then((e) => e.repeaterModule),
-	"rich-text": () => import("./chunks/rich-text-Cgo1Q4Tm.js").then((e) => e.richTextModule),
-	signature: () => import("./chunks/signature-7cldFbqj.js").then((e) => e.signatureModule),
-	summary: () => import("./chunks/summary-eO3Wcw6l.js").then((e) => e.summaryModule),
-	"survey-likert": () => import("./chunks/survey-likert-fk1hUPff.js").then((e) => e.surveyLikertModule),
-	"survey-rank": () => import("./chunks/survey-rank-BsLGl2LX.js").then((e) => e.surveyRankModule),
-	"survey-rating": () => import("./chunks/survey-rating-DVS6e6fM.js").then((e) => e.surveyRatingModule),
-	table: () => import("./chunks/table-j7MlLLCc.js").then((e) => e.tableModule),
-	"text-limit": () => import("./chunks/text-limit-BbvE2sjo.js").then((e) => e.textLimitModule)
+	calculations: () => import("./chunks/calculations-DeEmdUDq.js").then((e) => e.calculationsModule),
+	"checkbox-radio": () => import("./chunks/checkbox-radio-CSXo6svm.js").then((e) => e.checkboxRadioModule),
+	combobox: () => import("./chunks/combobox-6-W51JqB.js").then((e) => e.comboboxModule),
+	conditions: () => import("./chunks/conditions-Dz3068K0.js").then((e) => e.conditionsModule),
+	"custom-google-maps": () => import("./chunks/custom-google-maps-rNm5VFbb.js").then((e) => e.customGoogleMapsModule),
+	"custom-link": () => import("./chunks/custom-link-CLqFCssQ.js").then((e) => e.customLinkModule),
+	"custom-maps": () => import("./chunks/custom-maps-DgjYQDLj.js").then((e) => e.customMapsModule),
+	"date-picker": () => import("./chunks/date-picker-BVJxJVYT.js").then((e) => e.datePickerModule),
+	"file-upload": () => import("./chunks/file-upload-vEUr_EuP.js").then((e) => e.fileUploadModule),
+	"upload-manager": () => import("./chunks/upload-manager-Ccg3d_4I.js").then((e) => e.uploadManagerModule),
+	hidden: () => import("./chunks/hidden-Bc2TpcgF.js").then((e) => e.hiddenModule),
+	"phone-country": () => import("./chunks/phone-country-Bx9EG50h.js").then((e) => e.phoneCountryModule),
+	"password-validation": () => import("./chunks/password-validation-HGOU9kf3.js").then((e) => e.passwordValidationModule),
+	"address-country": () => import("./chunks/address-country-DLJF-OkC.js").then((e) => e.addressCountryModule),
+	"address-state": () => import("./chunks/address-state-BkVPHiG5.js").then((e) => e.addressStateModule),
+	repeater: () => import("./chunks/repeater-BR0RUvTs.js").then((e) => e.repeaterModule),
+	"rich-text": () => import("./chunks/rich-text-H2A6cm1t.js").then((e) => e.richTextModule),
+	signature: () => import("./chunks/signature-CfKA_poI.js").then((e) => e.signatureModule),
+	summary: () => import("./chunks/summary-B3CAebLV.js").then((e) => e.summaryModule),
+	"survey-likert": () => import("./chunks/survey-likert-CEtUceag.js").then((e) => e.surveyLikertModule),
+	"survey-rank": () => import("./chunks/survey-rank-Dtt97y6s.js").then((e) => e.surveyRankModule),
+	"survey-rating": () => import("./chunks/survey-rating-mlDMI0uq.js").then((e) => e.surveyRatingModule),
+	table: () => import("./chunks/table-0k6Md0IO.js").then((e) => e.tableModule),
+	"text-limit": () => import("./chunks/text-limit-CTVML6s7.js").then((e) => e.textLimitModule)
 }, Jt = {
-	bpoint: () => import("./chunks/bpoint-DleTC56P.js").then((e) => e.bpointModule),
-	eway: () => import("./chunks/eway-BfEt0RJL.js").then((e) => e.ewayModule),
-	"go-cardless": () => import("./chunks/go-cardless-DpIIME1k.js").then((e) => e.goCardlessModule),
-	mollie: () => import("./chunks/mollie-CGLBD-u3.js").then((e) => e.mollieModule),
-	moneris: () => import("./chunks/moneris-tskJ7b-A.js").then((e) => e.monerisModule),
-	opayo: () => import("./chunks/opayo-CIQ9LvMn.js").then((e) => e.opayoModule),
-	paddle: () => import("./chunks/paddle-CywrkExf.js").then((e) => e.paddleModule),
-	paypal: () => import("./chunks/paypal-Bvl-k1in.js").then((e) => e.paypalModule),
-	payway: () => import("./chunks/payway-CCUdolDZ.js").then((e) => e.paywayModule),
-	square: () => import("./chunks/square-Bfjsxhlt.js").then((e) => e.squareModule),
-	stripe: () => import("./chunks/stripe-VxCAhFI0.js").then((e) => e.stripeModule)
+	bpoint: () => import("./chunks/bpoint-BxDpRSNX.js").then((e) => e.bpointModule),
+	eway: () => import("./chunks/eway-CYzkBt5Z.js").then((e) => e.ewayModule),
+	"go-cardless": () => import("./chunks/go-cardless-D8tuuJ99.js").then((e) => e.goCardlessModule),
+	mollie: () => import("./chunks/mollie-B4uCOw63.js").then((e) => e.mollieModule),
+	moneris: () => import("./chunks/moneris-DVv18K7S.js").then((e) => e.monerisModule),
+	opayo: () => import("./chunks/opayo-CEa9DXEI.js").then((e) => e.opayoModule),
+	paddle: () => import("./chunks/paddle-B2TpMFft.js").then((e) => e.paddleModule),
+	paypal: () => import("./chunks/paypal-DDTmkLMz.js").then((e) => e.paypalModule),
+	payway: () => import("./chunks/payway-ixr1hY-X.js").then((e) => e.paywayModule),
+	square: () => import("./chunks/square-DyloxWeC.js").then((e) => e.squareModule),
+	stripe: () => import("./chunks/stripe-ClY5hl2d.js").then((e) => e.stripeModule)
 }, Yt = {
 	...qt,
 	...Gt,
@@ -1801,13 +1781,7 @@ var hn = class {
 		e.target instanceof HTMLElement && W(e.target) && !A(e.target) && e.target.form?.isSameNode(this.form) && (e instanceof CustomEvent || e.target instanceof HTMLInputElement && e.target.type === "file" || e.target instanceof HTMLInputElement && (e.target.type === "checkbox" || e.target.type === "radio") || (this.isDirty(e.target) && this.activated.add(e.target), this.shouldShowError(e.target) && this.validate(e.target)));
 	}
 	changeHandler(e) {
-		if (e.target instanceof HTMLElement && W(e.target) && !A(e.target) && e.target.form?.isSameNode(this.form) && !(e instanceof CustomEvent)) {
-			if (e.target instanceof HTMLSelectElement) {
-				this.activated.add(e.target), this.validate(e.target);
-				return;
-			}
-			e.target instanceof HTMLInputElement && (e.target.type === "file" || e.target.type === "checkbox" || e.target.type === "radio") && (this.activated.add(e.target), this.validate(e.target));
-		}
+		e.target instanceof HTMLElement && W(e.target) && !A(e.target) && e.target.form?.isSameNode(this.form) && (e instanceof CustomEvent || (e.target instanceof HTMLSelectElement || e.target instanceof HTMLInputElement && (e.target.type === "file" || e.target.type === "checkbox" || e.target.type === "radio")) && (this.activated.add(e.target), this.validate(e.target)));
 	}
 	inputHandler(e) {
 		e.target instanceof HTMLElement && W(e.target) && !A(e.target) && e.target.form?.isSameNode(this.form) && (e instanceof CustomEvent || e.target instanceof HTMLInputElement && (e.target.type === "checkbox" || e.target.type === "radio") || this.shouldShowError(e.target) && this.validate(e.target));
@@ -2091,11 +2065,7 @@ async function ar(e, t, n) {
 function or(e, t, n, r, i, a) {
 	t.dataset.formieRequestProfile = n.profile ?? "same-origin-browser", n.profile === "cross-origin-public" && (t.dataset.formieSubmitMethod = "ajax");
 	let o = String(t.dataset.formieSubmitMethod || "").trim().toLowerCase(), s = Un(n, e, t), c = !1, l = t.querySelectorAll("[data-formie-action]"), u = (e) => {
-		if (e) {
-			t.setAttribute("data-formie-pending-action", e);
-			return;
-		}
-		t.removeAttribute("data-formie-pending-action");
+		e ? t.setAttribute("data-formie-pending-action", e) : t.removeAttribute("data-formie-pending-action");
 	};
 	if (Wn(t)) {
 		let n = cn(t, { shouldWarn: () => !qn(t) }), r = (e) => {
@@ -2263,16 +2233,12 @@ function cr() {
 			let n = i.get(e);
 			n && (n(), i.delete(e));
 			let r = t.get(e);
-			if (!r) {
-				K.log("Unmount skipped (no mounted state).", { target: Q(e) });
-				return;
-			}
-			g(e, "formie:unmount:before", { id: r.instance.id }), r.unbinds.forEach((e) => {
+			r ? (g(e, "formie:unmount:before", { id: r.instance.id }), r.unbinds.forEach((e) => {
 				e();
 			}), r.unbinds = [], r.validator?.destroy(), r.validator = null, await r.modules.destroy(), r.bus.clear(), t.delete(e), g(e, "formie:unmount:after", { id: r.instance.id }), r.unbindEventContext(), K.log("Unmount complete.", {
 				id: r.instance.id,
 				target: Q(e)
-			});
+			})) : K.log("Unmount skipped (no mounted state).", { target: Q(e) });
 		})().finally(() => {
 			a.delete(e);
 		});

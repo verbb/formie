@@ -258,7 +258,7 @@ var F = i({
 				try {
 					let t = n.value;
 					if (!t) return;
-					let { default: r } = await import("./signature_pad-dbpVgfTh.js");
+					let { default: r } = await import("./signature_pad-Cqf-RWiu.js");
 					if (_) return;
 					let a = new r(t, {
 						backgroundColor: p.value,
@@ -285,11 +285,8 @@ var F = i({
 		}), f(g, (e) => {
 			let t = i.value;
 			if (t) {
-				if (!e) {
-					t.isEmpty() || t.clear();
-					return;
-				}
-				try {
+				if (!e) t.isEmpty() || t.clear();
+				else try {
 					t.fromDataURL(e);
 				} catch {}
 			}
@@ -563,11 +560,7 @@ function J(e, t, n, r, i = [], o = "") {
 			multiple: l,
 			onChange: (e) => {
 				let t = e.target;
-				if (l) {
-					r(Array.from(t.selectedOptions).map((e) => e.value));
-					return;
-				}
-				r(t.value);
+				r(l ? Array.from(t.selectedOptions).map((e) => e.value) : t.value);
 			}
 		}, c.map((t) => {
 			let n = String(t.value ?? "");
@@ -591,9 +584,7 @@ function J(e, t, n, r, i = [], o = "") {
 			if (c === "number") {
 				let e = t.valueAsNumber;
 				r(Number.isFinite(e) ? e : "");
-				return;
-			}
-			r(t.value);
+			} else r(t.value);
 		}
 	});
 }
@@ -1006,11 +997,7 @@ var be = i({
 			if (!t) return;
 			let o = !1, l = null, u = [], d = Promise.resolve().then(async () => {
 				let r = await s.mount(t, c.value);
-				if (o) {
-					await s.unmount(t);
-					return;
-				}
-				l = r, n.options.onMount?.(r), n.options.onReady?.(r), i("mount", r), i("ready", r), u.push(r.on("formie:submit:result", (e) => {
+				o ? await s.unmount(t) : (l = r, n.options.onMount?.(r), n.options.onReady?.(r), i("mount", r), i("ready", r), u.push(r.on("formie:submit:result", (e) => {
 					let t = e;
 					Q(n.options.onSubmitResult, n.options.onResult, t), i("result", t), i("submit-result", t), Z(t) ? (Q(n.options.onSubmitSuccess, n.options.onSuccess, t), i("success", t), i("submit-success", t)) : (Q(n.options.onSubmitError, n.options.onError, t), i("error", t), i("submit-error", t));
 				})), e.forEach((e) => {
@@ -1021,7 +1008,7 @@ var be = i({
 						};
 						n.options.onEvent?.(r), i("event", r);
 					}));
-				});
+				}));
 			});
 			a(() => {
 				o = !0, u.forEach((e) => e()), d.finally(async () => {

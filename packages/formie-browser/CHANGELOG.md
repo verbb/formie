@@ -5,6 +5,9 @@
 ### Added
 - Add the `formie:unload-warning:collect-exclusions` event for integrations to exclude automatically updated transport fields from unsaved-changes checks.
 
+### Changed
+- Updated the package build toolchain to Vite 8.3.4.
+
 ### Fixed
 - Fixed page-reload submissions stalling when the submit delay is zero.
 - Fixed mounted form lifecycle events omitting the form instance, including submission, page navigation, token refresh and teardown hooks. ([#3032](https://github.com/verbb/formie/issues/3032))

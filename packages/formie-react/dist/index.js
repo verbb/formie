@@ -175,11 +175,7 @@ function B(e, t, n, r, a = [], o = "") {
 			multiple: l,
 			onChange: (e) => {
 				let t = e.target;
-				if (l) {
-					r(Array.from(t.selectedOptions).map((e) => e.value));
-					return;
-				}
-				r(t.value);
+				r(l ? Array.from(t.selectedOptions).map((e) => e.value) : t.value);
 			}
 		}, c.map((t) => {
 			let n = String(t.value ?? "");
@@ -216,7 +212,7 @@ function H({ field: e, value: t, errorKey: n, disabled: r, setValue: a }) {
 			try {
 				let r = u.current;
 				if (!r) return;
-				let { default: i } = await import("./signature_pad-dbpVgfTh.js");
+				let { default: i } = await import("./signature_pad-Cqf-RWiu.js");
 				if (e) return;
 				let o = new i(r, {
 					backgroundColor: h,
@@ -247,11 +243,8 @@ function H({ field: e, value: t, errorKey: n, disabled: r, setValue: a }) {
 	]), o(() => {
 		let e = d.current;
 		if (e) {
-			if (!v) {
-				e.isEmpty() || e.clear();
-				return;
-			}
-			try {
+			if (!v) e.isEmpty() || e.clear();
+			else try {
 				e.fromDataURL(v);
 			} catch {}
 		}
@@ -869,19 +862,11 @@ function me(e) {
 			a || (a = !0, await n.unmount(e));
 		}, s = new Promise((t) => {
 			queueMicrotask(() => {
-				if (r) {
-					t();
-					return;
-				}
-				n.mount(e, {
+				r ? t() : n.mount(e, {
 					...i.current,
 					mode: "server-rendered"
 				}).then(async (e) => {
-					if (r) {
-						await o(), t();
-						return;
-					}
-					u(e), f(null), t();
+					r ? (await o(), t()) : (u(e), f(null), t());
 				}).catch((e) => {
 					r || f(e), t();
 				});

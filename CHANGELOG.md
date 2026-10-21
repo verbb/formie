@@ -6,6 +6,9 @@
 - Add a Kebab Case text transform for reference tokens, including File Upload subpaths and filenames.
 - Add temporary Salesforce diagnostics for API requests, field filtering, cached settings and editor mappings.
 
+### Changed
+- Updated Markdown-it to 14.3.3 and the frontend build toolchain to Vite 8.3.4.
+
 ### Fixed
 - Fixed variable tags not showing their configured transform name or default-value indicator.
 - Fix page-reload submissions stalling when the submit delay is zero.

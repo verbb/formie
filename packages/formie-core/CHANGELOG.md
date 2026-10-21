@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Updated the package build toolchain to Vite 8.3.4.
+
 ### Fixed
 - Fixed calculations using formatted calculation values as numeric inputs.
 

@@ -1,5 +1,5 @@
 //#region \0rolldown/runtime.js
-var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescriptor, r = Object.getOwnPropertyNames, i = Object.getPrototypeOf, a = Object.prototype.hasOwnProperty, o = (e, t) => () => (t || (e((t = { exports: {} }).exports, t), e = null), t.exports), s = (e, i, o, s) => {
+var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescriptor, r = Object.getOwnPropertyNames, i = Object.getPrototypeOf, a = Object.prototype.hasOwnProperty, o = (e, t) => () => (t || (e((t = { exports: {} }).exports, t, t.exports), e = null), t.exports), s = (e, i, o, s) => {
 	if (i && typeof i == "object" || typeof i == "function") for (var c = r(i), l = 0, u = c.length, d; l < u; l++) d = c[l], !a.call(e, d) && d !== o && t(e, d, {
 		get: ((e) => i[e]).bind(null, d),
 		enumerable: !(s = n(i, d)) || s.enumerable
@@ -789,9 +789,7 @@ function K(e, t, n, r, i) {
 		a.forEach((e) => {
 			e.meta?.hidden !== !0 && K(e, o[e.handle], n, `${r}.${e.handle}`, i);
 		}), Oe(e, o, r, i);
-		return;
-	}
-	if (D(e)) {
+	} else if (D(e)) {
 		let a = Array.isArray(t) ? t : [], o = M(e);
 		a.forEach((e, t) => {
 			let a = e && typeof e == "object" ? e : {};
@@ -941,7 +939,7 @@ function J({ envelope: e, transport: t }) {
 					values: o.values,
 					action: s
 				});
-				return l(f) ? r : (c((e) => W({
+				return l(f) || (c((e) => W({
 					...e,
 					status: "ready",
 					session: r.session ?? e.session,
@@ -951,7 +949,7 @@ function J({ envelope: e, transport: t }) {
 				})), n.emit("formie:submit:result", r), (r.currentPageId || r.nextPageId) && n.emit("formie:page:navigate", {
 					currentPageId: o.currentPageId,
 					nextPageId: r.nextPageId || r.currentPageId
-				}), r);
+				})), r;
 			} catch (e) {
 				let t = e instanceof Error ? e.message : "Submission failed.", r = {
 					success: !1,
@@ -974,60 +972,59 @@ function J({ envelope: e, transport: t }) {
 		async setPage(e) {
 			if (o.status === "destroyed" || o.status === "submitting") return;
 			let r = ++a;
-			if (!t.setPage) {
-				c((t) => W({
-					...t,
-					status: "ready",
-					currentPageId: e,
-					session: {
-						...t.session,
-						currentPageId: e
-					}
-				}));
-				return;
-			}
-			c((e) => ({
-				...e,
-				status: "refreshing"
+			if (!t.setPage) c((t) => W({
+				...t,
+				status: "ready",
+				currentPageId: e,
+				session: {
+					...t.session,
+					currentPageId: e
+				}
 			}));
-			try {
-				let i = await t.setPage({
-					definition: o.definition,
-					session: o.session,
-					values: o.values,
-					currentPageId: o.currentPageId,
-					targetPageId: e
-				});
-				if (l(r)) return;
-				if (!i.success || !i.session) {
-					c((e) => ({
+			else {
+				c((e) => ({
+					...e,
+					status: "refreshing"
+				}));
+				try {
+					let i = await t.setPage({
+						definition: o.definition,
+						session: o.session,
+						values: o.values,
+						currentPageId: o.currentPageId,
+						targetPageId: e
+					});
+					if (l(r)) return;
+					if (!i.success || !i.session) {
+						c((e) => ({
+							...e,
+							status: "ready",
+							errors: i.errors,
+							lastSubmitResult: i
+						})), n.emit("formie:submit:result", i);
+						return;
+					}
+					let a = i.session;
+					c((e) => W({
 						...e,
 						status: "ready",
-						errors: i.errors,
-						lastSubmitResult: i
-					})), n.emit("formie:submit:result", i);
-					return;
+						session: a,
+						currentPageId: a.currentPageId
+					})), n.emit("formie:page:navigate", {
+						currentPageId: o.currentPageId,
+						nextPageId: e
+					});
+				} catch (t) {
+					let i = t instanceof Error ? t.message : "Unable to change page.";
+					l(r) || (c((e) => ({
+						...e,
+						status: "ready"
+					})), n.emit("formie:page:navigate:error", {
+						currentPageId: o.currentPageId,
+						nextPageId: e,
+						error: i
+					}));
 				}
-				let a = i.session;
-				c((e) => W({
-					...e,
-					status: "ready",
-					session: a,
-					currentPageId: a.currentPageId
-				})), n.emit("formie:page:navigate", {
-					currentPageId: o.currentPageId,
-					nextPageId: e
-				});
-			} catch (t) {
-				let i = t instanceof Error ? t.message : "Unable to change page.";
-				l(r) || (c((e) => ({
-					...e,
-					status: "ready"
-				})), n.emit("formie:page:navigate:error", {
-					currentPageId: o.currentPageId,
-					nextPageId: e,
-					error: i
-				}));
 			}
 		},
 		async refreshSession() {
@@ -1096,10 +1093,10 @@ var Y = [
 	"formie:session:refreshed",
 	"formie:session:refresh:error",
 	"formie:state:reset"
-], Ne = /* @__PURE__ */ c((/* @__PURE__ */ o(((e, t) => {
+], Ne = /* @__PURE__ */ c((/* @__PURE__ */ o(((e, t, n) => {
 	(function(n, r) {
 		typeof e == "object" && t !== void 0 ? r(e) : typeof define == "function" && define.amd ? define(["exports"], r) : r((n = typeof globalThis < "u" ? globalThis : n || self).ExpressionLanguage = {});
-	})(e, function(e) {
+	})(n, function(e) {
 		function t(e, t, n) {
 			return (t = function(e) {
 				var t = function(e, t) {
@@ -1110,7 +1107,7 @@ var Y = [
 						if (typeof r != "object") return r;
 						throw TypeError("@@toPrimitive must return a primitive value.");
 					}
-					return (t === "string" ? String : Number)(e);
+					return String(e);
 				}(e, "string");
 				return typeof t == "symbol" ? t : t + "";
 			}(t)) in e ? Object.defineProperty(e, t, {
@@ -3979,7 +3976,7 @@ var Y = [
 				e in n || (n[e] = t[e]);
 			}), e.ExpressionLanguage = n;
 		}
-	}(typeof globalThis < "u" ? globalThis : typeof self < "u" ? self : e);
+	}(typeof globalThis < "u" ? globalThis : typeof self < "u" ? self : n);
 })))(), 1), Pe = null;
 function Fe() {
 	let e = Ne, t = e.ExpressionLanguage || e.default || Ne;
@@ -4000,9 +3997,7 @@ function Z(e, t) {
 		if (Array.isArray(n)) {
 			let r = n.map((e) => typeof e == "string" && e.trim() !== "" && !Number.isNaN(Number(e)) ? Number(e) : e), i = r.filter((e) => typeof e == "number");
 			e[t] = i.length === r.length && r.length > 0 ? i.reduce((e, t) => e + Number(t || 0), 0) : r;
-			return;
-		}
-		typeof n == "string" && n.trim() !== "" && !Number.isNaN(Number(n)) && (e[t] = Number(n));
+		} else typeof n == "string" && n.trim() !== "" && !Number.isNaN(Number(n)) && (e[t] = Number(n));
 	}), e;
 }
 function Q(e, t) {

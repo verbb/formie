@@ -5,7 +5,7 @@
     "@verbb/formie-browser": "1.0.15"
   },
   "devDependencies": {
-    "vite": "^8.0.10"
+    "vite": "^8.3.4"
   },
   "scripts": {
     "dev": "vite",

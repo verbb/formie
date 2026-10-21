@@ -1,0 +1,19 @@
+import { s as e } from "./event-names-BCI2FLD8.js";
+import { t } from "./api-Cro_TjDi.js";
+//#region src/js/modules/payments/go-cardless.ts
+var n = e("go-cardless", "redirect"), r = t({
+	moduleId: "formie:go-cardless",
+	defaultRequiredInputSuffixes: [],
+	load: async () => null,
+	setup: async ({ services: e, root: t }) => {
+		let r = (t) => {
+			let n = t.detail?.data;
+			n?.redirectUrl ? window.location.href = n.redirectUrl : e.addError("Missing GoCardless redirect URL.");
+		};
+		return t.addEventListener(n, r), { destroy: () => {
+			t.removeEventListener(n, r);
+		} };
+	}
+});
+//#endregion
+export { r as goCardlessModule };

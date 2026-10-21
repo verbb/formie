@@ -1173,7 +1173,7 @@ function Ft(e) {
 	return P`<div class="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">${e}</div>`;
 }
 //#endregion
-//#region \0@oxc-project+runtime@0.149.0/helpers/esm/decorate.js
+//#region \0@oxc-project+runtime@0.154.0/helpers/esm/decorate.js
 function X(e, t, n, r) {
 	var i = arguments.length, a = i < 3 ? t : r === null ? r = Object.getOwnPropertyDescriptor(t, n) : r, o;
 	if (typeof Reflect == "object" && typeof Reflect.decorate == "function") a = Reflect.decorate(e, t, n, r);
@@ -1573,7 +1573,7 @@ var Bt = class extends HTMLElement {
 	async firstUpdated() {
 		let e = this.shadowRoot?.querySelector("canvas");
 		if (e && e instanceof HTMLCanvasElement) try {
-			let { default: t } = await import("./signature_pad-dbpVgfTh.js"), n = this.resolveDrawModuleConfig(), r = typeof n?.backgroundColor == "string" ? String(n.backgroundColor) : "#ffffff", i = typeof n?.penColor == "string" ? String(n.penColor) : "#000000", a = Number(n?.penWeight ?? 2) || 2, o = new t(e, {
+			let { default: t } = await import("./signature_pad-Cqf-RWiu.js"), n = this.resolveDrawModuleConfig(), r = typeof n?.backgroundColor == "string" ? String(n.backgroundColor) : "#ffffff", i = typeof n?.penColor == "string" ? String(n.penColor) : "#000000", a = Number(n?.penWeight ?? 2) || 2, o = new t(e, {
 				backgroundColor: r,
 				penColor: i,
 				minWidth: a,
@@ -1603,25 +1603,18 @@ var Bt = class extends HTMLElement {
 	}
 	applySerializedValue() {
 		if (this.pad) {
-			if (!this.value) {
-				this.pad.isEmpty() || this.pad.clear();
-				return;
-			}
-			try {
+			if (!this.value) this.pad.isEmpty() || this.pad.clear();
+			else try {
 				this.pad.fromDataURL(this.value);
 			} catch {}
 		}
 	}
 	emitValue() {
-		if (!this.pad || this.pad.isEmpty()) {
-			this.dispatchEvent(new CustomEvent(Y, {
-				detail: "",
-				bubbles: !0,
-				composed: !0
-			}));
-			return;
-		}
-		this.dispatchEvent(new CustomEvent(Y, {
+		!this.pad || this.pad.isEmpty() ? this.dispatchEvent(new CustomEvent(Y, {
+			detail: "",
+			bubbles: !0,
+			composed: !0
+		})) : this.dispatchEvent(new CustomEvent(Y, {
 			detail: this.pad.toDataURL(),
 			bubbles: !0,
 			composed: !0

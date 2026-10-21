@@ -1,0 +1,475 @@
+import { a as e } from "./event-names-BCI2FLD8.js";
+import { t } from "./debug-rhzqP1j2.js";
+import { t as n } from "./theme-classes-DAQuEqdP.js";
+import { n as r, t as i } from "./async-2GdXNFCE.js";
+import { i as a } from "./i18n-BY1ds1BL.js";
+//#region src/js/modules/captchas/constants.ts
+var o = 2e3, s = 5e3, c = 5e3, l = 12e4;
+//#endregion
+//#region src/js/modules/captchas/utils.ts
+function u(e) {
+	let t = String(e || "asyncDefer").toLowerCase();
+	return {
+		async: t.includes("async"),
+		defer: t.includes("defer")
+	};
+}
+function d(e, t) {
+	let n = Array.from(e.querySelectorAll(`input[name="${t}"], textarea[name="${t}"]`));
+	for (let e of n) {
+		let t = String(e.value || "").trim();
+		if (t !== "") return t;
+	}
+	return "";
+}
+function f(e, t) {
+	return t.some((t) => d(e, t) !== "");
+}
+function p(e, t) {
+	t.forEach((t) => {
+		Array.from(e.querySelectorAll(`input[name="${t}"], textarea[name="${t}"]`)).forEach((e) => {
+			e.value = "";
+		});
+	});
+}
+function m(e, t, { value: n = "", container: r } = {}) {
+	let i = e.querySelector(`input[name="${t}"]`);
+	return i || (i = document.createElement("input"), i.type = "hidden", i.name = t, (r || (e instanceof HTMLElement ? e : null))?.appendChild(i)), i.value = n, i;
+}
+async function h(e, t, n) {
+	if (f(e, t)) return !0;
+	let i = Date.now() + Math.max(n, 0);
+	for (; Date.now() < i;) if (await r(120), f(e, t)) return !0;
+	return !1;
+}
+//#endregion
+//#region src/js/modules/captchas/host.ts
+var g = /* @__PURE__ */ new Set([
+	"handle",
+	"placeholderSelector",
+	"errorMessage",
+	"sessionKey",
+	"value"
+]), _ = "[data-formie-captcha-error-container]", v = [
+	"formie:page:navigate",
+	"formie:page:navigate:after",
+	"formie:submit:result"
+], y = /* @__PURE__ */ new Set(["formie:page:navigate", "formie:page:navigate:after"]);
+function b(e, t, n) {
+	return e.addEventListener(t, n), () => {
+		e.removeEventListener(t, n);
+	};
+}
+function x(e, t) {
+	return e instanceof HTMLElement && e.matches(t) ? [e, ...Array.from(e.querySelectorAll(t))] : Array.from(e.querySelectorAll(t));
+}
+function S(e) {
+	if (!(e instanceof HTMLElement) || !e.isConnected || e.hidden || e.closest("[hidden]") || e.closest("[data-formie-page-hidden]") || e.closest("[aria-hidden=\"true\"]")) return !1;
+	let t = window.getComputedStyle(e);
+	return t.display !== "none" && t.visibility !== "hidden" && e.getClientRects().length > 0;
+}
+function C(e, t) {
+	let n = x(e, t);
+	return n.find((e) => S(e)) || n[0] || null;
+}
+function w(e) {
+	e.innerHTML = "";
+	let t = document.createElement("div");
+	return e.appendChild(t), t;
+}
+function T(e) {
+	e?.querySelector(_)?.remove();
+}
+function E(e, t, r) {
+	if (!e) return;
+	T(e);
+	let i = document.createElement("div");
+	i.setAttribute("data-formie-captcha-error-container", ""), i.setAttribute("aria-live", "polite"), i.setAttribute("aria-atomic", "true"), n(i, r || e, "fieldErrors");
+	let a = document.createElement("div");
+	a.setAttribute("data-formie-captcha-error", ""), a.setAttribute("role", "alert"), n(a, r || e, "fieldError"), a.textContent = t, i.appendChild(a), e.appendChild(i);
+}
+function D(e) {
+	let t = e instanceof CustomEvent ? e.detail : null;
+	return !t || typeof t != "object" ? null : t;
+}
+function O(e, t) {
+	if (!e?.captchas || typeof e.captchas != "object") return null;
+	let n = e.captchas[t];
+	return !n || typeof n != "object" ? null : n;
+}
+function k(e, t, n, r) {
+	let a = /* @__PURE__ */ new Set(), o = !0, s = () => {
+		if (!o) return;
+		let i = x(e, t), s = new Set(i.filter((e) => S(e)));
+		i.forEach((e) => {
+			s.has(e) && !a.has(e) && (a.add(e), n(e));
+		}), Array.from(a).forEach((e) => {
+			s.has(e) || (a.delete(e), r(e));
+		});
+	}, c = i(s, 20), l = new MutationObserver(() => {
+		c();
+	});
+	l.observe(e, {
+		childList: !0,
+		subtree: !0,
+		attributes: !0,
+		attributeFilter: [
+			"class",
+			"style",
+			"hidden",
+			"aria-hidden",
+			"data-formie-page-hidden"
+		]
+	});
+	let u = [b(window, "resize", () => {
+		c();
+	}), ...v.map((t) => b(e, t, () => {
+		y.has(t) ? s() : c();
+	}))];
+	return s(), {
+		cleanup: () => {
+			o && (o = !1, l.disconnect(), u.forEach((e) => {
+				e();
+			}), Array.from(a).forEach((e) => {
+				r(e);
+			}), a.clear());
+		},
+		reconcile: c,
+		reconcileImmediate: s,
+		getVisible: () => x(e, t).filter((e) => S(e))
+	};
+}
+function A(e, t) {
+	return (typeof t.handle == "string" && t.handle.trim() !== "" ? t.handle.trim() : "") || e;
+}
+function j(e, t, { defaultPlaceholderSelector: n, defaultTokenFieldNames: r = [], defaultWaitForValueMs: i = o }) {
+	let s = t || {}, c = Object.entries(s).reduce((e, [t, n]) => (g.has(t) || (e[t] = n), e), {}), l = r.map(String).filter(Boolean), u = Number(i), d = typeof s.placeholderSelector == "string" && s.placeholderSelector.trim() !== "" ? s.placeholderSelector.trim() : n, f = typeof s.errorMessage == "string" && s.errorMessage.trim() !== "" ? s.errorMessage.trim() : a("Captcha challenge must be completed."), p = typeof s.sessionKey == "string" && s.sessionKey.trim() !== "" ? s.sessionKey.trim() : null, m = typeof s.value == "string" ? s.value : null;
+	return {
+		handle: A(e, s),
+		ui: {
+			placeholderSelector: d,
+			errorMessage: f
+		},
+		transport: {
+			tokenFieldNames: l,
+			waitForValueMs: Number.isFinite(u) ? u : i,
+			sessionKey: p,
+			value: m
+		},
+		provider: c
+	};
+}
+function M(e, t, n = {}) {
+	let r = e.form || e.root, i = t.ui.placeholderSelector, a = t.handle;
+	return {
+		form: e.form,
+		root: e.root,
+		placeholder: {
+			query: () => x(e.root, i),
+			getPrimary: () => C(e.root, i),
+			observe: (t, n) => k(e.root, i, t, n),
+			createContainer: (e) => w(e),
+			clear: (e) => {
+				e && (T(e), e.innerHTML = "");
+			}
+		},
+		errors: {
+			getDefaultMessage: () => t.ui.errorMessage,
+			show: (r, a) => {
+				n.isActive?.() !== !1 && E(a || C(e.root, i), r || t.ui.errorMessage, e.form || e.root);
+			},
+			clear: (t) => {
+				n.isActive?.() !== !1 && T(t || C(e.root, i));
+			}
+		},
+		tokens: {
+			names: t.transport.tokenFieldNames,
+			has: (e = t.transport.tokenFieldNames, n = r) => f(n, e),
+			read: (e = t.transport.tokenFieldNames[0], n = r) => e ? d(n, e) : "",
+			write: (i, { names: a = t.transport.tokenFieldNames, root: o = r, container: s = e.form } = {}) => {
+				n.isActive?.() !== !1 && (n.onTokenFieldNames?.(a), a.forEach((e) => {
+					m(o, e, {
+						value: i,
+						container: s
+					});
+				}));
+			},
+			clear: (e = t.transport.tokenFieldNames, i = r) => {
+				n.isActive?.() !== !1 && p(i, e);
+			},
+			wait: (e = t.transport.waitForValueMs, n = t.transport.tokenFieldNames, i = r) => h(i, n, e)
+		},
+		refresh: {
+			providerHandle: a,
+			onTokensRefreshed: (t) => {
+				let n = ["formie:refresh-tokens:after", "formie:refresh-tokens:refreshed"].map((n) => b(e.root, n, (e) => {
+					let n = O(D(e), a);
+					n && t(n);
+				}));
+				return () => {
+					n.forEach((e) => {
+						e();
+					});
+				};
+			}
+		},
+		events: {
+			onRoot: (t, n) => b(e.root, t, n),
+			onForm: (t, n) => e.form ? b(e.form, t, n) : () => {}
+		}
+	};
+}
+//#endregion
+//#region src/js/modules/captchas/factories.ts
+var N = t("captchas");
+function P({ moduleId: e, defaultPlaceholderSelector: t, defaultTokenFieldNames: n = [], defaultWaitForValueMs: r = o, setup: i }) {
+	return {
+		moduleId: e,
+		version: 2,
+		surfaces: ["server-rendered", "client-rendered"],
+		kind: "captcha",
+		match: () => !0,
+		setup: async (a) => {
+			let o = j(e.split(":")[1], a.options || {}, {
+				defaultPlaceholderSelector: t,
+				defaultTokenFieldNames: n,
+				defaultWaitForValueMs: r
+			});
+			N.log("Setup module.", {
+				moduleId: e,
+				placeholderSelector: o.ui.placeholderSelector,
+				tokenFieldNames: o.transport.tokenFieldNames
+			});
+			let s;
+			if (a.surface === "client-rendered" && !a.root.querySelector(o.ui.placeholderSelector)) {
+				let e = /^\[(data-[a-z0-9-]+)\]$/.exec(o.ui.placeholderSelector)?.[1];
+				if (!e) throw Error("The CAPTCHA needs a supported placeholder in the client-rendered form.");
+				s = document.createElement("div"), s.setAttribute(e, ""), (a.form ?? a.root).append(s);
+			}
+			let c = new Set(o.transport.tokenFieldNames), l = !0, u = (e) => {
+				e.filter(Boolean).forEach((e) => c.add(e));
+			};
+			u(o.transport.sessionKey ? [o.transport.sessionKey] : []);
+			let d = M(a, o, {
+				onTokenFieldNames: u,
+				isActive: () => l
+			}), f = d.events.onForm("formie:unload-warning:collect-exclusions", (e) => {
+				let t = e.detail;
+				t?.form === a.form && t.exclude(...c);
+			}), p = d.refresh.onTokensRefreshed((e) => {
+				typeof e.sessionKey == "string" && e.sessionKey.trim() !== "" && u([e.sessionKey.trim()]);
+			}), m = () => {
+				l = !1, f(), p(), s?.remove();
+			};
+			try {
+				let e = await i({
+					...a,
+					options: o,
+					services: d
+				});
+				if (!e) {
+					m();
+					return;
+				}
+				let t = e.destroy;
+				return {
+					...e,
+					destroy: async () => {
+						try {
+							await t();
+						} finally {
+							m();
+						}
+					}
+				};
+			} catch (e) {
+				throw m(), e;
+			}
+		}
+	};
+}
+function F({ moduleId: e, defaultPlaceholderSelector: t, defaultTokenFieldNames: n = [], defaultWaitForValueMs: r = o }) {
+	return P({
+		moduleId: e,
+		defaultPlaceholderSelector: t,
+		defaultTokenFieldNames: n,
+		defaultWaitForValueMs: r,
+		setup: async ({ services: t, options: n, root: r }) => {
+			let i = [], a = t.placeholder.getPrimary(), o = n.transport.sessionKey, s = n.transport.value || "", c = (e) => {
+				e && o && (e.innerHTML = "", m(e, o, {
+					value: s,
+					container: e
+				}));
+			}, l = t.placeholder.observe((t) => {
+				a = t, N.log("Passive placeholder visible.", { moduleId: e }), c(t);
+			}, (e) => {
+				a === e && (a = t.placeholder.getPrimary()), e.innerHTML = "";
+			});
+			return i.push(l.cleanup), c(a), i.push(t.refresh.onTokensRefreshed((e) => {
+				o = typeof e.sessionKey == "string" && e.sessionKey.trim() !== "" ? e.sessionKey.trim() : o, s = typeof e.value == "string" ? e.value : "";
+				let n = t.placeholder.getPrimary() || a;
+				a = n, c(n);
+			})), {
+				destroy: () => {
+					i.forEach((e) => {
+						e();
+					});
+				},
+				beforeSubmit: async (i) => {
+					if (i.action !== "submit") return;
+					let s = o ? [o] : n.transport.tokenFieldNames;
+					if (s.length !== 0 && !await h(r, s, n.transport.waitForValueMs)) {
+						let n = t.errors.getDefaultMessage();
+						t.errors.show(n, a), N.warn("Passive captcha missing token.", {
+							moduleId: e,
+							tokenFieldNames: s
+						}), i.abort(n);
+					}
+				}
+			};
+		}
+	});
+}
+function I(t) {
+	return P({
+		moduleId: t.moduleId,
+		defaultPlaceholderSelector: t.defaultPlaceholderSelector,
+		defaultTokenFieldNames: t.defaultTokenFieldNames,
+		setup: async (n) => {
+			let r = [], i = /* @__PURE__ */ new Map(), a = /* @__PURE__ */ new Map(), o = /* @__PURE__ */ new Map(), s = null, c = n.services.placeholder.getPrimary(), l = !1, u, d = null, f = async () => (d ||= (N.log("Loading captcha provider API.", { moduleId: t.moduleId }), t.load(n)), d), p = (e) => {
+				let r = o.get(e);
+				if (r) return r;
+				let s = (async () => {
+					await a.get(e)?.catch(() => {}), n.services.errors.clear(e);
+					let r = i.has(e), o = i.get(e);
+					i.delete(e);
+					try {
+						if (r && t.unmount) {
+							let r = await f();
+							await t.unmount({
+								api: r,
+								widget: o,
+								placeholder: e,
+								services: n.services,
+								options: n.options,
+								provider: n.options.provider
+							});
+						}
+					} finally {
+						e.innerHTML = "", n.services.tokens.clear(), c === e && (c = n.services.placeholder.getPrimary());
+					}
+				})().finally(() => o.delete(e));
+				return o.set(e, s), s;
+			}, m = async (e) => {
+				let r = o.get(e);
+				if (r && await r, l || i.has(e)) return;
+				if (a.has(e)) return a.get(e);
+				let s = (async () => {
+					let r = await f();
+					if (l || i.has(e)) return;
+					let a = n.services.placeholder.createContainer(e), o = await t.mount({
+						api: r,
+						placeholder: e,
+						container: a,
+						services: n.services,
+						options: n.options,
+						provider: n.options.provider
+					});
+					i.set(e, o), c = e, N.log("Mounted captcha placeholder widget.", { moduleId: t.moduleId });
+				})().finally(() => {
+					a.delete(e);
+				});
+				a.set(e, s), await s;
+			}, h = n.services.placeholder.observe((e) => {
+				c = e, m(e).catch((e) => {
+					u = e;
+				});
+			}, (e) => {
+				l || p(e).catch((e) => {
+					u = e;
+				});
+			});
+			r.push(h.cleanup);
+			let g = async (e) => {
+				if (l) return;
+				let r = h.getVisible();
+				if (t.reset) {
+					let a = await f();
+					for (let o of r) {
+						let r = i.get(o);
+						i.has(o) ? (await t.reset({
+							api: a,
+							widget: r,
+							placeholder: o,
+							services: n.services,
+							options: n.options,
+							provider: n.options.provider,
+							reason: e
+						}), n.services.tokens.clear(), n.services.errors.clear(o)) : await m(o);
+					}
+					h.reconcile();
+				} else {
+					for (let e of Array.from(i.keys())) await p(e);
+					for (let e of r) await m(e);
+					h.reconcile();
+				}
+			};
+			r.push(n.services.events.onRoot("formie:submit:result", (e) => {
+				let t = e instanceof CustomEvent ? e.detail : null;
+				t?.stage !== "validate" && (t?.ok !== !1 || t?.stage !== "challenge") && t?.ok !== !0 && g("submit-result");
+			})), n.form && r.push(n.services.events.onForm(e("reset"), () => {
+				c = n.services.placeholder.getPrimary() || c, window.setTimeout(() => {
+					g("reset-state");
+				}, 0);
+			}));
+			let _ = () => s || (l = !0, s = (async () => {
+				r.forEach((e) => e()), await Promise.allSettled([...a.values()]);
+				let e = (await Promise.allSettled(/* @__PURE__ */ new Set([...o.values(), ...Array.from(i.keys(), p)]))).flatMap((e) => e.status === "rejected" ? [e.reason] : []);
+				if (e.length) throw AggregateError(e, "CAPTCHA widgets could not clean up.");
+			})(), s);
+			h.reconcileImmediate();
+			try {
+				if (await Promise.all([...a.values()]), u) throw u;
+			} catch (e) {
+				throw await _().catch((e) => {
+					N.warn("Captcha cleanup after failed setup.", { error: e });
+				}), e;
+			}
+			return {
+				assertReady: () => {
+					if (u) throw u;
+				},
+				destroy: _,
+				beforeSubmit: async (e) => {
+					if (e.action !== "submit") return;
+					h.reconcileImmediate();
+					let r = h.getVisible();
+					if (r.length === 0) return;
+					let a = r.find((e) => e === c) || r[0];
+					await m(a), a = c || a, n.services.errors.clear(a);
+					let o = i.get(a);
+					if (!i.has(a)) {
+						let r = n.services.errors.getDefaultMessage();
+						n.services.errors.show(r, a), N.warn("Captcha widget unavailable at challenge stage.", { moduleId: t.moduleId }), e.abort(r);
+						return;
+					}
+					let s = await f();
+					await t.challenge({
+						api: s,
+						widget: o,
+						placeholder: a,
+						services: n.services,
+						options: n.options,
+						provider: n.options.provider,
+						stageCtx: e
+					});
+				}
+			};
+		}
+	});
+}
+//#endregion
+//#region src/js/modules/captchas/api.ts
+var L = I, R = F;
+//#endregion
+export { s as a, l as i, R as n, c as o, u as r, L as t };
