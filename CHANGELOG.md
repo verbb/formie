@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix custom CRM integrations failing to send submissions when field settings are omitted. ([#3033](https://github.com/verbb/formie/issues/3033))
 - Fix field variables in notification subjects appearing literally in PDF attachment filenames. ([#3025](https://github.com/verbb/formie/issues/3025))
 
 ## 3.1.49 - 2026-10-20
