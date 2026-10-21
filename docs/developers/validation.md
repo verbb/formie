@@ -2,11 +2,56 @@
 
 Formie validates submitted field values in PHP and provides matching browser rules for immediate feedback. PHP determines whether a submission can proceed; JavaScript checks the same requirements as visitors interact with the form. Keep accepted values, empty-value handling, and messages consistent across both.
 
-Use the field’s settings for requirements already supported by Formie, such as required answers, email addresses, and number ranges. A custom requirement combines a submission validator, a browser rule definition, and a JavaScript validator. The [built-in browser rules](https://docs.verbb.io/formie/browser/validation/built-in-rules) list the rules available without custom JavaScript.
+Use the field’s settings for requirements already supported by Formie, such as required answers, email addresses, and number ranges. The [built-in browser rules](https://docs.verbb.io/formie/browser/validation/built-in-rules) list the rules available without custom JavaScript.
 
 ::: tip
 For a complete implementation, follow [Adding a Custom Validation Rule](/guides/developers/adding-a-custom-validation-rule). The guide builds a Booking Reference field, registers both validators, and tests them together.
 :::
+
+## Choose How to Add a Check
+
+Use a validation rule when you need to decide whether an answer is acceptable. For example, a booking code might need a particular format, or an end date might need to follow a start date. A field validator connects that decision to the input the visitor needs to correct, so Formie can display its message, mark the field as invalid and focus it when submission fails.
+
+Use a submission hook when you need to coordinate work around a submit attempt, such as waiting for a visitor to confirm an action. Hooks can pause or stop the submission workflow, but stopping submission with a message does not register a validation rule for a field.
+
+| What You Need | Where to Start |
+| --- | --- |
+| An existing requirement, such as a required answer or number range | Use the field’s settings. |
+| Custom browser logic for an existing field | [Register a callback on the form’s validator](#add-a-check-to-an-existing-field). |
+| A reusable field type with matching PHP and browser checks | Define a submission rule and browser rule, then [register the browser validator](#submission-rules-and-browser-definitions). |
+| Work that must happen before sending, or code that reacts to the result | Use [browser submission hooks](https://docs.verbb.io/formie/browser/behavior/javascript-events#submit-lifecycle). |
+
+A check that calls a remote service to decide whether a field value is acceptable is still field validation. Browser validator callbacks are synchronous; see [remote checks](#run-a-remote-check-before-submit) for that limitation. Keep the requirement enforced in PHP so submitting without JavaScript cannot bypass it.
+
+## Add a Check to an Existing Field
+
+Formie creates a validator for each mounted form. Register your callback on that validator through `formie:validator:ready`; you do not need to create a validator or a custom field type to add a browser check.
+
+For example, suppose a server-rendered form has a Single-Line Text field with handle `bookingCode`. Add this listener to your site’s JavaScript before Formie’s automatic startup runs:
+
+```js
+document.addEventListener('formie:validator:ready', (event) => {
+    const { validator } = event.detail;
+
+    validator.addValidator(
+        'booking-code-format',
+        ({ input }) => {
+            if (input.name !== 'fields[bookingCode]') {
+                return true;
+            }
+
+            const value = input.value.replace(/^[ \t\r\n]+|[ \t\r\n]+$/g, '');
+
+            return value === '' || /^[A-Z]{3}-[0-9]{4}$/.test(value);
+        },
+        () => 'Use three uppercase letters, a hyphen and four digits, for example ABC-1234.',
+    );
+});
+```
+
+`ABC-1234` passes this check; `abc-1234` fails with a message on the Booking Code field. An empty value is left to the field’s Required setting. The callback receives every applicable input, so it returns `true` for other fields. If several forms use the same field name, this listener applies the check to each of them; check `validator.form` when the requirement belongs to one form only.
+
+This example adds browser feedback. Enforce the same format in PHP when accepting submissions. For a reusable field that carries the requirement and translated message with it, follow [Adding a Custom Validation Rule](/guides/developers/adding-a-custom-validation-rule).
 
 ## When Validation Runs
 
@@ -145,7 +190,7 @@ Registering the same name on a mounted validator replaces its callback. Use `val
 
 ## Show a Field Error Manually
 
-When custom code already knows which input should be invalid, use the DOM validator’s `showError()` method to display the message. This only changes browser feedback; the same requirement must be enforced in PHP when the form is submitted.
+When custom code already knows which input should be invalid, use the DOM validator’s `showError()` method to display the message. This changes browser feedback without registering a rule or preventing submission. Use `addValidator()` when Formie needs to evaluate and enforce the browser check during validation, and enforce the same requirement in PHP when accepting the submission.
 
 ```js
 document.addEventListener('formie:validator:ready', (event) => {
@@ -163,63 +208,8 @@ document.addEventListener('formie:validator:ready', (event) => {
 
 ## Run a Remote Check Before Submit
 
-This example assumes a custom `/actions/site/check-service-area` controller action that returns JSON with `allowed` (a boolean) and an optional `message`. Implement the same service-area check in the PHP submission validator; the browser response is feedback and does not authorise the submission.
+`addValidator()` callbacks return `true` or `false` synchronously. They do not await a `Promise`, so an `async` callback cannot reject a field through this API. Enforce a remote booking-code or service-area check in PHP and return its error against the relevant field; Formie can then display the server’s field error after submission.
 
-Validator callbacks are synchronous. If your validation needs to call a controller action or another API, mount the form from your own bundle and use the mounted instance event bus. Instance event handlers are awaited by the submit pipeline, so they can update validation state before Formie's normal validation pass runs.
+Submission hooks registered with `instance.on()` are awaited and can coordinate asynchronous workflow steps. Their `abort(message)` method stops submission and produces a form-level message. It does not attach the message to a field or add a field validation rule. Ordinary DOM listeners registered with `addEventListener()` are not awaited.
 
-```js
-import { formie } from '@verbb/formie-browser';
-import '@verbb/formie-browser/css/formie.css';
-
-await formie({
-  element: '#contact-form',
-  onReady(instance) {
-    const form = instance.root instanceof HTMLFormElement
-      ? instance.root
-      : instance.root.querySelector('form');
-
-    const validator = form?.formieValidation;
-
-    if (!form || !validator) {
-      return;
-    }
-
-    const serviceArea = {
-      value: '',
-      allowed: true,
-      message: 'Sorry, that ZIP code is outside our service area.',
-    };
-
-    validator.addValidator(
-      'service-area',
-      ({ input }) => {
-        if (!(input instanceof HTMLInputElement) || input.name !== 'fields[zipCode]' || !input.value) {
-          return true;
-        }
-
-        // Until the submit-stage hook has checked this exact value, do not block live validation.
-        return serviceArea.value !== input.value || serviceArea.allowed;
-      },
-      () => serviceArea.message,
-    );
-
-    instance.on('formie:stage:validate:before', async (stage) => {
-      const input = form.querySelector('[name="fields[zipCode]"]');
-
-      if (!(input instanceof HTMLInputElement) || !input.value) {
-        return;
-      }
-
-      const response = await fetch(`/actions/site/check-service-area?zip=${encodeURIComponent(input.value)}`);
-      const result = await response.json();
-
-      serviceArea.value = input.value;
-      serviceArea.allowed = result.allowed;
-      serviceArea.message = result.message || serviceArea.message;
-    });
-  },
-});
-```
-
-Use the stage payload's `formData` when your remote check needs the submitted values exactly as Formie will send them.
-
+Calling `showError()` and then `abort()` does not combine the two behaviours: Formie clears existing field feedback when it applies the abort result. Use a registered field validator for synchronous browser checks and PHP validation for remote field checks.

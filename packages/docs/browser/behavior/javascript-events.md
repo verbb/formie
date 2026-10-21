@@ -28,7 +28,7 @@ if (root instanceof Element) {
 }
 ```
 
-If you need imperative instance access rather than DOM events, initialise the form through `formie()` or the [Custom client](/browser/behavior/custom-client) and keep the returned handle in your own application code.
+For instance access with automatic initialisation, use `event.detail.instance` from `formie:mount:after`. If your application mounts the form through `formie()` or the [Custom client](/browser/behavior/custom-client), you can also keep the returned handle.
 
 Field and module events also give you a hook to adjust options before Formie initializes browser controls:
 
@@ -166,6 +166,8 @@ CAPTCHA modules created with `defineCaptchaModule()` or `definePassiveCaptchaMod
 ### Submit Lifecycle
 
 These events cover the submission flow. On multi-page forms, `formie:submit:*` events can run on each page submit attempt, while `formie:submit:final:*` events are reserved for the final submit when the form is actually being completed.
+
+Use submission hooks to coordinate work around a submit attempt. Register asynchronous hooks with `instance.on()` so Formie awaits them; ordinary DOM listeners are not awaited. Calling the hook context’s `abort(message)` stops submission with a form-level message. To check an answer and show an error on its field, [register a validation rule](https://verbb.io/craft-plugins/formie/docs/v4/developers/validation#choose-how-to-add-a-check). A remote field check is still validation, even though its lookup is asynchronous; browser validator callbacks are synchronous, so enforce that requirement in PHP and return a field error.
 
 #### The `formie:submit:before` Event
 

@@ -6,6 +6,10 @@ You’ll need a local Craft project with Formie installed and an existing module
 
 For validation scopes, rule APIs, and error handling, see [Validation](/developers/validation).
 
+Use this guide when a reusable field type should carry its own validation requirement. Formie also lets you [add a browser check to an existing field](/developers/validation#add-a-check-to-an-existing-field) without creating a field type. In either case, use a validator for logic that decides whether an answer is acceptable. Submission hooks coordinate the submit workflow; stopping that workflow with `abort(message)` produces a form-level message rather than a validation error on the answer.
+
+The browser callback in this guide is synchronous. If the check requires a remote service, enforce it in PHP and return a field error; an `async` callback is not awaited by `addValidator()`. The [extension guidance](/developers/validation#choose-how-to-add-a-check) explains how to choose the appropriate approach.
+
 ## Add a Rule and Its Browser Definition
 
 Start with an existing Craft module whose namespace is registered with Composer and which Craft loads during bootstrap. The example uses `modules\site`; replace that namespace with your own. If you need to create the module first, follow [Creating a Formie Field Type from Scratch](/guides/fields/creating-a-formie-field-type-from-scratch#create-your-module).

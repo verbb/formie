@@ -4,6 +4,10 @@ Formie uses its own browser-side validator so field rules, error rendering, mult
 
 For custom PHP rules, browser definitions, and JavaScript registration, see [Validation](https://verbb.io/craft-plugins/formie/docs/v4/developers/validation). This page describes the browser validator’s interaction settings and payload.
 
+Use `validator.addValidator()` when your browser logic decides whether a field’s answer is acceptable. Formie already creates the validator for each mounted form; register your rule on that instance. Submission hooks coordinate work around a submit attempt. Their `abort(message)` method stops submission with a form-level message, without registering a field rule or associating the message with an input.
+
+For a format check on an ordinary text field, start with [Add a Check to an Existing Field](https://verbb.io/craft-plugins/formie/docs/v4/developers/validation#add-a-check-to-an-existing-field). Validator callbacks are synchronous; remote checks must be enforced in PHP and returned as field errors. The [extension guidance](https://verbb.io/craft-plugins/formie/docs/v4/developers/validation#choose-how-to-add-a-check) explains the choice between field rules and submission hooks.
+
 ## What Formie Validates
 
 The validator:
