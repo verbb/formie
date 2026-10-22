@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Add save-time validation for completion redirect URLs, with guidance for external origins that are not allowed. ([#3038](https://github.com/verbb/formie/issues/3038))
+
 ## 4.0.4 - 2026-10-22
 
 ### Added

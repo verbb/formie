@@ -11,9 +11,11 @@ use verbb\formie\enums\CompletionBehavior;
 use verbb\formie\enums\RedirectSource;
 use verbb\formie\enums\RedirectTarget;
 use verbb\formie\fields\Payment as PaymentField;
+use verbb\formie\helpers\CompletionRedirectPolicy;
 use verbb\formie\helpers\CpSubmissionFieldConditions;
 use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\SubmissionLimitHelper;
+use verbb\formie\references\ReferenceParser;
 
 use Craft;
 use craft\base\Model;
@@ -638,6 +640,38 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         }
     }
 
+    public function validateRedirectUrl(string $attribute): void
+    {
+        if ($this->completionBehavior !== CompletionBehavior::Redirect->value
+            || $this->completionRedirectSource !== RedirectSource::Url->value) {
+            return;
+        }
+
+        $url = (string)$this->redirectUrl;
+        preg_match('~^[^/?#]+://[^/?#]*~', $url, $authority);
+        preg_match_all('/(?<!\{)\{[^{}]+\}(?!\})/', $url, $references, PREG_OFFSET_CAPTURE);
+
+        foreach ($references[0] as [$token, $offset]) {
+            if (!ReferenceParser::parse($token)->isValid) {
+                continue;
+            }
+
+            // A reference can supply the entire destination or its origin. Only the
+            // final submission value can be checked against the redirect policy.
+            if ($offset === 0 || ($authority && $offset < strlen($authority[0]))) {
+                return;
+            }
+
+            // Embedded path/query values are encoded at runtime. Check the static
+            // destination without evaluating fields or treating token defaults as URL syntax.
+            $url = str_replace($token, 'reference', $url);
+        }
+
+        if (CompletionRedirectPolicy::validate($url) === '') {
+            $this->addError($attribute, Craft::t('formie', 'Enter a valid relative URL or a URL on a configured site. For an external URL, add its origin to the completionRedirectAllowedOrigins configuration setting.'));
+        }
+    }
+
     public function validateSubmissionLimitCollection(string $attribute): void
     {
         if (!SubmissionLimitHelper::isEnabled($this) || SubmissionLimitHelper::getLimit($this) < 1) {
@@ -668,6 +702,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         $rules[] = [['scheduleFormEnd'], 'validateScheduleWindow'];
         $rules[] = [['completionBehavior'], 'in', 'range' => ['message', 'redirect', 'reload', 'reset']];
         $rules[] = [['completionRedirectSource'], 'in', 'range' => ['url', 'entry']];
+        $rules[] = [['redirectUrl'], 'validateRedirectUrl'];
         $rules[] = [['redirectTarget'], 'in', 'range' => ['same-tab', 'new-tab']];
         $rules[] = [['progressCalculation'], 'in', 'range' => ['completion', 'page-position']];
         $rules[] = [['cpSubmissionFieldConditions'], 'in', 'range' => array_merge([''], CpSubmissionFieldConditions::values())];
