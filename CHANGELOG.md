@@ -15,6 +15,7 @@
 - Fix queued notifications being incorrectly rejected as stale when site translations are applied, and provide clearer rejection messages and directions to delivery diagnostics. ([#3040](https://github.com/verbb/formie/issues/3040))
 - Fix email field summaries including opted-out fields inside Group and Repeater fields. ([#3043](https://github.com/verbb/formie/issues/3043))
 - Fix text-based fields inside Group fields not displaying their default values. ([#3039](https://github.com/verbb/formie/issues/3039))
+- Fix custom validation messages not saving or being used for fields inside Group and Repeater fields. ([#3041](https://github.com/verbb/formie/issues/3041))
 
 ## 4.0.4 - 2026-10-22
 

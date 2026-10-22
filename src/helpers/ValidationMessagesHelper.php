@@ -3,6 +3,7 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
+use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\compatibility\messages\ValidationMessageCompatibility;
 
 use Craft;
@@ -260,7 +261,7 @@ class ValidationMessagesHelper
     {
         $parent = $field->getParentField();
 
-        return $parent instanceof Field ? $parent : $field;
+        return $parent instanceof Field && $parent instanceof FixedParentFieldInterface ? $parent : $field;
     }
 
     public static function requiredBrowserAttributes(Field $field): array

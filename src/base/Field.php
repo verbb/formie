@@ -1451,9 +1451,11 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     {
         $this->_parentField = $value;
 
-        // Nested fields inherit validation message overrides from their parent only.
-        $this->errorMessage = null;
-        $this->validationMessages = [];
+        // Compound subfields share their parent's messages; Group/Repeater children own theirs.
+        if ($value instanceof FixedParentFieldInterface) {
+            $this->errorMessage = null;
+            $this->validationMessages = [];
+        }
 
         // Also, set the namespace (on the parent field), commonly just the field handle
         // But allows it to be added to (think Repeater).
