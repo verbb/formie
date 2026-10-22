@@ -116,14 +116,10 @@ trait OptionsLimitFieldTrait
             return $tag;
         }
 
-        $tag->attributes['data-formie-min-options'] = $this->min ?: null;
-        $tag->attributes['data-formie-max-options'] = $this->max ?: null;
-        $tag->attributes = array_merge(
-            $tag->attributes,
-            ValidationMessagesHelper::optionsLimitBrowserAttributes($this, true, $this->min, $this->max),
-        );
-
-        return $tag;
+        return $tag->core(array_merge([
+            'data-formie-min-options' => $this->min ?: null,
+            'data-formie-max-options' => $this->max ?: null,
+        ], ValidationMessagesHelper::optionsLimitBrowserAttributes($this, true, $this->min, $this->max)));
     }
 
     protected function defineOptionsLimitValidationRules(): array

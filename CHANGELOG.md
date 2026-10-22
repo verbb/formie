@@ -16,6 +16,7 @@
 - Fix email field summaries including opted-out fields inside Group and Repeater fields. ([#3043](https://github.com/verbb/formie/issues/3043))
 - Fix text-based fields inside Group fields not displaying their default values. ([#3039](https://github.com/verbb/formie/issues/3039))
 - Fix custom validation messages not saving or being used for fields inside Group and Repeater fields. ([#3041](https://github.com/verbb/formie/issues/3041))
+- Fix Checkboxes fields not enforcing option limits or using custom option limit error messages in the browser. ([#3037](https://github.com/verbb/formie/issues/3037))
 
 ## 4.0.4 - 2026-10-22
 
