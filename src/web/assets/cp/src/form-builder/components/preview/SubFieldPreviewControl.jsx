@@ -21,7 +21,11 @@ const formatPreviewValue = (value) => {
 
 const SubFieldPreviewControl = ({ field }) => {
     const getFieldTypeByType = useAppStore((state) => { return state.getFieldTypeByType; });
-    const value = formatPreviewValue(field?.defaultValue);
+    const defaultValue = formatPreviewValue(field?.defaultValue);
+    // Fixed subfields can fall back to this control before their preview schema is loaded.
+    const options = Array.isArray(field?.options) ? field.options : [];
+    const option = options.find((item) => { return String(item?.value) === defaultValue; });
+    const value = formatPreviewValue(option?.label ?? defaultValue);
     const placeholder = field?.placeholder || '';
     const fieldType = useMemo(() => {
         if (!field?.type || typeof getFieldTypeByType !== 'function') {

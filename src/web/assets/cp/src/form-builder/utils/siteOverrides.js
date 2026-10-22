@@ -936,7 +936,11 @@ const diffFields = (canonicalFields = {}, postedFields = {}, preferReferences = 
             return;
         }
 
-        const fieldDefinitionId = getFieldOverrideKey(field, preferReferences);
+        // Real forms translate persisted definitions. Editor-only children (such as
+        // single Name defaults) receive temporary references but have no definition.
+        const fieldDefinitionId = preferReferences
+            ? getFieldOverrideKey(field, true)
+            : getFieldDefinitionId(field);
 
         if (!fieldDefinitionId || seen.has(fieldDefinitionId)) {
             return;

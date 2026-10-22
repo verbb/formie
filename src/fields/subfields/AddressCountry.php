@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\Address;
 use verbb\formie\fields\Dropdown;
+use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\SlotTag;
@@ -45,10 +46,31 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
     {
         $settings = parent::getFormBuilderSettings();
 
-        // Ensure the form builder knows about our dynamically-generated options
-        $settings['options'] = $this->options();
+        // The editor uses stable ISO identities, independent of the submitted value format.
+        $settings['options'] = array_map(fn(array $country) => [
+            'label' => $this->optionLabel === 'short' ? $country['value'] : $country['label'],
+            'value' => $country['value'],
+        ], $this->getCountryOptions());
+        $settings['defaultValue'] = $this->_getCountryValue($settings['defaultValue'], 'short');
 
         return $settings;
+    }
+
+    public function getDefaultValue(): mixed
+    {
+        $value = parent::getDefaultValue();
+
+        // Existing defaults may use ISO codes or full names from a previous option format.
+        // Restrict conversion to defaults so submitted and persisted answers remain untouched.
+        if ($value instanceof SingleOptionFieldValue && !$value->valid) {
+            $resolved = $this->_getCountryValue($value->value, $this->optionValue);
+
+            if ($resolved !== $value->value) {
+                return $this->normalizeValue($resolved);
+            }
+        }
+
+        return $value;
     }
 
     public function getCountryOptions(): array
@@ -91,7 +113,7 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
                 'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
                 'placeholder' => Craft::t('formie', 'Select an option'),
-                'options' => $this->options(),
+                'options' => $this->getCountryOptions(),
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Option Label'),
@@ -164,6 +186,21 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
 
     // Private Methods
     // =========================================================================
+
+    private function _getCountryValue(mixed $value, ?string $format): mixed
+    {
+        if (!is_string($value) || $value === '') {
+            return $value;
+        }
+
+        foreach ($this->getCountryOptions() as $country) {
+            if ($country['value'] === $value || $country['label'] === $value) {
+                return $format === 'short' ? $country['value'] : $country['label'];
+            }
+        }
+
+        return $value;
+    }
 
     private function _getValueLabel(mixed $value): string
     {

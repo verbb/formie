@@ -24,11 +24,13 @@
 - Fix built-in variables hiding available transforms in the variable picker.
 - Clarify upgrade guidance for settings that resolve references instead of Twig, including upload paths and filenames, supported transforms, and settings that retain Twig support.
 - Fix Date sub-field labels and settings reverting after saving the form builder. ([#3026](https://github.com/verbb/formie/issues/3026))
+- Fix Address country defaults and builder previews when option values use full country names. ([#3036](https://github.com/verbb/formie/issues/3036))
 - Fix nested fields remaining hidden when a conditional Group or Repeater is revealed after continuing a multi-page form. ([#3031](https://github.com/verbb/formie/issues/3031))
 - Fix Agree fields reverting their Label Position from Form Default to Hidden after saving. ([#3030](https://github.com/verbb/formie/issues/3030))
 - Fix field variables in notification subjects appearing literally in PDF attachment filenames. ([#3025](https://github.com/verbb/formie/issues/3025))
 - Fix Hidden fields missing from notification email address variable pickers.
 - Fix forms created on secondary sites using the primary site as their source and failing when saving their first field. ([#3024](https://github.com/verbb/formie/issues/3024))
+- Fix editing Name field labels on secondary sites failing when Use Multiple Name Fields is disabled. ([#3024](https://github.com/verbb/formie/issues/3024))
 - Fix custom hidden field defaults leaving reference tokens unresolved when rendering a new form. ([#3027](https://github.com/verbb/formie/issues/3027))
 - Fix dropdown optgroup labels being replaced with `true` and their optgroup setting being lost in the form builder. ([#3028](https://github.com/verbb/formie/issues/3028))
 

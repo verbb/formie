@@ -66,6 +66,7 @@ import {
     mergeSiteOverridesIntoFormData,
     stripTranslatableValuesToCanonical,
 } from './siteOverrides.js';
+import { saveFormSnapshot } from './formBuilderSnapshot.js';
 
 describe('siteOverrides', () => {
     const canonicalData = {
@@ -136,6 +137,49 @@ describe('siteOverrides', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+    });
+
+    it.each([false, true])('translates a Name label with multiple fields set to %s', (useMultipleFields) => {
+        const canonical = {
+            pages: [{
+                uid: 'name-page',
+                rows: [{
+                    fields: [{
+                        type: 'verbb\\formie\\fields\\Name',
+                        definitionId: 201,
+                        reference: 'name-reference',
+                        label: 'Name',
+                        useMultipleFields,
+                        rows: [{
+                            fields: [{
+                                type: 'verbb\\formie\\fields\\SingleLineText',
+                                definitionId: useMultipleFields ? 202 : null,
+                                reference: useMultipleFields ? 'first-name' : null,
+                                label: 'First Name',
+                                handle: 'firstName',
+                            }],
+                        }],
+                    }],
+                }],
+            }],
+        };
+        const values = structuredClone(canonical);
+        values.pages[0].rows[0].fields[0].label = 'Nom';
+
+        // Saving assigns references to editor-only Name children as well.
+        const snapshot = saveFormSnapshot(values);
+        expect(snapshot.pages[0].rows[0].fields[0].rows[0].fields[0].reference).toBeTruthy();
+        expect(extractSiteTranslationsFromFormData(canonical, snapshot).fieldOverrides).toEqual({
+            201: { label: 'Nom' },
+        });
+
+        if (useMultipleFields) {
+            snapshot.pages[0].rows[0].fields[0].rows[0].fields[0].label = 'Prénom';
+            expect(extractSiteTranslationsFromFormData(canonical, snapshot).fieldOverrides).toEqual({
+                201: { label: 'Nom' },
+                202: { label: 'Prénom' },
+            });
+        }
     });
 
     it('merges form root, settings, page, field, and notification overrides', () => {
@@ -505,7 +549,7 @@ describe('siteOverrides', () => {
         expect(stripped.notifications[0].subject).toBe('Primary subject');
     });
 
-    it('uses stable field references for stencil fields without definition ids', () => {
+    it.each([null, 501])('uses stable field references for stencil fields with definition id %s', (fieldId) => {
         const canonicalStencil = {
             isStencil: true,
             pages: [
@@ -516,7 +560,7 @@ describe('siteOverrides', () => {
                             fields: [
                                 {
                                     reference: 'stencil-field-reference',
-                                    fieldId: 501,
+                                    fieldId,
                                     type: 'verbb\\formie\\fields\\SingleLineText',
                                     label: 'Name',
                                 },
