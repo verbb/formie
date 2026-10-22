@@ -961,7 +961,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function getDefaultValue(): mixed
     {
-        $defaultValue = $this->normalizeValue($this->defaultValue, null);
+        $defaultValue = $this->normalizeDefaultValue($this->defaultValue);
 
         $event = new ModifyFieldValueEvent([
             'value' => $defaultValue,
@@ -1280,6 +1280,11 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     // Protected Methods
     // =========================================================================
+
+    protected function normalizeDefaultValue(mixed $value): mixed
+    {
+        return $this->normalizeValue($value, null);
+    }
 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {

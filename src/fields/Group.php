@@ -141,6 +141,13 @@ class Group extends ContainerParentField implements ContainerParentFieldInterfac
     // Protected Methods
     // =========================================================================
 
+    protected function normalizeDefaultValue(mixed $value): mixed
+    {
+        // An absent group default must not become empty child values that
+        // override the children's own defaults when they render independently.
+        return $value === null ? [] : parent::normalizeDefaultValue($value);
+    }
+
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         $form = $context->form;
