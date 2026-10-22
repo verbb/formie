@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add `allowedPrivateIntegrationHosts` configuration for integrations connecting to trusted private networks. ([#3034](https://github.com/verbb/formie/issues/3034))
 - Add a Kebab Case text transform for reference tokens, including File Upload subpaths and filenames.
 - Add temporary Salesforce diagnostics for API requests, field filtering, cached settings and editor mappings.
 

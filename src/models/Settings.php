@@ -102,6 +102,7 @@ class Settings extends Model
     public array $allowedOrigins = [];
     public bool $useQueueForNotifications = true;
     public bool $useQueueForIntegrations = true;
+    public array $allowedPrivateIntegrationHosts = [];
     public ?int $queuePriority = null;
     public int $deliveryEvidenceRetentionDays = 30;
     public ?string $redirectUri = null;

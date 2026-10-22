@@ -1793,7 +1793,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         foreach ($ips as $ip) {
-            if (!$this->_isPublicEndpointIp($ip)) {
+            if (!$this->_isAllowedEndpointIp($host, $ip)) {
                 return false;
             }
         }
@@ -2243,7 +2243,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $config['handler'] = $this->createDeliveryHttpHandler();
 
         if (filter_var($host, FILTER_VALIDATE_IP)) {
-            if (!$this->_isPublicEndpointIp($host)) {
+            if (!$this->_isAllowedEndpointIp($host, $host)) {
                 throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
             }
 
@@ -2257,7 +2257,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         foreach ($ips as $ip) {
-            if (!$this->_isPublicEndpointIp($ip)) {
+            if (!$this->_isAllowedEndpointIp($host, $ip)) {
                 throw new IntegrationException(Craft::t('formie', 'Outbound integration URL must use a public HTTP or HTTPS endpoint.'));
             }
         }
@@ -2318,6 +2318,73 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         return true;
+    }
+
+    private function _isAllowedEndpointIp(string $host, string $ip): bool
+    {
+        if ($this->_isPublicEndpointIp($ip)) {
+            return true;
+        }
+
+        if (filter_var($ip, FILTER_VALIDATE_IP) === false) {
+            return false;
+        }
+
+        // Only ordinary private networks can be trusted. Local, metadata,
+        // reserved and IPv4 transition addresses must remain unreachable.
+        $private = false;
+
+        foreach (['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', 'fc00::/7'] as $range) {
+            if (IpHelper::inRange($ip, $range)) {
+                $private = true;
+                break;
+            }
+        }
+
+        if (!$private) {
+            return false;
+        }
+
+        // AWS places instance metadata and other host services inside ULA space.
+        if (IpHelper::inRange($ip, 'fd00:ec2::/32')) {
+            return false;
+        }
+
+        // Trust must come from deployment configuration, never saved CP settings.
+        $config = Craft::$app->getConfig()->getConfigFromFile('formie');
+        $entries = is_array($config) ? ($config['allowedPrivateIntegrationHosts'] ?? []) : [];
+
+        if (!is_array($entries)) {
+            return false;
+        }
+
+        foreach ($entries as $entry) {
+            if (!is_string($entry) || ($entry = trim($entry)) === '') {
+                continue;
+            }
+
+            if (strcasecmp(rtrim($host, '.'), rtrim($entry, '.')) === 0) {
+                return true;
+            }
+
+            $entry = $this->_normalizePublicEndpointHost($entry);
+            $parts = explode('/', $entry);
+            $network = $parts[0];
+
+            if (count($parts) > 2 || filter_var($network, FILTER_VALIDATE_IP) === false) {
+                continue;
+            }
+
+            if (isset($parts[1]) && (!ctype_digit($parts[1]) || (int)$parts[1] > (str_contains($network, ':') ? 128 : 32))) {
+                continue;
+            }
+
+            if (IpHelper::inRange($ip, $entry)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function _getOptionSourceIntegrationCollections(IntegrationConfig $config, array $definition): array

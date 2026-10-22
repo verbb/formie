@@ -452,6 +452,32 @@ Sends integrations through Craft’s queue. This is recommended for production s
 
 
 ::: reference
+#### `allowedPrivateIntegrationHosts`
+
+**Type:** `array` · **Default:** `[]`
+
+Allows outbound integration requests to trusted private services, such as a self-hosted CRM. Set this in `config/formie.php`; values saved through the control panel do not grant private-network access. Entries can be exact hostnames (case-insensitive), individual IPv4 or IPv6 addresses, or CIDR ranges. Wildcards, URLs and port numbers are not supported.
+
+```php
+<?php
+
+use craft\helpers\App;
+
+return [
+    'allowedPrivateIntegrationHosts' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string)App::env('FORMIE_ALLOWED_PRIVATE_HOSTS')),
+    ))),
+];
+```
+
+For example, set `FORMIE_ALLOWED_PRIVATE_HOSTS=crm.internal.example,10.20.30.40,fd12:3456::/48` in your environment. Prefer an exact host or address over a broad range. This permission applies to all outbound integrations, including Web Request URLs that use submitted field values.
+
+Only private IPv4 networks (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`) and IPv6 unique-local addresses (`fc00::/7`) can be allowed. Loopback, link-local, unspecified, multicast, reserved and IPv4 transition addresses remain blocked, even when listed, as does the AWS service range `fd00:ec2::/32`. Every DNS answer must be public or explicitly allowed. Requests retain DNS pinning, TLS certificate verification, HTTP/HTTPS on ports 80/443, and disabled redirects and proxies. Public endpoints remain allowed without configuration.
+:::
+
+
+::: reference
 #### `queuePriority`
 
 **Type:** `int|null` · **Default:** `null`
