@@ -77,7 +77,7 @@ const normalizeIntegrationOptions = (options) => {
     return [];
 };
 
-const normalizeMappingValue = (rawValue) => {
+export const normalizeMappingValue = (rawValue) => {
     if (rawValue && typeof rawValue === 'object' && !Array.isArray(rawValue)) {
         const type = rawValue.type ?? null;
         if (type === 'none') {
@@ -85,7 +85,7 @@ const normalizeMappingValue = (rawValue) => {
         }
 
         const nestedValue = rawValue.value ?? '';
-        return typeof nestedValue === 'string' ? nestedValue : String(nestedValue || '');
+        return typeof nestedValue === 'string' ? nestedValue : String(nestedValue);
     }
 
     if (rawValue == null) {
@@ -158,7 +158,7 @@ const getMappingMode = (mappingValue, fieldOptionValues) => {
     return MODE_CUSTOM;
 };
 
-const MappingValueControl = ({
+export const MappingValueControl = ({
     mappingValue,
     mappingKind,
     onChange,
@@ -233,13 +233,28 @@ const MappingValueControl = ({
         return nextValues;
     }, [baseFieldOptionValues, providerOptionVariables]);
 
-    const comparableMappingValue = useMemo(() => {
-        return getComparableTokenValue(mappingValue);
-    }, [mappingValue]);
+    // Provider selections are stored as literals, but the picker identifies them
+    // by tokens. Restore that display identity for saved and migrated mappings.
+    const providerOptionValue = useMemo(() => {
+        if (mappingKind === 'reference') {
+            return '';
+        }
 
-    const [mode, setMode] = useState(() => {
-        return mappingKind ? (mappingKind === 'reference' ? MODE_FIELD : mappingKind === 'literal' ? MODE_LITERAL : MODE_CUSTOM) : getMappingMode(comparableMappingValue, fieldOptionValues);
-    });
+        const token = `{providerOption:${encodeURIComponent(mappingValue)}}`;
+        return providerOptionVariables.some((option) => { return option.value === token; }) ? token : '';
+    }, [mappingKind, mappingValue, providerOptionVariables]);
+    const pickerValue = providerOptionValue || mappingValue;
+    const comparableMappingValue = useMemo(() => {
+        return getComparableTokenValue(pickerValue);
+    }, [pickerValue]);
+
+    const [selectedMode, setMode] = useState(null);
+    let defaultMode = providerOptionValue ? MODE_FIELD : getMappingMode(comparableMappingValue, fieldOptionValues);
+    if (!providerOptionValue && mappingKind) {
+        defaultMode = { reference: MODE_FIELD, literal: MODE_LITERAL }[mappingKind] || MODE_CUSTOM;
+    }
+
+    const mode = selectedMode ?? defaultMode;
 
     const handleModeChange = (nextModeValue) => {
         const nextMode = Array.isArray(nextModeValue) ? nextModeValue[0] : nextModeValue;
@@ -253,9 +268,13 @@ const MappingValueControl = ({
 
         setMode(nextMode);
 
-        onChange(nextMode === MODE_FIELD
-            ? { kind: 'reference', value: fieldOptionValues.has(comparableMappingValue) ? mappingValue : '' }
-            : { kind: nextMode === MODE_LITERAL ? 'literal' : 'text', value: mappingValue });
+        if (nextMode === MODE_FIELD) {
+            onChange(providerOptionValue
+                ? { kind: 'literal', value: mappingValue }
+                : { kind: 'reference', value: fieldOptionValues.has(comparableMappingValue) ? mappingValue : '' });
+        } else {
+            onChange({ kind: nextMode === MODE_LITERAL ? 'literal' : 'text', value: mappingValue });
+        }
     };
 
     const modeSwitchTarget = mode === MODE_FIELD ? MODE_CUSTOM : MODE_FIELD;
@@ -268,7 +287,7 @@ const MappingValueControl = ({
             <div className="flex items-center">
                 {mode === MODE_FIELD ? (
                     <FormBuilderVariablePickerControl
-                        value={mappingValue}
+                        value={pickerValue}
                         onChange={(nextValue) => {
                             const expression = parseReference(String(nextValue || ''));
                             onChange(expression.target === 'providerOption'
