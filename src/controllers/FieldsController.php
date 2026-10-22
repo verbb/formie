@@ -8,6 +8,8 @@ use verbb\formie\models\Settings;
 use Craft;
 use craft\web\Controller;
 
+use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 class FieldsController extends Controller
@@ -46,15 +48,28 @@ class FieldsController extends Controller
      */
     public function actionGetElementSelectOptions()
     {
+        $this->requireCpRequest();
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+        $this->_requireFormAuthoringPermission();
+
         $elements = [];
 
-        try {
-            $fieldData = Craft::$app->getRequest()->getParam('field');
-            $type = $fieldData['type'];
-            $fieldSettings = $fieldData['settings'];
+        $fieldData = Craft::$app->getRequest()->getParam('field');
 
-            // Create a new fieldtype, and populate the settings
-            $field = new $type();
+        if (!is_array($fieldData) || !is_string($fieldData['type'] ?? null)) {
+            throw new BadRequestHttpException('Invalid element field data.');
+        }
+
+        $fieldSettings = $fieldData['settings'] ?? [];
+
+        if (!is_array($fieldSettings)) {
+            throw new BadRequestHttpException('Invalid element field settings.');
+        }
+
+        $field = $this->_getRegisteredElementField($fieldData['type']);
+
+        try {
             $field->sources = $fieldSettings['sources'] ?? [];
             $field->source = $fieldSettings['source'] ?? null;
 
@@ -106,6 +121,44 @@ class FieldsController extends Controller
         }
 
         return '';
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getRegisteredElementField($type)
+    {
+        foreach (Formie::$plugin->getFields()->getRegisteredFields(false) as $field) {
+            if (get_class($field) === $type && is_callable([$field, 'getPreviewElements'])) {
+                return clone $field;
+            }
+        }
+
+        throw new BadRequestHttpException('Invalid element field type.');
+    }
+
+    private function _requireFormAuthoringPermission()
+    {
+        $user = Craft::$app->getUser();
+
+        if ($user->checkPermission('formie-createForms') || $user->checkPermission('formie-editForms')) {
+            return;
+        }
+
+        $identity = $user->getIdentity();
+
+        if ($identity && $identity->id) {
+            $permissions = Craft::$app->getUserPermissions()->getPermissionsByUserId($identity->id);
+
+            foreach ($permissions as $permission) {
+                if (strpos(strtolower($permission), 'formie-manageform:') === 0) {
+                    return;
+                }
+            }
+        }
+
+        throw new ForbiddenHttpException('User is not permitted to perform this action.');
     }
 
 }
