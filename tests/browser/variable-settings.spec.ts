@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('switches variable settings between chips without closing or mixing drafts', async ({ page }) => {
+test('switches variable settings between chips without closing or mixing drafts', async ({ page, browserName }) => {
     await page.goto('/admin/login');
     await page.getByRole('textbox', { name: 'Username or Email', exact: true }).fill('admin');
     await page.locator('input[name="password"]').fill('testing-only-password');
@@ -19,14 +19,22 @@ test('switches variable settings between chips without closing or mixing drafts'
 
     for (const label of ['Testing', 'All Form Fields']) {
         await page.getByRole('button', { name: 'Variables', exact: true }).click();
-        await page.getByRole('button', { name: label, exact: true }).click();
+        // Other fields retain closed variable lists in the DOM.
+        const variableList = page.getByRole('listbox').filter({ visible: true });
+        await expect(variableList).toHaveCount(1);
+        await variableList.getByRole('button', { name: label, exact: true }).click();
         await expect(page.getByPlaceholder('Search variables').filter({ visible: true })).toHaveCount(0);
     }
 
-    const firstChip = page.getByRole('button', { name: 'Testing', exact: true });
-    const secondChip = page.getByRole('button', { name: 'All Form Fields', exact: true });
+    // Status indicators contribute to accessible names. Keep chip identity tied
+    // to its visible variable label and check the indicators separately.
+    const chip = (label: string) => page.getByRole('button').filter({ visible: true, has: page.getByText(label, { exact: true }) });
+    const firstChip = chip('Testing');
+    const secondChip = chip('All Form Fields');
     const settings = page.getByRole('dialog', { name: 'Configure variable', exact: true });
     const defaultInput = settings.getByRole('textbox').first();
+    // macOS WebKit requires Option+Tab to include buttons in native traversal.
+    const tabKey = browserName === 'webkit' && process.platform === 'darwin' ? 'Alt+Tab' : 'Tab';
     // The close notification arrives after the exit animation, so checking only
     // the first visible frame would miss the original flicker-and-close bug.
     const expectSettledSettings = async () => {
@@ -37,25 +45,25 @@ test('switches variable settings between chips without closing or mixing drafts'
 
     await firstChip.click();
     await expect(defaultInput).toBeFocused();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey);
     await expect(settings.getByRole('button', { name: 'None', exact: true })).toBeFocused();
-    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press(`Shift+${tabKey}`);
     await expect(defaultInput).toBeFocused();
-    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press(`Shift+${tabKey}`);
     await expect(settings.getByRole('button', { name: 'Save', exact: true })).toBeFocused();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey);
     await expect(defaultInput).toBeFocused();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey);
     await page.keyboard.press('Enter');
     await expect(page.getByRole('option', { name: 'Lowercase', exact: true })).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(settings).toBeVisible();
     await expect(settings.getByRole('button', { name: 'None', exact: true })).toBeFocused();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey);
     await expect(settings.getByRole('button', { name: 'Change variable', exact: true })).toBeFocused();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey);
     await expect(settings.getByRole('button', { name: 'Save', exact: true })).toBeFocused();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press(tabKey);
     await expect(defaultInput).toBeFocused();
     await defaultInput.fill('Discard first draft');
     await secondChip.click();
@@ -69,6 +77,7 @@ test('switches variable settings between chips without closing or mixing drafts'
     await expect(defaultInput).toHaveValue('Second fallback');
     await settings.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(settings).not.toBeVisible();
+    await expect(secondChip.getByRole('img', { name: 'Has default value', exact: true })).toBeVisible();
     await expect(secondChip).toBeFocused();
 
     await secondChip.click();
@@ -81,6 +90,7 @@ test('switches variable settings between chips without closing or mixing drafts'
     await page.getByRole('option', { name: 'Lowercase', exact: true }).click();
     await expectSettledSettings();
     await settings.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(firstChip.getByText('Lowercase', { exact: true })).toBeVisible();
     await firstChip.click();
     await expect(settings.getByRole('button', { name: 'Lowercase', exact: true })).toBeVisible();
 
@@ -100,7 +110,7 @@ test('switches variable settings between chips without closing or mixing drafts'
     await settings.getByRole('button', { name: 'Change variable', exact: true }).click();
     await expect(settings.getByPlaceholder('Search variables')).toBeFocused();
     await settings.getByRole('button', { name: 'Form Handle', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Form Handle', exact: true })).toBeVisible();
+    await expect(chip('Form Handle')).toBeVisible();
     await expect(defaultInput).toBeFocused();
     await secondChip.click();
     await expectSettledSettings();

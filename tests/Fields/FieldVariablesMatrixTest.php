@@ -36,6 +36,7 @@ it('gives every registered transformation an independently specified result', fu
         'text:upper' => ['{field:words;transform=upper}', 'HELLO WORLD'],
         'text:title' => ['{field:words;transform=title}', 'Hello World'],
         'text:capitalize' => ['{field:words;transform=capitalize}', 'Hello WORLD'],
+        'text:kebab' => ['{field:words;transform=kebab}', 'hello-world'],
         'text:replace' => ['{field:words;transform=replace;search=WORLD;replace=visitor}', 'hello visitor'],
         'text:truncate' => ['{field:words;transform=truncate;length=5;suffix=~}', 'hell~'],
         'number:round' => ['{field:score;transform=round}', '43'],
