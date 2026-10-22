@@ -25,7 +25,9 @@ use craft\db\Table as CraftTable;
 use craft\elements\User;
 use craft\events\DefineSourceSortOptionsEvent;
 use craft\events\DefineSourceTableAttributesEvent;
+use craft\events\DefineUserContentSummaryEvent;
 use craft\events\IndexKeywordsEvent;
+use craft\helpers\App;
 use craft\helpers\Console;
 use craft\helpers\Db;
 use craft\helpers\Json;
@@ -34,6 +36,7 @@ use craft\helpers\Search as SearchHelper;
 use craft\helpers\UrlHelper;
 
 use yii\base\Component;
+use yii\base\Event;
 
 use DateInterval;
 use DateTime;
@@ -461,6 +464,84 @@ class Submissions extends Component
             pdfTemplateId: $pdfTemplateId,
             notificationId: $notificationId,
         );
+    }
+
+    public function defineUserSubmissions(DefineUserContentSummaryEvent $event): void
+    {
+        App::maxPowerCaptain();
+
+        $userIds = $event->userId;
+
+        $submissionCount = Submission::find()
+            ->userId($userIds)
+            ->siteId('*')
+            ->unique()
+            ->status(null)
+            ->count();
+
+        if ($submissionCount) {
+            $event->contentSummary[] = $submissionCount == 1 ? Craft::t('formie', '1 form submission') : Craft::t('formie', '{num} form submissions', ['num' => $submissionCount]);
+        }
+    }
+
+    public function deleteUserSubmissions(Event $event): void
+    {
+        App::maxPowerCaptain();
+
+        /* @var User $user */
+        $user = $event->sender;
+
+        $submissions = Submission::find()
+            ->userId($user->id)
+            ->siteId('*')
+            ->unique()
+            ->status(null)
+            ->all();
+
+        if (!$submissions) {
+            return;
+        }
+
+        // Are we transferring to another user, or just deleting?
+        $inheritorOnDelete = $user->inheritorOnDelete ?? null;
+
+        if ($inheritorOnDelete) {
+            // Re-assign each submission to the new user
+            Db::update(Table::FORMIE_SUBMISSIONS, ['userId' => $inheritorOnDelete->id], ['userId' => $user->id]);
+        } else {
+            // Delete submissions when no inheriting user was selected.
+            foreach ($submissions as $submission) {
+                try {
+                    Craft::$app->getElements()->deleteElement($submission);
+                } catch (Throwable $e) {
+                    Formie::error("Failed to delete user submission with ID: #{$submission->id}." . $e->getMessage());
+                }
+            }
+        }
+    }
+
+    public function restoreUserSubmissions(Event $event): void
+    {
+        App::maxPowerCaptain();
+
+        /* @var User $user */
+        $user = $event->sender;
+
+        $submissions = Submission::find()
+            ->userId($user->id)
+            ->siteId('*')
+            ->unique()
+            ->status(null)
+            ->trashed(true)
+            ->all();
+
+        foreach ($submissions as $submission) {
+            try {
+                Craft::$app->getElements()->restoreElement($submission);
+            } catch (Throwable $e) {
+                Formie::error("Failed to restore user submission with ID: #{$submission->id}." . $e->getMessage());
+            }
+        }
     }
 
     public function getFakeFieldContent(array $fields, array $emailRecipientHandles = []): array

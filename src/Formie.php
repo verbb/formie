@@ -53,6 +53,7 @@ use craft\base\Plugin;
 use craft\console\Application as ConsoleApplication;
 use craft\console\Controller as ConsoleController;
 use craft\console\controllers\ResaveController;
+use craft\controllers\UsersController;
 use craft\controllers\GraphqlController;
 use craft\elements\exporters\Expanded;
 use craft\elements\exporters\Raw;
@@ -662,9 +663,17 @@ class Formie extends Plugin
             DbSubmissionQuery::invalidateStaticCaches();
         });
 
-        Event::on(UserElement::class, UserElement::EVENT_DEFINE_DELETION_BLOCKERS, function(DefineElementDeletionBlockersEvent $event): void {
-            $event->blockers[] = new UserSubmissionsBlocker($event->elements, $event->hardDelete);
-        });
+        // Deletion blockers were introduced in Craft 5.10; older installs still use content transfer events.
+        if (defined(UserElement::class . '::EVENT_DEFINE_DELETION_BLOCKERS')) {
+            Event::on(UserElement::class, UserElement::EVENT_DEFINE_DELETION_BLOCKERS, function(DefineElementDeletionBlockersEvent $event): void {
+                $event->blockers[] = new UserSubmissionsBlocker($event->elements, $event->hardDelete);
+            });
+        } else {
+            Event::on(UsersController::class, UsersController::EVENT_DEFINE_CONTENT_SUMMARY, [$this->getSubmissions(), 'defineUserSubmissions']);
+            Event::on(UserElement::class, UserElement::EVENT_AFTER_DELETE, [$this->getSubmissions(), 'deleteUserSubmissions']);
+            Event::on(UserElement::class, UserElement::EVENT_AFTER_RESTORE, [$this->getSubmissions(), 'restoreUserSubmissions']);
+        }
+
         Event::on(ElementSources::class, ElementSources::EVENT_DEFINE_SOURCE_TABLE_ATTRIBUTES, [$this->getSubmissions(), 'defineSourceTableAttributes']);
         Event::on(ElementSources::class, ElementSources::EVENT_DEFINE_SOURCE_SORT_OPTIONS, [$this->getSubmissions(), 'defineSourceSortOptions']);
 

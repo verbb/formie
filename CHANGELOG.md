@@ -11,6 +11,7 @@
 - Updated Markdown-it to 14.3.3 and the frontend build toolchain to Vite 8.3.4.
 
 ### Fixed
+- Fix plugin initialization failing on Craft versions before 5.10, preserving user submission deletion, reassignment and restoration. ([#3035](https://github.com/verbb/formie/issues/3035))
 - Fix integration metadata being altered or discarded by diagnostic redaction, including refreshed Salesforce fields disappearing.
 - Fix ordinary integration settings being mistaken for credentials in diagnostic logs.
 - Fixed variable tags not showing their configured transform name or default-value indicator.
