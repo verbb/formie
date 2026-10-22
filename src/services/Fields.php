@@ -1893,12 +1893,13 @@ class Fields extends Component
 
     public function getLabelPositionsOptions(FieldInterface $field = null): array
     {
+        // Registration hooks can leave keyed arrays; editor options must serialize as lists.
         return array_map(function($class) {
             return [
                 'label' => $class::displayName(),
                 'value' => $class,
             ];
-        }, $this->getLabelPositions($field));
+        }, array_values($this->getLabelPositions($field)));
     }
 
     public function getInstructionsPositions(FieldInterface $field = null): array
@@ -1936,7 +1937,7 @@ class Fields extends Component
                 'label' => $class::displayName(),
                 'value' => $class,
             ];
-        }, $this->getInstructionsPositions($field));
+        }, array_values($this->getInstructionsPositions($field)));
     }
 
     public function getErrorMessagePositions(FieldInterface $field = null): array
@@ -1974,7 +1975,7 @@ class Fields extends Component
                 'label' => $class::displayName(),
                 'value' => $class,
             ];
-        }, $this->getErrorMessagePositions($field));
+        }, array_values($this->getErrorMessagePositions($field)));
     }
 
     public function getReservedHandles(): array
