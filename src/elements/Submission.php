@@ -420,7 +420,8 @@ class Submission extends Element
             [
                 'label' => Craft::t('formie', 'Submission'),
                 // Titles are usually generated from {timestamp}; sort by creation date instead of the formatted string.
-                'orderBy' => 'elements.dateCreated',
+                // An expression prevents Craft's Date Created sort history from overwriting the selected direction.
+                'orderBy' => fn(int $direction): Expression => new Expression('[[elements.dateCreated]] ' . ($direction === SORT_ASC ? 'ASC' : 'DESC')),
                 'attribute' => 'title',
             ],
             [
