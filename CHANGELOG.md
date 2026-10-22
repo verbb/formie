@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.1.50 - 2026-10-22
 
 ### Fixed
 - Fix plugin initialization failing on Craft versions before 5.10, preserving user submission deletion, reassignment and restoration. ([#3035](https://github.com/verbb/formie/issues/3035))
