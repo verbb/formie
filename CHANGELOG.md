@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.4 - 2026-10-22
 
 ### Added
 - Add `allowedPrivateIntegrationHosts` configuration for integrations connecting to trusted private networks. ([#3034](https://github.com/verbb/formie/issues/3034))
