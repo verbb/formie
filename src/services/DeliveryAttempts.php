@@ -186,7 +186,13 @@ class DeliveryAttempts extends Component
 
             if (!$matches) {
                 $this->checkpoint($uid, 'operation-stale', ['reason' => $accepted === null ? 'missing_accepted_operation' : 'input_or_configuration_changed']);
-                return IntegrationResult::rejected('operation_stale');
+                return new IntegrationResult(
+                    IntegrationStatus::Rejected,
+                    message: $accepted === null
+                        ? 'The queued delivery has no accepted operation to verify. Review the submission and delivery settings before starting a new delivery.'
+                        : 'The submission or delivery settings no longer match the queued operation. Nothing was sent. Review the current values and settings before starting a new delivery; retrying this queue job will not send it.',
+                    code: 'operation_stale',
+                );
             }
             return $send();
         }, $secrets);

@@ -12,6 +12,7 @@
 - Fix new fields failing to save after upgrading to Formie 4 on PostgreSQL. ([#3045](https://github.com/verbb/formie/issues/3045))
 - Fix submission index sorting ignoring the selected direction when switching between Submission and Date Created. ([#3044](https://github.com/verbb/formie/issues/3044))
 - Fix integration provider options appearing as custom values after upgrading or as “Don’t Include” after selection. ([#3042](https://github.com/verbb/formie/issues/3042))
+- Fix queued notifications being incorrectly rejected as stale when site translations are applied, and provide clearer rejection messages and directions to delivery diagnostics. ([#3040](https://github.com/verbb/formie/issues/3040))
 
 ## 4.0.4 - 2026-10-22
 

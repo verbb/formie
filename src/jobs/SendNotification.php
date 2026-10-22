@@ -47,6 +47,10 @@ class SendNotification extends BaseJob implements DeliveryJobInterface
             $attempts->execute($uid, fn() => IntegrationResult::rejected('notification_owner_unavailable'));
             throw new RuntimeException('Notification delivery owner is unavailable.');
         }
+
+        // Apply the same site overrides used at enqueue time to the fresh record,
+        // without reusing a notification cached by an earlier queue job.
+        $notification = Formie::$plugin->getFormSiteOverrides()->applyToNotification($notification, (int)$submission->siteId);
         $sites = Craft::$app->getSites();
         $previousSite = $sites->getCurrentSite();
         $previousLanguage = Craft::$app->language;
@@ -59,7 +63,12 @@ class SendNotification extends BaseJob implements DeliveryJobInterface
             $response = Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission, new self(['deliveryAttemptUid' => $uid]), $row['executionUid']);
 
             if ($response !== true && !($response['success'] ?? false)) {
-                throw new RuntimeException('Notification delivery ' . ($response['status'] ?? 'failed') . '. Open the Diagnostics panel for more information.');
+                $message = 'Notification delivery ' . ($response['status'] ?? 'failed') . '.';
+
+                if (!empty($response['message'])) {
+                    $message .= ' ' . $response['message'];
+                }
+                throw new RuntimeException($message . ' Open this job in Utilities → Queue Manager and select Diagnostics for more information. Delivery attempt: ' . $uid . '.');
             }
             $this->setProgress($queue, 1);
         } finally {

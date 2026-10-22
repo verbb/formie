@@ -365,6 +365,14 @@ class FormSiteOverrides extends Component
         Formie::$plugin->getFormSitePropagation()->syncElementSiteTitles($formId);
     }
 
+    public function applyToNotification(Notification $notification, int $siteId): Notification
+    {
+        $notification = clone $notification;
+        $overrides = $this->getOverrides((int)$notification->formId, $siteId);
+        $this->_applyNotificationOverride($notification, $overrides['notifications'] ?? []);
+        return $notification;
+    }
+
     public function applyToForm(Form $form, ?int $siteId = null, bool $clone = false): Form
     {
         if (!$this->isEnabled()) {
@@ -898,30 +906,35 @@ class FormSiteOverrides extends Component
                 continue;
             }
 
-            $override = $this->_resolveNotificationOverride(
-                $notificationOverrides,
-                ['handle' => $notification->handle, 'uid' => $notification->uid],
-            );
+            $this->_applyNotificationOverride($notification, $notificationOverrides);
+        }
+    }
 
-            if (!is_array($override)) {
-                continue;
-            }
+    private function _applyNotificationOverride(Notification $notification, array $notificationOverrides): void
+    {
+        $override = $this->_resolveNotificationOverride(
+            $notificationOverrides,
+            ['handle' => $notification->handle, 'uid' => $notification->uid],
+        );
 
-            if (array_key_exists('subject', $override)) {
-                $notification->subject = (string)$override['subject'];
-            }
+        if (!is_array($override)) {
+            return;
+        }
 
-            if (array_key_exists('fromName', $override)) {
-                $notification->fromName = (string)$override['fromName'];
-            }
+        if (array_key_exists('subject', $override)) {
+            $notification->subject = (string)$override['subject'];
+        }
 
-            if (array_key_exists('replyToName', $override)) {
-                $notification->replyToName = (string)$override['replyToName'];
-            }
+        if (array_key_exists('fromName', $override)) {
+            $notification->fromName = (string)$override['fromName'];
+        }
 
-            if (array_key_exists('content', $override)) {
-                $notification->content = $this->_coerceRichTextValue($override['content']);
-            }
+        if (array_key_exists('replyToName', $override)) {
+            $notification->replyToName = (string)$override['replyToName'];
+        }
+
+        if (array_key_exists('content', $override)) {
+            $notification->content = $this->_coerceRichTextValue($override['content']);
         }
     }
 
