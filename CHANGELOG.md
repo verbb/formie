@@ -8,6 +8,9 @@
 ### Changed
 - Update the minimum Auth requirement to `2.0.56`.
 
+### Fixed
+- Fix new fields failing to save after upgrading to Formie 4 on PostgreSQL. ([#3045](https://github.com/verbb/formie/issues/3045))
+
 ## 4.0.4 - 2026-10-22
 
 ### Added

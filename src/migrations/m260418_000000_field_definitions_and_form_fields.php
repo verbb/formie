@@ -152,6 +152,11 @@ class m260418_000000_field_definitions_and_form_fields extends Migration
             }
         }
 
+        // Explicit legacy IDs do not advance PostgreSQL's newly created sequence.
+        if ($this->db->getIsPgsql()) {
+            $this->db->createCommand()->resetSequence(Table::FORMIE_FIELDS)->execute();
+        }
+
         $this->_dropLegacyFormFieldColumns();
 
         return true;
