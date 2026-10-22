@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix plugin initialization failing on Craft versions before 5.10, preserving user submission deletion, reassignment and restoration. ([#3035](https://github.com/verbb/formie/issues/3035))
 - Fix custom CRM integrations failing to send submissions when field settings are omitted. ([#3033](https://github.com/verbb/formie/issues/3033))
 - Fix field variables in notification subjects appearing literally in PDF attachment filenames. ([#3025](https://github.com/verbb/formie/issues/3025))
 
