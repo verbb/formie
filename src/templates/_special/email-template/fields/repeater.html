@@ -18,7 +18,7 @@
 
                 <tbody>
                     {% for field in field.getFields(loop.index0) %}
-                        {% if not field.isConditionallyHidden(submission) %}
+                        {% if field.includeInEmailFieldSummaries and not field.isConditionallyHidden(submission) %}
                             {% set fieldValue = submission.getFieldValue(field.valueKey()) ?? field.getInitialValue(submission) %}
 
                             {% set html = field.getReferenceBlockHtml(submission, notification, fieldValue) %}
