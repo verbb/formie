@@ -11,9 +11,9 @@ use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
 use verbb\formie\services\Stencils;
 
-it('discards legacy honeypot bindings without changing other integrations', function (string $source, bool $enabled): void {
+it('discards retired CAPTCHA bindings without changing other integrations', function (string $source, bool $enabled, string $handle): void {
     $bindings = [
-        'honeypot' => ['enabled' => $enabled, 'showAllPages' => true],
+        $handle => ['enabled' => $enabled, 'showAllPages' => true],
         'recaptcha' => ['enabled' => false],
         'unavailableProvider' => ['enabled' => true, 'customSetting' => 'Keep'],
     ];
@@ -25,16 +25,16 @@ it('discards legacy honeypot bindings without changing other integrations', func
         $settings->setAttributes(['integrations' => $bindings], false);
     }
 
-    unset($bindings['honeypot']);
+    unset($bindings[$handle]);
     expect($settings->integrations)->toBe($bindings);
-})->with(['stored', 'posted'])->with([true, false]);
+})->with(['stored', 'posted'])->with([true, false])->with(['honeypot', 'duplicate', 'javascript']);
 
-it('creates forms from legacy honeypot settings and stencils', function (string $source): void {
+it('creates forms from retired CAPTCHA settings and stencils', function (string $source, string $handle): void {
     $settings = Formie::$plugin->getSettings();
     $settings->defaultFormStencil = '';
     $settings->enableHoneypot = true;
     $settings->honeypotFieldName = 'currentBotTrap';
-    $legacySettings = ['integrations' => ['honeypot' => ['enabled' => true]]];
+    $legacySettings = ['integrations' => [$handle => ['enabled' => true]]];
     $suffix = bin2hex(random_bytes(6));
     $stencil = null;
 
@@ -52,7 +52,7 @@ it('creates forms from legacy honeypot settings and stencils', function (string 
         }
     }
 
-    WebRequestTestHelper::withWebRequestContext(function ($request) use ($source, $stencil, $legacySettings, $suffix): void {
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($source, $stencil, $legacySettings, $suffix, $handle): void {
         $actor = User::find()->admin()->one();
         expect($actor)->not->toBeNull();
         Craft::$app->getUser()->setIdentity($actor);
@@ -70,8 +70,8 @@ it('creates forms from legacy honeypot settings and stencils', function (string 
         expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
         $stored = Form::find()->id($form->id)->one();
         expect($stored)->not->toBeNull()
-            ->and($stored->settings->integrations)->not->toHaveKey('honeypot')
+            ->and($stored->settings->integrations)->not->toHaveKey($handle)
             ->and(Formie::$plugin->getSettings()->enableHoneypot)->toBeTrue()
             ->and(Formie::$plugin->getSettings()->honeypotFieldName)->toBe('currentBotTrap');
     }, ['method' => 'POST']);
-})->with(['blank', 'selected stencil', 'default stencil']);
+})->with(['blank', 'selected stencil', 'default stencil'])->with(['honeypot', 'duplicate', 'javascript']);

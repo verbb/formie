@@ -29,11 +29,11 @@ it('keeps setting-level submit action url and entry fallback accessors callable'
     $form = formie()
         ->form(['title' => 'Redirect Accessors'])
         ->singleLineTextField('fullName')
-        ->submitAction('url', ['url' => 'https://example.test/next'])
+        ->submitAction('url', ['url' => '/next'])
         ->create();
 
     $reloaded = Form::find()->id($form->id)->one();
 
-    expect($reloaded?->settings->getFormRedirectUrl(false))->toBeString()
+    expect($reloaded?->settings->getFormRedirectUrl(false))->toBe('/next')
         ->and($reloaded?->settings->getRedirectEntry())->toBeNull();
 });

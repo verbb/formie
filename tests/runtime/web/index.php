@@ -34,7 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && str_starts_with($path, '/browser-com
     if (!in_array($behavior, ['message', 'redirect', 'reload', 'reset', 'newtab', 'malicious'], true)) { http_response_code(404); exit; }
     $form = \verbb\formie\elements\Form::find()->handle('completionMessage')->one();
     $form->setSettings(['submitMethod' => 'page-reload', 'completionBehavior' => in_array($behavior, ['newtab', 'malicious'], true) ? 'redirect' : $behavior, 'redirectUrl' => '/browser-completion-done', 'redirectTarget' => $behavior === 'newtab' ? 'new-tab' : 'same-tab']);
-    if ($behavior === 'malicious') $form->setRedirectUrl("https://evil.test/%0d%0aInjected");
+    if ($behavior === 'malicious') {
+        // Authoring rejects this URL before rendering. Inject the final override
+        // below that boundary so the native POST still exercises runtime rejection.
+        $form->replaceInstanceConfig($form->getInstanceConfig()->withCompletionRedirectOverride('https://evil.test/%0d%0aInjected'));
+    }
     $view = $app->getView(); $view->setTemplateMode(\craft\web\View::TEMPLATE_MODE_SITE);
     $html = \verbb\formie\Formie::$plugin->getBrowserAssets()->withPublishedBrowserAssets(function () use ($view, $form) {
         ob_start(); $view->beginPage(); echo '<!doctype html><html><head><title>Native completion</title>'; $view->head();

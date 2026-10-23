@@ -13051,16 +13051,16 @@
         },
         {
             "name": "verbb/auth",
-            "version": "2.0.55",
+            "version": "2.0.56",
             "source": {
                 "type": "git",
                 "url": "https://github.com/verbb/auth.git",
-                "reference": "98a69a5977d7f97e9f72d43d16157c15ee8cded1"
+                "reference": "fd13d56428f4c4d1f550f15c520e87e4bd0ea25d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/verbb/auth/zipball/98a69a5977d7f97e9f72d43d16157c15ee8cded1",
-                "reference": "98a69a5977d7f97e9f72d43d16157c15ee8cded1",
+                "url": "https://api.github.com/repos/verbb/auth/zipball/fd13d56428f4c4d1f550f15c520e87e4bd0ea25d",
+                "reference": "fd13d56428f4c4d1f550f15c520e87e4bd0ea25d",
                 "shasum": ""
             },
             "require": {
@@ -13105,7 +13105,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-16T20:43:35+00:00"
+            "time": "2026-10-22T23:13:36+00:00"
         },
         {
             "name": "verbb/base",
@@ -13159,11 +13159,11 @@
         },
         {
             "name": "verbb/formie",
-            "version": "4.0.1",
+            "version": "4.0.4",
             "dist": {
                 "type": "path",
                 "url": "../../..",
-                "reference": "227ab048c076acc85117ed65fbcb2360134ed41e"
+                "reference": "b3560df5a585e6fd55f893020ff01b94b4f97316"
             },
             "require": {
                 "commerceguys/addressing": "^2.1.1",
@@ -13180,7 +13180,7 @@
                 "php": "^8.2",
                 "stripe/stripe-php": "^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0 || ^12.0 || ^13.0 || ^14.0 || ^15.0 || ^16.0",
                 "symfony/expression-language": "^5.0 || ^6.0 || ^7.0",
-                "verbb/auth": "^2.0.55",
+                "verbb/auth": "^2.0.56",
                 "verbb/base": "^3.0.20",
                 "verbb/tiptap": "^1.0.5"
             },
