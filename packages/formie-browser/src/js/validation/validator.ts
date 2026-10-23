@@ -41,11 +41,13 @@ const DEFAULT_PATTERNS: Record<string, RegExp> = {
 const debug = createDebug('general', 'validator');
 
 function isValidationInput(node: Element | null): node is ValidationInput {
+    // Enhancement libraries inject unnamed search controls that do not submit
+    // field values and must not inherit the field's validation rules.
     return !!node && (
         node instanceof HTMLInputElement ||
         node instanceof HTMLSelectElement ||
         node instanceof HTMLTextAreaElement
-    );
+    ) && !!node.name;
 }
 
 function isPainted(element: HTMLElement): boolean {
@@ -497,6 +499,13 @@ export class FormieValidator {
             if (combobox instanceof HTMLElement && combobox.classList.contains('formie-combobox')) {
                 return isPainted(combobox);
             }
+        }
+
+        // Third-party select enhancements hide the native value control without
+        // Formie's combobox marker. The containing field still determines whether
+        // its selected values need validation, including an empty required value.
+        if (element instanceof HTMLSelectElement && field instanceof HTMLElement) {
+            return isPainted(element) || isPainted(field);
         }
 
         return isPainted(element);

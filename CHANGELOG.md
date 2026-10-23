@@ -9,6 +9,7 @@
 - Update the minimum Auth requirement to `2.0.56`.
 
 ### Fixed
+- Fix required dropdowns enhanced with third-party libraries such as Choices.js failing validation when options are selected, and preserve custom required messages. ([#3046](https://github.com/verbb/formie/issues/3046))
 - Fix new fields failing to save after upgrading to Formie 4 on PostgreSQL. ([#3045](https://github.com/verbb/formie/issues/3045))
 - Fix submission index sorting ignoring the selected direction when switching between Submission and Date Created. ([#3044](https://github.com/verbb/formie/issues/3044))
 - Fix integration provider options appearing as custom values after upgrading or as “Don’t Include” after selection. ([#3042](https://github.com/verbb/formie/issues/3042))

@@ -9,6 +9,7 @@
 - Updated the package build toolchain to Vite 8.3.4.
 
 ### Fixed
+- Fixed required dropdowns enhanced with third-party libraries such as Choices.js failing validation when options are selected, and preserved custom required messages. ([#3046](https://github.com/verbb/formie/issues/3046))
 - Fixed page-reload submissions stalling when the submit delay is zero.
 - Fixed mounted form lifecycle events omitting the form instance, including submission, page navigation, token refresh and teardown hooks. ([#3032](https://github.com/verbb/formie/issues/3032))
 - Fixed “Scroll To Top” having no effect after successful AJAX submissions. ([#3023](https://github.com/verbb/formie/issues/3023))
