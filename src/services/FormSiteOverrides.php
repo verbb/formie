@@ -934,7 +934,9 @@ class FormSiteOverrides extends Component
         }
 
         if (array_key_exists('content', $override)) {
-            $notification->content = $this->_coerceRichTextValue($override['content']);
+            // Notification content stores HTML or serialized nodes. Assigning a
+            // RichText object to its string property would flatten it to plain text.
+            $notification->content = (new Notification(['content' => $override['content']]))->content;
         }
     }
 

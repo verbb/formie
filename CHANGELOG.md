@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add an optional Mosaic submissions Source with form and status filters, report and dashboard starters, and permission-aware exports.
 - Add save-time validation for completion redirect URLs, with guidance for external origins that are not allowed. ([#3038](https://github.com/verbb/formie/issues/3038))
 
 ### Changed
@@ -14,6 +15,7 @@
 - Fix submission index sorting ignoring the selected direction when switching between Submission and Date Created. ([#3044](https://github.com/verbb/formie/issues/3044))
 - Fix integration provider options appearing as custom values after upgrading or as “Don’t Include” after selection. ([#3042](https://github.com/verbb/formie/issues/3042))
 - Fix queued notifications being incorrectly rejected as stale when site translations are applied, and provide clearer rejection messages and directions to delivery diagnostics. ([#3040](https://github.com/verbb/formie/issues/3040))
+- Fix translated notification content losing formatting and custom TipTap nodes when emails are sent. ([#3040](https://github.com/verbb/formie/issues/3040))
 - Fix email field summaries including opted-out fields inside Group and Repeater fields. ([#3043](https://github.com/verbb/formie/issues/3043))
 - Fix text-based fields inside Group fields not displaying their default values. ([#3039](https://github.com/verbb/formie/issues/3039))
 - Fix custom validation messages not saving or being used for fields inside Group and Repeater fields. ([#3041](https://github.com/verbb/formie/issues/3041))
