@@ -35,7 +35,7 @@ it('resolves url redirect targets and tab behavior contract from form settings',
         ->and($form->settings->redirectTarget)->toBe($tab);
 })->with('redirect_tabs');
 
-it('does not execute Twig in submit action URLs', function (): void {
+it('rejects Twig when saving submit action URLs and never executes it', function (): void {
     $form = formie()
         ->form(['title' => 'URL Redirect Literal Contract'])
         ->singleLineTextField('fullName')
@@ -47,11 +47,24 @@ it('does not execute Twig in submit action URLs', function (): void {
         'redirectTarget' => 'same-tab',
     ], false);
 
-    expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
+    expect(Craft::$app->getElements()->saveElement($form))->toBeFalse()
+        ->and($form->getFirstError('settings.redirectUrl'))->toContain('Enter a valid relative URL');
 
     expect($form->getRedirectUrl())->toBe('')
         ->and($form->getRedirectUrl())->not->toContain('redirect-49');
 });
+
+it('rejects unsafe authored overrides without changing the current redirect', function (string $url): void {
+    $form = formie()->form()->singleLineTextField('fullName')->create();
+    $form->setSettings(['completionBehavior' => 'redirect', 'redirectUrl' => '/safe']);
+
+    expect(fn() => $form->setRedirectUrl($url))->toThrow(\Twig\Error\RuntimeError::class, 'redirectUrl');
+    expect($form->settings->redirectUrl)->toBe('/safe')
+        ->and($form->getCompletionRedirectOverride())->toBeNull();
+})->with([
+    'Twig expression' => ['https://example.test/redirect-{{7*7}}'],
+    'encoded header injection' => ['https://evil.test/%0d%0aInjected'],
+]);
 
 it('resolves entry redirect targets and tab behavior contract from form settings', function (string $tab): void {
     $entry = Entry::find()->status(null)->slug('formie-seed-entry')->one();

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
 const fixture = () =>
@@ -6,7 +6,7 @@ const fixture = () =>
         readFileSync('.cache/verbb-tests/delivery-browser.json', 'utf8'),
     );
 
-async function login(page, username = 'admin') {
+async function login(page: Page, username = 'admin') {
     await page.goto('/admin/login');
     await page
         .getByRole('textbox', { name: 'Username or Email', exact: true })
@@ -215,7 +215,7 @@ test('opens Formie diagnostics from a real Craft job with unresolved delivery an
         .locator('.formie-delivery-json-block')
         .evaluateAll((blocks) =>
             blocks.map((block) => {
-                const scroll = block.querySelector(
+                const scroll = block.querySelector<HTMLElement>(
                     '.formie-delivery-json-block-scroll',
                 );
                 const copy = block.querySelector('pk-copy-button');
@@ -365,7 +365,7 @@ test('exposes Diagnostics for notification delivery jobs but not unrelated Formi
         `/admin/utilities/queue-manager/${data.notification.jobId}`,
     );
     await expect(page.locator('.readable')).toContainText(
-        'Notification delivery failed. Open the Diagnostics panel for more information.',
+        `Notification delivery failed. Open this job in Utilities → Queue Manager and select Diagnostics for more information. Delivery attempt: ${data.notification.uid}.`,
     );
     const diagnosticsButton = page.getByRole('button', {
         name: 'Diagnostics',

@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\events\IntegrationEvent;
+use verbb\formie\helpers\RetiredCaptchas;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\SpamProtectionSettings;
 use verbb\formie\helpers\Table;
@@ -153,6 +154,11 @@ class CaptchaProviders extends Component
 
         // Retain unregistered legacy providers without loading their unavailable classes.
         foreach ($legacyCaptchas as $handle => $legacy) {
+            if (RetiredCaptchas::isRetired($handle, $legacy['type'] ?? $providerTypes[$handle] ?? null)) {
+                unset($legacyCaptchas[$handle]);
+                continue;
+            }
+
             $providerTypes[$handle] ??= $legacy['type'] ?? '';
         }
 

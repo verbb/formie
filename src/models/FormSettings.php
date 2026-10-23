@@ -14,6 +14,7 @@ use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\CompletionRedirectPolicy;
 use verbb\formie\helpers\CpSubmissionFieldConditions;
 use verbb\formie\helpers\IntegrationSecrets;
+use verbb\formie\helpers\RetiredCaptchas;
 use verbb\formie\helpers\SubmissionLimitHelper;
 use verbb\formie\references\ReferenceParser;
 
@@ -238,8 +239,8 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
     public function __construct($config = [])
     {
-        // Honeypot is now a submission guard; legacy bindings must not become missing integrations.
-        unset($config['integrations']['honeypot']);
+        // Retired CAPTCHA bindings must not become missing integrations.
+        $config = RetiredCaptchas::removeBindings($config);
 
         $config = self::_normalizeCompletionAttributes($config);
         CompletionBehavior::from($config['completionBehavior']);
@@ -327,8 +328,8 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
     public function setAttributes($values, $safeOnly = true): void
     {
         if (is_array($values)) {
-            // Older builder payloads and stencils can still contain the retired CAPTCHA binding.
-            unset($values['integrations']['honeypot']);
+            // Older builder payloads and stencils can still contain retired CAPTCHA bindings.
+            $values = RetiredCaptchas::removeBindings($values);
 
             $values = self::_normalizeCompletionAttributes($values, false);
             $values = $this->_normalizeRichTextAttributes($values, false);
