@@ -27,14 +27,14 @@ function y(e, n, r) {
 }
 //#endregion
 //#region src/js/core/page-client-event.ts
-var b = i("general", "page-client-event"), ee = "data-formie-client-event", x = "data-formie-pending-client-events";
-function te(e) {
+var b = i("general", "page-client-event"), x = "data-formie-client-event", S = "data-formie-pending-client-events";
+function ee(e) {
 	return typeof window < "u" && window.CSS?.escape ? window.CSS.escape(e) : e.replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
 }
-function ne(e) {
+function te(e) {
 	return e.querySelector("input[name=\"pageId\"]")?.value?.trim() || e.querySelector("[data-formie-page]:not([data-formie-page-hidden])")?.getAttribute("data-formie-page-id")?.trim() || e.querySelector("[data-formie-page]")?.getAttribute("data-formie-page-id")?.trim() || null;
 }
-function re(e) {
+function ne(e) {
 	if (!e?.trim()) return null;
 	try {
 		let t = JSON.parse(e);
@@ -43,14 +43,14 @@ function re(e) {
 		return b.warn("Invalid data-formie-client-event JSON.", { rawPreview: e.slice(0, 80) }), null;
 	}
 }
-function ie(e) {
+function re(e) {
 	let t = {};
 	return e.forEach((e) => {
 		let n = typeof e.label == "string" ? e.label.trim() : "";
 		n && (t[n] = typeof e.value == "string" ? e.value : "");
 	}), t;
 }
-function ae(e) {
+function ie(e) {
 	return Array.isArray(e) ? e.map((e) => {
 		if (!e || typeof e != "object") return null;
 		let t = e, n = typeof t.event == "string" ? t.event.trim() : "", r = t.payload && typeof t.payload == "object" ? t.payload : null;
@@ -60,7 +60,7 @@ function ae(e) {
 		};
 	}).filter((e) => e !== null) : [];
 }
-function S(e, t) {
+function C(e, t) {
 	if (!t.length) return;
 	let n = window;
 	n.dataLayer = n.dataLayer || [], t.forEach((t) => {
@@ -73,61 +73,61 @@ function S(e, t) {
 		events: t.map((e) => e.event)
 	});
 }
-function oe(e) {
-	let t = e.getAttribute(x);
+function ae(e) {
+	let t = e.getAttribute(S);
 	if (t?.trim()) try {
-		let n = ae(JSON.parse(t));
-		n.length && S(e, n);
+		let n = ie(JSON.parse(t));
+		n.length && C(e, n);
 	} catch {
 		b.warn("Invalid pending client events JSON on form element.");
 	} finally {
-		e.removeAttribute(x);
+		e.removeAttribute(S);
 	}
 }
-function se(e, t) {
+function oe(e, t) {
 	if (t !== "submit") return;
-	let n = ne(e);
+	let n = te(e);
 	if (!n) {
 		b.log("No submitted page id; skipping client event.");
 		return;
 	}
-	let r = e.querySelector(`[data-formie-page][data-formie-page-id="${te(n)}"]`);
+	let r = e.querySelector(`[data-formie-page][data-formie-page-id="${ee(n)}"]`);
 	if (!r) {
 		b.log("No page section for id; skipping client event.", { pageId: n });
 		return;
 	}
-	let i = r.getAttribute(ee);
+	let i = r.getAttribute(x);
 	if (i === null) return;
-	let a = re(i);
+	let a = ne(i);
 	if (!a || !Array.isArray(a.fields)) return;
-	let o = ie(a.fields);
-	S(e, [{
+	let o = re(a.fields);
+	C(e, [{
 		event: typeof o.event == "string" && o.event !== "" ? o.event : "formPageSubmission",
 		payload: o
 	}]);
 }
 //#endregion
 //#region src/js/core/page-tab-errors.ts
-function ce(e, t) {
+function se(e, t) {
 	a(e, e, "tabError", t), t ? e.setAttribute("data-formie-tab-error", "true") : e.removeAttribute("data-formie-tab-error");
 }
-function C(e) {
+function w(e) {
 	let t = /* @__PURE__ */ new Set();
 	e.querySelectorAll("[data-formie-page]").forEach((e) => {
 		let n = e, r = n.getAttribute("data-formie-page-id");
 		r && n.querySelector("[data-formie-field-has-error]") && t.add(r);
 	}), e.querySelectorAll("[data-formie-tab]").forEach((e) => {
 		let n = e, r = n.getAttribute("data-formie-page-id");
-		ce(n, !!r && t.has(r));
+		se(n, !!r && t.has(r));
 	});
 }
 //#endregion
 //#region src/js/validation/scope.ts
-function w(e) {
+function ce(e) {
 	return Array.from(e.querySelectorAll("[data-formie-page]"));
 }
 function T(e) {
-	let t = w(e);
+	let t = ce(e);
 	if (!t.length) return {
 		scope: e,
 		final: !0
@@ -343,7 +343,7 @@ function G(e, t) {
 		a(n, e, "tabCurrent", c), a(n, e, "tabComplete", l);
 		let u = n.querySelector("[data-formie-tab-link]");
 		u && (a(u, e, "tabLinkCurrent", c), c ? o(u, e, "tabLinkInactive") : s(u, e, "tabLinkInactive")), c ? n.setAttribute("aria-current", "page") : n.removeAttribute("aria-current"), l ? n.setAttribute("data-formie-tab-complete", "true") : n.removeAttribute("data-formie-tab-complete");
-	}), i > -1 && n.length > 0 && Ce(e, ye(e, i, n.length)), P(e, "pageId", t), C(e);
+	}), i > -1 && n.length > 0 && Ce(e, ye(e, i, n.length)), P(e, "pageId", t), w(e);
 	let c = e;
 	c.formieValidation && A(e, c.formieValidation);
 }
@@ -384,7 +384,7 @@ function q(t, n = {}) {
 	let r = t.formieValidation, i = L(t)[0]?.getAttribute("data-formie-page-id");
 	V(t), t.reset(), t.querySelectorAll("[data-formie-summary-token]").forEach((e) => {
 		e instanceof HTMLInputElement ? e.remove() : e.removeAttribute("data-formie-summary-token");
-	}), t.querySelectorAll("[data-formie-summary-blocks]").forEach((e) => e.replaceChildren()), n.preserveHiddenState || B(t, !1), I(t, "submissionId"), P(t, "expectedVersion", "0"), I(t, "submissionUid"), I(t, "progressId"), I(t, "pageId"), K(t), ue(t), r?.resetLiveState(), i ? (G(t, i), y(t, e("reset"), void 0)) : (C(t), y(t, e("reset"), void 0));
+	}), t.querySelectorAll("[data-formie-summary-blocks]").forEach((e) => e.replaceChildren()), n.preserveHiddenState || B(t, !1), I(t, "submissionId"), P(t, "expectedVersion", "0"), I(t, "submissionUid"), I(t, "progressId"), I(t, "pageId"), K(t), ue(t), r?.resetLiveState(), i ? (G(t, i), y(t, e("reset"), void 0)) : (w(t), y(t, e("reset"), void 0));
 }
 function Oe(e) {
 	return e.code === he || e.meta?.resetState === !0;
@@ -425,7 +425,7 @@ function Ae(e, t, n) {
 		target: t.redirect.target
 	}), V(e), t.redirect.target === "new-tab" ? window.open(t.redirect.url, "_blank", "noopener,noreferrer") : (F(e, "redirect"), window.location.href = t.redirect.url);
 	else if (Ee(e, t), !t.ok) N.log("Non-redirect failure; keeping current form state."), V(e);
-	else if (Array.isArray(t.clientEvents) && t.clientEvents.length > 0 ? S(e, t.clientEvents) : se(e, n), t.nextPage?.id) V(e), e.formieValidation?.resetLiveState(), G(e, t.nextPage.id), y(e, "formie:page:navigate:after", { pageId: t.nextPage.id }), N.log("Advanced to next page.", { nextPageId: t.nextPage.id });
+	else if (Array.isArray(t.clientEvents) && t.clientEvents.length > 0 ? C(e, t.clientEvents) : oe(e, n), t.nextPage?.id) V(e), e.formieValidation?.resetLiveState(), G(e, t.nextPage.id), y(e, "formie:page:navigate:after", { pageId: t.nextPage.id }), N.log("Advanced to next page.", { nextPageId: t.nextPage.id });
 	else if (n === "save") V(e), De(e, t), N.log("Applied save/resume token state.");
 	else if (t.completion && n === "submit" && !t.redirect?.url) {
 		let n = R(e, t), r = n === "message" && z(e);
@@ -711,81 +711,89 @@ function We(e) {
 				...n,
 				options: s,
 				services: c
-			}, u = [], d = null, f = null, p = null, m = null, h = async () => (d ||= ($.log("Loading payment provider API.", { moduleId: e.moduleId }), e.load(l)), d), g = async () => {
-				if (!e.mount || f || !X(n.target)) return;
-				let t = await h();
-				try {
-					f = await e.mount({
-						api: t,
-						field: n.target,
-						services: c,
-						options: s,
-						provider: s.provider
-					}), $.log("Payment widget mounted.", {
-						moduleId: e.moduleId,
-						handle: s.handle
-					});
-				} catch (t) {
-					throw $.warn("Payment widget mount failed.", {
-						moduleId: e.moduleId,
-						handle: s.handle
-					}), t;
-				}
+			}, u = [], d = null, f = null, p = null, m = null, h = !1, g = null, _ = null, v = async () => (d ||= ($.log("Loading payment provider API.", { moduleId: e.moduleId }), e.load(l)), d), y = async () => {
+				let t = e.mount;
+				if (!h && t && !f && X(n.target)) return p ||= (async () => {
+					try {
+						let r = await v();
+						if (h || !X(n.target)) return;
+						c.removeError(), f = await t({
+							api: r,
+							field: n.target,
+							services: c,
+							options: s,
+							provider: s.provider
+						}), $.log("Payment widget mounted.", {
+							moduleId: e.moduleId,
+							handle: s.handle
+						});
+					} catch (t) {
+						throw $.warn("Payment widget mount failed.", {
+							moduleId: e.moduleId,
+							handle: s.handle
+						}), t;
+					}
+				})().finally(() => {
+					p = null;
+				}), p;
+			}, b = () => {
+				y().catch(() => {
+					!h && X(n.target) && c.addError(s.transport.errorMessage);
+				});
 			};
 			if (u.push(n.on("formie:submit:before", () => {
 				c.removeError(), c.removeSuccess();
 			})), e.setup) {
 				let t = n.root || n.form || n.target;
-				p = await e.setup({
+				g = await e.setup({
 					...l,
 					root: t
-				}), p.destroy && u.push(p.destroy);
+				}), g.destroy && u.push(g.destroy);
 			}
-			e.mount && X(n.target) && await g(), ["formie:page:navigate:after", "formie:submit:result"].forEach((e) => {
-				let t = () => {
-					g();
-				};
-				n.root.addEventListener(e, t), u.push(() => {
-					n.root.removeEventListener(e, t);
+			e.mount && X(n.target) && await y(), ["formie:page:navigate:after", "formie:submit:result"].forEach((e) => {
+				n.root.addEventListener(e, b), u.push(() => {
+					n.root.removeEventListener(e, b);
 				});
-			}), u.push(n.on("formie:conditions:evaluated", () => {
-				g();
-			}));
-			let _ = async () => {
-				if ($.log("Destroying payment module.", {
+			}), u.push(n.on("formie:conditions:evaluated", b));
+			let x = () => m || (h = !0, m = (async () => {
+				$.log("Destroying payment module.", {
 					moduleId: e.moduleId,
 					handle: s.handle
-				}), u.forEach((e) => e()), f && e.unmount) {
-					let t = await h();
-					await e.unmount({
-						api: t,
-						widget: f,
-						field: n.target,
-						services: c,
-						options: s,
-						provider: s.provider
-					}), $.log("Payment widget unmounted.", {
-						moduleId: e.moduleId,
-						handle: s.handle
-					});
+				}), u.forEach((e) => e()), await p?.catch(() => {});
+				let t = f;
+				f = null;
+				try {
+					if (t && e.unmount) {
+						let r = await v();
+						await e.unmount({
+							api: r,
+							widget: t,
+							field: n.target,
+							services: c,
+							options: s,
+							provider: s.provider
+						});
+					}
+				} finally {
+					i[a]?.destroy === x && delete i[a];
 				}
-				i[a]?.destroy === _ && delete i[a], $.log("Payment module destroy complete.", {
+				$.log("Payment module destroy complete.", {
 					moduleId: e.moduleId,
 					handle: s.handle
 				});
-			};
-			return i[a] = { destroy: _ }, {
-				destroy: _,
+			})(), m);
+			return i[a] = { destroy: x }, {
+				destroy: x,
 				beforeSubmit: async (t) => {
-					if (p?.beforeSubmit) {
-						await p.beforeSubmit(t);
+					if (g?.beforeSubmit) {
+						await g.beforeSubmit(t);
 						return;
 					}
 					if (t.action !== "submit" || !X(n.target)) return;
-					await g();
-					let r = await h();
+					await y();
+					let r = await v();
 					if (e.onBeforePayment) {
-						m ||= (async () => e.onBeforePayment({
+						_ ||= (async () => e.onBeforePayment({
 							api: r,
 							widget: f,
 							field: n.target,
@@ -794,9 +802,9 @@ function We(e) {
 							provider: s.provider,
 							stageCtx: t
 						}))().finally(() => {
-							m = null;
+							_ = null;
 						});
-						let i = await m;
+						let i = await _;
 						if ($.log("onBeforePayment resolved.", {
 							moduleId: e.moduleId,
 							handle: s.handle,
@@ -824,7 +832,7 @@ function We(e) {
 						result: r
 					}))?.remount && e.mount) {
 						if (f && e.unmount) {
-							let t = await h();
+							let t = await v();
 							await e.unmount({
 								api: t,
 								widget: f,
@@ -834,7 +842,7 @@ function We(e) {
 								provider: s.provider
 							});
 						}
-						f = null, await g();
+						f = null, await y();
 					}
 				}
 			};
@@ -845,4 +853,4 @@ function We(e) {
 //#region src/js/modules/payments/api.ts
 var Ge = We;
 //#endregion
-export { B as a, E as c, C as d, se as f, v as g, y as h, W as i, w as l, _ as m, G as n, Te as o, oe as p, Ae as r, me as s, Ge as t, T as u };
+export { B as a, E as c, w as d, oe as f, v as g, y as h, W as i, ce as l, _ as m, G as n, Te as o, ae as p, Ae as r, me as s, Ge as t, T as u };

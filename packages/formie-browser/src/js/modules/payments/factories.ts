@@ -132,6 +132,9 @@ export function createManagedPaymentModule<
             const cleanups: Cleanup[] = [];
             let apiPromise: Promise<TApi> | null = null;
             let widget: TWidget | null = null;
+            let mountPromise: Promise<void> | null = null;
+            let destructionPromise: Promise<void> | null = null;
+            let destroyed = false;
             let customSetupResult: PaymentSetupResult | null = null;
             let authorizeInFlight: Promise<boolean> | null = null;
 
@@ -145,32 +148,59 @@ export function createManagedPaymentModule<
             };
 
             const ensureMounted = async() => {
-                if (!adapter.mount || widget || !isPaymentFieldActive(ctx.target)) {
+                const mount = adapter.mount;
+
+                if (destroyed || !mount || widget || !isPaymentFieldActive(ctx.target)) {
                     return;
                 }
 
-                const api = await getApi();
+                // Conditions can fire again while a provider is requesting its session.
+                // Share the whole mount, including API loading, with submission callers.
+                if (!mountPromise) {
+                    mountPromise = (async() => {
+                        try {
+                            const api = await getApi();
 
-                try {
-                    widget = await adapter.mount({
-                        api,
-                        field: ctx.target,
-                        services,
-                        options,
-                        provider: options.provider,
+                            if (destroyed || !isPaymentFieldActive(ctx.target)) {
+                                return;
+                            }
+
+                            services.removeError();
+                            widget = await mount({
+                                api,
+                                field: ctx.target,
+                                services,
+                                options,
+                                provider: options.provider,
+                            });
+                            debug.log('Payment widget mounted.', {
+                                moduleId: adapter.moduleId,
+                                handle: options.handle,
+                            });
+                        } catch (error) {
+                            // Setup and submission callers still receive provider failures.
+                            debug.warn('Payment widget mount failed.', {
+                                moduleId: adapter.moduleId,
+                                handle: options.handle,
+                            });
+                            throw error;
+                        }
+                    })().finally(() => {
+                        mountPromise = null;
                     });
-                    debug.log('Payment widget mounted.', {
-                        moduleId: adapter.moduleId,
-                        handle: options.handle,
-                    });
-                } catch (error) {
-                    // Propagate initialization failure to the required/optional policy.
-                    debug.warn('Payment widget mount failed.', {
-                        moduleId: adapter.moduleId,
-                        handle: options.handle,
-                    });
-                    throw error;
                 }
+
+                return mountPromise;
+            };
+
+            const handleVisibility = () => {
+                // Event listeners have no awaited caller to handle a rejection.
+                // Allow the next visibility or submission attempt to retry the mount.
+                void ensureMounted().catch(() => {
+                    if (!destroyed && isPaymentFieldActive(ctx.target)) {
+                        services.addError(options.transport.errorMessage);
+                    }
+                });
             };
 
             // Clear stale payment feedback at the start of every submit attempt.
@@ -194,10 +224,6 @@ export function createManagedPaymentModule<
             // Remount when page flow or field conditions reveal this payment field.
             const visibilityEvents = ['formie:page:navigate:after', 'formie:submit:result'];
             visibilityEvents.forEach((eventName) => {
-                const handleVisibility = () => {
-                    void ensureMounted();
-                };
-
                 ctx.root.addEventListener(eventName, handleVisibility as EventListener);
                 cleanups.push(() => {
                     ctx.root.removeEventListener(eventName, handleVisibility as EventListener);
@@ -205,41 +231,48 @@ export function createManagedPaymentModule<
             });
 
             // Conditions emit on the module bus (not only as page-nav DOM events).
-            cleanups.push(ctx.on('formie:conditions:evaluated', () => {
-                void ensureMounted();
-            }));
+            cleanups.push(ctx.on('formie:conditions:evaluated', handleVisibility));
 
-            const destroy = async() => {
-                debug.log('Destroying payment module.', {
-                    moduleId: adapter.moduleId,
-                    handle: options.handle,
-                });
-                cleanups.forEach((c) => c());
-
-                if (widget && adapter.unmount) {
-                    const api = await getApi();
-
-                    await adapter.unmount({
-                        api,
-                        widget,
-                        field: ctx.target,
-                        services,
-                        options,
-                        provider: options.provider,
-                    });
-                    debug.log('Payment widget unmounted.', {
+            const destroy = (): Promise<void> => {
+                if (destructionPromise) return destructionPromise;
+                destroyed = true;
+                destructionPromise = (async() => {
+                    debug.log('Destroying payment module.', {
                         moduleId: adapter.moduleId,
                         handle: options.handle,
                     });
-                }
+                    cleanups.forEach((cleanup) => cleanup());
 
-                if (registry[occurrenceKey]?.destroy === destroy) {
-                    delete registry[occurrenceKey];
-                }
-                debug.log('Payment module destroy complete.', {
-                    moduleId: adapter.moduleId,
-                    handle: options.handle,
-                });
+                    // A session request may finish after teardown starts. Release the
+                    // resulting widget before another instance can use this container.
+                    await mountPromise?.catch(() => {});
+                    const mountedWidget = widget;
+                    widget = null;
+
+                    try {
+                        if (mountedWidget && adapter.unmount) {
+                            const api = await getApi();
+
+                            await adapter.unmount({
+                                api,
+                                widget: mountedWidget,
+                                field: ctx.target,
+                                services,
+                                options,
+                                provider: options.provider,
+                            });
+                        }
+                    } finally {
+                        if (registry[occurrenceKey]?.destroy === destroy) {
+                            delete registry[occurrenceKey];
+                        }
+                    }
+                    debug.log('Payment module destroy complete.', {
+                        moduleId: adapter.moduleId,
+                        handle: options.handle,
+                    });
+                })();
+                return destructionPromise;
             };
 
             registry[occurrenceKey] = { destroy };
