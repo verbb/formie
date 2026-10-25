@@ -9,11 +9,23 @@ use craft\elements\Asset;
 use craft\fs\Local;
 use craft\helpers\Assets;
 use craft\models\Volume;
+use ReflectionProperty;
 use RuntimeException;
 use verbb\formie\Formie;
 
 final class UploadTestHelper
 {
+    public static function resetAssetFolderCaches(): void
+    {
+        $assets = Craft::$app->getAssets();
+
+        // Simulated requests can delete folders cached by the original app.
+        // Craft has no public reset for these request-local folder caches.
+        foreach (['_foldersById', '_foldersByUid', '_rootFolders', '_userTempFolders'] as $property) {
+            (new ReflectionProperty(\craft\services\Assets::class, $property))->setValue($assets, []);
+        }
+    }
+
     public static function ensureUploadVolume(string $handle = 'formieTestUploads', string $name = 'Formie Test Uploads'): Volume
     {
         $fs = self::ensureLocalFilesystem();

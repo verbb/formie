@@ -24,6 +24,8 @@ beforeEach(function (): void {
 
 afterEach(function (): void {
     $this->supportTransaction->rollBack();
+    Craft::$app->getInfo()->configVersion = (new \craft\db\Query())->select('configVersion')->from(\craft\db\Table::INFO)->scalar();
+    Craft::$app->getProjectConfig()->reset();
     (new ReflectionMethod(Formie::$plugin->getCaptchaProviders(), '_resetCache'))->invoke(Formie::$plugin->getCaptchaProviders());
     (new ReflectionMethod(Formie::$plugin->getIntegrations(), '_resetIntegrationCaches'))->invoke(Formie::$plugin->getIntegrations());
     Formie::$plugin->getIntegrations()->resetCaptchaCaches();

@@ -130,7 +130,7 @@ it('checks copied groups under extension renamed handles', function(): void {
         $form->settings->integrations = [$alias => ['enabled' => true]];
         expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
         $handler = function($event) use ($integration, $alias): void {
-            if ($event->integration->id === $integration->id) {
+            if ($event->integration instanceof UserIntegration && $event->integration->id === $integration->id) {
                 $event->integration = clone $event->integration;
                 $event->integration->handle = $alias;
             }
@@ -138,6 +138,9 @@ it('checks copied groups under extension renamed handles', function(): void {
         $service = Formie::$plugin->getIntegrations();
         $service->on(Integrations::EVENT_MODIFY_FORM_INTEGRATION, $handler);
         try {
+            $resolved = $service->resolveIntegrationDefinitionByHandle($alias);
+            expect($resolved)->toBeInstanceOf(UserIntegration::class)
+                ->and($resolved->id)->toBe($integration->id);
             expect(fn() => copyUserGroupStencil())->toThrow(ForbiddenHttpException::class, $group->name);
         } finally {
             $service->off(Integrations::EVENT_MODIFY_FORM_INTEGRATION, $handler);
@@ -153,7 +156,7 @@ it('uses the effective definition when extension handles collide during copy', f
             'scope' => Integrations::SCOPE_SITE, 'sortOrder' => 99999, 'enabled' => true, 'groupUids' => [$group->uid]]);
         expect(Formie::$plugin->getIntegrations()->saveIntegration($winner))->toBeTrue();
         $handler = function($event) use ($integration, $winner): void {
-            if ($event->integration->id === $winner->id) {
+            if ($event->integration instanceof UserIntegration && $event->integration->id === $winner->id) {
                 $event->integration = clone $event->integration;
                 $event->integration->handle = $integration->handle;
             }
@@ -161,7 +164,9 @@ it('uses the effective definition when extension handles collide during copy', f
         $service = Formie::$plugin->getIntegrations();
         $service->on(Integrations::EVENT_MODIFY_FORM_INTEGRATION, $handler);
         try {
-            expect($service->resolveIntegrationDefinitionByHandle($integration->handle)->id)->toBe($winner->id);
+            $resolved = $service->resolveIntegrationDefinitionByHandle($integration->handle);
+            expect($resolved)->toBeInstanceOf(UserIntegration::class)
+                ->and($resolved->id)->toBe($winner->id);
             expect(fn() => copyUserGroupStencil())->toThrow(ForbiddenHttpException::class, $group->name);
         } finally {
             $service->off(Integrations::EVENT_MODIFY_FORM_INTEGRATION, $handler);

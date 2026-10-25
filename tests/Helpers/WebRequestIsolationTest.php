@@ -35,6 +35,9 @@ it('registers plugin translations before garbage collection during web applicati
     ], ['id' => $form->id])->execute();
     $originalApp = Craft::$app;
     $originalI18n = $originalApp->getI18n();
+    $folderUser = new \craft\elements\User(['id' => random_int(100000000, 999999999)]);
+    $folder = $originalApp->getAssets()->getUserTemporaryUploadFolder($folderUser);
+    expect((new \craft\db\Query())->from('{{%volumefolders}}')->where(['id' => $folder->id])->exists())->toBeTrue();
     $gcRuns = 0;
     $forceGc = static function (Event $event): void {
         $event->sender->getGc()->probability = 1_000_001;
@@ -56,6 +59,11 @@ it('registers plugin translations before garbage collection during web applicati
         Event::off(Application::class, Application::EVENT_INIT, $forceGc);
         Event::off(Gc::class, Gc::EVENT_RUN, $recordGc);
     }
+
+    expect((new \craft\db\Query())->from('{{%volumefolders}}')->where(['id' => $folder->id])->exists())->toBeFalse();
+    $replacement = $originalApp->getAssets()->getUserTemporaryUploadFolder($folderUser);
+    expect((new \craft\db\Query())->from('{{%volumefolders}}')->where(['id' => $replacement->id])->exists())->toBeTrue()
+        ->and($replacement->id)->not->toBe($folder->id);
 
     expect(Craft::$app)->toBe($originalApp)
         ->and(Craft::$app->getI18n())->toBe($originalI18n);

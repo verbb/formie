@@ -33,6 +33,10 @@ final class WebRequestTestHelper
             new \ReflectionProperty(\yii\base\Event::class, '_eventWildcards'),
         ];
         $originalEvents = array_map(static fn(\ReflectionProperty $property) => $property->getValue(), $eventProperties);
+        $gcRan = false;
+        \yii\base\Event::on(\craft\services\Gc::class, \craft\services\Gc::EVENT_RUN, static function() use (&$gcRan): void {
+            $gcRan = true;
+        });
 
         $_SERVER['REQUEST_METHOD'] = strtoupper((string)($options['method'] ?? 'GET'));
         $_SERVER['SERVER_NAME'] = (string)($options['serverName'] ?? 'craft.example.test');
@@ -111,6 +115,12 @@ final class WebRequestTestHelper
             }
 
             Craft::$app = $originalApp;
+            // GC in the simulated app can delete empty folders still cached by
+            // the original app, which survives across the remaining test cases.
+            if ($gcRan && $originalApp->has('assets', true)) {
+                UploadTestHelper::resetAssetFolderCaches();
+            }
+
             foreach ($eventProperties as $index => $property) {
                 $property->setValue(null, $originalEvents[$index]);
             }

@@ -11,6 +11,25 @@ pest()
 
 pest()->in('Unit');
 
+// These assertions read Yii's buffer directly. Retain messages for each test,
+// then flush and restore the interval so suite order cannot discard the evidence.
+pest()->beforeEach(function (): void {
+    $this->integrationLogger = Craft::getLogger();
+    $this->integrationLogFlushInterval = $this->integrationLogger->flushInterval;
+    $this->integrationLogger->flushInterval = 0;
+})->afterEach(function (): void {
+    try {
+        $this->integrationLogger->flush();
+    } finally {
+        $this->integrationLogger->flushInterval = $this->integrationLogFlushInterval;
+    }
+})->in(
+    'Integrations/IntegrationDiagnosticSecretsTest.php',
+    'Integrations/SalesforceClientCredentialsTest.php',
+    'Integrations/SalesforceFormSettingsFetchTest.php',
+    'Integrations/SalesforceRequestDiagnosticsTest.php',
+);
+
 expect()->extend('toHaveFieldError', function (string $fieldHandle) {
     $errors = $this->value->getErrors($fieldHandle);
 
