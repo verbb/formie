@@ -20,21 +20,29 @@ class RetiredCaptchas
         return isset(self::TYPES[$handle]);
     }
 
-    public static function removeBindings(array $settings): array
+    public static function removeBindings(array $settings, ?array $providerTypes = null): array
     {
         if (empty($settings['integrations']) || !is_array($settings['integrations'])) {
             return $settings;
         }
-
-        $hasProviders = Craft::$app->getDb()->tableExists(Table::FORMIE_CAPTCHA_PROVIDERS);
 
         foreach ($settings['integrations'] as $handle => $binding) {
             $type = $binding['type'] ?? null;
 
             // Form bindings normally omit their type. Retain unavailable custom providers
             // even when they reuse one of the retired handles.
-            if (!$type && $hasProviders) {
-                $type = Formie::$plugin->getCaptchaProviders()->getProviderRowByHandle($handle)['type'] ?? null;
+            if (!$type && isset(self::TYPES[$handle])) {
+                if ($providerTypes !== null) {
+                    $type = $providerTypes[$handle] ?? null;
+                } elseif (Formie::$plugin->isInstalled) {
+                    // The provider table may not exist yet during an upgrade. Let
+                    // the migration resolve untyped bindings from its known schema.
+                    if (Craft::$app->getPlugins()->isPluginUpdatePending(Formie::$plugin)) {
+                        continue;
+                    }
+
+                    $type = Formie::$plugin->getCaptchaProviders()->getProviderRowByHandle($handle)['type'] ?? null;
+                }
             }
 
             if (self::isRetired($handle, $type)) {

@@ -4,6 +4,7 @@ use craft\db\Query;
 use craft\helpers\Json;
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\Formie;
+use verbb\formie\helpers\RetiredCaptchas;
 use verbb\formie\helpers\SpamProtectionSettings;
 use verbb\formie\helpers\Table;
 use verbb\formie\migrations\m261024_000000_retired_captchas;
@@ -146,3 +147,28 @@ it('retains custom providers and their untyped form bindings when they reuse ret
     expect(SpamProtectionSettings::record('captcha:' . $handle))->toBe($before)
         ->and((new Query())->select('settings')->from(Table::FORMIE_FORMS)->where(['id' => $form->id])->scalar())->toBe($storedSettings);
 })->with(['duplicate', 'honeypot', 'javascript']);
+
+it('defers untyped bindings until the pending upgrade can distinguish custom providers', function(): void {
+    $plugin = Formie::$plugin;
+    $schemaVersion = $plugin->schemaVersion;
+    $plugin->schemaVersion = '999.0.0';
+
+    try {
+        expect(Craft::$app->getPlugins()->isPluginUpdatePending($plugin))->toBeTrue();
+        $settings = ['integrations' => ['duplicate' => ['enabled' => true], 'honeypot' => ['enabled' => true]]];
+        expect(RetiredCaptchas::removeBindings($settings))->toBe($settings);
+
+        retiredCaptchaRow('duplicate', 'uninstalled\\CustomCaptcha');
+        retiredCaptchaRow('honeypot', 'verbb\\formie\\integrations\\captchas\\Honeypot');
+        $form = formie()->form()->create();
+        Craft::$app->getDb()->createCommand()->update(Table::FORMIE_FORMS, ['settings' => Json::encode($settings)], ['id' => $form->id])->execute();
+
+        expect((new m261024_000000_retired_captchas())->safeUp())->toBeTrue();
+        $stored = Json::decode((new Query())->select('settings')->from(Table::FORMIE_FORMS)->where(['id' => $form->id])->scalar());
+        expect($stored['integrations'])->toBe(['duplicate' => ['enabled' => true]])
+            ->and($plugin->getCaptchaProviders()->getProviderRowByHandle('duplicate')['type'])->toBe('uninstalled\\CustomCaptcha')
+            ->and($plugin->getCaptchaProviders()->getProviderRowByHandle('honeypot'))->toBeNull();
+    } finally {
+        $plugin->schemaVersion = $schemaVersion;
+    }
+});

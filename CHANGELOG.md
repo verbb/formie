@@ -9,7 +9,7 @@
 - Update the minimum Auth requirement to `2.0.56`.
 
 ### Fixed
-- Fix retired Duplicate, Honeypot, and JavaScript CAPTCHAs appearing as unavailable after upgrading, and remove their obsolete form bindings. ([#3047](https://github.com/verbb/formie/issues/3047))
+- Fix retired Duplicate, Honeypot, and JavaScript CAPTCHAs appearing as unavailable after upgrading, remove their obsolete form bindings, and preserve third-party CAPTCHA bindings that reuse those handles. ([#3047](https://github.com/verbb/formie/issues/3047))
 - Fix required dropdowns enhanced with third-party libraries such as Choices.js failing validation when options are selected, and preserve custom required messages. ([#3046](https://github.com/verbb/formie/issues/3046))
 - Fix new fields failing to save after upgrading to Formie 4 on PostgreSQL. ([#3045](https://github.com/verbb/formie/issues/3045))
 - Fix submission index sorting ignoring the selected direction when switching between Submission and Date Created. ([#3044](https://github.com/verbb/formie/issues/3044))

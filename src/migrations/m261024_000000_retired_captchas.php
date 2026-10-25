@@ -18,6 +18,8 @@ class m261024_000000_retired_captchas extends Migration
     {
         $providers = Formie::$plugin->getCaptchaProviders();
         $providers->resetCache();
+        $providerRows = (new Query())->select(['id', 'handle', 'type'])->from(Table::FORMIE_CAPTCHA_PROVIDERS)->all($this->db);
+        $providerTypes = array_column($providerRows, 'type', 'handle');
 
         // Read bindings before deleting providers so stored types can distinguish
         // retired built-ins from third-party providers with the same handles.
@@ -37,9 +39,9 @@ class m261024_000000_retired_captchas extends Migration
                 $clean = $data;
 
                 if ($column === 'settings') {
-                    $clean = RetiredCaptchas::removeBindings($data);
+                    $clean = RetiredCaptchas::removeBindings($data, $providerTypes);
                 } elseif (isset($data['settings']) && is_array($data['settings'])) {
-                    $clean['settings'] = RetiredCaptchas::removeBindings($data['settings']);
+                    $clean['settings'] = RetiredCaptchas::removeBindings($data['settings'], $providerTypes);
                 }
 
                 if ($clean !== $data) {
@@ -48,7 +50,7 @@ class m261024_000000_retired_captchas extends Migration
             }
         }
 
-        foreach ((new Query())->select(['id', 'handle', 'type'])->from(Table::FORMIE_CAPTCHA_PROVIDERS)->all($this->db) as $row) {
+        foreach ($providerRows as $row) {
             if (RetiredCaptchas::isRetired($row['handle'], $row['type'])) {
                 $this->delete(Table::FORMIE_CAPTCHA_PROVIDERS, ['id' => $row['id']]);
             }
