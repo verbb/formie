@@ -240,7 +240,7 @@ function ConditionsFieldBase({
                             <span>{t('I want to')}</span>
 
                             <SelectInput
-                                size="xs"
+                                size="xxs"
                                 value={settings[ruleKey]}
                                 options={ruleOptions}
                                 onChange={(nextValue) => {
@@ -256,7 +256,7 @@ function ConditionsFieldBase({
                     <span>{hideRuleSelector ? t('Apply when') : t(subjectLabel)}</span>
 
                     <SelectInput
-                        size="xs"
+                        size="xxs"
                         value={settings.conditionRule}
                         options={[
                             { label: t('All'), value: 'all' },

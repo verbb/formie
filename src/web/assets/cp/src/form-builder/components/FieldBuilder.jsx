@@ -42,6 +42,7 @@ import { FieldBuilderDnDDebugPanel } from '../dev/FieldBuilderDnDDebugPanel';
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { announceFormBuilderStatus } from '@form-builder/utils/accessibility';
 import { getFieldDisplayLabel } from '@form-builder/utils/fieldDisplayLabel';
+import { preventFieldDragActivation } from '@form-builder/utils/fieldDragActivation';
 import { SnapTopLeftCornerToCursor } from '@utils';
 
 const getDropzoneHitboxPadding = (id) => {
@@ -114,6 +115,7 @@ function FieldBuilder({ fields }) {
     const sensors = useMemo(() => {
         return [
             PointerSensor.configure({
+                preventActivation: preventFieldDragActivation,
                 activationConstraints: (event) => {
                     // Touch scrolling should win unless the user clearly long-presses to drag.
                     if (event.pointerType === 'touch') {
