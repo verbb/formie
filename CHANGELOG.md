@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Update the minimum Auth requirement to `2.0.56`.
+
+### Fixed
+- Fix multi-page forms showing validation errors while typing in untouched fields after changing pages. ([#3050](https://github.com/verbb/formie/issues/3050))
+
 ## 3.1.50 - 2026-10-22
 
 ### Fixed

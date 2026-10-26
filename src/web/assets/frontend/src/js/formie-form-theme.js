@@ -921,6 +921,11 @@ export class FormieFormTheme {
     }
 
     setCurrentPage(pageId) {
+        // A submitted page must not activate inline errors for untouched fields on another page.
+        if (this.validator && this.settings.currentPageId != pageId) {
+            this.validator.submitted = false;
+        }
+
         this.settings.currentPageId = pageId;
         this.$currentPage = this.$form.querySelector(`#${this.getPageId(pageId)}`);
 
