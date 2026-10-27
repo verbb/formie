@@ -217,6 +217,9 @@ it('reflects descendant mutations after layout and page lookups without hydratin
 });
 
 it('rolls back the complete import when site overrides fail', function () {
+    if (!Craft::$app->getIsMultiSite()) {
+        test()->markTestSkipped('Requires site overrides; covered by the multisite suite.');
+    }
     $source = formie()->form()->singleLineTextField('rollback')->create();
     $data = ImportExportHelper::generateFormExport($source);
     $service = Formie::$plugin->getFormSiteOverrides();

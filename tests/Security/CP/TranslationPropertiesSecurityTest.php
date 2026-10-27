@@ -10,6 +10,12 @@ use verbb\formie\records\FieldSiteOverride;
 use verbb\formie\services\Fields;
 use yii\base\Event;
 
+beforeEach(function (): void {
+    if (!Craft::$app->getIsMultiSite()) {
+        test()->markTestSkipped('Requires site translations; covered by the multisite suite.');
+    }
+});
+
 class DeclaredTranslationSecurityField extends SingleLineText
 {
     public string $customText = 'Canonical custom text';

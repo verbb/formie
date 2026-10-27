@@ -52,6 +52,9 @@ function cascadeContext(User $user, callable $callback): void
 }
 
 it('cascades index delete and restore independently of response viewing permissions', function (bool $regional): void {
+    if ($regional && !Craft::$app->getIsMultiSite()) {
+        test()->markTestSkipped('Requires a regional site; the primary-site case runs in both suites.');
+    }
     $siteId = $regional ? Craft::$app->getSites()->getAllSiteIds()[1] : Craft::$app->getSites()->getPrimarySite()->id;
     $form = formie()->form(['siteId' => $siteId, 'sourceSiteId' => $siteId])->singleLineTextField('answer')->create();
     $ids = [];

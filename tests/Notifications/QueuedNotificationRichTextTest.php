@@ -53,7 +53,12 @@ it('preserves formatted content and custom nodes through queued email rendering'
     };
     $form = formie()->form()->create();
     $siteIds = array_values(array_diff(Craft::$app->getSites()->getAllSiteIds(), [$form->siteId]));
-    expect($siteIds)->not->toBeEmpty();
+    if ($translated) {
+        if (!Craft::$app->getIsMultiSite()) {
+            test()->markTestSkipped('Requires a translated notification; source content runs in both suites.');
+        }
+        expect($siteIds)->not->toBeEmpty();
+    }
     $siteId = $translated ? (int)$siteIds[0] : (int)$form->siteId;
     $notifications = Formie::$plugin->getNotifications();
     $source = new Notification([

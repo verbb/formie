@@ -16,7 +16,8 @@ function withQueuedDeliveryContext(callable $callback): void
     $originalLocale = Craft::$app->getLocale();
     $primary = $sites->getPrimarySite();
     $other = current(array_filter($sites->getAllSites(), fn($site) => $site->id !== $primary->id));
-    expect($other)->not->toBeFalse();
+    // A single-site worker still needs its language and locale restored.
+    $other = $other ?: $primary;
     try {
         $sites->setCurrentSite($primary);
         $form = formie()->form()->singleLineTextField('message')->create();

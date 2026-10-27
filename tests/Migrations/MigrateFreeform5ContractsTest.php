@@ -173,9 +173,13 @@ it('migrates a large freeform v5 fixture with exact layout settings notification
     $migration = new MigrateFreeform5();
     $migration->formId = (int)$fixture['formId'];
 
+    // The fixture's external completion URL must satisfy the destination site's policy.
+    \verbb\formie\Formie::$plugin->getSettings()->completionRedirectAllowedOrigins = ['https://example.test'];
+
     $result = $migration->run();
     $levels = array_values(array_unique(array_map(static fn($line) => $line->level, $result->lines)));
     $messages = array_map(static fn($line) => $line->message, $result->lines);
+    $this->assertTrue($result->ok, implode("\n", $messages));
 
     expect($result->lines)->not->toBeEmpty()
         ->and($result->stats)->toBeArray()

@@ -90,7 +90,7 @@ jobs:
       - name: Verify DDEV test runtime
         run: bash .github/scripts/configure-ddev.sh 8.3
       - name: Clean-install integration tests
-        run: ddev test --order-by=${{ matrix.order }} --random-order-seed=9122026
+        run: ddev test --suite=all --order-by=${{ matrix.order }} --random-order-seed=9122026
       - name: Production class resolution
         run: ddev exec php tests/runtime/pest.php --configuration=phpunit.craft.xml --filter=ClassResolutionTest
       - name: Test diagnostics
@@ -127,7 +127,7 @@ jobs:
           ddev exec --service php-minimum --raw -- php -r 'echo PHP_VERSION, PHP_EOL; exit(PHP_VERSION === "8.2.0" ? 0 : 1);'
           ddev exec --service php-minimum --raw -- php .github/scripts/check-runtime-lock.php
       - name: Clean-install integration tests
-        run: ddev exec --service php-minimum --raw -- php tests/runtime/run.php --order-by=${{ matrix.order }} --random-order-seed=9122026
+        run: ddev exec --service php-minimum --raw -- php tests/runtime/run.php --suite=all --order-by=${{ matrix.order }} --random-order-seed=9122026
       - name: Verify installed dependency platform requirements
         run: ddev exec --service php-minimum --raw -- composer check-platform-reqs --working-dir=.cache/verbb-tests/app --no-plugins
       # A filtered Pest invocation still discovers the full suite. Start below
@@ -147,6 +147,38 @@ jobs:
             .cache/verbb-tests/app/composer.json
             .cache/verbb-tests/app/composer.lock
             .cache/verbb-tests/app/storage/logs/
+  compatibility:
+    # Exercise alternate installations on pushes too, before the weekly audit.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [migration, single-site]
+        order: [default, random]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ddev/github-action-setup-ddev@v1
+        with:
+          version: '1.25.4'
+          autostart: false
+      - name: Verify DDEV test runtime
+        run: bash .github/scripts/configure-ddev.sh 8.3
+      - run: ddev test --suite=${{ matrix.suite }} --order-by=${{ matrix.order }} --random-order-seed=9122026
+      - name: Targeted mutation checks
+        if: matrix.suite == 'migration' && matrix.order == 'default'
+        run: ddev exec php tests/runtime/mutations.php
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: php-${{ matrix.suite }}-${{ matrix.order }}
+          include-hidden-files: true
+          path: |
+            .cache/verbb-tests/latest.log
+            .cache/verbb-tests/junit.xml
+            .cache/verbb-tests/result.json
+            .cache/verbb-tests/app/storage/logs/
+            .cache/verbb-tests/mutations/
   extended:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -154,7 +186,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [performance, slow, migration, commerce, single-site]
+        suite: [performance, slow, commerce]
     steps:
       - uses: actions/checkout@v5
       - uses: ddev/github-action-setup-ddev@v1
@@ -164,9 +196,6 @@ jobs:
       - name: Verify DDEV test runtime
         run: bash .github/scripts/configure-ddev.sh 8.3
       - run: ddev test --suite=${{ matrix.suite }}
-      - name: Targeted mutation checks
-        if: matrix.suite == 'migration'
-        run: ddev exec php tests/runtime/mutations.php
       - uses: actions/upload-artifact@v4
         if: always()
         with:

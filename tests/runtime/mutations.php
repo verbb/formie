@@ -6,11 +6,11 @@ $root = dirname(__DIR__, 2);
 $out = $root . '/.cache/verbb-tests/mutations';
 @mkdir($out, 0775, true);
 $cases = [
-    'encrypted-content-lost' => ['base/Field.php', '$value = StringHelper::encenc($value);', '$value = null;', 'tests/Fields/FieldBehaviorEncryptionTest.php', 'stores encrypted values'],
+    'encrypted-content-lost' => ['base/Field.php', 'return FieldStorageCodec::encode($stored, (bool)$this->enableContentEncryption);', 'return FieldStorageCodec::encode($this->enableContentEncryption ? null : $stored, (bool)$this->enableContentEncryption);', 'tests/Fields/FieldBehaviorEncryptionTest.php', 'stores encrypted values'],
     'required-validation-bypassed' => ['helpers/ValidationHelper.php', '$scenario === Element::SCENARIO_LIVE && $field->required', 'false && $field->required', 'tests/Fields/FieldBehaviorRequiredTest.php', 'rejects an empty required email'],
     'conversion-erases-values' => ['base/Integration.php', 'return IntegrationHelper::convertValueForIntegration($value, $integrationField);', 'return null;', 'tests/Integrations/IntegrationFieldMappingMatrixTest.php', 'preserves mapped values'],
     'permission-check-removed' => ['controllers/SubmissionsController.php', 'if (!$currentUser || !$submission->canView($currentUser)) {', 'if (false) {', 'tests/Security/CP/SubmissionSideEffectAclSecurityTest.php', 'enforces persisted user permissions'],
-    'notification-delivered-twice' => ['helpers/DeliveryAttempt.php', "if (\$meta['state'] === 'completed') {", 'if (false) {', 'tests/Notifications/NotificationDeliveryRecoveryTest.php', 'checkpoints individual notifications'],
+    'notification-delivered-twice' => ['services/DeliveryAttempts.php', 'if (!$previous->retryable) {', 'if (false) {', 'tests/Notifications/NotificationDeliveryRecoveryTest.php', 'checkpoints individual notifications'],
     'migration-drops-scalar' => ['migrations/plugins/MigrateFreeform5.php', '$submission->setFieldValue($handle, $field->getValue());', '$submission->setFieldValue($handle, null);', 'tests/Migrations/MigrateFreeform5ContractsTest.php', 'migrates a large freeform'],
 ];
 $results = [];

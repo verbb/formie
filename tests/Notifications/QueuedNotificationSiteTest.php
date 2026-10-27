@@ -16,7 +16,12 @@ it('uses the accepted site notification when a queue worker reloads it', functio
     $previousLanguage = Craft::$app->language;
     $previousLocale = Craft::$app->getLocale();
     $secondarySiteIds = array_values(array_diff($sites->getAllSiteIds(), [$form->siteId]));
-    expect($secondarySiteIds)->not->toBeEmpty();
+    if ($translated) {
+        if (!Craft::$app->getIsMultiSite()) {
+            test()->markTestSkipped('Requires a translated notification; source content runs in both suites.');
+        }
+        expect($secondarySiteIds)->not->toBeEmpty();
+    }
     $siteId = $translated ? (int)$secondarySiteIds[0] : (int)$form->siteId;
     $notifications = Formie::$plugin->getNotifications();
     $notification = new Notification([

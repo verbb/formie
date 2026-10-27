@@ -13,6 +13,10 @@ use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
 
 beforeEach(function(): void {
+    // A simulated request flushes pending project config. Persist earlier tests'
+    // writes before the fixture transaction can roll their config version back.
+    Craft::$app->getProjectConfig()->flush();
+
     // MySQL index DDL commits transactions. Prepare the legacy migration's index
     // before opening the transaction that isolates its provider settings.
     (new \verbb\formie\migrations\m260618_000000_captcha_providers())->createIndexIfMissing(Table::FORMIE_CAPTCHA_PROVIDERS, ['handle'], true);
@@ -22,6 +26,10 @@ beforeEach(function(): void {
 
 afterEach(function(): void {
     $this->retiredCaptchaTransaction->rollBack();
+    // Request flushes can advance the in-memory version inside the transaction.
+    // Reload the rolled-back state before later tests write project config.
+    Craft::$app->getInfo()->configVersion = (new Query())->select('configVersion')->from(\craft\db\Table::INFO)->scalar();
+    Craft::$app->getProjectConfig()->reset();
     SpamProtectionSettings::resetCaches();
     Formie::$plugin->getForms()->invalidateFormCaches();
 });
