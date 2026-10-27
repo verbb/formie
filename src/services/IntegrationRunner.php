@@ -28,6 +28,7 @@ use craft\helpers\StringHelper;
 use yii\base\Component;
 
 use RuntimeException;
+use Throwable;
 
 class IntegrationRunner extends Component
 {
@@ -344,9 +345,14 @@ class IntegrationRunner extends Component
             if ($context->execution === 'queued') {
                 $integration->setQueueJob(new TriggerIntegration(['deliveryAttemptUid' => $uid]));
             }
-            $attempts->checkpointSubmission($uid, $submission, $integration->getDiagnosticSecrets());
-            $attempts->checkpoint($uid, 'mapping-inputs', ['settings' => FormIntegration::settingsFromRuntime($integration)], $integration->getDiagnosticSecrets());
-            return Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
+
+            try {
+                $attempts->checkpointSubmission($uid, $submission, $integration->getDiagnosticSecrets());
+                $attempts->checkpoint($uid, 'mapping-inputs', ['settings' => FormIntegration::settingsFromRuntime($integration)], $integration->getDiagnosticSecrets());
+                return Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
+            } catch (Throwable $error) {
+                return $integration->resultForException($error);
+            }
         }, $integration->getDiagnosticSecrets());
         $this->_saveProjection($integration, $submission, $result, $executionKey);
         $this->_reportResult($context, $result, $uid);

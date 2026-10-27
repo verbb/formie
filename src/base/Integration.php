@@ -56,10 +56,12 @@ use verbb\formie\references\ReferenceSlotKind;
 use verbb\formie\references\ReferenceUsage;
 use verbb\formie\references\ResolvedReference;
 use verbb\formie\services\Integrations as IntegrationsService;
+use verbb\formie\services\DeliveryAttempts;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\SavableComponent;
+use craft\db\Query;
 use craft\helpers\App;
 use craft\helpers\Db;
 use craft\helpers\Json;
@@ -528,6 +530,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->settingsContext = clone $this->settingsContext;
     }
 
+    /** Custom providers must opt in only when every side effect uses executeDeliveryWrite(). */
+    public function supportsDeliveryWriteTracking(): bool
+    {
+        return false;
+    }
+
     public function supportsIntegrationApiErrorSeverity(): bool
     {
         return false;
@@ -547,7 +555,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $severity = $this->classifyIntegrationApiError($exception) ?? IntegrationApiErrors::SEVERITY_FAILURE;
 
         $handled = IntegrationApiErrors::applySubmissionErrorAction($this, $exception, $submission, $severity);
-        $result = $this->_deliveryState->error ?? IntegrationResult::fromException($exception);
+        $result = $this->_deliveryState->error ?? $this->resultForException($exception);
 
         if ($severity === IntegrationApiErrors::SEVERITY_RATE_LIMITED) {
             $result = IntegrationResult::failed('rate_limited', true);
@@ -1021,6 +1029,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 $value,
                 !empty($this->_deliveryState->uncertain) || ($value === false && !empty($this->_deliveryState->writeAccepted)),
             ));
+
+        if ($value === false && $errorResult === null && !$this->_deliveryState->skipped && $this->_canRetryBeforeSend()) {
+            $result = IntegrationResult::failed('before_send', true);
+        }
         $result = $result->withOutputs($this->_deliveryState->outputs);
 
         if ($this->_directDelivery) {
@@ -1035,11 +1047,34 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $result;
     }
 
+    public function resultForException(Throwable $error): IntegrationResult
+    {
+        if ($this->_deliveryAttemptUid) {
+            Formie::$plugin->getDeliveryAttempts()->checkpoint($this->_deliveryAttemptUid, 'exception', DeliveryDiagnostics::exception($error), $this->getDiagnosticSecrets());
+        }
+
+        $cause = $error;
+
+        do {
+            if ($cause instanceof IntegrationStepException) {
+                return $cause->result;
+            }
+        } while ($cause = $cause->getPrevious());
+
+        return $this->_canRetryBeforeSend() ? IntegrationResult::failed('before_send', true) : IntegrationResult::fromException($error);
+    }
+
     public function executeDeliveryWrite(string $method, string $uri, array $options, callable $send, bool $isSideEffect = false): mixed
     {
+        $write = $isSideEffect || !in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true);
+        $trackedSend = function(...$arguments) use ($send, $write) {
+            $this->_deliveryState->writeStarted = $this->_deliveryState->writeStarted || $write;
+            return $send(...$arguments);
+        };
+
         // Explicit builder samples have no persisted submission or retry identity. Send once without creating invalid delivery records.
         if (!$this->_deliveryContext || ($this->_deliveryContext->reason === 'test' && $this->_deliveryContext->submissionId === 0) || (!$isSideEffect && in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true))) {
-            return $send();
+            return $trackedSend();
         }
 
         if (!$this->_deliveryAttemptUid) {
@@ -1050,7 +1085,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $key = strtoupper($method) . ':' . hash('sha256', $uri);
         $ordinal = $this->_deliveryStepCounts[$key] = ($this->_deliveryStepCounts[$key] ?? 0) + 1;
         $identityOptions = array_diff_key($options, array_flip(['handler', 'curl', 'proxy', 'verify', 'allow_redirects']));
-        return Formie::$plugin->getDeliveryAttempts()->write($this->_deliveryContext, $key . ':' . $ordinal, $this->_deliveryAttemptUid, $identityOptions, $send, ['method' => $method, 'endpoint' => $uri], $this->getDiagnosticSecrets());
+        return Formie::$plugin->getDeliveryAttempts()->write($this->_deliveryContext, $key . ':' . $ordinal, $this->_deliveryAttemptUid, $identityOptions, $trackedSend, ['method' => $method, 'endpoint' => $uri], $this->getDiagnosticSecrets());
     }
 
     public function requestWithProviderClient(Client $client, string $method, string $uri, array $options = []): mixed
@@ -1127,10 +1162,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
             return $text;
         } catch (Throwable $e) {
-            $this->_deliveryState->error = $e instanceof IntegrationStepException ? $e->result : IntegrationResult::fromException($e);
+            $this->_deliveryState->error = $this->resultForException($e);
             $response = $e instanceof RequestException ? $e->getResponse() : null;
 
-            if ($writes && (!$response || $response->getStatusCode() >= 500 || $response->getStatusCode() === 408)) {
+            if ($writes && $this->_deliveryState->writeStarted && (!$response || $response->getStatusCode() >= 500 || $response->getStatusCode() === 408)) {
                 $this->_deliveryState->uncertain = true;
             }
             throw $e;
@@ -1173,10 +1208,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
             return $text;
         } catch (Throwable $e) {
-            $this->_deliveryState->error = $e instanceof IntegrationStepException ? $e->result : IntegrationResult::fromException($e);
+            $this->_deliveryState->error = $this->resultForException($e);
             $response = $e instanceof RequestException ? $e->getResponse() : null;
 
-            if ($writes && (!$response || $response->getStatusCode() >= 500 || $response->getStatusCode() === 408)) {
+            if ($writes && $this->_deliveryState->writeStarted && (!$response || $response->getStatusCode() >= 500 || $response->getStatusCode() === 408)) {
                 $this->_deliveryState->uncertain = true;
             }
 
@@ -2102,6 +2137,16 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     // Private Methods
     // =========================================================================
+
+    private function _canRetryBeforeSend(): bool
+    {
+        if (!$this->supportsDeliveryWriteTracking() || $this->_deliveryState->writeStarted || $this->_deliveryState->writeAccepted || $this->_deliveryState->uncertain) {
+            return false;
+        }
+
+        // Retained operation rows also cover writes from an earlier execution of this attempt.
+        return !$this->_deliveryAttemptUid || !(new Query())->from(DeliveryAttempts::TABLE)->where(['parentUid' => $this->_deliveryAttemptUid])->exists();
+    }
 
     private function _projectIntegrationMappingValue(?ResolvedReference $resolved, mixed $rawValue, Submission $submission, IntegrationField $integrationField): mixed
     {

@@ -111,6 +111,12 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
     // Public Methods
     // =========================================================================
 
+    // Element saves have their own transaction and recovery lifecycle.
+    public function supportsDeliveryWriteTracking(): bool
+    {
+        return false;
+    }
+
     public function getType(): string
     {
         return self::TYPE_ELEMENT;

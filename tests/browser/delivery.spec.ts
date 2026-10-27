@@ -16,6 +16,70 @@ async function login(page: Page, username = 'admin') {
     await page.waitForURL((url) => !url.pathname.endsWith('/login'));
 }
 
+test('recovers uncertain child operations and their parent delivery from Diagnostics', async ({
+    page,
+}) => {
+    const data = fixture();
+    await login(page);
+    await page.goto(`/admin/utilities/queue-manager/${data.recovery.jobId}`);
+    await page
+        .getByRole('button', { name: 'Diagnostics', exact: true })
+        .click();
+    const dialog = page.locator('pk-dialog');
+    const reason = dialog.getByRole('textbox', {
+        name: 'Reconciliation reason',
+    });
+    const confirm = dialog.getByRole('button', {
+        name: 'Confirm not delivered',
+        exact: true,
+    });
+    await reason.fill('Confirmed absent at the provider.');
+    await expect(confirm).toBeDisabled();
+    await dialog
+        .getByRole('button', {
+            name: 'recoveryFixture · integration · unknown',
+            exact: true,
+        })
+        .click();
+    await reason.fill('Confirmed absent at the provider.');
+    await expect(confirm).toBeDisabled();
+    await dialog
+        .getByRole('button', {
+            name: 'recoveryFixture · create-ticket · unknown',
+            exact: true,
+        })
+        .click();
+    await expect(reason).toHaveValue('');
+    await reason.fill('Confirmed ticket absent at the provider.');
+    await confirm.click();
+    await expect(
+        dialog.getByText('Reconciliation recorded.', { exact: true }),
+    ).toBeVisible();
+    await dialog
+        .getByRole('button', {
+            name: 'recoveryFixture · integration · unknown',
+            exact: true,
+        })
+        .click();
+    await reason.fill('All provider operations confirmed absent.');
+    await confirm.click();
+    await expect(
+        dialog.getByText('Reconciliation recorded.', { exact: true }),
+    ).toBeVisible();
+    await dialog
+        .getByRole('button', {
+            name: '@dispatch · dispatch · unknown',
+            exact: true,
+        })
+        .click();
+    await reason.fill('All integrations confirmed not delivered.');
+    await confirm.click();
+    await expect(
+        dialog.getByText('Reconciliation recorded.', { exact: true }),
+    ).toBeVisible();
+    await expect(confirm).toHaveCount(0);
+});
+
 test('opens Formie diagnostics from a real Craft job with unresolved delivery and exports a redacted support bundle', async ({
     page,
 }) => {

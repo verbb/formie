@@ -76,6 +76,19 @@ export const deliveryCheckpoints = (bundle = {}) => {
 export const diagnoseDelivery = (bundle = {}) => {
     const checkpoints = deliveryCheckpoints(bundle);
     const find = (matcher) => latestCheckpoint(checkpoints, matcher);
+    if (
+        bundle.result?.code === 'before_send' ||
+        (bundle.status === 'failed' &&
+            bundle.operations?.some(
+                (operation) => operation.result?.code === 'before_send',
+            ))
+    ) {
+        return {
+            kind: 'before-send',
+            detail: evidenceMessage(find(/^exception$/)?.data),
+            tab: 'errors',
+        };
+    }
     let checkpoint = find(/^email-render-exception$/);
 
     if (checkpoint) {
@@ -130,6 +143,10 @@ export const diagnoseDelivery = (bundle = {}) => {
         };
     }
 
+    if (bundle.status === 'unknown') {
+        return { kind: 'unknown', detail: '', tab: 'timeline' };
+    }
+
     checkpoint = find(/^queue-error$/);
 
     if (checkpoint) {
@@ -138,10 +155,6 @@ export const diagnoseDelivery = (bundle = {}) => {
             detail: evidenceMessage(checkpoint.data),
             tab: 'errors',
         };
-    }
-
-    if (bundle.status === 'unknown') {
-        return { kind: 'unknown', detail: '', tab: 'timeline' };
     }
 
     if (['failed', 'rejected'].includes(bundle.status)) {

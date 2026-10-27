@@ -96,7 +96,20 @@ try {
     );
 }
 
+// Keep recovery separate from the read-only diagnostic fixture.
+$recoveryExecution = 'browser-recovery-' . \craft\helpers\StringHelper::UUID();
+$recoveryContext = new \verbb\formie\models\IntegrationExecutionContext($deliverySubmission->id, $form->id, '@dispatch', $recoveryExecution, 'queued');
+$recoveryUid = $attempts->prepare($recoveryContext, 'dispatch', ['handles' => ['recoveryFixture'], 'triggerContext' => []]);
+$providerContext = new \verbb\formie\models\IntegrationExecutionContext($deliverySubmission->id, $form->id, 'recoveryFixture', $recoveryExecution, 'queued');
+$providerUid = $attempts->prepare($providerContext, 'integration');
+$writeUid = $attempts->prepare($providerContext, 'create-ticket', [], $providerUid);
+foreach ([$writeUid, $providerUid, $recoveryUid] as $unknownUid) {
+    $attempts->execute($unknownUid, fn() => \verbb\formie\models\IntegrationResult::unknown('browser_recovery'));
+}
+$recoveryJobId = Craft::$app->getQueue()->push(new \verbb\formie\jobs\TriggerIntegration(['deliveryAttemptUid' => $recoveryUid]));
+
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/delivery-browser.json', json_encode([
+    'recovery' => ['uid' => $recoveryUid, 'jobId' => $recoveryJobId],
     'submissionUrl' => $deliverySubmission->getCpEditUrl(),
     'submissionId' => $deliverySubmission->id,
     'integration' => ['uid' => $deliveryUid, 'jobId' => $deliveryJobId],

@@ -337,6 +337,17 @@ function DeliveryHeader({ bundle, onExport }) {
 
 const diagnosisPresentation = (diagnosis) =>
     ({
+        'before-send': {
+            title: Craft.t('formie', 'The integration failed before sending'),
+            description: Craft.t(
+                'formie',
+                'The integration stopped while preparing its delivery, before starting a provider write.',
+            ),
+            nextStep: Craft.t(
+                'formie',
+                'Fix the reported error, then retry the queue job. If you change the submission or integration settings, run the integration again from the submission instead.',
+            ),
+        },
         'email-render': {
             title: Craft.t(
                 'formie',
@@ -359,7 +370,7 @@ const diagnosisPresentation = (diagnosis) =>
             ),
             nextStep: Craft.t(
                 'formie',
-                'Review the current settings, then retry the queue job only if the new configuration should be used.',
+                'Review the current settings, then start a new delivery from the submission. Retrying this queue job will not send the changed operation.',
             ),
         },
         'email-send': {
@@ -487,10 +498,72 @@ function DeliveryOverview({
     reason,
     onReasonChange,
     onAction,
+    onSelect,
 }) {
     return (
         <>
             <Diagnosis diagnosis={diagnosis} />
+            {bundle.blockingAttempts?.length > 0 && (
+                <section style={{ marginBlockEnd: '20px' }}>
+                    <h3>
+                        {Craft.t('formie', 'Earlier unresolved deliveries')}
+                    </h3>
+                    <p>
+                        {Craft.t(
+                            'formie',
+                            'An earlier attempt can prevent this integration from running again. Open it to review and confirm its outcome.',
+                        )}
+                    </p>
+                    {bundle.blockingAttempts.map((attempt) => (
+                        <Button
+                            key={attempt.uid}
+                            type="button"
+                            disabled={busy}
+                            onClick={() => onSelect(attempt.uid)}
+                        >
+                            {attempt.binding} · {attempt.status}
+                        </Button>
+                    ))}
+                </section>
+            )}
+            {bundle.operations?.length > 0 && (
+                <section style={{ marginBlockEnd: '20px' }}>
+                    <h3>{Craft.t('formie', 'Delivery operations')}</h3>
+                    <p>
+                        {Craft.t(
+                            'formie',
+                            'Open an operation to review its outcome. Resolve uncertain operations before confirming the overall delivery.',
+                        )}
+                    </p>
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '8px',
+                        }}
+                    >
+                        {bundle.operations.map((operation) => (
+                            <Button
+                                key={operation.uid}
+                                type="button"
+                                disabled={busy}
+                                onClick={() => onSelect(operation.uid)}
+                            >
+                                {operation.binding} · {operation.step} ·{' '}
+                                {operation.status}
+                            </Button>
+                        ))}
+                    </div>
+                </section>
+            )}
+            {canReconcile && bundle.unresolvedChildren?.length > 0 && (
+                <Alert variant="warning" size="sm">
+                    {Craft.t(
+                        'formie',
+                        'Resolve the uncertain operations above first. Then return to this delivery to confirm its outcome.',
+                    )}
+                </Alert>
+            )}
             {canReconcile && (
                 <div>
                     <p>
@@ -514,7 +587,11 @@ function DeliveryOverview({
                     >
                         <Button
                             type="button"
-                            disabled={busy || !reason.trim()}
+                            disabled={
+                                busy ||
+                                !reason.trim() ||
+                                bundle.unresolvedChildren?.length > 0
+                            }
                             onClick={() =>
                                 onAction('reconcile', {
                                     outcome: 'succeeded',
@@ -526,7 +603,11 @@ function DeliveryOverview({
                         </Button>
                         <Button
                             type="button"
-                            disabled={busy || !reason.trim()}
+                            disabled={
+                                busy ||
+                                !reason.trim() ||
+                                bundle.unresolvedChildren?.length > 0
+                            }
                             onClick={() =>
                                 onAction('reconcile', {
                                     outcome: 'notDelivered',
@@ -587,6 +668,8 @@ export function DeliveryDiagnostics({ uid, onClose }) {
     useEffect(() => {
         setBundle(null);
         setError('');
+        setNotice('');
+        setReason('');
         if (!selected) return;
         let current = true;
         Craft.sendActionRequest('GET', 'formie/delivery/bundle', {
@@ -717,6 +800,18 @@ export function DeliveryDiagnostics({ uid, onClose }) {
                                 bundle={bundle}
                                 onExport={exportBundle}
                             />
+                            {selected !== uid && (
+                                <Button
+                                    type="button"
+                                    disabled={busy}
+                                    onClick={() => setSelected(uid)}
+                                >
+                                    {Craft.t(
+                                        'formie',
+                                        'Back to original delivery',
+                                    )}
+                                </Button>
+                            )}
                             <DiagnosticDetails
                                 key={bundle.uid}
                                 bundle={bundle}
@@ -731,6 +826,7 @@ export function DeliveryDiagnostics({ uid, onClose }) {
                                         reason={reason}
                                         onReasonChange={setReason}
                                         onAction={act}
+                                        onSelect={setSelected}
                                     />
                                 }
                             />

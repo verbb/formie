@@ -376,6 +376,15 @@ class DeliveryAttempts extends Component
         $row = DeliveryDiagnostics::redact($row);
         $row['result'] = $row['result'] ? Json::decode($row['result']) : null;
         $row['retentionDays'] = Formie::$plugin->getSettings()->deliveryEvidenceRetentionDays;
+        $row['unresolvedChildren'] = $this->_unresolvedChildren($row);
+        $blockers = (new Query())->select(['uid', 'binding', 'status'])->from(self::TABLE)
+            ->where(['submissionId' => $row['submissionId'], 'step' => 'integration', 'status' => ['sending', 'unknown']])
+            ->andWhere(['not', ['executionUid' => $row['executionUid']]]);
+
+        if ($row['step'] !== 'dispatch') {
+            $blockers->andWhere(['binding' => $row['binding']]);
+        }
+        $row['blockingAttempts'] = $blockers->orderBy(['id' => SORT_ASC])->limit(100)->all();
         $row['checkpoints'] = $this->_supportCheckpoints((int)$row['id'], 200);
         $row['operations'] = [];
         $bytes = strlen(Json::encode($row));
@@ -417,7 +426,7 @@ class DeliveryAttempts extends Component
                 throw new RuntimeException('This delivery cannot be reconciled to that state.');
             }
 
-            if ((new Query())->from(self::TABLE)->where(['parentUid' => $uid, 'status' => ['unknown', 'sending']])->exists()) {
+            if ($this->_unresolvedChildren($this->get($uid))) {
                 throw new RuntimeException('Reconcile uncertain child operations first.');
             }
             $this->checkpoint($uid, 'reconciled', ['actorId' => Craft::$app->getUser()->getId(), 'reason' => $reason, 'result' => $result->toStorage()]);
@@ -448,6 +457,19 @@ class DeliveryAttempts extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _unresolvedChildren(array $row): array
+    {
+        $where = ['parentUid' => $row['uid']];
+
+        // Dispatch and integration attempts share an execution identity; their
+        // relationship predates the parentUid used by individual provider writes.
+        if ($row['step'] === 'dispatch') {
+            $where = ['or', $where, ['submissionId' => $row['submissionId'], 'executionUid' => $row['executionUid'], 'step' => 'integration']];
+        }
+
+        return (new Query())->select('uid')->from(self::TABLE)->where($where)->andWhere(['status' => ['unknown', 'sending']])->column();
+    }
 
     private function _operationFingerprintData(Submission $submission, array $configuration): array
     {

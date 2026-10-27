@@ -7,6 +7,39 @@ import {
 } from './deliveryDiagnosis';
 
 describe('delivery diagnosis', () => {
+    it('requires confirmation for an unknown outcome even when the queue reports an error', () => {
+        expect(
+            diagnoseDelivery({
+                status: 'unknown',
+                checkpoints: [
+                    {
+                        checkpoint: 'queue-error',
+                        data: { message: 'Integration delivery unknown' },
+                    },
+                ],
+            }).kind,
+        ).toBe('unknown');
+    });
+    it('explains that a failed payload can be retried before a provider write starts', () => {
+        expect(
+            diagnoseDelivery({
+                status: 'failed',
+                result: { code: 'before_send', retryable: true },
+                checkpoints: [
+                    {
+                        checkpoint: 'exception',
+                        data: {
+                            exceptions: [{ message: 'Invalid field mapping' }],
+                        },
+                    },
+                ],
+            }),
+        ).toEqual({
+            kind: 'before-send',
+            detail: 'Invalid field mapping',
+            tab: 'errors',
+        });
+    });
     it('uses the render exception as the root cause instead of wrapper queue errors', () => {
         const diagnosis = diagnoseDelivery({
             status: 'failed',

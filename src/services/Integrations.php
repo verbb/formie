@@ -16,7 +16,6 @@ use verbb\formie\elements\Submission;
 use verbb\formie\enums\IntegrationStatus;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\errors\IntegrationException;
-use verbb\formie\errors\IntegrationStepException;
 use verbb\formie\events\IntegrationEvent;
 use verbb\formie\events\ModifyFormIntegrationEvent;
 use verbb\formie\events\ModifyFormIntegrationsEvent;
@@ -524,20 +523,20 @@ class Integrations extends Component
     /** @internal Provider lifecycle used by IntegrationRunner after eligibility and attempt preparation. */
     public function sendIntegrationPayload(Integration $integration, Submission $submission): IntegrationResult
     {
-        $submission->assertContentAvailable();
-        IntegrationSecrets::assertAvailable($integration->getSettings());
-        $event = new TriggerIntegrationEvent([
-            'submission' => $submission,
-            'type' => get_class($integration),
-            'integration' => $integration,
-        ]);
-        $this->trigger(self::EVENT_BEFORE_TRIGGER_INTEGRATION, $event);
-
-        if (!$event->isValid) {
-            return IntegrationResult::skipped('event_cancelled');
-        }
-
         try {
+            $submission->assertContentAvailable();
+            IntegrationSecrets::assertAvailable($integration->getSettings());
+            $event = new TriggerIntegrationEvent([
+                'submission' => $submission,
+                'type' => get_class($integration),
+                'integration' => $integration,
+            ]);
+            $this->trigger(self::EVENT_BEFORE_TRIGGER_INTEGRATION, $event);
+
+            if (!$event->isValid) {
+                return IntegrationResult::skipped('event_cancelled');
+            }
+
             $context = IntegrationRunContext::forIntegration($integration, $event->submission);
             $integration->beginRun($context);
             $result = $integration instanceof DispatchableIntegrationInterface
@@ -550,15 +549,7 @@ class Integrations extends Component
             return $result;
         } catch (Throwable $error) {
             $this->handleTriggerIntegrationFailed($integration, $submission, new IntegrationException('Integration delivery failed; inspect delivery diagnostics.'));
-            // Providers may wrap an operation exception with their own API error.
-            $cause = $error;
-
-            do {
-                if ($cause instanceof IntegrationStepException) {
-                    return $cause->result;
-                }
-            } while ($cause = $cause->getPrevious());
-            return IntegrationResult::fromException($error);
+            return $integration->resultForException($error);
         }
     }
 

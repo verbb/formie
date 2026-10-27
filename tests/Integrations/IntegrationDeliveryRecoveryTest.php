@@ -42,6 +42,24 @@ it('stops a swallowed transport failure from being retried and requires reconcil
         expect($integration::$calls)->toBe(1);
         expect(Formie::$plugin->getIntegrationTriggers()->runManualIntegration($integration, $submission)->status->value)->toBe('unknown');
         expect($integration::$calls)->toBe(1);
+
+        $identity = Craft::$app->getUser()->getIdentity();
+        try {
+            Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
+            $attempts = Formie::$plugin->getDeliveryAttempts();
+            // Resolve the uncertain HTTP operation before its parent integration attempt.
+            $unresolved = (new \craft\db\Query())->from($attempts::TABLE)
+                ->where(['submissionId' => $submission->id, 'binding' => $integration->handle, 'status' => 'unknown'])
+                ->orderBy(['id' => SORT_DESC])->all();
+            expect($unresolved)->not->toBeEmpty();
+            foreach ($unresolved as $attempt) {
+                $attempts->reconcile($attempt['uid'], \verbb\formie\models\IntegrationResult::failed('confirmed_not_delivered', true), 'Confirmed absent at the provider.');
+            }
+            expect(Formie::$plugin->getIntegrationTriggers()->runManualIntegration($integration, $submission)->status->value)->toBe('succeeded')
+                ->and($integration::$calls)->toBe(2);
+        } finally {
+            Craft::$app->getUser()->setIdentity($identity);
+        }
     } finally {
         Event::off(Integrations::class, Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $handler);
     }
