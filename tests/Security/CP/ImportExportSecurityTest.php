@@ -221,6 +221,8 @@ it('requires manage access before an import can update an existing form', functi
             $request->setIsCpRequest(true);
             $identity = \craft\elements\User::find()->id($user->id)->status(null)->one();
             Craft::$app->getUser()->setIdentity($identity);
+            // A prior privileged lookup must not supply the target from cache.
+            Formie::$plugin->getForms()->invalidateFormCaches();
             $request->setBodyParams([
                 $request->csrfParam => $request->getCsrfToken(),
                 'filename' => $filename,

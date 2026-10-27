@@ -202,8 +202,11 @@ class ImportExportController extends SettingsAccessController
             return $this->_invalidFormImportResponse();
         }
 
-        $existingForm = $formAction === 'update'
-            ? Formie::$plugin->getForms()->getFormByHandle($json['handle'] ?? '')
+        $handle = (string)($json['handle'] ?? '');
+        // Locate the update target before applying its manage permission. CP index
+        // visibility must not turn an inaccessible existing form into a new import.
+        $existingForm = $formAction === 'update' && $handle !== ''
+            ? Form::find()->withoutCpIndexScope()->handle($handle)->site('*')->unique()->status(null)->one()
             : null;
 
         if ($existingForm) {
