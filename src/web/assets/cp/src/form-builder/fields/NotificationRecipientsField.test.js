@@ -3,12 +3,12 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { NotificationRecipientsField } from './NotificationRecipientsField';
 
-const controls = vi.hoisted(() => {return { table: null }});
+const controls = vi.hoisted(() => {return { table: null, value: [], setValue: vi.fn() }});
 
 vi.mock('@verbb/plugin-kit-react/hooks', () => {return { useTranslation: () => {return (text) => {return text}} }});
 vi.mock('@verbb/plugin-kit-react/forms', () => {return {
     FieldLayout: ({ children }) => {return children},
-    useEngineField: () => {return { value: [], setValue: vi.fn(), setTouched: vi.fn(), errors: [] }},
+    useEngineField: () => {return { value: controls.value, setValue: controls.setValue, setTouched: vi.fn(), errors: [] }},
 }});
 vi.mock('@verbb/plugin-kit-react/components', () => {return {
     EditableTable: (props) => {
@@ -33,7 +33,9 @@ const conditionOptions = [
     { label: 'Is empty', value: 'empty' },
 ];
 
-const renderRecipients = (fieldOptions = []) => {
+const renderRecipients = (fieldOptions = [], value = []) => {
+    controls.value = value;
+    controls.setValue.mockClear();
     renderToStaticMarkup(React.createElement(NotificationRecipientsField, {
         field: { name: 'recipients', conditionOptions, fieldOptions },
         form: {},
@@ -42,6 +44,15 @@ const renderRecipients = (fieldOptions = []) => {
 };
 
 describe('notification recipient conditions', () => {
+    it.each(['current', 'legacy'])('displays and edits saved %s recipient rules', (format) => {
+        const rows = [{ email: 'sales@example.test', field: '{field:department}', condition: '=', value: 'sales' }];
+        renderRecipients([], format === 'legacy' ? { toRecipients: rows } : rows);
+        expect(controls.table.rows).toEqual(rows);
+        const updatedRows = [{ ...rows[0], value: 'support' }];
+        controls.table.onChange(updatedRows);
+        expect(controls.setValue).toHaveBeenCalledWith(updatedRows);
+    });
+
     it('offers condition operators for a new row and a text field', () => {
         const modifyColumn = renderRecipients();
         expect(modifyColumn({}, 'condition').options).toEqual(conditionOptions);

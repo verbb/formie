@@ -182,7 +182,8 @@ class Notification extends Model implements TranslatablePropertiesInterface
             $conditionSettings = $this->toConditions ?? [];
 
             if ($conditionSettings) {
-                $toRecipients = $conditionSettings['toRecipients'] ?? [];
+                // The current editor stores rows directly; older notifications wrap them in toRecipients.
+                $toRecipients = array_is_list($conditionSettings) ? $conditionSettings : ($conditionSettings['toRecipients'] ?? []);
 
                 // Normalize conditions for emails (just the emails, not the matching string)
                 if ($toRecipients && is_array($toRecipients)) {

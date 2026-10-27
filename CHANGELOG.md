@@ -25,6 +25,7 @@
 - Fix queued notifications being incorrectly rejected as stale when site translations are applied, and provide clearer rejection messages and directions to delivery diagnostics. ([#3040](https://github.com/verbb/formie/issues/3040))
 - Fix translated notification content losing formatting and custom TipTap nodes when emails are sent. ([#3040](https://github.com/verbb/formie/issues/3040))
 - Fix the Condition dropdown showing no options when configuring conditional email notification recipients. ([#3053](https://github.com/verbb/formie/issues/3053))
+- Fix matching recipient conditions returning no email addresses, and preserve older recipient rules when editing notifications. ([#3053](https://github.com/verbb/formie/issues/3053))
 - Fix email field summaries including opted-out fields inside Group and Repeater fields. ([#3043](https://github.com/verbb/formie/issues/3043))
 - Fix text-based fields inside Group fields not displaying their default values. ([#3039](https://github.com/verbb/formie/issues/3039))
 - Fix custom validation messages not saving or being used for fields inside Group and Repeater fields. ([#3041](https://github.com/verbb/formie/issues/3041))

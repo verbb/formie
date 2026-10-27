@@ -46,7 +46,9 @@ function NotificationRecipientsField({ field, form }) {
         });
     }, [fieldOptions, formValues, conditionOptions, getFieldTypeByType, t]);
 
-    const rows = Array.isArray(value) ? value : [];
+    // Keep existing notifications editable alongside the current row-list format.
+    const recipientRows = Array.isArray(value) ? value : value?.toRecipients;
+    const rows = Array.isArray(recipientRows) ? recipientRows : [];
 
     return (
         <FieldLayout
