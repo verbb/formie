@@ -51,6 +51,7 @@ use verbb\formie\options\IntegrationOptionSourceHelper;
 use verbb\formie\options\OptionList;
 use verbb\formie\records\Integration as IntegrationRecord;
 use verbb\formie\references\ReferenceContext;
+use verbb\formie\references\ReferenceException;
 use verbb\formie\references\ReferenceSlot;
 use verbb\formie\references\ReferenceSlotKind;
 use verbb\formie\references\ReferenceUsage;
@@ -1282,7 +1283,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 continue;
             }
 
-            $integrationField ??= new IntegrationField();
+            $integrationField ??= new IntegrationField(['handle' => (string)$tag]);
 
             $fieldValues[$tag] = $this->resolveMappedFieldValue($rawFieldKey, $submission, $integrationField);
         }
@@ -1506,11 +1507,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function resolveMappedFieldValue(mixed $fieldKey, Submission $submission, IntegrationField $integrationField): mixed
     {
         $previous = $this->_mappingSlot;
-        $mappedFieldValue = $this->normalizeFieldMappingValue($fieldKey);
-        $this->_mappingSlot = [$mappedFieldValue, $fieldKey];
 
         try {
+            $mappedFieldValue = $this->normalizeFieldMappingValue($fieldKey);
+            $this->_mappingSlot = [$mappedFieldValue, $fieldKey];
+
             return $this->callLegacyIntegrationMethod('getMappedFieldValue', Integration::class, [$mappedFieldValue, $submission, $integrationField], fn() => $this->resolveMappingSlot($fieldKey, $submission, $integrationField), canonicalMethod: 'resolveMappedFieldValue');
+        } catch (Throwable $exception) {
+            throw new IntegrationException($this->_mappingErrorMessage($fieldKey, $integrationField, $exception), 0, $exception);
         } finally {
             $this->_mappingSlot = $previous;
         }
@@ -2137,6 +2141,38 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     // Private Methods
     // =========================================================================
+
+    private function _mappingErrorMessage(mixed $fieldKey, IntegrationField $integrationField, Throwable $exception): string
+    {
+        $destination = $integrationField->name ?: $integrationField->handle ?: Craft::t('formie', 'Unnamed field');
+
+        if ($integrationField->name && $integrationField->handle && $integrationField->name !== $integrationField->handle) {
+            $destination .= ' (' . $integrationField->handle . ')';
+        }
+
+        $reference = '';
+
+        try {
+            $slot = ReferenceSlot::fromStored($fieldKey);
+
+            if ($slot->kind === ReferenceSlotKind::Exact && is_string($slot->value)) {
+                $expression = References::parseReferenceExpression($slot->value);
+
+                // Only expose field identity, never literal text, defaults, transform arguments or other sources.
+                if ($expression->isValid && $expression->target === 'field' && preg_match('/^[a-zA-Z0-9_.:-]+$/D', $expression->identifier . $expression->selector)) {
+                    $reference = ' (' . References::field($expression->identifier, $expression->selector) . ')';
+                }
+            }
+        } catch (ReferenceException) {
+            // An invalid stored slot must not prevent reporting its destination and original failure.
+        }
+
+        return DeliveryDiagnostics::redact(Craft::t('formie', 'Could not resolve mapping for “{field}”{reference}: {message}', [
+            'field' => $destination,
+            'reference' => $reference,
+            'message' => self::getExceptionLogMessage($exception),
+        ]), $this->getDiagnosticSecrets());
+    }
 
     private function _canRetryBeforeSend(): bool
     {
