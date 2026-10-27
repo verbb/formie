@@ -43,6 +43,33 @@ final class ReferenceMigration
         return preg_replace_callback('/\{field:[^{}]+\}/', static function(array $match) use ($fields): string {
             $expression = ReferenceParser::parse($match[0]);
 
+            // Formie 3 stored scalar field selectors as handle.selector, including Phone parts.
+            // Only declared selectors qualify; unknown paths must remain available for diagnosis.
+            if ($expression->isValid && $expression->target === 'field' && $expression->selector === '' && str_contains($expression->identifier, '.')) {
+                [$identifier, $selector] = explode('.', $expression->identifier, 2);
+
+                foreach ($fields as $candidate) {
+                    if ($candidate instanceof ParentFieldInterface || !$candidate->reference || !in_array($identifier, [(string)$candidate->reference, (string)$candidate->uid, (string)$candidate->handle], true)) {
+                        continue;
+                    }
+
+                    foreach ($candidate->referenceValues() as $referenceValue) {
+                        if ($referenceValue->selector === $selector && $referenceValue->appliesTo($candidate)) {
+                            return ReferenceParser::serialize(new ReferenceExpression(
+                                raw: $expression->raw,
+                                target: 'field',
+                                identifier: (string)$candidate->reference,
+                                selector: $selector,
+                                default: $expression->default,
+                                transformerId: $expression->transformerId,
+                                transformerParams: $expression->transformerParams,
+                                isValid: true,
+                            ));
+                        }
+                    }
+                }
+            }
+
             if (!$expression->isValid || $expression->target !== 'field' || $expression->selector === '') {
                 return $match[0];
             }

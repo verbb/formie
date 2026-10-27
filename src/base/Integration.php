@@ -1639,7 +1639,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         } else {
             $rawValue = $slot->resolve($context);
         }
-        $fieldValue = $this->_projectIntegrationMappingValue($resolved, $rawValue, $submission, $integrationField, $this->normalizeFieldMappingValue($fieldKey));
+        $fieldValue = $this->_projectIntegrationMappingValue($resolved, $rawValue, $submission, $integrationField);
 
         $event = new ModifyFieldIntegrationValueEvent([
             'value' => $fieldValue,
@@ -2103,7 +2103,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Private Methods
     // =========================================================================
 
-    private function _projectIntegrationMappingValue(?ResolvedReference $resolved, mixed $rawValue, Submission $submission, IntegrationField $integrationField, string $fieldKey = ''): mixed
+    private function _projectIntegrationMappingValue(?ResolvedReference $resolved, mixed $rawValue, Submission $submission, IntegrationField $integrationField): mixed
     {
         $field = $resolved?->field;
         $expression = $resolved?->expression;
@@ -2116,7 +2116,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $field->valueType()->accepts($rawValue);
 
         if ($isNativeFieldValue) {
-            return $field->getValueForIntegration($rawValue, $integrationField, $this, $submission, $fieldKey);
+            // Resolution already selected the owning field and value; no child path remains.
+            return $field->getValueForIntegration($rawValue, $integrationField, $this, $submission);
         }
 
         if (
@@ -2129,7 +2130,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             count(array_filter($rawValue, static fn(mixed $item): bool => $field->valueType()->accepts($item))) === count($rawValue)
         ) {
             return array_map(
-                fn(mixed $item): mixed => $field->getValueForIntegration($item, $integrationField, $this, $submission, $fieldKey),
+                fn(mixed $item): mixed => $field->getValueForIntegration($item, $integrationField, $this, $submission),
                 $rawValue,
             );
         }

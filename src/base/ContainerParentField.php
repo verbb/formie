@@ -295,6 +295,11 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
             $subFieldKey = implode('.', $subFieldKey);
 
             $subField = $this->getFieldByHandle($subFieldHandle);
+
+            if (!$subField) {
+                return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
+            }
+
             $parts = $this->nestedValueParts($value);
             $subValue = $subField->normalizeFieldValue($parts[$subField->handle] ?? $parts[$subField->uid] ?? null, $element);
 
