@@ -13,11 +13,15 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationResult;
+use verbb\formie\references\ReferenceContext;
 use verbb\formie\references\ReferenceSlot;
 use verbb\formie\references\ReferenceSlotKind;
+use verbb\formie\references\ReferenceUsage;
 
 use Craft;
+use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
+use craft\elements\ElementCollection;
 use craft\helpers\App;
 use craft\helpers\Json;
 
@@ -58,7 +62,7 @@ class Freshdesk extends HelpDesk
     #[FormIntegrationSetting]
     public ?array $ticketFieldMapping = null;
 
-    private ?array $_attachments = null;
+    private array $_attachments = [];
 
 
     // Public Methods
@@ -336,8 +340,9 @@ class Freshdesk extends HelpDesk
 
     public function getFieldMappingMultipartValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
     {
-        // Manually get field settings since we're not using parent method
-        $fieldSettings = $this->getConfigValue($fieldSettings);
+        // Public callers must resolve attachments for this submission too.
+        $this->_requiresMultipart($fieldMapping, $submission);
+        $fieldSettings = is_string($fieldSettings) ? $this->getConfigValue($fieldSettings) : $fieldSettings;
         $fieldValues = [];
 
         if (!is_array($fieldMapping)) {
@@ -359,43 +364,33 @@ class Freshdesk extends HelpDesk
                 $name = $tag;
             }
 
-            if ($slot->kind !== ReferenceSlotKind::Literal) {
-                // Handle attachments differently to get file contents
-                if ($tag === 'attachments') {
-                    $name .= '[]';
-
-                    foreach ($this->_attachments as $attachment) {
-                        $fieldValues[] = [
-                            'name' => $name,
-                            'contents' => Utils::tryFopen($attachment->getImageTransformSourcePath(), 'r'),
-                            'filename' => $attachment->filename,
-                        ];
-                    }
-                } else {
-                    // Get the type of field we are mapping to (for the integration)
-                    $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
-                    $value = $this->getMappedFieldValue($fieldKey, $submission, $integrationField);
-
-                    // Loop through the value if it's an array
-                    if (is_array($value)) {
-                        foreach ($value as $key => $contents) {
-                            $fieldValues[] = [
-                                'name' => is_string($key) ? "{$name}[{$key}]" : "{$name}[]",
-                                'contents' => $contents,
-                            ];
-                        }
-                    } elseif ($value !== '' && $value !== null) {
-                        $fieldValues[] = [
-                            'name' => $name,
-                            'contents' => $value,
-                        ];
-                    }
+            // Attachment references resolve to assets, not their ordinary URL projection.
+            if ($tag === 'attachments') {
+                foreach ($this->_attachments as $attachment) {
+                    $fieldValues[] = [
+                        'name' => $name . '[]',
+                        'contents' => Utils::tryFopen($attachment->getImageTransformSourcePath(), 'r'),
+                        'filename' => $attachment->filename,
+                    ];
                 }
-            } else {
-                // Otherwise, might have passed in a direct, static value
+
+                continue;
+            }
+
+            $integrationField = ArrayHelper::firstWhere($fieldSettings ?? [], 'handle', $tag) ?? new IntegrationField();
+            $value = $this->resolveMappedFieldValue($fieldKey, $submission, $integrationField);
+
+            if (is_array($value)) {
+                foreach ($value as $key => $contents) {
+                    $fieldValues[] = [
+                        'name' => is_string($key) ? "{$name}[{$key}]" : "{$name}[]",
+                        'contents' => $contents,
+                    ];
+                }
+            } elseif ($value !== '' && $value !== null) {
                 $fieldValues[] = [
                     'name' => $name,
-                    'contents' => $slot->value,
+                    'contents' => $value,
                 ];
             }
         }
@@ -504,24 +499,17 @@ class Freshdesk extends HelpDesk
 
             // Send Ticket payload
             if ($this->mapToTicket) {
-                $ticketValues = $this->getFieldMappingMultipartValues($submission, $this->ticketFieldMapping, 'ticket');
-
                 $requiresMultipart = $this->_requiresMultipart($this->ticketFieldMapping, $submission);
 
                 if ($requiresMultipart) {
-                    $ticketPayload = $ticketValues;
+                    $ticketPayload = $this->getFieldMappingMultipartValues($submission, $this->ticketFieldMapping, 'ticket');
                     $contentType = 'multipart';
                 } else {
-                    // Directly modify the field values first
-                    $ticketFields = $this->_prepCustomFields($ticketValues);
+                    $ticketPayload = $this->getFieldMappingValues($submission, $this->ticketFieldMapping, 'ticket');
+                    $ticketFields = $this->_prepCustomFields($ticketPayload);
 
-                    // Only add custom fields if array not empty to prevent validation error
                     if ($ticketFields) {
-                        $ticketPayload = array_merge($ticketValues, [
-                            'custom_fields' => $ticketFields,
-                        ]);
-                    } else {
-                        $ticketPayload = $ticketValues;
+                        $ticketPayload['custom_fields'] = $ticketFields;
                     }
 
                     // Extra payload prep - some fields are finicky
@@ -706,37 +694,22 @@ class Freshdesk extends HelpDesk
         return $customFields;
     }
 
-    private function _requiresMultipart(array $mapping, Submission $submission): bool
+    private function _requiresMultipart(?array $mapping, Submission $submission): bool
     {
-        // If assets integration field isn't mapped, multipart is not needed
-        if (!isset($mapping['attachments'])) {
+        // Never retain attachments when the provider is reused for another submission.
+        $this->_attachments = [];
+        $slot = ReferenceSlot::fromStored($mapping['attachments'] ?? '');
+
+        if ($slot->kind !== ReferenceSlotKind::Exact) {
             return false;
         }
 
-        // If this is a submission attribute, it's not anything that can be attached
-        if (str_starts_with($mapping['attachments'], '{submission:')) {
-            return false;
+        $value = $slot->resolve(ReferenceContext::forSubmission($submission, usage: ReferenceUsage::Integration));
+
+        if ($value instanceof AssetQuery || $value instanceof ElementCollection) {
+            $this->_attachments = array_values(array_filter($value->all(), static fn($asset) => $asset instanceof Asset));
         }
 
-        $fieldInfo = $this->getMappedFieldInfo($mapping['attachments'], $submission);
-        $field = $fieldInfo['field'];
-        $fieldKey = $fieldInfo['key'];
-        $fieldHandle = $fieldInfo['handle'];
-
-        // If the field exists, check if any value exists
-        if ($field && $value = $submission->getFieldValue($fieldHandle)) {
-            // If the value is an AssetQuery, get the results
-            if ($value instanceof AssetQuery) {
-                $assets = $value->all();
-
-                if (!empty($assets)) {
-                    // Cache attachments for future use
-                    $this->_attachments = $assets;
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return $this->_attachments !== [];
     }
 }
