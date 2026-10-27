@@ -355,6 +355,18 @@ it('serializes concurrent submissions around one durable purchase', function ():
     ])->create();
     $submission = formie()->submission($form)->save();
     $path = tempnam(Craft::$app->getPath()->getTempPath(), 'concurrent-payment-');
+    // Create the shared parent before workers create their separate runtime paths.
+    \craft\helpers\FileHelper::createDirectory($path . '-runtime');
+    $compiledPath = Craft::$app->getPath()->getCompiledClassesPath();
+    $staleClass = $compiledPath . '/CustomFieldBehavior_payment_' . bin2hex(random_bytes(5)) . '.php';
+    file_put_contents($staleClass, "<?php\n");
+    touch($staleClass, time() - 60);
+    // Force a cold worker bootstrap, including Craft's stale-class cleanup.
+    $fieldVersion = (new Query())->select('fieldVersion')->from(\craft\db\Table::INFO)->scalar();
+    $compiledClass = $compiledPath . '/CustomFieldBehavior_' . $fieldVersion . '.php';
+    if (is_file($compiledClass)) {
+        unlink($compiledClass);
+    }
     $command = [PHP_BINARY, __DIR__ . '/fixtures/concurrent-purchase.php', (string)$integration->id, (string)$submission->id, $path];
     $first = new \Symfony\Component\Process\Process($command);
     $second = new \Symfony\Component\Process\Process($command);
@@ -365,7 +377,14 @@ it('serializes concurrent submissions around one durable purchase', function ():
         test()->assertSame(0, $second->getExitCode(), $second->getErrorOutput() . $second->getOutput());
         expect(trim($first->getOutput()))->toBe('succeeded')->and(trim($second->getOutput()))->toBe('succeeded');
         expect(file($path))->toHaveCount(1)->and(Formie::$plugin->getPayments()->getSubmissionPayments($submission))->toHaveCount(1);
-    } finally { $first->stop(); $second->stop(); @unlink($path); }
+        clearstatcache(true, $staleClass);
+        test()->assertFileExists($staleClass, 'Worker bootstrap must not clean the parent application runtime.');
+    } finally {
+        $first->stop(); $second->stop();
+        \craft\helpers\FileHelper::removeDirectory($path . '-runtime');
+        @unlink($staleClass);
+        @unlink($path);
+    }
 });
 
 it('does not resend after a worker exits immediately after the gateway accepts a purchase', function (): void {
@@ -378,6 +397,7 @@ it('does not resend after a worker exits immediately after the gateway accepts a
     ])->create();
     $submission = formie()->submission($form)->save();
     $path = tempnam(Craft::$app->getPath()->getTempPath(), 'interrupted-payment-');
+    \craft\helpers\FileHelper::createDirectory($path . '-runtime');
     $command = [PHP_BINARY, __DIR__ . '/fixtures/concurrent-purchase.php', (string)$integration->id, (string)$submission->id, $path];
     try {
         $first = new \Symfony\Component\Process\Process([...$command, 'interrupt']);
@@ -388,7 +408,10 @@ it('does not resend after a worker exits immediately after the gateway accepts a
         expect(trim($retry->getOutput()))->toBe('unknown')->and(file($path))->toHaveCount(1);
         $payments = Formie::$plugin->getPayments()->getSubmissionPayments($submission);
         expect($payments)->toHaveCount(1)->and($payments[0]->status)->toBe(Payment::STATUS_UNKNOWN);
-    } finally { @unlink($path); }
+    } finally {
+        \craft\helpers\FileHelper::removeDirectory($path . '-runtime');
+        @unlink($path);
+    }
 });
 
 it('keeps unverified earlier attempts pending until an operator records their outcome', function (string $outcome, string $savedState): void {

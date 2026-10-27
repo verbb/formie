@@ -40,10 +40,11 @@ function NotificationRecipientsField({ field, form }) {
         return buildConditionFieldPicker({
             baseFieldOptions: fieldOptions,
             formValues,
+            conditionOptions,
             getFieldTypeByType,
             t,
         });
-    }, [fieldOptions, formValues, getFieldTypeByType, t]);
+    }, [fieldOptions, formValues, conditionOptions, getFieldTypeByType, t]);
 
     const rows = Array.isArray(value) ? value : [];
 
