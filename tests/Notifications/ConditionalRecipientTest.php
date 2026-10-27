@@ -3,7 +3,11 @@
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\References;
+use verbb\formie\jobs\SendNotification;
 use verbb\formie\models\Notification;
+
+use craft\db\Query;
+use craft\helpers\FileHelper;
 
 it('renders matching recipients from saved notification rules', function (bool $legacy, string $choice, array $expected): void {
     $form = formie()->form()->dropdownField('department', [
@@ -48,6 +52,47 @@ it('renders matching recipients from saved notification rules', function (bool $
     } else {
         expect($result['error'])->toBe('Notification email error. No recipient email address found.')
             ->and($result['email']->getTo())->toBeEmpty();
+    }
+
+    // Exercise a fresh queue worker and its duplicate-job guard using real local mail output.
+    $mailer = Craft::$app->getMailer();
+    $originalTransport = $mailer->useFileTransport;
+    $originalPath = $mailer->fileTransportPath;
+    $mailPath = sys_get_temp_dir() . '/formie-conditional-recipient-' . bin2hex(random_bytes(8));
+    $mailer->useFileTransport = true;
+    $mailer->fileTransportPath = $mailPath;
+
+    try {
+        $notifications->sendNotification($notification, $submission, true, 'conditional-recipient');
+        $attempts = Formie::$plugin->getDeliveryAttempts();
+        $uid = (new Query())->select('uid')->from($attempts::TABLE)->where([
+            'submissionId' => $submission->id, 'executionUid' => 'conditional-recipient',
+        ])->scalar();
+        expect($uid)->not->toBeFalse();
+        Formie::$plugin->getForms()->invalidateFormCaches();
+        (new ReflectionProperty(Submission::class, '_formByIdCache'))->setValue(null, []);
+        $job = new SendNotification(['deliveryAttemptUid' => $uid]);
+
+        if ($expected) {
+            $job->execute(Craft::$app->getQueue());
+            $job->execute(Craft::$app->getQueue());
+            expect($attempts->get($uid)['status'])->toBe('succeeded');
+            $files = glob($mailPath . '/*.eml');
+            expect($files)->toHaveCount(1);
+            $message = file_get_contents($files[0]);
+            foreach ($expected as $recipient) {
+                expect($message)->toContain($recipient);
+            }
+        } else {
+            expect(fn() => $job->execute(Craft::$app->getQueue()))->toThrow(RuntimeException::class, 'Notification delivery failed');
+            expect(json_encode($attempts->supportBundle($uid)))->toContain('No recipient email address found');
+            expect(glob($mailPath . '/*.eml'))->toBe([]);
+            expect($attempts->get($uid)['status'])->not->toBe('succeeded');
+        }
+    } finally {
+        $mailer->useFileTransport = $originalTransport;
+        $mailer->fileTransportPath = $originalPath;
+        FileHelper::removeDirectory($mailPath);
     }
 })->with([
     'current multiple matches' => [false, 'sales', ['sales@example.test', 'additional@example.test']],
