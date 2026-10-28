@@ -1,14 +1,13 @@
 name: Publish Formie Packages
 
-# GitHub requires workflow_dispatch definitions on the repository's default
-# branch. Keep this file on craft-5 as well as beta; Manager dispatches the
-# reviewed beta release SHA and the run checks out that exact commit.
+# Manager dispatches this workflow on craft-5 with the reviewed release SHA;
+# the run checks out that exact commit and verifies it belongs to craft-5.
 
 on:
     workflow_dispatch:
         inputs:
             release_sha:
-                description: Full reviewed release commit SHA on beta
+                description: Full reviewed release commit SHA on craft-5
                 required: true
                 type: string
             release_version:
@@ -23,7 +22,7 @@ concurrency:
 
 jobs:
     validate:
-        if: github.ref == 'refs/heads/beta'
+        if: github.ref == 'refs/heads/craft-5'
         runs-on: ubuntu-latest
         timeout-minutes: 60
         permissions:
@@ -35,7 +34,7 @@ jobs:
                   ref: ${{ inputs.release_sha }}
                   fetch-depth: 0
 
-            - name: Verify commit belongs to beta
+            - name: Verify commit belongs to craft-5
               env:
                   RELEASE_SHA: ${{ inputs.release_sha }}
               run: |
@@ -44,8 +43,8 @@ jobs:
                     exit 1
                   fi
                   test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
-                  git fetch origin beta
-                  git merge-base --is-ancestor "$RELEASE_SHA" origin/beta
+                  git fetch origin craft-5
+                  git merge-base --is-ancestor "$RELEASE_SHA" origin/craft-5
 
             - name: Set up Node
               uses: actions/setup-node@v6
@@ -120,7 +119,7 @@ jobs:
 
     publish:
         needs: validate
-        if: github.ref == 'refs/heads/beta'
+        if: github.ref == 'refs/heads/craft-5'
         runs-on: ubuntu-latest
         timeout-minutes: 30
         environment: npm-publish
