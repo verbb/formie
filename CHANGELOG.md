@@ -10,6 +10,7 @@
 - Update the minimum Auth requirement to `2.0.56`.
 
 ### Fixed
+- Fix render-time theme overrides being ignored for fields on sites with form translations. ([#3057](https://github.com/verbb/formie/issues/3057))
 - Fix forms with Question CAPTCHA failing to render when strict Twig variables are enabled, and correct the answer input name for submission. ([#3056](https://github.com/verbb/formie/issues/3056))
 - Fix form imports not reporting missing update permission when the existing form is hidden from the control panel index.
 - Fix conditional Payment fields initializing widgets more than once, including duplicate Opayo Drop-in sessions and unhandled mount errors. ([#3048](https://github.com/verbb/formie/issues/3048))

@@ -739,6 +739,11 @@ class Rendering extends Component
     private function _getFormFromTemplate(Form|string|null $form): ?Form
     {
         if ($form instanceof Form) {
+            // Nested helpers must retain the localized instance that owns the active theme.
+            if ($this->getActiveRenderFrame()?->getForm() === $form) {
+                return $form;
+            }
+
             if ($siteId = Craft::$app->getSites()->getCurrentSite()->id) {
                 return Formie::$plugin->getFormSiteOverrides()->applyToForm($form, (int)$siteId, true);
             }
