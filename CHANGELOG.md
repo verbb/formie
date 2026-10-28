@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.5 - 2026-10-28
 
 ### Added
 - Add a Maximum Displayed Options setting for searchable dropdowns, defaulting to 100 while searching all options. ([#3059](https://github.com/verbb/formie/issues/3059))
