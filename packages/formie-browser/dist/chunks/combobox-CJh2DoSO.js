@@ -1,27 +1,28 @@
 import { t as e } from "./debug-rhzqP1j2.js";
 import { n as t } from "./theme-classes-DAQuEqdP.js";
 import { t as n } from "./skip-CEW89ExY.js";
-import { t as r } from "./styles-BfoIZwJp.js";
-import { i, n as a } from "./shared-CJ1LIEh3.js";
+import { i as r } from "./i18n-BY1ds1BL.js";
+import { t as i } from "./styles-BfoIZwJp.js";
+import { i as a, n as o } from "./shared-CJ1LIEh3.js";
 //#region ../../node_modules/tom-select/dist/esm/contrib/microevent.js
-function o(e, t) {
+function s(e, t) {
 	e.split(/\s+/).forEach((e) => {
 		t(e);
 	});
 }
-var s = class {
+var c = class {
 	constructor() {
 		this._events = {};
 	}
 	on(e, t) {
-		o(e, (e) => {
+		s(e, (e) => {
 			let n = this._events[e] || [];
 			n.push(t), this._events[e] = n;
 		});
 	}
 	off(e, t) {
 		var n = arguments.length;
-		n === 0 ? this._events = {} : o(e, (e) => {
+		n === 0 ? this._events = {} : s(e, (e) => {
 			if (n === 1) {
 				delete this._events[e];
 				return;
@@ -32,7 +33,7 @@ var s = class {
 	}
 	trigger(e, ...t) {
 		var n = this;
-		o(e, (e) => {
+		s(e, (e) => {
 			let r = n._events[e];
 			r !== void 0 && r.forEach((e) => {
 				e.apply(n, t);
@@ -42,7 +43,7 @@ var s = class {
 };
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/contrib/microplugin.js
-function c(e) {
+function l(e) {
 	return e.plugins = {}, class extends e {
 		constructor() {
 			super(...arguments), this.plugins = {
@@ -84,22 +85,22 @@ function c(e) {
 }
 //#endregion
 //#region ../../node_modules/@orchidjs/unicode-variants/dist/esm/regex.js
-var l = (e) => (e = e.filter(Boolean), e.length < 2 ? e[0] || "" : m(e) == 1 ? "[" + e.join("") + "]" : "(?:" + e.join("|") + ")"), u = (e) => {
-	if (!f(e)) return e.join("");
+var u = (e) => (e = e.filter(Boolean), e.length < 2 ? e[0] || "" : h(e) == 1 ? "[" + e.join("") + "]" : "(?:" + e.join("|") + ")"), d = (e) => {
+	if (!p(e)) return e.join("");
 	let t = "", n = 0, r = () => {
 		n > 1 && (t += "{" + n + "}");
 	};
 	return e.forEach((i, a) => {
 		i === e[a - 1] ? n++ : (r(), t += i, n = 1);
 	}), r(), t;
-}, d = (e) => l(Array.from(e)), f = (e) => new Set(e).size !== e.length, p = (e) => (e + "").replace(/([\$\(\)\*\+\.\?\[\]\^\{\|\}\\])/gu, "\\$1"), m = (e) => e.reduce((e, t) => Math.max(e, h(t)), 0), h = (e) => Array.from(e).length, g = (e) => {
+}, f = (e) => u(Array.from(e)), p = (e) => new Set(e).size !== e.length, m = (e) => (e + "").replace(/([\$\(\)\*\+\.\?\[\]\^\{\|\}\\])/gu, "\\$1"), h = (e) => e.reduce((e, t) => Math.max(e, g(t)), 0), g = (e) => Array.from(e).length, _ = (e) => {
 	if (e.length === 1) return [[e]];
 	let t = [];
-	return g(e.substring(1)).forEach(function(n) {
+	return _(e.substring(1)).forEach(function(n) {
 		let r = n.slice(0);
 		r[0] = e.charAt(0) + r[0], t.push(r), r = n.slice(0), r.unshift(e.charAt(0)), t.push(r);
 	}), t;
-}, _ = [[0, 65535]], v, y, ee = 3, b = {}, x = {
+}, v = [[0, 65535]], y, b, x = 3, S = {}, ee = {
 	"/": "⁄∕",
 	0: "߀",
 	a: "ⱥɐɑ",
@@ -142,20 +143,20 @@ var l = (e) => (e = e.filter(Boolean), e.length < 2 ? e[0] || "" : m(e) == 1 ? "
 	z: "ƶȥɀⱬꝣ",
 	hv: "ƕ"
 };
-for (let e in x) {
-	let t = x[e] || "";
+for (let e in ee) {
+	let t = ee[e] || "";
 	for (let n = 0; n < t.length; n++) {
 		let r = t.substring(n, n + 1);
-		b[r] = e;
+		S[r] = e;
 	}
 }
-var te = RegExp(Object.keys(b).join("|") + "|[̀-ͯ·ʾʼ]", "gu"), ne = (e) => {
-	v === void 0 && (v = se(e || _));
-}, re = (e, t = "NFKD") => e.normalize(t), S = (e) => Array.from(e).reduce((e, t) => e + ie(t), ""), ie = (e) => (e = re(e).toLowerCase().replace(te, (e) => b[e] || ""), re(e, "NFC"));
+var te = RegExp(Object.keys(S).join("|") + "|[̀-ͯ·ʾʼ]", "gu"), ne = (e) => {
+	y === void 0 && (y = se(e || v));
+}, re = (e, t = "NFKD") => e.normalize(t), C = (e) => Array.from(e).reduce((e, t) => e + ie(t), ""), ie = (e) => (e = re(e).toLowerCase().replace(te, (e) => S[e] || ""), re(e, "NFC"));
 function* ae(e) {
 	for (let [t, n] of e) for (let e = t; e <= n; e++) {
-		let t = String.fromCharCode(e), n = S(t);
-		n != t.toLowerCase() && (n.length > ee || n.length != 0 && (yield {
+		let t = String.fromCharCode(e), n = C(t);
+		n != t.toLowerCase() && (n.length > x || n.length != 0 && (yield {
 			folded: n,
 			composed: t,
 			code_point: e
@@ -164,8 +165,8 @@ function* ae(e) {
 }
 var oe = (e) => {
 	let t = {}, n = (e, n) => {
-		let r = t[e] || /* @__PURE__ */ new Set(), i = RegExp("^" + d(r) + "$", "iu");
-		n.match(i) || (r.add(p(n)), t[e] = r);
+		let r = t[e] || /* @__PURE__ */ new Set(), i = RegExp("^" + f(r) + "$", "iu");
+		n.match(i) || (r.add(m(n)), t[e] = r);
 	};
 	for (let t of ae(e)) n(t.folded, t.folded), n(t.folded, t.composed);
 	return t;
@@ -173,20 +174,20 @@ var oe = (e) => {
 	let t = oe(e), n = {}, r = [];
 	for (let e in t) {
 		let i = t[e];
-		i && (n[e] = d(i)), e.length > 1 && r.push(p(e));
+		i && (n[e] = f(i)), e.length > 1 && r.push(m(e));
 	}
 	r.sort((e, t) => t.length - e.length);
-	let i = l(r);
-	return y = RegExp("^" + i, "u"), n;
+	let i = u(r);
+	return b = RegExp("^" + i, "u"), n;
 }, ce = (e, t = 1) => {
 	let n = 0;
-	return e = e.map((e) => (v[e] && (n += e.length), v[e] || e)), n >= t ? u(e) : "";
-}, le = (e, t = 1) => (t = Math.max(t, e.length - 1), l(g(e).map((e) => ce(e, t)))), C = (e, t = !0) => {
+	return e = e.map((e) => (y[e] && (n += e.length), y[e] || e)), n >= t ? d(e) : "";
+}, le = (e, t = 1) => (t = Math.max(t, e.length - 1), u(_(e).map((e) => ce(e, t)))), w = (e, t = !0) => {
 	let n = +(e.length > 1);
-	return l(e.map((e) => {
+	return u(e.map((e) => {
 		let r = [], i = t ? e.length() : e.length() - 1;
 		for (let t = 0; t < i; t++) r.push(le(e.substrs[t] || "", n));
-		return u(r);
+		return d(r);
 	}));
 }, ue = (e, t) => {
 	for (let n of t) {
@@ -201,7 +202,7 @@ var oe = (e) => {
 		}).length > 0)) return !0;
 	}
 	return !1;
-}, w = class e {
+}, de = class e {
 	parts;
 	substrs;
 	start;
@@ -229,11 +230,11 @@ var oe = (e) => {
 			substr: o
 		}), r;
 	}
-}, de = (e) => {
-	ne(), e = S(e);
-	let t = "", n = [new w()];
+}, fe = (e) => {
+	ne(), e = C(e);
+	let t = "", n = [new de()];
 	for (let r = 0; r < e.length; r++) {
-		let i = e.substring(r).match(y), a = e.substring(r, r + 1), o = i ? i[0] : null, s = [], c = /* @__PURE__ */ new Set();
+		let i = e.substring(r).match(b), a = e.substring(r, r + 1), o = i ? i[0] : null, s = [], c = /* @__PURE__ */ new Set();
 		for (let e of n) {
 			let t = e.last();
 			if (!t || t.length == 1 || t.end <= r) {
@@ -265,15 +266,15 @@ var oe = (e) => {
 			s = s.sort((e, t) => e.length() - t.length());
 			for (let e of s) ue(e, n) || n.push(e);
 		} else if (r > 0 && c.size == 1 && !c.has("3")) {
-			t += C(n, !1);
-			let e = new w(), r = n[0];
+			t += w(n, !1);
+			let e = new de(), r = n[0];
 			r && e.add(r.last()), n = [e];
 		}
 	}
-	return t += C(n, !0), t;
-}, fe = (e, t) => {
-	if (e) return e[t];
+	return t += w(n, !0), t;
 }, pe = (e, t) => {
+	if (e) return e[t];
+}, me = (e, t) => {
 	if (e) {
 		for (var n, r = t.split("."); (n = r.shift()) && (e = e[n]););
 		return e;
@@ -288,7 +289,7 @@ var oe = (e) => {
 }, D = (e, t) => {
 	if (Array.isArray(e)) e.forEach(t);
 	else for (var n in e) e.hasOwnProperty(n) && t(e[n], n);
-}, me = (e, t) => typeof e == "number" && typeof t == "number" ? e > t ? 1 : e < t ? -1 : 0 : (e = S(e + "").toLowerCase(), t = S(t + "").toLowerCase(), e > t ? 1 : t > e ? -1 : 0), he = class {
+}, he = (e, t) => typeof e == "number" && typeof t == "number" ? e > t ? 1 : e < t ? -1 : 0 : (e = C(e + "").toLowerCase(), t = C(t + "").toLowerCase(), e > t ? 1 : t > e ? -1 : 0), ge = class {
 	items;
 	settings;
 	constructor(e, t) {
@@ -298,9 +299,9 @@ var oe = (e) => {
 		if (!e || !e.length) return [];
 		let r = [], i = e.split(/\s+/);
 		var a;
-		return n && (a = RegExp("^(" + Object.keys(n).map(p).join("|") + "):(.*)$")), i.forEach((e) => {
+		return n && (a = RegExp("^(" + Object.keys(n).map(m).join("|") + "):(.*)$")), i.forEach((e) => {
 			let n, i = null, o = null;
-			a && (n = e.match(a)) && (i = n[1], e = n[2]), e.length > 0 && (o = this.settings.diacritics ? de(e) || null : p(e), o && t && (o = "\\b" + o)), r.push({
+			a && (n = e.match(a)) && (i = n[1], e = n[2]), e.length > 0 && (o = this.settings.diacritics ? fe(e) || null : m(e), o && t && (o = "\\b" + o)), r.push({
 				string: e,
 				regex: o ? new RegExp(o, "iu") : null,
 				field: i
@@ -376,7 +377,7 @@ var oe = (e) => {
 		} else n = n.filter((e) => e.field !== "$score");
 		return n.length ? function(e, t) {
 			var r, i;
-			for (let a of n) if (i = a.field, r = (a.direction === "desc" ? -1 : 1) * me(o(i, e), o(i, t)), r) return r;
+			for (let a of n) if (i = a.field, r = (a.direction === "desc" ? -1 : 1) * he(o(i, e), o(i, t)), r) return r;
 			return 0;
 		} : null;
 	}
@@ -400,7 +401,7 @@ var oe = (e) => {
 			total: 0,
 			items: [],
 			weights: n,
-			getAttrFn: r.nesting ? pe : fe
+			getAttrFn: r.nesting ? me : pe
 		};
 	}
 	search(e, t) {
@@ -421,7 +422,7 @@ var oe = (e) => {
 		let o = n._getSortFunction(i);
 		return o && i.items.sort(o), i.total = i.items.length, typeof t.limit == "number" && (i.items = i.items.slice(0, t.limit)), i;
 	}
-}, O = (e) => e == null ? null : k(e), k = (e) => typeof e == "boolean" ? e ? "1" : "0" : e + "", A = (e) => (e + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"), ge = (e, t) => t > 0 ? window.setTimeout(e, t) : (e.call(null), null), _e = (e, t) => {
+}, O = (e) => e == null ? null : k(e), k = (e) => typeof e == "boolean" ? e ? "1" : "0" : e + "", A = (e) => (e + "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"), _e = (e, t) => t > 0 ? window.setTimeout(e, t) : (e.call(null), null), ve = (e, t) => {
 	var n;
 	return function(r, i) {
 		var a = this;
@@ -429,7 +430,7 @@ var oe = (e) => {
 			n = null, a.loadedSearches[r] = !0, e.call(a, r, i);
 		}, t);
 	};
-}, ve = (e, t, n) => {
+}, ye = (e, t, n) => {
 	var r, i = e.trigger, a = {};
 	e.trigger = function() {
 		var n = arguments[0];
@@ -437,7 +438,7 @@ var oe = (e) => {
 		else return i.apply(e, arguments);
 	}, n.apply(e, []), e.trigger = i;
 	for (r of t) r in a && i.apply(e, a[r]);
-}, ye = (e) => ({
+}, be = (e) => ({
 	start: e.selectionStart || 0,
 	length: (e.selectionEnd || 0) - (e.selectionStart || 0)
 }), j = (e, t = !1) => {
@@ -452,41 +453,41 @@ var oe = (e) => {
 }, R = (e) => {
 	if (e.jquery) return e[0];
 	if (e instanceof HTMLElement) return e;
-	if (be(e)) {
+	if (xe(e)) {
 		var t = document.createElement("template");
 		return t.innerHTML = e.trim(), t.content.firstChild;
 	}
 	return document.querySelector(e);
-}, be = (e) => typeof e == "string" && e.indexOf("<") > -1, xe = (e) => e.replace(/['"\\]/g, "\\$&"), z = (e, t) => {
+}, xe = (e) => typeof e == "string" && e.indexOf("<") > -1, Se = (e) => e.replace(/['"\\]/g, "\\$&"), z = (e, t) => {
 	var n = document.createEvent("HTMLEvents");
 	n.initEvent(t, !0, !1), e.dispatchEvent(n);
 }, B = (e, t) => {
 	Object.assign(e.style, t);
 }, V = (e, ...t) => {
-	var n = Se(t);
-	e = Ce(e), e.map((e) => {
+	var n = Ce(t);
+	e = we(e), e.map((e) => {
 		n.map((t) => {
 			e.classList.add(t);
 		});
 	});
 }, H = (e, ...t) => {
-	var n = Se(t);
-	e = Ce(e), e.map((e) => {
+	var n = Ce(t);
+	e = we(e), e.map((e) => {
 		n.map((t) => {
 			e.classList.remove(t);
 		});
 	});
-}, Se = (e) => {
+}, Ce = (e) => {
 	var t = [];
 	return L(e, (e) => {
 		typeof e == "string" && (e = e.trim().split(/[\t\n\f\r\s]/)), Array.isArray(e) && (t = t.concat(e));
 	}), t.filter(Boolean);
-}, Ce = (e) => (Array.isArray(e) || (e = [e]), e), U = (e, t, n) => {
+}, we = (e) => (Array.isArray(e) || (e = [e]), e), U = (e, t, n) => {
 	if (!n || n.contains(e)) for (; e && e.matches;) {
 		if (e.matches(t)) return e;
 		e = e.parentNode;
 	}
-}, we = (e, t = 0) => t > 0 ? e[e.length - 1] : e[0], Te = (e) => Object.keys(e).length === 0, Ee = (e, t) => {
+}, Te = (e, t = 0) => t > 0 ? e[e.length - 1] : e[0], Ee = (e) => Object.keys(e).length === 0, De = (e, t) => {
 	if (!e) return -1;
 	t ||= e.nodeName;
 	for (var n = 0; e = e.previousElementSibling;) e.matches(t) && n++;
@@ -497,7 +498,7 @@ var oe = (e) => {
 	});
 }, G = (e, t) => {
 	e.parentNode && e.parentNode.replaceChild(t, e);
-}, De = (e, t) => {
+}, Oe = (e, t) => {
 	if (t === null) return;
 	if (typeof t == "string") {
 		if (!t.length) return;
@@ -520,13 +521,13 @@ var oe = (e) => {
 		});
 	}, i = (e) => e.nodeType === 3 ? n(e) : (r(e), 0);
 	i(e);
-}, Oe = (e) => {
+}, ke = (e) => {
 	var t = e.querySelectorAll("span.highlight");
 	Array.prototype.forEach.call(t, function(e) {
 		var t = e.parentNode;
 		t.replaceChild(e.firstChild, e), t.normalize();
 	});
-}, K = typeof navigator < "u" && /Mac/.test(navigator.userAgent) ? "metaKey" : "ctrlKey", ke = {
+}, K = typeof navigator < "u" && /Mac/.test(navigator.userAgent) ? "metaKey" : "ctrlKey", Ae = {
 	options: [],
 	optgroups: [],
 	plugins: [],
@@ -582,8 +583,8 @@ var oe = (e) => {
 };
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/getSettings.js
-function Ae(e, t) {
-	var n = Object.assign({}, ke, t), r = n.dataAttr, i = n.labelField, a = n.valueField, o = n.disabledField, s = n.optgroupField, c = n.optgroupLabelField, l = n.optgroupValueField, u = e.tagName.toLowerCase(), d = e.getAttribute("placeholder") || e.getAttribute("data-placeholder");
+function je(e, t) {
+	var n = Object.assign({}, Ae, t), r = n.dataAttr, i = n.labelField, a = n.valueField, o = n.disabledField, s = n.optgroupField, c = n.optgroupLabelField, l = n.optgroupValueField, u = e.tagName.toLowerCase(), d = e.getAttribute("placeholder") || e.getAttribute("data-placeholder");
 	if (!d && !n.allowEmptyOption) {
 		let t = e.querySelector("option[value=\"\"]");
 		t && (d = t.textContent);
@@ -638,23 +639,23 @@ function Ae(e, t) {
 				t[i] = e, t[a] = e, f.options.push(t);
 			}), f.items = t;
 		}
-	})(), Object.assign({}, ke, f, t);
+	})(), Object.assign({}, Ae, f, t);
 }
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/tom-select.js
-var je = 0, q = class extends c(s) {
+var Me = 0, q = class extends l(c) {
 	constructor(e, t) {
-		super(), this.order = 0, this.isOpen = !1, this.isDisabled = !1, this.isReadOnly = !1, this.isInvalid = !1, this.isValid = !0, this.isLocked = !1, this.isFocused = !1, this.isInputHidden = !1, this.isSetup = !1, this.isDropdownContentStale = !0, this.ignoreFocus = !1, this.ignoreHover = !1, this.hasOptions = !1, this.lastValue = "", this.caretPos = 0, this.loading = 0, this.loadedSearches = {}, this.activeOption = null, this.activeItems = [], this.optgroups = {}, this.options = {}, this.userOptions = {}, this.items = [], this.refreshTimeout = null, je++;
+		super(), this.order = 0, this.isOpen = !1, this.isDisabled = !1, this.isReadOnly = !1, this.isInvalid = !1, this.isValid = !0, this.isLocked = !1, this.isFocused = !1, this.isInputHidden = !1, this.isSetup = !1, this.isDropdownContentStale = !0, this.ignoreFocus = !1, this.ignoreHover = !1, this.hasOptions = !1, this.lastValue = "", this.caretPos = 0, this.loading = 0, this.loadedSearches = {}, this.activeOption = null, this.activeItems = [], this.optgroups = {}, this.options = {}, this.userOptions = {}, this.items = [], this.refreshTimeout = null, Me++;
 		var n, r = R(e);
 		if (r.tomselect) throw Error("Tom Select already initialized on this element");
 		r.tomselect = this, n = (window.getComputedStyle && window.getComputedStyle(r, null)).getPropertyValue("direction");
-		let i = Ae(r, t);
-		this.settings = i, this.input = r, this.tabIndex = r.tabIndex || 0, this.is_select_tag = r.tagName.toLowerCase() === "select", this.rtl = /rtl/i.test(n), this.inputId = P(r, "tomselect-" + je), this.isRequired = r.required, this.sifter = new he(this.options, { diacritics: i.diacritics }), i.mode = i.mode || (i.maxItems === 1 ? "single" : "multi"), typeof i.hideSelected != "boolean" && (i.hideSelected = i.mode === "multi"), typeof i.hidePlaceholder != "boolean" && (i.hidePlaceholder = i.mode !== "multi");
+		let i = je(r, t);
+		this.settings = i, this.input = r, this.tabIndex = r.tabIndex || 0, this.is_select_tag = r.tagName.toLowerCase() === "select", this.rtl = /rtl/i.test(n), this.inputId = P(r, "tomselect-" + Me), this.isRequired = r.required, this.sifter = new ge(this.options, { diacritics: i.diacritics }), i.mode = i.mode || (i.maxItems === 1 ? "single" : "multi"), typeof i.hideSelected != "boolean" && (i.hideSelected = i.mode === "multi"), typeof i.hidePlaceholder != "boolean" && (i.hidePlaceholder = i.mode !== "multi");
 		var a = i.createFilter;
 		typeof a != "function" && (typeof a == "string" && (a = new RegExp(a)), i.createFilter = a instanceof RegExp ? (e) => a.test(e) : (e) => this.settings.duplicates || !this.options[e]), this.initializePlugins(i.plugins), this.setupCallbacks(), this.setupTemplates();
 		let o = R("<div>"), s = R("<div>"), c = this._render("dropdown"), l = R("<div role=\"listbox\" tabindex=\"-1\">"), u = this.input.getAttribute("class") || "", d = i.mode;
 		var f;
-		V(o, i.wrapperClass, u, d), V(s, i.controlClass), I(o, s), V(c, i.dropdownClass, d), i.copyClassesToDropdown && V(c, u), V(l, i.dropdownContentClass), I(c, l), R(i.dropdownParent || o).appendChild(c), be(i.controlInput) ? (f = R(i.controlInput), L([
+		V(o, i.wrapperClass, u, d), V(s, i.controlClass), I(o, s), V(c, i.dropdownClass, d), i.copyClassesToDropdown && V(c, u), V(l, i.dropdownContentClass), I(c, l), R(i.dropdownParent || o).appendChild(c), xe(i.controlInput) ? (f = R(i.controlInput), L([
 			"autocorrect",
 			"autocapitalize",
 			"autocomplete",
@@ -672,17 +673,17 @@ var je = 0, q = class extends c(s) {
 			"aria-expanded": "false",
 			"aria-controls": u
 		});
-		let d = P(c, e.inputId + "-ts-control"), f = "label[for='" + xe(e.inputId) + "']", m = document.querySelector(f), h = e.focus.bind(e);
-		if (m) {
-			M(m, "click", h), W(m, { for: d });
-			let t = P(m, e.inputId + "-ts-label");
+		let d = P(c, e.inputId + "-ts-control"), f = "label[for='" + Se(e.inputId) + "']", p = document.querySelector(f), h = e.focus.bind(e);
+		if (p) {
+			M(p, "click", h), W(p, { for: d });
+			let t = P(p, e.inputId + "-ts-label");
 			W(c, { "aria-labelledby": t }), W(i, { "aria-labelledby": t });
 		}
 		if (a.style.width = s.style.width, a.style.minWidth = s.style.minWidth, a.style.maxWidth = s.style.maxWidth, e.plugins.names.length) {
 			let t = "plugin-" + e.plugins.names.join(" plugin-");
 			V([a, r], t);
 		}
-		(t.maxItems === null || t.maxItems > 1) && e.is_select_tag && W(s, { multiple: "multiple" }), t.placeholder && W(n, { placeholder: t.placeholder }), !t.splitOn && t.delimiter && (t.splitOn = RegExp("\\s*" + p(t.delimiter) + "+\\s*")), t.load && t.loadThrottle && (t.load = _e(t.load, t.loadThrottle)), M(r, "mousemove", () => {
+		(t.maxItems === null || t.maxItems > 1) && e.is_select_tag && W(s, { multiple: "multiple" }), t.placeholder && W(n, { placeholder: t.placeholder }), !t.splitOn && t.delimiter && (t.splitOn = RegExp("\\s*" + m(t.delimiter) + "+\\s*")), t.load && t.loadThrottle && (t.load = ve(t.load, t.loadThrottle)), M(r, "mousemove", () => {
 			e.ignoreHover = !1;
 		}), M(r, "mouseenter", (t) => {
 			var n = U(t.target, "[data-selectable]", r);
@@ -703,7 +704,7 @@ var je = 0, q = class extends c(s) {
 			e.isValid && (e.isValid = !1, e.isInvalid = !0, e.refreshState());
 		};
 		M(s, "invalid", v), M(document, "mousedown", g), M(window, "scroll", _, l), M(window, "resize", _, l), this._destroy = () => {
-			s.removeEventListener("invalid", v), document.removeEventListener("mousedown", g), window.removeEventListener("scroll", _), window.removeEventListener("resize", _), m && m.removeEventListener("click", h);
+			s.removeEventListener("invalid", v), document.removeEventListener("mousedown", g), window.removeEventListener("scroll", _), window.removeEventListener("resize", _), p && p.removeEventListener("click", h);
 		}, this.revertSettings = {
 			innerHTML: s.innerHTML,
 			tabIndex: s.tabIndex
@@ -755,7 +756,7 @@ var je = 0, q = class extends c(s) {
 		for (e in n) t = this.settings[n[e]], t && this.on(e, t);
 	}
 	sync(e = !0) {
-		let t = this, n = e ? Ae(t.input, {
+		let t = this, n = e ? je(t.input, {
 			delimiter: t.settings.delimiter,
 			allowEmptyOption: t.settings.allowEmptyOption
 		}) : t.settings;
@@ -838,7 +839,7 @@ var je = 0, q = class extends c(s) {
 	onInput(e) {
 		if (this.isLocked) return;
 		let t = this.inputValue();
-		this.lastValue !== t && (this.lastValue = t, t == "" ? this._onInput() : (this.refreshTimeout && window.clearTimeout(this.refreshTimeout), this.refreshTimeout = ge(() => {
+		this.lastValue !== t && (this.lastValue = t, t == "" ? this._onInput() : (this.refreshTimeout && window.clearTimeout(this.refreshTimeout), this.refreshTimeout = _e(() => {
 			this.refreshTimeout = null, this._onInput();
 		}, this.settings.refreshThrottle)));
 	}
@@ -905,7 +906,7 @@ var je = 0, q = class extends c(s) {
 	}
 	setValue(e, t) {
 		var n = t ? [] : ["change"];
-		ve(this, n, () => {
+		ye(this, n, () => {
 			this.clear(t), this.addItems(e, t);
 		});
 	}
@@ -1005,7 +1006,7 @@ var je = 0, q = class extends c(s) {
 		let h = m === p.lastQuery || m == "" && p.lastQuery == null;
 		var g = p.search(m), _ = null, v = p.settings.shouldOpen || !1, y = p.dropdown_content;
 		h && (_ = p.activeOption, _ && (l = _.closest("[data-group]"))), i = g.items.length, typeof p.settings.maxOptions == "number" && (i = Math.min(i, p.settings.maxOptions)), i > 0 && (v = !0);
-		let ee = (e, t) => {
+		let b = (e, t) => {
 			let n = d[e];
 			if (n !== void 0) {
 				let e = f[n];
@@ -1028,11 +1029,11 @@ var je = 0, q = class extends c(s) {
 				a = o[n];
 				let e = s.$order, t = p.optgroups[a];
 				if (t === void 0 && typeof p.settings.optionGroupRegister == "function") {
-					var b;
-					(b = p.settings.optionGroupRegister.apply(p, [a])) && p.registerOptionGroup(b);
+					var x;
+					(x = p.settings.optionGroupRegister.apply(p, [a])) && p.registerOptionGroup(x);
 				}
 				t = p.optgroups[a], t === void 0 ? a = "" : e = t.$order;
-				let [r, c] = ee(a, e);
+				let [r, c] = b(a, e);
 				n > 0 && (u = u.cloneNode(!0), W(u, {
 					id: s.$id + "-clone-" + n,
 					"aria-selected": null
@@ -1052,14 +1053,14 @@ var je = 0, q = class extends c(s) {
 				});
 				I(s, n);
 			} else I(s, t);
-		}), y.innerHTML = "", I(y, s), p.isDropdownContentStale = !1, p.settings.highlight && (Oe(y), g.query.length && g.tokens.length && L(g.tokens, (e) => {
-			De(y, e.regex);
+		}), y.innerHTML = "", I(y, s), p.isDropdownContentStale = !1, p.settings.highlight && (ke(y), g.query.length && g.tokens.length && L(g.tokens, (e) => {
+			Oe(y, e.regex);
 		}));
-		var x = (e) => {
+		var S = (e) => {
 			let t = p.render(e, { input: m });
 			return t && (v = !0, y.insertBefore(t, y.firstChild)), t;
 		};
-		if (p.loading ? x("loading") : p.settings.shouldLoad.call(p, m) ? g.items.length === 0 && x("no_results") : x("not_loading"), c = p.canCreate(m), c && (u = x("option_create")), p.hasOptions = g.items.length > 0 || c, v) {
+		if (p.loading ? S("loading") : p.settings.shouldLoad.call(p, m) ? g.items.length === 0 && S("no_results") : S("not_loading"), c = p.canCreate(m), c && (u = S("option_create")), p.hasOptions = g.items.length > 0 || c, v) {
 			if (g.items.length > 0) {
 				if (!_ && p.settings.mode === "single" && p.items[0] != null && (_ = p.getOption(p.items[0])), !y.contains(_)) {
 					let e = 0;
@@ -1165,7 +1166,7 @@ var je = 0, q = class extends c(s) {
 	}
 	addItem(e, t) {
 		var n = t ? [] : ["change", "dropdown_close"];
-		ve(this, n, () => {
+		ye(this, n, () => {
 			var n, r;
 			let i = this, a = i.settings.mode, o = O(e);
 			if (!(o && i.items.indexOf(o) !== -1 && (a === "single" && i.close(), a === "single" || !i.settings.duplicates)) && o !== null && i.options.hasOwnProperty(o) && (a === "single" && i.clear(t), !(a === "multi" && i.isFull()))) {
@@ -1185,7 +1186,7 @@ var je = 0, q = class extends c(s) {
 		if (e = n.getItem(e), !e) return;
 		var r, i;
 		let a = e.dataset.value;
-		r = Ee(e), e.remove(), e.classList.contains("active") && (i = n.activeItems.indexOf(e), n.activeItems.splice(i, 1), H(e, "active")), n.items.splice(r, 1), n.isDropdownContentStale = !0, !n.settings.persist && n.userOptions.hasOwnProperty(a) && n.removeOption(a, t), r < n.caretPos && n.setCaret(n.caretPos - 1), n.updateOriginalInput({ silent: t }), n.refreshState(), n.positionDropdown(), n.trigger("item_remove", a, e);
+		r = De(e), e.remove(), e.classList.contains("active") && (i = n.activeItems.indexOf(e), n.activeItems.splice(i, 1), H(e, "active")), n.items.splice(r, 1), n.isDropdownContentStale = !0, !n.settings.persist && n.userOptions.hasOwnProperty(a) && n.removeOption(a, t), r < n.caretPos && n.setCaret(n.caretPos - 1), n.updateOriginalInput({ silent: t }), n.refreshState(), n.positionDropdown(), n.trigger("item_remove", a, e);
 	}
 	createItem(e = null, t = () => {}) {
 		arguments.length === 3 && (t = arguments[2]), typeof t != "function" && (t = () => {});
@@ -1213,7 +1214,7 @@ var je = 0, q = class extends c(s) {
 		let t = e.isFull(), n = e.isLocked;
 		e.wrapper.classList.toggle("rtl", e.rtl);
 		let r = e.wrapper.classList;
-		r.toggle("focus", e.isFocused), r.toggle("disabled", e.isDisabled), r.toggle("readonly", e.isReadOnly), r.toggle("required", e.isRequired), r.toggle("invalid", !e.isValid), r.toggle("locked", n), r.toggle("full", t), r.toggle("input-active", e.isFocused && !e.isInputHidden), r.toggle("dropdown-active", e.isOpen), r.toggle("has-options", Te(e.options)), r.toggle("has-items", e.items.length > 0);
+		r.toggle("focus", e.isFocused), r.toggle("disabled", e.isDisabled), r.toggle("readonly", e.isReadOnly), r.toggle("required", e.isRequired), r.toggle("invalid", !e.isValid), r.toggle("locked", n), r.toggle("full", t), r.toggle("input-active", e.isFocused && !e.isInputHidden), r.toggle("dropdown-active", e.isOpen), r.toggle("has-options", Ee(e.options)), r.toggle("has-items", e.items.length > 0);
 	}
 	refreshValidityState() {
 		var e = this;
@@ -1275,9 +1276,9 @@ var je = 0, q = class extends c(s) {
 	}
 	deleteSelection(e) {
 		var t, n, r, i, a = this;
-		t = e && e.keyCode === 8 ? -1 : 1, n = ye(a.control_input);
+		t = e && e.keyCode === 8 ? -1 : 1, n = be(a.control_input);
 		let o = [];
-		if (a.activeItems.length) i = we(a.activeItems, t), r = Ee(i), t > 0 && r++, L(a.activeItems, (e) => o.push(e));
+		if (a.activeItems.length) i = Te(a.activeItems, t), r = De(i), t > 0 && r++, L(a.activeItems, (e) => o.push(e));
 		else if ((a.isFocused || a.settings.mode === "single") && a.items.length) {
 			let e = a.controlChildren(), r;
 			t < 0 && n.start === 0 && n.length === 0 ? r = e[a.caretPos - 1] : t > 0 && n.start === a.inputValue().length && (r = e[a.caretPos]), r !== void 0 && o.push(r);
@@ -1299,7 +1300,7 @@ var je = 0, q = class extends c(s) {
 		let t = this.control.querySelector(".last-active");
 		if (t) return t;
 		var n = this.control.querySelectorAll(".active");
-		if (n) return we(n, e);
+		if (n) return Te(n, e);
 	}
 	setCaret(e) {
 		this.caretPos = this.items.length;
@@ -1369,28 +1370,28 @@ var je = 0, q = class extends c(s) {
 			return e === "after" && (t = i.apply(r, arguments)), a = n.apply(r, arguments), e === "instead" ? a : (e === "before" && (t = i.apply(r, arguments)), t);
 		};
 	}
-}, Me = (e, t, n, r) => {
+}, Ne = (e, t, n, r) => {
 	e.addEventListener(t, n, r);
 };
-function Ne() {
-	Me(this.input, "change", () => {
+function Pe() {
+	Ne(this.input, "change", () => {
 		this.sync();
 	});
 }
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/plugins/checkbox_options/plugin.js
-var Pe = (e) => e == null ? null : Fe(e), Fe = (e) => typeof e == "boolean" ? e ? "1" : "0" : e + "", Ie = (e, t = !1) => {
+var Fe = (e) => e == null ? null : Ie(e), Ie = (e) => typeof e == "boolean" ? e ? "1" : "0" : e + "", Le = (e, t = !1) => {
 	e && (e.preventDefault(), t && e.stopPropagation());
-}, Le = (e) => {
+}, Re = (e) => {
 	if (e.jquery) return e[0];
 	if (e instanceof HTMLElement) return e;
-	if (Re(e)) {
+	if (ze(e)) {
 		var t = document.createElement("template");
 		return t.innerHTML = e.trim(), t.content.firstChild;
 	}
 	return document.querySelector(e);
-}, Re = (e) => typeof e == "string" && e.indexOf("<") > -1;
-function ze(e) {
+}, ze = (e) => typeof e == "string" && e.indexOf("<") > -1;
+function Be(e) {
 	var t = this, n = t.onOptionSelect;
 	t.settings.hideSelected = !1;
 	let r = Object.assign({
@@ -1409,11 +1410,11 @@ function ze(e) {
 	t.hook("after", "setupTemplates", () => {
 		var e = t.settings.render.option;
 		t.settings.render.option = (n, a) => {
-			var o = Le(e.call(t, n, a)), s = document.createElement("input");
+			var o = Re(e.call(t, n, a)), s = document.createElement("input");
 			r.className && s.classList.add(r.className), s.addEventListener("click", function(e) {
-				Ie(e);
+				Le(e);
 			}), s.type = "checkbox";
-			let c = Pe(n[t.settings.valueField]);
+			let c = Fe(n[t.settings.valueField]);
 			return i(s, !!(c && t.items.indexOf(c) > -1)), o.prepend(s), o;
 		};
 	}), t.on("item_remove", (e) => {
@@ -1423,21 +1424,21 @@ function ze(e) {
 		var n = t.getOption(e);
 		n && a(n);
 	}), t.hook("instead", "onOptionSelect", (e, r) => {
-		r.classList.contains("selected") ? (r.classList.remove("selected"), t.removeItem(r.dataset.value), t.refreshOptions(), Ie(e, !0)) : (n.call(t, e, r), a(r));
+		r.classList.contains("selected") ? (r.classList.remove("selected"), t.removeItem(r.dataset.value), t.refreshOptions(), Le(e, !0)) : (n.call(t, e, r), a(r));
 	});
 }
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/plugins/clear_button/plugin.js
-var Be = (e) => {
+var Ve = (e) => {
 	if (e.jquery) return e[0];
 	if (e instanceof HTMLElement) return e;
-	if (Ve(e)) {
+	if (He(e)) {
 		var t = document.createElement("template");
 		return t.innerHTML = e.trim(), t.content.firstChild;
 	}
 	return document.querySelector(e);
-}, Ve = (e) => typeof e == "string" && e.indexOf("<") > -1;
-function He(e) {
+}, He = (e) => typeof e == "string" && e.indexOf("<") > -1;
+function Ue(e) {
 	let t = this, n = Object.assign({
 		className: "clear-button",
 		title: "Clear All",
@@ -1446,7 +1447,7 @@ function He(e) {
 		html: (e) => `<div class="${e.className}" title="${e.title}" role="${e.role}" tabindex="${e.tabindex}">&times;</div>`
 	}, e);
 	t.on("initialize", () => {
-		var e = Be(n.html(n));
+		var e = Ve(n.html(n));
 		e.addEventListener("click", (e) => {
 			t.isLocked || (t.clear(), t.settings.mode === "single" && t.settings.allowEmptyOption && t.addItem(""), t.refreshOptions(!1), e.preventDefault(), e.stopPropagation());
 		}), t.control.appendChild(e);
@@ -1454,38 +1455,38 @@ function He(e) {
 }
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/plugins/drag_drop/plugin.js
-var Ue = (e, t = !1) => {
+var We = (e, t = !1) => {
 	e && (e.preventDefault(), t && e.stopPropagation());
 }, J = (e, t, n, r) => {
 	e.addEventListener(t, n, r);
-}, We = (e, t) => {
+}, Ge = (e, t) => {
 	if (Array.isArray(e)) e.forEach(t);
 	else for (var n in e) e.hasOwnProperty(n) && t(e[n], n);
-}, Ge = (e) => {
+}, Ke = (e) => {
 	if (e.jquery) return e[0];
 	if (e instanceof HTMLElement) return e;
-	if (Ke(e)) {
+	if (qe(e)) {
 		var t = document.createElement("template");
 		return t.innerHTML = e.trim(), t.content.firstChild;
 	}
 	return document.querySelector(e);
-}, Ke = (e) => typeof e == "string" && e.indexOf("<") > -1, qe = (e, t) => {
-	We(t, (t, n) => {
+}, qe = (e) => typeof e == "string" && e.indexOf("<") > -1, Je = (e, t) => {
+	Ge(t, (t, n) => {
 		t == null ? e.removeAttribute(n) : e.setAttribute(n, "" + t);
 	});
-}, Je = (e, t) => {
-	var n;
-	(n = e.parentNode) == null || n.insertBefore(t, e.nextSibling);
 }, Ye = (e, t) => {
 	var n;
-	(n = e.parentNode) == null || n.insertBefore(t, e);
+	(n = e.parentNode) == null || n.insertBefore(t, e.nextSibling);
 }, Xe = (e, t) => {
+	var n;
+	(n = e.parentNode) == null || n.insertBefore(t, e);
+}, Ze = (e, t) => {
 	do
 		if (t = t?.previousElementSibling, e == t) return !0;
 	while (t && t.previousElementSibling);
 	return !1;
 };
-function Ze() {
+function Qe() {
 	var e = this;
 	if (e.settings.mode !== "multi") return;
 	var t = e.lock, n = e.unlock;
@@ -1493,10 +1494,10 @@ function Ze() {
 	e.hook("after", "setupTemplates", () => {
 		var t = e.settings.render.item;
 		e.settings.render.item = (n, a) => {
-			let o = Ge(t.call(e, n, a));
-			qe(o, { draggable: "true" });
+			let o = Ke(t.call(e, n, a));
+			Je(o, { draggable: "true" });
 			let s = (e) => {
-				r || Ue(e), e.stopPropagation();
+				r || We(e), e.stopPropagation();
 			}, c = (e) => {
 				i = o, setTimeout(() => {
 					o.classList.add("ts-dragging");
@@ -1506,7 +1507,7 @@ function Ze() {
 			}, u = () => {
 				o.classList.remove("ts-drag-over");
 			}, d = (e, t) => {
-				t !== void 0 && (Xe(t, o) ? Je(e, t) : Ye(e, t));
+				t !== void 0 && (Ze(t, o) ? Ye(e, t) : Xe(e, t));
 			};
 			return J(o, "mousedown", s), J(o, "dragstart", c), J(o, "dragenter", l), J(o, "dragover", l), J(o, "dragleave", u), J(o, "dragend", () => {
 				var t;
@@ -1524,18 +1525,18 @@ function Ze() {
 }
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/plugins/dropdown_header/plugin.js
-var Qe = (e, t = !1) => {
+var $e = (e, t = !1) => {
 	e && (e.preventDefault(), t && e.stopPropagation());
-}, $e = (e) => {
+}, et = (e) => {
 	if (e.jquery) return e[0];
 	if (e instanceof HTMLElement) return e;
-	if (et(e)) {
+	if (tt(e)) {
 		var t = document.createElement("template");
 		return t.innerHTML = e.trim(), t.content.firstChild;
 	}
 	return document.querySelector(e);
-}, et = (e) => typeof e == "string" && e.indexOf("<") > -1;
-function tt(e) {
+}, tt = (e) => typeof e == "string" && e.indexOf("<") > -1;
+function nt(e) {
 	let t = this, n = Object.assign({
 		title: "Untitled",
 		headerClass: "dropdown-header",
@@ -1545,36 +1546,36 @@ function tt(e) {
 		html: (e) => "<div class=\"" + e.headerClass + "\"><div class=\"" + e.titleRowClass + "\"><span class=\"" + e.labelClass + "\">" + e.title + "</span><a class=\"" + e.closeClass + "\">&times;</a></div></div>"
 	}, e);
 	t.on("initialize", () => {
-		var e = $e(n.html(n)), r = e.querySelector("." + n.closeClass);
+		var e = et(n.html(n)), r = e.querySelector("." + n.closeClass);
 		r && r.addEventListener("click", (e) => {
-			Qe(e, !0), t.close();
+			$e(e, !0), t.close();
 		}), t.dropdown.insertBefore(e, t.dropdown.firstChild);
 	});
 }
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/plugins/caret_position/plugin.js
-var nt = (e, t) => {
+var rt = (e, t) => {
 	if (Array.isArray(e)) e.forEach(t);
 	else for (var n in e) e.hasOwnProperty(n) && t(e[n], n);
-}, rt = (e, ...t) => {
-	var n = it(t);
-	e = at(e), e.map((e) => {
+}, it = (e, ...t) => {
+	var n = at(t);
+	e = ot(e), e.map((e) => {
 		n.map((t) => {
 			e.classList.remove(t);
 		});
 	});
-}, it = (e) => {
+}, at = (e) => {
 	var t = [];
-	return nt(e, (e) => {
+	return rt(e, (e) => {
 		typeof e == "string" && (e = e.trim().split(/[\t\n\f\r\s]/)), Array.isArray(e) && (t = t.concat(e));
 	}), t.filter(Boolean);
-}, at = (e) => (Array.isArray(e) || (e = [e]), e), ot = (e, t) => {
+}, ot = (e) => (Array.isArray(e) || (e = [e]), e), st = (e, t) => {
 	if (!e) return -1;
 	t ||= e.nodeName;
 	for (var n = 0; e = e.previousElementSibling;) e.matches(t) && n++;
 	return n;
 };
-function st() {
+function ct() {
 	var e = this;
 	e.hook("instead", "setCaret", (t) => {
 		e.settings.mode === "single" || !e.control.contains(e.control_input) ? t = e.items.length : (t = Math.max(0, Math.min(e.items.length, t)), t != e.caretPos && !e.isPending && e.controlChildren().forEach((n, r) => {
@@ -1584,58 +1585,58 @@ function st() {
 		if (!e.isFocused) return;
 		let n = e.getLastActive(t);
 		if (n) {
-			let r = ot(n);
-			e.setCaret(t > 0 ? r + 1 : r), e.setActiveItem(), rt(n, "last-active");
+			let r = st(n);
+			e.setCaret(t > 0 ? r + 1 : r), e.setActiveItem(), it(n, "last-active");
 		} else e.setCaret(e.caretPos + t);
 	});
 }
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/plugins/dropdown_input/plugin.js
-var ct = 27, lt = 9, ut = (e, t = !1) => {
+var lt = 27, ut = 9, dt = (e, t = !1) => {
 	e && (e.preventDefault(), t && e.stopPropagation());
-}, dt = (e, t, n, r) => {
+}, ft = (e, t, n, r) => {
 	e.addEventListener(t, n, r);
-}, ft = (e, t) => {
+}, pt = (e, t) => {
 	if (Array.isArray(e)) e.forEach(t);
 	else for (var n in e) e.hasOwnProperty(n) && t(e[n], n);
-}, pt = (e) => {
+}, mt = (e) => {
 	if (e.jquery) return e[0];
 	if (e instanceof HTMLElement) return e;
-	if (mt(e)) {
+	if (ht(e)) {
 		var t = document.createElement("template");
 		return t.innerHTML = e.trim(), t.content.firstChild;
 	}
 	return document.querySelector(e);
-}, mt = (e) => typeof e == "string" && e.indexOf("<") > -1, ht = (e, ...t) => {
-	var n = gt(t);
-	e = _t(e), e.map((e) => {
+}, ht = (e) => typeof e == "string" && e.indexOf("<") > -1, gt = (e, ...t) => {
+	var n = _t(t);
+	e = vt(e), e.map((e) => {
 		n.map((t) => {
 			e.classList.add(t);
 		});
 	});
-}, gt = (e) => {
+}, _t = (e) => {
 	var t = [];
-	return ft(e, (e) => {
+	return pt(e, (e) => {
 		typeof e == "string" && (e = e.trim().split(/[\t\n\f\r\s]/)), Array.isArray(e) && (t = t.concat(e));
 	}), t.filter(Boolean);
-}, _t = (e) => (Array.isArray(e) || (e = [e]), e);
-function vt() {
+}, vt = (e) => (Array.isArray(e) || (e = [e]), e);
+function yt() {
 	let e = this;
 	e.settings.shouldOpen = !0, e.hook("before", "setup", () => {
-		e.focus_node = e.control, ht(e.control_input, "dropdown-input");
-		let t = pt("<div class=\"dropdown-input-wrap\">");
+		e.focus_node = e.control, gt(e.control_input, "dropdown-input");
+		let t = mt("<div class=\"dropdown-input-wrap\">");
 		t.append(e.control_input), e.dropdown.insertBefore(t, e.dropdown.firstChild);
-		let n = pt("<input class=\"items-placeholder\" tabindex=\"-1\" />");
+		let n = mt("<input class=\"items-placeholder\" tabindex=\"-1\" />");
 		n.placeholder = e.settings.placeholder || "", e.control.append(n);
 		let r = e.input?.getAttribute("aria-label");
 		r && n.setAttribute("aria-label", r);
 	}), e.on("initialize", () => {
 		e.control_input.addEventListener("keydown", (t) => {
 			switch (t.keyCode) {
-				case ct:
-					e.isOpen && (ut(t, !0), e.close()), e.clearActiveItems();
+				case lt:
+					e.isOpen && (dt(t, !0), e.close()), e.clearActiveItems();
 					return;
-				case lt: e.focus_node.tabIndex = -1;
+				case ut: e.focus_node.tabIndex = -1;
 			}
 			return e.onKeyDown.call(e, t);
 		}), e.on("blur", () => {
@@ -1646,7 +1647,7 @@ function vt() {
 		let t = e.onBlur;
 		e.hook("instead", "onBlur", (n) => {
 			if (!(n && n.relatedTarget == e.control_input)) return t.call(e);
-		}), dt(e.control_input, "blur", () => e.onBlur()), e.hook("before", "close", () => {
+		}), ft(e.control_input, "blur", () => e.onBlur()), e.hook("before", "close", () => {
 			e.isOpen && e.focus_node.focus({ preventScroll: !0 });
 		});
 	});
@@ -1656,7 +1657,7 @@ function vt() {
 var Y = (e, t, n, r) => {
 	e.addEventListener(t, n, r);
 };
-function yt() {
+function bt() {
 	var e = this;
 	e.on("initialize", () => {
 		var t = document.createElement("span"), n = e.control_input;
@@ -1676,52 +1677,52 @@ function yt() {
 }
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/plugins/no_backspace_delete/plugin.js
-function bt() {
+function xt() {
 	var e = this, t = e.deleteSelection;
 	this.hook("instead", "deleteSelection", (n) => e.activeItems.length ? t.call(e, n) : !1);
 }
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/plugins/no_active_items/plugin.js
-function xt() {
+function St() {
 	this.hook("instead", "setActiveItem", () => {}), this.hook("instead", "selectAll", () => {});
 }
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/plugins/optgroup_columns/plugin.js
-var St = 37, Ct = 39, wt = (e, t, n) => {
+var Ct = 37, wt = 39, Tt = (e, t, n) => {
 	for (; e && e.matches;) {
 		if (e.matches(t)) return e;
 		e = e.parentNode;
 	}
-}, Tt = (e, t) => {
+}, Et = (e, t) => {
 	if (!e) return -1;
 	t ||= e.nodeName;
 	for (var n = 0; e = e.previousElementSibling;) e.matches(t) && n++;
 	return n;
 };
-function Et() {
+function Dt() {
 	var e = this, t = e.onKeyDown;
 	e.hook("instead", "onKeyDown", (n) => {
 		var r, i, a, o;
-		if (!e.isOpen || n.keyCode !== St && n.keyCode !== Ct) return t.call(e, n);
-		e.ignoreHover = !0, o = wt(e.activeOption, "[data-group]"), r = Tt(e.activeOption, "[data-selectable]"), o && (o = n.keyCode === St ? o.previousSibling : o.nextSibling, o && (a = o.querySelectorAll("[data-selectable]"), i = a[Math.min(a.length - 1, r)], i && e.setActiveOption(i)));
+		if (!e.isOpen || n.keyCode !== Ct && n.keyCode !== wt) return t.call(e, n);
+		e.ignoreHover = !0, o = Tt(e.activeOption, "[data-group]"), r = Et(e.activeOption, "[data-selectable]"), o && (o = n.keyCode === Ct ? o.previousSibling : o.nextSibling, o && (a = o.querySelectorAll("[data-selectable]"), i = a[Math.min(a.length - 1, r)], i && e.setActiveOption(i)));
 	});
 }
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/plugins/remove_button/plugin.js
-var Dt = (e, t = !1) => {
+var Ot = (e, t = !1) => {
 	e && (e.preventDefault(), t && e.stopPropagation());
-}, Ot = (e, t, n, r) => {
+}, X = (e, t, n, r) => {
 	e.addEventListener(t, n, r);
-}, X = (e) => {
+}, kt = (e) => {
 	if (e.jquery) return e[0];
 	if (e instanceof HTMLElement) return e;
-	if (kt(e)) {
+	if (At(e)) {
 		var t = document.createElement("template");
 		return t.innerHTML = e.trim(), t.content.firstChild;
 	}
 	return document.querySelector(e);
-}, kt = (e) => typeof e == "string" && e.indexOf("<") > -1;
-function At(e) {
+}, At = (e) => typeof e == "string" && e.indexOf("<") > -1;
+function jt(e) {
 	let t = this, n = Object.assign({
 		label: "×",
 		title: "Remove",
@@ -1736,18 +1737,18 @@ function At(e) {
 	t.hook("after", "setupTemplates", () => {
 		var e = t.settings.render.item;
 		t.settings.render.item = (r, i) => {
-			var a = X(e.call(t, r, i)), o = X(n.html(n));
-			return a.appendChild(o), Ot(o, "mousedown", (e) => {
-				Dt(e, !0);
-			}), Ot(o, "click", (e) => {
-				t.isLocked || (Dt(e, !0), !t.isLocked && t.shouldDelete([a], e) && (t.removeItem(a), t.refreshOptions(!1), t.inputState()));
+			var a = kt(e.call(t, r, i)), o = kt(n.html(n));
+			return a.appendChild(o), X(o, "mousedown", (e) => {
+				Ot(e, !0);
+			}), X(o, "click", (e) => {
+				t.isLocked || (Ot(e, !0), !t.isLocked && t.shouldDelete([a], e) && (t.removeItem(a), t.refreshOptions(!1), t.inputState()));
 			}), a;
 		};
 	});
 }
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/plugins/restore_on_backspace/plugin.js
-function jt(e) {
+function Mt(e) {
 	let t = this, n = Object.assign({ text: (e) => e[t.settings.labelField] }, e);
 	t.on("item_remove", function(e) {
 		if (t.isFocused && t.control_input.value.trim() === "") {
@@ -1758,23 +1759,23 @@ function jt(e) {
 }
 //#endregion
 //#region ../../node_modules/tom-select/dist/esm/plugins/virtual_scroll/plugin.js
-var Mt = (e, t) => {
+var Nt = (e, t) => {
 	if (Array.isArray(e)) e.forEach(t);
 	else for (var n in e) e.hasOwnProperty(n) && t(e[n], n);
-}, Nt = (e, ...t) => {
-	var n = Pt(t);
-	e = Ft(e), e.map((e) => {
+}, Pt = (e, ...t) => {
+	var n = Ft(t);
+	e = It(e), e.map((e) => {
 		n.map((t) => {
 			e.classList.add(t);
 		});
 	});
-}, Pt = (e) => {
+}, Ft = (e) => {
 	var t = [];
-	return Mt(e, (e) => {
+	return Nt(e, (e) => {
 		typeof e == "string" && (e = e.trim().split(/[\t\n\f\r\s]/)), Array.isArray(e) && (t = t.concat(e));
 	}), t.filter(Boolean);
-}, Ft = (e) => (Array.isArray(e) || (e = [e]), e);
-function It() {
+}, It = (e) => (Array.isArray(e) || (e = [e]), e);
+function Lt() {
 	let e = this, t = e.canLoad, n = e.clearActiveOption, r = e.loadCallback;
 	var i = {}, a, o = !1, s, c = [], l = !1, u, d = [], f = [];
 	if (e.settings.shouldLoadMore || (e.settings.shouldLoadMore = () => {
@@ -1813,7 +1814,7 @@ function It() {
 	}), e.hook("after", "refreshOptions", () => {
 		let t = e.lastValue;
 		var n;
-		p(t) ? (n = e.render("loading_more", { query: t }), n && (n.setAttribute("data-selectable", ""), s = n)) : t in i && !a.querySelector(".no-results") && (n = e.render("no_more_results", { query: t })), n && (Nt(n, e.settings.optionClass), a.append(n));
+		p(t) ? (n = e.render("loading_more", { query: t }), n && (n.setAttribute("data-selectable", ""), s = n)) : t in i && !a.querySelector(".no-results") && (n = e.render("no_more_results", { query: t })), n && (Pt(n, e.settings.optionClass), a.append(n));
 	});
 	let h = () => {
 		l && (e.addOptions(d), e.clearOptions(m), u && (i[""] = u));
@@ -1829,42 +1830,46 @@ function It() {
 		});
 	});
 }
-q.define("change_listener", Ne), q.define("checkbox_options", ze), q.define("clear_button", He), q.define("drag_drop", Ze), q.define("dropdown_header", tt), q.define("caret_position", st), q.define("dropdown_input", vt), q.define("input_autogrow", yt), q.define("no_backspace_delete", bt), q.define("no_active_items", xt), q.define("optgroup_columns", Et), q.define("remove_button", At), q.define("restore_on_backspace", jt), q.define("virtual_scroll", It);
-var Lt = q, Rt = ".formie-field .ts-wrapper.formie-combobox{width:100%;min-height:0;box-shadow:none;background:0 0;border:0;padding:0;display:block;position:relative}.formie-field select[data-formie-combobox-input].tomselected,.formie-field select[data-formie-combobox-input].ts-hidden-accessible{display:none!important}.formie-field .ts-wrapper.formie-combobox .ts-control{box-sizing:border-box;z-index:1;border:var(--formie-border-width) solid var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background-color:var(--formie-color-surface);width:100%;min-height:var(--formie-control-height);padding:calc(var(--formie-control-padding-y) - 1px) var(--formie-control-padding-x);box-shadow:none;font-size:var(--formie-control-font-size);line-height:var(--formie-line-height-tight);color:var(--formie-color-text);align-items:center;gap:var(--formie-space-1);background-image:none;flex-wrap:wrap;transition:border-color .15s,box-shadow .15s,background-color .15s;display:flex;position:relative;overflow:hidden}.formie-field .ts-wrapper.formie-combobox.single .ts-control{--ts-pr-min:var(--formie-control-padding-x);--ts-pr-caret:calc(var(--formie-select-indicator-size) + var(--formie-space-1));background-image:url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\");background-position:right var(--formie-space-2) center;background-repeat:no-repeat;background-size:var(--formie-select-indicator-size) var(--formie-select-indicator-size);padding-right:calc(var(--formie-control-padding-x) + var(--formie-select-indicator-size) + var(--formie-space-2))!important}.formie-field .ts-wrapper.formie-combobox.single .ts-control:after{display:none}.formie-field .ts-wrapper.formie-combobox.multi .ts-control{padding:calc(var(--formie-control-padding-y) - 2px) var(--formie-control-padding-x) calc(var(--formie-control-padding-y) - 4px);--ts-pr-min:var(--formie-control-padding-x)}.formie-field .ts-wrapper.formie-combobox.multi.has-items .ts-control{padding-left:var(--formie-control-padding-x)}.formie-field .ts-wrapper.formie-combobox .ts-control>input{min-width:7rem;max-width:100%;color:var(--formie-color-text);font:inherit;font-size:var(--formie-control-font-size);line-height:inherit;flex:auto;min-height:0!important;max-height:none!important;box-shadow:none!important;background:0 0!important;border:0!important;margin:0!important;padding:0!important}.formie-field .ts-wrapper.formie-combobox .ts-control>input:focus{outline:none!important}.formie-field .ts-wrapper.formie-combobox.has-items .ts-control>input{margin:0 var(--formie-space-1)!important}.formie-field .ts-wrapper.formie-combobox.input-hidden .ts-control>input{opacity:0;position:absolute;left:-10000px}.formie-field .ts-wrapper.formie-combobox.single .ts-control,.formie-field .ts-wrapper.formie-combobox.single .ts-control>input{cursor:pointer}.formie-field .ts-wrapper.formie-combobox.single.input-active .ts-control,.formie-field .ts-wrapper.formie-combobox.single.input-active .ts-control>input{cursor:text}.formie-field .ts-wrapper.formie-combobox .ts-control .items-placeholder{color:var(--formie-color-text-muted);font:inherit;font-size:var(--formie-control-font-size)}.formie-field .ts-wrapper.formie-combobox .ts-control>input::placeholder{color:var(--formie-color-text-muted)}.formie-field .ts-wrapper.formie-combobox.focus .ts-control,.formie-field .ts-wrapper.formie-combobox .ts-control:focus-within,.formie-field .ts-wrapper.formie-combobox.dropdown-active .ts-control{border-color:var(--formie-color-focus-ring);box-shadow:var(--formie-shadow-focus);border-radius:var(--formie-radius-sm);outline:0}.formie-field-has-error .ts-wrapper.formie-combobox .ts-control{border-color:var(--formie-color-danger)}.formie-field-has-error .ts-wrapper.formie-combobox.focus .ts-control,.formie-field-has-error .ts-wrapper.formie-combobox .ts-control:focus-within,.formie-field-has-error .ts-wrapper.formie-combobox.dropdown-active .ts-control{border-color:var(--formie-color-danger);box-shadow:var(--formie-shadow-danger-focus)}.formie-field .ts-wrapper.formie-combobox.multi .ts-control>.item,.formie-field .ts-wrapper.formie-combobox.multi .ts-control [data-value]{align-items:center;gap:var(--formie-space-1);margin:0 var(--formie-space-1) var(--formie-space-1) 0;padding:0 var(--formie-space-2);background:var(--formie-color-surface-muted,#0f172a0f);border:var(--formie-border-width) solid var(--formie-color-border);border-radius:var(--formie-radius-sm);box-shadow:none;color:var(--formie-color-text);text-shadow:none;line-height:calc(var(--formie-control-height) - var(--formie-space-3));background-image:none;display:inline-flex}.formie-field .ts-wrapper.formie-combobox.multi .ts-control>.item.active,.formie-field .ts-wrapper.formie-combobox.multi .ts-control [data-value].active{background:var(--formie-color-surface-muted,#0f172a0f);color:var(--formie-color-text)}.formie-field .ts-wrapper.formie-combobox.plugin-remove_button .item{align-items:center;gap:var(--formie-space-1);display:inline-flex}.formie-field .ts-wrapper.formie-combobox.plugin-remove_button:not(.rtl) .item{padding-right:var(--formie-space-2)!important}.formie-field .ts-wrapper.formie-combobox.plugin-remove_button .item .remove{box-shadow:none;color:var(--formie-color-text-muted);cursor:pointer;background:0 0;border:0;justify-content:center;align-items:center;margin:0;padding:0;font-size:1.125em;line-height:1;text-decoration:none;display:inline-flex}.formie-field .ts-wrapper.formie-combobox.plugin-remove_button .item .remove:hover,.formie-field .ts-wrapper.formie-combobox.plugin-remove_button .item .remove:focus{color:var(--formie-color-text);background:0 0;text-decoration:none}.formie-field .ts-wrapper.formie-combobox .ts-dropdown{width:100%;z-index:var(--formie-z-popover,30);border:var(--formie-border-width) solid var(--formie-color-border);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface);box-shadow:var(--formie-shadow-popover,0 8px 24px #0f172a1f);margin-top:var(--formie-space-1);box-sizing:border-box;position:absolute;top:100%;left:0}.formie-field .ts-wrapper.formie-combobox .ts-dropdown-content{scroll-behavior:smooth;max-height:200px;overflow:hidden auto}.formie-field .ts-wrapper.formie-combobox .ts-dropdown .option,.formie-field .ts-wrapper.formie-combobox .ts-dropdown .optgroup-header,.formie-field .ts-wrapper.formie-combobox .ts-dropdown .no-results{color:var(--formie-color-text);padding:var(--formie-space-2) var(--formie-control-padding-x)}.formie-field .ts-wrapper.formie-combobox .ts-dropdown [data-selectable]{cursor:pointer}.formie-field .ts-wrapper.formie-combobox .ts-dropdown .option.active,.formie-field .ts-wrapper.formie-combobox .ts-dropdown .option:hover,.formie-field .ts-wrapper.formie-combobox .ts-dropdown .active{background:var(--formie-color-surface-muted,#0f172a0d);color:var(--formie-color-text)}.formie-field .ts-wrapper.formie-combobox .ts-dropdown .highlight{background:#3b82f62e;border-radius:2px}.formie-field .ts-wrapper.formie-combobox.disabled .ts-control{opacity:.6;background-color:var(--formie-color-surface-muted,#0f172a0a);cursor:not-allowed}", zt = "select[data-formie-combobox-input]", Z = "combobox", Q = e("fields", "combobox");
-r(Z, [Rt]);
-var Bt = ["formie-select", "formie-dropdown-input"];
-function Vt(e) {
+q.define("change_listener", Pe), q.define("checkbox_options", Be), q.define("clear_button", Ue), q.define("drag_drop", Qe), q.define("dropdown_header", nt), q.define("caret_position", ct), q.define("dropdown_input", yt), q.define("input_autogrow", bt), q.define("no_backspace_delete", xt), q.define("no_active_items", St), q.define("optgroup_columns", Dt), q.define("remove_button", jt), q.define("restore_on_backspace", Mt), q.define("virtual_scroll", Lt);
+var Rt = q, zt = ".formie-field .ts-wrapper.formie-combobox{width:100%;min-height:0;box-shadow:none;background:0 0;border:0;padding:0;display:block;position:relative}.formie-field select[data-formie-combobox-input].tomselected,.formie-field select[data-formie-combobox-input].ts-hidden-accessible{display:none!important}.formie-field .ts-wrapper.formie-combobox .ts-control{box-sizing:border-box;z-index:1;border:var(--formie-border-width) solid var(--formie-color-border-control);border-radius:var(--formie-radius-sm);background-color:var(--formie-color-surface);width:100%;min-height:var(--formie-control-height);padding:calc(var(--formie-control-padding-y) - 1px) var(--formie-control-padding-x);box-shadow:none;font-size:var(--formie-control-font-size);line-height:var(--formie-line-height-tight);color:var(--formie-color-text);align-items:center;gap:var(--formie-space-1);background-image:none;flex-wrap:wrap;transition:border-color .15s,box-shadow .15s,background-color .15s;display:flex;position:relative;overflow:hidden}.formie-field .ts-wrapper.formie-combobox.single .ts-control{--ts-pr-min:var(--formie-control-padding-x);--ts-pr-caret:calc(var(--formie-select-indicator-size) + var(--formie-space-1));background-image:url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\");background-position:right var(--formie-space-2) center;background-repeat:no-repeat;background-size:var(--formie-select-indicator-size) var(--formie-select-indicator-size);padding-right:calc(var(--formie-control-padding-x) + var(--formie-select-indicator-size) + var(--formie-space-2))!important}.formie-field .ts-wrapper.formie-combobox.single .ts-control:after{display:none}.formie-field .ts-wrapper.formie-combobox.multi .ts-control{padding:calc(var(--formie-control-padding-y) - 2px) var(--formie-control-padding-x) calc(var(--formie-control-padding-y) - 4px);--ts-pr-min:var(--formie-control-padding-x)}.formie-field .ts-wrapper.formie-combobox.multi.has-items .ts-control{padding-left:var(--formie-control-padding-x)}.formie-field .ts-wrapper.formie-combobox .ts-control>input{min-width:7rem;max-width:100%;color:var(--formie-color-text);font:inherit;font-size:var(--formie-control-font-size);line-height:inherit;flex:auto;min-height:0!important;max-height:none!important;box-shadow:none!important;background:0 0!important;border:0!important;margin:0!important;padding:0!important}.formie-field .ts-wrapper.formie-combobox .ts-control>input:focus{outline:none!important}.formie-field .ts-wrapper.formie-combobox.has-items .ts-control>input{margin:0 var(--formie-space-1)!important}.formie-field .ts-wrapper.formie-combobox.input-hidden .ts-control>input{opacity:0;position:absolute;left:-10000px}.formie-field .ts-wrapper.formie-combobox.single .ts-control,.formie-field .ts-wrapper.formie-combobox.single .ts-control>input{cursor:pointer}.formie-field .ts-wrapper.formie-combobox.single.input-active .ts-control,.formie-field .ts-wrapper.formie-combobox.single.input-active .ts-control>input{cursor:text}.formie-field .ts-wrapper.formie-combobox .ts-control .items-placeholder{color:var(--formie-color-text-muted);font:inherit;font-size:var(--formie-control-font-size)}.formie-field .ts-wrapper.formie-combobox .ts-control>input::placeholder{color:var(--formie-color-text-muted)}.formie-field .ts-wrapper.formie-combobox.focus .ts-control,.formie-field .ts-wrapper.formie-combobox .ts-control:focus-within,.formie-field .ts-wrapper.formie-combobox.dropdown-active .ts-control{border-color:var(--formie-color-focus-ring);box-shadow:var(--formie-shadow-focus);border-radius:var(--formie-radius-sm);outline:0}.formie-field-has-error .ts-wrapper.formie-combobox .ts-control{border-color:var(--formie-color-danger)}.formie-field-has-error .ts-wrapper.formie-combobox.focus .ts-control,.formie-field-has-error .ts-wrapper.formie-combobox .ts-control:focus-within,.formie-field-has-error .ts-wrapper.formie-combobox.dropdown-active .ts-control{border-color:var(--formie-color-danger);box-shadow:var(--formie-shadow-danger-focus)}.formie-field .ts-wrapper.formie-combobox.multi .ts-control>.item,.formie-field .ts-wrapper.formie-combobox.multi .ts-control [data-value]{align-items:center;gap:var(--formie-space-1);margin:0 var(--formie-space-1) var(--formie-space-1) 0;padding:0 var(--formie-space-2);background:var(--formie-color-surface-muted,#0f172a0f);border:var(--formie-border-width) solid var(--formie-color-border);border-radius:var(--formie-radius-sm);box-shadow:none;color:var(--formie-color-text);text-shadow:none;line-height:calc(var(--formie-control-height) - var(--formie-space-3));background-image:none;display:inline-flex}.formie-field .ts-wrapper.formie-combobox.multi .ts-control>.item.active,.formie-field .ts-wrapper.formie-combobox.multi .ts-control [data-value].active{background:var(--formie-color-surface-muted,#0f172a0f);color:var(--formie-color-text)}.formie-field .ts-wrapper.formie-combobox.plugin-remove_button .item{align-items:center;gap:var(--formie-space-1);display:inline-flex}.formie-field .ts-wrapper.formie-combobox.plugin-remove_button:not(.rtl) .item{padding-right:var(--formie-space-2)!important}.formie-field .ts-wrapper.formie-combobox.plugin-remove_button .item .remove{box-shadow:none;color:var(--formie-color-text-muted);cursor:pointer;background:0 0;border:0;justify-content:center;align-items:center;margin:0;padding:0;font-size:1.125em;line-height:1;text-decoration:none;display:inline-flex}.formie-field .ts-wrapper.formie-combobox.plugin-remove_button .item .remove:hover,.formie-field .ts-wrapper.formie-combobox.plugin-remove_button .item .remove:focus{color:var(--formie-color-text);background:0 0;text-decoration:none}.formie-field .ts-wrapper.formie-combobox .ts-dropdown{width:100%;z-index:var(--formie-z-popover,30);border:var(--formie-border-width) solid var(--formie-color-border);border-radius:var(--formie-radius-sm);background:var(--formie-color-surface);box-shadow:var(--formie-shadow-popover,0 8px 24px #0f172a1f);margin-top:var(--formie-space-1);box-sizing:border-box;position:absolute;top:100%;left:0}.formie-field .ts-wrapper.formie-combobox .ts-dropdown-content{scroll-behavior:smooth;max-height:200px;overflow:hidden auto}.formie-field .ts-wrapper.formie-combobox .ts-dropdown .option,.formie-field .ts-wrapper.formie-combobox .ts-dropdown .optgroup-header,.formie-field .ts-wrapper.formie-combobox .ts-dropdown .no-results{color:var(--formie-color-text);padding:var(--formie-space-2) var(--formie-control-padding-x)}.formie-field .ts-wrapper.formie-combobox .ts-dropdown [data-selectable]{cursor:pointer}.formie-field .ts-wrapper.formie-combobox .ts-dropdown .option.active,.formie-field .ts-wrapper.formie-combobox .ts-dropdown .option:hover,.formie-field .ts-wrapper.formie-combobox .ts-dropdown .active{background:var(--formie-color-surface-muted,#0f172a0d);color:var(--formie-color-text)}.formie-field .ts-wrapper.formie-combobox .ts-dropdown .highlight{background:#3b82f62e;border-radius:2px}.formie-field .ts-wrapper.formie-combobox.disabled .ts-control{opacity:.6;background-color:var(--formie-color-surface-muted,#0f172a0a);cursor:not-allowed}", Bt = "select[data-formie-combobox-input]", Z = "combobox", Q = e("fields", "combobox");
+i(Z, [zt]);
+var Vt = ["formie-select", "formie-dropdown-input"];
+function Ht(e) {
 	let n = [];
-	return [...Bt, ...t(e, "fieldControlError")].forEach((t) => {
+	return [...Vt, ...t(e, "fieldControlError")].forEach((t) => {
 		e.classList.contains(t) && (e.classList.remove(t), n.push(t));
 	}), n;
 }
-function Ht(e, t) {
+function Ut(e, t) {
 	t.forEach((t) => {
 		e.classList.add(t);
 	});
 }
-function Ut(e, n) {
-	[...Bt, ...t(n, "fieldControlError")].forEach((t) => {
+function Wt(e, n) {
+	[...Vt, ...t(n, "fieldControlError")].forEach((t) => {
 		e.classList.remove(t);
 	});
 }
-function Wt(e, t) {
+function Gt(e, t) {
 	return t?.trim() || e.querySelector("option[value=\"\"]")?.textContent?.trim() || null;
 }
-function Gt(e) {
+function Kt(e) {
 	e.options[""] && e.removeOption("", !0);
 }
 function $(e, t = {}) {
 	e._formieTomSelect?.destroy();
-	let r = Array.from(e.selectedOptions, (e) => e.value).filter(Boolean), i = e.form, o = t.multiple === !0, s = Vt(e), c = Wt(e, t.placeholder), l = {
+	let i = Array.from(e.selectedOptions, (e) => e.value).filter(Boolean), a = e.form, s = t.multiple === !0, c = Ht(e), l = Gt(e, t.placeholder), u = {
 		create: !1,
-		maxItems: o ? null : 1,
-		plugins: o ? ["remove_button"] : [],
-		hideSelected: o ? !0 : null,
-		clearAfterSelect: o,
-		closeAfterSelect: !o,
-		allowEmptyOption: !o,
+		maxOptions: t.maxOptions === void 0 ? 100 : t.maxOptions,
+		maxItems: s ? null : 1,
+		plugins: s ? ["remove_button"] : t.allowClear ? { remove_button: { html: () => {
+			let e = document.createElement("button");
+			return e.type = "button", e.className = "remove", e.title = r("Clear selection"), e.setAttribute("aria-label", e.title), e.textContent = "×", e;
+		} } } : [],
+		hideSelected: s ? !0 : null,
+		clearAfterSelect: s,
+		closeAfterSelect: !s,
+		allowEmptyOption: !s,
 		openOnFocus: !0,
 		diacritics: !0,
 		copyClassesToDropdown: !1,
@@ -1873,28 +1878,28 @@ function $(e, t = {}) {
 			e.dispatchEvent(new Event("input", { bubbles: !0 })), e.dispatchEvent(new Event("change", { bubbles: !0 }));
 		}
 	};
-	c && (l.placeholder = c), a(e, Z, "before-init", {
+	l && (u.placeholder = l), o(e, Z, "before-init", {
 		select: e,
-		options: l
+		options: u
 	});
-	let u = new Lt(e, l);
-	u.control_input.setAttribute(n, ""), Gt(u), Ut(u.wrapper, e), u.dropdown && Ut(u.dropdown, e), e.style.display = "none", e._formieTomSelect = u;
-	let d = (e) => {
+	let d = new Rt(e, u);
+	d.control_input.setAttribute(n, ""), Kt(d), Wt(d.wrapper, e), d.dropdown && Wt(d.dropdown, e), e.style.display = "none", e._formieTomSelect = d;
+	let f = (e) => {
 		queueMicrotask(() => {
-			e.defaultPrevented || u.setValue(r);
+			e.defaultPrevented || d.setValue(i);
 		});
 	};
-	return i?.addEventListener("reset", d), Q.log("Initialized.", {
+	return a?.addEventListener("reset", f), Q.log("Initialized.", {
 		inputName: e.name,
-		multiple: o
-	}), a(e, Z, "after-init", {
-		combobox: u,
-		options: l
+		multiple: s
+	}), o(e, Z, "after-init", {
+		combobox: d,
+		options: u
 	}), () => {
-		i?.removeEventListener("reset", d), u.destroy(), e.style.removeProperty("display"), Ht(e, s), delete e._formieTomSelect, Q.log("Destroyed.", { inputName: e.name });
+		a?.removeEventListener("reset", f), d.destroy(), e.style.removeProperty("display"), Ut(e, c), delete e._formieTomSelect, Q.log("Destroyed.", { inputName: e.name });
 	};
 }
-var Kt = {
+var qt = {
 	moduleId: `formie:${Z}`,
 	version: 2,
 	surfaces: [
@@ -1903,10 +1908,10 @@ var Kt = {
 		"cp-edit"
 	],
 	kind: "field",
-	match: (e) => !!e.target.querySelector(zt),
+	match: (e) => !!e.target.querySelector(Bt),
 	setup: async (e) => {
-		let t = e.options || {}, n = i(e), r = n.map((e) => {
-			let n = e.querySelector(zt);
+		let t = e.options || {}, n = a(e), r = n.map((e) => {
+			let n = e.querySelector(Bt);
 			return n instanceof HTMLSelectElement ? $(n, t) : (Q.warn("Field missing combobox select; skipping."), () => {});
 		});
 		return Q.log("Module setup.", { fieldCount: n.length }), await e.emit("formie:module:combobox:init", { count: r.length }), { destroy: () => {
@@ -1917,4 +1922,4 @@ var Kt = {
 	}
 };
 //#endregion
-export { Kt as comboboxModule, $ as initFormieCombobox };
+export { qt as comboboxModule, $ as initFormieCombobox };

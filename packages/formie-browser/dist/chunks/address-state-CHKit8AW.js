@@ -4,7 +4,7 @@ import { t as n } from "./debug-rhzqP1j2.js";
 import { a as r, n as i } from "./theme-classes-DAQuEqdP.js";
 import { n as a } from "./constants-DVcJAvc5.js";
 import { i as o, n as s } from "./shared-CJ1LIEh3.js";
-import { initFormieCombobox as c } from "./combobox-6-W51JqB.js";
+import { initFormieCombobox as c } from "./combobox-CJh2DoSO.js";
 //#region src/js/modules/fields/address-state.ts
 var l = "[data-formie-address-state-dynamic]", u = "[data-formie-address-state-input]", d = "[data-formie-address-state-autofill-anchor]", f = "formie-address-autofill-start", p = a.country, m = "address-state", h = "formie/address/subdivisions", g = ["formie-select", "formie-dropdown-input"], _ = [
 	0,
@@ -195,16 +195,25 @@ function X(e, t) {
 	let r = n.querySelector("[data-formie-field-required], .required");
 	n.textContent = t, r && n.appendChild(r);
 }
-function Z(e, t) {
+function Z(e, t, n) {
 	e.setAttribute("data-formie-combobox-input", "true"), s(e, "combobox", "before-init", {
 		select: e,
-		options: { placeholder: t }
+		options: {
+			placeholder: t,
+			maxOptions: n
+		}
 	});
-	let n = c(e, { placeholder: t });
+	let r = c(e, {
+		placeholder: t,
+		maxOptions: n
+	});
 	return s(e, "combobox", "after-init", {
 		combobox: e._formieTomSelect,
-		options: { placeholder: t }
-	}), n;
+		options: {
+			placeholder: t,
+			maxOptions: n
+		}
+	}), r;
 }
 async function Q(t, n) {
 	let { hideWhenUnused: r = !0, useSearchable: i = !0, useDatalist: a = !0, optionLabel: o = "name", optionValue: s = "name", placeholder: c = null, subdivisionsAction: l = h } = n, u = t.countryControl?.value?.trim() || "";
@@ -237,7 +246,7 @@ async function Q(t, n) {
 	}
 	if (G(t, !0), X(t.stateField, v), g.length > 0) {
 		let e = t.stateControl instanceof HTMLSelectElement ? t.stateControl : U(t.stateControl, d, g, c);
-		t.stateControl === e ? (z(t.stateControl, e), H(e, g, c, e.value)) : t.stateControl = B(t.stateControl, e), i ? t.comboboxCleanup = Z(e, c) : e.removeAttribute("data-formie-combobox-input"), D(e, I(d, g) || d), j(t);
+		t.stateControl === e ? (z(t.stateControl, e), H(e, g, c, e.value)) : t.stateControl = B(t.stateControl, e), i ? t.comboboxCleanup = Z(e, c, n.searchableOptionLimit) : e.removeAttribute("data-formie-combobox-input"), D(e, I(d, g) || d), j(t);
 		return;
 	}
 	let y = t.stateControl instanceof HTMLInputElement ? t.stateControl : V(t.stateControl, d);

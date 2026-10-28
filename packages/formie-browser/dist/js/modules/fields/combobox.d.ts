@@ -2,6 +2,8 @@ import TomSelect from 'tom-select/dist/esm/tom-select.complete.js';
 import type { BrowserModuleDefinition } from '#contracts/modules';
 export type FormieComboboxOptions = {
     multiple?: boolean;
+    maxOptions?: number | null;
+    allowClear?: boolean;
     placeholder?: string | null;
 };
 type TomSelectInstance = InstanceType<typeof TomSelect> & {
