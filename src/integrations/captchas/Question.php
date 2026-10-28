@@ -6,6 +6,7 @@ use verbb\formie\base\Captcha;
 use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyFieldSlotTagEvent;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\FieldLayoutPage;
@@ -60,6 +61,13 @@ class Question extends Captcha
         $field->label = $question;
         $field->required = true;
         $field->errorMessage = Craft::t('formie', 'Please answer the security question.');
+
+        // The CAPTCHA owns its POST payload; template attributes cannot override the field's core name.
+        $field->on(SingleLineText::EVENT_MODIFY_SLOT_TAG, function(ModifyFieldSlotTagEvent $event) {
+            if ($event->key === 'fieldInput' && $event->tag) {
+                $event->tag->attributes['name'] = self::CAPTCHA_PARAM . '[answer]';
+            }
+        });
 
         return $form->renderTemplate('integrations/captchas/question/field', [
             'form' => $form,

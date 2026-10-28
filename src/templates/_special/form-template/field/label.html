@@ -1,7 +1,7 @@
 {# Even when hidden, the label should be output for accessibility #}
 {% if labelPosition.shouldDisplay(position) or (labelPosition == 'hidden' and position == 'above') %}
     {% fieldtag 'fieldLabel' %}
-        {%- if fieldLabelPrefix -%}
+        {%- if fieldLabelPrefix ?? null -%}
             {{- fieldLabelPrefix | raw }}
         {%- endif -%}
 
@@ -19,7 +19,7 @@
             &nbsp;{% fieldtag 'fieldOptional' %}{{- '(optional)' | t('formie') -}}{% endfieldtag %}
         {%- endif -%}
 
-        {%- if fieldLabelSuffix -%}
+        {%- if fieldLabelSuffix ?? null -%}
             &nbsp;{{- fieldLabelSuffix | raw -}}
         {%- endif -%}
     {% endfieldtag %}
