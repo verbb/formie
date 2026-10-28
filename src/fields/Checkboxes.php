@@ -235,9 +235,17 @@ class Checkboxes extends OptionsField
     {
         $form = $context->form;
         $id = $this->getHtmlId($form);
-        $labelPosition = is_object($this->labelPosition) ? get_class($this->labelPosition) : (string)$this->labelPosition;
+        // Form Default is resolved by the render context, including question-field delegates.
+        $position = $this->labelPosition ?? $context->get('labelPosition');
+        $labelPosition = is_object($position) ? get_class($position) : (string)$position;
         $labelPosition = strtolower($labelPosition);
-        $resolvedLabelPosition = str_contains($labelPosition, 'left') ? 'left' : (str_contains($labelPosition, 'right') ? 'right' : (str_contains($labelPosition, 'hidden') ? 'hidden' : 'above'));
+        $resolvedLabelPosition = match (true) {
+            str_contains($labelPosition, 'left') => 'left',
+            str_contains($labelPosition, 'right') => 'right',
+            str_contains($labelPosition, 'below') => 'below',
+            str_contains($labelPosition, 'hidden') => 'hidden',
+            default => 'above',
+        };
         $isHiddenLabel = $context->get('labelPosition') instanceof HiddenPosition || $resolvedLabelPosition === 'hidden';
 
         if ($key === 'field') {

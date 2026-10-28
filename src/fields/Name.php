@@ -109,6 +109,7 @@ class Name extends FixedParentField implements ReportSubfieldsInterface, Sortabl
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = $this->normalizeValue($value, $element);
+
         return $this->useMultipleFields ? parent::serializeValueForClientInput($value->toArray(), $element) : (string)$value;
     }
 
@@ -154,7 +155,10 @@ class Name extends FixedParentField implements ReportSubfieldsInterface, Sortabl
             $config['lastNameErrorMessage'],
         );
 
-        $config['instructionsPosition'] = $config['instructionsPosition'] ?? AboveInput::class;
+        // An explicit empty position inherits the form default.
+        if (!array_key_exists('instructionsPosition', $config)) {
+            $config['instructionsPosition'] = AboveInput::class;
+        }
 
         parent::__construct($config);
     }
@@ -203,6 +207,7 @@ class Name extends FixedParentField implements ReportSubfieldsInterface, Sortabl
                 $parts[$field->handle] = null;
             }
         }
+
         return new NameFieldValue($parts);
     }
 
@@ -373,6 +378,7 @@ class Name extends FixedParentField implements ReportSubfieldsInterface, Sortabl
                 $tab['if'] = 'useMultipleFields != true';
             }
         }
+
         unset($tab);
 
         return $tabs;
@@ -386,6 +392,7 @@ class Name extends FixedParentField implements ReportSubfieldsInterface, Sortabl
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {
         $value = $this->normalizeValue($value, $element);
+
         return $this->useMultipleFields ? parent::defineValueForDb($value->toArray(), $element) : (string)$value;
     }
 

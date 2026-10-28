@@ -66,7 +66,11 @@ class Content extends CosmeticField
 
     public function __construct(array $config = [])
     {
-        $config['labelPosition'] = $config['labelPosition'] ?? HiddenPosition::class;
+        // An explicit empty position inherits the form default.
+        if (!array_key_exists('labelPosition', $config)) {
+            $config['labelPosition'] = HiddenPosition::class;
+        }
+
         $config['content'] = RichText::from($config['content'] ?? null);
 
         parent::__construct($config);

@@ -106,8 +106,11 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
 
     public function __construct(array $config = [])
     {
-        // Setuo defaults for some values which can't in in the property definition
-        $config['labelPosition'] = $config['labelPosition'] ?? HiddenPosition::class;
+        // An explicit empty position inherits the form default.
+        if (!array_key_exists('labelPosition', $config)) {
+            $config['labelPosition'] = HiddenPosition::class;
+        }
+
         $config['optionsMode'] = OptionsMode::normalize($config['optionsMode'] ?? null);
         $config['optionSource'] = OptionSourceConfigHelper::normalizeOptionSource(
             $config['optionSource'] ?? null,
@@ -235,6 +238,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         if ($this->displayType === 'hidden') {
             return RecipientTokenHelper::encodeHidden($value->value);
         }
+
         $tokens = [];
         $selections = $this->displayType === 'checkboxes'
             ? array_map(static fn($option) => ['value' => $option->value, 'label' => $option->label], $value->all())
@@ -244,16 +248,20 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
             if ($selection['value'] === null || $selection['value'] === '') {
                 continue;
             }
+
             $token = $selection['value'];
 
             foreach ($this->_getResolvedRecipientOptionRows() as $option) {
                 if ($option['value'] === $selection['value'] && ($selection['label'] === null || $option['label'] === $selection['label'])) {
                     $token = RecipientTokenHelper::encodeOption($option);
+
                     break;
                 }
             }
+
             $tokens[] = $token;
         }
+
         return $this->displayType === 'checkboxes' ? $tokens : ($tokens[0] ?? null);
     }
 
@@ -492,6 +500,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         if (is_array($resolved) && array_key_exists('value', $resolved)) {
             return $resolved['value'];
         }
+
         return $resolved;
     }
 
@@ -724,6 +733,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
                 break;
             }
         }
+
         unset($option);
 
         if ($hasDuplicateLabels) {
@@ -1020,6 +1030,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         if ($this->displayType === 'hidden' && RecipientTokenHelper::matchesHidden($value, $this->defaultValue)) {
             return $this->defaultValue;
         }
+
         return $value;
     }
 

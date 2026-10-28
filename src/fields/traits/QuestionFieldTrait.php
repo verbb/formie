@@ -255,6 +255,7 @@ trait QuestionFieldTrait
         foreach ($options as $option) {
             if (!is_array($option) || !empty($option['optgroup'])) {
                 $resolved[] = $option;
+
                 continue;
             }
 
@@ -262,6 +263,7 @@ trait QuestionFieldTrait
 
             if ($label === '') {
                 $resolved[] = $option;
+
                 continue;
             }
 
@@ -275,6 +277,7 @@ trait QuestionFieldTrait
                 $usedValues[] = $storedValue;
                 $resolved[] = $option;
                 $optionIndex++;
+
                 continue;
             }
 
@@ -334,7 +337,11 @@ trait QuestionFieldTrait
 
     protected function _initQuestionFieldConfig(array &$config): void
     {
-        $config['labelPosition'] = $config['labelPosition'] ?? AboveInputPosition::class;
+        // An explicit empty position inherits the form default.
+        if (!array_key_exists('labelPosition', $config)) {
+            $config['labelPosition'] = AboveInputPosition::class;
+        }
+
         $config['question'] = RichText::from($config['question'] ?? null);
     }
 }

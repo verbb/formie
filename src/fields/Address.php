@@ -194,7 +194,10 @@ class Address extends FixedParentField implements ReportSubfieldsInterface, Prev
             $config['countryOptionValue'],
         );
 
-        $config['instructionsPosition'] = $config['instructionsPosition'] ?? AboveInput::class;
+        // An explicit empty position inherits the form default.
+        if (!array_key_exists('instructionsPosition', $config)) {
+            $config['instructionsPosition'] = AboveInput::class;
+        }
 
         parent::__construct($config);
     }
@@ -214,15 +217,19 @@ class Address extends FixedParentField implements ReportSubfieldsInterface, Prev
         if ($value instanceof AddressFieldValue) {
             return $value;
         }
+
         $value = parent::normalizeValue(Json::decodeIfJson($value), $element);
 
         foreach ($value as $key => $part) {
             if ($part instanceof SingleOptionFieldValue) {
                 $part = $part->value;
             }
+
             $value[$key] = $part === null ? null : trim((string)$part);
         }
+
         $address = new AddressFieldValue($value);
+
         return $address->isEmpty() ? null : $address;
     }
 
