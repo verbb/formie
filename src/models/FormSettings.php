@@ -98,6 +98,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
             if (array_key_exists($legacy, $config) && $canonicalMissing) {
                 $config[$canonical] = $config[$legacy];
             }
+
             unset($config[$legacy]);
         }
 
@@ -106,11 +107,16 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
             $config['completionBehavior'] = in_array($action, ['entry', 'url'], true) ? 'redirect' : $action;
             $config['completionRedirectSource'] = $action === 'entry' ? 'entry' : 'url';
         }
+
         unset($config['submitAction']);
 
         if ($withDefaults) {
             $config['completionBehavior'] ??= CompletionBehavior::Message->value;
             $config['completionRedirectSource'] ??= RedirectSource::Url->value;
+        }
+
+        // Legacy exports can explicitly clear the target; partial updates must still preserve omitted targets.
+        if ($withDefaults || array_key_exists('redirectTarget', $config)) {
             $config['redirectTarget'] ??= RedirectTarget::SameTab->value;
         }
 
@@ -748,6 +754,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
 
             if ($value === null || $value === '') {
                 $config[$attribute] = null;
+
                 continue;
             }
 
