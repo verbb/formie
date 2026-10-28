@@ -170,9 +170,14 @@ query FormieHtmlForm($handle: String!, $input: ServerRenderPayloadInput) {
     return payload;
 }
 
-export async function requestRefreshTokens(endpoint: string, handle: string, renderId?: string, requestOptions: BrowserRequestOptions = {}, requestToken?: string): Promise<FormEndpointPayload['refreshTokens']> {
+export async function requestRefreshTokens(endpoint: string, handle: string, renderId?: string, requestOptions: BrowserRequestOptions = {}, requestToken?: string, siteId?: string | number): Promise<FormEndpointPayload['refreshTokens']> {
     const url = new URL(endpoint, window.location.origin);
     url.searchParams.set('handle', handle);
+
+    // Root-level action URLs cannot identify sites that share a domain and use path prefixes.
+    if (siteId !== undefined && siteId !== '') {
+        url.searchParams.set('siteId', String(siteId));
+    }
 
     if (renderId) {
         url.searchParams.set('renderId', renderId);

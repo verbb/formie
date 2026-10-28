@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix forms on path-based sites receiving refreshed submission tokens for the wrong site. ([#3064](https://github.com/verbb/formie/issues/3064))
 - Fix Microsoft Dynamics 365 requests failing with a provider origin override error. ([#3063](https://github.com/verbb/formie/issues/3063))
 - Fix theme attributes not being applied to AJAX success and error messages. ([#3061](https://github.com/verbb/formie/issues/3061))
 - Fix nested alert roles in form error messages that could cause duplicate screen reader announcements. ([#3062](https://github.com/verbb/formie/issues/3062))
