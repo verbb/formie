@@ -35,6 +35,7 @@ class ClientEventsHelper
 
             if ($key === 'event' && $value !== '') {
                 $eventName = $value;
+
                 continue;
             }
 
@@ -62,23 +63,8 @@ class ClientEventsHelper
             return self::_sanitizeEventDefinitions(is_array($settings->defaultClientEvents) ? $settings->defaultClientEvents : []);
         }
 
-        $events = $settings->clientEvents ?? [];
-
-        if (is_array($events) && $events !== []) {
-            return self::_sanitizeEventDefinitions($events);
-        }
-
-        if ($settings instanceof FieldLayoutPageSettings && !$settings->enableClientEvents) {
-            return [];
-        }
-
-        $legacyRows = is_array($settings->clientEventFields) ? $settings->clientEventFields : [];
-
-        if ($legacyRows === []) {
-            return [];
-        }
-
-        return self::migrateLegacyEventFields($legacyRows);
+        // Page settings migrate legacy rows during construction. Never revive them after a clear.
+        return self::_sanitizeEventDefinitions($settings->clientEvents);
     }
 
     public static function resolveEvents(array $eventDefinitions, Submission $submission): array

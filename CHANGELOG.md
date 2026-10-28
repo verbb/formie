@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fix Form Default positions not being retained for Address and Name instructions, and Content, HTML, Recipients, Quiz and Survey labels.
+- Fix deleted page client events returning on forms upgraded from legacy event settings.
 - Fix clearing custom required error messages reverting to their previous value. ([#3065](https://github.com/verbb/formie/issues/3065))
 - Fix populating Entries and other element fields with a single element ID.
 - Fix forms on path-based sites receiving refreshed submission tokens for the wrong site. ([#3064](https://github.com/verbb/formie/issues/3064))

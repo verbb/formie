@@ -187,7 +187,6 @@ class FormSlotRegistry extends Component
             return false;
         }
 
-        $rows = is_array($settings->clientEventFields) ? $settings->clientEventFields : [];
         $events = ClientEventsHelper::normalizeStoredEvents($settings);
 
         if ($events !== []) {
@@ -210,20 +209,8 @@ class FormSlotRegistry extends Component
             return Json::encode(['fields' => $fields]);
         }
 
-        $fields = [];
-
-        foreach ($rows as $row) {
-            if (!is_array($row)) {
-                continue;
-            }
-
-            $fields[] = [
-                'label' => (string)($row['label'] ?? ''),
-                'value' => (string)($row['value'] ?? ''),
-            ];
-        }
-
-        return Json::encode(['fields' => $fields]);
+        // Empty canonical events must not expose stale legacy payloads to the browser.
+        return false;
     }
 
     private function _formHeader(RenderContext $context): SlotTag

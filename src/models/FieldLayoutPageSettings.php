@@ -68,7 +68,8 @@ class FieldLayoutPageSettings extends Model implements TranslatablePropertiesInt
 
             unset($config['jsGtmEventOptions']);
 
-            if (empty($config['clientEvents']) && !empty($config['clientEventFields']) && is_array($config['clientEventFields'])) {
+            // Only legacy-only payloads need migration; an explicit empty list clears page events.
+            if (!array_key_exists('clientEvents', $config) && !empty($config['clientEventFields']) && is_array($config['clientEventFields'])) {
                 $config['clientEvents'] = ClientEventsHelper::migrateLegacyEventFields($config['clientEventFields']);
             }
         }
