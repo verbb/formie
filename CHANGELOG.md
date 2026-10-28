@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Fixed
+- Fix clearing custom required error messages reverting to their previous value. ([#3065](https://github.com/verbb/formie/issues/3065))
+- Fix populating Entries and other element fields with a single element ID.
 - Fix forms on path-based sites receiving refreshed submission tokens for the wrong site. ([#3064](https://github.com/verbb/formie/issues/3064))
 - Fix Microsoft Dynamics 365 requests failing with a provider origin override error. ([#3063](https://github.com/verbb/formie/issues/3063))
 - Fix theme attributes not being applied to AJAX success and error messages. ([#3061](https://github.com/verbb/formie/issues/3061))

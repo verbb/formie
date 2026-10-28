@@ -217,7 +217,8 @@ class FieldConfigNormalizer
 
         $legacyRequired = trim((string)($config['errorMessage'] ?? ''));
 
-        if ($legacyRequired !== '' && empty($config['validationMessages']['required'])) {
+        // An explicit empty message clears the override; only absent keys need legacy migration.
+        if ($legacyRequired !== '' && !array_key_exists('required', $config['validationMessages'])) {
             $config['validationMessages']['required'] = self::_normalizeValidationMessageTokens($legacyRequired);
         }
 
@@ -231,8 +232,8 @@ class FieldConfigNormalizer
 
         $required = trim((string)($config['validationMessages']['required'] ?? ''));
 
-        if ($required !== '') {
-            $config['errorMessage'] = $required;
+        if (array_key_exists('required', $config['validationMessages'])) {
+            $config['errorMessage'] = $required !== '' ? $required : null;
         }
     }
 

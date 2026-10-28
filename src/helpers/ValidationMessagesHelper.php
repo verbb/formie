@@ -250,7 +250,8 @@ class ValidationMessagesHelper
         $messages = $field->validationMessages ?? [];
         $message = trim((string)($messages[$key] ?? ''));
 
-        if ($message === '' && $key === self::KEY_REQUIRED) {
+        // Site translations and runtime overrides can explicitly clear the canonical message.
+        if ($key === self::KEY_REQUIRED && !array_key_exists($key, $messages)) {
             $message = trim((string)($field->errorMessage ?? ''));
         }
 

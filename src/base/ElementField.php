@@ -242,6 +242,11 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
             $query->siteId($this->targetSiteId($element));
         }
 
+        // Template population can supply a single ID, even for relational fields.
+        if (is_int($value) || (is_string($value) && ctype_digit($value))) {
+            $value = [$value];
+        }
+
         if (is_array($value)) {
             // Check if the array contains associative arrays with an 'id' key
             if (isset($value[0]) && is_array($value[0]) && array_key_exists('id', $value[0])) {
@@ -998,6 +1003,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {
         $query = clone $this->normalizeValue($value, $element);
+
         return $query->status(null)->ids();
     }
 
@@ -1377,6 +1383,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
             if (is_array($item)) {
                 if (!array_key_exists('id', $item)) {
                     $invalid = true;
+
                     continue;
                 }
 
@@ -1391,6 +1398,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
 
             if ($id === null) {
                 $invalid = true;
+
                 continue;
             }
 
