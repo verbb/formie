@@ -48,7 +48,7 @@ it('persists clearing required messages through repeated builder saves', functio
         expect($field->validationMessages)->toBe(['required' => '', 'invalid' => 'Invalid {label}.'])
             ->and($field->errorMessage)->toBeNull()
             ->and($field->getValidationMessage('required'))->toBe('Answer cannot be blank.')
-            ->and($field->getValidationMessageBrowserAttribute('required'))->toBe('Answer cannot be blank.');
+            ->and($field->getValidationMessageBrowserAttribute('required'))->toBeNull();
         $pages = $form->getFormLayout()->getFormBuilderConfig();
     }
 
@@ -88,7 +88,7 @@ it('retains legacy-only required messages when the canonical key is absent', fun
 
     expect(ValidationMessagesHelper::override($field, 'required'))->toBe('Legacy {label}.')
         ->and($field->validationMessages['required'])->toBe('Legacy {label}.');
-})->with([ [[]], [['invalid' => 'Invalid.']] ]);
+})->with([[[]], [['invalid' => 'Invalid.']]]);
 
 it('clears site required messages without restoring the source legacy alias', function (): void {
     if (!Craft::$app->getIsMultiSite()) {
@@ -118,7 +118,7 @@ it('clears site required messages without restoring the source legacy alias', fu
             $expected = $message === '' ? 'Answer cannot be blank.' : 'Translated Answer.';
 
             expect($localizedField->getValidationMessage('required'))->toBe($expected)
-                ->and($localizedField->getValidationMessageBrowserAttribute('required'))->toBe($expected)
+                ->and($localizedField->getValidationMessageBrowserAttribute('required'))->toBe($message === '' ? null : $expected)
                 ->and($localizedField->getValidationMessage('invalid'))->toBe('Invalid Answer.')
                 ->and($field->getValidationMessage('required'))->toBe('Source Answer.');
         }
