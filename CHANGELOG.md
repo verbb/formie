@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix Opayo re-tokenizing cards and requesting unnecessary merchant sessions after completing a 3D Secure challenge. ([#3048](https://github.com/verbb/formie/issues/3048))
+
 ## 4.0.5 - 2026-10-28
 
 ### Added

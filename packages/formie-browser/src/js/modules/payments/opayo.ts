@@ -3,6 +3,7 @@ import { browserRequest, type BrowserRequestOptions } from '@verbb/formie-core';
 import opayoCss from '#theme-css/integrations/_opayo.css?inline';
 
 import { definePaymentModule } from '#modules/payments/api';
+import { findPaymentInputBySuffix } from '#modules/payments/utils';
 import { ensureModuleStyles } from '#modules/styles';
 import { toggleThemeClasses } from '#theme/theme-classes';
 import { createDebug } from '#utils/debug';
@@ -275,6 +276,12 @@ export const opayoModule = definePaymentModule<OpayoProviderOptions, null, Opayo
             debug.warn('Missing form action before authorize.');
 
             return false;
+        }
+
+        // A completed challenge resumes the original transaction. The server
+        // verifies this reference and its ownership; no new card token is needed.
+        if (findPaymentInputBySuffix(field, 'opayo3DSComplete')?.value.trim()) {
+            return true;
         }
 
         if (isDropInCheckoutMode(provider)) {

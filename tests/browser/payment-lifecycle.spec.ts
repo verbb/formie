@@ -516,3 +516,179 @@ test('Opayo Own Form requests its session only during authorization', async ({
     expect(sessions).toBe(1);
     expect(await page.evaluate(() => window.paymentTest.authorized)).toBe(1);
 });
+
+for (const checkoutMode of ['dropIn', 'ownForm']) {
+    for (const response of ['completed', 'failed', 'missing-reference']) {
+        test(`Opayo ${checkoutMode} handles a ${response} 3DS callback without redundant authorization`, async ({
+            page,
+        }) => {
+            let sessions = 0;
+            await page.route(
+                'https://payments.example.test/session',
+                (route) => {
+                    sessions++;
+                    return route.fulfill({
+                        json: { merchantSessionKey: `session-${sessions}` },
+                    });
+                },
+            );
+            await page.route(
+                'https://payments.example.test/challenge',
+                (route) =>
+                    route.fulfill({
+                        contentType: 'text/html',
+                        body: `<script>parent.postMessage({message:'formie:payment:opayo:challenge:response',value:${JSON.stringify(response === 'failed' ? { error: { message: 'Challenge failed.' } } : { transactionId: response === 'completed' ? 'verified-transaction' : '' })}},'*');</script>`,
+                    }),
+            );
+            const errors: string[] = [];
+            page.on('pageerror', (error) => errors.push(error.message));
+            await page.evaluate(async (checkoutMode) => {
+                const state = window.paymentTest;
+                const { form, target } = state.context;
+                (target as HTMLElement).hidden = false;
+                target.insertAdjacentHTML(
+                    'beforeend',
+                    `<input type="hidden" name="fields[payment][opayoTokenId]"><input type="hidden" name="fields[payment][opayoSessionKey]"><input type="hidden" name="fields[payment][opayo3DSComplete]">`,
+                );
+                window.sagepayCheckout = (options) => ({
+                    tokenise: () => {
+                        state.authorized++;
+                        options.onTokenise!({
+                            success: true,
+                            cardIdentifier: `card-${state.authorized}`,
+                        });
+                    },
+                    destroy() {},
+                });
+                window.sagepayOwnForm = () => ({
+                    tokeniseCardDetails: ({ onTokenised }) => {
+                        state.authorized++;
+                        onTokenised({
+                            success: true,
+                            cardIdentifier: `card-${state.authorized}`,
+                        });
+                    },
+                });
+                state.context.options = {
+                    handle: 'payment',
+                    checkoutMode,
+                    useSandbox: true,
+                    sessionToken: 'test-authority',
+                    sessionEndpoint: 'https://payments.example.test/session',
+                };
+                const instance =
+                    (await window.paymentLifecycle.opayoModule.setup(
+                        state.context,
+                    ))!;
+                state.instance = instance;
+                await instance.beforeSubmit!(state.submit);
+                await instance.afterSubmit!(state.submit, { ok: false });
+                form!.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    void Promise.resolve(
+                        instance.beforeSubmit!(state.submit),
+                    ).then(() => {
+                        form!.dataset.authorized = String(state.authorized);
+                        form!.dataset.completion =
+                            form!.querySelector<HTMLInputElement>(
+                                'input[name$="[opayo3DSComplete]"]',
+                            )!.value;
+                    });
+                });
+                form!.dispatchEvent(
+                    new CustomEvent('formie:payment:opayo:challenge', {
+                        detail: {
+                            data: {
+                                acsUrl: 'https://payments.example.test/challenge',
+                                creq: 'test-challenge',
+                            },
+                        },
+                    }),
+                );
+            }, checkoutMode);
+            await expect(page.locator('.formie-modal')).toHaveCount(0);
+            if (response === 'failed') {
+                await expect(page.locator('[data-payment-error]')).toHaveText(
+                    'Challenge failed.',
+                );
+                expect(
+                    await page.locator('form').getAttribute('data-authorized'),
+                ).toBeNull();
+                expect(
+                    await page.evaluate(() => window.paymentTest.authorized),
+                ).toBe(1);
+            } else {
+                await expect(page.locator('form')).toHaveAttribute(
+                    'data-authorized',
+                    response === 'completed' ? '1' : '2',
+                );
+                await expect(page.locator('form')).toHaveAttribute(
+                    'data-completion',
+                    response === 'completed' ? 'verified-transaction' : '',
+                );
+            }
+            expect(sessions).toBe(
+                checkoutMode === 'ownForm' && response === 'missing-reference'
+                    ? 2
+                    : 1,
+            );
+            // Clearing the result must restore normal authorization for the next attempt.
+            const next = await page.evaluate(async () => {
+                const state = window.paymentTest;
+                await state.instance!.afterSubmit!(state.submit, { ok: false });
+                await state.instance!.beforeSubmit!(state.submit);
+                await state.instance!.destroy();
+                return state.authorized;
+            });
+            expect(next).toBe(response === 'missing-reference' ? 3 : 2);
+            expect(errors).toEqual([]);
+        });
+    }
+
+    test(`Opayo ${checkoutMode} does not reuse another field's completed challenge`, async ({
+        page,
+    }) => {
+        await page.route('https://payments.example.test/session', (route) =>
+            route.fulfill({ json: { merchantSessionKey: 'session' } }),
+        );
+        const authorized = await page.evaluate(async (checkoutMode) => {
+            const state = window.paymentTest;
+            const { form, target } = state.context;
+            (target as HTMLElement).hidden = false;
+            form!.insertAdjacentHTML(
+                'beforeend',
+                '<div data-formie-field-type="payment"><input type="hidden" name="fields[other][opayo3DSComplete]" value="other-transaction"></div>',
+            );
+            window.sagepayCheckout = (options) => ({
+                tokenise: () => {
+                    state.authorized++;
+                    options.onTokenise!({
+                        success: true,
+                        cardIdentifier: 'card',
+                    });
+                },
+                destroy() {},
+            });
+            window.sagepayOwnForm = () => ({
+                tokeniseCardDetails: ({ onTokenised }) => {
+                    state.authorized++;
+                    onTokenised({ success: true, cardIdentifier: 'card' });
+                },
+            });
+            state.context.options = {
+                handle: 'payment',
+                checkoutMode,
+                useSandbox: true,
+                sessionToken: 'test-authority',
+                sessionEndpoint: 'https://payments.example.test/session',
+            };
+            const instance = (await window.paymentLifecycle.opayoModule.setup(
+                state.context,
+            ))!;
+            await instance.beforeSubmit!(state.submit);
+            await instance.destroy();
+            return state.authorized;
+        }, checkoutMode);
+        expect(authorized).toBe(1);
+    });
+}

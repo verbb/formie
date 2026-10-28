@@ -18,10 +18,10 @@ const tarballDir = process.env.PACKAGE_TARBALL_DIR;
 
 if (
     process.env.GITHUB_ACTIONS !== 'true' ||
-    process.env.GITHUB_REF !== 'refs/heads/beta'
+    process.env.GITHUB_REF !== 'refs/heads/craft-5'
 ) {
     throw new Error(
-        'Prepared publication is restricted to the beta-branch GitHub Actions workflow.',
+        'Prepared publication is restricted to the craft-5 GitHub Actions workflow.',
     );
 }
 
