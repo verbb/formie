@@ -15,6 +15,7 @@ class SubmissionContentProjector
             FieldValueProjection::String => $field->getValueAsString($value, $submission),
             FieldValueProjection::Data => $field->getValueAsData($value, $submission),
             FieldValueProjection::Export => $field->getValueForExport($value, $submission),
+            FieldValueProjection::Report => $field->getValueForReport($value, $submission, $context->useOptionLabels),
             FieldValueProjection::Reference => $field->getValueForReference($value, $submission),
             FieldValueProjection::ReferenceBlock => $field->getValueForReferenceBlock($value, $context->notification, $submission),
             FieldValueProjection::Summary => $field->getValueForSummary($value, $submission),

@@ -66,6 +66,7 @@ class ReportEditor extends Component
             $settings->columns,
             $display,
         );
+        $display['fieldOrder'] = Formie::$plugin->getReportColumns()->inferFieldOrder($settings->columns, $display);
 
         return [
             'name' => $report->name,
@@ -74,6 +75,7 @@ class ReportEditor extends Component
             'columns' => Formie::$plugin->getReportColumns()->compactColumnsForStorage(
                 $settings->columns,
                 $display['fieldColumnsMode'],
+                $settings->display['fieldOrder'] ?? null,
             ),
             'display' => $display,
             'chart' => $settings->chart,
@@ -85,6 +87,8 @@ class ReportEditor extends Component
     {
         $report->name = trim((string)($payload['name'] ?? $report->name));
         $report->handle = trim((string)($payload['handle'] ?? $report->handle));
+        $display = $this->_normalizeDisplay($payload['display'] ?? []);
+        $display['fieldOrder'] = Formie::$plugin->getReportColumns()->inferFieldOrder($payload['columns'] ?? [], $display);
 
         $settings = ReportSettings::fromArray([
             'filters' => $this->_normalizeFilters($payload['filters'] ?? []),
@@ -93,8 +97,9 @@ class ReportEditor extends Component
                 Formie::$plugin->getReportColumns()->normalizeFieldColumnsMode(
                     $payload['display']['fieldColumnsMode'] ?? null,
                 ),
+                $display['fieldOrder'],
             ),
-            'display' => $this->_normalizeDisplay($payload['display'] ?? []),
+            'display' => $display,
             'chart' => $this->_normalizeChart($payload['chart'] ?? []),
             'export' => $this->_normalizeExport($payload['export'] ?? []),
         ]);
@@ -282,6 +287,10 @@ class ReportEditor extends Component
         $normalized = array_merge(ReportSettings::defaultDisplay(), $display);
         $normalized['fieldColumnsMode'] = Formie::$plugin->getReportColumns()->normalizeFieldColumnsMode(
             $normalized['fieldColumnsMode'] ?? null,
+        );
+
+        $normalized['compoundFieldColumns'] = Formie::$plugin->getReportColumns()->normalizeCompoundFieldColumns(
+            $normalized['compoundFieldColumns'] ?? null,
         );
 
         return $normalized;

@@ -23,6 +23,34 @@ Each report combines:
 
 Running a report shows summary counts, a trend chart, and a paginated submissions table. **Export** downloads submission data using the report’s current filters and column settings.
 
+Combined fields use readable text in both the table and exported cells: a Name can read `Jane Smith`, and an Address uses comma-separated parts. With **Choose fields manually**, select the combined Name or Address column, individual sub-fields, or both. Empty sub-fields keep their own cells, so subsequent values stay in the correct columns.
+
+## Parent Field Columns
+
+With **All Form Fields**, use **Parent Field Columns** on the **Display** tab to choose how fields that support report subcolumns appear in the report table and exports:
+
+| Option | Columns included |
+| --- | --- |
+| Single Column | One readable column per field. This is the default. |
+| Separate Columns | A separate column for each enabled part, such as first name, last name, city and country. |
+| Both | The combined column and each enabled subfield. |
+
+New fields and newly enabled subfields are included automatically. Name and Address currently offer report subcolumns. A Name configured as a single input, and fields without report subcolumn support, keep their ordinary column in every mode. Custom field types can opt into subcolumns through the [custom field API](docs:developers/custom-field/overview). This setting does not change fields selected with **Choose fields manually**.
+
+## Field Order
+
+On the **Columns** tab, choose a **Field Order** for the report table and exports. This is separate from **Form Fields**, so you can include every field or select a smaller set with any ordering option.
+
+| Field Order | Behaviour |
+| --- | --- |
+| **Form layout** | Follows each form's page, row and field positions, including later layout changes. This is the default for automatic reports. |
+| **Alphabetical** | Sorts field columns by their labels, A–Z, including any custom column labels. |
+| **Custom** | Keeps the order you arrange in the report editor. |
+
+Switching to **Custom** keeps the currently displayed order. Dragging a column also switches to Custom. Automatic sorting only changes field columns; submission attributes such as ID and Date Created keep their positions.
+
+With **All Form Fields** and **Custom**, the editor shows every included field for you to arrange. Fields added to the form later appear at the end of the report. Choose **Choose fields manually** if you want to exclude individual fields instead.
+
 ## Export Formats
 
 From the report run screen, choose **Export** and pick a file type:

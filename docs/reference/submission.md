@@ -224,6 +224,14 @@ Returns the field value prepared for export.
 :::
 
 ::: reference
+### `getFieldValueForReport()`
+
+**Returns:** `mixed`
+
+Returns the field's readable report-cell value. For example, `submission.getFieldValueForReport('name')` returns a combined name, while `submission.getFieldValueForReport('name.firstName')` returns its first name. Pass `false` as the second argument to use stored option values instead of labels. This method is used by report tables and report exports; `getFieldValueForExport()` retains structured field export data.
+:::
+
+::: reference
 ### `getFieldValueForSummary()`
 
 **Returns:** `mixed`

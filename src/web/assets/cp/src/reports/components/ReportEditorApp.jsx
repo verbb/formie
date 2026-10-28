@@ -16,6 +16,15 @@ import { DEFAULT_END_DATE_BOUND, DEFAULT_START_DATE_BOUND } from '@reports/utils
 import { ReportFormsSelect } from '@reports/components/ReportFormsSelect';
 import { useReportFieldColumns } from '@reports/utils/useReportFieldColumns';
 import {
+    FIELD_ORDER_LAYOUT,
+    FIELD_ORDER_ALPHABETICAL,
+    FIELD_ORDER_CUSTOM,
+    inferFieldOrder,
+    getLayoutFieldColumns,
+    expandAllReportFields,
+    orderReportFields,
+} from '@reports/utils/reportFieldOrder';
+import {
     FIELD_COLUMNS_MODE_ALL,
     FIELD_COLUMNS_MODE_SELECTED,
     isAllFieldColumnsMode,
@@ -153,7 +162,9 @@ export const ReportEditorApp = ({ settings }) => {
     ));
     const fieldColumnsMode = display.fieldColumnsMode || FIELD_COLUMNS_MODE_ALL;
     const usesAllFieldColumns = isAllFieldColumnsMode(fieldColumnsMode);
-    const shouldFetchFieldCatalog = shouldLoadFieldColumns && !usesAllFieldColumns;
+    const fieldOrder = inferFieldOrder(display);
+    const compoundFieldColumns = display.compoundFieldColumns || 'combined';
+    const shouldFetchFieldCatalog = shouldLoadFieldColumns;
     const { fieldColumnGroups, isLoading: fieldColumnsLoading } = useReportFieldColumns({
         formIds: filters.formIds,
         fieldColumnsUrl: settings.fieldColumnsUrl,
@@ -161,13 +172,24 @@ export const ReportEditorApp = ({ settings }) => {
         csrfTokenValue: Craft.csrfTokenValue,
         enabled: shouldFetchFieldCatalog,
     });
+    const layoutFields = useMemo(() => getLayoutFieldColumns(fieldColumnGroups), [fieldColumnGroups]);
     const editorColumns = useMemo(() => {
-        return mergeReportColumns(
+        const columns = mergeReportColumns(
             values.columns,
             settings.attributeColumns,
             [],
         );
-    }, [values.columns, settings.attributeColumns]);
+
+        return orderReportFields(
+            usesAllFieldColumns ? expandAllReportFields(columns, layoutFields, compoundFieldColumns) : columns,
+            fieldOrder,
+            layoutFields,
+        );
+    }, [values.columns, settings.attributeColumns, usesAllFieldColumns, fieldOrder, layoutFields, compoundFieldColumns]);
+    const showAutomaticFields = usesAllFieldColumns && fieldOrder === FIELD_ORDER_CUSTOM;
+    const visibleColumns = usesAllFieldColumns && !showAutomaticFields
+        ? editorColumns.filter((column) => column.type !== 'field')
+        : editorColumns;
     const payload = useMemo(() => values, [values]);
 
     useCpFormPayloadSync({
@@ -220,26 +242,33 @@ export const ReportEditorApp = ({ settings }) => {
             ? FIELD_COLUMNS_MODE_SELECTED
             : FIELD_COLUMNS_MODE_ALL;
 
-        setValues((currentValues) => {
-            const nextColumns = normalizedMode === FIELD_COLUMNS_MODE_ALL
-                ? compactColumnsForStorage(
-                    mergeReportColumns(
-                        currentValues.columns,
-                        settings.attributeColumns,
-                        [],
-                    ),
-                    FIELD_COLUMNS_MODE_ALL,
-                )
-                : currentValues.columns;
+        setValues((currentValues) => ({
+            ...currentValues,
+            display: { ...(currentValues.display || {}), fieldColumnsMode: normalizedMode, fieldOrder },
+            columns: compactColumnsForStorage(editorColumns, normalizedMode, fieldOrder),
+        }));
+    };
+    const handleFieldOrderChange = (nextOrder) => {
+        setValues((currentValues) => ({
+            ...currentValues,
+            display: { ...(currentValues.display || {}), fieldOrder: nextOrder },
+            // Freeze the currently displayed order before entering Custom mode.
+            columns: compactColumnsForStorage(editorColumns, fieldColumnsMode, nextOrder),
+        }));
+    };
+    const handleColumnsChange = (nextColumns, { reordered = false } = {}) => {
+        const nextOrder = reordered ? FIELD_ORDER_CUSTOM : fieldOrder;
+        let attributeIndex = 0;
+        const columns = usesAllFieldColumns && !showAutomaticFields
+            ? editorColumns.map((column) => column.type === 'field' ? column : nextColumns[attributeIndex++])
+            : nextColumns;
 
-            return {
+        startTransition(() => {
+            setValues((currentValues) => ({
                 ...currentValues,
-                display: {
-                    ...(currentValues.display || {}),
-                    fieldColumnsMode: normalizedMode,
-                },
-                columns: nextColumns,
-            };
+                display: { ...(currentValues.display || {}), fieldOrder: nextOrder },
+                columns: compactColumnsForStorage(columns, fieldColumnsMode, nextOrder),
+            }));
         });
     };
     const statusIdsValue = !filters.statusIds?.length
@@ -453,28 +482,39 @@ export const ReportEditorApp = ({ settings }) => {
                         <SelectInput
                             value={fieldColumnsMode}
                             options={fieldColumnModeOptions}
-                            disabled={!settings.canEdit}
+                            disabled={!settings.canEdit || fieldColumnsLoading}
                             onChange={handleFieldColumnsModeChange}
                         />
                     </FieldLayout>
 
+                    <FieldLayout
+                        name="display.fieldOrder"
+                        label={Craft.t('formie', 'Field Order')}
+                        instructions={Craft.t('formie', 'Order field columns in the report table and exports. Submission attributes keep their positions. Dragging a column switches to Custom.')}
+                    >
+                        <SelectInput
+                            value={fieldOrder}
+                            options={[
+                                { value: FIELD_ORDER_LAYOUT, label: Craft.t('formie', 'Form layout') },
+                                { value: FIELD_ORDER_ALPHABETICAL, label: Craft.t('formie', 'Alphabetical') },
+                                { value: FIELD_ORDER_CUSTOM, label: Craft.t('formie', 'Custom') },
+                            ]}
+                            disabled={!settings.canEdit || fieldColumnsLoading}
+                            onChange={handleFieldOrderChange}
+                        />
+                    </FieldLayout>
+
                     {activeTab === 'columns' ? (
-                        usesAllFieldColumns || !fieldColumnsLoading ? (
+                        !fieldColumnsLoading ? (
                             <ReportColumnsEditor
-                                columns={editorColumns}
+                                columns={visibleColumns}
                                 disabled={!settings.canEdit}
                                 scrollable
                                 fieldColumnsMode={fieldColumnsMode}
+                                showAutomaticFields={showAutomaticFields}
                                 fieldColumnGroups={fieldColumnGroups}
                                 useFieldHandles={Boolean(display.useFieldHandles)}
-                                onChange={(nextColumns) => {
-                                    startTransition(() => {
-                                        updateValue(
-                                            'columns',
-                                            compactColumnsForStorage(nextColumns, fieldColumnsMode),
-                                        );
-                                    });
-                                }}
+                                onChange={handleColumnsChange}
                             />
                         ) : (
                             <p className="m-0 text-sm text-gray-500">{Craft.t('formie', 'Loading field columns…')}</p>
@@ -506,6 +546,27 @@ export const ReportEditorApp = ({ settings }) => {
                             onCheckedChange={(enabled) => { updateValue('display.useOptionLabels', enabled); }}
                         />
                     </FieldLayout>
+
+                    {usesAllFieldColumns && (
+                        <FieldLayout
+                            name="display.compoundFieldColumns"
+                            label={Craft.t('formie', 'Parent Field Columns')}
+                            instructions={Craft.t('formie', 'Choose whether parent fields, such as Name and Address, appear in a single column, separate columns for each subfield, or both. Applies when All Form Fields is selected.')}
+                        >
+                            <SelectInput
+                                value={compoundFieldColumns}
+                                options={[
+                                    { value: 'combined', label: Craft.t('formie', 'Single Column') },
+                                    { value: 'subfields', label: Craft.t('formie', 'Separate Columns') },
+                                    { value: 'both', label: Craft.t('formie', 'Both') },
+                                ]}
+                                disabled={!settings.canEdit}
+                                onChange={(nextValue) => {
+                                    updateValue('display.compoundFieldColumns', nextValue);
+                                }}
+                            />
+                        </FieldLayout>
+                    )}
 
                     <FieldLayout
                         name="export.filename"

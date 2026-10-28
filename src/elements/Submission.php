@@ -1106,6 +1106,11 @@ class Submission extends Element
         return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, FieldValueProjectionContext::export());
     }
 
+    public function getFieldValueForReport(string $fieldKey, bool $useOptionLabels = true): mixed
+    {
+        return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, FieldValueProjectionContext::report($useOptionLabels));
+    }
+
     public function getFieldValueForSummary(string $fieldKey): mixed
     {
         return $this->getContentManager()->getProjectedFieldValue($this, $fieldKey, FieldValueProjectionContext::summary());

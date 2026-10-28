@@ -332,6 +332,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     public const EVENT_MODIFY_VALUE_AS_STRING = 'modifyValueAsString';
     public const EVENT_MODIFY_VALUE_AS_DATA = 'modifyValueAsData';
     public const EVENT_MODIFY_VALUE_FOR_EXPORT = 'modifyValueForExport';
+    public const EVENT_MODIFY_VALUE_FOR_REPORT = 'modifyValueForReport';
     public const EVENT_MODIFY_VALUE_FOR_INTEGRATION = 'modifyValueForIntegration';
     public const EVENT_MODIFY_VALUE_FOR_REFERENCE = 'modifyValueForReference';
     public const EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK = 'modifyValueForReferenceBlock';

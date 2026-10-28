@@ -26,6 +26,11 @@ final readonly class FieldValueProjectionContext
         return new self(FieldValueProjection::Export);
     }
 
+    public static function report(bool $useOptionLabels = true): self
+    {
+        return new self(FieldValueProjection::Report, useOptionLabels: $useOptionLabels);
+    }
+
     public static function reference(): self
     {
         return new self(FieldValueProjection::Reference);
@@ -66,6 +71,7 @@ final readonly class FieldValueProjectionContext
         public ?IntegrationField $integrationField = null,
         public ?IntegrationInterface $integration = null,
         public string $fieldKey = '',
+        public bool $useOptionLabels = true,
     ) {
     }
 }

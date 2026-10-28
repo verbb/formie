@@ -10,6 +10,7 @@ enum FieldValueProjection
     case String;
     case Data;
     case Export;
+    case Report;
     case Reference;
     case ReferenceBlock;
     case Summary;

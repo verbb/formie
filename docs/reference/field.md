@@ -223,6 +223,17 @@ Returns the value prepared for export.
 :::
 
 ::: reference
+### `getValueForReport()`
+
+**Returns:** `mixed`
+
+Returns a single readable value for a report cell, including report exports. Call `field.getValueForReport(value, submission, useOptionLabels)` with the normalized field value and its submission. The optional `useOptionLabels` argument defaults to `true`; pass `false` to use stored option values. The default implementation uses the field's string representation. Fields can customize report output independently of structured export data.
+:::
+
+Fields implementing `verbb\formie\base\ReportSubfieldsInterface` can also provide direct child columns through `getReportSubfields()`. See [Report Subcolumns](docs:developers/custom-field/overview#report-subcolumns) for the opt-in contract.
+
+
+::: reference
 ### `getValueForSummary()`
 
 **Returns:** `mixed`

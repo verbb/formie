@@ -2036,6 +2036,11 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         return $value?->toArray();
     }
 
+    protected function defineValueForReport(mixed $value, ?ElementInterface $element = null, bool $useOptionLabels = true): mixed
+    {
+        return $this->defineValueAsString($value, $element);
+    }
+
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
         if ($this->getCollectsRange()) {

@@ -60,26 +60,9 @@ class ReportViewer extends Component
     {
         $user ??= Craft::$app->getUser()->getIdentity();
         $settings = $report->getSettingsModel();
-        $columns = Formie::$plugin->getReportColumns()->resolveColumns($report, user: $user);
-        $exportColumns = Formie::$plugin->getReportColumns()->compactColumnsForStorage(
-            $settings->columns,
-            Formie::$plugin->getReportColumns()->inferFieldColumnsMode($settings->columns, $settings->display),
-        );
-
-        // The browser posts an explicit column selection for table and export requests.
-        // Expand automatic fields before sending it the compact saved configuration.
-        if (Formie::$plugin->getReportColumns()->usesAllFieldColumns($report)) {
-            foreach ($columns as $column) {
-                if ($column['type'] === 'field') {
-                    $exportColumns[] = [
-                        'type' => 'field',
-                        'handle' => $column['handle'],
-                        'label' => $column['header'],
-                        'enabled' => true,
-                    ];
-                }
-            }
-        }
+        // Table requests and exports share the fully expanded, ordered configuration.
+        $exportColumns = Formie::$plugin->getReportColumns()->getConfiguredColumns($report, $user);
+        $columns = Formie::$plugin->getReportColumns()->resolveColumns($report, $exportColumns, $user);
 
         $formIds = $settings->filters['formIds'] ?? '*';
         $fieldColumnsMode = Formie::$plugin->getReportColumns()->inferFieldColumnsMode($settings->columns, $settings->display);

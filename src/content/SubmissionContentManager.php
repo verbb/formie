@@ -163,12 +163,12 @@ class SubmissionContentManager
             [$rootHandle] = $this->splitFieldPath($fieldPath);
             $field = $this->getFieldByHandle($submission, $rootHandle);
 
-            if ($context->projection === FieldValueProjection::Export) {
+            if (in_array($context->projection, [FieldValueProjection::Export, FieldValueProjection::Report], true)) {
                 if ($field && isset($submission->getContentState()->lockedValuesByUid[$field->uid])) {
                     return '[encrypted: unavailable]';
                 }
 
-                // Exports can still include readable fields. Only the unavailable
+                // Reports and exports can still include readable fields. Only the unavailable
                 // encrypted field is replaced with an explicit placeholder.
                 return $this->_projectFieldValue($submission, $fieldPath, $context);
             }

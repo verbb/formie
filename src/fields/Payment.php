@@ -323,6 +323,14 @@ class Payment extends Field
         return $value->getSafeAttributes();
     }
 
+    protected function defineValueForReport(mixed $value, ?ElementInterface $element = null, bool $useOptionLabels = true): mixed
+    {
+        // Report the persisted transaction, rather than the request's payment input.
+        $values = array_filter($this->defineValueForExport($value, $element), static fn($part) => $part !== null && $part !== '');
+
+        return implode(', ', $values);
+    }
+
     protected function defineValueForExport(mixed $value, ?ElementInterface $element = null): array
     {
         $label = $element ? $this->getExportLabel($element) : $this->label;

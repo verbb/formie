@@ -165,6 +165,10 @@ it('smoke checks projection APIs across factory field types and preserves repres
                 $submission->getFieldValueForVariable($profile['handle'], $notification);
 
                 $field->getValueForExport($value, $submission);
+                foreach ([true, false] as $useLabels) {
+                    expect($field->getValueForReport($value, $submission, $useLabels))->toBeString()
+                        ->and($submission->getFieldValueForReport($profile['handle'], $useLabels))->toBeString();
+                }
                 $field->getValueForCondition($value, $submission);
                 $submission->getFieldValueForExport($profile['handle']);
                 $submission->getFieldValueForCondition($profile['handle']);

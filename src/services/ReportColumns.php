@@ -2,7 +2,8 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
-use verbb\formie\base\OptionsField;
+use verbb\formie\base\FieldInterface;
+use verbb\formie\base\ReportSubfieldsInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Content;
 use verbb\formie\fields\Heading;
@@ -28,6 +29,10 @@ class ReportColumns extends Component
 
     public const FIELD_COLUMNS_MODE_ALL = 'all';
     public const FIELD_COLUMNS_MODE_SELECTED = 'selected';
+
+    public const FIELD_ORDER_LAYOUT = 'layout';
+    public const FIELD_ORDER_ALPHABETICAL = 'alphabetical';
+    public const FIELD_ORDER_CUSTOM = 'custom';
 
 
     // Public Methods
@@ -65,7 +70,7 @@ class ReportColumns extends Component
         return $columns;
     }
 
-    public function getFieldColumnsForFormIds(mixed $formIds, ?User $user = null): array
+    public function getFieldColumnsForFormIds(mixed $formIds, ?User $user = null, bool $includeSubfields = true): array
     {
         $user ??= Craft::$app->getUser()->getIdentity();
         $resolvedFormIds = Formie::$plugin->getReportQuery()->resolveFormIds($formIds, $user);
@@ -74,7 +79,7 @@ class ReportColumns extends Component
             return [];
         }
 
-        return $this->_queryFieldColumnsForFormIds($resolvedFormIds);
+        return $this->_queryFieldColumnsForFormIds($resolvedFormIds, $includeSubfields);
     }
 
     public function getFieldColumnGroupsForFormIds(mixed $formIds, ?User $user = null): array
@@ -203,6 +208,88 @@ class ReportColumns extends Component
         );
     }
 
+    public function inferFieldOrder(array $columns, ?array $display = null): string
+    {
+        $order = $display['fieldOrder'] ?? null;
+
+        if (in_array($order, [self::FIELD_ORDER_LAYOUT, self::FIELD_ORDER_ALPHABETICAL, self::FIELD_ORDER_CUSTOM], true)) {
+            return $order;
+        }
+
+        // Older reports with a saved selection already have an authored column order.
+        return $this->inferFieldColumnsMode($columns, $display) === self::FIELD_COLUMNS_MODE_SELECTED
+            ? self::FIELD_ORDER_CUSTOM
+            : self::FIELD_ORDER_LAYOUT;
+    }
+
+    public function normalizeCompoundFieldColumns(mixed $mode): string
+    {
+        return in_array($mode, ['combined', 'subfields', 'both'], true) ? $mode : 'combined';
+    }
+
+    public function getAutomaticFieldColumns(array $columns, mixed $mode = null): array
+    {
+        $mode = $this->normalizeCompoundFieldColumns($mode);
+        $parents = [];
+
+        foreach ($columns as $column) {
+            if (str_contains($column['handle'], '.')) {
+                $parents[explode('.', $column['handle'], 2)[0]] = true;
+            }
+        }
+
+        // Fields without declared report subcolumns retain their combined column.
+        return array_values(array_filter($columns, static function(array $column) use ($mode, $parents): bool {
+            if (str_contains($column['handle'], '.')) {
+                return $mode !== 'combined';
+            }
+
+            return $mode !== 'subfields' || !isset($parents[$column['handle']]);
+        }));
+    }
+
+    public function getConfiguredColumns(Report $report, ?User $user = null): array
+    {
+        $settings = $report->getSettingsModel();
+        $columns = $this->usesAllFieldColumns($report)
+            ? $this->_sourceColumnsForAllFieldMode($report, $settings->columns, $user)
+            : $settings->columns;
+        $columns = $this->normalizeColumnsPayload($columns);
+        $order = $this->inferFieldOrder($settings->columns, $settings->display);
+
+        if ($order === self::FIELD_ORDER_CUSTOM) {
+            return $columns;
+        }
+
+        $fields = array_values(array_filter($columns, static fn(array $column): bool => ($column['type'] ?? 'attribute') === 'field'));
+
+        if ($order === self::FIELD_ORDER_ALPHABETICAL) {
+            usort($fields, static fn(array $a, array $b): int => strcmp(
+                mb_strtolower((string)($a['label'] ?? $a['handle'])),
+                mb_strtolower((string)($b['label'] ?? $b['handle'])),
+            ));
+        } else {
+            $positions = array_flip(array_column($this->getFieldColumnsForFormIds(
+                $settings->filters['formIds'] ?? '*',
+                $user,
+                includeSubfields: true,
+            ), 'handle'));
+            usort($fields, static fn(array $a, array $b): int => ($positions[$a['handle']] ?? PHP_INT_MAX) <=> ($positions[$b['handle']] ?? PHP_INT_MAX));
+        }
+
+        // Replace field slots only: attributes retain their authored positions.
+        $index = 0;
+
+        foreach ($columns as &$column) {
+            if (($column['type'] ?? 'attribute') === 'field') {
+                $column = $fields[$index++];
+            }
+        }
+        unset($column);
+
+        return $columns;
+    }
+
     public function mergeEditorColumns(array $savedColumns, array $availableFieldColumns): array
     {
         $defaults = $this->getDefaultAttributeColumns();
@@ -285,11 +372,7 @@ class ReportColumns extends Component
         $settings = $report->getSettingsModel();
         $display = $settings->display;
         $definitions = $this->getAttributeDefinitions();
-        $sourceColumns = $columnOverride ?? $settings->columns;
-
-        if ($columnOverride === null && $this->usesAllFieldColumns($report)) {
-            $sourceColumns = $this->_sourceColumnsForAllFieldMode($report, $settings->columns, $user);
-        }
+        $sourceColumns = $columnOverride ?? $this->getConfiguredColumns($report, $user);
 
         $resolved = [];
 
@@ -510,7 +593,7 @@ class ReportColumns extends Component
         return $normalized ?: $this->getDefaultAttributeColumns();
     }
 
-    public function compactColumnsForStorage(array $columns, ?string $fieldColumnsMode = null): array
+    public function compactColumnsForStorage(array $columns, ?string $fieldColumnsMode = null, ?string $fieldOrder = null): array
     {
         $normalized = [];
 
@@ -523,6 +606,7 @@ class ReportColumns extends Component
 
             if (
                 $fieldColumnsMode === self::FIELD_COLUMNS_MODE_ALL
+                && $fieldOrder === null
                 && $type === 'field'
             ) {
                 continue;
@@ -558,22 +642,43 @@ class ReportColumns extends Component
             $attributes = $this->getDefaultAttributeColumns();
         }
 
+        $settings = $report->getSettingsModel();
+        $availableColumns = $this->getAutomaticFieldColumns(
+            $this->getFieldColumnsForFormIds($settings->filters['formIds'] ?? '*', $user),
+            $settings->display['compoundFieldColumns'] ?? null,
+        );
+
         $fieldColumns = array_map(static function(array $column): array {
             $column['enabled'] = true;
 
             return $column;
-        }, $this->getFieldColumnsForFormIds(
-            $report->getSettingsModel()->filters['formIds'] ?? '*',
-            $user,
-        ));
+        }, $availableColumns);
 
-        return [...$attributes, ...$fieldColumns];
+        // Keep saved positions and labels, while including newly added fields automatically.
+        $available = array_column($fieldColumns, null, 'handle');
+        $columns = [];
+
+        $sourceColumns = empty($report->getSettingsModel()->display['fieldOrder']) ? $attributes : ($savedColumns ?: $attributes);
+
+        foreach ($sourceColumns as $column) {
+            if (($column['type'] ?? 'attribute') !== 'field') {
+                $columns[] = $column;
+            } elseif (isset($available[$column['handle']])) {
+                $columns[] = array_merge($available[$column['handle']], $column, ['enabled' => true]);
+                unset($available[$column['handle']]);
+            }
+        }
+
+        return [...$columns, ...array_values($available)];
     }
 
-    private function _queryFieldColumnRowsForFormIds(array $formIds): array
+    private function _queryFieldColumnRowsForFormIds(array $formIds, bool $includeSubfields = true): array
     {
-        return (new Query())
+        // Automatic columns follow each form's layout, including reordered pages and rows.
+        $rows = (new Query())
             ->select([
+                'fieldId' => 'ff.id',
+                'fieldType' => 'f.type',
                 'formId' => 'fo.id',
                 'handle' => 'f.handle',
                 'label' => 'f.label',
@@ -581,18 +686,58 @@ class ReportColumns extends Component
             ->from(['ff' => Table::FORMIE_FORM_FIELDS])
             ->innerJoin(['f' => Table::FORMIE_FIELDS], '[[f.id]] = [[ff.fieldId]]')
             ->innerJoin(['fo' => Table::FORMIE_FORMS], '[[fo.layoutId]] = [[ff.layoutId]]')
+            ->innerJoin(['r' => Table::FORMIE_FIELD_LAYOUT_ROWS], '[[r.id]] = [[ff.rowId]]')
+            ->innerJoin(['p' => Table::FORMIE_FIELD_LAYOUT_PAGES], '[[p.id]] = [[r.pageId]]')
             ->where(['fo.id' => $formIds])
             ->andWhere(['not in', 'f.type', $this->_cosmeticFieldTypes()])
-            ->orderBy(['fo.id' => SORT_ASC, 'f.label' => SORT_ASC, 'f.handle' => SORT_ASC])
+            ->orderBy([
+                'fo.id' => SORT_ASC,
+                'p.sortOrder' => SORT_ASC,
+                'r.sortOrder' => SORT_ASC,
+                'ff.sortOrder' => SORT_ASC,
+                'f.handle' => SORT_ASC,
+            ])
             ->all();
+
+        if (!$includeSubfields) {
+            return $rows;
+        }
+
+        $columns = [];
+
+        foreach ($rows as $row) {
+            $columns[] = $row;
+
+            if (!is_a($row['fieldType'], ReportSubfieldsInterface::class, true)) {
+                continue;
+            }
+
+            // Resolve the form instance so enabled parts and custom labels come
+            // from its saved nested layout, including synced field settings.
+            $field = Formie::$plugin->getFields()->getFieldById((int)$row['fieldId']);
+
+            if (!$field instanceof ReportSubfieldsInterface) {
+                continue;
+            }
+
+            foreach ($this->_getReportSubfields($field) as $child) {
+                $columns[] = [
+                    'formId' => $row['formId'],
+                    'handle' => $row['handle'] . '.' . $child->handle,
+                    'label' => $row['label'] . ': ' . $child->label,
+                ];
+            }
+        }
+
+        return $columns;
     }
 
-    private function _queryFieldColumnsForFormIds(array $formIds): array
+    private function _queryFieldColumnsForFormIds(array $formIds, bool $includeSubfields = true): array
     {
         $columns = [];
         $seen = [];
 
-        foreach ($this->_queryFieldColumnRowsForFormIds($formIds) as $row) {
+        foreach ($this->_queryFieldColumnRowsForFormIds($formIds, $includeSubfields) as $row) {
             $handle = (string)($row['handle'] ?? '');
 
             if ($handle === '' || isset($seen[$handle])) {
@@ -609,6 +754,15 @@ class ReportColumns extends Component
         }
 
         return $columns;
+    }
+
+    private function _getReportSubfields(ReportSubfieldsInterface $field): array
+    {
+        return array_values(array_filter(
+            $field->getReportSubfields(),
+            static fn($child): bool =>
+            $child instanceof FieldInterface && !$child->getIsDisabled() && !$child->getIsCosmetic()
+        ));
     }
 
     private function _cosmeticFieldTypes(): array
@@ -645,35 +799,24 @@ class ReportColumns extends Component
     private function _formatFieldCell(Submission $submission, string $handle, array $display): mixed
     {
         $form = $submission->getForm();
+        [$rootHandle, $childHandle] = array_pad(explode('.', $handle, 2), 2, null);
+        $field = $form?->getFieldByHandle($rootHandle);
 
-        if (!$form || !$form->getFieldByHandle($handle)) {
+        if ($childHandle !== null) {
+            if (!$field instanceof ReportSubfieldsInterface) {
+                return null;
+            }
+
+            // Only explicitly declared report children may be selected, including
+            // stored columns whose field layout has changed since the report was saved.
+            $children = array_column($this->_getReportSubfields($field), null, 'handle');
+            $field = $children[$childHandle] ?? null;
+        }
+
+        if (!$field) {
             return null;
         }
 
-        if ($display['useOptionLabels'] && $form->getFieldByHandle($handle) instanceof OptionsField) {
-            return $submission->getFieldValueForSummary($handle);
-        }
-
-        $value = $submission->getFieldValueForExport($handle);
-
-        if (is_array($value)) {
-            $flat = [];
-
-            array_walk_recursive($value, function($item) use (&$flat): void {
-                if ($item !== null && $item !== '') {
-                    $flat[] = (string)$item;
-                }
-            });
-
-            return $flat ? implode('; ', $flat) : null;
-        }
-
-        if (!$display['useOptionLabels'] && $value !== null) {
-            $stringValue = $submission->getFieldValueAsString($handle);
-
-            return $stringValue !== '' ? $stringValue : $value;
-        }
-
-        return $value;
+        return $submission->getFieldValueForReport($handle, (bool)($display['useOptionLabels'] ?? true));
     }
 }

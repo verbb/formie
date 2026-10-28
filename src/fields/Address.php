@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\AddressProvider;
 use verbb\formie\base\Field;
 use verbb\formie\base\FixedParentField;
+use verbb\formie\base\ReportSubfieldsInterface;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\compatibility\fields\FieldConfigNormalizer;
@@ -45,7 +46,7 @@ use yii\db\Schema;
 use Faker\Generator as FakerFactory;
 use GraphQL\Type\Definition\Type;
 
-class Address extends FixedParentField implements PreviewableFieldInterface
+class Address extends FixedParentField implements ReportSubfieldsInterface, PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -92,6 +93,11 @@ class Address extends FixedParentField implements PreviewableFieldInterface
 
     // Public Methods
     // =========================================================================
+
+    public function getReportSubfields(): array
+    {
+        return $this->getEnabledFields();
+    }
 
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {

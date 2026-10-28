@@ -257,6 +257,33 @@ Defines the field value used in exports.
 :::
 
 ::: reference
+### `defineValueForReport()`
+
+Defines the value shown in a single report cell, including CSV, Excel and other report exports. It defaults to `defineValueAsString()`. Override `protected function defineValueForReport(mixed $value, ?ElementInterface $element = null, bool $useOptionLabels = true): mixed` to customize report output without changing the field's stored value or structured export data.
+
+Return a plain-text string, another scalar, or `null` for an empty cell. Honor `$useOptionLabels` if your field offers options. Container fields should call each child's `getValueForReport()` with the same preference so child formatting and masking are preserved.
+:::
+
+### Report Subcolumns
+
+A parent field can implement `verbb\formie\base\ReportSubfieldsInterface` to offer separate report columns. Return the direct child field objects from `getReportSubfields()` in the desired layout order. These must belong to the field's normal child layout so submission values can be resolved through their handles. Disabled and cosmetic children are excluded automatically. Return an empty array when the field has no report subcolumns.
+
+```php
+use verbb\formie\base\ReportSubfieldsInterface;
+use verbb\formie\fields\Group;
+
+class Details extends Group implements ReportSubfieldsInterface
+{
+    public function getReportSubfields(): array
+    {
+        return $this->getFields();
+    }
+}
+```
+
+Reports expose each declared child as `parentHandle.childHandle`, labelled with both field labels. Child cells use the child's report projection, including option-label preferences. The parent keeps its combined report projection. **Parent Field Columns** on the report's **Display** tab controls automatic inclusion; manually selected reports can choose either representation. Parent fields do not opt in automatically, and repeating rows are not implicitly flattened into columns.
+
+::: reference
 ### `defineValueForSummary()`
 
 Defines the field value used in summaries.
@@ -456,7 +483,7 @@ These are defined in functions, which are respectively:
 - `getReferenceBlockTemplatePath()`
 - `defineFormBuilderPreviewSchema()`
 - `getInputTemplateVariables()`
-- `defineValueAsString()`, `defineValueAsData()`, `defineValueForReference()`, `defineValueForReferenceBlock()`, `defineValueForExport()` or `defineValueForSummary()` when the default value handling is not enough.
+- `defineValueAsString()`, `defineValueAsData()`, `defineValueForReference()`, `defineValueForReferenceBlock()`, `defineValueForExport()`, `defineValueForReport()` or `defineValueForSummary()` when the default value handling is not enough.
 
 ```php
 public static function getInputTemplatePath(): string

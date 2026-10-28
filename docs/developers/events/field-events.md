@@ -318,6 +318,21 @@ Event::on(MultiLineText::class, MultiLineText::EVENT_MODIFY_VALUE_FOR_EXPORT, fu
 });
 ```
 
+### The `modifyValueForReport` Event
+The event that is triggered after preparing a field's value for a report cell. It applies to report tables and report exports, and is available on any class that extends `verbb\formie\base\Field`.
+
+Set `value` to a plain-text string, another scalar, or `null` for an empty cell. The event also provides the `field` and `submission`. For example, this listener capitalizes names in reports without changing their stored values:
+
+```php
+use verbb\formie\events\ModifyFieldValueEvent;
+use verbb\formie\fields\Name;
+use yii\base\Event;
+
+Event::on(Name::class, Name::EVENT_MODIFY_VALUE_FOR_REPORT, function(ModifyFieldValueEvent $event) {
+    $event->value = mb_strtoupper((string)$event->value);
+});
+```
+
 ### The `modifyValueForIntegration` Event
 The event that is triggered when preparing a field's value to be used in integrations. You can use this on any class that extends the `verbb\formie\base\Field` class.
 

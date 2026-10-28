@@ -70,6 +70,7 @@ function ReportColumnDragGhost({ column, useFieldHandles = false }) {
 const ReportColumnRowBody = memo(function ReportColumnRowBody({
     column,
     disabled,
+    automaticFields = false,
     useFieldHandles = false,
     onEnabledChange,
     onLabelChange,
@@ -84,7 +85,7 @@ const ReportColumnRowBody = memo(function ReportColumnRowBody({
             <ReportColumnTypeBadge column={column} />
             <Lightswitch
                 checked={Boolean(column.enabled)}
-                disabled={disabled}
+                disabled={disabled || (automaticFields && column.type === 'field')}
                 onCheckedChange={(enabled) => { onEnabledChange(columnKey(column), enabled); }}
             />
             <div className="min-w-0 flex-1">
@@ -113,6 +114,7 @@ function SortableReportColumnRow({
     column,
     index,
     disabled,
+    automaticFields = false,
     useFieldHandles = false,
     isDragPlaceholder = false,
     onEnabledChange,
@@ -147,6 +149,7 @@ function SortableReportColumnRow({
             <ReportColumnRowBody
                 column={column}
                 disabled={disabled}
+                automaticFields={automaticFields}
                 useFieldHandles={useFieldHandles}
                 onEnabledChange={onEnabledChange}
                 onLabelChange={onLabelChange}
@@ -158,6 +161,7 @@ function SortableReportColumnRow({
 function ReportEnabledColumnsList({
     columns,
     disabled = false,
+    automaticFields = false,
     scrollable = false,
     showFieldPicker = false,
     usesAllFieldColumns = false,
@@ -279,6 +283,7 @@ function ReportEnabledColumnsList({
                             column={column}
                             index={index}
                             disabled={disabled}
+                            automaticFields={automaticFields}
                             useFieldHandles={useFieldHandles}
                             isDragPlaceholder={draggingKey === columnKey(column)}
                             onEnabledChange={onEnabledChange}
@@ -310,6 +315,7 @@ export function ReportColumnsEditor({
     onChange,
     scrollable = false,
     fieldColumnsMode = 'all',
+    showAutomaticFields = false,
     fieldColumnGroups = [],
     useFieldHandles = false,
 }) {
@@ -326,8 +332,8 @@ export function ReportColumnsEditor({
             .map((column) => enrichColumnWithFormContext(column, formGroupLookups));
     }, [columns, formGroupLookups]);
 
-    const updateColumns = useCallback((nextColumns) => {
-        onChange(nextColumns);
+    const updateColumns = useCallback((nextColumns, options) => {
+        onChange(nextColumns, options);
     }, [onChange]);
 
     const handleEnabledChange = useCallback((key, enabled) => {
@@ -423,7 +429,7 @@ export function ReportColumnsEditor({
         const enabledKeys = new Set(nextEnabledColumns.map((column) => columnKey(column)));
         const remainingColumns = columns.filter((column) => !enabledKeys.has(columnKey(column)));
 
-        updateColumns([...nextEnabledColumns, ...remainingColumns]);
+        updateColumns([...nextEnabledColumns, ...remainingColumns], { reordered: true });
     }, [columns, updateColumns]);
 
     // Baseline fix for manual column reorder lag on large sites: unmount the heavy field-picker
@@ -448,7 +454,9 @@ export function ReportColumnsEditor({
         <div className="flex flex-col gap-6">
             {usesAllFieldColumns ? (
                 <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-gray-700">
-                    {Craft.t('formie', 'All non-cosmetic fields from the filtered forms are included automatically. Configure submission attributes below, or switch to manual selection to pick individual fields.')}
+                    {showAutomaticFields
+                        ? Craft.t('formie', 'All form fields are included automatically. Drag to arrange them; newly added fields appear at the end.')
+                        : Craft.t('formie', 'All non-cosmetic fields from the filtered forms are included automatically. Choose Custom field order to arrange them, or choose fields manually to include specific fields.')}
                 </div>
             ) : null}
 
@@ -495,9 +503,10 @@ export function ReportColumnsEditor({
                     <ReportEnabledColumnsList
                         columns={enabledColumns}
                         disabled={disabled}
+                        automaticFields={usesAllFieldColumns}
                         scrollable={scrollable}
                         showFieldPicker={showFieldPicker}
-                        usesAllFieldColumns={usesAllFieldColumns}
+                        usesAllFieldColumns={usesAllFieldColumns && !showAutomaticFields}
                         useFieldHandles={useFieldHandles}
                         onEnabledChange={handleEnabledChange}
                         onLabelChange={handleLabelChange}
@@ -539,7 +548,7 @@ export const resolveFieldColumnsForForms = (formIds, fieldColumnsByForm = {}) =>
     return mergeColumns(ids.flatMap((id) => fieldColumnsByForm[id] || []));
 };
 
-export const compactColumnsForStorage = (columns, fieldColumnsMode = 'all') => {
+export const compactColumnsForStorage = (columns, fieldColumnsMode = 'all', fieldOrder = null) => {
     const normalized = (columns || []).filter((column) => column?.handle).map((column) => {
         const item = {
             type: column.type || 'attribute',
@@ -564,7 +573,7 @@ export const compactColumnsForStorage = (columns, fieldColumnsMode = 'all') => {
             return true;
         }
 
-        if (isAllFieldColumnsMode(fieldColumnsMode)) {
+        if (isAllFieldColumnsMode(fieldColumnsMode) && fieldOrder === null) {
             return false;
         }
 

@@ -405,6 +405,11 @@ class Password extends Field implements SortableFieldInterface, PreviewableField
         return '';
     }
 
+    protected function defineValueForReport(mixed $value, ?ElementInterface $element = null, bool $useOptionLabels = true): mixed
+    {
+        return $this->defineValueForSummary($value, $element);
+    }
+
     protected function defineValueForExport(mixed $value, ?ElementInterface $element = null): mixed
     {
         // Hide the hashed password from exports as well

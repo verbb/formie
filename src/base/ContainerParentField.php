@@ -223,6 +223,28 @@ abstract class ContainerParentField extends ParentField implements ParentFieldIn
         return $this->projectChildValues($value, $element, fn($field, $child) => $field->getValueAsData($field->normalizeFieldValue($child, $element), $element));
     }
 
+    protected function defineValueForReport(mixed $value, ?ElementInterface $element = null, bool $useOptionLabels = true): mixed
+    {
+        $values = [];
+        $parts = $this->nestedValueParts($value);
+
+        // Child report projections retain masking and option preferences inside containers.
+        foreach ($this->getEnabledFields($element) as $field) {
+            if ($field->getIsCosmetic()) {
+                continue;
+            }
+
+            $subValue = $field->normalizeFieldValue($parts[$field->handle] ?? $parts[$field->uid] ?? null, $element);
+            $reportValue = $field->getValueForReport($subValue, $element, $useOptionLabels);
+
+            if ($reportValue !== null && $reportValue !== '') {
+                $values[] = $reportValue;
+            }
+        }
+
+        return implode(', ', $values);
+    }
+
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
         if ($this->isValueEmpty($value, $element)) {

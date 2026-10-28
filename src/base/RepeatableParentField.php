@@ -324,6 +324,28 @@ abstract class RepeatableParentField extends ParentField implements RepeatablePa
         return $this->projectChildValues($value, $element, fn($field, $child) => $field->getValueAsData($field->normalizeFieldValue($child, $element), $element));
     }
 
+    protected function defineValueForReport(mixed $value, ?ElementInterface $element = null, bool $useOptionLabels = true): mixed
+    {
+        $values = [];
+
+        foreach ($value as $rowKey => $row) {
+            foreach ($this->getFields($rowKey) as $field) {
+                if ($field->getIsCosmetic() || $field->getIsDisabled()) {
+                    continue;
+                }
+
+                $subValue = $field->normalizeFieldValue($row[$field->handle] ?? $row[$field->uid] ?? null, $element);
+                $reportValue = $field->getValueForReport($subValue, $element, $useOptionLabels);
+
+                if ($reportValue !== null && $reportValue !== '') {
+                    $values[] = $reportValue;
+                }
+            }
+        }
+
+        return implode(', ', $values);
+    }
+
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
         $values = [];

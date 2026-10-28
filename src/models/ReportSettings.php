@@ -60,6 +60,8 @@ class ReportSettings extends Model
             'useFieldHandles' => false,
             'useOptionLabels' => true,
             'fieldColumnsMode' => 'all',
+            'compoundFieldColumns' => 'combined',
+            'fieldOrder' => null,
         ];
     }
 

@@ -886,6 +886,13 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
+    protected function defineValueForReport(mixed $value, ?ElementInterface $element = null, bool $useOptionLabels = true): mixed
+    {
+        return $useOptionLabels
+            ? $this->defineValueForSummary($value, $element)
+            : $this->defineValueAsString($value, $element);
+    }
+
     protected function defineValueForSummary(mixed $value, ?ElementInterface $element = null): string
     {
         if ($value instanceof RecipientsFieldValue) {

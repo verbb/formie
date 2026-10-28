@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- Add Form layout, Alphabetical, and Custom field ordering for reports and exports, preserving existing custom orders. ([#3054](https://github.com/verbb/formie/issues/3054))
+- Add report subcolumn support for parent fields, including Name and Address, with Single Column, Separate Columns, and Both display options for automatic reports. ([#3055](https://github.com/verbb/formie/issues/3055))
+- Add a dedicated field value projection and event for reports, with readable combined values and independent field formatting. ([#3055](https://github.com/verbb/formie/issues/3055))
 - Add save-time validation for completion redirect URLs, with guidance for external origins that are not allowed. ([#3038](https://github.com/verbb/formie/issues/3038))
 
 ### Changed
@@ -19,6 +22,7 @@
 - Fix required dropdowns enhanced with third-party libraries such as Choices.js failing validation when options are selected, and preserve custom required messages. ([#3046](https://github.com/verbb/formie/issues/3046))
 - Fix new fields failing to save after upgrading to Formie 4 on PostgreSQL. ([#3045](https://github.com/verbb/formie/issues/3045))
 - Fix submission index sorting ignoring the selected direction when switching between Submission and Date Created. ([#3044](https://github.com/verbb/formie/issues/3044))
+- Fix report field columns and exports using alphabetical order instead of the form layout when including all fields. ([#3054](https://github.com/verbb/formie/issues/3054))
 - Fix integration provider options appearing as custom values after upgrading or as “Don’t Include” after selection. ([#3042](https://github.com/verbb/formie/issues/3042))
 - Fix integrations failing for whole Name and other container field mappings, and migrate legacy Phone sub-field mappings on previously upgraded forms. ([#3052](https://github.com/verbb/formie/issues/3052))
 - Include the destination field and safe field reference in integration mapping errors, while continuing to fail the integration when a mapping cannot be resolved. ([#3052](https://github.com/verbb/formie/issues/3052))

@@ -1005,6 +1005,20 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         return array_merge(parent::defineClientRenderedInput(), $contract);
     }
 
+    protected function defineValueForReport(mixed $value, ?ElementInterface $element = null, bool $useOptionLabels = true): mixed
+    {
+        if ($value instanceof MultiOptionFieldValue) {
+            return implode(', ', $useOptionLabels ? $value->labels() : $value->values());
+        }
+
+        if ($value instanceof SingleOptionFieldValue) {
+            return $useOptionLabels ? $value->getDisplayLabel() : ($value->value ?? '');
+        }
+
+        // Survey display types can use non-option values, such as text or Likert rows.
+        return $this->defineValueAsString($value, $element);
+    }
+
     protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
     {
         if ($value instanceof MultiOptionFieldValue) {

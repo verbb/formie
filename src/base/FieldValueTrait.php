@@ -100,6 +100,21 @@ trait FieldValueTrait
         return $event->value;
     }
 
+    public function getValueForReport(mixed $value, ?ElementInterface $element = null, bool $useOptionLabels = true): mixed
+    {
+        $value = $this->defineValueForReport($value, $element, $useOptionLabels);
+
+        $event = new ModifyFieldValueEvent([
+            'value' => $value,
+            'field' => $this,
+            'submission' => $element,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_VALUE_FOR_REPORT, $event);
+
+        return $event->value;
+    }
+
     public function getValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ?ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         $rawValue = $this->_copyProjectionValue($value);
@@ -219,6 +234,12 @@ trait FieldValueTrait
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
         // A string-representation will largely suit our needs
+        return $this->defineValueAsString($value, $element);
+    }
+
+    protected function defineValueForReport(mixed $value, ?ElementInterface $element = null, bool $useOptionLabels = true): mixed
+    {
+        // Reports need one readable cell; structured export data has a separate projection.
         return $this->defineValueAsString($value, $element);
     }
 

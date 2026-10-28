@@ -4,6 +4,7 @@ namespace verbb\formie\fields;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FixedParentField;
+use verbb\formie\base\ReportSubfieldsInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\content\FieldStorageCodec;
@@ -38,7 +39,7 @@ use yii\db\Schema;
 use Faker\Generator as FakerFactory;
 use GraphQL\Type\Definition\Type;
 
-class Name extends FixedParentField implements SortableFieldInterface, PreviewableFieldInterface
+class Name extends FixedParentField implements ReportSubfieldsInterface, SortableFieldInterface, PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -99,6 +100,11 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
 
     // Public Methods
     // =========================================================================
+
+    public function getReportSubfields(): array
+    {
+        return $this->useMultipleFields ? $this->getEnabledFields() : [];
+    }
 
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
@@ -539,6 +545,18 @@ class Name extends FixedParentField implements SortableFieldInterface, Previewab
     protected function defineValueAsData(mixed $value, ElementInterface $element = null): mixed
     {
         return $this->normalizeValue($value, $element)->toArray();
+    }
+
+    protected function defineValueForReport(mixed $value, ?ElementInterface $element = null, bool $useOptionLabels = true): mixed
+    {
+        if (!$useOptionLabels && $this->useMultipleFields && $value instanceof NameFieldValue) {
+            // Keep the normal full-name formatting while using the stored prefix value.
+            $parts = $value->toArray();
+            $parts['prefixOption'] = $parts['prefix'];
+            $value = new NameFieldValue($parts);
+        }
+
+        return $this->defineValueAsString($value, $element);
     }
 
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
