@@ -1,114 +1,114 @@
 {
-  "name": "@verbb/formie-browser",
-  "version": "1.0.15",
-  "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist",
-    "src",
-    "vite-dev.mjs",
-    "CHANGELOG.md",
-    "LICENSE.md"
-  ],
-  "license": "SEE LICENSE IN LICENSE.md",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/verbb/formie.git"
-  },
-  "bugs": {
-    "url": "https://github.com/verbb/formie/issues"
-  },
-  "homepage": "https://docs.verbb.io/formie/browser",
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "sideEffects": [
-    "**/*.css"
-  ],
-  "imports": {
-    "#theme/*": {
-      "types": "./dist/js/theme/*.d.ts",
-      "default": "./src/js/theme/*"
+    "name": "@verbb/formie-browser",
+    "version": "1.0.15",
+    "type": "module",
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "dist",
+        "src",
+        "vite-dev.mjs",
+        "CHANGELOG.md",
+        "LICENSE.md"
+    ],
+    "license": "SEE LICENSE IN LICENSE.md",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/verbb/formie.git"
     },
-    "#theme-css/*": "./src/css/theme/*",
-    "#theme-base/*": "./src/css/theme-base/*",
-    "#icons/*": "./src/icons/*",
-    "#contracts/*": {
-      "types": "./dist/js/contracts/*.d.ts",
-      "default": "./src/js/contracts/*"
+    "bugs": {
+        "url": "https://github.com/verbb/formie/issues"
     },
-    "#compatibility/*": {
-      "types": "./dist/js/compatibility/*.d.ts",
-      "default": "./src/js/compatibility/*"
+    "homepage": "https://docs.verbb.io/formie/browser",
+    "engines": {
+        "node": ">=20.0.0"
     },
-    "#core/*": {
-      "types": "./dist/js/core/*.d.ts",
-      "default": "./src/js/core/*"
+    "sideEffects": [
+        "**/*.css"
+    ],
+    "imports": {
+        "#theme/*": {
+            "types": "./dist/js/theme/*.d.ts",
+            "default": "./src/js/theme/*"
+        },
+        "#theme-css/*": "./src/css/theme/*",
+        "#theme-base/*": "./src/css/theme-base/*",
+        "#icons/*": "./src/icons/*",
+        "#contracts/*": {
+            "types": "./dist/js/contracts/*.d.ts",
+            "default": "./src/js/contracts/*"
+        },
+        "#compatibility/*": {
+            "types": "./dist/js/compatibility/*.d.ts",
+            "default": "./src/js/compatibility/*"
+        },
+        "#core/*": {
+            "types": "./dist/js/core/*.d.ts",
+            "default": "./src/js/core/*"
+        },
+        "#events/*": {
+            "types": "./dist/js/events/*.d.ts",
+            "default": "./src/js/events/*"
+        },
+        "#modules/*": {
+            "types": "./dist/js/modules/*.d.ts",
+            "default": "./src/js/modules/*"
+        },
+        "#submit/*": {
+            "types": "./dist/js/submit/*.d.ts",
+            "default": "./src/js/submit/*"
+        },
+        "#transport/*": {
+            "types": "./dist/js/transport/*.d.ts",
+            "default": "./src/js/transport/*"
+        },
+        "#utils/*": {
+            "types": "./dist/js/utils/*.d.ts",
+            "default": "./src/js/utils/*"
+        },
+        "#validation/*": {
+            "types": "./dist/js/validation/*.d.ts",
+            "default": "./src/js/validation/*"
+        }
     },
-    "#events/*": {
-      "types": "./dist/js/events/*.d.ts",
-      "default": "./src/js/events/*"
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./css/formie.css": "./dist/css/formie.css",
+        "./css/formie-base.css": "./dist/css/formie-base.css",
+        "./css/formie-theme.css": "./dist/css/formie-theme.css",
+        "./package.json": "./package.json",
+        "./vite-dev": "./vite-dev.mjs"
     },
-    "#modules/*": {
-      "types": "./dist/js/modules/*.d.ts",
-      "default": "./src/js/modules/*"
+    "publishConfig": {
+        "access": "public"
     },
-    "#submit/*": {
-      "types": "./dist/js/submit/*.d.ts",
-      "default": "./src/js/submit/*"
+    "scripts": {
+        "prebuild": "node ../../scripts/generate-browser-theme-state.mjs",
+        "dev": "vite build --watch",
+        "build": "vite build && tsc -p tsconfig.json"
     },
-    "#transport/*": {
-      "types": "./dist/js/transport/*.d.ts",
-      "default": "./src/js/transport/*"
+    "devDependencies": {
+        "@types/leaflet": "^1.9.21",
+        "typescript": "^6.0.3",
+        "vite": "^8.3.5"
     },
-    "#utils/*": {
-      "types": "./dist/js/utils/*.d.ts",
-      "default": "./src/js/utils/*"
-    },
-    "#validation/*": {
-      "types": "./dist/js/validation/*.d.ts",
-      "default": "./src/js/validation/*"
+    "dependencies": {
+        "@friendlycaptcha/sdk": "^1.0.0",
+        "@placekit/autocomplete-js": "^2.2.1",
+        "@uppy/core": "^5.2.0",
+        "@uppy/xhr-upload": "^5.2.0",
+        "@verbb/formie-core": "1.0.15",
+        "expression-language": "^2.5.4",
+        "flatpickr": "^4.6.13",
+        "friendly-challenge": "^0.9.19",
+        "intl-tel-input": "^27.3.0",
+        "leaflet": "^1.9.4",
+        "pell": "^1.0.6",
+        "signature_pad": "^5.1.3",
+        "tom-select": "^2.6.1"
     }
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./css/formie.css": "./dist/css/formie.css",
-    "./css/formie-base.css": "./dist/css/formie-base.css",
-    "./css/formie-theme.css": "./dist/css/formie-theme.css",
-    "./package.json": "./package.json",
-    "./vite-dev": "./vite-dev.mjs"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "prebuild": "node ../../scripts/generate-browser-theme-state.mjs",
-    "dev": "vite build --watch",
-    "build": "vite build && tsc -p tsconfig.json"
-  },
-  "devDependencies": {
-    "@types/leaflet": "^1.9.21",
-    "typescript": "^6.0.3",
-    "vite": "^8.3.4"
-  },
-  "dependencies": {
-    "@friendlycaptcha/sdk": "^1.0.0",
-    "@placekit/autocomplete-js": "^2.2.1",
-    "@uppy/core": "^5.2.0",
-    "@uppy/xhr-upload": "^5.2.0",
-    "@verbb/formie-core": "1.0.15",
-    "expression-language": "^2.5.4",
-    "flatpickr": "^4.6.13",
-    "friendly-challenge": "^0.9.19",
-    "intl-tel-input": "^27.3.0",
-    "leaflet": "^1.9.4",
-    "pell": "^1.0.6",
-    "signature_pad": "^5.1.3",
-    "tom-select": "^2.6.1"
-  }
 }
