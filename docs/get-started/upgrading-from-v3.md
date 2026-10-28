@@ -6,9 +6,7 @@ Formie 4 enables compatibility mode by default. Work through this guide in three
 2. [Before Disabling Compatibility Mode](#before-disabling-compatibility-mode): keep compatibility mode enabled until you have replaced these usages.
 3. [Deprecated Changes](#deprecated-changes): these APIs and configuration aliases still work with compatibility mode off. Update them as you maintain your project.
 
-The [Behaviour Changes](#behaviour-changes) section covers automatic migrations and other differences to be aware of. [Earlier Formie 4 extensions](#updating-earlier-formie-4-extensions) have separate notes; skip those when upgrading from stable Formie 3.
-
-Test the upgrade on staging first. Before upgrading, back up the database and code, retain the existing Craft and Formie security keys, finish pending notification/integration jobs and allow active checkout sessions to finish. Deploy matching PHP and browser assets, then purge cached form HTML. Roll back using the matching pre-upgrade database and code backup.
+The [Behaviour Changes](#behaviour-changes) section covers automatic migrations and other differences to be aware of.
 
 ## Breaking Changes
 
@@ -198,7 +196,6 @@ Formie 3 | Formie 4
 `page.getRows(false)` | `page.getEnabledRows()`
 
 Use `getFieldsRecursively()` for recursive traversal and `field.getFields(rowKey)` for a repeater row.
-
 
 ### Custom Integrations
 
@@ -861,7 +858,7 @@ Replace straightforward values and filters with the tokens inserted by the Varia
 | Upload subpath using a form field | `uploads/{myFieldHandle}` | `uploads/{field:a1b2c3}` |
 | Uploaded filename using a form handle and submission ID | `{form.handle}-{id}` | `{form:handle}-{submission:id}` |
 | Hidden Custom Value using an uppercase form handle | `{form.handle\|upper}` | `{form:handle;transform=upper}` |
-| Submission title using the current date | `{{ "now"\|date("Y-m-d") }}` | `{timestamp;transform=format;preset=isoDate}` |
+| Submission title using the current date | <code v-pre>{{ "now"\|date("Y-m-d") }}</code> | `{timestamp;transform=format;preset=isoDate}` |
 | Notification subject using an uppercase form name | `{formName\|upper}` | `{form:name;transform=upper}` |
 
 `a1b2c3` represents the field's stable reference, not its handle. Insert that token with the Variable Picker; do not copy the placeholder or type `{field:myFieldHandle}`. For the user-based subpath, enable **Collect User** and require the person submitting to be logged in. A user named Ada Lovelace with ID 123 produces `ada-lovelace-123`.
@@ -1067,9 +1064,7 @@ Test a payment, provider return, webhook and cancellation before deployment. Wor
 
 <span id="compatibility-mode"></span>
 
-The changes in this section can wait until after the initial upgrade. Their Formie 3 behaviour requires `compatibilityMode`; complete the applicable updates before turning it off.
-
-`compatibilityMode` is enabled by default. Leave it enabled while updating legacy class names, field schemas, PHP and browser event listeners. Use this section to identify the usages that depend on the switch, then test with it disabled on staging. Deprecation logs help locate old code, but not every warning is a reason to keep compatibility mode on.
+This section can wait until after the initial upgrade. Leave `compatibilityMode` enabled while updating the usages below, then test with it disabled on staging:
 
 ```php
 // config/formie.php
@@ -1078,7 +1073,7 @@ return [
 ];
 ```
 
-Compatibility mode also enables the [browser event bridge](#front-end-javascript-events) automatically on rendered forms. Purge cached form HTML after changing the setting. Once these updates are complete, the [Deprecated Changes](#deprecated-changes) are optional cleanup and do not require compatibility mode.
+Purge cached form HTML after changing the setting. Deprecation logs help locate old code, but the aliases under [Deprecated Changes](#deprecated-changes) work with compatibility mode off; those warnings do not prevent you from disabling it.
 
 ### Front-End JavaScript Events
 
@@ -1567,19 +1562,7 @@ public static function getInputTemplatePath(): string
 ```
 :::
 
-If the field needs template variables, extend `getInputTemplateVariables()`.
-
-```php
-use verbb\formie\elements\Form;
-
-public function getInputTemplateVariables(Form $form, mixed $value): array
-{
-    $variables = parent::getInputTemplateVariables($form, $value);
-    $variables['placeholder'] = $this->placeholder;
-
-    return $variables;
-}
-```
+For additional template variables, use `getInputTemplateVariables()` as shown in [Custom Input Rendering](#custom-input-rendering).
 
 ### Field Setting Names
 
@@ -1596,11 +1579,9 @@ Field configuration accepts the names below and saves their canonical equivalent
 
 The `limitOptions` rename applies only to Element fields; do not rename the selection-count toggle on choice fields.
 
-When updating a subclass, rename its property declaration as well as reads and writes. Existing public declarations such as `public ?string $sizeLimit = '1'` remain synchronized with the new property, including defaults and array mutations. A canonical declaration on the same class or a more-derived class takes precedence over the legacy default; explicit configuration still takes precedence over defaults. `getSettings()` emits canonical names, and cloned fields keep their own settings values.
+When updating a subclass, rename its property declarations as well as reads and writes. Legacy declarations remain supported, including defaults and array mutations. A canonical declaration on the same or a more-derived class takes precedence over a legacy default; explicit configuration takes precedence over either. `getSettings()` emits canonical names.
 
-Phone and Address retain `countryAllowed` as a deprecated public array linked to `allowedCountryCodes`. Existing appends, element removal and functions that take an array by reference continue to work on native fields and subclasses; clones keep independent values. Use `allowedCountryCodes` in new code.
-
-Saved Repeater translations using `addLabel` are applied as `addRowLabel`, including site-switch data and builder saves. An explicit `addRowLabel` translation wins when both names are present. Reading a translation does not rewrite its stored record.
+Phone and Address keep `countryAllowed` linked to `allowedCountryCodes`, so existing array operations still work. Saved Repeater `addLabel` translations also remain supported; an explicit `addRowLabel` translation takes precedence.
 
 #### Recipients Display Settings
 
@@ -1612,9 +1593,9 @@ Recipients accepts its old `multi` / `multiple` configuration during upgrading, 
 
 Replace `className()` with `getShortClassName()` for a short class name. Use `::class` for the fully qualified field class.
 
-Existing `className()` overrides remain supported, including inherited overrides and calls to `parent::className()`. Their results still feed `kebabClassName()`, `lowerClassName()`, default input/reference-block template paths and the default Theme Config key. For example, an override returning `SharedWidget` keeps the default template path `fields/shared-widget`.
+Existing `className()` overrides and parent calls remain supported, including their effect on class helpers, template paths and the Theme Config key. For example, returning `SharedWidget` keeps the default template path `fields/shared-widget`.
 
-When updating an override, rename it to `getShortClassName()` and update its parent call too. A canonical override on the same class or a more-derived class takes precedence when Formie resolves the name. The inherited deprecated `className()` method forwards to the canonical method; a direct call to your own `className()` override still runs your implementation according to PHP inheritance.
+Rename the override and its parent call together. A `getShortClassName()` override on the same or a more-derived class takes precedence when Formie resolves the name; direct calls to an old override still run that implementation.
 
 #### Browser Condition Data
 
@@ -1635,7 +1616,7 @@ Update these public rendering overrides and calls together:
 | `hasEmailLabel()` | `hasReferenceBlockLabel()` |
 | `hasEmailPlaceholder()` | `hasReferenceBlockPlaceholder()` |
 
-The HTML and options methods retain their `(Submission $submission, Notification $notification, mixed $value, array $renderOptions = [])` arguments. Existing overrides remain supported on native field subclasses and can call their parent implementation. A canonical override on the same class or a more-derived class takes precedence. This includes fields with their own rendering behaviour, such as Section, Content and HTML, and the label/placeholder defaults on Agree and cosmetic fields.
+The HTML and options methods retain their `(Submission $submission, Notification $notification, mixed $value, array $renderOptions = [])` arguments. Existing overrides and parent calls remain supported on native field subclasses. A canonical override on the same or a more-derived class takes precedence.
 
 #### Browser Module Configuration
 
@@ -1924,9 +1905,6 @@ Upgrading explicitly enables **Allow Hidden Field Templates**, **Allow Twig in H
 
 Review these controls in **Settings → Field Types and Restrictions** before tightening them. Disabling Hidden templates makes their computed values empty while still ignoring posted input; disabling HTML Twig suppresses output from fields configured for Twig. Stored source is retained, but affected forms must switch away from disabled modes before they can be saved. Disabling includes rejects those Twig calls. Requiring purification can remove markup that existing fields previously allowed. Clear rendered-form caches after changing the policy. PDF filename templates remain unchanged.
 
-
-Review these operational changes while testing the upgrade. They cover automatic migrations, editor workflows and settings you may need to adjust for your site.
-
 ### Changes at a Glance
 
 Stored form settings and content are migrated automatically unless a section above calls for a manual edit. You do not need to recreate forms or resave every submission.
@@ -1942,17 +1920,9 @@ Custom frontends should review [Frontend Assets](/frontend/frontend-assets) when
 
 ### Spam Protection
 
-Spam settings and provider credentials migrate automatically into local storage. Review [Local Spam Protection Settings](#local-spam-protection-settings) for the deployment and permission changes.
+The [removed captcha types](#removed-legacy-captchas) are replaced automatically by Honeypot, Minimum submit time and Replay protection guards. All three are enabled by default, with a three-second minimum submit time. They apply to every form, and standard rendering supplies the required inputs.
 
-Built-in captcha configuration is replaced by submission guards:
-
-Formie 3 | Formie 4
---- | ---
-**Honeypot** captcha | **Honeypot** submission guard
-**JavaScript** captcha | **Minimum submit time** submission guard
-**Duplicate** captcha | **Replay protection** submission guard
-
-All three guards are enabled by default, with a three-second minimum submit time. They apply to every form, and standard rendering supplies the required inputs. Review **Formie → Spam Protection → Spam Rules → Submission Guards** after upgrading. Custom references to the [removed captcha types](#removed-legacy-captchas) still need updating.
+Review **Formie → Spam Protection → Spam Rules → Submission Guards** after upgrading, and follow [Local Spam Protection Settings](#local-spam-protection-settings) when deploying to other installations.
 
 ### Encrypted Submission Fields
 
@@ -1962,7 +1932,6 @@ Before enabling encryption on another field, generate `FORMIE_ENCRYPTION_KEY` wi
 
 Keep `FORMIE_SECURITY_KEY` and the previous Craft security key available until conversion is complete if the site has used both. You can supply old keys temporarily through `FORMIE_ENCRYPTION_PREVIOUS_KEYS`. Formie preserves and locks any value it cannot decrypt instead of displaying it as blank or overwriting it during a resave.
 
-
 ### Production Settings Permissions
 
 Settings permissions cover tools available with admin changes disabled, including import/export, support, encryption status, synced field usage and viewing scheduled reports. Project configuration, such as form groups, defaults, statuses and templates, requires a Craft administrator in an environment with admin changes enabled.
@@ -1971,14 +1940,9 @@ Upgrade migrations remove the retired configuration grants. Existing blanket set
 
 ### Reports and Submission Export
 
-The submissions index **Export** action has moved to **Formie → Reports**. Update editor permissions and workflows if they rely on it.
+The submissions index **Export** action has moved to **Formie → Reports**. For a one-off export, run a report for the forms you need and choose **Export**; you do not need to save a report definition. See [Reports](/reports/reports) for filters, formats and scheduled delivery.
 
-Submission export now lives in **[Reports](/reports/reports)**:
-
-- **Formie → Reports** — saved filters, columns, charts, on-demand export (CSV, Excel, JSON, XML, text), and [scheduled email delivery](/reports/scheduled-reports)
-- For a one-off file without saving a report definition, run a report scoped to the form(s) you need and choose **Export** on the report run screen
-
-**Permissions** — report access is split from submission management. Under **Settings → Users → {group} → Formie**, assign:
+Report access is separate from submission management. Update editor permissions under **Settings → Users → {group} → Formie**:
 
 | Permission | Purpose |
 | --- | --- |
@@ -1987,8 +1951,6 @@ Submission export now lives in **[Reports](/reports/reports)**:
 | **Manage reports** | Create, edit, delete reports; includes export |
 | **View scheduled reports** | Inspect saved deliveries under **Settings → Scheduled Reports** |
 | **Send scheduled report test emails** | Send a saved scheduled report to your own email address |
-
-See [Reports](/reports/reports), [Saved reports and scheduled delivery](/guides/submissions-workflows/saved-reports-and-scheduled-delivery), and [Submissions overview](/submissions/submissions#export-submission-data).
 
 ### Static Caches
 
@@ -2009,9 +1971,9 @@ Purge cached form HTML on deployment so recipients, Summary fields and editing f
 
 ### Save and Continue Later
 
-Formie 4 stores form progress in the database so Save & Continue links can resume the same draft across browsers. Automatic page saving remembers the visitor’s browser; it does not create a shareable link. Links for resuming drafts and editing completed submissions are separate and cannot be used interchangeably.
+Save & Continue links now resume database-backed drafts across browsers. Automatic page saving remembers the visitor’s browser without creating a shareable link. Draft-resume links and completed-submission edit links are separate.
 
-If you customise save buttons, draft handling, or submission retention, review [Save & Continue Later](/forms/save-continue-later).
+Review [Save & Continue Later](/forms/save-continue-later) if you customise save buttons, draft handling or retention.
 
 Related settings include:
 
@@ -2062,17 +2024,13 @@ Use the [payment console commands](/developers/console-commands) to inspect and 
 
 ### New and Renamed Settings
 
-Review `config/formie.php` if your project keeps a full config file.
-
-The most upgrade-relevant settings are:
+If your project keeps a full `config/formie.php`, review these settings and the [save/resume settings](#save-and-continue-later):
 
 Setting | Use
 --- | ---
 `compatibilityMode` | Enables Formie 3 compatibility shims, including supported browser events. Defaults to `true`.
 `allowLegacySignatureImageUrls` | Keeps unsigned Signature images in previously sent Formie 2/3 emails available for explicitly grandfathered submissions. Defaults to `true`; new emails use signed URLs.
 `staticCacheRefreshOnLoad` | Enables token refresh support for static-cache setups that are not auto-detected.
-`submissionStateRetentionDays` | Controls retention for stored submission state.
-`saveResumeTokenTtlDays` | Controls resume link lifetime.
 `setOnlyCurrentPagePayload` | Limits front-end page payload behaviour to the current page.
 `anonymousFormBootstrapRateLimit` | Rate limit for anonymous form bootstrap requests.
 `anonymousFormRefreshRateLimit` | Rate limit for anonymous token refresh requests.
@@ -2082,92 +2040,3 @@ Setting | Use
 Remove `enableGatsbyCompatibility` from your config when convenient; Formie ignores this obsolete setting.
 
 See [Configuration](/get-started/configuration) for the current config shape.
-
-## Updating Earlier Formie 4 Extensions
-
-Skip this section when upgrading from stable Formie 3. It applies only to custom code written against earlier Formie 4 betas; deploy updated PHP and npm packages together. The replacements below have no compatibility aliases unless noted.
-
-| Earlier Formie 4 Beta | Current Formie 4 |
-|---|---|
-| `client\modules` namespace | `browser\modules` |
-| `compatibility\client\RefreshTokensCompatibility` | `compatibility\browser\RefreshTokensCompatibility` |
-| `ClientSessionService` and `getClientSessionService()` | `services\FormSessions` and `getFormSessions()` |
-| `client\BaseClientModel` | `base\FormPayload` |
-| `client\ClientMutationRequest` | `models\FormMutationRequest` |
-| `client\models\FormSession`, `PageTransitionRequest`, `SessionRefreshRequest` | The corresponding classes in `models` |
-| `client\models\SubmitRequest`, `SubmitResult` | `models\FormSubmitRequest`, `FormSubmitResult` |
-| `ManagedSubmissionRequest` and `executeManaged()` | `HtmlSubmissionRequest` and `executeHtml()` |
-| `getClientFormDefinitionBuilder()->build($form, $context)` | `$form->getClientRenderedDefinition($context)` |
-| Custom Craft-field adapter `getClientInput()` | `getClientRenderedInput()` |
-| `definePrimaryOptionVariableSourceTypes()` | `definePrimaryOptionReferenceTypes()` |
-| `ClientConditionRule`, `ClientConditionSettings`, `ClientValidationRule` npm types | `BrowserConditionRule`, `BrowserConditionSettings`, `BrowserValidationRule` |
-| `anonymousClientBootstrapRateLimit`, `anonymousClientRefreshRateLimit`, `anonymousClientRateWindowSeconds` settings | `anonymousFormBootstrapRateLimit`, `anonymousFormRefreshRateLimit`, `anonymousFormRateWindowSeconds` |
-
-### Beta Field Rendering
-
-For fields that implemented `clientRenderedDefinition()` or returned `FieldClientRenderedDefinition`, put the field type in `defineClientRenderedType()` and its input settings in `defineClientRenderedInput()`. Call `getClientRenderedDefinition()` to obtain the assembled payload. The [Custom Field reference](/developers/custom-field/overview) documents these hooks.
-
-Code reading field `runtime.structure` must read `client.children.model` and `client.valueType` instead.
-
-### Beta Reference Types
-
-`definePrimaryOptionReferenceTypes()` must return `ReferenceType` enum cases; renaming the method alone is insufficient.
-
-### Beta Condition and Validation Helpers
-
-Code using the old `ConditionsHelper::getClientFieldReferenceMap()` forwarding method should call `FieldReferenceHelper::getBrowserFieldReferenceMap($form->getFields())` directly.
-
-The CP condition helper uses `CpSubmissionFieldConditions::browserDisplayMode()` and `BROWSER_DISPLAY_HIDE`. Shared PHP condition helpers now use browser terminology: `compileBrowserConditions()`, `getBrowserSubmissionContext()`, `getSubmitButtonBrowserConditions()`, and `toBrowserConditionDefinition()`. Field-reference helpers use `getBrowserFieldReferenceMap()`, `resolveBrowserFieldKey()`, and `normalizeBrowserFieldReference()`. Shared validation helpers use `BrowserAttribute` or `BrowserAttributes` suffixes; text-limit configuration uses `getTextLimitBrowserConfig()`. Client-rendered text-limit and option-limit inputs use `getTextLimitClientRenderedInput()` and `getOptionsLimitClientRenderedInput()`.
-
-### Beta Submission Sessions
-
-`FormSessions::persistPageState($request)` takes only the page-transition request. Remove the unused second boolean argument; visitor page transitions enforce the shared refresh rate limit through the submission guards.
-
-Session submission helpers use `applySessionRequestContext()`, `getRequiredSessionMutationScope()`, and `resolveSessionContinuationSubmission()`.
-
-### Removed Beta Classes
-
-The empty `FieldRequiredValidator` wrapper has been removed; use Yii’s `RequiredValidator`. Removed beta compatibility classes include `ClientCompatibility`, `ClientGuestCsrfTrait`, and the `options\sources` class aliases. Use the canonical `options`, `options\resolvers`, and `options\predefined` classes. Replace `OptionSourceProviderInterface` with `OptionSourceResolverInterface` and the `providers` classes with their corresponding `resolvers` classes.
-
-<span id="integration-connection-settings"></span>
-
-### Beta Integration Secrets
-
-Existing encrypted settings from earlier Formie 4 betas need their original key or replacement values.
-
-Remove calls to `IntegrationSecrets::protect()` and `protectBindings()`. Use `FormIntegrationSetting` to allow a property to be configured per form and `Sensitive` to mark it for redaction.
-
-### Beta Craft-Field Storage
-
-Custom Craft-field adapters must also rename their persistence implementation from `serializeValue()` to `serializeValueForDb()`.
-
-### Beta Subscription Setup Records
-
-Earlier beta subscription setup rows become non-monetary `subscriptionSetup` operations; recurring invoices remain separate `recurringCharge` payments.
-
-### Beta Field Helpers
-
-Beta extension code should replace `isOptionFrontEndDisabled()` with `isOptionDisabled()`, `getOptionSourceSourceOptions()` with `getOptionSourceOptions()`, and protected `conditionDefinition()` with `defineConditions()`. The partial public `collectBrowserModules()` helper is removed; presentation delegates compose the protected declaration, while consumers use `browserModules($context)` for completed declarations.
-
-### Beta Recipients Values
-
-The beta `RecipientsFieldValue` no longer stores `displayType`; use its read-only `value`, `label`, `valid` and `multiple` properties and `all()` / `values()` / `labels()` methods.
-
-### Beta Quiz Settings
-
-Quiz's beta property `fieldType` is now `displayType`, and its `FIELD_TYPE_*` constants are now `DISPLAY_*`. Stored beta configuration is migrated when loaded; the old PHP property and constants are not retained.
-
-### Beta Browser Module Settings
-
-Map adapter configuration helpers use `BrowserSettings` suffixes. Update beta browser-module configurations to use `allowedCountryCodes`, `maxFiles`, `minFileSize` and `maxFileSize`; client-rendered Repeater definitions use `addRowLabel`.
-
-### Working Beta Integration Aliases
-
-These earlier beta methods and their overrides remain supported. Update them when convenient.
-
-Earlier Formie 4 Beta | Current Formie 4
---- | ---
-`getIntegrationFieldMappingField()` | `createFieldMappingField()`
-`getGraphqlPaymentInputFieldKeys()` | `getGqlPaymentInputFieldKeys()`
-`getOptionalGraphqlPaymentInputFieldKeys()` | `getOptionalGqlPaymentInputFieldKeys()`
-`getConfigRefreshParams()` | `getOptionSourceRefreshParams($provider)`
