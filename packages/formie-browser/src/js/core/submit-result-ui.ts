@@ -318,7 +318,6 @@ export function renderFormErrors(form: HTMLFormElement, formErrors: string[]): v
     formErrors.forEach((error) => {
         const errorNode = document.createElement('div');
         errorNode.setAttribute('data-formie-error', 'true');
-        errorNode.setAttribute('role', 'alert');
         addThemeClasses(errorNode, form, 'error');
         errorNode.innerHTML = error;
         messageContainer.appendChild(errorNode);

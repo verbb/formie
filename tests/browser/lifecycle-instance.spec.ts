@@ -143,6 +143,39 @@ test('aborted and failed results preserve their instance and mutable payload', a
     await expectContexts(page, ['formie:submit:result']);
 });
 
+for (const reuseContainer of [false, true]) {
+    test(`failed submissions use one error live region with existing container ${reuseContainer}`, async ({ page }) => {
+        await openForms(page, { failure: true });
+        const form = page.locator('#first');
+        const preference = reuseContainer ? 'assertive' : 'polite';
+        await form.evaluate((element, { reuseContainer, preference }) => {
+            element.setAttribute('data-formie-error-aria-live', preference);
+            if (reuseContainer) {
+                element.querySelector('[data-formie-form-messages-top]')!.innerHTML =
+                    '<div data-formie-errors><div data-formie-message data-formie-message-error></div></div>';
+            }
+        }, { reuseContainer, preference });
+        await page.route('**/submit', (route) => route.fulfill({ json: {
+            success: false, errors: { form: ['Server rejected the booking.', 'Please try again.'] },
+        } }));
+
+        for (let attempt = 0; attempt < 2; attempt++) {
+            await form.getByRole('button', { name: 'Send', exact: true }).click();
+            await expect.poll(() => page.evaluate(() => window.lifecycleState.dom.filter(
+                (item) => item.owner === 'first-root' && item.name === 'formie:submit:result',
+            ).length)).toBe(attempt + 1);
+            await expect(form.locator('[data-formie-error]')).toHaveText(['Server rejected the booking.', 'Please try again.']);
+            const message = form.locator('[data-formie-message-error]');
+            await expect(form.getByRole('alert')).toHaveCount(1);
+            await expect(message).toHaveAttribute('role', 'alert');
+            await expect(message).toHaveAttribute('aria-live', preference);
+            await expect(message).toHaveAttribute('aria-atomic', 'true');
+            await expect(message.locator('[role], [aria-live]')).toHaveCount(0);
+            await expect(page.locator('#other [data-formie-error]')).toHaveCount(0);
+        }
+    });
+}
+
 test('page navigation success and failure expose the owning instance', async ({ page }) => {
     await openForms(page, { pages: true });
     await page.locator('#first-root').getByRole('link', { name: 'Next page', exact: true }).click();

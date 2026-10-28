@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed nested alert roles in form error messages that could cause duplicate screen reader announcements. ([#3062](https://github.com/verbb/formie/issues/3062))
 - Fixed Opayo re-tokenizing cards and requesting unnecessary merchant sessions after completing a 3D Secure challenge. ([#3048](https://github.com/verbb/formie/issues/3048))
 
 ## 1.0.16 - 2026-10-28
