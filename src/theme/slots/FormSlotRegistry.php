@@ -76,6 +76,7 @@ class FormSlotRegistry extends Component
         $form = $context->form;
         $moduleManifest = $form ? Formie::$plugin->getBrowserModuleManifestBuilder()->buildForSurface($form, BrowserModule::SURFACE_SERVER_RENDERED)->toArray() : [];
         $themeClassMap = $form ? $form->getBrowserThemeClassMap() : [];
+        $messageAttributes = $this->_browserMessageAttributes($context);
         $settings = Formie::$plugin->getSettings();
         $hasStaticCache = $settings->hasStaticCache();
         $errorAriaLive = $settings->errorAriaLive;
@@ -124,6 +125,7 @@ class FormSlotRegistry extends Component
                 'data-formie-clear-submission-endpoint' => UrlHelper::actionUrl('formie/server/submissions/clear-submission'),
                 'data-formie-modules' => $moduleManifest ? Json::encode($moduleManifest) : false,
                 'data-formie-theme-classes' => $themeClassMap ? Json::encode($themeClassMap) : false,
+                'data-formie-message-attributes' => $messageAttributes ? Json::encode($messageAttributes) : false,
                 'data-formie-pending-client-events' => $pendingClientEvents,
                 // Lets `{submission:*}` page/field conditions evaluate in the browser.
                 'data-formie-submission' => $submissionContext ? Json::encode($submissionContext) : false,
@@ -133,6 +135,31 @@ class FormSlotRegistry extends Component
                     'formie-form',
                 ],
             ]);
+    }
+
+    private function _browserMessageAttributes(RenderContext $context): array
+    {
+        if (!$context->form) {
+            return [];
+        }
+
+        $messages = [];
+
+        foreach (['messageError', 'messageSuccess'] as $key) {
+            // Resolve only theme attributes; browser messages retain their own
+            // structural hooks and live-region behaviour, and classes use the existing map.
+            $tag = Formie::$plugin->getThemeConfigService()->applyFormTagConfig($context->form, $key, SlotTag::make('div'), $context);
+            $attributes = $tag?->attributesForRender() ?? [];
+            unset($attributes['class']);
+
+            foreach (Html::getTagAttributes($attributes) as $name => $value) {
+                // The HTML helper flattens data/aria/style values but returns encoded
+                // entities. DOM setAttribute() needs the original, unescaped value.
+                $messages[$key][$name] = is_string($value) ? Html::decode($value) : $value;
+            }
+        }
+
+        return $messages;
     }
 
     private function _pages(RenderContext $context): SlotTag

@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed theme attributes not being applied to AJAX success and error messages. ([#3061](https://github.com/verbb/formie/issues/3061))
 - Fixed nested alert roles in form error messages that could cause duplicate screen reader announcements. ([#3062](https://github.com/verbb/formie/issues/3062))
 - Fixed Opayo re-tokenizing cards and requesting unnecessary merchant sessions after completing a 3D Secure challenge. ([#3048](https://github.com/verbb/formie/issues/3048))
 

@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fix Microsoft Dynamics 365 requests failing with a provider origin override error. ([#3063](https://github.com/verbb/formie/issues/3063))
+- Fix theme attributes not being applied to AJAX success and error messages. ([#3061](https://github.com/verbb/formie/issues/3061))
 - Fix nested alert roles in form error messages that could cause duplicate screen reader announcements. ([#3062](https://github.com/verbb/formie/issues/3062))
 - Fix Opayo re-tokenizing cards and requesting unnecessary merchant sessions after completing a 3D Secure challenge. ([#3048](https://github.com/verbb/formie/issues/3048))
 - Fix importing Formie 3 forms with a null redirect target. ([#3060](https://github.com/verbb/formie/issues/3060))

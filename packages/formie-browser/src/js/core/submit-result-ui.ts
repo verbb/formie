@@ -10,6 +10,7 @@ import { syncPageTabErrors } from '#core/page-tab-errors';
 import { focusFirstValidationError } from '#core/validation-focus';
 import { setFormHiddenState } from '#core/submit-result-state';
 import { addThemeClasses, removeThemeClasses } from '#theme/theme-classes';
+import { applyMessageAttributes } from '#theme/message-attributes';
 
 const successHideTimers = new WeakMap<HTMLFormElement, number>();
 
@@ -124,6 +125,7 @@ function ensureFormErrorMessageContainer(form: HTMLFormElement, container: HTMLE
         container.appendChild(messageContainer);
     }
 
+    applyMessageAttributes(messageContainer, form, 'messageError');
     messageContainer.setAttribute('data-formie-message', 'true');
     messageContainer.setAttribute('data-formie-message-error', 'true');
     addThemeClasses(messageContainer, form, 'message', 'messageError');
@@ -231,6 +233,7 @@ export function clearFormSuccess(form: HTMLFormElement): void {
             successNode.remove();
         });
 
+        applyMessageAttributes(container, form, 'messageSuccess', true);
         removeThemeClasses(container, form, 'message', 'messageSuccess');
         container.removeAttribute('data-formie-message');
         container.removeAttribute('data-formie-message-success');
@@ -371,6 +374,7 @@ export function renderFormSuccess(form: HTMLFormElement, message: string, option
 
     const container = ensureFormSuccessContainer(form, position);
 
+    applyMessageAttributes(container, form, 'messageSuccess');
     addThemeClasses(container, form, 'message', 'messageSuccess');
     container.setAttribute('data-formie-message', 'true');
     container.setAttribute('data-formie-message-success', 'true');
