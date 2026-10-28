@@ -21,6 +21,7 @@ Add an Address field named **Delivery Address** to your form. Enable the address
   - **Text** — always renders a plain text input.
   - **Dropdown when available** — loads subdivisions for the selected country via Formie’s browser assets.
 - **Hide When Not Used** — hides the state/province field until a country is selected, and hides it again for countries that do not use administrative areas in their address format.
+- **Maximum Displayed Options** — limits the visible dropdown and search results to 100 by default. Searches include every option. Leave blank to display all options.
 - **Use Searchable Dropdown** — when subdivision data is available, enhances the state/province control with type-to-filter behaviour (recommended for long lists such as US states).
 - **Use Datalist Suggestions** — only applies when subdivision data is unavailable and the field falls back to a text input.
 - **Option Label** and **Option Value** — choose whether subdivision options use full names or short codes.

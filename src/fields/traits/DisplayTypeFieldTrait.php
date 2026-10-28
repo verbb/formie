@@ -19,6 +19,7 @@ trait DisplayTypeFieldTrait
     // =========================================================================
 
     use PresentationFieldConfigTrait;
+    use SearchableDropdownLimitFieldTrait;
 
 
     // Properties
@@ -41,6 +42,11 @@ trait DisplayTypeFieldTrait
 
     // Public Methods
     // =========================================================================
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), $this->defineSearchableDropdownLimitGqlType());
+    }
 
     public function getDisplayTypeField(): ?FieldInterface
     {
@@ -104,6 +110,11 @@ trait DisplayTypeFieldTrait
     // Protected Methods
     // =========================================================================
 
+    protected function defineRules(): array
+    {
+        return array_merge(parent::defineRules(), $this->defineSearchableDropdownLimitRules());
+    }
+
     protected function definePresentationFieldClassMap(): array
     {
         $config = $this->defaultPresentationFieldClassMap();
@@ -122,6 +133,7 @@ trait DisplayTypeFieldTrait
             'min',
             'max',
             'useSearchable',
+            'searchableOptionLimit',
             'limit',
             'minType',
             'maxType',

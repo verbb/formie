@@ -39,6 +39,7 @@ type AddressStateOptions = {
     inputMode?: string;
     hideWhenUnused?: boolean;
     useSearchable?: boolean;
+    searchableOptionLimit?: number | null;
     useDatalist?: boolean;
     optionLabel?: 'name' | 'short';
     optionValue?: 'name' | 'short';
@@ -569,22 +570,23 @@ function updateFieldLabel(stateField: HTMLElement, label: string): void {
 function initSearchableSelect(
     select: HTMLSelectElement,
     placeholder: string | null,
+    maxOptions: number | null | undefined,
 ): () => void {
     select.setAttribute('data-formie-combobox-input', 'true');
 
     dispatchFieldEvent(select, 'combobox', 'before-init', {
         select,
-        options: { placeholder },
+        options: { placeholder, maxOptions },
     });
 
     const cleanup = initFormieCombobox(
         select as Parameters<typeof initFormieCombobox>[0],
-        { placeholder },
+        { placeholder, maxOptions },
     );
 
     dispatchFieldEvent(select, 'combobox', 'after-init', {
         combobox: (select as Parameters<typeof initFormieCombobox>[0])._formieTomSelect,
-        options: { placeholder },
+        options: { placeholder, maxOptions },
     });
 
     return cleanup;
@@ -694,7 +696,7 @@ async function applyCountryState(
         }
 
         if (useSearchable) {
-            fieldState.comboboxCleanup = initSearchableSelect(select, placeholder);
+            fieldState.comboboxCleanup = initSearchableSelect(select, placeholder, options.searchableOptionLimit);
         } else {
             select.removeAttribute('data-formie-combobox-input');
         }

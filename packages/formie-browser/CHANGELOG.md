@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- Added configurable display limits for searchable dropdowns, defaulting to 100 while searching all options. ([#3059](https://github.com/verbb/formie/issues/3059))
+- Add a keyboard-accessible clear button for single searchable Dropdown fields with placeholders. ([#3058](https://github.com/verbb/formie/issues/3058))
 - Add the `formie:unload-warning:collect-exclusions` event for integrations to exclude automatically updated transport fields from unsaved-changes checks.
 
 ### Changed

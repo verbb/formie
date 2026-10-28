@@ -10,6 +10,12 @@ use GraphQL\Type\Definition\Type;
 
 trait SearchableDropdownFieldTrait
 {
+    // Traits
+    // =========================================================================
+
+    use SearchableDropdownLimitFieldTrait;
+
+
     // Properties
     // =========================================================================
 
@@ -42,6 +48,7 @@ trait SearchableDropdownFieldTrait
     {
         return [
             ['useSearchable', 'boolean'],
+            ...$this->defineSearchableDropdownLimitRules(),
         ];
     }
 
@@ -68,6 +75,7 @@ trait SearchableDropdownFieldTrait
 
         return [
             'multiple' => (bool)($this->multi ?? false),
+            'maxOptions' => $this->searchableOptionLimit,
             'placeholder' => $placeholder,
         ];
     }

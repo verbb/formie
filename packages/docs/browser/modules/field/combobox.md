@@ -10,6 +10,10 @@ Formie adds the `combobox` module to a form’s browser-module manifest when **U
 - Element relation fields when **Display type** is **Dropdown** ([Entries](/browser/ui-reference/fields/entries), [Categories](/browser/ui-reference/fields/categories), Users, Products, Variants)
 - [Recipients](/browser/ui-reference/fields/recipients) when shown as a dropdown
 
+## Display Limit
+
+The field’s **Maximum Displayed Options** setting defaults to 100 and is passed to the module as `maxOptions`. Search considers the complete option list before limiting the displayed matches. A `null` value displays all matches. The `before-init` event can override `event.detail.options.maxOptions`.
+
 ## Markup
 
 Searchable dropdowns output `data-formie-combobox-input` on the native `<select>`. Tom Select wraps the control at runtime and adds classes such as `tomselected`, `ts-hidden-accessible`, and `formie-combobox`.

@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields;
 
+use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\base\OptionsField;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\fields\traits\AutocompleteFieldTrait;
@@ -15,6 +16,7 @@ use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\helpers\Json;
 
 use Faker\Generator as FakerFactory;
 
@@ -39,13 +41,16 @@ class Dropdown extends OptionsField implements SortableFieldInterface
 
     use AutocompleteFieldTrait;
     use OptionsLimitFieldTrait;
-    use SearchableDropdownFieldTrait;
+    use SearchableDropdownFieldTrait {
+        getSearchableDropdownBrowserModuleConfig as protected getBaseSearchableDropdownBrowserModuleConfig;
+    }
 
 
     // Properties
     // =========================================================================
 
     public bool $optgroups = true;
+    public bool $showPlaceholder = false;
 
 
     // Public Methods
@@ -56,26 +61,69 @@ class Dropdown extends OptionsField implements SortableFieldInterface
         $this->normalizeOptionsLimitConstructorConfig($config);
 
         parent::__construct($config);
+
+        // Compound fields own their subfield prompts and authoring controls.
+        if ($this instanceof ChildFieldInterface) {
+            return;
+        }
+
+        // Older fields have no switch. Preserve explicitly configured prompts,
+        // while leaving their option rows and default selections untouched.
+        if (!array_key_exists('showPlaceholder', $config)) {
+            $this->showPlaceholder = (bool)$this->placeholder;
+        } elseif (array_key_exists('placeholder', $config) && $config['placeholder'] === '') {
+            $this->placeholder = '';
+        }
+    }
+
+    public function afterCreateField(array $data): void
+    {
+        parent::afterCreateField($data);
+
+        // Craft's component factory typecasts an empty nullable string to null.
+        // Recover an authored blank label from the original persisted settings.
+        $settings = Json::decodeIfJson($data['settings'] ?? []) ?: [];
+        $config = array_merge($data, $settings);
+
+        if (array_key_exists('showPlaceholder', $config) && array_key_exists('placeholder', $config) && $config['placeholder'] === '') {
+            $this->placeholder = '';
+        }
     }
 
     public function getDefaultOptions(): array
     {
-        return [
-            [
-                'label' => Craft::t('formie', 'Select an option'),
-                'value' => '',
-                'optgroup' => false,
-                'default' => true,
-            ],
-        ];
+        return $this instanceof ChildFieldInterface ? [
+            ['label' => Craft::t('formie', 'Select an option'), 'value' => '', 'optgroup' => false, 'default' => true],
+        ] : [];
+    }
+
+    public function getPlaceholderLabel(): string
+    {
+        if ($this->placeholder !== null) {
+            return $this->placeholder;
+        }
+
+        return Craft::t('formie', 'Select an option');
     }
 
     public function getFieldOptions(): array
     {
+        if ($this instanceof ChildFieldInterface) {
+            $options = parent::getFieldOptions();
+
+            if ($this->placeholder) {
+                array_unshift($options, ['label' => $this->placeholder, 'value' => '']);
+            }
+
+            return $options;
+        }
+
         $options = parent::getFieldOptions();
 
-        if ($this->placeholder) {
-            array_unshift($options, ['label' => $this->placeholder, 'value' => '']);
+        // An empty answer belongs to the dropdown, independently of its option source.
+        // Multi-selects use prompt text in the searchable control without an empty item.
+        if ($this->showPlaceholder && !$this->multi) {
+            array_unshift($options, ['label' => $this->getPlaceholderLabel(), 'value' => '']);
         }
 
         return $options;
@@ -95,13 +143,38 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     public function defineFormBuilderPreviewSchema(): array
     {
         return [
-            SchemaHelper::previewSelect(),
+            SchemaHelper::previewSelect([
+                'showPlaceholderOption' => $this instanceof ChildFieldInterface ? true : SchemaHelper::previewBind('field.showPlaceholder', false),
+                'managePlaceholder' => !$this instanceof ChildFieldInterface,
+            ]),
         ];
+    }
+
+    public function getFieldTypeConfig(bool $includeSchemaIndex = true): array
+    {
+        $config = parent::getFieldTypeConfig($includeSchemaIndex);
+
+        // Only newly inserted fields opt in; loading an existing field must not do so.
+        if (!$this instanceof ChildFieldInterface) {
+            $config['newField']['showPlaceholder'] = true;
+        }
+
+        return $config;
     }
 
     public function getFormBuilderSettings(): array
     {
         $settings = parent::getFormBuilderSettings();
+
+        if (!$this instanceof ChildFieldInterface) {
+            $settings['placeholder'] = $this->getPlaceholderLabel();
+
+            // The preview adds the dedicated prompt itself. Preserve source rows,
+            // including any manually authored empty options.
+            if ($this->showPlaceholder && !$this->multi && isset($settings['_previewOptions'])) {
+                array_shift($settings['_previewOptions']);
+            }
+        }
 
         foreach ($settings['options'] as &$option) {
             if (isset($option['optgroup']) && $option['optgroup']) {
@@ -166,15 +239,34 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     {
         $attributes = parent::settingsAttributes();
         $attributes[] = 'useSearchable';
+        $attributes[] = 'searchableOptionLimit';
+        $attributes[] = 'showPlaceholder';
 
         return $attributes;
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), $this->defineSearchableDropdownGqlType(), $this->defineSearchableDropdownLimitGqlType());
     }
 
     public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::prefillQueryParam(),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Show Placeholder'),
+                'instructions' => Craft::t('formie', 'Show a prompt when no option is selected.'),
+                'name' => 'showPlaceholder',
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Placeholder Text'),
+                'instructions' => Craft::t('formie', 'The prompt has an empty value and does not count as an answer.'),
+                'name' => 'placeholder',
+                'if' => 'showPlaceholder',
+            ]),
             $this->defineSearchableDropdownSettingSchema(),
+            $this->defineSearchableDropdownLimitSettingSchema(),
             $this->defineAutocompleteSettingSchema(),
             SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::emailFieldSummaryValue([
@@ -264,6 +356,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
+        $rules[] = ['showPlaceholder', 'boolean'];
 
         foreach ($this->defineAutocompleteRules() as $rule) {
             $rules[] = $rule;
@@ -278,6 +371,20 @@ class Dropdown extends OptionsField implements SortableFieldInterface
         }
 
         return $rules;
+    }
+
+    protected function getSearchableDropdownBrowserModuleConfig(): array
+    {
+        if ($this instanceof ChildFieldInterface) {
+            return $this->getBaseSearchableDropdownBrowserModuleConfig();
+        }
+
+        return [
+            'multiple' => $this->multi,
+            'maxOptions' => $this->searchableOptionLimit,
+            'placeholder' => $this->showPlaceholder ? $this->getPlaceholderLabel() : null,
+            'allowClear' => $this->showPlaceholder,
+        ];
     }
 
     protected function defineBrowserModules(): array
@@ -296,6 +403,8 @@ class Dropdown extends OptionsField implements SortableFieldInterface
         return array_merge(parent::defineClientRenderedInput(), $this->getOptionsLimitClientRenderedInput(), [
             'autocomplete' => $this->getAutocompleteCoreAttribute(),
             'useSearchable' => $this->useSearchable,
+            'searchableOptionLimit' => $this->searchableOptionLimit,
+            'placeholder' => $this instanceof ChildFieldInterface ? $this->placeholder : ($this->showPlaceholder ? $this->getPlaceholderLabel() : null),
         ]);
     }
 

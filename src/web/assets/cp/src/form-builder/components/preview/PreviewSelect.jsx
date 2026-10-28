@@ -31,10 +31,14 @@ export const PreviewSelect = ({
     multiple = false,
     useOptionDefaults = true,
     showPlaceholderOption = true,
+    managePlaceholder = false,
     className = 'formie-field-preview-select',
 }) => {
     const normalizedOptions = applyOptionAvailabilityToPreviewOptions(normalizeOptions(options));
-    const selectedValues = normalizeSelectedValues(value, normalizedOptions, useOptionDefaults);
+    const selectionOptions = normalizedOptions.flatMap((option) => {
+        return option?.optgroup && Array.isArray(option.options) ? option.options : [option];
+    }).map((option) => { return { ...option, isDefault: option?.default ?? option?.isDefault }; });
+    const selectedValues = normalizeSelectedValues(value, selectionOptions, useOptionDefaults);
     const defaultValue = multiple ? selectedValues : (selectedValues[0] ?? '');
 
     return (
@@ -43,8 +47,8 @@ export const PreviewSelect = ({
             multiple={Boolean(multiple)}
             defaultValue={defaultValue}
         >
-            {!multiple && showPlaceholderOption && placeholder && (
-                <option value="" disabled>
+            {!multiple && showPlaceholderOption && (managePlaceholder || placeholder) && (
+                <option value="" disabled={!managePlaceholder}>
                     {placeholder}
                 </option>
             )}

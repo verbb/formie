@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Added
+- Add a Maximum Displayed Options setting for searchable dropdowns, defaulting to 100 while searching all options. ([#3059](https://github.com/verbb/formie/issues/3059))
+- Add configurable Dropdown placeholders across all option sources, enabled for new fields while preserving existing options and defaults. ([#3058](https://github.com/verbb/formie/issues/3058))
 - Add Form layout, Alphabetical, and Custom field ordering for reports and exports, preserving existing custom orders. ([#3054](https://github.com/verbb/formie/issues/3054))
 - Add report subcolumn support for parent fields, including Name and Address, with Single Column, Separate Columns, and Both display options for automatic reports. ([#3055](https://github.com/verbb/formie/issues/3055))
 - Add a dedicated field value projection and event for reports, with readable combined values and independent field formatting. ([#3055](https://github.com/verbb/formie/issues/3055))

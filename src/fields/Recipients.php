@@ -317,6 +317,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         $attributes[] = 'optionsMode';
         $attributes[] = 'optionSource';
         $attributes[] = 'useSearchable';
+        $attributes[] = 'searchableOptionLimit';
 
         return $attributes;
     }
@@ -386,6 +387,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
             'options' => $this->getFieldOptions(),
             'layout' => $this->layout,
             'useSearchable' => $this->useSearchable,
+            'searchableOptionLimit' => $this->searchableOptionLimit,
         ];
 
         // Carry across the existing nested-field context, but preserve the namespace already applied to this field clone.
@@ -517,7 +519,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
 
     public function getSettingGqlTypes(): array
     {
-        return array_merge(parent::getSettingGqlTypes(), [
+        return array_merge(parent::getSettingGqlTypes(), $this->defineSearchableDropdownLimitGqlType(), [
             'displayType' => [
                 'name' => 'displayType',
                 'type' => Type::string(),
@@ -565,6 +567,9 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
             ]),
             $this->defineSearchableDropdownSettingSchema([
                 'if' => 'displayType == "dropdown"',
+            ]),
+            $this->defineSearchableDropdownLimitSettingSchema([
+                'if' => 'displayType == "dropdown" && useSearchable',
             ]),
             SchemaHelper::optionDynamicSettingsField([
                 'fieldType' => static::class,
@@ -938,6 +943,7 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         if ($this->displayType === 'dropdown') {
             $clientInput['options'] = $this->getFieldOptions();
             $clientInput['useSearchable'] = $this->useSearchable;
+            $clientInput['searchableOptionLimit'] = $this->searchableOptionLimit;
         }
 
         if (in_array($this->displayType, ['checkboxes', 'radio'], true)) {

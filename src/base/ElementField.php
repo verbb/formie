@@ -209,6 +209,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         $attributes[] = 'sourceType';
         $attributes[] = 'sourceElements';
         $attributes[] = 'useSearchable';
+        $attributes[] = 'searchableOptionLimit';
 
         return $attributes;
     }
@@ -547,6 +548,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
             'hasMultiNamespace' => true,
             'multi' => $this->multi,
             'useSearchable' => $this->useSearchable,
+            'searchableOptionLimit' => $this->searchableOptionLimit,
             'layout' => $this->layout,
         ];
 
@@ -887,7 +889,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
 
     public function getSettingGqlTypes(): array
     {
-        return array_merge(parent::getSettingGqlTypes(), [
+        return array_merge(parent::getSettingGqlTypes(), $this->defineSearchableDropdownLimitGqlType(), [
             'sources' => [
                 'name' => 'sources',
                 'type' => Type::string(),
@@ -1054,6 +1056,7 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         $clientInput['multiple'] = $this->getIsMultiOptionsField();
         $clientInput['layout'] = in_array($displayType, ['radio', 'checkboxes'], true) ? ($this->layout ?? 'vertical') : null;
         $clientInput['useSearchable'] = $this->useSearchable;
+        $clientInput['searchableOptionLimit'] = $this->searchableOptionLimit;
         $clientInput['options'] = array_values(array_map(static function(array $option) {
             return [
                 'label' => $option['label'] ?? '',
@@ -1078,6 +1081,9 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         return [
             $this->defineSearchableDropdownSettingSchema([
                 'if' => 'displayType == "dropdown"',
+            ]),
+            $this->defineSearchableDropdownLimitSettingSchema([
+                'if' => 'displayType == "dropdown" && useSearchable',
             ]),
         ];
     }

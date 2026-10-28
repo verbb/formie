@@ -6,6 +6,7 @@ import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/sh
 import { ensureModuleStyles } from '#modules/styles';
 import { getThemeClasses } from '#theme/theme-classes';
 import { createDebug } from '#utils/debug';
+import { t } from '#utils/i18n';
 import { VALIDATION_SKIP_ATTR } from '#validation/skip';
 
 const SELECT_SELECTOR = 'select[data-formie-combobox-input]';
@@ -21,6 +22,8 @@ const NATIVE_THEME_CLASSES = [
 
 export type FormieComboboxOptions = {
     multiple?: boolean;
+    maxOptions?: number | null;
+    allowClear?: boolean;
     placeholder?: string | null;
 };
 
@@ -87,8 +90,23 @@ export function initFormieCombobox(select: SelectElement, options: FormieCombobo
 
     const mergedOptions: Record<string, unknown> = {
         create: false,
+        // Limit rendered results while retaining the full option list for searching.
+        maxOptions: options.maxOptions === undefined ? 100 : options.maxOptions,
         maxItems: multiple ? null : 1,
-        plugins: multiple ? ['remove_button'] : [],
+        plugins: multiple ? ['remove_button'] : options.allowClear ? {
+            remove_button: {
+                // Use a native button so clearing a single answer works with keyboard input too.
+                html: () => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'remove';
+                    button.title = t('Clear selection');
+                    button.setAttribute('aria-label', button.title);
+                    button.textContent = '×';
+                    return button;
+                },
+            },
+        } : [],
         hideSelected: multiple ? true : null,
         clearAfterSelect: multiple,
         closeAfterSelect: !multiple,

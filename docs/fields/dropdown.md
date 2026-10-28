@@ -13,9 +13,18 @@ Add a Dropdown field named **Enquiry Type** to a contact form. Add options label
 - **Options** - Define the available choices. Keep option values stable once submissions, exports or integrations depend on them.
 - **Multiple selections** - Allow one selected value or a list of selected values.
 - **Default value** - Preselect one or more options for new submissions.
-- **Placeholder** - Show an initial prompt before a value is selected.
+- **Show Placeholder** - Show a prompt before an answer is selected.
+- **Placeholder Text** - Customise the prompt, such as “Select an option” or “Choose your country”.
 - **Use searchable dropdown** - Let users filter options by typing. Recommended for long lists. The front end keeps the native `<select>` for submission and enhances it with Formie’s `combobox` module.
 - **Required** - Force a choice before the form can be submitted.
+
+## Placeholder
+
+Enable **Show Placeholder** in the field’s **Settings** tab to start with an empty selection. **Placeholder Text** defaults to “Select an option”; change it to a prompt that fits your form. The prompt always has an empty value, so it does not satisfy a required field.
+
+The placeholder belongs to the field and remains available with every option source, including lists supplied by an integration or template. New Dropdown fields enable the placeholder and start with an empty static options table. Existing fields retain their option rows and selections, and the new switch stays off unless a placeholder was already configured. If you enable it alongside an existing empty option, remove that row if you only want one prompt. An explicit default, prefilled value or existing submission takes precedence over the prompt.
+
+Visitors can return a single-select field to its empty selection by choosing the prompt in a native dropdown or using the clear button in a searchable dropdown. With multiple selections enabled, searchable dropdowns show the prompt as text while empty; native multi-selects do not add a placeholder row.
 
 ## Bulk Add Options
 
@@ -48,6 +57,8 @@ Use the row menu on an option to set its **availability**:
 Only one state applies at a time. Prefer hiding over deleting an option once submissions may reference its value.
 
 ## Searchable Dropdown
+
+**Maximum Displayed Options** controls how many options appear when opening the dropdown or viewing search results. It defaults to 100. Searches always include every available option, even those outside the displayed results. Leave the setting blank to show all options; a limit helps keep long lists responsive.
 
 Enable **Use searchable dropdown** when the option list is long enough that scrolling a native `<select>` is awkward. Formie renders a normal dropdown on the server, then enhances it on the front end so users can type to filter choices.
 

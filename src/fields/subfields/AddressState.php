@@ -4,6 +4,7 @@ namespace verbb\formie\fields\subfields;
 use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\Address;
 use verbb\formie\fields\SingleLineText;
+use verbb\formie\fields\traits\SearchableDropdownLimitFieldTrait;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\BrowserModule;
@@ -37,6 +38,12 @@ class AddressState extends SingleLineText implements ChildFieldInterface
     protected const DEFAULT_REFERENCE_BLOCK_TEMPLATE_PATH = 'fields/single-line-text';
 
 
+    // Traits
+    // =========================================================================
+
+    use SearchableDropdownLimitFieldTrait;
+
+
     // Properties
     // =========================================================================
 
@@ -57,6 +64,7 @@ class AddressState extends SingleLineText implements ChildFieldInterface
             'inputMode',
             'hideWhenUnused',
             'useSearchable',
+            'searchableOptionLimit',
             'useDatalist',
             'optionLabel',
             'optionValue',
@@ -93,6 +101,9 @@ class AddressState extends SingleLineText implements ChildFieldInterface
                 'instructions' => Craft::t('formie', 'When subdivision data is available, enhance the state/province dropdown with type-to-filter behaviour.'),
                 'name' => 'useSearchable',
                 'if' => "inputMode == '" . self::INPUT_MODE_DROPDOWN_WHEN_AVAILABLE . "'",
+            ]),
+            $this->defineSearchableDropdownLimitSettingSchema([
+                'if' => "inputMode == 'dropdownWhenAvailable' && useSearchable",
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Use Datalist Suggestions'),
@@ -139,7 +150,7 @@ class AddressState extends SingleLineText implements ChildFieldInterface
 
     public function getSettingGqlTypes(): array
     {
-        return array_merge(parent::getSettingGqlTypes(), [
+        return array_merge(parent::getSettingGqlTypes(), $this->defineSearchableDropdownLimitGqlType(), [
             'inputMode' => [
                 'name' => 'inputMode',
                 'type' => Type::string(),
@@ -173,7 +184,7 @@ class AddressState extends SingleLineText implements ChildFieldInterface
 
     protected function defineRules(): array
     {
-        $rules = parent::defineRules();
+        $rules = array_merge(parent::defineRules(), $this->defineSearchableDropdownLimitRules());
 
         $rules[] = [['inputMode'], 'in', 'range' => [
             self::INPUT_MODE_TEXT,
@@ -264,6 +275,7 @@ class AddressState extends SingleLineText implements ChildFieldInterface
             'inputMode' => $this->inputMode,
             'hideWhenUnused' => $this->hideWhenUnused,
             'useSearchable' => $this->useSearchable,
+            'searchableOptionLimit' => $this->searchableOptionLimit,
             'useDatalist' => $this->useDatalist,
             'optionLabel' => $this->optionLabel,
             'optionValue' => $this->optionValue,
@@ -297,6 +309,7 @@ class AddressState extends SingleLineText implements ChildFieldInterface
                 'inputMode' => $this->inputMode,
                 'hideWhenUnused' => $this->hideWhenUnused,
                 'useSearchable' => $this->useSearchable,
+                'searchableOptionLimit' => $this->searchableOptionLimit,
                 'useDatalist' => $this->useDatalist,
                 'optionLabel' => $this->optionLabel,
                 'optionValue' => $this->optionValue,
