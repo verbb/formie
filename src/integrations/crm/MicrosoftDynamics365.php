@@ -292,6 +292,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
             foreach ($fields as $field) {
                 if ($field instanceof IntegrationField && $field->required && $this->normalizeFieldMappingValue($mapping[$field->handle] ?? '') === '') {
                     $this->addError($mappingSetting, Craft::t('formie', '{name} must be mapped.', ['name' => $field->name]));
+
                     break;
                 }
             }
@@ -303,7 +304,6 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         // Recommended headers to pass for all web API requests
         // https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/compose-http-requests-handle-errors#http-headers
         $defaultOptions = [
-            'base_uri' => $this->getBaseApiUrl(null),
             'headers' => [
                 'Accept' => 'application/json',
                 'OData-MaxVersion' => '4.0',
