@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.16 - 2026-10-28
+
 ### Added
 - Added configurable display limits for searchable dropdowns, defaulting to 100 while searching all options. ([#3059](https://github.com/verbb/formie/issues/3059))
 - Add a keyboard-accessible clear button for single searchable Dropdown fields with placeholders. ([#3058](https://github.com/verbb/formie/issues/3058))
