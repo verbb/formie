@@ -16,7 +16,7 @@ These changes are required **only if your project uses the affected API or depen
 
 - **Custom fields and integrations:** update [field UI/templates](#custom-fields), [parent fields](#custom-parent-fields), [field traversal](#field-and-row-traversal), [integration settings](#custom-integrations) and [browser modules](#browser-module-declarations).
 - **Custom frontend code:** review [JavaScript event behaviour](#javascript-event-behaviour), [validators](#custom-front-end-validation), [GraphQL queries](#graphql), [submission clients and uploads](#continuity-and-upload-upgrade-actions), and [CSS selectors](#default-theme-classes).
-- **Templates and configuration:** review [field values](#field-value-contracts), [references](#references-and-variable-picker), [Twig in saved settings](#twig-expressions-in-references), [redirects and overrides](#completion-and-setting-overrides), [plugin translations](#translation-strings) and [form content translations](#form-content-translations).
+- **Templates and configuration:** review [draft contexts replacing `sessionKey`](#scoping-in-progress-submissions), [field values](#field-value-contracts), [references](#references-and-variable-picker), [Twig in saved settings](#twig-expressions-in-references), [redirects and overrides](#completion-and-setting-overrides), [plugin translations](#translation-strings) and [form content translations](#form-content-translations).
 - **Custom PHP and SQL:** update [submission hooks](#submission-workflow), [payment providers](#payment-and-subscription-boundary) and [literal status-table references](#submission-status-database-table).
 - **Spam protection and conditions:** configure [spam protection per installation](#local-spam-protection-settings), replace references to [removed captcha types](#removed-legacy-captchas) and test [conditions and validation](#conditions-and-validation) that depend on changed comparisons.
 
@@ -638,7 +638,58 @@ Formie 3 | Formie 4
 
 Theme configuration can no longer remove required functional or accessibility attributes. Update customisations that depended on removing them; trusted `EVENT_MODIFY_SLOT_TAG` listeners remain available for deliberate overrides.
 
-If you use the Formie 3 [Tailwind](https://github.com/verbb/formie-theme-configs/blob/formie-3/tailwind/index.html) or [Bootstrap](https://github.com/verbb/formie-theme-configs/blob/formie-3/bootstrap/index.html) theme examples, update their class selectors and review the resulting markup.
+If you use the Formie 3 [Tailwind](https://github.com/verbb/formie-theme-configs/blob/formie-3/tailwind/index.html) or [Bootstrap](https://github.com/verbb/formie-theme-configs/blob/formie-3/bootstrap/index.html) theme examples, use the corresponding Formie 4 [Tailwind](https://github.com/verbb/formie-theme-configs/blob/formie-4/tailwind/index.html) or [Bootstrap](https://github.com/verbb/formie-theme-configs/blob/formie-4/bootstrap/index.html) example as your starting point and carry over your customisations. These examples include the theme configuration changes below, as well as the updated classes.
+
+#### Theme Configuration Keys
+
+You can still pass `themeConfig` to `craft.formie.renderForm()`. Static framework classes such as Bootstrap’s `form-control` and `btn` remain valid, but some keys identifying the parts of the form have changed. Update these keys in your Twig or PHP theme configuration:
+
+Formie 3 | Formie 4
+--- | ---
+`alertError` | `messageError`
+`alertSuccess` | `messageSuccess`
+`buttonWrapper` | `pageButtons`
+
+Review other customisations against the [Theme Tag Reference](/reference/theme-tag-reference), particularly those targeting wrappers whose markup has changed. Compatibility mode does not restore the old default markup or these keys.
+
+#### Conditional Classes
+
+Formie 3 theme examples contain strings with embedded Twig expressions. Formie 4 rejects these expressions, including method calls, even with compatibility mode enabled. Replace them with structured `if`, `then`, and optional `else` values. This affects expressions stored inside configuration strings; you can still use Twig to build the configuration before passing it to Formie.
+
+For example, replace this `checkboxes` entry inside your `themeConfig` to add Bootstrap’s inline class when the field uses a horizontal layout:
+
+::: code-group
+```twig [Formie 3]
+checkboxes: {
+    fieldOption: {
+        attributes: {
+            class: [
+                'form-check',
+                "{{ field.layout == 'horizontal' ? 'form-check-inline' : '' }}",
+            ],
+        },
+    },
+},
+```
+
+```twig [Formie 4]
+checkboxes: {
+    fieldOption: {
+        attributes: {
+            class: [
+                'form-check',
+                {
+                    if: { context: 'field.layout', equals: 'horizontal' },
+                    then: 'form-check-inline',
+                },
+            ],
+        },
+    },
+},
+```
+:::
+
+For states that change in the browser, use the top-level [browser theme state keys](/reference/browser-theme-state) instead of render-time conditions. For example, move Bootstrap’s `active` class from a conditional `pageTabLink` class to `tabLinkCurrent.attributes.class`, `d-none` for hidden pages to `pageHidden.attributes.class`, and `border-danger` for invalid inputs to `fieldControlError.attributes.class`. This lets Formie update the classes during Ajax validation and page changes. The Formie 4 framework examples include these state configurations.
 
 Inspect each styled form, including validation errors, page navigation and nested fields, after rebuilding your site assets. See [Theme Config](/theming/theme-config) for the current theming approach. Update the [legacy custom tag fallback](#theme-config) before disabling compatibility mode.
 
@@ -900,6 +951,49 @@ Test conditional visibility, required fields and page navigation.
 Validation errors are plain text. Custom AJAX clients should inspect validation results, not rely on HTTP status alone: the Formie 3 transport can still return HTTP 200 for errors.
 
 See [Conditions](/developers/conditions) for condition evaluation and [Validation](/developers/validation) for request and validation details.
+
+### Scoping In-Progress Submissions
+
+If you used `sessionKey` to keep unfinished submissions separate when reusing a form across entries, replace it with `form.setDraftContext()`. Formie 4 still accepts the `sessionKey` render option, but it does not scope the current progress lookup. `form.applyRenderOptions()` is no longer available. Compatibility mode does not restore this behaviour.
+
+Formie 4’s default draft context separates a visitor’s progress by form, site and URL path. Query parameters are not included: `/booking?trip=3333` and `/booking?trip=4444` share a default context. Use the entry ID as an explicit context when those URLs represent separate bookings.
+
+In your Twig template, set the context immediately after fetching the form, before calling `populateFormValues()` or rendering. Population can load an existing submission, so setting the context afterwards is too late. These examples assume `target` is an entry already loaded by the template and the `booking` form has a Single-Line Text field named `tripTitle`:
+
+::: code-group
+```twig [Formie 3]
+{% set form = craft.formie.forms.handle('booking').one() %}
+{% set renderOptions = {
+    sessionKey: 'booking_' ~ target.id,
+} %}
+
+{% do form.applyRenderOptions(renderOptions) %}
+{% do craft.formie.populateFormValues(form, {
+    tripTitle: target.title,
+}, true) %}
+
+{{ craft.formie.renderForm(form, renderOptions) }}
+```
+
+```twig [Formie 4]
+{% set form = craft.formie.forms.handle('booking').one() %}
+
+{% do form.setDraftContext('booking_' ~ target.id) %}
+{% do craft.formie.populateFormValues(form, {
+    tripTitle: target.title,
+}, true) %}
+
+{{ craft.formie.renderForm(form) }}
+```
+:::
+
+Remove `sessionKey` from your render options. Continue passing other options, such as `themeConfig`, to `renderForm()` as usual. Use a stable context for each entry; no manual encoding is needed. The final `true` still forces the populated value across pages and resumed submissions; omit it for an editable starting value. Changing populated values alone does not isolate drafts.
+
+#### Automatic Restoration
+
+The form builder’s **Behaviour → Advanced → Restore In-Progress Submissions Automatically** setting (`automaticSubmissionState`) is enabled by default. Keep it enabled to resume the visitor’s unfinished submission for the selected draft context. Disable it when each normal revisit should start fresh. Disabling restoration still allows multi-page progression during the current attempt, saves incomplete submissions, and permits explicit resume links.
+
+With restoration enabled, test two entries using the same form: enter different answers and advance a page for each, then revisit both and confirm that each restores its own answers and page. With restoration disabled, confirm a normal revisit starts fresh and an explicit resume link still restores the saved draft. See [Draft Contexts](/templates/render-options#draft-contexts) and [Save and Continue Later](/forms/save-continue-later) for the current behaviour.
 
 ### Continuity and Upload Upgrade Actions
 
@@ -1367,6 +1461,8 @@ The base `getAmount()` adapter honours `getPaymentAmount()` overrides and preser
 Replace `className()` with `getShortClassName()` for a short class name, or use `::class` for a fully qualified class name. Replace `kebabClassName()` with `getClassHandle()` for an implementation handle. See [Method Contracts](/developers/custom-integration/overview#method-contracts-and-compatibility) for signatures.
 
 ### Render Options
+
+The `sessionKey` replacement is a [required draft-context update](#scoping-in-progress-submissions). The asset option aliases below remain supported.
 
 Update render options to these names:
 

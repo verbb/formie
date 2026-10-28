@@ -2,19 +2,41 @@
 
 Render options are the shared settings you can pass to Formie's render helpers, such as `renderForm()`, `renderPage()`, and `renderField()`.
 
-## Core Options
+<span id="sessionkey"></span>
 
-### `sessionKey`
+## Draft Contexts
 
-Use `sessionKey` when the same form can appear in more than one context and each instance should keep its saved progress separate.
+Use a draft context when the same form appears for different entries, products or events and each should keep its in-progress answers separate. Set it on the form with `setDraftContext()` before populating values or rendering; it is not a `renderForm()` option.
 
-Formie still uses this when building the identity for in-progress submission state. That makes it useful for forms that are repeated across entries, products, events, or other content where each instance should behave independently.
+By default, Formie separates a visitor’s progress by form, site and URL path. Query parameters are not part of that default context, so `/booking?trip=3333` and `/booking?trip=4444` share a context. Set an explicit context based on the entry ID to keep those bookings separate.
+
+In this Twig example, `target` is the trip entry already loaded by your template. The `booking` form has a Single-Line Text field with the handle `tripTitle`:
 
 ```twig
-{{ craft.formie.renderForm('registration', {
-    sessionKey: entry.id,
-}) }}
+{% set form = craft.formie.forms.handle('booking').one() %}
+
+{% do form.setDraftContext('booking_' ~ target.id) %}
+
+{% do craft.formie.populateFormValues(form, {
+    tripTitle: target.title,
+}, true) %}
+
+{{ craft.formie.renderForm(form) }}
 ```
+
+Keep the context stable for the same trip. With automatic restoration enabled, visiting another trip starts or restores that trip’s booking; returning to the original trip restores its own progress. Set the context before `populateFormValues()` because population can load an existing submission. Changing populated values alone does not separate drafts.
+
+The final `true` forces the trip title to come from the template across pages and resumed submissions. Omit it if the value should only be an editable starting value; see [Populating Forms](/templates/populating-forms#value-precedence). Pass presentation options such as `themeConfig` to `renderForm()` as usual. Formie carries the draft context through subsequent form requests without manual encoding.
+
+For existing templates, see [Scoping In-Progress Submissions](/get-started/upgrading-from-v3#scoping-in-progress-submissions) in the upgrade guide.
+
+### Automatic Restoration
+
+In the form builder, open **Behaviour → Advanced → Restore In-Progress Submissions Automatically** (`automaticSubmissionState`). This is enabled by default. Leave it enabled when visitors should return to the same draft context and continue their booking.
+
+Turn it off if each normal revisit should start fresh. This disables automatic restoration, but multi-page progression still works during the current attempt, incomplete submissions are still saved, and explicit resume links still work. See [Save and Continue Later](/forms/save-continue-later) for how those links work.
+
+## Core Options
 
 ### `fieldNamespace`
 
