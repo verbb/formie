@@ -973,10 +973,11 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         state.files[index] = targetFile;
         state.files[targetIndex] = managedFile;
 
+        // Keep the visible rows in the same order as the controls and submitted assets.
         if (direction === -1) {
-            managedFile.listItem.before(targetFile.listItem);
+            targetFile.listItem.before(managedFile.listItem);
         } else {
-            managedFile.listItem.after(targetFile.listItem);
+            targetFile.listItem.after(managedFile.listItem);
         }
 
         syncUploadedAssetsEvent(state);

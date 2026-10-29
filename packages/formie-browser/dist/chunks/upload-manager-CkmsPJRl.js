@@ -2408,7 +2408,7 @@ function Mt(e, t, r) {
 		let n = k.files.indexOf(e), r = n + t;
 		if (n < 0 || r < 0 || r >= k.files.length) return;
 		let i = k.files[r];
-		k.files[n] = i, k.files[r] = e, t === -1 ? e.listItem.before(i.listItem) : e.listItem.after(i.listItem), $(k), M(), p(k.field, "file-upload", "uploaded-assets-reordered", { assets: k.files.filter((e) => e.assetId !== null).map((e) => ({
+		k.files[n] = i, k.files[r] = e, t === -1 ? i.listItem.before(e.listItem) : i.listItem.after(e.listItem), $(k), M(), p(k.field, "file-upload", "uploaded-assets-reordered", { assets: k.files.filter((e) => e.assetId !== null).map((e) => ({
 			assetId: e.assetId,
 			filename: e.filename
 		})) });
