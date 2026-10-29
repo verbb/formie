@@ -26,12 +26,12 @@ import {
 } from '@form-builder/fields/utils/variablePicker';
 import { updateIntegrationSettingMapping } from '@form-builder/utils/integrationSettings';
 
-// Integration destinations accept string payloads — include multi-line text
-// (`content: any`) alongside single-line/date/number sources.
-const MAPPING_VARIABLE_CONFIG = {
+// Destinations convert field values themselves, including Agree booleans and
+// configured checked/unchecked text. Keep all scalar sources selectable.
+export const MAPPING_VARIABLE_CONFIG = {
     usage: 'integration',
     shapes: ['inline'],
-    types: ['text', 'date', 'number'],
+    types: ['text', 'date', 'number', 'boolean'],
     groupFieldsByPage: true,
     groups: [
         'fieldsVariables',

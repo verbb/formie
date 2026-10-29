@@ -218,6 +218,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 ], $integration->getDiagnosticSecrets());
             }
         }
+
         $messageText = DeliveryDiagnostics::redact(self::getExceptionLogMessage($exception), $integration instanceof self ? $integration->getDiagnosticSecrets() : []);
 
         $message = Craft::t('formie', 'API error: “{message}” {file}:{line}', [
@@ -880,8 +881,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $this->callLegacyIntegrationMethod('getFormSettings', Integration::class, [$useCache], fn() => $this->resolveConfig($useCache), function($settings) {
             if ($settings === false) {
                 $this->_configRefreshCancelled = true;
+
                 return $this->_getCachedConfig();
             }
+
             $cached = $this->_getCachedConfig();
 
             return new IntegrationConfig(
@@ -946,6 +949,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
             if ($field->required && $value === '') {
                 $this->addError($attribute, Craft::t('formie', '{name} must be mapped.', ['name' => $field->name]));
+
                 return;
             }
         }
@@ -986,6 +990,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         if ($this->_runContext === $context) {
             return;
         }
+
         $this->_runContext = $context;
         $this->_deliveryContext = $context->execution;
         $this->_deliveryAttemptUid = $context->attemptUid;
@@ -1034,17 +1039,20 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         if ($value === false && $errorResult === null && !$this->_deliveryState->skipped && $this->_canRetryBeforeSend()) {
             $result = IntegrationResult::failed('before_send', true);
         }
+
         $result = $result->withOutputs($this->_deliveryState->outputs);
 
         if ($this->_directDelivery) {
             if ($this->_deliveryAttemptUid) {
                 Formie::$plugin->getDeliveryAttempts()->completeDirect($this->_deliveryAttemptUid, $result);
             }
+
             $this->_deliveryContext = null;
             $this->_deliveryAttemptUid = null;
             $this->_deliveryStepCounts = [];
             $this->_directDelivery = false;
         }
+
         return $result;
     }
 
@@ -1070,6 +1078,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $write = $isSideEffect || !in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true);
         $trackedSend = function(...$arguments) use ($send, $write) {
             $this->_deliveryState->writeStarted = $this->_deliveryState->writeStarted || $write;
+
             return $send(...$arguments);
         };
 
@@ -1081,11 +1090,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         if (!$this->_deliveryAttemptUid) {
             $this->_deliveryAttemptUid = Formie::$plugin->getDeliveryAttempts()->startDirect($this->_deliveryContext);
         }
+
         // The endpoint and occurrence identify a concrete provider operation. Its
         // payload hash must also match when the same operation is replayed.
         $key = strtoupper($method) . ':' . hash('sha256', $uri);
         $ordinal = $this->_deliveryStepCounts[$key] = ($this->_deliveryStepCounts[$key] ?? 0) + 1;
         $identityOptions = array_diff_key($options, array_flip(['handler', 'curl', 'proxy', 'verify', 'allow_redirects']));
+
         return Formie::$plugin->getDeliveryAttempts()->write($this->_deliveryContext, $key . ':' . $ordinal, $this->_deliveryAttemptUid, $identityOptions, $trackedSend, ['method' => $method, 'endpoint' => $uri], $this->getDiagnosticSecrets());
     }
 
@@ -1099,12 +1110,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         if (!$origin->getHost() || strtolower($target->getHost()) !== strtolower($origin->getHost()) || $target->getScheme() !== $origin->getScheme() || $target->getPort() !== $origin->getPort() || $target->getUserInfo() !== '') {
             throw new IntegrationStepException(IntegrationResult::rejected('provider_origin_mismatch'));
         }
+
         $this->_applyPublicEndpointDnsPin($options, (string)$target);
         $text = $this->executeDeliveryWrite($method, (string)$target, $options, fn() => $this->_readDeliveryResponse($client->request($method, (string)$target, $options)));
 
         if (!in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true)) {
             $this->_deliveryState->writeAccepted = true;
         }
+
         return Json::isJsonObject($text) ? Json::decode($text) : $text;
     }
 
@@ -1132,6 +1145,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             if (!$origin->getHost() || strtolower($target->getHost()) !== strtolower($origin->getHost()) || $target->getScheme() !== $origin->getScheme() || $target->getPort() !== $origin->getPort() || $target->getUserInfo() !== '') {
                 throw new IntegrationStepException(IntegrationResult::rejected('provider_origin_mismatch'));
             }
+
             $this->_applyPublicEndpointDnsPin($options, (string)$target);
         }
 
@@ -1143,11 +1157,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 if (!$this instanceof Payment) {
                     $this->_secureOAuthClient($base);
                 }
+
                 $result = $this->executeDeliveryWrite($method, $uri, $options, fn() => $this->requestWithOAuthProvider($method, $uri, $options));
 
                 if ($writes) {
                     $this->_deliveryState->writeAccepted = true;
                 }
+
                 return $result;
             }
 
@@ -1169,6 +1185,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             if ($writes && $this->_deliveryState->writeStarted && (!$response || $response->getStatusCode() >= 500 || $response->getStatusCode() === 408)) {
                 $this->_deliveryState->uncertain = true;
             }
+
             throw $e;
         }
     }
@@ -1190,6 +1207,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 throw new IntegrationException('Unsupported public endpoint header.');
             }
         }
+
         $options['allow_redirects'] = false;
         $options['proxy'] = '';
         $options['verify'] = true;
@@ -1225,6 +1243,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         // Allow events to cancel sending
         if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method, $contentType)) {
             $this->_deliveryState->skipped = true;
+
             return false;
         }
 
@@ -1245,6 +1264,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     {
         if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method, $contentType)) {
             $this->_deliveryState->skipped = true;
+
             return false;
         }
 
@@ -1320,6 +1340,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         $conditionSettings = $this->conditions ?? [];
+
         return ConditionsHelper::evaluate($conditionSettings, $submission, 'integration')->permits(($conditionSettings['triggerRule'] ?? 'trigger') === 'trigger');
     }
 
@@ -1678,6 +1699,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         } else {
             $rawValue = $slot->resolve($context);
         }
+
         $fieldValue = $this->_projectIntegrationMappingValue($resolved, $rawValue, $submission, $integrationField);
 
         $event = new ModifyFieldIntegrationValueEvent([
@@ -1857,6 +1879,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                     }
 
                     $selectedFields = is_array($collection) ? ($collection['fields'] ?? []) : ($collection->fields ?? []);
+
                     break;
                 }
             }
@@ -1989,6 +2012,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
             $defaultCollectionId = $collection['value'];
             $defaultRemoteHandle = $collectionRemoteHandleOptions[0]['value'] ?? null;
+
             break;
         }
 
@@ -2044,6 +2068,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             'instructions' => Craft::t('formie', 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.', ['name' => $this::displayName()]),
             'name' => 'optInField',
             'placeholder' => Craft::t('formie', 'Always Opt-in'),
+            'emptyOptionLabel' => Craft::t('formie', 'Always Opt-in'),
             'variableConfig' => [
                 'types' => [Variables::TYPE_BOOLEAN],
             ],
@@ -2251,6 +2276,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         if ($response->getStatusCode() >= 300 && $response->getStatusCode() < 400) {
             throw new RequestException('Integration redirects are not permitted.', new Request('POST', 'https://delivery.invalid'), $response);
         }
+
         return (string)$response->getBody();
     }
 
@@ -2262,6 +2288,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         if (method_exists($provider, 'getBaseAccessTokenUrl')) {
             $origins[] = $provider->getBaseAccessTokenUrl([]);
         }
+
         $transport = $this->createDeliveryHttpHandler();
         $config = $this->getClient()->getConfig();
         $config['allow_redirects'] = false;
@@ -2278,6 +2305,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
                 if ($target->getScheme() === $origin->getScheme() && strtolower($target->getHost()) === strtolower($origin->getHost()) && $target->getPort() === $origin->getPort() && $target->getUserInfo() === '') {
                     $allowed = true;
+
                     break;
                 }
             }
@@ -2285,12 +2313,15 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             if (!$allowed) {
                 throw new IntegrationStepException(IntegrationResult::rejected('provider_origin_mismatch'));
             }
+
             $this->_applyPublicEndpointDnsPin($options, (string)$target);
             unset($options['handler']);
+
             return $transport($request, $options)->then(function($response) use ($request) {
                 if ($response->getStatusCode() >= 300 && $response->getStatusCode() < 400) {
                     throw new RequestException('Integration redirects are not permitted.', $request, $response);
                 }
+
                 return $response;
             });
         };
@@ -2318,6 +2349,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         if (!in_array($port, [80, 443], true) || !extension_loaded('curl')) {
             throw new IntegrationException('Public integration endpoints require HTTP(S) on ports 80 or 443 and the cURL transport.');
         }
+
         $config['allow_redirects'] = false;
         $config['proxy'] = '';
         $config['verify'] = true;
@@ -2419,6 +2451,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         foreach (['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', 'fc00::/7'] as $range) {
             if (IpHelper::inRange($ip, $range)) {
                 $private = true;
+
                 break;
             }
         }
