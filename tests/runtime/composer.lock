@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f1bc124318d7dc98d97c4c63bc504baf",
+    "content-hash": "7c9d9ae5a359656d7ef9b358e5c4ad4b",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -13159,11 +13159,11 @@
         },
         {
             "name": "verbb/formie",
-            "version": "4.0.4",
+            "version": "4.0.5",
             "dist": {
                 "type": "path",
                 "url": "../../..",
-                "reference": "b3560df5a585e6fd55f893020ff01b94b4f97316"
+                "reference": "83bcaea5d0f4aef455b6a8c50a5e1a2c3d9c2cec"
             },
             "require": {
                 "commerceguys/addressing": "^2.1.1",
@@ -14257,5 +14257,9 @@
     "prefer-lowest": false,
     "platform": {},
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "platform-overrides": {
+        "php": "8.2.0",
+        "php-64bit": "8.2.0"
+    },
+    "plugin-api-version": "2.6.0"
 }
