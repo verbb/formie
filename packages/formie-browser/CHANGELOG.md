@@ -5,6 +5,7 @@
 ### Fixed
 - Fixed browser requests failing when Craft uses a custom action trigger, including token refresh after AJAX submissions. ([#3068](https://github.com/verbb/formie/issues/3068))
 - Fixed upload manager file order and move button states becoming inconsistent after reordering files. ([#3070](https://github.com/verbb/formie/issues/3070))
+- Fixed Phone country dropdowns selecting the first allowed country when the default is None, and not restoring None when forms reset. ([#3071](https://github.com/verbb/formie/issues/3071))
 - Fixed invisible hCaptcha challenges timing out before they could be completed, requiring a second submit click. ([#3067](https://github.com/verbb/formie/issues/3067))
 - Fixed token refreshes losing the form's site on multisite installations with path-based URLs. ([#3064](https://github.com/verbb/formie/issues/3064))
 - Fixed theme attributes not being applied to AJAX success and error messages. ([#3061](https://github.com/verbb/formie/issues/3061))

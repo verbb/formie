@@ -1112,7 +1112,7 @@ var Kt = class {
 	"file-upload": () => import("./chunks/file-upload-vEUr_EuP.js").then((e) => e.fileUploadModule),
 	"upload-manager": () => import("./chunks/upload-manager-CkmsPJRl.js").then((e) => e.uploadManagerModule),
 	hidden: () => import("./chunks/hidden-Bc2TpcgF.js").then((e) => e.hiddenModule),
-	"phone-country": () => import("./chunks/phone-country-Bx9EG50h.js").then((e) => e.phoneCountryModule),
+	"phone-country": () => import("./chunks/phone-country-BMyw-Qcz.js").then((e) => e.phoneCountryModule),
 	"password-validation": () => import("./chunks/password-validation-HGOU9kf3.js").then((e) => e.passwordValidationModule),
 	"address-country": () => import("./chunks/address-country-DLJF-OkC.js").then((e) => e.addressCountryModule),
 	"address-state": () => import("./chunks/address-state-CHKit8AW.js").then((e) => e.addressStateModule),

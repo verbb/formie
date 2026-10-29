@@ -11,6 +11,7 @@
 - Fix the Opt-In Field setting for integrations not being able to be cleared. ([#3066](https://github.com/verbb/formie/issues/3066))
 - Fix optional field selections, including Match Field and integration field references, not being able to be cleared.
 - Fix country defaults for Phone, Address Country and Google address autocomplete not being able to be cleared.
+- Fix Phone country dropdowns selecting the first allowed country when the default is None, and not restoring None when forms reset. ([#3071](https://github.com/verbb/formie/issues/3071))
 - Fix optional option-source parameters not being able to be cleared, and provider defaults restoring explicitly empty values.
 - Fix Form Default positions not being retained for Address and Name instructions, and Content, HTML, Recipients, Quiz and Survey labels.
 - Fix deleted page client events returning on forms upgraded from legacy event settings.

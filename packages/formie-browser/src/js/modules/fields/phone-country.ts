@@ -17,7 +17,7 @@ const debug = createDebug('fields', 'phone');
 ensureModuleStyles(MODULE_ID, [intlTelInputCss]);
 
 type PhoneCountryOptions = {
-    countryDefaultValue?: string;
+    countryDefaultValue?: string | null;
     allowedCountryCodes?: string[];
     countryPreselectFromIp?: boolean;
     countryFromIpAction?: string;
@@ -86,7 +86,7 @@ function buildOptions(options: PhoneCountryOptions, form: HTMLFormElement | null
         allowDropdown: true,
         nationalMode: false,
         separateDialCode: true,
-        initialCountry: 'auto',
+        initialCountry: '',
         autoPlaceholder: 'off',
         formatOnDisplay: false,
         formatAsYouType: false,
@@ -101,11 +101,11 @@ function buildOptions(options: PhoneCountryOptions, form: HTMLFormElement | null
 
     if (allowedCountries.length) {
         intlOptions.onlyCountries = allowedCountries;
-        intlOptions.initialCountry = allowedCountries[0];
 
         // One allowed country behaves more like a formatting helper than a full
         // country-picker UI, so tighten the plugin options accordingly.
         if (allowedCountries.length === 1) {
+            intlOptions.initialCountry = allowedCountries[0];
             intlOptions.allowDropdown = false;
             intlOptions.separateDialCode = false;
             intlOptions.nationalMode = true;
@@ -119,8 +119,8 @@ function buildOptions(options: PhoneCountryOptions, form: HTMLFormElement | null
         intlOptions.geoIpLookup = createGeoIpLookup(options.countryFromIpAction, form);
     }
 
-    if (Array.isArray(intlOptions.onlyCountries) && typeof intlOptions.initialCountry === 'string') {
-        const initialCountry = intlOptions.initialCountry.toLowerCase();
+    if (Array.isArray(intlOptions.onlyCountries) && options.countryDefaultValue) {
+        const initialCountry = options.countryDefaultValue.toLowerCase();
         if (!intlOptions.onlyCountries.includes(initialCountry)) {
             intlOptions.onlyCountries.push(initialCountry);
         }
@@ -137,7 +137,7 @@ function initPhoneField(phoneInput: PhoneInput, countryInput: HTMLInputElement, 
         options: intlOptions,
     });
 
-    const validator = intlTelInput(phoneInput, intlOptions);
+    let validator = intlTelInput(phoneInput, intlOptions);
     const allowedCountries = Array.isArray((intlOptions as { onlyCountries?: unknown[] }).onlyCountries)
         ? (intlOptions as { onlyCountries?: unknown[] }).onlyCountries!.map(String)
         : [];
@@ -153,11 +153,8 @@ function initPhoneField(phoneInput: PhoneInput, countryInput: HTMLInputElement, 
     const syncCountry = () => {
         const countryData = validator.getSelectedCountryData();
         const isoCode = countryData?.iso2 || '';
-        if (isoCode) {
-            // Keep the hidden country field authoritative for submit payloads while
-            // the tel input focuses on the visible formatted number experience.
-            countryInput.value = isoCode.toUpperCase();
-        }
+        // Clearing the selection must also clear the submitted country.
+        countryInput.value = isoCode.toUpperCase();
     };
 
     phoneInput.addEventListener('countrychange', syncCountry);
@@ -168,20 +165,31 @@ function initPhoneField(phoneInput: PhoneInput, countryInput: HTMLInputElement, 
     let defaultCountry = countryInput.value;
     let destroyed = false;
     void validator.promise.then(() => {
-        if (!destroyed) {
+        if (!destroyed && intlOptions.initialCountry === 'auto') {
             defaultCountry ||= validator.getSelectedCountryData()?.iso2?.toUpperCase() || '';
         }
     }, () => {});
 
     const form = phoneInput.form;
     const onReset = (event: Event) => {
-        queueMicrotask(() => {
-            if (!destroyed && !event.defaultPrevented && defaultCountry) {
-                validator.setCountry(defaultCountry.toLowerCase() as IntlCountryCode);
-                validator.setNumber(phoneInput.defaultValue);
+        // Wait for all reset listeners and the browser's native value restoration.
+        window.setTimeout(() => {
+            if (!destroyed && !event.defaultPrevented) {
+                if (defaultCountry) {
+                    validator.setCountry(defaultCountry.toLowerCase() as IntlCountryCode);
+                    validator.setNumber(phoneInput.defaultValue);
+                } else {
+                    // intl-tel-input rejects setCountry('') and retains the last country
+                    // in setNumber(''), so recreate it to restore an unset default.
+                    validator.destroy();
+                    validator = intlTelInput(phoneInput, { ...intlOptions, initialCountry: '' });
+                    phoneInput.validator = validator;
+                    syncCountryButton();
+                }
+
                 syncCountry();
             }
-        });
+        }, 0);
     };
     form?.addEventListener('reset', onReset);
 
