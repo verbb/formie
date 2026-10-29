@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fix browser requests failing when Craft uses a custom action trigger, including token refresh after AJAX submissions. ([#3068](https://github.com/verbb/formie/issues/3068))
 - Fix invisible hCaptcha challenges timing out before they could be completed, requiring a second submit click. ([#3067](https://github.com/verbb/formie/issues/3067))
 - Fix Agree fields not being selectable in integration field mappings. ([#3066](https://github.com/verbb/formie/issues/3066))
 - Fix the Opt-In Field setting for integrations not being able to be cleared. ([#3066](https://github.com/verbb/formie/issues/3066))

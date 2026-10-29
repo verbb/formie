@@ -122,6 +122,8 @@ class FormSlotRegistry extends Component
                 'data-formie-validation-on-submit' => $form?->settings->validationOnSubmit ? true : false,
                 'data-formie-disable-submit-until-valid' => $form?->settings->disableSubmitButtonUntilValid ? true : false,
                 'data-formie-scroll-to-top' => $form?->settings->scrollToTop ? true : false,
+                'data-formie-submit-endpoint' => UrlHelper::actionUrl($form?->getActionUrl() ?? 'formie/submissions/submit'),
+                'data-formie-refresh-tokens-endpoint' => UrlHelper::actionUrl('formie/server/forms/refresh-tokens'),
                 'data-formie-clear-submission-endpoint' => UrlHelper::actionUrl('formie/server/submissions/clear-submission'),
                 'data-formie-modules' => $moduleManifest ? Json::encode($moduleManifest) : false,
                 'data-formie-theme-classes' => $themeClassMap ? Json::encode($themeClassMap) : false,

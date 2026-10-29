@@ -165,6 +165,17 @@ function resolveHeadlessEndpoint(baseOrEndpoint: string | undefined, actionPath:
         return candidate;
     }
 
+    // Explicit action URLs may use a custom trigger, subdirectory or Craft path parameter.
+    const actionSuffix = actionPath.replace(/^\/actions/, '');
+    try {
+        const url = new URL(candidate, window.location.origin);
+        if (url.pathname.endsWith(actionSuffix) || Array.from(url.searchParams.values()).some((value) => value.endsWith(actionSuffix))) {
+            return candidate;
+        }
+    } catch (_error) {
+        // Keep the existing fallback for bases that cannot be resolved as URLs.
+    }
+
     return resolveEndpointAgainstBase(actionPath, candidate);
 }
 
@@ -187,51 +198,40 @@ function resolveGraphqlEndpoint(options: FormMountOptions, target: Element): str
 }
 
 function resolveRefreshTokensEndpoint(options: FormMountOptions, target: Element): string {
+    const endpoint = (target as HTMLElement).dataset.formieRefreshTokensEndpoint
+        || getFormFromTarget(target)?.dataset.formieRefreshTokensEndpoint;
+
+    // Server-provided endpoints are complete URLs, not bases for the default action path.
+    if (endpoint) {
+        return resolveEndpointAgainstBase(endpoint, options.endpoint || (target as HTMLElement).dataset.formieEndpoint);
+    }
+
     return resolveHeadlessEndpoint(
-        (target as HTMLElement).dataset.formieRefreshTokensEndpoint || options.endpoint || (target as HTMLElement).dataset.formieEndpoint,
+        options.endpoint || (target as HTMLElement).dataset.formieEndpoint,
         DEFAULT_HEADLESS_REFRESH_TOKENS_ACTION,
     );
 }
 
-function mergeSearchParams(sourceUrl: string | null, destinationUrl: string): string {
-    if (!sourceUrl) {
-        return destinationUrl;
-    }
-
-    try {
-        const source = new URL(sourceUrl, window.location.origin);
-        const destination = new URL(destinationUrl, window.location.origin);
-
-        source.searchParams.forEach((value, key) => {
-            if (!destination.searchParams.has(key)) {
-                destination.searchParams.set(key, value);
-            }
-        });
-
-        return destination.toString();
-    } catch (_error) {
-        return destinationUrl;
-    }
-}
-
 function normalizeServerRenderedUrls(target: Element, form: HTMLFormElement, options: FormMountOptions): void {
     const baseEndpoint = options.endpoint || (target as HTMLElement).dataset.formieEndpoint;
-    const submitAction = resolveHeadlessEndpoint(baseEndpoint, DEFAULT_HEADLESS_SUBMIT_ACTION);
-    const existingAction = form.getAttribute('action');
+    const existingAction = form.getAttribute('action') || form.dataset.formieSubmitEndpoint;
 
-    form.setAttribute('action', mergeSearchParams(existingAction, submitAction));
+    // Keep Craft's routing and query parameters; only resolve relative URLs for remote HTML.
+    form.setAttribute('action', existingAction
+        ? resolveEndpointAgainstBase(existingAction, baseEndpoint)
+        : resolveHeadlessEndpoint(baseEndpoint, DEFAULT_HEADLESS_SUBMIT_ACTION));
 
     form.querySelectorAll<HTMLAnchorElement>('[data-formie-tab-link]').forEach((link) => {
         const existingHref = link.getAttribute('href');
-        const setPageEndpoint = resolveHeadlessEndpoint(baseEndpoint, DEFAULT_HEADLESS_SET_PAGE_ACTION);
-
-        link.setAttribute('href', mergeSearchParams(existingHref, setPageEndpoint));
+        link.setAttribute('href', existingHref
+            ? resolveEndpointAgainstBase(existingHref, baseEndpoint)
+            : resolveHeadlessEndpoint(baseEndpoint, DEFAULT_HEADLESS_SET_PAGE_ACTION));
     });
 
     form.querySelectorAll<HTMLElement>('[data-formie-file-upload-hydrate-endpoint]').forEach((input) => {
         input.setAttribute(
             'data-formie-file-upload-hydrate-endpoint',
-            resolveHeadlessEndpoint(baseEndpoint, DEFAULT_FILE_UPLOAD_HYDRATE_ACTION),
+            resolveEndpointAgainstBase(input.getAttribute('data-formie-file-upload-hydrate-endpoint') || DEFAULT_FILE_UPLOAD_HYDRATE_ACTION, baseEndpoint),
         );
     });
 }
@@ -252,8 +252,12 @@ function hasAutomaticSubmissionState(form: HTMLFormElement): boolean {
 }
 
 function resolveClearSubmissionEndpoint(options: FormMountOptions, target: Element, form: HTMLFormElement): string {
+    if (form.dataset.formieClearSubmissionEndpoint) {
+        return resolveEndpointAgainstBase(form.dataset.formieClearSubmissionEndpoint, options.endpoint || (target as HTMLElement).dataset.formieEndpoint);
+    }
+
     return resolveHeadlessEndpoint(
-        form.dataset.formieClearSubmissionEndpoint || options.endpoint || (target as HTMLElement).dataset.formieEndpoint,
+        options.endpoint || (target as HTMLElement).dataset.formieEndpoint,
         DEFAULT_HEADLESS_CLEAR_SUBMISSION_ACTION,
     );
 }

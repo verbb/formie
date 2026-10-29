@@ -1,1 +1,1 @@
-{"version":3,"file":"create-formie-client.d.ts","sourceRoot":"","sources":["../../../src/js/core/create-formie-client.ts"],"names":[],"mappings":"AAEA,OAAO,KAAK,EACR,YAAY,EAGf,MAAM,mBAAmB,CAAC;AA63B3B,wBAAgB,kBAAkB,IAAI,YAAY,CA2uBjD"}
+{"version":3,"file":"create-formie-client.d.ts","sourceRoot":"","sources":["../../../src/js/core/create-formie-client.ts"],"names":[],"mappings":"AAEA,OAAO,KAAK,EACR,YAAY,EAGf,MAAM,mBAAmB,CAAC;AAi4B3B,wBAAgB,kBAAkB,IAAI,YAAY,CA2uBjD"}
