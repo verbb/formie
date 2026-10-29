@@ -18,6 +18,8 @@ function FieldSelectField({ field, form }) {
     const editingFieldId = form?.getFieldValue?.('_id') || form?.getFieldValue?.('id') || null;
     const includedTypes = getFirstConfiguredArray(field.includedTypes, field.fieldTypes);
     const variableTypes = getFirstConfiguredArray(field.variableConfig?.types, field.types);
+    // Optional references must remain removable after a field has been selected.
+    const emptyOptionLabel = field.emptyOptionLabel || (!field.required ? Craft.t('formie', 'None') : '');
 
     const fieldOptions = useMemo(() => {
         const options = getFieldReferenceOptions(formValues, {
@@ -35,9 +37,9 @@ function FieldSelectField({ field, form }) {
             referenceContext: field.referenceContext || null,
         });
 
-        if (field.emptyOptionLabel) {
+        if (emptyOptionLabel) {
             options.unshift({
-                label: field.emptyOptionLabel,
+                label: emptyOptionLabel,
                 value: '',
             });
         }
@@ -53,7 +55,7 @@ function FieldSelectField({ field, form }) {
         field.topLevelOnly,
         includedTypes,
         variableTypes,
-        field.emptyOptionLabel,
+        emptyOptionLabel,
         getFieldTypeByType,
         editingFieldId,
     ]);
@@ -110,7 +112,7 @@ function FieldSelectField({ field, form }) {
 
         return groups;
     }, [displayFieldOptions]);
-    const placeholder = field.placeholder || field.emptyOptionLabel || Craft.t('formie', 'Select an option');
+    const placeholder = field.placeholder || emptyOptionLabel || Craft.t('formie', 'Select an option');
 
     return (
         <FieldLayout
