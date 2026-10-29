@@ -179,6 +179,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
             FieldStorageCodec::assertSafe($number);
             $number = Json::encode($number);
         }
+
         $number = trim((string)$number);
         $canonicalNumber = null;
         $countryCode = null;
@@ -217,6 +218,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                     return $country['label'];
                 }
             }
+
             return '';
         }
 
@@ -302,7 +304,10 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'name' => 'countryDefaultValue',
                 'if' => 'countryEnabled',
                 'placeholder' => Craft::t('formie', 'Select an option'),
-                'options' => $this->getCountryOptions(),
+                'options' => array_merge(
+                    [['label' => Craft::t('formie', 'None'), 'value' => '']],
+                    $this->getCountryOptions()
+                ),
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Preselect Country from IP'),

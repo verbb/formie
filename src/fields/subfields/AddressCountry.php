@@ -113,7 +113,10 @@ class AddressCountry extends Dropdown implements ChildFieldInterface
                 'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
                 'placeholder' => Craft::t('formie', 'Select an option'),
-                'options' => $this->getCountryOptions(),
+                'options' => array_merge(
+                    [['label' => Craft::t('formie', 'None'), 'value' => '']],
+                    $this->getCountryOptions()
+                ),
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Option Label'),

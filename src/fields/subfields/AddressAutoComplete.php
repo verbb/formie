@@ -81,7 +81,10 @@ class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
             'name' => 'countryDefaultValue',
             'if' => $googlePlacesIf,
             'placeholder' => Craft::t('formie', 'Select an option'),
-            'options' => $this->_getCountryDefaultValueOptions(),
+            'options' => array_merge(
+                [['label' => Craft::t('formie', 'None'), 'value' => '']],
+                $this->_getCountryDefaultValueOptions()
+            ),
         ]);
 
         $fields[] = SchemaHelper::lightswitchField([
