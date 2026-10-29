@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed invisible hCaptcha challenges timing out before they could be completed, requiring a second submit click. ([#3067](https://github.com/verbb/formie/issues/3067))
 - Fixed token refreshes losing the form's site on multisite installations with path-based URLs. ([#3064](https://github.com/verbb/formie/issues/3064))
 - Fixed theme attributes not being applied to AJAX success and error messages. ([#3061](https://github.com/verbb/formie/issues/3061))
 - Fixed nested alert roles in form error messages that could cause duplicate screen reader announcements. ([#3062](https://github.com/verbb/formie/issues/3062))

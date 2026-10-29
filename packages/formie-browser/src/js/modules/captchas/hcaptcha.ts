@@ -2,6 +2,7 @@ import {
     defineCaptchaModule,
 } from '#modules/captchas/api';
 import {
+    CAPTCHA_EXECUTE_WAIT_FOR_VALUE_MS,
     CAPTCHA_PROVIDER_LOAD_TIMEOUT_MS,
 } from '#modules/captchas/constants';
 import { ensureGlobal, loadExternalScript } from '#utils/scripts';
@@ -131,8 +132,8 @@ export const hcaptchaModule = defineCaptchaModule<HcaptchaProviderOptions, Hcapt
 
         // After execute(), the token will arrive asynchronously via the widget
         // callback configured in `mount()`. We therefore wait on the shared
-        // token transport layer, not on a provider-specific promise chain.
-        return services.tokens.wait().then((hasToken) => {
+        // token transport layer, allowing time for an interactive challenge.
+        return services.tokens.wait(CAPTCHA_EXECUTE_WAIT_FOR_VALUE_MS).then((hasToken) => {
             if (!hasToken) {
                 // If the callback never produced a token in time, surface a
                 // normal themed error and abort the submit pipeline's `screen`

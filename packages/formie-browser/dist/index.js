@@ -1093,7 +1093,7 @@ var Wt = class {
 	"captcha-eu": () => import("./chunks/captcha-eu-eU_M6snp.js").then((e) => e.captchaEuModule),
 	"friendly-captcha-v1": () => import("./chunks/friendly-captcha-v1-C_cF1WD2.js").then((e) => e.friendlyCaptchaV1Module),
 	"friendly-captcha-v2": () => import("./chunks/friendly-captcha-v2-BenESH-n.js").then((e) => e.friendlyCaptchaV2Module),
-	hcaptcha: () => import("./chunks/hcaptcha-COilLmRT.js").then((e) => e.hcaptchaModule),
+	hcaptcha: () => import("./chunks/hcaptcha-lseqzFTP.js").then((e) => e.hcaptchaModule),
 	"recaptcha-enterprise": () => import("./chunks/recaptcha-enterprise-Cx6HUpMa.js").then((e) => e.recaptchaEnterpriseModule),
 	"recaptcha-v2-checkbox": () => import("./chunks/recaptcha-v2-checkbox-DQ9BJzcv.js").then((e) => e.recaptchaV2CheckboxModule),
 	"recaptcha-v2-invisible": () => import("./chunks/recaptcha-v2-invisible-BP0T8Pan.js").then((e) => e.recaptchaV2InvisibleModule),

@@ -1,26 +1,26 @@
-import { a as e, r as t, t as n } from "./api-BPtH5RBA.js";
-import { n as r, t as i } from "./scripts-DrccjrFv.js";
+import { a as e, i as t, r as n, t as r } from "./api-BPtH5RBA.js";
+import { n as i, t as a } from "./scripts-DrccjrFv.js";
 //#region src/js/modules/captchas/hcaptcha.ts
-async function a(n) {
-	let a = typeof n.language == "string" && n.language.trim() !== "" ? n.language.trim() : "en", { async: o, defer: s } = t(n.loadingMethod), c = "FORMIE_HCAPTCHA_ONLOAD", l = window, u = l.hcaptcha;
+async function o(t) {
+	let r = typeof t.language == "string" && t.language.trim() !== "" ? t.language.trim() : "en", { async: o, defer: s } = n(t.loadingMethod), c = "FORMIE_HCAPTCHA_ONLOAD", l = window, u = l.hcaptcha;
 	if (u) return u;
 	let d = new Promise((e) => {
 		l[c] = () => {
 			delete l[c], e();
 		};
 	});
-	return await r({
+	return await i({
 		id: "FORMIE_HCAPTCHA_SCRIPT",
-		src: `https://js.hcaptcha.com/1/api.js?recaptchacompat=off&render=explicit&onload=FORMIE_HCAPTCHA_ONLOAD&hl=${encodeURIComponent(a)}`,
+		src: `https://js.hcaptcha.com/1/api.js?recaptchacompat=off&render=explicit&onload=FORMIE_HCAPTCHA_ONLOAD&hl=${encodeURIComponent(r)}`,
 		async: o,
 		defer: s
-	}), await d, i("hcaptcha", e);
+	}), await d, a("hcaptcha", e);
 }
-var o = n({
+var s = r({
 	moduleId: "formie:hcaptcha",
 	defaultPlaceholderSelector: "[data-hcaptcha-placeholder]",
 	defaultTokenFieldNames: ["h-captcha-response"],
-	load: ({ options: e }) => a(e.provider),
+	load: ({ options: e }) => o(e.provider),
 	mount: ({ api: e, container: t, provider: n, services: r }) => e.render(t, {
 		sitekey: n.siteKey || "",
 		theme: n.theme || "light",
@@ -38,11 +38,11 @@ var o = n({
 			r.tokens.clear();
 		}
 	}),
-	challenge: ({ api: e, widget: t, placeholder: n, services: r, stageCtx: i }) => {
-		if (!r.tokens.has()) return e.execute(t), r.tokens.wait().then((e) => {
+	challenge: ({ api: e, widget: n, placeholder: r, services: i, stageCtx: a }) => {
+		if (!i.tokens.has()) return e.execute(n), i.tokens.wait(t).then((e) => {
 			if (!e) {
-				let e = r.errors.getDefaultMessage();
-				r.errors.show(e, n), i.abort(e);
+				let e = i.errors.getDefaultMessage();
+				i.errors.show(e, r), a.abort(e);
 			}
 		});
 	},
@@ -51,4 +51,4 @@ var o = n({
 	}
 });
 //#endregion
-export { o as hcaptchaModule };
+export { s as hcaptchaModule };
