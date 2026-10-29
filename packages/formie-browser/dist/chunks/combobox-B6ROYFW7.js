@@ -1854,7 +1854,7 @@ function Gt(e, t) {
 	return t?.trim() || e.querySelector("option[value=\"\"]")?.textContent?.trim() || null;
 }
 function Kt(e) {
-	e.options[""] && e.removeOption("", !0);
+	e.options[""] && (e.removeOption("", !0), e.inputState());
 }
 function $(e, t = {}) {
 	e._formieTomSelect?.destroy();

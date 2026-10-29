@@ -76,6 +76,10 @@ function resolvePlaceholder(select: HTMLSelectElement, configuredPlaceholder?: s
 function removeEmptyOptionFromCombobox(instance: TomSelectInstance): void {
     if (instance.options['']) {
         instance.removeOption('', true);
+
+        // Removing the selected empty option leaves Tom Select's input hidden
+        // until the next interaction unless its placeholder state is refreshed.
+        instance.inputState();
     }
 }
 
