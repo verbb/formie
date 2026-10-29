@@ -5,6 +5,7 @@ import { FieldLayout, useEngineField } from '@verbb/plugin-kit-react/forms';
 import { cn } from '@verbb/plugin-kit-react/utils';
 import { refreshIntegrationFormSettings } from '@form-builder/hooks/useFormTools';
 import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
+import { applyOptionSourceParamDefaults } from '@form-builder/utils/optionSourceParams';
 
 const PREVIEW_LIMIT = 100;
 const PREVIEW_SUMMARY_CHIP_LIMIT = 6;
@@ -79,7 +80,7 @@ function PathSeparator() {
  * Width follows content with a modest floor/ceiling so short values stay
  * compact and long option labels can grow instead of equal fixed buckets.
  */
-function IntegrationSourceChain({ steps }) {
+export function IntegrationSourceChain({ steps }) {
     if (!steps.length) {
         return null;
     }
@@ -105,6 +106,7 @@ function IntegrationSourceChain({ steps }) {
                                 placeholder={step.placeholder || Craft.t('formie', 'Select…')}
                                 emptyMessage={Craft.t('formie', 'No options found.')}
                                 disabled={step.disabled}
+                                clearable={step.required === false}
                                 onPkChange={(event) => {
                                     const next = event.detail?.value;
                                     const resolved = Array.isArray(next) ? next[0] : next;
@@ -1277,19 +1279,7 @@ function OptionDynamicSettingsField({ field, form }) {
                 const currentParams = sourceParamsRef.current || {};
                 const currentSourceProvider = String(optionSourceValueRef.current?.provider || '');
                 const nextParamFields = Array.isArray(data.paramFields) ? data.paramFields : [];
-                const nextParams = { ...currentParams };
-
-                nextParamFields.forEach((paramField) => {
-                    const handle = String(paramField?.handle || '');
-
-                    if (!handle || nextParams[handle]) {
-                        return;
-                    }
-
-                    if (defaults[handle] !== undefined && defaults[handle] !== null) {
-                        nextParams[handle] = defaults[handle];
-                    }
-                });
+                const nextParams = applyOptionSourceParamDefaults(currentParams, nextParamFields, defaults);
 
                 const shouldApplyDefaults = pendingIntegrationDefaultsRef.current;
                 const shouldSyncProvider = resolvedProvider
@@ -1546,19 +1536,7 @@ function OptionDynamicSettingsField({ field, form }) {
                 const defaults = data.defaults || {};
                 const currentParams = sourceParamsRef.current || {};
                 const nextParamFields = Array.isArray(data.paramFields) ? data.paramFields : [];
-                const nextParams = { ...currentParams };
-
-                nextParamFields.forEach((paramField) => {
-                    const handle = String(paramField?.handle || '');
-
-                    if (!handle || nextParams[handle]) {
-                        return;
-                    }
-
-                    if (defaults[handle] !== undefined && defaults[handle] !== null && defaults[handle] !== '') {
-                        nextParams[handle] = defaults[handle];
-                    }
-                });
+                const nextParams = applyOptionSourceParamDefaults(currentParams, nextParamFields, defaults);
 
                 if (!isSameFormValue(currentParams, nextParams)) {
                     updateSource({
@@ -2126,6 +2104,7 @@ function OptionDynamicSettingsField({ field, form }) {
                     key: handle,
                     name: `integrationParam-${handle}`,
                     label: paramField.label || handle,
+                    required: paramField.required !== false,
                     placeholder: paramField.placeholder || Craft.t('formie', 'Select…'),
                     value,
                     options,
@@ -2214,6 +2193,7 @@ function OptionDynamicSettingsField({ field, form }) {
                     key: handle,
                     name: `registeredParam-${handle}`,
                     label: paramField.label || handle,
+                    required: paramField.required !== false,
                     placeholder: paramField.placeholder || Craft.t('formie', 'Select…'),
                     value,
                     options,
