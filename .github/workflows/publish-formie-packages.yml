@@ -11,9 +11,17 @@ on:
                 required: true
                 type: string
             release_version:
-                description: Exact lockstep package version (for example, 1.0.14)
-                required: true
+                description: Stable package version for latest; leave empty for next
+                required: false
                 type: string
+            channel:
+                description: npm distribution channel
+                required: true
+                default: latest
+                type: choice
+                options:
+                    - latest
+                    - next
 
 # Never let two attempts race over the same lockstep package release.
 concurrency:
@@ -70,6 +78,9 @@ jobs:
             - name: Run package tests
               run: npm test -w @verbb/formie-core
 
+            - name: Test package publication tooling
+              run: node --test tests/scripts/package-release.test.mjs
+
             - name: Inspect all package tarballs
               run: |
                   for package in \
@@ -94,20 +105,12 @@ jobs:
                   fi
 
             - name: Create reviewed package tarballs
-              run: |
-                  mkdir -p "$RUNNER_TEMP/formie-tarballs"
-                  for package in \
-                    @verbb/formie-core \
-                    @verbb/formie-browser \
-                    @verbb/formie-react \
-                    @verbb/formie-vue \
-                    @verbb/formie-web-components; do
-                    echo "::group::Build tarball $package"
-                    npm pack -w "$package" --pack-destination "$RUNNER_TEMP/formie-tarballs"
-                    echo '::endgroup::'
-                  done
-                  test -z "$(git status --porcelain)"
-                  test "$(find "$RUNNER_TEMP/formie-tarballs" -maxdepth 1 -name '*.tgz' | wc -l | tr -d ' ')" = 5
+              env:
+                  RELEASE_SHA: ${{ inputs.release_sha }}
+                  RELEASE_VERSION: ${{ inputs.release_version }}
+                  RELEASE_CHANNEL: ${{ inputs.channel || 'latest' }}
+                  PACKAGE_TARBALL_DIR: ${{ runner.temp }}/formie-tarballs
+              run: node scripts/pack-prepared.mjs
 
             - name: Transfer validated tarballs to publish job
               uses: actions/upload-artifact@v4
@@ -154,5 +157,6 @@ jobs:
               env:
                   RELEASE_SHA: ${{ inputs.release_sha }}
                   RELEASE_VERSION: ${{ inputs.release_version }}
+                  RELEASE_CHANNEL: ${{ inputs.channel || 'latest' }}
                   PACKAGE_TARBALL_DIR: ${{ runner.temp }}/formie-tarballs
               run: npm run release:publish-prepared
