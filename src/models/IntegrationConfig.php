@@ -19,6 +19,7 @@ final class IntegrationConfig
 
         if ($value instanceof IntegrationField || $value instanceof IntegrationCollection) {
             $kind = $value instanceof IntegrationField ? 'field' : 'collection';
+
             return ['_kind' => $kind, 'attributes' => self::encode(get_object_vars($value), $depth + 1)];
         }
 
@@ -29,14 +30,17 @@ final class IntegrationConfig
                 if (preg_match('/^(?:class|__class|as .+|on .+|password|clientSecret|apiKey|accessToken|refreshToken|authorization|cookie)$/i', (string)$key)) {
                     continue;
                 }
+
                 $result[$key] = self::encode($item, $depth + 1);
             }
+
             return $result;
         }
 
         if (is_object($value) || is_resource($value)) {
             throw new InvalidArgumentException('Integration metadata must contain only data.');
         }
+
         return $value;
     }
 
@@ -71,6 +75,7 @@ final class IntegrationConfig
                     $model->$property = self::decode($attributes[$property], $depth + 1);
                 }
             }
+
             return $model;
         }
 
@@ -92,7 +97,8 @@ final class IntegrationConfig
 
     public const VERSION = 1;
     public const FRESH_SECONDS = 86400;
-    public const MAX_BYTES = 2097152;
+    // Providers can cache an entire portal's forms and field options in one config.
+    public const MAX_BYTES = 16777216;
 
 
     // Properties
@@ -115,6 +121,7 @@ final class IntegrationConfig
         if (strlen(json_encode($encoded, JSON_THROW_ON_ERROR)) > self::MAX_BYTES) {
             throw new InvalidArgumentException('Integration metadata exceeds the storage limit.');
         }
+
         $this->data = self::decode($encoded);
         $this->invalidationKey = $invalidationKey;
         $this->fetchedAt = $fetchedAt;

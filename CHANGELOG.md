@@ -18,6 +18,7 @@
 - Fix invisible hCaptcha challenges timing out before they could be completed, requiring a second submit click. ([#3067](https://github.com/verbb/formie/issues/3067))
 - Fix Agree fields not being selectable in integration field mappings. ([#3066](https://github.com/verbb/formie/issues/3066))
 - Fix the Opt-In Field setting for integrations not being able to be cleared. ([#3066](https://github.com/verbb/formie/issues/3066))
+- Fix large HubSpot portals failing to load or refresh integration settings due to the metadata storage limit.
 - Fix optional field selections, including Match Field and integration field references, not being able to be cleared.
 - Fix country defaults for Phone, Address Country and Google address autocomplete not being able to be cleared.
 - Fix Phone country dropdowns selecting the first allowed country when the default is None, and not restoring None when forms reset. ([#3071](https://github.com/verbb/formie/issues/3071))
