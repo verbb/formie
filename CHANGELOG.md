@@ -16,6 +16,7 @@
 - Fix file upload reference checks causing MySQL sort-memory errors for large submissions. ([#3069](https://github.com/verbb/formie/issues/3069))
 - Fix upload manager file order and move button states becoming inconsistent after reordering files. ([#3070](https://github.com/verbb/formie/issues/3070))
 - Fix searchable dropdown placeholders not appearing until a form field is focused. ([#3072](https://github.com/verbb/formie/issues/3072))
+- Fix client-rendered forms failing to load when Date fields contain dropdown controls, including AM/PM controls. ([#3073](https://github.com/verbb/formie/pull/3073))
 - Fix invisible hCaptcha challenges timing out before they could be completed, requiring a second submit click. ([#3067](https://github.com/verbb/formie/issues/3067))
 - Fix Agree fields not being selectable in integration field mappings. ([#3066](https://github.com/verbb/formie/issues/3066))
 - Fix the Opt-In Field setting for integrations not being able to be cleared. ([#3066](https://github.com/verbb/formie/issues/3066))

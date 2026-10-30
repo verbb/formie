@@ -495,6 +495,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         foreach ($this->getResolvedOptions() as $option) {
             if (isset($option['optgroup'])) {
                 $options[] = $option;
+
                 continue;
             }
 
@@ -573,6 +574,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
             // Ignore optgroups
             if (array_key_exists('optgroup', $option)) {
                 $optgroup = $option['optgroup'];
+
                 continue;
             }
 
@@ -655,6 +657,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
             foreach ($value as $val) {
                 if ($val instanceof OptionValue) {
                     $selectedValues[] = (string)($val->value ?? '');
+
                     continue;
                 }
 
@@ -664,6 +667,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
                     if (array_key_exists('label', $val)) {
                         $submittedLabelsByValue[(string)$val['value']] = (string)$val['label'];
                     }
+
                     continue;
                 }
 
@@ -713,6 +717,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
                     if ($label === null) {
                         $label = $selectedValue;
                     }
+
                     $valid = true;
                 }
 
@@ -730,6 +735,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
                 if ($label === null) {
                     $label = $selectedValue;
                 }
+
                 $valid = true;
             }
 
@@ -744,6 +750,11 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
+        // Date dropdown children provide scalar initial values instead of option objects.
+        if (is_scalar($value)) {
+            return $value === '' ? null : $value;
+        }
+
         return $value instanceof MultiOptionFieldValue ? $value->values() : $value?->value;
     }
 
