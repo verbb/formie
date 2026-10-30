@@ -298,6 +298,7 @@ class FileUpload extends ElementField
                         fn($entry) => is_numeric($entry) ? ['assetId' => (int)$entry] : $entry,
                         $value,
                     ));
+
                     break;
                 }
             }
@@ -354,6 +355,7 @@ class FileUpload extends ElementField
         if (is_array($value)) {
             unset($value['mutationData']);
         }
+
         return parent::normalizeValue($value, $element);
     }
 
@@ -965,6 +967,7 @@ class FileUpload extends ElementField
             // Prefer a builder-specific message for Temporary Uploads when configuring the field.
             if ($this->_getEffectiveUploadLocationSource() === 'temp') {
                 $this->addError($attribute, Craft::t('formie', 'Temporary Uploads cannot be used as a form upload location. Choose an asset volume instead.'));
+
                 return;
             }
 
@@ -1177,6 +1180,11 @@ class FileUpload extends ElementField
         ]);
     }
 
+    protected function providesClientRenderedOptions(): bool
+    {
+        return false;
+    }
+
     protected function defineBrowserModules(): array
     {
         $modules = parent::defineBrowserModules();
@@ -1251,6 +1259,7 @@ class FileUpload extends ElementField
         if (self::$_stagedElements[$element][$this->valueKey()] ?? false) {
             return;
         }
+
         $uploadedDataFiles = &$this->_getUploadedDataFiles($element);
         $query = $element->getFieldValue($this->valueKey());
         $assetsService = Craft::$app->getAssets();
@@ -1287,12 +1296,15 @@ class FileUpload extends ElementField
                 switch ($file['type']) {
                     case 'data':
                         FileHelper::writeToFile($tempPath, $file['data']);
+
                         break;
                     case 'file':
                         rename($file['path'], $tempPath);
+
                         break;
                     case 'upload':
                         move_uploaded_file($file['path'], $tempPath);
+
                         break;
                 }
 
@@ -1466,6 +1478,7 @@ class FileUpload extends ElementField
     {
         for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {
         }
+
         return round($size, $precision) . ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][$i];
     }
 
@@ -1495,6 +1508,7 @@ class FileUpload extends ElementField
         if (self::$_stagedElements[$element][$this->valueKey()] ?? false) {
             return [];
         }
+
         $uploadedDataFiles = &$this->_getUploadedDataFiles($element);
         $files = [];
 
@@ -1587,6 +1601,7 @@ class FileUpload extends ElementField
                 throw new InvalidSubpathException($subpath);
             }
         }
+
         unset($segment);
         $subpath = implode('/', $segments);
 
