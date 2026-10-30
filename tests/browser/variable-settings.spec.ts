@@ -18,7 +18,7 @@ test('switches variable settings between chips without closing or mixing drafts'
     await page.getByRole('button', { name: 'New Notification', exact: true }).click();
 
     for (const label of ['Testing', 'All Form Fields']) {
-        await page.getByRole('button', { name: 'Variables', exact: true }).click();
+        await page.locator('pk-field[data-name="content"]').getByRole('button', { name: 'Variables', exact: true }).click();
         // Other fields retain closed variable lists in the DOM.
         const variableList = page.getByRole('listbox').filter({ visible: true });
         await expect(variableList).toHaveCount(1);

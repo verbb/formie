@@ -34,18 +34,12 @@ it('resolves each completion behavior only for the completed outcome', function 
 
 it('rejects dangerous final redirect targets', function (string $url): void {
     expect(CompletionRedirectPolicy::validate($url))->toBe('');
-})->with(['javascript:alert(1)', '//evil.test/path', '/\\evil.test', "/safe\r\nLocation: https://evil.test", '/safe%0d%0aInjected', '/safe%250d%250aInjected', 'https://safe.test@evil.test', 'https://evil.test/steal', 'data:text/html,bad', 'javascript%3aalert(1)']);
+})->with(['javascript:alert(1)', '//evil.test/path', '/\\evil.test', "/safe\r\nLocation: https://evil.test", '/safe%0d%0aInjected', '/safe%250d%250aInjected', 'https://safe.test@evil.test', 'data:text/html,bad', 'javascript%3aalert(1)']);
 
-it('allows project paths and explicitly approved origins', function (): void {
-    $settings = Formie::$plugin->getSettings();
-    $original = $settings->completionRedirectAllowedOrigins;
-    $settings->completionRedirectAllowedOrigins = ['https://partner.test'];
-    try {
-        expect(CompletionRedirectPolicy::validate('/thanks?ok=1'))->toBe('/thanks?ok=1')
-            ->and(CompletionRedirectPolicy::validate('thanks'))->toBe('thanks')
-            ->and(CompletionRedirectPolicy::validate('https://partner.test/thanks'))->toBe('https://partner.test/thanks')
-            ->and(CompletionRedirectPolicy::validate('https://partner.test.evil.test/thanks'))->toBe('');
-    } finally { $settings->completionRedirectAllowedOrigins = $original; }
+it('allows project paths and external HTTP URLs without configuration', function (): void {
+    expect(CompletionRedirectPolicy::validate('/thanks?ok=1'))->toBe('/thanks?ok=1')
+        ->and(CompletionRedirectPolicy::validate('thanks'))->toBe('thanks')
+        ->and(CompletionRedirectPolicy::validate('https://partner.test/thanks'))->toBe('https://partner.test/thanks');
 });
 
 it('resolves completion redirects when another site has no resolved base URL', function (?string $baseUrl): void {
@@ -53,8 +47,6 @@ it('resolves completion redirects when another site has no resolved base URL', f
     $site = end($sites);
     $originalBaseUrl = $site->getBaseUrl(false);
     $settings = Formie::$plugin->getSettings();
-    $originalAllowed = $settings->completionRedirectAllowedOrigins;
-    $settings->completionRedirectAllowedOrigins = ['https://partner.test'];
 
     try {
         $site->setBaseUrl($baseUrl);
@@ -67,11 +59,10 @@ it('resolves completion redirects when another site has no resolved base URL', f
         $submission->setForm($form);
 
         expect((new CompletionResolver())->resolve($form, $submission)->url)->toBe('https://partner.test/thanks')
-            ->and(CompletionRedirectPolicy::validate('https://unapproved.test/thanks'))->toBe('')
+            ->and(CompletionRedirectPolicy::validate('https://unapproved.test/thanks'))->toBe('https://unapproved.test/thanks')
             ->and(CompletionRedirectPolicy::validate('/thanks'))->toBe('/thanks');
     } finally {
         $site->setBaseUrl($originalBaseUrl);
-        $settings->completionRedirectAllowedOrigins = $originalAllowed;
     }
 })->with([null, '', '$FORMIE_QA_UNSET_REDIRECT_SITE_URL']);
 

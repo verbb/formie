@@ -94,6 +94,7 @@ export function VariablePickerField({ form, field }) {
                 {hasVariables ? (
                     <VariableDropdown
                         editor={editor}
+                        title={Craft.t('formie', 'Variables')}
                         variableCategories={resolvedVariableCategories}
                         variableCategoryLabels={variableCategoryLabels}
                         variableCategoryOrder={variableCategoryOrder}

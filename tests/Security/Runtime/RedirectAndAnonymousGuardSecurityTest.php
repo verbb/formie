@@ -9,7 +9,6 @@ use verbb\formie\helpers\References;
 use verbb\formie\helpers\UrlHelper as FormieUrlHelper;
 use yii\web\ForbiddenHttpException;
 
-beforeEach(function () { \verbb\formie\Formie::$plugin->getSettings()->completionRedirectAllowedOrigins = ['https://example.test']; });
 
 it('forbids guest control-panel variants of anonymous legacy submission actions', function (): void {
     WebRequestTestHelper::withWebRequestContext(function ($request): void {

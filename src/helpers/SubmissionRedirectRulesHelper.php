@@ -64,13 +64,13 @@ class SubmissionRedirectRulesHelper
         if ($redirectType === 'entry') {
             $entry = self::_getRuleEntry($rule);
 
-            return $entry?->url ?? '';
+            return CompletionRedirectPolicy::validate($entry?->url ?? '');
         }
 
         $url = (string)($rule['redirectUrl'] ?? '');
 
         if ($url !== '') {
-            $url = References::resolveUrl($url, $submission);
+            $url = CompletionRedirectPolicy::resolve($url, $submission);
         }
 
         return is_string($url) ? $url : '';

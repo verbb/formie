@@ -13,20 +13,19 @@ To redirect to an entry, find it in your Twig template and set its URL before re
 {{ craft.formie.renderForm(form) }}
 ```
 
-Redirect settings support [reference tokens](/developers/reference-tokens), such as a submitted field value, but not Twig expressions. Formie allows paths within your site and URLs on your configured Craft sites. To redirect to another site, add its origin in `config/formie.php`:
+To send visitors to different external sites based on their answers, use conditional redirect rules with a fixed URL for each destination.
+
+Formie can carry campaign parameters from the page where the visitor first loads the form to the destination. The five `utm_*` parameters below are enabled by default; this example also allows `affiliate` in `config/formie.php`:
 
 ```php
 <?php
 return [
-    'completionRedirectAllowedOrigins' => ['https://partner.example.com'],
     'completionQueryAllowlist' => ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'affiliate'],
 ];
 ```
 
-An origin includes the scheme, hostname and port, such as `https://partner.example.com`. It must match exactly. Use a path such as `/thanks` or a full HTTP/HTTPS URL; invalid destinations fall back to the completion message.
+Set `completionQueryAllowlist` to `[]` to forward none. Parameters already written into the destination URL take priority.
 
-Formie can carry campaign parameters from the page where the visitor first loads the form to the destination. The five `utm_*` parameters shown above are enabled by default; this example also allows `affiliate`. Set `completionQueryAllowlist` to `[]` to forward none. Parameters already written into the destination URL take priority.
-
-For redirects chosen in PHP, use the [completion redirect event](/developers/events/submission-events#override-the-completion-redirect). The same destination restrictions apply.
+For redirects chosen in PHP, use the [completion redirect event](/developers/events/submission-events#override-the-completion-redirect). Your handler can choose an external HTTP/HTTPS URL. Keep that choice in server-side code rather than copying a visitor-supplied URL into the event.
 
 When opening the destination in a new tab, a page-reload form displays a Continue link. Ajax and client-rendered forms open the tab directly, subject to the browser’s popup settings.

@@ -1,7 +1,8 @@
 <?php
 namespace verbb\formie\helpers;
 
-use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
+use verbb\formie\references\ReferenceException;
 
 use Craft;
 
@@ -9,6 +10,40 @@ final class CompletionRedirectPolicy
 {
     // Static Methods
     // =========================================================================
+
+    public static function resolve(string $template, Submission $submission): string
+    {
+        // This prefix comes from Craft's site configuration, never from a submitted field.
+        if (str_starts_with($template, '{site:url}')) {
+            $baseUrl = Craft::$app->getSites()->getSiteById($submission->siteId)?->getBaseUrl();
+
+            if (!$baseUrl) {
+                return '';
+            }
+
+            $template = $baseUrl . substr($template, strlen('{site:url}'));
+        }
+
+        try {
+            return self::validate(References::resolveUrl($template, $submission));
+        } catch (ReferenceException $e) {
+            return '';
+        }
+    }
+
+    public static function validateForSite(string $url, int $siteId): string
+    {
+        $url = self::validate($url);
+        $origin = self::origin($url);
+
+        if ($url === '' || $origin === '') {
+            return $url;
+        }
+
+        $baseUrl = Craft::$app->getSites()->getSiteById($siteId)?->getBaseUrl();
+
+        return $baseUrl && $origin === self::origin($baseUrl) ? $url : '';
+    }
 
     public static function validate(string $url): string
     {
@@ -24,6 +59,7 @@ final class CompletionRedirectPolicy
             || str_starts_with($decoded, '//') || str_contains($url, '{{') || str_contains($url, '{%')) {
             return '';
         }
+
         $parts = parse_url($url);
 
         if ($parts === false || isset($parts['user']) || isset($parts['pass'])) {
@@ -38,18 +74,8 @@ final class CompletionRedirectPolicy
         if (!in_array(strtolower($parts['scheme']), ['http', 'https'], true) || empty($parts['host'])) {
             return '';
         }
-        $origin = self::origin($url);
-        $allowed = Formie::$plugin->getSettings()->completionRedirectAllowedOrigins;
 
-        foreach (Craft::$app->getSites()->getAllSites() as $site) {
-            $baseUrl = $site->getBaseUrl();
-
-            // Sites without URLs, including unset environment aliases, provide no origin.
-            if ($baseUrl !== null) {
-                $allowed[] = self::origin(Craft::getAlias($baseUrl));
-            }
-        }
-        return in_array($origin, array_map(self::origin(...), $allowed), true) ? $url : '';
+        return $url;
     }
 
     public static function origin(string $url): string
@@ -59,8 +85,10 @@ final class CompletionRedirectPolicy
         if (!$parts || empty($parts['scheme']) || empty($parts['host'])) {
             return '';
         }
+
         $scheme = strtolower($parts['scheme']);
         $port = $parts['port'] ?? ($scheme === 'https' ? 443 : 80);
+
         return $scheme . '://' . strtolower($parts['host']) . ':' . $port;
     }
 }

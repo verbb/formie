@@ -50,6 +50,7 @@ class PaymentStatusController extends Controller
 
         if ($this->request->getIsOptions()) {
             $this->response->setStatusCode(204);
+
             return false;
         }
 
@@ -108,11 +109,12 @@ class PaymentStatusController extends Controller
             if ($submitMessage) {
                 Formie::$plugin->getService()->setNotice($flashNamespace, $submitMessage);
             }
+
             $url = '';
 
             $completion = (new CompletionResolver())->resolve($form, $submission);
             $url = $completion->url;
-            $returnUrl = CompletionRedirectPolicy::validate((string)$payment->redirectUrl);
+            $returnUrl = CompletionRedirectPolicy::validateForSite((string)$payment->redirectUrl, $submission->siteId);
 
             Formie::info('Payment poll: finalising paymentUid {paymentUid}, submissionId {submissionId}, formId {formId}', [
                 'paymentUid' => $paymentUid,

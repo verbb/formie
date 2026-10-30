@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+- Add instructions explaining the Redirect Source options in form behaviour settings.
+- Add field warning for URL settings in the control panel, when the URL starts with a reference.
+
+### Changed
+- Allow reference-supplied external redirect URLs, leaving the choice of destination source to the editor.
+
 ### Fixed
 - Fix browser requests failing when Craft uses a custom action trigger, including token refresh after AJAX submissions. ([#3068](https://github.com/verbb/formie/issues/3068))
 - Fix file upload reference checks causing MySQL sort-memory errors for large submissions. ([#3069](https://github.com/verbb/formie/issues/3069))
@@ -24,6 +31,10 @@
 - Fix nested alert roles in form error messages that could cause duplicate screen reader announcements. ([#3062](https://github.com/verbb/formie/issues/3062))
 - Fix Opayo re-tokenizing cards and requesting unnecessary merchant sessions after completing a 3D Secure challenge. ([#3048](https://github.com/verbb/formie/issues/3048))
 - Fix importing Formie 3 forms with a null redirect target. ([#3060](https://github.com/verbb/formie/issues/3060))
+- Fix variable pickers not showing for redirect URL settings.
+
+### Removed
+- Remove the `completionRedirectAllowedOrigins` configuration setting.
 
 ## 4.0.5 - 2026-10-28
 

@@ -1,10 +1,11 @@
-import { Button, Icon, Input, SelectInput } from '@verbb/plugin-kit-react/components';
+import { Button, Icon, SelectInput } from '@verbb/plugin-kit-react/components';
 import { FieldLayout, useEngineField } from '@verbb/plugin-kit-react/forms';
 import { ElementSelectField } from '@utils/ElementSelectField';
 import { useTranslation } from '@verbb/plugin-kit-react/hooks';
 import { createItem } from '@verbb/plugin-kit-core';
 
 import { RedirectRuleConditionsField } from './RedirectRuleConditionsField';
+import { RedirectUrlField } from './RedirectUrlField';
 
 const REDIRECT_RULE_CARD_CLASSNAME = 'relative rounded-sm border border-[rgba(96,125,159,0.25)] bg-[rgba(96,125,159,0.03)] p-4';
 
@@ -36,7 +37,7 @@ function RedirectRuleItem({
     const urlField = {
         name: `${baseName}.${index}.redirectUrl`,
         label: t('Redirect URL'),
-        instructions: t('The full URL that the user to be redirected to.'),
+        instructions: t('Enter the full URL that the user to be redirected to.'),
     };
     const entryField = {
         name: `${baseName}.${index}.redirectEntry`,
@@ -58,11 +59,6 @@ function RedirectRuleItem({
         setValue: setRedirectType,
         setTouched: setRedirectTypeTouched,
     } = useEngineField(form, redirectTypeField.name);
-    const {
-        value: redirectUrl,
-        setValue: setRedirectUrl,
-        setTouched: setRedirectUrlTouched,
-    } = useEngineField(form, urlField.name);
 
     const resolvedRedirectType = redirectType || 'url';
 
@@ -101,19 +97,7 @@ function RedirectRuleItem({
                 </FieldLayout>
 
                 {resolvedRedirectType === 'url' ? (
-                    <FieldLayout
-                        name={urlField.name}
-                        label={urlField.label}
-                        instructions={urlField.instructions}
-                    >
-                        <Input
-                            value={redirectUrl ?? ''}
-                            onChange={(event) => {
-                                setRedirectUrl(event.target.value);
-                                setRedirectUrlTouched();
-                            }}
-                        />
-                    </FieldLayout>
+                    <RedirectUrlField field={urlField} form={form} />
                 ) : (
                     <ElementSelectField field={entryField} form={form} />
                 )}

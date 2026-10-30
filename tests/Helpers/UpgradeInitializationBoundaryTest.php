@@ -7,6 +7,24 @@ use verbb\formie\helpers\{DbSchema, Table};
 use verbb\formie\models\Settings;
 use verbb\formie\services\SpamProtection;
 
+it('ignores retired redirect origins in existing settings', function (): void {
+    $settings = new Settings([
+        'completionRedirectAllowedOrigins' => ['https://buy.stripe.com'],
+        'pluginName' => 'Existing config',
+    ]);
+
+    expect($settings->pluginName)->toBe('Existing config');
+    expect($settings->toArray())->not->toHaveKey('completionRedirectAllowedOrigins');
+
+    $settings->setAttributes([
+        'completionRedirectAllowedOrigins' => ['https://example.com'],
+        'pluginName' => 'Updated config',
+    ], false);
+
+    expect($settings->pluginName)->toBe('Updated config');
+    expect($settings->toArray())->not->toHaveKey('completionRedirectAllowedOrigins');
+});
+
 it('converts legacy field defaults before the plugin instance has initialized', function (): void {
     $plugin = Formie::$plugin;
     Formie::$plugin = null;

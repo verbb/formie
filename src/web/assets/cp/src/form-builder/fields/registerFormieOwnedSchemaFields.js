@@ -7,6 +7,7 @@ import { HandleField } from './HandleField.jsx';
 import { ListField } from './ListField.jsx';
 import { RichTextField } from './RichTextField.jsx';
 import { VariablePickerField } from './VariablePickerField.jsx';
+import { RedirectUrlField } from './RedirectUrlField.jsx';
 import { ElementSelectField } from '@utils/ElementSelectField.jsx';
 
 /**
@@ -19,6 +20,7 @@ export function registerFormieOwnedSchemaFields(extraFields = {}) {
         list: ListField,
         richText: RichTextField,
         variablePicker: VariablePickerField,
+        redirectUrl: RedirectUrlField,
         calculations: CalculationsField,
         contentEncryption: ContentEncryptionField,
         elementSelect: ElementSelectField,

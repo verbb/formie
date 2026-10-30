@@ -86,11 +86,12 @@ it('rejects untrusted failed payment redirects and uses the configured form url'
         ->toBe('/checkout-form');
 });
 
-it('allows configured external failed payment redirect origins', function (): void {
+it('rejects visitor supplied payment return domains but permits an authored external fallback', function (): void {
     $form = formie()
         ->form(['title' => 'Allowlisted Failure Redirect Fixture'])
         ->singleLineTextField('fullName')
         ->create();
+    $form->setRedirectUrl('https://buy.stripe.com/editor-choice');
     $submission = formie()
         ->submission($form)
         ->with(['fullName' => 'Payment Fixture'])
@@ -99,16 +100,8 @@ it('allows configured external failed payment redirect origins', function (): vo
         'status' => PaymentModel::STATUS_FAILED,
         'redirectUrl' => 'https://checkout.example/return',
     ]);
-    $settings = Formie::$plugin->getSettings();
-    $original = $settings->completionRedirectAllowedOrigins;
-    $settings->completionRedirectAllowedOrigins = ['https://checkout.example'];
-
-    try {
-        expect(Formie::$plugin->getPayments()->resolvePaymentFailureRedirectUrl($payment, $submission, $form))
-            ->toBe('https://checkout.example/return');
-    } finally {
-        $settings->completionRedirectAllowedOrigins = $original;
-    }
+    expect(Formie::$plugin->getPayments()->resolvePaymentFailureRedirectUrl($payment, $submission, $form))
+        ->toBe('https://buy.stripe.com/editor-choice');
 });
 
 it('does not use a polling request referrer as a failed payment redirect', function (): void {

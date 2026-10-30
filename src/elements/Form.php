@@ -1290,6 +1290,7 @@ class Form extends Element implements FormInterface
     {
         if ($context === null) {
             $this->_draftContext = null;
+
             return;
         }
 
@@ -1861,8 +1862,10 @@ class Form extends Element implements FormInterface
             foreach ($filtered as $handle => $values) {
                 $filtered[$handle] = $runtime->validateIntegrationSettings($handle, $values);
             }
+
             $settings['integrations'] = $filtered;
         }
+
         $this->replaceInstanceConfig($this->getInstanceConfig()->with('form', $settings));
     }
 
@@ -1873,6 +1876,7 @@ class Form extends Element implements FormInterface
         foreach ($this->getPages() as $index => $page) {
             if ($index === $handleOrIndex || $page->handle === $handleOrIndex || $page->uid === $handleOrIndex) {
                 $target = $page;
+
                 break;
             }
         }
@@ -1880,6 +1884,7 @@ class Form extends Element implements FormInterface
         if (!$target) {
             throw new RuntimeError('Unknown runtime page target: ' . $handleOrIndex);
         }
+
         $runtime = new RuntimeConfiguration();
         $settings = $runtime->validateSettings($target->getPageSettings(), $settings, $runtime::PAGE_SETTINGS, 'page ' . $handleOrIndex);
         $this->replaceInstanceConfig($this->getInstanceConfig()->with('pages', [$target->uid => $settings]));
@@ -1896,6 +1901,7 @@ class Form extends Element implements FormInterface
         if ($field instanceof OptionsField) {
             $settings = OptionsField::normalizeSnapshotFieldSettings($settings);
         }
+
         $this->replaceInstanceConfig($this->getInstanceConfig()->with('fields', [$field->uid => $settings]));
     }
 
@@ -1906,6 +1912,7 @@ class Form extends Element implements FormInterface
         if (!isset($filtered[$handle]) || array_diff_key($settings, $filtered[$handle])) {
             throw new RuntimeError('Unknown integration or forbidden runtime settings: ' . $handle);
         }
+
         $filtered[$handle] = (new RuntimeConfiguration())->validateIntegrationSettings($handle, $filtered[$handle]);
         $this->replaceInstanceConfig($this->getInstanceConfig()->with('form', ['integrations' => $filtered]));
     }
@@ -1913,6 +1920,7 @@ class Form extends Element implements FormInterface
     public function getSnapshotData(?string $key = null): array
     {
         $data = SubmissionConfig::capture($this->getInstanceConfig());
+
         return $key === null ? $data : ($data[$key] ?? []);
     }
 
@@ -2603,6 +2611,7 @@ class Form extends Element implements FormInterface
             SchemaHelper::selectField([
                 'name' => 'settings.completionRedirectSource',
                 'label' => Craft::t('formie', 'Redirect Source'),
+                'instructions' => Craft::t('formie', 'Choose URL to enter a destination address, or Entry to select an entry on your site.'),
                 'if' => 'settings.completionBehavior == "redirect"',
                 'options' => [
                     ['label' => Craft::t('formie', 'URL'), 'value' => 'url'],
@@ -2676,11 +2685,12 @@ class Form extends Element implements FormInterface
                 ],
                 'if' => 'settings.completionBehavior == "redirect" && settings.completionRedirectSource == "url"',
                 'children' => [
-                    SchemaHelper::textField([
+                    [
+                        '$field' => 'redirectUrl',
                         'label' => Craft::t('formie', 'Redirect URL'),
-                        'instructions' => Craft::t('formie', 'The full URL that the user to be redirected to.'),
+                        'instructions' => Craft::t('formie', 'Enter the full URL that the user to be redirected to.'),
                         'name' => 'settings.redirectUrl',
-                    ]),
+                    ],
                     SchemaHelper::selectField([
                         'label' => Craft::t('formie', 'Redirect Option'),
                         'instructions' => Craft::t('formie', 'How to redirect the user after submission, whether in the same tab, or a new tab.'),
@@ -3772,6 +3782,7 @@ class Form extends Element implements FormInterface
             foreach ($this->getPages() as $page) {
                 if ((int)$page->id === (int)$draftState->currentPageId) {
                     $this->setCurrentPage($page);
+
                     break;
                 }
             }
@@ -3851,6 +3862,7 @@ class Form extends Element implements FormInterface
             foreach ($this->getPages() as $page) {
                 if ((int)$page->id === $routePageId) {
                     $this->setCurrentPage($page);
+
                     break;
                 }
             }
@@ -3890,21 +3902,25 @@ class Form extends Element implements FormInterface
         if (!$grant) {
             return;
         }
+
         $submission = Submission::find()->id($grant->submissionId)->siteId($grant->siteId)->isIncomplete(true)->status(null)->one();
 
         if (!$submission) {
             return;
         }
+
         $progress = Formie::$plugin->getSubmissionGrants()->resolveProgress($grant);
 
         if ($progress?->currentPageId) {
             foreach ($this->getPages() as $page) {
                 if ((int)$page->id === $progress->currentPageId) {
                     $this->setCurrentPage($page);
+
                     break;
                 }
             }
         }
+
         // The exchanged credential must not remain in address bars or referrers.
         Craft::$app->getView()->registerJs("const u = new URL(window.location.href); u.searchParams.delete('resumeToken'); history.replaceState(history.state, '', u);", YiiView::POS_END);
         $this->_currentSubmission = $submission;

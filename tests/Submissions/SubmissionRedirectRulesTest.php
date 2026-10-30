@@ -9,12 +9,6 @@ use verbb\formie\enums\CompletionBehavior;
 use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 use verbb\formie\services\CompletionResolver;
 
-beforeEach(function () {
-    // Console fixtures generate HTTP entry URLs even with an HTTPS site base.
-    $siteUrl = \craft\helpers\UrlHelper::urlWithScheme(Craft::$app->getSites()->getPrimarySite()->getBaseUrl(), 'http');
-    \verbb\formie\Formie::$plugin->getSettings()->completionRedirectAllowedOrigins = ['https://example.test', $siteUrl];
-});
-
 it('overrides the default submit action when a redirect rule matches', function (): void {
     $form = formie()
         ->form(['title' => 'Redirect Rule Match'])

@@ -893,18 +893,6 @@ The [completion setting renames](#completion-setting-names) are handled automati
 
 <span id="redirect-destinations-and-query-parameters"></span>
 
-#### Redirect Destinations
-
-Relative redirect URLs and URLs on configured Craft sites still work. If completion redirects to another site, add its exact origin to `completionRedirectAllowedOrigins` in `config/formie.php`:
-
-```php
-return [
-    'completionRedirectAllowedOrigins' => ['https://partner.example.com'],
-];
-```
-
-Use the destination's scheme, hostname and port, without a path.
-
 #### Redirect Query Parameters
 
 Only five UTM query parameters are forwarded by default. Add other parameters your destination needs to `completionQueryAllowlist`. For example, this adds `affiliate` to the default campaign parameters:

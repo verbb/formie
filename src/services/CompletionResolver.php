@@ -11,13 +11,11 @@ use verbb\formie\enums\RedirectTarget;
 use verbb\formie\events\PaymentSuccessRedirectEvent;
 use verbb\formie\events\SubmissionEvent;
 use verbb\formie\helpers\CompletionRedirectPolicy;
-use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\SubmissionRedirectRulesHelper;
 use verbb\formie\helpers\UrlHelper;
 use verbb\formie\models\CompletionOutcome;
 use verbb\formie\models\Payment;
-use verbb\formie\references\ReferenceException;
 
 use Craft;
 
@@ -41,6 +39,7 @@ final class CompletionResolver extends Component
         if ($raiseEvents && !$submission->isIncomplete && isset($saved['behavior'])) {
             return new CompletionOutcome(CompletionBehavior::from($saved['behavior']), $saved['url'], RedirectTarget::from($saved['target']), $saved['message'], $saved['hideForm']);
         }
+
         $settings = $form->settings;
         $behavior = CompletionBehavior::from($settings->completionBehavior);
         $source = RedirectSource::from($settings->completionRedirectSource);
@@ -50,14 +49,11 @@ final class CompletionResolver extends Component
         $resolved = false;
 
         if ($rule) {
-            try {
-                $url = SubmissionRedirectRulesHelper::resolveRuleUrl($rule, $form, $submission);
-            } catch (ReferenceException $e) {
-                $url = '';
-            }
+            $url = SubmissionRedirectRulesHelper::resolveRuleUrl($rule, $form, $submission);
             $resolved = true;
             $behavior = CompletionBehavior::Redirect;
         }
+
         $override = $form->getCompletionRedirectOverride();
 
         if ($override !== null && $override !== '') {
@@ -71,11 +67,7 @@ final class CompletionResolver extends Component
         }
 
         if ($url !== '' && !$resolved) {
-            try {
-                $url = References::resolveUrl($url, $submission);
-            } catch (ReferenceException $e) {
-                $url = '';
-            }
+            $url = CompletionRedirectPolicy::resolve($url, $submission);
         }
 
         if ($raiseEvents) {
@@ -83,6 +75,7 @@ final class CompletionResolver extends Component
                 if ($payment->status !== Payment::STATUS_SUCCEEDED) {
                     continue;
                 }
+
                 $candidate = $behavior === CompletionBehavior::Redirect ? $url : '';
                 $paymentEvent = new PaymentSuccessRedirectEvent(['payment' => $payment, 'submission' => $submission, 'form' => $form, 'redirectUrl' => $candidate]);
                 Formie::$plugin->getPayments()->trigger(Payments::EVENT_DEFINE_PAYMENT_SUCCESS_REDIRECT_URL, $paymentEvent);
@@ -94,6 +87,7 @@ final class CompletionResolver extends Component
                 }
             }
         }
+
         $event = new SubmissionEvent(['form' => $form, 'submission' => $submission,
             'handle' => $form->handle, 'submitAction' => 'submit', 'success' => true, 'redirectUrl' => $url]);
 
@@ -107,6 +101,7 @@ final class CompletionResolver extends Component
         if ($event->redirectUrl !== $url) {
             $behavior = CompletionBehavior::Redirect;
         }
+
         $url = CompletionRedirectPolicy::validate((string)$event->redirectUrl);
 
         if ($url !== '' && $includeCapturedQuery) {
@@ -117,6 +112,7 @@ final class CompletionResolver extends Component
         if ($behavior === CompletionBehavior::Redirect && $url === '') {
             $behavior = CompletionBehavior::Message;
         }
+
         return new CompletionOutcome(
             $behavior,
             $behavior === CompletionBehavior::Redirect ? $url : null,

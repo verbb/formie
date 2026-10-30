@@ -663,8 +663,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
                 continue;
             }
 
-            // A reference can supply the entire destination or its origin. Only the
-            // final submission value can be checked against the redirect policy.
+            // Reference-supplied destinations are validated after resolving their values.
             if ($offset === 0 || ($authority && $offset < strlen($authority[0]))) {
                 return;
             }
@@ -675,7 +674,7 @@ class FormSettings extends Model implements TranslatablePropertiesInterface
         }
 
         if (CompletionRedirectPolicy::validate($url) === '') {
-            $this->addError($attribute, Craft::t('formie', 'Enter a valid relative URL or a URL on a configured site. For an external URL, add its origin to the completionRedirectAllowedOrigins configuration setting.'));
+            $this->addError($attribute, Craft::t('formie', 'Enter a valid relative URL or a full HTTP or HTTPS URL.'));
         }
     }
 

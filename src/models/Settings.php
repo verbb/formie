@@ -48,7 +48,6 @@ class Settings extends Model
     // Properties
     // =========================================================================
 
-    public array $completionRedirectAllowedOrigins = [];
     public array $completionQueryAllowlist = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
     public string $pluginName = 'Formie';
     public string $defaultPage = 'forms';
@@ -183,6 +182,7 @@ class Settings extends Model
     {
         // Remove deprecated settings
         unset($config['enableGatsbyCompatibility']);
+        unset($config['completionRedirectAllowedOrigins']);
         unset($config['submissionStateMode']);
         unset($config['submissionStore']);
 
@@ -207,6 +207,8 @@ class Settings extends Model
         if (isset($values['submissionsBehaviour']) && is_array($values['submissionsBehaviour'])) {
             $values['submissionsBehaviour'] = 'all';
         }
+
+        unset($values['completionRedirectAllowedOrigins']);
         unset($values['submissionStateMode']);
         unset($values['submissionStore']);
 
@@ -536,6 +538,7 @@ class Settings extends Model
 
         if (!$hasManualRecipients && !$hasUserGroup) {
             $this->addError($errorAttribute, Craft::t('formie', 'You must select a user group or enter at least one email address.'));
+
             return;
         }
 
@@ -546,6 +549,7 @@ class Settings extends Model
                 $this->addError($errorAttribute, Craft::t('formie', '“{email}” is not a valid email address.', [
                     'email' => $email,
                 ]));
+
                 return;
             }
         }
