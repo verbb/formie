@@ -1177,6 +1177,12 @@ class FileUpload extends ElementField
         ]);
     }
 
+    protected function providesClientRenderedOptions(): bool
+    {
+        // Visitors upload new assets; they never choose among the existing ones.
+        return false;
+    }
+
     protected function defineBrowserModules(): array
     {
         $modules = parent::defineBrowserModules();

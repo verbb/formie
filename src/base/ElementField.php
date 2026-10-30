@@ -1060,6 +1060,14 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         $displayType = (string)($this->displayType ?? 'dropdown');
         $clientInput = parent::defineClientRenderedInput();
         $clientInput['multiple'] = $this->getIsMultiOptionsField();
+
+        // Fields that collect new elements (file uploads) have nothing to pick from. Listing every
+        // element of the type here would expose their titles and ids on the public client
+        // definition and query the whole element table on every bootstrap.
+        if (!$this->providesClientRenderedOptions()) {
+            return $clientInput;
+        }
+
         $clientInput['layout'] = in_array($displayType, ['radio', 'checkboxes'], true) ? ($this->layout ?? 'vertical') : null;
         $clientInput['useSearchable'] = $this->useSearchable;
         $clientInput['searchableOptionLimit'] = $this->searchableOptionLimit;
@@ -1073,6 +1081,14 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
         }, $this->getFieldOptions()));
 
         return $clientInput;
+    }
+
+    /**
+     * Whether the client-rendered definition lists the elements the visitor can pick from.
+     */
+    protected function providesClientRenderedOptions(): bool
+    {
+        return true;
     }
 
     protected function defineElementFieldMultiSelectAppearanceSchema(): array
