@@ -19,7 +19,8 @@ function getConfiguredCompletionBehavior(form: HTMLFormElement): string {
 }
 
 function getErrorMessagePosition(form: HTMLFormElement): string {
-    return (form.dataset.formieErrorMessagePosition || 'top-form').trim() || 'top-form';
+    // An explicit empty position is the form's "None" setting; only omitted attributes use the default.
+    return (form.dataset.formieErrorMessagePosition ?? 'top-form').trim();
 }
 
 function getSuccessMessagePosition(form: HTMLFormElement): string {
@@ -313,6 +314,10 @@ export function renderFieldErrors(form: HTMLFormElement, fieldErrors: Record<str
 }
 
 export function renderFormErrors(form: HTMLFormElement, formErrors: string[]): void {
+    if (!getErrorMessagePosition(form)) {
+        return;
+    }
+
     const container = ensureFormErrorContainer(form);
     const messageContainer = ensureFormErrorMessageContainer(form, container);
 

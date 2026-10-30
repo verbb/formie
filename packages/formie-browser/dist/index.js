@@ -799,7 +799,7 @@ function _t(e) {
 	return (e.dataset.formieCompletionBehavior || e.dataset.formieSubmitAction || "").trim();
 }
 function vt(e) {
-	return (e.dataset.formieErrorMessagePosition || "top-form").trim() || "top-form";
+	return (e.dataset.formieErrorMessagePosition ?? "top-form").trim();
 }
 function yt(e) {
 	return (e.dataset.formieSuccessMessagePosition || e.dataset.formieSubmitActionMessagePosition || "").trim();
@@ -903,6 +903,7 @@ function Ft(e, t) {
 	}), h(e);
 }
 function It(e, t) {
+	if (!vt(e)) return;
 	let n = Dt(e), r = Ot(e, n);
 	A(n, e, "errors"), t.forEach((t) => {
 		let n = document.createElement("div");
