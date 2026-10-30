@@ -744,7 +744,21 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
 
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
-        return $value instanceof MultiOptionFieldValue ? $value->values() : $value?->value;
+        if ($value instanceof MultiOptionFieldValue) {
+            return $value->values();
+        }
+
+        if ($value instanceof SingleOptionFieldValue || $value instanceof OptionValue) {
+            return $value->value;
+        }
+
+        // Child option fields (the dropdown parts of a Date field) and prefilled values reach
+        // here as raw scalars; an empty string is "nothing selected".
+        if (is_array($value)) {
+            return array_values($value);
+        }
+
+        return is_scalar($value) && $value !== '' ? $value : null;
     }
 
     public function getElementConditionRuleType(): array|string|null
