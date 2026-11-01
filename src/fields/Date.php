@@ -52,6 +52,7 @@ use craft\gql\GqlEntityRegistry;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
+use craft\helpers\Gql;
 use craft\helpers\Json;
 use craft\i18n\Locale;
 
@@ -65,6 +66,7 @@ use DateTimeZone;
 use Faker\Generator as FakerFactory;
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 
 class Date extends FixedParentField implements SortableFieldInterface, PreviewableFieldInterface
@@ -93,7 +95,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             return self::_gqlDateRangeTypeFromConfig($config);
         }
 
-        return DateTimeType::getType();
+        return self::_gqlDateContentType($config['handle'] ?? '');
     }
 
     public static function gqlContentMutationArgumentTypeFromConfig(array $config): Type|array
@@ -360,6 +362,8 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     private static function _configCollectsRange(array $config): bool
     {
+        $config += Formie::$plugin->getFields()->getFieldConfigSettings($config);
+
         return ($config['collectMode'] ?? self::COLLECT_SINGLE) === self::COLLECT_RANGE
             && ($config['displayType'] ?? '') === 'datePicker';
     }
@@ -393,6 +397,47 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         unset($row);
     }
 
+    private static function _gqlDateContentType(string $handle): array
+    {
+        return [
+            'name' => $handle,
+            'type' => DateTimeType::getType(),
+            'resolve' => static function(mixed $source, array $arguments, mixed $context, ResolveInfo $resolveInfo) use ($handle): mixed {
+                // Nested fields resolve from a model of their parent's values, not an element.
+                $value = $source instanceof ElementInterface ? $source->getFieldValue($handle) : ($source[$handle] ?? null);
+
+                return self::_gqlDateValue($source, $value, $resolveInfo);
+            },
+        ];
+    }
+
+    private static function _gqlDateRangeFields(): array
+    {
+        $fields = [];
+
+        foreach (DateRangeFieldValue::sidePrefixes() as $side) {
+            $fields[$side] = [
+                'name' => $side,
+                'type' => DateTimeType::getType(),
+                'resolve' => static function(mixed $source, array $arguments, mixed $context, ResolveInfo $resolveInfo) use ($side): mixed {
+                    return self::_gqlDateValue($source, DateRangeFieldValue::fromMixed($source)->$side, $resolveInfo);
+                },
+            ];
+        }
+
+        return $fields;
+    }
+
+    private static function _gqlDateValue(mixed $source, mixed $value, ResolveInfo $resolveInfo): mixed
+    {
+        if ($value instanceof DateFieldValue) {
+            $value = $value->isValid() ? DateFieldValue::partsToDateTime($value->getParts()) : null;
+        }
+
+        // A field's own resolver bypasses the directive handling of its parent type.
+        return Gql::applyDirectives($source, $resolveInfo, $value);
+    }
+
     private static function _gqlDateRangeTypeNameFromConfig(array $config, string $suffix): string
     {
         $formHandle = $config['formHandle'] ?? 'form';
@@ -411,18 +456,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
         return GqlEntityRegistry::createEntity($typeName, new ObjectType([
             'name' => $typeName,
-            'fields' => [
-                'start' => [
-                    'name' => 'start',
-                    'type' => DateTimeType::getType(),
-                    'resolve' => fn(array $source) => DateFieldValue::toDateTime($source['start'] ?? []),
-                ],
-                'end' => [
-                    'name' => 'end',
-                    'type' => DateTimeType::getType(),
-                    'resolve' => fn(array $source) => DateFieldValue::toDateTime($source['end'] ?? []),
-                ],
-            ],
+            'fields' => self::_gqlDateRangeFields(),
         ]));
     }
 
@@ -1485,7 +1519,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
             return $this->_getDateRangeGqlType();
         }
 
-        return DateTimeType::getType();
+        return self::_gqlDateContentType($this->handle);
     }
 
     public function getContentGqlMutationArgumentType(): Type|array
@@ -2759,18 +2793,7 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
         return GqlEntityRegistry::createEntity($typeName, new ObjectType([
             'name' => $typeName,
-            'fields' => [
-                'start' => [
-                    'name' => 'start',
-                    'type' => DateTimeType::getType(),
-                    'resolve' => fn(array $source) => DateFieldValue::toDateTime($source['start'] ?? []),
-                ],
-                'end' => [
-                    'name' => 'end',
-                    'type' => DateTimeType::getType(),
-                    'resolve' => fn(array $source) => DateFieldValue::toDateTime($source['end'] ?? []),
-                ],
-            ],
+            'fields' => self::_gqlDateRangeFields(),
         ]));
     }
 
