@@ -51,9 +51,8 @@ declare module 'flatpickr' {
     export default flatpickr;
 }
 
-declare module 'flatpickr/dist/l10n/index.js' {
-    const locales: Record<string, unknown>;
-    export = locales;
+declare module 'flatpickr/dist/esm/l10n/index.js' {
+    export { default } from 'flatpickr/dist/l10n/index.js';
 }
 
 declare module 'intl-tel-input' {

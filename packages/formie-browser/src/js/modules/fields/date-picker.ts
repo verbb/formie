@@ -1,5 +1,5 @@
 import flatpickr from 'flatpickr';
-import * as flatpickrLocales from 'flatpickr/dist/l10n/index.js';
+import flatpickrLocales from 'flatpickr/dist/esm/l10n/index.js';
 import flatpickrCss from 'flatpickr/dist/flatpickr.css?inline';
 
 import type { BrowserModuleDefinition } from '#contracts/modules';
@@ -157,8 +157,8 @@ function getLocale(locale: string | undefined): unknown {
         return 'en';
     }
 
-    const localeMap = flatpickrLocales as Record<string, unknown>;
-    return localeMap[locale] ?? localeMap.default ?? 'en';
+    const localeMap: Record<string, unknown> = flatpickrLocales;
+    return localeMap[locale] ?? 'en';
 }
 
 function getDisabledWeekdayHandler(availableDaysOfWeek: DatePickerOptions['availableDaysOfWeek']) {
