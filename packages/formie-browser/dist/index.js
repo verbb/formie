@@ -1109,7 +1109,7 @@ var Kt = class {
 	"custom-google-maps": () => import("./chunks/custom-google-maps-rNm5VFbb.js").then((e) => e.customGoogleMapsModule),
 	"custom-link": () => import("./chunks/custom-link-CLqFCssQ.js").then((e) => e.customLinkModule),
 	"custom-maps": () => import("./chunks/custom-maps-DgjYQDLj.js").then((e) => e.customMapsModule),
-	"date-picker": () => import("./chunks/date-picker-BVJxJVYT.js").then((e) => e.datePickerModule),
+	"date-picker": () => import("./chunks/date-picker-dp41TnRq.js").then((e) => e.datePickerModule),
 	"file-upload": () => import("./chunks/file-upload-vEUr_EuP.js").then((e) => e.fileUploadModule),
 	"upload-manager": () => import("./chunks/upload-manager-CkmsPJRl.js").then((e) => e.uploadManagerModule),
 	hidden: () => import("./chunks/hidden-Bc2TpcgF.js").then((e) => e.hiddenModule),
@@ -1603,7 +1603,7 @@ var gn = {
 	month: /^(?:(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])))$/
 }, B = O("general", "validator");
 function V(e) {
-	return !!e && (e instanceof HTMLInputElement || e instanceof HTMLSelectElement || e instanceof HTMLTextAreaElement) && !!e.name;
+	return !!e && (e instanceof HTMLInputElement || e instanceof HTMLSelectElement || e instanceof HTMLTextAreaElement) && (!!e.name || e.hasAttribute("data-formie-date-datepicker-input"));
 }
 function H(e) {
 	return !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
