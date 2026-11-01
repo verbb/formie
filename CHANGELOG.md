@@ -24,6 +24,7 @@
 - Fix searchable dropdown placeholders not appearing until a form field is focused. ([#3072](https://github.com/verbb/formie/issues/3072))
 - Fix client-rendered forms failing to load when Date fields contain dropdown controls, including AM/PM controls. ([#3073](https://github.com/verbb/formie/pull/3073))
 - Fix Date pickers displaying calendar labels in English on non-English sites. ([#3076](https://github.com/verbb/formie/issues/3076))
+- Fix required advanced Date pickers being skipped by client-side validation. ([#3077](https://github.com/verbb/formie/issues/3077))
 - Fix invisible hCaptcha challenges timing out before they could be completed, requiring a second submit click. ([#3067](https://github.com/verbb/formie/issues/3067))
 - Fix Agree fields not being selectable in integration field mappings. ([#3066](https://github.com/verbb/formie/issues/3066))
 - Fix the Opt-In Field setting for integrations not being able to be cleared. ([#3066](https://github.com/verbb/formie/issues/3066))

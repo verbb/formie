@@ -42,12 +42,13 @@ const debug = createDebug('general', 'validator');
 
 function isValidationInput(node: Element | null): node is ValidationInput {
     // Enhancement libraries inject unnamed search controls that do not submit
-    // field values and must not inherit the field's validation rules.
+    // field values and must not inherit the field's validation rules. Date pickers
+    // move their marker and rules to an unnamed visible input, which must validate.
     return !!node && (
         node instanceof HTMLInputElement ||
         node instanceof HTMLSelectElement ||
         node instanceof HTMLTextAreaElement
-    ) && !!node.name;
+    ) && (!!node.name || node.hasAttribute('data-formie-date-datepicker-input'));
 }
 
 function isPainted(element: HTMLElement): boolean {
