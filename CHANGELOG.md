@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.6 - 2026-11-01
 
 ### Added
 - Add “All Form Fields”, “All Non Empty Fields”, “All Visible Fields” and formatted Group and Repeater summaries to integration field mappings for text fields. Freshdesk ticket descriptions receive them as HTML. ([#3078](https://github.com/verbb/formie/issues/3078))
