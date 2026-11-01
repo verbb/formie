@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed Date fields returning an empty object from GraphQL submission queries, and Date Range fields not exposing their `start` and `end` values. ([#3079](https://github.com/verbb/formie/issues/3079))
+- Fixed Group fields failing when queried through GraphQL, and restored direct selection of their subfields. ([#3080](https://github.com/verbb/formie/issues/3080))
 
 ## 4.0.6 - 2026-11-01
 

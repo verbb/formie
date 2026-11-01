@@ -18,7 +18,6 @@ use verbb\formie\theme\context\RenderContext;
 use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
-use craft\helpers\Gql;
 
 use Faker\Generator as FakerFactory;
 use GraphQL\Type\Definition\Type;
@@ -55,19 +54,23 @@ class Group extends ContainerParentField implements ContainerParentFieldInterfac
 
     public static function gqlContentTypeFromConfig(array $config): array|Type
     {
-        $fieldsService = Formie::$plugin->getFields();
-        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'GroupField');
-        $typeArray = [NestedFieldGenerator::generateTypeFromConfig($config)];
+        $handle = $config['handle'] ?? '';
 
         return [
-            'name' => $config['handle'] ?? '',
-            'type' => Gql::getUnionType($typeName, $typeArray),
-            'resolve' => function($submission) use ($config) {
-                $value = $submission->getFieldValue($config['handle'] ?? '');
-
-                return new DynamicModel(is_array($value) ? $value : []);
-            },
+            'name' => $handle,
+            'type' => NestedFieldGenerator::generateTypeFromConfig($config),
+            'resolve' => static fn(mixed $source): DynamicModel => self::_gqlContentValue($source, $handle),
         ];
+    }
+
+    private static function _gqlContentValue(mixed $source, string $handle): DynamicModel
+    {
+        // Nested fields resolve from a model of their parent's values, not an element.
+        $value = $source instanceof ElementInterface ? $source->getFieldValue($handle) : ($source[$handle] ?? null);
+
+        // Some fields like the in-built elements (Assets, Entries, etc) will assume the value of a repeater row
+        // in an element, but it's not. Instead make it a dynamic model that'll work for the most part.
+        return new DynamicModel(is_array($value) ? $value : []);
     }
 
 
@@ -123,19 +126,10 @@ class Group extends ContainerParentField implements ContainerParentFieldInterfac
 
     public function getContentGqlType(): array|Type
     {
-        $typeArray = NestedFieldGenerator::generateTypes($this);
-        $typeName = self::gqlTypeNameByContext($this);
-
         return [
             'name' => $this->handle,
-            'type' => Gql::getUnionType($typeName, $typeArray),
-            'resolve' => function($submission) {
-                // Some fields like the in-built elements (Assets, Entries, etc) will assume the value of a repeater row
-                // in an element, but it's not. Instead make it a dynamic model that'll work for the most part.
-                $value = $submission->getFieldValue($this->valueKey());
-
-                return new DynamicModel($value);
-            },
+            'type' => NestedFieldGenerator::generateType($this),
+            'resolve' => fn(mixed $source): DynamicModel => self::_gqlContentValue($source, $this->handle),
         ];
     }
 
