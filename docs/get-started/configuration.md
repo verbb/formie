@@ -249,6 +249,32 @@ Includes revision elements when Formie checks where a form is used.
 Controls whether Formie’s front-end JavaScript can output console messages.
 :::
 
+::: reference
+#### `logSubmissionValues`
+
+**Type:** `bool` · **Default:** `true`
+
+Controls whether Formie’s log files include what people enter into your forms. Formie logs each submission with its request details, and integration errors with the data that was sent. Those values often explain why a submission failed, so they are logged by default, in production as well as development.
+
+Set this to `false` for sites that handle sensitive information, such as health or financial details. Every log entry is still written, but each value is replaced with a description of it, so `person@example.com` appears as `<string:18>`. Support can still see which fields arrived and which were empty, but not what was entered. Plain-text error messages from providers and exceptions are not changed, and can repeat a submitted value.
+
+Fields with [content encryption](/submissions/content-encryption) enabled are always left out of the request details, whatever this setting says. Integration data is masked in the same way for any form that has an encrypted field.
+
+Log files sit outside your submissions, so a form’s data retention settings do not apply to them. Craft keeps the five most recent log files by default.
+
+This setting only covers Formie’s logs. Craft’s own logs also record request details when a warning or error occurs. To remove request details from both, add this to `config/app.php`:
+
+```php
+'components' => [
+    'log' => [
+        'monologTargetConfig' => [
+            'logContext' => false,
+        ],
+    ],
+],
+```
+:::
+
 
 ### General Fields
 

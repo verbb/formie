@@ -200,6 +200,7 @@ abstract class Payment extends Integration
 
     public function processPayment(Submission $submission): PaymentDecision
     {
+        $this->setLogFormId((int)$submission->formId);
         IntegrationSecrets::assertAvailable($this->getSettings());
 
         $lock = 'formie.payment-execution.' . $submission->id . '.' . $this->id . '.' . $this->getField()?->id;
@@ -208,6 +209,7 @@ abstract class Payment extends Integration
         if (!$mutex->acquire($lock, 10)) {
             return PaymentDecision::pending('Payment is already being processed.', $this->handle);
         }
+
         $payment = null;
         $db = Craft::$app->getDb();
         $enableSlaves = $db->enableSlaves;
@@ -238,6 +240,7 @@ abstract class Payment extends Integration
             if (!($payment->scope['initial'] ?? false)) {
                 $payment->status = PaymentModel::STATUS_UNKNOWN;
                 $payments->savePayment($payment);
+
                 return PaymentDecision::unknown('The provider outcome requires reconciliation.', $this->handle, $payment->reference);
             }
 
@@ -248,6 +251,7 @@ abstract class Payment extends Integration
             if ($isSubscription) {
                 $payments->prepareSubscription($this, $submission);
             }
+
             $decision = $this->executePayment($submission);
             $payment = $payments->getPaymentById($payment->id);
             $payment->status = match ($decision->status) {
@@ -268,6 +272,7 @@ abstract class Payment extends Integration
                 $payment->message = 'Provider outcome requires reconciliation.';
                 Formie::$plugin->getPayments()->savePayment($payment);
             }
+
             return $payment || $e instanceof DeliveryOutcomeUnknownException ? PaymentDecision::unknown('Unable to confirm the payment outcome.', $this->handle, $payment?->reference)
                 : PaymentDecision::failed('Unable to establish the payment amount and ownership.', $this->handle);
         } finally {
@@ -577,6 +582,7 @@ abstract class Payment extends Integration
             // Providers without an account identifier remain conservatively bound to credentials.
             $identity = 'credentials:' . hash('sha256', "formie:payment-account-credentials:v1\0" . Json::encode($this->_paymentCredentialValues()));
         }
+
         return $this->getWebhookAccountFingerprint($this->getPaymentEnvironment(), $identity);
     }
 

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+- Add the [`logSubmissionValues`](https://verbb.io/craft-plugins/formie/docs/v4/get-started/configuration#logsubmissionvalues) config setting to keep submitted values out of Formie’s log files, while still writing every log entry.
+- Add an option to leave log files out of support requests.
+
+### Changed
+- Keep encrypted field values out of Formie’s log files, including integration payloads for forms with encrypted fields.
+
 ### Fixed
 - Fixed Date fields returning an empty object from GraphQL submission queries, and Date Range fields not exposing their `start` and `end` values. ([#3079](https://github.com/verbb/formie/issues/3079))
 - Fixed Group fields failing when queried through GraphQL, and restored direct selection of their subfields. ([#3080](https://github.com/verbb/formie/issues/3080))

@@ -76,6 +76,7 @@ class Settings extends Model
     public bool $includeDraftElementUsage = false;
     public bool $includeRevisionElementUsage = false;
     public bool $outputConsoleMessages = true;
+    public bool $logSubmissionValues = true;
     // General Fields
     public array $disabledFields = [];
     public string $defaultLabelPosition = AboveInput::class;

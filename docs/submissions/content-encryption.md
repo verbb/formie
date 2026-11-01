@@ -16,7 +16,7 @@ Content encryption does not replace control-panel permissions or normal server s
 
 ## What Is Protected
 
-Formie encrypts the stored value of each field where **Enable Content Encryption** is enabled. This includes structured field values and encrypted fields inside Group and Repeater fields. Encrypted field values are also excluded from Craft’s search index.
+Formie encrypts the stored value of each field where **Enable Content Encryption** is enabled. This includes structured field values and encrypted fields inside Group and Repeater fields. Encrypted field values are also excluded from Craft’s search index and from the request details in Formie’s log files. See [`logSubmissionValues`](/get-started/configuration#logsubmissionvalues) for how logs treat submitted values.
 
 Content encryption does not protect:
 
@@ -26,6 +26,7 @@ Content encryption does not protect:
 - generated export files
 - values after they are sent to an integration, webhook or payment provider
 - integration and captcha settings
+- Craft’s own log files, which record request details when a warning or error occurs
 
 Those destinations need their own appropriate access, storage and retention controls.
 

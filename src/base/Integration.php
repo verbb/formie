@@ -29,6 +29,7 @@ use verbb\formie\helpers\IntegrationHelper;
 use verbb\formie\helpers\IntegrationRerunPolicies;
 use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\IntegrationTriggerEvents;
+use verbb\formie\helpers\LogPrivacy;
 use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -178,7 +179,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public static function info(IntegrationInterface $integration, string $message, bool $throwError = false): void
     {
-        $message = DeliveryDiagnostics::redact($message, $integration instanceof self ? $integration->getDiagnosticSecrets() : []);
+        $message = self::_prepareLogMessage($integration, $message);
         Formie::info($integration->name . ': ' . $message);
 
         if ($throwError) {
@@ -188,7 +189,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public static function warning(IntegrationInterface $integration, string $message, bool $throwError = false): void
     {
-        $message = DeliveryDiagnostics::redact($message, $integration instanceof self ? $integration->getDiagnosticSecrets() : []);
+        $message = self::_prepareLogMessage($integration, $message);
         Formie::warning($integration->name . ': ' . $message);
 
         if ($throwError) {
@@ -198,7 +199,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public static function error(IntegrationInterface $integration, string $message, bool $throwError = false): void
     {
-        $message = DeliveryDiagnostics::redact($message, $integration instanceof self ? $integration->getDiagnosticSecrets() : []);
+        $message = self::_prepareLogMessage($integration, $message);
         Formie::error($integration->name . ': ' . $message);
 
         if ($throwError) {
@@ -220,7 +221,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             }
         }
 
-        $messageText = DeliveryDiagnostics::redact(self::getExceptionLogMessage($exception), $integration instanceof self ? $integration->getDiagnosticSecrets() : []);
+        $messageText = self::_prepareLogMessage($integration, self::getExceptionLogMessage($exception));
 
         $message = Craft::t('formie', 'API error: “{message}” {file}:{line}', [
             'message' => $messageText,
@@ -289,6 +290,15 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     protected static function defineOptionSources(): array
     {
         return [];
+    }
+
+    private static function _prepareLogMessage(IntegrationInterface $integration, string $message): string
+    {
+        $self = $integration instanceof self ? $integration : null;
+        // Masked before redaction, which shortens long messages and would leave invalid JSON behind.
+        $message = LogPrivacy::maskIntegrationMessage($message, $self?->_deliveryContext?->formId ?? $self?->_logFormId);
+
+        return DeliveryDiagnostics::redact($message, $self?->getDiagnosticSecrets() ?? []);
     }
 
     private static function _isEmpty($value): bool
@@ -413,6 +423,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Keep track of whether run in the context of a queue job
     private ?JobInterface $_queueJob = null;
     private ?IntegrationExecutionContext $_deliveryContext = null;
+    private ?int $_logFormId = null;
     private ?string $_deliveryAttemptUid = null;
     private array $_deliveryStepCounts = [];
     private bool $_directDelivery = false;
@@ -522,6 +533,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->_oauthProvider = null;
         $this->_queueJob = null;
         $this->_deliveryContext = null;
+        $this->_logFormId = null;
         $this->_deliveryAttemptUid = null;
         $this->_deliveryStepCounts = [];
         $this->_directDelivery = false;
@@ -1008,6 +1020,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function getDeliveryExecutionContext(): ?IntegrationExecutionContext
     {
         return $this->_deliveryContext;
+    }
+
+    /** @internal Identifies the form behind log messages written outside a delivery run, such as payments. */
+    public function setLogFormId(?int $formId): void
+    {
+        $this->_logFormId = $formId;
     }
 
     public function beginPayloadDelivery(Submission $submission): void

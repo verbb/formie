@@ -10,6 +10,7 @@ use verbb\formie\elements\Submission as SubmissionElement;
 use verbb\formie\events\ModifyTwigEnvironmentEvent;
 use verbb\formie\helpers\Plugin as FormiePluginHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
+use verbb\formie\log\SubmissionLogTarget;
 use verbb\formie\models\HiddenDefaultTemplateContext;
 use verbb\formie\models\HiddenDefaultTemplateFormContext;
 use verbb\formie\models\HiddenDefaultTemplateRequestContext;
@@ -114,6 +115,7 @@ trait PluginTrait
     public static function config(): array
     {
         Plugin::bootstrapPlugin('formie');
+        SubmissionLogTarget::register();
 
         // Build the Twig allow-list before the templates service is registered
         // so extension code can widen the safe client surface without replacing

@@ -22,7 +22,7 @@
     <ul class="formie-info">
         <li>{{ 'Your Craft version' | t('formie') }}</li>
         <li>{{ 'Your {name} version and license' | t('formie', { name: craft.formie.getPluginName() }) }}</li>
-        <li>{{ 'Your {name} log file(s)' | t('formie', { name: craft.formie.getPluginName() }) }}</li>
+        <li>{{ 'Your {name} log file(s), unless you exclude them below' | t('formie', { name: craft.formie.getPluginName() }) }}</li>
         <li>{{ 'Your `composer.json` and `composer.lock` files' | t('formie') }}</li>
         <li>{{ 'Your form (selected below) settings, fields, and notifications' | t('formie') }}</li>
         <li>{{ 'Your custom form, email, and PDF templates (if using any)' | t('formie') }}</li>
@@ -90,6 +90,13 @@
                 inputAttributes: {
                     multiple: true,
                 },
+            }) }}
+
+            {{ forms.checkboxField({
+                label: 'Include {name} log files' | t('formie', { name: craft.formie.getPluginName() }),
+                instructions: 'Logs help us see what happened, but can include what visitors entered into your forms.' | t('formie'),
+                name: 'includeLogs',
+                checked: support.includeLogs ?? true,
             }) }}
 
             <div class="buttons last">

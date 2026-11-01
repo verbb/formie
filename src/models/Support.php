@@ -13,6 +13,7 @@ class Support extends Model
     public ?int $formId = null;
     public ?string $message = null;
     public ?array $attachments = null;
+    public bool $includeLogs = true;
 
 
     // Public Methods

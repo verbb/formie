@@ -215,5 +215,7 @@ it('renders the support disclosure and affected-environment guidance', function 
         ], View::TEMPLATE_MODE_CP);
         expect($html)->toContain('Send this request from the environment where the issue occurs.', 'Installation diagnostics:', 'no credential values or environment-variable names')
             ->not->toContain('nothing else related to your install');
+        expect($html)->toMatch('/<input[^>]*type="checkbox"[^>]*name="includeLogs"[^>]*checked|<input[^>]*name="includeLogs"[^>]*type="checkbox"[^>]*checked/')
+            ->toContain('can include what visitors entered into your forms');
     });
 });

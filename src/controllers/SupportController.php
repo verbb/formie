@@ -71,6 +71,7 @@ class SupportController extends SettingsAccessController
         $support->formId = (int)$formId;
         $support->message = trim($message);
         $support->attachments = UploadedFile::getInstancesByName('attachments');
+        $support->includeLogs = (bool)$request->getParam('includeLogs', true);
 
         if (!$support->validate()) {
             $this->setFailFlash(Craft::t('app', 'An error occurred.'));
@@ -136,23 +137,7 @@ class SupportController extends SettingsAccessController
             //
             // Attached just the Formie log
             //
-            $logPath = Craft::$app->getPath()->getLogPath();
-
-            if (is_dir($logPath)) {
-                try {
-                    $logFiles = FileHelper::findFiles($logPath, [
-                        'recursive' => false,
-                    ]);
-                } catch (ErrorException $e) {
-                    $logFiles = [];
-                }
-
-                foreach ($logFiles as $logFile) {
-                    if (str_contains($logFile, 'formie-')) {
-                        $zip->addFile($logFile, 'logs/' . pathinfo($logFile, PATHINFO_BASENAME));
-                    }
-                }
-            }
+            $this->_addLogFiles($zip, $support);
 
             //
             // Add the form
@@ -303,6 +288,30 @@ class SupportController extends SettingsAccessController
 
     // Private Methods
     // =========================================================================
+
+    private function _addLogFiles(ZipArchive $zip, Support $support): void
+    {
+        $logPath = Craft::$app->getPath()->getLogPath();
+
+        if (!$support->includeLogs || !is_dir($logPath)) {
+            return;
+        }
+
+        try {
+            $logFiles = FileHelper::findFiles($logPath, [
+                'recursive' => false,
+            ]);
+        } catch (ErrorException $e) {
+            $logFiles = [];
+        }
+
+        foreach ($logFiles as $logFile) {
+            // Only the file name, as the project's own path could contain the same text.
+            if (str_contains(pathinfo($logFile, PATHINFO_BASENAME), 'formie-')) {
+                $zip->addFile($logFile, 'logs/' . pathinfo($logFile, PATHINFO_BASENAME));
+            }
+        }
+    }
 
     private function _createSupportClient(): ClientInterface
     {
