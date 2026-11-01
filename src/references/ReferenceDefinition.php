@@ -53,7 +53,9 @@ final readonly class ReferenceDefinition
     {
         $usage = $context->usage ?? ReferenceUsage::forOutput($context->outputContext);
 
-        if (($this->usages !== null && !in_array($usage, $this->usages, true)) || ($this->shape === ReferenceShape::Block && $usage !== ReferenceUsage::RichText)) {
+        $allowsSummary = $usage === ReferenceUsage::Integration && in_array($context->summaryOutputContext, [ReferenceOutputContext::Html, ReferenceOutputContext::PlainText], true);
+
+        if (($this->usages !== null && !in_array($usage, $this->usages, true)) || ($this->shape === ReferenceShape::Block && $usage !== ReferenceUsage::RichText && !$allowsSummary)) {
             throw new ReferenceException(ReferenceDiagnostic::ForbiddenSource);
         }
     }

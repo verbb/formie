@@ -5,10 +5,15 @@ use verbb\formie\base\ElementField;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\base\RepeatableParentFieldInterface;
+use verbb\formie\fields\Group;
 use verbb\formie\fields\Phone;
+use verbb\formie\fields\Repeater;
 use verbb\formie\fields\Table;
+use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\ElementReferenceHelper;
 use verbb\formie\helpers\RepeaterReferenceHelper;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\Notification;
 use verbb\formie\models\ReferenceExpression;
 
 /** Resolves form-local identity and selectors through the owning fields. */
@@ -22,11 +27,13 @@ final class FieldReferenceResolver
         if (!$context->form || !$context->submission) {
             throw new ReferenceException(ReferenceDiagnostic::MissingField);
         }
+
         $entry = $this->findField($expression->identifier, $context);
 
         if (!$entry) {
             throw new ReferenceException(ReferenceDiagnostic::MissingField);
         }
+
         $field = $entry['field'];
         $selector = $expression->selector;
         $params = $expression->transformerParams;
@@ -36,17 +43,28 @@ final class FieldReferenceResolver
         if (!$referenceValue || !$referenceValue->appliesTo($field)) {
             throw new ReferenceException($selector === '' ? ReferenceDiagnostic::InvalidType : ReferenceDiagnostic::InvalidSelector);
         }
+
+        $isSummary = $selector === 'summary' && ($field instanceof Group || $field instanceof Repeater);
         $definition = new ReferenceDefinition(
             'field:' . $field->reference,
             $field->label,
             'fields',
-            $field->valueType(),
+            $isSummary ? FieldValueType::string() : $field->valueType(),
             browser: $referenceValue->supportsBrowser,
             types: $referenceValue->types,
             shape: $referenceValue->shape,
             allowTransforms: $referenceValue->allowTransforms,
         );
         $definition->assertAvailable($context);
+
+        if ($isSummary) {
+            // A formatted container is the complete field, independently of existing child/row selectors.
+            if ($params || $this->_hasRowMarker($entry)) {
+                throw new ReferenceException(ReferenceDiagnostic::InvalidRowScope);
+            }
+
+            return new ResolvedReference($expression, Variables::getFieldSummary($context->submission, $context->notification ?? new Notification(), $field), $definition, field: $field, fieldProjection: 'summary');
+        }
 
         if ($this->_hasRowMarker($entry) && isset($params['scope'])) {
             [$value, $projection] = $this->_nestedCollection($entry, $selector, $params, $context);
@@ -77,6 +95,7 @@ final class FieldReferenceResolver
         } elseif (!$this->_hasRowMarker($entry) && $selector !== '') {
             $value = $this->_select($field, $value, $selector, $params, $context);
         }
+
         return new ResolvedReference($expression, $value, $definition, field: $field, fieldProjection: $projection);
     }
 
@@ -97,6 +116,7 @@ final class FieldReferenceResolver
                 return $matches[0];
             }
         }
+
         return null;
     }
 
@@ -146,6 +166,7 @@ final class FieldReferenceResolver
         foreach ($entry['parts'] as $index => $part) {
             if (is_array($part)) {
                 $markerIndex = $index;
+
                 break;
             }
         }
@@ -200,6 +221,7 @@ final class FieldReferenceResolver
             if ($entry['path'] !== $path) {
                 continue;
             }
+
             $parts = [];
 
             foreach ($entry['parts'] as $part) {
@@ -209,18 +231,22 @@ final class FieldReferenceResolver
                     if (!is_int($row) || $row < 0) {
                         throw new ReferenceException(ReferenceDiagnostic::MissingRowScope);
                     }
+
                     $parentRows = $context->submission->getFieldValue(implode('.', $parts));
 
                     if (!is_array($parentRows) || !array_key_exists($row, $parentRows)) {
                         throw new ReferenceException(ReferenceDiagnostic::InvalidRowScope);
                     }
+
                     $parts[] = $row;
                 } else {
                     $parts[] = $part;
                 }
             }
+
             return implode('.', $parts);
         }
+
         return $path;
     }
 
@@ -237,6 +263,7 @@ final class FieldReferenceResolver
         if (($params['scope'] ?? '') === 'rows' && !preg_match('/^(?:even|odd|every:[1-9]\d*|[1-9]\d*(?:\s*-\s*[1-9]\d*)?(?:\s*,\s*[1-9]\d*(?:\s*-\s*[1-9]\d*)?)*)$/D', (string)($params['rows'] ?? ''))) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidRowScope);
         }
+
         [$path, $scope, $index] = RepeaterReferenceHelper::parseSelectorAndScope($selector, $params);
 
         if (($params['scope'] ?? '') === 'current') {
@@ -247,6 +274,7 @@ final class FieldReferenceResolver
         if ($scope === null) {
             throw new ReferenceException(ReferenceDiagnostic::MissingRowScope);
         }
+
         $rows = is_array($rows) ? array_values($rows) : [];
 
         if ($scope === 'count') {
@@ -264,6 +292,7 @@ final class FieldReferenceResolver
                 if (count($columns) !== 1) {
                     throw new ReferenceException(ReferenceDiagnostic::InvalidSelector);
                 }
+
                 $path = (string)array_key_first($columns);
             } else {
                 $children = [];
@@ -275,9 +304,11 @@ final class FieldReferenceResolver
                 }
             }
         }
+
         $values = array_map(function($row) use ($path, $context) {
             return $path === '' ? $row : $context->submission->getContentManager()->resolvePathValue($row, $path);
         }, $rows);
+
         return match ($scope) {
             'first' => $values[0] ?? null,
             'last' => $values ? $values[array_key_last($values)] : null,
@@ -292,6 +323,7 @@ final class FieldReferenceResolver
     {
         $indices = RepeaterReferenceHelper::parseRowsExpression($selection, count($values));
         $selected = array_map(static fn(int $index) => $values[$index], $indices);
+
         return count($selected) === 1 ? $selected[0] : $selected;
     }
 }

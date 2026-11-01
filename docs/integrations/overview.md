@@ -40,6 +40,8 @@ For integrations that send submission data, open the form’s **Integrations** t
 
 Where field mapping is available, it connects answers in your form to fields in the receiving system. For example, map your form’s Email Address field to the provider’s email field using the variable picker. Typing a field handle as plain text sends that literal text instead of the visitor’s answer. Map the destination’s required fields before adding optional values.
 
+Text fields in the receiving system can also take a summary of the submission. Choose **All Form Fields**, **All Non Empty Fields** or **All Visible Fields**, or expand a Group or Repeater and choose **Formatted Summary**. Summaries are sent as labelled plain text, or as HTML where the provider field supports it, such as a Freshdesk ticket description. Fields with **Include in Field Summaries** turned off are left out.
+
 Use integration conditions when the action should depend on an answer. A newsletter integration might run only when a visitor selects an opt-in field. The form can still complete when that condition is not met; the condition controls whether that integration runs.
 
 Address providers, CAPTCHAs and payment integrations have their own field or form settings and verification steps. Follow their provider pages for those workflows.

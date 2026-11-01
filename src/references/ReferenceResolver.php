@@ -9,6 +9,8 @@ use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\models\ReferenceExpression;
 
+use Html2Text\Html2Text;
+
 /** Coordinates grammar, explicit sources and field-owned projections. */
 final class ReferenceResolver
 {
@@ -61,6 +63,11 @@ final class ReferenceResolver
                 $projection = 'value';
             }
 
+            // Only summaries adopt the destination's format; existing scalar mappings keep their projection.
+            if ($result->definition->shape === ReferenceShape::Block && $context->usage === ReferenceUsage::Integration && $context->summaryOutputContext === ReferenceOutputContext::PlainText) {
+                $value = (new Html2Text((string)$value, ['width' => 0]))->getText();
+            }
+
             return new ResolvedReference($expression, $value, $result->definition, field: $result->field, fieldProjection: $projection);
         } catch (ReferenceException $e) {
             return new ResolvedReference($expression, diagnostic: $e->diagnostic);
@@ -106,7 +113,7 @@ final class ReferenceResolver
             }
 
             $value = $result->requireValue();
-            $summary = in_array($expression->target, ['allFields', 'allContentFields', 'allVisibleFields'], true);
+            $summary = in_array($expression->target, ['allFields', 'allContentFields', 'allVisibleFields'], true) || $result->fieldProjection === 'summary';
 
             if ($result->field && $result->fieldProjection !== 'none') {
                 $field = $result->field;

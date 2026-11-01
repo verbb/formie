@@ -177,11 +177,17 @@ const filterPickerItems = (items = [], variableConfig = {}) => {
             return false;
         }
         const itemShape = getItemShape(item);
+
+        // A text-compatible block still needs a consumer that explicitly accepts block content.
+        if (itemShape === 'block' && !requestedShapes.includes('block') && variableConfig.usage !== 'richText') {
+            return false;
+        }
+
         if (requestedShapes.length && !requestedShapes.includes(itemShape)) {
             return false;
         }
 
-        if (!requestedTypes.length) {
+        if (!requestedTypes.length || (itemShape === 'block' && variableConfig.includeBlockValues === true)) {
             return true;
         }
 

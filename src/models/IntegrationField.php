@@ -30,6 +30,7 @@ class IntegrationField extends Model
     public mixed $defaultValue = null;
     public array $options = [];
     public array $data = [];
+    public bool $acceptsHtml = false;
 
 
     // Public Methods
@@ -42,5 +43,14 @@ class IntegrationField extends Model
         }
 
         return self::TYPE_STRING;
+    }
+
+    /**
+     * Whether submission and Group/Repeater summaries can be mapped to this destination, as HTML when it
+     * accepts HTML or as plain text otherwise.
+     */
+    public function acceptsSummaries(): bool
+    {
+        return $this->getType() === self::TYPE_STRING && !$this->options;
     }
 }

@@ -52,6 +52,7 @@ use verbb\formie\options\OptionList;
 use verbb\formie\records\Integration as IntegrationRecord;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\references\ReferenceException;
+use verbb\formie\references\ReferenceOutputContext;
 use verbb\formie\references\ReferenceSlot;
 use verbb\formie\references\ReferenceSlotKind;
 use verbb\formie\references\ReferenceUsage;
@@ -1688,7 +1689,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     protected function resolveMappingSlot(mixed $fieldKey, Submission $submission, IntegrationField $integrationField): mixed
     {
         $slot = ReferenceSlot::fromStored($fieldKey);
-        $context = ReferenceContext::forSubmission($submission, usage: ReferenceUsage::Integration);
+        $summaryOutputContext = $integrationField->acceptsSummaries() ? ($integrationField->acceptsHtml ? ReferenceOutputContext::Html : ReferenceOutputContext::PlainText) : null;
+        $context = ReferenceContext::forSubmission($submission, usage: ReferenceUsage::Integration, summaryOutputContext: $summaryOutputContext);
         $field = null;
         $resolved = null;
 
@@ -1915,6 +1917,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 'name' => $label,
                 'required' => $required,
             ];
+
+            $attributes = is_array($integrationField) ? $integrationField : get_object_vars($integrationField);
+            $definition = $integrationField instanceof IntegrationField ? $integrationField : new IntegrationField([
+                'type' => $attributes['type'] ?? null,
+                'options' => $options ?? [],
+            ]);
+            $fieldMeta['acceptsSummaries'] = $definition->acceptsSummaries();
 
             if (!empty($options)) {
                 $fieldMeta['options'] = $options;

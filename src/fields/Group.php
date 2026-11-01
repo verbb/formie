@@ -5,12 +5,14 @@ use verbb\formie\Formie;
 use verbb\formie\base\ContainerParentField;
 use verbb\formie\base\ContainerParentFieldInterface;
 use verbb\formie\base\Field;
+use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\gql\types\generators\NestedFieldGenerator;
 use verbb\formie\gql\types\input\GroupInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\DynamicModel;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\references\ReferenceShape;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -232,5 +234,10 @@ class Group extends ContainerParentField implements ContainerParentFieldInterfac
     protected function defineAllowPrimaryReference(): bool
     {
         return false;
+    }
+
+    protected function defineReferenceValues(): array
+    {
+        return [FieldReferenceValue::selector('summary', Craft::t('formie', 'Formatted Summary'), shape: ReferenceShape::Block, supportsFieldSelect: false, supportsBrowser: false, allowTransforms: false)];
     }
 }

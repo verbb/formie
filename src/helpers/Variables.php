@@ -1,11 +1,11 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\models\Notification;
-use verbb\formie\Formie;
 use verbb\formie\references\BuiltinReferenceTransforms;
 use verbb\formie\references\ReferenceContext;
 use verbb\formie\references\ReferenceDefinition;
@@ -140,12 +140,14 @@ class Variables
         foreach (Formie::$plugin->getReferenceCatalogue()->pickerGroups() as $items) {
             $walk($items);
         }
+
         return $variables;
     }
 
     public static function getFieldForReference(string $refValue, Submission $submission): ?FieldInterface
     {
         $expression = References::parseReferenceExpression($refValue);
+
         return $expression->isValid && $expression->target === 'field'
             ? (new ReferenceResolver())->fieldFor($expression->identifier, ReferenceContext::forSubmission($submission))
             : null;
@@ -159,6 +161,7 @@ class Variables
     public static function getFieldAndValueForReference(string $refValue, Submission $submission, ?array $variables = null): array
     {
         $result = References::resolveValue($refValue, ReferenceContext::forSubmission($submission));
+
         return ['field' => $result->field, 'value' => $result->requireValue(), 'result' => $result];
     }
 
@@ -199,6 +202,12 @@ class Variables
         ];
     }
 
+    public static function getFieldSummary(Submission $submission, Notification $notification, FieldInterface $field): string
+    {
+        // The same template enforces parent/child exclusions and preserves field-owned rendering.
+        return self::_renderSummaryTemplate($notification, $submission, 'all-fields', [$field]);
+    }
+
     private static function _getTransformerRegistry(): array
     {
         $registry = BuiltinReferenceTransforms::pickerDefinitions();
@@ -206,6 +215,7 @@ class Variables
         foreach (Formie::$plugin->getReferenceCatalogue()->pickerTransforms() as $type => $transforms) {
             $registry[$type] = [...($registry[$type] ?? []), ...$transforms];
         }
+
         return $registry;
     }
 

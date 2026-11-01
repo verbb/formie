@@ -21,7 +21,7 @@ final readonly class ReferenceContext
     // Static Methods
     // =========================================================================
 
-    public static function forSubmission(Submission $submission, ?Notification $notification = null, array $rows = [], array $permissions = ['server'], ReferenceOutputContext $outputContext = ReferenceOutputContext::PlainText, ?ReferenceUsage $usage = null): self
+    public static function forSubmission(Submission $submission, ?Notification $notification = null, array $rows = [], array $permissions = ['server'], ReferenceOutputContext $outputContext = ReferenceOutputContext::PlainText, ?ReferenceUsage $usage = null, ?ReferenceOutputContext $summaryOutputContext = null): self
     {
         $site = Craft::$app->getSites()->getSiteById($submission->siteId);
         $user = $submission->getUser();
@@ -32,7 +32,8 @@ final readonly class ReferenceContext
                 $dispatch[$handle] = ['id' => $result['elementId'] ?? null, 'url' => $result['url'] ?? null, 'success' => $result['success'] ?? false, 'type' => $result['type'] ?? null];
             }
         }
-        return new self($submission->getForm(), $submission, $site, $user, $rows, $permissions, $outputContext, $notification, new DateTimeImmutable('now', new DateTimeZone(Craft::$app->getTimeZone())), self::_system($site), self::_environment(), $dispatch, metadata: $submission->metadata ?? [], usage: $usage);
+
+        return new self($submission->getForm(), $submission, $site, $user, $rows, $permissions, $outputContext, $notification, new DateTimeImmutable('now', new DateTimeZone(Craft::$app->getTimeZone())), self::_system($site), self::_environment(), $dispatch, metadata: $submission->metadata ?? [], usage: $usage, summaryOutputContext: $summaryOutputContext);
     }
 
     public static function forForm(?Form $form): self
@@ -75,6 +76,7 @@ final readonly class ReferenceContext
         public array $metadata = [],
         ?ReferenceDiagnostics $diagnostics = null,
         public ?ReferenceUsage $usage = null,
+        public ?ReferenceOutputContext $summaryOutputContext = null,
     ) {
         $this->diagnostics = $diagnostics ?? new ReferenceDiagnostics();
 
@@ -85,7 +87,7 @@ final readonly class ReferenceContext
 
     public function withOutputContext(ReferenceOutputContext $outputContext): self
     {
-        return new self($this->form, $this->submission, $this->site, $this->user, $this->rows, $this->permissions, $outputContext, $this->notification, $this->now, $this->system, $this->environment, $this->dispatch, $this->report, $this->metadata, $this->diagnostics, $this->usage);
+        return new self($this->form, $this->submission, $this->site, $this->user, $this->rows, $this->permissions, $outputContext, $this->notification, $this->now, $this->system, $this->environment, $this->dispatch, $this->report, $this->metadata, $this->diagnostics, $this->usage, $this->summaryOutputContext);
     }
 
 
@@ -101,6 +103,7 @@ final readonly class ReferenceContext
                 $environment[$name] = App::env($name);
             }
         }
+
         return $environment;
     }
 

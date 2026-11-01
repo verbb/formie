@@ -211,8 +211,28 @@ Attribute | Use
 `defaultValue` | A default value for the integration field.
 `options` | Options for selectable provider fields.
 `data` | Extra provider-specific metadata.
+`acceptsHtml` | Whether the provider field renders HTML content. Defaults to `false`.
 
 If `type` is omitted, Formie treats the field as `TYPE_STRING`. Available types are `TYPE_STRING`, `TYPE_NUMBER`, `TYPE_FLOAT`, `TYPE_BOOLEAN`, `TYPE_DATE`, `TYPE_DATETIME`, `TYPE_DATECLASS`, `TYPE_ARRAY` and `TYPE_PHONE`.
+
+### Formatted Summaries
+
+Text fields without predefined options can be mapped to **All Form Fields**, **All Non Empty Fields**, **All Visible Fields** and the **Formatted Summary** of a Group or Repeater. Formie renders the same field summaries used by email notifications and sends them as plain text. Labels, repeater rows, conditional visibility and **Include in Field Summaries** exclusions are retained.
+
+Set `acceptsHtml` for a provider field that renders HTML, such as a ticket description, to send the summary as HTML instead:
+
+```php
+use verbb\formie\models\IntegrationField;
+
+$description = new IntegrationField([
+    'handle' => 'description',
+    'name' => 'Description',
+    'type' => IntegrationField::TYPE_STRING,
+    'acceptsHtml' => true,
+]);
+```
+
+Summaries are not available for non-string fields or fields with predefined options. `acceptsHtml` changes summary output only; individual-field, sub-field and literal mappings keep their current behaviour.
 
 ## Sending Payloads
 Dispatchable integrations implement `DispatchableIntegrationInterface`; the CRM, Email Marketing, Automation, Element, Help Desk, Messaging and Miscellaneous bases already implement it. Override the protected `executePayload(Submission $submission)` hook for normal integrations. The inherited public `execute(IntegrationRunContext $context)` prepares the run and adapts older overrides before invoking that hook. The context supplies the submission, immutable execution identity, attempt UID, prior results from the same run, and execution-local delivery state. Use `getFieldMappingValues()` to resolve the configured form mapping, and `deliverPayload()` when sending to a remote endpoint so Formie can run the before/after payload events. Application code invokes the [execution entry points](#calling-integrations) below so eligibility, authority and delivery history are applied.

@@ -30,6 +30,7 @@ class SchemaHelper
                 if (!is_array($children) || !array_is_list($children)) {
                     $children = [$children];
                 }
+
                 $node['children'] = array_map([self::class, 'normalizeSchema'], $children);
             }
 
@@ -39,6 +40,7 @@ class SchemaHelper
                 if (!is_array($schemaChildren) || !array_is_list($schemaChildren)) {
                     $schemaChildren = [$schemaChildren];
                 }
+
                 $node['schema'] = array_map([self::class, 'normalizeSchema'], $schemaChildren);
             }
 
@@ -881,8 +883,8 @@ class SchemaHelper
     public static function includeInEmailFieldSummariesField(array $config = []): array
     {
         return self::lightswitchField(array_merge([
-            'label' => Craft::t('formie', 'Include in Email Field Summaries'),
-            'instructions' => Craft::t('formie', 'Whether this field should be included when using "All Form Fields", "All Non Empty Fields", or "All Visible Fields" in email notifications.'),
+            'label' => Craft::t('formie', 'Include in Field Summaries'),
+            'instructions' => Craft::t('formie', 'Whether this field should be included in email notification and integration summaries, including formatted Group and Repeater output.'),
             'name' => 'includeInEmailFieldSummaries',
         ], $config));
     }
@@ -1177,6 +1179,7 @@ class SchemaHelper
             if (array_is_list($content)) {
                 return $content;
             }
+
             return [$content];
         }, $tabsWithContent));
 
@@ -1391,6 +1394,7 @@ class SchemaHelper
                 foreach ($node as $child) {
                     self::_collectSchemaFields($child, $prefix, $entries);
                 }
+
                 return;
             }
 
@@ -1460,6 +1464,7 @@ class SchemaHelper
                 if (!isset($node['className']) && isset($attrs['class'])) {
                     $node['className'] = $attrs['class'];
                 }
+
                 unset($node['attrs']);
             }
         }
@@ -1602,6 +1607,7 @@ class SchemaHelper
 
             return $options;
         }
+
         unset($option);
 
         array_unshift($options, [

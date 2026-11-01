@@ -121,6 +121,11 @@ if (!\verbb\formie\Formie::$plugin->getIntegrations()->saveIntegration($referenc
 }
 $referenceConfig = new \verbb\formie\models\IntegrationConfig([
     'contact' => [new \verbb\formie\models\IntegrationField(['handle' => 'name', 'name' => 'Contact name'])],
+    'ticket' => [
+        new \verbb\formie\models\IntegrationField(['handle' => 'subject', 'name' => 'Subject']),
+        new \verbb\formie\models\IntegrationField(['handle' => 'description', 'name' => 'Description']),
+        new \verbb\formie\models\IntegrationField(['handle' => 'custom:notes', 'name' => 'Plain notes']),
+    ],
 ], $referenceIntegration->getIntegrationConfigKey(), time());
 $referenceIntegration->cache = ['connection' => 'success', 'config' => $referenceConfig->toStorage()];
 Craft::$app->getDb()->createCommand()->update(\verbb\formie\helpers\Table::FORMIE_INTEGRATIONS, ['cache' => \craft\helpers\Json::encode($referenceIntegration->cache)], ['id' => $referenceIntegration->id])->execute();
@@ -129,6 +134,15 @@ $referencePicker = \verbb\formie\Formie::$plugin->getFactories()->form(['title' 
     ->integrations(['browserFreshdesk' => ['enabled' => true, 'mapToContact' => true, 'contactFieldMapping' => ['name' => ['kind' => 'literal', 'value' => '{field:literal}']]]])
     ->create();
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/reference-picker.json', json_encode(['formId' => $referencePicker->id]));
+
+$summaryRows = [['fields' => [['type' => \verbb\formie\fields\SingleLineText::class, 'handle' => 'answer', 'label' => 'Answer']]]];
+$summaryPicker = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Summary mapping contract', 'handle' => 'summaryMappingContract'])
+    ->singleLineTextField('subject', ['label' => 'Subject'])
+    ->groupField('details', ['label' => 'Details', 'rows' => $summaryRows])
+    ->repeaterField('items', ['label' => 'Items', 'rows' => $summaryRows])
+    ->integrations(['browserFreshdesk' => ['enabled' => true, 'mapToTicket' => true, 'ticketFieldMapping' => ['subject' => ['kind' => 'literal', 'value' => 'Summary ticket']]]])
+    ->create();
+file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/summary-picker.json', json_encode(['formId' => $summaryPicker->id]));
 
 require __DIR__ . '/browser-delivery-fixture.php';
 

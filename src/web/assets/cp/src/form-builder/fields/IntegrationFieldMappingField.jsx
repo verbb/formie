@@ -25,21 +25,13 @@ import {
     getComparableTokenValue,
 } from '@form-builder/fields/utils/variablePicker';
 import { updateIntegrationSettingMapping } from '@form-builder/utils/integrationSettings';
+import {
+    MAPPING_VARIABLE_CONFIG,
+    SUMMARY_MAPPING_VARIABLE_CONFIG,
+    supportsMappingSummaries,
+} from './utils/integrationMappingVariables';
 
-// Destinations convert field values themselves, including Agree booleans and
-// configured checked/unchecked text. Keep all scalar sources selectable.
-export const MAPPING_VARIABLE_CONFIG = {
-    usage: 'integration',
-    shapes: ['inline'],
-    types: ['text', 'date', 'number', 'boolean'],
-    groupFieldsByPage: true,
-    groups: [
-        'fieldsVariables',
-        'staticFormVariables',
-        'staticGeneralVariables',
-        'staticSiteVariables',
-    ],
-};
+export { MAPPING_VARIABLE_CONFIG } from './utils/integrationMappingVariables';
 const PROVIDER_OPTIONS_GROUP = 'providerOptions';
 const MODE_FIELD = 'field';
 const MODE_CUSTOM = 'custom';
@@ -106,6 +98,7 @@ const normalizeIntegrationField = (integrationField, fallbackHandle) => {
         name: integrationField?.name || handle,
         required: Boolean(integrationField?.required),
         options: normalizeIntegrationOptions(integrationField?.options),
+        acceptsSummaries: integrationField?.acceptsSummaries === true,
     };
 };
 
@@ -447,6 +440,13 @@ const IntegrationFieldMappingField = ({ form, field }) => {
     const baseFieldOptionValues = useMemo(() => {
         return collectSelectableValues(baseVariableCategories);
     }, [baseVariableCategories]);
+    const summaryVariableCategories = useVariableCategories(SUMMARY_MAPPING_VARIABLE_CONFIG, { form });
+    const summaryVariableOptionIndex = useMemo(() => {
+        return buildVariableOptionIndex(summaryVariableCategories, { includeParentLabel: true });
+    }, [summaryVariableCategories]);
+    const summaryFieldOptionValues = useMemo(() => {
+        return collectSelectableValues(summaryVariableCategories);
+    }, [summaryVariableCategories]);
     const variableTransformerRegistry = useAppStore((state) => { return state.variableCategoriesConfig?.transformerRegistry || {}; });
     const globalVariableCategoryLabels = useAppStore((state) => { return state.variableCategoryLabels || {}; });
     const variableCategoryOrder = useAppStore((state) => { return state.variableCategoryOrder || []; });
@@ -724,6 +724,7 @@ const IntegrationFieldMappingField = ({ form, field }) => {
                         <TableBody>
                             {visibleIntegrationFields.map((integrationField) => {
                                 const mappingValue = normalizeMappingValue(value?.[integrationField.handle]);
+                                const summaries = supportsMappingSummaries(integrationField);
                                 return (
                                     <MappingRow
                                         key={integrationField.handle}
@@ -731,9 +732,9 @@ const IntegrationFieldMappingField = ({ form, field }) => {
                                         mappingValue={mappingValue}
                                         mappingKind={value?.[integrationField.handle]?.kind}
                                         onMappingValueChange={updateMappingValue}
-                                        variableCategories={baseVariableCategories}
-                                        baseVariableOptionIndex={baseVariableOptionIndex}
-                                        baseFieldOptionValues={baseFieldOptionValues}
+                                        variableCategories={summaries ? summaryVariableCategories : baseVariableCategories}
+                                        baseVariableOptionIndex={summaries ? summaryVariableOptionIndex : baseVariableOptionIndex}
+                                        baseFieldOptionValues={summaries ? summaryFieldOptionValues : baseFieldOptionValues}
                                         variableTransformerRegistry={variableTransformerRegistry}
                                         globalVariableCategoryLabels={globalVariableCategoryLabels}
                                         variableCategoryOrder={variableCategoryOrder}

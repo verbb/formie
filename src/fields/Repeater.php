@@ -4,6 +4,7 @@ namespace verbb\formie\fields;
 use verbb\formie\Formie;
 use verbb\formie\base\RepeatableParentField;
 use verbb\formie\compatibility\fields\FieldConfigNormalizer;
+use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\input\RepeaterInputType;
@@ -13,6 +14,7 @@ use verbb\formie\models\BrowserModule;
 use verbb\formie\models\DynamicModel;
 use verbb\formie\models\SlotTag;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\references\ReferenceShape;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
@@ -473,6 +475,11 @@ class Repeater extends RepeatableParentField
     protected function defineAllowPrimaryReference(): bool
     {
         return false;
+    }
+
+    protected function defineReferenceValues(): array
+    {
+        return [FieldReferenceValue::selector('summary', Craft::t('formie', 'Formatted Summary'), shape: ReferenceShape::Block, supportsFieldSelect: false, supportsBrowser: false, allowTransforms: false)];
     }
 
     protected function defineClientRenderedInput(): array

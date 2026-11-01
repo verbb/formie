@@ -230,6 +230,7 @@ class Freshdesk extends HelpDesk
                         'name' => Craft::t('formie', 'Description'),
                         'required' => true,
                         'type' => IntegrationField::TYPE_STRING,
+                        'acceptsHtml' => true,
                     ]),
                     new IntegrationField([
                         'handle' => 'responder_id',
@@ -336,6 +337,23 @@ class Freshdesk extends HelpDesk
         }
 
         return true;
+    }
+
+    public function getConfigValue(string $key): mixed
+    {
+        $fields = parent::getConfigValue($key);
+
+        // Ticket descriptions are HTML, including in metadata cached before fields declared it.
+        if ($key === 'ticket' && is_array($fields)) {
+            foreach ($fields as $index => $field) {
+                if ($field instanceof IntegrationField && $field->handle === 'description') {
+                    $fields[$index] = clone $field;
+                    $fields[$index]->acceptsHtml = true;
+                }
+            }
+        }
+
+        return $fields;
     }
 
     public function getFieldMappingMultipartValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])

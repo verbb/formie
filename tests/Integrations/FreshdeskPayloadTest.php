@@ -139,3 +139,29 @@ it('sends ordinary legacy Freshdesk ticket mappings without multipart wrappers o
     expect($integration->executeForTest($submission)->status)->toBe(IntegrationStatus::Succeeded)
         ->and(json_decode((string)$integration->transactions[0]['request']->getBody(), true))->toBe(['subject' => 'Legacy ticket', 'status' => 2]);
 });
+
+it('sends HTML summaries in Freshdesk JSON and multipart ticket descriptions', function(bool $attachment): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form()->singleLineTextField('answer', ['label' => 'Answer'])->fileUploadField('files', ['restrictFiles' => false, 'includeInEmailFieldSummaries' => false])->create();
+    $values = ['answer' => 'Summary & value'];
+    if ($attachment) {
+        $asset = UploadTestHelper::seedAsset('summary.txt', 'summary attachment', $volume);
+        $values['files'] = [$asset->id];
+    }
+    $submission = formie()->submission($form)->with($values)->save();
+    $integration = freshdeskPayloadFixture([
+        'subject' => 'Summary ticket',
+        'description' => ['kind' => 'reference', 'value' => '{allFields}'],
+        'attachments' => References::field($form->getFieldByHandle('files')->reference),
+    ]);
+    expect($integration->executeForTest($submission)->status)->toBe(IntegrationStatus::Succeeded);
+    $request = $integration->transactions[0]['request'];
+    $body = (string)$request->getBody();
+    if ($attachment) {
+        expect($request->getHeaderLine('Content-Type'))->toStartWith('multipart/form-data;')
+            ->and($body)->toContain('name="description"', '<strong>Answer</strong>', 'Summary &amp; value', 'summary attachment');
+    } else {
+        expect($request->getHeaderLine('Content-Type'))->toBe('application/json')
+            ->and(json_decode($body, true)['description'])->toContain('<strong>Answer</strong>', 'Summary &amp; value');
+    }
+})->with([false, true]);
