@@ -1,6 +1,6 @@
 // CSS needs to be inlined for Shadow DOM usage
 import formBuilderStyles from '@form-builder/css/style.css?inline';
-import { configureFormieTiptap } from '../tiptap/formie-tiptap.js';
+import { configureFormieTiptap } from '../tiptap/bridge.js';
 import { getBuilderPathname } from './utils/builderRouteUrl';
 
 const hmrData = import.meta.hot?.data?.formBuilder ?? {};

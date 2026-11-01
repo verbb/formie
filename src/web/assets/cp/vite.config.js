@@ -184,6 +184,8 @@ export default defineConfig(async ({ command, mode }) => {
             sourcemap: false,
             chunkSizeWarningLimit: 3500,
             rollupOptions: {
+                // Craft may append buildId to page URLs; keep shared exports out of those entries.
+                preserveEntrySignatures: 'strict',
                 input: {
                     'formie-form-builder': path.resolve('./src/form-builder/formie-form-builder.js'),
                     'formie-forms-index': path.resolve('./src/forms/js/formie-forms-index.js'),

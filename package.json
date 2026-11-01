@@ -73,7 +73,7 @@
     "build": "npm run build:cp && npm run build:frontend",
     "build:docs": "npm run docs:build -w @verbb/formie-frontend-docs",
     "build:packages": "npm run build -w @verbb/formie-core && npm run build -w @verbb/formie-browser && npm run build -w @verbb/formie-react && npm run build -w @verbb/formie-vue && npm run build -w @verbb/formie-web-components",
-    "build:cp": "npm run build -w formie-cp",
+    "build:cp": "npm run build -w formie-cp && npm run test:cp-assets",
     "build:frontend": "npm run build:formie-browser && npm run build -w formie-frontend",
     "build:formie-core": "npm run build -w @verbb/formie-core",
     "build:formie-browser": "npm run build:formie-core && npm run build -w @verbb/formie-browser",
@@ -81,7 +81,8 @@
     "build:formie-vue": "npm run build:formie-browser && npm run build -w @verbb/formie-vue",
     "build:formie-web-components": "npm run build:formie-browser && npm run build -w @verbb/formie-web-components",
     "test": "npm run test -w @verbb/formie-core && npm run test -w formie-cp",
-    "test:browser": "npm run build && node tests/browser/build.mjs && playwright test --config tests/browser/playwright.config.ts"
+    "test:browser": "npm run build && node tests/browser/build.mjs && playwright test --config tests/browser/playwright.config.ts",
+    "test:cp-assets": "node tests/web/check-entry-imports.mjs src/web/assets/cp/dist/manifest.json"
   },
   "dependencies": {
     "@verbb/plugin-kit-codemirror-core": "^2.1.0",
