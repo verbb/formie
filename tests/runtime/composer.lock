@@ -13163,7 +13163,7 @@
             "dist": {
                 "type": "path",
                 "url": "../../..",
-                "reference": "83bcaea5d0f4aef455b6a8c50a5e1a2c3d9c2cec"
+                "reference": "c53f5d830cc0aa78dea0c36b8b87647fe062ea56"
             },
             "require": {
                 "commerceguys/addressing": "^2.1.1",
@@ -13182,7 +13182,7 @@
                 "symfony/expression-language": "^5.0 || ^6.0 || ^7.0",
                 "verbb/auth": "^2.0.56",
                 "verbb/base": "^3.0.20",
-                "verbb/tiptap": "^1.0.5"
+                "verbb/tiptap": "^1.0.6"
             },
             "require-dev": {
                 "craftcms/cms": "^5.9",
@@ -13260,16 +13260,16 @@
         },
         {
             "name": "verbb/tiptap",
-            "version": "1.0.5",
+            "version": "1.0.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/verbb/tiptap.git",
-                "reference": "631eb4ec044213d2bef4cab425f5059af06490c5"
+                "reference": "2831914a9c389d0d6fb4e7b09ed6a955d5a05dcc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/verbb/tiptap/zipball/631eb4ec044213d2bef4cab425f5059af06490c5",
-                "reference": "631eb4ec044213d2bef4cab425f5059af06490c5",
+                "url": "https://api.github.com/repos/verbb/tiptap/zipball/2831914a9c389d0d6fb4e7b09ed6a955d5a05dcc",
+                "reference": "2831914a9c389d0d6fb4e7b09ed6a955d5a05dcc",
                 "shasum": ""
             },
             "require": {
@@ -13320,7 +13320,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-16T08:39:58+00:00"
+            "time": "2026-10-31T20:42:20+00:00"
         },
         {
             "name": "vlucas/phpdotenv",

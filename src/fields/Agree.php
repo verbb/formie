@@ -161,7 +161,7 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
             $this->_descriptionHtml = $this->_getHtmlContent($this->description);
         }
 
-        return Template::raw(Craft::t('formie', (string)$this->_descriptionHtml));
+        return Template::raw(self::_translateDescriptionHtml((string)$this->_descriptionHtml));
     }
 
     public function getSettings(): array
@@ -477,6 +477,30 @@ class Agree extends Field implements SortableFieldInterface, PreviewableFieldInt
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Existing translation keys were written against entity-decoded HTML. Match those keys,
+     * but keep untranslated output encoded so escaped text cannot become markup.
+     */
+    private static function _translateDescriptionHtml(string $html): string
+    {
+        $translated = Craft::t('formie', $html);
+
+        if ($translated !== $html) {
+            return $translated;
+        }
+
+        // Match the decoding previously applied by `RichText::toHtml()`.
+        $legacyKey = html_entity_decode($html);
+
+        if ($legacyKey === $html) {
+            return $html;
+        }
+
+        $translated = Craft::t('formie', $legacyKey);
+
+        return $translated !== $legacyKey ? $translated : $html;
+    }
 
     private function _getHtmlContent(RichText $content): ?string
     {
