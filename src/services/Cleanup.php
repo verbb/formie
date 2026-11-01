@@ -100,6 +100,11 @@ class Cleanup extends Service
      */
     private function _tasks(Controller|ConsoleApplication|null $console): array
     {
+        // GC supplies the application, but the pruners need a controller for stdout().
+        if ($console instanceof ConsoleApplication) {
+            $console = new Controller('formie-cleanup', $console);
+        }
+
         return [
             self::TASK_PAYMENT_CAPABILITIES => [
                 'label' => 'purging expired payment capabilities',

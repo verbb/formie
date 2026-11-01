@@ -15,6 +15,7 @@
 - Fixed a moderate-severity cross-site scripting vulnerability. (GHSA-544h-97wp-pvhx)
 - Fix rich-text Multi-Line Text answers displaying as HTML source when referenced in email notifications.
 - Fix rich-text editor registration running more than once when Craft’s `buildId` setting is configured.
+- Fix garbage collection failing when pruning Formie submissions, sent notifications or uploaded assets. ([#3075](https://github.com/verbb/formie/issues/3075))
 - Fix the cursor jumping to the end when typing around variable tags.
 - Fix browser requests failing when Craft uses a custom action trigger, including token refresh after AJAX submissions. ([#3068](https://github.com/verbb/formie/issues/3068))
 - Fix file upload reference checks causing MySQL sort-memory errors for large submissions. ([#3069](https://github.com/verbb/formie/issues/3069))
