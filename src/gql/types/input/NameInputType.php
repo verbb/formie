@@ -18,7 +18,7 @@ class NameInputType extends InputObjectType
     public static function getType(NameField $context): mixed
     {
         /** @var NameField $context */
-        $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormieNameInput';
+        $typeName = Formie::$plugin->getFields()->getFieldGqlTypeName($context, 'FormieNameInput');
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;
@@ -54,7 +54,7 @@ class NameInputType extends InputObjectType
     public static function getTypeFromConfig(array $config): mixed
     {
         $fieldsService = Formie::$plugin->getFields();
-        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'NameInput');
+        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'FormieNameInput');
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;

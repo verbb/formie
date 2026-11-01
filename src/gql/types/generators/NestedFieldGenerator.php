@@ -43,7 +43,7 @@ class NestedFieldGenerator extends Generator implements GeneratorInterface, Sing
     public static function generateTypeFromConfig(array $context): mixed
     {
         $fieldsService = Formie::$plugin->getFields();
-        $typeName = $fieldsService->getFieldConfigGqlTypeName($context, 'NestedField');
+        $typeName = $fieldsService->getFieldConfigGqlTypeName($context, 'FormieGroupField');
 
         if (!($entity = GqlEntityRegistry::getEntity($typeName))) {
             $groupFields = self::getContentFieldsFromConfig($context);
@@ -66,6 +66,7 @@ class NestedFieldGenerator extends Generator implements GeneratorInterface, Sing
         } catch (GqlException $e) {
             Craft::warning("Could not get the active GraphQL schema: {$e->getMessage()}", __METHOD__);
             Craft::$app->getErrorHandler()->logException($e);
+
             return [];
         }
 
@@ -89,6 +90,7 @@ class NestedFieldGenerator extends Generator implements GeneratorInterface, Sing
         } catch (GqlException $e) {
             Craft::warning("Could not get the active GraphQL schema: {$e->getMessage()}", __METHOD__);
             Craft::$app->getErrorHandler()->logException($e);
+
             return [];
         }
 

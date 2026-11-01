@@ -78,16 +78,13 @@ it('selects group subfields directly', function (): void {
 it('selects the group type name and honours aliases', function (): void {
     $row = groupGraphqlRow(groupGraphqlForm(), 'details { __typename surname: lastName }');
 
-    expect($row['details']['__typename'])->toEndWith('_NestedField')
+    expect($row['details']['__typename'])->toEndWith('_details_FormieGroupField')
         ->and($row['details']['surname'])->toBe('Smith');
 });
 
 it('selects group subfields through an inline fragment', function (): void {
     $form = groupGraphqlForm();
-    $fields = Formie::$plugin->getFields();
-    $config = current(array_filter($fields->getAllFieldConfigsForForms([$form->id])[$form->id], fn(array $item): bool => $item['handle'] === 'details'));
-    $typeName = $fields->getFieldConfigGqlTypeName($config, 'NestedField');
-    $row = groupGraphqlRow($form, "details { ... on {$typeName} { lastName } }");
+    $row = groupGraphqlRow($form, "details { ... on {$form->handle}_details_FormieGroupField { lastName } }");
 
     expect($row['details']['lastName'])->toBe('Smith');
 });

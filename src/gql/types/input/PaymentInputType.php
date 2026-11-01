@@ -17,7 +17,7 @@ class PaymentInputType extends InputObjectType
 
     public static function getType(PaymentField $context): mixed
     {
-        $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormiePaymentInput';
+        $typeName = Formie::$plugin->getFields()->getFieldGqlTypeName($context, 'FormiePaymentInput');
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;
@@ -34,7 +34,7 @@ class PaymentInputType extends InputObjectType
     public static function getTypeFromConfig(array $config): mixed
     {
         $fieldsService = Formie::$plugin->getFields();
-        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'PaymentInput');
+        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'FormiePaymentInput');
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;

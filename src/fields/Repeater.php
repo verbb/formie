@@ -63,13 +63,13 @@ class Repeater extends RepeatableParentField
     public static function gqlContentTypeFromConfig(array $config): array|Type
     {
         $fieldsService = Formie::$plugin->getFields();
-        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'RepeaterField');
+        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'FormieRepeaterField');
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;
         }
 
-        $rowTypeName = $fieldsService->getFieldConfigGqlTypeName($config, 'RepeaterRow');
+        $rowTypeName = $fieldsService->getFieldConfigGqlTypeName($config, 'FormieRepeaterFieldRow');
         $repeaterFields = RowInterface::getFieldDefinitions();
         $schema = null;
 
@@ -237,7 +237,7 @@ class Repeater extends RepeatableParentField
 
     public function getContentGqlType(): array|Type
     {
-        $typeName = ($this->getForm()->handle ?? '') . '_' . $this->handle . '_FormieRepeaterField';
+        $typeName = Formie::$plugin->getFields()->getFieldGqlTypeName($this, 'FormieRepeaterField');
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;

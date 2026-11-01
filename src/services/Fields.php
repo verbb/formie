@@ -891,6 +891,7 @@ class Fields extends Component
                 $config['isSynced'] = true;
             }
         }
+
         unset($config['syncedDefinitionUid']);
         $settings = Json::decodeIfJson($config['settings'] ?? []) ?: [];
 
@@ -898,12 +899,14 @@ class Fields extends Component
             $type = (string)($config['expectedType'] ?? $settings['expectedType'] ?? '');
             $settings = $settings['settings'] ?? $settings;
         }
+
         $recoverable = array_key_exists('__formieMissingSettings', $settings);
 
         if ($recoverable) {
             $settings = $settings['__formieMissingSettings'];
         }
-        unset($config['class'], $config['syncedDefinitionHandle'], $config['syncedDefinitionId']);
+
+        unset($config['class'], $config['syncedDefinitionHandle'], $config['syncedDefinitionId'], $config['formHandle'], $config['gqlParentHandles']);
 
         if (!in_array($type, $this->_getResolvedRegisteredFieldTypes(true), true)) {
             $identity = array_intersect_key($config, array_flip(['id', 'uid', 'reference', 'definitionId', 'definitionUid', 'layoutId', 'pageId', 'rowId', 'sortOrder', 'label', 'handle', 'required', 'isSynced', 'usageCount']));
@@ -918,6 +921,7 @@ class Fields extends Component
             $config['settings'] = $recoverable ? (new FormSerializer())->recoverSettings($type, $settings) : $settings;
             $field = ComponentHelper::createComponent($config, Field::class);
         }
+
         $field->applyInstanceSettings($instanceSettings);
         $field->afterCreateField($config);
 
@@ -1052,6 +1056,23 @@ class Fields extends Component
 
     public function getNestedFieldConfigs(array $fieldConfig): array
     {
+        $nestedFieldConfigs = $this->_resolveNestedFieldConfigs($fieldConfig);
+
+        if (empty($fieldConfig['formHandle'])) {
+            return $nestedFieldConfigs;
+        }
+
+        // Keep the form and parents with each child, so its GraphQL type names stay unique.
+        $parentHandles = [...($fieldConfig['gqlParentHandles'] ?? []), (string)($fieldConfig['handle'] ?? '')];
+
+        return array_map(static fn(array $nestedFieldConfig): array => [
+            'formHandle' => $fieldConfig['formHandle'],
+            'gqlParentHandles' => $parentHandles,
+        ] + $nestedFieldConfig, $nestedFieldConfigs);
+    }
+
+    private function _resolveNestedFieldConfigs(array $fieldConfig): array
+    {
         $settings = $this->getFieldConfigSettings($fieldConfig);
         $nestedLayoutId = (int)($fieldConfig['nestedLayoutId'] ?? $settings['nestedLayoutId'] ?? 0);
 
@@ -1098,11 +1119,29 @@ class Fields extends Component
         return $nestedFieldConfigs;
     }
 
+    public function getFieldGqlTypeName(FieldInterface $field, string $suffix): string
+    {
+        $handles = [$field->handle];
+        $parent = $field;
+
+        while ($parent = $parent->getParentField()) {
+            array_unshift($handles, $parent->handle);
+        }
+
+        return implode('_', [$field->getForm()?->handle ?? '', ...$handles, $suffix]);
+    }
+
     public function getFieldConfigGqlTypeName(array $fieldConfig, string $suffix): string
     {
         $handle = preg_replace('/[^A-Za-z0-9_]+/', '_', (string)($fieldConfig['handle'] ?? 'Field'));
         $handle = trim((string)$handle, '_');
         $handle = $handle !== '' ? $handle : 'Field';
+
+        // Match the names of hydrated fields. These don't change between environments, unlike IDs.
+        if (!empty($fieldConfig['formHandle'])) {
+            return implode('_', [$fieldConfig['formHandle'], ...($fieldConfig['gqlParentHandles'] ?? []), $handle, $suffix]);
+        }
+
         $identifier = $this->_getGqlFieldConfigCacheKey($fieldConfig);
         $identifier = preg_replace('/[^A-Za-z0-9_]+/', '_', $identifier);
         $identifier = trim((string)$identifier, '_');
@@ -1351,6 +1390,7 @@ class Fields extends Component
                 $context->includeLayout($layout->id);
             }
         }
+
         $context->assertLayout($layout->id);
         $context->ensureValidationGraph($layout);
         $isNewLayout = !$layout->id;
@@ -1741,6 +1781,7 @@ class Fields extends Component
             if ($field->uid) {
                 $instanceRecord->uid = $field->uid;
             }
+
             $instanceRecord->save(false);
 
             $field->id = $instanceRecord->id;

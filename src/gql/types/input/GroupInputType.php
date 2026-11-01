@@ -16,7 +16,7 @@ class GroupInputType extends InputObjectType
     public static function getType(GroupField $context): mixed
     {
         /** @var GroupField $context */
-        $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormieGroupInput';
+        $typeName = Formie::$plugin->getFields()->getFieldGqlTypeName($context, 'FormieGroupInput');
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;
@@ -40,7 +40,7 @@ class GroupInputType extends InputObjectType
     public static function getTypeFromConfig(array $config): mixed
     {
         $fieldsService = Formie::$plugin->getFields();
-        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'GroupInput');
+        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'FormieGroupInput');
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;

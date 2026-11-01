@@ -95,6 +95,8 @@ The generated input type usually follows this pattern:
 
 For example, a Name field with the handle `yourName` on the `contactForm` form would use `contactForm_yourName_FormieNameInput`.
 
+Fields nested in a Group or Repeater also include their parents’ handles, such as `contactForm_groupField_yourName_FormieNameInput`. Table fields use a list of rows, such as `[contactForm_tableField_TableRowInput]`.
+
 ## Name and Address Fields
 
 ```graphql

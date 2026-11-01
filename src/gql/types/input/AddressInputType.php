@@ -18,7 +18,7 @@ class AddressInputType extends InputObjectType
     public static function getType(AddressField $context): mixed
     {
         /** @var AddressField $context */
-        $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormieAddressInput';
+        $typeName = Formie::$plugin->getFields()->getFieldGqlTypeName($context, 'FormieAddressInput');
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;
@@ -47,7 +47,7 @@ class AddressInputType extends InputObjectType
     public static function getTypeFromConfig(array $config): mixed
     {
         $fieldsService = Formie::$plugin->getFields();
-        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'AddressInput');
+        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'FormieAddressInput');
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;

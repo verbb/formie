@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\gql\types\generators;
 
+use verbb\formie\Formie;
 use verbb\formie\gql\types\TableRowType;
 
 use Craft;
@@ -21,7 +22,7 @@ class TableRowTypeGenerator implements GeneratorInterface, SingleGeneratorInterf
 
     public static function getName($context = null): string
     {
-        return $context->handle . '_TableRow';
+        return Formie::$plugin->getFields()->getFieldGqlTypeName($context, 'TableRow');
     }
 
     public static function generateType(mixed $context): ObjectType

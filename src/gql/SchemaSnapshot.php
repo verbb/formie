@@ -38,6 +38,7 @@ final class SchemaSnapshot
                 }
             }
         }
+
         $this->_forms = !$all && !$uids ? [] : Form::find()->withoutCpIndexScope()->site('*')->unique()->uid($all ? null : array_values(array_unique($uids)))->all();
     }
 
@@ -46,12 +47,22 @@ final class SchemaSnapshot
         if (!in_array($namespace, ['formieForms', 'formieSubmissions'], true)) {
             throw new InvalidArgumentException('Unknown Formie schema namespace.');
         }
+
         return array_values(array_filter($this->_forms, fn(Form $form): bool => Gql::isSchemaAwareOf($namespace . '.all', $this->_schema) || Gql::isSchemaAwareOf($namespace . '.' . $form->uid, $this->_schema)));
     }
 
     public function fieldConfigs(int $formId): array
     {
-        $this->_fieldConfigs ??= Formie::$plugin->getFields()->getAllFieldConfigsForForms(array_map(static fn(Form $form): int => (int)$form->id, $this->_forms));
+        if ($this->_fieldConfigs === null) {
+            $this->_fieldConfigs = Formie::$plugin->getFields()->getAllFieldConfigsForForms(array_map(static fn(Form $form): int => (int)$form->id, $this->_forms));
+
+            foreach ($this->_forms as $form) {
+                foreach ($this->_fieldConfigs[(int)$form->id] ?? [] as $index => $fieldConfig) {
+                    $this->_fieldConfigs[(int)$form->id][$index]['formHandle'] = $form->handle;
+                }
+            }
+        }
+
         return $this->_fieldConfigs[$formId] ?? [];
     }
 }

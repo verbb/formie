@@ -18,7 +18,7 @@ class RepeaterInputType extends InputObjectType
     public static function getType(RepeaterField $context): mixed
     {
         /** @var RepeaterField $context */
-        $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormieRepeaterInput';
+        $typeName = Formie::$plugin->getFields()->getFieldGqlTypeName($context, 'FormieRepeaterInput');
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;
@@ -33,7 +33,7 @@ class RepeaterInputType extends InputObjectType
 
         // All the different field block types now get wrapped in a container input.
         // If two different block types are passed, the selected block type to parse is undefined.
-        $rowContainerTypeName = $context->getForm()->handle . '_' . $context->handle . '_RepeaterRowInput';
+        $rowContainerTypeName = $fieldsService->getFieldGqlTypeName($context, 'RepeaterRowInput');
         $rowContainerType = GqlEntityRegistry::createEntity($rowContainerTypeName, new InputObjectType([
             'name' => $rowContainerTypeName,
             'fields' => function() use ($repeaterFields) {
@@ -54,7 +54,7 @@ class RepeaterInputType extends InputObjectType
     public static function getTypeFromConfig(array $config): mixed
     {
         $fieldsService = Formie::$plugin->getFields();
-        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'RepeaterInput');
+        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'FormieRepeaterInput');
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;

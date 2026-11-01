@@ -195,6 +195,7 @@ class Table extends Field
                     // If the column doesn't specify a type, then it probably wasn't meant to be submitted
                     if (!isset($column['type'])) {
                         unset($config['columns'][$colId]);
+
                         continue;
                     }
 
@@ -208,6 +209,7 @@ class Table extends Field
                         unset($column['options']);
                     }
                 }
+
                 unset($column);
             }
         }
@@ -378,7 +380,7 @@ class Table extends Field
 
     public function getContentGqlMutationArgumentType(): Type|array
     {
-        $typeName = $this->handle . '_TableRowInput';
+        $typeName = Formie::$plugin->getFields()->getFieldGqlTypeName($this, 'TableRowInput');
 
         return Type::listOf(GqlEntityRegistry::getOrCreate($typeName, fn() => new InputObjectType([
             'name' => $typeName,
@@ -604,8 +606,10 @@ class Table extends Field
                 $cell = $row[$id] ?? $row[$column['handle'] ?? $id] ?? null;
                 $data[$column['handle'] ?? $id] = $this->_normalizeCellValueAsString($column['type'], $cell);
             }
+
             $rows[] = $data;
         }
+
         return $rows;
     }
 
@@ -1262,6 +1266,7 @@ class Table extends Field
                 }
 
                 $validator = new ColorValidator();
+
                 break;
             case 'url':
                 $validator = new UrlValidator([
@@ -1269,6 +1274,7 @@ class Table extends Field
                         'label' => $label ?? $this->label,
                     ]),
                 ]);
+
                 break;
             case 'email':
                 $validator = new EmailValidator([
@@ -1276,6 +1282,7 @@ class Table extends Field
                         'label' => $label ?? $this->label,
                     ]),
                 ]);
+
                 break;
             default:
                 return true;
@@ -1341,7 +1348,9 @@ class Table extends Field
                 if ($value instanceof DateTimeInterface) {
                     return DateTimeImmutable::createFromInterface($value);
                 }
+
                 $parsed = DateTimeHelper::toDateTime($value, false, false);
+
                 return $parsed ? DateTimeImmutable::createFromInterface($parsed) : $value;
         }
 

@@ -39,7 +39,7 @@ class Group extends ContainerParentField implements ContainerParentFieldInterfac
 
     public static function gqlTypeNameByContext(mixed $context): string
     {
-        return ($context->getForm()->handle ?? '') . '_' . $context->handle . '_FormieGroupField';
+        return Formie::$plugin->getFields()->getFieldGqlTypeName($context, 'FormieGroupField');
     }
 
     public static function supportsGqlConfigProvider(): bool

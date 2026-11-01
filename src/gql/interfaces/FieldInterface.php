@@ -132,9 +132,9 @@ class FieldInterface extends BaseInterfaceType
                 'resolve' => function($field) {
                     $inputType = Formie::$plugin->getFields()->getFieldContentGqlMutationArgumentType($field);
 
-                    // Table fields don't seem to resolve correctly?
+                    // A list type has no name of its own.
                     if ($field instanceof Table) {
-                        return '[' . $inputType->name . ']';
+                        return (string)$inputType;
                     }
 
                     if (is_string($inputType)) {
