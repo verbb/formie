@@ -141,6 +141,7 @@ class Notifications extends Component
             if (!$queue instanceof CraftQueue || $queue->db !== $db) {
                 throw new RuntimeException('Transactional notification delivery requires the Craft database queue.');
             }
+
             $useQueue = true;
         }
 
@@ -151,6 +152,7 @@ class Notifications extends Component
             $enqueue = function() use ($settings, $uid): bool {
                 Queue::push(new SendNotification(['deliveryAttemptUid' => $uid]), $settings->queuePriority);
                 Formie::$plugin->getDeliveryAttempts()->checkpoint($uid, 'queued');
+
                 return true;
             };
 
@@ -162,6 +164,7 @@ class Notifications extends Component
                 (new DeliveryAttempt((int)$submission->id, 'notification-queue:' . $notification->id, $deliveryKey))
                     ->execute([], $enqueue, PHP_INT_MAX);
             }
+
             return;
         }
 
@@ -188,8 +191,10 @@ class Notifications extends Component
                     return IntegrationResult::skipped('conditions')->toStorage() + ['success' => true];
                 }
             }
+
             return $this->_sendNotificationEmail($notification, $submission, $queueJob, $deliveryKey);
         }
+
         $mutex = Craft::$app->getMutex();
         $lock = 'formie.notification.' . hash('sha256', $submission->id . ':' . ($notification->uid ?: $notification->id));
 
@@ -199,6 +204,7 @@ class Notifications extends Component
 
         try {
             $deliveryKey ??= DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
+
             return Formie::$plugin->getIntegrationDispatcher()->withRun(
                 $submission,
                 $deliveryKey,
@@ -287,6 +293,7 @@ class Notifications extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -602,13 +609,21 @@ class Notifications extends Component
         if (!$notification->enableConditions) {
             return true;
         }
+
         $settings = $notification->conditions ?? [];
+
         return ConditionsHelper::evaluate($settings, $submission, 'notification')->permits(($settings['sendRule'] ?? 'send') === 'send');
     }
 
-    public function getNotificationsSchema(): array
+    public function getNotificationsSchema(?Form $form = null): array
     {
         $user = Craft::$app->getUser();
+        $permissions = Formie::$plugin->getPermissions();
+
+        // Form and group scoped grants only apply when the form is known.
+        $canShowTab = fn(string $permission): bool => $form
+            ? $permissions->canShowFormBuilderTab($user->getIdentity(), $form, $permission)
+            : $user->checkPermission($permission);
 
         $tabs = [
             [
@@ -618,7 +633,7 @@ class Notifications extends Component
             ],
         ];
 
-        if ($user->checkPermission('formie-showNotificationsAdvanced')) {
+        if ($canShowTab('formie-showNotificationsAdvanced')) {
             $tabs[] = [
                 'handle' => 'advanced',
                 'label' => Craft::t('formie', 'Advanced'),
@@ -626,7 +641,7 @@ class Notifications extends Component
             ];
         }
 
-        if ($user->checkPermission('formie-showNotificationsTemplates')) {
+        if ($canShowTab('formie-showNotificationsTemplates')) {
             $tabs[] = [
                 'handle' => 'templates',
                 'label' => Craft::t('formie', 'Templates'),
@@ -734,6 +749,7 @@ class Notifications extends Component
             $node['$field'] = 'select';
             $node['options'] = $options;
         }
+
         unset($node);
 
         return $schema;
@@ -1078,6 +1094,7 @@ class Notifications extends Component
         if (!$submission->id || !$submission->uid) {
             return $this->_sendNotificationEmail($notification, $submission, $queueJob, $deliveryKey);
         }
+
         $deliveryKey ??= DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
         $attempts = Formie::$plugin->getDeliveryAttempts();
         $context = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, 'notification:' . ($notification->uid ?: $notification->id), $deliveryKey, $queueJob ? 'queued' : 'synchronous');
@@ -1088,6 +1105,7 @@ class Notifications extends Component
         if ((new Query())->from(DeliveryAttempts::TABLE)->where(['submissionId' => $submission->id, 'binding' => $context->binding, 'status' => ['unknown', 'sending']])->andWhere(['not', ['uid' => $uid]])->exists()) {
             return ['success' => false, 'deliveryOutcomeUnknown' => true, 'error' => 'Reconcile the previous notification delivery before resending.'];
         }
+
         $diagnostics = $queueJob ?? new SendNotification(['deliveryAttemptUid' => $uid]);
         $result = $attempts->executePrepared($uid, $fingerprints, function() use ($notification, $submission, $diagnostics, $deliveryKey, $attempts, $uid): IntegrationResult {
             $attempts->checkpointSubmission($uid, $submission);
@@ -1100,6 +1118,7 @@ class Notifications extends Component
             if (!$this->evaluateConditions($notification, $submission)) {
                 return IntegrationResult::skipped('conditions');
             }
+
             $response = $this->_sendNotificationEmail($notification, $submission, $diagnostics, $deliveryKey);
             $attempts->checkpoint($uid, 'email-response', is_array($response) ? $response : ['success' => $response]);
 
@@ -1110,6 +1129,7 @@ class Notifications extends Component
             if ($response === true || ($response['success'] ?? false)) {
                 return IntegrationResult::succeeded();
             }
+
             return !empty($response['deliveryOutcomeUnknown'])
                 ? IntegrationResult::unknown('email_outcome_unknown')
                 : IntegrationResult::failed('email_failed', true);
@@ -1118,6 +1138,7 @@ class Notifications extends Component
         if (!in_array($result->status, [IntegrationStatus::Succeeded, IntegrationStatus::Skipped], true)) {
             Formie::$plugin->getEmails()->sendFailAlertEmail($notification, $submission, $result->toStorage(), $deliveryKey);
         }
+
         return $result->toStorage() + ['success' => in_array($result->status, [IntegrationStatus::Succeeded, IntegrationStatus::Skipped], true), 'deliveryOutcomeUnknown' => $result->requiresReconciliation(), 'error' => $result->requiresReconciliation() ? 'Notification delivery outcome unknown. Reconcile before retrying.' : 'Notification delivery failed.'];
     }
 
@@ -1133,6 +1154,7 @@ class Notifications extends Component
             if (!$event->isValid) {
                 return ['success' => true, 'skipped' => true];
             }
+
             return Formie::$plugin->getEmails()->sendEmail($event->notification, $event->submission, $queueJob);
         };
 
@@ -1140,6 +1162,7 @@ class Notifications extends Component
         if (!$submission->id || !$submission->uid) {
             return $send();
         }
+
         $deliveryKey ??= DeliveryAttempt::workflowIdentity() ?? StringHelper::UUID();
         $legacyResponse = LegacyDeliveryAttempts::notificationResponse(
             $submission,
@@ -1151,6 +1174,7 @@ class Notifications extends Component
         if ($legacyResponse) {
             return $legacyResponse;
         }
+
         return $send();
     }
 

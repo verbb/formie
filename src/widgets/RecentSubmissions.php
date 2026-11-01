@@ -144,6 +144,7 @@ class RecentSubmissions extends Widget
         $namespaceId = Craft::$app->getView()->namespaceInputId($id);
 
         $user = Craft::$app->getUser()->getIdentity();
+        $permissions = Formie::$plugin->getPermissions();
 
         $variables = [
             'namespaceId' => $namespaceId,
@@ -162,10 +163,8 @@ class RecentSubmissions extends Widget
             $forms = Form::find()->id($formIds)->all();
 
             foreach ($forms as $form) {
-                if (!$user->can('formie-viewSubmissions')) {
-                    if (!$user->can('formie-viewSubmissions:' . $form->uid)) {
-                        continue;
-                    }
+                if (!$permissions->canViewSubmissions($user, $form)) {
+                    continue;
                 }
 
                 $filteredFormIds[] = $form->id;
@@ -178,10 +177,8 @@ class RecentSubmissions extends Widget
             $forms = Form::find()->id($formIds)->all();
 
             foreach ($forms as $form) {
-                if (!$user->can('formie-viewSubmissions')) {
-                    if (!$user->can('formie-viewSubmissions:' . $form->uid)) {
-                        continue;
-                    }
+                if (!$permissions->canViewSubmissions($user, $form)) {
+                    continue;
                 }
 
                 $variables['labels'][] = $form->title;
@@ -196,10 +193,8 @@ class RecentSubmissions extends Widget
             $formTitles = [];
 
             foreach ($forms as $form) {
-                if (!$user->can('formie-viewSubmissions')) {
-                    if (!$user->can('formie-viewSubmissions:' . $form->uid)) {
-                        continue;
-                    }
+                if (!$permissions->canViewSubmissions($user, $form)) {
+                    continue;
                 }
 
                 $formTitles[] = $form->title;
@@ -243,12 +238,11 @@ class RecentSubmissions extends Widget
         $formOptions = [];
 
         $user = Craft::$app->getUser()->getIdentity();
+        $permissions = Formie::$plugin->getPermissions();
 
         foreach (Form::find()->all() as $form) {
-            if (!$user->can('formie-viewSubmissions')) {
-                if (!$user->can('formie-viewSubmissions:' . $form->uid)) {
-                    continue;
-                }
+            if (!$permissions->canViewSubmissions($user, $form)) {
+                continue;
             }
 
             $formOptions[$form->id] = $form->title;
@@ -438,6 +432,7 @@ class RecentSubmissions extends Widget
     {
         if ($this->dateRange == self::DATE_RANGE_CUSTOM) {
             $interval = date_diff(DateTimeHelper::toDateTime($this->startDate), DateTimeHelper::toDateTime($this->endDate));
+
             return ($interval->days > 90) ? 'month' : 'day';
         }
 

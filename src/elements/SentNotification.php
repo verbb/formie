@@ -71,7 +71,7 @@ class SentNotification extends Element
         $formItems = [];
 
         foreach ($forms as $form) {
-            if (!$currentUser->can('formie-viewSentNotifications') && !$currentUser->can("formie-viewSentNotifications:$form->uid")) {
+            if (!Formie::$plugin->getPermissions()->canViewSentNotifications($currentUser, $form)) {
                 continue;
             }
 
@@ -104,13 +104,14 @@ class SentNotification extends Element
 
         $actions = parent::defineActions($source);
 
-        // Get the UID from the ID (for the source)
+        // Get the form from the ID (for the source)
         $formId = (int)str_replace('form:', '', $source);
-        $formUid = Formie::$plugin->getForms()->getFormById($formId)?->uid ?? null;
+        $form = Formie::$plugin->getForms()->getFormById($formId);
 
         $currentUser = Craft::$app->getUser()->getIdentity();
-        $canResendNotifications = $currentUser->can('formie-resendSentNotifications') || $currentUser->can("formie-resendSentNotifications:$formUid");
-        $canDeleteNotifications = $currentUser->can('formie-deleteSentNotifications') || $currentUser->can("formie-deleteSentNotifications:$formUid");
+        $permissions = Formie::$plugin->getPermissions();
+        $canResendNotifications = $permissions->canResendSentNotifications($currentUser, $form);
+        $canDeleteNotifications = $permissions->canDeleteSentNotifications($currentUser, $form);
 
         if ($canResendNotifications) {
             $actions[] = $elementsService->createAction([
@@ -262,21 +263,7 @@ class SentNotification extends Element
 
     public function canResend(User $user): bool
     {
-        if ($user->can('formie-resendSentNotifications')) {
-            return true;
-        }
-
-        $form = $this->getForm();
-
-        if (!$form) {
-            return false;
-        }
-
-        if (!$user->can("formie-resendSentNotifications:$form->uid")) {
-            return false;
-        }
-
-        return true;
+        return Formie::$plugin->getPermissions()->canResendSentNotifications($user, $this->getForm());
     }
 
     public function getStatus(): ?string

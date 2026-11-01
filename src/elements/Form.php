@@ -2936,7 +2936,7 @@ class Form extends Element implements FormInterface
 
     public function defineNotificationsSchema(): array
     {
-        $notificationsSchema = Formie::$plugin->getNotifications()->getNotificationsSchema();
+        $notificationsSchema = Formie::$plugin->getNotifications()->getNotificationsSchema($this);
         $compiledSchema = (is_array($notificationsSchema) && isset($notificationsSchema['schema']) && isset($notificationsSchema['fieldEntries']))
             ? $notificationsSchema
             : SchemaHelper::compileSchema($notificationsSchema);

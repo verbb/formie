@@ -160,12 +160,14 @@ class SubmissionsController extends Controller
                 'e.uid',
                 'f.handle',
                 'es.title',
+                'g.handle AS groupHandle',
             ])
             ->from(['f' => Table::FORMIE_FORMS])
             ->innerJoin(['e' => Table::ELEMENTS], '[[e.id]] = [[f.id]]')
             ->innerJoin(['es' => Table::ELEMENTS_SITES], '[[es.elementId]] = [[f.id]] AND [[es.siteId]] = :siteId', [
                 ':siteId' => $activeSiteId,
             ])
+            ->leftJoin(['g' => Table::FORMIE_FORM_GROUPS], '[[g.id]] = [[f.groupId]]')
             ->where(['e.dateDeleted' => null])
             ->all();
 
@@ -185,9 +187,16 @@ class SubmissionsController extends Controller
         );
 
         $editableForms = [];
+        $permissions = Formie::$plugin->getPermissions();
 
         foreach ($forms as $form) {
-            if (!$canCreateAnySubmissions && !$currentUser->can('formie-createSubmissions:' . ($form['uid'] ?? ''))) {
+            // Match `Submission::canSave()`, which accepts form and group scoped create grants.
+            $groupScope = $permissions->groupScope((string)($form['groupHandle'] ?? $permissions::GROUP_UNGROUPED));
+
+            if (!$canCreateAnySubmissions
+                && !$currentUser->can('formie-createSubmissions:' . ($form['uid'] ?? ''))
+                && !$currentUser->can('formie-createSubmissions:' . $groupScope)
+            ) {
                 continue;
             }
 
@@ -563,6 +572,7 @@ class SubmissionsController extends Controller
         $this->requirePostRequest();
         $this->requireLogin();
         $this->requireCpRequest();
+
         return $this->processSubmissionRequest(SubmissionOperation::REVISE, SubmissionAuthorityType::CONTROL_PANEL);
     }
 
@@ -643,6 +653,7 @@ class SubmissionsController extends Controller
         if (!$result->success) {
             Formie::$plugin->getService()->setError($form->getFlashNamespace(), implode(' ', $result->errors['form'] ?: [Craft::t('formie', 'Please correct the form errors before continuing.')]));
         }
+
         return $this->redirect($redirectBase);
     }
 
@@ -789,10 +800,13 @@ class SubmissionsController extends Controller
             if ($completion['target'] === 'new-tab') {
                 $this->response->format = Response::FORMAT_HTML;
                 $this->response->data = Html::tag('p', Html::a(Craft::t('formie', 'Continue'), $completion['url'], ['target' => '_blank', 'rel' => 'noopener noreferrer']));
+
                 return $this->response;
             }
+
             return $this->redirect($completion['url']);
         }
+
         return $this->redirect($this->_currentUrlWithoutParams(self::STALE_SUBMISSION_STATE_QUERY_PARAMS));
     }
 
@@ -922,6 +936,7 @@ class SubmissionsController extends Controller
         if (isset($payload['payment']['message'])) {
             $payload['payment']['message'] = StringHelper::sanitizeMessageHtml($payload['payment']['message']);
         }
+
         $this->_appendLegacyPaymentSubmitResponse($payload);
     }
 

@@ -527,6 +527,31 @@ class Permissions extends Component
         return $user->can($this->scopedPermission(self::PERM_VIEW_SENT_NOTIFICATIONS, $this->groupScope($this->getFormGroupHandle($form))));
     }
 
+    public function canResendSentNotifications(?User $user, ?Form $form): bool
+    {
+        if ($this->_isElevated($user)) {
+            return true;
+        }
+
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->can(self::PERM_RESEND_SENT_NOTIFICATIONS)) {
+            return true;
+        }
+
+        if (!$form) {
+            return false;
+        }
+
+        if ($user->can($this->scopedPermission(self::PERM_RESEND_SENT_NOTIFICATIONS, $this->formScope($form)))) {
+            return true;
+        }
+
+        return $user->can($this->scopedPermission(self::PERM_RESEND_SENT_NOTIFICATIONS, $this->groupScope($this->getFormGroupHandle($form))));
+    }
+
     public function canDeleteSentNotifications(?User $user, ?Form $form): bool
     {
         if ($this->_isElevated($user)) {
