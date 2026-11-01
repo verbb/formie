@@ -38,7 +38,7 @@ class RichTextHelper
         return $config;
     }
 
-    public static function getHtmlContent($content, $submission = null, $nl2br = true): string
+    public static function getHtmlContent($content, $submission = null, $nl2br = true, $decodeEntities = true): string
     {
         if (is_string($content)) {
             $content = Json::decodeIfJson($content);
@@ -66,8 +66,30 @@ class RichTextHelper
         }
 
         // Prosemirror will use `htmlentities` for special characters, but doesn't play nice
-        // with static translations. Convert them back.
-        return html_entity_decode($html);
+        // with static translations. Convert them back, except for HTML output where decoding
+        // would turn escaped text and submitted values into markup.
+        return $decodeEntities ? html_entity_decode($html) : $html;
+    }
+
+    public static function translateHtml(string $html): string
+    {
+        $translated = Craft::t('formie', $html);
+
+        if ($translated !== $html) {
+            return $translated;
+        }
+
+        // Existing translation keys were written against entity-decoded HTML. Match those keys,
+        // but keep untranslated output encoded.
+        $legacyKey = html_entity_decode($html);
+
+        if ($legacyKey === $html) {
+            return $html;
+        }
+
+        $translated = Craft::t('formie', $legacyKey);
+
+        return $translated !== $legacyKey ? $translated : $html;
     }
 
     public static function normalizeNodes($content)
