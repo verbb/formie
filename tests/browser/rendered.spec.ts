@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { matchesAction } from './action-url';
 
 for (const mode of ['ajax', 'native', 'cached']) {
     test(`Twig-rendered ${mode}: validates, clears hidden content and saves the calculated result`, async ({ page, request }) => {
@@ -9,11 +10,11 @@ for (const mode of ['ajax', 'native', 'cached']) {
         });
         const name = `Rendered ${mode} ${Date.now()}`;
         const savedBefore = await (await request.get('/browser-rendered-saved')).json();
-        const refreshed = mode === 'cached' ? page.waitForResponse(response => response.url().includes('/refresh-tokens') && response.ok()) : null;
+        const refreshed = mode === 'cached' ? page.waitForResponse(response => matchesAction(response.url(), 'formie/server/forms/refresh-tokens')) : null;
         const initial = await page.goto(`/browser-rendered?method=${mode}${mode === 'cached' ? '&cached=1' : ''}`);
         if (refreshed) {
             expect(await initial!.text()).not.toContain('name="CRAFT_CSRF_TOKEN"');
-            await refreshed;
+            expect((await refreshed).ok()).toBe(true);
             await expect(page.locator('input[name="CRAFT_CSRF_TOKEN"]')).not.toHaveValue('');
         }
         await expect(page.locator('html')).toHaveAttribute('data-formie-ready', 'true');
@@ -66,7 +67,10 @@ for (const mode of ['ajax', 'native', 'cached']) {
         await page.getByRole('button', { name: 'Submit', exact: true }).click();
         if (navigation) { await navigation; }
         await expect(page.getByText('Submission saved.', { exact: true })).toBeVisible();
-        await expect.poll(async () => (await (await request.get('/browser-rendered-saved')).json()).filter(row => row.name === name)).toEqual([{ name, details: '', total: '28' }]);
+        await expect.poll(async () => {
+            const rows: { name: string; details: string; total: string }[] = await (await request.get('/browser-rendered-saved')).json();
+            return rows.filter(row => row.name === name);
+        }).toEqual([{ name, details: '', total: '28' }]);
         if (mode !== 'native') {
             await expect(page.locator('input[name="uploadCreateToken"]')).not.toHaveValue(uploadToken);
         }

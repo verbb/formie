@@ -31,7 +31,11 @@ test('authors redirect variables with an advisory warning and preserves them aft
     await expect(warning).not.toBeVisible();
     await save();
 
-    await urlField.getByRole('textbox').fill('');
+    // Delete through the editor transaction; fill('') can leave TipTap's model
+    // holding the previous URL while its DOM mutation is still being processed.
+    await urlField.getByRole('textbox').press('ControlOrMeta+A');
+    await urlField.getByRole('textbox').press('Backspace');
+    await expect(urlField.locator('pk-tiptap-input')).toHaveJSProperty('value', '');
     await urlField.getByRole('button', { name: 'Variables', exact: true }).click();
     await page.getByRole('listbox').filter({ visible: true }).getByRole('button', { name: 'Destination', exact: true }).click();
     await expect(warning).toBeVisible();

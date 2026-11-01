@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { matchesAction } from './action-url';
 
 for (const adapter of ['react', 'vue', 'web-components']) {
     for (const transport of ['rest', 'graphql']) {
@@ -10,9 +11,13 @@ for (const adapter of ['react', 'vue', 'web-components']) {
             if (product === 'server') await page.waitForFunction(() => Date.now() - Number((document.querySelector('input[name="formStartedAt"]') as HTMLInputElement)?.value) >= 3500);
             let resolveResult!: (body: any) => void;
             const result = new Promise<any>(resolve => { resolveResult = resolve; });
-            await page.route('**/actions/**', async route => {
+            const isSubmission = (url: URL | string) =>
+                matchesAction(url, 'formie/server/submissions/submit') ||
+                matchesAction(url, 'formie/client/submissions/submit') ||
+                matchesAction(url, 'graphql/api');
+            await page.route(isSubmission, async route => {
                 const req = route.request();
-                if (req.url().includes('/submissions/submit') || (req.url().includes('/graphql/api') && req.postData()?.includes('SubmitFormieClientForm'))) {
+                if (req.method() === 'POST' && (!matchesAction(req.url(), 'graphql/api') || req.postData()?.includes('SubmitFormieClientForm'))) {
                     const response = await route.fetch();
                     resolveResult(await response.json());
                     await route.fulfill({ response });
@@ -51,8 +56,8 @@ test('two Twig occurrences keep forced values isolated through untrusted submiss
         await form.getByRole('button', { name: 'Submit', exact: true }).click();
         expect((await (await result).json()).completion.behavior).toBe('message');
     }
-    const saved = await (await request.get('/browser-completion-saved')).json();
-    for (const label of ['A', 'B']) expect(saved.find(row => row.name === `Instance ${label}`).note).toBe(`Server ${label}`);
+    const saved: { name: string; note: string }[] = await (await request.get('/browser-completion-saved')).json();
+    for (const label of ['A', 'B']) expect(saved.find(row => row.name === `Instance ${label}`)?.note).toBe(`Server ${label}`);
 });
 
 for (const transport of ['rest', 'graphql']) {
@@ -75,8 +80,9 @@ for (const transport of ['rest', 'graphql']) {
         }
         expect(result.outcome).toBe('completed');
         expect(result.completion.url).toBe('/browser-completion-done?utm_source=journey&utm_medium=explicit');
-        const saved = (await (await request.get('/browser-completion-saved')).json()).find(row => row.name === `Query ${transport}`);
-        expect(saved.note).toBe(''); expect(saved.date).not.toBe('attacker');
+        const submissions: { name: string; note: string; date: string }[] = await (await request.get('/browser-completion-saved')).json();
+        const saved = submissions.find(row => row.name === `Query ${transport}`);
+        expect(saved?.note).toBe(''); expect(saved?.date).not.toBe('attacker');
     });
 }
 
@@ -123,8 +129,8 @@ test('forced values survive a portable save and resume without the original rend
         const csrf = loaded.session.tokens.csrf;
         const completed = await (await context.request.post('/actions/formie/client/submissions/submit', { data: { handle: 'completionMessage', session: loaded.session, values: { visitorName: 'Portable forced', note: 'tampered after resume' }, [csrf.name]: csrf.value } })).json();
         expect(completed.outcome).toBe('completed'); expect(completed.completion.behavior).toBe('message');
-        const rows = await (await request.get('/browser-completion-saved')).json();
-        expect(rows.find(row => row.name === 'Portable forced').note).toBe('Server A');
+        const rows: { name: string; note: string }[] = await (await request.get('/browser-completion-saved')).json();
+        expect(rows.find(row => row.name === 'Portable forced')?.note).toBe('Server A');
     } finally { await context.close(); }
 });
 
