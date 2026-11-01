@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.2.41 - 2026-11-01
 
 ### Fixed
 - Fixed a moderate-severity cross-site scripting vulnerability. (GHSA-544h-97wp-pvhx)
