@@ -273,10 +273,12 @@ These objects are immutable. Call `requireValue()` when your code cannot continu
 | Context | Replacement behaviour |
 | --- | --- |
 | `PlainText` | Field-owned string value; no HTML interpretation |
-| `Html` | Encode HTML special characters once; registered summary blocks use their trusted field templates |
+| `Html` | Encode HTML special characters once; registered summary blocks use their trusted field templates. Pass `allowFieldHtml` to insert rich-text Multi-Line Text answers as sanitized HTML where the token sits in element text |
 | `EmailHeader` | Reject carriage returns, line feeds and NUL characters |
 | `UrlComponent` | Percent-encode a value inserted into an authored URL component |
 | `StructuredData` | Emit JSON-safe data with JSON encoding; whole native values should use exact resolution |
+
+`allowFieldHtml` is off by default. Pass `true` as the fourth argument to `References::interpolateText()`, or `'allowFieldHtml' => true` in the `parseContent()` options, only when the result is output as HTML element content. Tokens anywhere other than element text, such as in an attribute, comment, `<script>` or `<style>`, stay encoded. Never place the result itself in an attribute or script.
 
 Do not pre-escape values or interpolate once and then reinterpret the result as another reference template. Submitted values containing `$SECRET`, braces or Twig remain data. Authored Twig template files and explicit template fields have their own rendering contract; the reference grammar never executes Twig or PHP.
 

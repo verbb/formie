@@ -3,6 +3,7 @@ namespace verbb\formie\references;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\HtmlReferenceFieldInterface;
 use verbb\formie\compatibility\fields\FieldCompatibility;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\values\FieldValueInterface;
@@ -30,6 +31,7 @@ final class ReferenceResolver
             if ($expression->target !== 'field' && array_intersect(array_keys($expression->transformerParams), ['scope', 'index', 'rows'])) {
                 throw new ReferenceException(ReferenceDiagnostic::InvalidExpression);
             }
+
             $result = $expression->target === 'field' ? (new FieldReferenceResolver())->resolve($expression, $context) : (new ContextReferenceSource())->resolve($expression, $context);
             $value = $result->requireValue();
 
@@ -41,6 +43,7 @@ final class ReferenceResolver
                 if ($expression->target === 'custom' && !in_array($expression->transformerId, $result->definition->transforms, true)) {
                     throw new ReferenceException(ReferenceDiagnostic::UnknownTransform);
                 }
+
                 $value = $this->_transform($value, $expression, $context, $result->field);
             }
 
@@ -48,6 +51,7 @@ final class ReferenceResolver
             if (($value === null || $value === '' || $value === [] || ($value instanceof FieldValueInterface && $value->isEmpty())) && $expression->default !== '') {
                 $value = $expression->default;
             }
+
             $projection = $result->fieldProjection;
 
             if (in_array($expression->transformerId, ['lower', 'upper', 'title', 'capitalize', 'kebab', 'replace', 'truncate'], true)) {
@@ -56,24 +60,29 @@ final class ReferenceResolver
             } elseif ($projection === 'collection' && in_array($expression->transformerId, ['first', 'last'], true)) {
                 $projection = 'value';
             }
+
             return new ResolvedReference($expression, $value, $result->definition, field: $result->field, fieldProjection: $projection);
         } catch (ReferenceException $e) {
             return new ResolvedReference($expression, diagnostic: $e->diagnostic);
         }
     }
 
-    public function interpolateText(string $template, ReferenceContext $context, ReferenceOutputContext $outputContext = ReferenceOutputContext::PlainText): string
+    public function interpolateText(string $template, ReferenceContext $context, ReferenceOutputContext $outputContext = ReferenceOutputContext::PlainText, bool $allowFieldHtml = false): string
     {
         $context = $context->withOutputContext($outputContext);
 
         if ($outputContext === ReferenceOutputContext::EmailHeader && preg_match('/[\r\n\x00]/', $template)) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidOutput);
         }
-        return preg_replace_callback('/(?<!\{)\{[^{}]+\}(?!\})/', function(array $match) use ($context, $outputContext): string {
-            if (preg_match('/^\{\s/', $match[0])) {
-                return $match[0];
+
+        return preg_replace_callback('/(?<!\{)\{[^{}]+\}(?!\})/', function(array $match) use ($context, $outputContext, $template, $allowFieldHtml): string {
+            [$token, $offset] = $match[0];
+
+            if (preg_match('/^\{\s/', $token)) {
+                return $token;
             }
-            $result = $this->resolveValue($match[0], $context);
+
+            $result = $this->resolveValue($token, $context);
             $expression = $result->expression;
 
             if ($result->diagnostic !== null) {
@@ -84,14 +93,15 @@ final class ReferenceResolver
                 ], true);
 
                 if ($result->diagnostic === ReferenceDiagnostic::UnknownSource && !$this->_knownTarget($expression->target) && !$strictOutput) {
-                    return $match[0];
+                    return $token;
                 }
 
                 if ($strictOutput) {
                     $result->requireValue();
                 }
 
-                $context->diagnostics->add($match[0], $result->diagnostic);
+                $context->diagnostics->add($token, $result->diagnostic);
+
                 return $expression->default;
             }
 
@@ -111,12 +121,22 @@ final class ReferenceResolver
                 }
             }
 
+            // Field-owned HTML is trusted only as element content, never inside a tag, attribute, comment or raw-text element.
+            if ($allowFieldHtml && $outputContext === ReferenceOutputContext::Html && $result->field instanceof HtmlReferenceFieldInterface && $result->fieldProjection === 'value' && $expression->transformerId === '' && $this->_isTextPosition($template, $offset)) {
+                $html = $result->field->getValueForHtmlReference($value, $context->submission);
+
+                if ($html !== null) {
+                    return $html;
+                }
+            }
+
             if ($summary && $outputContext === ReferenceOutputContext::Html) {
                 // Only registered, field-owned summary templates can produce trusted block HTML.
                 return (string)$value;
             }
+
             return $this->_encode($value, $outputContext);
-        }, $template);
+        }, $template, flags: PREG_OFFSET_CAPTURE);
     }
 
     public function fieldFor(string $identifier, ReferenceContext $context): ?FieldInterface
@@ -135,6 +155,7 @@ final class ReferenceResolver
         if (in_array($expression->target, ['allFields', 'allContentFields', 'allVisibleFields'], true)) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidType);
         }
+
         $custom = Formie::$plugin->getReferenceCatalogue()->transform($id);
 
         if ($custom) {
@@ -145,11 +166,13 @@ final class ReferenceResolver
             if (!$custom->inputType->accepts($value) || array_diff(array_keys($expression->transformerParams), [...$custom->parameters, 'scope', 'index', 'rows'])) {
                 throw new ReferenceException(ReferenceDiagnostic::InvalidType);
             }
+
             $result = ($custom->transform)($value, $expression->transformerParams, $context);
 
             if (!$custom->outputType->accepts($result)) {
                 throw new ReferenceException(ReferenceDiagnostic::InvalidType);
             }
+
             return $result;
         }
 
@@ -178,6 +201,7 @@ final class ReferenceResolver
         if (in_array($id, ['lower', 'upper', 'title', 'capitalize', 'kebab', 'replace', 'truncate'], true) && !is_scalar($value) && $value !== null) {
             throw new ReferenceException(ReferenceDiagnostic::InvalidType);
         }
+
         return BuiltinReferenceTransforms::apply($value, $id, $expression->transformerParams);
     }
 
@@ -190,15 +214,53 @@ final class ReferenceResolver
         ], true);
     }
 
+    private function _isTextPosition(string $template, int $offset): bool
+    {
+        $before = substr($template, 0, $offset);
+
+        // Comments and raw-text elements change how the markup after them is parsed.
+        if (preg_match('/<!--|<(?:script|style|textarea|title|xmp|iframe|noembed|noframes|noscript|plaintext)\b/i', $before)) {
+            return false;
+        }
+
+        // Follow the HTML tokenizer's quoting, so a `>` inside an attribute value does not end the tag.
+        $inTag = false;
+        $quote = null;
+        $afterEquals = false;
+
+        for ($i = 0, $length = strlen($before); $i < $length; $i++) {
+            $char = $before[$i];
+
+            if ($quote !== null) {
+                $quote = $char === $quote ? null : $quote;
+            } elseif (!$inTag) {
+                $inTag = $char === '<' && preg_match('/[a-z\/!?]/i', $before[$i + 1] ?? '') === 1;
+                $afterEquals = false;
+            } elseif ($char === '>') {
+                $inTag = false;
+            } elseif ($afterEquals && ($char === '"' || $char === "'")) {
+                $quote = $char;
+                $afterEquals = false;
+            } elseif (!ctype_space($char)) {
+                $afterEquals = $char === '=';
+            }
+        }
+
+        return !$inTag;
+    }
+
     private function _encode(mixed $value, ReferenceOutputContext $outputContext): string
     {
         if ($outputContext === ReferenceOutputContext::StructuredData) {
             if (!FieldValueType::storageSafe()->accepts($value)) {
                 throw new ReferenceException(ReferenceDiagnostic::InvalidType);
             }
+
             return json_encode($value, JSON_THROW_ON_ERROR | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
         }
+
         $text = $this->_text($value);
+
         return match ($outputContext) {
             ReferenceOutputContext::Html => htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
             ReferenceOutputContext::UrlComponent => rawurlencode($text),
@@ -220,6 +282,7 @@ final class ReferenceResolver
         if (is_array($value)) {
             return implode(', ', array_map($this->_text(...), $value));
         }
+
         throw new ReferenceException(ReferenceDiagnostic::InvalidType);
     }
 }

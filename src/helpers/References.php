@@ -27,9 +27,9 @@ class References
         return (new ReferenceResolver())->resolveValue($expression, $context);
     }
 
-    public static function interpolateText(string $template, ReferenceContext $context, ReferenceOutputContext $outputContext = ReferenceOutputContext::PlainText): string
+    public static function interpolateText(string $template, ReferenceContext $context, ReferenceOutputContext $outputContext = ReferenceOutputContext::PlainText, bool $allowFieldHtml = false): string
     {
-        return (new ReferenceResolver())->interpolateText($template, $context, $outputContext);
+        return (new ReferenceResolver())->interpolateText($template, $context, $outputContext, $allowFieldHtml);
     }
 
     public static function parseValue(mixed $value, Submission $submission, array $options = []): mixed
@@ -37,13 +37,15 @@ class References
         if (!is_string($value) || !preg_match('/^\s*\{[^{}]+\}\s*$/D', $value)) {
             return $value;
         }
+
         return self::resolveValue($value, ReferenceContext::forSubmission($submission, $options['notification'] ?? null))->requireValue();
     }
 
     public static function parseContent(string $content, Submission $submission, array $options = []): string
     {
         $output = $options['outputContext'] ?? ReferenceOutputContext::PlainText;
-        return self::interpolateText($content, ReferenceContext::forSubmission($submission, $options['notification'] ?? null), $output);
+
+        return self::interpolateText($content, ReferenceContext::forSubmission($submission, $options['notification'] ?? null), $output, (bool)($options['allowFieldHtml'] ?? false));
     }
 
     public static function parseUrl(string $template, Submission $submission): string
@@ -67,6 +69,7 @@ class References
         } else {
             $value = self::interpolateText($template, $context, ReferenceOutputContext::UrlComponent);
         }
+
         return $value;
     }
 
@@ -90,6 +93,7 @@ class References
         if (!ReferenceParser::parse($token)->isValid) {
             throw new InvalidArgumentException('Invalid reference token components.');
         }
+
         return $token;
     }
 
@@ -106,6 +110,7 @@ class References
     public static function withDefault(string $tokenWithoutDefault, string $default): string
     {
         $expression = ReferenceParser::parse($tokenWithoutDefault);
+
         return self::token($expression->target, $expression->identifier, $expression->selector, ['transform' => $expression->transformerId, ...$expression->transformerParams], $default);
     }
 
@@ -126,6 +131,7 @@ class References
                 $handles[] = $expression->identifier;
             }
         }
+
         return array_values(array_unique($handles));
     }
 
@@ -136,6 +142,7 @@ class References
         if (!$expression->isValid || $expression->target !== 'field' || !isset($referenceMap[$expression->identifier])) {
             return $rawToken;
         }
+
         return self::token('field', $referenceMap[$expression->identifier], $expression->selector, ['transform' => $expression->transformerId, ...$expression->transformerParams], $expression->default);
     }
 }

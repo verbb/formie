@@ -275,6 +275,7 @@ class Emails extends Component
             // Render the body content for the notification
             $parsedContent = References::parseContent($notification->getParsedContent(), $submission, [
                 'outputContext' => ReferenceOutputContext::Html,
+                'allowFieldHtml' => true,
                 'notification' => $notification,
                 'parseEnvValues' => false,
             ]);

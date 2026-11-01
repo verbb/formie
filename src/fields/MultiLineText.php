@@ -2,6 +2,7 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\base\Field;
+use verbb\formie\base\HtmlReferenceFieldInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
@@ -28,7 +29,7 @@ use yii\db\Schema;
 use Faker\Generator as FakerFactory;
 use GraphQL\Type\Definition\Type;
 
-class MultiLineText extends Field implements SortableFieldInterface, PreviewableFieldInterface
+class MultiLineText extends Field implements SortableFieldInterface, PreviewableFieldInterface, HtmlReferenceFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -150,6 +151,16 @@ class MultiLineText extends Field implements SortableFieldInterface, Previewable
         }
 
         return $this->richTextButtons;
+    }
+
+    public function getValueForHtmlReference(mixed $value, ?ElementInterface $element = null): ?string
+    {
+        if (!$this->useRichText || !is_string($value)) {
+            return null;
+        }
+
+        // Stored values are sanitized on input, but reference listeners can still change them.
+        return StringHelper::cleanRichTextRequest($value, in_array('image', $this->getRichTextButtons() ?? [], true));
     }
 
     public function getButtonOptions(): array

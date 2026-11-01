@@ -99,7 +99,7 @@ class RichText implements JsonSerializable, Stringable
     {
         return $this->_content->toHtml(
             resolveReferences: $submission
-                ? fn(string $html): string => (string)References::parseContent($html, $submission, ['outputContext' => ReferenceOutputContext::Html])
+                ? fn(string $html): string => (string)References::parseContent($html, $submission, ['outputContext' => ReferenceOutputContext::Html, 'allowFieldHtml' => true])
                 : null,
             nl2br: $nl2br,
             additionalExtensions: self::_getAdditionalExtensions(),

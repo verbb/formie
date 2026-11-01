@@ -135,6 +135,7 @@ class PdfTemplates extends Component
 
         if ($existingTemplate && (!$template->id || $template->id != $existingTemplate->id)) {
             $template->addError('handle', Craft::t('formie', 'That handle is already in use'));
+
             return false;
         }
 
@@ -175,6 +176,7 @@ class PdfTemplates extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -211,6 +213,7 @@ class PdfTemplates extends Component
         }
 
         Craft::$app->getProjectConfig()->remove(self::CONFIG_TEMPLATES_KEY . '.' . $template->uid, "Delete PDF template “{$template->handle}”");
+
         return true;
     }
 
@@ -242,6 +245,7 @@ class PdfTemplates extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -359,6 +363,7 @@ class PdfTemplates extends Component
         if ($notification) {
             $parsedContent = References::parseContent($notification->getParsedContent(), $submission, [
                 'outputContext' => ReferenceOutputContext::Html,
+                'allowFieldHtml' => true,
                 'notification' => $notification,
             ]);
 
