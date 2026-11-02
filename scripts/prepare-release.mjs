@@ -19,6 +19,7 @@ import {
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { assertPreparedVersion } from './package-release.mjs';
 
 const repositoryRoot = new URL('../', import.meta.url);
 process.chdir(fileURLToPath(repositoryRoot));
@@ -44,8 +45,9 @@ const args = process.argv.slice(2);
 
 if (args.includes('--help') || args.includes('-h')) {
     console.log(
-        'Prepare Formie packages: node scripts/prepare-release.mjs [patch|minor|major] [--dry-run]',
+        'Prepare Formie packages: node scripts/prepare-release.mjs <version> [--dry-run]',
     );
+    console.log('Use the Formie plugin version the packages will ship with.');
     console.log('Maintenance: --check-lockfile or --refresh-lockfile-only');
     console.log('This command never publishes to npm, commits, or pushes.');
     process.exit(0);
@@ -59,8 +61,7 @@ const optionNames = new Set([
     '--check-lockfile',
     '--refresh-lockfile-only',
 ]);
-const bump = args.find((arg) => !optionNames.has(arg)) ?? 'patch';
-const validBumps = new Set(['patch', 'minor', 'major']);
+const targetVersion = args.find((arg) => !optionNames.has(arg));
 
 if (
     [dryRun, checkLockfileOnly, refreshLockfileOnly].filter(Boolean).length > 1
@@ -70,11 +71,7 @@ if (
     );
 }
 
-if (!checkLockfileOnly && !refreshLockfileOnly && !validBumps.has(bump)) {
-    throw new Error('Expected patch, minor, or major.');
-}
-
-const run = (command, commandArgs, options = {}) => {
+const run =(command, commandArgs, options = {}) => {
     execFileSync(command, commandArgs, {
         stdio: 'inherit',
         ...options,
@@ -312,9 +309,9 @@ const hasMeaningfulChangelogBody = (body) =>
         return /^(-|\*|\d+\.)\s+\S/.test(trimmed) || /^###\s+\S/.test(trimmed);
     }) ?? false;
 
-const lockstepBody = (packageName) =>
+const lockstepBody = (version) =>
     '### Changed\n' +
-    `- Released alongside the other \`@verbb/formie-*\` packages to keep versions aligned (${packageName}).\n`;
+    `- Released alongside Formie ${version} with no changes to this package.\n`;
 
 const finalizeChangelogContent = (content, version, date, packageName) => {
     const normalized = content.replace(/\r\n/g, '\n');
@@ -328,7 +325,7 @@ const finalizeChangelogContent = (content, version, date, packageName) => {
     const unreleasedBody = extractUnreleasedBody(normalized);
     const releaseBody = hasMeaningfulChangelogBody(unreleasedBody)
         ? unreleasedBody.trim()
-        : lockstepBody(packageName).trim();
+        : lockstepBody(version).trim();
     const previousSections = normalized
         .replace(/^# Changelog\n\n/, '')
         .replace(/^## Unreleased\n[\s\S]*?(?=^## )/m, '')
@@ -400,6 +397,12 @@ if (refreshLockfileOnly) {
     process.exit(0);
 }
 
+const pluginVersion = JSON.parse(
+    readFileSync(new URL('composer.json', repositoryRoot), 'utf8'),
+).version;
+
+assertPreparedVersion(targetVersion, packageVersion(), pluginVersion);
+
 if (!dryRun) {
     ensureCleanWorkingTree();
 } else {
@@ -415,16 +418,10 @@ const dirsWithEntries = packageDirs.filter((dir) =>
     hasMeaningfulChangelogBody(extractUnreleasedBody(changelogContents[dir])),
 );
 
-if (dirsWithEntries.length === 0) {
-    throw new Error(
-        'Add entries under ## Unreleased in at least one Formie package CHANGELOG.md first.',
-    );
-}
-
 assertLockstepVersions();
 assertStandaloneLockfile();
 console.log(
-    `Unreleased changelog entries found in: ${dirsWithEntries.join(', ')}`,
+    `Unreleased changelog entries found in: ${dirsWithEntries.join(', ') || 'none'}`,
 );
 
 buildPackages();
@@ -447,15 +444,24 @@ if (generatedStatus) {
 
 const currentVersion = packageVersion();
 
+// Bumping one package at a time would otherwise make npm install registry copies
+// of its siblings into node_modules, and later local builds would bundle those.
 for (const packageName of packages) {
-    run('npm', ['version', bump, '-w', packageName, '--no-git-tag-version']);
+    run('npm', [
+        'version',
+        targetVersion,
+        '-w',
+        packageName,
+        '--no-git-tag-version',
+        '--no-workspaces-update',
+    ]);
 }
 
 const version = packageVersion();
 
-if (version === currentVersion) {
+if (version !== targetVersion) {
     throw new Error(
-        `Version did not change after ${bump} bump (still ${currentVersion}).`,
+        `Expected packages at ${targetVersion} after versioning, found ${version}.`,
     );
 }
 

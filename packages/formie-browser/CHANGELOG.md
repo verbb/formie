@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Changed the `@verbb/formie-*` package versions to match the Formie plugin, so Formie 4.0.6 pairs with version 4.0.6 of each package. The jump from 1.x has no breaking changes, but version ranges such as `^1.0.16` need updating once. ([#3081](https://github.com/verbb/formie/issues/3081))
+
 ### Fixed
 - Fixed browser requests failing when Craft uses a custom action trigger, including token refresh after AJAX submissions. ([#3068](https://github.com/verbb/formie/issues/3068))
 - Fixed upload manager file order and move button states becoming inconsistent after reordering files. ([#3070](https://github.com/verbb/formie/issues/3070))

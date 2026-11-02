@@ -8,6 +8,7 @@
 
 ### Changed
 - Keep encrypted field values out of Formie’s log files, including integration payloads for forms with encrypted fields.
+- Update the `@verbb/formie-*` npm packages to use the same version number as the plugin. Version ranges such as `^1.0.16` need updating once. ([#3081](https://github.com/verbb/formie/issues/3081))
 - Renamed the “Reconcile uncertain deliveries” permission to “Confirm delivery outcomes” and “Force integration execution” to “Run integrations regardless of conditions and opt-in”, and moved both under “View delivery diagnostics”.
 
 ### Fixed

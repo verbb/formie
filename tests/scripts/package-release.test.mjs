@@ -12,6 +12,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import {
+    assertPreparedVersion,
     assertReviewedCheckout,
     packageDirs,
     releasePlan,
@@ -102,6 +103,33 @@ function mockCommands(plan, options = {}) {
     };
     return { calls, run };
 }
+
+test('prepared versions move packages up to or ahead of the plugin', () => {
+    for (const [target, current, plugin] of [
+        ['4.0.6', '1.0.16', '4.0.6'],
+        ['4.0.7', '4.0.6', '4.0.6'],
+        ['4.1.0', '4.0.9', '4.0.9'],
+        ['4.0.10', '4.0.9', '4.0.9'],
+        ['5.0.0', '4.9.9', '4.9.9'],
+    ]) {
+        assert.doesNotThrow(() =>
+            assertPreparedVersion(target, current, plugin),
+        );
+    }
+    for (const [target, current, plugin, message] of [
+        [undefined, '4.0.6', '4.0.6', /exact stable/],
+        ['patch', '4.0.6', '4.0.6', /exact stable/],
+        ['4.0.7-next.1', '4.0.6', '4.0.6', /exact stable/],
+        ['4.0.6', '4.0.6', '4.0.6', /newer than/],
+        ['4.0.9', '4.0.10', '4.0.10', /newer than/],
+        ['1.0.17', '1.0.16', '4.0.6', /behind the Formie plugin/],
+    ]) {
+        assert.throws(
+            () => assertPreparedVersion(target, current, plugin),
+            message,
+        );
+    }
+});
 
 test('next uses a reproducible prerelease without consuming stable versions', (t) => {
     const f = fixture(t);

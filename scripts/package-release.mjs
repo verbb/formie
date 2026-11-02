@@ -17,6 +17,36 @@ const packageNames = packageDirs.map(
 );
 const stableVersion = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
+const compareStableVersions = (left, right) => {
+    const [a, b] = [left, right].map((version) =>
+        stableVersion.exec(version).slice(1).map(BigInt),
+    );
+    const index = a.findIndex((part, position) => part !== b[position]);
+
+    return index === -1 ? 0 : a[index] < b[index] ? -1 : 1;
+};
+
+/** Packages share the plugin's version, and are released just ahead of it. */
+export function assertPreparedVersion(target, current, pluginVersion) {
+    if (!stableVersion.test(target ?? '')) {
+        throw new Error(
+            'Expected the exact stable version to prepare, such as 4.0.7.',
+        );
+    }
+
+    if (compareStableVersions(target, current) <= 0) {
+        throw new Error(
+            `Version ${target} must be newer than the current packages (${current}).`,
+        );
+    }
+
+    if (compareStableVersions(target, pluginVersion) < 0) {
+        throw new Error(
+            `Version ${target} is behind the Formie plugin (${pluginVersion}).`,
+        );
+    }
+}
+
 export function releasePlan(root, env) {
     if (
         env.GITHUB_ACTIONS !== 'true' ||

@@ -19,6 +19,8 @@ You only need to install `@verbb/formie-browser` when your own build imports the
 npm install @verbb/formie-browser
 ```
 
+Install the package version that matches your Formie version, and update them together. For example, Formie 4.0.7 pairs with `@verbb/formie-browser@4.0.7`.
+
 Import the shipped CSS if you want the default Formie UI:
 
 ```ts

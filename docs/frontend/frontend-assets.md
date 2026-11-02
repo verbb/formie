@@ -68,6 +68,10 @@ If you want to include Formie's browser package in your own bundle, you can disa
 
 Then, it's a matter of installing the `@verbb/formie-browser` package in your own build system and going from there.
 
+Install the package version that matches your Formie version, and update them together. For example, Formie 4.0.7 pairs with `@verbb/formie-browser@4.0.7`.
+
+To try fixes before the next Formie release, install `@verbb/formie-browser@next`. It's updated automatically with the latest unreleased changes, so we don't recommend it for production sites.
+
 For plugin-rendered pages, Formie also seeds front-end translations for you. In headless or fully custom bundle setups, your application should own translations explicitly instead of expecting Craft to preload them.
 
 Start with the [Browser package docs](https://docs.verbb.io/formie/browser/).

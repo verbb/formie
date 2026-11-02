@@ -1,9 +1,20 @@
 name: Publish Formie Packages
 
-# Manager dispatches this workflow on craft-5 with the reviewed release SHA;
+# Manager dispatches stable releases on craft-5 with the reviewed release SHA;
 # the run checks out that exact commit and verifies it belongs to craft-5.
+# Pushes that change published package files publish to next automatically, which
+# includes the release commit itself, so next never stays behind latest.
 
 on:
+    push:
+        branches:
+            - craft-5
+        paths:
+            - 'packages/formie-*/**'
+            - '!packages/formie-*/CHANGELOG.md'
+            - '!packages/formie-*/README.md'
+            - 'scripts/generate-browser-theme-state.mjs'
+            - 'src/config/browser-theme-state.json'
     workflow_dispatch:
         inputs:
             release_sha:
@@ -23,9 +34,16 @@ on:
                     - latest
                     - next
 
-# Never let two attempts race over the same lockstep package release.
+env:
+    RELEASE_SHA: ${{ inputs.release_sha || github.sha }}
+    RELEASE_VERSION: ${{ inputs.release_version }}
+    RELEASE_CHANNEL: ${{ github.event_name == 'push' && 'next' || inputs.channel || 'latest' }}
+
+# Never let two attempts race over the same lockstep package release. GitHub
+# replaces a group's pending run with a newer one, so channels stay separate to
+# keep a push to next from discarding a waiting stable release.
 concurrency:
-    group: formie-npm-publish
+    group: formie-npm-publish-${{ github.event_name == 'push' && 'next' || inputs.channel || 'latest' }}
     cancel-in-progress: false
 
 jobs:
@@ -39,12 +57,10 @@ jobs:
             - name: Check out reviewed commit
               uses: actions/checkout@v6
               with:
-                  ref: ${{ inputs.release_sha }}
+                  ref: ${{ env.RELEASE_SHA }}
                   fetch-depth: 0
 
             - name: Verify commit belongs to craft-5
-              env:
-                  RELEASE_SHA: ${{ inputs.release_sha }}
               run: |
                   if [[ ! "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
                     echo 'A full lowercase commit SHA is required.' >&2
@@ -106,9 +122,6 @@ jobs:
 
             - name: Create reviewed package tarballs
               env:
-                  RELEASE_SHA: ${{ inputs.release_sha }}
-                  RELEASE_VERSION: ${{ inputs.release_version }}
-                  RELEASE_CHANNEL: ${{ inputs.channel || 'latest' }}
                   PACKAGE_TARBALL_DIR: ${{ runner.temp }}/formie-tarballs
               run: node scripts/pack-prepared.mjs
 
@@ -133,7 +146,7 @@ jobs:
             - name: Check out reviewed commit without dependencies
               uses: actions/checkout@v6
               with:
-                  ref: ${{ inputs.release_sha }}
+                  ref: ${{ env.RELEASE_SHA }}
 
             - name: Set up Node
               uses: actions/setup-node@v6
@@ -155,8 +168,5 @@ jobs:
 
             - name: Publish missing package versions with npm OIDC
               env:
-                  RELEASE_SHA: ${{ inputs.release_sha }}
-                  RELEASE_VERSION: ${{ inputs.release_version }}
-                  RELEASE_CHANNEL: ${{ inputs.channel || 'latest' }}
                   PACKAGE_TARBALL_DIR: ${{ runner.temp }}/formie-tarballs
               run: npm run release:publish-prepared

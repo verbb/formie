@@ -58,9 +58,6 @@
   ],
   "scripts": {
     "release:prepare": "node ./scripts/prepare-release.mjs",
-    "release:prepare:patch": "node ./scripts/prepare-release.mjs patch",
-    "release:prepare:minor": "node ./scripts/prepare-release.mjs minor",
-    "release:prepare:major": "node ./scripts/prepare-release.mjs major",
     "release:check-lockfile": "node ./scripts/prepare-release.mjs --check-lockfile",
     "release:refresh-lockfile": "node ./scripts/prepare-release.mjs --refresh-lockfile-only",
     "release:publish-prepared": "node ./scripts/publish-prepared.mjs",
