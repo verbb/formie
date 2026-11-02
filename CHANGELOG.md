@@ -20,6 +20,7 @@
 - Fixed GoCardless webhooks being processed and then reported as failed.
 - Fixed Front integration messages being reported as failed after they were delivered.
 - Fixed Capsule throwing an error when fetching opportunity fields.
+- Fixed the Sent Notifications index showing “-” for the Notification column.
 
 ## 4.0.6 - 2026-11-01
 

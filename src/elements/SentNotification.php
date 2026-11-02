@@ -352,7 +352,7 @@ class SentNotification extends Element
         return match ($attribute) {
             'form' => Html::encode($this->getForm()->title ?? '-'),
             'submission' => Html::encode($this->getSubmission()->title ?? '-'),
-            'notification' => Html::encode($this->getNotification()->title ?? '-'),
+            'notification' => Html::encode($this->getNotification()->name ?? '-'),
             'resend' => $this->canResend($currentUser) ? Html::a(Craft::t('formie', 'Resend'), '#', [
                 'class' => 'btn small formsubmit js-fui-notification-modal-resend-btn',
                 'data-id' => $this->id,
