@@ -36,6 +36,69 @@ it('renders one Select All control for all Formie permissions', function(): void
     });
 });
 
+it('nests delivery actions beneath delivery diagnostics', function(): void {
+    $definitions = Formie::$plugin->getPermissions()->getSubmissionPermissionDefinitions();
+    $nested = $definitions['formie-viewDeliveryDiagnostics']['nested'];
+
+    expect($definitions)->not->toHaveKey('formie-reconcileDeliveries')->not->toHaveKey('formie-forceIntegrations');
+    expect($nested['formie-reconcileDeliveries']['label'])->toBe('Confirm delivery outcomes');
+    expect($nested['formie-forceIntegrations']['label'])->toBe('Run integrations regardless of conditions and opt-in');
+
+    WebRequestTestHelper::withWebRequestContext(function($request): void {
+        $request->setIsCpRequest(true);
+        Craft::$app->getUser()->setIdentity(User::find()->admin(true)->one());
+        $view = Craft::$app->getView();
+        $view->setTemplateMode(View::TEMPLATE_MODE_CP);
+        $html = $view->renderTemplate('_includes/permissions', [
+            'permissions' => Formie::$plugin->getPermissions()->getPermissionGroups(),
+            'subject' => null,
+        ]);
+        $document = new DOMDocument();
+        @$document->loadHTML($html);
+        $xpath = new DOMXPath($document);
+
+        foreach (['formie-reconcileDeliveries', 'formie-forceIntegrations'] as $permission) {
+            expect($xpath->query('//ul[@id="formie-viewDeliveryDiagnostics-nested"]//input[@value="' . $permission . '" and @disabled]')->length)->toBe(1);
+            expect($xpath->query('//input[@value="' . $permission . '"]')->length)->toBe(1);
+        }
+    });
+});
+
+it('saves delivery action grants through the diagnostics hierarchy', function(array $grants, array $expected): void {
+    $name = 'deliveryPermissions' . bin2hex(random_bytes(6));
+    $user = new User(['username' => $name, 'email' => $name . '@example.test']);
+    expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+    Craft::$app->getUserPermissions()->saveUserPermissions($user->id, ['formie-accessSubmissions', ...$grants]);
+
+    foreach ($expected as $permission => $allowed) {
+        expect($user->can($permission))->toBe($allowed);
+    }
+})->with([
+    'diagnostics only' => [['formie-viewDeliveryDiagnostics'], ['formie-viewDeliveryDiagnostics' => true, 'formie-reconcileDeliveries' => false, 'formie-forceIntegrations' => false]],
+    'confirm outcomes' => [['formie-viewDeliveryDiagnostics', 'formie-reconcileDeliveries'], ['formie-viewDeliveryDiagnostics' => true, 'formie-reconcileDeliveries' => true, 'formie-forceIntegrations' => false]],
+    'run regardless' => [['formie-viewDeliveryDiagnostics', 'formie-forceIntegrations'], ['formie-viewDeliveryDiagnostics' => true, 'formie-reconcileDeliveries' => false, 'formie-forceIntegrations' => true]],
+    'action without diagnostics' => [['formie-reconcileDeliveries', 'formie-forceIntegrations'], ['formie-viewDeliveryDiagnostics' => false, 'formie-reconcileDeliveries' => false, 'formie-forceIntegrations' => false]],
+]);
+
+it('honours stored delivery action grants without granting diagnostics', function(string $permission): void {
+    $name = 'deliveryPermissions' . bin2hex(random_bytes(6));
+    $user = new User(['username' => $name, 'email' => $name . '@example.test']);
+    expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+
+    $db = Craft::$app->getDb();
+    $stored = strtolower($permission);
+    $permissionId = (new \craft\db\Query())->select('id')->from('{{%userpermissions}}')->where(['name' => $stored])->scalar();
+
+    if (!$permissionId) {
+        $db->createCommand()->insert('{{%userpermissions}}', ['name' => $stored])->execute();
+        $permissionId = $db->getLastInsertID('{{%userpermissions}}');
+    }
+
+    $db->createCommand()->insert('{{%userpermissions_users}}', ['permissionId' => $permissionId, 'userId' => $user->id])->execute();
+
+    expect($user->can($permission))->toBeTrue()->and($user->can('formie-viewDeliveryDiagnostics'))->toBeFalse();
+})->with(['formie-reconcileDeliveries', 'formie-forceIntegrations']);
+
 it('renders settings controls to match the assigned capability', function(string $controllerClass, string $controllerId, string $action, string $grant, string $expected, ?string $absent): void {
     $name = 'permissionRendering' . bin2hex(random_bytes(6));
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);

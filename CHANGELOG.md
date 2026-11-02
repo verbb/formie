@@ -8,6 +8,7 @@
 
 ### Changed
 - Keep encrypted field values out of Formie’s log files, including integration payloads for forms with encrypted fields.
+- Renamed the “Reconcile uncertain deliveries” permission to “Confirm delivery outcomes” and “Force integration execution” to “Run integrations regardless of conditions and opt-in”, and moved both under “View delivery diagnostics”.
 
 ### Fixed
 - Fixed Date fields returning an empty object from GraphQL submission queries, and Date Range fields not exposing their `start` and `end` values. ([#3079](https://github.com/verbb/formie/issues/3079))

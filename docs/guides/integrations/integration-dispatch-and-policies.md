@@ -49,7 +49,7 @@ Queued work is bound to the accepted submission content, field configuration and
 
 Integration results belong to the run that produced them. A queued notification reads results from its own run, even if a later edit has already run the same integration again. Results from another run are not used as a fallback.
 
-For an unknown result, first check the remote account. A user with reconciliation permission can then select **Confirm delivered** or **Confirm not delivered** and enter a reason. Resolve any unknown individual operations before the overall attempt. Confirming non-delivery allows the original attempt to be retried safely.
+For an unknown result, first check the remote account. A user with the **Confirm delivery outcomes** permission can then select **Confirm delivered** or **Confirm not delivered** and enter a reason. Resolve any unknown individual operations before the overall attempt. Confirming non-delivery allows the original attempt to be retried safely.
 
 If later steps need a provider response that Formie never received, confirming delivery alone cannot supply that missing data. Further support may be needed to continue. Do not start a separate manual run to get around an unresolved result: it could duplicate something the service already received.
 
@@ -57,7 +57,7 @@ If later steps need a provider response that Formie never received, confirming d
 
 Manual runs still check integration conditions and opt-in. Automatic re-run settings separately control whether integrations run on initial submission, front-end editing, control panel saving or unmarking spam.
 
-A force run can override conditions and opt-in. It requires additional permission, permission to save the form's submissions, and a recorded reason. It cannot bypass an unresolved earlier delivery or send to a blocked destination. Developers can initiate it through the integration services described in [Custom Integrations](/developers/custom-integration/overview).
+A force run can override conditions and opt-in. It requires the **Run integrations regardless of conditions and opt-in** permission, permission to save the form's submissions, and a recorded reason. It cannot bypass an unresolved earlier delivery or send to a blocked destination. Developers can initiate it through the integration services described in [Custom Integrations](/developers/custom-integration/overview).
 
 ## Queue Diagnostics
 
