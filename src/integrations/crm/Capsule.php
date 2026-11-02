@@ -147,7 +147,7 @@ class Capsule extends Crm
                         'required' => true,
                         'options' => [
                             'label' => Craft::t('formie', 'Milestone'),
-                            'options' => array_map(function($list) {
+                            'options' => array_map(function($milestone) {
                                 return [
                                     'label' => $milestone['name'],
                                     'value' => $milestone['id'],

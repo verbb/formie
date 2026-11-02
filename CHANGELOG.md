@@ -19,6 +19,7 @@
 - Fixed the Product element integration failing to save when “Overwrite Values” is off.
 - Fixed GoCardless webhooks being processed and then reported as failed.
 - Fixed Front integration messages being reported as failed after they were delivered.
+- Fixed Capsule throwing an error when fetching opportunity fields.
 
 ## 4.0.6 - 2026-11-01
 
