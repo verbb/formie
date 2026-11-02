@@ -8,6 +8,7 @@
 ### Fixed
 - Fix multi-page forms showing validation errors while typing in untouched fields after changing pages. ([#3050](https://github.com/verbb/formie/issues/3050))
 - Fixed failed notification alert emails failing to send when Craft’s `enableTwigSandbox` setting is on. Customised messages using `emailResponse | json_encode` are updated automatically.
+- Fixed submission exports timing out on large forms, caused by rebuilding the HTML purifier configuration for every field value. This also speeds up the submissions index. ([#3083](https://github.com/verbb/formie/issues/3083))
 
 ## 3.1.50 - 2026-10-22
 

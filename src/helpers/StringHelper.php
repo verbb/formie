@@ -7,10 +7,15 @@ use Craft;
 use craft\helpers\HtmlPurifier;
 use craft\helpers\StringHelper as CraftStringHelper;
 
+use HTMLPurifier as Purifier;
+use HTMLPurifier_Config;
+
 class StringHelper extends CraftStringHelper
 {
     private const GRAPHEME_PATTERN = '/\X/u';
     private const WORD_PATTERN = '/[^\p{Z}\x{0009}-\x{000D}\x{0085}\x{FEFF}]+/u';
+
+    private static ?Purifier $_purifier = null;
 
     // Static Methods
     // =========================================================================
@@ -30,7 +35,21 @@ class StringHelper extends CraftStringHelper
 
     public static function cleanString(string $string): string
     {
-        return HtmlPurifier::process($string);
+        if (self::$_purifier === null) {
+            // `HtmlPurifier::process()` requests a raw HTML definition, which HTMLPurifier never caches,
+            // so it rebuilds the definition on every call. That's too slow for values read in bulk, such
+            // as exports. Configure the purifier once, the same way as `process()`, and reuse it.
+            $config = HTMLPurifier_Config::create(null);
+            $config->autoFinalize = false;
+            $config->set('Cache.SerializerPath', Craft::$app->getRuntimePath());
+            $config->set('Cache.SerializerPermissions', 0775);
+
+            HtmlPurifier::configure($config);
+
+            self::$_purifier = new Purifier($config);
+        }
+
+        return self::$_purifier->purify($string);
     }
 
     public static function sanitizeRedirectUrl(string $url): string
