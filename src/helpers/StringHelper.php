@@ -7,6 +7,7 @@ use Craft;
 use craft\helpers\HtmlPurifier;
 use craft\helpers\StringHelper as CraftStringHelper;
 
+use HTMLPurifier as Purifier;
 use HTMLPurifier_Config;
 
 class StringHelper extends CraftStringHelper
@@ -29,7 +30,7 @@ class StringHelper extends CraftStringHelper
 
     public static function cleanString(string $string): string
     {
-        return HtmlPurifier::process($string);
+        return self::_getPurifier()->purify($string);
     }
 
     public static function cleanRichTextRequest(string $string, bool $allowImages): string
@@ -136,10 +137,8 @@ class StringHelper extends CraftStringHelper
     public static function sanitizePlainTextInput(string $string): string
     {
         $string = self::normalizePlainText($string);
-        $config = HTMLPurifier_Config::createDefault();
-        $config->set('HTML.Allowed', '');
 
-        return html_entity_decode(HtmlPurifier::process($string, $config), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        return html_entity_decode(self::_getPurifier(['HTML.Allowed' => ''])->purify($string), ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 
     public static function decdec(string $str): string
@@ -217,6 +216,27 @@ class StringHelper extends CraftStringHelper
         return mb_scrub($text, 'UTF-8');
     }
 
+    private static function _getPurifier(array $settings = []): Purifier
+    {
+        $key = json_encode($settings);
+
+        if (!isset(self::$_purifiers[$key])) {
+            // `HtmlPurifier::process()` requests a raw HTML definition, which HTMLPurifier never caches,
+            // so it rebuilds the definition on every call. That's too slow for values read in bulk, such
+            // as exports. Configure each purifier once, the same way as `process()`, and reuse it.
+            $config = HTMLPurifier_Config::create($settings);
+            $config->autoFinalize = false;
+            $config->set('Cache.SerializerPath', Craft::$app->getRuntimePath());
+            $config->set('Cache.SerializerPermissions', 0775);
+
+            HtmlPurifier::configure($config);
+
+            self::$_purifiers[$key] = new Purifier($config);
+        }
+
+        return self::$_purifiers[$key];
+    }
+
 
     // Constants
     // =========================================================================
@@ -224,4 +244,10 @@ class StringHelper extends CraftStringHelper
     private const GRAPHEME_PATTERN = '/\X/u';
     private const WORD_PATTERN = '/[^\p{Z}\x{0009}-\x{000D}\x{0085}\x{FEFF}]+/u';
     private const ALLOWED_URL_PROTOCOLS = ['http', 'https', 'mailto', 'tel', 'ftp'];
+
+
+    // Properties
+    // =========================================================================
+
+    private static array $_purifiers = [];
 }

@@ -25,6 +25,7 @@
 - Fixed pruning of sent notifications using the wrong cutoff time for sites not set to UTC.
 - Fixed a server error when saving a form’s template fields failed validation on a non-JSON request.
 - Fixed `FieldLayout::getForm()` throwing an error.
+- Fixed slow submission exports and indexes for forms with rich text Multi-Line Text fields, or with `plainTextHtmlSanitizationMode` set to `sanitize`, caused by rebuilding the HTML purifier configuration for every value. ([#3083](https://github.com/verbb/formie/issues/3083))
 
 ## 4.0.6 - 2026-11-01
 
