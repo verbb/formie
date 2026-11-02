@@ -546,9 +546,11 @@ class Integrations extends Component
             if (!in_array($result->status, [IntegrationStatus::Succeeded, IntegrationStatus::Skipped], true)) {
                 $this->handleTriggerIntegrationFailed($integration, $submission, new IntegrationException('Integration delivery ' . $result->status->value), $integration->getLegacyIntegrationResponse() ?? $result->toStorage());
             }
+
             return $result;
         } catch (Throwable $error) {
             $this->handleTriggerIntegrationFailed($integration, $submission, new IntegrationException('Integration delivery failed; inspect delivery diagnostics.'));
+
             return $integration->resultForException($error);
         }
     }
@@ -625,6 +627,8 @@ class Integrations extends Component
         $form = $submission->getForm();
         $renderVariables = [
             'integration' => $integration,
+            // Integrations and `json_encode` aren't allowed in Craft's Twig sandbox, so messages get these ready-made.
+            'integrationName' => $integration->getName(),
             'submission' => $submission,
             'form' => $form,
             'exception' => $exception,
@@ -635,6 +639,8 @@ class Integrations extends Component
             'payload' => $payload,
             'queueJobId' => $queueJobId,
         ];
+
+        $renderVariables['integrationResponseJson'] = (string)json_encode($renderVariables['integrationResponse'], JSON_PARTIAL_OUTPUT_ON_ERROR);
 
         $recipients = $settings->getIntegrationFailAlertRecipients();
 
@@ -862,6 +868,7 @@ class Integrations extends Component
         if (!is_array($saved)) {
             $saved = [];
         }
+
         $saved = $this->filterIntegrationFormSettings($integration, $saved);
         $integration = $this->createIntegrationRuntime($integration, $saved);
 
@@ -1013,6 +1020,7 @@ class Integrations extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -1186,6 +1194,7 @@ class Integrations extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -1364,6 +1373,7 @@ class Integrations extends Component
                     if ($plan->enabled) {
                         $formSettings['execution'] = $plan->getStepExecution((string)$handle);
                     }
+
                     $enabledIntegrations[] = FormIntegration::fromSettings($integration, $formSettings, $form->getId(), $form->getHandle());
                 }
             }
@@ -1375,6 +1385,7 @@ class Integrations extends Component
             foreach ($enabledIntegrations as $binding) {
                 $bindingsByHandle[$binding->integration->handle] = $binding;
             }
+
             $event = new ModifyFormIntegrationsEvent([
                 'allIntegrations' => array_values($integrationsByHandle),
                 'integrations' => array_map(static fn(FormIntegration $binding): IntegrationInterface => $binding->createRuntime(), $enabledIntegrations),
@@ -1768,6 +1779,7 @@ class Integrations extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -1816,6 +1828,7 @@ class Integrations extends Component
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 

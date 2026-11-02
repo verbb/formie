@@ -1043,7 +1043,7 @@ return [
   'Formie' => 'Formie',
   'formie_failed_notification_body' => 'Een e-mailmelding voor het formulier “{{ form.title }}” kon niet worden verzonden.
 
-De foutmelding is geregistreerd: {{ emailResponse | json_encode }}.
+De foutmelding is geregistreerd: {{ emailResponseJson }}.
 
 Om het te bekijken, log in op uw controlepaneel.
 

@@ -1179,11 +1179,11 @@ return [
   'Form Handler URL' => 'URL des Formular-Handlers',
   'Formie' => 'Formie',
   'Formie Form' => 'Formie-Formular',
-  'formie_failed_integration_body' => 'The “{{ integration.name }}” integration for the form “{{ form.title }}” has failed.
+  'formie_failed_integration_body' => 'The “{{ integrationName }}” integration for the form “{{ form.title }}” has failed.
 
 The error was: {{ errorMessage }}
 
-{% if integrationResponse %}The response was recorded: {{ integrationResponse | json_encode }}.
+{% if integrationResponse %}The response was recorded: {{ integrationResponseJson }}.
 
 {% endif %}{% if queueJobId %}Queue job ID: {{ queueJobId }}
 
@@ -1194,7 +1194,7 @@ The error was: {{ errorMessage }}
   'formie_failed_integration_subject' => 'Integration failed for form "{{ form.title }}" on {{ siteName }}.',
   'formie_failed_notification_body' => 'Eine E-Mail-Benachrichtigung für das Formular „{{ form.title }}“ konnte nicht gesendet werden.
 
-Die Fehlerantwort wurde aufgezeichnet: {{ emailResponse | json_encode }}.
+Die Fehlerantwort wurde aufgezeichnet: {{ emailResponseJson }}.
 
 Zur Überprüfung bitte im Bedienfeld anmelden.
 
