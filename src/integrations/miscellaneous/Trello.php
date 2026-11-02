@@ -6,6 +6,7 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationConfig;
@@ -224,5 +225,33 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
 
         // Some extra work to get it to play with Slack's mrkdwn
         return str_replace(['*', '__'], ['_', '*'], $markdown);
+    }
+
+    private function _getBoardOptions(): array
+    {
+        $options = [];
+
+        foreach ($this->getConfigValue('boards') as $board) {
+            $options[] = ['label' => $board['name'], 'value' => $board['id']];
+        }
+
+        return $options;
+    }
+
+    private function _getFirstBoardId(): string
+    {
+        return $this->_getBoardOptions()[0]['value'] ?? '';
+    }
+
+    private function _getListOptions(string $boardId): array
+    {
+        $options = [];
+        $board = ArrayHelper::firstWhere($this->getConfigValue('boards'), 'id', $boardId);
+
+        foreach ($board['lists'] ?? [] as $list) {
+            $options[] = ['label' => $list['name'], 'value' => $list['id']];
+        }
+
+        return $options;
     }
 }

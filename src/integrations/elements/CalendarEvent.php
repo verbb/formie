@@ -442,10 +442,26 @@ class CalendarEvent extends Element
     // Private Methods
     // =========================================================================
 
-    private function _getCalendarSettings()
+    private function _getCalendarSettings(?string $calendarId = null)
     {
         $calendars = $this->getConfigValue('elements');
 
-        return ArrayHelper::firstWhere($calendars, 'id', $this->calendarId);
+        return ArrayHelper::firstWhere($calendars, 'id', $calendarId ?? $this->calendarId);
+    }
+
+    private function _getCalendarOptions(): array
+    {
+        $options = [];
+
+        foreach ($this->getConfigValue('elements') as $calendar) {
+            $options[] = ['label' => (string)$calendar->name, 'value' => (string)$calendar->id];
+        }
+
+        return $options;
+    }
+
+    private function _getFirstCalendarId(): string
+    {
+        return $this->_getCalendarOptions()[0]['value'] ?? '';
     }
 }

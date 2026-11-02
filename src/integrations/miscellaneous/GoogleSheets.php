@@ -7,6 +7,7 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\IntegrationSecrets;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationConfig;
@@ -274,5 +275,32 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
         }
 
         return $schema;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getSheetOptions(): array
+    {
+        $options = [];
+
+        foreach ($this->getConfigValue('sheets') as $sheet) {
+            $options[] = ['label' => $sheet['name'], 'value' => $sheet['id']];
+        }
+
+        return $options;
+    }
+
+    private function _getFirstSheetId(): string
+    {
+        return $this->_getSheetOptions()[0]['value'] ?? '';
+    }
+
+    private function _getSheetFields(string $sheetId): array
+    {
+        $sheet = ArrayHelper::firstWhere($this->getConfigValue('sheets'), 'id', $sheetId);
+
+        return $sheet['fields'] ?? [];
     }
 }
