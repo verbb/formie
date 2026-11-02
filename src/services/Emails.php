@@ -506,6 +506,9 @@ class Emails extends Component
 
         $renderVariables = compact('notification', 'submission', 'form', 'emailResponse');
 
+        // `json_encode` isn't allowed in Craft's Twig sandbox, so messages get the JSON ready-made.
+        $renderVariables['emailResponseJson'] = (string)json_encode($emailResponse, JSON_PARTIAL_OUTPUT_ON_ERROR);
+
         foreach ($settings->alertEmails as $alertEmail) {
             try {
                 $mail = Craft::$app->getMailer()

@@ -4,7 +4,7 @@ return [
   'formie_failed_notification_heading' => 'Lorsqu\'une notification par email échoue :',
   'formie_failed_notification_subject' => 'L\'envoi de la notification par email a échoué pour le formulaire « {{ form.title }} » sur {{ siteName }}.',
   'formie_failed_notification_body' => "Une notification par email pour le formulaire « {{ form.title }} » n'a pas pu être envoyée.\n\n" .
-    "La réponse d'erreur a été enregistrée : {{ emailResponse | json_encode }}.\n\n" .
+    "La réponse d'erreur a été enregistrée : {{ emailResponseJson }}.\n\n" .
     "Pour la consulter, veuillez vous connecter à votre panneau de contrôle.\n\n" .
     "{{ submission.cpEditUrl }}",
   '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.' => '« {label} » doit contenir au maximum {max, number} {max, plural, one{caractère} other{caractères}}.',

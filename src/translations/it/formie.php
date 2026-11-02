@@ -7,7 +7,7 @@ return [
   'formie_failed_notification_heading' => 'Quando una notifica email non viene inviata:',
   'formie_failed_notification_subject' => 'Notifica email non inviata per il modulo "{{ form.title }}" su {{ siteName }}.',
   'formie_failed_notification_body' => "L'invio di una notifica email per il modulo \"{{ form.title }}\" è fallito.\n\n" .
-    "La risposta di errore è stata registrata: {{ emailResponse | json_encode }}.\n\n" .
+    "La risposta di errore è stata registrata: {{ emailResponseJson }}.\n\n" .
     "Per rivederla, accedi al tuo pannello di controllo.\n\n" .
     "{{ submission.cpEditUrl }}",
 

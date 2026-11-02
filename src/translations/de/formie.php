@@ -1562,7 +1562,7 @@ return [
     'formie_failed_notification_heading' => 'Wenn eine E-Mail-Benachrichtigung nicht gesendet werden konnte:',
     'formie_failed_notification_subject' => 'E-Mail-Benachrichtigung konnte nicht für Formular „{{ form.title }}“ auf {{ siteName }} gesendet werden.',
     'formie_failed_notification_body' => "Eine E-Mail-Benachrichtigung für das Formular „{{ form.title }}“ konnte nicht gesendet werden.\n\n" .
-        "Die Fehlerantwort wurde aufgezeichnet: {{ emailResponse | json_encode }}.\n\n" .
+        "Die Fehlerantwort wurde aufgezeichnet: {{ emailResponseJson }}.\n\n" .
         "Zur Überprüfung bitte im Bedienfeld anmelden.\n\n" .
         '{{ submission.cpEditUrl }}',
     'South America' => 'Südamerika',

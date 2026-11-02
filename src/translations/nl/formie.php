@@ -7,7 +7,7 @@ return [
     'formie_failed_notification_heading' => 'Wanneer een e-mailmelding niet kan worden verzonden:',
     'formie_failed_notification_subject' => 'E-mailmelding kon niet worden verzonden voor formulier "{{ form.title }}" op {{ siteName }}.',
     'formie_failed_notification_body' => "Een e-mailmelding voor het formulier “{{ form.title }}” kon niet worden verzonden.\n\n" .
-        "De foutmelding is geregistreerd: {{ emailResponse | json_encode }}.\n\n" .
+        "De foutmelding is geregistreerd: {{ emailResponseJson }}.\n\n" .
         "Om het te bekijken, log in op uw controlepaneel.\n\n" .
         "{{ submission.cpEditUrl }}",
 
