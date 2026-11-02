@@ -101,7 +101,8 @@ class SentNotifications extends Component
         $date->sub($interval);
 
         $query = SentNotification::find()
-            ->dateUpdated('< ' . Db::prepareDateForDb($date));
+            // Don't use `Db::prepareDateForDb()` because the `dateUpdated` param will already do that
+            ->dateUpdated('< ' . $date->format('Y-m-d H:i:s'));
 
         $count = (int)$query->count();
 

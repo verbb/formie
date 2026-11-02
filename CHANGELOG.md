@@ -21,6 +21,7 @@
 - Fixed Front integration messages being reported as failed after they were delivered.
 - Fixed Capsule throwing an error when fetching opportunity fields.
 - Fixed the Sent Notifications index showing “-” for the Notification column.
+- Fixed pruning of sent notifications using the wrong cutoff time for sites not set to UTC.
 
 ## 4.0.6 - 2026-11-01
 
