@@ -151,10 +151,10 @@ class Front extends HelpDesk implements OAuthProviderInterface
 
                 $messageId = $response['message_uid'] ?? '';
 
-                if (!$ticketId) {
+                if (!$messageId) {
                     Integration::error($this, Craft::t('formie', 'Missing return “messageId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
-                        'payload' => Json::encode($ticketPayload),
+                        'payload' => Json::encode($payload),
                     ]), true);
 
                     return $this->resultForPayload(false);
