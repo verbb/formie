@@ -23,6 +23,7 @@
 - Fixed the Sent Notifications index showing “-” for the Notification column.
 - Fixed pruning of sent notifications using the wrong cutoff time for sites not set to UTC.
 - Fixed a server error when saving a form’s template fields failed validation on a non-JSON request.
+- Fixed `FieldLayout::getForm()` throwing an error.
 
 ## 4.0.6 - 2026-11-01
 

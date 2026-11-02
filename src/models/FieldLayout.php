@@ -24,6 +24,7 @@ class FieldLayout extends SavableComponent
     public ?string $uid = null;
     public ?string $type = null;
 
+    private ?Form $_form = null;
     private array $_pages = [];
 
 
@@ -48,11 +49,11 @@ class FieldLayout extends SavableComponent
 
     public function getForm(): ?Form
     {
-        if ($this->_form || !$this->layoutId) {
+        if ($this->_form || !$this->id) {
             return $this->_form;
         }
 
-        return $this->_form = Formie::$plugin->getForms()->getFormByLayoutId($this->layoutId);
+        return $this->_form = Formie::$plugin->getForms()->getFormByLayoutId($this->id);
     }
 
     public function getPages(): array
