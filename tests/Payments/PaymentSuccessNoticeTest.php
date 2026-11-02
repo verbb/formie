@@ -31,7 +31,7 @@ it('stores the same sanitized success notice as other completion paths after a p
         ->paymentField('paymentField', ['paymentIntegration' => $integration->handle, 'paymentIntegrationType' => get_class($integration)])
         ->create();
     $form->setSettings(['successMessage' => '<p>Paid. <a href="https://example.test/terms" target="_blank">Terms</a></p>']);
-    expect(Formie::$plugin->getForms()->saveForm($form))->toBeTrue();
+    expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
 
     $submission = formie()->submission($form)->with(['fullName' => 'Payment Fixture'])->save();
     $payment = new PaymentModel([

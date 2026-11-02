@@ -49,6 +49,10 @@ final class WebRequestTestHelper
             // Finish console writes while their owning mutex is still current.
             // Shared ProjectConfig instances resolve their lock through Craft::$app.
             $originalApp->getProjectConfig()->flush();
+            // flush() only releases the lock when changes are pending. A shared instance
+            // would otherwise release it through the web app's mutex, which does not own
+            // it, and strand the console mutex for every later project config write.
+            (new \ReflectionMethod(\craft\services\ProjectConfig::class, '_releaseLock'))->invoke($originalApp->getProjectConfig());
             /** @var Application $app */
             $app = self::createWebApplication($originalApp);
             $app->edition = $originalApp->edition;

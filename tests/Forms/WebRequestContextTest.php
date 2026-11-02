@@ -46,6 +46,32 @@ it('releases shared project config locks in their owning request context', funct
 })->with(['completed request' => false, 'failed request' => true])
     ->with(['controller flush' => true, 'request-end flush' => false]);
 
+it('releases a held project config lock with no pending changes before a shared request', function (): void {
+    $config = Craft::$app->getProjectConfig();
+    $mutex = Craft::$app->getMutex();
+    $key = 'formieRequestLockTest' . bin2hex(random_bytes(5));
+
+    try {
+        // A write can take the lock without recording a change, which flush() leaves held.
+        (new ReflectionMethod(ProjectConfig::class, '_acquireLock'))->invoke($config);
+
+        WebRequestTestHelper::withWebRequestContext(function () use ($config, $key): void {
+            Craft::$app->set('projectConfig', $config);
+            $config->set($key, 'web');
+        });
+
+        expect($mutex->isAcquired(ProjectConfig::MUTEX_NAME))->toBeFalse();
+        $config->set($key, 'next console');
+        $config->flush();
+        expect($config->get($key))->toBe('next console');
+    } finally {
+        // Keep a failing regression from poisoning the rest of the suite.
+        $mutex->release(ProjectConfig::MUTEX_NAME);
+        $config->remove($key);
+        $config->flush();
+    }
+});
+
 it('restores existing global listeners after a simulated request throws', function (string $eventName): void {
     $calls = [];
     $original = static function () use (&$calls): void {
