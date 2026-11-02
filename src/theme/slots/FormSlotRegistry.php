@@ -112,7 +112,9 @@ class FormSlotRegistry extends Component
                 'data-formie-success-message-timeout' => $form?->settings->successMessageTimeout,
                 'data-formie-success-message-position' => $form?->settings->successMessagePosition,
                 'data-formie-error-message' => $form?->getFrontendErrorMessage(),
-                'data-formie-error-message-position' => $form?->settings->errorMessagePosition,
+                // "None" is an empty string, which slot attributes filter out, and the browser treats a
+                // missing position as the default. A bare attribute keeps it explicit.
+                'data-formie-error-message-position' => $form?->settings->errorMessagePosition === '' ? true : $form?->settings->errorMessagePosition,
                 'data-formie-loading-indicator' => $form?->settings->loadingIndicator,
                 'data-formie-loading-indicator-text' => $form?->settings->loadingIndicatorText,
                 'data-formie-progress-calculation' => $form?->settings->progressCalculation,
