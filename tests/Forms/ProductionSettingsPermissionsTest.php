@@ -11,6 +11,8 @@ use craft\db\Query;
 use verbb\formie\helpers\Table;
 
 function withProductionPermissions(array $grants, callable $callback, string $method = 'POST'): void {
+    // Persist earlier tests' changes, which the rollback below would otherwise discard.
+    Craft::$app->getProjectConfig()->flush();
     $transaction = Craft::$app->getDb()->beginTransaction();
     $config = Craft::$app->getProjectConfig();
     $readOnly = $config->readOnly;
@@ -40,8 +42,31 @@ function withProductionPermissions(array $grants, callable $callback, string $me
         $config->readOnly = $readOnly;
         Formie::$plugin->getSettings()->setAttributes($settings, false);
         $transaction->rollBack();
+        // Craft keeps applied changes after a flush, so the web request helper's flushes bump the
+        // config version again. The rollback undoes that in the database but not in memory.
+        Craft::$app->getInfo()->configVersion = (new Query())->select(['configVersion'])->from(Table::INFO)->scalar();
     }
 }
+
+it('keeps project config writable when changes were pending before the permission check', function(): void {
+    $config = Craft::$app->getProjectConfig();
+    $key = 'formiePermissionLockTest' . bin2hex(random_bytes(5));
+    $config->set($key, 'pending');
+
+    try {
+        withProductionPermissions(['formie-accessStencils'], function(): void {});
+
+        $stored = (new Query())->select(['configVersion'])->from(Table::INFO)->scalar();
+        expect($stored)->toBe(Craft::$app->getInfo()->configVersion);
+        expect($config->get($key))->toBe('pending');
+
+        $config->set($key, 'after');
+        expect($config->get($key))->toBe('after');
+    } finally {
+        $config->remove($key);
+        $config->flush();
+    }
+});
 
 it('blocks delegated project settings writes in the locked environment', function(string $page, array $payload): void {
     withProductionPermissions([Formie::$plugin->getPermissions()->settingsPagePermissionKey($page)], function($request) use ($page, $payload): void {
