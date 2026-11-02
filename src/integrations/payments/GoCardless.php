@@ -69,6 +69,7 @@ class GoCardless extends Payment
     // =========================================================================
 
     public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
+    public const EVENT_RECEIVE_WEBHOOK = 'receiveWebhook';
 
     private const API_VERSION = '2015-07-06';
 
@@ -477,6 +478,7 @@ class GoCardless extends Payment
             if (!$remote) {
                 throw new Exception('Unable to resolve GoCardless payment.');
             }
+
             $this->_updatePaymentStatus($payment, $remote);
         }
     }
@@ -868,6 +870,7 @@ class GoCardless extends Payment
 
         if (!$formiePaymentId) {
             Integration::error($this, 'Missing `formiePaymentId` in GoCardless metadata.');
+
             return;
         }
 
@@ -875,6 +878,7 @@ class GoCardless extends Payment
 
         if (!$payment || (int)$payment->integrationId !== (int)$this->id) {
             Integration::error($this, "No Formie payment found for ID: {$formiePaymentId}");
+
             return;
         }
 
@@ -908,6 +912,7 @@ class GoCardless extends Payment
 
         if (!$payment || (int)$payment->integrationId !== (int)$this->id) {
             Integration::error($this, "No Formie payment found for billing request ID: {$formiePaymentId}");
+
             return;
         }
 
@@ -920,6 +925,7 @@ class GoCardless extends Payment
         if ($storedId && $storedId !== $billingRequestId) {
             throw new Exception('Billing request ownership mismatch.');
         }
+
         $payment->response = array_merge($payment->response ?? [], ['billingRequest' => $billingRequest]);
         Formie::$plugin->getPayments()->savePayment($payment);
         $this->_syncPaymentFromBillingRequestReturn($payment);
@@ -937,25 +943,30 @@ class GoCardless extends Payment
             || !PaymentMoney::fromMinor((string)($gcPayment['amount'] ?? ''), strtoupper((string)($gcPayment['currency'] ?? '')))->equals(PaymentMoney::fromDecimal($payment->amount, (string)$payment->currency))) {
             throw new Exception('GoCardless payment ownership or amount could not be verified.');
         }
+
         $status = $gcPayment['status'] ?? '';
 
         switch ($status) {
             case 'confirmed':
             case 'paid_out':
                 $payment->status = PaymentModel::STATUS_SUCCEEDED;
+
                 break;
             case 'cancelled':
                 $payment->status = PaymentModel::STATUS_CANCELLED;
+
                 break;
             case 'failed':
             case 'charged_back':
             case 'customer_approval_denied':
                 $payment->status = PaymentModel::STATUS_FAILED;
+
                 break;
             case 'pending_submission':
             case 'submitted':
             default:
                 $payment->status = PaymentModel::STATUS_PENDING;
+
                 break;
         }
 
@@ -1047,6 +1058,7 @@ class GoCardless extends Payment
                             }
                         }
                     }
+
                     throw $e;
                 }
             },
