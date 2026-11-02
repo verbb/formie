@@ -111,6 +111,7 @@ class FormsController extends Controller
     public function actionIndex(): Response
     {
         $this->requirePermission('formie-accessForms');
+
         Plugin::registerCpFormsIndexAssets();
 
         $canCreateForms = Craft::$app->getUser()->checkPermission('formie-createForms');
@@ -384,7 +385,7 @@ class FormsController extends Controller
         return $this->redirect(Formie::$plugin->getFormPreview()->getPreviewFrameUrl($token));
     }
 
-    public function actionTemplateFieldsSlideoutSave(): Response
+    public function actionTemplateFieldsSlideoutSave(): ?Response
     {
         $this->requireCpRequest();
         $this->requirePostRequest();
