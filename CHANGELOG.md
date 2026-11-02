@@ -17,6 +17,7 @@
 - Fixed GraphQL mutations written with the documented input type names being rejected for Name, Address, Group, Repeater, Table and Payment fields. These types, and their Group, Repeater and Table output types, now use names based on form and field handles instead of field IDs, so they’re the same in every environment. Any query that hard-coded an ID-based type name needs updating. ([#3080](https://github.com/verbb/formie/issues/3080))
 - Fixed `inputTypeName` returning `[]` for Table fields. ([#3080](https://github.com/verbb/formie/issues/3080))
 - Fixed AJAX submissions still showing the form error message when Error Message Position is set to None.
+- Fixed the Address Country and Name Prefix sub-fields outputting no value in email notification field summaries. ([#3085](https://github.com/verbb/formie/issues/3085))
 - Fixed failed notification and integration alert emails failing to send when Craft’s `enableTwigSandbox` setting is on. Customised messages using the default `json_encode` and `integration.name` output are updated automatically.
 - Fixed the Trello, Google Sheets and Calendar Event integrations throwing an error when loading their form settings.
 - Fixed the Product element integration failing to save when “Overwrite Values” is off.

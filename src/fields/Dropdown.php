@@ -10,6 +10,7 @@ use verbb\formie\fields\traits\SearchableDropdownFieldTrait;
 use verbb\formie\helpers\FieldBuilderPolicy;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
+use verbb\formie\models\Notification;
 use verbb\formie\models\SlotTag;
 use verbb\formie\references\ReferenceType;
 use verbb\formie\theme\context\RenderContext;
@@ -416,6 +417,16 @@ class Dropdown extends OptionsField implements SortableFieldInterface
             'field' => $this,
             'options' => $this->translatedOptions(),
         ]);
+    }
+
+    protected function defineValueForReferenceBlock(mixed $value, Notification $notification, ElementInterface $element = null): mixed
+    {
+        // Address and Name store their dropdown sub-fields as plain strings, but the template reads an option.
+        if (is_scalar($value)) {
+            $value = $this->normalizeValue((string)$value, $element);
+        }
+
+        return parent::defineValueForReferenceBlock($value, $notification, $element);
     }
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
