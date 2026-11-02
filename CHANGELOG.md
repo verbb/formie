@@ -16,6 +16,7 @@
 - Fixed `inputTypeName` returning `[]` for Table fields. ([#3080](https://github.com/verbb/formie/issues/3080))
 - Fixed failed notification and integration alert emails failing to send when Craft’s `enableTwigSandbox` setting is on. Customised messages using `json_encode` or `integration.name` need to use `emailResponseJson`, `integrationResponseJson` or `integrationName` instead.
 - Fixed the Trello, Google Sheets and Calendar Event integrations throwing an error when loading their form settings.
+- Fixed the Product element integration failing to save when “Overwrite Values” is off.
 
 ## 4.0.6 - 2026-11-01
 

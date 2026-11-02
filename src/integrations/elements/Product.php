@@ -257,7 +257,7 @@ class Product extends Element
 
             // Filter null values
             if (!$this->overwriteValues) {
-                $attributeValues = ArrayHelper::filterNullValues($attributeValues);
+                $attributeValues = ArrayHelper::filterNull($attributeValues);
             }
 
             // Populate variant values, even if null, as Commerce expects at least a value
@@ -279,7 +279,7 @@ class Product extends Element
 
             // Filter null values
             if (!$this->overwriteValues) {
-                $fieldValues = ArrayHelper::filterNullValues($fieldValues);
+                $fieldValues = ArrayHelper::filterNull($fieldValues);
             }
 
             $product->setFieldValues($fieldValues);
@@ -459,6 +459,7 @@ class Product extends Element
                 }
             }
         }
+
         return $options;
     }
 
@@ -469,8 +470,10 @@ class Product extends Element
         if (is_array($elements) && !empty($elements)) {
             $first = reset($elements);
             $id = $first->id ?? $first['id'] ?? null;
+
             return $id !== null ? (string)$id : '';
         }
+
         return '';
     }
 }
