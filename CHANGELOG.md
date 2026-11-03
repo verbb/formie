@@ -30,6 +30,7 @@
 - Fixed GraphQL mutations written with the documented input type names being rejected for Name, Address, Group, Repeater, Table and Payment fields. These types, and their Group, Repeater and Table output types, now use names based on form and field handles instead of field IDs, so they’re the same in every environment. Any query that hard-coded an ID-based type name needs updating. ([#3080](https://github.com/verbb/formie/issues/3080))
 - Fixed `inputTypeName` returning `[]` for Table fields. ([#3080](https://github.com/verbb/formie/issues/3080))
 - Fixed AJAX submissions still showing the form error message when Error Message Position is set to None.
+- Fixed `fieldNamespace` being ignored when rendering pages or complete forms, and corrected custom form examples and captcha guidance.
 - Fixed the Address Country and Name Prefix sub-fields outputting no value in email notification field summaries. ([#3085](https://github.com/verbb/formie/issues/3085))
 - Fixed integration mappings from Formie 3 that use Form Name, Submission Date, Site Name or Site Handle failing to send, and Name, Address and Group sub-field mappings showing as “Don’t Include” and being cleared when saving the form. Existing mappings update automatically. ([#3086](https://github.com/verbb/formie/issues/3086))
 - Fixed failed notification and integration alert emails failing to send when Craft’s `enableTwigSandbox` setting is on. Customised messages using the default `json_encode` and `integration.name` output are updated automatically.

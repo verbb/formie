@@ -29,12 +29,6 @@ The form handle.
 :::
 
 ::: reference
-### `configJson`
-
-Encoded JSON used by Formie’s front-end form handling.
-:::
-
-::: reference
 ### `defaultStatus`
 
 **Type:** `verbb\formie\models\SubmissionStatus|null`

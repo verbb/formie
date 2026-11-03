@@ -25,6 +25,8 @@ If your site uses `useEmailAsUsername`, you can omit `username`.
 
 Match field types sensibly — use Email Address for `email`, Password for `password`, and so on. Custom user fields can be added too, but they must mirror Craft field types and use the `fields[...]` namespace (covered below).
 
+Disable captchas on this Formie form. These examples load CSS only and use native HTML submission; Formie’s JavaScript widgets, conditions and captcha validation do not run. If you need captcha protection, follow [Captcha Validation](/templates/craft-forms#captcha-validation) before using this form publicly.
+
 ## Simple Single-Page Registration
 
 For core user attributes only, follow the [Craft Forms](/templates/craft-forms) registration example:
@@ -32,9 +34,9 @@ For core user attributes only, follow the [Craft Forms](/templates/craft-forms) 
 ```twig
 {% set form = craft.formie.forms.handle('userRegistration').one() %}
 
-{{ craft.formie.formAssets(form) }}
+{{ craft.formie.formAssets(form, { includeJs: false }) }}
 
-<form method="post" accept-charset="UTF-8" data-fui-form="{{ form.configJson }}">
+<form method="post" accept-charset="UTF-8">
     {{ actionInput('users/save-user') }}
     {{ csrfInput() }}
 
@@ -47,42 +49,30 @@ For core user attributes only, follow the [Craft Forms](/templates/craft-forms) 
 The critical setting is `fieldNamespace: ''`. By default Formie names inputs under `fields[...]`, but Craft expects names like `email` and `password` directly:
 
 ```html
-<input type="text" name="email">
+<input type="email" name="email">
 <input type="password" name="password">
 ```
 
 Without an empty namespace you would get `fields[email]`, which Craft's user actions do not read.
 
-## Adding Custom User Fields on a Second Page
+<a id="adding-custom-user-fields-on-a-second-page"></a>
 
-Custom user fields belong to Craft's `fields[handle]` namespace. A practical pattern is to put native user properties on page 1 (no namespace) and custom fields on page 2 (`fields` namespace):
+## Adding Custom User Fields
+
+Custom user fields belong to Craft's `fields[handle]` namespace. Render them individually with that namespace while keeping core user attributes at the root. For example, add a Single-Line Text field with the handle `jobTitle` to the Formie form and a matching Plain Text field to Craft’s user field layout. Replace the `renderPage()` call above with:
 
 ```twig
-{% set form = craft.formie.forms.handle('userRegistration').one() %}
-
-{{ craft.formie.formAssets(form) }}
-
-<form method="post" accept-charset="UTF-8" data-fui-form="{{ form.configJson }}">
-    {{ actionInput('users/save-user') }}
-    {{ csrfInput() }}
-
-    {% for page in form.getPages() %}
-        {{ craft.formie.renderPage(form, page, {
-            fieldNamespace: loop.first ? '' : 'fields',
-        }) }}
-    {% endfor %}
-</form>
+{% for field in form.getFields() %}
+    {{ craft.formie.renderField(form, field, {
+        fieldNamespace: field.handle == 'jobTitle' ? 'fields' : '',
+    }) }}
+{% endfor %}
+<button type="submit">Register</button>
 ```
 
-That produces the expected mix:
+The result contains `name="email"` for the core email attribute and `name="fields[jobTitle]"` for the custom user field. Keep all fields on one page: Craft’s user action does not advance Formie pages or keep partial Formie submissions.
 
-```html
-<input type="text" name="firstName">
-<input type="text" name="lastName">
-<input type="email" name="email">
-
-<input type="text" name="fields[myCustomField]">
-```
+Test registration with a new email address, then check the user’s profile in Craft. Also submit an invalid email and a duplicate account to confirm your template displays Craft’s validation errors. Passwords should remain empty when redisplaying a failed submission.
 
 ## When to Use the User Integration Instead
 

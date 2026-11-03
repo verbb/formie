@@ -6,6 +6,8 @@ This is useful when you want content-managed labels and fields for common flows 
 
 ## How It Works
 
+Use a single-page form with ordinary text, email, password and checkbox inputs. Disable captchas for this Formie form in its settings. Formie’s JavaScript widgets, conditions, multi-page navigation and AJAX submission are outside this pattern.
+
 The basic pattern is:
 
 1. create a Formie form to manage the fields
@@ -16,9 +18,9 @@ The basic pattern is:
 ```twig
 {% set form = craft.formie.forms.handle('login').one() %}
 
-{{ craft.formie.formAssets(form) }}
+{{ craft.formie.formAssets(form, { includeJs: false }) }}
 
-<form method="post" accept-charset="UTF-8" data-fui-form="{{ form.configJson }}">
+<form method="post" accept-charset="UTF-8">
     {{ actionInput('users/login') }}
     {{ csrfInput() }}
 
@@ -27,6 +29,8 @@ The basic pattern is:
     }) }}
 </form>
 ```
+
+The asset call loads Formie’s CSS only. Leave `data-formie` and `data-formie-form` off the outer form so Formie’s browser submission handling does not mount it. Craft handles the POST, validation errors and redirects.
 
 ## Why `fieldNamespace` Matters
 
@@ -48,7 +52,18 @@ With `fieldNamespace: ''`, that becomes:
 <input type="text" name="loginName">
 ```
 
-which is what Craft's user actions expect.
+which is what Craft's user actions expect. The option applies to root fields; nested Group and Repeater fields keep their child paths.
+
+To control the names one field at a time, pass the option directly to `renderField()`:
+
+```twig
+{% for field in form.getFields() %}
+    {{ craft.formie.renderField(form, field, { fieldNamespace: '' }) }}
+{% endfor %}
+<button type="submit">Log in</button>
+```
+
+Use this loop in place of `renderPage()` when you want to supply your own submit button.
 
 ## Login Form
 
@@ -60,16 +75,16 @@ For a login form, create a Formie form with fields that match what Craft expects
 
 If your site uses email addresses as usernames, making `loginName` an Email Address field can be a better fit.
 
-For the password field, make sure the input type is set to `password` so it renders as a password input.
+Use a Password field for `password`. Its value stays empty when the form is redisplayed.
 
 You can also add normal Craft concerns around the form, such as error messages and redirect handling:
 
 ```twig
 {% set form = craft.formie.forms.handle('login').one() %}
 
-{{ craft.formie.formAssets(form) }}
+{{ craft.formie.formAssets(form, { includeJs: false }) }}
 
-<form method="post" accept-charset="UTF-8" data-fui-form="{{ form.configJson }}">
+<form method="post" accept-charset="UTF-8">
     {{ actionInput('users/login') }}
     {{ csrfInput() }}
 
@@ -102,9 +117,9 @@ If your site uses `useEmailAsUsername`, you may not need a separate `username` f
 ```twig
 {% set form = craft.formie.forms.handle('register').one() %}
 
-{{ craft.formie.formAssets(form) }}
+{{ craft.formie.formAssets(form, { includeJs: false }) }}
 
-<form method="post" accept-charset="UTF-8" data-fui-form="{{ form.configJson }}">
+<form method="post" accept-charset="UTF-8">
     {{ actionInput('users/save-user') }}
     {{ csrfInput() }}
 
@@ -124,7 +139,7 @@ Profile forms follow the same idea, but they usually need prefilled values from 
 {% set form = craft.formie.forms.handle('profile').one() %}
 {% set user = user ?? currentUser %}
 
-{{ craft.formie.formAssets(form) }}
+{{ craft.formie.formAssets(form, { includeJs: false }) }}
 
 {% do craft.formie.populateFormValues(form, {
     username: user.username,
@@ -133,7 +148,7 @@ Profile forms follow the same idea, but they usually need prefilled values from 
     lastName: user.lastName,
 }) %}
 
-<form method="post" accept-charset="UTF-8" enctype="multipart/form-data" data-fui-form="{{ form.configJson }}">
+<form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
     {{ actionInput('users/save-user') }}
     {{ hiddenInput('userId', user.id) }}
     {{ csrfInput() }}
@@ -147,6 +162,14 @@ Profile forms follow the same idea, but they usually need prefilled values from 
 This works well for core user attributes such as name and email.
 
 For user photos and custom user fields, it is usually better to template those separately rather than duplicating everything in Formie. File inputs cannot be pre-populated with an existing photo, and custom user fields already belong to Craft's normal `fields[...]` namespace.
+
+## Captcha Validation
+
+Posting directly to `users/login` or `users/save-user` bypasses Formie’s server-side captcha validation, spam checks and field validation. Enabling a provider on the Formie form or displaying its widget does not protect these Craft actions.
+
+Formie does not provide a standalone captcha-verification action for Craft’s user controllers. To protect login, use an integration that supports Craft authentication or custom module code that verifies the provider’s response on the server before authentication and rejects missing or invalid tokens. For reCAPTCHA, follow [Google’s server-side verification requirements](https://developers.google.com/recaptcha/docs/verify). A separate browser verification request is not enough unless the login action also enforces its result.
+
+For registration that should use Formie’s submission validation and captchas, submit through Formie and configure the [User integration](/integrations/elements/user). That integration creates or updates users; it is not a replacement for password authentication.
 
 ## Related Forms
 

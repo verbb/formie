@@ -240,6 +240,9 @@ class Rendering extends Component
 
         if (array_key_exists('fieldNamespace', $fieldOptions)) {
             $field->setNamespace($fieldOptions['fieldNamespace']);
+        } elseif (array_key_exists('fieldNamespace', $baseOptions) && $field instanceof Field && !$field->getParentField()) {
+            // Only replace the root namespace; children retain their group and repeater paths.
+            $field->setNamespace($baseOptions['fieldNamespace']);
         }
 
         // Get the active submission and hydrate page continuity for field context.
@@ -444,6 +447,7 @@ class Rendering extends Component
             $field = $runtime->findField($form, (string)$path);
             $mapped[$field->uid] = $runtime->populationValue($field, $value, $submission);
         }
+
         $form->replaceInstanceConfig($form->getInstanceConfig()->with($force ? 'forced' : 'initial', $mapped));
 
         if ($submission) {
@@ -468,6 +472,7 @@ class Rendering extends Component
 
         $bufferedFiles = $view->$type;
         $view->$type = array_pop($this->_filesBuffers[$type]);
+
         return $bufferedFiles;
     }
 

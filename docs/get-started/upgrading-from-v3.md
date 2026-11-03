@@ -1509,6 +1509,34 @@ Formie 3 | Formie 4
 
 See [Frontend Assets](/frontend/frontend-assets) for asset loading examples.
 
+#### Custom Form Tags
+
+`form.configJson` and `data-fui-form` are no longer used. For custom forms that submit to Formie, use the explicit `data-formie-*` attributes and hidden inputs in [Custom Rendering](/theming/custom-rendering).
+
+For forms that post directly to Craft actions such as `users/login`, use a plain form tag and load CSS only:
+
+::: code-group
+```twig [Formie 3]
+{{ craft.formie.renderFormAssets(form) }}
+<form method="post" data-fui-form="{{ form.configJson }}">
+    {{ actionInput('users/login') }}
+    {{ csrfInput() }}
+    {{ craft.formie.renderPage(form, null, { fieldNamespace: '' }) }}
+</form>
+```
+
+```twig [Formie 4]
+{{ craft.formie.formAssets(form, { includeJs: false }) }}
+<form method="post" accept-charset="UTF-8">
+    {{ actionInput('users/login') }}
+    {{ csrfInput() }}
+    {{ craft.formie.renderPage(form, null, { fieldNamespace: '' }) }}
+</form>
+```
+:::
+
+Both fragments assume `form` is your single-page login form. Disable Formie captchas on it and use ordinary HTML inputs. Check that the browser posts `loginName` and `password` at the root of the request. Craft handles the submission, so Formie’s field validation, captchas, notifications and integrations do not run. See [Craft Forms](/templates/craft-forms) for the full setup and server-side captcha requirements.
+
 ### Form Render IDs
 
 Formie 3 | Formie 4

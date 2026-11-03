@@ -4,21 +4,16 @@ Render fields manually when you want to control most of the form layout yourself
 
 This gives you a lot more freedom, but it also means you are taking on more responsibility for how the form behaves.
 
+Start with the complete form example in [Custom Rendering](/theming/custom-rendering), including its browser attributes, hidden inputs and enabled spam protections. Inside that form, render the fields and your submit button:
+
 ```twig
-{% set form = craft.formie.forms.handle('contactForm').one() %}
-
-{{ craft.formie.formAssets(form) }}
-
-<form method="post" data-fui-form="{{ form.configJson }}">
-    {{ csrfInput() }}
-    {{ actionInput('formie/submissions/submit') }}
-    {{ hiddenInput('handle', form.handle) }}
-
-    {% for field in form.getFields() %}
-        {{ craft.formie.renderField(form, field) }}
-    {% endfor %}
-</form>
+{% for field in form.getFields() %}
+    {{ craft.formie.renderField(form, field) }}
+{% endfor %}
+<button type="submit" data-submit-action="submit">Submit</button>
 ```
+
+This fragment supplies only fields and a button. The surrounding form setup is required for Formie submission handling. For a form that posts to `users/login` or another Craft action, follow [Craft Forms](/templates/craft-forms).
 
 ## What Changes When You Do This
 
