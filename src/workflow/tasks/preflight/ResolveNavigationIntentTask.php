@@ -19,6 +19,10 @@ class ResolveNavigationIntentTask implements TaskInterface
         $command = $context->command;
         $form = $command->form;
 
+        // The command already resolved and authorized this submission. Lazy draft
+        // restoration must not replace its values or the page selected below.
+        $form->setCurrentSubmission($command->submission);
+
         if ($command->isInteractive()) {
             $progress = Formie::$plugin->getSubmissionProgress()->getProgressState($form);
             $pages = $form->getPages();
@@ -36,6 +40,7 @@ class ResolveNavigationIntentTask implements TaskInterface
                 foreach ($pages as $page) {
                     if ($command->pageId === (int)$page->id && $form->getPageIndex($page) > $form->getPageIndex($authoritative)) {
                         $command->submission->addError('form', Craft::t('formie', 'The requested page is unavailable.'));
+
                         return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
                     }
                 }
@@ -46,11 +51,13 @@ class ResolveNavigationIntentTask implements TaskInterface
             foreach ($form->getPages() as $page) {
                 if ((int)$page->id === $command->pageId) {
                     $form->setCurrentPage($page);
+
                     return TaskResult::continue();
                 }
             }
 
             $command->submission->addError('form', Craft::t('formie', 'The requested page is unavailable.'));
+
             return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
         }
 

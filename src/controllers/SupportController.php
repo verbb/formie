@@ -55,21 +55,11 @@ class SupportController extends SettingsAccessController
         $formId = $request->getParam('formId');
         $message = $request->getParam('message');
 
-        if (!$fromEmail || !$formId || !$message) {
-            $error = Craft::t('formie', 'Please provide all the required fields.');
-            $this->setFailFlash($error);
-
-            Craft::$app->getUrlManager()->setRouteParams([
-                'error' => $error,
-            ]);
-
-            return null;
-        }
-
+        // Keep entered values on the model even when a required field is missing.
         $support = new Support();
         $support->fromEmail = $fromEmail;
-        $support->formId = (int)$formId;
-        $support->message = trim($message);
+        $support->formId = $formId ? (int)$formId : null;
+        $support->message = trim((string)$message);
         $support->attachments = UploadedFile::getInstancesByName('attachments');
         $support->includeLogs = (bool)$request->getParam('includeLogs', true);
 

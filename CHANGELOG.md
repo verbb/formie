@@ -15,6 +15,8 @@
 - Renamed the “Reconcile uncertain deliveries” permission to “Confirm delivery outcomes” and “Force integration execution” to “Run integrations regardless of conditions and opt-in”, and moved both under “View delivery diagnostics”.
 
 ### Fixed
+- Fixed cached multi-page forms becoming stuck on the wrong page when restoring an in-progress submission.
+- Fixed the support form clearing entered values when a required field is missing.
 - Fixed the Redirect Entry picker appearing empty when Craft’s “All entries” source is disabled. ([#3089](https://github.com/verbb/formie/issues/3089))
 - Fixed forms failing to load when a field or page has a condition rule that was added but never filled in, which can be present on forms upgraded from Formie 3.
 - Fixed forms showing “A required form feature could not start” and being unable to submit when a field had conditions enabled but no rules.
