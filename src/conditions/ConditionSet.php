@@ -13,6 +13,10 @@ final readonly class ConditionSet
         $input = $settings['conditions'] ?? $settings['rules'] ?? [];
 
         foreach (is_array($input) ? $input : [null] as $row) {
+            if (self::_isBlankRow($row)) {
+                continue;
+            }
+
             $row = is_array($row) ? $row : [];
             $reference = $row['field'] ?? $row['fieldId'] ?? '';
 
@@ -28,14 +32,17 @@ final readonly class ConditionSet
                     '{submission:dateCreated}' => '{submission:date}',
                 ][$reference] ?? $reference;
             }
+
             $operator = $row['condition'] ?? $row['operator'] ?? '';
             $operator = is_string($operator) ? $operator : '';
             $operator = ['==' => '=', 'equals' => '=', 'notEquals' => '!='][$operator] ?? $operator;
             $rules[] = new ConditionRule(is_string($reference) ? $reference : '', $operator, $row['value'] ?? null, $row);
         }
+
         $mode = $settings['conditionRule'] ?? $settings['mode'] ?? 'all';
         $effect = $settings['showRule'] ?? $settings['effect'] ?? 'show';
         $version = $settings['version'] ?? 1;
+
         return new self(is_string($mode) ? $mode : '', is_string($effect) ? $effect : '', $rules, $purpose, is_int($version) ? $version : 0);
     }
 
@@ -45,5 +52,22 @@ final readonly class ConditionSet
 
     public function __construct(public string $mode, public string $effect, public array $rules, public string $purpose = 'visibility', public int $version = 1)
     {
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    // A row added in the builder and never completed has nothing to test. Formie 3 skipped these too. A missing or
+    // non-string field isn't blank, so it stays invalid.
+    private static function _isBlankRow(mixed $row): bool
+    {
+        if (!is_array($row) || ($row['field'] ?? null) !== '') {
+            return false;
+        }
+
+        $value = $row['value'] ?? '';
+
+        return ($row['condition'] ?? $row['operator'] ?? '') === '' || (is_string($value) && trim($value) === '');
     }
 }
