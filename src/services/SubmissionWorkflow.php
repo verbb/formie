@@ -46,7 +46,7 @@ class SubmissionWorkflow extends Component
     /** Only the processor's resolved and authorized command enters this workflow. */
     public function process(SubmissionCommand $command): SubmissionOutcome
     {
-        return $this->_run(new WorkflowContext($command), false)
+        return $this->_run(new WorkflowContext($command))
             ?? throw new LogicException('The submission workflow did not produce an outcome.');
     }
 
@@ -58,14 +58,20 @@ class SubmissionWorkflow extends Component
         $context->taskState['dispatch.lock'] = $lock;
         $context->taskState['dispatch.statusChanged'] = $run->command['statusChanged'];
         $context->taskState['dispatch.spamUnmarked'] = $run->command['spamUnmarked'];
-        $this->_run($context, true);
+        $this->_run($context, Stage::DISPATCH);
+    }
+
+    /** Administrative completions save themselves, but they're screened like any other. */
+    public function screen(WorkflowContext $context): void
+    {
+        $this->_run($context, Stage::SCREEN);
     }
 
 
     // Private Methods
     // =========================================================================
 
-    private function _run(WorkflowContext $context, bool $dispatchOnly): ?SubmissionOutcome
+    private function _run(WorkflowContext $context, ?Stage $onlyStage = null): ?SubmissionOutcome
     {
         $command = $context->command;
         WorkflowContext::push($context);
@@ -74,7 +80,7 @@ class SubmissionWorkflow extends Component
             foreach (WorkflowManifest::stages() as $stageName => $builtIns) {
                 $stage = Stage::from($stageName);
 
-                if ($dispatchOnly && $stage !== Stage::DISPATCH) {
+                if ($onlyStage && $stage !== $onlyStage) {
                     continue;
                 }
 
@@ -112,6 +118,7 @@ class SubmissionWorkflow extends Component
                             'context' => $context, 'command' => $command, 'stage' => $stageName, 'task' => $task->id,
                         ]));
                     }
+
                     $result = $task->handler->execute($context);
 
                     if ($task->publicAnchor) {
@@ -122,6 +129,7 @@ class SubmissionWorkflow extends Component
 
                     if ($result->outcome) {
                         $context->outcome = $result->outcome;
+
                         break;
                     }
                 }
@@ -140,6 +148,7 @@ class SubmissionWorkflow extends Component
                 if ($stage === Stage::VALIDATE && !$context->outcome && $command->submission->hasErrors()) {
                     $context->outcome = $context->result(SubmissionOutcomeType::VALIDATION_FAILED);
                 }
+
                 $context->stages[] = $stageName;
 
                 if ($stage === Stage::PERSIST && !$context->outcome) {
@@ -154,6 +163,7 @@ class SubmissionWorkflow extends Component
                         || $state->hasMarker(DispatchState::MARKER_SPAM_NOTIFICATIONS)) {
                         $state->markMarker(DispatchState::MARKER_FINALIZED);
                     }
+
                     Formie::$plugin->getSubmissionDispatches()->finish($context, $context->outcome === null);
                 }
 
@@ -171,7 +181,11 @@ class SubmissionWorkflow extends Component
             try {
                 Formie::$plugin->getSubmissionDispatches()->finish($context, false);
             } finally {
-                FileUpload::clearStagedUploads($command->submission);
+                // Screening happens before the caller saves these uploads.
+                if ($onlyStage !== Stage::SCREEN) {
+                    FileUpload::clearStagedUploads($command->submission);
+                }
+
                 WorkflowContext::pop();
             }
         }
@@ -184,8 +198,10 @@ class SubmissionWorkflow extends Component
         if (!$state->isDispatchable() || !Formie::$plugin->getSubmissionDispatches()->begin($context)) {
             return false;
         }
+
         $state->applySpamFailureIfNeeded();
         $context->taskState['dispatch.state'] = $state;
+
         return true;
     }
 
@@ -194,6 +210,7 @@ class SubmissionWorkflow extends Component
         if ($context->taskState['persist.discardSpam'] ?? false) {
             return;
         }
+
         $command = $context->command;
         $submission = $command->submission;
         $form = $command->form;

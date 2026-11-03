@@ -40,6 +40,16 @@ class SubmissionArguments extends ElementMutationArguments
                 'type' => Type::string(),
                 'description' => 'Optional request token for duplicate-submit/replay protection.',
             ],
+            'sendNotifications' => [
+                'name' => 'sendNotifications',
+                'type' => Type::boolean(),
+                'description' => 'Whether completing this submission sends its email notifications. Defaults to true.',
+            ],
+            'triggerIntegrations' => [
+                'name' => 'triggerIntegrations',
+                'type' => Type::boolean(),
+                'description' => 'Whether completing this submission triggers its integrations. Defaults to true.',
+            ],
         ]);
     }
 }

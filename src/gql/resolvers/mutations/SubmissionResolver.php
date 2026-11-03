@@ -181,6 +181,11 @@ class SubmissionResolver extends ElementMutationResolver
         $response = $result->response;
         $success = $response->success;
 
+        // Spam that's discarded under simulated success has nothing to return.
+        if ($success && !$submission->id && ($response->outcome->data['fakeSuccess'] ?? false)) {
+            return null;
+        }
+
         if (!$success || $submission->hasErrors() || !$submission->id) {
             $errors = SubmissionErrors::fromSubmission($submission)->toValuePathMap();
 

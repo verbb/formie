@@ -529,6 +529,16 @@ class Submission extends Element
         $this->metadata = ArrayHelper::merge($this->getMetadata(), $metadata);
     }
 
+    public function shouldSendNotifications(): bool
+    {
+        return !($this->getMetadata('delivery')['skipNotifications'] ?? false);
+    }
+
+    public function shouldTriggerIntegrations(): bool
+    {
+        return !($this->getMetadata('delivery')['skipIntegrations'] ?? false);
+    }
+
     public function __isset($name): bool
     {
         return parent::__isset($name) || $this->getFieldByHandle($name);
@@ -920,6 +930,7 @@ class Submission extends Element
             if ($this->_form) {
                 $this->_form = clone $this->_form;
             }
+
             $this->_applySnapshotSettingsIfNeeded();
         }
 
@@ -1234,6 +1245,7 @@ class Submission extends Element
         foreach (FieldTraversal::recursively($this->getFields()) as $field) {
             if ($field->enableContentEncryption) {
                 $hasEncryptedFields = true;
+
                 break;
             }
         }
@@ -1259,8 +1271,9 @@ class Submission extends Element
 
         // Check if this is a spam submission and if we should save it
         // Only trigger this for site requests though
-        $command = WorkflowContext::current()?->command;
-        $administrative = $command?->submission === $this && $command->authority->type === SubmissionAuthorityType::GRAPHQL_ADMIN;
+        $context = WorkflowContext::current();
+        $command = $context?->command;
+        $administrative = $command?->submission === $this && $command->authority->type === SubmissionAuthorityType::GRAPHQL_ADMIN && !$context->attemptedCompletion;
 
         if ($this->isSpam && !$administrative && $request->getIsSiteRequest()) {
             // Always log spam submissions
@@ -1774,10 +1787,12 @@ class Submission extends Element
                 $completion['redirectUrl'] = $this->_form->getRedirectEntry()->url;
                 $completion['completionRedirectSource'] = 'url';
             }
+
             $config = new FormInstanceConfig(...array_replace(get_object_vars($config), [
                 'form' => FormInstanceConfig::merge($completion, $config->form),
             ]));
         }
+
         $this->_form->markInstanceEstablished();
         $this->_form->replaceInstanceConfig($config);
         $this->snapshot = SubmissionConfig::capture($config);

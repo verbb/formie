@@ -19,10 +19,10 @@ The form definition describes the fields and layout. The session holds the curre
 ```graphql
 query ContactForm($handle: String!) {
     formieClientForm(handle: $handle) {
-        schemaVersion
         definition
         session {
             id
+            version
             currentPageId
             tokens
             continuation
@@ -31,7 +31,7 @@ query ContactForm($handle: String!) {
 }
 ```
 
-Send `{"handle":"contactForm"}` as the variables. Keep the returned session intact, including `tokens` and `continuation`; do not invent token values or share a session between visitors. A missing form or permission produces an error before you can submit.
+Send `{"handle":"contactForm"}` as the variables. Keep the returned session intact, including `version`, `tokens` and `continuation`; do not invent token values or share a session between visitors. A missing form or permission produces an error before you can submit.
 
 ## Submit the Answers
 
@@ -48,6 +48,7 @@ mutation SubmitContact($input: FormieClientSubmitInput!) {
         messages
         session {
             id
+            version
             currentPageId
             tokens
             continuation
@@ -111,13 +112,12 @@ async function contactRequest(query, variables) {
     return result.data;
 }
 
-const contactSessionSelection = 'id currentPageId tokens continuation';
+const contactSessionSelection = 'id version currentPageId tokens continuation';
 
 async function loadContact() {
     const data = await contactRequest(`
         query ContactForm($handle: String!) {
             formieClientForm(handle: $handle) {
-                schemaVersion
                 definition
                 session { ${contactSessionSelection} }
             }
@@ -195,6 +195,7 @@ A cached page must obtain a visitor-specific session before submitting. When ref
 mutation RefreshContact($input: FormieClientSessionRefreshInput!) {
     refreshFormieClientSession(input: $input) {
         id
+        version
         currentPageId
         tokens
         continuation
@@ -209,7 +210,7 @@ async function refreshContact() {
     const data = await contactRequest(`
         mutation RefreshContact($input: FormieClientSessionRefreshInput!) {
             refreshFormieClientSession(input: $input) {
-                id currentPageId tokens continuation
+                id version currentPageId tokens continuation
             }
         }
     `, { input: { handle: 'contactForm', session: contactSession } });
@@ -221,7 +222,7 @@ Add this function inside the existing `{% js %}` block if your UI needs an expli
 
 ## Add Multiple Pages
 
-For a multi-page form, render the fields belonging to `session.currentPageId` from the definition. Submit that page's values with the same client mutation. Keep the returned session and show `nextPageId` when present. Only show a final confirmation when the result succeeds and the flow has completed.
+For a multi-page form, render the fields belonging to `session.currentPageId` from the definition. Submit that page's values with the same client mutation. Keep the returned session, because each submit needs its current `version`, and show `nextPageId` when present. Only show a final confirmation when the result succeeds and the flow has completed.
 
 For navigation without a normal submit, use:
 
@@ -233,7 +234,7 @@ mutation ChangeContactPage($input: FormieClientSetPageInput!) {
         httpStatus
         errors
         currentPageId
-        session { id currentPageId tokens continuation }
+        session { id version currentPageId tokens continuation }
     }
 }
 ```

@@ -12,7 +12,11 @@ save_<formHandle>_Submission
 
 For a form with the handle `contactForm`, the mutation is `save_contactForm_Submission`.
 
-These are administrative content mutations, authorized by the GraphQL schema. They validate and save the submission, including upload ownership, but do not run visitor CAPTCHA/spam screening, charge payments, send notifications, trigger integrations or resolve completion redirects. Use the [visitor submission flow](/guides/frontend-headless/graphql-submission-flow-end-to-end) when you need that lifecycle. Updating existing submissions requires the current `expectedVersion`; a stale or missing version cannot overwrite another save. Existing CAPTCHA arguments remain accepted for Formie 3 clients but are not used by administrative saves.
+These mutations are authorized by a private GraphQL schema, so call them from your server with an access token rather than from browser code. They validate and save the submission, including upload ownership.
+
+When a mutation completes a submission, Formie screens it for spam and sends it through the same delivery as a form submitted on your site: email notifications go out and integrations are triggered. A submission completes when you create it, or when you set `isIncomplete: false` on an incomplete one. Saving with `isIncomplete: true`, or editing a submission that's already complete, only changes its content. See [Notifications and Integrations](#notifications-and-integrations) to turn delivery off, and [Spam Protection](#spam-protection) for how a rejected submission responds.
+
+These mutations don't charge payments or resolve completion redirects. Use the [visitor submission flow](/guides/frontend-headless/graphql-submission-flow-end-to-end) when you need those. Updating an existing submission requires its current `expectedVersion`, so a stale or missing version can't overwrite another save.
 
 You can also use the generic `saveSubmission` mutation when you want one stable mutation for every form. See [Generic `saveSubmission`](#generic-savesubmission).
 
@@ -68,6 +72,8 @@ Argument | Type | Description
 `operationId` | `String` | Stable identity for retrying the same administrative operation.
 `expectedVersion` | `Int` | Required for an existing submission; use its current `stateVersion`.
 `requestToken` | `String` | Optional operation identity when `operationId` is omitted.
+`sendNotifications` | `Boolean` | Set to `false` to complete the submission without sending its email notifications. Defaults to `true`.
+`triggerIntegrations` | `Boolean` | Set to `false` to complete the submission without triggering its integrations. Defaults to `true`.
 `...` |  | Additional arguments are generated from the form’s field layout.
 
 Query the form’s fields and include `inputTypeName` when you need to discover the correct variable type for each field.
@@ -238,11 +244,40 @@ mutation SaveSubmission($repeaterField: contactForm_repeaterField_FormieRepeater
 }
 ```
 
+## Notifications and Integrations
+
+Completing a submission through a mutation sends the form's enabled email notifications and triggers its integrations, including any notification timing and integration order you've set for the form. Conditions on notifications and integrations apply as usual, and Formie's queue settings decide whether they run during the request or in the queue.
+
+That's what you want when your front-end is submitting a visitor's answers. It isn't what you want when a script imports historical submissions, because every imported record would email someone. Turn off whichever delivery you don't need for that request:
+
+```graphql
+mutation ImportSubmission($yourName: String) {
+    save_contactForm_Submission(
+        yourName: $yourName
+        sendNotifications: false
+        triggerIntegrations: false
+    ) {
+        id
+    }
+}
+```
+
+These arguments only apply to the request that completes the submission. Editing a completed submission doesn't send anything again.
+
+## Spam Protection
+
+A completing mutation runs the same spam checks as a form submitted on your site, using your [spam settings](/forms/spam-protection). If the submission is treated as spam, it doesn't send notifications or trigger integrations, unless you've turned on email notifications for spam. Your **Spam Submission Behavior** setting decides what the mutation returns:
+
+- **Show error message:** the response contains an error with your message, in the same format as a validation error.
+- **Show success:** the mutation responds as usual, so nothing tells the sender it was caught. If Formie isn't saving spam there's no submission to return, so the mutation's value is `null`.
+
 ## Captchas
 
 When a form has a captcha enabled, Formie adds a captcha argument to that form’s submission mutation. The argument name is the captcha integration handle with `Captcha` appended and converted to camel case.
 
 For example, a captcha integration with the handle `turnstile` becomes the argument `turnstileCaptcha`.
+
+If the argument is available, a completing mutation must send a valid token, otherwise the submission is treated as spam. On a multi-page form, a captcha only gets an argument if it's set to show on all pages. Mutations save the whole form at once and don't have a current page, so any other captcha on a multi-page form isn't checked.
 
 ```graphql
 mutation SaveSubmission(
@@ -316,6 +351,8 @@ Argument | Type | Description
 `operationId` | `String` | Stable identity for retrying the same administrative operation.
 `expectedVersion` | `Int` | Required for an existing submission; use its current `stateVersion`.
 `requestToken` | `String` | Optional operation identity when `operationId` is omitted.
+`sendNotifications` | `Boolean` | Set to `false` to complete the submission without sending its email notifications. Defaults to `true`.
+`triggerIntegrations` | `Boolean` | Set to `false` to complete the submission without triggering its integrations. Defaults to `true`.
 
 `saveSubmission` returns `SubmissionInterface`. Use inline fragments on the form-specific submission type when you need field values in the response.
 

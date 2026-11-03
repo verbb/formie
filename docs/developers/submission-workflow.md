@@ -4,7 +4,7 @@ Formie's submission workflow runs validation, spam checks, saving, payments and 
 
 A `SubmissionCommand` describes the requested operation: the form and submission, where the visitor wants to go, and their permission to act. `SubmissionRequests` checks incoming HTML, client-rendered, administrative GraphQL and verified payment requests, and builds their responses. `SubmissionProcessor::executeCommand()` runs an authorised command and returns a `SubmissionOutcome`; it does not read request flags or build HTTP responses. Before applying input, the processor locks the operation and submission and checks the expected version.
 
-Administrative GraphQL `saveSubmission` mutations are persistence-only: schema permissions, content validation, expected-version checks and upload ownership still apply, but visitor progression, screening, payment processing, redirects and delivery dispatch do not run. Administrative and workflow saves share `SubmissionPersistence`, including upload promotion and atomic completion. Public GraphQL visitor submission uses the visitor command path instead.
+Administrative GraphQL `saveSubmission` mutations apply schema permissions, content validation, expected-version checks and upload ownership, without visitor progression, payment processing or redirects. A mutation that completes a submission also runs the Screen and Dispatch stages, including any tasks you've registered for them, unless it sets `sendNotifications` or `triggerIntegrations` to `false`. Other administrative saves only change content. Administrative and workflow saves share `SubmissionPersistence`, including upload promotion and atomic completion. Public GraphQL visitor submission uses the visitor command path instead.
 
 ## Workflow Stages
 

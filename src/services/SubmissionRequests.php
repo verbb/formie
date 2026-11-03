@@ -51,6 +51,7 @@ class SubmissionRequests extends Component
             if (!in_array($exception->statusCode, [403, 429], true)) {
                 throw $exception;
             }
+
             return FormSubmitResult::rejection($exception->statusCode);
         }
     }
@@ -60,6 +61,7 @@ class SubmissionRequests extends Component
         if (!in_array($authorityType, [SubmissionAuthorityType::VISITOR, SubmissionAuthorityType::CONTROL_PANEL], true)) {
             throw new ForbiddenHttpException('Unsupported HTML submission authority.');
         }
+
         $form = $this->requireFormByHandle($input->handle, $input->siteId);
         $draftContext = $input->draftContextToken ? $form->resolveDraftContextToken($input->draftContextToken) : $input->draftContext;
         $this->applyFormRequestContext($form, $input->renderId, $draftContext, $input->requestToken);
@@ -82,6 +84,7 @@ class SubmissionRequests extends Component
         if ($operation === SubmissionOperation::SUBMIT && $input->submitAction === 'save') {
             $operation = SubmissionOperation::SAVE_DRAFT;
         }
+
         $policy = $authorityType === SubmissionAuthorityType::CONTROL_PANEL && !$submission->id
             ? SubmissionPolicy::ADMINISTRATIVE_CREATE : SubmissionPolicy::STANDARD;
         $navigation = $authorityType === SubmissionAuthorityType::CONTROL_PANEL || $operation === SubmissionOperation::REVISE
@@ -90,6 +93,7 @@ class SubmissionRequests extends Component
         unset($body[Craft::$app->getRequest()->csrfParam], $body['requestToken']);
         $body['_uploadedFiles'] = $this->_uploadedFileFingerprint();
         $body['_target'] = [$input->submissionId, $input->submissionUid, $input->resumeToken, $input->submissionEditToken];
+
         return $this->_executeResolved(
             $form,
             $submission,
@@ -106,6 +110,7 @@ class SubmissionRequests extends Component
                 if ($navigation !== NavigationIntent::BACK || Formie::$plugin->getSettings()->enableBackSubmission) {
                     $submission->setFieldValuesFromRequest($input->fieldParamNamespace);
                 }
+
                 $submission->setFieldParamNamespace($input->fieldParamNamespace);
 
                 if ($authorityType === SubmissionAuthorityType::CONTROL_PANEL) {
@@ -131,19 +136,29 @@ class SubmissionRequests extends Component
         if (!Gql::canSchema('formieSubmissions.all', $permission) && !Gql::canSchema('formieSubmissions.' . $form->uid, $permission)) {
             throw new ForbiddenHttpException('Unable to perform the action.');
         }
+
         $submission->setForm($form);
+        // Completing a draft is a Submit, so it's screened and delivered like a new submission.
+        $revising = $submission->id && !($submission->isIncomplete && ($arguments['isIncomplete'] ?? null) === false);
+
         return $this->_executeResolved(
             $form,
             $submission,
-            $submission->id ? SubmissionOperation::REVISE : SubmissionOperation::SUBMIT,
-            $submission->id ? NavigationIntent::STAY : NavigationIntent::ADVANCE,
+            $revising ? SubmissionOperation::REVISE : SubmissionOperation::SUBMIT,
+            $revising ? NavigationIntent::STAY : NavigationIntent::ADVANCE,
             SubmissionAuthorityType::GRAPHQL_ADMIN,
             isset($arguments['expectedVersion']) ? (int)$arguments['expectedVersion'] : ($submission->id ? null : 0),
             $arguments['operationId'] ?? $arguments['requestToken'] ?? null,
             null,
             $arguments,
-            $populate,
-            $submission->id ? null : (int)$form->getPages()[array_key_last($form->getPages())]->id,
+            function() use ($form, $submission, $arguments, $populate, $revising): void {
+                $populate();
+
+                if (!$revising && !$submission->isIncomplete) {
+                    $this->_applyDeliveryOptOuts($form, $submission, $arguments);
+                }
+            },
+            $revising ? null : (int)$form->getPages()[array_key_last($form->getPages())]->id,
         );
     }
 
@@ -155,6 +170,7 @@ class SubmissionRequests extends Component
         if (!$submission || !$form) {
             throw new BadRequestHttpException('Unable to resolve the payment submission.');
         }
+
         // The caller is a verified provider/domain adapter. Never populate from browser input or progress.
         return $this->_executeResolved(
             $form,
@@ -205,6 +221,7 @@ class SubmissionRequests extends Component
                 $form->setCurrentPage($this->_resolvePageById($form, $progress->currentPageId));
             }
         }
+
         return $submission;
     }
 
@@ -304,6 +321,7 @@ class SubmissionRequests extends Component
         if (!Formie::$plugin->getSubmissionGrants()->bound($form, SubmissionGrants::CONTINUE, (int)$submission->id)) {
             throw new ForbiddenHttpException('Submission is unavailable.');
         }
+
         $draftState = $submissionProgress->getProgressState($form);
 
         if (!$draftState) {
@@ -414,6 +432,7 @@ class SubmissionRequests extends Component
         if ($authorityType !== SubmissionAuthorityType::VISITOR) {
             throw new ForbiddenHttpException('This adapter requires visitor authority.');
         }
+
         $form = $this->requireFormByHandle($input->handle, $input->siteId);
         $authorizeScope = $input->getScopeAuthorizer();
         [$submission, $progress, $revise] = $this->_resolveSessionMutationTarget($form, $input->session, $input->action, $authorizeScope === null);
@@ -434,6 +453,7 @@ class SubmissionRequests extends Component
                 }
             }
         }
+
         $submission ??= new Submission();
         $submission->setForm($form);
         $operation = $revise ? SubmissionOperation::REVISE : ($input->action === 'save' ? SubmissionOperation::SAVE_DRAFT : SubmissionOperation::SUBMIT);
@@ -457,6 +477,7 @@ class SubmissionRequests extends Component
                         $submission->setCaptchaData($name, ['value' => (string)$value]);
                     }
                 }
+
                 // Module-owned payment token inputs supplement only declared payment
                 // fields, never request credentials, grants or administrative options.
                 $values = $input->values;
@@ -478,6 +499,7 @@ class SubmissionRequests extends Component
             $input->targetPageId,
         );
         $form->resetRequestToken();
+
         return $this->_buildFormSubmitResult($result->command, $result->response, $input);
     }
 
@@ -507,14 +529,27 @@ class SubmissionRequests extends Component
         if (!$grant) {
             throw new ForbiddenHttpException('Submission is unavailable.');
         }
+
         $submission = $this->_findSubmissionById($grant->submissionId, false, (int)$form->id);
 
         if (!$submission) {
             throw new ForbiddenHttpException('Submission is unavailable.');
         }
+
         $form->setSubmission($submission);
 
         return [$submission, $progress, true];
+    }
+
+    /** Stored on the submission so they also apply to recovered and queued delivery. */
+    private function _applyDeliveryOptOuts(Form $form, Submission $submission, array $arguments): void
+    {
+        foreach (['sendNotifications' => 'skipNotifications', 'triggerIntegrations' => 'skipIntegrations'] as $argument => $key) {
+            // A field with this handle replaces the argument on form-specific mutations.
+            if (($arguments[$argument] ?? null) === false && !$form->getFieldByHandle($argument)) {
+                $submission->mergeMetadata(['delivery' => [$key => true]]);
+            }
+        }
     }
 
     private function _executeResolved(
@@ -590,6 +625,7 @@ class SubmissionRequests extends Component
                 throw new ForbiddenHttpException('Submission is unavailable.');
             }
         }
+
         $submission->clearErrors();
         $submission->addErrors($outcome->errors);
         $response = SubmissionResponse::fromOutcome($outcome, $form, $submission, $command);
@@ -597,6 +633,7 @@ class SubmissionRequests extends Component
         if (!$response->success && !$submission->hasErrors('form') && !in_array($outcome->type, [SubmissionOutcomeType::PAYMENT_ACTION_REQUIRED, SubmissionOutcomeType::PAYMENT_PENDING], true)) {
             $submission->addError('form', $form->settings->getErrorMessage());
         }
+
         return new SubmissionExecutionResult(['command' => $command, 'response' => $response]);
     }
 
@@ -608,6 +645,7 @@ class SubmissionRequests extends Component
         if (!$session->has('formie:authority')) {
             $session->set('formie:authority', Craft::$app->getSecurity()->generateRandomString());
         }
+
         return hash('sha256', $session->get('formie:authority'));
     }
 
@@ -618,6 +656,7 @@ class SubmissionRequests extends Component
             if (is_array($value)) {
                 return array_map($hash, $value);
             }
+
             return is_string($value) && is_file($value) ? hash_file('sha256', $value) : null;
         };
 
@@ -625,6 +664,7 @@ class SubmissionRequests extends Component
             // Temporary paths change between retries; file contents and posted field paths identify the input.
             $file['tmp_name'] = $hash($file['tmp_name'] ?? null);
         }
+
         return $files;
     }
 
@@ -857,6 +897,7 @@ class SubmissionRequests extends Component
             $requestUrl = Craft::$app->getRequest();
             $savePayload = $this->createSaveResumePayload($form, $submission, $this->resolveTrustedResumeBaseUrl($requestUrl->getReferrer(), ''));
         }
+
         return new FormSubmitResult(array_merge([
             'success' => $response->success,
             'outcome' => $response->outcome->type->value,
@@ -890,6 +931,7 @@ class SubmissionRequests extends Component
         if ($payment && isset($payment['message'])) {
             $payment['message'] = StringHelper::sanitizeMessageHtml($payment['message']);
         }
+
         return ['payment' => $payment];
     }
 

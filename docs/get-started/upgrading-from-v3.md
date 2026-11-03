@@ -439,6 +439,8 @@ Form integration settings returned through GraphQL contain only values needed by
 
 Custom submission clients must also update their [tokens and version handling](#continuity-and-upload-upgrade-actions). See [Rendering Forms](/graphql/rendering-forms) and [Create Submissions](/graphql/create-submissions) for complete requests. The [page-setting renames](#graphql-page-settings) remain covered by compatibility mode.
 
+`save_<handle>_Submission` and `saveSubmission` still screen new submissions, send notifications and trigger integrations. They no longer charge payments, and they can't be used with the public schema, so call them from your server with a private token. Client-rendered forms and payments should use [`submitFormieClientForm`](/guides/frontend-headless/graphql-submission-flow-end-to-end) instead.
+
 ### Submission Workflow
 
 If your module uses `onBeforeSubmission()`, `onAfterSubmission()` or the old before/after submission events, update it before upgrading. Formie 4 no longer calls these hooks, and compatibility mode does not restore them. Choose the replacement according to what your code does.

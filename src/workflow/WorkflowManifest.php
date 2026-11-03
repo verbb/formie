@@ -85,6 +85,14 @@ final class WorkflowManifest
             return false;
         }
 
+        if (in_array($task->id, ['dispatch.sendNotifications', 'dispatch.sendSpamNotifications'], true) && !$command->submission->shouldSendNotifications()) {
+            return false;
+        }
+
+        if ($task->id === 'dispatch.triggerIntegrations' && !$command->submission->shouldTriggerIntegrations()) {
+            return false;
+        }
+
         if ($task->id === 'validate.submission' && $command->navigation === NavigationIntent::BACK) {
             return false;
         }

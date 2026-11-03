@@ -6,6 +6,7 @@
 - Add an **Export…** button to the submissions index. It opens a dialog filled in from your current form, filters and search, where you can adjust the forms, submission types, statuses, dates and columns, and see how many submissions you’ll get, before exporting in any report format. No saved report is needed. ([#3082](https://github.com/verbb/formie/issues/3082))
 - Add the [`logSubmissionValues`](https://verbb.io/craft-plugins/formie/docs/v4/get-started/configuration#logsubmissionvalues) config setting to keep submitted values out of Formie’s log files, while still writing every log entry.
 - Add an option to leave log files out of support requests.
+- Add `sendNotifications` and `triggerIntegrations` arguments to the `save_<form>_Submission` and `saveSubmission` GraphQL mutations, so imports and scripts can complete a submission without delivering it. ([#3090](https://github.com/verbb/formie/issues/3090))
 
 ### Changed
 - Store reports and scheduled reports in each installation’s database instead of project config, so users with **Manage reports** can create and change reports on production. Existing reports and schedules move across automatically when you upgrade, with nothing to run. Reports no longer deploy between environments through project config, and each environment now keeps its own copies. Only administrators can change a report with scheduled deliveries or edit schedules. See the [upgrade guide](https://verbb.io/craft-plugins/formie/docs/v4/get-started/upgrading-from-v3#reports-and-submission-export). ([#3082](https://github.com/verbb/formie/issues/3082))
@@ -16,6 +17,7 @@
 - Renamed the “Reconcile uncertain deliveries” permission to “Confirm delivery outcomes” and “Force integration execution” to “Run integrations regardless of conditions and opt-in”, and moved both under “View delivery diagnostics”.
 
 ### Fixed
+- Fixed GraphQL `save_<form>_Submission` and `saveSubmission` mutations not sending email notifications, triggering integrations or running spam and captcha checks when completing a submission. Scripts that import submissions through these mutations will now deliver them unless they set `sendNotifications: false` and `triggerIntegrations: false`. See [Create Submissions](https://verbb.io/craft-plugins/formie/docs/v4/graphql/create-submissions#notifications-and-integrations). ([#3090](https://github.com/verbb/formie/issues/3090))
 - Fixed valid AI and EPS files being rejected by File Upload fields because their detected file type differed from Illustrator. ([#3092](https://github.com/verbb/formie/issues/3092))
 - Fixed Repeater validation errors appearing on the wrong row after returning to a previous page, and searchable dropdown selections being cleared during AJAX page navigation. ([#3088](https://github.com/verbb/formie/issues/3088))
 - Fixed cached multi-page forms becoming stuck on the wrong page when restoring an in-progress submission.

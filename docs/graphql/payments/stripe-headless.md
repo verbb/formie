@@ -24,6 +24,7 @@ query FormieClientForm($handle: String!) {
         definition
         session {
             id
+            version
             currentPageId
             tokens
             continuation

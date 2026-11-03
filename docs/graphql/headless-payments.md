@@ -39,10 +39,10 @@ sequenceDiagram
 ```graphql
 query FormieClientForm($handle: String!, $siteId: Int) {
     formieClientForm(handle: $handle, siteId: $siteId) {
-        schemaVersion
         definition
         session {
             id
+            version
             currentPageId
             tokens
             continuation
@@ -96,7 +96,7 @@ Pass payment values in `input.values` using the Payment field’s builder ID as 
 }
 ```
 
-Form-specific administrative submission mutations (`save_<handle>_Submission`) persist content only; they do not execute payments. Use `submitFormieClientForm` for the headless payment workflow.
+Form-specific administrative submission mutations (`save_<handle>_Submission`) do not execute payments. Use `submitFormieClientForm` for the headless payment workflow.
 
 ### 3. Handle Payment Follow-Up
 

@@ -50,10 +50,10 @@ Use `formieClientForm` when a Formie front-end package needs the structured form
 ```graphql
 query FormieForm($handle: String!, $siteId: Int, $locale: String) {
     formieClientForm(handle: $handle, siteId: $siteId, locale: $locale) {
-        schemaVersion
         definition
         session {
             id
+            version
             currentPageId
             tokens
             continuation
@@ -73,6 +73,7 @@ query FormieSessionTokens($handle: String!, $siteId: Int, $locale: String) {
     formieClientForm(handle: $handle, siteId: $siteId, locale: $locale) {
         session {
             id
+            version
             currentPageId
             tokens
             continuation
