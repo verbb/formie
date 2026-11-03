@@ -6,7 +6,6 @@ use verbb\formie\compatibility\fields\FieldCompatibility;
 use verbb\formie\events\ModifyFieldConfigEvent;
 use verbb\formie\events\ModifyFieldSchemaEvent;
 use verbb\formie\helpers\FileHelper;
-use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
@@ -204,8 +203,8 @@ trait FieldFormBuilderTrait
         $settings['type'] = get_class($this);
 
         // The picker only offers references, and a reference on a synced definition would only resolve in this form.
-        if (!$this->getIsSynced() && ($matchFieldReference = $this->getMatchFieldTarget()?->reference)) {
-            $settings['matchField'] = References::field((string)$matchFieldReference);
+        if (!$this->getIsSynced() && ($matchField = $this->getMatchFieldBuilderValue())) {
+            $settings['matchField'] = $matchField;
         }
 
         return $settings;

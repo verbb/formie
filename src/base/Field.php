@@ -33,8 +33,8 @@ use verbb\formie\models\Notification;
 use verbb\formie\models\RichText;
 use verbb\formie\models\Settings;
 use verbb\formie\query\FieldValueQueryHelper;
+use verbb\formie\references\FieldReferenceResolver;
 use verbb\formie\references\ReferenceContext;
-use verbb\formie\references\ReferenceResolver;
 use verbb\formie\services\RuntimeConfiguration;
 use verbb\formie\validators\FieldReferenceUniqueValidator;
 use verbb\formie\validators\HandleValidator;
@@ -799,10 +799,54 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function getMatchField(): ?string
     {
-        return $this->getMatchFieldTarget()?->handle;
+        $entry = $this->getMatchFieldEntry();
+
+        if (!$entry) {
+            return null;
+        }
+
+        $path = [];
+        $ownPath = explode('.', $this->valueKey());
+
+        foreach ($entry['parts'] as $part) {
+            if (is_string($part)) {
+                $path[] = $part;
+
+                continue;
+            }
+
+            // A field in the same Repeater compares within its row. Anything else uses the first row, as the picker's token says.
+            $index = count($path);
+            $path[] = array_slice($ownPath, 0, $index) === $path && count($ownPath) > $index + 1 ? $ownPath[$index] : '0';
+        }
+
+        return implode('.', $path);
     }
 
     protected function getMatchFieldTarget(): ?FieldInterface
+    {
+        return $this->getMatchFieldEntry()['field'] ?? null;
+    }
+
+    protected function getMatchFieldBuilderValue(): ?string
+    {
+        $entry = $this->getMatchFieldEntry();
+
+        if (!$entry || !$entry['field']->reference) {
+            return null;
+        }
+
+        $expression = References::parseReferenceExpression(trim($this->matchField));
+
+        // Already what the picker offers, including its row scope.
+        if ($expression->isValid && $expression->identifier === (string)$entry['field']->reference) {
+            return null;
+        }
+
+        return References::field((string)$entry['field']->reference, null, array_filter($entry['parts'], 'is_array') ? ['scope' => 'first'] : []);
+    }
+
+    protected function getMatchFieldEntry(): ?array
     {
         if (!$this->matchField) {
             return null;
@@ -824,7 +868,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             $identifier = $expression->identifier;
         }
 
-        return (new ReferenceResolver())->fieldFor($identifier, new ReferenceContext(form: $this->getForm()));
+        return (new FieldReferenceResolver())->findField($identifier, new ReferenceContext(form: $this->getForm()));
     }
 
     public function getValidationMessage(string $key, array $params = []): string
@@ -861,14 +905,13 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             return;
         }
 
-        $sourceValue = $element->getFieldValue($fieldHandle);
-        $value = $element->getFieldValue($this->valueKey());
+        // A Repeater with no rows has no value at all, which is the same as an empty field.
+        $sourceValue = $element->getFieldValue($fieldHandle) ?? '';
+        $value = $element->getFieldValue($this->valueKey()) ?? '';
 
         if ($sourceValue !== $value) {
-            $sourceField = $element->getFieldByHandle($fieldHandle);
-
             $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_MATCH, [
-                'value' => $sourceField->label ?? '',
+                'value' => $this->getMatchFieldTarget()?->label ?? '',
             ]));
         }
     }

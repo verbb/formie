@@ -23,8 +23,9 @@ trait FieldBrowserValidationTrait
             $params = array_intersect_key($rule, array_flip(['min', 'max', 'limit', 'value']));
 
             if ($type === 'match') {
-                $params['value'] = $this->getForm()?->getFieldByHandle($this->getMatchField())?->label ?? '';
+                $params['value'] = $this->getMatchFieldTarget()?->label ?? '';
             }
+
             $keys = match ($type) {
                 'number' => ['number', 'numberMin', 'numberMax'],
                 'minmaxOptions' => ['minOptions', 'maxOptions'],
@@ -34,6 +35,7 @@ trait FieldBrowserValidationTrait
             foreach ($keys as $key) {
                 $definition['messages'][$key] = SubmissionErrors::plainText($this->getValidationMessage($key, $params));
             }
+
             return $definition;
         }, array_values($this->defineBrowserValidationRules()))));
     }
@@ -61,7 +63,8 @@ trait FieldBrowserValidationTrait
             $validators[] = ['type' => 'required'];
         }
 
-        if ($matchField = $this->getMatchField()) {
+        // A Repeater target has no fixed path in the browser, so it's only compared on the server.
+        if (($matchField = $this->getMatchField()) && !array_filter($this->getMatchFieldEntry()['parts'], 'is_array')) {
             $validators[] = [
                 'type' => 'match',
                 'fieldHandle' => $matchField,
