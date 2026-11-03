@@ -7,6 +7,7 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\base\HelpDesk;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\errors\IntegrationStepException;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -356,6 +357,24 @@ class Freshdesk extends HelpDesk
         return $fields;
     }
 
+    public function executeDeliveryWrite(string $method, string $uri, array $options, callable $send, bool $isSideEffect = false): mixed
+    {
+        $send = function(...$arguments) use ($send, $method, $uri) {
+            try {
+                return $send(...$arguments);
+            } catch (RequestException $e) {
+                // Classify the conflict before it is persisted, so replay can reach the contact update.
+                if (strtoupper($method) === 'POST' && trim($uri, '/') === 'contacts' && $this->_getDuplicateContactId($e) !== null) {
+                    throw new IntegrationStepException(IntegrationResult::rejected('contact_exists'), $e);
+                }
+
+                throw $e;
+            }
+        };
+
+        return parent::executeDeliveryWrite($method, $uri, $options, $send, $isSideEffect);
+    }
+
     public function getFieldMappingMultipartValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
     {
         // Public callers must resolve attachments for this submission too.
@@ -463,54 +482,40 @@ class Freshdesk extends HelpDesk
                         ]), true);
                     }
                 } catch (Throwable $e) {
-                    if ($e instanceof RequestException && $e->getResponse()) {
-                        $response = Json::decode((string)$e->getResponse()->getBody());
+                    $contactId = $e instanceof RequestException ? $this->_getDuplicateContactId($e) : null;
 
-                        // Check number of errors; if more than one, we can't update anyway
-                        $errors = $response['errors'] ?? [];
-
-                        if (count($errors) === 1) {
-                            $err = $errors[0];
-                            $errField = $err['field'] ?? null;
-                            $errCode = $err['code'] ?? null;
-                            $contactId = $err['additional_info']['user_id'] ?? null;
-
-                            // Now check that the sole error is actually due to existing contact
-                            if ($errField === 'email' && $errCode === 'duplicate_value') {
-                                try {
-                                    $this->deliverPayload($submission, "contacts/{$contactId}", $contactPayload, 'PUT');
-                                } catch (Throwable $e) {
-                                    $updateResponse = Json::decode((string)$e->getResponse()->getBody());
-                                    $statusCode = $e->getResponse()->getStatusCode();
-
-                                    // Check for special conditions
-                                    if (
-                                        $statusCode === 405
-                                        && $updateResponse['message'] === 'PUT method is not allowed. It should be one of these method(s): GET'
-                                    ) {
-                                        // 405 status code and disallowed PUT means user is deleted or spam; log and continue
-                                        Integration::error($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
-                                            'message' => Integration::getExceptionLogMessage($e),
-                                            'response' => Json::encode($updateResponse),
-                                            'payload' => Json::encode($contactPayload),
-                                        ]), false);
-                                    } elseif ($statusCode === 404 && $updateResponse === null) {
-                                        // 404 status code and empty response means user is an agent; log and continue
-                                        Integration::info($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
-                                            'message' => Integration::getExceptionLogMessage($e),
-                                            'response' => Json::encode($updateResponse),
-                                            'payload' => Json::encode($contactPayload),
-                                        ]), false);
-                                    } else {
-                                        // Throw the exception again to bubble up to main exception handler
-                                        throw $e;
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        // Throw the exception again to bubble up to main exception handler
+                    if ($contactId === null) {
                         throw $e;
+                    }
+
+                    try {
+                        $this->deliverPayload($submission, "contacts/{$contactId}", $contactPayload, 'PUT');
+                    } catch (Throwable $e) {
+                        // Transport failures have no response and must retain their uncertain outcome.
+                        if (!$e instanceof RequestException || !$e->getResponse()) {
+                            throw $e;
+                        }
+
+                        $updateResponse = Json::decode((string)$e->getResponse()->getBody());
+                        $statusCode = $e->getResponse()->getStatusCode();
+
+                        if ($statusCode === 405 && ($updateResponse['message'] ?? null) === 'PUT method is not allowed. It should be one of these method(s): GET') {
+                            // Deleted or spam contacts cannot be updated, but can still have tickets.
+                            Integration::error($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
+                                'message' => Integration::getExceptionLogMessage($e),
+                                'response' => Json::encode($updateResponse),
+                                'payload' => Json::encode($contactPayload),
+                            ]), false);
+                        } elseif ($statusCode === 404 && $updateResponse === null) {
+                            // Agents are not available through the contacts endpoint.
+                            Integration::info($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
+                                'message' => Integration::getExceptionLogMessage($e),
+                                'response' => Json::encode($updateResponse),
+                                'payload' => Json::encode($contactPayload),
+                            ]), false);
+                        } else {
+                            throw $e;
+                        }
                     }
                 }
             }
@@ -643,6 +648,31 @@ class Freshdesk extends HelpDesk
 
     // Private Methods
     // =========================================================================
+
+    private function _getDuplicateContactId(RequestException $exception): ?string
+    {
+        $response = $exception->getResponse();
+
+        if (!$response || !in_array($response->getStatusCode(), [400, 409], true)) {
+            return null;
+        }
+
+        $body = json_decode((string)$response->getBody(), true);
+        $errors = is_array($body) ? ($body['errors'] ?? null) : null;
+
+        if (!is_array($errors) || count($errors) !== 1 || !is_array($errors[0] ?? null)) {
+            return null;
+        }
+
+        $error = $errors[0];
+        $id = $error['additional_info']['user_id'] ?? null;
+
+        if (($error['field'] ?? null) !== 'email' || ($error['code'] ?? null) !== 'duplicate_value' || (!is_int($id) && !is_string($id)) || !preg_match('/^[1-9][0-9]*$/D', (string)$id)) {
+            return null;
+        }
+
+        return (string)$id;
+    }
 
     private function _convertFieldType(string $fieldType): string
     {

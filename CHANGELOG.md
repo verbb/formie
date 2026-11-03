@@ -37,6 +37,7 @@
 - Fixed the Product element integration failing to save when “Overwrite Values” is off.
 - Fixed GoCardless webhooks being processed and then reported as failed.
 - Fixed Front integration messages being reported as failed after they were delivered.
+- Fixed Freshdesk deliveries being marked as unknown after handling an existing contact, preventing successful contact updates and tickets from completing their queue job.
 - Fixed Capsule throwing an error when fetching opportunity fields.
 - Fixed the Sent Notifications index showing “-” for the Notification column.
 - Fixed pruning of sent notifications using the wrong cutoff time for sites not set to UTC.
