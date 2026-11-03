@@ -15,6 +15,7 @@
 - Renamed the “Reconcile uncertain deliveries” permission to “Confirm delivery outcomes” and “Force integration execution” to “Run integrations regardless of conditions and opt-in”, and moved both under “View delivery diagnostics”.
 
 ### Fixed
+- Fixed the Redirect Entry picker appearing empty when Craft’s “All entries” source is disabled. ([#3089](https://github.com/verbb/formie/issues/3089))
 - Fixed forms failing to load when a field or page has a condition rule that was added but never filled in, which can be present on forms upgraded from Formie 3.
 - Fixed forms showing “A required form feature could not start” and being unable to submit when a field had conditions enabled but no rules.
 - Fixed forms showing “A required form feature could not start” and being unable to submit when a field’s browser feature had nothing to attach to, such as Date fields stored as a date picker while using inputs or dropdowns, or conditions inside a Repeater with no rows yet.

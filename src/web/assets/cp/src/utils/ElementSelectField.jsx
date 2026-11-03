@@ -50,6 +50,8 @@ export const ElementSelectField = ({ form, field }) => {
     const errors = form?.getErrorMapFields?.()[field.name] || [];
     const elementType = field.elementType || 'craft\\elements\\Entry';
     const useEmbeddedElementIndex = Boolean(field.embeddedElementIndex);
+    // Craft treats ['*'] as only the All entries source, which may be disabled.
+    const sources = field.sources ?? null;
     const storageKey = field.elementSelectStorageKeyPrefix
         ? `${field.elementSelectStorageKeyPrefix}.${field.name}.${elementType}`
         : null;
@@ -79,7 +81,7 @@ export const ElementSelectField = ({ form, field }) => {
 
         hostOpenElementSelector(elementType, {
             storageKey,
-            sources: field.sources || ['*'],
+            sources,
             criteria: field.criteria || {},
             multiSelect: !field.limit,
             limit: field.limit || null,
@@ -221,7 +223,7 @@ export const ElementSelectField = ({ form, field }) => {
                     onOpenChange={setEmbeddedSelectorOpen}
                     elementType={elementType}
                     storageKey={storageKey}
-                    sources={field.sources || ['*']}
+                    sources={sources}
                     criteria={field.criteria || {}}
                     multiSelect={!field.limit}
                     title={field.label || t('Select element')}

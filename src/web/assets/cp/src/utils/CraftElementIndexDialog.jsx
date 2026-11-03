@@ -15,7 +15,7 @@ export function CraftElementIndexDialog({
     onOpenChange,
     elementType,
     storageKey,
-    sources = ['*'],
+    sources = null,
     criteria = {},
     multiSelect = true,
     showSiteMenu = null,
