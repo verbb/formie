@@ -33,9 +33,23 @@ it('persists page and button condition flags', function (): void {
 it('persists field condition flags without field-specific logic tests', function (): void {
     $form = formie()
         ->form(['title' => 'Field Condition Flag'])
-        ->singleLineTextField('fullName', ['enableConditions' => true])
+        ->singleLineTextField('source')
+        ->singleLineTextField('fullName', [
+            'enableConditions' => true,
+            'conditions' => ['version' => 1, 'showRule' => 'show', 'conditionRule' => 'all', 'conditions' => [['field' => '{field:source}', 'condition' => '=', 'value' => 'yes']]],
+        ])
         ->create();
 
     expect($form->hasFieldConditions())->toBeTrue()
         ->and($form->hasConditions())->toBeTrue();
+});
+
+it('does not count conditions switched on with no rules', function (): void {
+    $form = formie()
+        ->form(['title' => 'Field Condition Flag Without Rules'])
+        ->singleLineTextField('fullName', ['enableConditions' => true])
+        ->create();
+
+    expect($form->hasFieldConditions())->toBeFalse()
+        ->and($form->hasConditions())->toBeFalse();
 });
