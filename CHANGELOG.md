@@ -18,6 +18,7 @@
 - Fixed `inputTypeName` returning `[]` for Table fields. ([#3080](https://github.com/verbb/formie/issues/3080))
 - Fixed AJAX submissions still showing the form error message when Error Message Position is set to None.
 - Fixed the Address Country and Name Prefix sub-fields outputting no value in email notification field summaries. ([#3085](https://github.com/verbb/formie/issues/3085))
+- Fixed integration mappings from Formie 3 that use Form Name, Submission Date, Site Name or Site Handle failing to send, and Name, Address and Group sub-field mappings showing as “Don’t Include” and being cleared when saving the form. Existing mappings update automatically. ([#3086](https://github.com/verbb/formie/issues/3086))
 - Fixed failed notification and integration alert emails failing to send when Craft’s `enableTwigSandbox` setting is on. Customised messages using the default `json_encode` and `integration.name` output are updated automatically.
 - Fixed the Trello, Google Sheets and Calendar Event integrations throwing an error when loading their form settings.
 - Fixed the Product element integration failing to save when “Overwrite Values” is off.

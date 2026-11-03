@@ -162,6 +162,10 @@ class m260928_010000_reference_contract extends Migration
 
     private function _migrateStencilData(array $data): array
     {
+        if (is_array($data['settings']['integrations'] ?? null)) {
+            $data['settings']['integrations'] = ReferenceMigration::integrationSlots($data['settings']['integrations']);
+        }
+
         if (!str_contains(Json::encode($data), '{field:')) {
             return $data;
         }

@@ -4,6 +4,17 @@ namespace verbb\formie\references;
 /** The persisted slot declares semantics independently of its text. */
 final readonly class ReferenceSlot
 {
+    // Constants
+    // =========================================================================
+
+    private const LEGACY_SOURCES = [
+        '{submission:formName}' => '{form:name}',
+        '{submission:siteName}' => '{site:name}',
+        '{submission:siteHandle}' => '{site:handle}',
+        '{submission:dateCreated}' => '{submission:date}',
+    ];
+
+
     // Static Methods
     // =========================================================================
 
@@ -15,7 +26,10 @@ final readonly class ReferenceSlot
             if (!$kind) {
                 throw new ReferenceException(ReferenceDiagnostic::InvalidExpression);
             }
-            return new self($kind, $stored['value'] ?? null);
+
+            $value = $stored['value'] ?? null;
+
+            return new self($kind, $kind === ReferenceSlotKind::Exact ? self::_currentSource($value) : $value);
         }
 
         // Bounded migration for Formie 3/beta mappings. New writes must store kind explicitly.
@@ -26,14 +40,22 @@ final readonly class ReferenceSlot
             if (in_array($type, ['literal', 'custom'], true)) {
                 return new self(ReferenceSlotKind::Literal, $value);
             }
+
             $stored = $value;
         }
 
         if (is_string($stored) && str_starts_with($stored, '{providerOption:')) {
             $expression = ReferenceParser::parse($stored);
+
             return new self(ReferenceSlotKind::Literal, $expression->isValid ? $expression->identifier : $stored);
         }
-        return new self(is_string($stored) && ReferenceParser::parse($stored)->isValid ? ReferenceSlotKind::Exact : ReferenceSlotKind::Literal, $stored);
+
+        return new self(is_string($stored) && ReferenceParser::parse($stored)->isValid ? ReferenceSlotKind::Exact : ReferenceSlotKind::Literal, self::_currentSource($stored));
+    }
+
+    private static function _currentSource(mixed $value): mixed
+    {
+        return is_string($value) ? (self::LEGACY_SOURCES[$value] ?? $value) : $value;
     }
 
 

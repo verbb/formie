@@ -1,7 +1,9 @@
 <?php
 namespace verbb\formie\references;
 
+use verbb\formie\base\ContainerParentFieldInterface;
 use verbb\formie\base\ParentFieldInterface;
+use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\models\ReferenceExpression;
 
@@ -26,6 +28,7 @@ final class ReferenceMigration
                 $settings[$key] = self::integrationSlots($value);
             }
         }
+
         return $settings;
     }
 
@@ -43,30 +46,22 @@ final class ReferenceMigration
         return preg_replace_callback('/\{field:[^{}]+\}/', static function(array $match) use ($fields): string {
             $expression = ReferenceParser::parse($match[0]);
 
-            // Formie 3 stored scalar field selectors as handle.selector, including Phone parts.
-            // Only declared selectors qualify; unknown paths must remain available for diagnosis.
+            // Formie 3 stored field selectors as handle.selector, including Phone, Name and Address parts,
+            // and Group children as group.child. Unknown paths must remain available for diagnosis.
             if ($expression->isValid && $expression->target === 'field' && $expression->selector === '' && str_contains($expression->identifier, '.')) {
-                [$identifier, $selector] = explode('.', $expression->identifier, 2);
+                $path = self::_legacyFieldPath($fields, $expression->identifier);
 
-                foreach ($fields as $candidate) {
-                    if ($candidate instanceof ParentFieldInterface || !$candidate->reference || !in_array($identifier, [(string)$candidate->reference, (string)$candidate->uid, (string)$candidate->handle], true)) {
-                        continue;
-                    }
-
-                    foreach ($candidate->referenceValues() as $referenceValue) {
-                        if ($referenceValue->selector === $selector && $referenceValue->appliesTo($candidate)) {
-                            return ReferenceParser::serialize(new ReferenceExpression(
-                                raw: $expression->raw,
-                                target: 'field',
-                                identifier: (string)$candidate->reference,
-                                selector: $selector,
-                                default: $expression->default,
-                                transformerId: $expression->transformerId,
-                                transformerParams: $expression->transformerParams,
-                                isValid: true,
-                            ));
-                        }
-                    }
+                if ($path) {
+                    return ReferenceParser::serialize(new ReferenceExpression(
+                        raw: $expression->raw,
+                        target: 'field',
+                        identifier: (string)$path[0]->reference,
+                        selector: $path[1],
+                        default: $expression->default,
+                        transformerId: $expression->transformerId,
+                        transformerParams: $expression->transformerParams,
+                        isValid: true,
+                    ));
                 }
             }
 
@@ -79,6 +74,7 @@ final class ReferenceMigration
             foreach ($fields as $candidate) {
                 if (in_array($expression->identifier, [(string)$candidate->reference, (string)$candidate->uid, (string)$candidate->handle], true)) {
                     $field = $candidate;
+
                     break;
                 }
             }
@@ -123,5 +119,42 @@ final class ReferenceMigration
                 isValid: true,
             ));
         }, $value);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private static function _legacyFieldPath(array $fields, string $path): ?array
+    {
+        [$identifier, $selector] = array_pad(explode('.', $path, 2), 2, '');
+
+        foreach ($fields as $field) {
+            if (!$field->reference || !in_array($identifier, [(string)$field->reference, (string)$field->uid, (string)$field->handle], true)) {
+                continue;
+            }
+
+            if ($selector === '') {
+                return [$field, ''];
+            }
+
+            // Row values need a scope that a plain path can't express.
+            if ($field instanceof RepeatableParentFieldInterface) {
+                return null;
+            }
+
+            // A path into a Group always meant a child. Its own selectors didn't exist in Formie 3.
+            if (!$field instanceof ContainerParentFieldInterface) {
+                foreach ($field->referenceValues() as $referenceValue) {
+                    if ($referenceValue->selector === $selector && $referenceValue->appliesTo($field)) {
+                        return [$field, $selector];
+                    }
+                }
+            }
+
+            return $field instanceof ParentFieldInterface ? self::_legacyFieldPath($field->getFields(), $selector) : null;
+        }
+
+        return null;
     }
 }

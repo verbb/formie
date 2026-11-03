@@ -38,4 +38,29 @@ describe('integration mapping sources', () => {
             '{field:Agree}', '{field:Text}', '{field:Date}', '{field:Number}',
         ]);
     });
+
+    it('offers the Name and Address selectors that migrated Formie 3 mappings store', () => {
+        const selector = (name) => {
+            return { kind: 'selector', selector: name, label: name, types: ['text'], shape: 'inline' };
+        };
+        const referenceValues = {
+            Name: [{ kind: 'primary', types: ['text'], shape: 'inline' }, selector('firstName')],
+            Address: [{ kind: 'primary', types: ['text'], shape: 'inline' }, selector('address1')],
+        };
+        const fields = [
+            { type: 'Name', handle: 'person', reference: 'nameRef', label: 'Person' },
+            { type: 'Address', handle: 'place', reference: 'addressRef', label: 'Place' },
+        ];
+        const categories = resolveVariableCategories({}, {
+            pages: [{ label: 'Page 1', rows: [{ fields }] }],
+        }, MAPPING_VARIABLE_CONFIG, {
+            getFieldTypeByType: (type) => {
+                return { referenceValues: referenceValues[type] };
+            },
+        });
+        const values = collectSelectableValues(categories);
+
+        expect(values.has('{field:nameRef:firstName}')).toBe(true);
+        expect(values.has('{field:addressRef:address1}')).toBe(true);
+    });
 });
