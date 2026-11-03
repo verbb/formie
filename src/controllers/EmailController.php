@@ -130,8 +130,8 @@ class EmailController extends Controller
         $notification->attachPdf = StringHelper::toBoolean((string)$notification->attachPdf);
         $notification->enableConditions = StringHelper::toBoolean((string)$notification->enableConditions);
 
-        // Prefer an explicit form ID when provided.
-        if ($formId) {
+        // Stencil builders send their stencil ID as formId, not a form element ID.
+        if ($formId && !$isStencil) {
             $form = Formie::$plugin->getForms()->getFormById($formId);
 
             if (!$form) {
