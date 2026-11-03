@@ -2,6 +2,7 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\Formie;
+use verbb\formie\base\Field;
 use verbb\formie\events\ModifyMigrationAddressConfigEvent;
 use verbb\formie\fields;
 use verbb\formie\fields\Group;
@@ -257,6 +258,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         echo '    > Updating all forms with new field layout.' . PHP_EOL;
 
         Recipients::$relaxLegacyOptionValidation = true;
+        Field::$relaxLegacyUpgradeValidation = true;
 
         try {
             foreach ($forms as $form) {
@@ -307,6 +309,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
             }
         } finally {
             Recipients::$relaxLegacyOptionValidation = false;
+            Field::$relaxLegacyUpgradeValidation = false;
         }
 
         return true;

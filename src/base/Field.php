@@ -392,6 +392,10 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
     // Properties
     // =========================================================================
 
+    // Lets an upgrade carry over settings that were accepted when they were saved, such as fields encrypted before
+    // a dedicated key existed, or an upload location whose volume has since been deleted.
+    public static bool $relaxLegacyUpgradeValidation = false;
+
     public ?int $layoutId = null;
     public ?int $pageId = null;
     public ?int $rowId = null;
@@ -1394,7 +1398,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
                 return;
             }
 
-            if (!$hasKey && !$wasEnabled) {
+            if (!$hasKey && !$wasEnabled && !static::$relaxLegacyUpgradeValidation) {
                 $this->addError($attribute, Craft::t('formie', 'Set FORMIE_ENCRYPTION_KEY before enabling content encryption for a new field.'));
             }
         }];

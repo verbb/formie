@@ -963,6 +963,10 @@ class FileUpload extends ElementField
 
     public function validateUploadLocationSource(string $attribute): void
     {
+        if (static::$relaxLegacyUpgradeValidation) {
+            return;
+        }
+
         if ($message = $this->_getUploadLocationError(null)) {
             // Prefer a builder-specific message for Temporary Uploads when configuring the field.
             if ($this->_getEffectiveUploadLocationSource() === 'temp') {
@@ -1237,7 +1241,7 @@ class FileUpload extends ElementField
         $rules[] = [
             ['uploadLocationSource'],
             'required',
-            'when' => fn() => empty(Formie::$plugin->getFormDefaults()->resolveFieldTypeDefaults(self::class)['uploadLocationSource'] ?? null),
+            'when' => fn() => !static::$relaxLegacyUpgradeValidation && empty(Formie::$plugin->getFormDefaults()->resolveFieldTypeDefaults(self::class)['uploadLocationSource'] ?? null),
             'message' => Craft::t('formie', 'Upload Location must be selected.'),
         ];
 
