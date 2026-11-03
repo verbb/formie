@@ -13,6 +13,7 @@
 
 ### Fixed
 - Fixed conditions from Formie 3 showing an empty Field column in the form builder, on fields, pages, integrations and form rules. Existing conditions now use the same field references as the builder when you upgrade, except on fields synced between forms, which still work as before. ([#3087](https://github.com/verbb/formie/issues/3087))
+- Fixed **Match Field** validation no longer being enforced on fields imported by the Freeform migrations, and the setting showing a raw token instead of the field’s name in the form builder. ([#3087](https://github.com/verbb/formie/issues/3087))
 - Fixed Date fields returning an empty object from GraphQL submission queries, and Date Range fields not exposing their `start` and `end` values. ([#3079](https://github.com/verbb/formie/issues/3079))
 - Fixed Group fields failing when queried through GraphQL, and restored direct selection of their subfields. ([#3080](https://github.com/verbb/formie/issues/3080))
 - Fixed GraphQL mutations written with the documented input type names being rejected for Name, Address, Group, Repeater, Table and Payment fields. These types, and their Group, Repeater and Table output types, now use names based on form and field handles instead of field IDs, so they’re the same in every environment. Any query that hard-coded an ID-based type name needs updating. ([#3080](https://github.com/verbb/formie/issues/3080))

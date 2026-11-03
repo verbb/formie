@@ -457,6 +457,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             $config['prefillQueryParam'] = $config['prefillQueryParam'] ?? $config['prePopulate'];
             unset($config['prePopulate']);
         }
+
         // Config normalization
         self::normalizeConfig($config);
 
@@ -703,6 +704,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         if (FieldCompatibility::prefersLegacyMethod($this, 'serializeValue', 'defineValueForDb')) {
             Craft::$app->getDeprecator()->log(static::class . '::serializeValue', 'Implement defineValueForDb() instead of overriding serializeValue().');
         }
+
         $stored = FieldCompatibility::prefersLegacyMethod($this, 'serializeValue', 'defineValueForDb')
             ? $this->serializeValue($value, $element)
             : $this->defineValueForDb($value, $element);
@@ -797,21 +799,32 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
 
     public function getMatchField(): ?string
     {
+        return $this->getMatchFieldTarget()?->handle;
+    }
+
+    protected function getMatchFieldTarget(): ?FieldInterface
+    {
         if (!$this->matchField) {
             return null;
         }
 
         $matchField = trim($this->matchField);
-        $expression = References::parseReferenceExpression($matchField);
 
-        // Match-field values are canonical reference tokens: `{field:<reference>}`.
-        if (!$expression->isValid || $expression->target !== 'field' || $expression->identifier === '') {
-            return null;
+        // Freeform migrations store `{handle}`, which isn't a reference expression.
+        if (preg_match('/^\{(\w+)\}$/D', $matchField, $match)) {
+            $identifier = $match[1];
+        } else {
+            $expression = References::parseReferenceExpression($matchField);
+
+            // Match-field values are canonical reference tokens: `{field:<reference>}`.
+            if (!$expression->isValid || $expression->target !== 'field' || $expression->identifier === '') {
+                return null;
+            }
+
+            $identifier = $expression->identifier;
         }
 
-        $resolvedMatchField = (new ReferenceResolver())->fieldFor($expression->identifier, new ReferenceContext(form: $this->getForm()));
-
-        return $resolvedMatchField?->handle ?? null;
+        return (new ReferenceResolver())->fieldFor($identifier, new ReferenceContext(form: $this->getForm()));
     }
 
     public function getValidationMessage(string $key, array $params = []): string
@@ -999,20 +1012,24 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
             if (!$element instanceof Submission) {
                 (new RuntimeConfiguration())->establish($form);
             }
+
             $config = $form->getInstanceConfig();
 
             foreach ([$config->forced, $config->initial] as $values) {
                 if (array_key_exists($this->uid, $values)) {
                     $found = true;
+
                     return $this->normalizeValue($values[$this->uid], $element);
                 }
             }
 
             if (array_key_exists($this->uid, $config->prefill)) {
                 $found = true;
+
                 return $this->normalizePrefillValue($this->setPrePopulatedValue($config->prefill[$this->uid]), $element);
             }
         }
+
         return null;
     }
 
@@ -1186,6 +1203,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
                 'isNew' => $isNew,
             ]);
             $this->trigger(self::EVENT_BEFORE_ELEMENT_SAVE, $event);
+
             return $event->isValid;
         }
 
@@ -1220,6 +1238,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         if ($this->hasEventHandlers(self::EVENT_BEFORE_ELEMENT_DELETE)) {
             $event = new FieldElementEvent(['element' => $element]);
             $this->trigger(self::EVENT_BEFORE_ELEMENT_DELETE, $event);
+
             return $event->isValid;
         }
 
@@ -1251,6 +1270,7 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         if ($this->hasEventHandlers(self::EVENT_BEFORE_ELEMENT_RESTORE)) {
             $event = new FieldElementEvent(['element' => $element]);
             $this->trigger(self::EVENT_BEFORE_ELEMENT_RESTORE, $event);
+
             return $event->isValid;
         }
 
