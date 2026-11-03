@@ -84,7 +84,6 @@ Some Formie resources travel via project config instead of import/export:
 | Form groups | `formie.formGroups` in project config |
 | Project stencils | `formie.stencils` in project config |
 | Submission statuses | `formie.statuses` |
-| Reports | `formie.reports` |
 
 Use import/export for **individual form snapshots**. Use project config for **team-wide defaults and stencils** that should version with code.
 

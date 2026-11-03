@@ -130,7 +130,7 @@ class ReportExportFile extends Model
     protected function defineRules(): array
     {
         return [
-            [['reportId', 'format'], 'required'],
+            [['format'], 'required'],
             [['reportId', 'userId', 'scheduledReportId', 'fileSize'], 'integer'],
             [['source', 'status', 'format'], 'string'],
             [['filename', 'filePath', 'notifyEmail', 'downloadToken', 'downloadTokenHash', 'downloadUrl'], 'string'],

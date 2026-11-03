@@ -2,6 +2,10 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\services\Reports;
+use verbb\formie\services\ScheduledReports;
+
+use Craft;
 
 class ProjectConfigHelper
 {
@@ -16,13 +20,21 @@ class ProjectConfigHelper
         $configData['formStatuses'] = self::_getFormStatusData();
         $configData['stencils'] = self::_getStencilsData();
         $configData['formGroups'] = self::_getFormGroupsData();
-        $configData['reports'] = self::_getReportsData();
-        $configData['scheduledReports'] = self::_getScheduledReportsData();
         $configData['formTemplates'] = self::_getFormTemplatesData();
         $configData['emailTemplates'] = self::_getEmailTemplatesData();
         $configData['pdfTemplates'] = self::_getPdfTemplatesData();
         $configData['integrations'] = self::_getIntegrationsData();
         $configData['fieldPalette'] = self::_getFieldPaletteData();
+
+        // Reports live in the database now and nothing reads these entries, but older releases
+        // treat a missing entry as a deletion. Keeping them protects environments not yet upgraded.
+        foreach (['reports' => Reports::CONFIG_REPORTS_KEY, 'scheduledReports' => ScheduledReports::CONFIG_SCHEDULED_REPORTS_KEY] as $key => $path) {
+            $entries = Craft::$app->getProjectConfig()->get($path);
+
+            if ($entries) {
+                $configData[$key] = $entries;
+            }
+        }
 
         return array_filter($configData);
     }
@@ -70,28 +82,6 @@ class ProjectConfigHelper
 
         foreach (Formie::$plugin->getFormGroups()->getAllGroups() as $group) {
             $data[$group->uid] = $group->getConfig();
-        }
-
-        return $data;
-    }
-
-    private static function _getReportsData(): array
-    {
-        $data = [];
-
-        foreach (Formie::$plugin->getReports()->getAllReports() as $report) {
-            $data[$report->uid] = $report->getConfig();
-        }
-
-        return $data;
-    }
-
-    private static function _getScheduledReportsData(): array
-    {
-        $data = [];
-
-        foreach (Formie::$plugin->getScheduledReports()->getAllScheduledReports() as $scheduledReport) {
-            $data[$scheduledReport->uid] = $scheduledReport->getConfig();
         }
 
         return $data;

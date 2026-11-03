@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FormGroup;
+use verbb\formie\models\Report;
 
 use Craft;
 use craft\base\Component;
@@ -134,9 +135,26 @@ class Permissions extends Component
         return $user->can(self::PERM_EXPORT_SUBMISSIONS) || $user->can(self::PERM_MANAGE_REPORTS);
     }
 
+    /**
+     * Whether someone can change this report. Scheduled sends skip form permissions and can
+     * email any address, so changing a report behind a schedule would widen what it sends.
+     */
+    public function canEditReport(?User $user, Report $report): bool
+    {
+        if (!$this->canManageReports($user)) {
+            return false;
+        }
+
+        if ($this->_isElevated($user) || !$report->id) {
+            return true;
+        }
+
+        return Formie::$plugin->getScheduledReports()->getScheduledReportsForReport((int)$report->id) === [];
+    }
+
     public function canManageScheduledReports(?User $user): bool
     {
-        return $this->canAccessSettings($user);
+        return $this->_isElevated($user);
     }
 
     public function canTestScheduledReports(?User $user): bool

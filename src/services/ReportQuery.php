@@ -35,6 +35,11 @@ class ReportQuery extends Component
             ->formId($formIds ?: false)
             ->status(null);
 
+        // Saved reports span every site. Submission index exports carry the sites shown there.
+        if (!empty($filters['siteIds'])) {
+            $query->siteId($filters['siteIds']);
+        }
+
         $this->_applyStateFilters($query, $filters);
         $this->_applyStatusFilters($query, $filters);
         $this->_applyDateFilters($query, $filters);
@@ -318,6 +323,29 @@ class ReportQuery extends Component
         }
 
         return $resolved;
+    }
+
+    /**
+     * Saved form IDs can point at forms that were deleted, or that belong to another
+     * environment for reports deployed before reports moved to the database.
+     */
+    public function hasMissingForms(Report $report): bool
+    {
+        $formIds = $report->getSettingsModel()->filters['formIds'] ?? [];
+
+        if (!is_array($formIds) || $formIds === [] || $formIds === ['*']) {
+            return false;
+        }
+
+        $formIds = array_map('intval', $formIds);
+        $existingFormIds = (new Query())
+            ->select(['forms.id'])
+            ->from(['forms' => Table::FORMIE_FORMS])
+            ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[forms.id]]')
+            ->where(['forms.id' => $formIds, 'elements.dateDeleted' => null])
+            ->column();
+
+        return array_diff($formIds, array_map('intval', $existingFormIds)) !== [];
     }
 
     public function canViewFormSubmissions(?User $user, Form $form): bool

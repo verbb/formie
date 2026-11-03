@@ -16,6 +16,7 @@ use craft\db\Query;
 use craft\events\ConfigEvent;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
+use craft\helpers\Json;
 
 use DateTime;
 use Throwable;
@@ -30,6 +31,10 @@ class ScheduledReports extends Component
     public const EVENT_BEFORE_DELETE_SCHEDULED_REPORT = 'beforeDeleteScheduledReport';
     public const EVENT_BEFORE_APPLY_SCHEDULED_REPORT_DELETE = 'beforeApplyScheduledReportDelete';
     public const EVENT_AFTER_DELETE_SCHEDULED_REPORT = 'afterDeleteScheduledReport';
+
+    /**
+     * @deprecated Scheduled reports are stored in the database. This key is only read when upgrading.
+     */
     public const CONFIG_SCHEDULED_REPORTS_KEY = 'formie.scheduledReports';
 
 
@@ -98,75 +103,51 @@ class ScheduledReports extends Component
         $delivery = $scheduledReport->getDeliveryModel();
         $report = Formie::$plugin->getReports()->getReportById((int)$scheduledReport->reportId);
 
-        if ($report) {
-            $delivery->reportUid = $report->uid;
-            $scheduledReport->setDeliveryModel($delivery);
+        if (!$report) {
+            $scheduledReport->addError('reportId', Craft::t('formie', 'Scheduled report references a missing report.'));
+
+            return false;
         }
 
-        $configPath = self::CONFIG_SCHEDULED_REPORTS_KEY . '.' . $scheduledReport->uid;
-        Craft::$app->getProjectConfig()->set($configPath, $scheduledReport->getConfig(), "Save the “{$scheduledReport->name}” scheduled report");
+        $delivery->reportUid = $report->uid;
+        $scheduledReport->setDeliveryModel($delivery);
 
-        if ($isNew) {
-            $scheduledReport->id = Db::idByUid(Table::FORMIE_SCHEDULED_REPORTS, $scheduledReport->uid);
+        $transaction = Craft::$app->getDb()->beginTransaction();
+
+        try {
+            $record = $this->_getScheduledReportRecord((string)$scheduledReport->uid, true);
+            $record->reportId = $report->id;
+            $record->name = $scheduledReport->name;
+            $record->enabled = $scheduledReport->enabled;
+            $record->delivery = $scheduledReport->delivery ? Json::encode($scheduledReport->delivery) : null;
+            $record->uid = $scheduledReport->uid;
+            $record->save(false);
+
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+
+            throw $e;
+        }
+
+        $scheduledReport->id = (int)$record->id;
+        $this->_scheduledReports = null;
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_SCHEDULED_REPORT)) {
+            $this->trigger(self::EVENT_AFTER_SAVE_SCHEDULED_REPORT, new ScheduledReportEvent([
+                'scheduledReport' => $this->getScheduledReportById($scheduledReport->id),
+                'isNew' => $isNew,
+            ]));
         }
 
         return true;
     }
 
+    /**
+     * @deprecated Scheduled reports are stored in the database, so project config can't change them.
+     */
     public function handleChangedScheduledReport(ConfigEvent $event): void
     {
-        $scheduledReportUid = $event->tokenMatches[0];
-        $data = $event->newValue;
-
-        if (!$data) {
-            return;
-        }
-
-        $report = null;
-
-        if (!empty($data['reportUid'])) {
-            $report = Formie::$plugin->getReports()->getReportByUid($data['reportUid']);
-        }
-
-        if (!$report) {
-            Formie::warning('Scheduled report “{uid}” references a missing report.', [
-                'uid' => $scheduledReportUid,
-            ]);
-
-            return;
-        }
-
-        $transaction = Craft::$app->getDb()->beginTransaction();
-
-        try {
-            $record = $this->_getScheduledReportRecord($scheduledReportUid, true);
-            $isNew = $record->getIsNewRecord();
-
-            $record->reportId = $report->id;
-            $record->name = $data['name'];
-            $record->enabled = (bool)($data['enabled'] ?? true);
-            $record->uid = $scheduledReportUid;
-
-            if ($record->dateDeleted) {
-                $record->restore();
-            } else {
-                $record->save(false);
-            }
-
-            $transaction->commit();
-        } catch (Throwable $e) {
-            $transaction->rollBack();
-            throw $e;
-        }
-
-        $this->_scheduledReports = null;
-
-        if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_SCHEDULED_REPORT)) {
-            $this->trigger(self::EVENT_AFTER_SAVE_SCHEDULED_REPORT, new ScheduledReportEvent([
-                'scheduledReport' => $this->getScheduledReportById($record->id),
-                'isNew' => $isNew,
-            ]));
-        }
     }
 
     public function deleteScheduledReport(ScheduledReport $scheduledReport): bool
@@ -176,25 +157,6 @@ class ScheduledReports extends Component
                 'scheduledReport' => $scheduledReport,
             ]));
         }
-
-        Craft::$app->getProjectConfig()->remove(
-            self::CONFIG_SCHEDULED_REPORTS_KEY . '.' . $scheduledReport->uid,
-            "Delete scheduled report “{$scheduledReport->name}”",
-        );
-
-        return true;
-    }
-
-    public function handleDeletedScheduledReport(ConfigEvent $event): void
-    {
-        $uid = $event->tokenMatches[0];
-        $record = $this->_getScheduledReportRecord($uid);
-
-        if ($record->getIsNewRecord()) {
-            return;
-        }
-
-        $scheduledReport = $this->getScheduledReportById($record->id);
 
         if ($this->hasEventHandlers(self::EVENT_BEFORE_APPLY_SCHEDULED_REPORT_DELETE)) {
             $this->trigger(self::EVENT_BEFORE_APPLY_SCHEDULED_REPORT_DELETE, new ScheduledReportEvent([
@@ -206,12 +168,13 @@ class ScheduledReports extends Component
 
         try {
             Craft::$app->getDb()->createCommand()
-                ->softDelete(Table::FORMIE_SCHEDULED_REPORTS, ['id' => $record->id])
+                ->softDelete(Table::FORMIE_SCHEDULED_REPORTS, ['id' => $scheduledReport->id])
                 ->execute();
 
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -222,6 +185,15 @@ class ScheduledReports extends Component
                 'scheduledReport' => $scheduledReport,
             ]));
         }
+
+        return true;
+    }
+
+    /**
+     * @deprecated Scheduled reports are stored in the database, so project config can't change them.
+     */
+    public function handleDeletedScheduledReport(ConfigEvent $event): void
+    {
     }
 
     public function markSent(ScheduledReport $scheduledReport, ?DateTime $sentAt = null): void
@@ -348,20 +320,9 @@ class ScheduledReports extends Component
             $scheduledReports = [];
 
             foreach ($this->_createScheduledReportsQuery()->all() as $result) {
-                $scheduledReport = new ScheduledReport($result);
-                $config = Craft::$app->getProjectConfig()->get(self::CONFIG_SCHEDULED_REPORTS_KEY . '.' . $result['uid']);
-
-                if (is_array($config['delivery'] ?? null)) {
-                    $scheduledReport->delivery = $config['delivery'];
-                }
-
-                if (!empty($config['reportUid'])) {
-                    $scheduledReport->delivery = array_merge($scheduledReport->delivery ?? [], [
-                        'reportUid' => $config['reportUid'],
-                    ]);
-                }
-
-                $scheduledReports[] = $scheduledReport;
+                $delivery = Json::decodeIfJson((string)$result['delivery']);
+                $result['delivery'] = is_array($delivery) ? $delivery : null;
+                $scheduledReports[] = new ScheduledReport($result);
             }
 
             $this->_scheduledReports = new MemoizableArray($scheduledReports);
@@ -379,6 +340,7 @@ class ScheduledReports extends Component
                 'name',
                 'enabled',
                 'lastSentAt',
+                'delivery',
                 'dateDeleted',
                 'uid',
             ])

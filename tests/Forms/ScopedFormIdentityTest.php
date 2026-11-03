@@ -45,6 +45,8 @@ it('uses the registered form identity for scoped graphql operations', function (
     $submission = formie()->submission($allowed)->with(['message' => 'Allowed'])->save();
     $other = formie()->submission($restricted)->with(['message' => 'Restricted'])->save();
     $service = Craft::$app->getGql();
+    // Earlier tests can leave types registered, and this builds and validates a whole new schema.
+    $service->flushCaches();
     $previous = null;
     try { $previous = $service->getActiveSchema(); } catch (GqlException) {}
     $schema = new GqlSchema(['name' => 'Scoped form identity', 'uid' => StringHelper::UUID(), 'scope' => [

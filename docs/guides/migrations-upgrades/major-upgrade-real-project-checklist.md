@@ -41,7 +41,7 @@ return [
 - Test notification preview and test send
 - Reconnect OAuth integrations (Stripe, Mailchimp, and so on)
 - Confirm form groups, stencils, and reports if used
-- Verify submission export via **Formie → Reports** (the **Export** button no longer appears on the submissions index — see [Reports and submission export](/get-started/upgrading-from-v3#reports-and-submission-export))
+- Verify submission export from the submissions index **Export…** dialog, and from **Formie → Reports** if you use saved reports (see [Reports and submission export](/get-started/upgrading-from-v3#reports-and-submission-export))
 - Grant **Access reports** and **Export submissions** (or **Manage reports**) to user groups responsible for submission exports
 
 ## Phase 4 — Template and Front-End
@@ -126,7 +126,7 @@ return [
 | `getStatuses()` | `getSubmissionStatuses()` |
 | `defineGeneralSchema()` | `defineFormBuilderGeneralSchema()` |
 | Honeypot captcha integration | Honeypot submission guard |
-| Submissions index **Export** | **Formie → Reports** → **Export** |
+| Submissions index exporters | Submissions index **Export…** dialog, or **Formie → Reports** → **Export** |
 | `enableJsEvents` | `enableClientEvents` |
 
 Full table in [Upgrading From v3](/get-started/upgrading-from-v3#replacement-reference).

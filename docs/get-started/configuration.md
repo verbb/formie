@@ -812,34 +812,6 @@ Each entry contains `name`, `handle`, and `sortOrder`. Individual forms store an
 
 See [Form Groups](/forms/form-groups) for control panel behaviour.
 
-### Reports (Project Config)
-
-Report definitions and scheduled delivery settings are stored in project config:
-
-```yaml
-formie:
-  reports:
-    a1b2c3d4-0000-4000-8000-000000000001:
-      name: Weekly Enquiries
-      handle: weeklyEnquiries
-      sortOrder: 1
-      # filters, columns, display, and export settings…
-  scheduledReports:
-    b2c3d4e5-0000-4000-8000-000000000002:
-      name: Monday summary
-      enabled: true
-      delivery:
-        frequency: weekly
-        weekday: 1
-        hour: 8
-        recipients:
-          - team@example.com
-```
-
-Each report entry stores its analytical settings. Scheduled report entries store delivery configuration; the linked report is resolved by UID in each environment. Database-only fields such as `lastSentAt` are stored in the database only.
-
-See [Reports](/reports/reports) and [Scheduled reports](/reports/scheduled-reports) for control panel behaviour and cron setup.
-
 ## Control Panel
 You can also manage many configuration settings through the control panel by visiting **Formie → Settings**. Form, field, and notification defaults are managed on the dedicated **Form Builder Defaults** settings page.
 
@@ -850,13 +822,13 @@ Formie registers Craft user permissions under **Settings → Users → {user gro
 | Permission | Purpose |
 | --- | --- |
 | **Access reports** | Open **Formie → Reports** and run saved reports |
-| **Manage reports** | Create, edit, and delete reports; export data |
+| **Manage reports** | Create, edit, and delete reports on any environment; export data |
 | **View scheduled reports** | Inspect saved deliveries under **Settings → Scheduled Reports** |
 | **Send scheduled report test emails** | Send a saved scheduled report to your own email address |
 
-Users with **Export submissions** can export from reports without **Manage reports**.
+Users with **Export submissions** can export from reports and the submissions index without **Manage reports**. It sits beneath **Access reports**, so select both.
 
-Under **Access settings**, assign production tools such as import/export and support, or read-only access to encryption status, synced field usage and scheduled reports. Configuration editing, including scheduled-report definitions, requires a Craft administrator with admin changes enabled. Spam rules and CAPTCHA permissions are separate under **Access spam protection**.
+Under **Access settings**, assign production tools such as import/export and support, or read-only access to encryption status, synced field usage and scheduled reports. Configuration editing requires a Craft administrator with admin changes enabled. Editing scheduled reports requires a Craft administrator, on any environment. Spam rules and CAPTCHA permissions are separate under **Access spam protection**.
 
 Scheduled email delivery requires a cron schedule. Use `./craft formie/cron/run` (recommended) or `./craft formie/reports/run-scheduled`. See [Scheduled reports](/reports/scheduled-reports).
 

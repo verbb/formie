@@ -143,7 +143,7 @@ it('separates scheduled report test sends from administrator-only mutations', fu
 })->with(['save', 'delete', 'test-send'])->with([true, false]);
 
 
-it('allows scheduled report edits only to administrators in editable environments', function(bool $admin, bool $unlocked, string $action): void {
+it('allows scheduled report edits only to administrators, with or without admin changes', function(bool $admin, bool $unlocked, string $action): void {
     $name = 'scheduleConfig' . bin2hex(random_bytes(6));
     $user = new User(['username' => $name, 'email' => $name . '@example.test', 'admin' => $admin]);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
@@ -154,7 +154,7 @@ it('allows scheduled report edits only to administrators in editable environment
         Craft::$app->getUser()->setIdentity(User::find()->id($user->id)->status(null)->one());
         $request->setBodyParams([$request->csrfParam => $request->getCsrfToken()]);
         $controller = new ScheduledReportsController('scheduled-reports', Formie::$plugin);
-        if ($admin && $unlocked) {
+        if ($admin) {
             expect($controller->beforeAction(new Action($action, $controller)))->toBeTrue();
         } else {
             expect(fn() => $controller->runAction($action))->toThrow(ForbiddenHttpException::class);

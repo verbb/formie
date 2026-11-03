@@ -36,7 +36,7 @@
 
 {% if not fullPageForm %}
     <p class="warning with-icon">
-        {{ 'Report settings are read-only when allowAdminChanges is disabled.' | t('formie') | md(inlineOnly=true) }}
+        {{ (canManageReports ? 'Only administrators can change a report with scheduled deliveries.' : 'You don’t have permission to change this report.') | t('formie') }}
     </p>
 {% endif %}
 

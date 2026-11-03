@@ -14,6 +14,7 @@ use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\events\ConfigEvent;
 use craft\helpers\Db;
+use craft\helpers\Json;
 
 use Throwable;
 
@@ -27,6 +28,10 @@ class Reports extends Component
     public const EVENT_BEFORE_DELETE_REPORT = 'beforeDeleteReport';
     public const EVENT_BEFORE_APPLY_REPORT_DELETE = 'beforeApplyReportDelete';
     public const EVENT_AFTER_DELETE_REPORT = 'afterDeleteReport';
+
+    /**
+     * @deprecated Reports are stored in the database. This key is only read when upgrading.
+     */
     public const CONFIG_REPORTS_KEY = 'formie.reports';
 
 
@@ -64,20 +69,17 @@ class Reports extends Component
         return (new Query())
             ->select(['handle'])
             ->from([Table::FORMIE_REPORTS])
+            ->where(['dateDeleted' => null])
             ->column();
     }
 
     public function reorderReports(array $reportIds): bool
     {
-        $projectConfig = Craft::$app->getProjectConfig();
-        $uidsByIds = Db::uidsByIds(Table::FORMIE_REPORTS, $reportIds);
-
         foreach ($reportIds as $reportOrder => $reportId) {
-            if (!empty($uidsByIds[$reportId])) {
-                $reportUid = $uidsByIds[$reportId];
-                $projectConfig->set(self::CONFIG_REPORTS_KEY . '.' . $reportUid . '.sortOrder', $reportOrder + 1);
-            }
+            Db::update(Table::FORMIE_REPORTS, ['sortOrder' => $reportOrder + 1], ['id' => $reportId]);
         }
+
+        $this->_reports = null;
 
         return true;
     }
@@ -109,68 +111,61 @@ class Reports extends Component
             $report->uid = Db::uidById(Table::FORMIE_REPORTS, $report->id);
         }
 
-        $handleOwnerId = (new Query())
-            ->select(['id'])
+        $handleOwner = (new Query())
+            ->select(['id', 'dateDeleted'])
             ->from([Table::FORMIE_REPORTS])
             ->where(['handle' => $report->handle])
-            ->scalar();
+            ->one();
+        $isHandleTaken = $handleOwner && (!$report->id || (int)$report->id !== (int)$handleOwner['id']);
 
-        if ($handleOwnerId && (!$report->id || (int)$report->id !== (int)$handleOwnerId)) {
+        if ($isHandleTaken && !$handleOwner['dateDeleted']) {
             $report->addError('handle', Craft::t('formie', 'That handle is already in use.'));
 
             return false;
         }
 
-        $configPath = self::CONFIG_REPORTS_KEY . '.' . $report->uid;
-        Craft::$app->getProjectConfig()->set($configPath, $report->getConfig(), "Save the “{$report->handle}” report");
+        $transaction = Craft::$app->getDb()->beginTransaction();
 
-        if ($isNewReport) {
-            $report->id = Db::idByUid(Table::FORMIE_REPORTS, $report->uid);
+        try {
+            // Handles stay unique across trashed reports and nothing restores those, so
+            // someone recreating a deleted report takes over its handle.
+            if ($isHandleTaken) {
+                Db::delete(Table::FORMIE_REPORTS, ['id' => $handleOwner['id']]);
+            }
+
+            $reportRecord = $this->_getReportRecord((string)$report->uid, true);
+            $reportRecord->name = $report->name;
+            $reportRecord->handle = $report->handle;
+            $reportRecord->sortOrder = $report->sortOrder ?? $reportRecord->sortOrder;
+            $reportRecord->settings = $report->settings ? Json::encode($report->settings) : null;
+            $reportRecord->uid = $report->uid;
+            $reportRecord->save(false);
+
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+
+            throw $e;
+        }
+
+        $report->id = (int)$reportRecord->id;
+        $this->_reports = null;
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_REPORT)) {
+            $this->trigger(self::EVENT_AFTER_SAVE_REPORT, new ReportEvent([
+                'report' => $this->getReportById($report->id),
+                'isNew' => $isNewReport,
+            ]));
         }
 
         return true;
     }
 
+    /**
+     * @deprecated Reports are stored in the database, so project config can't change them.
+     */
     public function handleChangedReport(ConfigEvent $event): void
     {
-        $reportUid = $event->tokenMatches[0];
-        $data = $event->newValue;
-
-        if (!$data) {
-            return;
-        }
-
-        $transaction = Craft::$app->getDb()->beginTransaction();
-
-        try {
-            $reportRecord = $this->_getReportRecord($reportUid, true);
-            $isNewReport = $reportRecord->getIsNewRecord();
-
-            $reportRecord->name = $data['name'];
-            $reportRecord->handle = $data['handle'];
-            $reportRecord->sortOrder = $data['sortOrder'];
-            $reportRecord->uid = $reportUid;
-
-            if ($reportRecord->dateDeleted) {
-                $reportRecord->restore();
-            } else {
-                $reportRecord->save(false);
-            }
-
-            $transaction->commit();
-        } catch (Throwable $e) {
-            $transaction->rollBack();
-            throw $e;
-        }
-
-        $this->_reports = null;
-
-        if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_REPORT)) {
-            $this->trigger(self::EVENT_AFTER_SAVE_REPORT, new ReportEvent([
-                'report' => $this->getReportById($reportRecord->id),
-                'isNew' => $isNewReport,
-            ]));
-        }
     }
 
     public function deleteReportById(int $id): bool
@@ -192,22 +187,6 @@ class Reports extends Component
             ]));
         }
 
-        Craft::$app->getProjectConfig()->remove(self::CONFIG_REPORTS_KEY . '.' . $report->uid, "Delete report “{$report->handle}”");
-
-        return true;
-    }
-
-    public function handleDeletedReport(ConfigEvent $event): void
-    {
-        $uid = $event->tokenMatches[0];
-        $reportRecord = $this->_getReportRecord($uid);
-
-        if ($reportRecord->getIsNewRecord()) {
-            return;
-        }
-
-        $report = $this->getReportById($reportRecord->id);
-
         if ($this->hasEventHandlers(self::EVENT_BEFORE_APPLY_REPORT_DELETE)) {
             $this->trigger(self::EVENT_BEFORE_APPLY_REPORT_DELETE, new ReportEvent([
                 'report' => $report,
@@ -218,12 +197,13 @@ class Reports extends Component
 
         try {
             Craft::$app->getDb()->createCommand()
-                ->softDelete(Table::FORMIE_REPORTS, ['id' => $reportRecord->id])
+                ->softDelete(Table::FORMIE_REPORTS, ['id' => $report->id])
                 ->execute();
 
             $transaction->commit();
         } catch (Throwable $e) {
             $transaction->rollBack();
+
             throw $e;
         }
 
@@ -234,6 +214,15 @@ class Reports extends Component
                 'report' => $report,
             ]));
         }
+
+        return true;
+    }
+
+    /**
+     * @deprecated Reports are stored in the database, so project config can't change them.
+     */
+    public function handleDeletedReport(ConfigEvent $event): void
+    {
     }
 
 
@@ -246,14 +235,9 @@ class Reports extends Component
             $reports = [];
 
             foreach ($this->_createReportsQuery()->all() as $result) {
-                $report = new Report($result);
-                $reportConfig = Craft::$app->getProjectConfig()->get(self::CONFIG_REPORTS_KEY . '.' . $result['uid']);
-
-                if (is_array($reportConfig['settings'] ?? null)) {
-                    $report->settings = $reportConfig['settings'];
-                }
-
-                $reports[] = $report;
+                $settings = Json::decodeIfJson((string)$result['settings']);
+                $result['settings'] = is_array($settings) ? $settings : null;
+                $reports[] = new Report($result);
             }
 
             $this->_reports = new MemoizableArray($reports);
@@ -270,6 +254,7 @@ class Reports extends Component
                 'name',
                 'handle',
                 'sortOrder',
+                'settings',
                 'dateDeleted',
                 'uid',
             ])

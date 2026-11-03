@@ -36,7 +36,7 @@ class ScheduledReportsController extends SettingsAccessController
         $user = Craft::$app->getUser()->getIdentity();
 
         if (in_array($action->id, ['save', 'delete'], true) && !$permissions->canManageScheduledReports($user)) {
-            throw new ForbiddenHttpException('Scheduled reports can only be changed by administrators when admin changes are enabled.');
+            throw new ForbiddenHttpException('Scheduled reports can only be changed by administrators.');
         }
 
         if ($action->id === 'test-send') {
@@ -98,6 +98,7 @@ class ScheduledReportsController extends SettingsAccessController
     public function actionSave(): ?Response
     {
         $this->requirePostRequest();
+
         $request = $this->request;
 
         $scheduledReport = new ScheduledReport();

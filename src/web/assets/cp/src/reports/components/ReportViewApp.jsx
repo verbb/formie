@@ -395,6 +395,12 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
                 </div>
             ) : null}
 
+            {settings.hasMissingForms ? (
+                <Alert variant="warning" size="sm">
+                    {Craft.t('formie', 'Some forms selected for this report no longer exist here, so their submissions aren’t included.')}
+                </Alert>
+            ) : null}
+
             <ReportViewerToolbar
                 search={search}
                 onSearchChange={(value) => {

@@ -3,10 +3,13 @@
 ## Unreleased
 
 ### Added
+- Add an **Export…** button to the submissions index. It opens a dialog filled in from your current form, filters and search, where you can adjust the forms, submission types, statuses, dates and columns, and see how many submissions you’ll get, before exporting in any report format. No saved report is needed. ([#3082](https://github.com/verbb/formie/issues/3082))
 - Add the [`logSubmissionValues`](https://verbb.io/craft-plugins/formie/docs/v4/get-started/configuration#logsubmissionvalues) config setting to keep submitted values out of Formie’s log files, while still writing every log entry.
 - Add an option to leave log files out of support requests.
 
 ### Changed
+- Store reports and scheduled reports in each installation’s database instead of project config, so users with **Manage reports** can create and change reports on production. Existing reports and schedules move across automatically when you upgrade, with nothing to run. Reports no longer deploy between environments through project config, and each environment now keeps its own copies. Only administrators can change a report with scheduled deliveries or edit schedules. See the [upgrade guide](https://verbb.io/craft-plugins/formie/docs/v4/get-started/upgrading-from-v3#reports-and-submission-export). ([#3082](https://github.com/verbb/formie/issues/3082))
+- Show a warning on reports that point at forms that no longer exist.
 - Keep encrypted field values out of Formie’s log files, including integration payloads for forms with encrypted fields.
 - Update the `@verbb/formie-*` npm packages to use the same version number as the plugin. Version ranges such as `^1.0.16` need updating once. ([#3081](https://github.com/verbb/formie/issues/3081))
 - Renamed the “Reconcile uncertain deliveries” permission to “Confirm delivery outcomes” and “Force integration execution” to “Run integrations regardless of conditions and opt-in”, and moved both under “View delivery diagnostics”.
@@ -14,6 +17,7 @@
 ### Fixed
 - Fixed conditions from Formie 3 showing an empty Field column in the form builder, on fields, pages, integrations and form rules. Existing conditions now use the same field references as the builder when you upgrade, except on fields synced between forms, which still work as before. ([#3087](https://github.com/verbb/formie/issues/3087))
 - Fixed **Match Field** validation no longer being enforced on fields imported by the Freeform migrations, and the setting showing a raw token instead of the field’s name in the form builder. ([#3087](https://github.com/verbb/formie/issues/3087))
+- Fixed exports queued in the background failing for users with **Manage reports** but not **Export submissions**.
 - Fixed Date fields returning an empty object from GraphQL submission queries, and Date Range fields not exposing their `start` and `end` values. ([#3079](https://github.com/verbb/formie/issues/3079))
 - Fixed Group fields failing when queried through GraphQL, and restored direct selection of their subfields. ([#3080](https://github.com/verbb/formie/issues/3080))
 - Fixed GraphQL mutations written with the documented input type names being rejected for Name, Address, Group, Repeater, Table and Payment fields. These types, and their Group, Repeater and Table output types, now use names based on form and field handles instead of field IDs, so they’re the same in every environment. Any query that hard-coded an ID-based type name needs updating. ([#3080](https://github.com/verbb/formie/issues/3080))

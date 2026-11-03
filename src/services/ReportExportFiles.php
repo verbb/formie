@@ -36,7 +36,7 @@ class ReportExportFiles extends Component
         $dateExpires ??= $this->_defaultExpiry($source);
 
         $exportFile = new ReportExportFile([
-            'reportId' => (int)$report->id,
+            'reportId' => $report->id ? (int)$report->id : null,
             'userId' => $user?->id ? (int)$user->id : null,
             'scheduledReportId' => $scheduledReportId,
             'source' => $source,
@@ -68,7 +68,7 @@ class ReportExportFiles extends Component
             return false;
         }
 
-        $record->reportId = (int)$exportFile->reportId;
+        $record->reportId = $exportFile->reportId ?: null;
         $record->userId = $exportFile->userId;
         $record->scheduledReportId = $exportFile->scheduledReportId;
         $record->source = $exportFile->source;
@@ -213,6 +213,7 @@ class ReportExportFiles extends Component
         $exportFile->downloadTokenHash = null;
         $exportFile->downloadToken = null;
         $exportFile->downloadUrl = null;
+
         return true;
     }
 
@@ -322,7 +323,7 @@ class ReportExportFiles extends Component
 
         return new ReportExportFile([
             'id' => (int)$record->id,
-            'reportId' => (int)$record->reportId,
+            'reportId' => $record->reportId ? (int)$record->reportId : null,
             'userId' => $record->userId ? (int)$record->userId : null,
             'scheduledReportId' => $record->scheduledReportId ? (int)$record->scheduledReportId : null,
             'source' => (string)$record->source,

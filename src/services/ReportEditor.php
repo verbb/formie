@@ -48,8 +48,8 @@ class ReportEditor extends Component
             'scheduledReportsNewUrl' => $report->id
                 ? UrlHelper::cpUrl('formie/settings/scheduled-reports/new', ['reportId' => $report->id])
                 : null,
-            'canEdit' => Craft::$app->getConfig()->getGeneral()->allowAdminChanges
-                && Formie::$plugin->getPermissions()->canManageReports($user),
+            'canEdit' => Formie::$plugin->getPermissions()->canEditReport($user, $report),
+            'hasMissingForms' => $report->id && Formie::$plugin->getReportQuery()->hasMissingForms($report),
             'viewUrl' => $report->id ? $report->getCpRunUrl() : null,
             'dashboardUrl' => $report->id ? $report->getCpRunUrl() : null,
             'exportUrl' => $report->id && Formie::$plugin->getPermissions()->canExportSubmissions($user)
@@ -107,6 +107,25 @@ class ReportEditor extends Component
         $report->setSettingsModel($settings);
 
         return true;
+    }
+
+    /**
+     * Keeps someone's form choices to what they can view, without losing forms a report
+     * already has that are hidden from them. Their picker can't show those to keep.
+     */
+    public function resolveEditableFormIds(mixed $requestedFormIds, mixed $existingFormIds, ?User $user): mixed
+    {
+        if ($user?->admin || $user?->can(Permissions::PERM_VIEW_SUBMISSIONS) || $requestedFormIds === '*') {
+            return $requestedFormIds;
+        }
+
+        $viewableFormIds = array_map('intval', array_column($this->getFormOptions($user), 'value'));
+        $hiddenFormIds = is_array($existingFormIds) ? array_diff(array_map('intval', $existingFormIds), $viewableFormIds) : [];
+
+        return array_values(array_unique([
+            ...array_intersect(array_map('intval', (array)$requestedFormIds), $viewableFormIds),
+            ...$hiddenFormIds,
+        ]));
     }
 
     public function getDefaultAttributeColumns(): array
@@ -167,6 +186,7 @@ class ReportEditor extends Component
             foreach ($groupForms as &$groupForm) {
                 $groupForm['groupName'] = $group->name;
             }
+
             unset($groupForm);
 
             array_push($options, ...$groupForms);
@@ -225,6 +245,7 @@ class ReportEditor extends Component
         if (array_key_exists('startDate', $filters) || array_key_exists('endDate', $filters)) {
             $filters = ReportDateBoundHelper::migrateLegacyFilters($filters);
         }
+
         $normalized = array_merge($defaults, $filters);
 
         $formIds = $normalized['formIds'] ?? '*';

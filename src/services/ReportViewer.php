@@ -19,9 +19,7 @@ class ReportViewer extends Component
     {
         $user ??= Craft::$app->getUser()->getIdentity();
         $reports = Formie::$plugin->getReports()->getAllReports();
-        $allowAdminChanges = Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
-        $canManageReports = $allowAdminChanges
-            && Formie::$plugin->getPermissions()->canManageReports($user);
+        $canManageReports = Formie::$plugin->getPermissions()->canManageReports($user);
         $canExport = Formie::$plugin->getPermissions()->canExportSubmissions($user);
         $selectedReport = $this->_resolveSelectedReport($reports, $reportHandle);
         $reportOptions = array_map(fn(Report $report) => [
@@ -126,8 +124,8 @@ class ReportViewer extends Component
             'editUrl' => $report->getCpEditUrl(),
             'dashboardUrl' => $report->getCpRunUrl(),
             'canExport' => Formie::$plugin->getPermissions()->canExportSubmissions($user),
-            'canEdit' => Craft::$app->getConfig()->getGeneral()->allowAdminChanges
-                && Formie::$plugin->getPermissions()->canManageReports($user),
+            'canEdit' => Formie::$plugin->getPermissions()->canEditReport($user, $report),
+            'hasMissingForms' => Formie::$plugin->getReportQuery()->hasMissingForms($report),
             'csrfTokenName' => Craft::$app->getConfig()->getGeneral()->csrfTokenName,
             'csrfTokenValue' => Craft::$app->getRequest()->getCsrfToken(),
             'tablePageSize' => max(1, min(100, (int)Formie::$plugin->getSettings()->reportTablePageSize)),

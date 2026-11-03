@@ -1928,17 +1928,23 @@ Upgrade migrations remove the retired configuration grants. Existing blanket set
 
 ### Reports and Submission Export
 
-The submissions index **Export** action has moved to **Formie → Reports**. For a one-off export, run a report for the forms you need and choose **Export**; you do not need to save a report definition. See [Reports](/reports/reports) for filters, formats and scheduled delivery.
+The submissions index **Export…** button now opens a dialog filled in from your current view, instead of Craft’s exporter menu. Adjust the settings if needed and export in any report format; you don’t need a saved report. Craft’s Raw and Expanded exporters no longer apply to submissions. Saved filters, charts and scheduled delivery are under **Formie → Reports**. See [Export Submission Data](/submissions/submissions#export-submission-data) and [Reports](/reports/reports).
 
 Report access is separate from submission management. Update editor permissions under **Settings → Users → {group} → Formie**:
 
 | Permission | Purpose |
 | --- | --- |
 | **Access reports** | Open **Formie → Reports** and run saved reports |
-| **Export submissions** | Export from reports (without full manage access) |
+| **Export submissions** | Export from reports and the submissions index (without full manage access) |
 | **Manage reports** | Create, edit, delete reports; includes export |
 | **View scheduled reports** | Inspect saved deliveries under **Settings → Scheduled Reports** |
 | **Send scheduled report test emails** | Send a saved scheduled report to your own email address |
+
+Reports and scheduled reports are stored in each installation’s database rather than project config, so **Manage reports** users can create and change reports on production. Only administrators can change a report with scheduled deliveries, and only administrators can edit schedules.
+
+If you installed an earlier Formie 4 release, your reports and schedules move into the database automatically when you upgrade, keeping their last sent dates. There’s nothing to run or deploy. After that, each environment keeps its own copies, and project config no longer deploys them. The old `formie.reports` and `formie.scheduledReports` entries stay in your project config files, but nothing reads them.
+
+Reports deployed through project config saved their forms as database IDs, which can differ between environments. A report that points at a missing form shows a warning, but an ID that matches a different form can’t be detected, so check the forms selected on any deployed reports, especially those with scheduled deliveries.
 
 ### Static Caches
 

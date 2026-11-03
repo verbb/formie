@@ -1,6 +1,6 @@
 import { startTransition, useEffect, useMemo, useState } from 'react';
 
-import { ALL_VALUE, Button, CheckboxSelect, Icon, Input, Lightswitch, SelectInput, Tab, TabPanel, Tabs } from '@verbb/plugin-kit-react/components';
+import { Alert, ALL_VALUE, Button, CheckboxSelect, Icon, Input, Lightswitch, SelectInput, Tab, TabPanel, Tabs } from '@verbb/plugin-kit-react/components';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@utils/formieTable';
 import { FieldLayout } from '@verbb/plugin-kit-react/forms';
 import { FormieErrorsPane } from '@utils/FormieErrorsPane';
@@ -310,6 +310,12 @@ export const ReportEditorApp = ({ settings }) => {
         <div className="flex w-full flex-col gap-4">
             {errorMessages.length ? (
                 <FormieErrorsPane errors={errorMessages} />
+            ) : null}
+
+            {settings.hasMissingForms ? (
+                <Alert variant="warning" size="sm">
+                    {Craft.t('formie', 'Some forms selected for this report no longer exist here, so their submissions aren’t included.')}
+                </Alert>
             ) : null}
 
             <Tabs

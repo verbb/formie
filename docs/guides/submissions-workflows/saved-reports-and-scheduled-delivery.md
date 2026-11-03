@@ -2,7 +2,7 @@
 
 Reports save your choice of submission filters, columns and charts so you can run them again. When you need the same export every week — not a one-off download from the submissions index — save a report and optionally attach scheduled email delivery.
 
-This guide is a **getting-started walkthrough**. For export formats, large-export behaviour, permissions, project config, cron details, incremental windows, and troubleshooting, see [Reports overview](/reports/reports) and [Scheduled reports](/reports/scheduled-reports).
+This guide is a **getting-started walkthrough**. For export formats, large-export behaviour, permissions, cron details, incremental windows, and troubleshooting, see [Reports overview](/reports/reports) and [Scheduled reports](/reports/scheduled-reports).
 
 ## Prepare a Weekly Enquiry Report
 
@@ -39,7 +39,7 @@ After the first successful delivery, attachments use an **incremental window** �
 - Cron job registered and `./craft formie/cron/run` runs without errors
 - Test email received with expected summary and attachment
 - Confirm the configured recipient addresses and user group are authorised to receive the exported data. Email recipients do not need Craft report permissions; those permissions govern control-panel actions, not receipt of attachments.
-- Report and schedule settings deployed via project config to staging/production
+- Reports and schedules created on each environment that needs them, since they're stored in its database
 
 ## Troubleshooting
 

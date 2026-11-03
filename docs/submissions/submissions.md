@@ -24,9 +24,15 @@ Use [Statuses](/submissions/submission-statuses) when your team needs labels for
 
 ### Export Submission Data
 
-Use [Reports](/reports/reports) when you need saved filters, summary counts, charts, on-demand export, or [scheduled email delivery](/reports/scheduled-reports).
+To download submissions, open **Formie → Submissions**, narrow the list to what you need and choose **Export…** at the bottom of the list. A dialog opens with your current form, submission type, status and date range already filled in, so you can export straight away or adjust anything first. If you've searched the list, the export only includes those results, and the dialog says so. For example, from a Contact form filtered to October, you could also include incomplete submissions, untick a few columns and choose Excel. Columns are grouped by form, with **All** and **None** controls for each form and for the whole list. The export button shows how many submissions the file will contain.
 
-For a one-off file without saving a report definition, run a report and choose an export format from the report run screen.
+Exports with more submissions than the **Report Async Export Row Threshold** setting run in the background, and your download starts when the file is ready. If you leave the page first, a download link is emailed to you when Craft’s mailer is configured.
+
+The dialog can't apply filters from the submissions index's own filter menu, or those of a custom source. It tells you when one is active, so you can narrow the export with its settings instead. Selecting several forms, or **All Forms**, gives you a column for each form's fields, and fields that share a handle share a column.
+
+To use **Export…**, a user needs the **Access reports** and **Export submissions** permissions, and the export only includes forms whose submissions they can view.
+
+Use [Reports](/reports/reports) when you need the same filters again, summary counts, charts, or [scheduled email delivery](/reports/scheduled-reports).
 
 ### Relate Submissions to Other Elements
 

@@ -4,14 +4,7 @@ import { Button, DropdownItem, DropdownMenu, Icon, Input } from '@verbb/plugin-k
 
 import { ReportViewerViewPopover } from '@reports/components/ReportViewerViewPopover';
 import { ReportViewerDateRange } from '@reports/components/ReportViewerDateRange';
-
-const EXPORT_FORMATS = [
-    { value: 'xlsx', label: 'Excel' },
-    { value: 'csv', label: 'CSV' },
-    { value: 'json', label: 'JSON' },
-    { value: 'xml', label: 'XML' },
-    { value: 'text', label: 'Text' },
-];
+import { EXPORT_FORMATS } from '@reports/utils/reportExportFormats';
 
 export function ReportViewerToolbar({
     search,

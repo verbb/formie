@@ -12,8 +12,6 @@ use verbb\formie\models\Stencil;
 use verbb\formie\models\SubmissionStatus;
 use verbb\formie\services\FormGroups;
 use verbb\formie\services\FormStatuses;
-use verbb\formie\services\Reports;
-use verbb\formie\services\ScheduledReports;
 use verbb\formie\services\Stencils;
 use verbb\formie\services\SubmissionStatuses;
 
@@ -500,6 +498,7 @@ class Install extends Migration
             'name' => $this->string()->notNull(),
             'handle' => $this->string(64)->notNull(),
             'sortOrder' => $this->smallInteger()->unsigned(),
+            'settings' => $this->text(),
             'dateDeleted' => $this->dateTime(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
@@ -513,6 +512,7 @@ class Install extends Migration
             'name' => $this->string()->notNull(),
             'enabled' => $this->boolean()->notNull()->defaultValue(true),
             'lastSentAt' => $this->dateTime(),
+            'delivery' => $this->text(),
             'dateDeleted' => $this->dateTime(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
@@ -522,7 +522,7 @@ class Install extends Migration
         $this->archiveTableIfExists(Table::FORMIE_REPORT_EXPORTS);
         $this->createTable(Table::FORMIE_REPORT_EXPORTS, [
             'id' => $this->primaryKey(),
-            'reportId' => $this->integer()->notNull(),
+            'reportId' => $this->integer(),
             'userId' => $this->integer(),
             'scheduledReportId' => $this->integer(),
             'source' => $this->string(32)->notNull()->defaultValue('interactive'),
@@ -820,6 +820,7 @@ class Install extends Migration
         foreach ([Table::FORMIE_PAYMENTS, Table::FORMIE_SUBSCRIPTIONS, Table::FORMIE_PAYMENT_PLANS] as $table) {
             $this->createIndex(null, $table, ['integrationId', 'accountFingerprint', 'reference']);
         }
+
         $this->createIndex(null, Table::FORMIE_FIELD_LAYOUT_PAGES, 'layoutId', false);
         $this->createIndex(null, Table::FORMIE_FIELD_LAYOUT_ROWS, 'layoutId', false);
         $this->createIndex(null, Table::FORMIE_FIELD_LAYOUT_ROWS, 'pageId', false);
@@ -1107,19 +1108,6 @@ class Install extends Migration
             foreach ($formGroups as $formGroupUid => $formGroupData) {
                 $projectConfig->processConfigChanges(FormGroups::CONFIG_GROUPS_KEY . '.' . $formGroupUid, true);
             }
-
-            $reports = $projectConfig->get(Reports::CONFIG_REPORTS_KEY, true) ?? [];
-
-            foreach ($reports as $reportUid => $reportData) {
-                $projectConfig->processConfigChanges(Reports::CONFIG_REPORTS_KEY . '.' . $reportUid, true);
-            }
-
-            $scheduledReports = $projectConfig->get(ScheduledReports::CONFIG_SCHEDULED_REPORTS_KEY, true) ?? [];
-
-            foreach ($scheduledReports as $scheduledReportUid => $scheduledReportData) {
-                $projectConfig->processConfigChanges(ScheduledReports::CONFIG_SCHEDULED_REPORTS_KEY . '.' . $scheduledReportUid, true);
-            }
-
 
         }
     }

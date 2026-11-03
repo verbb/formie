@@ -2,12 +2,15 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\References;
+use verbb\formie\helpers\ReportDateBoundHelper;
 use verbb\formie\helpers\ReportExportRows;
 use verbb\formie\helpers\ReportExportWriter;
 use verbb\formie\jobs\ExportReport;
 use verbb\formie\models\Report;
 use verbb\formie\models\ReportExportFile;
+use verbb\formie\models\ReportSettings;
 use verbb\formie\references\ReferenceContext;
 
 use Craft;
@@ -15,6 +18,7 @@ use craft\base\Component;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\User;
 use craft\helpers\FileHelper;
+use craft\helpers\Json;
 use craft\helpers\Queue;
 use craft\mail\Message;
 
@@ -143,9 +147,84 @@ class ReportExport extends Component
         return $exportFile;
     }
 
+    /**
+     * Builds the unsaved report behind a Submissions index export, so it shares the
+     * query, column, writer and queue paths of a saved report. Form access is enforced
+     * whenever the report's query or columns are resolved for a user.
+     */
+    public function createSubmissionExportReport(array $params): Report
+    {
+        $formIds = $this->_normalizeSubmissionExportFormIds($params['formIds'] ?? []);
+        $form = null;
+
+        if (is_array($formIds) && count($formIds) === 1) {
+            $form = Form::find()->withoutCpIndexScope()->site('*')->unique()->id($formIds[0])->status(null)->one();
+
+            // The report's name reaches filenames and emails, so don't reveal an inaccessible form.
+            if ($form && !Formie::$plugin->getReportQuery()->canViewFormSubmissions(Craft::$app->getUser()->getIdentity(), $form)) {
+                $form = null;
+            }
+        }
+
+        $report = new Report([
+            'name' => $form?->title ?? Craft::t('formie', 'Submissions'),
+            'handle' => $form?->handle ?? 'submissions',
+        ]);
+
+        // Set every filter explicitly: report defaults cover the last month and exclude spam.
+        $report->setSettingsModel(ReportSettings::fromArray([
+            'filters' => [
+                'formIds' => $formIds,
+                'includeComplete' => filter_var($params['includeComplete'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'includeIncomplete' => filter_var($params['includeIncomplete'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                'includeSpam' => filter_var($params['includeSpam'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'statusIds' => $this->_normalizeIds($params['statusIds'] ?? []),
+                'siteIds' => $this->_resolveSubmissionExportSiteIds($params['siteId'] ?? null),
+                'startBound' => ReportDateBoundHelper::defaultBound(),
+                'endBound' => ReportDateBoundHelper::defaultBound(),
+            ],
+            'export' => [
+                'filename' => $form ? '{handle}-submissions-{date}' : 'submissions-{date}',
+            ],
+        ]));
+
+        return $report;
+    }
+
+    /**
+     * Keeps requested columns in their requested order, limited to what the report offers
+     * this user. With no request, every column the report enables by default is exported.
+     */
+    public function getSubmissionExportColumns(Report $report, ?array $requestedColumns = null, ?User $user = null): array
+    {
+        $columns = Formie::$plugin->getReportColumns()->getConfiguredColumns($report, $user);
+
+        if ($requestedColumns === null) {
+            return $columns;
+        }
+
+        $available = [];
+
+        foreach ($columns as $column) {
+            $available[$column['type'] . ':' . $column['handle']] = $column;
+        }
+
+        $selected = [];
+
+        foreach ($requestedColumns as $column) {
+            $key = ($column['type'] ?? 'attribute') . ':' . ($column['handle'] ?? '');
+
+            if (isset($available[$key]) && !empty($column['enabled'])) {
+                $selected[] = array_merge($available[$key], ['enabled' => true]);
+            }
+        }
+
+        return $selected;
+    }
+
     public function runQueuedExport(ReportExportFile $exportFile, ?callable $progressCallback = null): array
     {
-        $report = Formie::$plugin->getReports()->getReportById((int)$exportFile->reportId);
+        $report = $this->_resolveExportFileReport($exportFile);
 
         if (!$report) {
             throw new RuntimeException(Craft::t('formie', 'Report not found.'));
@@ -157,7 +236,7 @@ class ReportExport extends Component
 
         // Queue workers do not inherit the requesting editor's session. Resolve
         // the owner explicitly and recheck current permissions before exporting.
-        if (!$scheduled && (!$user || !$user->can(Permissions::PERM_EXPORT_SUBMISSIONS))) {
+        if (!$scheduled && !Formie::$plugin->getPermissions()->canExportSubmissions($user)) {
             throw new RuntimeException(Craft::t('formie', 'Report export permission is no longer available.'));
         }
 
@@ -196,7 +275,7 @@ class ReportExport extends Component
             return false;
         }
 
-        $report = Formie::$plugin->getReports()->getReportById((int)$exportFile->reportId);
+        $report = $this->_resolveExportFileReport($exportFile);
 
         if (!$report) {
             return false;
@@ -288,11 +367,18 @@ class ReportExport extends Component
         array $viewer = [],
         ?array $columnOverride = null,
         ?string $since = null,
+        ?Report $report = null,
     ): array {
         return array_filter([
             'viewer' => $viewer,
             'columnOverride' => $columnOverride,
             'since' => $since,
+            // A queue worker can't look an unsaved report up, so it travels with the export.
+            'report' => $report && !$report->id ? [
+                'name' => $report->name,
+                'handle' => $report->handle,
+                'settings' => $report->settings,
+            ] : null,
         ], fn(mixed $value) => $value !== null && $value !== []);
     }
 
@@ -310,6 +396,64 @@ class ReportExport extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _resolveExportFileReport(ReportExportFile $exportFile): ?Report
+    {
+        if ($exportFile->reportId) {
+            return Formie::$plugin->getReports()->getReportById($exportFile->reportId);
+        }
+
+        $definition = $exportFile->context['report'] ?? null;
+
+        if (!is_array($definition)) {
+            return null;
+        }
+
+        return new Report([
+            'name' => $definition['name'] ?? null,
+            'handle' => $definition['handle'] ?? null,
+            'settings' => is_array($definition['settings'] ?? null) ? $definition['settings'] : null,
+        ]);
+    }
+
+    private function _normalizeSubmissionExportFormIds(mixed $formIds): string|array
+    {
+        if (is_string($formIds)) {
+            $formIds = Json::decodeIfJson($formIds);
+        }
+
+        if ($formIds === '*' || $formIds === ['*']) {
+            return '*';
+        }
+
+        return $this->_normalizeIds($formIds);
+    }
+
+    private function _normalizeIds(mixed $ids): array
+    {
+        if (is_string($ids)) {
+            $ids = Json::decodeIfJson($ids);
+        }
+
+        return array_values(array_unique(array_filter(array_map('intval', (array)$ids), static fn(int $id): bool => $id > 0)));
+    }
+
+    private function _resolveSubmissionExportSiteIds(mixed $siteId): array
+    {
+        if (!Craft::$app->getIsMultiSite()) {
+            return [];
+        }
+
+        $sites = Craft::$app->getSites();
+        $editableSiteIds = array_map('intval', $sites->getEditableSiteIds());
+
+        if (in_array((int)$siteId, $editableSiteIds, true)) {
+            return [(int)$siteId];
+        }
+
+        // An empty list means every site, so someone with no site access must still match nothing.
+        return count($editableSiteIds) === count($sites->getAllSiteIds()) ? [] : ($editableSiteIds ?: [0]);
+    }
 
     private function _buildQueryFromContext(Report $report, array $context, ?User $user = null, bool $scheduled = false): ElementQueryInterface
     {

@@ -753,7 +753,7 @@ it('defaults new report date filters to the last month', function (): void {
         ->and($filters['endBound']['offsetType'])->toBe('days');
 });
 
-it('includes trashed report handles when resolving all report handles', function (): void {
+it('leaves trashed report handles out when resolving all report handles', function (): void {
     $handle = 'trashedHandle' . uniqid();
 
     $report = new Report([
@@ -765,10 +765,10 @@ it('includes trashed report handles when resolving all report handles', function
     expect(Formie::$plugin->getReports()->saveReport($report))->toBeTrue()
         ->and(Formie::$plugin->getReports()->deleteReport($report))->toBeTrue()
         ->and(Formie::$plugin->getReports()->getReportByHandle($handle))->toBeNull()
-        ->and(Formie::$plugin->getReports()->getAllReportHandles())->toContain($handle);
+        ->and(Formie::$plugin->getReports()->getAllReportHandles())->not->toContain($handle);
 });
 
-it('rejects creating a report with a trashed report handle', function (): void {
+it('lets a new report take a trashed report handle', function (): void {
     $handle = 'trashedDuplicate' . uniqid();
 
     $report = new Report([
@@ -786,8 +786,8 @@ it('rejects creating a report with a trashed report handle', function (): void {
     ]);
     $duplicate->setSettingsModel(new ReportSettings());
 
-    expect(Formie::$plugin->getReports()->saveReport($duplicate))->toBeFalse()
-        ->and($duplicate->getErrors('handle'))->not->toBeEmpty();
+    expect(Formie::$plugin->getReports()->saveReport($duplicate))->toBeTrue()
+        ->and(Formie::$plugin->getReports()->getReportByHandle($handle)?->id)->toBe($duplicate->id);
 });
 
 it('uses the async export row threshold setting', function (): void {

@@ -4,6 +4,7 @@ import { AppErrorBoundary } from '@verbb/plugin-kit-react/utils';
 import { bootstrapShadowReactApp, mountFormieReactApp } from '@utils';
 import { FormieElementIndex } from '../../../utils/FormieElementIndex.js';
 import { SendNotificationDialog } from '../../SendNotificationDialog.jsx';
+import { getSubmissionExportDefaults } from '../../utils/submissionExportState.js';
 
 if (typeof Craft.Formie === typeof undefined) {
     Craft.Formie = {};
@@ -16,6 +17,7 @@ Craft.Formie.SubmissionIndex = FormieElementIndex.extend({
     newSubmissionMenu: null,
     startDate: null,
     endDate: null,
+    $submissionExportBtn: null,
 
     init(elementType, $container, settings) {
         this.on('selectSource', $.proxy(this, 'updateButton'));
@@ -42,6 +44,63 @@ Craft.Formie.SubmissionIndex = FormieElementIndex.extend({
 
         // Setup our custom state menu button
         this.setupStateButton();
+
+        if (settings.context === 'index' && Craft.Formie.canExportSubmissions) {
+            // Beside Craft's own button, which stays for any exporters other plugins register.
+            this.$submissionExportBtn = $('<button/>', {
+                type: 'button',
+                class: 'btn hidden',
+                text: Craft.t('app', 'Export…'),
+            }).insertAfter(this.$exportBtn);
+
+            this.addListener(this.$submissionExportBtn, 'click', 'openSubmissionExport');
+
+            // The dialog starts from the selected source, which Craft sets after these
+            // events start firing. Exports cover live submissions, so there's nothing
+            // to offer in the trash either.
+            const updateExportButton = () => {
+                this.$submissionExportBtn.toggleClass('hidden', !this.sourceKey || Boolean(this.trashed));
+            };
+
+            this.on('selectSource', updateExportButton);
+            this.on('updateElements', updateExportButton);
+        }
+    },
+
+    async openSubmissionExport() {
+        const $btn = this.$submissionExportBtn;
+
+        if ($btn.hasClass('loading')) {
+            return;
+        }
+
+        const [sortAttribute, sortDirection] = this.getSortAttributeAndDirection();
+        const defaults = getSubmissionExportDefaults({
+            sourceKey: this.sourceKey,
+            isIncomplete: this.settings.criteria.isIncomplete,
+            isSpam: this.settings.criteria.isSpam,
+            startDate: this.startDate,
+            endDate: this.endDate,
+            search: this.searching ? this.searchText : null,
+            status: this.status,
+            siteId: this.siteId,
+            sortAttribute,
+            sortDirection,
+            hasActiveFilter: this.hasActiveFilter,
+        });
+
+        $btn.addClass('loading');
+
+        try {
+            // Loaded on demand: drag and drop and the form picker shouldn't weigh down this index.
+            const { openSubmissionExportDialog } = await import('../../submissionExportModal.js');
+            openSubmissionExportDialog(defaults, $btn[0]);
+        } catch (error) {
+            console.error('Formie export dialog failed to load:', error);
+            Craft.cp.displayError(Craft.t('formie', 'Export failed.'));
+        } finally {
+            $btn.removeClass('loading');
+        }
     },
 
     afterInit() {

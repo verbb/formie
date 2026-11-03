@@ -109,6 +109,38 @@ if (!Craft::$app->getUserPermissions()->saveUserPermissions($scopedUser->id, [
 ])) {
     throw new RuntimeException('Cannot save browser scoped permissions.');
 }
+$exportForm = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Export dialog form', 'handle' => 'exportDialogForm'])
+    ->settings(['usePerFormPermissions' => true])->singleLineTextField('message')->singleLineTextField('topic')->create();
+foreach (['First answer' => [false, false], 'Second answer' => [false, false], 'Draft answer' => [true, false], 'Spam answer' => [false, true]] as $message => [$isIncomplete, $isSpam]) {
+    $exportSubmission = \verbb\formie\Formie::$plugin->getFactories()->submission($exportForm)->with(['message' => $message, 'topic' => 'Billing'])->save();
+    Craft::$app->getDb()->createCommand()->update(\verbb\formie\helpers\Table::FORMIE_SUBMISSIONS, ['isIncomplete' => $isIncomplete, 'isSpam' => $isSpam], ['id' => $exportSubmission->id])->execute();
+}
+$exportClient = new \craft\elements\User(['username' => 'browserExportClient', 'email' => 'export-client@example.test', 'newPassword' => 'testing-only-password']);
+if (!Craft::$app->getElements()->saveElement($exportClient)) {
+    throw new RuntimeException('Cannot save browser export client.');
+}
+Craft::$app->getUsers()->activateUser($exportClient);
+Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
+if (!Craft::$app->getUserPermissions()->saveUserPermissions($exportClient->id, [
+    'accessCp', 'accessPlugin-formie', 'formie-accessSubmissions', 'formie-accessReports', 'formie-exportSubmissions',
+    'formie-viewSubmissions:' . $exportForm->uid,
+    ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
+])) {
+    throw new RuntimeException('Cannot save browser export client permissions.');
+}
+$reportManager = new \craft\elements\User(['username' => 'browserReportManager', 'email' => 'report-manager@example.test', 'newPassword' => 'testing-only-password']);
+if (!Craft::$app->getElements()->saveElement($reportManager)) {
+    throw new RuntimeException('Cannot save browser report manager.');
+}
+Craft::$app->getUsers()->activateUser($reportManager);
+Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
+if (!Craft::$app->getUserPermissions()->saveUserPermissions($reportManager->id, [
+    'accessCp', 'accessPlugin-formie', 'formie-accessSubmissions', 'formie-accessReports', 'formie-manageReports',
+    'formie-viewSubmissions:' . $exportForm->uid,
+    ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
+])) {
+    throw new RuntimeException('Cannot save browser report manager permissions.');
+}
 Craft::$app->getProjectConfig()->saveModifiedConfigData();
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/browser-enabled.json', json_encode(['formId' => $form->id, 'journeyId' => $journey->id, 'renderedId' => $rendered->id, 'renderedNativeId' => $native->id]));
 

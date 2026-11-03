@@ -14,7 +14,7 @@ import { cn } from '@verbb/plugin-kit-react/utils';
 import { Checkbox } from '@verbb/plugin-kit-react/components';
 import { DragHandle } from '@field-palette/components/DragHandle';
 
-import { columnKey } from '@reports/components/ReportColumnsEditor';
+import { columnKey } from '@reports/utils/reportColumnKey';
 
 function ReportViewerColumnRowLayout({
     column,
@@ -37,6 +37,7 @@ function ReportViewerColumnRowLayout({
             <Checkbox
                 checked={Boolean(column.enabled)}
                 disabled={ghost}
+                aria-label={label}
                 className={ghost ? 'invisible' : undefined}
                 onCheckedChange={ghost ? undefined : (enabled) => {
                     onEnabledChange?.(columnKey(column), enabled);
@@ -96,7 +97,7 @@ function ReportViewerColumnRow({
     );
 }
 
-export function ReportViewerColumnList({ columns, onChange }) {
+export function ReportViewerColumnList({ columns, onChange, scrollable = true }) {
     const listRef = useRef(null);
     const [activeColumn, setActiveColumn] = useState(null);
     const [draggingKey, setDraggingKey] = useState(null);
@@ -165,7 +166,7 @@ export function ReportViewerColumnList({ columns, onChange }) {
             onDragEnd={handleDragEnd}
             onDragCancel={finishDragSession}
         >
-            <div ref={listRef} className="max-h-64 overflow-y-auto overscroll-contain">
+            <div ref={listRef} className={cn(scrollable && 'max-h-64 overflow-y-auto overscroll-contain')}>
                 {columns.map((column, index) => (
                     <ReportViewerColumnRow
                         key={columnKey(column)}

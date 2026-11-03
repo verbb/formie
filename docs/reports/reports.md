@@ -6,7 +6,7 @@ For a getting-started walkthrough, see [Saved reports and scheduled delivery](/g
 
 Reports let you save a set of submission filters, columns and charts so you can review the same information again. For example, you can track how many enquiries arrived last week, grouped by form and excluding spam, then export the results without setting up the filters each time.
 
-Open **Formie → Reports** to create and run reports. Report definitions sync through [project config](https://craftcms.com/docs/5.x/system/project-config.html), so filters, columns, and display settings deploy with your Craft project.
+Open **Formie → Reports** to create and run reports. Reports are saved in your Craft installation’s database, so anyone with the **Manage reports** permission can create and change them on any environment, including production sites with admin changes turned off.
 
 ## What a Report Includes
 
@@ -85,10 +85,10 @@ Download links expire after **Report Interactive Export Expiry** or **Report Sch
 | --- | --- | --- |
 | **Purpose** | Day-to-day submission management | Saved analysis and recurring output |
 | **Filters** | Per-session element index filters | Saved, reusable filter sets |
-| **Export** | Not available (use reports instead) | On-demand export in multiple formats |
+| **Export** | One-off export from your current view, adjustable before downloading | Export using the report's saved filters and columns |
 | **Email delivery** | — | [Scheduled reports](/reports/scheduled-reports) (configurable file type) |
 
-If you only need a one-off file, run a report and export in the format you need. If you need the same view every Monday morning, save the report and attach a scheduled delivery.
+If you only need a one-off file, [export from the submissions index](/submissions/submissions#export-submission-data). If you need the same view every Monday morning, save a report and attach a scheduled delivery. Both produce the same file formats and use the same background processing for large exports.
 
 ## Export Filename
 
@@ -113,10 +113,10 @@ Reports use dedicated Craft user permissions:
 | **View scheduled reports** | Inspect saved deliveries under **Settings → Scheduled Reports** |
 | **Send scheduled report test emails** | Send a saved scheduled report to your own email address |
 
-Users with **Export submissions** can also export from reports without full manage access.
+Only administrators can change or delete a report with scheduled deliveries, because a schedule sends the report’s data to its recipients regardless of who can view those forms.
 
-## Project Config
+Users with **Export submissions** can also export from reports and the submissions index without full manage access. **Export submissions** sits beneath **Access reports**, so select both.
 
-Report settings are stored under `formie.reports.{uid}` in project config. Scheduled delivery settings (recipients, schedule, email content) are stored under `formie.scheduledReports.{uid}`.
+## Reports on Different Environments
 
-Database-only fields such as `lastSentAt` live in the database and are not synced through project config.
+Each Craft installation keeps its own reports and scheduled deliveries, because they refer to forms, which are also stored in the database. A report created on production stays on production. Copying a database copies its reports along with its forms, so they keep pointing at the right ones.

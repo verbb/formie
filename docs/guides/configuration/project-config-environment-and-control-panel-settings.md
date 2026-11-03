@@ -41,7 +41,7 @@ Under **Access settings → Access import/export**, select **Import forms**, **E
 
 **View synced field usage** opens a usage report. **View scheduled reports** allows someone to inspect saved schedules; its nested **Send scheduled report test emails** permission lets them send a test delivery to their own email address. **View encryption status** displays configuration information; encryption keys are managed outside the control panel.
 
-General settings, form groups, builder defaults, field restrictions, status and template definitions, and scheduled-report editing require a Craft administrator with `allowAdminChanges` enabled. These configuration tasks have no assignable settings permissions. Production viewers see scheduled reports without save, create or delete controls.
+General settings, form groups, builder defaults, field restrictions, status and template definitions require a Craft administrator with `allowAdminChanges` enabled. These configuration tasks have no assignable settings permissions. Production viewers see scheduled reports without save, create or delete controls.
 
 Spam permissions belong under **Access spam protection**: **Manage spam rules**, followed by **Manage CAPTCHAs and spam filtering services**. Settings access does not grant either capability. Both spam-management permissions remain usable when `allowAdminChanges` is `false`.
 
@@ -57,7 +57,6 @@ When production runs `project-config/sync`, Formie updates versioned resources s
 - Project stencils
 - Project integrations created with **New project integration**
 - Submission and form statuses
-- Reports and scheduled report definitions
 
 These are the things your team typically wants identical across environments — checked into `config/project/` and deployed with Craft.
 

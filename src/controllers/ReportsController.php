@@ -41,6 +41,18 @@ class ReportsController extends Controller
             return true;
         }
 
+        // These run from the Submissions index, and only ever read what the user can export.
+        if (in_array($action->id, [
+            'submission-export',
+            'submission-export-options',
+            'submission-export-columns',
+            'submission-export-count',
+        ], true)) {
+            $this->_requireExportPermission();
+
+            return true;
+        }
+
         if (in_array($action->id, ['save', 'delete'], true)) {
             $this->requirePermission(Permissions::PERM_MANAGE_REPORTS);
         } elseif ($action->id === 'create' && $this->request->getIsPost()) {
@@ -108,8 +120,9 @@ class ReportsController extends Controller
         }
 
         $variables = compact('report');
-        $variables['canEdit'] = Craft::$app->getConfig()->getGeneral()->allowAdminChanges
-            && Craft::$app->getUser()->checkPermission(Permissions::PERM_MANAGE_REPORTS);
+        $user = Craft::$app->getUser()->getIdentity();
+        $variables['canEdit'] = Formie::$plugin->getPermissions()->canEditReport($user, $report);
+        $variables['canManageReports'] = Formie::$plugin->getPermissions()->canManageReports($user);
         $variables['fullPageForm'] = $variables['canEdit'];
         $variables['title'] = $report->name;
         $editorConfig = Formie::$plugin->getReportEditor()->getEditorConfig($report);
@@ -134,6 +147,7 @@ class ReportsController extends Controller
     public function actionSave(): ?Response
     {
         $this->requirePostRequest();
+
         $request = $this->request;
 
         $report = new Report();
@@ -145,6 +159,7 @@ class ReportsController extends Controller
 
         if ($report->id) {
             $existingReport = Formie::$plugin->getReports()->getReportById((int)$report->id);
+            $this->_requireEditableReport($existingReport);
             $report->sortOrder = $existingReport?->sortOrder;
 
             $postedSettings = $this->_decodeSettingsPayload();
@@ -160,6 +175,14 @@ class ReportsController extends Controller
             if (!Formie::$plugin->getReportEditor()->applyPayload($report, $postedSettings)) {
                 return $this->_failSave($report, $postedSettings);
             }
+
+            $settings = $report->getSettingsModel();
+            $settings->filters['formIds'] = Formie::$plugin->getReportEditor()->resolveEditableFormIds(
+                $settings->filters['formIds'] ?? [],
+                $existingReport?->getSettingsModel()->filters['formIds'] ?? [],
+                Craft::$app->getUser()->getIdentity(),
+            );
+            $report->setSettingsModel($settings);
         } else {
             $report->setSettingsModel(new ReportSettings());
         }
@@ -177,10 +200,8 @@ class ReportsController extends Controller
     {
         if (!$this->request->getIsPost()) {
             $user = Craft::$app->getUser()->getIdentity();
-            $canManageReports = Craft::$app->getConfig()->getGeneral()->allowAdminChanges
-                && Formie::$plugin->getPermissions()->canManageReports($user);
 
-            if (!$canManageReports) {
+            if (!Formie::$plugin->getPermissions()->canManageReports($user)) {
                 return $this->redirect(UrlHelper::cpUrl('formie/reports'));
             }
 
@@ -200,6 +221,7 @@ class ReportsController extends Controller
         }
 
         $formIds = array_values(array_filter(array_map('intval', (array)$formIds)));
+        $formIds = Formie::$plugin->getReportEditor()->resolveEditableFormIds($formIds, [], Craft::$app->getUser()->getIdentity());
 
         if ($formIds === []) {
             return $this->asJson([
@@ -279,6 +301,7 @@ class ReportsController extends Controller
         $this->requirePostRequest();
 
         $reportId = (int)$this->request->getRequiredParam('id');
+        $this->_requireEditableReport(Formie::$plugin->getReports()->getReportById($reportId));
 
         if (Formie::$plugin->getReports()->deleteReportById($reportId)) {
             if ($this->request->getAcceptsJson()) {
@@ -373,48 +396,75 @@ class ReportsController extends Controller
             $this->requirePostRequest();
         }
 
-        $columnOverride = $this->_decodeColumnOverride();
-        $format = strtolower(trim((string)$this->request->getParam('format', 'csv')));
-        $viewer = $this->_decodeViewerParams();
-        $query = Formie::$plugin->getReportQuery()->buildViewerQuery($report, null, $viewer);
-        $rowCount = Formie::$plugin->getReportExport()->getExportRowCount($query);
-        $context = Formie::$plugin->getReportExport()->buildExportContext($viewer, $columnOverride);
+        return $this->_sendReportExport($report, $this->_decodeColumnOverride());
+    }
 
-        if (Formie::$plugin->getReportExport()->shouldQueueExport($rowCount)) {
-            $user = Craft::$app->getUser()->getIdentity();
-            $exportFile = Formie::$plugin->getReportExport()->queueExport(
-                report: $report,
-                format: $format,
-                context: $context,
-                userId: $user?->id ? (int)$user->id : null,
-                notifyEmail: $user?->email,
-            );
+    public function actionSubmissionExportOptions(): Response
+    {
+        $user = Craft::$app->getUser()->getIdentity();
+        $sites = Craft::$app->getSites();
 
-            return $this->asJson([
-                'queued' => true,
-                'rowCount' => $rowCount,
-                'export' => Formie::$plugin->getReportExportFiles()->getStatusPayload($exportFile),
-                'statusUrl' => UrlHelper::cpUrl('formie/reports/export-status/' . $exportFile->uid),
-            ]);
-        }
+        return $this->asJson([
+            'forms' => Formie::$plugin->getReportEditor()->getFormOptions($user),
+            'statuses' => array_map(static fn($status) => [
+                'value' => (string)$status->id,
+                'label' => $status->name,
+                'handle' => $status->handle,
+            ], Formie::$plugin->getSubmissionStatuses()->getAllStatuses()),
+            'sites' => Craft::$app->getIsMultiSite() ? array_map(static fn($site) => [
+                'value' => (string)$site->id,
+                'label' => $site->name,
+            ], $sites->getEditableSites()) : [],
+            'asyncExportRowThreshold' => max(1, (int)Formie::$plugin->getSettings()->reportAsyncExportRowThreshold),
+        ]);
+    }
 
-        $export = Formie::$plugin->getReportExport()->export(
-            report: $report,
-            format: $format,
-            query: $query,
-            columnOverride: $columnOverride,
+    public function actionSubmissionExportColumns(): Response
+    {
+        $this->requirePostRequest();
+
+        $user = Craft::$app->getUser()->getIdentity();
+        $report = Formie::$plugin->getReportExport()->createSubmissionExportReport($this->request->getBodyParams());
+
+        return $this->asJson([
+            'columns' => array_map(static fn(array $column) => [
+                'type' => $column['type'],
+                'handle' => $column['handle'],
+                'label' => $column['label'],
+                'enabled' => (bool)$column['enabled'],
+            ], Formie::$plugin->getReportExport()->getSubmissionExportColumns($report, null, $user)),
+            'groups' => array_map(static fn(array $group) => [
+                'formId' => $group['formId'],
+                'formTitle' => $group['formTitle'],
+                'handles' => array_column($group['columns'], 'handle'),
+            ], Formie::$plugin->getReportColumns()->getFieldColumnGroupsForFormIds($report->getSettingsModel()->filters['formIds'] ?? [], $user)),
+        ]);
+    }
+
+    public function actionSubmissionExportCount(): Response
+    {
+        $this->requirePostRequest();
+
+        $report = Formie::$plugin->getReportExport()->createSubmissionExportReport($this->request->getBodyParams());
+        $query = Formie::$plugin->getReportQuery()->buildViewerQuery($report, null, $this->_decodeViewerParams());
+
+        return $this->asJson([
+            'count' => Formie::$plugin->getReportExport()->getExportRowCount($query),
+        ]);
+    }
+
+    public function actionSubmissionExport(): Response
+    {
+        $this->requirePostRequest();
+
+        $report = Formie::$plugin->getReportExport()->createSubmissionExportReport($this->request->getBodyParams());
+        $columns = Formie::$plugin->getReportExport()->getSubmissionExportColumns(
+            $report,
+            $this->_decodeColumnOverride(),
+            Craft::$app->getUser()->getIdentity(),
         );
 
-        $response = Craft::$app->getResponse()->sendFile($export['path'], $export['filename'], [
-            'mimeType' => $export['mimeType'],
-        ]);
-        $response->on(Response::EVENT_AFTER_SEND, static function() use ($export) {
-            if (is_file($export['path'])) {
-                @unlink($export['path']);
-            }
-        });
-
-        return $response;
+        return $this->_sendReportExport($report, $columns);
     }
 
     public function actionExportStatus(string $uid): Response
@@ -483,6 +533,61 @@ class ReportsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * The single export path for saved reports and Submissions index exports.
+     */
+    private function _sendReportExport(Report $report, ?array $columnOverride): Response
+    {
+        $format = strtolower(trim((string)$this->request->getParam('format', 'csv')));
+        $viewer = $this->_decodeViewerParams();
+        $query = Formie::$plugin->getReportQuery()->buildViewerQuery($report, null, $viewer);
+        $rowCount = Formie::$plugin->getReportExport()->getExportRowCount($query);
+        $context = Formie::$plugin->getReportExport()->buildExportContext($viewer, $columnOverride, report: $report);
+
+        if (Formie::$plugin->getReportExport()->shouldQueueExport($rowCount)) {
+            $user = Craft::$app->getUser()->getIdentity();
+            $exportFile = Formie::$plugin->getReportExport()->queueExport(
+                report: $report,
+                format: $format,
+                context: $context,
+                userId: $user?->id ? (int)$user->id : null,
+                notifyEmail: $user?->email,
+            );
+
+            return $this->asJson([
+                'queued' => true,
+                'rowCount' => $rowCount,
+                'export' => Formie::$plugin->getReportExportFiles()->getStatusPayload($exportFile),
+                'statusUrl' => UrlHelper::cpUrl('formie/reports/export-status/' . $exportFile->uid),
+            ]);
+        }
+
+        $export = Formie::$plugin->getReportExport()->export(
+            report: $report,
+            format: $format,
+            query: $query,
+            columnOverride: $columnOverride,
+        );
+
+        $response = Craft::$app->getResponse()->sendFile($export['path'], $export['filename'], [
+            'mimeType' => $export['mimeType'],
+        ]);
+        $response->on(Response::EVENT_AFTER_SEND, static function() use ($export) {
+            if (is_file($export['path'])) {
+                @unlink($export['path']);
+            }
+        });
+
+        return $response;
+    }
+
+    private function _requireEditableReport(?Report $report): void
+    {
+        if ($report && !Formie::$plugin->getPermissions()->canEditReport(Craft::$app->getUser()->getIdentity(), $report)) {
+            throw new ForbiddenHttpException(Craft::t('formie', 'Only administrators can change a report with scheduled deliveries.'));
+        }
+    }
 
     private function _requireExportPermission(): void
     {

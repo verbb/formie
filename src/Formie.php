@@ -39,8 +39,6 @@ use verbb\formie\services\FormTemplates as FormTemplatesService;
 use verbb\formie\services\Integrations as IntegrationsService;
 use verbb\formie\services\PdfTemplates as PdfTemplatesService;
 use verbb\formie\services\Permissions;
-use verbb\formie\services\Reports as ReportsService;
-use verbb\formie\services\ScheduledReports as ScheduledReportsService;
 use verbb\formie\services\SpamProtection as SpamProtectionService;
 use verbb\formie\services\Stencils as StencilsService;
 use verbb\formie\services\SubmissionStatuses as SubmissionStatusesService;
@@ -125,7 +123,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '4.0.92';
+    public string $schemaVersion = '4.0.94';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -773,18 +771,6 @@ class Formie extends Plugin
             ->onAdd(FormGroupsService::CONFIG_GROUPS_KEY . '.{uid}', [$formGroupsService, 'handleChangedGroup'])
             ->onUpdate(FormGroupsService::CONFIG_GROUPS_KEY . '.{uid}', [$formGroupsService, 'handleChangedGroup'])
             ->onRemove(FormGroupsService::CONFIG_GROUPS_KEY . '.{uid}', [$formGroupsService, 'handleDeletedGroup']);
-
-        $reportsService = $this->getReports();
-        $projectConfigService
-            ->onAdd(ReportsService::CONFIG_REPORTS_KEY . '.{uid}', [$reportsService, 'handleChangedReport'])
-            ->onUpdate(ReportsService::CONFIG_REPORTS_KEY . '.{uid}', [$reportsService, 'handleChangedReport'])
-            ->onRemove(ReportsService::CONFIG_REPORTS_KEY . '.{uid}', [$reportsService, 'handleDeletedReport']);
-
-        $scheduledReportsService = $this->getScheduledReports();
-        $projectConfigService
-            ->onAdd(ScheduledReportsService::CONFIG_SCHEDULED_REPORTS_KEY . '.{uid}', [$scheduledReportsService, 'handleChangedScheduledReport'])
-            ->onUpdate(ScheduledReportsService::CONFIG_SCHEDULED_REPORTS_KEY . '.{uid}', [$scheduledReportsService, 'handleChangedScheduledReport'])
-            ->onRemove(ScheduledReportsService::CONFIG_SCHEDULED_REPORTS_KEY . '.{uid}', [$scheduledReportsService, 'handleDeletedScheduledReport']);
 
         $formTemplatesService = $this->getFormTemplates();
         $projectConfigService

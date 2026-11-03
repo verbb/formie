@@ -25,6 +25,7 @@ import {
     enrichColumnWithFormContext,
     withEnabledFormContext,
 } from '@reports/utils/reportColumnFormContext';
+import { columnKey } from '@reports/utils/reportColumnKey';
 
 const COLUMN_DRAG_SENSORS = [
     PointerSensor.configure({
@@ -38,7 +39,7 @@ const COLUMN_DRAG_SENSORS = [
 
 const COLUMN_DRAG_MODIFIERS = [RestrictToVerticalAxis];
 
-export const columnKey = (column) => `${column.type || 'attribute'}:${column.handle}`;
+export { columnKey };
 
 function ReportColumnDragGhost({ column, useFieldHandles = false }) {
     if (!column) {

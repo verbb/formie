@@ -90,6 +90,7 @@ export const runReportExport = async ({
     sort,
     sortDir,
     dateRange,
+    params = {},
     onQueued,
     onReady,
 }) => {
@@ -102,6 +103,10 @@ export const runReportExport = async ({
     body.append('startDate', dateRange.startDate || '');
     body.append('endDate', dateRange.endDate || '');
     body.append('format', format);
+
+    Object.entries(params).forEach(([name, value]) => {
+        body.append(name, typeof value === 'string' ? value : JSON.stringify(value));
+    });
 
     const response = await fetch(`${exportUrl}?format=${encodeURIComponent(format)}`, {
         method: 'POST',
