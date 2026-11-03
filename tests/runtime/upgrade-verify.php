@@ -104,6 +104,7 @@ $check(!str_contains((string)(new \craft\db\Query())->select('settings')->from(\
 
 $companyConditions = $form->getFieldByHandle('company')->getConditions();
 $check(($companyConditions['version'] ?? null) === 1 && ($companyConditions['conditions'][0]['legacyForward'] ?? false), 'stable Formie 3 field conditions receive schema version and legacy dependency policy');
+$check(($companyConditions['conditions'][0]['field'] ?? null) === '{field:' . $form->getFieldByHandle('fullName')->reference . '}', 'upgraded field conditions use the reference token the form builder offers');
 $check(\verbb\formie\helpers\ConditionsHelper::evaluate($companyConditions, $submission)->value === true, 'upgraded field conditions evaluate original normalized content');
 $check(($notification->conditions['version'] ?? null) === 1 && \verbb\formie\helpers\ConditionsHelper::evaluate($notification->conditions, $submission, 'notification')->value === true, 'upgraded notification conditions use the same canonical evaluator');
 $submission->addError('field:company.companyName', '<b>Example error.</b>');
