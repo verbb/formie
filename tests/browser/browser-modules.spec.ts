@@ -84,6 +84,46 @@ test('module occurrences reconcile repeated targets, conditional DOM and failure
         required: { blocked: true, instances: 0, failures: [{ moduleId: 'unknown:module', required: true, code: 'MODULE_UNAVAILABLE' }] }, versionRejected: true });
 });
 
+test('required modules with nothing to enhance wait for it, unless the form depends on them', async({ page }) => {
+    await page.goto('/browser-fixture');
+    await page.waitForFunction(() => !!(window as any).browserModules);
+    const result = await page.evaluate(async() => {
+        const { hydrateFormieModules, ModuleRegistry } = (window as any).browserModules;
+        const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
+        const scenario = async(kind: string) => {
+            const root = document.createElement('form'); document.body.append(root);
+            let mounts = 0;
+            const registry = new ModuleRegistry();
+            registry.register({
+                moduleId: 'test:target', version: 2, surfaces: ['server-rendered'], kind,
+                match: (ctx: any) => !!ctx.target.querySelector('[data-test-target]'),
+                setup: async() => { mounts++; return {}; },
+            });
+            const host = await hydrateFormieModules({ root, registry, surface: 'server-rendered', modules: { contractVersion: 2, surface: 'server-rendered', entries: [
+                { key: 'entry', moduleId: 'test:target', kind, targets: [{ type: 'form' }], config: {}, required: true },
+            ] } });
+            const state = () => {
+                let blocked = false;
+                try { host.assertReady(); } catch { blocked = true; }
+                return { blocked, mounts, banner: !!root.querySelector('[data-formie-module-error]'), failures: host.failures.length };
+            };
+            const empty = state();
+            // A Repeater adding its first row, or anything else that renders the target later.
+            const row = document.createElement('div'); row.setAttribute('data-test-target', ''); root.append(row);
+            await settle();
+            const rendered = state();
+            await host.destroy(); root.remove();
+            return { empty, rendered };
+        };
+        return { field: await scenario('field'), core: await scenario('core'), payment: await scenario('payment'), address: await scenario('address') };
+    });
+    const waiting = { empty: { blocked: false, mounts: 0, banner: false, failures: 0 }, rendered: { blocked: false, mounts: 1, banner: false, failures: 0 } };
+    expect(result.field).toEqual(waiting);
+    expect(result.core).toEqual(waiting);
+    expect(result.payment.empty).toMatchObject({ blocked: true, mounts: 0 });
+    expect(result.address.empty).toMatchObject({ blocked: true, mounts: 0 });
+});
+
 test('module match and setup hooks receive the exact rendering surface', async({ page }) => {
     await page.goto('/browser-fixture');
     await page.waitForFunction(() => !!(window as any).browserModules);

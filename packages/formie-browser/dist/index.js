@@ -1340,7 +1340,13 @@ async function an(e, t) {
 						target: e,
 						scope: c.scope,
 						manifestItem: n
-					})) throw Error(`Module ${n.moduleId} does not support the rendered target.`);
+					})) {
+						if (h.kind === "field" || h.kind === "core") {
+							_ = !0;
+							continue;
+						}
+						throw Error(`Module ${n.moduleId} does not support the rendered target.`);
+					}
 					let s = await h.setup(c);
 					if (!s) throw Error(`Module ${n.moduleId} did not initialize.`);
 					if (u || !i.contains(e) && e !== i) {

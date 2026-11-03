@@ -328,6 +328,13 @@ export async function loadModulesFromManifest(manifest: BrowserModuleManifest, c
                     if (definition.surfaces && !definition.surfaces.includes(surface)) throw new Error(`Module ${entry.moduleId} does not support ${surface}.`);
                     if (definition.kind !== entry.kind) throw new Error(`Module ${entry.moduleId} is registered as ${definition.kind}, not ${entry.kind}.`);
                     if (!definition.match({ ...ctx.matchContext, target, scope: setup.scope, manifestItem: entry })) {
+                        // Field and core modules only enhance what's rendered, and a Repeater can render its fields later, so
+                        // nothing to enhance isn't a failure. Reconciling mounts them once it appears.
+                        if (definition.kind === 'field' || definition.kind === 'core') {
+                            recovered = true;
+                            continue;
+                        }
+
                         throw new Error(`Module ${entry.moduleId} does not support the rendered target.`);
                     }
                     const instance = await definition.setup(setup);
