@@ -42,7 +42,7 @@ class SendSpamNotificationsTask implements TaskInterface
         $notifications = $form->getEnabledNotifications();
 
         foreach ($notifications as $notification) {
-            Formie::$plugin->getNotifications()->sendNotification($notification, $submission);
+            Formie::$plugin->getNotifications()->dispatchNotification($notification, $submission);
         }
     }
 }

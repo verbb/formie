@@ -27,7 +27,7 @@ class SendNotificationsTask implements TaskInterface
             if ($form && Formie::$plugin->getIntegrationDispatcher()->shouldOrchestrate($form)) {
                 Formie::$plugin->getIntegrationDispatcher()->sendNotifications($submission, IntegrationDispatcher::PHASE_BEFORE);
             } else {
-                Formie::$plugin->getNotifications()->sendNotifications($submission);
+                Formie::$plugin->getNotifications()->dispatchNotifications($submission);
             }
         });
 

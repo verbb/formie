@@ -189,11 +189,13 @@ class IntegrationDispatcher extends Component
             foreach ($handles as $handle) {
                 $batch->record($handle, IntegrationResult::fromStorage($context->getResult($handle)));
             }
+
             $executionContext = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, '@finalized', $deliveryKey);
             $attempts = Formie::$plugin->getDeliveryAttempts();
             $uid = $attempts->prepare($executionContext, 'finalized');
             $attempts->execute($uid, function() use ($executionContext, $batch, $uid) {
                 $this->trigger(self::EVENT_FINALIZED, new IntegrationDeliveryEvent(['context' => $executionContext, 'attemptUid' => $uid, 'batch' => $batch]));
+
                 return IntegrationResult::succeeded();
             });
         }
@@ -203,7 +205,7 @@ class IntegrationDispatcher extends Component
                 continue;
             }
 
-            Formie::$plugin->getNotifications()->sendNotification($notification, $submission, null, $deliveryKey);
+            Formie::$plugin->getNotifications()->dispatchNotification($notification, $submission, $deliveryKey);
         }
     }
 
@@ -238,6 +240,7 @@ class IntegrationDispatcher extends Component
         if ($runUid === '' || strlen($runUid) > 255) {
             throw new InvalidArgumentException('An integration run identity is required.');
         }
+
         $this->_runs[] = [(int)$submission->id, $runUid];
 
         try {
@@ -255,8 +258,10 @@ class IntegrationDispatcher extends Component
             if (!$submission->id || $runUid === null) {
                 return new IntegrationRunResults();
             }
+
             $value = Craft::$app->getDb()->useMaster(fn() => (new Query())->select('context')->from(self::CONTEXT_TABLE)
                 ->where(['submissionId' => $submission->id, 'runUid' => $runUid])->scalar());
+
             return IntegrationRunResults::fromStorage($value);
         }, canonicalMethod: 'loadRunResults');
     }
@@ -273,6 +278,7 @@ class IntegrationDispatcher extends Component
             if (!$submission->id || $runUid === '' || strlen($runUid) > 255) {
                 throw new InvalidArgumentException('A saved submission and integration run identity are required.');
             }
+
             $mutex = Craft::$app->getMutex();
             $lock = 'formie.run-context.' . hash('sha256', $submission->id . ':' . $runUid);
 
@@ -306,9 +312,12 @@ class IntegrationDispatcher extends Component
     {
         if ($this->_runs) {
             [$submissionId, $runUid] = $this->_runs[array_key_last($this->_runs)];
+
             return $submissionId === (int)$submission->id ? $runUid : null;
         }
+
         $workflow = WorkflowContext::current();
+
         return $workflow?->command->submission === $submission ? DeliveryAttempt::workflowIdentity() : null;
     }
 }

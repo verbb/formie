@@ -17,6 +17,7 @@
 ### Fixed
 - Fixed forms failing to load when a field or page has a condition rule that was added but never filled in, which can be present on forms upgraded from Formie 3.
 - Fixed forms showing “A required form feature could not start” and being unable to submit when a field had conditions enabled but no rules.
+- Fixed visitors seeing a server error after their submission was saved, and later notifications being skipped, when a notification failed with `useQueueForNotifications` off. The failure is now logged and left in delivery diagnostics.
 - Fixed upgrading from Formie 2 failing on forms with encrypted fields when `FORMIE_ENCRYPTION_KEY` isn’t set, or with File Upload fields whose volume has been deleted.
 - Fixed conditions from Formie 3 showing an empty Field column in the form builder, on fields, pages, integrations and form rules. Existing conditions now use the same field references as the builder when you upgrade, except on fields synced between forms, which still work as before. ([#3087](https://github.com/verbb/formie/issues/3087))
 - Fixed **Match Field** validation no longer being enforced on fields imported by the Freeform migrations, and the setting showing a raw token instead of the field’s name in the form builder. ([#3087](https://github.com/verbb/formie/issues/3087))

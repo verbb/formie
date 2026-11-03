@@ -123,6 +123,28 @@ class Notifications extends Component
         }
     }
 
+    // Sends a notification as part of a submission. A failure can't undo the saved submission or stop the form's other
+    // notifications, so it's logged and left in delivery diagnostics to retry, instead of reaching the visitor.
+    public function dispatchNotification(Notification $notification, Submission $submission, ?string $deliveryKey = null): void
+    {
+        try {
+            $this->sendNotification($notification, $submission, null, $deliveryKey);
+        } catch (Throwable $exception) {
+            Formie::error('Notification “{notification}” failed for submission #{submission}: {message}', [
+                'notification' => $notification->handle ?? $notification->id,
+                'submission' => $submission->id,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    public function dispatchNotifications(Submission $submission): void
+    {
+        foreach ($submission->getForm()?->getEnabledNotifications() ?? [] as $notification) {
+            $this->dispatchNotification($notification, $submission);
+        }
+    }
+
     public function sendNotification(Notification $notification, Submission $submission, ?bool $useQueue = null, ?string $deliveryKey = null): void
     {
         $submission->assertContentAvailable();
