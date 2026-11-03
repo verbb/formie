@@ -554,7 +554,7 @@ class FileUpload extends ElementField
         }
 
         $declaredKind = Assets::getFileKindByExtension($filename);
-        $detectedKind = $this->_resolveDetectedFileKind($path, $mimeType, $data);
+        $detectedKind = $this->_resolveDetectedFileKind($path, $mimeType, $data, $extension);
 
         if ($declaredKind !== Asset::KIND_UNKNOWN && $detectedKind !== null && $detectedKind !== Asset::KIND_UNKNOWN && $declaredKind !== $detectedKind) {
             $errors[] = Craft::t('formie', '“{filename}” does not match its detected file type.', [
@@ -1679,12 +1679,23 @@ class FileUpload extends ElementField
         return array_values(array_unique($extensions));
     }
 
-    private function _resolveDetectedFileKind(?string $path = null, ?string $mimeType = null, ?string $data = null): ?string
+    private function _resolveDetectedFileKind(?string $path = null, ?string $mimeType = null, ?string $data = null, ?string $extension = null): ?string
     {
         $mimeType = $this->_resolveDetectedMimeType($path, $mimeType, $data);
 
         if (!$mimeType) {
             return null;
+        }
+
+        // Illustrator files can contain PDF or PostScript, and libmagic can report EPS as an image.
+        $compatibleMimeTypes = match ($extension) {
+            'ai' => ['application/pdf', 'application/postscript', 'image/x-eps'],
+            'eps' => ['application/postscript', 'image/x-eps'],
+            default => [],
+        };
+
+        if (in_array($mimeType, $compatibleMimeTypes, true)) {
+            return Assets::getFileKindByExtension("upload.{$extension}");
         }
 
         foreach ((array)FileHelper::getExtensionsByMimeType($mimeType) as $extension) {
