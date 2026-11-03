@@ -16,6 +16,7 @@
 
 ### Fixed
 - Fixed forms failing to load when a field or page has a condition rule that was added but never filled in, which can be present on forms upgraded from Formie 3.
+- Fixed forms showing “A required form feature could not start” and being unable to submit when a field had conditions enabled but no rules.
 - Fixed conditions from Formie 3 showing an empty Field column in the form builder, on fields, pages, integrations and form rules. Existing conditions now use the same field references as the builder when you upgrade, except on fields synced between forms, which still work as before. ([#3087](https://github.com/verbb/formie/issues/3087))
 - Fixed **Match Field** validation no longer being enforced on fields imported by the Freeform migrations, and the setting showing a raw token instead of the field’s name in the form builder. ([#3087](https://github.com/verbb/formie/issues/3087))
 - Fixed submissions throwing an error when **Match Field** points to a field inside a Group or Repeater. Fields in the same Repeater now compare within their row, and other fields compare with the first row. Browser validation still applies to Groups, while Repeater targets are checked when the form is submitted. ([#3087](https://github.com/verbb/formie/issues/3087))

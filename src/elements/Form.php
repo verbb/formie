@@ -1024,14 +1024,15 @@ class Form extends Element implements FormInterface
 
     public function hasFieldConditions(): bool
     {
+        // Conditions switched on with no rules render nothing for the browser to attach to.
         foreach ($this->getFields() as $field) {
-            if ($field->enableConditions) {
+            if ($field->enableConditions && $field->conditions()->rules) {
                 return true;
             }
 
             if ($field instanceof ParentFieldInterface) {
                 foreach ($field->getFields() as $nestedField) {
-                    if ($nestedField->enableConditions) {
+                    if ($nestedField->enableConditions && $nestedField->conditions()->rules) {
                         return true;
                     }
                 }
