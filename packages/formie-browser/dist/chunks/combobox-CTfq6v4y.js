@@ -1856,8 +1856,15 @@ function Gt(e, t) {
 function Kt(e) {
 	e.options[""] && (e.removeOption("", !0), e.inputState());
 }
+function qt(e, t) {
+	let n = Array.from(e.selectedOptions, (e) => e.cloneNode(!0));
+	t.destroy(), e.selectedIndex = -1, n.forEach((t) => {
+		let n = Array.from(e.options).find((e) => e.value === t.value);
+		n || (n = t, e.add(n)), n.selected = !0;
+	});
+}
 function $(e, t = {}) {
-	e._formieTomSelect?.destroy();
+	e._formieTomSelect && qt(e, e._formieTomSelect);
 	let i = Array.from(e.selectedOptions, (e) => e.value).filter(Boolean), a = e.form, s = t.multiple === !0, c = Ht(e), l = Gt(e, t.placeholder), u = {
 		create: !1,
 		maxOptions: t.maxOptions === void 0 ? 100 : t.maxOptions,
@@ -1896,10 +1903,10 @@ function $(e, t = {}) {
 		combobox: d,
 		options: u
 	}), () => {
-		a?.removeEventListener("reset", f), d.destroy(), e.style.removeProperty("display"), Ut(e, c), delete e._formieTomSelect, Q.log("Destroyed.", { inputName: e.name });
+		a?.removeEventListener("reset", f), qt(e, d), e.style.removeProperty("display"), Ut(e, c), delete e._formieTomSelect, Q.log("Destroyed.", { inputName: e.name });
 	};
 }
-var qt = {
+var Jt = {
 	moduleId: `formie:${Z}`,
 	version: 2,
 	surfaces: [
@@ -1922,4 +1929,4 @@ var qt = {
 	}
 };
 //#endregion
-export { qt as comboboxModule, $ as initFormieCombobox };
+export { Jt as comboboxModule, $ as initFormieCombobox };

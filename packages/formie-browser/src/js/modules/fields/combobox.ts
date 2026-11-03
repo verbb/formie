@@ -83,8 +83,29 @@ function removeEmptyOptionFromCombobox(instance: TomSelectInstance): void {
     }
 }
 
+function destroyCombobox(select: SelectElement, instance: TomSelectInstance): void {
+    const selectedOptions = Array.from(select.selectedOptions, (option) => option.cloneNode(true) as HTMLOptionElement);
+    instance.destroy();
+
+    // Tom Select restores its original markup on destroy. Page navigation only
+    // removes the enhancement, so keep the visitor's current answers selected.
+    select.selectedIndex = -1;
+    selectedOptions.forEach((selectedOption) => {
+        let option = Array.from(select.options).find((option) => option.value === selectedOption.value);
+
+        if (!option) {
+            option = selectedOption;
+            select.add(option);
+        }
+
+        option.selected = true;
+    });
+}
+
 export function initFormieCombobox(select: SelectElement, options: FormieComboboxOptions = {}): () => void {
-    select._formieTomSelect?.destroy();
+    if (select._formieTomSelect) {
+        destroyCombobox(select, select._formieTomSelect);
+    }
 
     const initialValues = Array.from(select.selectedOptions, (option) => option.value).filter(Boolean);
     const form = select.form;
@@ -177,7 +198,7 @@ export function initFormieCombobox(select: SelectElement, options: FormieCombobo
 
     return () => {
         form?.removeEventListener('reset', onReset);
-        instance.destroy();
+        destroyCombobox(select, instance);
         select.style.removeProperty('display');
         restoreNativeThemeClasses(select, restoredClasses);
         delete select._formieTomSelect;

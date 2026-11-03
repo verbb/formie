@@ -112,6 +112,26 @@ abstract class ParentField extends Field implements ParentFieldInterface
         return array_map(fn(FieldLayoutRow $row) => $row->withParentField($this, $rowKey), $rows);
     }
 
+    public function withParentField(FieldInterface $parent, string|int|null $namespace = null): static
+    {
+        $field = parent::withParentField($parent, $namespace);
+        $layout = clone $this->getFieldLayout();
+        $pages = [];
+
+        // A row-specific compound field also needs its own descendants. Sharing
+        // them lets value normalization for another row overwrite their parent path.
+        foreach ($layout->getPages() as $page) {
+            $page = clone $page;
+            $page->setRows(array_map(fn(FieldLayoutRow $row) => $row->withParentField($field), $page->getRows()));
+            $pages[] = $page;
+        }
+
+        $layout->setPages($pages);
+        $field->setFieldLayout($layout);
+
+        return $field;
+    }
+
     public function getEnabledRows(string|int|null $rowKey = null): array
     {
         return array_values(array_filter($this->getRows($rowKey), static fn(FieldLayoutRow $row) => $row->getEnabledFields() !== []));
@@ -452,6 +472,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
                 'defaultRows' => $rows ?: [],
             ];
         }
+
         $allowedFieldTypes = $this->getNestedLayoutBuilderAllowedFieldTypes();
         $editorTypes = array_values(array_unique([...$layoutTypes, ...$allowedFieldTypes]));
         $editorSchemaByType = $this->getNestedLayoutBuilderEditorSchemaByType($editorTypes);

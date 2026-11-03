@@ -15,6 +15,7 @@
 - Renamed the “Reconcile uncertain deliveries” permission to “Confirm delivery outcomes” and “Force integration execution” to “Run integrations regardless of conditions and opt-in”, and moved both under “View delivery diagnostics”.
 
 ### Fixed
+- Fixed Repeater validation errors appearing on the wrong row after returning to a previous page, and searchable dropdown selections being cleared during AJAX page navigation. ([#3088](https://github.com/verbb/formie/issues/3088))
 - Fixed cached multi-page forms becoming stuck on the wrong page when restoring an in-progress submission.
 - Fixed the support form clearing entered values when a required field is missing.
 - Fixed the Redirect Entry picker appearing empty when Craft’s “All entries” source is disabled. ([#3089](https://github.com/verbb/formie/issues/3089))

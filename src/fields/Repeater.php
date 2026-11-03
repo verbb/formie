@@ -348,11 +348,14 @@ class Repeater extends RepeatableParentField
         }
 
         if ($key === 'nestedField') {
+            // Restored rows must keep their input index when the browser adds more rows.
+            $index = $context->get('index', '__ROW__');
+
             return SlotTag::make('div')
                 ->core([
                     'data-formie-nested-field' => true,
-                    'data-formie-repeater-item' => '__ROW__',
-                    'data-formie-repeater-item-id' => '__ROW__',
+                    'data-formie-repeater-item' => $index,
+                    'data-formie-repeater-item-id' => $index,
                 ])
                 ->theme([
                     'class' => [
