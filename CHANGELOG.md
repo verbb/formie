@@ -21,6 +21,7 @@
 - Fixed valid AI and EPS files being rejected by File Upload fields because their detected file type differed from Illustrator. ([#3092](https://github.com/verbb/formie/issues/3092))
 - Fixed Repeater validation errors appearing on the wrong row after returning to a previous page, and searchable dropdown selections being cleared during AJAX page navigation. ([#3088](https://github.com/verbb/formie/issues/3088))
 - Fixed cached multi-page forms becoming stuck on the wrong page when restoring an in-progress submission.
+- Fixed fields with Disabled visibility losing their values when saving submissions in the control panel. ([#3093](https://github.com/verbb/formie/issues/3093))
 - Fixed the support form clearing entered values when a required field is missing.
 - Fixed the Redirect Entry picker appearing empty when Craft’s “All entries” source is disabled. ([#3089](https://github.com/verbb/formie/issues/3089))
 - Fixed forms failing to load when a field or page has a condition rule that was added but never filled in, which can be present on forms upgraded from Formie 3.

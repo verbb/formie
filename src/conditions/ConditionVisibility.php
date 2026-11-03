@@ -17,6 +17,7 @@ final class ConditionVisibility
     public static function followsConditions(Submission $submission): bool
     {
         $command = WorkflowContext::current()?->command;
+
         return !$command || $command->submission !== $submission || $command->authority->type === SubmissionAuthorityType::VISITOR || $command->clearConditionallyHiddenFields;
     }
 
@@ -29,8 +30,10 @@ final class ConditionVisibility
             if ($parent instanceof RepeatableParentFieldInterface && preg_match('/\[([0-9]+)\]$/', $cursor->getNamespace(), $match)) {
                 $scope[(string)$parent->reference] = (int)$match[1];
             }
+
             $cursor = $parent;
         }
+
         return $scope;
     }
 
@@ -56,24 +59,32 @@ final class ConditionVisibility
         if (($parent = $field->getParentField()) instanceof Field && self::hidden($parent, $submission)) {
             return true;
         }
+
         return $field->getPage()?->isConditionallyHidden($submission) ?? false;
     }
 
     public static function disabled(Field $field, Submission $submission): bool
     {
         if ($field->getIsDisabled()) {
-            return true;
+            $command = WorkflowContext::current()?->command;
+
+            // Disabled visibility still permits CP edits; disabled sub-fields stay unavailable.
+            if (!$field->enabled || $field->visibility !== 'disabled' || $command?->submission !== $submission || $command->authority->type !== SubmissionAuthorityType::CONTROL_PANEL) {
+                return true;
+            }
         }
 
         if (!self::followsConditions($submission)) {
             return false;
         }
+
         $settings = $field->conditions();
         $effect = $settings->effect;
 
         if ($field->hasConditions() && in_array($effect, ['enable', 'disable'], true) && ConditionsHelper::evaluate($settings, $submission, rows: self::rowScope($field))->hides($effect)) {
             return true;
         }
+
         return ($parent = $field->getParentField()) instanceof Field && self::disabled($parent, $submission);
     }
 
@@ -91,6 +102,7 @@ final class ConditionVisibility
         if (!self::followsConditions($submission)) {
             return;
         }
+
         $ordered = (new ConditionGraph())->orderedFields($submission->getForm());
 
         // Materialise row-bound field instances each pass: clearing a parent may remove rows.
@@ -99,6 +111,7 @@ final class ConditionVisibility
                 foreach ($fields as $field) {
                     if ($field->reference === $definition->reference && self::unavailable($field, $submission)) {
                         $submission->setFieldValue($field->valueKey(), null);
+
                         continue;
                     }
 
