@@ -399,6 +399,29 @@ it('leaves a chosen asset in place until a subpath that uses a blank answer can 
         ->and(Asset::find()->id($assetId)->one()->folderPath)->toBe('by-answer/later/');
 });
 
+it('saves an upload to the volume root when an answer in its subpath is blank, and moves it once answered', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $reference = 'a' . bin2hex(random_bytes(5));
+    $form = formie()->form()->singleLineTextField('answer', ['reference' => $reference])->fileUploadField('document', [
+        'restrictFiles' => false,
+        'uploadLocationSource' => 'volume:' . $volume->uid,
+        'uploadLocationSubpath' => 'by-answer/{field:' . $reference . '}',
+    ])->create();
+    $user = User::find()->admin(true)->one();
+
+    expect(cpScreenSaveStaged($user, $form, 'document', 'blank-upload.txt', 'blank', [])?->data['success'] ?? null)->toBeTrue();
+
+    $saved = Submission::find()->formId($form->id)->isIncomplete(null)->isSpam(null)->status(null)->one();
+    $asset = $saved->getFieldValue('document')->one();
+
+    expect($saved->isIncomplete)->toBeFalse()
+        ->and($asset->folderId)->toBe(Craft::$app->getAssets()->getRootFolderByVolumeId($volume->id)->id)
+        ->and($asset->getVolume()->fileExists($asset->getPath()))->toBeTrue();
+
+    expect(cpScreenSave($user, $form, ['answer' => 'later', 'document' => [$asset->id]], $saved)?->data['success'] ?? null)->toBeTrue()
+        ->and(Asset::find()->id($asset->id)->one()->folderPath)->toBe('by-answer/later/');
+});
+
 it('keeps both files when a chosen asset has the same name as one in the field folder', function (): void {
     $volume = UploadTestHelper::ensureUploadVolume();
     $form = formie()->form()->fileUploadField('document', [

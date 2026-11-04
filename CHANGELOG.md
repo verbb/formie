@@ -71,6 +71,7 @@
 - Fixed a validation error from the server on a field inside a Group or Repeater marking the other fields around it as invalid on forms that reload the page.
 - Fixed focus not moving to Checkboxes, Agree, searchable Dropdown and Rich Text fields after a validation error.
 - Fixed the File Upload field’s asset picker on the control panel submission screen listing nothing, and chosen assets being rejected when saving. The field also has a direct Upload button there now. Chosen assets move into the field’s upload folder, as with an Assets field with a restricted location, and are deleted with the submission if the form deletes files.
+- Fixed an error and an incomplete submission when a File Upload field’s upload subpath used an answer left blank. These files now go to the root of the field’s volume, and move once the answer is filled in.
 - Fixed files staying behind on forms set to delete file uploads when a trashed submission was later purged by garbage collection. Submissions already in the trash are covered too.
 - Fixed Address answers holding only auto-complete text showing as empty in email notifications when the field no longer has an Auto-Complete sub-field.
 - Fixed the Redirect Entry picker appearing empty when Craft’s “All entries” source is disabled. ([#3089](https://github.com/verbb/formie/issues/3089))

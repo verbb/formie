@@ -118,6 +118,12 @@ class FileUpload extends ElementField
     }
 
 
+    // Constants
+    // =========================================================================
+
+    private const BLANK_SUBPATH_ANSWER = 1;
+
+
     // Properties
     // =========================================================================
 
@@ -231,6 +237,17 @@ class FileUpload extends ElementField
     public function getUploadFolderForSubmission(Submission $submission): VolumeFolder
     {
         return $this->_uploadFolder($submission);
+    }
+
+    public function isUploadSubpathBlank(Submission $submission): bool
+    {
+        try {
+            $this->_findFolder($submission);
+        } catch (InvalidSubpathException $e) {
+            return $e->getCode() === self::BLANK_SUBPATH_ANSWER;
+        }
+
+        return false;
     }
 
     public function getFieldTypeConfigData(): array
@@ -1442,6 +1459,10 @@ class FileUpload extends ElementField
         try {
             $this->_findFolder($element);
         } catch (InvalidSubpathException $e) {
+            if ($e->getCode() === self::BLANK_SUBPATH_ANSWER) {
+                return null;
+            }
+
             return Craft::t('app', 'The {field} field has an invalid subpath (“{subpath}”).', [
                 'field' => $this->label,
                 'subpath' => $e->subpath,
@@ -1588,7 +1609,7 @@ class FileUpload extends ElementField
 
             // Did any of the tokens return null?
             if ($renderedSubpath === '' || trim($renderedSubpath, '/') != $renderedSubpath || str_contains($renderedSubpath, '//')) {
-                throw new InvalidSubpathException($subpath);
+                throw new InvalidSubpathException($subpath, null, self::BLANK_SUBPATH_ANSWER);
             }
 
             $subpath = $renderedSubpath;
@@ -1653,6 +1674,11 @@ class FileUpload extends ElementField
             // so use the user’s upload folder instead
             if ($element === null || !$element->id || !$element->enabled) {
                 return Craft::$app->getAssets()->getUserTemporaryUploadFolder();
+            }
+
+            // An optional answer used in the subpath can be blank, which shouldn't lose the submission.
+            if ($e->getCode() === self::BLANK_SUBPATH_ANSWER) {
+                return Craft::$app->getAssets()->getRootFolderByVolumeId($this->_getVolume()->id);
             }
 
             // Existing element, so this is just a bad subpath

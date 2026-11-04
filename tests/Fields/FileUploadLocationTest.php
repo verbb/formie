@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use craft\elements\User;
+use craft\errors\InvalidFsException;
 use craft\errors\InvalidSubpathException;
 use Tests\Support\UploadTestHelper;
 use verbb\formie\elements\Submission;
@@ -210,3 +211,26 @@ it('rejects traversal and Twig supplied through upload references', function (st
     expect(fn() => (new ReflectionMethod(FileUpload::class, '_findFolder'))->invoke($field, $submission))
         ->toThrow(InvalidSubpathException::class);
 })->with(['../escape', '{{ 7 * 7 }}', ''])->group('security');
+
+it('uses the volume root only when an answer in the subpath is blank', function (string $answer, bool $usesRoot): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $reference = 'a' . bin2hex(random_bytes(5));
+    $form = formie()->form()->singleLineTextField('answer', ['reference' => $reference])->fileUploadField('document', [
+        'restrictFiles' => false,
+        'uploadLocationSource' => 'volume:' . $volume->uid,
+        'uploadLocationSubpath' => 'uploads/{field:' . $reference . '}',
+    ])->create();
+    $submission = formie()->submission($form)->with(['answer' => $answer])->save();
+    $field = $form->getFieldByHandle('document');
+
+    if ($usesRoot) {
+        expect($field->getUploadFolderForSubmission($submission)->id)->toBe(Craft::$app->getAssets()->getRootFolderByVolumeId($volume->id)->id)
+            ->and($field->isUploadSubpathBlank($submission))->toBeTrue();
+    } else {
+        expect(fn() => $field->getUploadFolderForSubmission($submission))->toThrow(InvalidFsException::class)
+            ->and($field->isUploadSubpathBlank($submission))->toBeFalse();
+    }
+})->with([
+    'blank' => ['', true],
+    'traversal' => ['../escape', false],
+])->group('security');

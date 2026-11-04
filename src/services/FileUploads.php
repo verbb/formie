@@ -23,8 +23,6 @@ use craft\db\Query;
 use craft\db\Table as CraftTable;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
-use craft\errors\InvalidFsException;
-use craft\errors\InvalidSubpathException;
 use craft\helpers\Assets;
 use craft\helpers\Console;
 use craft\helpers\Db;
@@ -956,16 +954,14 @@ class FileUploads extends Component
 
     private function _moveChosenAsset(Asset $asset, FileUpload $field, Submission $submission): void
     {
-        try {
-            $folder = $field->getUploadFolderForSubmission($submission);
-        } catch (InvalidFsException|InvalidSubpathException) {
-            // The subpath uses an answer that's still blank, so this waits for a later save.
+        // A subpath using an answer that's still blank waits for a later save.
+        if ($field->isUploadSubpathBlank($submission)) {
             return;
         }
 
         $asset->avoidFilenameConflicts = true;
 
-        if (!Craft::$app->getAssets()->moveAsset($asset, $folder)) {
+        if (!Craft::$app->getAssets()->moveAsset($asset, $field->getUploadFolderForSubmission($submission))) {
             Formie::error("Unable to move asset #{$asset->id} to the field's upload folder.");
         }
     }
