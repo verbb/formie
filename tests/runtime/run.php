@@ -38,6 +38,8 @@ try {
     $suite = 'default';
     $updateLock = false;
     $task = null;
+    $fresh = false;
+    $filtered = false;
     foreach ($args as $i => $arg) {
         if (str_starts_with($arg, '--task=')) {
             $task = substr($arg, 7);
@@ -50,6 +52,13 @@ try {
         if (str_starts_with($arg, '--suite=')) {
             $suite = substr($arg, 8);
             unset($args[$i]);
+        }
+        if ($arg === '--fresh') {
+            $fresh = true;
+            unset($args[$i]);
+        }
+        if (str_starts_with($arg, '--filter')) {
+            $filtered = true;
         }
         if ($arg === '--parallel' || str_starts_with($arg, '--processes')) {
             throw new RuntimeException('Parallel workers require independent runtime state and are not enabled.');
@@ -95,67 +104,113 @@ try {
     @unlink($runtime . '/browser-enabled.json');
     @unlink($runtime . '/migration-fixture.json');
     $app = $runtime . '/app';
-    $dev = $package['require-dev'] ?? [];
-    $requirements = array_merge($dev, [$package['name'] => '*']);
-    $manifest = [
-        'name' => 'verbb/plugin-test-app', 'type' => 'project',
-        'require' => $requirements,
-        'repositories' => [['type' => 'path', 'url' => '../../..', 'options' => ['symlink' => true, 'reference' => 'config']]],
-        'minimum-stability' => 'dev', 'prefer-stable' => true,
-        'autoload-dev' => ['psr-4' => ['Tests\\' => '../../../tests/']],
-        'config' => ['platform' => ['php' => '8.2.0', 'php-64bit' => '8.2.0'], 'allow-plugins' => ['craftcms/plugin-installer' => true, 'pestphp/pest-plugin' => true, 'yiisoft/yii2-composer' => true]],
-    ];
-    file_put_contents($app . '/composer.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
-    if (is_file(__DIR__ . '/composer.lock')) {
-        copy(__DIR__ . '/composer.lock', $app . '/composer.lock');
-    }
-    $run(['composer', $updateLock ? 'update' : 'install', '--no-interaction', '--prefer-dist', '--no-progress'], $app);
-    if ($updateLock) {
-        copy($app . '/composer.lock', __DIR__ . '/composer.lock');
-    }
-    foreach (['config', 'storage', 'web'] as $name) {
-        $remove($app . '/' . $name);
-        mkdir($app . '/' . $name, 0775, true);
-    }
-    foreach (glob($root . '/tests/_craft/config/*.php') as $source) {
-        if (basename($source) !== 'db.php') {
-            copy($source, $app . '/config/' . basename($source));
+    // A filtered run restores a saved copy of the same fresh install. Full runs and tasks always install for real.
+    $snapshotPath = null;
+    if ($filtered && $task === null && !$updateLock && in_array($suite, ['default', 'single-site'], true) && is_dir($app . '/vendor')) {
+        $inputs = array_merge(
+            [$root . '/composer.json', __DIR__ . '/composer.lock', __FILE__, __DIR__ . '/seed.php', __DIR__ . '/verify.php', __DIR__ . '/craft.php', __DIR__ . '/suite.json', $root . '/src/Formie.php'],
+            glob($root . '/tests/_craft/config/*.php') ?: [],
+            glob($root . '/src/migrations/*.php') ?: [],
+        );
+        $hash = hash_init('sha256');
+        foreach ($inputs as $input) {
+            if (is_file($input)) {
+                hash_update($hash, basename($input) . "\0" . hash_file('sha256', $input));
+            }
         }
+        $snapshotPath = $runtime . '/snapshots/' . $suite . '-' . PHP_VERSION . '-' . hash_final($hash);
     }
-    $originalAppConfig = is_file($app . '/config/app.php') ? file_get_contents($app . '/config/app.php') : "<?php return [];";
-    file_put_contents($app . '/config/plugin-tests.php', $originalAppConfig);
-    // Avoid remote license-info lookups in a synthetic installation and use real DB locking.
-    file_put_contents($app . '/config/app.php', <<<'PHP'
+    $restored = false;
+    if ($snapshotPath && !$fresh && is_file($snapshotPath . '.sql') && is_file($snapshotPath . '.tar')) {
+        foreach (['config', 'storage', 'web'] as $name) {
+            $remove($app . '/' . $name);
+            mkdir($app . '/' . $name, 0775, true);
+        }
+        $run(['tar', '-xmf', $snapshotPath . '.tar', '-C', $app]);
+        $db = new PDO('mysql:host=db;port=3306;dbname=db', 'db', 'db', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+        $db->exec('SET FOREIGN_KEY_CHECKS=0');
+        foreach ($db->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN) as $table) {
+            $db->exec('DROP TABLE `' . str_replace('`', '``', $table) . '`');
+        }
+        $db->exec('SET FOREIGN_KEY_CHECKS=1');
+        $run(['sh', '-c', 'mysql -hdb -udb -pdb db < ' . escapeshellarg($snapshotPath . '.sql')]);
+        $run(['php', 'tests/runtime/verify.php']);
+        echo "Restored the saved fresh install.\n";
+        $restored = true;
+    }
+    if (!$restored) {
+        $dev = $package['require-dev'] ?? [];
+        $requirements = array_merge($dev, [$package['name'] => '*']);
+        $manifest = [
+            'name' => 'verbb/plugin-test-app', 'type' => 'project',
+            'require' => $requirements,
+            'repositories' => [['type' => 'path', 'url' => '../../..', 'options' => ['symlink' => true, 'reference' => 'config']]],
+            'minimum-stability' => 'dev', 'prefer-stable' => true,
+            'autoload-dev' => ['psr-4' => ['Tests\\' => '../../../tests/']],
+            'config' => ['platform' => ['php' => '8.2.0', 'php-64bit' => '8.2.0'], 'allow-plugins' => ['craftcms/plugin-installer' => true, 'pestphp/pest-plugin' => true, 'yiisoft/yii2-composer' => true]],
+        ];
+        file_put_contents($app . '/composer.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+        if (is_file(__DIR__ . '/composer.lock')) {
+            copy(__DIR__ . '/composer.lock', $app . '/composer.lock');
+        }
+        $run(['composer', $updateLock ? 'update' : 'install', '--no-interaction', '--prefer-dist', '--no-progress'], $app);
+        if ($updateLock) {
+            copy($app . '/composer.lock', __DIR__ . '/composer.lock');
+        }
+        foreach (['config', 'storage', 'web'] as $name) {
+            $remove($app . '/' . $name);
+            mkdir($app . '/' . $name, 0775, true);
+        }
+        foreach (glob($root . '/tests/_craft/config/*.php') as $source) {
+            if (basename($source) !== 'db.php') {
+                copy($source, $app . '/config/' . basename($source));
+            }
+        }
+        $originalAppConfig = is_file($app . '/config/app.php') ? file_get_contents($app . '/config/app.php') : "<?php return [];";
+        file_put_contents($app . '/config/plugin-tests.php', $originalAppConfig);
+        // Avoid remote license-info lookups in a synthetic installation and use real DB locking.
+        file_put_contents($app . '/config/app.php', <<<'PHP'
 <?php
 $config = require __DIR__ . '/plugin-tests.php';
 unset($config['components']['mutex']);
 $config['baseApiUrl'] = 'http://127.0.0.1:9/';
 return $config;
 PHP
-    );
-    file_put_contents($app . '/config/db.php', "<?php\nreturn ['driver'=>'mysql','server'=>'db','port'=>'3306','database'=>'db','user'=>'db','password'=>'db'];\n");
-    file_put_contents($app . '/config/general.php', "<?php\nreturn \\craft\\config\\GeneralConfig::create()->devMode(true)->allowAdminChanges(true)->timezone('UTC');\n");
-    // DDEV's DB container is unique to the validated project; credentials never come from .env.
-    $db = new PDO('mysql:host=db;port=3306;dbname=db', 'db', 'db', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    $db->exec('SET FOREIGN_KEY_CHECKS=0');
-    foreach ($db->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN) as $table) {
-        $db->exec('DROP TABLE `' . str_replace('`', '``', $table) . '`');
+        );
+        file_put_contents($app . '/config/db.php', "<?php\nreturn ['driver'=>'mysql','server'=>'db','port'=>'3306','database'=>'db','user'=>'db','password'=>'db'];\n");
+        file_put_contents($app . '/config/general.php', "<?php\nreturn \\craft\\config\\GeneralConfig::create()->devMode(true)->allowAdminChanges(true)->timezone('UTC');\n");
+        // DDEV's DB container is unique to the validated project; credentials never come from .env.
+        $db = new PDO('mysql:host=db;port=3306;dbname=db', 'db', 'db', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+        $db->exec('SET FOREIGN_KEY_CHECKS=0');
+        foreach ($db->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN) as $table) {
+            $db->exec('DROP TABLE `' . str_replace('`', '``', $table) . '`');
+        }
+        $db->exec('SET FOREIGN_KEY_CHECKS=1');
+        $run(['php', 'tests/runtime/craft.php', 'install/craft', '--interactive=0', '--username=admin', '--email=admin@example.test', '--password=testing-only-password', '--siteName=Plugin Tests', '--siteUrl=https://' . $project . '.ddev.site', '--language=en-US']);
+        $run(['php', 'tests/runtime/craft.php', 'plugin/install', $package['extra']['handle'], '--interactive=0']);
+        $run(['php', 'tests/runtime/verify.php']);
+        if ($suite === 'commerce') {
+            $run(['php', 'tests/runtime/craft.php', 'plugin/install', 'commerce', '--interactive=0']);
+        }
+        if ($suite === 'migration') {
+            $run(['php', 'tests/runtime/craft.php', 'plugin/install', 'freeform', '--interactive=0']);
+        }
+        if (is_file(__DIR__ . '/seed.php')) {
+            $run(['php', 'tests/runtime/seed.php', ...($suite === 'single-site' ? ['--single-site'] : [])]);
+        }
+        if ($suite === 'migration') {
+            $run(['php', 'tests/runtime/migration-fixture.php']);
+        }
     }
-    $db->exec('SET FOREIGN_KEY_CHECKS=1');
-    $run(['php', 'tests/runtime/craft.php', 'install/craft', '--interactive=0', '--username=admin', '--email=admin@example.test', '--password=testing-only-password', '--siteName=Plugin Tests', '--siteUrl=https://' . $project . '.ddev.site', '--language=en-US']);
-    $run(['php', 'tests/runtime/craft.php', 'plugin/install', $package['extra']['handle'], '--interactive=0']);
-    $run(['php', 'tests/runtime/verify.php']);
-    if ($suite === 'commerce') {
-        $run(['php', 'tests/runtime/craft.php', 'plugin/install', 'commerce', '--interactive=0']);
-    }
-    if ($suite === 'migration') {
-        $run(['php', 'tests/runtime/craft.php', 'plugin/install', 'freeform', '--interactive=0']);
-    }
-    if (is_file(__DIR__ . '/seed.php')) {
-        $run(['php', 'tests/runtime/seed.php', ...($suite === 'single-site' ? ['--single-site'] : [])]);
-    }
-    if ($suite === 'migration') {
-        $run(['php', 'tests/runtime/migration-fixture.php']);
+    if ($snapshotPath && !$restored) {
+        if (!is_dir(dirname($snapshotPath))) {
+            mkdir(dirname($snapshotPath), 0775, true);
+        }
+        foreach (glob($runtime . '/snapshots/' . $suite . '-*') ?: [] as $stale) {
+            unlink($stale);
+        }
+        $run(['sh', '-c', 'mysqldump --no-tablespaces --skip-comments -hdb -udb -pdb db > ' . escapeshellarg($snapshotPath . '.tmp') . ' && mv ' . escapeshellarg($snapshotPath . '.tmp') . ' ' . escapeshellarg($snapshotPath . '.sql')]);
+        $run(['tar', '-cf', $snapshotPath . '.tar', '--exclude=storage/runtime', '--exclude=storage/logs', '-C', $app, 'config', 'storage', 'web']);
     }
     if ($task !== null) {
         $run(['php', $config['tasks'][$task], ...array_values($args)]);

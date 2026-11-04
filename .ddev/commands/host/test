@@ -4,6 +4,11 @@
 ## HostExecution: true
 set -euo pipefail
 cd "$DDEV_APPROOT"
-# Starting also verifies that this project name belongs to the current checkout.
-ddev start
+# Starting also verifies that this project name belongs to the current checkout, so skip it only when the
+# running containers already prove that. It adds over a minute to a run on a machine with many projects.
+web=$(docker inspect -f '{{.State.Running}} {{index .Config.Labels "com.ddev.approot"}}' "ddev-${DDEV_SITENAME}-web" 2>/dev/null || true)
+db=$(docker inspect -f '{{.State.Running}} {{index .Config.Labels "com.ddev.approot"}}' "ddev-${DDEV_SITENAME}-db" 2>/dev/null || true)
+if [ "$web" != "true $DDEV_APPROOT" ] || [ "$db" != "true $DDEV_APPROOT" ]; then
+    ddev start
+fi
 exec ddev exec --raw -- php tests/runtime/run.php "$@"
