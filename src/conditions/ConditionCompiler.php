@@ -40,6 +40,7 @@ final class ConditionCompiler
         if ($field instanceof Phone) {
             return 'text';
         }
+
         $fallback = match ($field->valueType()->kind) {
             'boolean' => 'boolean',
             'array', 'relationQuery' => 'collection',
@@ -102,11 +103,13 @@ final class ConditionCompiler
             } catch (Throwable) {
                 // Keep the unresolved operand in the wire model so it cannot become an empty matching set.
             }
+
             $browser = $expression->isValid && ($expression->target === 'field' && $field !== null);
 
             if ($expression->transformerId !== '') {
                 $browser = $browser && (Formie::$plugin->getReferenceCatalogue()->transform($expression->transformerId)?->browser ?? false);
             }
+
             $type = $field instanceof Field ? $field->getConditionValueType() : ($expression->identifier === 'id' ? 'number' : 'text');
 
             if ($expression->selector !== '' && $field) {
@@ -115,6 +118,7 @@ final class ConditionCompiler
                 if ($field instanceof OptionsField && $field->multi) {
                     $type = 'collection';
                 }
+
                 $selectorAvailable = false;
 
                 foreach ($field->referenceValues() as $referenceValue) {
@@ -123,6 +127,7 @@ final class ConditionCompiler
                         $type = self::_referenceValueType($referenceValue, $type);
                     }
                 }
+
                 $browser = $browser && $selectorAvailable;
             }
 
@@ -131,6 +136,7 @@ final class ConditionCompiler
             } elseif (($expression->transformerParams['scope'] ?? '') === 'count') {
                 $type = 'number';
             }
+
             $selector = $expression->selector;
             $params = $expression->transformerParams;
 
@@ -143,6 +149,7 @@ final class ConditionCompiler
                     $browser = false;
                 }
             }
+
             $source = [
                 'raw' => $token, 'target' => $expression->target, 'handle' => $path ?: $expression->identifier, 'domHandle' => $domPath ?: $expression->identifier,
                 'selector' => $selector, 'defaultValue' => $expression->default,
@@ -152,9 +159,12 @@ final class ConditionCompiler
             $rules[] = [
                 'fieldId' => $field ? (string)$field->id : $expression->identifier,
                 'field' => $token, 'source' => $source, 'operator' => $rule->operator,
-                'value' => $rule->value, 'valueType' => $type, 'browserSafe' => $browser,
+                // The browser compares signed Recipients tokens, and must never see the addresses behind them.
+                'value' => $field instanceof Recipients && $selector === '' && $expression->transformerId === '' ? $field->getConditionComparisonValue($rule->value) : $rule->value,
+                'valueType' => $type, 'browserSafe' => $browser,
             ];
         }
+
         return ['version' => $set->version, 'purpose' => $set->purpose, 'mode' => $set->mode, 'effect' => $set->effect, 'clearOnHide' => true, 'rules' => $rules];
     }
 }

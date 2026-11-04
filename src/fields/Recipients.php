@@ -347,6 +347,41 @@ class Recipients extends Field implements DisplayTypeFieldInterface, Previewable
         return $options;
     }
 
+    /**
+     * Saved rules name a choice by its address, as the builder offers it, or by the `id:N` option index that Formie 2 and 3
+     * stored. Submitted values project to signed tokens, so a rule is compared through the option's current token. This only
+     * reads rules an admin saved: a submitted `id:N` is still not a selection.
+     */
+    public function getConditionComparisonValue(mixed $value): mixed
+    {
+        if (is_array($value)) {
+            return array_map(fn(mixed $item): mixed => $this->getConditionComparisonValue($item), $value);
+        }
+
+        if (!is_string($value) || $value === '' || $this->displayType === 'hidden') {
+            return $value;
+        }
+
+        if (preg_match('/^id:(\d+)$/D', $value, $matches)) {
+            $option = $this->getOptionsMode() === OptionsMode::STATIC ? ($this->options()[(int)$matches[1]] ?? null) : null;
+
+            if (!is_array($option) || isset($option['optgroup'])) {
+                return $value;
+            }
+
+            // The placeholder has no token, and matches when nothing is selected.
+            return (string)($option['value'] ?? '') === '' ? '' : RecipientTokenHelper::encodeOption(RecipientOptionSelectionHelper::optionRows([$option])[0]);
+        }
+
+        foreach ($this->_getResolvedRecipientOptionRows() as $option) {
+            if ($option['value'] === $value) {
+                return RecipientTokenHelper::encodeOption($option);
+            }
+        }
+
+        return $value;
+    }
+
     public function getFormBuilderSettings(): array
     {
         $settings = parent::getFormBuilderSettings();
