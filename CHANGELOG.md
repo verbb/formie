@@ -21,6 +21,7 @@
 
 ### Fixed
 - Fixed GoCardless Payment fields not rendering their payment input and redirect instructions.
+- Fixed submission payment summaries missing for GoCardless, Moneris, Paddle and Square.
 - Fixed PlaceKit throwing an error when its API key is unset or empty.
 - Fixed forms using page reloads not showing a link to continue later after saving progress.
 - Fixed File Upload fields retaining completed attachments after AJAX form resets, and duplicate advanced upload rows after Back navigation.

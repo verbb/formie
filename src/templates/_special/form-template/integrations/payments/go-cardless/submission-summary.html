@@ -1,0 +1,64 @@
+<div class="meta read-only">
+    <div class="data" style="align-items: center;">
+        <h5 class="heading">{{ 'Provider' | t('formie') }}</h5>
+
+        <div class="value">
+            <img src="{{ integration.getIconUrl() }}" style="width: 20px; height: 20px; margin-right: 8px;"> {{ integration.displayName() }}
+        </div>
+    </div>
+
+    {% if subscriptions %}
+        {% set subscription = subscriptions | last %}
+        {% set gcSubscription = subscription.subscriptionData ?? {} %}
+
+        <div class="data">
+            <h5 class="heading">{{ 'Type' | t('formie') }}</h5>
+            <div class="value">{{ 'Subscription' | t('formie') }}</div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading">{{ 'Status' | t('formie') }}</h5>
+
+            <div class="value">
+                <span class="status {{ subscription.getStatus() | kebab }}"></span>
+                {{ subscription.getStatusLabel() }}
+
+                {% if subscription.canCancel and (canManagePayments ?? true) %}
+                    <a class="btn small" href="{{ subscription.cancelUrl }}" style="margin-left: 0.5rem;">{{ 'Cancel' | t('formie') }}</a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if monetaryPayments %}
+            {% set payment = monetaryPayments | last %}
+
+            <div class="data">
+                <h5 class="heading">{{ 'Amount' | t('formie') }}</h5>
+                <div class="value">{{ payment.amount | currency(payment.currency) }} {{ payment.currency | upper }}</div>
+            </div>
+        {% endif %}
+
+        {% if subscription.nextPaymentAt %}
+            <div class="data">
+                <h5 class="heading">{{ 'Next Payment' | t('formie') }}</h5>
+                <div class="value">{{ subscription.nextPaymentAt | datetime('short') }}</div>
+            </div>
+        {% endif %}
+    {% elseif monetaryPayments %}
+        {% set payment = monetaryPayments | last %}
+
+        <div class="data">
+            <h5 class="heading">{{ 'Status' | t('formie') }}</h5>
+
+            <div class="value">
+                <span class="status {{ payment.status | kebab }}"></span>
+                {{ payment.status | title | t('formie') }}
+            </div>
+        </div>
+
+        <div class="data">
+            <h5 class="heading">{{ 'Amount' | t('formie') }}</h5>
+            <div class="value">{{ payment.amount | currency(payment.currency) }} {{ payment.currency | upper }}</div>
+        </div>
+    {% endif %}
+</div>
