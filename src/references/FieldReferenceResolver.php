@@ -9,6 +9,7 @@ use verbb\formie\fields\Group;
 use verbb\formie\fields\Phone;
 use verbb\formie\fields\Repeater;
 use verbb\formie\fields\Table;
+use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\helpers\ElementReferenceHelper;
 use verbb\formie\helpers\RepeaterReferenceHelper;
@@ -39,6 +40,11 @@ final class FieldReferenceResolver
         $params = $expression->transformerParams;
         $projection = $selector === '' && !isset($params['scope']) ? 'value' : 'none';
         $referenceValue = $this->_referenceValue($field, $selector);
+
+        // A Table only offers its columns, but integration mappings saved before them send the whole table.
+        if (!$referenceValue && $selector === '' && !isset($params['scope']) && $field instanceof Table && $context->usage === ReferenceUsage::Integration) {
+            $referenceValue = FieldReferenceValue::primary(types: [ReferenceType::List], allowTransforms: false);
+        }
 
         if (!$referenceValue || !$referenceValue->appliesTo($field)) {
             throw new ReferenceException($selector === '' ? ReferenceDiagnostic::InvalidType : ReferenceDiagnostic::InvalidSelector);

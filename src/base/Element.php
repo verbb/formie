@@ -259,15 +259,24 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
         }
 
         // For Table fields with Date/Time destination columns, convert to UTC from system time
-        if ($event->field instanceof Table) {
+        if ($event->field instanceof Table && is_array($event->value)) {
             $timezone = new DateTimeZone(Craft::$app->getTimeZone());
 
             foreach ($event->value as $rowKey => $row) {
+                // A mapped column resolves to its cell values rather than whole rows.
+                if (!is_array($row)) {
+                    continue;
+                }
+
                 foreach ($row as $colKey => $column) {
                     if (is_array($column) && isset($column['date'])) {
                         $event->value[$rowKey][$colKey] = (new DateTime($column['date'], $timezone));
                     }
                 }
+            }
+
+            if (is_a($fieldClass, CraftTable::class, true)) {
+                $event->value = $this->_prepareTableRows($event->field, $event->value, $event->rawValue);
             }
         }
 
@@ -545,5 +554,42 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
         }
 
         return $value;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * A Craft Table reads a cell by its column's ID or handle, so offer both. Formie stores a date as a calendar day and a time
+     * as an instant, and each needs the site's timezone so the entry shows what was submitted.
+     */
+    private function _prepareTableRows(Table $field, array $rows, mixed $rawRows): array
+    {
+        $rawRows = is_array($rawRows) ? array_values($rawRows) : [];
+        $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+
+        foreach ($rows as $rowKey => $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            foreach ($field->columns as $colId => $column) {
+                $handle = $column['handle'] ?? $colId;
+                $cell = $rawRows[$rowKey][$colId] ?? null;
+
+                if ($cell instanceof DateTimeInterface) {
+                    $row[$handle] = ($column['type'] ?? '') === 'date'
+                        ? new DateTime($cell->format('Y-m-d'), $timezone)
+                        : DateTime::createFromInterface($cell)->setTimezone($timezone);
+                }
+
+                $row[$colId] = $row[$handle] ?? null;
+            }
+
+            $rows[$rowKey] = $row;
+        }
+
+        return $rows;
     }
 }
