@@ -35,6 +35,7 @@ use verbb\formie\fields\subfields\NameFirst;
 use verbb\formie\fields\subfields\NameLast;
 use verbb\formie\fields\subfields\NameMiddle;
 use verbb\formie\fields\subfields\NamePrefix;
+use verbb\formie\helpers\DateTimeHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout;
@@ -1355,6 +1356,8 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
     private function _getDateDropdownsConfig(array $settings): array
     {
+        $timeParts = $this->_getDateTimeParts($settings);
+
         return [
             [
                 'fields' => [
@@ -1386,15 +1389,15 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                         'type' => DateHourDropdown::class,
                         'label' => trim($settings['hourLabel'] ?? '') ?: Craft::t('formie', 'Hour'),
                         'handle' => 'hour',
-                        'enabled' => $settings['includeTime'] ?? true,
+                        'enabled' => $timeParts['hour'],
                         'placeholder' => $settings['hourPlaceholder'] ?? null,
-                        'options' => $this->_generateOptions(0, 23),
+                        'options' => $this->_generateOptions(0, $timeParts['maxHour']),
                     ],
                     [
                         'type' => DateMinuteDropdown::class,
                         'label' => trim($settings['minueLabel'] ?? '') ?: Craft::t('formie', 'Minute'),
                         'handle' => 'minute',
-                        'enabled' => $settings['includeTime'] ?? true,
+                        'enabled' => $timeParts['minute'],
                         'placeholder' => $settings['minutePlaceholder'] ?? null,
                         'options' => $this->_generateOptions(0, 59),
                     ],
@@ -1402,7 +1405,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                         'type' => DateSecondDropdown::class,
                         'label' => trim($settings['secondLabel'] ?? '') ?: Craft::t('formie', 'Second'),
                         'handle' => 'second',
-                        'enabled' => false,
+                        'enabled' => $timeParts['second'],
                         'placeholder' => $settings['secondPlaceholder'] ?? null,
                         'options' => $this->_generateOptions(0, 59),
                     ],
@@ -1410,7 +1413,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                         'type' => DateAmPmDropdown::class,
                         'label' => trim($settings['ampmLabel'] ?? '') ?: Craft::t('formie', 'AM/PM'),
                         'handle' => 'ampm',
-                        'enabled' => false,
+                        'enabled' => $timeParts['ampm'],
                         'placeholder' => $settings['ampmPlaceholder'] ?? null,
                         'options' => [
                             ['value' => 'AM', 'label' => Craft::t('formie', 'AM')],
@@ -1424,6 +1427,8 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
     private function _getDateInputsConfig(array $settings): array
     {
+        $timeParts = $this->_getDateTimeParts($settings);
+
         return [
             [
                 'fields' => [
@@ -1461,17 +1466,17 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                         'type' => DateHourNumber::class,
                         'label' => trim($settings['hourLabel'] ?? '') ?: Craft::t('formie', 'Hour'),
                         'handle' => 'hour',
-                        'enabled' => $settings['includeTime'] ?? true,
+                        'enabled' => $timeParts['hour'],
                         'placeholder' => $settings['hourPlaceholder'] ?? null,
                         'limit' => true,
                         'min' => 0,
-                        'max' => 23,
+                        'max' => $timeParts['maxHour'],
                     ],
                     [
                         'type' => DateMinuteNumber::class,
                         'label' => trim($settings['minueLabel'] ?? '') ?: Craft::t('formie', 'Minute'),
                         'handle' => 'minute',
-                        'enabled' => $settings['includeTime'] ?? true,
+                        'enabled' => $timeParts['minute'],
                         'placeholder' => $settings['minutePlaceholder'] ?? null,
                         'limit' => true,
                         'min' => 0,
@@ -1481,7 +1486,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                         'type' => DateSecondNumber::class,
                         'label' => trim($settings['secondLabel'] ?? '') ?: Craft::t('formie', 'Second'),
                         'handle' => 'second',
-                        'enabled' => false,
+                        'enabled' => $timeParts['second'],
                         'placeholder' => $settings['secondPlaceholder'] ?? null,
                         'limit' => true,
                         'min' => 0,
@@ -1491,7 +1496,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                         'type' => DateAmPmDropdown::class,
                         'label' => trim($settings['ampmLabel'] ?? '') ?: Craft::t('formie', 'AM/PM'),
                         'handle' => 'ampm',
-                        'enabled' => false,
+                        'enabled' => $timeParts['ampm'],
                         'placeholder' => $settings['ampmPlaceholder'] ?? null,
                         'options' => [
                             ['value' => 'AM', 'label' => Craft::t('formie', 'AM')],
@@ -1500,6 +1505,22 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                     ],
                 ],
             ],
+        ];
+    }
+
+    private function _getDateTimeParts(array $settings): array
+    {
+        // Formie 2 built its dropdowns and inputs from the format, so only the parts it mentions
+        // were ever shown. Sub-fields are toggled independently now, so carry that across.
+        $parts = DateTimeHelper::getSubfieldOrder(['includeDate' => false] + $settings);
+        $timeFormat = $settings['timeFormat'] ?? 'H:i';
+
+        return [
+            'hour' => in_array('hour', $parts, true),
+            'minute' => in_array('minute', $parts, true),
+            'second' => in_array('second', $parts, true),
+            'ampm' => in_array('ampm', $parts, true),
+            'maxHour' => str_contains($timeFormat, 'h') ? 12 : 23,
         ];
     }
 
