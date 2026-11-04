@@ -8,6 +8,7 @@
 ### Fixed
 - Fixed TypeScript errors in projects using NodeNext module resolution.
 - Fixed a server-rendered error on a field inside a Group or Repeater marking every other field around it as invalid.
+- Fixed focus not moving to Checkboxes, Agree, searchable Dropdown and Rich Text fields after a validation error.
 - Fixed searchable dropdown selections being cleared during AJAX page navigation. ([#3088](https://github.com/verbb/formie/issues/3088))
 - Fixed required field and core modules blocking submission when there’s nothing rendered for them to enhance yet, such as conditions inside a Repeater with no rows.
 - Fixed browser requests failing when Craft uses a custom action trigger, including token refresh after AJAX submissions. ([#3068](https://github.com/verbb/formie/issues/3068))

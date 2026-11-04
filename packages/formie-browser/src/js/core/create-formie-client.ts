@@ -20,6 +20,7 @@ import {
     enhanceServerRenderedFieldErrors,
     focusFirstValidationError,
     hasServerRenderedValidationErrors,
+    restoreLostValidationFocus,
 } from '#core/validation-focus';
 import { clearSubmitFeedback, executeAjaxSubmitFlow, shouldKeepSubmitLoading } from '#core/submit-flow';
 import { applySubmitResultUi, renderFieldErrors, renderFormErrors } from '#core/submit-result-ui';
@@ -1326,6 +1327,10 @@ export function createFormieClient(): FormieClient {
             instance,
             unbindEventContext,
         });
+
+        if (form instanceof HTMLFormElement && normalizedOptions.mode === 'server-rendered' && hasServerRenderedValidationErrors(form)) {
+            restoreLostValidationFocus(form);
+        }
 
         dispatchFormieDomEvent(target, 'formie:mount:after', {
             id,

@@ -26,22 +26,31 @@ function getVisibleControl(control: HTMLElement): HTMLElement {
     return control;
 }
 
-function getFieldFocusTarget(field: HTMLElement): HTMLElement | null {
-    const invalidControl = Array.from(field.querySelectorAll('[aria-invalid="true"]')).find((node) => {
-        return !isValidationSkipped(node);
-    }) as HTMLElement | undefined;
+function findFocusableControl(nodes: Element[]): HTMLElement | null {
+    for (const node of nodes) {
+        const control = getVisibleControl(node as HTMLElement);
 
-    if (invalidControl) {
-        return getVisibleControl(invalidControl);
+        // Checkboxes and Agree put a hidden input first, and a searchable dropdown hides its
+        // select behind a search input. Focusing either does nothing, so keep looking.
+        if (!(control instanceof HTMLInputElement && control.type === 'hidden') && control.getClientRects().length > 0) {
+            return control;
+        }
     }
 
-    const control = Array.from(field.querySelectorAll(
-        'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])',
-    )).find((node) => {
-        return !isValidationSkipped(node);
-    }) as HTMLElement | undefined;
+    return null;
+}
 
-    return control ? getVisibleControl(control) : null;
+function getFieldFocusTarget(field: HTMLElement): HTMLElement | null {
+    const invalidControls = Array.from(field.querySelectorAll('[aria-invalid="true"]')).filter((node) => {
+        return !isValidationSkipped(node);
+    });
+
+    // Fall back to any usable control. This includes a searchable dropdown's search input, which
+    // is skipped by validation because it holds no value, but is what a visitor actually uses.
+    return findFocusableControl(invalidControls)
+        || findFocusableControl(Array.from(field.querySelectorAll(
+            'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])',
+        )));
 }
 
 function getFormLevelErrorTarget(form: HTMLFormElement): HTMLElement | null {
@@ -98,6 +107,16 @@ export function enhanceServerRenderedFieldErrors(form: HTMLFormElement): void {
 
 export function hasServerRenderedValidationErrors(form: HTMLFormElement): boolean {
     return !!getFirstErroredField(form) || !!getFormLevelErrorTarget(form);
+}
+
+// Browser modules can replace a control after focus lands on it, or only create the visible one once
+// they mount. Leave focus alone if the visitor has already moved it somewhere usable.
+export function restoreLostValidationFocus(form: HTMLFormElement): void {
+    const active = document.activeElement;
+
+    if (!active || active === document.body || active.getClientRects().length === 0) {
+        focusFirstValidationError(form);
+    }
 }
 
 export function focusFirstValidationError(form: HTMLFormElement): boolean {
