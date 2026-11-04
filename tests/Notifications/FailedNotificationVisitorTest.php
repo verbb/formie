@@ -89,6 +89,21 @@ it('completes the submission and sends the remaining notifications without the q
     });
 });
 
+it('keeps notifications in the order they were added when they share a creation time', function (): void {
+    $form = failedNotificationForm();
+    $db = Craft::$app->getDb();
+    $db->createCommand()->update(Table::FORMIE_NOTIFICATIONS, ['dateCreated' => '2026-01-01 00:00:00'], ['formId' => $form->id])->execute();
+
+    // Store the first row physically after the second, which PostgreSQL then returns first unless told otherwise.
+    $first = (new Query())->from(Table::FORMIE_NOTIFICATIONS)->where(['formId' => $form->id, 'handle' => 'failing'])->one();
+    $db->createCommand()->delete(Table::FORMIE_NOTIFICATIONS, ['id' => $first['id']])->execute();
+    $db->createCommand()->insert(Table::FORMIE_NOTIFICATIONS, $first, false)->execute();
+
+    $notifications = Formie::$plugin->getNotifications()->getFormNotifications($form);
+
+    expect(array_map(static fn(Notification $notification) => $notification->handle, $notifications))->toBe(['failing', 'working']);
+});
+
 it('records a failed notification for delivery diagnostics without the queue', function (): void {
     failedNotificationScenario(false, function (): void {
         $form = failedNotificationForm();

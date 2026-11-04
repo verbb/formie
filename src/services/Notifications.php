@@ -1216,7 +1216,7 @@ class Notifications extends Component
 
         return (new Query())
             ->select($select)
-            ->orderBy('dateCreated')
+            ->orderBy(['dateCreated' => SORT_ASC, 'id' => SORT_ASC])
             ->from([Table::FORMIE_NOTIFICATIONS]);
     }
 
