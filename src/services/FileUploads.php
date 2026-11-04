@@ -685,9 +685,15 @@ class FileUploads extends Component
                 $tracked = $this->getTrackedUploadByAssetId((int)$asset->id);
 
                 if (!$tracked) {
-                    // An asset chosen in the control panel stays a reference to the library file, as it
-                    // would on an entry. Tracking it would move, rename and later delete it as an upload.
+                    // An asset chosen in the control panel moves into the field's folder, as it would for an
+                    // Assets field with a restricted location. It isn't an upload, so its filename stays.
                     if (!$adoptUntracked) {
+                        $asset->avoidFilenameConflicts = true;
+
+                        if (!Craft::$app->getAssets()->moveAsset($asset, $folder)) {
+                            Formie::error("Unable to move asset #{$asset->id} to the field's upload folder.");
+                        }
+
                         continue;
                     }
 

@@ -348,7 +348,7 @@ function cpScreenSavedWithChosenAsset(array $formAttributes): array
     return [$form, $user, $assetId, Submission::find()->formId($form->id)->isIncomplete(null)->isSpam(null)->status(null)->one()];
 }
 
-it('leaves an asset chosen from the picker where it is, including when saved again', function (): void {
+it('moves an asset chosen from the picker into the field folder without renaming it, including when saved again', function (): void {
     $volume = UploadTestHelper::ensureUploadVolume();
     $form = formie()->form()->fileUploadField('document', [
         'restrictFiles' => false,
@@ -362,13 +362,42 @@ it('leaves an asset chosen from the picker where it is, including when saved aga
 
     expect(cpScreenSave($user, $form, ['document' => [$assetId]])?->data['success'] ?? null)->toBeTrue();
 
+    $moved = Asset::find()->id($assetId)->one();
+    expect($moved->folderPath)->toBe('submission-files/')
+        ->and($moved->filename)->toBe($before->filename);
+
     $saved = Submission::find()->formId($form->id)->isIncomplete(null)->isSpam(null)->status(null)->one();
     expect(cpScreenSave($user, $form, ['document' => [$assetId]], $saved)?->data['success'] ?? null)->toBeTrue();
 
     $after = Asset::find()->id($assetId)->one();
-    expect($after->folderId)->toBe($before->folderId)
+    expect($after->folderId)->toBe($moved->folderId)
         ->and($after->filename)->toBe($before->filename)
+        ->and($after->getVolume()->fileExists($after->getPath()))->toBeTrue()
         ->and((new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where(['assetId' => $assetId])->exists())->toBeFalse();
+});
+
+it('keeps both files when a chosen asset has the same name as one in the field folder', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form()->fileUploadField('document', [
+        'restrictFiles' => false,
+        'uploadLocationSource' => 'volume:' . $volume->uid,
+        'uploadLocationSubpath' => 'submission-files',
+    ])->create();
+    $user = User::find()->admin(true)->one();
+    $filename = 'same-name-' . bin2hex(random_bytes(4)) . '.txt';
+    $first = cpScreenUpload($user, $volume, $filename, 'first');
+    expect(cpScreenSave($user, $form, ['document' => [$first]])?->data['success'] ?? null)->toBeTrue();
+    $second = cpScreenUpload($user, $volume, $filename, 'second');
+
+    expect(cpScreenSave($user, $form, ['document' => [$second]])?->data['success'] ?? null)->toBeTrue();
+
+    $firstAsset = Asset::find()->id($first)->one();
+    $secondAsset = Asset::find()->id($second)->one();
+
+    expect($secondAsset->folderPath)->toBe('submission-files/')
+        ->and($firstAsset->folderPath)->toBe('submission-files/')
+        ->and($firstAsset->filename)->toBe($filename)
+        ->and($secondAsset->filename)->not->toBe($filename);
 });
 
 it('deletes a chosen asset with its submission when the form deletes files', function (): void {
