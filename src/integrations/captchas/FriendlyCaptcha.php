@@ -96,6 +96,11 @@ class FriendlyCaptcha extends Captcha
         ];
     }
 
+    public function requiresClientToken(): bool
+    {
+        return true;
+    }
+
     public function validateSubmission(Submission $submission): bool
     {
         if ($this->apiVersion === 'v2') {

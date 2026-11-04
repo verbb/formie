@@ -12,6 +12,7 @@ use verbb\formie\helpers\Table;
 use verbb\formie\models\RichText;
 use verbb\formie\models\SubmissionQuizResult;
 use verbb\formie\records\SubmissionQuizResult as SubmissionQuizResultRecord;
+use verbb\formie\workflow\WorkflowContext;
 
 use Craft;
 use craft\base\Component;
@@ -85,6 +86,10 @@ class QuestionnaireScoring extends Component
         if ($userId) {
             $query->andWhere(['s.userId' => $userId]);
         } else {
+            if (WorkflowContext::current()?->command->isPrivateMutation()) {
+                return false;
+            }
+
             $ipAddress = $submission->ipAddress ?: Craft::$app->getRequest()->getUserIP();
 
             if (!$ipAddress) {
@@ -566,6 +571,7 @@ class QuestionnaireScoring extends Component
         foreach ($stored as $item) {
             if (is_string($item) && $item !== '') {
                 $values[] = $item;
+
                 continue;
             }
 

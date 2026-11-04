@@ -93,6 +93,7 @@ abstract class Captcha extends Integration
     public function getCpIconPath(): string
     {
         $handle = trim((string)StringHelper::toKebabCase($this->getHandle()));
+
         return $handle !== '' ? "icons/captchas/{$handle}.svg" : '';
     }
 
@@ -155,6 +156,12 @@ abstract class Captcha extends Integration
     public function validateSubmission(Submission $submission): bool
     {
         return true;
+    }
+
+    /** Whether a caller must supply a token, unlike providers that only check the submitted content. */
+    public function requiresClientToken(): bool
+    {
+        return false;
     }
 
     public function getGqlHandle(): string

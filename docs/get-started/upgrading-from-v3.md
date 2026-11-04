@@ -439,7 +439,13 @@ Form integration settings returned through GraphQL contain only values needed by
 
 Custom submission clients must also update their [tokens and version handling](#continuity-and-upload-upgrade-actions). See [Rendering Forms](/graphql/rendering-forms) and [Create Submissions](/graphql/create-submissions) for complete requests. The [page-setting renames](#graphql-page-settings) remain covered by compatibility mode.
 
-`save_<handle>_Submission` and `saveSubmission` still submit a form as they did in Formie 3. A multi-page form with a captcha now needs a captcha token in the mutation. Through a public schema, these mutations can only create completed submissions, so editing by ID and saving drafts need a private schema with an access token. See [Public Schemas](/graphql/create-submissions#public-schemas).
+`save_<handle>_Submission` and `saveSubmission` still submit a form as they did in Formie 3, and `isNewSubmission` is accepted but ignored, because editing a completed submission no longer sends notifications again. Check these if you use them:
+
+- **Editing:** send the submission's current `stateVersion` as `expectedVersion`.
+- **Captchas:** a form with a captcha, including a multi-page form, needs its token in the mutation.
+- **Browser requests from another domain:** add the origin to [`allowedOrigins`](/get-started/configuration#allowedorigins).
+- **Public schemas:** these can only create completed submissions. Editing by ID and saving drafts need a private schema with an access token. See [Public Schemas](/graphql/create-submissions#public-schemas).
+- **IP settings:** with a private token, Formie doesn't record an IP or apply per-IP limits, because the request comes from your server.
 
 ### Submission Workflow
 

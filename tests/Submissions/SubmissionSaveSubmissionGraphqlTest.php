@@ -11,6 +11,8 @@ use GraphQL\Type\Definition\ResolveInfo;
 use Tests\Support\UploadTestHelper;
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\Formie;
+use verbb\formie\enums\workflow\Stage;
+use verbb\formie\services\SubmissionWorkflow;
 use verbb\formie\base\Captcha;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
@@ -41,10 +43,17 @@ class MutationDeliveryProvider extends Integration
     }
 }
 
+class MutationContentCaptcha extends Captcha
+{
+    public static function displayName(): string { return 'Mutation content captcha fixture'; }
+    public function fetchConfig(): IntegrationConfig { return new IntegrationConfig(); }
+}
+
 class MutationDeliveryCaptcha extends Captcha
 {
     public static function displayName(): string { return 'Mutation captcha fixture'; }
     public function fetchConfig(): IntegrationConfig { return new IntegrationConfig(); }
+    public function requiresClientToken(): bool { return true; }
     public function validateSubmission(Submission $submission): bool {
         if ($this->getCaptchaValue($submission, 'token') === 'human') {
             return true;
@@ -112,6 +121,27 @@ function mutationDeliveryForm(array $settings = ['disableCaptchas' => true], arr
         'to' => 'owner@example.test',
     ], $notification))]);
     expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
+
+    return $form;
+}
+
+function mutationPageSettings(object $page, array $settings): void
+{
+    $current = (new Query())->select('settings')->from('{{%formie_fieldlayout_pages}}')->where(['id' => $page->id])->scalar();
+    Craft::$app->getDb()->createCommand()->update('{{%formie_fieldlayout_pages}}', ['settings' => json_encode(array_merge((array)json_decode((string)$current, true), $settings))], ['id' => $page->id])->execute();
+    Craft::$app->getElements()->invalidateCachesForElementType(Form::class);
+}
+
+function mutationPagesForm(): Form
+{
+    $form = formie()->form(['title' => 'Mutation pages ' . uniqid()])->multiPage(2)
+        ->onPage(1)->singleLineTextField('agree')
+        ->onPage(2)->singleLineTextField('finalMessage')
+        ->settings(['disableCaptchas' => true])->create();
+    mutationPageSettings($form->getPages()[0], [
+        'enableNextButtonConditions' => true,
+        'nextButtonConditions' => ['version' => 1, 'showRule' => 'show', 'conditionRule' => 'all', 'conditions' => [['field' => 'agree', 'condition' => '=', 'value' => 'yes']]],
+    ]);
 
     return $form;
 }
@@ -289,7 +319,7 @@ it('applies default values and captures request details on mutation submissions'
     $saved = null;
     withMutationDelivery($form, function() use ($form, &$saved): void {
         $saved = mutationDeliverySave($form, ['fields' => ['message' => 'Hello']]);
-    }, []);
+    }, [], isPublic: true);
 
     expect($saved->getFieldValue('detail'))->toBe('fallback')
         ->and($saved->getMetadata('request'))->toHaveKey('userAgent')
@@ -349,7 +379,8 @@ it('screens submissions made through a public schema', function (): void {
         $saved = mutationDeliverySave($form, ['fields' => ['message' => 'Hello']]);
     }, [MutationDeliveryCaptcha::class => 'token'], ['spamBehaviour' => Settings::SPAM_BEHAVIOUR_SUCCESS, 'saveSpam' => true, 'spamEmailNotifications' => false], true);
 
-    expect($saved->isSpam)->toBeTrue()->and($delivered['emails'])->toBe([]);
+    expect((bool)(new Query())->select('isSpam')->from('{{%formie_submissions}}')->where(['id' => $saved->id])->scalar())->toBeTrue()
+        ->and($delivered['emails'])->toBe([]);
 });
 
 it('blocks editing a submission by ID through a public schema', function (string $identifier): void {
@@ -593,7 +624,7 @@ it('sends spam notifications for mutation submissions when enabled', function ()
     expect($delivered)->toBe(['emails' => ['Enquiry'], 'integrations' => []]);
 });
 
-it('requires a valid captcha token from completing mutations', function (int $pages, array $captchas, bool $spam): void {
+it('checks captcha tokens from completing mutations', function (int $pages, array $captchas, bool $spam): void {
     $form = mutationDeliveryForm(settings: [], pages: $pages);
     $saved = null;
     $delivered = withMutationDelivery($form, function() use ($form, $captchas, &$saved): void {
@@ -603,12 +634,30 @@ it('requires a valid captcha token from completing mutations', function (int $pa
     expect($saved->isSpam)->toBe($spam)
         ->and($delivered)->toBe($spam ? ['emails' => [], 'integrations' => []] : ['emails' => ['Enquiry'], 'integrations' => ['remote']]);
 })->with([
-    'missing token' => [1, [], true],
     'wrong token' => [1, ['tokenCaptcha' => ['name' => 'token', 'value' => 'bot']], true],
     'valid token' => [1, ['tokenCaptcha' => ['name' => 'token', 'value' => 'human']], false],
-    'missing token, multi-page' => [2, [], true],
     'valid token, multi-page' => [2, ['tokenCaptcha' => ['name' => 'token', 'value' => 'human']], false],
 ]);
+
+it('tells a private caller when a captcha token is missing, instead of silently marking it as spam', function (int $pages): void {
+    $form = mutationDeliveryForm(settings: [], pages: $pages);
+    $delivered = withMutationDelivery($form, function() use ($form): void {
+        expect(fn() => mutationDeliverySave($form, ['fields' => ['message' => 'Hello']]))->toThrow(Error::class, 'tokenCaptcha');
+    }, [MutationDeliveryCaptcha::class => 'token'], ['spamBehaviour' => Settings::SPAM_BEHAVIOUR_SUCCESS, 'saveSpam' => true]);
+
+    expect($delivered['emails'])->toBe([])
+        ->and((int)Submission::find()->formId($form->id)->status(null)->isSpam(null)->isIncomplete(null)->count())->toBe(0);
+})->with(['single page' => 1, 'multi-page' => 2]);
+
+it('doesn\'t ask for a token from captchas that only check the content', function (): void {
+    $form = mutationDeliveryForm(settings: []);
+    $saved = null;
+    withMutationDelivery($form, function() use ($form, &$saved): void {
+        $saved = mutationDeliverySave($form, ['fields' => ['message' => 'Hello']]);
+    }, [MutationContentCaptcha::class => 'content'], ['saveSpam' => true]);
+
+    expect($saved->isSpam)->toBeFalse();
+});
 
 it('updates an existing submission through saveSubmission', function (): void {
     $form = formie()
@@ -867,4 +916,211 @@ it('rescores completed quiz answers after administrative GraphQL edits', functio
         expect($result->response->outcome->type->value)->toBe('revised');
     });
     expect($scoring->getQuizResultForSubmission($submission->id)->score)->toBe(0.0);
+});
+
+it('lets visitors submit a form at the same time through a mutation', function (bool $isPublic): void {
+    $form = mutationDeliveryForm();
+    $inner = null;
+    $nested = false;
+    $listener = static function($event) use ($form, &$inner, &$nested): void {
+        // A second visitor arrives while the first is still inside the workflow, holding any locks it takes.
+        if (!$nested && $event->stage === Stage::VALIDATE->value && (int)$event->command->form->id === (int)$form->id) {
+            $nested = true;
+            $inner = mutationDeliverySave($form, ['fields' => ['message' => 'Second visitor']]);
+        }
+    };
+    $outer = null;
+    Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_STAGE, $listener);
+
+    try {
+        withMutationDelivery($form, function() use ($form, &$outer): void {
+            $outer = mutationDeliverySave($form, ['fields' => ['message' => 'First visitor']]);
+        }, [], isPublic: $isPublic);
+    } finally {
+        Event::off(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_STAGE, $listener);
+    }
+
+    expect($inner?->id)->not->toBeNull()->and($outer->id)->not->toBe($inner->id);
+})->with(['private' => false, 'public' => true]);
+
+it('doesn\'t treat a server\'s IP as the visitor\'s for private tokens', function (): void {
+    $form = mutationDeliveryForm(['disableCaptchas' => true, 'collectIp' => true, 'limitSubmissions' => 'ipAddress', 'limitSubmissionsIpAddressNumber' => 1, 'limitSubmissionsIpAddressType' => 'total']);
+    $first = null;
+    $second = null;
+    withMutationDelivery($form, function() use ($form, &$first, &$second): void {
+        $first = mutationDeliverySave($form, ['fields' => ['message' => 'First visitor']]);
+        $second = mutationDeliverySave($form, ['fields' => ['message' => 'Second visitor']]);
+    }, []);
+
+    expect($second?->id)->not->toBeNull()
+        ->and((new Query())->select('ipAddress')->from('{{%formie_submissions}}')->where(['id' => $first->id])->scalar())->toBeNull();
+});
+
+it('still applies per-IP limits through a public schema', function (): void {
+    $form = mutationDeliveryForm(['disableCaptchas' => true, 'collectIp' => true, 'limitSubmissions' => 'ipAddress', 'limitSubmissionsIpAddressNumber' => 1, 'limitSubmissionsIpAddressType' => 'total']);
+    withMutationDelivery($form, function() use ($form): void {
+        mutationDeliverySave($form, ['fields' => ['message' => 'First visitor']]);
+        expect(fn() => mutationDeliverySave($form, ['fields' => ['message' => 'Second visitor']]))->toThrow(Error::class);
+    }, [], isPublic: true);
+});
+
+it('returns the real reason when an origin is refused', function (bool $isPublic): void {
+    $form = mutationDeliveryForm();
+    WebRequestTestHelper::withWebRequestContext(function() use ($form, $isPublic): void {
+        withSaveSubmissionGraphqlScope(['formieSubmissions.' . $form->uid . ':create'], function() use ($form): void {
+            expect(fn() => mutationDeliverySave($form, ['fields' => ['message' => 'Hello']]))->toThrow(Error::class, 'allowedOrigins');
+        }, $isPublic);
+    }, ['method' => 'POST', 'headers' => ['Origin' => 'https://app.example.test']]);
+})->with(['private' => false, 'public' => true]);
+
+it('returns the original submission when a create is retried with the same operation ID', function (array $arguments): void {
+    $form = mutationDeliveryForm();
+    $first = null;
+    $second = null;
+    $delivered = withMutationDelivery($form, function() use ($form, $arguments, &$first, &$second): void {
+        $first = mutationDeliverySave($form, $arguments + ['operationId' => 'retry-a', 'fields' => ['message' => 'Hello']]);
+        $second = mutationDeliverySave($form, $arguments + ['operationId' => 'retry-a', 'fields' => ['message' => 'Hello']]);
+    }, []);
+
+    expect($second->id)->toBe($first->id)
+        ->and((int)Submission::find()->formId($form->id)->status(null)->isIncomplete(null)->count())->toBe(1)
+        ->and(count($delivered['emails']))->toBe(isset($arguments['isIncomplete']) ? 0 : 1);
+})->with(['completed' => [[]], 'draft' => [['isIncomplete' => true]]]);
+
+it('keeps values a token edit didn\'t send', function (): void {
+    $form = formie()->form(['title' => 'Mutation edit ' . uniqid()])->settings(['disableCaptchas' => true])
+        ->singleLineTextField('message')
+        ->singleLineTextField('note', ['visibility' => 'disabled'])
+        ->singleLineTextField('extra', ['defaultValue' => 'fallback'])
+        ->hiddenField('stamp', ['valueSource' => 'dateInt'])
+        ->create();
+    $saved = null;
+    $edited = null;
+    $corrected = null;
+    withMutationDelivery($form, function() use ($form, &$saved, &$edited, &$corrected): void {
+        $saved = mutationDeliverySave($form, ['fields' => ['message' => 'First']]);
+        $state = $saved->getContentState();
+        $content = json_decode((string)(new Query())->select('content')->from('{{%formie_submissions}}')->where(['id' => $saved->id])->scalar(), true);
+        $content[$form->getFieldByHandle('note')->uid] = 'Internal note';
+        $content[$form->getFieldByHandle('stamp')->uid] = 'captured';
+        unset($content[$form->getFieldByHandle('extra')->uid]);
+        Craft::$app->getDb()->createCommand()->update('{{%formie_submissions}}', ['content' => json_encode($content)], ['id' => $saved->id])->execute();
+        $edited = mutationDeliverySave($form, ['id' => $saved->id, 'expectedVersion' => $saved->stateVersion, 'fields' => ['message' => 'Second']]);
+        $corrected = mutationDeliverySave($form, ['id' => $saved->id, 'expectedVersion' => $edited->stateVersion, 'fields' => ['note' => 'Corrected note']]);
+    }, []);
+
+    expect($edited->getFieldValue('message'))->toBe('Second')
+        ->and($edited->getFieldValue('note'))->toBe('Internal note')
+        ->and($edited->getFieldValue('stamp'))->toBe('captured')
+        ->and($edited->getFieldValue('extra'))->not->toBe('fallback')
+        ->and($corrected->getFieldValue('note'))->toBe('Corrected note');
+});
+
+it('checks next button conditions on every page a mutation passes through', function (array $fields, bool $accepted): void {
+    $form = mutationPagesForm();
+    $saved = null;
+    withMutationDelivery($form, function() use ($form, $fields, $accepted, &$saved): void {
+        $save = fn() => mutationDeliverySave($form, ['fields' => $fields]);
+
+        if ($accepted) {
+            $saved = $save();
+        } else {
+            expect($save)->toThrow(Error::class, 'Complete the requirements');
+        }
+    }, []);
+
+    if ($accepted) {
+        expect($saved->isIncomplete)->toBeFalse();
+    }
+})->with([
+    'condition unmet' => [['agree' => 'no', 'finalMessage' => 'x'], false],
+    'condition met' => [['agree' => 'yes', 'finalMessage' => 'x'], true],
+]);
+
+it('treats the last page a submission reaches as its last page', function (): void {
+    $form = formie()->form(['title' => 'Mutation hidden page ' . uniqid()])->multiPage(2)
+        ->onPage(1)->singleLineTextField('route')
+        ->onPage(2)->singleLineTextField('finalMessage')
+        ->settings(['disableCaptchas' => true])->create();
+    $pages = $form->getPages();
+    mutationPageSettings($pages[1], [
+        'enablePageConditions' => true,
+        'pageConditions' => ['version' => 1, 'showRule' => 'show', 'conditionRule' => 'all', 'conditions' => [['field' => 'route', 'condition' => '=', 'value' => 'long']]],
+        'enableNextButtonConditions' => true,
+        'nextButtonConditions' => ['version' => 1, 'showRule' => 'show', 'conditionRule' => 'all', 'conditions' => [['field' => 'finalMessage', 'condition' => '=', 'value' => 'never']]],
+    ]);
+    $saved = null;
+    withMutationDelivery($form, function() use ($form, &$saved): void {
+        $saved = mutationDeliverySave($form, ['fields' => ['route' => 'short']]);
+    }, []);
+
+    expect($saved->isIncomplete)->toBeFalse();
+});
+
+it('keeps every page\'s answers when only current page payloads are set', function (): void {
+    $form = mutationDeliveryForm(pages: 2);
+    $saved = null;
+    withMutationDelivery($form, function() use ($form, &$saved): void {
+        $saved = mutationDeliverySave($form, ['fields' => ['message' => 'Page one', 'finalMessage' => 'Page two']]);
+    }, [], ['setOnlyCurrentPagePayload' => true]);
+
+    expect($saved->getFieldValue('message'))->toBe('Page one')
+        ->and($saved->getFieldValue('finalMessage'))->toBe('Page two');
+});
+
+it('accepts and ignores the Formie 3 isNewSubmission argument', function (bool $value): void {
+    $form = mutationDeliveryForm();
+    $saved = null;
+    $delivered = withMutationDelivery($form, function() use ($form, $value, &$saved): void {
+        $saved = mutationDeliverySave($form, ['isNewSubmission' => $value, 'fields' => ['message' => 'Hello']]);
+    }, []);
+
+    expect($saved->id)->not->toBeNull()->and($delivered['emails'])->toBe(['Enquiry']);
+})->with([true, false]);
+
+it('explains version and operation conflicts', function (): void {
+    $form = mutationDeliveryForm();
+    withMutationDelivery($form, function() use ($form): void {
+        $saved = mutationDeliverySave($form, ['operationId' => 'conflict', 'fields' => ['message' => 'Hello']]);
+        expect(fn() => mutationDeliverySave($form, ['id' => $saved->id, 'fields' => ['message' => 'Missing version']]))->toThrow(Error::class, 'expectedVersion');
+        expect(fn() => mutationDeliverySave($form, ['id' => $saved->id, 'expectedVersion' => 99, 'fields' => ['message' => 'Stale version']]))->toThrow(Error::class, 'expectedVersion');
+        expect(fn() => mutationDeliverySave($form, ['operationId' => 'conflict', 'fields' => ['message' => 'Changed']]))->toThrow(Error::class, 'operationId');
+    }, []);
+});
+
+it('treats a field with a reserved-looking handle as an answer', function (string $handle, bool $isPublic): void {
+    $form = formie()->form(['title' => 'Mutation handle ' . uniqid()])->settings(['disableCaptchas' => true])->singleLineTextField($handle)->create();
+    $first = null;
+    $second = null;
+    withMutationDelivery($form, function() use ($form, $handle, &$first, &$second): void {
+        $first = mutationDeliverySave($form, ['fields' => [$handle => 'an answer']]);
+        $second = mutationDeliverySave($form, ['fields' => [$handle => 'an answer']]);
+    }, [], isPublic: $isPublic);
+
+    expect($first->getFieldValue($handle))->toBe('an answer')
+        ->and($first->statusId)->toBe($form->getDefaultStatus()->id)
+        ->and($second->id)->not->toBe($first->id);
+})->with(['status', 'operationId', 'requestToken'])->with(['private' => false, 'public' => true]);
+
+it('doesn\'t tell a public caller that a submission was caught as spam', function (bool $isPublic): void {
+    $form = mutationDeliveryForm();
+    $saved = null;
+    withMutationDelivery($form, function() use ($form, &$saved): void {
+        $saved = mutationDeliverySave($form, ['fields' => ['message' => 'contains blocked-keyword content']]);
+    }, [], ['spamKeywords' => 'blocked-keyword', 'spamBehaviour' => Settings::SPAM_BEHAVIOUR_SUCCESS, 'saveSpam' => true, 'spamEmailNotifications' => false, 'enableSuspiciousTextDetection' => false], $isPublic);
+
+    expect($saved->isSpam)->toBe(!$isPublic)
+        ->and((bool)$saved->spamReason)->toBe(!$isPublic)
+        ->and((bool)(new Query())->select('isSpam')->from('{{%formie_submissions}}')->where(['id' => $saved->id])->scalar())->toBeTrue();
+})->with(['private' => false, 'public' => true]);
+
+it('refuses public submissions that aren\'t POST requests', function (): void {
+    $form = mutationDeliveryForm();
+    WebRequestTestHelper::withWebRequestContext(function() use ($form): void {
+        withSaveSubmissionGraphqlScope(['formieSubmissions.' . $form->uid . ':create'], function() use ($form): void {
+            expect(fn() => mutationDeliverySave($form, ['fields' => ['message' => 'From a link']]))->toThrow(Error::class, 'POST');
+        }, true);
+    }, ['method' => 'GET']);
+
+    expect((int)Submission::find()->formId($form->id)->status(null)->isIncomplete(null)->count())->toBe(0);
 });

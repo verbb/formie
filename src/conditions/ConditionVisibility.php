@@ -68,8 +68,11 @@ final class ConditionVisibility
         if ($field->getIsDisabled()) {
             $command = WorkflowContext::current()?->command;
 
-            // Disabled visibility still permits CP edits; disabled sub-fields stay unavailable.
-            if (!$field->enabled || $field->visibility !== 'disabled' || $command?->submission !== $submission || $command->authority->type !== SubmissionAuthorityType::CONTROL_PANEL) {
+            // Disabled visibility still permits CP and private token edits; disabled sub-fields stay unavailable.
+            $canEdit = $command?->submission === $submission
+                && ($command->authority->type === SubmissionAuthorityType::CONTROL_PANEL || ($command->isPrivateMutation() && $submission->id));
+
+            if (!$field->enabled || $field->visibility !== 'disabled' || !$canEdit) {
                 return true;
             }
         }

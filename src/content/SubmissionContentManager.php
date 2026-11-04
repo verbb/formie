@@ -11,6 +11,7 @@ use verbb\formie\exceptions\EncryptedContentUnavailableException;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\services\RuntimeConfiguration;
+use verbb\formie\workflow\WorkflowContext;
 
 class SubmissionContentManager
 {
@@ -320,11 +321,15 @@ class SubmissionContentManager
 
         if (!$field) {
             $this->normalizeSingleFromRequest($submission, $fieldHandle, $value);
+
             return;
         }
 
         // For large forms, optionally only mutate values for current-page fields.
-        if ($settings->setOnlyCurrentPagePayload) {
+        // Mutations send the whole form at once, so they have no current page to limit this to.
+        $currentPageOnly = $settings->setOnlyCurrentPagePayload && !WorkflowContext::current()?->command->isMutation();
+
+        if ($currentPageOnly) {
             $currentPageFieldHandles = $this->_currentPageFieldHandles($submission);
 
             if ($currentPageFieldHandles && !isset($currentPageFieldHandles[$fieldHandle])) {
@@ -332,12 +337,13 @@ class SubmissionContentManager
             }
         }
 
-        if ($settings->setOnlyCurrentPagePayload) {
+        if ($currentPageOnly) {
             // Merge through the owning field before normalization fills missing children.
             // Ciphertext envelopes are atomic storage values, never mergeable request maps.
             $previous = $this->getFieldValue($submission, $fieldHandle);
             $value = $field->mergePartialRequestValue($previous, $value);
         }
+
         $this->normalizeSingleFromRequest($submission, $fieldHandle, $value);
     }
 
@@ -401,16 +407,20 @@ class SubmissionContentManager
                 foreach ($field->getFields($row) as $candidate) {
                     if ($candidate->handle === $childHandle) {
                         $child = $candidate;
+
                         break;
                     }
                 }
 
                 if (!$child) {
                     $field = null;
+
                     break;
                 }
+
                 $field = $child;
             }
+
             return $context !== null && $field && !$segments ? $this->projectValue($submission, $field, $field->normalizeFieldValue($value, $submission), $context) : $value;
         }
 

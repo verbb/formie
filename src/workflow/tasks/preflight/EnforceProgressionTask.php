@@ -23,6 +23,10 @@ class EnforceProgressionTask implements TaskInterface
             return TaskResult::continue();
         }
 
+        if ($command->isMutation()) {
+            return $this->_enforceAcrossPages($context);
+        }
+
         $page = $command->form->getCurrentPage();
 
         if ($command->navigation === NavigationIntent::TARGET) {
@@ -32,6 +36,7 @@ class EnforceProgressionTask implements TaskInterface
                 }
             }
         }
+
         $conditions = $page?->getSubmitButtonConditions() ?? [];
 
         if ($page?->hasSubmitButtonConditions() && $conditions) {
@@ -40,8 +45,45 @@ class EnforceProgressionTask implements TaskInterface
 
             if (!$allowed) {
                 $command->submission->addError('form', Craft::t('formie', 'Complete the requirements on this page before continuing.'));
+
                 return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
             }
+        }
+
+        return TaskResult::continue();
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    /** A mutation sends the whole form at once, so it passes through every page a visitor would reach. */
+    private function _enforceAcrossPages(WorkflowContext $context): TaskResult
+    {
+        $form = $context->command->form;
+        $submission = $context->command->submission;
+        $page = $form->getPages()[0] ?? null;
+        $last = $page;
+
+        while ($page) {
+            $conditions = $page->getSubmitButtonConditions();
+
+            if ($page->hasSubmitButtonConditions() && $conditions) {
+                $evaluation = ConditionsHelper::evaluate($conditions, $submission, 'routing');
+
+                if (!$evaluation->permits(($conditions['showRule'] ?? 'show') === 'show')) {
+                    $submission->addError('form', Craft::t('formie', 'Complete the requirements on this page before continuing.'));
+
+                    return TaskResult::stop($context->result(SubmissionOutcomeType::VALIDATION_FAILED));
+                }
+            }
+
+            $last = $page;
+            $page = $form->getNextPage($page, $submission);
+        }
+
+        if ($last) {
+            $form->setCurrentPage($last);
         }
 
         return TaskResult::continue();

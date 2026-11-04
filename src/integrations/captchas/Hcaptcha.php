@@ -97,6 +97,11 @@ class Hcaptcha extends Captcha
         ];
     }
 
+    public function requiresClientToken(): bool
+    {
+        return true;
+    }
+
     public function validateSubmission(Submission $submission): bool
     {
         $responseToken = $this->getCaptchaValue($submission, 'h-captcha-response');

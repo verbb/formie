@@ -14,7 +14,7 @@ For a form with the handle `contactForm`, the mutation is `save_contactForm_Subm
 
 These mutations submit a form. A submission made this way behaves like one made on your site: Formie applies the form's availability rules and field conditions, validates the answers, screens for spam, then sends notifications and triggers integrations. Use a private GraphQL schema with an access token, and call the mutation from your server so the token stays out of browser code. To call it without a token, see [Public Schemas](#public-schemas).
 
-Send every answer in one request to complete the submission. To save progress instead, set `isIncomplete: true`. That saves a draft without requiring every field, and nothing is sent until you complete it with `isIncomplete: false`. Editing a completed submission requires its current `expectedVersion`, so a stale or missing version can't overwrite another save.
+Send every answer in one request to complete the submission. To save progress instead, set `isIncomplete: true`. That saves a draft without requiring every field, and nothing is sent until you complete it with `isIncomplete: false`. Editing a submission only changes the fields you send, and requires its current `expectedVersion`, so a stale or missing version can't overwrite another save.
 
 Payment fields need provider-specific steps that one mutation can't return. See [Payment Fields](#payment-fields).
 
@@ -242,6 +242,10 @@ mutation SaveSubmission($repeaterField: contactForm_repeaterField_FormieRepeater
 }
 ```
 
+## Calling from Your Server
+
+When your server calls these mutations with a private token, the request's IP address is your server's, not your visitor's. Formie doesn't record it, so **Collect IP Address**, per-IP submission limits, per-IP quiz retake limits and Hidden fields set to **User IP Address** don't apply to these requests. A form that requires a logged-in user also can't be submitted this way, because a token has no user.
+
 ## Notifications and Integrations
 
 Completing a submission sends the form's enabled email notifications and triggers its integrations, following the notification timing and integration order you've set for the form. Conditions on notifications and integrations apply as usual, and Formie's queue settings decide whether they run during the request or in the queue.
@@ -260,7 +264,9 @@ If your front-end calls Formie directly from the browser, you can skip the acces
 - It can only create completed submissions. Editing a submission by `id` or `uid`, or saving with `isIncomplete: true`, returns an error even if the schema has **Save** access.
 - It ignores `title`, `enabled`, `status`, `statusId`, `operationId` and `requestToken`, so the sender can't choose them.
 - It can only attach a file by uploading it in the same request.
-- Your allowed origins, Formie's anonymous rate limit and any [submission throttling](/forms/spam-protection#submission-throttling) you've turned on all apply. A sender over a limit gets an error asking them to try again shortly.
+- It only accepts POST requests, so a plain link can't submit your form.
+- It never tells the sender their submission was caught as spam.
+- Your [`allowedOrigins`](/get-started/configuration#allowedorigins), Formie's anonymous rate limit and any [submission throttling](/forms/spam-protection#submission-throttling) you've turned on all apply. A sender over a limit gets an error asking them to try again shortly.
 
 Honeypot and minimum submit time checks depend on Formie's browser fields, so they don't run here. Add a captcha to any form you expose this way. Without one, spam rules are the only check on what gets emailed to you.
 
@@ -272,7 +278,7 @@ When a form has a captcha enabled, Formie adds a captcha argument to that formâ€
 
 For example, a captcha integration with the handle `turnstile` becomes the argument `turnstileCaptcha`.
 
-To complete the submission, send a valid token in this argument. Without one, the submission is treated as spam. On a multi-page form, send it with the request that completes the submission.
+To complete the submission, send a valid token in this argument. With a private token, leaving it out returns an error, so you'll find out on your first request. Through a public schema, a missing token is treated as spam. On a multi-page form, send it with the request that completes the submission.
 
 ```graphql
 mutation SaveSubmission(

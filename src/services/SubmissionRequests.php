@@ -141,6 +141,19 @@ class SubmissionRequests extends Component
         }
 
         $this->primeSubmission($submission, $form);
+        $isPublic = Craft::$app->getGql()->getActiveSchema()->isPublic;
+
+        if (!$isPublic && !$submission->id) {
+            $submission->ipAddress = null;
+        }
+
+        // A field with one of these handles replaces the argument, so its value is an answer.
+        foreach (['expectedVersion', 'operationId', 'requestToken'] as $argument) {
+            if ($form->getFieldByHandle($argument)) {
+                unset($arguments[$argument]);
+            }
+        }
+
         $operation = $this->_mutationOperation($submission, $arguments);
         $submitting = $operation === SubmissionOperation::SUBMIT;
 
@@ -149,14 +162,12 @@ class SubmissionRequests extends Component
             $submission,
             $operation,
             $submitting ? NavigationIntent::ADVANCE : NavigationIntent::STAY,
-            Craft::$app->getGql()->getActiveSchema()->isPublic ? SubmissionAuthorityType::GRAPHQL_PUBLIC : SubmissionAuthorityType::GRAPHQL_ADMIN,
+            $isPublic ? SubmissionAuthorityType::GRAPHQL_PUBLIC : SubmissionAuthorityType::GRAPHQL_ADMIN,
             isset($arguments['expectedVersion']) ? (int)$arguments['expectedVersion'] : ($submission->id ? null : 0),
             $arguments['operationId'] ?? $arguments['requestToken'] ?? null,
             null,
             $arguments,
             $populate,
-            // A mutation sends the whole form at once, so a Submit starts from its last page.
-            $submitting ? (int)$form->getPages()[array_key_last($form->getPages())]->id : null,
         );
     }
 

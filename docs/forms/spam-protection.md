@@ -120,6 +120,8 @@ For contest, registration, or quota-style caps, use per-form **[Submission limit
 
 Throttling blocks requests that exceed the configured limits, including draft saves and page changes. It runs before the other spam checks.
 
+IP-based limits use the address Craft reports for the request. By default, Craft trusts the `X-Forwarded-For` header, which a sender can set to anything. If your site isn't behind a proxy that overwrites that header, set Craft's [`trustedHosts`](https://craftcms.com/docs/5.x/reference/config/general.html#trustedhosts) so these limits can't be avoided by changing it.
+
 Use conservative values for global throttling. For example, `1 per minute` across the entire site would block all users after the first submission.
 
 ## Submission Guards

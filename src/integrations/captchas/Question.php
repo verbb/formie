@@ -89,6 +89,11 @@ class Question extends Captcha
         return true;
     }
 
+    public function requiresClientToken(): bool
+    {
+        return (bool)$this->_getConfiguredQuestions();
+    }
+
     public function validateSubmission(Submission $submission): bool
     {
         // If there are no questions, just disable the captcha, it's not setup right.
@@ -102,11 +107,13 @@ class Question extends Captcha
 
         if ($index === null || !isset($questions[$index])) {
             $submission->addError(self::CAPTCHA_PARAM, Craft::t('formie', 'Invalid question.'));
+
             return false;
         }
 
         if (!is_string($rawAnswer) || trim($rawAnswer) === '') {
             $submission->addError(self::CAPTCHA_PARAM, Craft::t('formie', 'Incorrect answer. Please try again.'));
+
             return false;
         }
 
@@ -118,6 +125,7 @@ class Question extends Captcha
 
         if (!in_array($normalizedAnswer, $validAnswers, true)) {
             $submission->addError(self::CAPTCHA_PARAM, Craft::t('formie', 'Incorrect answer. Please try again.'));
+
             return false;
         }
 

@@ -51,6 +51,7 @@ class SubmissionOperations extends Component
                     if ($receipt['state'] === 'completed') {
                         return $this->_decode($receipt['outcome']);
                     }
+
                     // A crashed operation may have reached a provider. Never repeat it blindly.
                     return $this->_conflict($command, 'operationRequiresReconciliation');
                 }
@@ -67,10 +68,17 @@ class SubmissionOperations extends Component
                 }
             }
 
-            $resource = $command->submission->id
-                ? 'submission:' . $command->submission->id
-                : 'new:' . $command->form->id . ':' . $command->authority->scope;
-            $this->_lock('formie.resource.' . hash('sha256', $resource), $keys);
+            // A session can only start one submission at a time. A schema is shared by every
+            // visitor, so its new submissions have nothing in common to serialize.
+            $resource = match (true) {
+                (bool)$command->submission->id => 'submission:' . $command->submission->id,
+                $command->isMutation() => null,
+                default => 'new:' . $command->form->id . ':' . $command->authority->scope,
+            };
+
+            if ($resource !== null) {
+                $this->_lock('formie.resource.' . hash('sha256', $resource), $keys);
+            }
 
             if ($command->submission->id) {
                 $version = (new Query())->select('stateVersion')->from(Table::FORMIE_SUBMISSIONS)->where(['id' => $command->submission->id])->scalar();
@@ -153,8 +161,10 @@ class SubmissionOperations extends Component
             if (!array_is_list($value)) {
                 ksort($value);
             }
+
             return array_map($normalize, $value);
         };
+
         return OperationalSecurity::fingerprint('submission-operation', $normalize($input));
     }
 
@@ -168,12 +178,14 @@ class SubmissionOperations extends Component
             if ($command->isInteractive()) {
                 throw new RuntimeException('Interactive operations require an operation ID.');
             }
+
             return null;
         }
 
         if (!$command->payloadFingerprint) {
             throw new RuntimeException('Replayable operations require an input fingerprint.');
         }
+
         return hash('sha256', $command->form->id . '|' . $command->authority->scope . '|' . $command->operationId);
     }
 
@@ -182,6 +194,7 @@ class SubmissionOperations extends Component
         if (!Craft::$app->getMutex()->acquire($key, 10)) {
             throw new RuntimeException('Submission processing is already in progress.');
         }
+
         $keys[] = $key;
     }
 
@@ -199,6 +212,7 @@ class SubmissionOperations extends Component
         if (strlen($json) > self::MAX_OUTCOME_BYTES) {
             throw new RuntimeException('Submission outcome exceeded the receipt size limit.');
         }
+
         return base64_encode(Craft::$app->getSecurity()->encryptByKey($json, Craft::$app->getConfig()->getGeneral()->securityKey));
     }
 
@@ -209,8 +223,10 @@ class SubmissionOperations extends Component
         if ($json === false) {
             throw new RuntimeException('Unable to decrypt the operation receipt.');
         }
+
         $data = Json::decode($json);
         $data['type'] = SubmissionOutcomeType::from($data['type']);
+
         return new SubmissionOutcome(...$data);
     }
 }

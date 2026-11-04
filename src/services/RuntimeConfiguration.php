@@ -16,6 +16,7 @@ use verbb\formie\models\FormInstanceConfig;
 use verbb\formie\models\FormIntegration;
 use verbb\formie\models\RichText;
 use verbb\formie\models\SubmissionConfig;
+use verbb\formie\workflow\WorkflowContext;
 
 use Craft;
 use craft\db\Query;
@@ -74,15 +75,20 @@ final class RuntimeConfiguration
                     if ($field instanceof ParentFieldInterface) {
                         $field->setFieldLayout($this->cloneLayout($sourceField->getFieldLayout(), $form));
                     }
+
                     $fields[] = $field;
                 }
+
                 $row->setFields($fields);
                 $rows[] = $row;
             }
+
             $page->setRows($rows);
             $pages[] = $page;
         }
+
         $layout->setPages($pages);
+
         return $layout;
     }
 
@@ -93,6 +99,7 @@ final class RuntimeConfiguration
                 return $field;
             }
         }
+
         $owner = $form;
 
         foreach (explode('.', $path) as $handle) {
@@ -106,6 +113,7 @@ final class RuntimeConfiguration
         if (!$owner instanceof Field && $required) {
             throw new RuntimeError('Unknown runtime field target: ' . $path);
         }
+
         return $owner instanceof Field ? $owner : null;
     }
 
@@ -118,8 +126,10 @@ final class RuntimeConfiguration
                         return true;
                     }
                 }
+
                 return false;
             }
+
             return is_object($item);
         };
 
@@ -128,6 +138,7 @@ final class RuntimeConfiguration
         if ($hasObjects($value)) {
             $value = $field->serializeValueForClientInput($field->normalizeValue($value, $submission), $submission);
         }
+
         return FieldStorageCodec::assertSafe($value);
     }
 
@@ -148,6 +159,7 @@ final class RuntimeConfiguration
                 throw new RuntimeError('Unsupported runtime setting for ' . $target . ': ' . $name);
             }
         }
+
         $copy = clone $model;
 
         try {
@@ -159,6 +171,7 @@ final class RuntimeConfiguration
         } catch (Throwable $e) {
             throw new RuntimeError('Invalid runtime settings for ' . $target . ': ' . $e->getMessage(), -1, null, $e);
         }
+
         $values = $copy->getAttributes(array_keys($settings));
 
         // Rich-text settings expose typed models/Markup internally; retain their
@@ -170,6 +183,7 @@ final class RuntimeConfiguration
                 $values[$name] = $value->getValue();
             }
         }
+
         return $values;
     }
 
@@ -186,6 +200,7 @@ final class RuntimeConfiguration
             if (!$runtime->validate($attributes)) {
                 throw new InvalidArgumentException(Json::encode($runtime->getErrors()));
             }
+
             return array_replace($settings, $runtime->getAttributes($attributes));
         } catch (Throwable $e) {
             throw new RuntimeError('Invalid runtime integration settings for ' . $handle . ': ' . $e->getMessage(), -1, null, $e);
@@ -211,6 +226,7 @@ final class RuntimeConfiguration
         if ($form->isInstanceEstablished()) {
             return;
         }
+
         $form->markInstanceEstablished();
         $request = Craft::$app->getRequest();
         $query = $hostQuery ?? ($request->getIsConsoleRequest() || $request->getIsPost() ? [] : $request->getQueryParams());
@@ -222,6 +238,7 @@ final class RuntimeConfiguration
                 $prefill[$field->uid] = $field->valueSource === 'query'
                     ? ($query[$field->queryParameter ?? ''] ?? null) : $field->getDefaultValue();
             }
+
             $key = $field->prefillQueryParam;
 
             if ($key && array_key_exists($key, $query) && (is_scalar($query[$key]) || is_array($query[$key]))) {
@@ -229,6 +246,7 @@ final class RuntimeConfiguration
                 $prefill[$field->uid] = $query[$key];
             }
         }
+
         $form->replaceInstanceConfig($config->with('prefill', $prefill));
     }
 
@@ -237,18 +255,21 @@ final class RuntimeConfiguration
         if (!$form->id || $form->getCurrentSubmission()?->id) {
             return null;
         }
+
         $this->establish($form);
         $data = $form->getInstanceConfig()->toArray();
 
         if (!array_filter(array_diff_key($data, ['version' => true]))) {
             return null;
         }
+
         $key = Craft::$app->getSecurity()->generateRandomString(40);
         $encrypted = Craft::$app->getSecurity()->encryptByKey(Json::encode($data), Craft::$app->getConfig()->getGeneral()->securityKey);
         Craft::$app->getDb()->createCommand()->insert('{{%formie_instance_configs}}', [
             'tokenHash' => hash('sha256', $key), 'formId' => $form->id, 'siteId' => $form->siteId,
             'config' => base64_encode($encrypted), 'expiresAt' => time() + SubmissionOperations::RETENTION_SECONDS,
         ])->execute();
+
         return $key;
     }
 
@@ -260,6 +281,7 @@ final class RuntimeConfiguration
         if (!is_array($token) || ($token['form'] ?? null) !== $form->uid || (int)($token['site'] ?? 0) !== (int)$form->siteId) {
             return;
         }
+
         // Tokens issued before WS09 have no config. Never read an ambient session snapshot.
         $config = new FormInstanceConfig();
 
@@ -271,19 +293,27 @@ final class RuntimeConfiguration
             if (!$row) {
                 throw new ForbiddenHttpException('Form instance has expired. Reload the form.');
             }
+
             $json = Craft::$app->getSecurity()->decryptByKey(base64_decode($row['config']), Craft::$app->getConfig()->getGeneral()->securityKey);
 
             if ($json === false) {
                 throw new RuntimeException('Unable to decrypt form instance configuration.');
             }
+
             $config = SubmissionConfig::decode(Json::decode($json), $form);
         }
+
         $form->markInstanceEstablished();
         $form->replaceInstanceConfig($config);
     }
 
     public function applyValues(Submission $submission): void
     {
+        // A private token edit only changes what it sends. These values were settled when it was created.
+        if ($submission->id && WorkflowContext::current()?->command->isPrivateMutation()) {
+            return;
+        }
+
         $form = $submission->getForm();
         $config = $form->getInstanceConfig();
         $submission->getContentManager(); // Hydrate deferred persisted content before testing presence.
@@ -339,6 +369,7 @@ final class RuntimeConfiguration
                         $changed = true;
                     }
                 }
+
                 $rows[$index] = $row;
             }
 
@@ -346,6 +377,7 @@ final class RuntimeConfiguration
                 $value = $repeatable ? $rows : $rows[0];
             }
         }
+
         return [$value, $changed];
     }
 

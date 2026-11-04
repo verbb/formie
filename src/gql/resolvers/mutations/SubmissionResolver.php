@@ -4,6 +4,7 @@ namespace verbb\formie\gql\resolvers\mutations;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionOutcomeType;
 use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\helpers\BrowserRequestProfile;
 use verbb\formie\models\SubmissionErrors;
@@ -23,7 +24,7 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Utils\Value;
 
-use yii\web\TooManyRequestsHttpException;
+use yii\web\HttpException;
 
 class SubmissionResolver extends ElementMutationResolver
 {
@@ -165,12 +166,6 @@ class SubmissionResolver extends ElementMutationResolver
             throw new Error('Impossible to change the form of an existing submission');
         }
 
-        if ($isPublic) {
-            BrowserRequestProfile::enterPublicSubmission();
-        } else {
-            BrowserRequestProfile::enterAdministrative();
-        }
-
         $populate = function() use ($form, $submission, $arguments, $resolveInfo): void {
             $this->populateElementWithData($submission, $arguments, $resolveInfo);
 
@@ -183,7 +178,7 @@ class SubmissionResolver extends ElementMutationResolver
                 }
             }
 
-            if (!empty($arguments['status'])) {
+            if (!empty($arguments['status']) && !$form->getFieldByHandle('status')) {
                 $submission->setStatus($arguments['status']);
             }
 
@@ -200,14 +195,23 @@ class SubmissionResolver extends ElementMutationResolver
         };
 
         try {
+            if ($isPublic) {
+                BrowserRequestProfile::enterPublicSubmission();
+            } else {
+                BrowserRequestProfile::enterAdministrative();
+            }
+
             $result = Formie::$plugin->getSubmissionRequests()->executeMutation($form, $submission, $arguments, $populate);
-        } catch (TooManyRequestsHttpException $e) {
-            // GraphQL hides unexpected exceptions, and the sender needs to know to slow down.
+        } catch (HttpException $e) {
+            // GraphQL hides unexpected exceptions, and these all tell the sender what to change.
             throw new Error($e->getMessage());
         }
 
         $response = $result->response;
         $success = $response->success;
+
+        // A retried operation returns the first result, so this request's new element was never saved.
+        $submission = $response->submission ?? $submission;
 
         // Spam that's discarded under simulated success has nothing to return.
         if ($success && !$submission->id && ($response->outcome->data['fakeSuccess'] ?? false)) {
@@ -216,6 +220,10 @@ class SubmissionResolver extends ElementMutationResolver
 
         if (!$success || $submission->hasErrors() || !$submission->id) {
             $errors = SubmissionErrors::fromSubmission($submission)->toValuePathMap();
+
+            if ($response->outcome->type === SubmissionOutcomeType::STATE_CONFLICT) {
+                $errors = ['form' => [$this->_conflictMessage((string)($response->outcome->data['reason'] ?? ''))]];
+            }
 
             // A payment waiting on a follow-up step isn't invalid, so it has no field errors to report.
             if (!$errors) {
@@ -229,13 +237,22 @@ class SubmissionResolver extends ElementMutationResolver
         }
 
         // Refresh data from the DB
-        return Craft::$app->getElements()->createElementQuery(Submission::class)
+        $saved = Craft::$app->getElements()->createElementQuery(Submission::class)
             ->id($submission->id)
             ->siteId($submission->siteId)
             ->status(null)
             ->isSpam(null)
             ->isIncomplete(null)
             ->one();
+
+        // Simulated success only works if the response doesn't reveal the verdict.
+        if ($isPublic && $saved?->isSpam) {
+            $saved->isSpam = false;
+            $saved->spamReason = null;
+            $saved->spamClass = null;
+        }
+
+        return $saved;
     }
 
     public function deleteSubmission($source, array $arguments, $context, ResolveInfo $resolveInfo): bool
@@ -319,6 +336,15 @@ class SubmissionResolver extends ElementMutationResolver
         $normalizer = $type->config['normalizeValue'] ?? null;
 
         return $applyNormalizer && is_callable($normalizer) ? $normalizer($value) : $value;
+    }
+
+    private function _conflictMessage(string $reason): string
+    {
+        return match ($reason) {
+            'operationInputChanged' => 'This `operationId` was already used with different values.',
+            'operationRequiresReconciliation' => 'An earlier request with this `operationId` didn\'t finish. Check the submission before retrying with a new `operationId`.',
+            default => 'This submission\'s version doesn\'t match. Send its current `stateVersion` as `expectedVersion`.',
+        };
     }
 
     private function _canMutateSubmissionForForm(Form $form, array $arguments): bool

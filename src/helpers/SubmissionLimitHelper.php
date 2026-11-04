@@ -5,6 +5,7 @@ use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\FormSettings;
+use verbb\formie\workflow\WorkflowContext;
 
 use Craft;
 use craft\helpers\Db;
@@ -123,6 +124,10 @@ class SubmissionLimitHelper
 
     private static function _resolveIp(?Submission $submission): string
     {
+        if (WorkflowContext::current()?->command->isPrivateMutation()) {
+            return '';
+        }
+
         $ip = trim((string)($submission?->ipAddress ?? ''));
 
         if ($ip !== '') {

@@ -76,6 +76,7 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
             $config['valueSource'] = $config['valueSource'] ?? $config['defaultOption'];
             unset($config['defaultOption']);
         }
+
         // Remove unused settings
         unset($config['columnType']);
 
@@ -109,9 +110,9 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
     {
         $command = WorkflowContext::current()?->command;
 
-        // Existing CP submissions contain captured visitor data. Trust authorized
-        // editor corrections instead of replacing it with the current admin/date/IP.
-        if ($element instanceof Submission && $element->id && $command?->submission === $element && $command->authority->type === SubmissionAuthorityType::CONTROL_PANEL) {
+        // Existing submissions contain captured visitor data. Trust authorized editor
+        // corrections instead of replacing it with the current admin, server, date or IP.
+        if ($element instanceof Submission && $element->id && $command?->submission === $element && ($command->authority->type === SubmissionAuthorityType::CONTROL_PANEL || $command->isPrivateMutation())) {
             return false;
         }
 
@@ -139,13 +140,14 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
             $request = Craft::$app->getRequest();
             $user = Craft::$app->getUser()->getIdentity();
             $web = !$request->getIsConsoleRequest();
+
             return match ($this->valueSource) {
                 'dateUs' => (new DateTime())->format('m/d/Y'),
                 'dateInt' => (new DateTime())->format('d/m/Y'),
                 'userId' => $user?->id === null ? null : (string)$user->id,
                 'username' => $user?->username,
                 'userEmail' => $user?->email,
-                'userIp' => $web ? $request->getUserIP() : null,
+                'userIp' => $web && !WorkflowContext::current()?->command->isPrivateMutation() ? $request->getUserIP() : null,
                 'userAgent' => $web ? $request->getUserAgent() : null,
                 'referUrl' => $web ? $request->getReferrer() : null,
                 'currentUrl' => $web ? $request->getAbsoluteUrl() : null,
@@ -189,6 +191,7 @@ class Hidden extends Field implements SortableFieldInterface, PreviewableFieldIn
 
             return References::interpolateText($value, $context);
         }
+
         return $value;
     }
 

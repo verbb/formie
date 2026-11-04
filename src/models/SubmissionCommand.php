@@ -73,6 +73,17 @@ final class SubmissionCommand
         return $this->authority->type === SubmissionAuthorityType::VISITOR;
     }
 
+    public function isMutation(): bool
+    {
+        return in_array($this->authority->type, [SubmissionAuthorityType::GRAPHQL_ADMIN, SubmissionAuthorityType::GRAPHQL_PUBLIC], true);
+    }
+
+    /** A private token's request comes from the caller's server, so its IP isn't the visitor's. */
+    public function isPrivateMutation(): bool
+    {
+        return $this->authority->type === SubmissionAuthorityType::GRAPHQL_ADMIN;
+    }
+
     public function usesVisitorProgression(): bool
     {
         return $this->policy === SubmissionPolicy::STANDARD && in_array($this->operation, [SubmissionOperation::SUBMIT, SubmissionOperation::SAVE_DRAFT], true);

@@ -568,6 +568,15 @@ Sets how many days a Save & Continue link remains valid. The link also stops wor
 
 
 ::: reference
+#### `allowedOrigins`
+
+**Type:** `array` · **Default:** `[]`
+
+The origins allowed to send requests to Formie from another domain, including GraphQL submissions from a browser, such as `['https://www.example.com']`. A request from any other origin is refused, and the error names this setting.
+:::
+
+
+::: reference
 #### `anonymousFormBootstrapRateLimit`
 
 **Type:** `int` · **Default:** `30`
@@ -581,7 +590,7 @@ Limits anonymous form bootstrap requests within the configured rate window. Set 
 
 **Type:** `int` · **Default:** `120`
 
-Limits anonymous token-refresh requests within the configured rate window. Set to `0` to disable the limit.
+Limits anonymous token-refresh requests and submissions, including GraphQL submissions through a public schema, within the configured rate window. Set to `0` to disable the limit.
 :::
 
 

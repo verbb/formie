@@ -35,6 +35,11 @@ class SubmissionArguments extends ElementMutationArguments
                 'type' => Type::boolean(),
                 'description' => 'The submission’s incomplete state.',
             ],
+            'isNewSubmission' => [
+                'name' => 'isNewSubmission',
+                'type' => Type::boolean(),
+                'description' => 'Deprecated and ignored. Editing a completed submission never sends its notifications again.',
+            ],
             'requestToken' => [
                 'name' => 'requestToken',
                 'type' => Type::string(),

@@ -6,6 +6,7 @@ use craft\web\Request;
 
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
+use yii\web\MethodNotAllowedHttpException;
 
 /** Adapter-owned policy; the submission engine continues to receive explicit authority. */
 class BrowserRequestProfile
@@ -100,6 +101,11 @@ class BrowserRequestProfile
 
         if ($request instanceof Request) {
             CrossOriginRequestHelper::requireAllowedOrigin($request);
+
+            // Otherwise a plain link could submit a form, and send its notifications, for anyone who follows it.
+            if (!$request->getIsPost()) {
+                throw new MethodNotAllowedHttpException('Public GraphQL submissions must be POST requests.');
+            }
         }
     }
 
