@@ -41,6 +41,14 @@ function dynamicsRequestFixture(array &$history, array $config = []): DynamicsRe
         'apiDomain' => 'https://8.8.8.8',
     ], $config));
     $integration->transport = $transport;
+    // Azure discovers its token endpoint before Formie installs the guarded delivery client.
+    $integration->getOAuthProvider()->setHttpClient(new \GuzzleHttp\Client([
+        'handler' => HandlerStack::create(new MockHandler([
+            new Response(200, ['Content-Type' => 'application/json'], json_encode([
+                'token_endpoint' => 'https://login.microsoftonline.com/common/oauth2/token',
+            ], JSON_THROW_ON_ERROR)),
+        ])),
+    ]));
 
     return $integration;
 }
