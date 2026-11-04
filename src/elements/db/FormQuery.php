@@ -37,12 +37,14 @@ class FormQuery extends ElementQuery
     public function handle($value): static
     {
         $this->handle = $value;
+
         return $this;
     }
 
     public function layoutId($value): static
     {
         $this->layoutId = $value;
+
         return $this;
     }
 
@@ -66,6 +68,7 @@ class FormQuery extends ElementQuery
     public function templateId($value): static
     {
         $this->templateId = $value;
+
         return $this;
     }
 
@@ -88,6 +91,7 @@ class FormQuery extends ElementQuery
     public function groupId($value): static
     {
         $this->groupId = $value;
+
         return $this;
     }
 
@@ -107,6 +111,7 @@ class FormQuery extends ElementQuery
     public function pageCount($value): static
     {
         $this->pageCount = $value;
+
         return $this;
     }
 
@@ -193,6 +198,9 @@ class FormQuery extends ElementQuery
         if ($this->formStatusId !== null) {
             if ($this->formStatusId === ':empty:') {
                 $this->subQuery->andWhere(['formie_forms.formStatusId' => null]);
+            } elseif ($this->formStatusId === false) {
+                // An unresolved status matches nothing. PostgreSQL rejects a boolean for this integer column.
+                $this->subQuery->andWhere(['formie_forms.formStatusId' => []]);
             } else {
                 $this->subQuery->andWhere(Db::parseParam('formie_forms.formStatusId', $this->formStatusId));
             }
@@ -207,7 +215,8 @@ class FormQuery extends ElementQuery
             $accessibleFormIds = Formie::$plugin->getPermissions()->getAccessibleFormIds(Craft::$app->getUser()->getIdentity());
 
             if ($accessibleFormIds !== null) {
-                $this->subQuery->andWhere(['formie_forms.id' => $accessibleFormIds ?: false]);
+                // An empty list builds a false condition on every engine, unlike a bound boolean.
+                $this->subQuery->andWhere(['formie_forms.id' => $accessibleFormIds]);
             }
         }
 

@@ -146,7 +146,8 @@ class SentNotificationQuery extends ElementQuery
         $allowedFormIds = Formie::$plugin->getPermissions()->getViewableSentNotificationFormIds(Craft::$app->getUser()->getIdentity());
 
         if ($allowedFormIds !== null) {
-            $this->subQuery->andWhere(['formie_sentnotifications.formId' => $allowedFormIds ?: false]);
+            // An empty list builds a false condition on every engine, unlike a bound boolean.
+            $this->subQuery->andWhere(['formie_sentnotifications.formId' => $allowedFormIds]);
         }
     }
 }

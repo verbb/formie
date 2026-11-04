@@ -190,12 +190,14 @@ class SubmissionQuery extends ElementQuery
     public function isIncomplete(?bool $value): static
     {
         $this->isIncomplete = $value;
+
         return $this;
     }
 
     public function isSpam(?bool $value): static
     {
         $this->isSpam = $value;
+
         return $this;
     }
 
@@ -207,12 +209,14 @@ class SubmissionQuery extends ElementQuery
     public function before(mixed $value): self
     {
         $this->before = $value;
+
         return $this;
     }
 
     public function after(mixed $value): self
     {
         $this->after = $value;
+
         return $this;
     }
 
@@ -356,7 +360,8 @@ class SubmissionQuery extends ElementQuery
         $allowedFormIds = Formie::$plugin->getPermissions()->getViewableSubmissionFormIds(Craft::$app->getUser()->getIdentity());
 
         if ($allowedFormIds !== null) {
-            $this->subQuery->andWhere(['formie_submissions.formId' => $allowedFormIds ?: false]);
+            // An empty list builds a false condition on every engine, unlike a bound boolean.
+            $this->subQuery->andWhere(['formie_submissions.formId' => $allowedFormIds]);
         }
     }
 
