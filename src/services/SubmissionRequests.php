@@ -1082,7 +1082,8 @@ class SubmissionRequests extends Component
         }
 
         $query = Submission::find()
-            ->uid(trim($submissionUid))
+            // Craft generates lowercase UIDs, and PostgreSQL compares them case-sensitively.
+            ->uid(strtolower(trim($submissionUid)))
             ->isIncomplete($isIncomplete)
             ->isSpam(null);
 
