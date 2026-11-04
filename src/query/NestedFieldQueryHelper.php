@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\query;
 
+use verbb\formie\base\RepeatableParentFieldInterface;
 use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
@@ -54,8 +55,16 @@ class NestedFieldQueryHelper
             return null;
         }
 
-        $qb = Craft::$app->getDb()->getQueryBuilder();
-        $condition = [$param->operator, $qb->jsonContains($valueSql, ArrayHelper::expand($preppedValues))];
+        $db = Craft::$app->getDb();
+        $criteria = ArrayHelper::expand($preppedValues);
+
+        // Repeaters store an array of rows. MySQL's `JSON_CONTAINS` matches an object against any
+        // array element, but PostgreSQL's `@>` needs an array on both sides to get the same result.
+        if ($db->getIsPgsql() && $firstInstance instanceof RepeatableParentFieldInterface) {
+            $criteria = [$criteria];
+        }
+
+        $condition = [$param->operator, $db->getQueryBuilder()->jsonContains($valueSql, $criteria)];
 
         return $negate ? ['not', $condition] : $condition;
     }
