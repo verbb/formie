@@ -30,7 +30,7 @@
 - Fixed element integrations failing when a Table field was mapped whole or by column, and Table date and time cells being saved in the wrong timezone.
 - Fixed Recipients conditions saved in Formie 2 or 3, or chosen in the form builder, not matching the selected option, and stopped sending recipient addresses to the browser in those conditions.
 - Fixed Address answers from Formie 2 holding only auto-complete text showing as empty, and auto-complete being dropped from Address fields during the upgrade.
-- Fixed Single-Line Text fields ignoring a  set in their Input Attributes, which showed passwords as plain text on forms set up as the Formie 3 guide described.
+- Fixed Single-Line Text fields ignoring a `type` set in their Input Attributes, which showed passwords as plain text on forms set up as the Formie 3 guide described.
 - Fixed Date dropdown and input fields losing seconds or AM/PM, or gaining an hour, when upgrading from Formie 2, and saving a form resetting the order of upgraded Date sub-fields.
 - Fixed email notifications failing to render when a multi-select Dropdown inside a Group or Repeater was left blank, or with `devMode` on for Recipients fields shown as a dropdown.
 - Fixed Calendar Event integrations failing when a mapped date field was left blank, or when Repeat Until was mapped.
