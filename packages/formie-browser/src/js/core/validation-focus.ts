@@ -53,10 +53,16 @@ function getFormLevelErrorTarget(form: HTMLFormElement): HTMLElement | null {
 export function enhanceServerRenderedFieldErrors(form: HTMLFormElement): void {
     form.querySelectorAll('[data-formie-field-handle]').forEach((fieldNode) => {
         const field = fieldNode as HTMLElement;
-        const hasServerError = field.getAttribute('data-formie-field-has-error') === 'true'
-            || field.querySelector('[data-formie-field-error]') !== null;
+        const messages = Array.from(field.querySelectorAll('[data-formie-field-error]'));
 
-        if (!hasServerError) {
+        // A Group or Repeater contains the fields inside it, and an error on one of those is
+        // not an error on its siblings. Only act on a field for the messages it owns.
+        const hasOwnMessage = messages.some((message) => {
+            return message.closest('[data-formie-field-handle]') === field;
+        });
+        const hasOwnFlag = field.getAttribute('data-formie-field-has-error') === 'true' && messages.length === 0;
+
+        if (!hasOwnMessage && !hasOwnFlag) {
             return;
         }
 

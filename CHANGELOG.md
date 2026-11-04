@@ -53,6 +53,7 @@
 - Fixed fields with Disabled visibility losing their values when saving submissions in the control panel. ([#3093](https://github.com/verbb/formie/issues/3093))
 - Fixed the support form clearing entered values when a required field is missing.
 - Fixed Repeater validation errors appearing on the wrong row after returning to a previous page, and searchable dropdown selections being cleared during AJAX page navigation. ([#3088](https://github.com/verbb/formie/issues/3088))
+- Fixed a validation error from the server on a field inside a Group or Repeater marking the other fields around it as invalid on forms that reload the page.
 - Fixed the Redirect Entry picker appearing empty when Craft’s “All entries” source is disabled. ([#3089](https://github.com/verbb/formie/issues/3089))
 - Fixed forms failing to load when a field or page has a condition rule that was added but never filled in, which can be present on forms upgraded from Formie 3.
 - Fixed forms showing “A required form feature could not start” and being unable to submit when a field had conditions enabled but no rules.

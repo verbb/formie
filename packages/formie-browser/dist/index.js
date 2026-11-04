@@ -255,16 +255,16 @@ function We(e) {
 }
 function Ge(e) {
 	e.querySelectorAll("[data-formie-field-handle]").forEach((t) => {
-		let n = t;
-		if (n.getAttribute("data-formie-field-has-error") !== "true" && n.querySelector("[data-formie-field-error]") === null) return;
+		let n = t, r = Array.from(n.querySelectorAll("[data-formie-field-error]")), i = r.some((e) => e.closest("[data-formie-field-handle]") === n), a = n.getAttribute("data-formie-field-has-error") === "true" && r.length === 0;
+		if (!i && !a) return;
 		n.setAttribute("data-formie-field-has-error", "true"), A(n, e, "fieldLayoutError");
-		let r = n.querySelector("[data-formie-field-error]")?.id || "";
+		let o = n.querySelector("[data-formie-field-error]")?.id || "";
 		n.querySelectorAll("input, select, textarea").forEach((t) => {
-			let i = t;
-			if (j(i)) return;
-			i.setAttribute("aria-invalid", "true"), A(i, e, "fieldControlError"), i.setAttribute("data-formie-input-has-error", "true"), r && ze(i, r);
-			let a = n.querySelector("[data-formie-instructions]");
-			a?.id && Le(i, a.id);
+			let r = t;
+			if (j(r)) return;
+			r.setAttribute("aria-invalid", "true"), A(r, e, "fieldControlError"), r.setAttribute("data-formie-input-has-error", "true"), o && ze(r, o);
+			let i = n.querySelector("[data-formie-instructions]");
+			i?.id && Le(r, i.id);
 		});
 	});
 }
