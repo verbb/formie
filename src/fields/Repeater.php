@@ -441,10 +441,10 @@ class Repeater extends RepeatableParentField
 
         $view->startJsBuffer();
 
-        // Render it once to get the JS used for inner fields (element fields)
-        $bodyHtml = $view->renderTemplate('formie/_formfields/repeater/input', [
+        // Capture only the template row so appending does not reinitialize saved rows.
+        $view->renderTemplate('formie/_formfields/repeater/input', [
             'name' => $this->handle,
-            'value' => $value,
+            'value' => [],
             'field' => $this,
         ]);
 

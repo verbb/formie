@@ -20,6 +20,7 @@
 - Update the Pardot guide for External Client Apps, OAuth security settings, and separate API and Form Handler delivery.
 
 ### Fixed
+- Fixed file pickers in Repeater fields failing to open or opening multiple dialogs when editing submissions.
 - Fixed queued exports and scheduled reports omitting answer columns when using automatic field selection.
 - Fixed GoCardless Payment fields not rendering their payment input and redirect instructions.
 - Fixed submission payment summaries missing for GoCardless, Moneris, Paddle and Square.

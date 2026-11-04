@@ -222,3 +222,4 @@ $testAutomationForm = \verbb\formie\Formie::$plugin->getFactories()->form(['titl
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/automation-test.json', json_encode(['formId' => $testAutomationForm->id]));
 
 require __DIR__ . '/browser-native-save-fixture.php';
+require __DIR__ . '/browser-cp-repeater-upload-fixture.php';
