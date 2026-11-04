@@ -9,6 +9,7 @@
 
 ### Changed
 - Allow all failed [integration and notification deliveries](https://verbb.io/craft-plugins/formie/docs/v4/guides/integrations/integration-dispatch-and-policies#results-and-retries) to be retried using current submission values and settings.
+- Rename the “View delivery diagnostics” permission to “View queue delivery diagnostics”.
 - Allow submission exports without Reports access using “Export submissions” under “Access submissions”. Existing report export permissions continue to work. ([#3082](https://github.com/verbb/formie/issues/3082))
 - Move Mailchimp and Campaign Monitor API error-handling choices to standard dropdowns under **Advanced** on each integration connection. Existing global choices remain fallbacks until the connection saves its own.
 - Default Mailchimp and Campaign Monitor API rate limits to failed deliveries, while skipping recognised subscriber rejections with a warning. Preserve configured actions and include form, submission and provider details in policy logs. ([#2172](https://github.com/verbb/formie/discussions/2172), [#2276](https://github.com/verbb/formie/issues/2276))

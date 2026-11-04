@@ -28,7 +28,7 @@ return [
   'Manage integrations' => 'Manage integrations',
   'Manage stencils' => 'Manage stencils',
   'Migrate forms from {source}' => 'Migrate forms from {source}',
-  'View delivery diagnostics' => 'View delivery diagnostics',
+  'View queue delivery diagnostics' => 'View queue delivery diagnostics',
   'View encryption status' => 'View encryption status',
   'View scheduled reports' => 'View scheduled reports',
   'A CAPTCHA provider’s handle cannot be changed.' => 'A CAPTCHA provider’s handle cannot be changed.',

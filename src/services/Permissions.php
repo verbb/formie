@@ -826,7 +826,7 @@ class Permissions extends Component
         $definitions = [
             self::PERM_EXPORT_SUBMISSIONS_FROM_INDEX => ['label' => Craft::t('formie', 'Export submissions')],
             'formie-viewDeliveryDiagnostics' => [
-                'label' => Craft::t('formie', 'View delivery diagnostics'),
+                'label' => Craft::t('formie', 'View queue delivery diagnostics'),
             ],
             self::PERM_VIEW_SUBMISSIONS => [
                 'label' => Craft::t('formie', 'View all submissions'),
