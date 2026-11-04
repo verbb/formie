@@ -264,6 +264,12 @@ class Product extends Element
             $attributeValues['variants.new1.minQty'] = $attributeValues['variants.new1.minQty'] ?? null;
             $attributeValues['variants.new1.maxQty'] = $attributeValues['variants.new1.maxQty'] ?? null;
 
+            // Commerce saves what a variant costs as its base price, and works out `price` from
+            // that. Saved mappings keep using the `price` handle.
+            if (array_key_exists('variants.new1.price', $attributeValues)) {
+                $attributeValues['variants.new1.basePrice'] = $attributeValues['variants.new1.price'];
+            }
+
             foreach (ArrayHelper::expand($attributeValues) as $productFieldHandle => $fieldValue) {
                 if ($productFieldHandle === 'author') {
                     if (isset($fieldValue[0])) {
@@ -273,6 +279,9 @@ class Product extends Element
                     $product->{$productFieldHandle} = $fieldValue;
                 }
             }
+
+            // Commerce only saves a product's variants when they're marked as changed.
+            $product->setDirtyAttributes(['variants']);
 
             $fields = $this->_getProductTypeSettings()->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
