@@ -640,16 +640,17 @@ class FileUpload extends ElementField
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Restrict File Types'),
-                'instructions' => Craft::t('formie', 'Whether to restrict the allowed types of files a user can upload.'),
+                'instructions' => Craft::t('formie', 'Limit this field to selected file types. When disabled, any extension allowed by Craft can be uploaded.'),
                 'name' => 'restrictFiles',
             ]),
             SchemaHelper::checkboxSelectField([
                 'label' => Craft::t('formie', 'Allowed File Types'),
-                'instructions' => Craft::t('formie', 'Select the allowed file types.'),
+                'instructions' => Craft::t('formie', 'Select the file types this field accepts. Craft’s allowed extensions still apply.'),
                 'name' => 'allowedKinds',
                 'options' => $this->getFileKindOptions(),
                 'if' => 'restrictFiles',
             ]),
+            $this->_getFileTypeSummarySchema(),
             SchemaHelper::separator(),
             [
                 '$el' => 'h3',
@@ -1638,14 +1639,66 @@ class FileUpload extends ElementField
         }
     }
 
+    private function _getFileTypeSummarySchema(): array
+    {
+        $items = [];
+        $conditions = [];
+
+        foreach (Assets::getAllowedFileKinds() as $kind => $config) {
+            $extensions = $this->_getPermittedExtensions([$kind]);
+
+            if (!$extensions) {
+                continue;
+            }
+
+            $condition = Json::encode($kind) . ' in allowedKinds';
+            $conditions[] = $condition;
+            $items[] = [
+                '$el' => 'li',
+                'if' => 'allowedKinds && (' . $condition . ')',
+                'children' => Craft::t('formie', '{type}: {extensions}', [
+                    'type' => $config['label'],
+                    'extensions' => implode(', ', array_map(static fn(string $extension) => ".$extension", $extensions)),
+                ]),
+            ];
+        }
+
+        // Conditions use the current editor values, including unsaved changes to the selected kinds.
+        $hasExtensions = $conditions ? 'allowedKinds && (' . implode(' || ', $conditions) . ')' : 'false';
+
+        return [
+            '$el' => 'div',
+            'if' => 'restrictFiles',
+            'attrs' => ['aria-live' => 'polite'],
+            'children' => [
+                [
+                    '$el' => 'div',
+                    'if' => $hasExtensions,
+                    'children' => [
+                        ['$el' => 'strong', 'children' => Craft::t('formie', 'Permitted extensions')],
+                        ['$el' => 'ul', 'children' => $items],
+                    ],
+                ],
+                [
+                    '$el' => 'pk-alert',
+                    'if' => '!(' . $hasExtensions . ')',
+                    'attrs' => ['variant' => 'warning', 'size' => 'sm', 'announce' => 'off'],
+                    'children' => Craft::t('formie', 'No file extensions are permitted. Select at least one file type allowed by Craft.'),
+                ],
+            ],
+        ];
+    }
+
     private function _getAllowedExtensions(): array
     {
         return $this->_getPermittedExtensions();
     }
 
-    private function _getPermittedExtensions(): array
+    private function _getPermittedExtensions(?array $allowedKinds = null): array
     {
-        if (!is_array($this->allowedKinds)) {
+        $allowedKinds ??= $this->allowedKinds;
+
+        if (!is_array($allowedKinds)) {
             return [];
         }
 
@@ -1653,7 +1706,7 @@ class FileUpload extends ElementField
         $allKinds = Assets::getAllowedFileKinds();
         $allowedFileExtensions = Craft::$app->getConfig()->getGeneral()->allowedFileExtensions;
 
-        foreach ($this->allowedKinds as $allowedKind) {
+        foreach ($allowedKinds as $allowedKind) {
             if (!isset($allKinds[$allowedKind])) {
                 continue;
             }

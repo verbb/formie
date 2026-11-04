@@ -17,7 +17,7 @@
 
 ### Fixed
 - Fixed GraphQL `save_<form>_Submission` and `saveSubmission` mutations not behaving like normal form submissions. They now send email notifications, trigger integrations, run spam and captcha checks, apply field conditions and default values, record request details and follow the form's login, schedule and submission limit rules. A multi-page form with a captcha now needs a captcha token in the mutation. Public GraphQL schemas can create submissions again, with rate limits, but editing by ID and saving drafts need a private schema. ([#3090](https://github.com/verbb/formie/issues/3090))
-- Fixed File Upload fields rejecting extensions allowed by Craft's `allowedFileExtensions`, `extraAllowedFileExtensions` and `extraFileKinds` settings. Per-field file type restrictions still apply. ([#3092](https://github.com/verbb/formie/issues/3092))
+- Fixed File Upload fields rejecting extensions allowed by Craft's `allowedFileExtensions`, `extraAllowedFileExtensions` and `extraFileKinds` settings. Per-field file type restrictions still apply, and the field settings show the permitted extensions with clearer configuration guidance. ([#3092](https://github.com/verbb/formie/issues/3092))
 - Fixed Repeater validation errors appearing on the wrong row after returning to a previous page, and searchable dropdown selections being cleared during AJAX page navigation. ([#3088](https://github.com/verbb/formie/issues/3088))
 - Fixed cached multi-page forms becoming stuck on the wrong page when restoring an in-progress submission.
 - Fixed fields with Disabled visibility losing their values when saving submissions in the control panel. ([#3093](https://github.com/verbb/formie/issues/3093))
