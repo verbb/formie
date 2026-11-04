@@ -1,0 +1,6 @@
+{# Include so that error messages are shown with `formie-theme.js` for server-side errors #}
+<input type="hidden" name="{{ field.getHtmlName() }}">
+
+{% fieldtag 'fieldInstructions' %}
+    {{- 'You will be redirected to [GoCardless]({link}) to complete your secure payment.' | t('formie', { link: 'https://gocardless.com/' }) | trim | md -}}
+{% endfieldtag %}
