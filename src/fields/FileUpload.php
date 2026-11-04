@@ -1672,10 +1672,15 @@ class FileUpload extends ElementField
             'attrs' => ['aria-live' => 'polite'],
             'children' => [
                 [
-                    '$el' => 'div',
+                    '$el' => 'pk-alert',
                     'if' => $hasExtensions,
+                    'attrs' => [
+                        'variant' => 'neutral',
+                        'size' => 'sm',
+                        'announce' => 'off',
+                        'heading' => Craft::t('formie', 'Permitted extensions'),
+                    ],
                     'children' => [
-                        ['$el' => 'strong', 'children' => Craft::t('formie', 'Permitted extensions')],
                         ['$el' => 'ul', 'children' => $items],
                     ],
                 ],
