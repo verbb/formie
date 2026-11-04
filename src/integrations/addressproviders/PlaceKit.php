@@ -56,7 +56,7 @@ class PlaceKit extends AddressProvider
 
     public function hasValidSettings(): bool
     {
-        return $this->apiKey;
+        return (bool)$this->apiKey;
     }
 
 

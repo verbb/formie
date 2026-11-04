@@ -20,6 +20,7 @@
 - Update the Pardot guide for External Client Apps, OAuth security settings, and separate API and Form Handler delivery.
 
 ### Fixed
+- Fixed PlaceKit throwing an error when its API key is unset or empty.
 - Fixed forms using page reloads not showing a link to continue later after saving progress.
 - Fixed File Upload fields retaining completed attachments after AJAX form resets, and duplicate advanced upload rows after Back navigation.
 - Fixed users with permission to import forms being sent to an inaccessible page after a successful import.
