@@ -9,7 +9,6 @@ use verbb\formie\events\ModifyFieldUniqueUserQueryEvent;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\traits\UniqueValueFieldTrait;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\ValidationMessagesHelper;
 use verbb\formie\helpers\Variables;
@@ -162,8 +161,8 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
         }
 
         $blockedDomains = array_filter(array_map(function($blockedDomain) use ($emailDomains) {
-            return $emailDomains->normalizeDomain((string)$blockedDomain);
-        }, ArrayHelper::getColumn($this->blockedDomains, 'value')));
+            return $emailDomains->normalizeDomain($this->_getBlockedDomainValue($blockedDomain));
+        }, $this->blockedDomains));
 
         if (in_array($domain, $blockedDomains, true)) {
             $element->addError($this->valueKey(), $this->getValidationMessage(ValidationMessagesHelper::KEY_BLOCKED_DOMAIN, [
@@ -209,9 +208,7 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
                 'name' => 'blockedDomains',
                 'type' => Type::listOf(Type::string()),
                 'resolve' => function($field) {
-                    return array_map(function($item) {
-                        return $item['value'] ?? '';
-                    }, $field->blockedDomains);
+                    return array_map(fn($item) => $this->_getBlockedDomainValue($item), $field->blockedDomains);
                 },
             ],
         ]);
@@ -441,5 +438,16 @@ class Email extends Field implements SortableFieldInterface, PreviewableFieldInt
         return array_merge(parent::defineClientRenderedInput(), [
             'inputType' => 'email',
         ]);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getBlockedDomainValue(mixed $blockedDomain): string
+    {
+        // The builder only edits `label`, so a row's `value` can be missing or left behind by an earlier
+        // domain. Rows saved before that column changed may only hold `value`.
+        return (string)(($blockedDomain['label'] ?? '') ?: ($blockedDomain['value'] ?? ''));
     }
 }
