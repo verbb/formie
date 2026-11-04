@@ -101,6 +101,7 @@ class HubSpot extends Crm
             if ($num >= 1e12 && $num < 1e15) {
                 $seconds = (int)round($num / 1000);
                 $date = DateTimeHelper::toDateTime('@' . $seconds);
+
                 return $date ?: null;
             }
 
@@ -108,6 +109,7 @@ class HubSpot extends Crm
                 return null;
             }
         }
+
         return DateFieldValue::toDateTime($value);
     }
 
@@ -1014,6 +1016,7 @@ class HubSpot extends Crm
             return null;
         }
 
+        // Let upload errors fail the delivery before sending a form without its files.
         try {
             $handle = fopen($path, 'r');
 
@@ -1047,10 +1050,6 @@ class HubSpot extends Crm
 
 
             return $response['url'] ?? $response['defaultHostingUrl'] ?? null;
-        } catch (Throwable $e) {
-            self::apiError($this, $e, false);
-
-            return null;
         } finally {
             if (is_resource($handle)) {
                 fclose($handle);

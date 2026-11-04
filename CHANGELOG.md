@@ -16,6 +16,7 @@
 - Update the Pardot guide for External Client Apps, OAuth security settings, and separate API and Form Handler delivery.
 
 ### Fixed
+- Fixed HubSpot deliveries being reported as successful after a file upload failed, allowing the form to be sent without its file.
 - Fixed Freshdesk reporting a failure instead of a skipped delivery when an event cancelled sending its contact.
 - Fixed the Diagnostics button failing to open on control panels served over plain HTTP.
 - Fixed upgrades from Formie 2 and 3 failing on PostgreSQL for sites with payments, and sites already upgraded rejecting newer payment statuses, because of an old database constraint.
