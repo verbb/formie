@@ -24,8 +24,7 @@ class SendNotificationsTask implements TaskInterface
             $submission = $context->command->submission;
             $form = $submission->getForm();
 
-            // Without integrations to wait for, every notification sends now, whatever its timing.
-            if ($form && $submission->shouldTriggerIntegrations() && Formie::$plugin->getIntegrationDispatcher()->shouldOrchestrate($form)) {
+            if ($form && Formie::$plugin->getIntegrationDispatcher()->shouldOrchestrate($form)) {
                 Formie::$plugin->getIntegrationDispatcher()->sendNotifications($submission, IntegrationDispatcher::PHASE_BEFORE);
             } else {
                 Formie::$plugin->getNotifications()->dispatchNotifications($submission);

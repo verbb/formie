@@ -46,11 +46,6 @@ class SubmissionDispatches extends Component
             return null;
         }
 
-        // Opting out of both leaves nothing to deliver for this submission.
-        if ($command->operation !== SubmissionOperation::REVISE && !$submission->shouldSendNotifications() && !$submission->shouldTriggerIntegrations()) {
-            return null;
-        }
-
         if (!Craft::$app->getDb()->getTransaction()?->isActive) {
             throw new RuntimeException('Dispatch intent must share the submission transaction.');
         }

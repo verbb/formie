@@ -200,10 +200,6 @@ class IntegrationDispatcher extends Component
             });
         }
 
-        if (!$submission->shouldSendNotifications()) {
-            return;
-        }
-
         foreach ($form->getEnabledNotifications() as $notification) {
             if (!$this->shouldSendNotificationAtPhase($notification, $form, $phase)) {
                 continue;

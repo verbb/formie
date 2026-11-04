@@ -85,15 +85,6 @@ final class WorkflowManifest
             return false;
         }
 
-        if (in_array($task->id, ['dispatch.sendNotifications', 'dispatch.sendSpamNotifications'], true) && !$command->submission->shouldSendNotifications()) {
-            return false;
-        }
-
-        // Opting out applies to completing the submission, not to later edits.
-        if ($task->id === 'dispatch.triggerIntegrations' && $command->operation !== Operation::REVISE && !$command->submission->shouldTriggerIntegrations()) {
-            return false;
-        }
-
         if ($task->id === 'validate.submission' && $command->navigation === NavigationIntent::BACK) {
             return false;
         }

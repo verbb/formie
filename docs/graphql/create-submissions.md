@@ -72,8 +72,6 @@ Argument | Type | Description
 `operationId` | `String` | Stable identity for safely retrying the same request.
 `expectedVersion` | `Int` | Required for an existing submission; use its current `stateVersion`.
 `requestToken` | `String` | Optional operation identity when `operationId` is omitted.
-`sendNotifications` | `Boolean` | Set to `false` to complete the submission without sending its email notifications. Defaults to `true`.
-`triggerIntegrations` | `Boolean` | Set to `false` to complete the submission without triggering its integrations. Defaults to `true`.
 `...` |  | Additional arguments are generated from the form’s field layout.
 
 Query the form’s fields and include `inputTypeName` when you need to discover the correct variable type for each field.
@@ -248,18 +246,6 @@ mutation SaveSubmission($repeaterField: contactForm_repeaterField_FormieRepeater
 
 Completing a submission sends the form's enabled email notifications and triggers its integrations, following the notification timing and integration order you've set for the form. Conditions on notifications and integrations apply as usual, and Formie's queue settings decide whether they run during the request or in the queue.
 
-To complete a particular submission without sending one of these, set `sendNotifications` or `triggerIntegrations` to `false`:
-
-```graphql
-mutation SaveWithoutEmail($yourName: String) {
-    save_contactForm_Submission(yourName: $yourName, sendNotifications: false) {
-        id
-    }
-}
-```
-
-These arguments only apply to the request that completes the submission.
-
 ## Spam Protection
 
 A completed submission goes through the same spam checks as a form submitted on your site, using your [spam settings](/forms/spam-protection). If the submission is treated as spam, it doesn't send notifications or trigger integrations, unless you've turned on email notifications for spam. Your **Spam Submission Behavior** setting decides what the mutation returns:
@@ -347,8 +333,6 @@ Argument | Type | Description
 `operationId` | `String` | Stable identity for safely retrying the same request.
 `expectedVersion` | `Int` | Required for an existing submission; use its current `stateVersion`.
 `requestToken` | `String` | Optional operation identity when `operationId` is omitted.
-`sendNotifications` | `Boolean` | Set to `false` to complete the submission without sending its email notifications. Defaults to `true`.
-`triggerIntegrations` | `Boolean` | Set to `false` to complete the submission without triggering its integrations. Defaults to `true`.
 
 `saveSubmission` returns `SubmissionInterface`. Use inline fragments on the form-specific submission type when you need field values in the response.
 

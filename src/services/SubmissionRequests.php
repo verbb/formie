@@ -151,13 +151,7 @@ class SubmissionRequests extends Component
             $arguments['operationId'] ?? $arguments['requestToken'] ?? null,
             null,
             $arguments,
-            function() use ($form, $submission, $arguments, $populate, $submitting): void {
-                $populate();
-
-                if ($submitting) {
-                    $this->_applyDeliveryOptOuts($form, $submission, $arguments);
-                }
-            },
+            $populate,
             // A mutation sends the whole form at once, so a Submit starts from its last page.
             $submitting ? (int)$form->getPages()[array_key_last($form->getPages())]->id : null,
         );
@@ -553,17 +547,6 @@ class SubmissionRequests extends Component
         }
 
         return ($arguments['isIncomplete'] ?? null) === false ? SubmissionOperation::SUBMIT : SubmissionOperation::SAVE_DRAFT;
-    }
-
-    /** Stored on the submission so they also apply to recovered and queued delivery. */
-    private function _applyDeliveryOptOuts(Form $form, Submission $submission, array $arguments): void
-    {
-        foreach (['sendNotifications' => 'skipNotifications', 'triggerIntegrations' => 'skipIntegrations'] as $argument => $key) {
-            // A field with this handle replaces the argument on form-specific mutations.
-            if (($arguments[$argument] ?? null) === false && !$form->getFieldByHandle($argument)) {
-                $submission->mergeMetadata(['delivery' => [$key => true]]);
-            }
-        }
     }
 
     private function _executeResolved(

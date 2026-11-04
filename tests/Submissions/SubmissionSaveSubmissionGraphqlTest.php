@@ -361,6 +361,16 @@ it('delivers a completed mutation submission and leaves a dispatch record', func
         ->and(mutationDispatchRows($saved))->toBe([['kind' => 'completion', 'status' => 'completed']]);
 });
 
+it('doesn\'t offer arguments to skip delivery', function (array $arguments): void {
+    $form = mutationDeliveryForm();
+    withMutationDelivery($form, function() use ($form, $arguments): void {
+        expect(fn() => mutationDeliverySave($form, $arguments + ['fields' => ['message' => 'Hello']]))->toThrow(Error::class, 'Unknown submission argument');
+    });
+})->with([
+    'notifications' => [['sendNotifications' => false]],
+    'integrations' => [['triggerIntegrations' => false]],
+]);
+
 it('fires the completion event once when delivering a mutation submission', function (): void {
     $form = mutationDeliveryForm();
     $completed = 0;
@@ -374,61 +384,6 @@ it('fires the completion event once when delivering a mutation submission', func
     }
 
     expect($completed)->toBe(1);
-});
-
-it('lets a mutation opt out of notifications, integrations or both', function (array $arguments, array $emails, array $integrations, int $rows): void {
-    $form = mutationDeliveryForm();
-    $saved = null;
-    $delivered = withMutationDelivery($form, function() use ($form, $arguments, &$saved): void {
-        $saved = mutationDeliverySave($form, $arguments + ['fields' => ['message' => 'Imported']]);
-    });
-
-    expect($saved->isIncomplete)->toBeFalse()
-        ->and($delivered)->toBe(['emails' => $emails, 'integrations' => $integrations])
-        ->and(mutationDispatchRows($saved))->toHaveCount($rows);
-})->with([
-    'notifications' => [['sendNotifications' => false], [], ['remote'], 1],
-    'integrations' => [['triggerIntegrations' => false], ['Enquiry'], [], 1],
-    'both' => [['sendNotifications' => false, 'triggerIntegrations' => false], [], [], 0],
-    'explicitly on' => [['sendNotifications' => true, 'triggerIntegrations' => true], ['Enquiry'], ['remote'], 1],
-]);
-
-it('honours opt-outs on forms that time notifications around integrations', function (array $arguments, array $emails, array $integrations): void {
-    $form = mutationDeliveryForm(notification: ['dispatchTiming' => Notification::DISPATCH_TIMING_AFTER]);
-    $form->settings->integrationDispatch = ['enabled' => true, 'failurePolicy' => 'continue', 'steps' => [['handle' => 'remote', 'execution' => 'synchronous']]];
-    expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
-
-    $delivered = withMutationDelivery($form, fn() => mutationDeliverySave($form, $arguments + ['fields' => ['message' => 'Timed']]));
-
-    expect($delivered)->toBe(['emails' => $emails, 'integrations' => $integrations]);
-})->with([
-    'default' => [[], ['Enquiry'], ['remote']],
-    'notifications off' => [['sendNotifications' => false], [], ['remote']],
-    'integrations off' => [['triggerIntegrations' => false], ['Enquiry'], []],
-]);
-
-it('keeps opt-outs when an interrupted mutation delivery is recovered', function (): void {
-    $form = mutationDeliveryForm();
-    $submissionId = null;
-    $listener = static function($event) use (&$submissionId): void {
-        $submissionId = $event->submission->id;
-        throw new RuntimeException('Synthetic interruption after completion commit');
-    };
-    $delivered = withMutationDelivery($form, function() use ($form, $listener, &$submissionId): void {
-        Event::on(Submission::class, Submission::EVENT_AFTER_COMPLETE, $listener);
-
-        try {
-            expect(fn() => mutationDeliverySave($form, ['sendNotifications' => false, 'fields' => ['message' => 'Hello']]))->toThrow(RuntimeException::class, 'Synthetic interruption');
-        } finally {
-            Event::off(Submission::class, Submission::EVENT_AFTER_COMPLETE, $listener);
-        }
-
-        $uid = (new Query())->select('uid')->from(SubmissionDispatches::TABLE)->where(['submissionId' => $submissionId])->scalar();
-        expect($uid)->not->toBeFalse();
-        Formie::$plugin->getSubmissionDispatches()->resume((int)$submissionId, $uid);
-    });
-
-    expect($delivered)->toBe(['emails' => [], 'integrations' => ['remote']]);
 });
 
 it('delivers once when a mutation completes an incomplete submission', function (): void {

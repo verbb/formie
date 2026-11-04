@@ -528,16 +528,6 @@ class Submission extends Element
         $this->metadata = ArrayHelper::merge($this->getMetadata(), $metadata);
     }
 
-    public function shouldSendNotifications(): bool
-    {
-        return !($this->getMetadata('delivery')['skipNotifications'] ?? false);
-    }
-
-    public function shouldTriggerIntegrations(): bool
-    {
-        return !($this->getMetadata('delivery')['skipIntegrations'] ?? false);
-    }
-
     public function __isset($name): bool
     {
         return parent::__isset($name) || $this->getFieldByHandle($name);
