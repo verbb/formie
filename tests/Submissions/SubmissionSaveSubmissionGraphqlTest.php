@@ -17,6 +17,9 @@ use verbb\formie\base\Captcha;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\Address;
+use verbb\formie\fields\Name;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\gql\resolvers\mutations\SubmissionResolver;
 use verbb\formie\integrations\captchas\Question;
@@ -1133,17 +1136,42 @@ it('refuses public submissions that aren\'t POST requests', function (): void {
 
 it('only changes the sub-values an edit sends', function (): void {
     $form = formie()->form(['title' => 'Mutation partial ' . uniqid()])->settings(['disableCaptchas' => true])
-        ->nameField('person', ['useMultipleFields' => true])
+        ->nameField('person', ['useMultipleFields' => true, 'rows' => (new Name())->getSubFields()])
+        ->addressField('home', ['rows' => (new Address())->getSubFields()])
+        ->groupField('details', ['rows' => [['fields' => [
+            ['type' => SingleLineText::class, 'handle' => 'note', 'label' => 'Note'],
+            ['type' => SingleLineText::class, 'handle' => 'extra', 'label' => 'Extra'],
+            ['type' => Name::class, 'handle' => 'contact', 'label' => 'Contact', 'useMultipleFields' => true, 'rows' => (new Name())->getSubFields()],
+        ]]]])
         ->create();
     $saved = null;
     $edited = null;
-    withMutationDelivery($form, function() use ($form, &$saved, &$edited): void {
-        $saved = mutationDeliverySave($form, ['fields' => ['person' => ['firstName' => 'Ada', 'lastName' => 'Lovelace']]]);
-        $edited = mutationDeliverySave($form, ['id' => $saved->id, 'expectedVersion' => $saved->stateVersion, 'fields' => ['person' => ['firstName' => 'Grace']]]);
+    $cleared = null;
+    withMutationDelivery($form, function() use ($form, &$saved, &$edited, &$cleared): void {
+        $saved = mutationDeliverySave($form, ['fields' => [
+            'person' => ['firstName' => 'Ada', 'lastName' => 'Lovelace'],
+            'home' => ['address1' => '1 Main St', 'city' => 'Perth'],
+            'details' => ['note' => 'Keep me', 'extra' => 'Keep me too', 'contact' => ['firstName' => 'Charles', 'lastName' => 'Babbage']],
+        ]]);
+        $edited = mutationDeliverySave($form, ['id' => $saved->id, 'expectedVersion' => $saved->stateVersion, 'fields' => [
+            'person' => ['firstName' => 'Grace'],
+            'home' => ['city' => 'Sydney'],
+            'details' => ['note' => 'Changed', 'contact' => ['firstName' => 'Alan']],
+        ]]);
+        $cleared = mutationDeliverySave($form, ['id' => $saved->id, 'expectedVersion' => $edited->stateVersion, 'fields' => ['person' => ['lastName' => null]]]);
     }, []);
 
+    $details = $edited->getFieldValue('details');
     expect($edited->getFieldValue('person')->firstName)->toBe('Grace')
-        ->and($edited->getFieldValue('person')->lastName)->toBe('Lovelace');
+        ->and($edited->getFieldValue('person')->lastName)->toBe('Lovelace')
+        ->and($edited->getFieldValue('home')->city)->toBe('Sydney')
+        ->and($edited->getFieldValue('home')->address1)->toBe('1 Main St')
+        ->and($details['note'])->toBe('Changed')
+        ->and($details['extra'])->toBe('Keep me too')
+        ->and($details['contact']->firstName)->toBe('Alan')
+        ->and($details['contact']->lastName)->toBe('Babbage')
+        ->and((string)$cleared->getFieldValue('person')->lastName)->toBe('')
+        ->and($cleared->getFieldValue('person')->firstName)->toBe('Grace');
 });
 
 it('enforces limits and fires the completion event when a mutation completes a draft', function (): void {
@@ -1208,18 +1236,17 @@ it('only stores a request IP when the form collects one and it is the visitor\'s
     'private, collecting' => [true, false, false],
 ]);
 
-it('accepts a Question captcha answer through a mutation', function (string $answer, bool $spam): void {
+it('accepts a Question captcha answer through a mutation', function (): void {
     $form = mutationDeliveryForm(settings: []);
+    $answer = fn(string $value) => ['captchas' => ['questionCaptcha' => ['name' => 'formieCaptchaQuestion', 'value' => json_encode(['index' => 0, 'answer' => $value])]], 'fields' => ['message' => 'Hello']];
     $saved = null;
     withMutationDelivery($form, function() use ($form, $answer, &$saved): void {
-        $saved = mutationDeliverySave($form, ['captchas' => ['questionCaptcha' => ['name' => 'formieCaptchaQuestion', 'value' => json_encode(['index' => 0, 'answer' => $answer])]], 'fields' => ['message' => 'Hello']]);
+        expect(fn() => mutationDeliverySave($form, $answer('red')))->toThrow(Error::class, 'Incorrect answer');
+        $saved = mutationDeliverySave($form, $answer('blue'));
     }, [MutationQuestionCaptcha::class => 'question'], ['spamBehaviour' => Settings::SPAM_BEHAVIOUR_SUCCESS, 'saveSpam' => true, 'spamEmailNotifications' => false]);
 
-    expect((bool)(new Query())->select('isSpam')->from('{{%formie_submissions}}')->where(['id' => $saved->id])->scalar())->toBe($spam);
-})->with([
-    'right answer' => ['blue', false],
-    'wrong answer' => ['red', true],
-]);
+    expect((bool)(new Query())->select('isSpam')->from('{{%formie_submissions}}')->where(['id' => $saved->id])->scalar())->toBeFalse();
+});
 
 it('refuses payment forms through a public schema without contacting the provider', function (): void {
     $form = mutationPaymentForm();

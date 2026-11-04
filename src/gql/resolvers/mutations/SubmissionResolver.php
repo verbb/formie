@@ -195,7 +195,7 @@ class SubmissionResolver extends ElementMutationResolver
                     $raw = $submission->getContentState()->rawValuesByUid[$field->uid] ?? null;
 
                     if (array_key_exists($field->handle, $previous)) {
-                        $raw = $field->mergePartialRequestValue($previous[$field->handle], $raw);
+                        $raw = $field->mergePartialRequestValue($previous[$field->handle], $this->_partsSent($raw, $arguments[$field->handle]));
                     }
 
                     $submission->getContentManager()->normalizeSingleFromRequest($submission, $field->handle, $raw);
@@ -360,6 +360,27 @@ class SubmissionResolver extends ElementMutationResolver
         $normalizer = $type->config['normalizeValue'] ?? null;
 
         return $applyNormalizer && is_callable($normalizer) ? $normalizer($value) : $value;
+    }
+
+    /** Input types fill in absent parts or build value objects, which no longer show which parts were sent. */
+    private function _partsSent(mixed $normalized, mixed $sent): mixed
+    {
+        // Lists, such as uploads and rows, are replaced as a whole.
+        if (!is_array($sent) || array_is_list($sent)) {
+            return $normalized;
+        }
+
+        if (is_object($normalized)) {
+            return $sent;
+        }
+
+        $parts = [];
+
+        foreach ($sent as $key => $value) {
+            $parts[$key] = is_array($normalized) && array_key_exists($key, $normalized) ? $this->_partsSent($normalized[$key], $value) : $value;
+        }
+
+        return $parts;
     }
 
     private function _conflictMessage(string $reason): string
