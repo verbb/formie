@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\web\assets\frontend\FrontendAsset;
 
 use Craft;
@@ -30,10 +31,8 @@ class BrowserAssets extends Component
         if ($this->_shouldUseDevServer()) {
             $publicUrl = $this->_getDevServerPublicUrl();
 
-            // Keep the published CSS URL even in Vite mode. The entry JS imports CSS for
-            // HMR, but production formie.js does not re-inject formie.css — if the Vite
-            // script fails to load in the browser (common for CP preview iframes), a null
-            // css URL left forms completely unstyled.
+            // Keep published main styles in Vite mode too. Lazy field modules only
+            // inject their own CSS, and preview iframes may not reach the dev server.
             return $this->_browserAssetUrls = [
                 'css' => $published['css'],
                 'baseStyles' => $published['baseStyles'],
@@ -50,13 +49,15 @@ class BrowserAssets extends Component
     {
         $assetBundle = Craft::$app->getAssetManager()->getBundle(FrontendAsset::class);
 
+        $prefix = Formie::$plugin->getSettings()->useCssLayers ? '/layered' : '';
+
         return [
             // Keep the stable combined stylesheet URL for extensions that consume
             // this service directly. Core rendering uses the split assets below.
-            'css' => $assetBundle ? rtrim($assetBundle->baseUrl, '/') . '/css/formie.css' : null,
-            'baseStyles' => $assetBundle ? rtrim($assetBundle->baseUrl, '/') . '/css/formie-base.css' : null,
-            'themeStyles' => $assetBundle ? rtrim($assetBundle->baseUrl, '/') . '/css/formie-theme.css' : null,
-            'js' => $assetBundle ? rtrim($assetBundle->baseUrl, '/') . '/js/formie.js' : null,
+            'css' => $assetBundle ? rtrim($assetBundle->baseUrl, '/') . $prefix . '/css/formie.css' : null,
+            'baseStyles' => $assetBundle ? rtrim($assetBundle->baseUrl, '/') . $prefix . '/css/formie-base.css' : null,
+            'themeStyles' => $assetBundle ? rtrim($assetBundle->baseUrl, '/') . $prefix . '/css/formie-theme.css' : null,
+            'js' => $assetBundle ? rtrim($assetBundle->baseUrl, '/') . $prefix . '/js/formie.js' : null,
             'viteClient' => null,
         ];
     }
@@ -75,9 +76,10 @@ class BrowserAssets extends Component
 
     public function getPublishedThemeCssContents(): string
     {
+        $prefix = Formie::$plugin->getSettings()->useCssLayers ? '/layered' : '';
         $paths = [
-            Craft::getAlias('@verbb/formie/web/assets/frontend/dist/css/formie-base.css'),
-            Craft::getAlias('@verbb/formie/web/assets/frontend/dist/css/formie-theme.css'),
+            Craft::getAlias('@verbb/formie/web/assets/frontend/dist' . $prefix . '/css/formie-base.css'),
+            Craft::getAlias('@verbb/formie/web/assets/frontend/dist' . $prefix . '/css/formie-theme.css'),
         ];
         $contents = [];
 
@@ -117,7 +119,10 @@ class BrowserAssets extends Component
             ],
         ]);
 
-        return $this->_devServerAvailable = @file_get_contents("{$internalUrl}@vite/client", false, $context) !== false;
+        // Never mix a dev runtime's inline field CSS with the other published mode.
+        $expectedMode = Formie::$plugin->getSettings()->useCssLayers ? 'layered' : 'unlayered';
+
+        return $this->_devServerAvailable = @file_get_contents("{$internalUrl}__formie/css-mode", false, $context) === $expectedMode;
     }
 
     private function _getDevServerPublicUrl(): string

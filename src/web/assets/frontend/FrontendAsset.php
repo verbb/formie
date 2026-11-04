@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\web\assets\frontend;
 
+use verbb\formie\Formie;
+
 use craft\web\AssetBundle;
 
 class FrontendAsset extends AssetBundle
@@ -12,12 +14,14 @@ class FrontendAsset extends AssetBundle
     {
         $this->sourcePath = '@verbb/formie/web/assets/frontend/dist';
 
+        $prefix = Formie::$plugin->getSettings()->useCssLayers ? 'layered/' : '';
+
         $this->js = [
-            'js/formie.js',
+            $prefix . 'js/formie.js',
         ];
 
         $this->css = [
-            'css/formie.css',
+            $prefix . 'css/formie.css',
         ];
 
         parent::init();

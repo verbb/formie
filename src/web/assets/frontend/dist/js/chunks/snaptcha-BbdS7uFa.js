@@ -1,0 +1,1 @@
+import{n as e}from"./api-e3xZcRyg.js";var t=e({moduleId:`formie:snaptcha`,defaultPlaceholderSelector:`[data-snaptcha-captcha-placeholder]`});export{t as snaptchaModule};

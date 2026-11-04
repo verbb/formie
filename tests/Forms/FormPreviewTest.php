@@ -83,7 +83,7 @@ it('renders stock preview HTML for a simple form', function (): void {
 
         expect($preview['html'])->toContain('data-formie-form')
             ->and($preview['html'])->toContain('fullName')
-            ->and($preview['themeCss'] ?? '')->toContain('@layer formie-base')
+            ->and(str_contains($preview['themeCss'] ?? '', '@layer formie-base'))->toBe(Formie::$plugin->getSettings()->useCssLayers)
             ->and($preview['themeCss'] ?? '')->toContain('.formie-form');
     });
 });

@@ -6,6 +6,7 @@
 - Changed the `@verbb/formie-*` package versions to match the Formie plugin, so Formie 4.0.7 pairs with version 4.0.7 of each package. The jump from 1.x has no breaking changes, but version ranges such as `^1.0.16` need updating once. ([#3081](https://github.com/verbb/formie/issues/3081))
 
 ### Fixed
+- Fixed base reset selectors overriding the default theme when styles are compiled without CSS layers.
 - Fixed File Upload fields retaining completed attachments after AJAX form resets, and duplicate advanced upload rows after Back navigation.
 - Fixed TypeScript errors in projects using NodeNext module resolution.
 - Fixed a server-rendered error on a field inside a Group or Repeater marking every other field around it as invalid.

@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite",
     "prebuild": "node ../../../../scripts/verify-frontend-runtime.mjs",
-    "build": "vite build",
+    "build": "vite build && vite build --mode layered",
     "preview": "vite preview"
   }
 }

@@ -637,6 +637,8 @@ Learn more in [Static Translations](/forms/static-translations).
 
 Formie 4’s default theme uses the `formie` CSS class prefix. If your site styles Formie 3’s `.fui-` classes, update those selectors or adopt the current theme variables before deploying. A PHP compatibility bridge cannot rewrite your stylesheet.
 
+The [`useCssLayers`](/get-started/configuration#usecsslayers) setting defaults to `false`, preserving unlayered styling when upgrading. Early Formie 4 releases always used layers regardless of this setting. If you customised a site around that behaviour, explicitly set `useCssLayers` to `true` to retain it. This setting also applies to dynamically loaded field styles.
+
 Formie 3 | Formie 4
 --- | ---
 `.fui-form` | `.formie-form`

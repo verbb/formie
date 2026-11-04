@@ -2,6 +2,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, loadEnv } from 'vite';
 import { getFormieBrowserViteDevAliases } from '@verbb/formie-browser/vite-dev';
+import { formieCssLayers } from './css-layers.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -11,10 +12,9 @@ const parseServerPort = (value, fallback) => {
     return Number.isInteger(port) ? port : fallback;
 };
 
-export default defineConfig(({ mode, command }) => {
+export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
-    const useFormieBrowserSource =
-        command === 'serve' && mode === 'development';
+    const useCssLayers = mode === 'layered';
     const devServerPublicUrl = (env.FORMIE_BROWSER_DEV_SERVER_PUBLIC || 'http://localhost:3902/').replace(/\/$/, '');
     const devServerHost = env.FORMIE_BROWSER_DEV_SERVER_HOST || 'localhost';
     const devServerPort = parseServerPort(env.FORMIE_BROWSER_DEV_SERVER_PORT, 3902);
@@ -22,6 +22,18 @@ export default defineConfig(({ mode, command }) => {
 
     return {
         base: './',
+        plugins: [{
+            name: 'formie-css-mode',
+            configureServer(server) {
+                server.middlewares.use('/__formie/css-mode', (_request, response) => {
+                    response.setHeader('Content-Type', 'text/plain');
+                    response.end(useCssLayers ? 'layered' : 'unlayered');
+                });
+            },
+        }],
+        css: {
+            postcss: { plugins: useCssLayers ? [] : [formieCssLayers()] },
+        },
         server: {
             cors: true,
             host: devServerHost,
@@ -39,13 +51,12 @@ export default defineConfig(({ mode, command }) => {
         },
         resolve: {
             preserveSymlinks: true,
-            alias: useFormieBrowserSource ? getFormieBrowserViteDevAliases() : [],
+            // Compile inline field CSS too; the npm build already embeds it in JavaScript.
+            alias: getFormieBrowserViteDevAliases(),
         },
-        optimizeDeps: useFormieBrowserSource
-            ? { exclude: ['@verbb/formie-browser'] }
-            : undefined,
+        optimizeDeps: { exclude: ['@verbb/formie-browser'] },
         build: {
-            outDir: 'dist',
+            outDir: useCssLayers ? 'dist/layered' : 'dist',
             emptyOutDir: true,
             sourcemap: false,
             rollupOptions: {

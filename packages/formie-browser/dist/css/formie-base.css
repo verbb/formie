@@ -2,53 +2,53 @@
 
 @layer formie-base {
 
-    .formie-form,
-    .formie-form fieldset,
-    .formie-form legend,
-    .formie-form h1,
-    .formie-form h2,
-    .formie-form h3,
-    .formie-form h4,
-    .formie-form h5,
-    .formie-form h6,
-    .formie-form p,
-    .formie-form ul,
-    .formie-form ol,
-    .formie-form menu,
-    .formie-form dl,
-    .formie-form dd,
-    .formie-form blockquote,
-    .formie-form figure {
+    :where(.formie-form),
+    :where(.formie-form) fieldset,
+    :where(.formie-form) legend,
+    :where(.formie-form) h1,
+    :where(.formie-form) h2,
+    :where(.formie-form) h3,
+    :where(.formie-form) h4,
+    :where(.formie-form) h5,
+    :where(.formie-form) h6,
+    :where(.formie-form) p,
+    :where(.formie-form) ul,
+    :where(.formie-form) ol,
+    :where(.formie-form) menu,
+    :where(.formie-form) dl,
+    :where(.formie-form) dd,
+    :where(.formie-form) blockquote,
+    :where(.formie-form) figure {
         margin: 0;
         padding: 0;
     }
 
-    .formie-form,
-    .formie-form *,
-    .formie-form *::before,
-    .formie-form *::after {
+    :where(.formie-form),
+    :where(.formie-form) *,
+    :where(.formie-form) *::before,
+    :where(.formie-form) *::after {
         box-sizing: border-box;
     }
 
     .formie-page-container,
     .formie-field-layout,
-    .formie-form fieldset,
-    .formie-form legend {
+    :where(.formie-form) fieldset,
+    :where(.formie-form) legend {
         border: 0;
         min-inline-size: 0;
     }
 
     /* Fix for Firefox display issue in fieldset */
-    body:not(:-moz-handler-blocked) .formie-form fieldset {
+    body:not(:-moz-handler-blocked) :where(.formie-form) fieldset {
         display: table-cell;
     }
 
-    .formie-form legend {
+    :where(.formie-form) legend {
         /* legend should be `display: contents` to work with grid */
         display: contents;
     }
 
-    .formie-form legend * {
+    :where(.formie-form) legend * {
         /* legend should be `display: contents` to work with grid */
         display: contents;
     }

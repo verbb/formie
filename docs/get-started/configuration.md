@@ -801,7 +801,17 @@ Sets the default theme configuration used when rendering forms and fields.
 
 **Type:** `bool` · **Default:** `false`
 
-Outputs Formie’s front-end CSS inside a CSS cascade layer.
+Controls whether Formie’s front-end styles use CSS cascade layers, including styles loaded dynamically for fields and integrations. The default is unlayered CSS, so layered resets such as Tailwind’s Preflight do not override Formie’s default theme.
+
+Set this to `true` to use the `formie-base`, `formie-theme-base` and `formie-theme` layers. Your site controls their order relative to its own styles. For Tailwind, place this declaration at the start of your page’s `<head>`, before any stylesheets or other style blocks:
+
+```html
+<style>
+    @layer theme, base, formie-base, formie-theme-base, formie-theme, components, utilities;
+</style>
+```
+
+This lets Tailwind components and utilities override Formie’s layered styles. With `useCssLayers` set to `false`, normal unlayered Formie declarations take precedence over normal layered utilities; use unlayered custom CSS or opt into layers when you want utility classes to override the default theme.
 :::
 
 
