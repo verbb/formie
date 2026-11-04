@@ -45,6 +45,7 @@ it('exposes every cleanup task handle through the cleanup service', function ():
         Cleanup::TASK_DATA_RETENTION_SUBMISSIONS,
         Cleanup::TASK_SENT_NOTIFICATIONS,
         Cleanup::TASK_FILE_UPLOAD_ASSET_RETENTION,
+        Cleanup::TASK_TRASHED_SUBMISSION_FILES,
         Cleanup::TASK_STALE_PENDING_UPLOADS,
         Cleanup::TASK_REPORT_EXPORTS,
         Cleanup::TASK_SUBMISSION_GRANTS,

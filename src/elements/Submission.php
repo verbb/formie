@@ -1418,6 +1418,12 @@ class Submission extends Element
         Formie::$plugin->getFileUploads()->deleteChosenAssets($this->_chosenAssetsToDelete);
         $this->_chosenAssetsToDelete = [];
 
+        if ($this->hardDelete) {
+            Formie::$plugin->getFileUploads()->forgetTrashedSubmissionFiles((int)$this->id);
+        } elseif ($this->getForm()?->fileUploadsAction === 'delete') {
+            Formie::$plugin->getFileUploads()->rememberTrashedSubmissionFiles($this);
+        }
+
         foreach ($this->getFields() as $field) {
             $field->afterElementDelete($this);
         }
@@ -1461,6 +1467,8 @@ class Submission extends Element
 
     public function afterRestore(): void
     {
+        Formie::$plugin->getFileUploads()->forgetTrashedSubmissionFiles((int)$this->id);
+
         // Tell the fields about it
         foreach ($this->getFields() as $field) {
             $field->afterElementRestore($this);

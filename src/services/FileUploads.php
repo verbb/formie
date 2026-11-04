@@ -20,11 +20,13 @@ use verbb\formie\records\Submission as SubmissionRecord;
 
 use Craft;
 use craft\db\Query;
+use craft\db\Table as CraftTable;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
 use craft\helpers\Assets;
 use craft\helpers\Console;
 use craft\helpers\Db;
+use craft\helpers\Json;
 use craft\models\VolumeFolder;
 
 use yii\base\Component;
@@ -382,6 +384,57 @@ class FileUploads extends Component
                 Formie::error("Unable to delete asset #{$asset->id} with its submission.");
             }
         }
+    }
+
+    public function rememberTrashedSubmissionFiles(Submission $submission): void
+    {
+        // Files stay while a submission is in the trash, so it can be restored. Craft's garbage collection then
+        // removes it without element events, and its upload records with it, so note what's owed now.
+        $uploads = $this->getUploadsForSubmissionDeletion($submission);
+        $chosen = $this->getChosenAssetIdsForSubmissionDeletion($submission);
+
+        if (!$uploads && !$chosen) {
+            return;
+        }
+
+        Db::upsert(Table::FORMIE_TRASHED_SUBMISSION_FILES, [
+            'submissionId' => (int)$submission->id,
+            'uploads' => Json::encode($uploads),
+            'chosenAssetIds' => Json::encode($chosen),
+        ]);
+    }
+
+    public function forgetTrashedSubmissionFiles(int $submissionId): void
+    {
+        Db::delete(Table::FORMIE_TRASHED_SUBMISSION_FILES, ['submissionId' => $submissionId]);
+    }
+
+    public function deletePurgedSubmissionFiles(): int
+    {
+        // This runs on Gc::EVENT_RUN, which follows Craft's purge of trashed elements.
+        $rows = (new Query())
+            ->select(['files.id', 'files.uploads', 'files.chosenAssetIds'])
+            ->from(['files' => Table::FORMIE_TRASHED_SUBMISSION_FILES])
+            ->leftJoin(['elements' => CraftTable::ELEMENTS], '[[elements.id]] = [[files.submissionId]]')
+            ->where(['elements.id' => null])
+            ->all();
+
+        $count = 0;
+
+        foreach ($rows as $row) {
+            try {
+                $this->deleteSubmissionUploads(Json::decode($row['uploads']));
+                $this->deleteChosenAssets(Json::decode($row['chosenAssetIds']));
+
+                Db::delete(Table::FORMIE_TRASHED_SUBMISSION_FILES, ['id' => $row['id']]);
+                $count++;
+            } catch (Throwable $e) {
+                // Keep the record, and try again on the next run.
+                Formie::error("Unable to delete the files of a purged submission: {$e->getMessage()}");
+            }
+        }
+
+        return $count;
     }
 
     public function getUploadsForFormDeletion(int $formId, array $submissionIds): array

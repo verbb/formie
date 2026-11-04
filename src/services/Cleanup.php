@@ -32,6 +32,7 @@ class Cleanup extends Service
             self::TASK_DATA_RETENTION_SUBMISSIONS,
             self::TASK_SENT_NOTIFICATIONS,
             self::TASK_FILE_UPLOAD_ASSET_RETENTION,
+            self::TASK_TRASHED_SUBMISSION_FILES,
             self::TASK_STALE_PENDING_UPLOADS,
             self::TASK_REPORT_EXPORTS,
             self::TASK_SUBMISSION_GRANTS,
@@ -47,6 +48,7 @@ class Cleanup extends Service
     public const TASK_DATA_RETENTION_SUBMISSIONS = 'data-retention-submissions';
     public const TASK_SENT_NOTIFICATIONS = 'sent-notifications';
     public const TASK_FILE_UPLOAD_ASSET_RETENTION = 'file-upload-asset-retention';
+    public const TASK_TRASHED_SUBMISSION_FILES = 'trashed-submission-files';
     public const TASK_STALE_PENDING_UPLOADS = 'stale-pending-uploads';
     public const TASK_REPORT_EXPORTS = 'report-exports';
     public const TASK_SUBMISSION_GRANTS = 'submission-grants';
@@ -129,6 +131,16 @@ class Cleanup extends Service
             self::TASK_FILE_UPLOAD_ASSET_RETENTION => [
                 'label' => 'purging expired File Upload field assets',
                 'run' => fn() => Formie::$plugin->getFileUploads()->pruneExpiredFieldAssets($console),
+            ],
+            self::TASK_TRASHED_SUBMISSION_FILES => [
+                'label' => 'deleting the files of purged Formie submissions',
+                'run' => function() use ($console): void {
+                    $count = Formie::$plugin->getFileUploads()->deletePurgedSubmissionFiles();
+
+                    if ($console instanceof Controller && $count > 0) {
+                        $console->stdout("Deleted files of purged submissions: $count" . PHP_EOL, Console::FG_GREEN);
+                    }
+                },
             ],
             self::TASK_STALE_PENDING_UPLOADS => [
                 'label' => 'purging stale pending File Upload assets',

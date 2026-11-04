@@ -715,6 +715,17 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists(Table::FORMIE_TRASHED_SUBMISSION_FILES);
+        $this->createTable(Table::FORMIE_TRASHED_SUBMISSION_FILES, [
+            'id' => $this->primaryKey(),
+            'submissionId' => $this->integer()->notNull(),
+            'uploads' => $this->text(),
+            'chosenAssetIds' => $this->text(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
         $this->archiveTableIfExists(Table::FORMIE_PENDING_UPLOADS);
         $this->createTable(Table::FORMIE_PENDING_UPLOADS, [
             'id' => $this->primaryKey(),
@@ -889,6 +900,7 @@ class Install extends Migration
         $this->createIndex(null, Table::FORMIE_SUBMISSION_GRANTS, 'expiresAt', false);
         $this->createIndex(null, Table::FORMIE_SUBMISSION_WORKFLOW, 'submissionId', false);
         $this->createIndex(null, Table::FORMIE_SUBMISSION_WORKFLOW, ['submissionId', 'stage', 'idempotencyKey'], true);
+        $this->createIndex(null, Table::FORMIE_TRASHED_SUBMISSION_FILES, 'submissionId', true);
         $this->createIndex(null, Table::FORMIE_PENDING_UPLOADS, 'assetId', true);
         $this->createIndex(null, Table::FORMIE_PENDING_UPLOADS, 'submissionId', false);
         $this->createIndex(null, Table::FORMIE_PENDING_UPLOADS, ['isFinalized', 'dateUpdated'], false);
@@ -1024,6 +1036,7 @@ class Install extends Migration
             'formie_submission_workflow',
             'formie_subscription_diagnostics',
             'formie_pending_uploads',
+            'formie_trashed_submission_files',
             'formie_submission_drafts',
             'formie_submission_resume_tokens',
         ];

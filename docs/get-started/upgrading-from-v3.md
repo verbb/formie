@@ -1948,6 +1948,10 @@ Custom frontends should review [Frontend Assets](/frontend/frontend-assets) when
 
 Answers saved in an Address field's auto-complete input are kept, and still appear in exports and emails. The field's **Auto-Complete** sub-field only appears in its settings when an address provider is enabled. To use it again, enable a provider, open the Address field, turn on **Auto-Complete**, choose the provider and re-enter its label and placeholder. Until then, the saved answer doesn't appear on the control panel edit screen.
 
+### Files on Deleted Submissions
+
+On forms set to delete file uploads, Formie 3 deleted files as soon as a submission was deleted. Formie 4 keeps them while the submission is in the trash, so restoring it brings its files back. They're deleted when the submission is deleted permanently, or when Craft's garbage collection purges it from the trash.
+
 ### Categories Sources
 
 Categories fields use their saved **Sources** again, including **All** and several groups. A field that offered one group in Formie 3 keeps that group. Tick more sources, or **All**, to widen it.

@@ -187,7 +187,7 @@ Runs every Formie cleanup and retention task. This is included in `./craft formi
 
 Option | Description
 --- | ---
-`--only` | Comma-separated cleanup task handles. Omit to run all tasks. Handles: `incomplete-submissions`, `data-retention-submissions`, `sent-notifications`, `file-upload-asset-retention`, `stale-pending-uploads`, `report-exports`, `submission-grants`, `submission-progress`, `submission-operations`.
+`--only` | Comma-separated cleanup task handles. Omit to run all tasks. Handles: `incomplete-submissions`, `data-retention-submissions`, `sent-notifications`, `file-upload-asset-retention`, `trashed-submission-files`, `stale-pending-uploads`, `report-exports`, `submission-grants`, `submission-progress`, `submission-operations`.
 
 ### Prune Incomplete Submissions
 Deletes any incomplete submissions that exceed the "Maximum Incomplete Submission Age" plugin setting.
