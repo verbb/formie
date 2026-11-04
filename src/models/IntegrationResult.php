@@ -95,6 +95,12 @@ final class IntegrationResult
         // Results from custom providers and earlier releases can still use the retired statuses.
         $status = in_array($status, [IntegrationStatus::Rejected, IntegrationStatus::Unknown], true) ? IntegrationStatus::Failed : $status;
 
+        // Earlier policies and custom providers acknowledge errors with this flag. Normalize
+        // them at the result boundary so a batch cannot turn them back into queue failures.
+        if ($status === IntegrationStatus::Failed && !$failQueue) {
+            $status = IntegrationStatus::Skipped;
+        }
+
         $this->status = $status;
         $this->message = $message;
         $this->code = $code;

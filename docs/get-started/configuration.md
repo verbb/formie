@@ -21,6 +21,29 @@ For project config, environment variables, and control panel settings across sta
 ## Configuration Options
 
 ::: reference
+### `integrationApiErrorHandling`
+
+**Type:** `array` · **Default:** `[]` (uses the category defaults below)
+
+Provides the legacy fallback for [API error policies](/guides/integrations/integration-dispatch-and-policies#api-error-handling) on Mailchimp and Campaign Monitor connections without their own saved choices. Configure each connection under **Formie → Integrations → Email Marketing → Provider → Advanced → API Error Handling**. Connection choices take precedence over this setting, including values in `config/formie.php`. Existing global choices remain effective until a connection saves its own. Without an override, known subscriber rejections use `logWarning`, and API rate limits and other errors use `failQueue`.
+
+Each row contains a `severity` (`rejected`, `rate_limited` or `failure`) and an `action` (`failQueue`, `logWarning`, `logInfo` or `ignore`). A category omitted from a non-empty array uses `failQueue`.
+
+For connections without saved choices, this fallback skips known subscriber rejections with an informational log while keeping other errors as failures:
+
+```php
+'integrationApiErrorHandling' => [
+    ['severity' => 'rejected', 'action' => 'logInfo'],
+    ['severity' => 'rate_limited', 'action' => 'failQueue'],
+    ['severity' => 'failure', 'action' => 'failQueue'],
+],
+```
+
+The skip actions continue processing without marking the delivery successful. Completed jobs disappear from the queue, so choose `logWarning` or `logInfo` if you need a record. `ignore` omits the policy log entry; normal integration logging is unchanged.
+:::
+
+
+::: reference
 ### `completionQueryAllowlist`
 
 **Type:** `array` · **Default:** `['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']`

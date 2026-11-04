@@ -8,6 +8,8 @@
 - Add an option to leave log files out of support requests.
 
 ### Changed
+- Move Mailchimp and Campaign Monitor API error-handling choices to standard dropdowns under **Advanced** on each integration connection. Existing global choices remain fallbacks until the connection saves its own.
+- Default Mailchimp and Campaign Monitor API rate limits to failed deliveries, while skipping recognised subscriber rejections with a warning. Preserve configured actions and include form, submission and provider details in policy logs. ([#2172](https://github.com/verbb/formie/discussions/2172), [#2276](https://github.com/verbb/formie/issues/2276))
 - Allow all failed [integration and notification deliveries](https://verbb.io/craft-plugins/formie/docs/v4/guides/integrations/integration-dispatch-and-policies#results-and-retries) to be retried using current submission values and settings.
 - Store reports and scheduled reports in each installation’s database instead of project config, so users with **Manage reports** can create and change reports on production. Existing reports and schedules move across automatically when you upgrade, with nothing to run. Reports no longer deploy between environments through project config, and each environment now keeps its own copies. Only administrators can change a report with scheduled deliveries or edit schedules. See the [upgrade guide](https://verbb.io/craft-plugins/formie/docs/v4/get-started/upgrading-from-v3#reports-and-submission-export). ([#3082](https://github.com/verbb/formie/issues/3082))
 - Show a warning on reports that point at forms that no longer exist.
@@ -16,6 +18,7 @@
 - Update the Pardot guide for External Client Apps, OAuth security settings, and separate API and Form Handler delivery.
 
 ### Fixed
+- Fixed integration errors configured to be skipped still failing the enclosing queue job or triggering failure alerts.
 - Fixed HubSpot deliveries being reported as successful after a file upload failed, allowing the form to be sent without its file.
 - Fixed Freshdesk reporting a failure instead of a skipped delivery when an event cancelled sending its contact.
 - Fixed the Diagnostics button failing to open on control panels served over plain HTTP.

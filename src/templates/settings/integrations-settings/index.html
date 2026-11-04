@@ -47,31 +47,6 @@
             warning: macros.configWarning('redirectUri', 'formie'),
         }) }}
 
-        {{ forms.editableTableField({
-            label: 'Integration API Error Handling' | t('formie'),
-            instructions: 'Control how integration API errors are handled when syncing submissions. Only integrations with severity handling use these settings; all others fail the queue job on API errors.' | t('formie'),
-            id: 'integrationApiErrorHandling',
-            name: 'integrationApiErrorHandling',
-            cols: {
-                severity: {
-                    type: 'select',
-                    heading: 'Severity' | t('formie'),
-                    options: integrationApiErrorSeverityOptions,
-                },
-                action: {
-                    type: 'select',
-                    heading: 'Action' | t('formie'),
-                    options: integrationApiErrorActionOptions,
-                },
-            },
-            rows: settings.getIntegrationApiErrorHandlingRows(),
-            errors: settings.getErrors('integrationApiErrorHandling'),
-            warning: macros.configWarning('integrationApiErrorHandling', 'formie'),
-            allowAdd: false,
-            allowDelete: false,
-            allowReorder: true,
-        }) }}
-
         {{ forms.lightswitchField({
             label: 'Send Email Alert for Failed Integration' | t('formie'),
             instructions: 'Enable this option to send nominated email addresses an alert email when an integration cannot be triggered.' | t('formie'),

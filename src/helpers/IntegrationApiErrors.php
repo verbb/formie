@@ -19,8 +19,8 @@ final class IntegrationApiErrors
     public static function defaultHandlingRows(): array
     {
         return [
-            ['severity' => self::SEVERITY_RATE_LIMITED, 'action' => self::ACTION_LOG_WARNING],
             ['severity' => self::SEVERITY_REJECTED, 'action' => self::ACTION_LOG_WARNING],
+            ['severity' => self::SEVERITY_RATE_LIMITED, 'action' => self::ACTION_FAIL_QUEUE],
             ['severity' => self::SEVERITY_FAILURE, 'action' => self::ACTION_FAIL_QUEUE],
         ];
     }
@@ -28,20 +28,45 @@ final class IntegrationApiErrors
     public static function severityOptions(): array
     {
         return [
-            ['label' => Craft::t('formie', 'Rate limited'), 'value' => self::SEVERITY_RATE_LIMITED],
-            ['label' => Craft::t('formie', 'Rejected payload'), 'value' => self::SEVERITY_REJECTED],
-            ['label' => Craft::t('formie', 'Failure'), 'value' => self::SEVERITY_FAILURE],
+            ['label' => Craft::t('formie', 'Known subscriber rejections'), 'value' => self::SEVERITY_REJECTED],
+            ['label' => Craft::t('formie', 'API rate limits'), 'value' => self::SEVERITY_RATE_LIMITED],
+            ['label' => Craft::t('formie', 'Other errors'), 'value' => self::SEVERITY_FAILURE],
         ];
     }
 
     public static function actionOptions(): array
     {
         return [
-            ['label' => Craft::t('formie', 'Fail queue job'), 'value' => self::ACTION_FAIL_QUEUE],
-            ['label' => Craft::t('formie', 'Log warning'), 'value' => self::ACTION_LOG_WARNING],
-            ['label' => Craft::t('formie', 'Log info'), 'value' => self::ACTION_LOG_INFO],
-            ['label' => Craft::t('formie', 'Ignore'), 'value' => self::ACTION_IGNORE],
+            ['label' => Craft::t('formie', 'Fail delivery'), 'value' => self::ACTION_FAIL_QUEUE],
+            ['label' => Craft::t('formie', 'Skip and log warning'), 'value' => self::ACTION_LOG_WARNING],
+            ['label' => Craft::t('formie', 'Skip and log info'), 'value' => self::ACTION_LOG_INFO],
+            ['label' => Craft::t('formie', 'Skip without logging'), 'value' => self::ACTION_IGNORE],
         ];
+    }
+
+    public static function handlingActions(IntegrationInterface $integration): array
+    {
+        $actions = [];
+
+        foreach (self::severityOptions() as $option) {
+            $actions[$option['value']] = self::action($integration, $option['value']);
+        }
+
+        return $actions;
+    }
+
+    public static function action(IntegrationInterface $integration, string $severity): string
+    {
+        $handling = $integration->getSettings()['apiErrorHandling'] ?? [];
+
+        // Connections without a saved choice retain the former global policy.
+        if (!array_key_exists($severity, $handling)) {
+            return Formie::$plugin->getSettings()->getIntegrationApiErrorAction($severity);
+        }
+
+        $action = $handling[$severity];
+
+        return in_array($action, array_column(self::actionOptions(), 'value'), true) ? $action : self::ACTION_FAIL_QUEUE;
     }
 
     public static function applySubmissionErrorAction(
@@ -50,18 +75,19 @@ final class IntegrationApiErrors
         Submission $submission,
         string $severity,
     ): bool {
-        $action = Formie::$plugin->getSettings()->getIntegrationApiErrorAction($severity);
-        $message = self::_formatMessage($integration, $exception, $submission, $severity);
+        $action = self::action($integration, $severity);
+        $message = self::_formatMessage($integration, $exception, $submission, $severity, $action);
 
         if ($action === self::ACTION_FAIL_QUEUE) {
-            Formie::error($integration->name . ': ' . $message);
+            Integration::error($integration, $message);
+
             throw new IntegrationException($message, 0, $exception);
         }
 
         if ($action === self::ACTION_LOG_WARNING) {
-            Formie::warning($integration->name . ': ' . $message);
+            Integration::warning($integration, $message);
         } elseif ($action === self::ACTION_LOG_INFO) {
-            Formie::info($integration->name . ': ' . $message);
+            Integration::info($integration, $message);
         }
 
         return true;
@@ -72,14 +98,22 @@ final class IntegrationApiErrors
         Throwable $exception,
         Submission $submission,
         string $severity,
+        string $action,
     ): string {
         $messageText = Integration::getExceptionLogMessage($exception);
         $context = Integration::formatSubmissionLogContext($submission);
 
-        return Craft::t('formie', 'API {severity} (handled): “{message}”{context}', [
-            'severity' => $severity,
+        $categories = array_column(self::severityOptions(), 'label', 'value');
+        $actions = array_column(self::actionOptions(), 'label', 'value');
+
+        // Put the outcome and locator before the provider response, which may be truncated or masked.
+        return Craft::t('formie', '{context} {provider}: {outcome} by Integration API Error Handling ({category}; {action}). Provider error: {message}', [
+            'provider' => $integration::displayName(),
+            'outcome' => $action === self::ACTION_FAIL_QUEUE ? Craft::t('formie', 'Delivery failed') : Craft::t('formie', 'Delivery skipped'),
+            'category' => $categories[$severity] ?? $severity,
+            'action' => $actions[$action] ?? $action,
             'message' => $messageText,
-            'context' => $context !== '' ? ' ' . $context : '',
+            'context' => $context,
         ]);
     }
 

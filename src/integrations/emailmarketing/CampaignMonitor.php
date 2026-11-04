@@ -40,6 +40,8 @@ class CampaignMonitor extends EmailMarketing
 
     public ?string $clientId = null;
 
+    public array $apiErrorHandling = [];
+
 
     // Public Methods
     // =========================================================================
@@ -47,6 +49,14 @@ class CampaignMonitor extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your {name} lists to grow your audience for campaigns.', ['name' => static::displayName()]);
+    }
+
+    public function getSettingsHtmlVariables(): array
+    {
+        return parent::getSettingsHtmlVariables() + [
+            'apiErrorHandling' => IntegrationApiErrors::handlingActions($this),
+            'apiErrorActionOptions' => IntegrationApiErrors::actionOptions(),
+        ];
     }
 
     public function fetchConfig(): IntegrationConfig
@@ -139,18 +149,17 @@ class CampaignMonitor extends EmailMarketing
         }
 
         $statusCode = $exception->getResponse()->getStatusCode();
-        $body = (string)$exception->getResponse()->getBody();
+        $body = json_decode((string)$exception->getResponse()->getBody(), true);
+
+        // A subscriber-specific throttle uses Code 429 too. Match it before the
+        // general API limit, and don't confuse a JSON error code with HTTP status.
+        if (in_array($statusCode, [400, 429], true) && is_array($body) && in_array($body['Code'] ?? null, [429, '429'], true) &&
+            ($body['Message'] ?? null) === 'Subscriber was added too many times too quickly, try again later.') {
+            return IntegrationApiErrors::SEVERITY_REJECTED;
+        }
 
         if ($statusCode === 429) {
             return IntegrationApiErrors::SEVERITY_RATE_LIMITED;
-        }
-
-        if ($statusCode === 400) {
-            $decoded = Json::decodeIfJson($body);
-
-            if (is_array($decoded) && array_key_exists('Code', $decoded)) {
-                return IntegrationApiErrors::SEVERITY_REJECTED;
-            }
         }
 
         return null;
@@ -166,11 +175,13 @@ class CampaignMonitor extends EmailMarketing
 
             if ($error) {
                 Integration::error($this, $error, true);
+
                 return false;
             }
 
             if (!$apiKey) {
                 Integration::error($this, 'Unable to find “{ApiKey}” in response.', true);
+
                 return false;
             }
         } catch (Throwable $e) {
@@ -185,6 +196,14 @@ class CampaignMonitor extends EmailMarketing
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+        $rules[] = ['apiErrorHandling', 'each', 'rule' => ['in', 'range' => array_column(IntegrationApiErrors::actionOptions(), 'value')]];
+
+        return $rules;
+    }
 
     protected function executePayload(Submission $submission): IntegrationResult
     {

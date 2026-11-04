@@ -568,14 +568,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $severity = $this->classifyIntegrationApiError($exception) ?? IntegrationApiErrors::SEVERITY_FAILURE;
 
         $handled = IntegrationApiErrors::applySubmissionErrorAction($this, $exception, $submission, $severity);
-        $result = $this->_deliveryState->error ?? $this->resultForException($exception);
-
-        if ($severity === IntegrationApiErrors::SEVERITY_RATE_LIMITED) {
-            $result = IntegrationResult::failed('rate_limited', true);
-        }
-
-        // Logging policy may acknowledge the queue job, but cannot turn rejection into success.
-        $this->_deliveryState->error = $result->withQueueFailure(false);
+        // The policy accepts skipping this delivery, not successful delivery to the provider.
+        // Use the same outcome throughout batching, failure alerts and success conditions.
+        $this->_deliveryState->error = IntegrationResult::skipped('api_error_' . $severity);
         $this->_deliveryState->handledError = true;
 
         return $handled;

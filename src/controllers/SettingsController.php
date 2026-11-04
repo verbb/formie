@@ -6,7 +6,6 @@ use verbb\formie\helpers\SpamProtectionSettings;
 use verbb\formie\content\ContentEncryption;
 use verbb\formie\helpers\FieldTraversal;
 use verbb\formie\helpers\FieldBuilderPolicy;
-use verbb\formie\helpers\IntegrationApiErrors;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\models\Settings;
 use verbb\formie\services\SpamProtection;
@@ -31,7 +30,7 @@ class SettingsController extends SettingsAccessController
         'notifications' => ['useQueueForNotifications', 'emptyValuePlaceholder', 'maxEmailAttachmentSizeMb', 'sendEmailAlerts', 'alertEmailsUserGroup', 'alertEmails'],
         'sent-notifications' => ['sentNotifications', 'maxSentNotificationsAge'],
         'submissions' => ['maxIncompleteSubmissionAge', 'enableCsrfValidationForGuests', 'submissionsBehaviour', 'submissionSidebarFormOrder', 'defaultCpSubmissionFieldConditions', 'reportTablePageSize', 'reportAsyncExportRowThreshold', 'reportInteractiveExportExpiryHours', 'reportScheduledExportExpiryHours', 'reportExportSingleUseDownload'],
-        'integrations-settings' => ['useQueueForIntegrations', 'queuePriority', 'redirectUri', 'integrationApiErrorHandling', 'sendIntegrationAlerts', 'integrationAlertEmailsUserGroup', 'integrationAlertEmails'],
+        'integrations-settings' => ['useQueueForIntegrations', 'queuePriority', 'redirectUri', 'sendIntegrationAlerts', 'integrationAlertEmailsUserGroup', 'integrationAlertEmails'],
         'spam-protection' => SpamProtection::SETTING_KEYS,
     ];
 
@@ -201,8 +200,6 @@ class SettingsController extends SettingsAccessController
 
         return $this->renderTemplate('formie/settings/integrations-settings', [
             'settings' => $settings,
-            'integrationApiErrorSeverityOptions' => IntegrationApiErrors::severityOptions(),
-            'integrationApiErrorActionOptions' => IntegrationApiErrors::actionOptions(),
         ]);
     }
 
@@ -282,6 +279,7 @@ class SettingsController extends SettingsAccessController
             });
 
             $this->setSuccessFlash(Craft::t('formie', 'Settings saved.'));
+
             return $this->redirect('formie/spam-protection');
         }
 

@@ -16,4 +16,43 @@
     errors: integration.getErrors('apiKey'),
 }) }}
 
+{% set hasApiError = integration.hasErrors('apiErrorHandling') %}
+
+<hr>
+
+<button type="button" class="fieldtoggle{{ hasApiError ? ' expanded' }}" data-target="advanced-api-error-handling">{{ 'Advanced' | t('formie') }}</button>
+<div id="advanced-api-error-handling" class="{{ not hasApiError ? 'hidden' }}">
+    <h2>{{ 'API Error Handling' | t('formie') }}</h2>
+
+    {{ forms.selectField({
+        label: 'Known Subscriber Rejections' | t('formie'),
+        instructions: 'How to handle recognised fake-address and excessive-signup rejections.' | t('formie'),
+        id: 'apiErrorHandling-rejected',
+        name: 'apiErrorHandling[rejected]',
+        value: apiErrorHandling.rejected,
+        options: apiErrorActionOptions,
+        errors: integration.getErrors('apiErrorHandling'),
+    }) }}
+
+    {{ forms.selectField({
+        label: 'API Rate Limits' | t('formie'),
+        instructions: 'How to handle temporary limits on API requests.' | t('formie'),
+        id: 'apiErrorHandling-rate_limited',
+        name: 'apiErrorHandling[rate_limited]',
+        value: apiErrorHandling.rate_limited,
+        options: apiErrorActionOptions,
+        errors: integration.getErrors('apiErrorHandling'),
+    }) }}
+
+    {{ forms.selectField({
+        label: 'Other Errors' | t('formie'),
+        instructions: 'How to handle invalid mappings, authentication errors, outages and unrecognised errors.' | t('formie'),
+        id: 'apiErrorHandling-failure',
+        name: 'apiErrorHandling[failure]',
+        value: apiErrorHandling.failure,
+        options: apiErrorActionOptions,
+        errors: integration.getErrors('apiErrorHandling'),
+    }) }}
+</div>
+
 {% endblock %}

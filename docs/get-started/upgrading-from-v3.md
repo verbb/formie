@@ -2026,6 +2026,14 @@ Replace the deprecated `syncId` PHP/config property with `definitionId` and `isS
 
 Move sample sends out of `fetchFormSettings()` or `fetchConfig()` into `sendTestPayload()` when updating the integration, so metadata refresh does not send an unwanted request. The builder's test action now invokes `sendTestPayload()` separately through the integration's normal execution hook.
 
+### Integration API Error Policies
+
+Review **API Error Handling** under **Advanced** on the **Provider** tab of each Mailchimp or Campaign Monitor connection under **Formie → Integrations → Email Marketing**. Error-handling choices now belong to each connection. Existing global choices and `integrationApiErrorHandling` config values remain fallbacks until the connection saves its own choices. Stored action identifiers, including `logInfo`, are unchanged. Without an override, API rate limits fail delivery and known subscriber rejections log a warning and skip delivery.
+
+The `rejected` category is limited to recognised subscriber rejections. Campaign Monitor's repeated-subscription response belongs here even when its error code is `429`; actual API request limits use `rate_limited`. Mapping and other unrecognised validation errors belong to `failure`. If you previously used a broad skip policy for validation errors, review those categories before relying on the same behaviour.
+
+Policy-approved skips are recorded as `skipped`, including custom or stored results that used `failQueue: false` with a failed, rejected or unknown status. They allow the queue job to complete but do not satisfy conditions requiring a successful delivery. Completed jobs disappear from the queue; warning and informational policy logs include the form, submission, action and provider error for troubleshooting.
+
 ### Integration Delivery Storage
 
 Existing providers returning `bool` or `IntegrationResponse` still work through a compatibility adapter. Update to `IntegrationResult` when you want detailed delivery results. A legacy `false` result is a failure, and clicking **Retry** runs it again.

@@ -86,6 +86,8 @@ class Mailchimp extends EmailMarketing
     #[Sensitive]
     public ?string $apiKey = null;
 
+    public array $apiErrorHandling = [];
+
     #[FormIntegrationSetting]
     public bool $appendTags = false;
 
@@ -99,6 +101,14 @@ class Mailchimp extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your {name} lists to grow your audience for campaigns.', ['name' => static::displayName()]);
+    }
+
+    public function getSettingsHtmlVariables(): array
+    {
+        return parent::getSettingsHtmlVariables() + [
+            'apiErrorHandling' => IntegrationApiErrors::handlingActions($this),
+            'apiErrorActionOptions' => IntegrationApiErrors::actionOptions(),
+        ];
     }
 
     public function fetchConfig(): IntegrationConfig
@@ -218,17 +228,19 @@ class Mailchimp extends EmailMarketing
         }
 
         $statusCode = $exception->getResponse()->getStatusCode();
-        $body = strtolower((string)$exception->getResponse()->getBody());
+        $body = json_decode((string)$exception->getResponse()->getBody(), true);
 
         if ($statusCode === 429) {
             return IntegrationApiErrors::SEVERITY_RATE_LIMITED;
         }
 
-        if ($statusCode === 400 && (
-            str_contains($body, 'invalid') ||
-            str_contains($body, 'merge') ||
-            str_contains($body, 'looks fake') ||
-            str_contains($body, 'provide a valid')
+        $detail = is_array($body) && is_string($body['detail'] ?? null) ? strtolower($body['detail']) : '';
+
+        // "Invalid Resource" also covers broken mappings. Only these known subscriber
+        // rejections are eligible for skipping; validation errors must remain failures.
+        if ($statusCode === 400 && is_array($body) && ($body['title'] ?? null) === 'Invalid Resource' && (
+            str_contains($detail, 'looks fake or invalid, please enter a real email address') ||
+            str_contains($detail, "has signed up to a lot of lists very recently; we're not allowing more signups for now")
         )) {
             return IntegrationApiErrors::SEVERITY_REJECTED;
         }
@@ -245,11 +257,13 @@ class Mailchimp extends EmailMarketing
 
             if ($error) {
                 Integration::error($this, $error, true);
+
                 return false;
             }
 
             if (!$accountId) {
                 Integration::error($this, 'Unable to find “{account_id}” in response.', true);
+
                 return false;
             }
         } catch (Throwable $e) {
@@ -386,6 +400,7 @@ class Mailchimp extends EmailMarketing
         $rules = parent::defineRules();
 
         $rules[] = [['apiKey'], 'required'];
+        $rules[] = ['apiErrorHandling', 'each', 'rule' => ['in', 'range' => array_column(IntegrationApiErrors::actionOptions(), 'value')]];
 
         return $rules;
     }

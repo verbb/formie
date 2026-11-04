@@ -38,7 +38,7 @@ A delivery either passes or fails. When a queued delivery fails, its job fails i
 | Result | Meaning | What to Do |
 | --- | --- | --- |
 | Succeeded | The delivery completed. | Nothing. |
-| Skipped | The integration did not need to run, or an earlier failure stopped it. | Check conditions, opt-in, and execution order if this was unexpected. |
+| Skipped | The integration did not need to run, an earlier failure stopped it, or an API error policy skipped it. | Check conditions, opt-in, execution order and API error handling if this was unexpected. |
 | Failed | The delivery did not complete. The error is shown in **Diagnostics**. | Fix the cause if needed, then click **Retry**. |
 
 **Retry** always runs the job again, using the submission's current values and the current integration settings. Formie remembers steps that already succeeded and skips them. For example, if a CRM contact was created but adding it to a list failed, a retry only sends the list step. You can correct a field mapping and retry, and the failed step uses the new mapping.
@@ -48,6 +48,26 @@ Every step that didn't succeed is sent again. If a request timed out after the s
 A step that already succeeded stays done, even if you've since changed its mapping. To send everything again from the start, choose the integration from the **Integrations** menu on the submission's edit page, which starts a new run.
 
 Integration results belong to the run that produced them. A queued notification reads results from its own run, even if a later edit has already run the same integration again. Results from another run are not used as a fallback.
+
+## API Error Handling
+
+Open a Mailchimp or Campaign Monitor connection under **Formie → Integrations → Email Marketing**, then expand **Advanced** on its **Provider** tab to find the **API Error Handling** dropdowns. Each connection has its own choices, shared by the forms that use it. These policies also apply when integrations run synchronously.
+
+| Category | Includes | Default action |
+| --- | --- | --- |
+| Known subscriber rejections | Recognised fake-address and excessive-signup responses from Mailchimp, and repeated-subscription responses from Campaign Monitor. | Skip and log warning |
+| API rate limits | The provider temporarily limits API requests. | Fail delivery |
+| Other errors | Invalid mappings, authentication errors, outages and unrecognised responses. | Fail delivery |
+
+A subscriber-specific restriction can use the same error number as a general API rate limit. Formie checks the provider's response to distinguish the known cases. A validation error about a required field or mapping remains an **Other errors** failure.
+
+Choose **Fail delivery** to fail the queued job and make it available for Retry. This does not schedule automatic retries. The three skip actions let later integrations continue, with a warning, an informational log entry, or no policy log entry. A skipped delivery does not count as a successful delivery in notification conditions, and does not trigger a failed-integration alert.
+
+For example, **Skip and log warning** lets a Campaign Monitor repeated-subscription rejection finish without leaving a failed queue job. Its warning identifies the integration, form, submission, error category, selected action and provider response. Logs follow your submission-value masking and credential-redaction settings.
+
+Completed jobs leave Craft's queue, so they have no Diagnostics button to return to. Choose a logging action if you need a record of a skipped delivery. Skipped work may still appear in the Diagnostics for an enclosing job that failed on a different integration. If that job is retried, the skipped integration runs again using the current policy; successful steps remain remembered.
+
+Connections without saved choices inherit the former global [`integrationApiErrorHandling`](/get-started/configuration#integrationapierrorhandling) setting. Saving the dropdowns stores those choices on that connection; other connections keep their own policies.
 
 ## Manual Runs
 
