@@ -48,6 +48,7 @@ function trashedFilesPurge(bool $wholeRun = false): void
         }
     } finally {
         $gc->deleteAllTrashed = false;
+        UploadTestHelper::resetAssetFolderCaches();
     }
 }
 
