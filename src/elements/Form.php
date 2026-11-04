@@ -1118,10 +1118,9 @@ class Form extends Element implements FormInterface
         }
 
         $currentKey = end($pages);
-        $currentPageId = $currentPage?->id ? (int)$currentPage->id : null;
 
         if ($currentPage) {
-            while ($currentKey !== null && (int)$currentKey->id !== $currentPageId) {
+            while ($currentKey && !$this->_isSamePage($currentKey, $currentPage)) {
                 prev($pages);
                 $currentKey = current($pages);
             }
@@ -1152,10 +1151,9 @@ class Form extends Element implements FormInterface
         }
 
         $currentKey = reset($pages);
-        $currentPageId = $currentPage?->id ? (int)$currentPage->id : null;
 
         if ($currentPage) {
-            while ($currentKey !== null && (int)$currentKey->id !== $currentPageId) {
+            while ($currentKey && !$this->_isSamePage($currentKey, $currentPage)) {
                 next($pages);
                 $currentKey = current($pages);
             }
@@ -3629,6 +3627,16 @@ class Form extends Element implements FormInterface
 
     // Private Methods
     // =========================================================================
+
+    private function _isSamePage(FieldLayoutPage $page, FieldLayoutPage $otherPage): bool
+    {
+        // A form without a saved layout has a fallback page without an ID, which can only match itself.
+        if ($page === $otherPage) {
+            return true;
+        }
+
+        return $page->id && (int)$page->id === (int)$otherPage->id;
+    }
 
     private function _decodeRelationsToken(string $plain): array
     {
