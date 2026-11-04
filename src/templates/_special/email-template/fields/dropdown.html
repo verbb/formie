@@ -1,6 +1,7 @@
-{% if field.multi %}
+{# Recipients share this template but have no multiple mode, and blank children of Groups and Repeaters arrive as null. #}
+{% if field.canGetProperty('multi') and field.multi %}
     {# Remove empty elements #}
-    {% set value = value | filter(v => (v ~ '')) %}
+    {% set value = (value ?? []) | filter(v => (v ~ '')) %}
 
     {% if value | length %}
         <ul>
