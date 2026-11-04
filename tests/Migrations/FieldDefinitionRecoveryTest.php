@@ -26,11 +26,17 @@ afterEach(function(): void {
 
     try {
         $db->createCommand()->checkIntegrity(false)->execute();
+        $tables = array_filter($db->getSchema()->getTableNames('', true), fn(string $table): bool => str_starts_with($table, $db->tablePrefix));
 
-        foreach ($db->getSchema()->getTableNames('', true) as $table) {
-            if (str_starts_with($table, $db->tablePrefix)) {
-                $db->createCommand()->dropTable($table)->execute();
+        // PostgreSQL refuses to drop a referenced table even with triggers disabled, so remove every reference first.
+        foreach ($tables as $table) {
+            foreach (array_keys($db->getSchema()->getTableSchema($table, true)->foreignKeys) as $foreignKey) {
+                $db->createCommand()->dropForeignKey($foreignKey, $table)->execute();
             }
+        }
+
+        foreach ($tables as $table) {
+            $db->createCommand()->dropTable($table)->execute();
         }
     } finally {
         $db->createCommand()->checkIntegrity(true)->execute();

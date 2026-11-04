@@ -17,6 +17,7 @@ use verbb\formie\helpers\References;
 use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\services\Integrations;
 use yii\base\Event;
+use yii\db\PdoValue;
 
 // Execute the published class so the walkthrough cannot drift from its working example.
 $guide = file_get_contents(dirname(__DIR__, 2) . '/docs/guides/integrations/building-a-crm-integration-from-scratch.md');
@@ -79,7 +80,8 @@ it('registers the documented CRM and delivers saved nested mappings through a qu
         expect($queued['status'])->toBe('pending');
         $queue = Craft::$app->getQueue();
         $message = $queue->serializer->serialize(new TriggerIntegration(['deliveryAttemptUid' => $queued['uid']]));
-        $queueId = (new Query())->select('id')->from('{{%queue}}')->where(['job' => $message])->scalar();
+        // The job column is binary: PostgreSQL needs a bytea parameter to compare it.
+        $queueId = (new Query())->select('id')->from('{{%queue}}')->where(['job' => new PdoValue($message, PDO::PARAM_LOB)])->scalar();
         expect($queueId)->not->toBeFalse();
         expect($queue->executeJob((string)$queueId))->toBeTrue();
         expect((new Query())->from('{{%queue}}')->where(['id' => $queueId])->exists())->toBeFalse();
@@ -93,17 +95,26 @@ it('registers the documented CRM and delivers saved nested mappings through a qu
         $result = Formie::$plugin->getIntegrationDispatcher()->loadRunResults($submission, $run)->getResult($connection->handle);
         expect($result['status'])->toBe('succeeded');
     } finally {
-        $newJobs = (new Query())->select(['id', 'job'])->from('{{%queue}}')->where(['not in', 'id', $queueIdsBefore])->all();
-        foreach ($newJobs as $row) {
-            $job = Craft::$app->getQueue()->serializer->unserialize($row['job']);
-            if ($job instanceof TriggerIntegration && isset($queued) && $job->getDeliveryAttemptUid() === $queued['uid']) {
-                Craft::$app->getQueue()->release((string)$row['id']);
+        // Later tests resolve integrations through this service, so a failed cleanup step must not leak it.
+        try {
+            try {
+                $newJobs = (new Query())->select(['id', 'job'])->from('{{%queue}}')->where(['not in', 'id', $queueIdsBefore])->all();
+                foreach ($newJobs as $row) {
+                    // PostgreSQL returns binary columns as streams.
+                    $body = is_resource($row['job']) ? stream_get_contents($row['job']) : $row['job'];
+                    $job = Craft::$app->getQueue()->serializer->unserialize($body);
+                    if ($job instanceof TriggerIntegration && isset($queued) && $job->getDeliveryAttemptUid() === $queued['uid']) {
+                        Craft::$app->getQueue()->release((string)$row['id']);
+                    }
+                }
+            } finally {
+                if ($connection->id) {
+                    $service->deleteIntegration($connection);
+                }
             }
+        } finally {
+            Event::off(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, $register);
+            Formie::$plugin->set('integrations', $previousService);
         }
-        if ($connection->id) {
-            $service->deleteIntegration($connection);
-        }
-        Event::off(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, $register);
-        Formie::$plugin->set('integrations', $previousService);
     }
 });

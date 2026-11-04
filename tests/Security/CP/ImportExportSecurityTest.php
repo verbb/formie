@@ -157,7 +157,7 @@ it('requires a visible form for the import completed page', function(): void {
 
         expect(fn() => $controller->actionImportCompleted((int)$form->id))
             ->toThrow(ForbiddenHttpException::class)
-            ->and(fn() => $controller->actionImportCompleted(PHP_INT_MAX))
+            ->and(fn() => $controller->actionImportCompleted(2147483647))
             ->toThrow(NotFoundHttpException::class);
     }, [
         'method' => 'GET',

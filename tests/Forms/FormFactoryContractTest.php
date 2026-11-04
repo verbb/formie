@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use verbb\formie\elements\Form;
 use verbb\formie\factories\FormFactory;
 use verbb\formie\fields\SingleLineText;
 
@@ -95,10 +96,15 @@ it('keeps required and page-selection fluent APIs chainable', function (): void 
 
 
 it('continues generating unique handles beyond the two-letter namespace', function (): void {
+    // Only the handles matter here. Saving 700 forms uses most of the per-test time limit
+    // and slows every later test that scans all forms; the boundary case above saves real forms.
+    $generate = new ReflectionMethod(FormFactory::class, '_generateAutoHandle');
     $handles = [];
     for ($i = 0; $i < 700; $i++) {
-        $form = formie()->form()->create();
-        $handles[] = $form->handle;
+        $handle = $generate->invoke(null);
+        $form = new Form(['title' => 'Generated handle', 'handle' => $handle]);
+        expect($form->validate(['handle']))->toBeTrue('Generated handle was rejected: ' . $handle);
+        $handles[] = $handle;
     }
     expect(array_unique($handles))->toHaveCount(700);
 })->group('slow');

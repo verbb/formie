@@ -47,7 +47,8 @@ it('preserves restricted and global submission grants for users and groups upgra
         expect($groupGrants)->toContain(strtolower('formie-viewSubmissions:' . $allowed->uid));
         expect($groupGrants)->not->toContain(strtolower('formie-viewSubmissions'));
         expect($groupGrants)->not->toContain(strtolower('formie-viewSubmissions:group:ungrouped'));
-        expect(Craft::$app->getProjectConfig()->get($configPath))->toBe($groupGrants);
+        // Grants are a set: the database returns them in no particular order.
+        expect(Craft::$app->getProjectConfig()->get($configPath))->toEqualCanonicalizing($groupGrants);
     } finally {
         Craft::$app->getProjectConfig()->set('users.groups', $originalGroups);
         $transaction->rollBack();

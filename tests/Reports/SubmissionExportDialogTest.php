@@ -159,9 +159,13 @@ it('limits exports to the sites a user can edit', function (): void {
     formie()->submission($form)->with(['message' => 'Answer'])->save();
     $user = submissionExportUser([Permissions::PERM_EXPORT_SUBMISSIONS, Permissions::PERM_VIEW_SUBMISSIONS]);
 
-    asSubmissionExporter(function () use ($form): void {
-        expect(Craft::$app->getSites()->getEditableSiteIds())->toBe([])
-            ->and(submissionExportCount(['formIds' => [$form->id]]))->toBe(0);
+    // Craft has no per-site grants to check on a single-site install: its only site is always editable.
+    $multiSite = Craft::$app->getIsMultiSite();
+    $editableSiteIds = $multiSite ? [] : [(int)Craft::$app->getSites()->getPrimarySite()->id];
+
+    asSubmissionExporter(function () use ($form, $multiSite, $editableSiteIds): void {
+        expect(array_map('intval', Craft::$app->getSites()->getEditableSiteIds()))->toBe($editableSiteIds)
+            ->and(submissionExportCount(['formIds' => [$form->id]]))->toBe($multiSite ? 0 : 1);
     }, $user);
 });
 

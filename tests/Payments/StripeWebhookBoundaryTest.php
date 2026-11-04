@@ -7,6 +7,19 @@ use verbb\formie\integrations\payments\Stripe;
 use verbb\formie\models\{Payment, Subscription};
 use Tests\Support\WebRequestTestHelper;
 
+// Persisted integrations reload by class name, and an anonymous class name does not survive a PostgreSQL round trip.
+class StripeWebhookInvoiceFixture extends Stripe
+{
+    private ?\Stripe\StripeClient $_testClient = null;
+    public function setTestClient(\Stripe\StripeClient $client): void { $this->_testClient = $client; }
+    public function getStripe(): \Stripe\StripeClient { return $this->_testClient; }
+}
+
+class StripeWebhookOtherAccountFixture extends Stripe
+{
+    public function getStripe(): \Stripe\StripeClient { throw new RuntimeException('Must not call another integration API'); }
+}
+
 it('keeps successful Stripe payments terminal and binds signed events to their integration', function (): void {
     $integrations = [];
     foreach (['owner', 'other'] as $key) {
@@ -45,11 +58,7 @@ it('keeps successful Stripe payments terminal and binds signed events to their i
 })->group('security');
 
 it('retrieves the current Stripe subscription period before persisting a paid invoice', function (): void {
-    $integration = new class(['name' => 'Invoice fixture', 'handle' => 'invoice' . uniqid()]) extends Stripe {
-        private ?\Stripe\StripeClient $_testClient = null;
-        public function setTestClient(\Stripe\StripeClient $client): void { $this->_testClient = $client; }
-        public function getStripe(): \Stripe\StripeClient { return $this->_testClient; }
-    };
+    $integration = new StripeWebhookInvoiceFixture(['name' => 'Invoice fixture', 'handle' => 'invoice' . uniqid()]);
     expect(Formie::$plugin->getIntegrations()->saveIntegration($integration, false))->toBeTrue();
     $client = new class extends \Stripe\StripeClient {
         public array $references = [];
@@ -100,9 +109,7 @@ it('returns a retryable failure when a valid Stripe webhook cannot be processed'
 it('ignores subscription and invoice events authenticated by another integration', function (): void {
     $owner = new Stripe(['name' => 'Owner', 'handle' => 'owner' . uniqid()]);
     expect(Formie::$plugin->getIntegrations()->saveIntegration($owner, false))->toBeTrue();
-    $other = new class(['name' => 'Other', 'handle' => 'other' . uniqid()]) extends Stripe {
-        public function getStripe(): \Stripe\StripeClient { throw new RuntimeException('Must not call another integration API'); }
-    };
+    $other = new StripeWebhookOtherAccountFixture(['name' => 'Other', 'handle' => 'other' . uniqid()]);
     expect(Formie::$plugin->getIntegrations()->saveIntegration($other, false))->toBeTrue();
     $subscription = new Subscription(['trialDays' => 0, 'integrationId' => $owner->id, 'reference' => 'sub_owned_' . uniqid()]);
     $subscriptions = Formie::$plugin->getSubscriptions();

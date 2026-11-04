@@ -24,7 +24,9 @@ class PrecisionDecimalQueryContractField extends SingleLineText
 
 it('preserves custom decimal precision when selecting and filtering field values', function (string $class, string $amount, string $expected): void {
     $field = new $class(['uid' => 'decimal-field', 'handle' => 'amount']);
-    $row = (new Query())->select(['content' => new Expression(':content', [':content' => Json::encode([$field->uid => $amount])])]);
+    // Match the real content column, which is JSONB on PostgreSQL and rejects its JSON operators on text.
+    $content = Craft::$app->getDb()->getIsPgsql() ? 'CAST(:content AS jsonb)' : ':content';
+    $row = (new Query())->select(['content' => new Expression($content, [':content' => Json::encode([$field->uid => $amount])])]);
     $query = (new Query())->select(['amount' => new Expression($field->getValueSql())])->from(['formie_submissions' => $row]);
     expect((string)$query->scalar())->toBe($expected);
     $params = [];

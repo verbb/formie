@@ -7,55 +7,62 @@ use verbb\formie\integrations\payments\Paddle;
 use verbb\formie\models\Payment;
 use verbb\formie\models\PaymentFieldPayload;
 
+// Persisted integrations reload by class name, and an anonymous class name does not survive a PostgreSQL round trip.
+class CheckoutVerificationPaddle extends Paddle
+{
+    public array $payload = [];
+    public array $requests = [];
+    public array $transaction = [];
+    public ?string $loseResponseFor = null;
+    protected function getPaymentFieldPayload(Submission $submission): PaymentFieldPayload
+    {
+        return new PaymentFieldPayload($this->handle, 'payment', $this->payload);
+    }
+    public function request(string $method, string $uri, array $options = []): mixed
+    {
+        $this->requests[] = [$method, $uri, $options];
+        if ($method === 'GET') {
+            if (str_starts_with($uri, 'products/') || str_starts_with($uri, 'prices/')) {
+                return ['data' => ['id' => basename($uri)]];
+            }
+            return ['data' => $this->transaction];
+        }
+        if ($uri === $this->loseResponseFor) {
+            throw new \GuzzleHttp\Exception\ConnectException('Response lost', new \GuzzleHttp\Psr7\Request('POST', 'https://example.test'));
+        }
+        return ['data' => ['id' => match ($uri) {
+            'products' => 'pro_' . str_repeat('a', 26),
+            'prices' => 'pri_' . str_repeat('b', 26),
+            'transactions' => 'txn_' . str_repeat('c', 26),
+            default => throw new RuntimeException('Unexpected request: ' . $uri),
+        }]];
+    }
+}
+
+class CheckoutVerificationOpayo extends Opayo
+{
+    public array $payload = [];
+    public array $requests = [];
+    public array $response = [];
+    public ?Throwable $exception = null;
+    protected function getPaymentFieldPayload(Submission $submission): PaymentFieldPayload
+    {
+        return new PaymentFieldPayload($this->handle, 'payment', $this->payload);
+    }
+    public function request(string $method, string $uri, array $options = []): mixed
+    {
+        $this->requests[] = [$method, $uri, $options];
+        if ($this->exception) { throw $this->exception; }
+        if ($this->response) { return $this->response; }
+        throw new RuntimeException('Continuation must not charge a card.');
+    }
+}
+
 function checkoutVerificationFixture(string $provider): array
 {
     $integration = $provider === 'paddle'
-        ? new class(['name' => 'Paddle verification', 'handle' => 'paddleVerification' . bin2hex(random_bytes(5))]) extends Paddle {
-            public array $payload = [];
-            public array $requests = [];
-            public array $transaction = [];
-            public ?string $loseResponseFor = null;
-            protected function getPaymentFieldPayload(Submission $submission): PaymentFieldPayload
-            {
-                return new PaymentFieldPayload($this->handle, 'payment', $this->payload);
-            }
-            public function request(string $method, string $uri, array $options = []): mixed
-            {
-                $this->requests[] = [$method, $uri, $options];
-                if ($method === 'GET') {
-                    if (str_starts_with($uri, 'products/') || str_starts_with($uri, 'prices/')) {
-                        return ['data' => ['id' => basename($uri)]];
-                    }
-                    return ['data' => $this->transaction];
-                }
-                if ($uri === $this->loseResponseFor) {
-                    throw new \GuzzleHttp\Exception\ConnectException('Response lost', new \GuzzleHttp\Psr7\Request('POST', 'https://example.test'));
-                }
-                return ['data' => ['id' => match ($uri) {
-                    'products' => 'pro_' . str_repeat('a', 26),
-                    'prices' => 'pri_' . str_repeat('b', 26),
-                    'transactions' => 'txn_' . str_repeat('c', 26),
-                    default => throw new RuntimeException('Unexpected request: ' . $uri),
-                }]];
-            }
-        }
-        : new class(['name' => 'Opayo verification', 'handle' => 'opayoVerification' . bin2hex(random_bytes(5))]) extends Opayo {
-            public array $payload = [];
-            public array $requests = [];
-            public array $response = [];
-            public ?Throwable $exception = null;
-            protected function getPaymentFieldPayload(Submission $submission): PaymentFieldPayload
-            {
-                return new PaymentFieldPayload($this->handle, 'payment', $this->payload);
-            }
-            public function request(string $method, string $uri, array $options = []): mixed
-            {
-                $this->requests[] = [$method, $uri, $options];
-                if ($this->exception) { throw $this->exception; }
-                if ($this->response) { return $this->response; }
-                throw new RuntimeException('Continuation must not charge a card.');
-            }
-        };
+        ? new CheckoutVerificationPaddle(['name' => 'Paddle verification', 'handle' => 'paddleVerification' . bin2hex(random_bytes(5))])
+        : new CheckoutVerificationOpayo(['name' => 'Opayo verification', 'handle' => 'opayoVerification' . bin2hex(random_bytes(5))]);
     expect(Formie::$plugin->getIntegrations()->saveIntegration($integration, false))->toBeTrue();
     $form = formie()->form()->paymentField('payment', [
         'paymentIntegration' => $integration->handle,

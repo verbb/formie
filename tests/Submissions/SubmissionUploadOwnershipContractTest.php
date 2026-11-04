@@ -141,6 +141,7 @@ it('repairs a physical move interrupted before asset metadata commits', function
         ->and($service->getTrackedUploadByAssetId($asset->id)['promotionState'])->toBe('moved');
 });
 
+// The dataset uses full-length UIDs: PostgreSQL pads anything shorter in its CHAR(36) column, which changes the hash.
 it('records the exact collision filename that Craft preserves during promotion', function (string $uid, bool $longName) {
     $volume = UploadTestHelper::ensureUploadVolume();
     $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false])->create();
@@ -172,7 +173,7 @@ it('records the exact collision filename that Craft preserves during promotion',
         ->and(strlen($saved->filename))->toBeLessThanOrEqual(255)
         ->and(file_get_contents($saved->getCopyOfFile()))->toBe('owned collision content')
         ->and($existingContent)->toBe('existing destination');
-})->with([['abcdefghijk_', false], ['abcdefghijk-', false], ['long-file-uid', true]]);
+})->with([[str_repeat('a', 35) . '_', false], [str_repeat('a', 35) . '-', false], [str_repeat('z', 36), true]]);
 
 it('rejects arbitrary final asset IDs through every submission adapter', function (string $transport) {
     $volume = UploadTestHelper::ensureUploadVolume();

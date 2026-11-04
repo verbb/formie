@@ -118,22 +118,45 @@ function createPaymentFixture(array $overrides = [], bool $stubGateway = false):
     return $payment;
 }
 
+// Persisted integrations reload by class name, and an anonymous class name does not survive a PostgreSQL round trip.
+class AnonymousEndpointOpayo extends Opayo
+{
+    public function request(string $method, string $uri, array $options = []): mixed
+    {
+        return [
+            'merchantSessionKey' => 'test-merchant-session-key',
+        ];
+    }
+}
+
+class AnonymousEndpointGoCardless extends GoCardless
+{
+    public static bool $requested = false;
+    public static int $paymentId = 0;
+
+    public function request(string $method, string $uri, array $options = []): mixed
+    {
+        self::$requested = true;
+
+        return ['payments' => [
+            'id' => 'PM123', 'amount' => 1000, 'currency' => 'AUD',
+            'status' => 'confirmed',
+            'metadata' => [
+                'formiePaymentId' => (string)self::$paymentId,
+            ],
+        ]];
+    }
+}
+
 function createOpayoCallbackFixture(): Opayo
 {
-    $integration = new class([
+    $integration = new AnonymousEndpointOpayo([
         'name' => 'Security Opayo Integration',
         'handle' => 'securityOpayo' . uniqid(),
         'vendorName' => 'test-vendor',
         'integrationKey' => 'test-key',
         'integrationPassword' => 'test-password',
-    ]) extends Opayo {
-        public function request(string $method, string $uri, array $options = []): mixed
-        {
-            return [
-                'merchantSessionKey' => 'test-merchant-session-key',
-            ];
-        }
-    };
+    ]);
     Formie::$plugin->getIntegrations()->saveIntegration($integration, false);
     $form = formie()->form()->paymentField('payment', ['paymentIntegration' => $integration->handle, 'paymentIntegrationType' => Opayo::class])->create();
     $integration->context['form'] = $form;
@@ -627,28 +650,12 @@ it('requires a valid gocardless webhook signature before processing webhook payl
 })->group('security');
 
 it('accepts correctly signed gocardless webhook payloads before processing them', function (): void {
-    $integration = new class([
+    $integration = new AnonymousEndpointGoCardless([
         'name' => 'Security GoCardless',
         'handle' => 'securityGoCardless' . uniqid(),
         'accessToken' => '$GO_CARDLESS_ACCESS_TOKEN',
         'webhookSecretKey' => '$GO_CARDLESS_WEBHOOK_SECRET',
-    ]) extends GoCardless {
-        public static bool $requested = false;
-        public static int $paymentId = 0;
-
-        public function request(string $method, string $uri, array $options = []): mixed
-        {
-            self::$requested = true;
-
-            return ['payments' => [
-                'id' => 'PM123', 'amount' => 1000, 'currency' => 'AUD',
-                'status' => 'confirmed',
-                'metadata' => [
-                    'formiePaymentId' => (string)self::$paymentId,
-                ],
-            ]];
-        }
-    };
+    ]);
     Formie::$plugin->getIntegrations()->saveIntegration($integration, false);
     $payment = createPaymentFixture(['integrationId' => $integration->id, 'reference' => null]);
     $integration::$paymentId = (int)$payment->id;
@@ -660,7 +667,7 @@ it('accepts correctly signed gocardless webhook payloads before processing them'
     ], function () use ($integration, $payment): void {
         $payload = json_encode([
             'events' => [[
-                'id' => 'EV_contract', 'resource_type' => 'payments',
+                'id' => 'EV_contract_' . uniqid(), 'resource_type' => 'payments',
                 'links' => [
                     'payment' => 'PM123',
                 ],
@@ -728,7 +735,10 @@ it('accepts authenticated payment webhook bursts through the stable integration 
     ]);
     expect(Formie::$plugin->getIntegrations()->saveIntegration($integration, false))->toBeTrue();
 
-    WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration, $secret): void {
+    // Receipts outlive this test and repeat event IDs are deduplicated, so each run needs its own IDs.
+    $eventPrefix = 'evt_burst_' . uniqid() . '_';
+
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($integration, $secret, $eventPrefix): void {
         $request->setQueryParams(['integrationUid' => (string)$integration->uid]);
         $controller = new PaymentWebhooksController('formie-payment-security', Craft::$app);
 
@@ -737,7 +747,7 @@ it('accepts authenticated payment webhook bursts through the stable integration 
         // the durable receipt identity protect this boundary inside Formie.
         for ($i = 0; $i < 61; $i++) {
             $body = json_encode([
-                'id' => 'evt_burst_' . $i,
+                'id' => $eventPrefix . $i,
                 'type' => 'contract.unhandled',
                 'livemode' => false,
                 'data' => ['object' => ['id' => 'resource_' . $i, 'object' => 'contract']],

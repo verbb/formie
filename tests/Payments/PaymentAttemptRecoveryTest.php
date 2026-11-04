@@ -26,13 +26,28 @@ trait PaymentAttemptFixture
     }
 }
 
+// Persisted integrations reload by class name, and an anonymous class name does not survive a PostgreSQL round trip.
+class PaymentAttemptEway extends Eway { use PaymentAttemptFixture; }
+class PaymentAttemptBpoint extends Bpoint { use PaymentAttemptFixture; }
+class PaymentAttemptOpayo extends Opayo { use PaymentAttemptFixture; }
+class PaymentAttemptMollie extends Mollie { use PaymentAttemptFixture; }
+
+// Attempts made within the same second tie on dateCreated, so compare them in the order they were created.
+function paymentAttemptsInCreationOrder(Submission $submission): array
+{
+    $payments = Formie::$plugin->getPayments()->getSubmissionPayments($submission);
+    usort($payments, static fn(Payment $a, Payment $b): int => $a->id <=> $b->id);
+
+    return $payments;
+}
+
 function paymentAttemptFixture(string $provider): array
 {
     $integration = match ($provider) {
-        'eway' => new class extends Eway { use PaymentAttemptFixture; },
-        'bpoint' => new class extends Bpoint { use PaymentAttemptFixture; },
-        'opayo' => new class extends Opayo { use PaymentAttemptFixture; },
-        'mollie' => new class extends Mollie { use PaymentAttemptFixture; },
+        'eway' => new PaymentAttemptEway(),
+        'bpoint' => new PaymentAttemptBpoint(),
+        'opayo' => new PaymentAttemptOpayo(),
+        'mollie' => new PaymentAttemptMollie(),
     };
     $integration->name = 'Recovery ' . $provider;
     $integration->handle = 'recovery' . $provider . bin2hex(random_bytes(5));
@@ -105,7 +120,7 @@ it('allows a new payment only after a confirmed decline', function (string $prov
         expect($integration->processPayment($submission)->status->value)->toBe('failed');
         $integration->receipt = $success;
         expect($integration->processPayment($submission)->status->value)->toBe('succeeded');
-        $payments = Formie::$plugin->getPayments()->getSubmissionPayments($submission);
+        $payments = paymentAttemptsInCreationOrder($submission);
         expect($payments)->toHaveCount(2)->and($payments[0]->status)->toBe(Payment::STATUS_FAILED)->and($payments[1]->status)->toBe(Payment::STATUS_SUCCESS);
     });
 })->with(['eway', 'bpoint', 'opayo']);
@@ -123,7 +138,7 @@ it('starts one new checkout after a confirmed cancellation and reuses it on dupl
         expect($integration->processPayment($submission)->status->value)->toBe('requiresAction');
         expect($integration->processPayment($submission)->status->value)->toBe('requiresAction');
         expect($integration->requests)->toHaveCount(2);
-        $attempts = $payments->getSubmissionPayments($submission);
+        $attempts = paymentAttemptsInCreationOrder($submission);
         expect($attempts)->toHaveCount(2)
             ->and($attempts[0]->id)->toBe($cancelled->id)
             ->and($attempts[0]->status)->toBe(Payment::STATUS_CANCELLED)

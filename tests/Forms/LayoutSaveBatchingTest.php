@@ -140,7 +140,7 @@ it('batches definition usage and cache invalidation across root and nested layou
         return str_contains($sql, 'count(*)')
             && str_contains($sql, 'formie_form_fields')
             && str_contains($sql, 'fieldid')
-            && str_contains($sql, 'as `usagecount`');
+            && preg_match('/as [`"]usagecount[`"]/', $sql) === 1;
     }));
     $identityExistsQueries = array_values(array_filter($queries, static function(string $sql): bool {
         $sql = strtolower($sql);
