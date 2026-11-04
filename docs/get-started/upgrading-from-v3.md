@@ -875,6 +875,8 @@ Transforms use `;transform=...`, such as `;transform=kebab` or `;transform=upper
 
 Twig conditionals, method calls, custom user properties and filters without a built-in transform need a [custom variable source](/developers/custom-variable-sources). Move that calculation into the source's PHP resolver, register it, then select it in the Variable Picker. Replace expressions manually where no equivalent reference or transform exists.
 
+Upgrading converts plain tokens in notification settings automatically when they exactly match a field on that form, such as `{email}` or `{group.field}`, along with `{id}`, `{uid}` and `{title}`. Tokens with filters or Twig, and handles that don't match a field, stay as written and need converting by hand.
+
 ##### Settings That Still Support Twig
 
 Hidden fields using **Template**, HTML fields with **Allow Twig** enabled and PDF template **Filename Format** retain sandboxed Twig support. Hidden and HTML template availability is controlled in **Settings → Field Types and Restrictions**; see [Field Templates and HTML Purification](#field-templates-and-html-purification). Changing a Hidden field from **Custom Value** to **Template** also changes its submitted-value behaviour: Formie re-resolves the value on the server and ignores posted input. See [Hidden fields](/fields/hidden#custom-value-vs-template) before switching sources.
@@ -1941,6 +1943,14 @@ Session-based form progress | Database-backed progress and separate links for re
 Integration field-mapping tokens | Migrated reference values; existing notification and form tokens retain compatibility parsing.
 
 Custom frontends should review [Frontend Assets](/frontend/frontend-assets) when adopting the browser packages.
+
+### Address Auto-Complete
+
+Answers saved in an Address field's auto-complete input are kept, and still appear in exports and emails. The field's **Auto-Complete** sub-field only appears in its settings when an address provider is enabled. To use it again, enable a provider, open the Address field, turn on **Auto-Complete**, choose the provider and re-enter its label and placeholder. Until then, the saved answer doesn't appear on the control panel edit screen.
+
+### Categories Sources
+
+Categories fields use their saved **Sources** again, including **All** and several groups. A field that offered one group in Formie 3 keeps that group. Tick more sources, or **All**, to widen it.
 
 ### Spam Protection
 
