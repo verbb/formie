@@ -314,6 +314,11 @@ class Address extends FixedParentField implements ReportSubfieldsInterface, Prev
         ];
     }
 
+    public function hasOnlyAutoCompleteValue(mixed $value, ?ElementInterface $element): bool
+    {
+        return $this->_onlyAutoComplete($value, $element) !== null;
+    }
+
     public function getAddressProviderIntegration(): ?IntegrationInterface
     {
         $autoComplete = $this->getFieldByHandle('autoComplete');

@@ -16,6 +16,7 @@ use verbb\formie\fields\Address;
 use verbb\formie\fields\subfields\AddressAutoComplete;
 use verbb\formie\Formie;
 use verbb\formie\helpers\Table;
+use verbb\formie\models\Notification;
 
 const LEGACY_AUTOCOMPLETE_TEXT = '1 Legacy Way, Melbourne VIC 3000';
 
@@ -272,4 +273,55 @@ it('reads and keeps auto-complete text inside an encrypted address', function():
 
     expect(json_encode(legacyAddressStored($submission->id)))->not->toContain('Legacy Way')
         ->and((string)legacyAddressReload($submission->id)->getFieldValue('address'))->toBe(LEGACY_AUTOCOMPLETE_TEXT);
+});
+
+function renderAddressNotification(Form $form, array $content): string
+{
+    $notification = new Notification([
+        'formId' => $form->id,
+        'name' => 'Address Notice',
+        'handle' => 'addressNotice' . uniqid(),
+        'enabled' => true,
+        'to' => 'recipient@example.test',
+        'from' => 'sender@example.test',
+        'subject' => 'Address',
+        'content' => '{allFields}',
+    ]);
+    expect(Formie::$plugin->getNotifications()->saveNotification($notification))->toBeTrue();
+
+    $submission = legacyAddressSubmission($form, $content);
+    $result = Formie::$plugin->getEmails()->renderEmail($notification, legacyAddressReload($submission->id));
+
+    expect($result['error'] ?? null)->toBeNull();
+
+    return (string)$result['email']->getSymfonyEmail()->getHtmlBody();
+}
+
+it('shows stored auto-complete text in a notification for an address without that sub-field', function(): void {
+    $form = legacyAddressForm();
+    $html = renderAddressNotification($form, [$form->getFieldByHandle('address')->uid => legacyAddressValue()]);
+
+    expect($html)->toContain(LEGACY_AUTOCOMPLETE_TEXT)->toContain('Auto-Complete');
+});
+
+it('shows the address parts rather than the stored text when parts were answered', function(): void {
+    $form = legacyAddressForm();
+    $html = renderAddressNotification($form, [$form->getFieldByHandle('address')->uid => legacyAddressValue(['city' => 'Geelong'])]);
+
+    expect($html)->toContain('Geelong')->not->toContain(LEGACY_AUTOCOMPLETE_TEXT);
+});
+
+it('shows auto-complete text once in a notification when the sub-field is enabled', function(): void {
+    $form = legacyAddressForm(['rows' => legacyAddressRows(['enabled' => true])]);
+    $field = $form->getFieldByHandle('address');
+    $html = renderAddressNotification($form, [$field->uid => legacyAddressValue()]);
+
+    expect(substr_count($html, LEGACY_AUTOCOMPLETE_TEXT))->toBe(1);
+});
+
+it('keeps the placeholders in a notification for an address with no answer', function(): void {
+    $form = legacyAddressForm();
+    $html = renderAddressNotification($form, [$form->getFieldByHandle('address')->uid => ['address1' => null]]);
+
+    expect($html)->not->toContain('Auto-Complete')->toContain('No response');
 });

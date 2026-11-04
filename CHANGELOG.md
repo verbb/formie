@@ -56,6 +56,7 @@
 - Fixed a validation error from the server on a field inside a Group or Repeater marking the other fields around it as invalid on forms that reload the page.
 - Fixed focus not moving to Checkboxes, Agree, searchable Dropdown and Rich Text fields after a validation error.
 - Fixed the File Upload field’s asset picker on the control panel submission screen listing nothing, and chosen assets being rejected when saving. Chosen assets stay where they are in the library and aren’t deleted with the submission.
+- Fixed Address answers holding only auto-complete text showing as empty in email notifications when the field no longer has an Auto-Complete sub-field.
 - Fixed the Redirect Entry picker appearing empty when Craft’s “All entries” source is disabled. ([#3089](https://github.com/verbb/formie/issues/3089))
 - Fixed forms failing to load when a field or page has a condition rule that was added but never filled in, which can be present on forms upgraded from Formie 3.
 - Fixed forms showing “A required form feature could not start” and being unable to submit when a field had conditions enabled but no rules.

@@ -1,15 +1,20 @@
-{% for field in field.getEnabledFields() %}
-    {% set value = submission.getFieldValue(field.valueKey()) ?? field.getInitialValue(submission) %}
+{# An answer can hold only auto-complete text while the field no longer has that sub-field, as Formie 2 upgrades can. #}
+{% if field.hasOnlyAutoCompleteValue(value, submission) %}
+    {{ field.getValueForSummary(value, submission) }}
+{% else %}
+    {% for field in field.getEnabledFields() %}
+        {% set value = submission.getFieldValue(field.valueKey()) ?? field.getInitialValue(submission) %}
 
-    {% if field.hasReferenceBlockLabel() %}
-        <strong>{{ field.label }}:</strong>
-    {% endif %}
+        {% if field.hasReferenceBlockLabel() %}
+            <strong>{{ field.label }}:</strong>
+        {% endif %}
 
-    {% if field.isValueEmpty(value, submission) and field.hasReferenceBlockPlaceholder() %}
-        {{ notification.getPlaceholder() }}
-    {% else %}
-        {{ field.getReferenceBlockHtml(submission, notification, value) | raw }}
-    {% endif %}
+        {% if field.isValueEmpty(value, submission) and field.hasReferenceBlockPlaceholder() %}
+            {{ notification.getPlaceholder() }}
+        {% else %}
+            {{ field.getReferenceBlockHtml(submission, notification, value) | raw }}
+        {% endif %}
 
-    <br>
-{% endfor %}
+        <br>
+    {% endfor %}
+{% endif %}
