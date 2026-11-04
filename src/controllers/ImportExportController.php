@@ -180,6 +180,7 @@ class ImportExportController extends SettingsAccessController
         foreach ($plan['changes'] as $action => $references) {
             $this->_stdout(Html::encode(ucfirst($action) . ': ' . implode(', ', $references)));
         }
+
         $summary = ob_get_clean();
 
         $variables = compact('filename', 'summary', 'json', 'existingForm');
@@ -247,6 +248,11 @@ class ImportExportController extends SettingsAccessController
         }
 
         $this->setSuccessFlash(Craft::t('formie', 'Form imported.'));
+
+        // Import permission does not grant access to the form-specific completion page.
+        if (!Formie::$plugin->getPermissions()->canViewForm($user, $form)) {
+            return $this->redirect(UrlHelper::cpUrl('formie/settings/import-export'));
+        }
 
         return $this->redirectToPostedUrl($form);
     }
