@@ -18,7 +18,6 @@ use verbb\formie\elements\actions\SetSubmissionSpam;
 use verbb\formie\elements\actions\SetSubmissionStatus;
 use verbb\formie\elements\conditions\SubmissionCondition;
 use verbb\formie\elements\db\SubmissionQuery;
-use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\events\SubmissionCompleteEvent;
 use verbb\formie\events\SubmissionMarkedAsSpamEvent;
 use verbb\formie\events\SubmissionRulesEvent;
@@ -765,12 +764,6 @@ class Submission extends Element
             $this->_validationAttributeNames = null;
         }
 
-        $command = WorkflowContext::current()?->command;
-
-        if ($command?->submission === $this && $command->authority->type === SubmissionAuthorityType::GRAPHQL_ADMIN) {
-            return $validates && !$this->hasErrors();
-        }
-
         $form = $this->getForm();
 
         if ($form && $form->settings->requireUser) {
@@ -1271,11 +1264,7 @@ class Submission extends Element
 
         // Check if this is a spam submission and if we should save it
         // Only trigger this for site requests though
-        $context = WorkflowContext::current();
-        $command = $context?->command;
-        $administrative = $command?->submission === $this && $command->authority->type === SubmissionAuthorityType::GRAPHQL_ADMIN && !$context->attemptedCompletion;
-
-        if ($this->isSpam && !$administrative && $request->getIsSiteRequest()) {
+        if ($this->isSpam && $request->getIsSiteRequest()) {
             // Always log spam submissions
             Formie::$plugin->getSubmissions()->logSpam($this);
 

@@ -96,7 +96,7 @@ Pass payment values in `input.values` using the Payment field’s builder ID as 
 }
 ```
 
-Form-specific administrative submission mutations (`save_<handle>_Submission`) do not execute payments. Use `submitFormieClientForm` for the headless payment workflow.
+Use `submitFormieClientForm` for the headless payment workflow. A `save_<handle>_Submission` mutation can't carry the session a payment's follow-up steps depend on.
 
 ### 3. Handle Payment Follow-Up
 

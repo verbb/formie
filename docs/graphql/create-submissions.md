@@ -12,11 +12,11 @@ save_<formHandle>_Submission
 
 For a form with the handle `contactForm`, the mutation is `save_contactForm_Submission`.
 
-These mutations are authorized by a private GraphQL schema, so call them from your server with an access token rather than from browser code. They validate and save the submission, including upload ownership.
+These mutations submit a form. A submission made this way behaves like one made on your site: Formie applies the form's availability rules and field conditions, validates the answers, screens for spam, then sends notifications and triggers integrations. Use a private GraphQL schema with an access token, and call the mutation from your server so the token stays out of browser code.
 
-When a mutation completes a submission, Formie screens it for spam and sends it through the same delivery as a form submitted on your site: email notifications go out and integrations are triggered. A submission completes when you create it, or when you set `isIncomplete: false` on an incomplete one. Saving with `isIncomplete: true`, or editing a submission that's already complete, only changes its content. See [Notifications and Integrations](#notifications-and-integrations) to turn delivery off, and [Spam Protection](#spam-protection) for how a rejected submission responds.
+Send every answer in one request to complete the submission. To save progress instead, set `isIncomplete: true`. That saves a draft without requiring every field, and nothing is sent until you complete it with `isIncomplete: false`. Editing a completed submission requires its current `expectedVersion`, so a stale or missing version can't overwrite another save.
 
-These mutations don't charge payments or resolve completion redirects. Use the [visitor submission flow](/guides/frontend-headless/graphql-submission-flow-end-to-end) when you need those. Updating an existing submission requires its current `expectedVersion`, so a stale or missing version can't overwrite another save.
+Payment fields need provider-specific steps that one mutation can't return. See [Payment Fields](#payment-fields).
 
 You can also use the generic `saveSubmission` mutation when you want one stable mutation for every form. See [Generic `saveSubmission`](#generic-savesubmission).
 
@@ -69,7 +69,7 @@ Argument | Type | Description
 `statusId` | `Int` | Set the submission status ID.
 `siteId` | `Int` | Set the submission site ID.
 `isIncomplete` | `Boolean` | Set whether the submission is incomplete.
-`operationId` | `String` | Stable identity for retrying the same administrative operation.
+`operationId` | `String` | Stable identity for safely retrying the same request.
 `expectedVersion` | `Int` | Required for an existing submission; use its current `stateVersion`.
 `requestToken` | `String` | Optional operation identity when `operationId` is omitted.
 `sendNotifications` | `Boolean` | Set to `false` to complete the submission without sending its email notifications. Defaults to `true`.
@@ -246,27 +246,23 @@ mutation SaveSubmission($repeaterField: contactForm_repeaterField_FormieRepeater
 
 ## Notifications and Integrations
 
-Completing a submission through a mutation sends the form's enabled email notifications and triggers its integrations, including any notification timing and integration order you've set for the form. Conditions on notifications and integrations apply as usual, and Formie's queue settings decide whether they run during the request or in the queue.
+Completing a submission sends the form's enabled email notifications and triggers its integrations, following the notification timing and integration order you've set for the form. Conditions on notifications and integrations apply as usual, and Formie's queue settings decide whether they run during the request or in the queue.
 
-That's what you want when your front-end is submitting a visitor's answers. It isn't what you want when a script imports historical submissions, because every imported record would email someone. Turn off whichever delivery you don't need for that request:
+To complete a particular submission without sending one of these, set `sendNotifications` or `triggerIntegrations` to `false`:
 
 ```graphql
-mutation ImportSubmission($yourName: String) {
-    save_contactForm_Submission(
-        yourName: $yourName
-        sendNotifications: false
-        triggerIntegrations: false
-    ) {
+mutation SaveWithoutEmail($yourName: String) {
+    save_contactForm_Submission(yourName: $yourName, sendNotifications: false) {
         id
     }
 }
 ```
 
-These arguments only apply to the request that completes the submission. Editing a completed submission doesn't send anything again.
+These arguments only apply to the request that completes the submission.
 
 ## Spam Protection
 
-A completing mutation runs the same spam checks as a form submitted on your site, using your [spam settings](/forms/spam-protection). If the submission is treated as spam, it doesn't send notifications or trigger integrations, unless you've turned on email notifications for spam. Your **Spam Submission Behavior** setting decides what the mutation returns:
+A completed submission goes through the same spam checks as a form submitted on your site, using your [spam settings](/forms/spam-protection). If the submission is treated as spam, it doesn't send notifications or trigger integrations, unless you've turned on email notifications for spam. Your **Spam Submission Behavior** setting decides what the mutation returns:
 
 - **Show error message:** the response contains an error with your message, in the same format as a validation error.
 - **Show success:** the mutation responds as usual, so nothing tells the sender it was caught. If Formie isn't saving spam there's no submission to return, so the mutation's value is `null`.
@@ -277,7 +273,7 @@ When a form has a captcha enabled, Formie adds a captcha argument to that formâ€
 
 For example, a captcha integration with the handle `turnstile` becomes the argument `turnstileCaptcha`.
 
-If the argument is available, a completing mutation must send a valid token, otherwise the submission is treated as spam. On a multi-page form, a captcha only gets an argument if it's set to show on all pages. Mutations save the whole form at once and don't have a current page, so any other captcha on a multi-page form isn't checked.
+To complete the submission, send a valid token in this argument. Without one, the submission is treated as spam. On a multi-page form, send it with the request that completes the submission.
 
 ```graphql
 mutation SaveSubmission(
@@ -348,7 +344,7 @@ Argument | Type | Description
 `statusId` | `Int` | Set the submission status ID.
 `siteId` | `Int` | Set the submission site ID.
 `isIncomplete` | `Boolean` | Set whether the submission is incomplete.
-`operationId` | `String` | Stable identity for retrying the same administrative operation.
+`operationId` | `String` | Stable identity for safely retrying the same request.
 `expectedVersion` | `Int` | Required for an existing submission; use its current `stateVersion`.
 `requestToken` | `String` | Optional operation identity when `operationId` is omitted.
 `sendNotifications` | `Boolean` | Set to `false` to complete the submission without sending its email notifications. Defaults to `true`.

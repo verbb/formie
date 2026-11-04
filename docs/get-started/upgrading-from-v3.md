@@ -439,7 +439,7 @@ Form integration settings returned through GraphQL contain only values needed by
 
 Custom submission clients must also update their [tokens and version handling](#continuity-and-upload-upgrade-actions). See [Rendering Forms](/graphql/rendering-forms) and [Create Submissions](/graphql/create-submissions) for complete requests. The [page-setting renames](#graphql-page-settings) remain covered by compatibility mode.
 
-`save_<handle>_Submission` and `saveSubmission` still screen new submissions, send notifications and trigger integrations. They no longer charge payments, and they can't be used with the public schema, so call them from your server with a private token. Client-rendered forms and payments should use [`submitFormieClientForm`](/guides/frontend-headless/graphql-submission-flow-end-to-end) instead.
+`save_<handle>_Submission` and `saveSubmission` still submit a form as they did in Formie 3. Two things need checking: a multi-page form with a captcha now needs a captcha token in the mutation, and these mutations need a private schema with an access token.
 
 ### Submission Workflow
 
@@ -996,7 +996,7 @@ When continuing or editing a submission, send the current version returned by Fo
 
 - **Custom HTML/AJAX requests:** include the issued hidden inputs and `expectedVersion`. A new submission starts at version `0`.
 - **Custom client-rendered requests:** send the issued session tokens and current `version`.
-- **Administrative GraphQL edits:** read the record's `stateVersion` and send it as `expectedVersion`.
+- **GraphQL edits:** read the record's `stateVersion` and send it as `expectedVersion`.
 
 Keep the issued tokens alongside the version; logging in does not bypass visitor submission checks. See [Submission Workflow](/developers/submission-workflow#progress-grants-and-uploads) and [GraphQL Submission Examples](/graphql/create-submissions) for request formats.
 

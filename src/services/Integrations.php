@@ -1467,7 +1467,8 @@ class Integrations extends Component
 
         $captchaArguments = [];
 
-        foreach ($this->getAllEnabledCaptchasForForm($form) as $captcha) {
+        // A mutation can complete a multi-page form in one request, so every captcha needs its argument.
+        foreach ($this->getAllEnabledCaptchasForForm($form, null, true) as $captcha) {
             $handle = $captcha->getGqlHandle();
 
             $captchaArguments[$handle] = [

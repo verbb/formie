@@ -46,7 +46,7 @@ class SubmissionWorkflow extends Component
     /** Only the processor's resolved and authorized command enters this workflow. */
     public function process(SubmissionCommand $command): SubmissionOutcome
     {
-        return $this->_run(new WorkflowContext($command))
+        return $this->_run(new WorkflowContext($command), false)
             ?? throw new LogicException('The submission workflow did not produce an outcome.');
     }
 
@@ -58,20 +58,14 @@ class SubmissionWorkflow extends Component
         $context->taskState['dispatch.lock'] = $lock;
         $context->taskState['dispatch.statusChanged'] = $run->command['statusChanged'];
         $context->taskState['dispatch.spamUnmarked'] = $run->command['spamUnmarked'];
-        $this->_run($context, Stage::DISPATCH);
-    }
-
-    /** Administrative completions save themselves, but they're screened like any other. */
-    public function screen(WorkflowContext $context): void
-    {
-        $this->_run($context, Stage::SCREEN);
+        $this->_run($context, true);
     }
 
 
     // Private Methods
     // =========================================================================
 
-    private function _run(WorkflowContext $context, ?Stage $onlyStage = null): ?SubmissionOutcome
+    private function _run(WorkflowContext $context, bool $dispatchOnly): ?SubmissionOutcome
     {
         $command = $context->command;
         WorkflowContext::push($context);
@@ -80,7 +74,7 @@ class SubmissionWorkflow extends Component
             foreach (WorkflowManifest::stages() as $stageName => $builtIns) {
                 $stage = Stage::from($stageName);
 
-                if ($onlyStage && $stage !== $onlyStage) {
+                if ($dispatchOnly && $stage !== Stage::DISPATCH) {
                     continue;
                 }
 
@@ -181,11 +175,7 @@ class SubmissionWorkflow extends Component
             try {
                 Formie::$plugin->getSubmissionDispatches()->finish($context, false);
             } finally {
-                // Screening happens before the caller saves these uploads.
-                if ($onlyStage !== Stage::SCREEN) {
-                    FileUpload::clearStagedUploads($command->submission);
-                }
-
+                FileUpload::clearStagedUploads($command->submission);
                 WorkflowContext::pop();
             }
         }

@@ -137,28 +137,29 @@ class SubmissionRequests extends Component
             throw new ForbiddenHttpException('Unable to perform the action.');
         }
 
-        $submission->setForm($form);
-        // Completing a draft is a Submit, so it's screened and delivered like a new submission.
-        $revising = $submission->id && !($submission->isIncomplete && ($arguments['isIncomplete'] ?? null) === false);
+        $this->primeSubmission($submission, $form);
+        $operation = $this->_mutationOperation($submission, $arguments);
+        $submitting = $operation === SubmissionOperation::SUBMIT;
 
         return $this->_executeResolved(
             $form,
             $submission,
-            $revising ? SubmissionOperation::REVISE : SubmissionOperation::SUBMIT,
-            $revising ? NavigationIntent::STAY : NavigationIntent::ADVANCE,
+            $operation,
+            $submitting ? NavigationIntent::ADVANCE : NavigationIntent::STAY,
             SubmissionAuthorityType::GRAPHQL_ADMIN,
             isset($arguments['expectedVersion']) ? (int)$arguments['expectedVersion'] : ($submission->id ? null : 0),
             $arguments['operationId'] ?? $arguments['requestToken'] ?? null,
             null,
             $arguments,
-            function() use ($form, $submission, $arguments, $populate, $revising): void {
+            function() use ($form, $submission, $arguments, $populate, $submitting): void {
                 $populate();
 
-                if (!$revising && !$submission->isIncomplete) {
+                if ($submitting) {
                     $this->_applyDeliveryOptOuts($form, $submission, $arguments);
                 }
             },
-            $revising ? null : (int)$form->getPages()[array_key_last($form->getPages())]->id,
+            // A mutation sends the whole form at once, so a Submit starts from its last page.
+            $submitting ? (int)$form->getPages()[array_key_last($form->getPages())]->id : null,
         );
     }
 
@@ -541,6 +542,19 @@ class SubmissionRequests extends Component
         return [$submission, $progress, true];
     }
 
+    private function _mutationOperation(Submission $submission, array $arguments): SubmissionOperation
+    {
+        if (!$submission->id) {
+            return ($arguments['isIncomplete'] ?? false) === true ? SubmissionOperation::SAVE_DRAFT : SubmissionOperation::SUBMIT;
+        }
+
+        if (!$submission->isIncomplete) {
+            return SubmissionOperation::REVISE;
+        }
+
+        return ($arguments['isIncomplete'] ?? null) === false ? SubmissionOperation::SUBMIT : SubmissionOperation::SAVE_DRAFT;
+    }
+
     /** Stored on the submission so they also apply to recovered and queued delivery. */
     private function _applyDeliveryOptOuts(Form $form, Submission $submission, array $arguments): void
     {
@@ -593,7 +607,7 @@ class SubmissionRequests extends Component
             $operations->fingerprint(['payload' => $payload, 'site' => $form->siteId, 'operation' => $operation->value, 'navigation' => $navigation->value, 'version' => $operation === SubmissionOperation::PAYMENT_REPLAY ? null : $expectedVersion]),
             $pageId,
             $targetPageId,
-            $authorityType !== SubmissionAuthorityType::GRAPHQL_ADMIN && ($authorityType !== SubmissionAuthorityType::CONTROL_PANEL || $form->cpSubmissionFollowsFieldConditions()),
+            $authorityType !== SubmissionAuthorityType::CONTROL_PANEL || $form->cpSubmissionFollowsFieldConditions(),
             $policy,
             $requestToken,
             $authorityType === SubmissionAuthorityType::CONTROL_PANEL && StringHelper::toBoolean((string)Craft::$app->getRequest()->getBodyParam('sendNotifications')),

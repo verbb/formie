@@ -2,9 +2,9 @@
 
 Formie's submission workflow runs validation, spam checks, saving, payments and delivery through six fixed stages. Extend it with a [custom task](/guides/submissions-workflows/adding-a-custom-workflow-task-from-scratch) when your code needs to run at a particular point or stop processing. Use [submission events](/developers/events/submission-events) to observe a stage, task, accepted page or completed submission.
 
-A `SubmissionCommand` describes the requested operation: the form and submission, where the visitor wants to go, and their permission to act. `SubmissionRequests` checks incoming HTML, client-rendered, administrative GraphQL and verified payment requests, and builds their responses. `SubmissionProcessor::executeCommand()` runs an authorised command and returns a `SubmissionOutcome`; it does not read request flags or build HTTP responses. Before applying input, the processor locks the operation and submission and checks the expected version.
+A `SubmissionCommand` describes the requested operation: the form and submission, where the visitor wants to go, and their permission to act. `SubmissionRequests` checks incoming HTML, client-rendered, GraphQL mutation and verified payment requests, and builds their responses. `SubmissionProcessor::executeCommand()` runs an authorised command and returns a `SubmissionOutcome`; it does not read request flags or build HTTP responses. Before applying input, the processor locks the operation and submission and checks the expected version.
 
-Administrative GraphQL `saveSubmission` mutations apply schema permissions, content validation, expected-version checks and upload ownership, without visitor progression, payment processing or redirects. A mutation that completes a submission also runs the Screen and Dispatch stages, including any tasks you've registered for them, unless it sets `sendNotifications` or `triggerIntegrations` to `false`. Other administrative saves only change content. Administrative and workflow saves share `SubmissionPersistence`, including upload promotion and atomic completion. Public GraphQL visitor submission uses the visitor command path instead.
+GraphQL `saveSubmission` and `save_<handle>_Submission` mutations run the same workflow as any other submission. A mutation is authorized by its schema rather than a visitor session, so session tokens, grants and browser guards don't apply. It submits the whole form at once, starting from the last page. Setting `isIncomplete: true` runs Save Draft instead, and editing a completed submission runs Revise. `sendNotifications: false` and `triggerIntegrations: false` skip those Dispatch tasks. Public GraphQL visitor submission uses the visitor command path instead.
 
 ## Workflow Stages
 
@@ -78,7 +78,7 @@ This stage has no supported built-in task IDs for relative placement. Use `prepe
 
 `NavigationIntent::ADVANCE`, `BACK`, `STAY` and `TARGET` describe navigation separately from the operation. Back navigation skips forward validation. Target navigation cannot skip an unvalidated intervening page.
 
-Control panel creation uses Submit with `SubmissionPolicy::ADMINISTRATIVE_CREATE`: whole-record validation, the administrator's selected status, and no visitor progression, screening, payment or automatic completion dispatch. Administrative GraphQL mutations require schema create/save permission for the target form. Public actions always require visitor authority, including requests from logged-in administrators.
+Control panel creation uses Submit with `SubmissionPolicy::ADMINISTRATIVE_CREATE`: whole-record validation, the administrator's selected status, and no visitor progression, screening, payment or automatic completion dispatch. GraphQL mutations require schema create/save permission for the target form. Public actions always require visitor authority, including requests from logged-in administrators.
 
 ## Registering Tasks
 
@@ -141,9 +141,9 @@ The dispatch status distinguishes scheduled work from running work, completed de
 
 ## Versions and Retries
 
-Interactive sessions expose `version`; managed HTML/AJAX requests post it as `expectedVersion`. Administrative GraphQL edits also require `expectedVersion`, obtained from the submission's `stateVersion`. A stale write returns `stateConflict` before posted values are applied.
+Interactive sessions expose `version`; managed HTML/AJAX requests post it as `expectedVersion`. GraphQL edits also require `expectedVersion`, obtained from the submission's `stateVersion`. A stale write returns `stateConflict` before posted values are applied.
 
-An operation ID identifies a request and its retries; it does not grant access to a submission. Formie saves an operation receipt so it can return the previous outcome when a request is repeated. Visitor receipts belong to a session and form, administrative receipts to a user/schema and form, and payment replay receipts to a saved submission and provider operation. The processor locks the operation before the submission.
+An operation ID identifies a request and its retries; it does not grant access to a submission. Formie saves an operation receipt so it can return the previous outcome when a request is repeated. Visitor receipts belong to a session and form, mutation receipts to a user/schema and form, and payment replay receipts to a saved submission and provider operation. The processor locks the operation before the submission.
 
 Receipts last seven days and contain a keyed fingerprint of the input and an encrypted outcome, limited to 64 KiB before encryption. Repeating a successful request with the same input returns the saved outcome; changing the input returns a conflict. Validation failures leave the request token available for correction. If an interrupted request leaves a receipt in the processing state, reconcile its outcome before retrying. Cleanup removes receipts after seven days, matching the interactive request-token lifetime.
 

@@ -89,7 +89,8 @@ final class WorkflowManifest
             return false;
         }
 
-        if ($task->id === 'dispatch.triggerIntegrations' && !$command->submission->shouldTriggerIntegrations()) {
+        // Opting out applies to completing the submission, not to later edits.
+        if ($task->id === 'dispatch.triggerIntegrations' && $command->operation !== Operation::REVISE && !$command->submission->shouldTriggerIntegrations()) {
             return false;
         }
 

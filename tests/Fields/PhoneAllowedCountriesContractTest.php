@@ -150,9 +150,9 @@ it('accepts an unlisted country through every public submission adapter', functi
     ]);
 })->with(['html', 'ajax', 'rest', 'graphql']);
 
-it('accepts an unlisted country through administrative GraphQL persistence', function (): void {
+it('accepts an unlisted country through a GraphQL mutation', function (): void {
     $form = formie()
-        ->form(['title' => 'Phone picker administrative GraphQL ' . uniqid()])
+        ->form(['title' => 'Phone picker GraphQL ' . uniqid()])
         ->settings(['disableCaptchas' => true])
         ->phoneField('phone', ['allowedCountryCodes' => ['AU']])
         ->create();
@@ -168,7 +168,7 @@ it('accepts an unlisted country through administrative GraphQL persistence', fun
     }
 
     $gql->setActiveSchema(new GqlSchema([
-        'name' => 'Phone picker administrative save',
+        'name' => 'Phone picker mutation',
         'scope' => ['formieSubmissions.' . $form->uid . ':create'],
     ]));
     try {

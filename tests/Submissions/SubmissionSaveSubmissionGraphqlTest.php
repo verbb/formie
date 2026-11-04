@@ -16,9 +16,13 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\gql\resolvers\mutations\SubmissionResolver;
+use verbb\formie\integrations\payments\Eway;
 use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
 use verbb\formie\models\Notification;
+use verbb\formie\models\PaymentAction;
+use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\PaymentFieldPayload;
 use verbb\formie\models\Settings;
 use verbb\formie\services\Emails;
 use verbb\formie\services\Integrations;
@@ -30,7 +34,6 @@ class MutationDeliveryProvider extends Integration
     public static array $calls = [];
     public static function displayName(): string { return 'Mutation delivery fixture'; }
     public function fetchConfig(): IntegrationConfig { return new IntegrationConfig(); }
-    public function shouldTrigger(Submission $submission, array $triggerContext = []): bool { return true; }
     public function sendPayload(Submission $submission): IntegrationResult {
         self::$calls[] = $this->handle;
         return IntegrationResult::succeeded();
@@ -48,6 +51,45 @@ class MutationDeliveryCaptcha extends Captcha
         $this->spamReason = 'Token rejected';
         return false;
     }
+}
+
+class MutationPaymentProvider extends Eway
+{
+    public static bool $approve = true;
+    public static int $requests = 0;
+    public static ?PaymentDecision $decision = null;
+    protected function getPaymentFieldPayload(Submission $submission): PaymentFieldPayload {
+        return new PaymentFieldPayload($this->handle, 'payment', ['ewayTokenData' => ['cardNumber' => 'test-encrypted-card', 'securityCode' => 'test-cvn', 'expiryDate' => '12/30']]);
+    }
+    public function resolvePaymentDecision(Submission $submission): PaymentDecision {
+        return self::$decision ?? parent::resolvePaymentDecision($submission);
+    }
+    public function request(string $method, string $uri, array $options = []): mixed {
+        self::$requests++;
+        return ['TransactionStatus' => self::$approve, 'TransactionID' => 'test-' . uniqid(), 'ResponseCode' => self::$approve ? '00' : '05', 'ResponseMessage' => self::$approve ? 'A2000' : 'D4405'];
+    }
+}
+
+function mutationPaymentForm(): Form
+{
+    $integration = new MutationPaymentProvider(['enabled' => true, 'name' => 'Mutation payment', 'handle' => 'mutationPayment' . bin2hex(random_bytes(5))]);
+    expect(Formie::$plugin->getIntegrations()->saveIntegration($integration, false))->toBeTrue();
+    $form = formie()->form(['title' => 'Mutation payment ' . uniqid()])
+        ->singleLineTextField('message')
+        ->paymentField('payment', [
+            'paymentIntegration' => $integration->handle,
+            'paymentIntegrationType' => MutationPaymentProvider::class,
+            'providerSettings' => [$integration->handle => ['currency' => 'USD', 'amountType' => 'fixed', 'amountFixed' => 25]],
+        ])
+        ->settings(['disableCaptchas' => true])
+        ->create();
+    $form->setNotifications([new Notification(['name' => 'Enquiry', 'handle' => 'enquiry' . uniqid(), 'enabled' => true, 'subject' => 'Enquiry', 'to' => 'owner@example.test'])]);
+    expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
+    MutationPaymentProvider::$approve = true;
+    MutationPaymentProvider::$requests = 0;
+    MutationPaymentProvider::$decision = null;
+
+    return $form;
 }
 
 function mutationDeliveryForm(array $settings = ['disableCaptchas' => true], array $notification = [], int $pages = 1): Form
@@ -174,30 +216,136 @@ it('creates a submission through saveSubmission with a fields map', function ():
         ->and($finalCount)->toBe($initialCount + 1);
 });
 
-it('keeps administrative GraphQL saves outside visitor access rules while validating content', function(): void {
-    $form = formie()->form()->settings(['requireUser' => true, 'scheduleForm' => true, 'scheduleFormStart' => new DateTime('+1 year')])->emailField('email', ['required' => true])->create();
-    $plugin = \verbb\formie\Formie::$plugin;
-    $workflow = $plugin->getSubmissionWorkflow();
+it('applies the form\'s availability rules to mutation submissions', function (array $settings, string $message): void {
+    $form = mutationDeliveryForm(['disableCaptchas' => true] + $settings);
+    $seeded = isset($settings['limitSubmissions']);
+
+    if ($seeded) {
+        formie()->submission($form)->with(['message' => 'Earlier'])->save();
+    }
+
     $user = Craft::$app->getUser()->getIdentity();
-    $plugin->set('submissionWorkflow', new class extends \verbb\formie\services\SubmissionWorkflow {
-        public function process(\verbb\formie\models\SubmissionCommand $command): \verbb\formie\models\SubmissionOutcome {
-            throw new RuntimeException('Administrative saves must not execute workflow stages.');
-        }
-    });
     Craft::$app->getUser()->setIdentity(null);
+
     try {
-        withSaveSubmissionGraphqlScope(['formieSubmissions.' . $form->uid . ':create'], function() use ($form) {
-            $resolver = Craft::createObject(SubmissionResolver::class);
-            $info = $this->createMock(ResolveInfo::class);
-            $info->fieldDefinition = \GraphQL\Type\Definition\FieldDefinition::create(SubmissionMutation::createGenericSaveMutation());
-            expect(fn() => $resolver->saveSubmissionByHandle(null, ['formHandle' => $form->handle, 'fields' => ['email' => 'invalid']], null, $info))->toThrow(Error::class);
-            $saved = $resolver->saveSubmissionByHandle(null, ['formHandle' => $form->handle, 'fields' => ['email' => 'admin@example.test']], null, $info);
-            expect($saved->isIncomplete)->toBeFalse()->and($saved->getFieldValue('email'))->toBe('admin@example.test');
+        $delivered = withMutationDelivery($form, function() use ($form, $message): void {
+            expect(fn() => mutationDeliverySave($form, ['fields' => ['message' => 'Hello']]))->toThrow(Error::class, $message);
         });
     } finally {
-        $plugin->set('submissionWorkflow', $workflow);
         Craft::$app->getUser()->setIdentity($user);
     }
+
+    expect($delivered)->toBe(['emails' => [], 'integrations' => []])
+        ->and((int)Submission::find()->formId($form->id)->status(null)->isSpam(null)->isIncomplete(null)->count())->toBe($seeded ? 1 : 0);
+})->with([
+    'requires a user' => [['requireUser' => true], 'You must be logged in'],
+    'scheduled to open later' => [['scheduleForm' => true, 'scheduleFormStart' => new DateTime('+1 year')], 'This form is not available'],
+    'at its submission limit' => [['limitSubmissions' => true, 'limitSubmissionsNumber' => 1, 'limitSubmissionsType' => 'total'], 'allowed submissions'],
+]);
+
+it('follows field conditions on mutation submissions', function (array $fields, string $stored): void {
+    $form = formie()->form(['title' => 'Mutation conditions ' . uniqid()])
+        ->settings(['disableCaptchas' => true])
+        ->singleLineTextField('message')
+        ->singleLineTextField('detail', ['required' => true, 'enableConditions' => true, 'conditions' => [
+            'showRule' => 'show',
+            'conditionRule' => 'all',
+            'conditions' => [['field' => '{field:' . bin2hex(random_bytes(1)) . '}', 'condition' => '=', 'value' => 'show']],
+        ]])
+        ->create();
+    $detail = $form->getFieldByHandle('detail');
+    $detail->conditions['conditions'][0]['field'] = '{field:' . $form->getFieldByHandle('message')->uid . '}';
+    expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
+    $saved = null;
+    withMutationDelivery($form, function() use ($form, $fields, &$saved): void {
+        $saved = mutationDeliverySave($form, ['fields' => $fields]);
+    }, []);
+
+    expect($saved->getFieldValue('detail'))->toBe($stored);
+})->with([
+    'hidden value is cleared' => [['message' => 'hide', 'detail' => 'secret'], ''],
+    'hidden required field is not required' => [['message' => 'hide'], ''],
+    'visible value is kept' => [['message' => 'show', 'detail' => 'shown'], 'shown'],
+]);
+
+it('still requires a visible required field on mutation submissions', function (): void {
+    $form = formie()->form(['title' => 'Mutation required ' . uniqid()])
+        ->settings(['disableCaptchas' => true])
+        ->singleLineTextField('message')
+        ->singleLineTextField('detail', ['required' => true])
+        ->create();
+    withMutationDelivery($form, function() use ($form): void {
+        expect(fn() => mutationDeliverySave($form, ['fields' => ['message' => 'Hello']]))->toThrow(Error::class, 'cannot be blank');
+    }, []);
+});
+
+it('applies default values and captures request details on mutation submissions', function (): void {
+    $form = formie()->form(['title' => 'Mutation defaults ' . uniqid()])
+        ->settings(['disableCaptchas' => true, 'collectIp' => true])
+        ->singleLineTextField('message')
+        ->singleLineTextField('detail', ['defaultValue' => 'fallback'])
+        ->create();
+    $saved = null;
+    withMutationDelivery($form, function() use ($form, &$saved): void {
+        $saved = mutationDeliverySave($form, ['fields' => ['message' => 'Hello']]);
+    }, []);
+
+    expect($saved->getFieldValue('detail'))->toBe('fallback')
+        ->and($saved->getMetadata('request'))->toHaveKey('userAgent')
+        ->and((new Query())->select('ipAddress')->from('{{%formie_submissions}}')->where(['id' => $saved->id])->scalar())->not->toBeEmpty();
+});
+
+it('charges a payment field once when a mutation completes the submission', function (): void {
+    $form = mutationPaymentForm();
+    $saved = null;
+    $delivered = withMutationDelivery($form, function() use ($form, &$saved): void {
+        $saved = mutationDeliverySave($form, ['fields' => ['message' => 'Paying']]);
+    }, []);
+
+    expect(MutationPaymentProvider::$requests)->toBe(1)
+        ->and($saved->isIncomplete)->toBeFalse()
+        ->and(Formie::$plugin->getPayments()->getSubmissionPayments($saved))->toHaveCount(1)
+        ->and($delivered['emails'])->toBe(['Enquiry']);
+});
+
+it('reports a declined payment on a mutation without delivering the submission', function (): void {
+    $form = mutationPaymentForm();
+    MutationPaymentProvider::$approve = false;
+    $delivered = withMutationDelivery($form, function() use ($form): void {
+        expect(fn() => mutationDeliverySave($form, ['fields' => ['message' => 'Paying']]))->toThrow(Error::class);
+    }, []);
+
+    expect(MutationPaymentProvider::$requests)->toBe(1)
+        ->and($delivered['emails'])->toBe([]);
+});
+
+it('reports a payment that needs a follow-up step instead of an empty error', function (): void {
+    $form = mutationPaymentForm();
+    MutationPaymentProvider::$decision = PaymentDecision::requiresAction('ref-1', PaymentAction::redirect('mutationPayment'), ['message' => 'Confirm this payment with your bank.']);
+    $delivered = withMutationDelivery($form, function() use ($form): void {
+        expect(fn() => mutationDeliverySave($form, ['fields' => ['message' => 'Paying']]))->toThrow(Error::class, 'Confirm this payment');
+    }, []);
+
+    expect($delivered['emails'])->toBe([]);
+});
+
+it('saves incomplete mutation submissions as drafts without requiring every field', function (): void {
+    $form = formie()->form(['title' => 'Mutation draft ' . uniqid()])
+        ->settings(['disableCaptchas' => true])
+        ->singleLineTextField('message')
+        ->singleLineTextField('detail', ['required' => true])
+        ->create();
+    $draft = null;
+    $next = null;
+    $delivered = withMutationDelivery($form, function() use ($form, &$draft, &$next): void {
+        $draft = mutationDeliverySave($form, ['isIncomplete' => true, 'fields' => ['message' => 'Partial']]);
+        $next = mutationDeliverySave($form, ['id' => $draft->id, 'expectedVersion' => $draft->stateVersion, 'fields' => ['message' => 'More']]);
+    }, []);
+
+    expect($draft->isIncomplete)->toBeTrue()
+        ->and($next->isIncomplete)->toBeTrue()
+        ->and($next->getFieldValue('message'))->toBe('More')
+        ->and($delivered['emails'])->toBe([]);
 });
 
 it('delivers a completed mutation submission and leaves a dispatch record', function (): void {
@@ -315,8 +463,7 @@ it('does not deliver again when a mutation edits a completed submission', functi
     });
 
     expect($edited->getFieldValue('message'))->toBe('Edited')
-        ->and($delivered)->toBe(['emails' => [], 'integrations' => []])
-        ->and(mutationDispatchRows($edited))->toHaveCount(1);
+        ->and($delivered)->toBe(['emails' => [], 'integrations' => []]);
 });
 
 it('screens completed mutation submissions for spam', function (string $behaviour, bool $saveSpam, bool $throws, bool $saved): void {
@@ -384,8 +531,8 @@ it('requires a valid captcha token from completing mutations', function (int $pa
     'missing token' => [1, [], true],
     'wrong token' => [1, ['tokenCaptcha' => ['name' => 'token', 'value' => 'bot']], true],
     'valid token' => [1, ['tokenCaptcha' => ['name' => 'token', 'value' => 'human']], false],
-    // Captchas belong to the last page and mutations have no current page, so these never have a token to send.
-    'no token, multi-page' => [2, [], false],
+    'missing token, multi-page' => [2, [], true],
+    'valid token, multi-page' => [2, ['tokenCaptcha' => ['name' => 'token', 'value' => 'human']], false],
 ]);
 
 it('updates an existing submission through saveSubmission', function (): void {

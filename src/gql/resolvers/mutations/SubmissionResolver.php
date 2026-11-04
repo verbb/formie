@@ -167,7 +167,7 @@ class SubmissionResolver extends ElementMutationResolver
             }
 
             // Populate captcha token payloads from GraphQL args.
-            $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
+            $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form, null, true);
 
             foreach ($captchas as $captcha) {
                 $handle = $captcha->getGqlHandle();
@@ -188,6 +188,11 @@ class SubmissionResolver extends ElementMutationResolver
 
         if (!$success || $submission->hasErrors() || !$submission->id) {
             $errors = SubmissionErrors::fromSubmission($submission)->toValuePathMap();
+
+            // A payment waiting on a follow-up step isn't invalid, so it has no field errors to report.
+            if (!$errors) {
+                $errors = ['form' => [$response->payment['message'] ?? $form->settings->getErrorMessage()]];
+            }
 
             throw new Error(Json::encode($errors), null, null, [], null, null, [
                 'category' => 'validation',
