@@ -49,15 +49,21 @@ it('stores the same sanitized success notice as other completion paths after a p
     $statusToken = PaymentAccess::issueStatusToken($payment);
 
     WebRequestTestHelper::withWebRequestContext(function () use ($raw): void {
-        $service = new PaymentSuccessNoticeRecordingService();
-        Formie::$plugin->set('service', $service);
+        $originalService = Formie::$plugin->getService();
 
-        $response = (new PaymentStatusController('payment-status', Craft::$app))->actionPollStatus();
+        try {
+            $service = new PaymentSuccessNoticeRecordingService();
+            Formie::$plugin->set('service', $service);
 
-        expect($response->data['status'])->toBe('success')
-            ->and($raw)->toContain('target=')
-            ->and($service->flashes['notice'])->toBe(StringHelper::sanitizeMessageHtml($raw))
-            ->and($service->flashes['notice'])->not->toContain('target=')
-            ->and($service->flashes['notice'])->toContain('href="https://example.test/terms"');
+            $response = (new PaymentStatusController('payment-status', Craft::$app))->actionPollStatus();
+
+            expect($response->data['status'])->toBe('success')
+                ->and($raw)->toContain('target=')
+                ->and($service->flashes['notice'])->toBe(StringHelper::sanitizeMessageHtml($raw))
+                ->and($service->flashes['notice'])->not->toContain('target=')
+                ->and($service->flashes['notice'])->toContain('href="https://example.test/terms"');
+        } finally {
+            Formie::$plugin->set('service', $originalService);
+        }
     }, ['queryParams' => ['statusToken' => $statusToken]]);
 });
