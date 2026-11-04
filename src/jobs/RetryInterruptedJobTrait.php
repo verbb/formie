@@ -16,7 +16,7 @@ trait RetryInterruptedJobTrait
     public function canRetry(mixed $attempt, mixed $error): bool
     {
         // Yii checks an expired reservation with no error before executing it.
-        // Actual delivery errors still need an operator to retry the failed job.
-        return $error === null;
+        // Delivery errors retain the queue's configured attempt limit.
+        return $error === null || $attempt < Craft::$app->getQueue()->attempts;
     }
 }

@@ -19,7 +19,7 @@ if (getenv('ENVIRONMENT') !== 'testing') {
 DeliveryWorkerFreshdesk::$directory = $argv[2];
 DeliveryWorkerFreshdesk::$mode = $argv[3];
 $app->getGc()->probability = 0;
-$app->getQueue()->attempts = 1;
+$app->getQueue()->attempts = (int)($argv[4] ?? 1);
 $mailer = $app->getMailer();
 $mailer->useFileTransport = true;
 $mailer->fileTransportPath = DeliveryWorkerFreshdesk::$directory . '/mail';

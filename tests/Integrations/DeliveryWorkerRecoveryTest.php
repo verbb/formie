@@ -19,11 +19,11 @@ function deliveryWorkerReceipts(string $directory): array
     return is_file($path) ? array_map(static fn($line) => json_decode($line, true, flags: JSON_THROW_ON_ERROR)['step'], file($path, FILE_IGNORE_NEW_LINES)) : [];
 }
 
-function runDeliveryQueueWorker(string $jobId, string $directory, string $mode): array
+function runDeliveryQueueWorker(string $jobId, string $directory, string $mode, int $attempts = 1): array
 {
     $output = $directory . '/worker-' . $mode . '.log';
     @unlink($directory . '/ready');
-    $process = proc_open([PHP_BINARY, dirname(__DIR__) . '/Support/delivery-queue-worker.php', $jobId, $directory, $mode], [
+    $process = proc_open([PHP_BINARY, dirname(__DIR__) . '/Support/delivery-queue-worker.php', $jobId, $directory, $mode, (string)$attempts], [
         0 => ['file', '/dev/null', 'r'], 1 => ['file', $output, 'w'], 2 => ['redirect', 1],
     ], $pipes);
     if (!is_resource($process)) {
@@ -188,3 +188,28 @@ it('completes an uninterrupted delivery through the queue worker', function(stri
         expect(Formie::$plugin->getDeliveryAttempts()->get($uid)['status'])->toBe('succeeded');
     });
 })->with(['integration', 'notification']);
+
+it('honors a configured queue retry limit for delivery errors', function(string $kind, string $secondResult): void {
+    withDeliveryQueueFixture($kind, function(string $jobId, string $directory, string $uid) use ($kind, $secondResult): void {
+        runDeliveryQueueWorker($jobId, $directory, 'failure', 2);
+        $queue = Craft::$app->getQueue();
+        $row = (new Query())->from($queue->tableName)->where(['id' => $jobId])->one();
+        expect((bool)$row['fail'])->toBeFalse()->and((int)$row['attempt'])->toBe(1);
+        expect(Formie::$plugin->getDeliveryAttempts()->get($uid)['status'])->toBe('failed');
+        expect((int)$row['ttr'])->toBe(2);
+        sleep((int)$row['ttr'] + 1);
+        runDeliveryQueueWorker($jobId, $directory, $secondResult, 2);
+        $steps = $kind === 'integration' ? ['contact', 'ticket', 'ticket'] : ['email', 'email'];
+        expect(deliveryWorkerReceipts($directory))->toBe($steps);
+        if ($secondResult === 'success') {
+            expect(Formie::$plugin->getDeliveryAttempts()->get($uid)['status'])->toBe('succeeded');
+            expect((new Query())->from($queue->tableName)->where(['id' => $jobId])->exists())->toBeFalse();
+        } else {
+            $failed = (new Query())->from($queue->tableName)->where(['id' => $jobId])->one();
+            expect((bool)$failed['fail'])->toBeTrue()->and((int)$failed['attempt'])->toBe(2);
+            runDeliveryQueueWorker($jobId, $directory, 'success', 2);
+            expect(deliveryWorkerReceipts($directory))->toBe($steps);
+            expect(Formie::$plugin->getDeliveryAttempts()->get($uid)['status'])->toBe('failed');
+        }
+    });
+})->with(['integration', 'notification'])->with(['success', 'failure']);
