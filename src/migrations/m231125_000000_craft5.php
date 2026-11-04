@@ -433,7 +433,8 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                 }
 
                 foreach ($submissionContent as $submissionId => $fieldContent) {
-                    $newContent = (new Query())->select('content')->from(Table::FORMIE_SUBMISSIONS)->where(['id' => $submissionId])->scalar();
+                    // A nested row only ever contributes to a submission of the form that owns its parent field.
+                    $newContent = (new Query())->select('content')->from(Table::FORMIE_SUBMISSIONS)->where(['id' => $submissionId, 'formId' => $form['id']])->scalar();
 
                     if (Json::isJsonObject($newContent)) {
                         $newContent = Json::decode($newContent);
@@ -495,16 +496,12 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
                 $handle = str_replace('field_', '', $column);
 
-                // Tricky business to handle the suffix, as older installs didn't require it, and some users use underscores in field names
+                // Tricky business to handle the suffix, as older installs didn't require it, and some users use underscores in field names.
+                // Older installs can also hold a stale context on these fields, so this lookup can only help with the suffix. The content
+                // table and the layout the caller passed are what tie a column to its owner, through the UID map below.
                 $field = (new Query())->from('{{%fields}}')->where(['context' => $context])->one();
 
-                if (!$field) {
-                    echo '    > Unable to find field for content matching UID for field ' . $handle . ' in ' . $contentTable . '.' . PHP_EOL;
-
-                    continue;
-                }
-
-                if ($field['columnSuffix']) {
+                if ($field && $field['columnSuffix']) {
                     $handle = str_replace('_' . $field['columnSuffix'], '', $handle);
                 }
 
