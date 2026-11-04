@@ -224,7 +224,7 @@ class Agile extends Crm
             }
 
             if ($this->mapToTask && $this->settingsContext->dataKey === 'task') {
-                $settings['task'] = array_merge([
+                $settings['task'] = [
                     new IntegrationField([
                         'handle' => 'type',
                         'name' => Craft::t('formie', 'Type'),
@@ -329,7 +329,7 @@ class Agile extends Crm
                             ],
                         ],
                     ]),
-                ], $this->_getCustomFields($fields));
+                ];
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
