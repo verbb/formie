@@ -10,6 +10,8 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\compatibility\fields\FieldConfigNormalizer;
 use verbb\formie\conditions\ConditionVisibility;
+use verbb\formie\content\FieldStorageCodec;
+use verbb\formie\elements\Submission;
 use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\fields\definitions\FieldValueType;
 use verbb\formie\fields\subfields\Address1;
@@ -38,7 +40,10 @@ use verbb\formie\theme\context\RenderContext;
 use Craft;
 use craft\base\ElementInterface;
 use craft\db\Query;
+use craft\helpers\App;
+use craft\helpers\Html;
 use craft\helpers\Json;
+use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 
 use yii\db\Schema;
@@ -102,8 +107,15 @@ class Address extends FixedParentField implements ReportSubfieldsInterface, Prev
     public function serializeValueForClientInput(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = $this->normalizeValue($value, $element);
+        $input = parent::serializeValueForClientInput($value?->toArray() ?? [], $element);
+        $autoComplete = $value?->toArray()['autoComplete'] ?? null;
 
-        return parent::serializeValueForClientInput($value?->toArray() ?? [], $element);
+        // Editing a single part rebuilds the value from this, so text with no sub-field has to stay with it.
+        if ($autoComplete && !$this->getFieldByHandle('autoComplete')) {
+            $input['autoComplete'] = $autoComplete;
+        }
+
+        return $input;
     }
 
     public function __construct(array $config = [])
@@ -209,7 +221,38 @@ class Address extends FixedParentField implements ReportSubfieldsInterface, Prev
 
     public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
     {
-        return $value instanceof AddressFieldValue ? $value : parent::normalizeValueFromRequest($value, $element);
+        if ($value instanceof AddressFieldValue) {
+            return $value;
+        }
+
+        $address = parent::normalizeValueFromRequest($value, $element);
+
+        // Without the sub-field, no request can carry this text, so editing a submission keeps what's stored.
+        if ($element instanceof Submission && $element->id && !$this->getFieldByHandle('autoComplete')) {
+            $previous = $element->getFieldValue($this->valueKey());
+            $autoComplete = $previous instanceof AddressFieldValue ? $previous->toArray()['autoComplete'] : null;
+
+            if ($autoComplete) {
+                return new AddressFieldValue(array_merge($address?->toArray() ?? [], ['autoComplete' => $autoComplete]));
+            }
+        }
+
+        return $address;
+    }
+
+    public function decodeValueFromStorage(mixed $value): mixed
+    {
+        $stored = FieldStorageCodec::decode($value);
+        $stored = is_array($stored) ? $stored : Json::decodeIfJson($stored);
+        $decoded = parent::decodeValueFromStorage($stored);
+        $autoComplete = is_array($stored) ? $this->_storedAutoComplete($stored) : null;
+
+        // Decoding keeps sub-field values only, which would drop text with no sub-field or under its older key.
+        if ($autoComplete !== null && is_array($decoded) && !($decoded['autoComplete'] ?? null)) {
+            $decoded['autoComplete'] = $autoComplete;
+        }
+
+        return $decoded;
     }
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
@@ -218,7 +261,9 @@ class Address extends FixedParentField implements ReportSubfieldsInterface, Prev
             return $value;
         }
 
-        $value = parent::normalizeValue(Json::decodeIfJson($value), $element);
+        $value = Json::decodeIfJson($value);
+        $autoComplete = is_array($value) ? $this->_storedAutoComplete($value) : null;
+        $value = parent::normalizeValue($value, $element);
 
         foreach ($value as $key => $part) {
             if ($part instanceof SingleOptionFieldValue) {
@@ -226,6 +271,10 @@ class Address extends FixedParentField implements ReportSubfieldsInterface, Prev
             }
 
             $value[$key] = $part === null ? null : trim((string)$part);
+        }
+
+        if ($autoComplete !== null && !($value['autoComplete'] ?? null)) {
+            $value['autoComplete'] = trim($autoComplete);
         }
 
         $address = new AddressFieldValue($value);
@@ -409,8 +458,48 @@ class Address extends FixedParentField implements ReportSubfieldsInterface, Prev
     protected function defineValueForDb(mixed $value, ?ElementInterface $element): mixed
     {
         $value = $this->normalizeValue($value, $element);
+        $stored = parent::defineValueForDb($value?->toArray() ?? [], $element);
+        $autoComplete = $value?->toArray()['autoComplete'] ?? null;
 
-        return parent::defineValueForDb($value?->toArray() ?? [], $element);
+        // Only sub-fields are serialized, so answers from before auto-complete was a sub-field are kept here.
+        if ($autoComplete && !$this->getFieldByHandle('autoComplete')) {
+            $stored['autoComplete'] = $autoComplete;
+        }
+
+        return $stored;
+    }
+
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    {
+        return $this->_onlyAutoComplete($value, $element) ?? parent::defineValueAsString($value, $element);
+    }
+
+    protected function defineValueForReport(mixed $value, ?ElementInterface $element = null, bool $useOptionLabels = true): mixed
+    {
+        return $this->_onlyAutoComplete($value, $element) ?? parent::defineValueForReport($value, $element, $useOptionLabels);
+    }
+
+    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
+    {
+        $values = parent::defineValueForExport($value, $element);
+        $autoComplete = $this->_onlyAutoComplete($value, $element);
+
+        if ($autoComplete !== null) {
+            $values[$this->getExportLabel($element) . ': ' . $this->_autoCompleteLabel()] = $autoComplete;
+        }
+
+        return $values;
+    }
+
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): mixed
+    {
+        $autoComplete = $this->_onlyAutoComplete($value, $element);
+
+        if ($autoComplete !== null) {
+            return Template::raw(Html::tag('strong', $this->_autoCompleteLabel()) . ' ' . Html::encode($autoComplete) . Html::tag('br'));
+        }
+
+        return parent::defineValueForSummary($value, $element);
     }
 
     protected function nestedValueParts(mixed $value): array
@@ -743,13 +832,46 @@ class Address extends FixedParentField implements ReportSubfieldsInterface, Prev
     // Private Methods
     // =========================================================================
 
+    private function _storedAutoComplete(array $stored): ?string
+    {
+        // Formie 2 stored this text under a lowercase key, which upgrades carry across as-is.
+        $autoComplete = $stored['autoComplete'] ?? $stored['autocomplete'] ?? null;
+
+        return is_string($autoComplete) && trim($autoComplete) !== '' ? $autoComplete : null;
+    }
+
+    /**
+     * Answers can hold nothing but auto-complete text, while the field no longer has that sub-field enabled.
+     * Output is built from enabled sub-fields, so that text would otherwise look like an empty answer.
+     */
+    private function _onlyAutoComplete(mixed $value, ?ElementInterface $element): ?string
+    {
+        if (!$value instanceof AddressFieldValue) {
+            return null;
+        }
+
+        $parts = $value->toArray();
+        $autoComplete = $parts['autoComplete'];
+        $subField = $this->getFieldByHandle('autoComplete');
+
+        if (!$autoComplete || ($subField && !$subField->getIsDisabled())) {
+            return null;
+        }
+
+        return parent::defineValueAsString($value, $element) === '' ? $autoComplete : null;
+    }
+
+    private function _autoCompleteLabel(): string
+    {
+        return $this->getFieldByHandle('autoComplete')->label ?? Craft::t('formie', 'Auto-Complete');
+    }
+
     private function _getAddressProviderOptions(): array
     {
         $addressProviderOptions = [];
         $integrationRows = (new Query())
             ->select(['handle', 'name', 'type', 'enabled'])
             ->from(Table::FORMIE_INTEGRATIONS)
-            ->where(['enabled' => true])
             ->all();
 
         foreach ($integrationRows as $integrationRow) {

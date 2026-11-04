@@ -11,6 +11,7 @@ use verbb\formie\fields\Repeater;
 use verbb\formie\fields\subfields\Address1;
 use verbb\formie\fields\subfields\Address2;
 use verbb\formie\fields\subfields\Address3;
+use verbb\formie\fields\subfields\AddressAutoComplete;
 use verbb\formie\fields\subfields\AddressCity;
 use verbb\formie\fields\subfields\AddressCountry;
 use verbb\formie\fields\subfields\AddressState;
@@ -1250,6 +1251,45 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                 ],
             ],
         ];
+
+        // Auto-complete was a setting rather than a sub-field, and only exists as one when it was turned on
+        if ($settings['autocompleteEnabled'] ?? false) {
+            array_unshift($addressConfig, [
+                'fields' => [
+                    [
+                        'type' => AddressAutoComplete::class,
+                        'label' => trim($settings['autocompleteLabel'] ?? '') ?: Craft::t('formie', 'Auto-Complete'),
+                        'handle' => 'autoComplete',
+                        'enabled' => true,
+                        'required' => $settings['autocompleteRequired'] ?? false,
+                        'errorMessage' => $settings['autocompleteErrorMessage'] ?? null,
+                        'placeholder' => $settings['autocompletePlaceholder'] ?? null,
+                        'defaultValue' => $settings['autocompleteDefaultValue'] ?? null,
+                        'prePopulate' => $settings['autocompletePrePopulate'] ?? null,
+                        'integrationHandle' => $settings['autocompleteIntegration'] ?? null,
+                        'currentLocation' => $settings['autocompleteCurrentLocation'] ?? false,
+                        'inputAttributes' => [
+                            [
+                                'label' => 'autocomplete',
+                                'value' => 'autocomplete',
+                            ],
+                            [
+                                'label' => 'data-autocomplete',
+                                'value' => true,
+                            ],
+                            [
+                                'label' => 'type',
+                                'value' => 'search',
+                            ],
+                            [
+                                'label' => 'aria-autocomplete',
+                                'value' => 'list',
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+        }
 
         // Fire a 'ModifyMigrationAddressConfig' event
         $event = new ModifyMigrationAddressConfigEvent([
