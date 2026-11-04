@@ -71,7 +71,7 @@ class Categories extends ElementField
 
     public ?array $rootCategory = null;
     public bool $showStructure = false;
-    public bool $allowMultipleSources = false;
+    public bool $allowMultipleSources = true;
 
 
     // Public Methods
@@ -82,16 +82,41 @@ class Categories extends ElementField
         // Setuo defaults for some values which can't in in the property definition
         $config['placeholder'] = $config['placeholder'] ?? Craft::t('formie', 'Select a category');
 
+        // Only a saved source can narrow a field to one group, so its source list applies without one. A source
+        // configured with no list and no mode still means that one source.
+        if (empty($config['source'])) {
+            $config['allowMultipleSources'] = true;
+        } elseif (!array_key_exists('sources', $config)) {
+            $config['allowMultipleSources'] = $config['allowMultipleSources'] ?? false;
+        }
+
         parent::__construct($config);
     }
 
     public function getFieldTypeConfigData(): array
     {
-        $options = $this->getSourceOptions();
-
         return [
-            'warning' => count($options) === 1 ? Craft::t('formie', 'No category groups available. View [category settings]({link}).', ['link' => UrlHelper::cpUrl('settings/categories')]) : false,
+            'warning' => $this->getOptionSourceOptions() === [] ? Craft::t('formie', 'No category groups available. View [category settings]({link}).', ['link' => UrlHelper::cpUrl('settings/categories')]) : false,
         ];
+    }
+
+    public function getFormBuilderSettings(): array
+    {
+        $settings = parent::getFormBuilderSettings();
+
+        // The builder edits one list of sources, so a single-source field opens with its source selected.
+        if (!$this->allowMultipleSources) {
+            $settings['allowMultipleSources'] = true;
+            $settings['sources'] = [$this->source];
+        }
+
+        return $settings;
+    }
+
+    public function getOptionSourceMode(): string
+    {
+        // Element option sources select one category group, whatever the field itself allows.
+        return 'single';
     }
 
     public function getOptionSourceWarning(array $sourceOptions): ?string
@@ -105,7 +130,7 @@ class Categories extends ElementField
     {
         return array_values(array_filter(
             $this->getSourceOptions(),
-            static fn(array $option): bool => (string)($option['value'] ?? '') !== '',
+            static fn(array $option): bool => !in_array((string)($option['value'] ?? ''), ['', '*'], true),
         ));
     }
 
@@ -270,7 +295,7 @@ class Categories extends ElementField
 
     public function defineFormBuilderGeneralSchema(): array
     {
-        $options = $this->getSourceOptions();
+        $options = $this->getOptionSourceOptions();
 
         return [
             SchemaHelper::labelField(),
@@ -282,15 +307,16 @@ class Categories extends ElementField
                 'required' => true,
                 'if' => 'displayType == "dropdown"',
             ]),
-            SchemaHelper::selectField([
-                'label' => Craft::t('formie', 'Source'),
-                'instructions' => Craft::t('formie', 'Which source do you want to select categories from?'),
-                'name' => 'source',
+            SchemaHelper::checkboxSelectField([
+                'label' => Craft::t('formie', 'Sources'),
+                'instructions' => Craft::t('formie', 'Which sources do you want to select categories from?'),
+                'name' => 'sources',
                 'options' => $options,
                 'validation' => 'required',
                 'required' => true,
-                'element-class' => count($options) === 1 ? 'hidden' : false,
-                'warning' => count($options) === 1 ? Craft::t('formie', 'No category groups available. View [category settings]({link}).', ['link' => UrlHelper::cpUrl('settings/categories')]) : false,
+                'showAllOption' => true,
+                'element-class' => $options === [] ? 'hidden' : false,
+                'warning' => $options === [] ? Craft::t('formie', 'No category groups available. View [category settings]({link}).', ['link' => UrlHelper::cpUrl('settings/categories')]) : false,
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),

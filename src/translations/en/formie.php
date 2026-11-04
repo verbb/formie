@@ -3532,6 +3532,7 @@ To review it please log into your control panel.
   'Which source do you want to select categories from?' => 'Which source do you want to select categories from?',
   'Which source do you want to select tags from?' => 'Which source do you want to select tags from?',
   'Which source do you want to select variants from?' => 'Which source do you want to select variants from?',
+  'Which sources do you want to select categories from?' => 'Which sources do you want to select categories from?',
   'Which sources do you want to select entries from?' => 'Which sources do you want to select entries from?',
   'Which sources do you want to select products from?' => 'Which sources do you want to select products from?',
   'Which sources do you want to select users from?' => 'Which sources do you want to select users from?',

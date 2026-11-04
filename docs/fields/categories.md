@@ -6,7 +6,7 @@ Use Categories when the answer should stay connected to Craft categories. If you
 
 ## Key Settings
 
-- **Category source** - Choose which category group or source the user can select from.
+- **Sources** - Choose **All**, or the category groups the user can select from.
 - **Root category** - Start the selector from a specific branch.
 - **Show structure** - Preserve the category hierarchy in the displayed choices.
 - **Branch limit** - Restrict how deep the selectable category tree can go.
