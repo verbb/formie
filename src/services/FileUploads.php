@@ -23,6 +23,8 @@ use craft\db\Query;
 use craft\db\Table as CraftTable;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
+use craft\errors\InvalidFsException;
+use craft\errors\InvalidSubpathException;
 use craft\helpers\Assets;
 use craft\helpers\Console;
 use craft\helpers\Db;
@@ -731,7 +733,7 @@ class FileUploads extends Component
                 continue;
             }
 
-            $folder = $field->getUploadFolderForSubmission($submission);
+            $folder = null;
 
             foreach (Asset::find()->id($ids)->status(null)->all() as $index => $asset) {
                 // Authorized retained Formie 3 relations acquire lifecycle records on first revision.
@@ -741,11 +743,7 @@ class FileUploads extends Component
                     // An asset chosen in the control panel moves into the field's folder, as it would for an
                     // Assets field with a restricted location. It isn't an upload, so its filename stays.
                     if (!$adoptUntracked) {
-                        $asset->avoidFilenameConflicts = true;
-
-                        if (!Craft::$app->getAssets()->moveAsset($asset, $folder)) {
-                            Formie::error("Unable to move asset #{$asset->id} to the field's upload folder.");
-                        }
+                        $this->_moveChosenAsset($asset, $field, $submission);
 
                         continue;
                     }
@@ -765,6 +763,7 @@ class FileUploads extends Component
                     ], ['id' => $tracked['id']])->execute();
                 }
 
+                $folder ??= $field->getUploadFolderForSubmission($submission);
                 $filename = null;
 
                 if ($field->filenameFormat && ($format = References::parseContent($field->filenameFormat, $submission))) {
@@ -952,6 +951,22 @@ class FileUploads extends Component
 
         if (!$validLocation) {
             throw new ForbiddenHttpException('Upload is not available for this submission field.');
+        }
+    }
+
+    private function _moveChosenAsset(Asset $asset, FileUpload $field, Submission $submission): void
+    {
+        try {
+            $folder = $field->getUploadFolderForSubmission($submission);
+        } catch (InvalidFsException|InvalidSubpathException) {
+            // The subpath uses an answer that's still blank, so this waits for a later save.
+            return;
+        }
+
+        $asset->avoidFilenameConflicts = true;
+
+        if (!Craft::$app->getAssets()->moveAsset($asset, $folder)) {
+            Formie::error("Unable to move asset #{$asset->id} to the field's upload folder.");
         }
     }
 

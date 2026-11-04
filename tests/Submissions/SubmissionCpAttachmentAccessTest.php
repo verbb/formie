@@ -376,6 +376,29 @@ it('moves an asset chosen from the picker into the field folder without renaming
         ->and((new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where(['assetId' => $assetId])->exists())->toBeFalse();
 });
 
+it('leaves a chosen asset in place until a subpath that uses a blank answer can be resolved', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $reference = 'a' . bin2hex(random_bytes(5));
+    $form = formie()->form()->singleLineTextField('answer', ['reference' => $reference])->fileUploadField('document', [
+        'restrictFiles' => false,
+        'uploadLocationSource' => 'volume:' . $volume->uid,
+        'uploadLocationSubpath' => 'by-answer/{field:' . $reference . '}',
+    ])->create();
+    expect($form->getFieldByHandle('answer')->reference)->toBe($reference);
+    $user = User::find()->admin(true)->one();
+    $assetId = cpScreenUpload($user, $volume, 'blank-answer-' . bin2hex(random_bytes(4)) . '.txt', 'blank');
+    $before = Asset::find()->id($assetId)->one();
+
+    expect(cpScreenSave($user, $form, ['document' => [$assetId]])?->data['success'] ?? null)->toBeTrue()
+        ->and(Asset::find()->id($assetId)->one()->folderId)->toBe($before->folderId);
+
+    $saved = Submission::find()->formId($form->id)->isIncomplete(null)->isSpam(null)->status(null)->one();
+    expect($saved->getFieldValue('document')->ids())->toBe([$assetId]);
+
+    expect(cpScreenSave($user, $form, ['answer' => 'later', 'document' => [$assetId]], $saved)?->data['success'] ?? null)->toBeTrue()
+        ->and(Asset::find()->id($assetId)->one()->folderPath)->toBe('by-answer/later/');
+});
+
 it('keeps both files when a chosen asset has the same name as one in the field folder', function (): void {
     $volume = UploadTestHelper::ensureUploadVolume();
     $form = formie()->form()->fileUploadField('document', [
