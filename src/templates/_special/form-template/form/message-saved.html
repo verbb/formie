@@ -1,0 +1,4 @@
+{% formtag 'messageSuccess' %}
+    <p>{{ savedProgress.message }}</p>
+    <p><a href="{{ savedProgress.resumeUrl|e('html_attr') }}" rel="nofollow">{{ 'Save this link to continue later.'|t('formie') }}</a></p>
+{% endformtag %}

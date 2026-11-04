@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en">
+<head><title>Native Save</title></head>
+<body>
+{% set mode = craft.app.request.getQueryParam('mode') == 'none' ? 'none' : 'default' %}
+{% set form = form ?? craft.formie.forms.handle('nativeSave' ~ mode|capitalize).one() %}
+<section id="unrelated">{{ craft.formie.renderForm('nativeSaveUnrelated') }}</section>
+<section id="saved-form">{{ craft.formie.renderForm(form) }}</section>
+</body>
+</html>

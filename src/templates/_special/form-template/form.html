@@ -6,6 +6,13 @@
     {% set submitted = craft.formie.plugin.service.getFlash(form.getFlashNamespace(), 'submitted') %}
     {% set flashNotice = craft.formie.plugin.service.getFlash(form.getFlashNamespace(), 'notice') %}
     {% set flashError = craft.formie.plugin.service.getFlash(form.getFlashNamespace(), 'error') %}
+    {% set savedProgress = craft.formie.plugin.service.getFlash(form.getFlashNamespace(), 'savedProgress') %}
+
+    {# A saved draft needs a portable link even when completion notices or the form are hidden. #}
+    {% if savedProgress %}
+        {{ formieInclude('form/message-saved') }}
+        {% set flashNotice = null %}
+    {% endif %}
 
     {{ formieInclude('form/message-unavailable') }}
 

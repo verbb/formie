@@ -764,6 +764,11 @@ class SubmissionsController extends Controller
             Formie::$plugin->getService()->setNotice($form->getFlashNamespace(), $message);
 
             if (is_string($resumeUrl) && $resumeUrl !== '') {
+                Formie::$plugin->getService()->setFlash($form->getFlashNamespace(), 'savedProgress', [
+                    'message' => $message,
+                    'resumeUrl' => $resumeUrl,
+                ]);
+
                 return $this->redirect($resumeUrl);
             }
 

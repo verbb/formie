@@ -220,3 +220,5 @@ $testAutomationForm = \verbb\formie\Formie::$plugin->getFactories()->form(['titl
     ->integrations(['browserAutomationTest' => ['enabled' => true, 'url' => 'https://127.0.0.1/', 'method' => 'POST', 'requestType' => 'json']])
     ->create();
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/automation-test.json', json_encode(['formId' => $testAutomationForm->id]));
+
+require __DIR__ . '/browser-native-save-fixture.php';
