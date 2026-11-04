@@ -13,13 +13,13 @@ class m261104_050000_bare_notification_tokens extends Migration
     // Constants
     // =========================================================================
 
-    private const COLUMNS = ['subject', 'to', 'cc', 'bcc', 'replyTo', 'replyToName', 'from', 'fromName', 'sender', 'content'];
+    protected const COLUMNS = ['subject', 'to', 'cc', 'bcc', 'replyTo', 'replyToName', 'from', 'fromName', 'sender', 'content'];
 
     // Formie 3 read these from the submission before looking for a field with the same handle.
-    private const SUBMISSION_ATTRIBUTES = ['id' => '{submission:id}', 'uid' => '{submission:uid}', 'title' => '{submission:title}'];
+    protected const SUBMISSION_ATTRIBUTES = ['id' => '{submission:id}', 'uid' => '{submission:uid}', 'title' => '{submission:title}'];
 
     // A single pair of braces around a handle or dotted path. This also skips Twig `{{ x }}` and JSON.
-    private const TOKEN_PATTERN = '/(?<!\{)\{([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)*)\}(?!\})/';
+    protected const TOKEN_PATTERN = '/(?<!\{)\{([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)*)\}(?!\})/';
 
 
     // Public Methods
@@ -48,7 +48,7 @@ class m261104_050000_bare_notification_tokens extends Migration
                 }
 
                 // Tokens with a path, such as {field:name.firstName}, weren't converted by the earlier migration either.
-                $updated = preg_replace_callback(self::TOKEN_PATTERN, fn(array $match) => $this->_convert($form, $match), $value);
+                $updated = preg_replace_callback(self::TOKEN_PATTERN, fn(array $match) => $this->convertToken($form, $match), $value);
                 $updated = ReferenceMigration::canonicalFieldTokens($form, $updated);
 
                 if ($updated !== $value) {
@@ -72,10 +72,10 @@ class m261104_050000_bare_notification_tokens extends Migration
     }
 
 
-    // Private Methods
+    // Protected Methods
     // =========================================================================
 
-    private function _convert(Form $form, array $match): string
+    protected function convertToken(Form $form, array $match): string
     {
         if (isset(self::SUBMISSION_ATTRIBUTES[$match[1]])) {
             return self::SUBMISSION_ATTRIBUTES[$match[1]];
