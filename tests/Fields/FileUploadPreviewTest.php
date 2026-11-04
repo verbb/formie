@@ -10,11 +10,13 @@ use verbb\formie\helpers\Table;
 use verbb\formie\helpers\UploadAccess;
 use yii\web\NotFoundHttpException;
 
-it('serves upload bytes through a purpose-bound private preview response', function (): void {
-    WebRequestTestHelper::withWebRequestContext(function ($request): void {
+it('serves upload bytes through a purpose-bound private preview response', function (string $filename, string $contents): void {
+    WebRequestTestHelper::withWebRequestContext(function ($request) use ($filename, $contents): void {
+        Craft::$app->getConfig()->getGeneral()->extraAllowedFileExtensions(['html', 'svg', 'xml']);
         UploadTestHelper::ensureUploadVolume();
         $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false])->create();
-        $asset = UploadTestHelper::seedAsset('private-preview.txt', 'private preview bytes');
+        $asset = UploadTestHelper::seedAsset($filename, $contents);
+        $storedContents = file_get_contents($asset->getCopyOfFile());
         $uploads = Formie::$plugin->getFileUploads();
         $uploads->trackSubmissionAsset($asset, (int)$form->id, null, $form->getFieldByHandle('document')->uid, $form, 'document');
         $token = UploadAccess::issueToken((int)$asset->id, (int)$form->id, $form->getFieldByHandle('document')->uid);
@@ -26,17 +28,24 @@ it('serves upload bytes through a purpose-bound private preview response', funct
         [$stream] = $response->stream;
         try {
             rewind($stream);
-            expect(stream_get_contents($stream))->toBe('private preview bytes')
+            expect(stream_get_contents($stream))->toBe($storedContents)
                 ->and($response->headers->get('Cache-Control'))->toBe('private, no-store, max-age=0')
                 ->and($response->headers->get('Referrer-Policy'))->toBe('no-referrer')
                 ->and($response->headers->get('X-Content-Type-Options'))->toBe('nosniff')
+                ->and($response->headers->get('Content-Security-Policy'))->toBe("default-src 'none'; sandbox")
+                ->and($response->headers->get('Content-Type'))->toBe('application/octet-stream')
                 ->and($response->headers->get('Content-Disposition'))->toStartWith('attachment;');
         } finally {
             fclose($stream);
             $response->stream = null;
         }
     });
-});
+})->with([
+    ['private-preview.txt', 'private preview bytes'],
+    ['private-preview.html', '<!DOCTYPE html><title>Private upload</title>'],
+    ['private-preview.svg', '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"></svg>'],
+    ['private-preview.xml', '<?xml version="1.0"?><document/>'],
+]);
 
 it('requires a currently valid view capability to preview a file', function (string $purpose, bool $expired): void {
     WebRequestTestHelper::withWebRequestContext(function ($request) use ($purpose, $expired): void {

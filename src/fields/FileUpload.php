@@ -118,12 +118,6 @@ class FileUpload extends ElementField
     }
 
 
-    // Constants
-    // =========================================================================
-
-    private const ACTIVE_CONTENT_EXTENSIONS = ['svg', 'svgz', 'html', 'htm', 'xhtml', 'xml'];
-
-
     // Properties
     // =========================================================================
 
@@ -524,6 +518,10 @@ class FileUpload extends ElementField
         return $size > ((float)$this->maxFileSize * 1000 * 1000);
     }
 
+    /**
+     * Craft's configured extensions and the field's selected kinds define upload policy.
+     * Keep the optional content arguments for compatibility; file kinds do not define MIME constraints.
+     */
     public function getUploadTypeValidationErrors(string $filename, ?string $path = null, ?string $mimeType = null, ?string $data = null): array
     {
         $filename = $this->sanitizeUploadedFilename($filename);
@@ -535,7 +533,7 @@ class FileUpload extends ElementField
         $extension = mb_strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         $errors = [];
 
-        if ($extension === '' || in_array($extension, self::ACTIVE_CONTENT_EXTENSIONS, true)) {
+        if ($extension === '') {
             $errors[] = Craft::t('app', '“{filename}” is not allowed in this field.', [
                 'filename' => $filename,
             ]);
@@ -549,15 +547,6 @@ class FileUpload extends ElementField
 
         if ($this->restrictFiles && !in_array($extension, $this->_getAllowedExtensions(), true)) {
             $errors[] = Craft::t('app', '“{filename}” is not allowed in this field.', [
-                'filename' => $filename,
-            ]);
-        }
-
-        $declaredKind = Assets::getFileKindByExtension($filename);
-        $detectedKind = $this->_resolveDetectedFileKind($path, $mimeType, $data, $extension);
-
-        if ($declaredKind !== Asset::KIND_UNKNOWN && $detectedKind !== null && $detectedKind !== Asset::KIND_UNKNOWN && $declaredKind !== $detectedKind) {
-            $errors[] = Craft::t('formie', '“{filename}” does not match its detected file type.', [
                 'filename' => $filename,
             ]);
         }
@@ -1670,95 +1659,13 @@ class FileUpload extends ElementField
             }
 
             foreach ($allKinds[$allowedKind]['extensions'] as $extension) {
-                if (in_array($extension, $allowedFileExtensions, true) && !in_array($extension, self::ACTIVE_CONTENT_EXTENSIONS, true)) {
+                if (in_array($extension, $allowedFileExtensions, true)) {
                     $extensions[] = $extension;
                 }
             }
         }
 
         return array_values(array_unique($extensions));
-    }
-
-    private function _resolveDetectedFileKind(?string $path = null, ?string $mimeType = null, ?string $data = null, ?string $extension = null): ?string
-    {
-        $mimeType = $this->_resolveDetectedMimeType($path, $mimeType, $data);
-
-        if (!$mimeType) {
-            return null;
-        }
-
-        // Illustrator files can contain PDF or PostScript, and libmagic can report EPS as an image.
-        $compatibleMimeTypes = match ($extension) {
-            'ai' => ['application/pdf', 'application/postscript', 'image/x-eps'],
-            'eps' => ['application/postscript', 'image/x-eps'],
-            default => [],
-        };
-
-        if (in_array($mimeType, $compatibleMimeTypes, true)) {
-            return Assets::getFileKindByExtension("upload.{$extension}");
-        }
-
-        foreach ((array)FileHelper::getExtensionsByMimeType($mimeType) as $extension) {
-            $extension = trim((string)$extension);
-
-            if ($extension === '') {
-                continue;
-            }
-
-            $kind = Assets::getFileKindByExtension("upload.{$extension}");
-
-            if ($kind !== Asset::KIND_UNKNOWN) {
-                return $kind;
-            }
-        }
-
-        return match (true) {
-            str_starts_with($mimeType, 'image/') => Asset::KIND_IMAGE,
-            str_starts_with($mimeType, 'audio/') => Asset::KIND_AUDIO,
-            str_starts_with($mimeType, 'video/') => Asset::KIND_VIDEO,
-            str_starts_with($mimeType, 'text/') => Asset::KIND_TEXT,
-            $mimeType === 'application/pdf' => Asset::KIND_PDF,
-            $mimeType === 'application/json' => Asset::KIND_JSON,
-            $mimeType === 'application/xml',
-            $mimeType === 'text/xml' => Asset::KIND_XML,
-            $mimeType === 'text/html',
-            $mimeType === 'application/xhtml+xml' => Asset::KIND_HTML,
-            $mimeType === 'application/javascript',
-            $mimeType === 'text/javascript' => Asset::KIND_JAVASCRIPT,
-            default => null,
-        };
-    }
-
-    private function _resolveDetectedMimeType(?string $path = null, ?string $mimeType = null, ?string $data = null): ?string
-    {
-        if (($data !== null || ($path && is_file($path))) && function_exists('finfo_open')) {
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-
-            if ($finfo !== false) {
-                $resolvedMimeType = $data !== null ? finfo_buffer($finfo, $data) : finfo_file($finfo, $path);
-                finfo_close($finfo);
-
-                if (is_string($resolvedMimeType)) {
-                    $resolvedMimeType = mb_strtolower(trim($resolvedMimeType));
-
-                    if ($resolvedMimeType !== '') {
-                        return $resolvedMimeType;
-                    }
-                }
-            }
-        }
-
-        if (!is_string($mimeType)) {
-            return null;
-        }
-
-        $mimeType = mb_strtolower(trim($mimeType));
-
-        if ($mimeType === '' || $mimeType === 'application/octet-stream') {
-            return null;
-        }
-
-        return $mimeType;
     }
 
     private function _submissionContentKey(Submission $submission): string

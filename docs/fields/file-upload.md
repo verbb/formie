@@ -29,6 +29,12 @@ Choose **Upload Manager (Advanced)** when you want immediate feedback, drag-and-
 - **Filename format** - Control how uploaded assets are named.
 - **Notification attachments** - Allow uploaded files to be attached to email notifications when the notification is configured to include them.
 
+### Allowed File Types
+
+Formie uses Craft's `allowedFileExtensions` setting for both upload display types. To accept an additional extension, add it to `extraAllowedFileExtensions` in `config/general.php`. Use Craft's `extraFileKinds` setting to add the extension to an existing file type or define a new type that appears in **Allowed File Types**.
+
+When **Restrict File Types** is enabled, an extension must be allowed by both Craft and one of the field's selected types. Turning this off accepts any extension allowed by Craft. A file's MIME type does not override these extension settings, and there is no separate Formie-wide extension list to configure.
+
 ### Upload Subpaths and Filenames
 
 Use the Variable Picker to add references to the upload subpath and filename format. For example, `applications/{form:handle}/{submission:id}` groups uploads by form and saved submission. Folder segments are sanitised before creation; invalid or unresolved subpaths are rejected. A submission without an ID can use temporary storage until its final destination is available.

@@ -72,9 +72,9 @@ it('rejects uploaded files that exceed the configured max file size', function (
     expect($submission->getErrors('attachments'))->not->toBeEmpty();
 })->group('security');
 
-it('rejects uploaded files whose detected content does not match the claimed file kind', function (): void {
+it('rejects disallowed extensions even when the supplied MIME is allowed', function (): void {
     $form = formie()
-        ->form(['title' => 'File Upload Mime Mismatch Security'])
+        ->form(['title' => 'File Upload Extension Security'])
         ->fileUploadField('attachments', [
             'restrictFiles' => true,
             'allowedKinds' => ['image'],
@@ -87,11 +87,11 @@ it('rejects uploaded files whose detected content does not match the claimed fil
     $submission->setFieldValue('attachments', $field->normalizeValue([], $submission));
 
     $tempPath = tempnam(sys_get_temp_dir(), 'formie-upload-');
-    file_put_contents($tempPath, 'definitely not a jpeg');
+    file_put_contents($tempPath, 'The supplied MIME does not grant upload permission.');
 
     seedUploadedFilesForField($field, $submission, [
         'attachments' => [[
-            'filename' => 'payload.jpg',
+            'filename' => 'payload.exe',
             'path' => $tempPath,
             'mimeType' => 'image/jpeg',
             'type' => 'upload',
@@ -103,7 +103,10 @@ it('rejects uploaded files whose detected content does not match the claimed fil
     expect($submission->getErrors('attachments'))->not->toBeEmpty();
 })->group('security');
 
-it('rejects active-content uploads even when the extension would otherwise be allowed', function (): void {
+it('rejects extensions disabled in Craft even when the file kind is selected', function (): void {
+    $config = Craft::$app->getConfig()->getGeneral();
+    $config->allowedFileExtensions = array_values(array_diff($config->allowedFileExtensions, ['svg']));
+
     $form = formie()
         ->form(['title' => 'File Upload Active Content Security'])
         ->fileUploadField('attachments', [

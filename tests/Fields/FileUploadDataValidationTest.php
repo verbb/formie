@@ -26,7 +26,7 @@ it('validates decoded data uploads against file constraints', function (array $s
     $field = $form->getFieldByHandle('upload');
     $submission = new Submission();
     $submission->setForm($form);
-    // The claimed MIME deliberately disagrees with the bytes in the spoofed image case.
+    // The supplied MIME does not replace the configured extension policy.
     $submission->setFieldValueFromRequest('upload', FileUploadInputType::normalizeValue([
         ['filename' => $filename, 'fileData' => 'data:image/png;base64,' . base64_encode($contents)],
     ]));
@@ -43,7 +43,7 @@ it('validates decoded data uploads against file constraints', function (array $s
     'too large' => [['maxFileSize' => '0.000005'], 'data.txt', '1234567890', false],
     'too small' => [['minFileSize' => '0.000015'], 'data.txt', '1234567890', false],
     'exact limits' => [['maxFileSize' => '0.000010', 'minFileSize' => '0.000010'], 'data.txt', '1234567890', true],
-    'spoofed image' => [[], 'image.png', 'This is ordinary text rather than an image.', false],
+    'allowed text with an inaccurate MIME' => [[], 'data.txt', 'This is ordinary text rather than an image.', true],
 ]);
 
 it('saves canonical client file data alongside retained assets', function (bool $numericId): void {
