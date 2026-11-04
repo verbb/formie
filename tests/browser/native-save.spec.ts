@@ -6,7 +6,10 @@ for (const mode of ['default', 'none']) {
         await page.goto(`/browser-native-save?mode=${mode}`);
         const main = page.locator('#saved-form');
         await main.getByRole('textbox', { name: 'Visitor name', exact: true }).fill(marker);
-        await page.waitForFunction(() => Date.now() - Number((document.querySelector('#saved-form input[name="formStartedAt"]') as HTMLInputElement)?.value) >= 3500);
+        await page.waitForFunction(() => {
+            const startedAt = Number((document.querySelector('#saved-form input[name="formStartedAt"]') as HTMLInputElement)?.value);
+            return startedAt > 0 && Date.now() - startedAt >= 3500;
+        });
         await main.getByRole('button', { name: 'Next', exact: true }).click();
         await expect(main.getByRole('textbox', { name: 'Confirmation', exact: true })).toBeVisible();
         await main.getByRole('button', { name: 'Save', exact: true }).click();
@@ -32,10 +35,16 @@ for (const mode of ['default', 'none']) {
             await expect(resumedForm.getByRole('link', { name: 'Save this link to continue later.', exact: true })).toHaveCount(0);
             await resumedForm.getByRole('button', { name: 'Back', exact: true }).click();
             await expect(resumedForm.getByRole('textbox', { name: 'Visitor name', exact: true })).toHaveValue(marker);
-            await resumed.waitForFunction(() => Date.now() - Number((document.querySelector('#saved-form input[name="formStartedAt"]') as HTMLInputElement)?.value) >= 3500);
+            await resumed.waitForFunction(() => {
+                const startedAt = Number((document.querySelector('#saved-form input[name="formStartedAt"]') as HTMLInputElement)?.value);
+                return startedAt > 0 && Date.now() - startedAt >= 3500;
+            });
             await resumedForm.getByRole('button', { name: 'Next', exact: true }).click();
             await resumedForm.getByRole('textbox', { name: 'Confirmation', exact: true }).fill('Finished in a fresh browser');
-            await resumed.waitForFunction(() => Date.now() - Number((document.querySelector('#saved-form input[name="formStartedAt"]') as HTMLInputElement)?.value) >= 3500);
+            await resumed.waitForFunction(() => {
+                const startedAt = Number((document.querySelector('#saved-form input[name="formStartedAt"]') as HTMLInputElement)?.value);
+                return startedAt > 0 && Date.now() - startedAt >= 3500;
+            });
             await resumedForm.getByRole('button', { name: 'Submit', exact: true }).click();
             await expect.poll(async () => {
                 const rows = await (await request.get('/browser-native-save-records')).json();
