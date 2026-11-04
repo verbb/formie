@@ -444,7 +444,7 @@ Custom submission clients must also update their [tokens and version handling](#
 - **Editing:** send the submission's current `stateVersion` as `expectedVersion`.
 - **Captchas:** a form with a captcha, including a multi-page form, needs its token in the mutation.
 - **Browser requests from another domain:** add the origin to [`allowedOrigins`](/get-started/configuration#allowedorigins).
-- **Public schemas:** these can only create completed submissions. Editing by ID and saving drafts need a private schema with an access token. See [Public Schemas](/graphql/create-submissions#public-schemas).
+- **Public schemas:** these can only create completed submissions. Editing by ID and saving drafts need a private schema with an access token, and a form with a Payment field needs [`submitFormieClientForm`](/graphql/headless-payments). See [Public Schemas](/graphql/create-submissions#public-schemas).
 - **IP settings:** with a private token, Formie doesn't record an IP or apply per-IP limits, because the request comes from your server.
 
 ### Submission Workflow

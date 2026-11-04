@@ -12,6 +12,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\FieldLayoutPage;
 
 use Craft;
+use craft\helpers\Json;
 
 class Question extends Captcha
 {
@@ -186,6 +187,11 @@ class Question extends Captcha
     private function _getSubmittedAnswer(Submission $submission): array
     {
         $payload = $this->getCaptchaValue($submission, self::CAPTCHA_PARAM);
+
+        // GraphQL captcha values are strings, so this one sends its index and answer as JSON.
+        if (is_string($payload)) {
+            $payload = Json::decodeIfJson($payload);
+        }
 
         if (is_array($payload)) {
             $index = $payload['index'] ?? null;

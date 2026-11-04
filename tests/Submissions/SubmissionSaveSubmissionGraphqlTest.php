@@ -19,6 +19,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\gql\resolvers\mutations\SubmissionResolver;
+use verbb\formie\integrations\captchas\Question;
 use verbb\formie\integrations\payments\Eway;
 use verbb\formie\models\IntegrationConfig;
 use verbb\formie\models\IntegrationResult;
@@ -41,6 +42,11 @@ class MutationDeliveryProvider extends Integration
         self::$calls[] = $this->handle;
         return IntegrationResult::succeeded();
     }
+}
+
+class MutationQuestionCaptcha extends Question
+{
+    public array $questions = [['question' => 'What colour is the sky?', 'answers' => 'blue']];
 }
 
 class MutationContentCaptcha extends Captcha
@@ -1123,4 +1129,104 @@ it('refuses public submissions that aren\'t POST requests', function (): void {
     }, ['method' => 'GET']);
 
     expect((int)Submission::find()->formId($form->id)->status(null)->isIncomplete(null)->count())->toBe(0);
+});
+
+it('only changes the sub-values an edit sends', function (): void {
+    $form = formie()->form(['title' => 'Mutation partial ' . uniqid()])->settings(['disableCaptchas' => true])
+        ->nameField('person', ['useMultipleFields' => true])
+        ->create();
+    $saved = null;
+    $edited = null;
+    withMutationDelivery($form, function() use ($form, &$saved, &$edited): void {
+        $saved = mutationDeliverySave($form, ['fields' => ['person' => ['firstName' => 'Ada', 'lastName' => 'Lovelace']]]);
+        $edited = mutationDeliverySave($form, ['id' => $saved->id, 'expectedVersion' => $saved->stateVersion, 'fields' => ['person' => ['firstName' => 'Grace']]]);
+    }, []);
+
+    expect($edited->getFieldValue('person')->firstName)->toBe('Grace')
+        ->and($edited->getFieldValue('person')->lastName)->toBe('Lovelace');
+});
+
+it('enforces limits and fires the completion event when a mutation completes a draft', function (): void {
+    $form = mutationDeliveryForm(['disableCaptchas' => true, 'limitSubmissions' => true, 'limitSubmissionsNumber' => 1, 'limitSubmissionsType' => 'total']);
+    $draft = null;
+    $completed = 0;
+    $listener = static function() use (&$completed): void { $completed++; };
+    Event::on(Submission::class, Submission::EVENT_AFTER_COMPLETE, $listener);
+
+    try {
+        withMutationDelivery($form, function() use ($form, &$draft): void {
+            $draft = mutationDeliverySave($form, ['isIncomplete' => true, 'fields' => ['message' => 'Draft']]);
+            $finished = mutationDeliverySave($form, ['id' => $draft->id, 'expectedVersion' => $draft->stateVersion, 'isIncomplete' => false, 'fields' => ['message' => 'Done']]);
+            expect($finished->isIncomplete)->toBeFalse();
+            $other = mutationDeliverySave($form, ['isIncomplete' => true, 'fields' => ['message' => 'Second draft']]);
+            expect(fn() => mutationDeliverySave($form, ['id' => $other->id, 'expectedVersion' => $other->stateVersion, 'isIncomplete' => false, 'fields' => ['message' => 'Over the limit']]))
+                ->toThrow(Error::class, 'allowed submissions');
+        }, []);
+    } finally {
+        Event::off(Submission::class, Submission::EVENT_AFTER_COMPLETE, $listener);
+    }
+
+    expect($completed)->toBe(1);
+});
+
+it('lets a private token correct a submission on a login-only or closed form', function (array $settings): void {
+    $form = mutationDeliveryForm(['disableCaptchas' => true]);
+    $created = formie()->submission($form)->with(['message' => 'Original'])->save();
+    $form->settings->setAttributes($settings, false);
+    expect(Craft::$app->getElements()->saveElement($form))->toBeTrue();
+    $user = Craft::$app->getUser()->getIdentity();
+    Craft::$app->getUser()->setIdentity(null);
+    $edited = null;
+
+    try {
+        withMutationDelivery($form, function() use ($form, $created, &$edited): void {
+            $edited = mutationDeliverySave($form, ['id' => $created->id, 'expectedVersion' => $created->stateVersion, 'fields' => ['message' => 'Corrected']]);
+        }, []);
+    } finally {
+        Craft::$app->getUser()->setIdentity($user);
+    }
+
+    expect($edited->getFieldValue('message'))->toBe('Corrected');
+})->with([
+    'login only' => [['requireUser' => true]],
+    'closed' => [['scheduleForm' => true, 'scheduleFormStart' => new DateTime('+1 year')]],
+]);
+
+it('only stores a request IP when the form collects one and it is the visitor\'s', function (bool $collect, bool $isPublic, bool $stored): void {
+    $form = mutationDeliveryForm(['disableCaptchas' => true, 'collectIp' => $collect]);
+    $saved = null;
+    withMutationDelivery($form, function() use ($form, &$saved): void {
+        $saved = mutationDeliverySave($form, ['fields' => ['message' => 'Hello']]);
+    }, [], isPublic: $isPublic);
+
+    $metadata = json_decode((string)(new Query())->select('metadata')->from('{{%formie_submissions}}')->where(['id' => $saved->id])->scalar(), true);
+    $metadata = is_string($metadata) ? json_decode($metadata, true) : $metadata;
+    expect(!empty($metadata['request']['ipAddress']))->toBe($stored);
+})->with([
+    'public, collecting' => [true, true, true],
+    'public, not collecting' => [false, true, false],
+    'private, collecting' => [true, false, false],
+]);
+
+it('accepts a Question captcha answer through a mutation', function (string $answer, bool $spam): void {
+    $form = mutationDeliveryForm(settings: []);
+    $saved = null;
+    withMutationDelivery($form, function() use ($form, $answer, &$saved): void {
+        $saved = mutationDeliverySave($form, ['captchas' => ['questionCaptcha' => ['name' => 'formieCaptchaQuestion', 'value' => json_encode(['index' => 0, 'answer' => $answer])]], 'fields' => ['message' => 'Hello']]);
+    }, [MutationQuestionCaptcha::class => 'question'], ['spamBehaviour' => Settings::SPAM_BEHAVIOUR_SUCCESS, 'saveSpam' => true, 'spamEmailNotifications' => false]);
+
+    expect((bool)(new Query())->select('isSpam')->from('{{%formie_submissions}}')->where(['id' => $saved->id])->scalar())->toBe($spam);
+})->with([
+    'right answer' => ['blue', false],
+    'wrong answer' => ['red', true],
+]);
+
+it('refuses payment forms through a public schema without contacting the provider', function (): void {
+    $form = mutationPaymentForm();
+    withMutationDelivery($form, function() use ($form): void {
+        expect(fn() => mutationDeliverySave($form, ['fields' => ['message' => 'Paying']]))->toThrow(Error::class, 'submitFormieClientForm');
+    }, [], isPublic: true);
+
+    expect(MutationPaymentProvider::$requests)->toBe(0)
+        ->and((int)Submission::find()->formId($form->id)->status(null)->isIncomplete(null)->count())->toBe(0);
 });

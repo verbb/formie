@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\enums\SubmissionOutcomeType;
+use verbb\formie\fields\Payment;
 use verbb\formie\gql\mutations\SubmissionMutation;
 use verbb\formie\helpers\BrowserRequestProfile;
 use verbb\formie\models\SubmissionErrors;
@@ -119,6 +120,13 @@ class SubmissionResolver extends ElementMutationResolver
                 throw new Error('Unable to perform the action.');
             }
 
+            // A payment's confirmation steps and safe retries need a session, which this route doesn't have.
+            foreach ($form->getFields() as $field) {
+                if ($field instanceof Payment && !$field->getIsDisabled()) {
+                    throw new Error('Payment forms can\'t be submitted through a public schema. Use `submitFormieClientForm` instead.');
+                }
+            }
+
             foreach (['title', 'enabled', 'status', 'statusId', 'operationId', 'requestToken'] as $argument) {
                 if (!$form->getFieldByHandle($argument)) {
                     unset($arguments[$argument]);
@@ -167,6 +175,17 @@ class SubmissionResolver extends ElementMutationResolver
         }
 
         $populate = function() use ($form, $submission, $arguments, $resolveInfo): void {
+            // An edit only changes what it sends, including the parts of an Address, Name or Group.
+            $previous = [];
+
+            if ($submission->id) {
+                foreach ($submission->getForm()->getFields() as $field) {
+                    if (array_key_exists($field->handle, $arguments)) {
+                        $previous[$field->handle] = $submission->getFieldValue($field->handle);
+                    }
+                }
+            }
+
             $this->populateElementWithData($submission, $arguments, $resolveInfo);
 
             // GraphQL coercion produces request shapes (including staged uploads). Route
@@ -174,6 +193,11 @@ class SubmissionResolver extends ElementMutationResolver
             foreach ($submission->getForm()->getFields() as $field) {
                 if (array_key_exists($field->handle, $arguments)) {
                     $raw = $submission->getContentState()->rawValuesByUid[$field->uid] ?? null;
+
+                    if (array_key_exists($field->handle, $previous)) {
+                        $raw = $field->mergePartialRequestValue($previous[$field->handle], $raw);
+                    }
+
                     $submission->getContentManager()->normalizeSingleFromRequest($submission, $field->handle, $raw);
                 }
             }

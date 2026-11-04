@@ -244,7 +244,7 @@ mutation SaveSubmission($repeaterField: contactForm_repeaterField_FormieRepeater
 
 ## Calling from Your Server
 
-When your server calls these mutations with a private token, the request's IP address is your server's, not your visitor's. Formie doesn't record it, so **Collect IP Address**, per-IP submission limits, per-IP quiz retake limits and Hidden fields set to **User IP Address** don't apply to these requests. A form that requires a logged-in user also can't be submitted this way, because a token has no user.
+When your server calls these mutations with a private token, the request's IP address is your server's, not your visitor's. Formie doesn't record it or pass it to integrations, so **Collect IP Address**, per-IP submission limits, per-IP quiz retake limits and Hidden fields set to **User IP Address** don't apply to these requests. A form that requires a logged-in user also can't be submitted this way, because a token has no user.
 
 ## Notifications and Integrations
 
@@ -265,16 +265,16 @@ If your front-end calls Formie directly from the browser, you can skip the acces
 - It ignores `title`, `enabled`, `status`, `statusId`, `operationId` and `requestToken`, so the sender can't choose them.
 - It can only attach a file by uploading it in the same request.
 - It only accepts POST requests, so a plain link can't submit your form.
-- It never tells the sender their submission was caught as spam.
+- With **Show success**, the response doesn't reveal that a submission was caught as spam. If you choose **Show error message**, the sender sees your message.
 - Your [`allowedOrigins`](/get-started/configuration#allowedorigins), Formie's anonymous rate limit and any [submission throttling](/forms/spam-protection#submission-throttling) you've turned on all apply. A sender over a limit gets an error asking them to try again shortly.
 
-Honeypot and minimum submit time checks depend on Formie's browser fields, so they don't run here. Add a captcha to any form you expose this way. Without one, spam rules are the only check on what gets emailed to you.
+IP-based limits use the address Craft reports, so set Craft's [`trustedHosts`](/forms/spam-protection#submission-throttling) if your site isn't behind a proxy that overwrites `X-Forwarded-For`. Honeypot and minimum submit time checks depend on Formie's browser fields, so they don't run here. Add a captcha to any form you expose this way. Without one, spam rules are the only check on what gets emailed to you.
 
-Payments need [`submitFormieClientForm`](/graphql/headless-payments), which also keeps a visitor's session across multiple pages and supports saving progress.
+A form with a Payment field can't be submitted this way, and returns an error. Use [`submitFormieClientForm`](/graphql/headless-payments), which works through a public schema and handles a payment's confirmation steps and safe retries. It also keeps a visitor's session across multiple pages and supports saving progress.
 
 ## Captchas
 
-When a form has a captcha enabled, Formie adds a captcha argument to that form’s submission mutation. The argument name is the captcha integration handle with `Captcha` appended and converted to camel case.
+When a form has a captcha enabled, Formie adds a captcha argument to that form’s submission mutation. The argument name is the captcha integration handle with `Captcha` appended and converted to camel case. For the Question captcha, send `value` as JSON with the question's index and the answer, such as `{"index":0,"answer":"blue"}`.
 
 For example, a captcha integration with the handle `turnstile` becomes the argument `turnstileCaptcha`.
 

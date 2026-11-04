@@ -3,6 +3,7 @@ namespace verbb\formie\models;
 
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\workflow\WorkflowContext;
 
 use Craft;
 use craft\base\Model;
@@ -33,7 +34,7 @@ class HiddenDefaultTemplateContext extends Model
             $request = Craft::$app->getRequest();
             $context->currentUser = Craft::$app->getUser()->getIdentity();
             $context->request->param = $request->getQueryParams();
-            $context->request->userIp = (string)$request->getUserIP();
+            $context->request->userIp = WorkflowContext::current()?->command->isPrivateMutation() ? '' : (string)$request->getUserIP();
             $context->request->absoluteUrl = (string)$request->getAbsoluteUrl();
             $context->request->userAgent = (string)$request->getUserAgent();
         }

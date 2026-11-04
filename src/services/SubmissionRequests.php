@@ -167,7 +167,15 @@ class SubmissionRequests extends Component
             $arguments['operationId'] ?? $arguments['requestToken'] ?? null,
             null,
             $arguments,
-            $populate,
+            function() use ($submission, $populate, $submitting): void {
+                $populate();
+
+                // Workflow completion owns this change, so limits, upload promotion and the completion
+                // event all see a draft being completed, rather than a submission already complete.
+                if ($submitting && $submission->id) {
+                    $submission->isIncomplete = true;
+                }
+            },
         );
     }
 

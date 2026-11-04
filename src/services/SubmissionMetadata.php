@@ -4,6 +4,7 @@ namespace verbb\formie\services;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\workflow\WorkflowContext;
 
 use Craft;
 
@@ -70,7 +71,7 @@ class SubmissionMetadata extends Component
             'referrer' => $referrer,
             'pageUri' => $referrer ?: $request->getAbsoluteUrl(),
             'userAgent' => $request->getUserAgent(),
-            'ipAddress' => $request->getUserIP() ?: $submission?->ipAddress,
+            'ipAddress' => $this->_collectsIp($submission) ? ($request->getUserIP() ?: $submission?->ipAddress) : null,
             'cookies' => $this->captureTrackingCookies(),
         ];
     }
@@ -139,5 +140,18 @@ class SubmissionMetadata extends Component
         }
 
         return ArrayHelper::getValue($this->normalize($submission->metadata), $path);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _collectsIp(?Submission $submission): bool
+    {
+        if (WorkflowContext::current()?->command->isPrivateMutation()) {
+            return false;
+        }
+
+        return !$submission || $submission->getForm()?->settings->collectIp;
     }
 }

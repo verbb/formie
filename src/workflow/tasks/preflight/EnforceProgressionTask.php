@@ -68,7 +68,7 @@ class EnforceProgressionTask implements TaskInterface
         while ($page) {
             $conditions = $page->getSubmitButtonConditions();
 
-            if ($page->hasSubmitButtonConditions() && $conditions) {
+            if ($page->hasSubmitButtonConditions() && $conditions && !$page->isConditionallyHidden($submission)) {
                 $evaluation = ConditionsHelper::evaluate($conditions, $submission, 'routing');
 
                 if (!$evaluation->permits(($conditions['showRule'] ?? 'show') === 'show')) {

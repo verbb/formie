@@ -18,6 +18,7 @@ use verbb\formie\elements\actions\SetSubmissionSpam;
 use verbb\formie\elements\actions\SetSubmissionStatus;
 use verbb\formie\elements\conditions\SubmissionCondition;
 use verbb\formie\elements\db\SubmissionQuery;
+use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\events\SubmissionCompleteEvent;
 use verbb\formie\events\SubmissionMarkedAsSpamEvent;
 use verbb\formie\events\SubmissionRulesEvent;
@@ -755,14 +756,18 @@ class Submission extends Element
         }
 
         $form = $this->getForm();
+        $command = WorkflowContext::current()?->command;
 
-        if ($form && $form->settings->requireUser) {
+        // A token has no user, and these rules decide who can submit a form, not who can correct a submission.
+        $isTokenEdit = $command?->submission === $this && $command->isPrivateMutation() && $command->operation === SubmissionOperation::REVISE;
+
+        if ($form && $form->settings->requireUser && !$isTokenEdit) {
             if (!Craft::$app->getUser()->getIdentity()) {
                 $this->addError('form', Craft::t('formie', 'You must be logged in to submit this form.'));
             }
         }
 
-        if ($form && $form->settings->scheduleForm) {
+        if ($form && $form->settings->scheduleForm && !$isTokenEdit) {
             if (!$form->isScheduleActive()) {
                 $this->addError('form', Craft::t('formie', 'This form is not available.'));
             }
