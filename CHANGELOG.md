@@ -21,6 +21,7 @@
 
 ### Fixed
 - Fixed users with permission to import forms being sent to an inaccessible page after a successful import.
+- Fixed queued integrations and notifications being discarded after their worker stopped unexpectedly. Expired jobs can resume, while ordinary delivery failures still wait for Retry.
 - Fixed upgrades from Formie 2 and 3 failing on PostgreSQL for sites with payments, and sites already upgraded rejecting newer payment statuses, because of an old database constraint.
 - Fixed upgrades stopping on payments saved with more decimals than their currency has, such as a failed payment of 25.015 USD. The amount is rounded, and the original stays on the payment and in its history.
 - Fixed notifications from Formie 3 failing or losing values when they used plain tokens such as `{email}` or `{group.field}`. These now convert automatically where they match a field on the form, including on sites that have already upgraded. Tokens with filters or Twig still need converting by hand.

@@ -7,15 +7,18 @@ use verbb\formie\compatibility\delivery\LegacyDeliveryJobTrait;
 use Craft;
 use craft\queue\BaseJob;
 
+use yii\queue\RetryableJobInterface;
+
 use RuntimeException;
 
-class TriggerIntegration extends BaseJob implements DeliveryJobInterface
+class TriggerIntegration extends BaseJob implements DeliveryJobInterface, RetryableJobInterface
 {
     // Traits
     // =========================================================================
 
     use DebuggableJobTrait;
     use LegacyDeliveryJobTrait;
+    use RetryInterruptedJobTrait;
 
 
     // Properties
@@ -40,6 +43,7 @@ class TriggerIntegration extends BaseJob implements DeliveryJobInterface
         if ($result->shouldFailQueue()) {
             throw new RuntimeException('Integration delivery ' . $result->status->value . '. Open the Diagnostics panel for more information.');
         }
+
         $this->setProgress($queue, 1);
     }
 

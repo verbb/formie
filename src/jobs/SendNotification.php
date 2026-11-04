@@ -9,15 +9,18 @@ use verbb\formie\models\IntegrationResult;
 use Craft;
 use craft\queue\BaseJob;
 
+use yii\queue\RetryableJobInterface;
+
 use RuntimeException;
 
-class SendNotification extends BaseJob implements DeliveryJobInterface
+class SendNotification extends BaseJob implements DeliveryJobInterface, RetryableJobInterface
 {
     // Traits
     // =========================================================================
 
     use DebuggableJobTrait;
     use LegacyDeliveryJobTrait;
+    use RetryInterruptedJobTrait;
 
 
     // Properties
