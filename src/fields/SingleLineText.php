@@ -241,7 +241,8 @@ class SingleLineText extends Field implements SortableFieldInterface, Previewabl
 
             return SlotTag::make('input')
                 ->core($this->applyTextLimitInputAttributes([
-                    'type' => 'text',
+                    // Input attributes can set the type, such as a password on a Craft login form.
+                    'type' => ($this->getInputAttributes()['type'] ?? null) ?: 'text',
                     'id' => $id,
                     'name' => $omitName ? null : $this->getHtmlName(),
                     'value' => $value ?? false,
