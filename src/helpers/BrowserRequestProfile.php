@@ -21,6 +21,7 @@ class BrowserRequestProfile
         if ($request->getIsOptions()) {
             return self::CROSS_ORIGIN;
         }
+
         $profile = (string)$request->getHeaders()->get('X-Formie-Profile', self::SAME_ORIGIN);
 
         if (!in_array($profile, [self::SAME_ORIGIN, self::CROSS_ORIGIN], true)) {
@@ -33,12 +34,14 @@ class BrowserRequestProfile
             if ($origin !== '' && $origin !== $request->getHostInfo()) {
                 throw new ForbiddenHttpException('Cross-origin Formie requests must declare the cross-origin-public profile.');
             }
+
             return $profile;
         }
 
         if (!$request->getOrigin()) {
             throw new ForbiddenHttpException('The cross-origin-public profile requires an allowed Origin.');
         }
+
         // Opaque credentials select an isolated guest session. Ambient Craft login
         // cookies and cached identities never supply authority to this profile.
         $token = (string)$request->getHeaders()->get('X-Formie-Session', '');
@@ -49,10 +52,12 @@ class BrowserRequestProfile
             if (!$bootstrap || $token !== '') {
                 throw new ForbiddenHttpException('Formie public session is missing or expired. Reload the form.');
             }
+
             $token = Craft::$app->getSecurity()->generateRandomString(64);
             $sessionId = bin2hex(random_bytes(24));
             $cache->set(['formie-public-session', hash('sha256', $token)], $sessionId, 7200);
         }
+
         $session = Craft::$app->getSession();
 
         if ($session->getId() !== $sessionId) {
@@ -61,9 +66,11 @@ class BrowserRequestProfile
             $session->setId($sessionId);
             $session->open();
         }
+
         Craft::$app->getUser()->setIdentity(null);
         Craft::$app->getResponse()->getHeaders()->set('X-Formie-Session', $token);
         Craft::$app->getResponse()->getHeaders()->set('Access-Control-Expose-Headers', 'X-Formie-Session');
+
         return $profile;
     }
 
@@ -83,6 +90,16 @@ class BrowserRequestProfile
         // not administrative mutation of submissions by ID or handle.
         if (Craft::$app->getGql()->getActiveSchema()->isPublic) {
             throw new ForbiddenHttpException('Administrative mutations require an authenticated API schema.');
+        }
+    }
+
+    /** A public schema needs no credentials, but still can't be called from a disallowed origin. */
+    public static function enterPublicSubmission(): void
+    {
+        $request = Craft::$app->getRequest();
+
+        if ($request instanceof Request) {
+            CrossOriginRequestHelper::requireAllowedOrigin($request);
         }
     }
 

@@ -23,6 +23,8 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Utils\Value;
 
+use yii\web\TooManyRequestsHttpException;
+
 class SubmissionResolver extends ElementMutationResolver
 {
     // Properties
@@ -107,6 +109,21 @@ class SubmissionResolver extends ElementMutationResolver
         $form = $this->getResolutionData('form');
         $canIdentify = !empty($arguments['id']) || !empty($arguments['uid']);
         $elementService = Craft::$app->getElements();
+        $isPublic = Craft::$app->getGql()->getActiveSchema()->isPublic;
+
+        if ($isPublic) {
+            // Anyone can call a public schema, so it can submit the form as a visitor would, but
+            // can't reach existing submissions or leave drafts that could never be continued.
+            if ($canIdentify || !empty($arguments['isIncomplete'])) {
+                throw new Error('Unable to perform the action.');
+            }
+
+            foreach (['title', 'enabled', 'status', 'statusId', 'operationId', 'requestToken'] as $argument) {
+                if (!$form->getFieldByHandle($argument)) {
+                    unset($arguments[$argument]);
+                }
+            }
+        }
 
         $canCreateAll = Gql::canSchema('formieSubmissions.all', 'create');
         $canSaveAll = Gql::canSchema('formieSubmissions.all', 'save');
@@ -148,9 +165,13 @@ class SubmissionResolver extends ElementMutationResolver
             throw new Error('Impossible to change the form of an existing submission');
         }
 
-        BrowserRequestProfile::enterAdministrative();
+        if ($isPublic) {
+            BrowserRequestProfile::enterPublicSubmission();
+        } else {
+            BrowserRequestProfile::enterAdministrative();
+        }
 
-        $result = Formie::$plugin->getSubmissionRequests()->executeMutation($form, $submission, $arguments, function() use ($form, $submission, $arguments, $resolveInfo): void {
+        $populate = function() use ($form, $submission, $arguments, $resolveInfo): void {
             $this->populateElementWithData($submission, $arguments, $resolveInfo);
 
             // GraphQL coercion produces request shapes (including staged uploads). Route
@@ -176,8 +197,15 @@ class SubmissionResolver extends ElementMutationResolver
                     $submission->setCaptchaData($handle, $arguments[$handle]);
                 }
             }
+        };
 
-        });
+        try {
+            $result = Formie::$plugin->getSubmissionRequests()->executeMutation($form, $submission, $arguments, $populate);
+        } catch (TooManyRequestsHttpException $e) {
+            // GraphQL hides unexpected exceptions, and the sender needs to know to slow down.
+            throw new Error($e->getMessage());
+        }
+
         $response = $result->response;
         $success = $response->success;
 

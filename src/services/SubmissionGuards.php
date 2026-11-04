@@ -4,6 +4,7 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\enums\NavigationIntent;
+use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\Settings;
@@ -50,6 +51,13 @@ class SubmissionGuards extends Component
 
     public function validateRequest(SubmissionCommand $request, bool $browser): ?string
     {
+        // A public schema has no session or token to check, but anyone can call it.
+        if ($request->authority->type === SubmissionAuthorityType::GRAPHQL_PUBLIC) {
+            $this->_enforceAbuseLimits($request);
+
+            return null;
+        }
+
         if (!$request->isInteractive()) {
             return null;
         }
@@ -64,16 +72,8 @@ class SubmissionGuards extends Component
             throw new ForbiddenHttpException('Invalid or expired submission request.');
         }
 
-        Formie::$plugin->getFormSessions()->enforceAnonymousRateLimit($request->form);
+        $this->_enforceAbuseLimits($request);
         $settings = Formie::$plugin->getSettings();
-
-        if ($settings->enableGlobalSubmissionThrottling && ($reason = $this->_validateGlobalSubmissionThrottling($settings))) {
-            throw new TooManyRequestsHttpException($reason);
-        }
-
-        if ($settings->enableIpSubmissionThrottling && ($reason = $this->_validateIpSubmissionThrottling($settings, $request))) {
-            throw new TooManyRequestsHttpException($reason);
-        }
 
         // Browser honeypots protect every write. Minimum elapsed time applies to
         // forward Submit only; saving/back navigation remains usable immediately.
@@ -90,6 +90,7 @@ class SubmissionGuards extends Component
         if ($browser && $settings->enableFormSubmitExpiration) {
             return $this->_validateFormSubmitExpiration($settings);
         }
+
         return null;
     }
 
@@ -143,6 +144,20 @@ class SubmissionGuards extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _enforceAbuseLimits(SubmissionCommand $request): void
+    {
+        Formie::$plugin->getFormSessions()->enforceAnonymousRateLimit($request->form);
+        $settings = Formie::$plugin->getSettings();
+
+        if ($settings->enableGlobalSubmissionThrottling && ($reason = $this->_validateGlobalSubmissionThrottling($settings))) {
+            throw new TooManyRequestsHttpException($reason);
+        }
+
+        if ($settings->enableIpSubmissionThrottling && ($reason = $this->_validateIpSubmissionThrottling($settings, $request))) {
+            throw new TooManyRequestsHttpException($reason);
+        }
+    }
 
     private function _validateGlobalSubmissionThrottling(Settings $settings): ?string
     {

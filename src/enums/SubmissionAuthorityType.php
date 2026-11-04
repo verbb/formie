@@ -9,6 +9,7 @@ enum SubmissionAuthorityType: string
     case VISITOR = 'visitor';
     case CONTROL_PANEL = 'controlPanel';
     case GRAPHQL_ADMIN = 'graphqlAdmin';
+    case GRAPHQL_PUBLIC = 'graphqlPublic';
     case PAYMENT_REPLAY = 'paymentReplay';
     case TRUSTED_INTERNAL = 'trustedInternal';
 }

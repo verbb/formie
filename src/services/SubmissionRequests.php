@@ -146,7 +146,7 @@ class SubmissionRequests extends Component
             $submission,
             $operation,
             $submitting ? NavigationIntent::ADVANCE : NavigationIntent::STAY,
-            SubmissionAuthorityType::GRAPHQL_ADMIN,
+            Craft::$app->getGql()->getActiveSchema()->isPublic ? SubmissionAuthorityType::GRAPHQL_PUBLIC : SubmissionAuthorityType::GRAPHQL_ADMIN,
             isset($arguments['expectedVersion']) ? (int)$arguments['expectedVersion'] : ($submission->id ? null : 0),
             $arguments['operationId'] ?? $arguments['requestToken'] ?? null,
             null,
@@ -569,7 +569,7 @@ class SubmissionRequests extends Component
         $scope = match ($authorityType) {
             SubmissionAuthorityType::VISITOR => 'session:' . $this->_sessionScope(),
             SubmissionAuthorityType::CONTROL_PANEL => 'user:' . Craft::$app->getUser()->getId(),
-            SubmissionAuthorityType::GRAPHQL_ADMIN => 'schema:' . Craft::$app->getGql()->getActiveSchema()->uid,
+            SubmissionAuthorityType::GRAPHQL_ADMIN, SubmissionAuthorityType::GRAPHQL_PUBLIC => 'schema:' . Craft::$app->getGql()->getActiveSchema()->uid,
             SubmissionAuthorityType::PAYMENT_REPLAY => 'payment:' . $submission->id,
             default => 'internal',
         };

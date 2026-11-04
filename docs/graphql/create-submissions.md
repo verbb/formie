@@ -12,7 +12,7 @@ save_<formHandle>_Submission
 
 For a form with the handle `contactForm`, the mutation is `save_contactForm_Submission`.
 
-These mutations submit a form. A submission made this way behaves like one made on your site: Formie applies the form's availability rules and field conditions, validates the answers, screens for spam, then sends notifications and triggers integrations. Use a private GraphQL schema with an access token, and call the mutation from your server so the token stays out of browser code.
+These mutations submit a form. A submission made this way behaves like one made on your site: Formie applies the form's availability rules and field conditions, validates the answers, screens for spam, then sends notifications and triggers integrations. Use a private GraphQL schema with an access token, and call the mutation from your server so the token stays out of browser code. To call it without a token, see [Public Schemas](#public-schemas).
 
 Send every answer in one request to complete the submission. To save progress instead, set `isIncomplete: true`. That saves a draft without requiring every field, and nothing is sent until you complete it with `isIncomplete: false`. Editing a completed submission requires its current `expectedVersion`, so a stale or missing version can't overwrite another save.
 
@@ -252,6 +252,19 @@ A completed submission goes through the same spam checks as a form submitted on 
 
 - **Show error message:** the response contains an error with your message, in the same format as a validation error.
 - **Show success:** the mutation responds as usual, so nothing tells the sender it was caught. If Formie isn't saving spam there's no submission to return, so the mutation's value is `null`.
+
+## Public Schemas
+
+If your front-end calls Formie directly from the browser, you can skip the access token by giving your public GraphQL schema **Create** access to the form's submissions. Anyone who can reach your GraphQL endpoint can then submit that form, so a public schema can do less than a private one:
+
+- It can only create completed submissions. Editing a submission by `id` or `uid`, or saving with `isIncomplete: true`, returns an error even if the schema has **Save** access.
+- It ignores `title`, `enabled`, `status`, `statusId`, `operationId` and `requestToken`, so the sender can't choose them.
+- It can only attach a file by uploading it in the same request.
+- Your allowed origins, Formie's anonymous rate limit and any [submission throttling](/forms/spam-protection#submission-throttling) you've turned on all apply. A sender over a limit gets an error asking them to try again shortly.
+
+Honeypot and minimum submit time checks depend on Formie's browser fields, so they don't run here. Add a captcha to any form you expose this way. Without one, spam rules are the only check on what gets emailed to you.
+
+Payments need [`submitFormieClientForm`](/graphql/headless-payments), which also keeps a visitor's session across multiple pages and supports saving progress.
 
 ## Captchas
 

@@ -8,6 +8,7 @@ use craft\models\GqlSchema;
 use GraphQL\Error\Error;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
+use Tests\Support\UploadTestHelper;
 use Tests\Support\WebRequestTestHelper;
 use verbb\formie\Formie;
 use verbb\formie\base\Captcha;
@@ -124,7 +125,7 @@ function mutationDeliverySave(Form $form, array $arguments): ?Submission
 }
 
 /** Runs real mutations in a web request, recording emails and integration deliveries without sending them. */
-function withMutationDelivery(Form $form, callable $callback, array $integrations = [MutationDeliveryProvider::class => 'remote'], array $settings = []): array
+function withMutationDelivery(Form $form, callable $callback, array $integrations = [MutationDeliveryProvider::class => 'remote'], array $settings = [], bool $isPublic = false): array
 {
     $plugin = Formie::$plugin;
     $emails = new class extends Emails {
@@ -152,7 +153,7 @@ function withMutationDelivery(Form $form, callable $callback, array $integration
         WebRequestTestHelper::withWebRequestContext(fn() => withSaveSubmissionGraphqlScope([
             'formieSubmissions.' . $form->uid . ':create',
             'formieSubmissions.' . $form->uid . ':save',
-        ], $callback), ['method' => 'POST']);
+        ], $callback, $isPublic), ['method' => 'POST']);
 
         return ['emails' => $emails->sent, 'integrations' => MutationDeliveryProvider::$calls];
     } finally {
@@ -327,6 +328,125 @@ it('reports a payment that needs a follow-up step instead of an empty error', fu
     }, []);
 
     expect($delivered['emails'])->toBe([]);
+});
+
+it('creates and delivers a submission through a public schema', function (): void {
+    $form = mutationDeliveryForm();
+    $saved = null;
+    $delivered = withMutationDelivery($form, function() use ($form, &$saved): void {
+        $saved = mutationDeliverySave($form, ['fields' => ['message' => 'Hello']]);
+    }, isPublic: true);
+
+    expect($saved->isIncomplete)->toBeFalse()
+        ->and($saved->getFieldValue('message'))->toBe('Hello')
+        ->and($delivered)->toBe(['emails' => ['Enquiry'], 'integrations' => ['remote']]);
+});
+
+it('screens submissions made through a public schema', function (): void {
+    $form = mutationDeliveryForm(settings: []);
+    $saved = null;
+    $delivered = withMutationDelivery($form, function() use ($form, &$saved): void {
+        $saved = mutationDeliverySave($form, ['fields' => ['message' => 'Hello']]);
+    }, [MutationDeliveryCaptcha::class => 'token'], ['spamBehaviour' => Settings::SPAM_BEHAVIOUR_SUCCESS, 'saveSpam' => true, 'spamEmailNotifications' => false], true);
+
+    expect($saved->isSpam)->toBeTrue()->and($delivered['emails'])->toBe([]);
+});
+
+it('blocks editing a submission by ID through a public schema', function (string $identifier): void {
+    $form = mutationDeliveryForm();
+    $created = formie()->submission($form)->with(['message' => 'Original'])->save();
+    withMutationDelivery($form, function() use ($form, $created, $identifier): void {
+        expect(fn() => mutationDeliverySave($form, [$identifier => $created->{$identifier}, 'expectedVersion' => $created->stateVersion, 'fields' => ['message' => 'Overwritten']]))
+            ->toThrow(Error::class, 'Unable to perform the action.');
+    }, isPublic: true);
+
+    $stored = Submission::find()->id($created->id)->status(null)->one();
+    expect($stored->getFieldValue('message'))->toBe('Original');
+})->with(['id', 'uid']);
+
+it('doesn\'t reveal whether a submission exists through a public schema', function (): void {
+    $form = mutationDeliveryForm();
+    withMutationDelivery($form, function() use ($form): void {
+        expect(fn() => mutationDeliverySave($form, ['id' => 2147483000, 'fields' => ['message' => 'Hello']]))->toThrow(Error::class, 'Unable to perform the action.');
+    }, isPublic: true);
+});
+
+it('blocks saving drafts through a public schema, which could never be continued', function (): void {
+    $form = mutationDeliveryForm();
+    withMutationDelivery($form, function() use ($form): void {
+        expect(fn() => mutationDeliverySave($form, ['isIncomplete' => true, 'fields' => ['message' => 'Draft']]))->toThrow(Error::class, 'Unable to perform the action.');
+    }, isPublic: true);
+
+    expect((int)Submission::find()->formId($form->id)->status(null)->isIncomplete(null)->count())->toBe(0);
+});
+
+it('ignores arguments a visitor couldn\'t set through a public schema', function (): void {
+    $form = mutationDeliveryForm();
+    $saved = null;
+    withMutationDelivery($form, function() use ($form, &$saved): void {
+        $saved = mutationDeliverySave($form, ['title' => 'Forced title', 'status' => 'forced', 'enabled' => false, 'fields' => ['message' => 'Hello']]);
+    }, [], isPublic: true);
+
+    expect($saved->title)->not->toBe('Forced title')
+        ->and($saved->enabled)->toBeTrue()
+        ->and($saved->statusId)->toBe($form->getDefaultStatus()->id);
+});
+
+it('doesn\'t replay an earlier result by operation ID through a public schema', function (): void {
+    $form = mutationDeliveryForm();
+    $first = null;
+    $second = null;
+    withMutationDelivery($form, function() use ($form, &$first, &$second): void {
+        $first = mutationDeliverySave($form, ['operationId' => 'shared-guess', 'fields' => ['message' => 'First']]);
+        $second = mutationDeliverySave($form, ['operationId' => 'shared-guess', 'fields' => ['message' => 'First']]);
+    }, [], isPublic: true);
+
+    expect($second->id)->not->toBe($first->id);
+});
+
+it('applies abuse limits to public schema submissions but not private ones', function (array $settings, bool $isPublic, int $saved): void {
+    $form = mutationDeliveryForm(['disableCaptchas' => true, 'collectIp' => true]);
+    Craft::$app->getCache()->flush();
+    withMutationDelivery($form, function() use ($form, $isPublic, $saved): void {
+        mutationDeliverySave($form, ['fields' => ['message' => 'First']]);
+        $second = fn() => mutationDeliverySave($form, ['fields' => ['message' => 'Second']]);
+
+        if ($saved === 1) {
+            expect($second)->toThrow(Error::class);
+        } else {
+            $second();
+        }
+    }, [], $settings, $isPublic);
+
+    expect((int)Submission::find()->formId($form->id)->status(null)->isSpam(null)->count())->toBe($saved);
+})->with([
+    'anonymous rate limit, public' => [['anonymousFormRefreshRateLimit' => 1], true, 1],
+    'global throttle, public' => [['enableGlobalSubmissionThrottling' => true, 'globalSubmissionThrottleLimit' => 1, 'globalSubmissionThrottleWindowSeconds' => 60], true, 1],
+    'IP throttle, public' => [['enableIpSubmissionThrottling' => true, 'ipSubmissionThrottleMinutes' => 5], true, 1],
+    'anonymous rate limit, private' => [['anonymousFormRefreshRateLimit' => 1], false, 2],
+    'IP throttle, private' => [['enableIpSubmissionThrottling' => true, 'ipSubmissionThrottleMinutes' => 5], false, 2],
+]);
+
+it('requires proof of ownership to attach an existing asset through a public schema', function (): void {
+    UploadTestHelper::ensureUploadVolume();
+    $asset = UploadTestHelper::seedAsset('private.txt', 'Private content');
+    $form = formie()->form(['title' => 'Mutation upload ' . uniqid()])->settings(['disableCaptchas' => true])->fileUploadField('files', ['restrictFiles' => false])->create();
+    withMutationDelivery($form, function() use ($form, $asset): void {
+        expect(fn() => mutationDeliverySave($form, ['fields' => ['files' => [['assetId' => (int)$asset->id]]]]))->toThrow(Error::class, 'attachment capability');
+    }, [], isPublic: true);
+
+    expect((int)Submission::find()->formId($form->id)->status(null)->isIncomplete(null)->count())->toBe(0);
+});
+
+it('accepts a new file through a public schema', function (): void {
+    UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form(['title' => 'Mutation upload ' . uniqid()])->settings(['disableCaptchas' => true])->fileUploadField('files', ['restrictFiles' => false])->create();
+    $saved = null;
+    withMutationDelivery($form, function() use ($form, &$saved): void {
+        $saved = mutationDeliverySave($form, ['fields' => ['files' => [['filename' => 'added.txt', 'fileData' => 'data:text/plain;base64,' . base64_encode('New content')]]]]);
+    }, [], isPublic: true);
+
+    expect(file_get_contents($saved->getFieldValue('files')->one()->getCopyOfFile()))->toBe('New content');
 });
 
 it('saves incomplete mutation submissions as drafts without requiring every field', function (): void {
@@ -607,7 +727,7 @@ it('rejects saveSubmission updates without save scope', function (): void {
     });
 });
 
-function withSaveSubmissionGraphqlScope(array $scope, callable $callback): mixed
+function withSaveSubmissionGraphqlScope(array $scope, callable $callback, bool $isPublic = false): mixed
 {
     $gqlService = Craft::$app->getGql();
     $activeSchema = null;
@@ -621,6 +741,7 @@ function withSaveSubmissionGraphqlScope(array $scope, callable $callback): mixed
     $gqlService->setActiveSchema(new GqlSchema([
         'name' => 'Formie Generic Save Submission Test Schema',
         'scope' => $scope,
+        'isPublic' => $isPublic,
     ]));
 
     try {

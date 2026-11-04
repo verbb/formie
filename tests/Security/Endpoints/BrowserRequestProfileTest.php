@@ -49,6 +49,18 @@ it('keeps public schemas out of the trusted administrative mutation profile', fu
     } finally { $gql->setActiveSchema($previous); }
 });
 
+it('applies origin rules to public schema mutations without requiring trust', function() {
+    WebRequestTestHelper::withWebRequestContext(function() {
+        Formie::$plugin->getSettings()->allowedOrigins = ['https://public.example.test'];
+        BrowserRequestProfile::enterPublicSubmission();
+    }, ['method' => 'POST', 'headers' => ['Origin' => 'https://public.example.test']]);
+
+    WebRequestTestHelper::withWebRequestContext(function() {
+        Formie::$plugin->getSettings()->allowedOrigins = ['https://public.example.test'];
+        expect(fn() => BrowserRequestProfile::enterPublicSubmission())->toThrow(\yii\web\ForbiddenHttpException::class);
+    }, ['method' => 'POST', 'headers' => ['Origin' => 'https://evil.example.test']]);
+});
+
 it('rejects same-origin submission without CSRF even when the legacy guest exception is enabled', function() {
     WebRequestTestHelper::withWebRequestContext(function() {
         Formie::$plugin->getSettings()->enableCsrfValidationForGuests = false;
