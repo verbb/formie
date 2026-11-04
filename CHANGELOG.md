@@ -37,6 +37,7 @@
 - Fixed uppercase submission UIDs failing to edit a submission on PostgreSQL.
 - Fixed Agile integration settings failing to load when only tasks are mapped.
 - Fixed Akismet, CleanTalk and OopSpam throwing an error instead of showing a validation message when saved without an API key.
+- Fixed the Stripe SDK requirement allowing versions without `StripeClient`. The minimum is now 7.33.
 - Fixed GraphQL `save_<form>_Submission` and `saveSubmission` mutations not behaving like normal form submissions. They now send email notifications, trigger integrations, run spam and captcha checks, apply field conditions and default values, record request details and follow the form's login, schedule and submission limit rules. A multi-page form with a captcha now needs a captcha token in the mutation. Public GraphQL schemas can create submissions again, with rate limits, but editing by ID and saving drafts need a private schema. ([#3090](https://github.com/verbb/formie/issues/3090))
 - Fixed File Upload fields rejecting extensions allowed by Craft's `allowedFileExtensions`, `extraAllowedFileExtensions` and `extraFileKinds` settings. Per-field file type restrictions still apply, and the field settings show the permitted extensions with clearer configuration guidance. ([#3092](https://github.com/verbb/formie/issues/3092))
 - Fixed Repeater validation errors appearing on the wrong row after returning to a previous page, and searchable dropdown selections being cleared during AJAX page navigation. ([#3088](https://github.com/verbb/formie/issues/3088))
