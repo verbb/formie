@@ -20,6 +20,7 @@
 - Update the Pardot guide for External Client Apps, OAuth security settings, and separate API and Form Handler delivery.
 
 ### Fixed
+- Fixed queued exports and scheduled reports omitting answer columns when using automatic field selection.
 - Fixed GoCardless Payment fields not rendering their payment input and redirect instructions.
 - Fixed submission payment summaries missing for GoCardless, Moneris, Paddle and Square.
 - Fixed PlaceKit throwing an error when its API key is unset or empty.

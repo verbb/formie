@@ -244,7 +244,11 @@ class ReportExport extends Component
         }
 
         $query = $this->_buildQueryFromContext($report, $context, $user, $scheduled);
-        $columnOverride = $context['columnOverride'] ?? null;
+        $columnOverride = $context['columnOverride'] ?? Formie::$plugin->getReportColumns()->getConfiguredExportColumns(
+            $report,
+            $user,
+            checkPermissions: !$scheduled,
+        );
         $format = $this->_normalizeFormat($exportFile->format);
 
         $previousProgress = $this->_progressCallback;

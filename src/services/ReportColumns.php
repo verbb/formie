@@ -72,14 +72,7 @@ class ReportColumns extends Component
 
     public function getFieldColumnsForFormIds(mixed $formIds, ?User $user = null, bool $includeSubfields = true): array
     {
-        $user ??= Craft::$app->getUser()->getIdentity();
-        $resolvedFormIds = Formie::$plugin->getReportQuery()->resolveFormIds($formIds, $user);
-
-        if ($resolvedFormIds === []) {
-            return [];
-        }
-
-        return $this->_queryFieldColumnsForFormIds($resolvedFormIds, $includeSubfields);
+        return $this->_getFieldColumnsForFormIds($formIds, $user, $includeSubfields, true);
     }
 
     public function getFieldColumnGroupsForFormIds(mixed $formIds, ?User $user = null): array
@@ -250,44 +243,21 @@ class ReportColumns extends Component
 
     public function getConfiguredColumns(Report $report, ?User $user = null): array
     {
-        $settings = $report->getSettingsModel();
-        $columns = $this->usesAllFieldColumns($report)
-            ? $this->_sourceColumnsForAllFieldMode($report, $settings->columns, $user)
-            : $settings->columns;
-        $columns = $this->normalizeColumnsPayload($columns);
-        $order = $this->inferFieldOrder($settings->columns, $settings->display);
+        return $this->_getConfiguredColumns($report, $user, true);
+    }
 
-        if ($order === self::FIELD_ORDER_CUSTOM) {
-            return $columns;
-        }
+    /**
+     * Workers resolve columns with the same owner and scope as their row query.
+     * Only administrator-configured scheduled deliveries bypass viewer permissions.
+     */
+    public function getConfiguredExportColumns(Report $report, ?User $user = null, bool $checkPermissions = true): array
+    {
+        $columns = $checkPermissions
+            ? $this->getConfiguredColumns($report, $user)
+            : $this->_getConfiguredColumns($report, $user, false);
 
-        $fields = array_values(array_filter($columns, static fn(array $column): bool => ($column['type'] ?? 'attribute') === 'field'));
-
-        if ($order === self::FIELD_ORDER_ALPHABETICAL) {
-            usort($fields, static fn(array $a, array $b): int => strcmp(
-                mb_strtolower((string)($a['label'] ?? $a['handle'])),
-                mb_strtolower((string)($b['label'] ?? $b['handle'])),
-            ));
-        } else {
-            $positions = array_flip(array_column($this->getFieldColumnsForFormIds(
-                $settings->filters['formIds'] ?? '*',
-                $user,
-                includeSubfields: true,
-            ), 'handle'));
-            usort($fields, static fn(array $a, array $b): int => ($positions[$a['handle']] ?? PHP_INT_MAX) <=> ($positions[$b['handle']] ?? PHP_INT_MAX));
-        }
-
-        // Replace field slots only: attributes retain their authored positions.
-        $index = 0;
-
-        foreach ($columns as &$column) {
-            if (($column['type'] ?? 'attribute') === 'field') {
-                $column = $fields[$index++];
-            }
-        }
-        unset($column);
-
-        return $columns;
+        // Passing these as an override must retain the ordinary export's empty-selection fallback.
+        return $this->resolveColumns($report, $columns, $user) === [] ? $this->getDefaultAttributeColumns() : $columns;
     }
 
     public function mergeEditorColumns(array $savedColumns, array $availableFieldColumns): array
@@ -356,6 +326,7 @@ class ReportColumns extends Component
 
                     $ordered[] = $candidate;
                     unset($remaining[$offset]);
+
                     break;
                 }
             }
@@ -622,7 +593,63 @@ class ReportColumns extends Component
     // Private Methods
     // =========================================================================
 
-    private function _sourceColumnsForAllFieldMode(Report $report, array $savedColumns, ?User $user): array
+    private function _getFieldColumnsForFormIds(mixed $formIds, ?User $user, bool $includeSubfields, bool $checkPermissions): array
+    {
+        $user ??= Craft::$app->getUser()->getIdentity();
+        $resolvedFormIds = Formie::$plugin->getReportQuery()->resolveFormIds($formIds, $user, $checkPermissions);
+
+        if ($resolvedFormIds === []) {
+            return [];
+        }
+
+        return $this->_queryFieldColumnsForFormIds($resolvedFormIds, $includeSubfields);
+    }
+
+    private function _getConfiguredColumns(Report $report, ?User $user, bool $checkPermissions): array
+    {
+        $settings = $report->getSettingsModel();
+        $columns = $this->usesAllFieldColumns($report)
+            ? $this->_sourceColumnsForAllFieldMode($report, $settings->columns, $user, $checkPermissions)
+            : $settings->columns;
+        $columns = $this->normalizeColumnsPayload($columns);
+        $order = $this->inferFieldOrder($settings->columns, $settings->display);
+
+        if ($order === self::FIELD_ORDER_CUSTOM) {
+            return $columns;
+        }
+
+        $fields = array_values(array_filter($columns, static fn(array $column): bool => ($column['type'] ?? 'attribute') === 'field'));
+
+        if ($order === self::FIELD_ORDER_ALPHABETICAL) {
+            usort($fields, static fn(array $a, array $b): int => strcmp(
+                mb_strtolower((string)($a['label'] ?? $a['handle'])),
+                mb_strtolower((string)($b['label'] ?? $b['handle'])),
+            ));
+        } else {
+            $positions = array_flip(array_column($this->_getFieldColumnsForFormIds(
+                $settings->filters['formIds'] ?? '*',
+                $user,
+                includeSubfields: true,
+                checkPermissions: $checkPermissions,
+            ), 'handle'));
+            usort($fields, static fn(array $a, array $b): int => ($positions[$a['handle']] ?? PHP_INT_MAX) <=> ($positions[$b['handle']] ?? PHP_INT_MAX));
+        }
+
+        // Replace field slots only: attributes retain their authored positions.
+        $index = 0;
+
+        foreach ($columns as &$column) {
+            if (($column['type'] ?? 'attribute') === 'field') {
+                $column = $fields[$index++];
+            }
+        }
+
+        unset($column);
+
+        return $columns;
+    }
+
+    private function _sourceColumnsForAllFieldMode(Report $report, array $savedColumns, ?User $user, bool $checkPermissions): array
     {
         $attributes = [];
 
@@ -644,7 +671,7 @@ class ReportColumns extends Component
 
         $settings = $report->getSettingsModel();
         $availableColumns = $this->getAutomaticFieldColumns(
-            $this->getFieldColumnsForFormIds($settings->filters['formIds'] ?? '*', $user),
+            $this->_getFieldColumnsForFormIds($settings->filters['formIds'] ?? '*', $user, true, $checkPermissions),
             $settings->display['compoundFieldColumns'] ?? null,
         );
 

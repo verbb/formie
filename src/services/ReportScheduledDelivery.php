@@ -238,7 +238,8 @@ class ReportScheduledDelivery extends Component
         $query = $this->buildSubmissionQuery($report, $scheduledReport, $testSend);
 
         // A failed export must leave the delivery cursor unchanged so its rows can be retried.
-        $export = Formie::$plugin->getReportExport()->export($report, $format, $query);
+        $columns = Formie::$plugin->getReportColumns()->getConfiguredExportColumns($report, checkPermissions: $testSend);
+        $export = Formie::$plugin->getReportExport()->export($report, $format, $query, columnOverride: $columns);
         $path = $export['path'] ?? null;
 
         if (!$path || !is_file($path)) {
