@@ -1092,6 +1092,9 @@ class FileUpload extends ElementField
         $variables['limit'] = $this->maxFiles;
         $variables['showSourcePath'] = false;
 
+        // Craft's input uses this to show a file once it has uploaded.
+        $variables['criteria']['siteId'] = $element->siteId ?? Craft::$app->getSites()->getCurrentSite()->id;
+
         $variables['canUpload'] = false;
 
         if ($uploadVolume && Craft::$app->getUser()->checkPermission('saveAssets:' . $uploadVolume->uid)) {

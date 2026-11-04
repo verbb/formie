@@ -433,6 +433,7 @@ it('offers a direct upload to the field upload folder for users who can save ass
     $withoutGrant = cpScreenRender(cpScreenUser([Permissions::PERM_VIEW_SUBMISSIONS, Permissions::PERM_CREATE_SUBMISSIONS, 'viewAssets:' . $volume->uid]), $form);
 
     expect($withGrant['html'])->toContain('folderId:' . $root->id)->toContain('"canUpload":true')
+        ->toContain('"criteria":{"siteId":' . $form->siteId . '}')
         ->and($withoutGrant['html'])->not->toContain('folderId:')->toContain('"canUpload":false');
 });
 
