@@ -306,6 +306,13 @@ class StencilsController extends Controller
         $variables['deleteRedirectUrl'] = UrlHelper::cpUrl('formie/stencils');
         $variables['deleteConfirmMessage'] = Craft::t('formie', 'Are you sure you want to delete this stencil?');
         $variables['deleteErrorMessage'] = Craft::t('formie', 'Couldn’t archive stencil.');
+        $pages = $form->getFormLayout()->getFormBuilderConfig();
+
+        foreach ($pages as &$page) {
+            $page['rows'] = $this->_getStencilBuilderRows($page['rows']);
+        }
+
+        unset($page);
         $canonicalData = [
             ...$variables['data'],
             'id' => $stencil->id,
@@ -328,7 +335,7 @@ class StencilsController extends Controller
             'fileUploadsAction' => $stencil->data->fileUploadsAction,
             'settings' => $stencil->getSettings()->getFormBuilderConfig(),
             'notifications' => Formie::$plugin->getNotifications()->getNotificationsConfig($form->getNotifications()),
-            'pages' => $form->getFormLayout()->getFormBuilderConfig(),
+            'pages' => $pages,
         ];
 
         $multiSite = Formie::$plugin->getStencils()->getBuilderMultiSiteConfig($stencil);
@@ -341,6 +348,32 @@ class StencilsController extends Controller
         $variables['translatableProperties']['form'] = [];
 
         return $variables;
+    }
+
+    private function _getStencilBuilderRows(array $rows): array
+    {
+        foreach ($rows as &$row) {
+            foreach ($row['fields'] as &$field) {
+                if (!empty($field['isSynced']) && !empty($field['definitionId'])) {
+                    // Stencils hydrate a new temporary form on save, so existing links need
+                    // the same actor-bound selection grant as fields added through the picker.
+                    $field['definitionToken'] = Craft::$app->getSecurity()->hashData(Json::encode([
+                        'purpose' => 'field-definition', 'definitionId' => $field['definitionId'],
+                        'formId' => null, 'userId' => Craft::$app->getUser()->getId(),
+                    ]));
+                }
+
+                if (isset($field['rows'])) {
+                    $field['rows'] = $this->_getStencilBuilderRows($field['rows']);
+                }
+
+                foreach ($field['layouts'] ?? [] as $key => $layoutRows) {
+                    $field['layouts'][$key] = $this->_getStencilBuilderRows($layoutRows);
+                }
+            }
+        }
+
+        return $rows;
     }
 
     private function _normalizeStencilErrors(Stencil $stencil, array $formErrors): array
