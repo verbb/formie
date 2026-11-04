@@ -16,7 +16,10 @@ it('captures request metadata and pending form custom data during workflow captu
     $form = new Form();
     $form->id = 5001;
 
+    $form->settings->collectIp = true;
+
     $submission = new Submission();
+    $submission->setForm($form);
 
     WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission): void {
         $form->setSubmissionMetadata(['campaignId' => 'summer-sale']);
@@ -37,6 +40,24 @@ it('captures request metadata and pending form custom data during workflow captu
                 'visitor_id12345' => 'pardot-cookie',
             ],
         ]);
+    }, [
+        'method' => 'POST',
+        'remoteAddr' => '127.0.0.1',
+    ]);
+});
+
+it('doesn\'t store the request IP unless the form collects it', function (): void {
+    $form = new Form();
+    $form->id = 5002;
+    $form->settings->collectIp = false;
+
+    $submission = new Submission();
+    $submission->setForm($form);
+
+    WebRequestTestHelper::withWebRequestContext(function () use ($form, $submission): void {
+        Formie::$plugin->getSubmissionMetadata()->captureForSubmission($submission, $form);
+
+        expect($submission->getMetadata('request')['ipAddress'] ?? null)->toBeNull();
     }, [
         'method' => 'POST',
         'remoteAddr' => '127.0.0.1',
