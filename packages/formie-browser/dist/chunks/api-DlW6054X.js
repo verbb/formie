@@ -384,7 +384,9 @@ function K(t, n = {}) {
 	let r = t.formieValidation, i = I(t)[0]?.getAttribute("data-formie-page-id");
 	B(t), t.reset(), t.querySelectorAll("[data-formie-summary-token]").forEach((e) => {
 		e instanceof HTMLInputElement ? e.remove() : e.removeAttribute("data-formie-summary-token");
-	}), t.querySelectorAll("[data-formie-summary-blocks]").forEach((e) => e.replaceChildren()), n.preserveHiddenState || z(t, !1), F(t, "submissionId"), N(t, "expectedVersion", "0"), F(t, "submissionUid"), F(t, "progressId"), F(t, "pageId"), G(t), ue(t), r?.resetLiveState(), i ? (W(t, i), y(t, e("reset"), void 0)) : (w(t), y(t, e("reset"), void 0));
+	}), t.querySelectorAll("[data-formie-summary-blocks]").forEach((e) => e.replaceChildren()), t.querySelectorAll("[data-formie-file-upload-entry]").forEach((e) => e.remove()), t.querySelectorAll("[data-formie-file-summary], [data-formie-upload-manager-list]").forEach((e) => e.replaceChildren()), t.querySelectorAll("[data-formie-upload-manager-status]").forEach((e) => {
+		e.value = "";
+	}), n.preserveHiddenState || z(t, !1), F(t, "submissionId"), N(t, "expectedVersion", "0"), F(t, "submissionUid"), F(t, "progressId"), F(t, "pageId"), G(t), ue(t), r?.resetLiveState(), i ? (W(t, i), y(t, e("reset"), void 0)) : (w(t), y(t, e("reset"), void 0));
 }
 function ke(e) {
 	return e.code === ge || e.meta?.resetState === !0;

@@ -918,6 +918,8 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         uppy,
         files: [],
     };
+    const listeners = new AbortController();
+    let hydrationToken = 0;
 
     const remainingUploadCapacity = (): number | null => {
         if (!maxFiles) {
@@ -1019,7 +1021,9 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
             uppy.removeFile(managedFile.uppyFileId);
         }
 
-        if (managedFile.assetId) {
+        // Only staged files have a deletion capability. Already-attached files
+        // are removed from the form's selection without deleting the saved asset.
+        if (managedFile.assetId && managedFile.deleteToken) {
             const body = new FormData();
             const context = getUploadContext(resolvedForm, field, dropzone);
 
@@ -1029,9 +1033,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
 
             body.append('assetId', String(managedFile.assetId));
 
-            if (managedFile.uploadToken) {
-                body.append('uploadToken', managedFile.deleteToken || '');
-            }
+            body.append('uploadToken', managedFile.deleteToken);
 
             try {
                 await requestJson<DeleteResponse>(deleteEndpoint, {
@@ -1081,6 +1083,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
     };
 
     const hydrateExistingAssets = async() => {
+        const token = ++hydrationToken;
         const assetIds = readAssetIdsFromDom(field, assetInputName);
 
         if (!assetIds.length) {
@@ -1095,6 +1098,12 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
                 method: 'POST',
                 body: buildHydrateFormData(resolvedForm, field, assetIds, uploadTokens),
             });
+
+            // A response from an earlier page mount must not repopulate a reset
+            // form or overwrite the current upload manager's selection.
+            if (token !== hydrationToken) {
+                return;
+            }
 
             const assets = response.assets || [];
             const assetsById = new Map(assets.map((asset) => {
@@ -1263,7 +1272,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         event.preventDefault();
         event.stopPropagation();
         openBrowseDialog();
-    });
+    }, { signal: listeners.signal });
 
     dropzone.addEventListener('click', (event) => {
         if (event.target instanceof Element && event.target.closest(BROWSE_BUTTON_SELECTOR)) {
@@ -1271,14 +1280,14 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
         }
 
         openBrowseDialog();
-    });
+    }, { signal: listeners.signal });
 
     dropzone.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             openBrowseDialog();
         }
-    });
+    }, { signal: listeners.signal });
 
     browseInput.addEventListener('change', () => {
         if (!browseInput.files?.length) {
@@ -1302,14 +1311,14 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
                 uppy.info(error.message, 'error', 3000);
             }
         }
-    });
+    }, { signal: listeners.signal });
 
     ['dragenter', 'dragover'].forEach((eventName) => {
         dropzone.addEventListener(eventName, (event) => {
             event.preventDefault();
             event.stopPropagation();
             setDropzoneActive(true);
-        });
+        }, { signal: listeners.signal });
     });
 
     ['dragleave', 'drop'].forEach((eventName) => {
@@ -1317,7 +1326,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
             event.preventDefault();
             event.stopPropagation();
             setDropzoneActive(false);
-        });
+        }, { signal: listeners.signal });
     });
 
     dropzone.addEventListener('drop', (event) => {
@@ -1343,16 +1352,17 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
                 uppy.info(error.message, 'error', 3000);
             }
         }
-    });
+    }, { signal: listeners.signal });
 
     const resetHandler = () => {
+        hydrationToken += 1;
         clearSelectionError();
         state.files.forEach((managedFile) => {
             managedFile.listItem.remove();
         });
         state.files = [];
         uppy.cancelAll();
-        syncHiddenAssetInputs(field, anchorInput, assetInputName, []);
+        syncUploadedAssetsEvent(state);
     };
 
     resolvedForm?.addEventListener(FORM_RESET_EVENT, resetHandler);
@@ -1360,9 +1370,14 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
     void hydrateExistingAssets();
 
     return () => {
+        hydrationToken += 1;
+        listeners.abort();
         resolvedForm?.removeEventListener(FORM_RESET_EVENT, resetHandler);
         uppy.destroy();
         selectionError.remove();
+        // Keep the submitted references for Back navigation, but let the next
+        // mount render fresh rows and attach exactly one set of controls.
+        state.files.forEach((managedFile) => { managedFile.listItem.remove(); });
         state.files = [];
     };
 }

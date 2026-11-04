@@ -634,6 +634,13 @@ function bindFileUploadInput(field: HTMLElement, input: HTMLInputElement, form: 
                 return;
             }
 
+            // Hidden pages keep their file references while this request runs.
+            // A completed form clears them, so its late response must stay empty.
+            const currentAssets = readUploadedAssetsFromHiddenInputs(field, input);
+            if (currentAssets.length !== uploadedAssets.length || currentAssets.some((asset, index) => asset.assetId !== uploadedAssets[index].assetId)) {
+                return;
+            }
+
             state.uploadedAssets = hydratedAssets;
             renderSummary(state);
             dispatchFieldEvent(field, MODULE_ID, 'uploaded-assets-sync', {

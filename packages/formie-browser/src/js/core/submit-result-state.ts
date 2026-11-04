@@ -470,6 +470,11 @@ function resetSubmissionState(form: HTMLFormElement, options: ResetSubmissionSta
         }
     });
     form.querySelectorAll('[data-formie-summary-blocks]').forEach((element) => element.replaceChildren());
+    // Upload modules on hidden pages are also unmounted. Clear their retained
+    // inputs and presentation before showing a page can hydrate the old files.
+    form.querySelectorAll('[data-formie-file-upload-entry]').forEach((element) => element.remove());
+    form.querySelectorAll('[data-formie-file-summary], [data-formie-upload-manager-list]').forEach((element) => element.replaceChildren());
+    form.querySelectorAll<HTMLInputElement>('[data-formie-upload-manager-status]').forEach((input) => { input.value = ''; });
     if (!options.preserveHiddenState) {
         setFormHiddenState(form, false);
     }

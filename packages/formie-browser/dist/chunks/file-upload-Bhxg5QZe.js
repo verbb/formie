@@ -248,6 +248,8 @@ function Z(e, t, n) {
 		try {
 			let a = await q(e, t, n);
 			if (i !== r.hydrationToken) return;
+			let o = I(e, t);
+			if (o.length !== n.length || o.some((e, t) => e.assetId !== n[t].assetId)) return;
 			r.uploadedAssets = a, U(r), s(e, b, "uploaded-assets-sync", {
 				fileUpload: e,
 				assets: a

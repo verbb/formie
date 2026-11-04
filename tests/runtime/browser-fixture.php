@@ -180,6 +180,8 @@ require __DIR__ . '/browser-delivery-fixture.php';
 
 require __DIR__ . '/browser-graphql-fixture.php';
 
+require __DIR__ . '/browser-upload-fixture.php';
+
 foreach (['message', 'redirect', 'reload', 'reset'] as $behavior) {
     \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Completion ' . $behavior, 'handle' => 'completion' . ucfirst($behavior)])
         ->settings(['disableCaptchas' => true, 'completionBehavior' => $behavior, 'redirectUrl' => '/browser-completion-done?utm_medium=explicit', 'submitMethod' => 'ajax', 'hideFormAfterSubmit' => $behavior === 'message'])

@@ -20,6 +20,7 @@
 - Update the Pardot guide for External Client Apps, OAuth security settings, and separate API and Form Handler delivery.
 
 ### Fixed
+- Fixed File Upload fields retaining completed attachments after AJAX form resets, and duplicate advanced upload rows after Back navigation.
 - Fixed users with permission to import forms being sent to an inaccessible page after a successful import.
 - Fixed queued integrations and notifications being discarded after their worker stopped unexpectedly. Expired jobs can resume, while ordinary delivery failures still wait for Retry.
 - Fixed upgrades from Formie 2 and 3 failing on PostgreSQL for sites with payments, and sites already upgraded rejecting newer payment statuses, because of an old database constraint.
