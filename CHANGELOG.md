@@ -22,6 +22,7 @@
 ### Fixed
 - Fixed upgrades from Formie 2 and 3 failing on PostgreSQL for sites with payments, and sites already upgraded rejecting newer payment statuses, because of an old database constraint.
 - Fixed upgrades stopping on payments saved with more decimals than their currency has, such as a failed payment of 25.015 USD. The amount is rounded, and the original stays on the payment and in its history.
+- Fixed notifications from Formie 3 failing or losing values when they used plain tokens such as `{email}` or `{group.field}`. These now convert automatically where they match a field on the form, including on sites that have already upgraded. Tokens with filters or Twig still need converting by hand.
 - Fixed Group and Repeater answers being lost when upgrading from Formie 2 if their child fields held an outdated parent reference.
 - Fixed per-form permissions from Formie 2 and 3 being removed the next time a user or user group was saved. Forms with existing grants now use **Use Dedicated Permissions**. Grants already removed on an upgraded site need to be granted again.
 - Fixed Slack, Telegram, Zapier, Web Request, Freshdesk, Gorgias and Zendesk connections saved under their older class names being unavailable after upgrading, and their form integrations not being sent. Web Request URLs saved under the older `webhook` setting are also kept. A Calendar Event connection saved in Formie 3 also no longer stops every integration on the site from loading.
