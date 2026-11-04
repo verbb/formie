@@ -16,9 +16,14 @@ if (!\verbb\formie\elements\Form::find()->handle('cpRepeaterUpload')->one()) {
         ->settings(['disableCaptchas' => true])->create();
 }
 
+$assetIds = [];
+
 foreach (['top', 'group', 'first', 'second', 'replacement'] as $name) {
     $filename = 'cp-audit-' . $name . '.txt';
-    if (!\craft\elements\Asset::find()->volumeId($volume->id)->filename($filename)->one()) {
-        \Tests\Support\UploadTestHelper::seedAsset($filename, 'CP audit ' . $name . ' contents', $volume);
-    }
+    $asset = \craft\elements\Asset::find()->volumeId($volume->id)->filename($filename)->one();
+    $asset ??= \Tests\Support\UploadTestHelper::seedAsset($filename, 'CP audit ' . $name . ' contents', $volume);
+    $assetIds[$name] = $asset->id;
 }
+
+// A fresh database can share retained upload files, so Craft may rename a seed.
+file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/cp-repeater-upload.json', json_encode($assetIds));

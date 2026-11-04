@@ -2,9 +2,10 @@
 
 if ($path === '/browser-cp-repeater-upload') {
     $form = \verbb\formie\elements\Form::find()->handle('cpRepeaterUpload')->one();
+    $assetIds = json_decode(file_get_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/cp-repeater-upload.json'), true);
     $assets = [];
     foreach (['top', 'group', 'first', 'second', 'replacement'] as $name) {
-        $assets[$name] = \craft\elements\Asset::find()->filename('cp-audit-' . $name . '.txt')->one();
+        $assets[$name] = \craft\elements\Asset::find()->id($assetIds[$name])->one();
     }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
