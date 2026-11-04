@@ -17,6 +17,9 @@ class m260926_020000_payment_boundary extends Migration
 
     public function safeUp(): bool
     {
+        // Statuses written below and by later migrations are outside the original enum.
+        m261104_000000_payment_status_constraint::dropStatusChecks($this->db);
+
         // Keep historical decimal text exactly, including values whose scale needs review.
         $this->alterColumn(Table::FORMIE_PAYMENTS, 'amount', $this->string(80));
         $this->alterColumn(Table::FORMIE_PAYMENTS, 'status', $this->string(32)->notNull());
@@ -32,6 +35,7 @@ class m260926_020000_payment_boundary extends Migration
                     $this->addColumn($table, $column, $type);
                 }
             }
+
             $this->createIndex(null, $table, 'idempotencyKey', true);
         }
 
@@ -49,11 +53,14 @@ class m260926_020000_payment_boundary extends Migration
                     } catch (Throwable) {
                         $values['status'] = 'unknown';
                     }
+
                     $values['history'] = Json::encode([['status' => $values['status'], 'reason' => 'legacy migration', 'legacyStatus' => $row['status']]]);
                 }
+
                 $this->update($table, $values, ['id' => $row['id']]);
             }
         }
+
         $this->addColumn(Table::FORMIE_SUBSCRIPTIONS, 'status', $this->string(32)->notNull()->defaultValue('unknown'));
         $this->addColumn(Table::FORMIE_SUBSCRIPTIONS, 'archivedAt', $this->dateTime());
         $this->addColumn(Table::FORMIE_SUBSCRIPTIONS, 'providerUpdatedAt', $this->bigInteger());
@@ -83,6 +90,7 @@ class m260926_020000_payment_boundary extends Migration
                 }
             }
         }
+
         $this->createTable(Table::FORMIE_WEBHOOK_RECEIPTS, [
             'id' => $this->primaryKey(),
             'identity' => $this->char(64)->notNull(),
@@ -112,6 +120,7 @@ class m260926_020000_payment_boundary extends Migration
             'revokedAt' => $this->integer(),
         ]);
         $this->createIndex(null, Table::FORMIE_PAYMENT_CAPABILITIES, 'tokenHash', true);
+
         return true;
     }
 
