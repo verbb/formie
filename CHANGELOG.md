@@ -8,22 +8,16 @@
 - Add an option to leave log files out of support requests.
 
 ### Changed
+- Allow all failed [integration and notification deliveries](https://verbb.io/craft-plugins/formie/docs/v4/guides/integrations/integration-dispatch-and-policies#results-and-retries) to be retried using current submission values and settings.
 - Move Mailchimp and Campaign Monitor API error-handling choices to standard dropdowns under **Advanced** on each integration connection. Existing global choices remain fallbacks until the connection saves its own.
 - Default Mailchimp and Campaign Monitor API rate limits to failed deliveries, while skipping recognised subscriber rejections with a warning. Preserve configured actions and include form, submission and provider details in policy logs. ([#2172](https://github.com/verbb/formie/discussions/2172), [#2276](https://github.com/verbb/formie/issues/2276))
-- Allow all failed [integration and notification deliveries](https://verbb.io/craft-plugins/formie/docs/v4/guides/integrations/integration-dispatch-and-policies#results-and-retries) to be retried using current submission values and settings.
-- Store reports and scheduled reports in each installation’s database instead of project config, so users with **Manage reports** can create and change reports on production. Existing reports and schedules move across automatically when you upgrade, with nothing to run. Reports no longer deploy between environments through project config, and each environment now keeps its own copies. Only administrators can change a report with scheduled deliveries or edit schedules. See the [upgrade guide](https://verbb.io/craft-plugins/formie/docs/v4/get-started/upgrading-from-v3#reports-and-submission-export). ([#3082](https://github.com/verbb/formie/issues/3082))
+- Store reports and schedules in the database instead of project config, allowing [reports to be managed on production](https://verbb.io/craft-plugins/formie/docs/v4/get-started/upgrading-from-v3#reports-and-submission-export). ([#3082](https://github.com/verbb/formie/issues/3082))
 - Show a warning on reports that point at forms that no longer exist.
 - Keep encrypted field values out of Formie’s log files, including integration payloads for forms with encrypted fields.
 - Update the `@verbb/formie-*` npm packages to use the same version number as the plugin. Version ranges such as `^1.0.16` need updating once. ([#3081](https://github.com/verbb/formie/issues/3081))
 - Update the Pardot guide for External Client Apps, OAuth security settings, and separate API and Form Handler delivery.
 
 ### Fixed
-- Fixed the new report dialog waiting for forms and report data before appearing.
-- Fixed reopening the new report dialog during its close animation, and kept report loading in a consistent layout with a visible toolbar placeholder and a compact, right-aligned form-picker spinner.
-- Fixed integration errors configured to be skipped still failing the enclosing queue job or triggering failure alerts.
-- Fixed HubSpot deliveries being reported as successful after a file upload failed, allowing the form to be sent without its file.
-- Fixed Freshdesk reporting a failure instead of a skipped delivery when an event cancelled sending its contact.
-- Fixed the Diagnostics button failing to open on control panels served over plain HTTP.
 - Fixed upgrades from Formie 2 and 3 failing on PostgreSQL for sites with payments, and sites already upgraded rejecting newer payment statuses, because of an old database constraint.
 - Fixed Group and Repeater answers being lost when upgrading from Formie 2 if their child fields held an outdated parent reference.
 - Fixed per-form permissions from Formie 2 and 3 being removed the next time a user or user group was saved. Forms with existing grants now use **Use Dedicated Permissions**. Grants already removed on an upgraded site need to be granted again.
@@ -47,12 +41,14 @@
 - Fixed Akismet, CleanTalk and OopSpam throwing an error instead of showing a validation message when saved without an API key.
 - Fixed the Stripe SDK requirement allowing versions without `StripeClient`. The minimum is now 7.33.
 - Fixed TypeScript errors when using the `@verbb/formie-*` npm packages in projects with `moduleResolution` set to NodeNext.
+- Fixed the new report dialog waiting for forms and report data before appearing.
+- Fixed reopening the new report dialog during its close animation, and kept report loading in a consistent layout with a visible toolbar placeholder and a compact, right-aligned form-picker spinner.
 - Fixed GraphQL `save_<form>_Submission` and `saveSubmission` mutations not behaving like normal form submissions. They now send email notifications, trigger integrations, run spam and captcha checks, apply field conditions and default values, record request details and follow the form's login, schedule and submission limit rules. Editing through a private token only changes the fields it sends. With a private token, a missing captcha token returns an error, including on multi-page forms. Public GraphQL schemas can create submissions again, with rate limits, but editing by ID and saving drafts need a private schema, and payment forms need `submitFormieClientForm`. ([#3090](https://github.com/verbb/formie/issues/3090))
 - Fixed File Upload fields rejecting extensions allowed by Craft's `allowedFileExtensions`, `extraAllowedFileExtensions` and `extraFileKinds` settings. Per-field file type restrictions still apply, and the field settings show the permitted extensions in a neutral notice with clearer configuration guidance. ([#3092](https://github.com/verbb/formie/issues/3092))
-- Fixed Repeater validation errors appearing on the wrong row after returning to a previous page, and searchable dropdown selections being cleared during AJAX page navigation. ([#3088](https://github.com/verbb/formie/issues/3088))
 - Fixed cached multi-page forms becoming stuck on the wrong page when restoring an in-progress submission.
 - Fixed fields with Disabled visibility losing their values when saving submissions in the control panel. ([#3093](https://github.com/verbb/formie/issues/3093))
 - Fixed the support form clearing entered values when a required field is missing.
+- Fixed Repeater validation errors appearing on the wrong row after returning to a previous page, and searchable dropdown selections being cleared during AJAX page navigation. ([#3088](https://github.com/verbb/formie/issues/3088))
 - Fixed the Redirect Entry picker appearing empty when Craft’s “All entries” source is disabled. ([#3089](https://github.com/verbb/formie/issues/3089))
 - Fixed forms failing to load when a field or page has a condition rule that was added but never filled in, which can be present on forms upgraded from Formie 3.
 - Fixed forms showing “A required form feature could not start” and being unable to submit when a field had conditions enabled but no rules.
@@ -78,6 +74,10 @@
 - Fixed GoCardless webhooks being processed and then reported as failed.
 - Fixed Front integration messages being reported as failed after they were delivered.
 - Fixed Freshdesk deliveries failing their queue job after handling an existing contact, even though the contact update and ticket were delivered.
+- Fixed Freshdesk reporting a failure instead of a skipped delivery when an event cancelled sending its contact.
+- Fixed HubSpot deliveries being reported as successful after a file upload failed, allowing the form to be sent without its file.
+- Fixed integration errors configured to be skipped still failing the enclosing queue job or triggering failure alerts.
+- Fixed the Diagnostics button failing to open on control panels served over plain HTTP.
 - Fixed Capsule throwing an error when fetching opportunity fields.
 - Fixed the Sent Notifications index showing “-” for the Notification column.
 - Fixed pruning of sent notifications using the wrong cutoff time for sites not set to UTC.
