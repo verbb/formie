@@ -5,6 +5,9 @@
 ### Changed
 - Changed the `@verbb/formie-*` package versions to match the Formie plugin, so Formie 4.0.7 pairs with version 4.0.7 of each package. The jump from 1.x has no breaking changes, but version ranges such as `^1.0.16` need updating once. ([#3081](https://github.com/verbb/formie/issues/3081))
 
+### Fixed
+- Fixed TypeScript errors in projects using NodeNext module resolution.
+
 ## 1.0.16 - 2026-10-28
 
 ### Changed
