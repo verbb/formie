@@ -29,7 +29,6 @@ use verbb\formie\helpers\BrowserRequestProfile;
 use verbb\formie\helpers\Table;
 use verbb\formie\integrations\addressproviders\Google;
 use verbb\formie\models\FormGroup;
-use verbb\formie\services\Integrations;
 use verbb\formie\services\Permissions;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
@@ -176,7 +175,8 @@ function cpScreenGeocodeForm(): array
         'dateUpdated' => '2026-01-01 00:00:00',
         'uid' => StringHelper::UUID(),
     ])->execute();
-    Formie::$plugin->set('integrations', new Integrations());
+    // The project config listeners hold the original service, so a replacement would go stale after later saves.
+    (new ReflectionMethod(Formie::$plugin->getIntegrations(), '_resetIntegrationCaches'))->invoke(Formie::$plugin->getIntegrations());
 
     $rows = (new Address())->getSubFields();
 

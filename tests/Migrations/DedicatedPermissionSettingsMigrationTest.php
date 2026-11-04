@@ -81,6 +81,9 @@ it('keeps a per-form submission grant when an unchanged user permissions save ru
             ->and($service->canViewSubmissions($after, $restricted))->toBeFalse();
     } finally {
         $transaction->rollBack();
+        // The rollback undoes the version bump in the database but not in memory.
+        Craft::$app->getInfo()->configVersion = (new Query())->select(['configVersion'])->from(Table::INFO)->scalar();
+        Craft::$app->getProjectConfig()->reset();
         Craft::$app->set('userPermissions', $permissions);
         Formie::$plugin->getForms()->invalidateFormCaches();
     }
@@ -115,6 +118,9 @@ it('registers every historical per-form permission once the form uses dedicated 
         }
     } finally {
         $transaction->rollBack();
+        // The rollback undoes the version bump in the database but not in memory.
+        Craft::$app->getInfo()->configVersion = (new Query())->select(['configVersion'])->from(Table::INFO)->scalar();
+        Craft::$app->getProjectConfig()->reset();
         Craft::$app->set('userPermissions', $permissions);
         Formie::$plugin->getForms()->invalidateFormCaches();
     }
