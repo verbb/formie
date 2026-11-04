@@ -8,6 +8,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\fields\values\DateFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
@@ -143,6 +144,7 @@ class CalendarEvent extends Element
             new IntegrationField([
                 'name' => Craft::t('app', 'Repeat Until'),
                 'handle' => 'until',
+                'type' => IntegrationField::TYPE_DATECLASS,
             ]),
             new IntegrationField([
                 'name' => Craft::t('app', 'Repeat By Month'),
@@ -232,9 +234,8 @@ class CalendarEvent extends Element
 
     protected function modifyFieldMappingValue(ModifyFieldIntegrationValueEvent $event): void
     {
-        // Calendar expects dates as Carbon object, not DateTime
         if (in_array($event->integrationField->handle, ['startDate', 'endDate', 'until'])) {
-            $event->value = new Carbon($event->value->format('Y-m-d H:i:s') ?? 'now', 'utc');
+            $event->value = $this->_toCalendarDate($event->value);
         }
 
         parent::modifyFieldMappingValue($event);
@@ -273,8 +274,7 @@ class CalendarEvent extends Element
                         $event->authorId = $fieldValue[0] ?? null;
                     }
                 } elseif (in_array($eventFieldHandle, ['startDate', 'endDate', 'until'])) {
-                    // Calendar expects dates as Carbon object, not DateTime
-                    $event->{$eventFieldHandle} = new Carbon($fieldValue->format('Y-m-d H:i:s') ?? 'now', 'utc');
+                    $event->{$eventFieldHandle} = $this->_toCalendarDate($fieldValue);
                 } else {
                     $event->{$eventFieldHandle} = $fieldValue;
                 }
@@ -441,6 +441,17 @@ class CalendarEvent extends Element
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Calendar expects dates as Carbon objects, not DateTime. A blank optional date stays null, so it's left out of
+     * the event in the same way as a date that isn't mapped.
+     */
+    private function _toCalendarDate(mixed $value): ?Carbon
+    {
+        $date = DateFieldValue::toDateTime($value);
+
+        return $date ? new Carbon($date->format('Y-m-d H:i:s'), 'utc') : null;
+    }
 
     private function _getCalendarSettings(?string $calendarId = null)
     {
