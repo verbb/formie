@@ -25,8 +25,10 @@ it('removes the retained PostgreSQL status constraint so current payment statuse
         $this->markTestSkipped('The retained enum constraint only exists on PostgreSQL.');
     }
 
-    // The definition older installs created for the enum column.
-    $db->createCommand()->addCheck('legacy_payment_status_check', Table::FORMIE_PAYMENTS, "[[status]] IN ('pending', 'redirect', 'success', 'failed', 'processing')")->execute();
+    // The definition older installs created for the enum column. NOT VALID applies it to new rows only,
+    // because other tests leave payments with current statuses behind.
+    $table = $db->quoteTableName($db->getSchema()->getRawTableName(Table::FORMIE_PAYMENTS));
+    $db->createCommand("ALTER TABLE {$table} ADD CONSTRAINT \"legacy_payment_status_check\" CHECK ([[status]] IN ('pending', 'redirect', 'success', 'failed', 'processing')) NOT VALID")->execute();
     $ids = [];
 
     try {

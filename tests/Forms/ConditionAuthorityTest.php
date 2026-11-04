@@ -148,7 +148,16 @@ it('returns false for errors added after parent submission validation', function
     $form = formie()->form()->settings(['requireUser' => true])->create();
     $submission = new Submission(['title' => 'Conditions test']);
     $submission->setForm($form);
-    expect($submission->validate())->toBeFalse()->and($submission->getErrors('form'))->not->toBeEmpty();
+
+    // This is about a guest, whichever identity an earlier test left on the console application.
+    $identity = Craft::$app->getUser()->getIdentity();
+    Craft::$app->getUser()->setIdentity(null);
+
+    try {
+        expect($submission->validate())->toBeFalse()->and($submission->getErrors('form'))->not->toBeEmpty();
+    } finally {
+        Craft::$app->getUser()->setIdentity($identity);
+    }
 });
 
 it('upgrades stored conditions idempotently without rewriting the stable boundary shape', function () {

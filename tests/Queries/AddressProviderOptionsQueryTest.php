@@ -36,11 +36,17 @@ function addressProviderChildHandles(): array
     return array_column(array_merge(...array_column((new Address())->getSubFields(), 'fields')), 'handle');
 }
 
+// The project config listeners hold the original service, so a replacement would go stale after later saves.
+function addressProviderResetRegistry(): void
+{
+    (new ReflectionMethod(Formie::$plugin->getIntegrations(), '_resetIntegrationCaches'))->invoke(Formie::$plugin->getIntegrations());
+}
+
 function addressProviderClearRows(): void
 {
     // Other tests may leave providers behind; each case decides what is enabled.
     Craft::$app->getDb()->createCommand()->delete(Table::FORMIE_INTEGRATIONS, ['type' => Google::class])->execute();
-    Formie::$plugin->set('integrations', new \verbb\formie\services\Integrations());
+    addressProviderResetRegistry();
 }
 
 it('offers autocomplete from a provider enabled through the control panel', function (): void {
@@ -77,7 +83,7 @@ it('follows the provider enabled state for stored values', function (string $sto
     $handle = 'addressProvider' . bin2hex(random_bytes(4));
     addressProviderSaveThroughCp($handle, '1');
     Craft::$app->getDb()->createCommand()->update(Table::FORMIE_INTEGRATIONS, ['enabled' => $stored], ['handle' => $handle])->execute();
-    Formie::$plugin->set('integrations', new \verbb\formie\services\Integrations());
+    addressProviderResetRegistry();
 
     try {
         expect(Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle)->getEnabled())->toBe($expected);

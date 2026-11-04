@@ -156,6 +156,9 @@ it('turns on dedicated permissions for group grants, including those only in pro
     } finally {
         $projectConfig->set('users.groups', $originalGroups);
         $transaction->rollBack();
+        // The rollback undoes the version bump in the database but not in memory.
+        Craft::$app->getInfo()->configVersion = (new Query())->select(['configVersion'])->from(Table::INFO)->scalar();
+        $projectConfig->reset();
         Craft::$app->set('userPermissions', $permissions);
         Formie::$plugin->getForms()->invalidateFormCaches();
     }

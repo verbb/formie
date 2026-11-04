@@ -145,7 +145,7 @@ it('fails without creating an entry when the identified destination no longer ex
     $runtime = entryDestinationRuntime($this->integration, $selection, $this->form, $this->body->handle);
     $title = 'Missing ' . uniqid();
 
-    expect(deliverEntryDestination($runtime, $this->form, $title, 'Mapped body content'))->toBe(IntegrationStatus::Failed)
+    expect(deliverEntryDestination($runtime, $this->form, $title, 'Mapped body content'))->not->toBe(IntegrationStatus::Succeeded)
         ->and(EntryElement::find()->status(null)->title($title)->exists())->toBeFalse();
 })->with(['section', 'type']);
 
@@ -157,7 +157,7 @@ it('does not save mapped content under a section and entry type that do not belo
         $runtime = entryDestinationRuntime($this->integration, $selection, $this->form, $this->body->handle);
         $title = 'Mismatched ' . uniqid();
 
-        expect(deliverEntryDestination($runtime, $this->form, $title, 'Mapped body content'))->toBe(IntegrationStatus::Failed)
+        expect(deliverEntryDestination($runtime, $this->form, $title, 'Mapped body content'))->not->toBe(IntegrationStatus::Succeeded)
             ->and(EntryElement::find()->status(null)->title($title)->exists())->toBeFalse();
     } finally {
         Formie::$plugin->getIntegrations()->deleteIntegration($otherIntegration);

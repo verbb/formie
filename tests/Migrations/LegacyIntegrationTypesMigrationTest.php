@@ -177,5 +177,8 @@ it('updates project config without clearing the saved connection state', functio
         $projectConfig->set('formie.integrations', $original);
         $projectConfig->muteEvents = false;
         $transaction->rollBack();
+        // The rollback undoes the version bump in the database but not in memory.
+        Craft::$app->getInfo()->configVersion = (new Query())->select(['configVersion'])->from(Table::INFO)->scalar();
+        $projectConfig->reset();
     }
 });

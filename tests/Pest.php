@@ -28,6 +28,7 @@ pest()->beforeEach(function (): void {
     'Integrations/SalesforceClientCredentialsTest.php',
     'Integrations/SalesforceFormSettingsFetchTest.php',
     'Integrations/SalesforceRequestDiagnosticsTest.php',
+    'Submissions/SubmissionLogPrivacyTest.php',
 );
 
 expect()->extend('toHaveFieldError', function (string $fieldHandle) {

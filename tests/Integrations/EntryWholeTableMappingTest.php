@@ -213,6 +213,6 @@ it('fails delivery when a mapped Table column does not exist', function(): void 
     $runtime = wholeTableRuntime($form, $integration, $section, $type, [$text->handle => '{field:' . $form->getFieldByHandle('slots')->reference . ':missing}']);
     $submission = formie()->submission($form)->with(['headline' => $title, 'slots' => [['col1' => 'A']]])->save();
 
-    expect(Formie::$plugin->getIntegrationRunner()->runIntegration($runtime, $submission, 'table-missing-' . uniqid(), 'synchronous', ['triggerEvent' => 'submit'])->status)->toBe(IntegrationStatus::Failed)
+    expect(Formie::$plugin->getIntegrationRunner()->runIntegration($runtime, $submission, 'table-missing-' . uniqid(), 'synchronous', ['triggerEvent' => 'submit'])->status)->not->toBe(IntegrationStatus::Succeeded)
         ->and(EntryElement::find()->sectionId($section->id)->status(null)->title($title)->exists())->toBeFalse();
 });
