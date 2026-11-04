@@ -30,6 +30,7 @@ use verbb\formie\models\SubmissionResponse;
 use verbb\formie\models\SubmissionUploadClaims;
 
 use Craft;
+use craft\elements\User;
 use craft\helpers\Gql;
 use craft\helpers\UrlHelper;
 
@@ -62,7 +63,9 @@ class SubmissionRequests extends Component
             throw new ForbiddenHttpException('Unsupported HTML submission authority.');
         }
 
-        $form = $this->requireFormByHandle($input->handle, $input->siteId);
+        $form = $authorityType === SubmissionAuthorityType::CONTROL_PANEL
+            ? $this->_requireCpSubmissionForm($input->handle, $input->siteId)
+            : $this->requireFormByHandle($input->handle, $input->siteId);
         $draftContext = $input->draftContextToken ? $form->resolveDraftContextToken($input->draftContextToken) : $input->draftContext;
         $this->applyFormRequestContext($form, $input->renderId, $draftContext, $input->requestToken);
         $progress = $authorityType === SubmissionAuthorityType::VISITOR ? $this->resolveProgressState($form) : null;
@@ -229,6 +232,25 @@ class SubmissionRequests extends Component
         }
 
         return clone $form;
+    }
+
+    /**
+     * Control panel submission access comes from submission grants, while `getFormByHandle()` applies
+     * the form index scope. Reach a form outside that scope only for a user holding a grant for it.
+     */
+    public function findFormForCpSubmission(string $handle, ?int $siteId, ?User $user, bool $allowSaveGrant = false): ?Form
+    {
+        $form = Form::find()->withoutCpIndexScope()->handle($handle)->siteId($siteId)->one();
+
+        if (!$form || !$user) {
+            return null;
+        }
+
+        if (!$this->_canCreateCpSubmission($user, $form) && !($allowSaveGrant && Formie::$plugin->getPermissions()->canSaveSubmissions($user, $form))) {
+            return null;
+        }
+
+        return $siteId !== null ? Formie::$plugin->getFormSiteOverrides()->applyToForm($form, $siteId, true) : $form;
     }
 
     public function resolveProgressState(Form $form): ?ProgressState
@@ -677,14 +699,33 @@ class SubmissionRequests extends Component
     private function _requireCpPermission(Form $form, Submission $submission): void
     {
         $user = Craft::$app->getUser()->getIdentity();
-        $permission = $submission->id ? 'formie-saveSubmissions' : 'formie-createSubmissions';
 
         if (!$user || ($submission->id
             ? !Formie::$plugin->getPermissions()->canSaveSubmissions($user, $form)
-            : (!$user->can($permission) && !$user->can($permission . ':' . $form->uid)
-                && !$user->can($permission . ':' . Formie::$plugin->getPermissions()->groupScope(Formie::$plugin->getPermissions()->getFormGroupHandle($form)))))) {
+            : !$this->_canCreateCpSubmission($user, $form))) {
             throw new ForbiddenHttpException('User is not permitted to perform this action.');
         }
+    }
+
+    private function _canCreateCpSubmission(User $user, Form $form): bool
+    {
+        $permissions = Formie::$plugin->getPermissions();
+
+        return $user->can('formie-createSubmissions')
+            || $user->can('formie-createSubmissions:' . $form->uid)
+            || $user->can('formie-createSubmissions:' . $permissions->groupScope($permissions->getFormGroupHandle($form)));
+    }
+
+    private function _requireCpSubmissionForm(string $handle, ?int $siteId): Form
+    {
+        $form = Formie::$plugin->getForms()->getFormByHandle($handle, $siteId)
+            ?? $this->findFormForCpSubmission($handle, $siteId, Craft::$app->getUser()->getIdentity(), true);
+
+        if (!$form) {
+            throw new BadRequestHttpException('Form not found');
+        }
+
+        return clone $form;
     }
 
     private function _resolveHtmlContinuationSubmission(

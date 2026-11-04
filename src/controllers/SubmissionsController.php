@@ -252,7 +252,9 @@ class SubmissionsController extends Controller
                 ->status(null)
                 ->one();
         } else {
-            $form = Formie::$plugin->getForms()->getFormByHandle($formHandle, (int)$siteModel->id);
+            // `actionIndex()` offers new submission targets from create grants, not form access.
+            $form = Formie::$plugin->getForms()->getFormByHandle($formHandle, (int)$siteModel->id)
+                ?? Formie::$plugin->getSubmissionRequests()->findFormForCpSubmission($formHandle, (int)$siteModel->id, $currentUser);
         }
 
         if (!$form) {

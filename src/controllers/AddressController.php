@@ -47,6 +47,7 @@ class AddressController extends Controller
 
         if ($this->request->getIsOptions()) {
             $this->response->setStatusCode(204);
+
             return false;
         }
 
@@ -138,6 +139,11 @@ class AddressController extends Controller
             }
 
             $form = Formie::$plugin->getForms()->getFormByHandle($formHandle);
+
+            // Submission screens offer this endpoint from submission grants, not form access.
+            if (!$form && $request->getIsCpRequest()) {
+                $form = Formie::$plugin->getSubmissionRequests()->findFormForCpSubmission($formHandle, null, Craft::$app->getUser()->getIdentity(), true);
+            }
 
             if (!$form) {
                 throw new BadRequestHttpException('Invalid geocode request.');
