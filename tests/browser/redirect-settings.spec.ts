@@ -17,6 +17,11 @@ test('authors redirect variables with an advisory warning and preserves them aft
     await expect(dialog).not.toBeVisible();
     await page.getByRole('tab', { name: 'Behaviour', exact: true }).click();
     const save = async () => {
+        const notifications = page.locator('#notifications');
+        for (const notice of await notifications.locator('.notification').filter({ hasText: 'Form saved.' }).all()) {
+            await notice.getByRole('button', { name: 'Close', exact: true }).click();
+        }
+        await expect(notifications.getByText('Form saved.', { exact: true })).toHaveCount(0);
         const response = page.waitForResponse(r => r.request().method() === 'POST' && decodeURIComponent(r.url()).includes('formie/forms/save'));
         await page.getByRole('button', { name: 'Save', exact: true }).click();
         expect((await response).ok()).toBe(true);
