@@ -4,13 +4,16 @@ import {
     existsSync,
     mkdirSync,
     mkdtempSync,
+    readdirSync,
     readFileSync,
     rmSync,
+    symlinkSync,
     writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 import {
     assertPreparedVersion,
     assertReviewedCheckout,
@@ -382,3 +385,117 @@ test('registry authentication failures stop publication', (t) => {
         false,
     );
 });
+
+// Compiles what npm would ship, so consumers see the same declarations and
+// resolver rules as an installed package. Third-party types come from this
+// checkout, which keeps the check offline.
+function packedConsumer(t) {
+    const repository = fileURLToPath(new URL('../../', import.meta.url));
+    const consumer = mkdtempSync(join(tmpdir(), 'formie-packed-consumer-'));
+    t.after(() => rmSync(consumer, { recursive: true, force: true }));
+    const modules = join(consumer, 'node_modules');
+    mkdirSync(join(modules, '@verbb'), { recursive: true });
+
+    for (const name of readdirSync(join(repository, 'node_modules'))) {
+        if (name !== '@verbb' && !name.startsWith('.')) {
+            symlinkSync(
+                join(repository, 'node_modules', name),
+                join(modules, name),
+            );
+        }
+    }
+
+    const names = packageDirs.map((dir) => dir.split('/').at(-1));
+    for (const [index, dir] of packageDirs.entries()) {
+        const [{ filename }] = JSON.parse(
+            execFileSync(
+                'npm',
+                [
+                    'pack',
+                    join(repository, dir),
+                    '--ignore-scripts',
+                    '--json',
+                    '--pack-destination',
+                    consumer,
+                ],
+                {
+                    encoding: 'utf8',
+                    stdio: ['ignore', 'pipe', 'ignore'],
+                    env: {
+                        ...process.env,
+                        npm_config_cache: join(consumer, 'npm-cache'),
+                    },
+                },
+            ),
+        );
+        const target = join(modules, '@verbb', names[index]);
+        mkdirSync(target);
+        execFileSync('tar', [
+            '-xf',
+            join(consumer, filename),
+            '-C',
+            target,
+            '--strip-components=1',
+        ]);
+    }
+
+    writeFileSync(join(consumer, 'package.json'), '{"type":"module"}\n');
+    writeFileSync(
+        join(consumer, 'consumer.mts'),
+        `${names
+            .map(
+                (name, index) =>
+                    `export * as package${index} from '@verbb/${name}';`,
+            )
+            .join('\n')}
+import type { ClientFormDefinition } from '@verbb/formie-core';
+import type { FormieClient } from '@verbb/formie-browser';
+import type { FormieFormProps } from '@verbb/formie-react';
+export type PublicTypes = [ClientFormDefinition, FormieClient, FormieFormProps];
+`,
+    );
+    return { consumer, repository };
+}
+
+for (const [resolution, module] of [
+    ['NodeNext', 'NodeNext'],
+    ['Bundler', 'ESNext'],
+]) {
+    test(`packed declarations compile in strict ${resolution} consumers`, (t) => {
+        const { consumer, repository } = packedConsumer(t);
+        writeFileSync(
+            join(consumer, 'tsconfig.json'),
+            JSON.stringify({
+                compilerOptions: {
+                    noEmit: true,
+                    strict: true,
+                    skipLibCheck: false,
+                    target: 'ES2022',
+                    module,
+                    moduleResolution: resolution,
+                    lib: ['ES2022', 'DOM', 'DOM.Iterable'],
+                    types: [],
+                },
+                files: ['consumer.mts'],
+            }),
+        );
+
+        let output = '';
+        try {
+            output = execFileSync(
+                process.execPath,
+                [
+                    join(repository, 'node_modules/typescript/bin/tsc'),
+                    '-p',
+                    consumer,
+                    '--pretty',
+                    'false',
+                ],
+                { encoding: 'utf8', cwd: consumer },
+            );
+        } catch (error) {
+            output = `${error.stdout}${error.stderr}`;
+        }
+        assert.equal(output, '');
+    });
+}

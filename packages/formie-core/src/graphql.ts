@@ -1,15 +1,15 @@
-import { browserRequest, type BrowserRequestOptions } from './request-profile';
-import { stageTransportFiles } from './uploads';
-import { assertClientFormBootstrap } from './contract';
+import { browserRequest, type BrowserRequestOptions } from './request-profile.js';
+import { stageTransportFiles } from './uploads.js';
+import { assertClientFormBootstrap } from './contract.js';
 import type {
     ClientFormDefinition,
     ClientFormBootstrap,
     ClientFormSession,
     ClientSubmitResult,
     ClientTransport,
-} from './types';
-import { serializeTransportFieldValues } from './schema';
-import { clearExchangedGrant } from './grants';
+} from './types.js';
+import { serializeTransportFieldValues } from './schema.js';
+import { clearExchangedGrant } from './grants.js';
 
 export type GraphqlClientTransportOptions = BrowserRequestOptions & {
     endpoint: string;

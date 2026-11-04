@@ -10,8 +10,8 @@ import {
     clearFieldErrors,
     clearFormErrors,
     clearFormSuccess,
-} from './submit-result-ui';
-import { applySubmitResultState, clearSubmitLoading, setSubmitLoading } from './submit-result-state';
+} from './submit-result-ui.js';
+import { applySubmitResultState, clearSubmitLoading, setSubmitLoading } from './submit-result-state.js';
 
 const debug = createDebug('general', 'submit-flow');
 

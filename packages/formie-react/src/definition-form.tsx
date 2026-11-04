@@ -35,7 +35,7 @@ import {
     useState,
     type ReactNode,
 } from 'react';
-import { stableSerialize } from './stable';
+import { stableSerialize } from './stable.js';
 
 export type FormieDefinitionSource =
     | {

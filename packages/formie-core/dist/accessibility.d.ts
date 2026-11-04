@@ -1,4 +1,4 @@
-import type { ClientFormDefinition, ClientFormSession } from './types';
+import type { ClientFormDefinition, ClientFormSession } from './types.js';
 export type ClientErrorAriaLive = 'polite' | 'assertive' | 'off';
 export declare function getClientErrorAriaLive(definition: ClientFormDefinition): ClientErrorAriaLive;
 export declare function getClientFieldErrorId(session: ClientFormSession, errorKey: string): string;

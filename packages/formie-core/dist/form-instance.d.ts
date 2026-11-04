@@ -1,4 +1,4 @@
-import type { ClientFormBootstrap, ClientFormInstance, ClientTransport } from './types';
+import type { ClientFormBootstrap, ClientFormInstance, ClientTransport } from './types.js';
 type CreateClientFormInstanceOptions = {
     envelope: ClientFormBootstrap;
     transport: ClientTransport;

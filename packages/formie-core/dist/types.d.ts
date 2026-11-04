@@ -1,5 +1,5 @@
-import type { BrowserValidationRule } from './validation';
-import type { BrowserModuleManifest } from './browser-modules';
+import type { BrowserValidationRule } from './validation.js';
+import type { BrowserModuleManifest } from './browser-modules.js';
 export type KnownClientFieldType = 'single-line-text' | 'multi-line-text' | 'number' | 'email' | 'phone' | 'dropdown' | 'radio' | 'checkboxes' | 'agree' | 'date' | 'name' | 'address' | 'repeater' | 'signature' | 'file';
 export type ClientFieldType = KnownClientFieldType | (string & {});
 export type ClientFieldValueStructure = 'scalar' | 'fixed-parent' | 'container-parent' | 'repeatable-parent';
@@ -39,7 +39,7 @@ export type ClientFieldDefinition = {
                 transformerParams?: Record<string, string>;
                 isValid?: boolean;
             };
-            valueType?: import('./conditions').ConditionValueType;
+            valueType?: import('./conditions.js').ConditionValueType;
             browserSafe?: boolean;
         }>;
     } | null;
@@ -214,7 +214,7 @@ export type ClientFormState = {
 export type ClientSubmitAction = 'back' | 'save' | 'next' | 'submit' | 'revise';
 export type ClientFormEventName = 'formie:client:ready' | 'formie:submit:result' | 'formie:page:navigate' | 'formie:page:navigate:error' | 'formie:session:refreshed' | 'formie:session:refresh:error' | 'formie:state:reset';
 export type ClientTransport = {
-    browserRequestOptions?: import('./request-profile').BrowserRequestOptions;
+    browserRequestOptions?: import('./request-profile.js').BrowserRequestOptions;
     submit(input: {
         definition: ClientFormDefinition;
         session: ClientFormSession;
@@ -236,7 +236,7 @@ export type ClientTransport = {
     }): Promise<ClientSubmitResult>;
 };
 export type ClientFormInstance = {
-    getBrowserRequestOptions(): import('./request-profile').BrowserRequestOptions;
+    getBrowserRequestOptions(): import('./request-profile.js').BrowserRequestOptions;
     setBrowserModuleGuard(guard: () => void): void;
     setBrowserModulePreparation(prepare: (action: ClientSubmitAction) => Promise<Record<string, unknown>>): void;
     id: string;

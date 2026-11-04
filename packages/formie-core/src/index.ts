@@ -1,5 +1,5 @@
-export { createClientFormInstance } from './form-instance';
-export { CLIENT_FORM_EVENT_NAMES } from './event-names';
+export { createClientFormInstance } from './form-instance.js';
+export { CLIENT_FORM_EVENT_NAMES } from './event-names.js';
 export {
     coerceCalculationVariables,
     evaluateCalculationExpression,
@@ -7,16 +7,16 @@ export {
     getCalculationFormula,
     getCalculationVariableEntries,
     readCalculationVariableValue,
-} from './calculations';
+} from './calculations.js';
 export type {
     CalculationFormula,
     CalculationOptions,
     CalculationVariable,
     CalculationVariableEntry,
-} from './calculations';
-export { evaluateConditionDefinition, finalizeConditionEvaluation } from './conditions';
-export { buildActionUrl, createRestClientTransport, loadClientFormBootstrap } from './rest';
-export { createGraphqlClientTransport, loadGraphqlClientFormBootstrap } from './graphql';
+} from './calculations.js';
+export { evaluateConditionDefinition, finalizeConditionEvaluation } from './conditions.js';
+export { buildActionUrl, createRestClientTransport, loadClientFormBootstrap } from './rest.js';
+export { createGraphqlClientTransport, loadGraphqlClientFormBootstrap } from './graphql.js';
 export {
     allFields,
     compositePartDefinitions,
@@ -39,10 +39,10 @@ export {
     repeaterRowDefinitions,
     serializeFieldValues,
     serializeTransportFieldValues,
-} from './schema';
-export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from './text';
-export { getClientErrorAriaLive, getClientFieldErrorId } from './accessibility';
-export type { ClientErrorAriaLive } from './accessibility';
+} from './schema.js';
+export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from './text.js';
+export { getClientErrorAriaLive, getClientFieldErrorId } from './accessibility.js';
+export type { ClientErrorAriaLive } from './accessibility.js';
 
 export type {
     ClientFieldDefinition,
@@ -65,25 +65,25 @@ export type {
     ClientSubmitResult,
     PaymentDecision,
     ClientTransport,
-} from './types';
-export { parseReference, serializeReference } from './references';
-export type { ReferenceExpression } from './references';
-export { resolveReference } from './references';
-export type { ReferenceDefinition, ReferenceContext, ResolvedReference } from './references';
+} from './types.js';
+export { parseReference, serializeReference } from './references.js';
+export type { ReferenceExpression } from './references.js';
+export { resolveReference } from './references.js';
+export type { ReferenceDefinition, ReferenceContext, ResolvedReference } from './references.js';
 
-export * from './browser-modules';
-export * from './contract';
+export * from './browser-modules.js';
+export * from './contract.js';
 
-export type { RequestProfile, BrowserRequestOptions } from './request-profile';
+export type { RequestProfile, BrowserRequestOptions } from './request-profile.js';
 
-export { browserRequest, browserRequestHeaders } from './request-profile';
+export { browserRequest, browserRequestHeaders } from './request-profile.js';
 
-export { evaluateCondition, combineConditions, conditionNumber } from './conditions';
-export type { BrowserConditionRule, BrowserConditionSettings, ConditionEvaluation, ConditionValueType } from './conditions';
+export { evaluateCondition, combineConditions, conditionNumber } from './conditions.js';
+export type { BrowserConditionRule, BrowserConditionSettings, ConditionEvaluation, ConditionValueType } from './conditions.js';
 
-export { validateBrowserValue, browserValueEmpty, registerBrowserValidationRule } from './validation';
-export type { BrowserValidationRule, BrowserValidationContext } from './validation';
+export { validateBrowserValue, browserValueEmpty, registerBrowserValidationRule } from './validation.js';
+export type { BrowserValidationRule, BrowserValidationContext } from './validation.js';
 
-export { clientActionAllowed, evaluateClientCondition } from './condition-state';
+export { clientActionAllowed, evaluateClientCondition } from './condition-state.js';
 
-export { selectConditionRows } from './condition-projections';
+export { selectConditionRows } from './condition-projections.js';

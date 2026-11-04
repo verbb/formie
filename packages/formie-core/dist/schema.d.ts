@@ -1,4 +1,4 @@
-import type { ClientFieldDefinition, ClientFieldValueContract, ClientFormDefinition, ClientRowDefinition, ClientFormBootstrap, KnownClientFieldType } from './types';
+import type { ClientFieldDefinition, ClientFieldValueContract, ClientFormDefinition, ClientRowDefinition, ClientFormBootstrap, KnownClientFieldType } from './types.js';
 export declare function allFields(definition: ClientFormDefinition | ClientFormBootstrap['definition']): ClientFieldDefinition[];
 export declare function findFieldById(definition: ClientFormDefinition | ClientFormBootstrap['definition'], fieldId: string): ClientFieldDefinition | undefined;
 export declare function findFieldByHandle(definition: ClientFormDefinition | ClientFormBootstrap['definition'], fieldHandle: string): ClientFieldDefinition | undefined;

@@ -1,8 +1,8 @@
-import { deriveConditionState, clientActionAllowed } from './condition-state';
-import { validateBrowserValue } from './validation';
-import { assertClientFormBootstrap } from './contract';
-import { validateCompositeDateParts } from './date-parts-validation';
-import { ClientEventEmitter } from './events';
+import { deriveConditionState, clientActionAllowed } from './condition-state.js';
+import { validateBrowserValue } from './validation.js';
+import { assertClientFormBootstrap } from './contract.js';
+import { validateCompositeDateParts } from './date-parts-validation.js';
+import { ClientEventEmitter } from './events.js';
 import {
     allFields,
     compositePartDefinitions,
@@ -19,7 +19,7 @@ import {
     findFieldByHandle,
     findFieldById,
     repeaterFieldDefinitions,
-} from './schema';
+} from './schema.js';
 import type {
     ClientFieldDefinition,
     ClientFormBootstrap,
@@ -28,7 +28,7 @@ import type {
     ClientSubmitAction,
     ClientSubmitResult,
     ClientTransport,
-} from './types';
+} from './types.js';
 
 type CreateClientFormInstanceOptions = {
     envelope: ClientFormBootstrap;

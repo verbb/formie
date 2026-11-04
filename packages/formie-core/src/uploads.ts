@@ -1,6 +1,6 @@
-import { browserRequest, type BrowserRequestOptions } from './request-profile';
-import { allFields } from './schema';
-import type { ClientFormDefinition, ClientFormSession } from './types';
+import { browserRequest, type BrowserRequestOptions } from './request-profile.js';
+import { allFields } from './schema.js';
+import type { ClientFormDefinition, ClientFormSession } from './types.js';
 
 const stagedFiles = new WeakMap<Blob, Map<string, Promise<{ uploadUid: string; attachToken: string }>>>();
 

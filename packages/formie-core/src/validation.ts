@@ -1,4 +1,4 @@
-import { conditionNumber } from './conditions';
+import { conditionNumber } from './conditions.js';
 
 export type BrowserValidationRule = {
     message?: string;

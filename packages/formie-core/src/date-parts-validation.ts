@@ -1,5 +1,5 @@
-import type { ClientFieldDefinition } from './types';
-import { compositePartDefinitions } from './schema';
+import type { ClientFieldDefinition } from './types.js';
+import { compositePartDefinitions } from './schema.js';
 
 function partValue(value: unknown): string {
     if (value == null) {

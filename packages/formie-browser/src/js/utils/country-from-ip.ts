@@ -1,5 +1,5 @@
 import { browserRequest } from '@verbb/formie-core';
-import { getFormBrowserRequestOptions } from './request-profile';
+import { getFormBrowserRequestOptions } from './request-profile.js';
 export type CountryFromIpResponse = {
     countryCode?: string | null;
     countryName?: string | null;

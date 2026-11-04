@@ -1,5 +1,5 @@
-import type { ConditionEvaluation } from './conditions';
-import type { ClientFieldDefinition, ClientFormState } from './types';
+import type { ConditionEvaluation } from './conditions.js';
+import type { ClientFieldDefinition, ClientFormState } from './types.js';
 type Occurrence = {
     field: ClientFieldDefinition;
     key: string;

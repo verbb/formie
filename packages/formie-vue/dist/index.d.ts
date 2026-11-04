@@ -1,7 +1,7 @@
 import type { FormAction, FormieClient, FormieFormInstance, FormMountOptions, FormEndpointPayload, FormTransport, FormSubmitResult } from '@verbb/formie-browser';
 import type { ClientFieldType, ClientFormInstance, ClientSubmitResult } from '@verbb/formie-core';
 import { type Component, type PropType, type Ref, type ShallowRef } from 'vue';
-import { type FormieDefinitionSource, type FormieVueComponents, type FormieVueEvent, useFormie, useFormieField, useFormiePage, useFormieInstance, useFormieSlot } from './definition-form';
+import { type FormieDefinitionSource, type FormieVueComponents, type FormieVueEvent, useFormie, useFormieField, useFormiePage, useFormieInstance, useFormieSlot } from './definition-form.js';
 export type FormieHtmlSource = {
     payload: FormEndpointPayload;
 };
@@ -488,6 +488,6 @@ export declare const FormieClientForm: import("vue").DefineComponent<import("vue
 }, {}, {}, {}, string, import("vue").ComponentProvideOptions, true, {}, any>;
 export type { FormAction, FormEventUnsubscribe, FormEndpointPayload, FormieClient, FormieFormInstance, FormMountOptions, FormSubmitResult, } from '@verbb/formie-browser';
 export type { ClientFieldDefinition, ClientFieldType, ClientFormDefinition, ClientFormBootstrap, ClientFormSession, ClientFormInstance, ClientFormState, ClientSubmitResult, } from '@verbb/formie-core';
-export type { FormieDefinitionSource, FormieErrorSummaryProps, FormieFieldComponentProps, FormieFieldProps, FormieFormComponentProps, FormiePageComponentProps, FormieSlotComponentProps, FormieVueComponents, FormieVueEvent, } from './definition-form';
+export type { FormieDefinitionSource, FormieErrorSummaryProps, FormieFieldComponentProps, FormieFieldProps, FormieFormComponentProps, FormiePageComponentProps, FormieSlotComponentProps, FormieVueComponents, FormieVueEvent, } from './definition-form.js';
 export { useFormie, useFormieField, useFormiePage, useFormieInstance, useFormieSlot, };
 //# sourceMappingURL=index.d.ts.map

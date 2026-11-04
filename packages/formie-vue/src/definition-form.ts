@@ -44,7 +44,7 @@ import {
     type ShallowRef,
     type VNode,
 } from 'vue';
-import { stableSerialize } from './stable';
+import { stableSerialize } from './stable.js';
 
 export type FormieDefinitionSource =
     | {

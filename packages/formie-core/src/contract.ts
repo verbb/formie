@@ -1,5 +1,5 @@
-import type { ClientFormBootstrap } from './types';
-import { assertBrowserModuleManifest } from './browser-modules';
+import type { ClientFormBootstrap } from './types.js';
+import { assertBrowserModuleManifest } from './browser-modules.js';
 
 export const CLIENT_FORM_CONTRACT_VERSION = 1;
 export function assertClientFormBootstrap(value: unknown): asserts value is ClientFormBootstrap {

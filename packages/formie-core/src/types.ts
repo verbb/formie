@@ -1,5 +1,5 @@
-import type { BrowserValidationRule } from './validation';
-import type { BrowserModuleManifest } from './browser-modules';
+import type { BrowserValidationRule } from './validation.js';
+import type { BrowserModuleManifest } from './browser-modules.js';
 export type KnownClientFieldType =
     | 'single-line-text'
     | 'multi-line-text'
@@ -55,7 +55,7 @@ export type ClientFieldDefinition = {
             value: unknown;
             field?: string;
             source?: { selector?: string; handle?: string; target?: string; defaultValue?: string; transformerId?: string; transformerParams?: Record<string, string>; isValid?: boolean };
-            valueType?: import('./conditions').ConditionValueType;
+            valueType?: import('./conditions.js').ConditionValueType;
             browserSafe?: boolean;
         }>;
     } | null;
@@ -229,7 +229,7 @@ export type ClientFormEventName =
     | 'formie:state:reset';
 
 export type ClientTransport = {
-    browserRequestOptions?: import('./request-profile').BrowserRequestOptions;
+    browserRequestOptions?: import('./request-profile.js').BrowserRequestOptions;
     submit(input: {
         definition: ClientFormDefinition;
         session: ClientFormSession;
@@ -252,7 +252,7 @@ export type ClientTransport = {
 };
 
 export type ClientFormInstance = {
-    getBrowserRequestOptions(): import('./request-profile').BrowserRequestOptions;
+    getBrowserRequestOptions(): import('./request-profile.js').BrowserRequestOptions;
     setBrowserModuleGuard(guard: () => void): void;
     setBrowserModulePreparation(prepare: (action: ClientSubmitAction) => Promise<Record<string, unknown>>): void;
     id: string;

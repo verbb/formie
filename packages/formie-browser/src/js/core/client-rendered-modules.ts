@@ -1,6 +1,6 @@
 import { setFormBrowserRequestOptions } from '#utils/request-profile';
 import type { BrowserModuleKind, ClientFormInstance } from '@verbb/formie-core';
-import { hydrateFormieModules } from './hydrate-modules';
+import { hydrateFormieModules } from './hydrate-modules.js';
 import { ModuleRegistry, clientRenderedModuleRegistry } from '#modules/registry';
 
 // These modules are implemented by the shared core state engine or native

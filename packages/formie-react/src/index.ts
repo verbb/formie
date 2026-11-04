@@ -28,8 +28,8 @@ import {
     useFormiePage,
     useFormieInstance,
     useFormieSlot,
-} from './definition-form';
-import { stableSerialize } from './stable';
+} from './definition-form.js';
+import { stableSerialize } from './stable.js';
 
 export type FormieHtmlSource = {
     payload: FormEndpointPayload;
@@ -559,11 +559,11 @@ export type {
     FormieReactComponents,
     FormieReactEvent,
     FormieSlotComponentProps,
-} from './definition-form';
+} from './definition-form.js';
 export {
     useFormie,
     useFormieField,
     useFormiePage,
     useFormieInstance,
     useFormieSlot,
-} from './definition-form';
+} from './definition-form.js';

@@ -5,7 +5,7 @@ import type {
     ClientRowDefinition,
     ClientFormBootstrap,
     KnownClientFieldType,
-} from './types';
+} from './types.js';
 
 const KNOWN_CLIENT_FIELD_TYPES = new Set<KnownClientFieldType>([
     'single-line-text',

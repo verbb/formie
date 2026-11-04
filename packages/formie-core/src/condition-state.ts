@@ -1,8 +1,8 @@
-import { selectConditionRows } from './condition-projections';
-import { combineConditions, evaluateCondition } from './conditions';
-import type { ConditionEvaluation, ConditionValueType } from './conditions';
-import { allFields, compositePartDefinitions, isRepeatableField, repeaterFieldDefinitions } from './schema';
-import type { ClientFieldDefinition, ClientFormState } from './types';
+import { selectConditionRows } from './condition-projections.js';
+import { combineConditions, evaluateCondition } from './conditions.js';
+import type { ConditionEvaluation, ConditionValueType } from './conditions.js';
+import { allFields, compositePartDefinitions, isRepeatableField, repeaterFieldDefinitions } from './schema.js';
+import type { ClientFieldDefinition, ClientFormState } from './types.js';
 
 const conditionEffect = (effect?: string): string => ['show', 'hide', 'enable', 'disable'].includes(effect ?? '') ? effect! : 'show';
 

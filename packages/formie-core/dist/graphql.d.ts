@@ -1,5 +1,5 @@
-import { type BrowserRequestOptions } from './request-profile';
-import type { ClientFormBootstrap, ClientTransport } from './types';
+import { type BrowserRequestOptions } from './request-profile.js';
+import type { ClientFormBootstrap, ClientTransport } from './types.js';
 export type GraphqlClientTransportOptions = BrowserRequestOptions & {
     endpoint: string;
     formHandle: string;
