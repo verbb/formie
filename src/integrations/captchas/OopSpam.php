@@ -116,6 +116,6 @@ class OopSpam extends Captcha
 
     public function hasValidSettings(): bool
     {
-        return $this->apiKey;
+        return (bool)$this->apiKey;
     }
 }
