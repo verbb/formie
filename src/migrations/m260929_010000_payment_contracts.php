@@ -22,6 +22,7 @@ class m260929_010000_payment_contracts extends Migration
                 'success' => 'succeeded', 'redirect' => 'requiresAction', default => $item
             } : $item);
         }
+
         return $value;
     }
 
@@ -58,14 +59,20 @@ class m260929_010000_payment_contracts extends Migration
                 'success' => 'succeeded', 'redirect' => 'requiresAction', default => $row['status']
             }];
 
+            $history = (array)Json::decodeIfJson($row['history']);
+
             if ($row['amountMinor'] === null) {
-                // Decimal strings are converted exactly with the currency's actual exponent.
-                $changes['amountMinor'] = PaymentMoney::fromDecimal((string)$row['amount'], (string)$row['currency'])->minor;
+                // Decimal strings are converted with the currency's actual exponent. A value with more
+                // decimals than the currency allows is rounded, and the history records what it was.
+                $changes['amountMinor'] = PaymentMoney::fromHistoricalDecimal((string)$row['amount'], (string)$row['currency'])->minor;
+
+                if (PaymentMoney::hasExcessPrecision((string)$row['amount'], (string)$row['currency'])) {
+                    $history[] = ['status' => $row['status'], 'reason' => 'legacy amount rounded', 'legacyAmount' => (string)$row['amount']];
+                }
             }
 
-            foreach (['scope', 'history'] as $key) {
-                $changes[$key] = Json::encode(self::normalizeStatus((array)Json::decodeIfJson($row[$key])));
-            }
+            $changes['history'] = Json::encode(self::normalizeStatus($history));
+            $changes['scope'] = Json::encode(self::normalizeStatus((array)Json::decodeIfJson($row['scope'])));
             $this->update(Table::FORMIE_PAYMENTS, $changes, ['id' => $row['id']], [], false);
         }
 
@@ -102,8 +109,10 @@ class m260929_010000_payment_contracts extends Migration
                         $changes['terms'] = Json::encode(array_intersect_key($plan, array_flip(['amountMinor', 'currency', 'interval', 'intervalCount'])));
                     }
                 }
+
                 $this->update(Table::FORMIE_SUBSCRIPTIONS, $changes, ['id' => $row['id']], [], false);
             }
+
             $this->dropColumn(Table::FORMIE_SUBSCRIPTIONS, 'subscriptionData');
         }
 
@@ -115,6 +124,7 @@ class m260929_010000_payment_contracts extends Migration
                 $this->createIndex($name, $table, ['integrationId', 'accountFingerprint', 'reference']);
             }
         }
+
         return true;
     }
 

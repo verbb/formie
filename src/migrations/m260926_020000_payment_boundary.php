@@ -49,7 +49,7 @@ class m260926_020000_payment_boundary extends Migration
                     $values['status'] = in_array($row['status'], ['success', 'failed', 'cancelled'], true) ? $row['status'] : 'unknown';
 
                     try {
-                        PaymentMoney::fromDecimal((string)$row['amount'], (string)$row['currency']);
+                        PaymentMoney::fromHistoricalDecimal((string)$row['amount'], (string)$row['currency']);
                     } catch (Throwable) {
                         $values['status'] = 'unknown';
                     }
