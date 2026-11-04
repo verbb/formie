@@ -28,7 +28,7 @@
 - Fixed submission payment summaries missing for GoCardless, Moneris, Paddle and Square.
 - Fixed PlaceKit throwing an error when its API key is unset or empty.
 - Fixed forms using page reloads not showing a link to continue later after saving progress.
-- Fixed File Upload fields retaining completed attachments after AJAX form resets, and duplicate advanced upload rows after Back navigation.
+- Fixed File Upload fields retaining completed attachments after AJAX form resets, and duplicate advanced upload rows after Back navigation. ([#3097](https://github.com/verbb/formie/issues/3097))
 - Fixed users with permission to import forms being sent to an inaccessible page after a successful import.
 - Fixed queued integrations and notifications being discarded after their worker stopped unexpectedly, while preserving the site's queue retry settings.
 - Fixed upgrades from Formie 2 and 3 failing on PostgreSQL for sites with payments, and sites already upgraded rejecting newer payment statuses, because of an old database constraint.

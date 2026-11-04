@@ -7,7 +7,7 @@
 
 ### Fixed
 - Fixed base reset selectors overriding the default theme when styles are compiled without CSS layers.
-- Fixed File Upload fields retaining completed attachments after AJAX form resets, and duplicate advanced upload rows after Back navigation.
+- Fixed File Upload fields retaining completed attachments after AJAX form resets, and duplicate advanced upload rows after Back navigation. ([#3097](https://github.com/verbb/formie/issues/3097))
 - Fixed TypeScript errors in projects using NodeNext module resolution.
 - Fixed a server-rendered error on a field inside a Group or Repeater marking every other field around it as invalid.
 - Fixed focus not moving to Checkboxes, Agree, searchable Dropdown and Rich Text fields after a validation error.
