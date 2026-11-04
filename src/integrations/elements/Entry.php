@@ -236,7 +236,7 @@ class Entry extends Element
                 return $this->resultForPayload(false);
             }
 
-            $entry = $this->getElementForPayload(EntryElement::class, $this->entryTypeSection, $submission, [
+            $entry = $this->getElementForPayload(EntryElement::class, $this->_getEntryTypeSelection($this->entryTypeSection), $submission, [
                 'typeId' => $entryType->id,
                 'sectionId' => $section->id,
             ]);
@@ -398,7 +398,7 @@ class Entry extends Element
     protected function defineFormSettingsSchema(FormInterface $form): array
     {
         $schema = parent::defineFormSettingsSchema($form);
-        $selectedEntryTypeSection = (string)($this->entryTypeSection ?? '');
+        $selectedEntryTypeSection = $this->_getEntryTypeSelection($this->entryTypeSection);
 
         if ($selectedEntryTypeSection === '') {
             $selectedEntryTypeSection = $this->_getFirstEntryTypeId();
@@ -498,7 +498,7 @@ class Entry extends Element
     private function _getEntryTypeSettings(?string $entryTypeSection = null)
     {
         $entryTypes = $this->getConfigValue('elements');
-        $selectedEntryTypeSection = $entryTypeSection ?? $this->entryTypeSection ?? '';
+        $selectedEntryTypeSection = $this->_getEntryTypeSelection($entryTypeSection ?? $this->entryTypeSection);
 
         if (!is_array($entryTypes)) {
             return [];
@@ -515,6 +515,25 @@ class Entry extends Element
         }
 
         return [];
+    }
+
+    /**
+     * Metadata and update attributes are keyed by UIDs. A selection made before those existed, or restored from an old
+     * export or submission, can still name the same section and entry type by ID.
+     */
+    private function _getEntryTypeSelection(?string $selection): string
+    {
+        $selection = (string)$selection;
+
+        if (!preg_match('/^(\d+):(\d+)$/D', $selection, $matches)) {
+            return $selection;
+        }
+
+        $entriesService = Craft::$app->getEntries();
+        $section = $entriesService->getSectionById((int)$matches[1]);
+        $entryType = $entriesService->getEntryTypeById((int)$matches[2]);
+
+        return $section && $entryType ? $section->uid . ':' . $entryType->uid : $selection;
     }
 
     private function _getEntryTypeOptions(): array
