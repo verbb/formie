@@ -1,9 +1,9 @@
 {
-  "_DragHandle-C4s0ypic.js": {
-    "file": "assets/DragHandle-C4s0ypic.js",
+  "_DragHandle-Cqz6RQT9.js": {
+    "file": "assets/DragHandle-Cqz6RQT9.js",
     "name": "DragHandle",
     "imports": [
-      "_plugin-kit-DM9b336W.js",
+      "_plugin-kit-Cm34R_t5.js",
       "_dndkit-awNkxuqq.js"
     ]
   },
@@ -11,11 +11,11 @@
     "file": "assets/FormieElementIndex-B7gDDK7v.js",
     "name": "FormieElementIndex"
   },
-  "_bridge-BwbzMNT5.js": {
-    "file": "assets/bridge-BwbzMNT5.js",
+  "_bridge-BdCEXBUA.js": {
+    "file": "assets/bridge-BdCEXBUA.js",
     "name": "bridge",
     "imports": [
-      "_plugin-kit-DM9b336W.js"
+      "_plugin-kit-Cm34R_t5.js"
     ]
   },
   "_createUid-BtKO1cQV.js": {
@@ -37,40 +37,40 @@
       "_rolldown-runtime-XKyaHtl9.js"
     ]
   },
-  "_formie-browser-k4w_emAo.js": {
-    "file": "assets/formie-browser-k4w_emAo.js",
+  "_formie-browser-B5FLDzBN.js": {
+    "file": "assets/formie-browser-B5FLDzBN.js",
     "name": "formie-browser",
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js"
     ],
     "dynamicImports": [
-      "_formie-browser-k4w_emAo.js"
+      "_formie-browser-B5FLDzBN.js"
     ]
   },
   "_lit-BTol4mKP.js": {
     "file": "assets/lit-BTol4mKP.js",
     "name": "lit"
   },
-  "_plugin-kit-DDY-iKlU.css": {
-    "file": "assets/plugin-kit-DDY-iKlU.css",
-    "src": "_plugin-kit-DDY-iKlU.css"
-  },
-  "_plugin-kit-DM9b336W.js": {
-    "file": "assets/plugin-kit-DM9b336W.js",
+  "_plugin-kit-Cm34R_t5.js": {
+    "file": "assets/plugin-kit-Cm34R_t5.js",
     "name": "plugin-kit",
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
       "_dndkit-awNkxuqq.js",
       "_data-utils-n4oSH26Q.js",
       "_lit-BTol4mKP.js",
-      "_formie-browser-k4w_emAo.js"
+      "_formie-browser-B5FLDzBN.js"
     ],
     "dynamicImports": [
-      "_plugin-kit-DM9b336W.js"
+      "_plugin-kit-Cm34R_t5.js"
     ],
     "css": [
       "assets/plugin-kit-DDY-iKlU.css"
     ]
+  },
+  "_plugin-kit-DDY-iKlU.css": {
+    "file": "assets/plugin-kit-DDY-iKlU.css",
+    "src": "_plugin-kit-DDY-iKlU.css"
   },
   "_plugin-kit-core-DUhJEgnO.js": {
     "file": "assets/plugin-kit-core-DUhJEgnO.js",
@@ -84,26 +84,26 @@
       "_dndkit-awNkxuqq.js"
     ]
   },
-  "_registerFormieOwnedSchemaFields-CYtEZM1U.js": {
-    "file": "assets/registerFormieOwnedSchemaFields-CYtEZM1U.js",
+  "_registerFormieOwnedSchemaFields-BE2g3BaH.js": {
+    "file": "assets/registerFormieOwnedSchemaFields-BE2g3BaH.js",
     "name": "registerFormieOwnedSchemaFields",
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
+      "_plugin-kit-Cm34R_t5.js",
       "_dndkit-awNkxuqq.js",
       "_plugin-kit-core-DUhJEgnO.js",
       "_dist-8uD5iid3.js"
     ]
   },
-  "_reportExport-v59X7iem.js": {
-    "file": "assets/reportExport-v59X7iem.js",
+  "_reportExport-DiSIR7ZT.js": {
+    "file": "assets/reportExport-DiSIR7ZT.js",
     "name": "reportExport",
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
+      "_plugin-kit-Cm34R_t5.js",
       "_dndkit-awNkxuqq.js",
       "_reportViewerDates-B3_L8s96.js",
-      "_DragHandle-C4s0ypic.js"
+      "_DragHandle-Cqz6RQT9.js"
     ]
   },
   "_reportViewerDates-B3_L8s96.js": {
@@ -114,26 +114,26 @@
     "file": "assets/rolldown-runtime-XKyaHtl9.js",
     "name": "rolldown-runtime"
   },
-  "_style-B-PCJb2d.js": {
-    "file": "assets/style-B-PCJb2d.js",
+  "_style-5qbmdmtF.js": {
+    "file": "assets/style-5qbmdmtF.js",
     "name": "style",
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
-      "_dndkit-awNkxuqq.js",
-      "_createUid-BtKO1cQV.js",
-      "_utils-Dh8pSOTj.js",
-      "_DragHandle-C4s0ypic.js"
+      "_plugin-kit-Cm34R_t5.js",
+      "_registerFormieOwnedSchemaFields-BE2g3BaH.js",
+      "_dndkit-awNkxuqq.js"
     ]
   },
-  "_style-hGi9PZNb.js": {
-    "file": "assets/style-hGi9PZNb.js",
+  "_style-DuNDc1dv.js": {
+    "file": "assets/style-DuNDc1dv.js",
     "name": "style",
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
-      "_registerFormieOwnedSchemaFields-CYtEZM1U.js",
-      "_dndkit-awNkxuqq.js"
+      "_plugin-kit-Cm34R_t5.js",
+      "_dndkit-awNkxuqq.js",
+      "_createUid-BtKO1cQV.js",
+      "_utils-CIfdqNNO.js",
+      "_DragHandle-Cqz6RQT9.js"
     ]
   },
   "_submissionExportState-CpN3Hh5i.js": {
@@ -143,12 +143,12 @@
       "_reportViewerDates-B3_L8s96.js"
     ]
   },
-  "_utils-Dh8pSOTj.js": {
-    "file": "assets/utils-Dh8pSOTj.js",
+  "_utils-CIfdqNNO.js": {
+    "file": "assets/utils-CIfdqNNO.js",
     "name": "utils",
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
+      "_plugin-kit-Cm34R_t5.js",
       "_dndkit-awNkxuqq.js",
       "_react-vendor-nQsSJz6r.js"
     ]
@@ -160,23 +160,23 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
-      "_registerFormieOwnedSchemaFields-CYtEZM1U.js",
+      "_plugin-kit-Cm34R_t5.js",
+      "_registerFormieOwnedSchemaFields-BE2g3BaH.js",
       "_dndkit-awNkxuqq.js",
-      "_utils-Dh8pSOTj.js",
-      "_style-hGi9PZNb.js"
+      "_utils-CIfdqNNO.js",
+      "_style-5qbmdmtF.js"
     ]
   },
   "src/delivery/formie-delivery.js": {
-    "file": "assets/formie-delivery-BLfdOQs4.js",
+    "file": "assets/formie-delivery-BnN9RHsO.js",
     "name": "formie-delivery",
     "src": "src/delivery/formie-delivery.js",
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
+      "_plugin-kit-Cm34R_t5.js",
       "_dndkit-awNkxuqq.js",
-      "_utils-Dh8pSOTj.js"
+      "_utils-CIfdqNNO.js"
     ]
   },
   "src/field-palette/formie-field-palette.js": {
@@ -186,27 +186,27 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
+      "_plugin-kit-Cm34R_t5.js",
       "_dndkit-awNkxuqq.js",
-      "_utils-Dh8pSOTj.js",
-      "_style-B-PCJb2d.js"
+      "_utils-CIfdqNNO.js",
+      "_style-DuNDc1dv.js"
     ]
   },
   "src/form-builder/formie-form-builder.js": {
-    "file": "assets/formie-form-builder-BQBQY0H0.js",
+    "file": "assets/formie-form-builder-hE1VqucE.js",
     "name": "formie-form-builder",
     "src": "src/form-builder/formie-form-builder.js",
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
-      "_bridge-BwbzMNT5.js",
-      "_registerFormieOwnedSchemaFields-CYtEZM1U.js",
+      "_plugin-kit-Cm34R_t5.js",
+      "_bridge-BdCEXBUA.js",
+      "_registerFormieOwnedSchemaFields-BE2g3BaH.js",
       "_dndkit-awNkxuqq.js",
       "_data-utils-n4oSH26Q.js",
       "_createUid-BtKO1cQV.js",
       "_plugin-kit-core-DUhJEgnO.js",
-      "_utils-Dh8pSOTj.js",
+      "_utils-CIfdqNNO.js",
       "_dist-8uD5iid3.js"
     ]
   },
@@ -217,12 +217,12 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
-      "_registerFormieOwnedSchemaFields-CYtEZM1U.js",
+      "_plugin-kit-Cm34R_t5.js",
+      "_registerFormieOwnedSchemaFields-BE2g3BaH.js",
       "_dndkit-awNkxuqq.js",
-      "_utils-Dh8pSOTj.js",
-      "_style-hGi9PZNb.js",
-      "_style-B-PCJb2d.js"
+      "_utils-CIfdqNNO.js",
+      "_style-5qbmdmtF.js",
+      "_style-DuNDc1dv.js"
     ]
   },
   "src/forms/js/formie-forms-index.js": {
@@ -232,25 +232,25 @@
     "isEntry": true
   },
   "src/integration-connect/formie-integration-connect.js": {
-    "file": "assets/formie-integration-connect-C6WkDPxI.js",
+    "file": "assets/formie-integration-connect-DPpQ6hs8.js",
     "name": "formie-integration-connect",
     "src": "src/integration-connect/formie-integration-connect.js",
     "isEntry": true,
     "imports": [
-      "_plugin-kit-DM9b336W.js"
+      "_plugin-kit-Cm34R_t5.js"
     ]
   },
   "src/new-form/formie-new-form.js": {
-    "file": "assets/formie-new-form-DhxKNcI4.js",
+    "file": "assets/formie-new-form-CtmM7ErO.js",
     "name": "formie-new-form",
     "src": "src/new-form/formie-new-form.js",
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
+      "_plugin-kit-Cm34R_t5.js",
       "_dndkit-awNkxuqq.js",
       "_plugin-kit-core-DUhJEgnO.js",
-      "_utils-Dh8pSOTj.js"
+      "_utils-CIfdqNNO.js"
     ]
   },
   "src/plugin-settings/js/formie-plugin-settings.js": {
@@ -269,13 +269,13 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
+      "_plugin-kit-Cm34R_t5.js",
       "_dndkit-awNkxuqq.js",
       "_plugin-kit-core-DUhJEgnO.js",
-      "_utils-Dh8pSOTj.js",
+      "_utils-CIfdqNNO.js",
       "_reportViewerDates-B3_L8s96.js",
-      "_DragHandle-C4s0ypic.js",
-      "_reportExport-v59X7iem.js"
+      "_DragHandle-Cqz6RQT9.js",
+      "_reportExport-DiSIR7ZT.js"
     ]
   },
   "src/sent-notifications/js/formie-sent-notifications.js": {
@@ -285,9 +285,9 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
+      "_plugin-kit-Cm34R_t5.js",
       "_dndkit-awNkxuqq.js",
-      "_utils-Dh8pSOTj.js",
+      "_utils-CIfdqNNO.js",
       "_FormieElementIndex-B7gDDK7v.js"
     ],
     "css": [
@@ -301,10 +301,10 @@
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
+      "_plugin-kit-Cm34R_t5.js",
       "_dndkit-awNkxuqq.js",
-      "_utils-Dh8pSOTj.js",
-      "_formie-browser-k4w_emAo.js",
+      "_utils-CIfdqNNO.js",
+      "_formie-browser-B5FLDzBN.js",
       "_dist-8uD5iid3.js",
       "_FormieElementIndex-B7gDDK7v.js",
       "_submissionExportState-CpN3Hh5i.js"
@@ -317,17 +317,17 @@
     ]
   },
   "src/submissions/submissionExportModal.js": {
-    "file": "assets/submissionExportModal-CGBP69jk.js",
+    "file": "assets/submissionExportModal-Xyl4Pp9Y.js",
     "name": "submissionExportModal",
     "src": "src/submissions/submissionExportModal.js",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-XKyaHtl9.js",
-      "_plugin-kit-DM9b336W.js",
+      "_plugin-kit-Cm34R_t5.js",
       "_dndkit-awNkxuqq.js",
-      "_utils-Dh8pSOTj.js",
+      "_utils-CIfdqNNO.js",
       "_submissionExportState-CpN3Hh5i.js",
-      "_reportExport-v59X7iem.js"
+      "_reportExport-DiSIR7ZT.js"
     ]
   },
   "src/tiptap/formie-tiptap.js": {
@@ -336,7 +336,7 @@
     "src": "src/tiptap/formie-tiptap.js",
     "isEntry": true,
     "imports": [
-      "_bridge-BwbzMNT5.js"
+      "_bridge-BdCEXBUA.js"
     ]
   },
   "src/widgets/js/formie-widgets.js": {
