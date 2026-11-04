@@ -115,7 +115,7 @@ Reports use dedicated Craft user permissions:
 
 Only administrators can change or delete a report with scheduled deliveries, because a schedule sends the report’s data to its recipients regardless of who can view those forms.
 
-Users with **Export submissions** can also export from reports and the submissions index without full manage access. **Export submissions** sits beneath **Access reports**, so select both.
+For saved report exports, select **Export submissions** beneath **Access reports**. This also allows exporting from the submissions index without full manage access. To allow only submissions index exports, select **Export submissions** beneath **Access submissions** instead; Reports access is not required.
 
 ## Reports on Different Environments
 

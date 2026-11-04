@@ -47,8 +47,10 @@ class ReportsController extends Controller
             'submission-export-options',
             'submission-export-columns',
             'submission-export-count',
+            'export-status',
+            'download-queued-export',
         ], true)) {
-            $this->_requireExportPermission();
+            $this->_requireExportPermission(true);
 
             return true;
         }
@@ -478,13 +480,15 @@ class ReportsController extends Controller
 
     public function actionExportStatus(string $uid): Response
     {
-        $this->_requireExportPermission();
+        $this->_requireExportPermission(true);
 
         $exportFile = Formie::$plugin->getReportExportFiles()->getExportFileByUid($uid);
 
         if (!$exportFile) {
             throw new NotFoundHttpException(Craft::t('formie', 'Export not found.'));
         }
+
+        $this->_requireQueuedExportPermission($exportFile);
 
         $user = Craft::$app->getUser()->getIdentity();
 
@@ -522,13 +526,15 @@ class ReportsController extends Controller
 
     public function actionDownloadQueuedExport(string $uid): Response
     {
-        $this->_requireExportPermission();
+        $this->_requireExportPermission(true);
 
         $exportFile = Formie::$plugin->getReportExportFiles()->getExportFileByUid($uid);
 
         if (!$exportFile || $exportFile->source !== ReportExportFile::SOURCE_INTERACTIVE || !$exportFile->isDownloadable()) {
             throw new NotFoundHttpException(Craft::t('formie', 'Export not found.'));
         }
+
+        $this->_requireQueuedExportPermission($exportFile);
 
         $user = Craft::$app->getUser()->getIdentity();
 
@@ -598,11 +604,28 @@ class ReportsController extends Controller
         }
     }
 
-    private function _requireExportPermission(): void
+    private function _requireExportPermission(bool $fromSubmissions = false): void
     {
-        if (!Formie::$plugin->getPermissions()->canExportSubmissions(Craft::$app->getUser()->getIdentity())) {
+        $permissions = Formie::$plugin->getPermissions();
+        $user = Craft::$app->getUser()->getIdentity();
+        $allowed = $fromSubmissions ? $permissions->canExportSubmissionsFromIndex($user) : $permissions->canExportSubmissions($user);
+
+        if (!$allowed) {
             throw new ForbiddenHttpException(Craft::t('app', 'User is not permitted to perform this action'));
         }
+    }
+
+    private function _requireQueuedExportPermission(ReportExportFile $exportFile): void
+    {
+        // Only index exports carry an unsaved report snapshot. Saved report downloads
+        // retain their Reports gate, even if the original report has been deleted.
+        $fromSubmissions = !$exportFile->reportId && isset($exportFile->context['report']);
+
+        if (!$fromSubmissions) {
+            $this->requirePermission(Permissions::PERM_ACCESS_REPORTS);
+        }
+
+        $this->_requireExportPermission($fromSubmissions);
     }
 
     private function _sendExportFile(ReportExportFile $exportFile): Response

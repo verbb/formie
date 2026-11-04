@@ -30,7 +30,7 @@ Exports with more submissions than the **Report Async Export Row Threshold** set
 
 The dialog can't apply filters from the submissions index's own filter menu, or those of a custom source. It tells you when one is active, so you can narrow the export with its settings instead. Selecting several forms, or **All Forms**, gives you a column for each form's fields, and fields that share a handle share a column.
 
-To use **Export…**, a user needs the **Access reports** and **Export submissions** permissions, and the export only includes forms whose submissions they can view.
+To use **Export…**, grant **Export submissions** beneath **Access submissions**. Reports access is not required. The export only includes forms whose submissions the user can view. Users with the Reports section’s **Export submissions** or **Manage reports** permission can also export from the submissions index.
 
 Use [Reports](/reports/reports) when you need the same filters again, summary counts, charts, or [scheduled email delivery](/reports/scheduled-reports).
 

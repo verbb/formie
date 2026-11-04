@@ -236,7 +236,10 @@ class ReportExport extends Component
 
         // Queue workers do not inherit the requesting editor's session. Resolve
         // the owner explicitly and recheck current permissions before exporting.
-        if (!$scheduled && !Formie::$plugin->getPermissions()->canExportSubmissions($user)) {
+        $permissions = Formie::$plugin->getPermissions();
+        $canExport = $report->id ? $permissions->canExportSubmissions($user) : $permissions->canExportSubmissionsFromIndex($user);
+
+        if (!$scheduled && !$canExport) {
             throw new RuntimeException(Craft::t('formie', 'Report export permission is no longer available.'));
         }
 

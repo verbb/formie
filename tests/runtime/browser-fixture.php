@@ -122,7 +122,7 @@ if (!Craft::$app->getElements()->saveElement($exportClient)) {
 Craft::$app->getUsers()->activateUser($exportClient);
 Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
 if (!Craft::$app->getUserPermissions()->saveUserPermissions($exportClient->id, [
-    'accessCp', 'accessPlugin-formie', 'formie-accessSubmissions', 'formie-accessReports', 'formie-exportSubmissions',
+    'accessCp', 'accessPlugin-formie', 'formie-accessSubmissions', 'formie-exportSubmissionsFromIndex',
     'formie-viewSubmissions:' . $exportForm->uid,
     ...array_map(fn($site) => 'editSite:' . $site->uid, Craft::$app->getSites()->getAllSites()),
 ])) {

@@ -1971,7 +1971,8 @@ Report access is separate from submission management. Update editor permissions 
 | Permission | Purpose |
 | --- | --- |
 | **Access reports** | Open **Formie → Reports** and run saved reports |
-| **Export submissions** | Export from reports and the submissions index (without full manage access) |
+| **Export submissions** under **Access submissions** | Export from the submissions index without Reports access |
+| **Export submissions** under **Access reports** | Export from reports and the submissions index (without full manage access) |
 | **Manage reports** | Create, edit, delete reports; includes export |
 | **View scheduled reports** | Inspect saved deliveries under **Settings → Scheduled Reports** |
 | **Send scheduled report test emails** | Send a saved scheduled report to your own email address |

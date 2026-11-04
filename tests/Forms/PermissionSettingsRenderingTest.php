@@ -33,6 +33,8 @@ it('renders one Select All control for all Formie permissions', function(): void
         expect($xpath->query('//div[contains(concat(" ", normalize-space(@class), " "), " user-permissions ")]')->length)->toBe(1);
         expect($xpath->query('//ul[@id="formie-accessSettingsSection-nested"]//input[@value="formie-settingsSyncedFields" and @disabled]')->length)->toBe(1);
         expect($xpath->query('//ul[@id="formie-accessSettingsSection-nested"]//input[@value="formie-accessSettings"]')->length)->toBe(0);
+        expect($xpath->query('//ul[@id="formie-accessSubmissions-nested"]//input[@value="formie-exportSubmissionsFromIndex"]')->length)->toBe(1);
+        expect($xpath->query('//ul[@id="formie-accessReports-nested"]//input[@value="formie-exportSubmissions"]')->length)->toBe(1);
     });
 });
 

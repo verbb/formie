@@ -25,6 +25,8 @@ test('exports from the submissions index without a saved report', async ({ page 
     await signIn(page, 'browserExportClient');
     await page.goto('/admin/formie/submissions/exportDialogForm');
 
+    await expect(page.locator('#nav').getByRole('link', { name: 'Reports', exact: true })).toHaveCount(0);
+
     const exportButton = page.locator('#footer').getByRole('button', { name: 'Export…', exact: true });
     await expect(exportButton).toBeVisible();
     // Opening the index must not load the dialog's code or form options.

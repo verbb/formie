@@ -858,7 +858,7 @@ Formie registers Craft user permissions under **Settings → Users → {user gro
 | **View scheduled reports** | Inspect saved deliveries under **Settings → Scheduled Reports** |
 | **Send scheduled report test emails** | Send a saved scheduled report to your own email address |
 
-Users with **Export submissions** can export from reports and the submissions index without **Manage reports**. It sits beneath **Access reports**, so select both.
+Select **Export submissions** beneath **Access reports** to allow saved report exports without **Manage reports**. This also allows submissions index exports. For users who only need the submissions index, select **Export submissions** beneath **Access submissions**; they do not need Reports access.
 
 Under **Access settings**, assign production tools such as import/export and support, or read-only access to encryption status, synced field usage and scheduled reports. Configuration editing requires a Craft administrator with admin changes enabled. Editing scheduled reports requires a Craft administrator, on any environment. Spam rules and CAPTCHA permissions are separate under **Access spam protection**.
 

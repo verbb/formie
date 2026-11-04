@@ -15,18 +15,18 @@ use verbb\formie\services\Permissions;
 use yii\mail\BaseMailer;
 use yii\web\ForbiddenHttpException;
 
-function submissionExportUser(array $grants): User
+function submissionExportUser(array $grants, bool $reportsAccess = true): User
 {
     $name = 'submissionExport' . bin2hex(random_bytes(6));
     $user = new User(['username' => $name, 'email' => $name . '@example.test']);
     expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
     Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
-    // Craft drops nested permissions saved without their parents, so include both sections.
+    // Keep Reports access optional to exercise the submissions-only grant as Craft saves it.
     expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, [
         'accessCp',
         'accessPlugin-formie',
         Permissions::PERM_ACCESS_SUBMISSIONS,
-        Permissions::PERM_ACCESS_REPORTS,
+        ...($reportsAccess ? [Permissions::PERM_ACCESS_REPORTS] : []),
         ...$grants,
     ]))->toBeTrue();
 
@@ -233,7 +233,7 @@ it('runs queued exports from the stored report for anyone allowed to export', fu
         Permissions::PERM_VIEW_SUBMISSIONS,
         'editSite:' . Craft::$app->getSites()->getPrimarySite()->uid,
         $grant,
-    ]));
+    ]), $grant !== Permissions::PERM_EXPORT_SUBMISSIONS_FROM_INDEX);
     $service = Formie::$plugin->getReportExport();
     $files = Formie::$plugin->getReportExportFiles();
 
@@ -268,6 +268,7 @@ it('runs queued exports from the stored report for anyone allowed to export', fu
     }
 })->with([
     'export grant' => [Permissions::PERM_EXPORT_SUBMISSIONS, true],
+    'submissions-only grant' => [Permissions::PERM_EXPORT_SUBMISSIONS_FROM_INDEX, true],
     'report manager' => [Permissions::PERM_MANAGE_REPORTS, true],
     'no export grant' => ['', false],
 ]);
@@ -302,7 +303,7 @@ it('sends the ready email for an export without a saved report', function (): vo
 });
 
 it('requires export permission for the index export actions', function (array $grants, bool $allowed): void {
-    $user = submissionExportUser($grants);
+    $user = submissionExportUser($grants, !in_array(Permissions::PERM_EXPORT_SUBMISSIONS_FROM_INDEX, $grants, true));
 
     asSubmissionExporter(function () use ($allowed): void {
         $controller = new ReportsController('reports', Formie::$plugin);
@@ -319,6 +320,7 @@ it('requires export permission for the index export actions', function (array $g
     }, $user, 'GET');
 })->with([
     'export grant' => [[Permissions::PERM_EXPORT_SUBMISSIONS], true],
+    'submissions-only grant' => [[Permissions::PERM_EXPORT_SUBMISSIONS_FROM_INDEX], true],
     'report manager' => [[Permissions::PERM_MANAGE_REPORTS], true],
     'report viewer' => [[], false],
 ]);
@@ -356,3 +358,85 @@ it('leaves saved report exports attached to their report', function (): void {
 
     $files->deleteExportFile($exportFile);
 });
+
+it('exports immediately or through the queue without access to reports', function (bool $queued): void {
+    $form = formie()->form()->settings(['usePerFormPermissions' => true])->singleLineTextField('message')->create();
+    $denied = formie()->form()->settings(['usePerFormPermissions' => true])->singleLineTextField('privateMessage')->create();
+    formie()->submission($form)->with(['message' => 'Allowed answer'])->save();
+    formie()->submission($form)->with(['message' => 'Second answer'])->save();
+    formie()->submission($denied)->with(['privateMessage' => 'Private answer'])->save();
+    $permissions = Formie::$plugin->getPermissions();
+    $grants = [
+        Permissions::PERM_EXPORT_SUBMISSIONS_FROM_INDEX,
+        'editSite:' . Craft::$app->getSites()->getPrimarySite()->uid,
+        $permissions->scopedPermission(Permissions::PERM_VIEW_SUBMISSIONS, $permissions->formScope($form)),
+    ];
+    $user = submissionExportUser($grants, false);
+    $other = submissionExportUser($grants, false);
+    $settings = Formie::$plugin->getSettings();
+    $threshold = $settings->reportAsyncExportRowThreshold;
+    $settings->reportAsyncExportRowThreshold = $queued ? 1 : 1000;
+    $files = Formie::$plugin->getReportExportFiles();
+    $exportFile = null;
+
+    try {
+        asSubmissionExporter(function (User $identity, $request) use ($user, $other, $form, $denied, $queued, $files, &$exportFile): void {
+            expect($identity->can(Permissions::PERM_EXPORT_SUBMISSIONS_FROM_INDEX))->toBeTrue()
+                ->and($identity->can(Permissions::PERM_ACCESS_REPORTS))->toBeFalse()
+                ->and(Formie::$plugin->getPermissions()->canExportSubmissions($identity))->toBeFalse();
+            $controller = new ReportsController('reports', Formie::$plugin);
+            $request->setBodyParams([
+                $request->csrfParam => $request->getCsrfToken(),
+                'formIds' => [$form->id, $denied->id],
+                'format' => 'csv',
+            ]);
+            expect(fn() => $controller->runAction('index'))->toThrow(ForbiddenHttpException::class);
+            expect(fn() => $controller->runAction('export', ['id' => 1]))->toThrow(ForbiddenHttpException::class);
+            expect($controller->runAction('submission-export-count')->data['count'])->toBe(2);
+            $options = $controller->runAction('submission-export-options')->data;
+            expect(array_column($options['forms'], 'value'))->toContain((string)$form->id)->not->toContain((string)$denied->id);
+            $columns = $controller->runAction('submission-export-columns')->data;
+            expect(array_column($columns['columns'], 'handle'))->toContain('message')->not->toContain('privateMessage');
+
+            ob_start();
+            $response = $controller->runAction('submission-export');
+            if ($queued) {
+                expect($response->data['queued'])->toBeTrue();
+                $exportFile = $files->getExportFileByUid($response->data['export']['uid']);
+                $result = Formie::$plugin->getReportExport()->runQueuedExport($exportFile);
+                $exportFile = $files->markReady($exportFile, $result['path'], $result['filename'], $result['mimeType']);
+                expect($controller->runAction('export-status', ['uid' => $exportFile->uid])->data['status'])->toBe('ready');
+                $response = $controller->runAction('download-queued-export', ['uid' => $exportFile->uid]);
+            }
+            rewind($response->stream[0]);
+            $contents = stream_get_contents($response->stream[0]);
+            expect($contents)->toContain('Allowed answer', 'Second answer')->not->toContain('Private answer', 'Private Message');
+            fclose($response->stream[0]);
+            $response->stream = null;
+            $response->trigger(\craft\web\Response::EVENT_AFTER_SEND);
+            $response->clear();
+
+            if (!$queued) {
+                return;
+            }
+
+            Craft::$app->getUser()->setIdentity(User::find()->id($other->id)->one());
+            foreach (['export-status', 'download-queued-export'] as $action) {
+                expect(fn() => $controller->runAction($action, ['uid' => $exportFile->uid]))->toThrow(\yii\web\NotFoundHttpException::class);
+            }
+            // A queued file must stop working when its owner's export grant is revoked.
+            expect(Craft::$app->getUserPermissions()->saveUserPermissions($user->id, ['accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_SUBMISSIONS]))->toBeTrue();
+            Craft::$app->set('userPermissions', new \craft\services\UserPermissions());
+            Craft::$app->getUser()->setIdentity(User::find()->id($user->id)->one());
+            foreach (['export-status', 'download-queued-export'] as $action) {
+                expect(fn() => $controller->runAction($action, ['uid' => $exportFile->uid]))->toThrow(ForbiddenHttpException::class);
+            }
+            expect(fn() => Formie::$plugin->getReportExport()->runQueuedExport($exportFile))->toThrow(RuntimeException::class, 'permission');
+        }, $user);
+    } finally {
+        $settings->reportAsyncExportRowThreshold = $threshold;
+        if ($exportFile) {
+            $files->deleteExportFile($exportFile);
+        }
+    }
+})->with(['immediate' => false, 'queued' => true]);

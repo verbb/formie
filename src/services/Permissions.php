@@ -33,6 +33,7 @@ class Permissions extends Component
     public const PERM_ACCESS_REPORTS = 'formie-accessReports';
     public const PERM_MANAGE_REPORTS = 'formie-manageReports';
     public const PERM_EXPORT_SUBMISSIONS = 'formie-exportSubmissions';
+    public const PERM_EXPORT_SUBMISSIONS_FROM_INDEX = 'formie-exportSubmissionsFromIndex';
     public const PERM_MANAGE_SCHEDULED_REPORTS = 'formie-manageScheduledReports';
     public const PERM_TEST_SCHEDULED_REPORTS = 'formie-testScheduledReports';
     public const PERM_ACCESS_SUBMISSIONS = 'formie-accessSubmissions';
@@ -133,6 +134,12 @@ class Permissions extends Component
         }
 
         return $user->can(self::PERM_EXPORT_SUBMISSIONS) || $user->can(self::PERM_MANAGE_REPORTS);
+    }
+
+    public function canExportSubmissionsFromIndex(?User $user): bool
+    {
+        // Existing report exporters retain access to the submissions export dialog.
+        return $this->canExportSubmissions($user) || $this->_can($user, self::PERM_EXPORT_SUBMISSIONS_FROM_INDEX);
     }
 
     /**
@@ -817,6 +824,7 @@ class Permissions extends Component
     public function getSubmissionPermissionDefinitions(): array
     {
         $definitions = [
+            self::PERM_EXPORT_SUBMISSIONS_FROM_INDEX => ['label' => Craft::t('formie', 'Export submissions')],
             'formie-viewDeliveryDiagnostics' => [
                 'label' => Craft::t('formie', 'View delivery diagnostics'),
             ],

@@ -36,21 +36,22 @@ it('uses the report viewer export permission for immediate and queued downloads'
             expect(Formie::$plugin->getPermissions()->canExportSubmissions(Craft::$app->getUser()->getIdentity()))->toBe($allowed);
             $controller = new ReportsController('reports', Formie::$plugin);
             if (!$allowed) {
-                expect(fn() => $controller->actionExport($report->id))->toThrow(ForbiddenHttpException::class);
-                expect(fn() => $controller->actionExportStatus($export->uid))->toThrow(ForbiddenHttpException::class);
-                expect(fn() => $controller->actionDownloadQueuedExport($export->uid))->toThrow(ForbiddenHttpException::class);
+                expect(fn() => $controller->runAction('export', ['id' => $report->id]))->toThrow(ForbiddenHttpException::class);
+                expect(fn() => $controller->runAction('export-status', ['uid' => $export->uid]))->toThrow(ForbiddenHttpException::class);
+                expect(fn() => $controller->runAction('download-queued-export', ['uid' => $export->uid]))->toThrow(ForbiddenHttpException::class);
+                expect(fn() => Formie::$plugin->getReportExport()->runQueuedExport($export))->toThrow(RuntimeException::class, 'permission');
                 return;
             }
-            expect($controller->actionExportStatus($export->uid)->data['status'])->toBe('ready');
+            expect($controller->runAction('export-status', ['uid' => $export->uid])->data['status'])->toBe('ready');
             ob_start();
-            $response = $controller->actionExport($report->id);
+            $response = $controller->runAction('export', ['id' => $report->id]);
             expect($response->getHeaders()->get('content-disposition'))->toContain('.csv');
             fclose($response->stream[0]);
             $response->stream = null;
             $response->trigger(\craft\web\Response::EVENT_AFTER_SEND);
             $response->clear();
             ob_start();
-            $response = $controller->actionDownloadQueuedExport($export->uid);
+            $response = $controller->runAction('download-queued-export', ['uid' => $export->uid]);
             expect($response->getHeaders()->get('content-disposition'))->toContain('manager.csv');
             fclose($response->stream[0]);
             $response->stream = null;
@@ -60,8 +61,8 @@ it('uses the report viewer export permission for immediate and queued downloads'
             expect(Craft::$app->getUserPermissions()->saveUserPermissions($other->id, ['accessCp', 'accessPlugin-formie', Permissions::PERM_ACCESS_REPORTS, Permissions::PERM_MANAGE_REPORTS]))->toBeTrue();
             Craft::$app->getUser()->setIdentity(User::find()->id($other->id)->one());
             expect(Formie::$plugin->getPermissions()->canExportSubmissions(Craft::$app->getUser()->getIdentity()))->toBeTrue();
-            expect(fn() => $controller->actionExportStatus($export->uid))->toThrow(NotFoundHttpException::class);
-            expect(fn() => $controller->actionDownloadQueuedExport($export->uid))->toThrow(NotFoundHttpException::class);
+            expect(fn() => $controller->runAction('export-status', ['uid' => $export->uid]))->toThrow(NotFoundHttpException::class);
+            expect(fn() => $controller->runAction('download-queued-export', ['uid' => $export->uid]))->toThrow(NotFoundHttpException::class);
         });
     } finally {
         Craft::$app->getUser()->setIdentity($originalIdentity);
@@ -72,4 +73,5 @@ it('uses the report viewer export permission for immediate and queued downloads'
     'report manager' => [Permissions::PERM_MANAGE_REPORTS, true],
     'viewer with export grant' => [Permissions::PERM_EXPORT_SUBMISSIONS, true],
     'report viewer' => ['', false],
+    'index exporter with report access' => [Permissions::PERM_EXPORT_SUBMISSIONS_FROM_INDEX, false],
 ]);

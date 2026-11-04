@@ -214,7 +214,7 @@ class SubmissionsController extends Controller
         return $this->renderTemplate('formie/submissions/index', [
             'defaultState' => $settings->submissionsBehaviour,
             'editableForms' => $editableForms,
-            'canExportSubmissions' => $permissions->canExportSubmissions($currentUser),
+            'canExportSubmissions' => $permissions->canExportSubmissionsFromIndex($currentUser),
         ]);
     }
 
