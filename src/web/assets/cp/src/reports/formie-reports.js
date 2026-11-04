@@ -17,18 +17,21 @@ defineFormieCpConstructor('Reports', async (settings = {}) => {
             readyClass: 'formie-reports-dashboard--ready',
             styleNamespace: 'reports-dashboard',
             App: ReportsDashboardApp,
+            styles: reportsDashboardStyles,
         },
         editor: {
             containerSelector: '.formie-reports-editor',
             readyClass: 'formie-reports-editor--ready',
             styleNamespace: 'reports-editor',
             App: ReportEditorApp,
+            styles: reportEditorStyles,
         },
         viewer: {
             containerSelector: '.formie-reports-viewer',
             readyClass: 'formie-reports-viewer--ready',
             styleNamespace: 'reports-viewer',
             App: ReportViewApp,
+            styles: reportViewStyles,
         },
     };
 
@@ -37,7 +40,7 @@ defineFormieCpConstructor('Reports', async (settings = {}) => {
     const boot = bootstrapShadowReactApp({
         containerSelector: config.containerSelector,
         pluginHandle: 'formie',
-        styleTexts: [reportsDashboardStyles, reportEditorStyles, reportViewStyles],
+        styleTexts: [config.styles],
         styleNamespace: config.styleNamespace,
     });
 

@@ -24,7 +24,9 @@ export const CreateReportModal = ({
     csrfTokenValue,
     reservedHandles = [],
     reportHandles = [],
-    formOptions = [],
+    formOptions = null,
+    formOptionsUrl,
+    onShown,
     onCreated,
 }) => {
     const [name, setName] = useState('');
@@ -36,6 +38,10 @@ export const CreateReportModal = ({
     const [formError, setFormError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [advancedVisible, setAdvancedVisible] = useState(false);
+    const [shown, setShown] = useState(false);
+    const [loadedFormOptions, setLoadedFormOptions] = useState(formOptions);
+    const [formOptionsError, setFormOptionsError] = useState(null);
+    const [formOptionsAttempt, setFormOptionsAttempt] = useState(0);
     const lastGeneratedHandleRef = useRef('');
     const formRef = useRef(null);
     // Guard overlapping Enter / footer submit / requestSubmit races.
@@ -51,15 +57,53 @@ export const CreateReportModal = ({
         return [...new Set([
             ...reservedHandles,
             ...reportHandles,
-        ].filter(Boolean).map((value) => String(value).toLowerCase()))];
+        ].filter(Boolean).map((value) => { return String(value).toLowerCase(); }))];
     }, [reportHandles, reservedHandles]);
 
     const selectableFormOptions = useMemo(() => {
-        return (formOptions || []).filter((option) => option.value && option.value !== '*');
-    }, [formOptions]);
+        return (loadedFormOptions || []).filter((option) => { return option.value && option.value !== '*'; });
+    }, [loadedFormOptions]);
+
+    useEffect(() => {
+        if (!open || !shown || loadedFormOptions !== null) {
+            return undefined;
+        }
+
+        // Wait for the dialog to be visible, and discard responses after dismissal.
+        const controller = new AbortController();
+        setFormOptionsError(null);
+
+        const loadFormOptions = async () => {
+            try {
+                const response = await fetch(formOptionsUrl, {
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    signal: controller.signal,
+                });
+                const payload = await response.json();
+
+                if (!response.ok || !Array.isArray(payload.formOptions)) {
+                    throw new Error(Craft.t('formie', 'Unable to load forms.'));
+                }
+
+                if (!controller.signal.aborted) {
+                    setLoadedFormOptions(payload.formOptions);
+                }
+            } catch {
+                if (!controller.signal.aborted) {
+                    setFormOptionsError(Craft.t('formie', 'Unable to load forms.'));
+                }
+            }
+        };
+
+        loadFormOptions();
+
+        return () => { controller.abort(); };
+    }, [open, shown, loadedFormOptions, formOptionsUrl, formOptionsAttempt]);
 
     useEffect(() => {
         if (!open) {
+            setShown(false);
+            setFormOptionsError(null);
             setName('');
             setHandle('');
             setFormIds([]);
@@ -103,7 +147,7 @@ export const CreateReportModal = ({
             nextHandleErrors.push(Craft.t('app', 'Handle has already been taken.'));
         }
 
-        const normalizedFormIds = (formIds || []).map((value) => parseInt(String(value), 10)).filter(Boolean);
+        const normalizedFormIds = (formIds || []).map((value) => { return parseInt(String(value), 10); }).filter(Boolean);
 
         if (!normalizedFormIds.length) {
             nextFormIdsErrors.push(Craft.t('formie', 'Choose at least one form.'));
@@ -160,7 +204,7 @@ export const CreateReportModal = ({
         setHandleErrors([]);
         setFormIdsErrors([]);
 
-        const normalizedFormIds = (formIds || []).map((value) => parseInt(String(value), 10)).filter(Boolean);
+        const normalizedFormIds = (formIds || []).map((value) => { return parseInt(String(value), 10); }).filter(Boolean);
 
         try {
             const body = new FormData();
@@ -239,7 +283,13 @@ export const CreateReportModal = ({
         <Dialog
             open={open}
             label={Craft.t('formie', 'New report')}
-            onPkOpenChange={(event) => { onOpenChange(event.detail?.open ?? event.target?.open ?? false); }}
+            onPkHide={() => { onOpenChange(false); }}
+            onPkAfterShow={() => {
+                if (open) {
+                    setShown(true);
+                    onShown?.();
+                }
+            }}
         >
             <form
                 ref={formRef}
@@ -267,12 +317,24 @@ export const CreateReportModal = ({
                     <ReportFormsSelect
                         formIds={formIds}
                         options={selectableFormOptions}
-                        disabled={!selectableFormOptions.length}
+                        loading={loadedFormOptions === null && !formOptionsError}
+                        emptyMessage={formOptionsError || undefined}
                         onChange={(nextFormIds) => {
                             setFormIds(Array.isArray(nextFormIds) ? nextFormIds.map(String) : []);
                             setFormIdsErrors([]);
                         }}
                     />
+                    {formOptionsError && (
+                        <Alert variant="error" announce="assertive" size="sm">
+                            <p>{formOptionsError}</p>
+                            <Button type="button" size="xs" onClick={() => { setFormOptionsAttempt((attempt) => { return attempt + 1; }); }}>
+                                {Craft.t('formie', 'Try Again')}
+                            </Button>
+                        </Alert>
+                    )}
+                    {loadedFormOptions !== null && !selectableFormOptions.length && (
+                        <p>{Craft.t('formie', 'No forms available.')}</p>
+                    )}
                 </FieldLayout>
 
                 <div>
@@ -282,7 +344,7 @@ export const CreateReportModal = ({
                             'cursor-pointer',
                             'flex items-center gap-1',
                         ])}
-                        onClick={() => { setAdvancedVisible((visible) => !visible); }}
+                        onClick={() => { setAdvancedVisible((visible) => { return !visible; }); }}
                         aria-expanded={advancedVisible}
                         aria-controls="create-report-advanced"
                     >

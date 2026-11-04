@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'Loading report…' => 'Loading report…',
+  'Loading forms…' => 'Loading forms…',
+  'Unable to load forms.' => 'Unable to load forms.',
+  'No forms available.' => 'No forms available.',
   'Whether this field should be included in email notification and integration summaries, including formatted Group and Repeater output.' => 'Whether this field should be included in email notification and integration summaries, including formatted Group and Repeater output.',
   'Include in Field Summaries' => 'Include in Field Summaries',
   'Formatted Summary' => 'Formatted Summary',

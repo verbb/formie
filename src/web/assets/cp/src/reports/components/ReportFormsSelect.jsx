@@ -1,22 +1,33 @@
 import { Fragment, useMemo } from 'react';
 
-import { Combobox, Option, OptionGroup } from '@verbb/plugin-kit-react/components';
+import {
+    Combobox,
+    Option,
+    OptionGroup,
+    Spinner,
+} from '@verbb/plugin-kit-react/components';
 
 export const ALL_FORMS_VALUE = '*';
 
-const toStringValue = (value) => String(value ?? '');
+const toStringValue = (value) => {
+    return String(value ?? '');
+};
 
-const normalizeFormOption = (option) => ({
-    label: option.label,
-    value: toStringValue(option.value),
-    handle: option.handle ? String(option.handle) : null,
-    groupId: option.groupId ?? null,
-    groupName: option.groupName ? String(option.groupName) : null,
-    isAllOption: false,
-});
+const normalizeFormOption = (option) => {
+    return {
+        label: option.label,
+        value: toStringValue(option.value),
+        handle: option.handle ? String(option.handle) : null,
+        groupId: option.groupId ?? null,
+        groupName: option.groupName ? String(option.groupName) : null,
+        isAllOption: false,
+    };
+};
 
 const normalizeFormIds = (selectedValues, includeAllOption) => {
-    const selected = Array.isArray(selectedValues) ? selectedValues.map(String) : [];
+    const selected = Array.isArray(selectedValues)
+        ? selectedValues.map(String)
+        : [];
 
     if (includeAllOption && selected.includes(ALL_FORMS_VALUE)) {
         return ALL_FORMS_VALUE;
@@ -27,7 +38,9 @@ const normalizeFormIds = (selectedValues, includeAllOption) => {
     }
 
     return selected
-        .map((value) => parseInt(value, 10))
+        .map((value) => {
+            return parseInt(value, 10);
+        })
         .filter(Boolean);
 };
 
@@ -64,12 +77,15 @@ export const ReportFormsSelect = ({
     options = [],
     includeAllOption = false,
     disabled = false,
+    loading = false,
     placeholder,
     emptyMessage,
     onChange,
 }) => {
     const groupedItems = useMemo(() => {
-        const formOptions = (options || []).filter((option) => option.value && option.value !== ALL_FORMS_VALUE);
+        const formOptions = (options || []).filter((option) => {
+            return option.value && option.value !== ALL_FORMS_VALUE;
+        });
         const groups = [];
         const groupOrder = [];
         const groupMap = new Map();
@@ -94,12 +110,14 @@ export const ReportFormsSelect = ({
             groups.push({
                 value: '__all__',
                 label: '',
-                items: [{
-                    label: Craft.t('formie', 'All Forms'),
-                    value: ALL_FORMS_VALUE,
-                    handle: null,
-                    isAllOption: true,
-                }],
+                items: [
+                    {
+                        label: Craft.t('formie', 'All Forms'),
+                        value: ALL_FORMS_VALUE,
+                        handle: null,
+                        isAllOption: true,
+                    },
+                ],
             });
         }
 
@@ -115,7 +133,9 @@ export const ReportFormsSelect = ({
     }, [includeAllOption, options]);
 
     const allItems = useMemo(() => {
-        return groupedItems.flatMap((group) => group.items);
+        return groupedItems.flatMap((group) => {
+            return group.items;
+        });
     }, [groupedItems]);
 
     const duplicateTitles = useMemo(() => {
@@ -131,15 +151,22 @@ export const ReportFormsSelect = ({
 
         return new Set(
             [...counts.entries()]
-                .filter(([, count]) => count > 1)
-                .map(([label]) => label),
+                .filter(([, count]) => {
+                    return count > 1;
+                })
+                .map(([label]) => {
+                    return label;
+                }),
         );
     }, [allItems]);
 
     // pk-combobox is string-valued in multiple mode; feed it the selected string values.
     const selectedValues = useMemo(() => {
-        const isAllSelected = formIds === ALL_FORMS_VALUE
-            || (Array.isArray(formIds) && formIds.length === 1 && String(formIds[0]) === ALL_FORMS_VALUE);
+        const isAllSelected =
+            formIds === ALL_FORMS_VALUE ||
+            (Array.isArray(formIds) &&
+                formIds.length === 1 &&
+                String(formIds[0]) === ALL_FORMS_VALUE);
 
         if (isAllSelected) {
             return includeAllOption ? [ALL_FORMS_VALUE] : [];
@@ -149,14 +176,20 @@ export const ReportFormsSelect = ({
             return [];
         }
 
-        const knownValues = new Set(allItems.map((item) => item.value));
+        const knownValues = new Set(
+            allItems.map((item) => {
+                return item.value;
+            }),
+        );
 
-        return formIds.map(String).filter((value) => knownValues.has(value));
+        return formIds.map(String).filter((value) => {
+            return knownValues.has(value);
+        });
     }, [allItems, formIds, includeAllOption]);
 
     const handleChange = (event) => {
         const raw = event.detail?.value;
-        const values = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+        const values = Array.isArray(raw) ? raw : [raw].filter(Boolean);
 
         onChange?.(normalizeFormIds(values, includeAllOption));
     };
@@ -164,22 +197,41 @@ export const ReportFormsSelect = ({
     return (
         <Combobox
             multiple
+            aria-label={Craft.t('formie', 'Forms')}
             width="full"
             className="w-full"
             disabled={disabled}
+            aria-busy={loading}
             values={selectedValues}
             placeholder={placeholder || Craft.t('formie', 'Search forms…')}
-            emptyMessage={emptyMessage || Craft.t('formie', 'No forms found.')}
+            emptyMessage={
+                loading
+                    ? Craft.t('formie', 'Loading forms…')
+                    : emptyMessage || Craft.t('formie', 'No forms found.')
+            }
             onPkChange={handleChange}
         >
+            {loading ? (
+                <Spinner
+                    slot="end"
+                    size="xxs"
+                    role="status"
+                    aria-label={Craft.t('formie', 'Loading forms…')}
+                />
+            ) : null}
             {groupedItems.map((group) => {
                 // Chip labels come from each option's rendered label, so bake the
                 // disambiguating handle into it here (matching the old chip/highlight text).
-                const optionNodes = group.items.map((item) => (
-                    <Option key={toStringValue(item.value)} value={toStringValue(item.value)}>
-                        {getFormOptionLabel(item, duplicateTitles)}
-                    </Option>
-                ));
+                const optionNodes = group.items.map((item) => {
+                    return (
+                        <Option
+                            key={toStringValue(item.value)}
+                            value={toStringValue(item.value)}
+                        >
+                            {getFormOptionLabel(item, duplicateTitles)}
+                        </Option>
+                    );
+                });
 
                 // The "All Forms" pseudo-group has no label — render it flat.
                 if (!group.label) {

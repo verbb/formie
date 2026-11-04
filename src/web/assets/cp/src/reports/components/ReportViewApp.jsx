@@ -9,6 +9,7 @@ import {
 import { Alert, Button, ButtonGroup } from '@verbb/plugin-kit-react/components';
 
 import { ReportDataLoadingOverlay } from '@reports/components/ReportDataLoadingOverlay';
+import { ReportLoadingState } from '@reports/components/ReportLoadingState';
 import { ReportSubmissionsChart } from '@reports/components/ReportSubmissionsChart';
 import { ReportSubmissionsTable } from '@reports/components/ReportSubmissionsTable';
 import { ReportViewerToolbar } from '@reports/components/ReportViewerToolbar';
@@ -58,7 +59,9 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
     const [exportQueuedNoticeOpen, setExportQueuedNoticeOpen] = useState(false);
 
     const reportId = settings.report?.id;
-    const defaultSort = settings.defaultSort || { handle: 'dateCreated', dir: 'desc' };
+    const defaultSort = useMemo(() => {
+        return settings.defaultSort || { handle: 'dateCreated', dir: 'desc' };
+    }, [settings.defaultSort]);
     const defaultDateRange = useMemo(() => {
         return normalizeDateRange(settings.defaultDateRange || {});
     }, [settings.defaultDateRange]);
@@ -68,10 +71,10 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
     }, [settings.viewerColumns, settings.exportColumns, settings.columns]);
 
     const sortOptions = useMemo(() => {
-        return (settings.sortableColumns || []).map((column) => ({
+        return (settings.sortableColumns || []).map((column) => { return {
             value: column.handle,
             label: column.label || column.handle,
-        }));
+        }; });
     }, [settings.sortableColumns]);
 
     const [viewerColumns, setViewerColumns] = useState(() => {
@@ -245,10 +248,8 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
         overviewDateRangeKeyRef.current = rangeKey;
         loadOverview(dateRange);
     }, [
-        dateRange.endDate,
-        dateRange.startDate,
-        defaultDateRange.endDate,
-        defaultDateRange.startDate,
+        dateRange,
+        defaultDateRange,
         loadOverview,
         settings.viewerDataUrl,
     ]);
@@ -319,6 +320,7 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
         settings.csrfTokenName,
         settings.csrfTokenValue,
         settings.tableDataUrl,
+        settings.tablePageSize,
     ]);
 
     useEffect(() => {
@@ -374,6 +376,11 @@ export const ReportViewApp = ({ settings, embedded = false }) => {
     const handleDateRangeChange = (nextDateRange) => {
         persistViewerDateRange(nextDateRange);
     };
+
+    // Keep one stable loading layout until the initial overview and rows are ready.
+    if (tableData === null && tableLoading) {
+        return <ReportLoadingState chartEnabled={settings.chart?.enabled} />;
+    }
 
     return (
         <div className="w-full space-y-4">

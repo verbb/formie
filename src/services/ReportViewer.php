@@ -28,6 +28,7 @@ class ReportViewer extends Component
             'handle' => $report->handle,
             'editUrl' => $report->getCpEditUrl(),
             'viewUrl' => $report->getCpRunUrl(),
+            'chartEnabled' => (bool)($report->getSettingsModel()->chart['enabled'] ?? true),
         ], $reports);
 
         return [
@@ -35,11 +36,12 @@ class ReportViewer extends Component
             'reports' => $reportOptions,
             'selectedReportId' => $selectedReport?->id ? (int)$selectedReport->id : null,
             'selectedReportHandle' => $selectedReport?->handle,
-            'viewConfig' => $selectedReport ? $this->getViewConfig($selectedReport, $user) : null,
+            // The dashboard shell must render before report queries and form discovery run.
+            'viewConfig' => null,
             'canManageReports' => $canManageReports,
             'canExport' => $canExport,
             'createActionUrl' => UrlHelper::cpUrl('formie/reports/create'),
-            'viewConfigUrl' => UrlHelper::cpUrl('formie/reports/view-config'),
+            'viewConfigUrl' => UrlHelper::actionUrl('formie/reports/view-config'),
             'dashboardUrl' => UrlHelper::cpUrl('formie/reports'),
             'createPageUrl' => UrlHelper::cpUrl('formie/reports/create'),
             'openCreate' => $openCreate,
@@ -47,10 +49,7 @@ class ReportViewer extends Component
             'csrfTokenValue' => Craft::$app->getRequest()->getCsrfToken(),
             'reservedHandles' => ['new', 'index', 'view', 'edit', 'export', 'scheduled', 'create'],
             'reportHandles' => Formie::$plugin->getReports()->getAllReportHandles(),
-            'formOptions' => array_values(array_filter(
-                Formie::$plugin->getReportEditor()->getFormOptions($user),
-                fn(array $option) => ($option['value'] ?? null) !== '*',
-            )),
+            'formOptionsUrl' => UrlHelper::actionUrl('formie/reports/form-options'),
         ];
     }
 

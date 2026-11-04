@@ -265,6 +265,15 @@ class ReportsController extends Controller
         ]);
     }
 
+    public function actionFormOptions(): Response
+    {
+        $this->requirePermission(Permissions::PERM_MANAGE_REPORTS);
+
+        return $this->asJson([
+            'formOptions' => Formie::$plugin->getReportEditor()->getFormOptions(Craft::$app->getUser()->getIdentity()),
+        ]);
+    }
+
     public function actionViewConfig(int $id): Response
     {
         $report = Formie::$plugin->getReports()->getReportById($id);

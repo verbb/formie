@@ -1,12 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { getErrorMessage } from '@verbb/plugin-kit-core';
 import { Button, Icon, SelectInput, StatePanel } from '@verbb/plugin-kit-react/components';
 import { ErrorState } from '@verbb/plugin-kit-react/utils';
 import { CreateReportModal } from '@reports/components/CreateReportModal';
 import { ReportViewApp } from '@reports/components/ReportViewApp';
+import { ReportLoadingState } from '@reports/components/ReportLoadingState';
 
 import styles from '@reports/css/style.css?inline';
+
+// Opening the dialog must not also rebuild a large, unchanged report table.
+const MemoizedReportView = memo(ReportViewApp);
 
 const getReportUrl = (handle) => {
     if (!handle) {
@@ -16,21 +20,10 @@ const getReportUrl = (handle) => {
     return Craft.getUrl(`formie/reports/${handle}`);
 };
 
-const getCreateUrl = () => Craft.getUrl('formie/reports/create');
+const getCreateUrl = () => { return Craft.getUrl('formie/reports/create'); };
 
 const replaceBrowserUrl = (url) => {
     window.history.replaceState({}, '', url);
-};
-
-/**
- * Append a path segment before any query string.
- * Craft `cpUrl()` often includes `?site=…`; naively doing `${base}/${id}` turns into
- * `view-config?site=default/3` and 404s.
- */
-const appendUrlPathSegment = (baseUrl, segment) => {
-    const url = new URL(baseUrl, window.location.origin);
-    url.pathname = `${url.pathname.replace(/\/$/, '')}/${encodeURIComponent(String(segment))}`;
-    return url.toString();
 };
 
 const readLoadReportError = async (response) => {
@@ -54,25 +47,36 @@ export const ReportsDashboardApp = ({ settings }) => {
     const [isLoadingView, setIsLoadingView] = useState(false);
     const [viewError, setViewError] = useState(null);
     const [createOpen, setCreateOpen] = useState(Boolean(settings.openCreate));
+    const [readyToLoadView, setReadyToLoadView] = useState(!settings.openCreate);
+    const viewRequestRef = useRef(null);
 
     const allReportHandles = useMemo(() => {
         return [...new Set([
             ...(settings.reportHandles || []),
-            ...reports.map((report) => report.handle),
+            ...reports.map((report) => { return report.handle; }),
         ].filter(Boolean))];
     }, [reports, settings.reportHandles]);
 
     const loadViewConfig = useCallback(async (reportId) => {
+        viewRequestRef.current?.abort();
+
         if (!reportId) {
             setViewConfig(null);
+            setIsLoadingView(false);
             return;
         }
 
+        const controller = new AbortController();
+        viewRequestRef.current = controller;
         setIsLoadingView(true);
         setViewError(null);
 
         try {
-            const response = await fetch(appendUrlPathSegment(settings.viewConfigUrl, reportId), {
+            const url = new URL(settings.viewConfigUrl, window.location.origin);
+            url.searchParams.set('id', String(reportId));
+
+            const response = await fetch(url, {
+                signal: controller.signal,
                 headers: {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
@@ -84,14 +88,32 @@ export const ReportsDashboardApp = ({ settings }) => {
             }
 
             const payload = await response.json();
-            setViewConfig(payload);
+            if (!controller.signal.aborted) {
+                setViewConfig(payload);
+            }
         } catch (error) {
-            setViewError(error instanceof Error ? error.message : Craft.t('formie', 'Unable to load report.'));
-            setViewConfig(null);
+            if (!controller.signal.aborted) {
+                setViewError(error instanceof Error ? error.message : Craft.t('formie', 'Unable to load report.'));
+                setViewConfig(null);
+            }
         } finally {
-            setIsLoadingView(false);
+            if (!controller.signal.aborted) {
+                setIsLoadingView(false);
+            }
         }
     }, [settings.viewConfigUrl]);
+
+    useEffect(() => {
+        if (readyToLoadView && !settings.viewConfig) {
+            loadViewConfig(settings.selectedReportId);
+        }
+
+        return () => { viewRequestRef.current?.abort(); };
+    }, [loadViewConfig, readyToLoadView, settings.selectedReportId, settings.viewConfig]);
+
+    const handleCreateShown = useCallback(() => {
+        setReadyToLoadView(true);
+    }, []);
 
     const navigateToReport = useCallback((report) => {
         if (!report?.handle) {
@@ -104,7 +126,7 @@ export const ReportsDashboardApp = ({ settings }) => {
 
     const handleReportChange = (reportId) => {
         const nextReportId = String(reportId ?? '');
-        const report = reports.find((entry) => entry.value === nextReportId) || null;
+        const report = reports.find((entry) => { return entry.value === nextReportId; }) || null;
 
         setSelectedReportId(nextReportId);
         navigateToReport(report);
@@ -112,6 +134,9 @@ export const ReportsDashboardApp = ({ settings }) => {
     };
 
     const handleCreated = (payload) => {
+        viewRequestRef.current?.abort();
+        setIsLoadingView(false);
+        setViewError(null);
         const nextReport = {
             value: String(payload.report.id),
             label: payload.report.name,
@@ -120,7 +145,7 @@ export const ReportsDashboardApp = ({ settings }) => {
             viewUrl: payload.redirect || getReportUrl(payload.report.handle),
         };
 
-        setReports((currentReports) => [...currentReports, nextReport]);
+        setReports((currentReports) => { return [...currentReports, nextReport]; });
         setSelectedReportId(nextReport.value);
         setViewConfig(payload.viewConfig);
         replaceBrowserUrl(nextReport.viewUrl);
@@ -133,6 +158,10 @@ export const ReportsDashboardApp = ({ settings }) => {
     };
 
     const handleCreateOpenChange = (open) => {
+        if (open === createOpen) {
+            return;
+        }
+
         setCreateOpen(open);
 
         if (open) {
@@ -140,7 +169,8 @@ export const ReportsDashboardApp = ({ settings }) => {
             return;
         }
 
-        const selectedReport = reports.find((report) => report.value === selectedReportId) || null;
+        setReadyToLoadView(true);
+        const selectedReport = reports.find((report) => { return report.value === selectedReportId; }) || null;
         navigateToReport(selectedReport);
     };
 
@@ -150,7 +180,7 @@ export const ReportsDashboardApp = ({ settings }) => {
         }
     }, [settings.canManageReports, settings.openCreate]);
 
-    const selectedReport = reports.find((report) => report.value === selectedReportId) || null;
+    const selectedReport = reports.find((report) => { return report.value === selectedReportId; }) || null;
     const editUrl = selectedReport?.editUrl || null;
 
     if (!reports.length) {
@@ -183,6 +213,8 @@ export const ReportsDashboardApp = ({ settings }) => {
                         reservedHandles={settings.reservedHandles}
                         reportHandles={allReportHandles}
                         formOptions={settings.formOptions}
+                        formOptionsUrl={settings.formOptionsUrl}
+                        onShown={handleCreateShown}
                         onCreated={handleCreated}
                     />
                 ) : null}
@@ -192,7 +224,7 @@ export const ReportsDashboardApp = ({ settings }) => {
 
     return (
         <>
-            <div className="flex w-full flex-col gap-4">
+            <div className="flex w-full flex-col gap-4" aria-busy={isLoadingView}>
                 <header className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex min-w-0 items-center gap-3">
                         <h1 className="truncate text-lg font-bold text-gray-900">
@@ -235,12 +267,12 @@ export const ReportsDashboardApp = ({ settings }) => {
                     />
                 ) : null}
 
-                {isLoadingView && !viewConfig ? (
-                    <p className="text-sm text-gray-500">{Craft.t('app', 'Loading')}</p>
+                {!viewConfig && !viewError ? (
+                    <ReportLoadingState chartEnabled={selectedReport?.chartEnabled} />
                 ) : null}
 
                 {viewConfig ? (
-                    <ReportViewApp
+                    <MemoizedReportView
                         key={viewConfig.report?.id}
                         settings={viewConfig}
                         embedded
@@ -258,6 +290,8 @@ export const ReportsDashboardApp = ({ settings }) => {
                     reservedHandles={settings.reservedHandles}
                     reportHandles={allReportHandles}
                     formOptions={settings.formOptions}
+                    formOptionsUrl={settings.formOptionsUrl}
+                    onShown={handleCreateShown}
                     onCreated={handleCreated}
                 />
             ) : null}

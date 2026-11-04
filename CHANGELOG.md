@@ -18,6 +18,8 @@
 - Update the Pardot guide for External Client Apps, OAuth security settings, and separate API and Form Handler delivery.
 
 ### Fixed
+- Fixed the new report dialog waiting for forms and report data before appearing.
+- Fixed reopening the new report dialog during its close animation, and kept report loading in a consistent layout with a visible toolbar placeholder and a compact, right-aligned form-picker spinner.
 - Fixed integration errors configured to be skipped still failing the enclosing queue job or triggering failure alerts.
 - Fixed HubSpot deliveries being reported as successful after a file upload failed, allowing the form to be sent without its file.
 - Fixed Freshdesk reporting a failure instead of a skipped delivery when an event cancelled sending its contact.
