@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use craft\db\Query;
 use craft\elements\Asset;
 use craft\elements\User;
 use craft\helpers\Assets;
@@ -23,6 +24,7 @@ use verbb\formie\controllers\FileUploadController;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\fields\Address;
 use verbb\formie\Formie;
 use verbb\formie\helpers\BrowserRequestProfile;
@@ -32,6 +34,12 @@ use verbb\formie\models\FormGroup;
 use verbb\formie\services\Permissions;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
+
+// A leftover enabled provider adds an auto-complete sub-field to every Address created by later tests.
+afterEach(function (): void {
+    Craft::$app->getDb()->createCommand()->delete(Table::FORMIE_INTEGRATIONS, ['type' => Google::class])->execute();
+    (new ReflectionMethod(Formie::$plugin->getIntegrations(), '_resetIntegrationCaches'))->invoke(Formie::$plugin->getIntegrations());
+});
 
 function cpScreenUser(array $grants): User
 {
@@ -278,22 +286,111 @@ it('lets a saver without form access add a staged upload and keep existing files
     expect(array_values(cpScreenStoredFiles($submission, 'document')))->toBe(['existing contents', 'saver contents']);
 });
 
-it('applies the same upload ownership rule to a selected asset whatever the form access', function (string $role): void {
+it('saves an asset chosen from the picker on the submission screen, whatever the form access', function (string $role): void {
     $volume = UploadTestHelper::ensureUploadVolume();
-    $form = formie()->form(['title' => 'Selected Asset'])->fileUploadField('document', ['restrictFiles' => false])->create();
+    $form = formie()->form(['title' => 'Selected Asset'])->fileUploadField('document', ['restrictFiles' => false, 'uploadLocationSource' => 'volume:' . $volume->uid])->create();
     $user = match ($role) {
         'admin' => User::find()->admin(true)->one(),
-        'creator with form access' => cpScreenUser([Permissions::PERM_VIEW_SUBMISSIONS, Permissions::PERM_CREATE_SUBMISSIONS, Permissions::PERM_ACCESS_FORMS, Permissions::PERM_VIEW_FORMS, ...cpScreenVolumeGrants($volume)]),
+        'creator with form access' => cpScreenUser([Permissions::PERM_VIEW_SUBMISSIONS, Permissions::PERM_CREATE_SUBMISSIONS, Permissions::PERM_VIEW_FORMS, ...cpScreenVolumeGrants($volume)]),
         default => cpScreenUser([Permissions::PERM_VIEW_SUBMISSIONS, Permissions::PERM_CREATE_SUBMISSIONS, ...cpScreenVolumeGrants($volume)]),
     };
     $assetId = cpScreenUpload($user, $volume, 'selected-' . bin2hex(random_bytes(4)) . '.txt', 'selected');
 
     $response = cpScreenSave($user, $form, ['document' => [$assetId]]);
 
-    expect($response?->data['success'] ?? null)->toBeFalse()
-        ->and($response?->data['errors']['form'] ?? [])->toBe(['Invalid upload ownership.'])
-        ->and(Submission::find()->formId($form->id)->isIncomplete(null)->isSpam(null)->status(null)->ids())->toBe([]);
+    expect($response?->data['success'] ?? null)->toBeTrue();
+
+    $saved = Submission::find()->formId($form->id)->isIncomplete(null)->isSpam(null)->status(null)->one();
+    expect($saved?->getFieldValue('document')->ids())->toBe([$assetId]);
 })->with(['admin', 'creator with form access', 'creator without form access']);
+
+it('offers the upload volume to the asset picker on the submission screen', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false, 'uploadLocationSource' => 'volume:' . $volume->uid])->create();
+
+    expect($form->getFieldByHandle('document')->getInputSources())->toBe(['volume:' . $volume->uid])
+        ->and((new verbb\formie\fields\FileUpload(['uploadLocationSource' => null]))->getInputSources())->toBe([]);
+});
+
+it('does not accept an asset from outside the field upload volume', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $other = new \craft\models\Volume(['handle' => 'formieOtherUploads' . bin2hex(random_bytes(3)), 'name' => 'Other Uploads', 'fsHandle' => $volume->fsHandle, 'subpath' => 'other-' . bin2hex(random_bytes(3))]);
+    expect(Craft::$app->getVolumes()->saveVolume($other), json_encode($other->getErrors()))->toBeTrue();
+
+    try {
+        $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false, 'uploadLocationSource' => 'volume:' . $volume->uid])->create();
+        $user = cpScreenUser([Permissions::PERM_VIEW_SUBMISSIONS, Permissions::PERM_CREATE_SUBMISSIONS, ...cpScreenVolumeGrants($other)]);
+        $assetId = cpScreenUpload($user, $other, 'other-volume-' . bin2hex(random_bytes(4)) . '.txt', 'other');
+
+        $response = cpScreenSave($user, $form, ['document' => [$assetId]]);
+
+        expect($response?->data['errors']['form'] ?? [])->toBe(['Invalid upload ownership.'])
+            ->and(Submission::find()->formId($form->id)->isIncomplete(null)->isSpam(null)->status(null)->ids())->toBe([]);
+    } finally {
+        Craft::$app->getVolumes()->deleteVolume($other);
+    }
+});
+
+it('leaves an asset chosen from the picker where it is, and keeps it when its submission is permanently deleted', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form(['fileUploadsAction' => 'delete'])->fileUploadField('document', [
+        'restrictFiles' => false,
+        'uploadLocationSource' => 'volume:' . $volume->uid,
+        'uploadLocationSubpath' => 'submission-files',
+        'filenameFormat' => 'renamed',
+    ])->create();
+    $user = User::find()->admin(true)->one();
+    $assetId = cpScreenUpload($user, $volume, 'library-' . bin2hex(random_bytes(4)) . '.txt', 'library');
+    $before = Asset::find()->id($assetId)->one();
+    $folderId = $before->folderId;
+    $filename = $before->filename;
+
+    expect(cpScreenSave($user, $form, ['document' => [$assetId]])?->data['success'] ?? null)->toBeTrue();
+
+    $after = Asset::find()->id($assetId)->one();
+    expect($after->folderId)->toBe($folderId)
+        ->and($after->filename)->toBe($filename)
+        ->and((new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where(['assetId' => $assetId])->exists())->toBeFalse();
+
+    // Saving the same submission again keeps it as a reference.
+    $saved = Submission::find()->formId($form->id)->isIncomplete(null)->isSpam(null)->status(null)->one();
+    expect(cpScreenSave($user, $form, ['document' => [$assetId]], $saved)?->data['success'] ?? null)->toBeTrue()
+        ->and(Asset::find()->id($assetId)->one()->folderId)->toBe($folderId);
+
+    expect(Craft::$app->getElements()->deleteElement(Submission::find()->formId($form->id)->isIncomplete(null)->isSpam(null)->status(null)->one(), true))->toBeTrue()
+        ->and(Asset::find()->id($assetId)->exists())->toBeTrue();
+});
+
+it('lets the same asset be chosen on more than one submission', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false, 'uploadLocationSource' => 'volume:' . $volume->uid])->create();
+    $user = User::find()->admin(true)->one();
+    $assetId = cpScreenUpload($user, $volume, 'shared-' . bin2hex(random_bytes(4)) . '.txt', 'shared');
+
+    expect(cpScreenSave($user, $form, ['document' => [$assetId]])?->data['success'] ?? null)->toBeTrue()
+        ->and(cpScreenSave($user, $form, ['document' => [$assetId]])?->data['success'] ?? null)->toBeTrue();
+
+    foreach (Submission::find()->formId($form->id)->isIncomplete(null)->isSpam(null)->status(null)->all() as $submission) {
+        expect($submission->getFieldValue('document')->ids())->toBe([$assetId]);
+    }
+});
+
+it('keeps the ownership rule for every other kind of save', function (string $authority): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false, 'uploadLocationSource' => 'volume:' . $volume->uid])->create();
+    $asset = UploadTestHelper::seedAsset('other-authority-' . bin2hex(random_bytes(4)) . '.txt', 'other', $volume);
+    $submission = new Submission();
+    $submission->setForm($form);
+    $submission->setFieldValue('document', [$asset->id]);
+
+    WebRequestTestHelper::withWebRequestContext(function () use ($authority, $form, $submission): void {
+        expect(fn() => Formie::$plugin->getFileUploads()->bindAccepted(submissionCommand([
+            'form' => $form,
+            'submission' => $submission,
+            'authority' => new verbb\formie\models\SubmissionAuthority(SubmissionAuthorityType::from($authority), (int)$form->id, null, 'test'),
+        ])))->toThrow(yii\web\ForbiddenHttpException::class);
+    });
+})->with(array_map(fn(SubmissionAuthorityType $type) => $type->value, array_filter(SubmissionAuthorityType::cases(), fn(SubmissionAuthorityType $type) => $type !== SubmissionAuthorityType::CONTROL_PANEL)));
 
 it('keeps saving closed for a form outside the creator grant', function (): void {
     $volume = UploadTestHelper::ensureUploadVolume();

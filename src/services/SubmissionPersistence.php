@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\models\SubmissionCommand;
 
 use Craft;
@@ -25,11 +26,13 @@ final class SubmissionPersistence
         if (!$uploads->stageAccepted($command)) {
             return false;
         }
+
         return $uploads->withUploadLocks($submission, function() use ($uploads, $submission, $command, $becameComplete, $afterSave): bool {
             try {
                 $bound = $uploads->bindAccepted($command);
             } catch (ForbiddenHttpException $e) {
                 $submission->addError('form', $e->getMessage());
+
                 return false;
             }
 
@@ -52,22 +55,25 @@ final class SubmissionPersistence
                     if ($submission->hasErrors()) {
                         return false;
                     }
+
                     throw new RuntimeException('Unable to persist the accepted submission.');
                 }
 
                 if ($afterSave) {
                     $afterSave();
                 }
+
                 $saveTransaction->commit();
             } catch (Throwable $e) {
                 $saveTransaction->rollBack();
                 $uploads->releaseUnpersistedBindings($bound);
+
                 throw $e;
             }
 
             Formie::$plugin->getSubmissionOperations()->bindSubmission($command, (int)$submission->id);
             $uploads->bindPersisted($submission);
-            $uploads->promoteAccepted($submission);
+            $uploads->promoteAccepted($submission, $command->authority->type !== SubmissionAuthorityType::CONTROL_PANEL);
 
             // Filesystem work is complete. Commit completion and finalization together,
             // leaving the earlier incomplete save recoverable if this commit fails.
@@ -89,6 +95,7 @@ final class SubmissionPersistence
                         $afterSave();
                     }
                 }
+
                 $transaction->commit();
             } catch (Throwable $e) {
                 $transaction->rollBack();
@@ -96,10 +103,12 @@ final class SubmissionPersistence
                 if ($completeAfterPromotion) {
                     $submission->isIncomplete = true;
                 }
+
                 throw $e;
             }
 
             $uploads->releaseRemoved($submission);
+
             return true;
         });
     }

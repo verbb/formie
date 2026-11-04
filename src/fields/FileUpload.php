@@ -249,6 +249,12 @@ class FileUpload extends ElementField
         ];
     }
 
+    public function getInputSources(?ElementInterface $element = null): array|string|null
+    {
+        // The asset picker on the control panel submission screen browses the field's upload volume.
+        return $this->uploadLocationSource ? [$this->uploadLocationSource] : [];
+    }
+
     public function getSourceOptions(): array
     {
         // Match Craft's Assets field settings: real volumes only. Temporary Uploads (`temp`)

@@ -537,6 +537,7 @@ class FileUploads extends Component
                     && (!$uploadSubmissionId || $uploadSubmissionId === (int)$submission->id);
                 $retainedAsset = in_array($id, $retained, true);
                 $legacyOwned = $command->allowLegacyUploadIds && $owned;
+                $picked = !$upload && $this->_isPickedInControlPanel($command, $field, $id);
 
                 if ($command->operation === SubmissionOperation::PAYMENT_REPLAY && !$retainedAsset) {
                     throw new ForbiddenHttpException('Payment replay cannot introduce an upload.');
@@ -552,7 +553,7 @@ class FileUploads extends Component
 
                 // Trusted workflows may omit a browser capability, but they never bypass
                 // Formie ownership, field scope, expiry, or lifecycle-state checks.
-                if (!$retainedAsset && !$owned) {
+                if (!$retainedAsset && !$owned && !$picked) {
                     throw new ForbiddenHttpException('Invalid upload ownership.');
                 }
 
@@ -639,7 +640,7 @@ class FileUploads extends Component
         }
     }
 
-    public function promoteAccepted(Submission $submission): void
+    public function promoteAccepted(Submission $submission, bool $adoptUntracked = true): void
     {
         $form = $submission->getForm();
 
@@ -658,6 +659,12 @@ class FileUploads extends Component
                 $tracked = $this->getTrackedUploadByAssetId((int)$asset->id);
 
                 if (!$tracked) {
+                    // An asset chosen in the control panel stays a reference to the library file, as it
+                    // would on an entry. Tracking it would move, rename and later delete it as an upload.
+                    if (!$adoptUntracked) {
+                        continue;
+                    }
+
                     $this->trackSubmissionAsset($asset, (int)$form->id, (int)$submission->id, $field->uid, $form, $contentKey);
                     $this->bindPersisted($submission);
                 } elseif ($tracked['siteId'] === null || $tracked['contentKey'] === null) {
@@ -861,6 +868,19 @@ class FileUploads extends Component
         if (!$validLocation) {
             throw new ForbiddenHttpException('Upload is not available for this submission field.');
         }
+    }
+
+    private function _isPickedInControlPanel(SubmissionCommand $command, FileUpload $field, int $assetId): bool
+    {
+        // The submission screen's asset picker references an existing asset, as an Assets field
+        // on an entry does. Formie didn't upload it, so there's no staged upload to own.
+        if ($command->authority->type !== SubmissionAuthorityType::CONTROL_PANEL) {
+            return false;
+        }
+
+        $volume = Asset::find()->id($assetId)->status(null)->one()?->getVolume();
+
+        return $volume && $field->uploadLocationSource === 'volume:' . $volume->uid;
     }
 
     private function _isRetainedSubmissionUpload(int $assetId, int $submissionId, int $siteId, string $contentKey): bool
