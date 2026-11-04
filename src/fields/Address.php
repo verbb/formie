@@ -883,6 +883,12 @@ class Address extends FixedParentField implements ReportSubfieldsInterface, Prev
                 continue;
             }
 
+            // `enabled` is a string that can reference an environment variable, so match
+            // `Integration::getEnabled()` rather than comparing it to a boolean in SQL.
+            if (!App::parseBooleanEnv($integrationRow['enabled'] ?? null)) {
+                continue;
+            }
+
             if (!$handle || !$name) {
                 continue;
             }
