@@ -38,6 +38,7 @@ it('uses stencil fields for email previews and test sends with builder IDs', fun
             $result = $controller->actionPreview()->data;
             expect($result)->not->toHaveKey('error');
             $body = $result['body'];
+            $subject = $result['subject'];
         } else {
             $captured = null;
             $capture = function ($event) use (&$captured): void {
@@ -57,9 +58,11 @@ it('uses stencil fields for email previews and test sends with builder IDs', fun
             expect($captured)->not->toBeNull()
                 ->and($captured->getTo()[0]->getAddress())->toBe('test@example.test');
             $body = $captured->getHtmlBody();
+            $subject = $captured->getSubject();
         }
 
-        expect($body)->toContain('Stencil message')->not->toContain('Unrelated message');
+        expect($subject)->toBe('Stencil preview: Email preview stencil')
+            ->and($body)->toContain('Email preview stencil', 'Stencil message')->not->toContain('Unrelated message');
     }, [
         'method' => 'POST',
         'bodyParams' => [
@@ -70,10 +73,10 @@ it('uses stencil fields for email previews and test sends with builder IDs', fun
             'notification' => [
                 'name' => 'Stencil notification',
                 'handle' => 'stencilNotification',
-                'subject' => 'Stencil preview',
+                'subject' => 'Stencil preview: {formName}',
                 'from' => 'sender@example.test',
                 'to' => 'recipient@example.test',
-                'content' => '{allFields}',
+                'content' => '<p>{form:name}</p>{allFields}',
             ],
         ],
     ]);

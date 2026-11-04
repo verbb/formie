@@ -152,7 +152,7 @@ class EmailController extends Controller
                     throw new NotFoundHttpException('Stencil not found.');
                 }
 
-                $form = new Form();
+                $form = new Form(['title' => $stencil->name]);
                 $stencil->applyStencilToForm($form);
             }
 
