@@ -11,6 +11,7 @@ import {
     Tooltip,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import { Spinner } from '@verbb/plugin-kit-react/components';
 
 import { ReportChartLegendItem } from '@reports/components/ReportChartLegendItem';
 import { ReportChartTooltip } from '@reports/components/ReportChartTooltip';
@@ -134,6 +135,7 @@ const createAreaDataset = (series, values) => {
 
 export function ReportSubmissionsChart({ data = [] }) {
     const chartRef = useRef(null);
+    const [chartReady, setChartReady] = useState(false);
     const [hiddenSeries, setHiddenSeries] = useState(() => new Set());
     const {
         tooltipRef,
@@ -142,6 +144,19 @@ export function ReportSubmissionsChart({ data = [] }) {
         tooltipPos,
         customTooltip,
     } = useReportChartTooltip();
+
+    // Data can arrive before the responsive canvas draws; keep its loader until then.
+    const chartPlugins = useMemo(() => {
+        return [{
+            id: 'reportChartLoading',
+            beforeInit() {
+                setChartReady(false);
+            },
+            afterDraw() {
+                setChartReady(true);
+            },
+        }];
+    }, []);
 
     const toggleSeries = useCallback((index) => {
         const chart = chartRef.current?.chart ?? chartRef.current;
@@ -291,8 +306,14 @@ export function ReportSubmissionsChart({ data = [] }) {
 
     return (
         <div className="w-full pt-2">
-            <div className="relative h-[252px] w-full">
-                <Line ref={chartRef} {...chartConfig} />
+            <div className="relative h-[252px] w-full" aria-busy={!chartReady}>
+                <Line ref={chartRef} {...chartConfig} plugins={chartPlugins} />
+
+                {!chartReady ? (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center" aria-hidden="true">
+                        <Spinner size="sm" />
+                    </div>
+                ) : null}
 
                 <ReportChartTooltip
                     ref={tooltipRef}
