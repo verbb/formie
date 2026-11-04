@@ -1092,8 +1092,13 @@ class FileUpload extends ElementField
         $variables['limit'] = $this->maxFiles;
         $variables['showSourcePath'] = false;
 
-        // The outer "Upload" button only supports a true Assets field. Uploads within the element select are fine.
         $variables['canUpload'] = false;
+
+        if ($uploadVolume && Craft::$app->getUser()->checkPermission('saveAssets:' . $uploadVolume->uid)) {
+            // Craft's Upload button finds its folder from a true Assets field, so post straight to this one.
+            $variables['canUpload'] = true;
+            $variables['jsClass'] = '(Craft.AssetSelectInput.extend({_attachUploader:function(){this.base();this.uploader.setParams({folderId:' . (int)$this->_getCpUploadFolderId($element, $uploadVolume) . '});}}))';
+        }
 
         return $variables;
     }
@@ -1620,6 +1625,16 @@ class FileUpload extends ElementField
         }
 
         return $folder;
+    }
+
+    private function _getCpUploadFolderId(?ElementInterface $element, Volume $volume): int
+    {
+        try {
+            return (int)$this->_findFolder($element)->id;
+        } catch (InvalidSubpathException) {
+            // A new submission can't resolve a subpath that uses its values yet.
+            return (int)Craft::$app->getAssets()->getRootFolderByVolumeId($volume->id)->id;
+        }
     }
 
     private function _uploadFolder(?ElementInterface $element = null): VolumeFolder

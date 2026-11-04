@@ -358,6 +358,32 @@ class FileUploads extends Component
         ])->all();
     }
 
+    public function getChosenAssetIdsForSubmissionDeletion(Submission $submission): array
+    {
+        // Assets chosen in the control panel have no upload record. Choosing one for a submission
+        // accepts that it goes with the submission when the form deletes files, as in Formie 3.
+        $ids = [];
+
+        foreach ($submission->getFieldValuesForField(FileUpload::class) as $value) {
+            array_push($ids, ...$this->_extractAssetIds($value));
+        }
+
+        return array_values(array_diff($ids, array_map('intval', (new Query())
+            ->select(['assetId'])
+            ->from(Table::FORMIE_PENDING_UPLOADS)
+            ->where(['assetId' => $ids])
+            ->column())));
+    }
+
+    public function deleteChosenAssets(array $assetIds): void
+    {
+        foreach (Asset::find()->id($assetIds)->status(null)->all() as $asset) {
+            if (!Craft::$app->getElements()->deleteElement($asset)) {
+                Formie::error("Unable to delete asset #{$asset->id} with its submission.");
+            }
+        }
+    }
+
     public function getUploadsForFormDeletion(int $formId, array $submissionIds): array
     {
         if (!$submissionIds) {

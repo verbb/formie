@@ -331,9 +331,26 @@ it('does not accept an asset from outside the field upload volume', function ():
     }
 });
 
-it('leaves an asset chosen from the picker where it is, and keeps it when its submission is permanently deleted', function (): void {
+function cpScreenSavedWithChosenAsset(array $formAttributes): array
+{
     $volume = UploadTestHelper::ensureUploadVolume();
-    $form = formie()->form(['fileUploadsAction' => 'delete'])->fileUploadField('document', [
+    $form = formie()->form($formAttributes)->fileUploadField('document', [
+        'restrictFiles' => false,
+        'uploadLocationSource' => 'volume:' . $volume->uid,
+        'uploadLocationSubpath' => 'submission-files',
+        'filenameFormat' => 'renamed',
+    ])->create();
+    $user = User::find()->admin(true)->one();
+    $assetId = cpScreenUpload($user, $volume, 'library-' . bin2hex(random_bytes(4)) . '.txt', 'library');
+
+    expect(cpScreenSave($user, $form, ['document' => [$assetId]])?->data['success'] ?? null)->toBeTrue();
+
+    return [$form, $user, $assetId, Submission::find()->formId($form->id)->isIncomplete(null)->isSpam(null)->status(null)->one()];
+}
+
+it('leaves an asset chosen from the picker where it is, including when saved again', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form()->fileUploadField('document', [
         'restrictFiles' => false,
         'uploadLocationSource' => 'volume:' . $volume->uid,
         'uploadLocationSubpath' => 'submission-files',
@@ -342,23 +359,52 @@ it('leaves an asset chosen from the picker where it is, and keeps it when its su
     $user = User::find()->admin(true)->one();
     $assetId = cpScreenUpload($user, $volume, 'library-' . bin2hex(random_bytes(4)) . '.txt', 'library');
     $before = Asset::find()->id($assetId)->one();
-    $folderId = $before->folderId;
-    $filename = $before->filename;
 
     expect(cpScreenSave($user, $form, ['document' => [$assetId]])?->data['success'] ?? null)->toBeTrue();
 
-    $after = Asset::find()->id($assetId)->one();
-    expect($after->folderId)->toBe($folderId)
-        ->and($after->filename)->toBe($filename)
-        ->and((new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where(['assetId' => $assetId])->exists())->toBeFalse();
-
-    // Saving the same submission again keeps it as a reference.
     $saved = Submission::find()->formId($form->id)->isIncomplete(null)->isSpam(null)->status(null)->one();
-    expect(cpScreenSave($user, $form, ['document' => [$assetId]], $saved)?->data['success'] ?? null)->toBeTrue()
-        ->and(Asset::find()->id($assetId)->one()->folderId)->toBe($folderId);
+    expect(cpScreenSave($user, $form, ['document' => [$assetId]], $saved)?->data['success'] ?? null)->toBeTrue();
 
-    expect(Craft::$app->getElements()->deleteElement(Submission::find()->formId($form->id)->isIncomplete(null)->isSpam(null)->status(null)->one(), true))->toBeTrue()
+    $after = Asset::find()->id($assetId)->one();
+    expect($after->folderId)->toBe($before->folderId)
+        ->and($after->filename)->toBe($before->filename)
+        ->and((new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where(['assetId' => $assetId])->exists())->toBeFalse();
+});
+
+it('deletes a chosen asset with its submission when the form deletes files', function (): void {
+    [, , $assetId, $saved] = cpScreenSavedWithChosenAsset(['fileUploadsAction' => 'delete']);
+
+    expect(Craft::$app->getElements()->deleteElement($saved, true))->toBeTrue()
+        ->and(Asset::find()->id($assetId)->exists())->toBeFalse();
+});
+
+it('deletes a chosen asset when its form is permanently deleted', function (): void {
+    [$form, , $assetId] = cpScreenSavedWithChosenAsset(['fileUploadsAction' => 'delete']);
+
+    expect(Craft::$app->getElements()->deleteElement($form, true))->toBeTrue()
+        ->and(Asset::find()->id($assetId)->exists())->toBeFalse();
+});
+
+it('keeps a chosen asset when the form retains files, or the submission is only trashed', function (string $action, bool $hardDelete): void {
+    [, , $assetId, $saved] = cpScreenSavedWithChosenAsset(['fileUploadsAction' => $action]);
+
+    expect(Craft::$app->getElements()->deleteElement($saved, $hardDelete))->toBeTrue()
         ->and(Asset::find()->id($assetId)->exists())->toBeTrue();
+})->with([
+    'retain' => ['retain', true],
+    'delete but only trashed' => ['delete', false],
+]);
+
+it('offers a direct upload to the field upload folder for users who can save assets there', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $form = formie()->form()->fileUploadField('document', ['restrictFiles' => false, 'uploadLocationSource' => 'volume:' . $volume->uid])->create();
+    $root = Craft::$app->getAssets()->getRootFolderByVolumeId($volume->id);
+
+    $withGrant = cpScreenRender(cpScreenUser([Permissions::PERM_VIEW_SUBMISSIONS, Permissions::PERM_CREATE_SUBMISSIONS, ...cpScreenVolumeGrants($volume)]), $form);
+    $withoutGrant = cpScreenRender(cpScreenUser([Permissions::PERM_VIEW_SUBMISSIONS, Permissions::PERM_CREATE_SUBMISSIONS, 'viewAssets:' . $volume->uid]), $form);
+
+    expect($withGrant['html'])->toContain('folderId:' . $root->id)->toContain('"canUpload":true')
+        ->and($withoutGrant['html'])->not->toContain('folderId:')->toContain('"canUpload":false');
 });
 
 it('lets the same asset be chosen on more than one submission', function (): void {

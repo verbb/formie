@@ -112,8 +112,8 @@ it('preserves an asset referenced by a restorable trashed submission', function 
 it('keeps retryable cleanup after the owning submission is permanently deleted', function (string $mode): void {
     $form = formie()->form(['fileUploadsAction' => 'delete'])->fileUploadField('documents', ['restrictFiles' => false])->create();
     $asset = UploadTestHelper::seedAsset('cleanup-deleted-submission.txt', 'retry after cascade');
-    $unowned = UploadTestHelper::seedAsset('cleanup-unowned-submission.txt', 'keep');
-    $submission = formie()->submission($form)->with(['documents' => [$asset->id, $unowned->id]])->save();
+    $chosen = UploadTestHelper::seedAsset('cleanup-chosen-submission.txt', 'goes with the submission');
+    $submission = formie()->submission($form)->with(['documents' => [$asset->id, $chosen->id]])->save();
     $uploads = Formie::$plugin->getFileUploads();
     $uploads->trackSubmissionAsset($asset, (int)$form->id, (int)$submission->id, $form->getFieldByHandle('documents')->uid, $form, 'documents');
     $uid = $uploads->getTrackedUploadByAssetId((int)$asset->id)['uid'];
@@ -133,7 +133,7 @@ it('keeps retryable cleanup after the owning submission is permanently deleted',
         expect($tracked['uid'])->toBe($uid)->and($tracked['submissionId'])->toBeNull()
             ->and($tracked['state'])->toBe('expired')->and($tracked['failureCode'])->toBe('deletionFailed')
             ->and(Submission::find()->id($submission->id)->trashed(null)->one())->toBeNull()
-            ->and(Asset::find()->id($unowned->id)->one())->not->toBeNull();
+            ->and(Asset::find()->id($chosen->id)->one())->toBeNull();
     } finally {
         Event::off(Asset::class, Asset::EVENT_BEFORE_DELETE, $handler);
     }

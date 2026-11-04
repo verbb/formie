@@ -483,6 +483,7 @@ class Submission extends Element
     private ?string $_fieldContext = null;
     private ?array $_pagesForField = null;
     private array $_uploadsToDelete = [];
+    private array $_chosenAssetsToDelete = [];
     private bool $_previousIsSpam = false;
     private bool $_previousIsIncomplete = false;
     private ?int $_previousStatusId = null;
@@ -1389,9 +1390,15 @@ class Submission extends Element
         // Delete associated file upload assets when the submission is permanently deleted
         // and the form is configured to remove files.
         $this->_uploadsToDelete = [];
+        $this->_chosenAssetsToDelete = [];
 
         if ($form && $form->fileUploadsAction === 'delete' && $this->hardDelete) {
             $this->_uploadsToDelete = Formie::$plugin->getFileUploads()->getUploadsForSubmissionDeletion($this);
+
+            // A form collects these for its submissions, before their upload records are removed with it.
+            if (!$this->deletedWithOwner) {
+                $this->_chosenAssetsToDelete = Formie::$plugin->getFileUploads()->getChosenAssetIdsForSubmissionDeletion($this);
+            }
         }
 
         foreach ($this->getFields() as $field) {
@@ -1407,6 +1414,9 @@ class Submission extends Element
     {
         Formie::$plugin->getFileUploads()->deleteSubmissionUploads($this->_uploadsToDelete);
         $this->_uploadsToDelete = [];
+
+        Formie::$plugin->getFileUploads()->deleteChosenAssets($this->_chosenAssetsToDelete);
+        $this->_chosenAssetsToDelete = [];
 
         foreach ($this->getFields() as $field) {
             $field->afterElementDelete($this);
