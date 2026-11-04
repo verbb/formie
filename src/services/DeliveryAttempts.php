@@ -41,6 +41,7 @@ class DeliveryAttempts extends Component
     public const EVENT_OPERATION_START = 'operationStart';
     public const EVENT_ATTEMPT_COMPLETED = 'attemptCompleted';
     public const EVENT_RETRY_DECISION = 'retryDecision';
+    /** @deprecated Outcomes are no longer confirmed, so this no longer fires. */
     public const EVENT_RECONCILIATION = 'reconciliation';
 
 
@@ -52,6 +53,7 @@ class DeliveryAttempts extends Component
         if ($context->submissionId <= 0) {
             throw new RuntimeException('Save the submission before preparing delivery.');
         }
+
         Formie::$plugin->getSubmissionDispatches()->ensureRun($context);
         $identity = hash('sha256', Json::encode([$context->submissionId, $context->binding, $context->executionUid, $step]));
         $uid = StringHelper::UUID();
@@ -73,7 +75,9 @@ class DeliveryAttempts extends Component
         if ($row['uid'] === $uid) {
             $this->checkpoint($uid, 'prepared', ['step' => $step, 'execution' => $context->execution, 'reason' => $context->reason, 'actorId' => $context->actorId, 'eligible' => $context->eligible, 'overrides' => $context->overrides]);
         }
+
         Formie::$plugin->getSubmissionDispatches()->refresh($context->submissionId, $context->executionUid);
+
         return $row['uid'];
     }
 
@@ -84,6 +88,7 @@ class DeliveryAttempts extends Component
         if (!$row) {
             throw new RuntimeException('Delivery attempt not found.');
         }
+
         return $row;
     }
 
@@ -99,6 +104,7 @@ class DeliveryAttempts extends Component
         if ($row['data']) {
             return new IntegrationExecutionContext(...$this->data($uid)['context']);
         }
+
         return new IntegrationExecutionContext((int)$row['submissionId'], (int)$row['formId'], $row['binding'], $row['executionUid'], $row['execution'], 'evidence_expired');
     }
 
@@ -112,15 +118,18 @@ class DeliveryAttempts extends Component
             if ((new Query())->from(self::DIAGNOSTICS)->where(['attemptId' => $row['id'], 'checkpoint' => 'evidence-truncated'])->exists()) {
                 return;
             }
+
             $data = ['truncated' => true, 'reason' => 'checkpoint_limit', 'firstOmittedCheckpoint' => $checkpoint];
             $checkpoint = 'evidence-truncated';
         }
+
         $evidence = DeliveryDiagnostics::redactComplete($data, $secrets);
         $encoded = Json::encode($evidence);
 
         if (strlen($encoded) > 2097152) {
             $evidence = ['truncated' => true, 'reason' => 'checkpoint_byte_limit', 'originalBytes' => strlen($encoded), 'preview' => mb_strcut($encoded, 0, 65536, 'UTF-8')];
         }
+
         Craft::$app->getDb()->createCommand()->insert(self::DIAGNOSTICS, [
             'attemptId' => $row['id'], 'checkpoint' => $checkpoint,
             'data' => $this->_encrypt($evidence),
@@ -142,11 +151,13 @@ class DeliveryAttempts extends Component
         ], $secrets);
     }
 
+    /** @deprecated Deliveries always run with current settings. */
     public function operationFingerprint(Submission $submission, array $configuration): string
     {
         return $this->operationFingerprints($submission, $configuration)[0];
     }
 
+    /** @deprecated Deliveries always run with current settings. */
     public function operationFingerprints(Submission $submission, array $configuration): array
     {
         $input = $this->_operationFingerprintData($submission, $configuration);
@@ -174,28 +185,14 @@ class DeliveryAttempts extends Component
         // The durable attempt already owns the notification locator. A newly
         // saved model may not yet carry the database-assigned UID.
         unset($config['uid']);
+
         return $config;
     }
 
+    /** @deprecated Use execute(). Deliveries always run with current settings. */
     public function executePrepared(string $uid, string|array $fingerprints, callable $send, array $secrets = []): IntegrationResult
     {
-        return $this->execute($uid, function() use ($uid, $fingerprints, $send): IntegrationResult {
-            $accepted = $this->data($uid)['acceptedFingerprint'] ?? null;
-            $fingerprints = is_array($fingerprints) ? $fingerprints : [$fingerprints];
-            $matches = is_string($accepted) && $this->_matchesHash($accepted, $fingerprints);
-
-            if (!$matches) {
-                $this->checkpoint($uid, 'operation-stale', ['reason' => $accepted === null ? 'missing_accepted_operation' : 'input_or_configuration_changed']);
-                return new IntegrationResult(
-                    IntegrationStatus::Rejected,
-                    message: $accepted === null
-                        ? 'The queued delivery has no accepted operation to verify. Review the submission and delivery settings before starting a new delivery.'
-                        : 'The submission or delivery settings no longer match the queued operation. Nothing was sent. Review the current values and settings before starting a new delivery; retrying this queue job will not send it.',
-                    code: 'operation_stale',
-                );
-            }
-            return $send();
-        }, $secrets);
+        return $this->execute($uid, $send, $secrets);
     }
 
     public function execute(string $uid, callable $send, array $secrets = []): IntegrationResult
@@ -203,6 +200,7 @@ class DeliveryAttempts extends Component
         if (Craft::$app->getDb()->getTransaction()?->getIsActive()) {
             throw new RuntimeException('Commit the transaction before external delivery.');
         }
+
         $mutex = Craft::$app->getMutex();
         $lock = 'formie.attempt.' . $uid;
 
@@ -213,28 +211,18 @@ class DeliveryAttempts extends Component
         try {
             $row = $this->get($uid);
 
-            if (in_array($row['status'], ['sending', 'unknown'], true)) {
-                $result = IntegrationResult::unknown('reconciliation_required');
-
-                if ($row['status'] === 'sending') {
-                    $this->_finish($uid, $result);
-                }
-                return $result;
-            }
-
             if ($row['result']) {
                 $previous = IntegrationResult::fromStorage(Json::decode($row['result']));
 
-                if (!$previous->retryable) {
+                // Only a confirmed success is remembered. Anything else runs again.
+                if ($previous->isSuccessful()) {
                     return $previous;
                 }
 
-                if ((new Query())->from(self::DIAGNOSTICS)->where(['attemptId' => $row['id'], 'checkpoint' => 'retry'])->count() >= 25) {
-                    return IntegrationResult::failed('retry_limit');
-                }
                 $this->checkpoint($uid, 'retry', ['previous' => $previous->toStorage()]);
                 $this->_event(self::EVENT_RETRY_DECISION, $uid, $previous);
             }
+
             $now = Db::prepareDateForDb(new DateTime());
             Db::update(self::TABLE, ['status' => 'sending', 'startedAt' => $now, 'dateUpdated' => $now], ['uid' => $uid]);
             Formie::$plugin->getSubmissionDispatches()->refresh((int)$row['submissionId'], $row['executionUid']);
@@ -245,14 +233,16 @@ class DeliveryAttempts extends Component
                 $result = $send($row['requestKey']);
 
                 if (!$result instanceof IntegrationResult) {
-                    $result = IntegrationResult::unknown('invalid_result');
+                    $result = IntegrationResult::failed('invalid_result');
                 }
             } catch (Throwable $error) {
                 $result = $error instanceof IntegrationStepException ? $error->result : IntegrationResult::fromException($error);
                 $this->checkpoint($uid, 'exception', DeliveryDiagnostics::exception($error) + ['resultCode' => $result->code], $secrets);
             }
+
             $result = IntegrationResult::fromStorage(DeliveryDiagnostics::redactComplete($result->toStorage(), $secrets));
             $this->_finish($uid, $result);
+
             return $result;
         } finally {
             $mutex->release($lock);
@@ -261,24 +251,19 @@ class DeliveryAttempts extends Component
 
     public function write(IntegrationExecutionContext $context, string $step, string $parentUid, array $payload, callable $send, array $metadata = [], array $secrets = []): mixed
     {
-        $canonical = $this->_canonicalize($payload);
-        $hash = OperationalSecurity::fingerprint('delivery-payload', $canonical);
-        $hashes = [$hash];
+        $uid = $this->prepare($context, $step, [], $parentUid);
+        $row = $this->get($uid);
 
-        foreach (ContentEncryption::legacyKeys() as $key) {
-            $hashes[] = hash_hmac('sha256', Json::encode($canonical), $key);
+        // A completed step's response can expire. Later steps may depend on it, so send it again.
+        if ($row['status'] === IntegrationStatus::Succeeded->value && !$row['response']) {
+            Db::update(self::TABLE, ['status' => 'pending', 'result' => null], ['uid' => $uid]);
         }
 
-        $uid = $this->prepare($context, $step, [], $parentUid);
         $this->checkpoint($uid, 'request', ['request' => $payload] + $metadata, $secrets);
 
-        $result = $this->execute($uid, function(string $key) use ($uid, $hash, $hashes, $send, $secrets): IntegrationResult {
-            $row = $this->get($uid);
-
-            if ($row['payloadHash'] !== null && !$this->_matchesHash($row['payloadHash'], $hashes)) {
-                return IntegrationResult::unknown('step_parameters_changed');
-            }
-            Db::update(self::TABLE, ['payloadHash' => $hash], ['uid' => $uid]);
+        $result = $this->execute($uid, function(string $key) use ($uid, $send, $secrets): IntegrationResult {
+            // Don't let a failure from an earlier run stand in for this one.
+            Db::update(self::TABLE, ['response' => null], ['uid' => $uid]);
 
             try {
                 $response = $send($key);
@@ -287,31 +272,31 @@ class DeliveryAttempts extends Component
                     $this->checkpoint($uid, 'response-error', ['status' => $error->getResponse()->getStatusCode(), 'body' => (string)$error->getResponse()->getBody()], $secrets);
                     Db::update(self::TABLE, ['response' => $this->_encrypt(['_httpFailure' => $error->getResponse()->getStatusCode(), 'body' => (string)$error->getResponse()->getBody()])], ['uid' => $uid]);
                 }
+
                 throw $error;
             }
-            // A replay must return the same provider data to dependent steps. If
-            // storing it fails after acceptance, the outcome stays unknown.
+
+            // A retry must return the same provider data to dependent steps.
             Db::update(self::TABLE, ['response' => $this->_encrypt($response)], ['uid' => $uid]);
             $this->checkpoint($uid, 'response', ['body' => $response], $secrets);
             $decoded = is_string($response) ? json_decode($response, true) : $response;
             $providerId = is_array($decoded) ? ($decoded['id'] ?? $decoded['data']['id'] ?? null) : null;
+
             return IntegrationResult::succeeded(is_scalar($providerId) ? (string)$providerId : null);
         }, $secrets);
         $row = $this->get($uid);
 
-        if ($row['payloadHash'] !== null && !$this->_matchesHash($row['payloadHash'], $hashes)) {
-            throw new IntegrationStepException(IntegrationResult::unknown('step_parameters_changed'));
-        }
-
         if (!$result->isSuccessful()) {
             $failure = $row['response'] ? $this->_decrypt($row['response']) : null;
             $response = is_array($failure) && isset($failure['_httpFailure']) ? new Response($failure['_httpFailure'], [], $failure['body']) : null;
+
             throw new IntegrationStepException($result, response: $response);
         }
 
         if (!$row['response']) {
-            throw new IntegrationStepException(IntegrationResult::unknown('confirmed_response_unavailable'));
+            throw new IntegrationStepException(IntegrationResult::failed('confirmed_response_unavailable'));
         }
+
         return $this->_decrypt($row['response']);
     }
 
@@ -324,6 +309,7 @@ class DeliveryAttempts extends Component
     public function resource(string $uid): ?array
     {
         $response = $this->get($uid)['response'];
+
         return $response ? (array)$this->_decrypt($response) : null;
     }
 
@@ -331,7 +317,8 @@ class DeliveryAttempts extends Component
     {
         $context = new IntegrationExecutionContext((int)$submission->id, (int)$submission->formId, $binding, $executionUid);
         $uid = $this->prepare($context, 'alert:' . hash('sha256', $recipient));
-        return $this->execute($uid, fn() => $send() ? IntegrationResult::succeeded() : IntegrationResult::unknown('mail_acceptance_unconfirmed'));
+
+        return $this->execute($uid, fn() => $send() ? IntegrationResult::succeeded() : IntegrationResult::failed('mail_acceptance_unconfirmed'));
     }
 
     public function startDirect(IntegrationExecutionContext $context): string
@@ -340,18 +327,16 @@ class DeliveryAttempts extends Component
         $lock = 'formie.binding.' . hash('sha256', $context->submissionId . ':' . $context->binding);
 
         if (!$mutex->acquire($lock, 10)) {
-            throw new IntegrationStepException(IntegrationResult::unknown('binding_running'));
+            throw new IntegrationStepException(IntegrationResult::failed('binding_running'));
         }
 
         try {
-            if ((new Query())->from(self::TABLE)->where(['submissionId' => $context->submissionId, 'binding' => $context->binding, 'step' => 'integration', 'status' => ['sending', 'unknown']])->exists()) {
-                throw new IntegrationStepException(IntegrationResult::unknown('previous_delivery_unresolved'));
-            }
             $uid = $this->prepare($context, 'integration');
             $now = Db::prepareDateForDb(new DateTime());
             Db::update(self::TABLE, ['status' => 'sending', 'startedAt' => $now, 'dateUpdated' => $now], ['uid' => $uid]);
             Formie::$plugin->getSubmissionDispatches()->refresh($context->submissionId, $context->executionUid);
             $this->checkpoint($uid, 'started');
+
             return $uid;
         } finally {
             $mutex->release($lock);
@@ -376,15 +361,6 @@ class DeliveryAttempts extends Component
         $row = DeliveryDiagnostics::redact($row);
         $row['result'] = $row['result'] ? Json::decode($row['result']) : null;
         $row['retentionDays'] = Formie::$plugin->getSettings()->deliveryEvidenceRetentionDays;
-        $row['unresolvedChildren'] = $this->_unresolvedChildren($row);
-        $blockers = (new Query())->select(['uid', 'binding', 'status'])->from(self::TABLE)
-            ->where(['submissionId' => $row['submissionId'], 'step' => 'integration', 'status' => ['sending', 'unknown']])
-            ->andWhere(['not', ['executionUid' => $row['executionUid']]]);
-
-        if ($row['step'] !== 'dispatch') {
-            $blockers->andWhere(['binding' => $row['binding']]);
-        }
-        $row['blockingAttempts'] = $blockers->orderBy(['id' => SORT_ASC])->limit(100)->all();
         $row['checkpoints'] = $this->_supportCheckpoints((int)$row['id'], 200);
         $row['operations'] = [];
         $bytes = strlen(Json::encode($row));
@@ -392,8 +368,10 @@ class DeliveryAttempts extends Component
         foreach ((new Query())->select(['id', 'uid', 'binding', 'step', 'parentUid', 'status', 'result', 'dateUpdated'])->from(self::TABLE)->where(['submissionId' => $row['submissionId'], 'executionUid' => $row['executionUid']])->andWhere(['not', ['uid' => $uid]])->orderBy(['id' => SORT_ASC])->limit(101)->all() as $operation) {
             if (count($row['operations']) === 100) {
                 $row['truncated'] = true;
+
                 break;
             }
+
             $operation = DeliveryDiagnostics::redact($operation);
             $operation['result'] = $operation['result'] ? Json::decode($operation['result']) : null;
             $operation['checkpoints'] = $this->_supportCheckpoints((int)$operation['id'], 20);
@@ -402,42 +380,22 @@ class DeliveryAttempts extends Component
 
             if ($bytes > 1048576) {
                 $row['truncated'] = true;
+
                 break;
             }
+
             $row['operations'][] = $operation;
         }
+
         return $row;
     }
 
+    /** @deprecated Outcomes are no longer confirmed. A failed delivery can always be retried. */
     public function reconcile(string $uid, IntegrationResult $result, string $reason): void
     {
-        if (!Craft::$app->getUser()->checkPermission('formie-reconcileDeliveries') || trim($reason) === '') {
-            throw new RuntimeException('Delivery reconciliation requires permission and a reason.');
-        }
-        $mutex = Craft::$app->getMutex();
-        $lock = 'formie.attempt.' . $uid;
-
-        if (!$mutex->acquire($lock, 0)) {
-            throw new RuntimeException('The delivery is running. Wait for it to finish before reconciliation.');
-        }
-
-        try {
-            if (!in_array($this->get($uid)['status'], ['unknown', 'sending'], true) || $result->status === IntegrationStatus::Unknown) {
-                throw new RuntimeException('This delivery cannot be reconciled to that state.');
-            }
-
-            if ($this->_unresolvedChildren($this->get($uid))) {
-                throw new RuntimeException('Reconcile uncertain child operations first.');
-            }
-            $this->checkpoint($uid, 'reconciled', ['actorId' => Craft::$app->getUser()->getId(), 'reason' => $reason, 'result' => $result->toStorage()]);
-            $this->_finish($uid, $result);
-            $this->_event(self::EVENT_RECONCILIATION, $uid, $result);
-            Formie::$plugin->getIntegrationRunner()->finalizeDelivery($uid, $result);
-        } finally {
-            $mutex->release($lock);
-        }
     }
 
+    /** @deprecated Outcomes are no longer confirmed. This only reads records from earlier releases. */
     public function hasReconciliation(string $uid): bool
     {
         return (new Query())->from(self::DIAGNOSTICS)->where(['attemptId' => $this->get($uid)['id'], 'checkpoint' => 'reconciled'])->exists();
@@ -458,19 +416,6 @@ class DeliveryAttempts extends Component
     // Private Methods
     // =========================================================================
 
-    private function _unresolvedChildren(array $row): array
-    {
-        $where = ['parentUid' => $row['uid']];
-
-        // Dispatch and integration attempts share an execution identity; their
-        // relationship predates the parentUid used by individual provider writes.
-        if ($row['step'] === 'dispatch') {
-            $where = ['or', $where, ['submissionId' => $row['submissionId'], 'executionUid' => $row['executionUid'], 'step' => 'integration']];
-        }
-
-        return (new Query())->select('uid')->from(self::TABLE)->where($where)->andWhere(['status' => ['unknown', 'sending']])->column();
-    }
-
     private function _operationFingerprintData(Submission $submission, array $configuration): array
     {
         $form = $submission->getForm();
@@ -482,6 +427,7 @@ class DeliveryAttempts extends Component
             foreach (['containerAttributes', 'inputAttributes'] as $attribute) {
                 $settings[$attribute] = $settings[$attribute] ?? [];
             }
+
             return ['type' => get_class($field), 'uid' => $field->uid, 'handle' => $field->valueKey(), 'settings' => $settings];
         }, $form->getFieldsRecursively());
         $input = [
@@ -490,6 +436,7 @@ class DeliveryAttempts extends Component
             'statusId' => $submission->statusId, 'fields' => $fields,
             'settings' => $form->getSettings()->getAttributes(), 'configuration' => $configuration,
         ];
+
         // Hash the inert shape, not object identity or ordering of associative keys.
         return $this->_canonicalize(Json::decode(Json::encode($input)));
     }
@@ -504,10 +451,13 @@ class DeliveryAttempts extends Component
 
             if ($bytes > 524288) {
                 $checkpoints[] = ['checkpoint' => 'truncated', 'data' => ['reason' => 'support_bundle_limit']];
+
                 break;
             }
+
             $checkpoints[] = $checkpoint;
         }
+
         return $checkpoints;
     }
 
@@ -527,6 +477,7 @@ class DeliveryAttempts extends Component
         if ($omitted) {
             array_unshift($checkpoints, ['checkpoint' => 'truncated', 'data' => ['truncated' => true, 'reason' => 'checkpoint_export_limit']]);
         }
+
         return $checkpoints;
     }
 
@@ -552,6 +503,7 @@ class DeliveryAttempts extends Component
         if (strlen($plain) > 2097152) {
             throw new RuntimeException('Delivery data exceeds the retention limit.');
         }
+
         return OperationalSecurity::encrypt($plain);
     }
 
@@ -560,11 +512,13 @@ class DeliveryAttempts extends Component
         if (!$cipher) {
             throw new RuntimeException('Delivery evidence expired or is unavailable. Reconciliation is required.');
         }
+
         $plain = OperationalSecurity::decrypt($cipher);
 
         if ($plain === false) {
             throw new RuntimeException('Unable to decrypt delivery evidence.');
         }
+
         return Json::decode($plain);
     }
 
@@ -581,6 +535,7 @@ class DeliveryAttempts extends Component
                 if (!$item->isSeekable()) {
                     throw new RuntimeException('Delivery streams must be seekable.');
                 }
+
                 $position = $item->tell();
                 $itemHash = hash('sha256', $item->getContents());
                 $item->seek($position);
@@ -591,23 +546,14 @@ class DeliveryAttempts extends Component
                 if ($position === false || !stream_get_meta_data($item)['seekable']) {
                     throw new RuntimeException('Delivery streams must be seekable.');
                 }
+
                 $itemHash = hash_init('sha256');
                 hash_update_stream($itemHash, $item);
                 fseek($item, $position);
                 $item = ['streamHash' => hash_final($itemHash)];
             }
         }
+
         return $value;
-    }
-
-    private function _matchesHash(string $stored, array $candidates): bool
-    {
-        foreach ($candidates as $candidate) {
-            if (is_string($candidate) && hash_equals($stored, $candidate)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

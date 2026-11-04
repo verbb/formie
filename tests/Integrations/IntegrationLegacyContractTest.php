@@ -88,28 +88,24 @@ class LegacyPostParentDeliveryContract extends Freshdesk
     }
 }
 
-it('requires reconciliation for uncertainty recorded after a legacy parent call', function(string $status, bool $legacyChannel, bool $wrapResponse) {
+it('ignores uncertainty recorded after a legacy parent call', function(string $status, bool $wrapResponse) {
     $provider = new LegacyPostParentDeliveryContract();
     $provider->nativeResult = new IntegrationResult(IntegrationStatus::from($status), 'parent message', 'parent_code', true, 'provider-id', ['detail' => 'parent'], ['elementId' => 42], false);
     $provider->nativeHandledError = $status === 'failed';
     $provider->effect = 'uncertain';
-    $provider->legacyChannel = $legacyChannel;
+    $provider->legacyChannel = true;
     $provider->wrapResponse = $wrapResponse;
     $context = new IntegrationRunContext(new Submission(), new IntegrationExecutionContext(1, 1, 'legacy', 'legacy-run'), 'attempt');
     $result = $provider->execute($context);
-    expect($result->requiresReconciliation())->toBeTrue()
-        ->and($result->retryable)->toBeFalse()
-        ->and($result->shouldFailQueue())->toBeTrue()
-        ->and($result->outputs)->toBe(['extensionId' => 43, 'elementId' => 42]);
-    if ($status === 'unknown') {
-        expect($result->toStorage())->toBe($provider->nativeResult->withOutputs(['extensionId' => 43])->toStorage());
-    }
+    expect($result->requiresReconciliation())->toBeFalse()
+        ->and($result->outputs)->toBe(['extensionId' => 43, 'elementId' => 42])
+        ->and($result->toStorage())->toBe($provider->nativeResult->withOutputs(['extensionId' => 43])->toStorage());
     if ($wrapResponse) {
         expect($provider->getLegacyIntegrationResponse()->message)->toBe(['custom' => 'message']);
     }
-})->with(['succeeded', 'skipped', 'failed', 'unknown'])->with([false, true])->with([false, true]);
+})->with(['succeeded', 'skipped', 'failed', 'unknown'])->with([false, true]);
 
-it('requires reconciliation for accepted writes recorded after a failed legacy parent call', function(bool $legacyChannel, bool $nativeWriteAccepted, bool $wrapResponse) {
+it('keeps a failed legacy parent call retryable after it records an accepted write', function(bool $legacyChannel, bool $nativeWriteAccepted, bool $wrapResponse) {
     $provider = new LegacyPostParentDeliveryContract();
     $provider->nativeResult = IntegrationResult::failed('retryable_parent', true)->withOutputs(['elementId' => 42]);
     $provider->nativeHandledError = true;
@@ -119,8 +115,10 @@ it('requires reconciliation for accepted writes recorded after a failed legacy p
     $provider->wrapResponse = $wrapResponse;
     $context = new IntegrationRunContext(new Submission(), new IntegrationExecutionContext(1, 1, 'legacy', 'legacy-run'), 'attempt');
     $result = $provider->execute($context);
-    expect($result->requiresReconciliation())->toBeTrue()
-        ->and($result->retryable)->toBeFalse()
+    expect($result->status)->toBe(IntegrationStatus::Failed)
+        ->and($result->code)->toBe('retryable_parent')
+        ->and($result->requiresReconciliation())->toBeFalse()
+        ->and($result->retryable)->toBeTrue()
         ->and($result->outputs)->toBe(['extensionId' => 43, 'elementId' => 42]);
 })->with([
     'typed state' => [false, false],
@@ -136,7 +134,7 @@ it('preserves safe parent result details even when the parent has accepted a wri
     expect($provider->execute($context)->toStorage())->toBe($provider->nativeResult->withOutputs(['extensionId' => 43])->toStorage());
 })->with(['succeeded', 'skipped', 'failed', 'unknown', 'rejected']);
 
-it('does not replay legacy writes after the parent result becomes uncertain', function(string $effect) {
+it('runs a failed legacy provider again whatever it recorded about its writes, then remembers success', function(string $effect) {
     $form = formie()->form()->singleLineTextField('fullName')->create();
     $submission = formie()->submission($form)->save();
     $provider = new class(['name' => 'Parent recovery fixture', 'handle' => 'parentRecoveryFixture']) extends LegacyPostParentDeliveryContract {
@@ -157,9 +155,13 @@ it('does not replay legacy writes after the parent result becomes uncertain', fu
     \yii\base\Event::on(\verbb\formie\services\Integrations::class, \verbb\formie\services\Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $handler);
     try {
         $run = fn() => \verbb\formie\Formie::$plugin->getIntegrationRunner()->runSteps($submission, [$provider->handle], ['triggerEvent' => 'submit'], null, 'parent-recovery-job');
-        expect($run()->results()[0]['result']->requiresReconciliation())->toBeTrue();
-        expect($run()->results()[0]['result']->requiresReconciliation())->toBeTrue();
-        expect($provider::$calls)->toBe(1);
+        expect($run()->results()[0]['result']->status)->toBe(IntegrationStatus::Failed);
+        expect($run()->results()[0]['result']->status)->toBe(IntegrationStatus::Failed);
+        expect($provider::$calls)->toBe(2);
+        $provider->nativeResult = IntegrationResult::succeeded();
+        expect($run()->results()[0]['result']->status)->toBe(IntegrationStatus::Succeeded);
+        expect($run()->results()[0]['result']->status)->toBe(IntegrationStatus::Succeeded);
+        expect($provider::$calls)->toBe(3);
     } finally {
         \yii\base\Event::off(\verbb\formie\services\Integrations::class, \verbb\formie\services\Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $handler);
     }
@@ -548,9 +550,8 @@ it('keeps the current run state when a legacy send calls its native parent', fun
         protected function executePayload(Submission $submission): IntegrationResult { return $this->resultForPayload(false); }
     };
     $context = new IntegrationRunContext(new Submission(), new IntegrationExecutionContext(1, 1, 'state', 'run-state'), 'attempt-state');
-    $context->state->uncertain = true;
     $context->state->outputs = ['preserved' => true];
-    expect($provider->execute($context)->status)->toBe(IntegrationStatus::Unknown)
+    expect($provider->execute($context)->status)->toBe(IntegrationStatus::Failed)
         ->and($provider->execute($context)->outputs)->toBe(['preserved' => true]);
 });
 

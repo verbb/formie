@@ -138,7 +138,7 @@ it('distinguishes invalid notification configuration from false conditions witho
     $submission->setFieldValue('answer', 'no');
     $notification = new \verbb\formie\models\Notification(['enableConditions' => true, 'conditions' => authorityCondition('missing')]);
     $invalid = \verbb\formie\Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission);
-    expect($invalid['status'])->toBe('rejected')->and($invalid['success'])->toBeFalse();
+    expect($invalid['status'])->toBe('failed')->and($invalid['code'])->toBe('invalid_conditions')->and($invalid['success'])->toBeFalse();
     $notification->conditions = authorityCondition('answer');
     $skipped = \verbb\formie\Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission);
     expect($skipped['status'])->toBe('skipped')->and($skipped['success'])->toBeTrue();

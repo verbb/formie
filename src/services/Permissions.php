@@ -819,10 +819,6 @@ class Permissions extends Component
         $definitions = [
             'formie-viewDeliveryDiagnostics' => [
                 'label' => Craft::t('formie', 'View delivery diagnostics'),
-                'nested' => [
-                    'formie-reconcileDeliveries' => ['label' => Craft::t('formie', 'Confirm delivery outcomes')],
-                    'formie-forceIntegrations' => ['label' => Craft::t('formie', 'Run integrations regardless of conditions and opt-in')],
-                ],
             ],
             self::PERM_VIEW_SUBMISSIONS => [
                 'label' => Craft::t('formie', 'View all submissions'),

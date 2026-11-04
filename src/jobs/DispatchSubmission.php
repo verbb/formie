@@ -6,6 +6,7 @@ use verbb\formie\Formie;
 use Craft;
 use craft\queue\BaseJob;
 
+/** @deprecated Nothing queues this any more. It remains so jobs queued by an earlier release can finish. */
 class DispatchSubmission extends BaseJob
 {
     // Properties

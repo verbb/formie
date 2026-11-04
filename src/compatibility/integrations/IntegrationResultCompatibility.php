@@ -18,14 +18,10 @@ final class IntegrationResultCompatibility
         return $response ? new IntegrationResponse($success, $response->message ?? []) : $success;
     }
 
-    public static function normalize(mixed $value, bool $uncertain = false): IntegrationResult
+    public static function normalize(mixed $value): IntegrationResult
     {
         if ($value instanceof IntegrationResult) {
             return $value;
-        }
-
-        if ($uncertain) {
-            return IntegrationResult::unknown();
         }
 
         if ($value instanceof IntegrationResponse) {
@@ -37,7 +33,7 @@ final class IntegrationResultCompatibility
         return match ($value) {
             true => IntegrationResult::succeeded(),
             false => IntegrationResult::failed('legacy_failure'),
-            default => IntegrationResult::unknown('invalid_provider_result'),
+            default => IntegrationResult::failed('invalid_provider_result'),
         };
     }
 }

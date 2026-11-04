@@ -59,12 +59,10 @@ use verbb\formie\references\ReferenceSlotKind;
 use verbb\formie\references\ReferenceUsage;
 use verbb\formie\references\ResolvedReference;
 use verbb\formie\services\Integrations as IntegrationsService;
-use verbb\formie\services\DeliveryAttempts;
 use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\SavableComponent;
-use craft\db\Query;
 use craft\helpers\App;
 use craft\helpers\Db;
 use craft\helpers\Json;
@@ -545,7 +543,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->settingsContext = clone $this->settingsContext;
     }
 
-    /** Custom providers must opt in only when every side effect uses executeDeliveryWrite(). */
+    /** @deprecated Providers no longer need to opt in. This has no effect. */
     public function supportsDeliveryWriteTracking(): bool
     {
         return false;
@@ -1046,18 +1044,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function resultForPayload(mixed $value): IntegrationResult
     {
-        $errorResult = $this->_deliveryState->error ?? null;
-        $errorResult = $value === false || $this->_deliveryState->handledError || $errorResult?->requiresReconciliation() ? $errorResult : null;
+        // The provider's return value decides. An error it handled and carried on from doesn't
+        // fail the delivery, unless it's been marked as one that must, like a rejecting hook.
+        $errorResult = $value === false || $this->_deliveryState->handledError ? ($this->_deliveryState->error ?? null) : null;
         $result = $errorResult ?? (!empty($this->_deliveryState->skipped) && empty($this->_deliveryState->writeAccepted)
             ? IntegrationResult::skipped('event_or_opt_in')
-            : IntegrationResultCompatibility::normalize(
-                $value,
-                !empty($this->_deliveryState->uncertain) || ($value === false && !empty($this->_deliveryState->writeAccepted)),
-            ));
-
-        if ($value === false && $errorResult === null && !$this->_deliveryState->skipped && $this->_canRetryBeforeSend()) {
-            $result = IntegrationResult::failed('before_send', true);
-        }
+            : IntegrationResultCompatibility::normalize($value));
 
         $result = $result->withOutputs($this->_deliveryState->outputs);
 
@@ -1089,34 +1081,27 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             }
         } while ($cause = $cause->getPrevious());
 
-        return $this->_canRetryBeforeSend() ? IntegrationResult::failed('before_send', true) : IntegrationResult::fromException($error);
+        return IntegrationResult::fromException($error);
     }
 
     public function executeDeliveryWrite(string $method, string $uri, array $options, callable $send, bool $isSideEffect = false): mixed
     {
-        $write = $isSideEffect || !in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true);
-        $trackedSend = function(...$arguments) use ($send, $write) {
-            $this->_deliveryState->writeStarted = $this->_deliveryState->writeStarted || $write;
-
-            return $send(...$arguments);
-        };
-
         // Explicit builder samples have no persisted submission or retry identity. Send once without creating invalid delivery records.
         if (!$this->_deliveryContext || ($this->_deliveryContext->reason === 'test' && $this->_deliveryContext->submissionId === 0) || (!$isSideEffect && in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true))) {
-            return $trackedSend();
+            return $send();
         }
 
         if (!$this->_deliveryAttemptUid) {
             $this->_deliveryAttemptUid = Formie::$plugin->getDeliveryAttempts()->startDirect($this->_deliveryContext);
         }
 
-        // The endpoint and occurrence identify a concrete provider operation. Its
-        // payload hash must also match when the same operation is replayed.
+        // The endpoint and occurrence identify a concrete provider operation, so a
+        // retry can skip the ones that already succeeded.
         $key = strtoupper($method) . ':' . hash('sha256', $uri);
         $ordinal = $this->_deliveryStepCounts[$key] = ($this->_deliveryStepCounts[$key] ?? 0) + 1;
         $identityOptions = array_diff_key($options, array_flip(['handler', 'curl', 'proxy', 'verify', 'allow_redirects']));
 
-        return Formie::$plugin->getDeliveryAttempts()->write($this->_deliveryContext, $key . ':' . $ordinal, $this->_deliveryAttemptUid, $identityOptions, $trackedSend, ['method' => $method, 'endpoint' => $uri], $this->getDiagnosticSecrets());
+        return Formie::$plugin->getDeliveryAttempts()->write($this->_deliveryContext, $key . ':' . $ordinal, $this->_deliveryAttemptUid, $identityOptions, $send, ['method' => $method, 'endpoint' => $uri], $this->getDiagnosticSecrets());
     }
 
     public function requestWithProviderClient(Client $client, string $method, string $uri, array $options = []): mixed
@@ -1127,7 +1112,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $target = UriResolver::resolve($origin, new Uri($uri));
 
         if (!$origin->getHost() || strtolower($target->getHost()) !== strtolower($origin->getHost()) || $target->getScheme() !== $origin->getScheme() || $target->getPort() !== $origin->getPort() || $target->getUserInfo() !== '') {
-            throw new IntegrationStepException(IntegrationResult::rejected('provider_origin_mismatch'));
+            throw new IntegrationStepException(IntegrationResult::failed('provider_origin_mismatch'));
         }
 
         $this->_applyPublicEndpointDnsPin($options, (string)$target);
@@ -1162,7 +1147,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $origin = new Uri($base);
 
             if (!$origin->getHost() || strtolower($target->getHost()) !== strtolower($origin->getHost()) || $target->getScheme() !== $origin->getScheme() || $target->getPort() !== $origin->getPort() || $target->getUserInfo() !== '') {
-                throw new IntegrationStepException(IntegrationResult::rejected('provider_origin_mismatch'));
+                throw new IntegrationStepException(IntegrationResult::failed('provider_origin_mismatch'));
             }
 
             $this->_applyPublicEndpointDnsPin($options, (string)$target);
@@ -1199,11 +1184,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             return $text;
         } catch (Throwable $e) {
             $this->_deliveryState->error = $this->resultForException($e);
-            $response = $e instanceof RequestException ? $e->getResponse() : null;
-
-            if ($writes && $this->_deliveryState->writeStarted && (!$response || $response->getStatusCode() >= 500 || $response->getStatusCode() === 408)) {
-                $this->_deliveryState->uncertain = true;
-            }
 
             throw $e;
         }
@@ -1247,11 +1227,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             return $text;
         } catch (Throwable $e) {
             $this->_deliveryState->error = $this->resultForException($e);
-            $response = $e instanceof RequestException ? $e->getResponse() : null;
-
-            if ($writes && $this->_deliveryState->writeStarted && (!$response || $response->getStatusCode() >= 500 || $response->getStatusCode() === 408)) {
-                $this->_deliveryState->uncertain = true;
-            }
 
             throw $e;
         }
@@ -1481,7 +1456,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->trigger(self::EVENT_AFTER_SEND_PAYLOAD, $event);
 
         if (!$event->isValid) {
-            $this->_deliveryState->error = IntegrationResult::unknown('response_rejected_by_hook');
+            // Providers read a false response as a cancelled send, so mark this as a failure regardless.
+            $this->_deliveryState->error = IntegrationResult::failed('response_rejected_by_hook');
+            $this->_deliveryState->handledError = true;
             Integration::info($this, 'Payload marked as invalid by event hook.');
         }
 
@@ -2226,16 +2203,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ]), $this->getDiagnosticSecrets());
     }
 
-    private function _canRetryBeforeSend(): bool
-    {
-        if (!$this->supportsDeliveryWriteTracking() || $this->_deliveryState->writeStarted || $this->_deliveryState->writeAccepted || $this->_deliveryState->uncertain) {
-            return false;
-        }
-
-        // Retained operation rows also cover writes from an earlier execution of this attempt.
-        return !$this->_deliveryAttemptUid || !(new Query())->from(DeliveryAttempts::TABLE)->where(['parentUid' => $this->_deliveryAttemptUid])->exists();
-    }
-
     private function _projectIntegrationMappingValue(?ResolvedReference $resolved, mixed $rawValue, Submission $submission, IntegrationField $integrationField): mixed
     {
         $field = $resolved?->field;
@@ -2338,7 +2305,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             }
 
             if (!$allowed) {
-                throw new IntegrationStepException(IntegrationResult::rejected('provider_origin_mismatch'));
+                throw new IntegrationStepException(IntegrationResult::failed('provider_origin_mismatch'));
             }
 
             $this->_applyPublicEndpointDnsPin($options, (string)$target);

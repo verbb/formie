@@ -10,11 +10,9 @@ use GuzzleHttp\Psr7\Response;
 use verbb\formie\Formie;
 use verbb\formie\enums\IntegrationStatus;
 use verbb\formie\enums\SubmissionOperation;
-use verbb\formie\errors\IntegrationStepException;
 use verbb\formie\events\ModifyFormIntegrationsEvent;
 use verbb\formie\integrations\helpdesk\Freshdesk;
 use verbb\formie\jobs\TriggerIntegration;
-use verbb\formie\models\IntegrationResult;
 use verbb\formie\services\Integrations;
 use yii\base\Event;
 
@@ -84,7 +82,7 @@ it('completes queued Freshdesk contact fallbacks and replays without sending aga
         expect(array_intersect(array_column($operations, 'status'), ['unknown', 'sending']))->toBeEmpty();
         if ($contact !== 'new') {
             $create = (new Query())->from($attempts::TABLE)->where(['submissionId' => $submission->id, 'step' => 'POST:' . hash('sha256', 'contacts') . ':1'])->one();
-            expect($create['status'])->toBe('rejected');
+            expect($create['status'])->toBe('failed');
             expect(json_encode($attempts->supportBundle($create['uid'])))->toContain('duplicate_value', 'response-error');
         }
     } finally {
@@ -92,19 +90,19 @@ it('completes queued Freshdesk contact fallbacks and replays without sending aga
     }
 })->with(['new', 'existing', 'legacy duplicate', 'deleted', 'agent'])->with([true, false]);
 
-it('does not resend Freshdesk contact writes when a later ticket can safely retry', function(): void {
+it('does not resend a completed Freshdesk contact update when a later ticket is retried', function(): void {
     $integration = freshdeskDeliveryFixture([
         freshdeskDuplicateContactResponse(), new Response(200, [], '{"id":123}'),
-        new IntegrationStepException(IntegrationResult::failed('confirmed_not_sent', true)),
-        new Response(201, [], '{"id":456}'),
+        new Response(503),
+        freshdeskDuplicateContactResponse(), new Response(201, [], '{"id":456}'),
     ]);
     $form = formie()->form()->singleLineTextField('name')->create();
     $submission = formie()->submission($form)->save();
     $runner = Formie::$plugin->getIntegrationRunner();
-    expect($runner->runIntegration($integration, $submission, 'freshdesk-retry', 'queued')->retryable)->toBeTrue();
+    expect($runner->runIntegration($integration, $submission, 'freshdesk-retry', 'queued')->status)->toBe(IntegrationStatus::Failed);
     expect($runner->runIntegration($integration, $submission, 'freshdesk-retry', 'queued')->status)->toBe(IntegrationStatus::Succeeded);
-    expect(array_map(fn($entry) => $entry['request']->getUri()->getPath(), FreshdeskDeliveryFixture::$requests))
-        ->toBe(['/api/v2/contacts', '/api/v2/contacts/123', '/api/v2/tickets', '/api/v2/tickets']);
+    expect(array_map(fn($entry) => $entry['request']->getMethod() . ' ' . $entry['request']->getUri()->getPath(), FreshdeskDeliveryFixture::$requests))
+        ->toBe(['POST /api/v2/contacts', 'PUT /api/v2/contacts/123', 'POST /api/v2/tickets', 'POST /api/v2/contacts', 'POST /api/v2/tickets']);
 });
 
 it('does not treat a Freshdesk ticket conflict as an existing contact', function(): void {
@@ -113,10 +111,10 @@ it('does not treat a Freshdesk ticket conflict as an existing contact', function
     $form = formie()->form()->singleLineTextField('name')->create();
     $submission = formie()->submission($form)->save();
     $result = Formie::$plugin->getIntegrationRunner()->runIntegration($integration, $submission, 'freshdesk-ticket-conflict', 'queued');
-    expect($result->status)->toBe(IntegrationStatus::Unknown)->and(FreshdeskDeliveryFixture::$requests)->toHaveCount(1);
+    expect($result->status)->toBe(IntegrationStatus::Failed)->and(FreshdeskDeliveryFixture::$requests)->toHaveCount(1);
 });
 
-it('preserves unhandled Freshdesk failures and blocks uncertain replay', function(string $failure, string $status, int $requests): void {
+it('fails on Freshdesk errors it cannot handle', function(string $failure, int $requests): void {
     $lost = new ConnectException('Response lost', new Request('PUT', 'https://8.8.8.8/api/v2/contacts/123'));
     $responses = match ($failure) {
         'validation' => [new Response(400, [], '{"errors":[{"field":"email","code":"invalid_value"}]}')],
@@ -133,13 +131,11 @@ it('preserves unhandled Freshdesk failures and blocks uncertain replay', functio
     $integration = freshdeskDeliveryFixture($responses);
     $form = formie()->form()->singleLineTextField('name')->create();
     $submission = formie()->submission($form)->save();
-    $runner = Formie::$plugin->getIntegrationRunner();
-    $result = $runner->runIntegration($integration, $submission, 'freshdesk-failed', 'queued');
-    expect($result->status->value)->toBe($status)->and($result->shouldFailQueue())->toBeTrue();
-    expect($runner->runIntegration($integration, $submission, 'freshdesk-failed', 'queued')->status->value)->toBe($status);
+    $result = Formie::$plugin->getIntegrationRunner()->runIntegration($integration, $submission, 'freshdesk-failed', 'queued');
+    expect($result->status)->toBe(IntegrationStatus::Failed)->and($result->shouldFailQueue())->toBeTrue();
     expect(FreshdeskDeliveryFixture::$requests)->toHaveCount($requests);
 })->with([
-    ['validation', 'rejected', 1], ['missing contact id', 'unknown', 1], ['unrelated conflict', 'unknown', 1], ['malformed conflict', 'unknown', 1],
-    ['update validation', 'rejected', 2], ['unrelated missing resource', 'rejected', 2], ['unrelated method', 'rejected', 2],
-    ['update timeout', 'unknown', 2], ['update server', 'unknown', 2], ['ticket timeout', 'unknown', 3],
+    ['validation', 1], ['missing contact id', 1], ['unrelated conflict', 1], ['malformed conflict', 1],
+    ['update validation', 2], ['unrelated missing resource', 2], ['unrelated method', 2],
+    ['update timeout', 2], ['update server', 2], ['ticket timeout', 3],
 ]);

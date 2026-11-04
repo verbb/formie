@@ -1410,7 +1410,7 @@ Stripe `getReturnUrl($submission)` | `createPaymentReturnUrl($submission)`
 
 When updating a custom provider's **overrides**, use the implementation hooks:
 
-- Replace `populateQueueJobContext()` customisation with `recordDeliveryRequestEvidence()` to supply prepared request evidence; see [Results and Safe Retries](/developers/custom-integration/overview#results-and-safe-retries).
+- Replace `populateQueueJobContext()` customisation with `recordDeliveryRequestEvidence()` to supply prepared request evidence; see [Results and Retries](/developers/custom-integration/overview#results-and-retries).
 - Replace `getTransaction()` customisation with `refreshPaymentState()` to fetch and save verified provider state; see [Refresh and Builder Hooks](/developers/custom-integration/payment-integration#refresh-and-builder-hooks). Existing `getTransactionStatus()` calls retain provider-specific handling; use `refreshPayment()` when new code needs to refresh a payment.
 - Replace `getRefreshJsVariables()` customisation with `defineRefreshData()` to return refreshed captcha data; see [Captcha Browser Behaviour](/developers/custom-integration/captcha-integration#browser-behaviour).
 
@@ -2028,9 +2028,9 @@ Move sample sends out of `fetchFormSettings()` or `fetchConfig()` into `sendTest
 
 ### Integration Delivery Storage
 
-Existing providers returning `bool` or `IntegrationResponse` still work through a compatibility adapter. Update to `IntegrationResult` when adopting detailed delivery outcomes and safe retries. A legacy `false` result is non-retryable unless the provider supplies more precise request evidence.
+Existing providers returning `bool` or `IntegrationResponse` still work through a compatibility adapter. Update to `IntegrationResult` when you want detailed delivery results. A legacy `false` result is a failure, and clicking **Retry** runs it again.
 
-After upgrading, inspect **Formie delivery diagnostics** on failed jobs in **Utilities → Queue Manager** and reconcile uncertain outcomes before retrying. See [Custom Integrations](/developers/custom-integration/overview#results-and-safe-retries) for the provider API.
+After upgrading, check **Diagnostics** on failed jobs in **Utilities → Queue Manager**, fix the cause if needed, and click **Retry**. See [Custom Integrations](/developers/custom-integration/overview#results-and-retries) for the provider API.
 
 ### Integration Scope
 

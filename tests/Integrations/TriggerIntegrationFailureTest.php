@@ -115,7 +115,7 @@ it('fires EVENT_AFTER_TRIGGER_INTEGRATION_FAILED when sendIntegrationPayload thr
 
     try {
         $result = Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
-        expect($result->status->value)->toBe('unknown');
+        expect($result->status->value)->toBe('failed');
         expect($event)->not->toBeNull()
             ->and($event->integration->handle)->toBe('throwingIntegration')
             ->and($event->submission->id)->toBe(456)

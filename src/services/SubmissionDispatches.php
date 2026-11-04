@@ -8,7 +8,6 @@ use verbb\formie\enums\SubmissionAuthorityType;
 use verbb\formie\enums\SubmissionOperation;
 use verbb\formie\enums\SubmissionPolicy;
 use verbb\formie\helpers\Table;
-use verbb\formie\jobs\DispatchSubmission;
 use verbb\formie\models\IntegrationExecutionContext;
 use verbb\formie\models\SubmissionAuthority;
 use verbb\formie\models\SubmissionCommand;
@@ -19,7 +18,6 @@ use Craft;
 use craft\db\Query;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\Queue;
 use craft\helpers\StringHelper;
 
 use yii\base\Component;
@@ -49,6 +47,7 @@ class SubmissionDispatches extends Component
         if (!Craft::$app->getDb()->getTransaction()?->isActive) {
             throw new RuntimeException('Dispatch intent must share the submission transaction.');
         }
+
         $kind = $command->operation === SubmissionOperation::REVISE
             ? ($submission->hasSpamChanged(true, false) ? 'unmark-spam' : 'edit') : 'completion';
         $key = $kind === 'completion' ? $kind : $kind . ':' . $command->expectedVersion;
@@ -73,7 +72,7 @@ class SubmissionDispatches extends Component
         if (!$uid) {
             throw new RuntimeException('Unable to persist submission dispatch intent.');
         }
-        $context->taskState['dispatch.created'] ??= $uid === $newUid;
+
         $context->taskState['dispatch.uid'] = $uid;
 
         if (!isset($context->taskState['dispatch.lock']) && !$this->get((int)$submission->id, $uid)->schedulingComplete) {
@@ -82,20 +81,12 @@ class SubmissionDispatches extends Component
             if (!Craft::$app->getMutex()->acquire($lock, 10)) {
                 throw new RuntimeException('Submission dispatch is already running.');
             }
-            // Recovery cannot race the post-commit completion listeners.
+
+            // Hold the claim through the post-commit completion listeners.
             $context->taskState['dispatch.lock'] = $lock;
         }
-        return $uid;
-    }
 
-    /** Completion listeners may persist an accepted status change before Dispatch. */
-    public function updateAcceptedVersion(WorkflowContext $context): void
-    {
-        if ($context->taskState['dispatch.created'] ?? false) {
-            Db::update(self::TABLE, ['submissionVersion' => $context->command->submission->stateVersion], [
-                'submissionId' => $context->command->submission->id, 'uid' => $context->taskState['dispatch.uid'], 'schedulingComplete' => false,
-            ]);
-        }
+        return $uid;
     }
 
     public function get(int $submissionId, string $uid): ?SubmissionDispatch
@@ -105,6 +96,7 @@ class SubmissionDispatches extends Component
         if (!$row) {
             return null;
         }
+
         return new SubmissionDispatch([
             'submissionId' => (int)$row['submissionId'], 'uid' => $row['uid'], 'kind' => $row['kind'],
             'status' => $row['status'], 'submissionVersion' => (int)$row['submissionVersion'],
@@ -135,27 +127,25 @@ class SubmissionDispatches extends Component
         if (!$uid) {
             return false;
         }
+
         $lock = $this->_lock((int)$submission->id, $uid);
 
         if (($context->taskState['dispatch.lock'] ?? null) !== $lock && !Craft::$app->getMutex()->acquire($lock, 10)) {
             throw new RuntimeException('Submission dispatch is already running.');
         }
+
         $run = $this->get((int)$submission->id, $uid);
 
         if (!$run || $run->schedulingComplete || $run->failureCode !== null) {
             unset($context->taskState['dispatch.lock']);
             Craft::$app->getMutex()->release($lock);
+
             return false;
         }
 
-        if ($run->submissionVersion !== $submission->stateVersion) {
-            Db::update(self::TABLE, ['status' => 'needs-attention', 'failureCode' => 'submission_changed'], ['submissionId' => $submission->id, 'uid' => $uid]);
-            unset($context->taskState['dispatch.lock']);
-            Craft::$app->getMutex()->release($lock);
-            return false;
-        }
         $context->taskState['dispatch.lock'] = $lock;
         Db::update(self::TABLE, ['status' => 'running', 'startedAt' => gmdate('Y-m-d H:i:s')], ['submissionId' => $submission->id, 'uid' => $uid]);
+
         return true;
     }
 
@@ -190,49 +180,16 @@ class SubmissionDispatches extends Component
         }
     }
 
-    /** Queue publication is outside the completion transaction; duplicates are harmless. */
-    public function recover(int $limit = 100): int
-    {
-        if (Craft::$app->getDb()->getTransaction()?->isActive) {
-            throw new RuntimeException('Recover dispatches after committing database work.');
-        }
-        $count = 0;
-        $rows = (new Query())->select(['submissionId', 'uid'])->from(self::TABLE)
-            ->where(['schedulingComplete' => false, 'failureCode' => null, 'status' => ['ready', 'scheduled', 'running']])
-            ->andWhere(['or', ['scheduledAt' => null], ['<', 'scheduledAt', gmdate('Y-m-d H:i:s', time() - 600)]])
-            ->orderBy(['id' => SORT_ASC])->limit(max(1, min(500, $limit)))->all();
-
-        foreach ($rows as $row) {
-            $lock = $this->_lock((int)$row['submissionId'], $row['uid']);
-
-            if (!Craft::$app->getMutex()->acquire($lock, 0)) {
-                continue;
-            }
-
-            try {
-                $current = Craft::$app->getDb()->useMaster(fn() => (new Query())->from(self::TABLE)->where($row)->one());
-
-                if (!$current || $current['schedulingComplete'] || $current['failureCode'] !== null || ($current['scheduledAt'] && strtotime($current['scheduledAt'] . ' UTC') > time() - 600)) {
-                    continue;
-                }
-                Queue::push(new DispatchSubmission(['submissionId' => (int)$row['submissionId'], 'dispatchUid' => $row['uid']]), Formie::$plugin->getSettings()->queuePriority);
-                Db::update(self::TABLE, ['status' => 'scheduled', 'scheduledAt' => gmdate('Y-m-d H:i:s')], $row);
-                $count++;
-            } finally {
-                Craft::$app->getMutex()->release($lock);
-            }
-        }
-        return $count;
-    }
-
+    /** @deprecated Only finishes `DispatchSubmission` jobs queued by an earlier release. */
     public function resume(int $submissionId, string $uid): void
     {
         // Match the processor's resource lock before claiming the dispatch itself.
         $lock = 'formie.resource.' . hash('sha256', 'submission:' . $submissionId);
 
         if (!Craft::$app->getMutex()->acquire($lock, 10)) {
-            throw new RuntimeException('Submission is being updated. Retry dispatch recovery.');
+            throw new RuntimeException('Submission is being updated. Try again shortly.');
         }
+
         $runLock = $this->_lock($submissionId, $uid);
         $claimed = false;
 
@@ -242,17 +199,19 @@ class SubmissionDispatches extends Component
             if (!$claimed) {
                 throw new RuntimeException('Submission dispatch is already running.');
             }
+
             $run = $this->get($submissionId, $uid);
 
             if (!$run || $run->schedulingComplete || $run->failureCode !== null) {
                 return;
             }
+
             $submission = Craft::$app->getDb()->useMaster(fn() => Submission::find()->id($submissionId)->siteId($run->command['siteId'])->status(null)->isIncomplete(null)->isSpam(null)->one());
 
-            if (!$submission || $submission->isIncomplete || $submission->stateVersion !== $run->submissionVersion) {
-                Db::update(self::TABLE, ['status' => 'needs-attention', 'failureCode' => 'submission_changed'], ['submissionId' => $submissionId, 'uid' => $uid]);
+            if (!$submission || $submission->isIncomplete) {
                 return;
             }
+
             $form = $submission->getForm();
             $command = new SubmissionCommand(
                 SubmissionOperation::from($run->command['operation']),
@@ -275,6 +234,7 @@ class SubmissionDispatches extends Component
             if ($claimed && Craft::$app->getMutex()->isAcquired($runLock)) {
                 Craft::$app->getMutex()->release($runLock);
             }
+
             Craft::$app->getMutex()->release($lock);
         }
     }
@@ -290,13 +250,14 @@ class SubmissionDispatches extends Component
         if (!$run || $run->failureCode !== null) {
             return;
         }
-        $statuses = Craft::$app->getDb()->useMaster(fn() => (new Query())->select('status')->distinct()->from(DeliveryAttempts::TABLE)->where(['submissionId' => $submissionId, 'executionUid' => $uid])->column());
+
+        // Provider writes belong to their integration, which may have handled a failed one and carried on.
+        $statuses = Craft::$app->getDb()->useMaster(fn() => (new Query())->select('status')->distinct()->from(DeliveryAttempts::TABLE)->where(['submissionId' => $submissionId, 'executionUid' => $uid, 'parentUid' => null])->column());
         $status = match (true) {
-            in_array('unknown', $statuses, true) => 'needs-attention',
             in_array('sending', $statuses, true) => 'running',
             !$run->schedulingComplete => $run->status === 'needs-attention' ? 'ready' : $run->status,
             in_array('pending', $statuses, true) => 'scheduled',
-            (bool)array_intersect(['failed', 'rejected'], $statuses) => 'completed-with-failures',
+            (bool)array_intersect(['failed', 'rejected', 'unknown'], $statuses) => 'completed-with-failures',
             default => 'completed',
         };
         Db::update(self::TABLE, ['status' => $status, 'completedAt' => in_array($status, ['completed', 'completed-with-failures'], true) ? gmdate('Y-m-d H:i:s') : null], ['submissionId' => $submissionId, 'uid' => $uid]);

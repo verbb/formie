@@ -7,7 +7,7 @@ use verbb\formie\services\Integrations;
 use verbb\formie\events\ModifyFormIntegrationsEvent;
 use yii\base\Event;
 
-it('stops a swallowed transport failure from being retried and requires reconciliation before an operator rerun', function (): void {
+it('fails a swallowed transport failure and sends it again on retry and on an operator rerun', function (): void {
     $form = formie()->form()->singleLineTextField('fullName')->create();
     $submission = formie()->submission($form)->save();
     $integration = new class(['name' => 'Recovery fixture', 'handle' => 'recoveryFixture']) extends \verbb\formie\base\Integration {
@@ -30,6 +30,7 @@ it('stops a swallowed transport failure from being retried and requires reconcil
     $integration::$mockClient = new \GuzzleHttp\Client(['base_uri' => 'https://example.com/', 'handler' => \GuzzleHttp\HandlerStack::create(new \GuzzleHttp\Handler\MockHandler([
         new \GuzzleHttp\Exception\ConnectException('Response lost', new \GuzzleHttp\Psr7\Request('POST', 'https://example.com')),
         new \GuzzleHttp\Psr7\Response(200, [], '{"id":"record-1"}'),
+        new \GuzzleHttp\Psr7\Response(200, [], '{"id":"record-2"}'),
     ]))]);
     $handler = function (ModifyFormIntegrationsEvent $event) use ($form, $integration): void {
         if ($event->form->id === $form->id) $event->integrations[] = $integration;
@@ -37,26 +38,19 @@ it('stops a swallowed transport failure from being retried and requires reconcil
     Event::on(Integrations::class, Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $handler);
     try {
         $run = fn() => Formie::$plugin->getIntegrationRunner()->runSteps($submission, [$integration->handle], ['triggerEvent' => 'submit'], null, 'persisted-job');
-        expect($run()->results()[0]['result']->status->value)->toBe('unknown');
-        expect($run()->results()[0]['result']->status->value)->toBe('unknown');
+        expect($run()->results()[0]['result']->status->value)->toBe('failed');
         expect($integration::$calls)->toBe(1);
-        expect(Formie::$plugin->getIntegrationTriggers()->runManualIntegration($integration, $submission)->status->value)->toBe('unknown');
-        expect($integration::$calls)->toBe(1);
+        expect($run()->results()[0]['result']->status->value)->toBe('succeeded');
+        expect($integration::$calls)->toBe(2);
+        // Already delivered under this run, so it isn't sent again.
+        expect($run()->results()[0]['result']->status->value)->toBe('succeeded');
+        expect($integration::$calls)->toBe(2);
 
         $identity = Craft::$app->getUser()->getIdentity();
         try {
             Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
-            $attempts = Formie::$plugin->getDeliveryAttempts();
-            // Resolve the uncertain HTTP operation before its parent integration attempt.
-            $unresolved = (new \craft\db\Query())->from($attempts::TABLE)
-                ->where(['submissionId' => $submission->id, 'binding' => $integration->handle, 'status' => 'unknown'])
-                ->orderBy(['id' => SORT_DESC])->all();
-            expect($unresolved)->not->toBeEmpty();
-            foreach ($unresolved as $attempt) {
-                $attempts->reconcile($attempt['uid'], \verbb\formie\models\IntegrationResult::failed('confirmed_not_delivered', true), 'Confirmed absent at the provider.');
-            }
             expect(Formie::$plugin->getIntegrationTriggers()->runManualIntegration($integration, $submission)->status->value)->toBe('succeeded')
-                ->and($integration::$calls)->toBe(2);
+                ->and($integration::$calls)->toBe(3);
         } finally {
             Craft::$app->getUser()->setIdentity($identity);
         }

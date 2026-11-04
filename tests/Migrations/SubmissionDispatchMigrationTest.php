@@ -1,6 +1,7 @@
 <?php
 
 use craft\db\Query;
+use craft\helpers\Db;
 use verbb\formie\Formie;
 use verbb\formie\migrations\m260927_050000_submission_dispatches;
 use verbb\formie\models\IntegrationExecutionContext;
@@ -15,6 +16,8 @@ it('backfills historical runs without republishing or changing prepared delivery
     $pendingUid = $attempts->prepare(new IntegrationExecutionContext($submission->id, $form->id, 'pending', 'legacy-pending'), 'integration');
     $unknownUid = $attempts->prepare(new IntegrationExecutionContext($submission->id, $form->id, 'unknown', 'legacy-unknown'), 'integration');
     $attempts->execute($unknownUid, fn() => IntegrationResult::unknown());
+    // Results no longer store this status, but rows from an earlier release still have it.
+    Db::update(DeliveryAttempts::TABLE, ['status' => 'unknown'], ['uid' => $unknownUid]);
     $before = (new Query())->from(DeliveryAttempts::TABLE)->where(['submissionId' => $submission->id])->orderBy('id')->all();
     Craft::$app->getDb()->createCommand()->delete(SubmissionDispatches::TABLE, ['submissionId' => $submission->id])->execute();
     $published = 0;

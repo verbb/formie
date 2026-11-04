@@ -18,6 +18,11 @@ $runtimeIntegration = static function($event) use ($form): void {
             'handle' => 'browserRuntimeFailure',
             'enabled' => true,
         ]);
+        $event->integrations[] = new class(['name' => 'Browser fixture', 'handle' => 'browserFixture', 'enabled' => true]) extends \verbb\formie\base\Integration {
+            public static function displayName(): string { return 'Browser fixture'; }
+            public function fetchConfig(): \verbb\formie\models\IntegrationConfig { return new \verbb\formie\models\IntegrationConfig(); }
+            public function sendPayload(\verbb\formie\elements\Submission $submission): \verbb\formie\models\IntegrationResult { return \verbb\formie\models\IntegrationResult::failed('browser_simulated_response_loss'); }
+        };
     }
 };
 \Tests\Support\BrowserFailingIntegration::$calls = 0;
@@ -26,6 +31,15 @@ $runtimeIntegration = static function($event) use ($form): void {
     \verbb\formie\services\Integrations::EVENT_MODIFY_FORM_INTEGRATIONS,
     $runtimeIntegration,
 );
+
+// Every failed delivery runs again when its job executes, so the mailer has to fail for real.
+$originalEmails = \verbb\formie\Formie::$plugin->getEmails();
+\verbb\formie\Formie::$plugin->set('emails', new class extends \verbb\formie\services\Emails {
+    public function sendEmail(\verbb\formie\models\Notification $notification, \verbb\formie\elements\Submission $submission, mixed $queueJob = null, bool $createSentNotification = true): array
+    {
+        return ['error' => 'Synthetic notification transport failure'];
+    }
+});
 
 try {
     $previousQueueId = (int)((new \craft\db\Query())->from('{{%queue}}')->max('id') ?? 0);
@@ -57,19 +71,12 @@ try {
     $attempts->checkpoint($deliveryUid, 'mapping-inputs', ['name' => ['kind' => 'exactReference', 'value' => 'field:visitorName'], 'password' => 'browser-never-display-secret']);
     $attempts->checkpoint($deliveryUid, 'submission-projection', ['visitorName' => 'Delivery browser fixture']);
     $attempts->checkpoint($deliveryUid, 'provider-error', ['status' => 504, 'message' => '<img src=x onerror="window.deliveryInjection=true"> Gateway response lost', 'apiKey' => 'browser-never-display-secret']);
-    $attempts->execute($deliveryUid, fn() => \verbb\formie\models\IntegrationResult::unknown('browser_simulated_response_loss'));
     $deliveryJobId = Craft::$app->getQueue()->push(new \verbb\formie\jobs\TriggerIntegration(['deliveryAttemptUid' => $deliveryUid]));
 
     $notification = $form->getNotifications()[0] ?? null;
     if (!$notification || !$notification->id) { throw new RuntimeException('Provision the browser notification fixture first.'); }
     $notificationContext = new \verbb\formie\models\IntegrationExecutionContext($deliverySubmission->id, $form->id, 'notification:' . ($notification->uid ?: $notification->id), 'browser-notification', 'queued');
-    $notificationUid = $attempts->prepare($notificationContext, 'notification', [
-        'notificationId' => $notification->id,
-        'acceptedFingerprint' => $attempts->operationFingerprint($deliverySubmission, $attempts->notificationConfiguration($notification)),
-    ]);
-    $attempts->checkpoint($notificationUid, 'submission-projection', ['visitorName' => 'Delivery browser fixture']);
-    $attempts->checkpoint($notificationUid, 'email-response', ['success' => false, 'error' => 'Synthetic notification transport failure']);
-    $attempts->execute($notificationUid, fn() => \verbb\formie\models\IntegrationResult::failed('email_failed'));
+    $notificationUid = $attempts->prepare($notificationContext, 'notification', ['notificationId' => $notification->id]);
     $notificationJobId = Craft::$app->getQueue()->push(new \verbb\formie\jobs\SendNotification(['deliveryAttemptUid' => $notificationUid]));
 
     $nonDeliveryJobId = Craft::$app->getQueue()->push(new \verbb\formie\jobs\ImportForm());
@@ -88,7 +95,12 @@ try {
     if (\Tests\Support\BrowserFailingIntegration::$calls !== 1 || ($runtimeAttempt['status'] ?? null) !== 'failed' || ($runtimeChild['status'] ?? null) !== 'failed' || !$runtimeResponseEvidence) {
         throw new RuntimeException('The TriggerIntegration browser fixture did not execute its provider failure.');
     }
+
+    if (($attempts->get($deliveryUid)['status'] ?? null) !== 'failed' || ($attempts->get($notificationUid)['status'] ?? null) !== 'failed') {
+        throw new RuntimeException('The delivery browser fixtures did not fail their queue jobs.');
+    }
 } finally {
+    \verbb\formie\Formie::$plugin->set('emails', $originalEmails);
     \yii\base\Event::off(
         \verbb\formie\services\Integrations::class,
         \verbb\formie\services\Integrations::EVENT_MODIFY_FORM_INTEGRATIONS,
@@ -96,20 +108,7 @@ try {
     );
 }
 
-// Keep recovery separate from the read-only diagnostic fixture.
-$recoveryExecution = 'browser-recovery-' . \craft\helpers\StringHelper::UUID();
-$recoveryContext = new \verbb\formie\models\IntegrationExecutionContext($deliverySubmission->id, $form->id, '@dispatch', $recoveryExecution, 'queued');
-$recoveryUid = $attempts->prepare($recoveryContext, 'dispatch', ['handles' => ['recoveryFixture'], 'triggerContext' => []]);
-$providerContext = new \verbb\formie\models\IntegrationExecutionContext($deliverySubmission->id, $form->id, 'recoveryFixture', $recoveryExecution, 'queued');
-$providerUid = $attempts->prepare($providerContext, 'integration');
-$writeUid = $attempts->prepare($providerContext, 'create-ticket', [], $providerUid);
-foreach ([$writeUid, $providerUid, $recoveryUid] as $unknownUid) {
-    $attempts->execute($unknownUid, fn() => \verbb\formie\models\IntegrationResult::unknown('browser_recovery'));
-}
-$recoveryJobId = Craft::$app->getQueue()->push(new \verbb\formie\jobs\TriggerIntegration(['deliveryAttemptUid' => $recoveryUid]));
-
 file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/delivery-browser.json', json_encode([
-    'recovery' => ['uid' => $recoveryUid, 'jobId' => $recoveryJobId],
     'submissionUrl' => $deliverySubmission->getCpEditUrl(),
     'submissionId' => $deliverySubmission->id,
     'integration' => ['uid' => $deliveryUid, 'jobId' => $deliveryJobId],

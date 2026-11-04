@@ -111,12 +111,6 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
     // Public Methods
     // =========================================================================
 
-    // Element saves have their own transaction and recovery lifecycle.
-    public function supportsDeliveryWriteTracking(): bool
-    {
-        return false;
-    }
-
     public function getType(): string
     {
         return self::TYPE_ELEMENT;
@@ -415,9 +409,11 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
                 if ($saved) {
                     return $saved;
                 }
-                throw new IntegrationStepException(IntegrationResult::unknown('created_element_unavailable'));
+
+                throw new IntegrationStepException(IntegrationResult::failed('created_element_unavailable'));
             }
         }
+
         $element = new $elementType();
 
         // If we're not wanting to update an element, no need to proceed finding one.

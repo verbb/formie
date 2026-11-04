@@ -344,7 +344,7 @@ class User extends Element
             }
 
             if (!$user instanceof UserElement) {
-                return $this->resultForPayload(IntegrationResult::rejected('invalid_user_payload'));
+                return $this->resultForPayload(IntegrationResult::failed('invalid_user_payload'));
             }
 
             // Events may replace the payload, and retries may reload a user created by the
@@ -359,19 +359,19 @@ class User extends Element
                 $storedUser = UserElement::find()->id($user->id)->status(null)->one();
 
                 if (!$storedUser) {
-                    return $this->resultForPayload(IntegrationResult::rejected('existing_user_unavailable'));
+                    return $this->resultForPayload(IntegrationResult::failed('existing_user_unavailable'));
                 }
 
                 if (!$this->_canUpdateExistingUser($storedUser)) {
-                    return $this->resultForPayload(IntegrationResult::rejected('existing_user_unauthorized'));
+                    return $this->resultForPayload(IntegrationResult::failed('existing_user_unauthorized'));
                 }
 
                 if ($user->email !== $storedUser->email) {
-                    return $this->resultForPayload(IntegrationResult::rejected('existing_user_email_change_not_supported'));
+                    return $this->resultForPayload(IntegrationResult::failed('existing_user_email_change_not_supported'));
                 }
 
                 if ($hashedPassword !== null || ($user->newPassword !== null && $user->newPassword !== '') || $user->password !== $storedUser->password) {
-                    return $this->resultForPayload(IntegrationResult::rejected('existing_user_password_change_not_supported'));
+                    return $this->resultForPayload(IntegrationResult::failed('existing_user_password_change_not_supported'));
                 }
 
                 // Existing account credentials and activation state remain under Craft's
@@ -432,8 +432,9 @@ class User extends Element
                 if ($this->sendActivationEmail) {
                     if (!$this->executeDeliveryWrite('MAIL', 'activation:' . $user->id, ['userId' => $user->id, 'email' => $user->email], function() use ($user) {
                         if (!Craft::$app->getUsers()->sendActivationEmail($user)) {
-                            throw new IntegrationStepException(IntegrationResult::unknown('activation_email_unconfirmed'));
+                            throw new IntegrationStepException(IntegrationResult::failed('activation_email_unconfirmed'));
                         }
+
                         return true;
                     })) {
                         Integration::error($this, Craft::t('formie', 'Unable to send user activation email for “{type}” element integration. Error: {error}.', [
@@ -718,6 +719,7 @@ class User extends Element
     private function _getPasswordField($submission)
     {
         $slot = ReferenceSlot::fromStored($this->attributeMapping['newPassword'] ?? '');
+
         return $slot->kind === ReferenceSlotKind::Exact
             ? Variables::getFieldForReference((string)$slot->value, $submission)
             : null;

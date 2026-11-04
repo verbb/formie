@@ -7,24 +7,20 @@ import {
 } from './deliveryDiagnosis';
 
 describe('delivery diagnosis', () => {
-    it('requires confirmation for an unknown outcome even when the queue reports an error', () => {
+    it('treats an unknown outcome from an earlier release as a failure', () => {
         expect(
-            diagnoseDelivery({
-                status: 'unknown',
-                checkpoints: [
-                    {
-                        checkpoint: 'queue-error',
-                        data: { message: 'Integration delivery unknown' },
-                    },
-                ],
-            }).kind,
-        ).toBe('unknown');
+            diagnoseDelivery({ status: 'unknown', checkpoints: [] }).kind,
+        ).toBe('failed');
     });
-    it('explains that a failed payload can be retried before a provider write starts', () => {
+    it('treats a rejection from an earlier release as a failure', () => {
+        expect(
+            diagnoseDelivery({ status: 'rejected', checkpoints: [] }).kind,
+        ).toBe('failed');
+    });
+    it('surfaces an integration error instead of the queue wrapper', () => {
         expect(
             diagnoseDelivery({
                 status: 'failed',
-                result: { code: 'before_send', retryable: true },
                 checkpoints: [
                     {
                         checkpoint: 'exception',
@@ -32,10 +28,14 @@ describe('delivery diagnosis', () => {
                             exceptions: [{ message: 'Invalid field mapping' }],
                         },
                     },
+                    {
+                        checkpoint: 'queue-error',
+                        data: { message: 'Integration delivery failed' },
+                    },
                 ],
             }),
         ).toEqual({
-            kind: 'before-send',
+            kind: 'integration',
             detail: 'Invalid field mapping',
             tab: 'errors',
         });

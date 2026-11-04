@@ -112,7 +112,7 @@ it('never inverts an invalid integration condition into permission', function ()
     expect($integration->shouldTrigger(new Submission()))->toBeFalse();
 });
 
-it('records rejected invalid integration conditions separately from skipped false conditions', function (): void {
+it('records failed invalid integration conditions separately from skipped false conditions', function (): void {
     $form = formie()->form()->singleLineTextField('answer')->create();
     $submission = formie()->submission($form)->with(['answer' => 'no'])->save();
     $integration = integrationConditionsTestIntegration(['handle' => 'conditionProbe', 'enableConditions' => true, 'conditions' => [
@@ -120,7 +120,7 @@ it('records rejected invalid integration conditions separately from skipped fals
     ]]);
     $runner = Formie::$plugin->getIntegrationRunner();
     $invalid = $runner->runIntegration($integration, $submission, 'invalid-conditions', 'synchronous');
-    expect($invalid->status)->toBe(\verbb\formie\enums\IntegrationStatus::Rejected);
+    expect($invalid->status)->toBe(\verbb\formie\enums\IntegrationStatus::Failed);
     $conditions = $integration->conditions;
     $conditions['conditions'][0]['field'] = '{field:answer}';
     $integration->conditions = $conditions;

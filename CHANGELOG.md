@@ -8,14 +8,16 @@
 - Add an option to leave log files out of support requests.
 
 ### Changed
+- Allow all failed [integration and notification deliveries](https://verbb.io/craft-plugins/formie/docs/v4/guides/integrations/integration-dispatch-and-policies#results-and-retries) to be retried using current submission values and settings.
 - Store reports and scheduled reports in each installation’s database instead of project config, so users with **Manage reports** can create and change reports on production. Existing reports and schedules move across automatically when you upgrade, with nothing to run. Reports no longer deploy between environments through project config, and each environment now keeps its own copies. Only administrators can change a report with scheduled deliveries or edit schedules. See the [upgrade guide](https://verbb.io/craft-plugins/formie/docs/v4/get-started/upgrading-from-v3#reports-and-submission-export). ([#3082](https://github.com/verbb/formie/issues/3082))
 - Show a warning on reports that point at forms that no longer exist.
 - Keep encrypted field values out of Formie’s log files, including integration payloads for forms with encrypted fields.
 - Update the `@verbb/formie-*` npm packages to use the same version number as the plugin. Version ranges such as `^1.0.16` need updating once. ([#3081](https://github.com/verbb/formie/issues/3081))
 - Update the Pardot guide for External Client Apps, OAuth security settings, and separate API and Form Handler delivery.
-- Renamed the “Reconcile uncertain deliveries” permission to “Confirm delivery outcomes” and “Force integration execution” to “Run integrations regardless of conditions and opt-in”, and moved both under “View delivery diagnostics”.
 
 ### Fixed
+- Fixed Freshdesk reporting a failure instead of a skipped delivery when an event cancelled sending its contact.
+- Fixed the Diagnostics button failing to open on control panels served over plain HTTP.
 - Fixed upgrades from Formie 2 and 3 failing on PostgreSQL for sites with payments, and sites already upgraded rejecting newer payment statuses, because of an old database constraint.
 - Fixed Group and Repeater answers being lost when upgrading from Formie 2 if their child fields held an outdated parent reference.
 - Fixed per-form permissions from Formie 2 and 3 being removed the next time a user or user group was saved. Forms with existing grants now use **Use Dedicated Permissions**. Grants already removed on an upgraded site need to be granted again.
@@ -69,13 +71,21 @@
 - Fixed the Product element integration failing to save when “Overwrite Values” is off.
 - Fixed GoCardless webhooks being processed and then reported as failed.
 - Fixed Front integration messages being reported as failed after they were delivered.
-- Fixed Freshdesk deliveries being marked as unknown after handling an existing contact, preventing successful contact updates and tickets from completing their queue job.
+- Fixed Freshdesk deliveries failing their queue job after handling an existing contact, even though the contact update and ticket were delivered.
 - Fixed Capsule throwing an error when fetching opportunity fields.
 - Fixed the Sent Notifications index showing “-” for the Notification column.
 - Fixed pruning of sent notifications using the wrong cutoff time for sites not set to UTC.
 - Fixed a server error when saving a form’s template fields failed validation on a non-JSON request.
 - Fixed `FieldLayout::getForm()` throwing an error.
 - Fixed slow submission exports and indexes for forms with rich text Multi-Line Text fields, or with `plainTextHtmlSanitizationMode` set to `sanitize`, caused by rebuilding the HTML purifier configuration for every value. ([#3083](https://github.com/verbb/formie/issues/3083))
+
+### Deprecated
+- Deprecate `IntegrationResult::rejected()`, `IntegrationResult::unknown()`, `IntegrationResult::requiresReconciliation()` and `IntegrationResult::$retryable`. Rejected and unknown results are now failures, and every failure can be retried.
+- Deprecate `DeliveryAttempts::reconcile()`, `DeliveryAttempts::hasReconciliation()`, `DeliveryAttempts::executePrepared()`, `DeliveryAttempts::EVENT_RECONCILIATION`, `DeliveryAttempts::operationFingerprint()`, `DeliveryAttempts::operationFingerprints()`, `IntegrationRunner::dispatchFingerprint()`, `IntegrationRunner::dispatchFingerprints()`, `SubmissionDispatches::resume()`, `IntegrationTriggers::forceIntegration()`, the `DispatchSubmission` job, `Integration::supportsDeliveryWriteTracking()` and `IntegrationStatus::isFinalized()`.
+
+### Removed
+- Remove the “Confirm delivery outcomes” and “Force integration execution” permissions, and the confirm and force-run controls in Delivery Diagnostics. Diagnostics and Export remain for troubleshooting.
+- Remove the `formie/deliveries` and `formie/deliveries/recover` console commands. `formie/cron/run` no longer re-sends submission deliveries interrupted by a crash, and its `deliveries` group now only recovers payment webhooks. If a crash interrupts a delivery, run the integration from the submission’s edit page.
 
 ## 4.0.6 - 2026-11-01
 

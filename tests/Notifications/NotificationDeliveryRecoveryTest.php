@@ -64,16 +64,17 @@ it('checkpoints individual notifications and retries only the failed notificatio
     }
 });
 
-it('rejects changed accepted notification operations before first send and retry', function (bool $retry, string $change): void {
+it('sends a queued notification with current values before first send and on retry', function (bool $retry, string $change): void {
     $form = formie()->form()->singleLineTextField('fullName')->create();
-    $submission = formie()->submission($form)->save();
+    $submission = formie()->submission($form)->with(['fullName' => 'Original name'])->save();
     $notification = new Notification(['id' => 510, 'uid' => 'prepared-notification', 'subject' => 'Original']);
     $original = Formie::$plugin->getEmails();
     $emails = new class extends Emails {
-        public int $calls = 0;
+        public array $sent = [];
+        public bool $fail = false;
         public function sendEmail(Notification $notification, \verbb\formie\elements\Submission $submission, mixed $queueJob = null, bool $createSentNotification = true): array {
-            $this->calls++;
-            return ['error' => 'Synthetic known failure'];
+            $this->sent[] = [$notification->subject, $submission->getFieldValue('fullName')];
+            return $this->fail ? ['error' => 'Synthetic known failure'] : ['success' => true];
         }
     };
     Formie::$plugin->set('emails', $emails);
@@ -82,7 +83,11 @@ it('rejects changed accepted notification operations before first send and retry
         $service->sendNotification($notification, $submission, true, 'prepared-operation');
         $row = (new \craft\db\Query())->from(\verbb\formie\services\DeliveryAttempts::TABLE)->where(['submissionId' => $submission->id, 'executionUid' => 'prepared-operation', 'step' => 'notification'])->one();
         $job = new \verbb\formie\jobs\SendNotification(['deliveryAttemptUid' => $row['uid']]);
-        if ($retry) $service->sendNotificationEmail($notification, $submission, $job, 'prepared-operation');
+        if ($retry) {
+            $emails->fail = true;
+            $service->sendNotificationEmail($notification, $submission, $job, 'prepared-operation');
+            $emails->fail = false;
+        }
         if ($change === 'content') {
             $submission->setFieldValue('fullName', 'Changed after enqueue');
             expect(Craft::$app->getElements()->saveElement($submission, false))->toBeTrue();
@@ -90,30 +95,42 @@ it('rejects changed accepted notification operations before first send and retry
             $notification->subject = 'Changed after enqueue';
         }
         $result = $service->sendNotificationEmail($notification, $submission, $job, 'prepared-operation');
-        expect($result['code'])->toBe('operation_stale')->and($result['retryable'])->toBeFalse()
-            ->and($emails->calls)->toBe($retry ? 1 : 0);
+        $current = $change === 'content' ? ['Original', 'Changed after enqueue'] : ['Changed after enqueue', 'Original name'];
+        expect($result['success'])->toBeTrue()
+            ->and($emails->sent)->toBe($retry ? [['Original', 'Original name'], $current] : [$current]);
     } finally { Formie::$plugin->set('emails', $original); }
 })->with([[false, 'content'], [true, 'content'], [false, 'notification'], [true, 'notification']]);
 
-it('stops automatic notification retry when the mailer outcome is unknown', function (): void {
+it('sends a failed queued notification again when its job is retried, then remembers success', function (): void {
     $form = formie()->form()->singleLineTextField('fullName')->create();
     $submission = formie()->submission($form)->save();
-    $notification = new Notification(['id' => 503, 'uid' => 'notification-uncertain']);
+    $notification = new Notification(['formId' => $form->id, 'name' => 'Retried email', 'handle' => 'retriedEmail']);
+    expect(Formie::$plugin->getNotifications()->saveNotification($notification, false))->toBeTrue();
     $original = Formie::$plugin->getEmails();
     $emails = new class extends Emails {
         public int $calls = 0;
+        public bool $fail = true;
         public function sendEmail(Notification $notification, \verbb\formie\elements\Submission $submission, mixed $queueJob = null, bool $createSentNotification = true): array
         {
             $this->calls++;
-            return ['error' => 'Connection closed', 'deliveryOutcomeUnknown' => true];
+            return $this->fail ? ['error' => 'Connection closed'] : ['success' => true];
         }
     };
     Formie::$plugin->set('emails', $emails);
     try {
-        $send = fn() => Formie::$plugin->getNotifications()->sendNotification($notification, $submission, false, 'uncertain');
-        expect($send)->toThrow(RuntimeException::class, 'outcome unknown');
-        expect($send)->toThrow(RuntimeException::class, 'outcome unknown');
-        expect($emails->calls)->toBe(1);
+        Formie::$plugin->getNotifications()->sendNotification($notification, $submission, true, 'retried-job');
+        $attempts = Formie::$plugin->getDeliveryAttempts();
+        $uid = (new \craft\db\Query())->select('uid')->from($attempts::TABLE)->where(['submissionId' => $submission->id, 'executionUid' => 'retried-job'])->scalar();
+        $job = new \verbb\formie\jobs\SendNotification(['deliveryAttemptUid' => $uid]);
+        $execute = fn() => $job->execute(Craft::$app->getQueue());
+        expect($execute)->toThrow(RuntimeException::class, 'Notification delivery failed.');
+        expect($attempts->get($uid)['status'])->toBe('failed');
+        expect($execute)->toThrow(RuntimeException::class, 'Notification delivery failed.');
+        expect($emails->calls)->toBe(2);
+        $emails->fail = false;
+        $execute();
+        $execute();
+        expect($emails->calls)->toBe(3)->and($attempts->get($uid)['status'])->toBe('succeeded');
     } finally {
         Formie::$plugin->set('emails', $original);
     }
@@ -137,45 +154,38 @@ it('queues notifications atomically with an element transaction even when synchr
     expect($count())->toBe($before);
 });
 
-it('blocks a new notification identity after uncertainty and permits an audited same-identity retry', function (): void {
+it('does not hold a new notification identity back after an earlier failure', function (): void {
     $form = formie()->form()->singleLineTextField('name')->create();
     $submission = formie()->submission($form)->save();
-    $notification = new Notification(['id' => 506, 'uid' => 'reconciled-notification']);
+    $notification = new Notification(['id' => 506, 'uid' => 'retried-notification']);
     $original = Formie::$plugin->getEmails();
-    $identity = Craft::$app->getUser()->getIdentity();
     $emails = new class extends Emails {
         public int $calls = 0;
         public function sendEmail(Notification $notification, \verbb\formie\elements\Submission $submission, mixed $queueJob = null, bool $createSentNotification = true): array {
             $this->calls++;
-            return $this->calls === 1 ? ['deliveryOutcomeUnknown' => true] : ['success' => true];
+            return $this->calls === 1 ? ['error' => 'Connection closed'] : ['success' => true];
         }
     };
     Formie::$plugin->set('emails', $emails);
     try {
         $service = Formie::$plugin->getNotifications();
-        expect($service->sendNotificationEmail($notification, $submission, null, 'original')['deliveryOutcomeUnknown'])->toBeTrue();
-        expect($service->sendNotificationEmail($notification, $submission, null, 'new')['deliveryOutcomeUnknown'])->toBeTrue();
-        expect($emails->calls)->toBe(1);
-        $attempts = Formie::$plugin->getDeliveryAttempts();
-        $uid = (new \craft\db\Query())->select('uid')->from($attempts::TABLE)->where(['submissionId' => $submission->id, 'executionUid' => 'original'])->scalar();
-        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
-        $attempts->reconcile($uid, \verbb\formie\models\IntegrationResult::failed('confirmed_not_delivered', true), 'Provider verified the mail was not accepted.');
-        expect($service->sendNotificationEmail($notification, $submission, null, 'original')['success'])->toBeTrue();
+        expect($service->sendNotificationEmail($notification, $submission, null, 'original')['success'])->toBeFalse();
+        expect($service->sendNotificationEmail($notification, $submission, null, 'new')['success'])->toBeTrue();
         expect($emails->calls)->toBe(2);
+        expect($service->sendNotificationEmail($notification, $submission, null, 'original')['success'])->toBeTrue();
+        expect($emails->calls)->toBe(3);
     } finally {
         Formie::$plugin->set('emails', $original);
-        Craft::$app->getUser()->setIdentity($identity);
     }
 });
 
-it('imports uncertain legacy notification receipts and honors their audited reconciliation', function (): void {
+it('sends a notification again after an uncertain legacy receipt', function (): void {
     $form = formie()->form()->singleLineTextField('name')->create();
     $submission = formie()->submission($form)->save();
     $notification = new Notification(['id' => 507, 'uid' => 'legacy-uncertain-notification']);
     $legacy = new \verbb\formie\helpers\DeliveryAttempt($submission->id, 'notification-send:' . $notification->uid, 'legacy-job');
     try { $legacy->execute([], fn() => throw new RuntimeException('Response lost')); } catch (Throwable) {}
     $original = Formie::$plugin->getEmails();
-    $identity = Craft::$app->getUser()->getIdentity();
     $emails = new class extends Emails {
         public int $calls = 0;
         public function sendEmail(Notification $notification, \verbb\formie\elements\Submission $submission, mixed $queueJob = null, bool $createSentNotification = true): array { $this->calls++; return ['success' => true]; }
@@ -183,16 +193,9 @@ it('imports uncertain legacy notification receipts and honors their audited reco
     Formie::$plugin->set('emails', $emails);
     try {
         $service = Formie::$plugin->getNotifications();
-        expect($service->sendNotificationEmail($notification, $submission, null, 'legacy-job')['deliveryOutcomeUnknown'])->toBeTrue();
-        expect($emails->calls)->toBe(0);
-        $attempts = Formie::$plugin->getDeliveryAttempts();
-        $uid = (new \craft\db\Query())->select('uid')->from($attempts::TABLE)->where(['submissionId' => $submission->id, 'executionUid' => 'legacy-job'])->scalar();
-        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
-        $attempts->reconcile($uid, \verbb\formie\models\IntegrationResult::failed('confirmed_not_delivered', true), 'Destination checked.');
         expect($service->sendNotificationEmail($notification, $submission, null, 'legacy-job')['success'])->toBeTrue();
         expect($emails->calls)->toBe(1);
     } finally {
         Formie::$plugin->set('emails', $original);
-        Craft::$app->getUser()->setIdentity($identity);
     }
 });

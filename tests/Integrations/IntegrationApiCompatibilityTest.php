@@ -374,9 +374,9 @@ it('acknowledges legacy service event cancellation without leaking an earlier pr
     }
 });
 
-it('keeps acknowledged skips and uncertain outcomes distinct at the legacy result boundary', function() {
+it('keeps acknowledged skips and failed outcomes distinct at the legacy result boundary', function() {
     $response = new \verbb\formie\models\IntegrationResponse(true, ['provider' => 'accepted']);
     expect(\verbb\formie\compatibility\integrations\IntegrationResultCompatibility::toLegacy(IntegrationResult::skipped('event_or_opt_in')))->toBeTrue();
-    $unknown = \verbb\formie\compatibility\integrations\IntegrationResultCompatibility::toLegacy(IntegrationResult::unknown(), $response);
-    expect($unknown->success)->toBeFalse()->and($unknown->message)->toBe($response->message)->and($response->success)->toBeTrue();
+    $failed = \verbb\formie\compatibility\integrations\IntegrationResultCompatibility::toLegacy(IntegrationResult::unknown(), $response);
+    expect($failed->success)->toBeFalse()->and($failed->message)->toBe($response->message)->and($response->success)->toBeTrue();
 });

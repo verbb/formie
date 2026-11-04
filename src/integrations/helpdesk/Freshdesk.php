@@ -7,7 +7,6 @@ use verbb\formie\base\FormInterface;
 use verbb\formie\base\HelpDesk;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationStepException;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -357,24 +356,6 @@ class Freshdesk extends HelpDesk
         return $fields;
     }
 
-    public function executeDeliveryWrite(string $method, string $uri, array $options, callable $send, bool $isSideEffect = false): mixed
-    {
-        $send = function(...$arguments) use ($send, $method, $uri) {
-            try {
-                return $send(...$arguments);
-            } catch (RequestException $e) {
-                // Classify the conflict before it is persisted, so replay can reach the contact update.
-                if (strtoupper($method) === 'POST' && trim($uri, '/') === 'contacts' && $this->_getDuplicateContactId($e) !== null) {
-                    throw new IntegrationStepException(IntegrationResult::rejected('contact_exists'), $e);
-                }
-
-                throw $e;
-            }
-        };
-
-        return parent::executeDeliveryWrite($method, $uri, $options, $send, $isSideEffect);
-    }
-
     public function getFieldMappingMultipartValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
     {
         // Public callers must resolve attachments for this submission too.
@@ -473,6 +454,10 @@ class Freshdesk extends HelpDesk
                 try {
                     $response = $this->deliverPayload($submission, 'contacts', $contactPayload);
 
+                    if ($response === false) {
+                        return $this->resultForPayload(true);
+                    }
+
                     $contactId = $response['id'] ?? '';
 
                     if (!$contactId) {
@@ -491,7 +476,7 @@ class Freshdesk extends HelpDesk
                     try {
                         $this->deliverPayload($submission, "contacts/{$contactId}", $contactPayload, 'PUT');
                     } catch (Throwable $e) {
-                        // Transport failures have no response and must retain their uncertain outcome.
+                        // Transport failures have no response to inspect.
                         if (!$e instanceof RequestException || !$e->getResponse()) {
                             throw $e;
                         }

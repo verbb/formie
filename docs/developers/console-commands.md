@@ -137,7 +137,7 @@ Use the key ID printed by the status command. When rotating a key, keep the form
 
 ### Run Scheduled Tasks
 
-Runs Formie tasks that should be scheduled on cron: interrupted submission delivery recovery, cleanup/retention and due scheduled reports.
+Runs Formie tasks that should be scheduled on cron: payment webhook recovery, cleanup/retention and due scheduled reports.
 
 Schedule this command on production sites — for example, hourly:
 
@@ -149,7 +149,7 @@ Option | Description
 --- | ---
 `--skip-gc` | Skip cleanup and retention tasks.
 `--skip-reports` | Skip scheduled report delivery.
-`--skip-deliveries` | Skip interrupted submission delivery recovery.
+`--skip-deliveries` | Skip payment webhook recovery.
 `--only` | Comma-separated task groups to run: `gc`, `reports`, `deliveries`.
 
 Use `--only` or the skip flags when you want separate cron schedules — for example, daily cleanup and hourly reports:
@@ -163,14 +163,6 @@ Use `--only` or the skip flags when you want separate cron schedules — for exa
 ```
 
 Craft's [garbage collection](https://craftcms.com/docs/5.x/system/gc.html) still runs Formie cleanup as a best-effort fallback on web requests, but production sites should not rely on it.
-
-### Recover Interrupted Submission Delivery
-
-Run `./craft formie/deliveries/recover` to schedule up to 100 committed but unscheduled submission dispatches. Use `--limit` to change the batch size, up to 500. This is also included in `formie/cron/run`, or can run separately with `--only=deliveries`. Run it frequently enough for your delivery requirements and keep Craft's queue workers running.
-
-Recovery resumes Dispatch only; it does not submit the form again or charge a payment again. Queue publication happens after completion commits. Lost or interrupted scheduling can be republished after ten minutes, and duplicate recovery jobs share the original run identity. Unknown provider outcomes still require reconciliation.
-
-`./craft formie/deliveries` lists run identities and statuses without submission content or credentials. A `submission_changed` failure means unscheduled delivery could no longer use the accepted submission version; inspect it before starting a deliberate new delivery. Recovery does not silently send edited content under the old identity.
 
 ## Reports
 

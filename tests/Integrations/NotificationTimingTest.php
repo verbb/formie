@@ -83,13 +83,7 @@ it('separates timing from success across lanes failure policies and explicit con
             $dispatcher->sendNotifications($submission, IntegrationDispatcher::PHASE_SYNCHRONOUS, $key);
             $dispatcher->sendNotifications($submission, IntegrationDispatcher::PHASE_AFTER, $key);
         }
-        $expected = [Notification::DISPATCH_TIMING_BEFORE];
-        if ($execution === 'queued' || $status !== 'unknown') {
-            $expected[] = Notification::DISPATCH_TIMING_SYNCHRONOUS;
-        }
-        if ($status !== 'unknown') {
-            $expected[] = Notification::DISPATCH_TIMING_AFTER;
-        }
+        $expected = [Notification::DISPATCH_TIMING_BEFORE, Notification::DISPATCH_TIMING_SYNCHRONOUS, Notification::DISPATCH_TIMING_AFTER];
         if ($status === 'succeeded') {
             $expected[] = 'explicit-success';
         }

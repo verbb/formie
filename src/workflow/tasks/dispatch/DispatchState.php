@@ -89,8 +89,7 @@ class DispatchState
 
     /**
      * Serialize a logical side effect and record completion only after success.
-     * Failed callbacks remain retryable. Providers should also receive idempotency
-     * keys: a process crash after external success cannot be resolved by a DB marker.
+     * A failed callback runs again on the next dispatch.
      */
     public function runOnce(string $stage, callable $callback): bool
     {
@@ -115,6 +114,7 @@ class DispatchState
             }
 
             $this->markMarker($stage);
+
             return true;
         } finally {
             $mutex->release($key);
@@ -149,6 +149,7 @@ class DispatchState
             )->execute();
         } catch (Throwable $e) {
             Formie::error('Unable to persist dispatch marker - {e}.', ['e' => $e->getMessage()]);
+
             throw $e;
         }
     }

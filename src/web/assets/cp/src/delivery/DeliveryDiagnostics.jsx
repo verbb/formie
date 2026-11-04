@@ -9,7 +9,6 @@ import {
     Tab,
     TabPanel,
     Tabs,
-    Textarea,
 } from '@verbb/plugin-kit-react/components';
 
 import { deliveryCheckpoints, diagnoseDelivery } from './deliveryDiagnosis';
@@ -218,14 +217,6 @@ const statusPresentation = (status) =>
                 'Formie could not complete this delivery.',
             ),
         },
-        unknown: {
-            tone: 'warning',
-            title: Craft.t('formie', 'Delivery outcome unknown'),
-            message: Craft.t(
-                'formie',
-                'Formie could not confirm whether the provider completed this delivery. Check the provider before recording an outcome.',
-            ),
-        },
         succeeded: {
             tone: 'green',
             title: Craft.t('formie', 'Delivered successfully'),
@@ -247,14 +238,6 @@ const statusPresentation = (status) =>
             title: Craft.t('formie', 'Waiting to send'),
             message: Craft.t('formie', 'This delivery has not started yet.'),
         },
-        rejected: {
-            tone: 'red',
-            title: Craft.t('formie', 'Delivery rejected'),
-            message: Craft.t(
-                'formie',
-                'The delivery was rejected before it could complete.',
-            ),
-        },
         skipped: {
             tone: 'gray',
             title: Craft.t('formie', 'Delivery skipped'),
@@ -273,7 +256,12 @@ const statusPresentation = (status) =>
     };
 
 function DeliveryHeader({ bundle, onExport }) {
-    const presentation = statusPresentation(bundle.status);
+    // Earlier releases also stored `rejected` and `unknown`.
+    const presentation = statusPresentation(
+        ['rejected', 'unknown'].includes(bundle.status)
+            ? 'failed'
+            : bundle.status,
+    );
 
     return (
         <section
@@ -337,15 +325,15 @@ function DeliveryHeader({ bundle, onExport }) {
 
 const diagnosisPresentation = (diagnosis) =>
     ({
-        'before-send': {
-            title: Craft.t('formie', 'The integration failed before sending'),
+        integration: {
+            title: Craft.t('formie', 'The integration stopped with an error'),
             description: Craft.t(
                 'formie',
-                'The integration stopped while preparing its delivery, before starting a provider write.',
+                'The integration could not finish preparing or sending its delivery.',
             ),
             nextStep: Craft.t(
                 'formie',
-                'Fix the reported error, then retry the queue job. If you change the submission or integration settings, run the integration again from the submission instead.',
+                'Fix the reported error, then click Retry. Steps that already succeeded won’t be sent again.',
             ),
         },
         'email-render': {
@@ -359,18 +347,7 @@ const diagnosisPresentation = (diagnosis) =>
             ),
             nextStep: Craft.t(
                 'formie',
-                'Open the submission and review the notification content, Twig, and field references mentioned in the error.',
-            ),
-        },
-        'operation-stale': {
-            title: Craft.t('formie', 'The delivery changed before it was sent'),
-            description: Craft.t(
-                'formie',
-                'The form, notification, or integration settings no longer match the operation that was queued.',
-            ),
-            nextStep: Craft.t(
-                'formie',
-                'Review the current settings, then start a new delivery from the submission. Retrying this queue job will not send the changed operation.',
+                'Fix the notification content, Twig, or field references mentioned in the error, then click Retry.',
             ),
         },
         'email-send': {
@@ -381,7 +358,7 @@ const diagnosisPresentation = (diagnosis) =>
             ),
             nextStep: Craft.t(
                 'formie',
-                'Check the reported error, Craft mail settings, and whether the queue worker uses the same mail configuration as web requests.',
+                'Check the reported error, Craft mail settings, and whether the queue worker uses the same mail configuration as web requests, then click Retry.',
             ),
         },
         provider: {
@@ -392,7 +369,7 @@ const diagnosisPresentation = (diagnosis) =>
             ),
             nextStep: Craft.t(
                 'formie',
-                'Start with the reported error, then check the integration credentials, endpoint settings, and mapped fields.',
+                'If the reported error points to credentials, endpoint settings, or mapped fields, fix those first. Then click Retry. Steps that already succeeded won’t be sent again.',
             ),
         },
         'email-response': {
@@ -403,7 +380,7 @@ const diagnosisPresentation = (diagnosis) =>
             ),
             nextStep: Craft.t(
                 'formie',
-                'Review the reported error first, then check the notification content and Craft mail settings.',
+                'Check the reported error, notification content, and Craft mail settings, then click Retry.',
             ),
         },
         queue: {
@@ -414,21 +391,7 @@ const diagnosisPresentation = (diagnosis) =>
             ),
             nextStep: Craft.t(
                 'formie',
-                'Review the reported exception and the Craft queue logs. Retry the job after fixing the underlying error.',
-            ),
-        },
-        unknown: {
-            title: Craft.t(
-                'formie',
-                'Confirm whether the provider received this delivery',
-            ),
-            description: Craft.t(
-                'formie',
-                'Formie lost confirmation after delivery started, so retrying immediately could create a duplicate.',
-            ),
-            nextStep: Craft.t(
-                'formie',
-                'Check the provider first, then record the confirmed outcome below.',
+                'Check the reported exception and the Craft queue logs, fix the cause, then click Retry.',
             ),
         },
         failed: {
@@ -439,7 +402,7 @@ const diagnosisPresentation = (diagnosis) =>
             ),
             nextStep: Craft.t(
                 'formie',
-                'Review the timeline and error details. Export the diagnostics if you need help from support.',
+                'Check the timeline and error details, fix the cause if needed, then click Retry. Export the diagnostics if you need help from support.',
             ),
         },
         status: {
@@ -488,192 +451,17 @@ function Diagnosis({ diagnosis }) {
     );
 }
 
-function DeliveryOverview({
-    diagnosis,
-    bundle,
-    canReconcile,
-    canForce,
-    busy,
-    notice,
-    reason,
-    onReasonChange,
-    onAction,
-    onSelect,
-}) {
-    return (
-        <>
-            <Diagnosis diagnosis={diagnosis} />
-            {bundle.blockingAttempts?.length > 0 && (
-                <section style={{ marginBlockEnd: '20px' }}>
-                    <h3>
-                        {Craft.t('formie', 'Earlier unresolved deliveries')}
-                    </h3>
-                    <p>
-                        {Craft.t(
-                            'formie',
-                            'An earlier attempt can prevent this integration from running again. Open it to review and confirm its outcome.',
-                        )}
-                    </p>
-                    {bundle.blockingAttempts.map((attempt) => (
-                        <Button
-                            key={attempt.uid}
-                            type="button"
-                            disabled={busy}
-                            onClick={() => onSelect(attempt.uid)}
-                        >
-                            {attempt.binding} · {attempt.status}
-                        </Button>
-                    ))}
-                </section>
-            )}
-            {bundle.operations?.length > 0 && (
-                <section style={{ marginBlockEnd: '20px' }}>
-                    <h3>{Craft.t('formie', 'Delivery operations')}</h3>
-                    <p>
-                        {Craft.t(
-                            'formie',
-                            'Open an operation to review its outcome. Resolve uncertain operations before confirming the overall delivery.',
-                        )}
-                    </p>
-                    <div
-                        style={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: '8px',
-                        }}
-                    >
-                        {bundle.operations.map((operation) => (
-                            <Button
-                                key={operation.uid}
-                                type="button"
-                                disabled={busy}
-                                onClick={() => onSelect(operation.uid)}
-                            >
-                                {operation.binding} · {operation.step} ·{' '}
-                                {operation.status}
-                            </Button>
-                        ))}
-                    </div>
-                </section>
-            )}
-            {canReconcile && bundle.unresolvedChildren?.length > 0 && (
-                <Alert variant="warning" size="sm">
-                    {Craft.t(
-                        'formie',
-                        'Resolve the uncertain operations above first. Then return to this delivery to confirm its outcome.',
-                    )}
-                </Alert>
-            )}
-            {canReconcile && (
-                <div>
-                    <p>
-                        {Craft.t(
-                            'formie',
-                            'Confirm the outcome with the provider before recording a decision.',
-                        )}
-                    </p>
-                    <Textarea
-                        label={Craft.t('formie', 'Reconciliation reason')}
-                        value={reason}
-                        onInput={(event) => onReasonChange(event.target.value)}
-                    />
-                    <div
-                        style={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: '8px',
-                            margin: '12px 0',
-                        }}
-                    >
-                        <Button
-                            type="button"
-                            disabled={
-                                busy ||
-                                !reason.trim() ||
-                                bundle.unresolvedChildren?.length > 0
-                            }
-                            onClick={() =>
-                                onAction('reconcile', {
-                                    outcome: 'succeeded',
-                                    reason,
-                                })
-                            }
-                        >
-                            {Craft.t('formie', 'Confirm delivered')}
-                        </Button>
-                        <Button
-                            type="button"
-                            disabled={
-                                busy ||
-                                !reason.trim() ||
-                                bundle.unresolvedChildren?.length > 0
-                            }
-                            onClick={() =>
-                                onAction('reconcile', {
-                                    outcome: 'notDelivered',
-                                    reason,
-                                })
-                            }
-                        >
-                            {Craft.t('formie', 'Confirm not delivered')}
-                        </Button>
-                    </div>
-                </div>
-            )}
-            {canForce && (
-                <div>
-                    <p>
-                        {Craft.t(
-                            'formie',
-                            'A force run creates a new execution and overrides conditions and opt-in. Provide a reason for the audit history.',
-                        )}
-                    </p>
-                    <Textarea
-                        label={Craft.t('formie', 'Force run reason')}
-                        value={reason}
-                        onInput={(event) => onReasonChange(event.target.value)}
-                    />
-                    <Button
-                        type="button"
-                        disabled={busy || !reason.trim()}
-                        onClick={() =>
-                            onAction('force', {
-                                submissionId: bundle.submissionId,
-                                handle: bundle.binding,
-                                reason,
-                            })
-                        }
-                    >
-                        {Craft.t('formie', 'Force new run')}
-                    </Button>
-                </div>
-            )}
-            {notice && (
-                <Alert variant="success" size="sm" announce="polite">
-                    {notice}
-                </Alert>
-            )}
-        </>
-    );
-}
-
 export function DeliveryDiagnostics({ uid, onClose }) {
     const [bundle, setBundle] = useState(null);
-    const [selected, setSelected] = useState(uid);
+    const [open, setOpen] = useState(true);
     const [error, setError] = useState('');
-    const [notice, setNotice] = useState('');
-    const [reason, setReason] = useState('');
-    const [busy, setBusy] = useState(false);
 
     useEffect(() => {
         setBundle(null);
         setError('');
-        setNotice('');
-        setReason('');
-        if (!selected) return;
         let current = true;
         Craft.sendActionRequest('GET', 'formie/delivery/bundle', {
-            params: { uid: selected },
+            params: { uid },
         })
             .then(({ data }) => {
                 if (current) setBundle(data);
@@ -690,35 +478,7 @@ export function DeliveryDiagnostics({ uid, onClose }) {
         return () => {
             current = false;
         };
-    }, [selected]);
-
-    const act = async (action, data) => {
-        setBusy(true);
-        setError('');
-        try {
-            await Craft.sendActionRequest('POST', `formie/delivery/${action}`, {
-                data: { uid: selected, ...data },
-            });
-            const response = await Craft.sendActionRequest(
-                'GET',
-                'formie/delivery/bundle',
-                { params: { uid: selected } },
-            );
-            setBundle(response.data);
-            setNotice(
-                action === 'force'
-                    ? Craft.t('formie', 'Force run recorded.')
-                    : Craft.t('formie', 'Reconciliation recorded.'),
-            );
-        } catch (error) {
-            setError(
-                error.response?.data?.message ||
-                    Craft.t('formie', 'Unable to update this delivery.'),
-            );
-        } finally {
-            setBusy(false);
-        }
-    };
+    }, [uid]);
 
     const download = (data) => {
         const url = URL.createObjectURL(
@@ -728,7 +488,7 @@ export function DeliveryDiagnostics({ uid, onClose }) {
         );
         const link = document.createElement('a');
         link.href = url;
-        link.download = `formie-delivery-${selected}.json`;
+        link.download = `formie-delivery-${uid}.json`;
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     };
@@ -738,7 +498,7 @@ export function DeliveryDiagnostics({ uid, onClose }) {
             const { data } = await Craft.sendActionRequest(
                 'POST',
                 'formie/delivery/export-bundle',
-                { data: { uid: selected } },
+                { data: { uid } },
             );
             download(data);
         } catch {
@@ -751,22 +511,13 @@ export function DeliveryDiagnostics({ uid, onClose }) {
         }
     };
 
-    const canReconcile =
-        bundle?.canReconcile && ['sending', 'unknown'].includes(bundle.status);
-    const canForce =
-        bundle?.canForce && !['sending', 'unknown'].includes(bundle.status);
     const diagnosis = bundle ? diagnoseDelivery(bundle) : null;
 
     return (
         <>
-            {!selected && error && (
-                <Alert variant="error" size="sm" announce="assertive">
-                    {error}
-                </Alert>
-            )}
             <Dialog
                 className="formie-delivery-diagnostics-dialog"
-                open={Boolean(selected)}
+                open={open}
                 label={Craft.t('formie', 'Formie Delivery Diagnostics')}
                 size="wide"
                 style={{
@@ -778,7 +529,7 @@ export function DeliveryDiagnostics({ uid, onClose }) {
                 }}
                 onPkOpenChange={(event) => {
                     if (!(event.detail?.open ?? event.target?.open)) {
-                        setSelected(null);
+                        setOpen(false);
                         onClose?.();
                     }
                 }}
@@ -800,35 +551,10 @@ export function DeliveryDiagnostics({ uid, onClose }) {
                                 bundle={bundle}
                                 onExport={exportBundle}
                             />
-                            {selected !== uid && (
-                                <Button
-                                    type="button"
-                                    disabled={busy}
-                                    onClick={() => setSelected(uid)}
-                                >
-                                    {Craft.t(
-                                        'formie',
-                                        'Back to original delivery',
-                                    )}
-                                </Button>
-                            )}
                             <DiagnosticDetails
                                 key={bundle.uid}
                                 bundle={bundle}
-                                overview={
-                                    <DeliveryOverview
-                                        diagnosis={diagnosis}
-                                        bundle={bundle}
-                                        canReconcile={canReconcile}
-                                        canForce={canForce}
-                                        busy={busy}
-                                        notice={notice}
-                                        reason={reason}
-                                        onReasonChange={setReason}
-                                        onAction={act}
-                                        onSelect={setSelected}
-                                    />
-                                }
+                                overview={<Diagnosis diagnosis={diagnosis} />}
                             />
                         </>
                     )}

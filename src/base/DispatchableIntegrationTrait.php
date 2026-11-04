@@ -10,14 +10,6 @@ trait DispatchableIntegrationTrait
     // Public Methods
     // =========================================================================
 
-    /** Built-in HTTP providers route every side effect through executeDeliveryWrite(). */
-    public function supportsDeliveryWriteTracking(): bool
-    {
-        // Third-party implementations and subclasses must explicitly opt in;
-        // their payload or transport overrides may bypass the guarded writes.
-        return str_starts_with(static::class, 'verbb\\formie\\integrations\\') && !static::hasLegacyPayloadOverride();
-    }
-
     /** Runner-facing lifecycle; providers normally implement executePayload(). */
     public function execute(IntegrationRunContext $context): IntegrationResult
     {
@@ -26,6 +18,7 @@ trait DispatchableIntegrationTrait
         if (static::hasLegacyPayloadOverride() && !$this->_executingLegacyPayload) {
             return $this->executeLegacyPayload($context);
         }
+
         return $this->executePayload($context->submission);
     }
 
@@ -35,6 +28,6 @@ trait DispatchableIntegrationTrait
 
     protected function executePayload(Submission $submission): IntegrationResult
     {
-        return IntegrationResult::rejected('payload_handler_missing');
+        return IntegrationResult::failed('payload_handler_missing');
     }
 }

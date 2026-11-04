@@ -8,7 +8,7 @@ use Throwable;
 
 use GuzzleHttp\Exception\RequestException;
 
-/** Describes delivery certainty. Unknown results require reconciliation, never blind retry. */
+/** A delivery either passes or fails. Retrying a failed delivery always runs it again. */
 final class IntegrationResult
 {
     // Static Methods
@@ -24,6 +24,7 @@ final class IntegrationResult
         return new self(IntegrationStatus::Skipped, code: $code);
     }
 
+    /** @deprecated Use failed(). A rejection is a failure, and keeps its code. */
     public static function rejected(string $code = 'provider_rejected'): self
     {
         return new self(IntegrationStatus::Rejected, code: $code);
@@ -34,6 +35,7 @@ final class IntegrationResult
         return new self(IntegrationStatus::Failed, code: $code, retryable: $retryable);
     }
 
+    /** @deprecated Use failed(). An unconfirmed outcome is a failure, and keeps its code. */
     public static function unknown(string $code = 'outcome_unknown'): self
     {
         return new self(IntegrationStatus::Unknown, code: $code);
@@ -41,21 +43,19 @@ final class IntegrationResult
 
     public static function fromException(Throwable $error): self
     {
+        $status = null;
+
         do {
             if ($error instanceof IntegrationStepException) {
                 return $error->result;
             }
 
             if ($error instanceof RequestException) {
-                $status = $error->getResponse()?->getStatusCode();
-
-                if ($status !== null && $status >= 400 && $status < 500 && !in_array($status, [408, 409, 429], true)) {
-                    return self::rejected('http_' . $status);
-                }
+                $status ??= $error->getResponse()?->getStatusCode();
             }
         } while ($error = $error->getPrevious());
 
-        return self::unknown();
+        return self::failed($status !== null ? 'http_' . $status : 'delivery_failed');
     }
 
     public static function fromStorage(array $value): self
@@ -79,6 +79,7 @@ final class IntegrationResult
     public readonly IntegrationStatus $status;
     public readonly string $message;
     public readonly string $code;
+    /** @deprecated Every failure can be retried. */
     public readonly bool $retryable;
     public readonly ?string $providerId;
     public readonly array $diagnostics;
@@ -91,14 +92,17 @@ final class IntegrationResult
 
     public function __construct(IntegrationStatus $status, string $message = '', string $code = '', bool $retryable = false, ?string $providerId = null, array $diagnostics = [], array $outputs = [], bool $failQueue = true)
     {
+        // Results from custom providers and earlier releases can still use the retired statuses.
+        $status = in_array($status, [IntegrationStatus::Rejected, IntegrationStatus::Unknown], true) ? IntegrationStatus::Failed : $status;
+
         $this->status = $status;
         $this->message = $message;
         $this->code = $code;
-        $this->retryable = $status === IntegrationStatus::Failed && $retryable;
+        $this->retryable = $status === IntegrationStatus::Failed;
         $this->providerId = $providerId;
         $this->diagnostics = $diagnostics;
         $this->outputs = $outputs;
-        $this->failQueue = $status === IntegrationStatus::Unknown || $failQueue;
+        $this->failQueue = $failQueue;
     }
 
     public function withOutputs(array $outputs): self
@@ -121,9 +125,10 @@ final class IntegrationResult
         return $this->status === IntegrationStatus::Succeeded;
     }
 
+    /** @deprecated Nothing needs confirming. A failed delivery can always be retried. */
     public function requiresReconciliation(): bool
     {
-        return $this->status === IntegrationStatus::Unknown;
+        return false;
     }
 
     public function toStorage(): array

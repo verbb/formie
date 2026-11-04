@@ -106,23 +106,21 @@ it('migrates persisted plans and secrets idempotently without dispatching', func
     expect($hydrated->integrationDispatch['steps'][0]['execution'])->toBe('synchronous');
 });
 
-it('accepts legacy delivery fingerprints during the operational-crypto transition', function () {
+it('keeps the deprecated fingerprint methods working without letting them block a delivery', function () {
     $form = formie()->form()->singleLineTextField('name')->create();
     $submission = formie()->submission($form)->with(['name' => 'Fingerprint transition'])->save();
     $attempts = Formie::$plugin->getDeliveryAttempts();
-    $configuration = ['binding' => ['enabled' => true]];
-    $fingerprints = $attempts->operationFingerprints($submission, $configuration);
-    expect($fingerprints)->toHaveCount(2);
+    expect($attempts->operationFingerprints($submission, ['binding' => ['enabled' => true]]))->toHaveCount(2);
     $context = new IntegrationExecutionContext($submission->id, $form->id, 'transition', 'transition-' . uniqid());
-    $uid = $attempts->prepare($context, 'integration', ['acceptedFingerprint' => $fingerprints[1]]);
-    $result = $attempts->executePrepared($uid, $fingerprints, static fn() => IntegrationResult::succeeded());
+    $uid = $attempts->prepare($context, 'integration');
+    $result = $attempts->executePrepared($uid, 'not-the-current-fingerprint', static fn() => IntegrationResult::succeeded());
     expect($result->status)->toBe(IntegrationStatus::Succeeded);
 });
 
-it('distinguishes finalized delivery from successful delivery', function (string $status, bool $finalized) {
+it('finalizes every recorded delivery status whether or not it succeeded', function (string $status, bool $finalized) {
     expect(IntegrationStatus::tryFrom($status)?->isFinalized() ?? false)->toBe($finalized);
     expect(IntegrationDispatchPlan::fromFormSettings(['completionPolicy' => 'successful'])->toSettingsArray())->not->toHaveKey('completionPolicy');
-})->with([['succeeded', true], ['skipped', true], ['failed', true], ['rejected', true], ['unknown', false], ['pending', false], ['sending', false]]);
+})->with([['succeeded', true], ['skipped', true], ['failed', true], ['rejected', true], ['unknown', true], ['pending', false], ['sending', false]]);
 
 it('preserves legacy queue locators without restoring their debug payloads', function () {
     $job = new \verbb\formie\jobs\TriggerIntegration();
@@ -132,18 +130,16 @@ it('preserves legacy queue locators without restoring their debug payloads', fun
     expect(serialize(unserialize($serialized)))->toBe($serialized);
 });
 
-it('denies reconciliation without authority', function () {
+it('ignores the deprecated reconcile method', function () {
     $form = formie()->form()->singleLineTextField('name')->create();
     $submission = formie()->submission($form)->save();
     $attempts = Formie::$plugin->getDeliveryAttempts();
     $uid = $attempts->prepare(new IntegrationExecutionContext($submission->id, $form->id, 'permissions', 'permissions'), 'integration');
     $attempts->execute($uid, fn() => IntegrationResult::unknown());
-    $identity = Craft::$app->getUser()->getIdentity();
-    Craft::$app->getUser()->setIdentity(null);
-    try {
-        expect(fn() => $attempts->reconcile($uid, IntegrationResult::succeeded(), 'Confirmed externally'))->toThrow(RuntimeException::class);
-    } finally { Craft::$app->getUser()->setIdentity($identity); }
-    expect($attempts->get($uid)['status'])->toBe('unknown');
+    $attempts->reconcile($uid, IntegrationResult::succeeded(), 'Confirmed externally');
+    expect($attempts->get($uid)['status'])->toBe('failed')
+        ->and($attempts->hasReconciliation($uid))->toBeFalse()
+        ->and($attempts->execute($uid, fn() => IntegrationResult::succeeded())->status)->toBe(IntegrationStatus::Succeeded);
 });
 
 class DeliveryLaneProvider extends \verbb\formie\base\Integration
@@ -159,18 +155,18 @@ class PreparedMappingProvider extends DeliveryLaneProvider
     #[\verbb\formie\attributes\FormIntegrationSetting]
     public string $mapping = 'original';
 
-    public static int $calls = 0;
+    public static array $mappings = [];
     public function sendPayload(\verbb\formie\elements\Submission $submission): IntegrationResult {
-        self::$calls++;
+        self::$mappings[] = $this->mapping;
         return IntegrationResult::failed('synthetic_failure', true);
     }
 }
 
-it('rejects a queued integration mapping changed before first execution or retry', function(bool $retry) {
+it('uses a queued integration mapping changed before first execution or retry', function(bool $retry) {
     $form = formie()->form()->singleLineTextField('name')->create();
     $submission = formie()->submission($form)->save();
     $mapping = 'original';
-    PreparedMappingProvider::$calls = 0;
+    PreparedMappingProvider::$mappings = [];
     $listener = function($event) use ($form, &$mapping) {
         if ($event->form->id === $form->id) $event->integrations[] = new PreparedMappingProvider(['name' => 'Prepared mapping', 'handle' => 'preparedMapping', 'enabled' => true, 'mapping' => $mapping]);
     };
@@ -181,8 +177,8 @@ it('rejects a queued integration mapping changed before first execution or retry
         $uid = (new Query())->select('uid')->from(\verbb\formie\services\DeliveryAttempts::TABLE)->where(['submissionId' => $submission->id, 'step' => 'dispatch'])->scalar();
         if ($retry) expect($runner->runQueuedAttempt($uid)->code)->toBe('batch_failed');
         $mapping = 'changed';
-        expect($runner->runQueuedAttempt($uid)->code)->toBe('operation_stale')
-            ->and(PreparedMappingProvider::$calls)->toBe($retry ? 1 : 0);
+        expect($runner->runQueuedAttempt($uid)->code)->toBe('batch_failed')
+            ->and(PreparedMappingProvider::$mappings)->toBe($retry ? ['original', 'changed'] : ['changed']);
     } finally {
         \yii\base\Event::off(\verbb\formie\services\Integrations::class, \verbb\formie\services\Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $listener);
     }
@@ -213,7 +209,7 @@ it('reports exactly one completion result for normal early returns and provider 
         if (in_array($mode, ['missing', 'stopped'], true)) {
             $runner->runSteps($submission, ['missing'], ['skipRemaining' => $mode === 'stopped'], executionKey: 'result-test');
         } else {
-            if ($mode === 'unresolved') {
+            if ($mode === 'earlier-failure') {
                 $uid = Formie::$plugin->getDeliveryAttempts()->prepare(new IntegrationExecutionContext($submission->id, $form->id, 'resultFixture', 'previous-run'), 'integration');
                 Formie::$plugin->getDeliveryAttempts()->execute($uid, fn() => IntegrationResult::unknown());
             }
@@ -225,7 +221,7 @@ it('reports exactly one completion result for normal early returns and provider 
     } finally {
         foreach ([$runner::EVENT_SKIPPED, $runner::EVENT_RESULT] as $name) $runner->off($name, $listener);
     }
-})->with([['success', 'succeeded'], ['skip', 'skipped'], ['invalid-settings', 'rejected'], ['invalid-conditions', 'rejected'], ['exception', 'unknown'], ['unresolved', 'unknown'], ['missing', 'skipped'], ['stopped', 'skipped']]);
+})->with([['success', 'succeeded'], ['skip', 'skipped'], ['invalid-settings', 'failed'], ['invalid-conditions', 'failed'], ['exception', 'failed'], ['earlier-failure', 'succeeded'], ['missing', 'skipped'], ['stopped', 'skipped']]);
 
 it('runs the complete synchronous lane before enqueueing the queued lane and honors all three notification timings', function () {
     $form = formie()->form()->singleLineTextField('name')->create();
@@ -266,12 +262,6 @@ it('runs the complete synchronous lane before enqueueing the queued lane and hon
         $attempts = Formie::$plugin->getDeliveryAttempts();
         $queued = (new Query())->from($attempts::TABLE)->where(['submissionId' => $submission->id, 'step' => 'dispatch'])->one();
         expect($queued['status'])->toBe('pending');
-        $fingerprintData = new ReflectionMethod($attempts, '_operationFingerprintData');
-        $reloaded = \verbb\formie\elements\Submission::find()->id($submission->id)->status(null)->isIncomplete(null)->isSpam(null)->one();
-        expect($fingerprintData->invoke($attempts, $reloaded, []))->toBe($fingerprintData->invoke($attempts, $submission, []));
-        expect(array_map(fn($n) => $attempts->notificationConfiguration($n), $reloaded->getForm()->getNotifications()))->toBe(array_map(fn($n) => $attempts->notificationConfiguration($n), $submission->getForm()->getNotifications()));
-        expect(Formie::$plugin->getIntegrationRunner()->dispatchFingerprint($reloaded, ['q1', 'q2']))->toBe($attempts->data($queued['uid'])['acceptedFingerprint']);
-        // The worker reloads the form accepted before enqueueing.
         expect(Formie::$plugin->getIntegrationRunner()->runQueuedAttempt($queued['uid'])->status)->toBe(IntegrationStatus::Succeeded);
         expect(DeliveryLaneProvider::$order)->toBe(['beforeIntegrations', 's1', 's2', 'afterSynchronousIntegrations', 'q1', 'q2', 'afterFinalizedDeliveryAttempts']);
     } finally {
@@ -281,7 +271,7 @@ it('runs the complete synchronous lane before enqueueing the queued lane and hon
     }
 });
 
-it('waits for finalized results of the same run without implicit success gating', function (string $status, string $policy, bool $expected) {
+it('waits for results of the same run without implicit success gating', function (string $status, string $policy) {
     $form = formie()->form()->singleLineTextField('name')->create();
     $form->settings->integrationDispatch = ['enabled' => true, 'completionPolicy' => $policy, 'notificationTiming' => 'afterFinalizedDeliveryAttempts', 'steps' => [['handle' => 'remote', 'execution' => 'queued']]];
     $form->setNotifications([new \verbb\formie\models\Notification(['enabled' => true])]);
@@ -301,14 +291,14 @@ it('waits for finalized results of the same run without implicit success gating'
         $dispatcher->sendNotifications($submission, $dispatcher::PHASE_AFTER, 'different-run');
         expect($recorder->sent)->toBe(0);
         $dispatcher->sendNotifications($submission, $dispatcher::PHASE_AFTER, 'policy-run');
-        expect($recorder->sent)->toBe($expected ? 1 : 0);
+        expect($recorder->sent)->toBe(1);
     } finally { Formie::$plugin->set('notifications', $original); }
 })->with([
-    ['succeeded', 'successful', true], ['skipped', 'successful', true], ['failed', 'successful', true], ['rejected', 'successful', true], ['unknown', 'successful', false],
-    ['succeeded', 'finalized', true], ['skipped', 'finalized', true], ['failed', 'finalized', true], ['rejected', 'finalized', true], ['unknown', 'finalized', false],
+    ['succeeded', 'successful'], ['skipped', 'successful'], ['failed', 'successful'], ['rejected', 'successful'], ['unknown', 'successful'],
+    ['succeeded', 'finalized'], ['skipped', 'finalized'], ['failed', 'finalized'], ['rejected', 'finalized'], ['unknown', 'finalized'],
 ]);
 
-it('requires scoped force authority and a reason and records the ordinary ineligible decision', function () {
+it('requires form access to force a run and records the ordinary ineligible decision', function () {
     $form = formie()->form()->singleLineTextField('name')->create();
     $submission = formie()->submission($form)->save();
     $provider = new class(['name' => 'Force fixture', 'handle' => 'forceFixture']) extends \verbb\formie\base\Integration {
@@ -322,34 +312,55 @@ it('requires scoped force authority and a reason and records the ordinary inelig
     $identity = Craft::$app->getUser()->getIdentity();
     try {
         expect($runner->runIntegration($provider, $submission, 'manual', 'synchronous', ['operatorInitiated' => true])->status)->toBe(IntegrationStatus::Skipped);
-        Craft::$app->getUser()->setIdentity(null);
-        expect(fn() => $runner->runIntegration($provider, $submission, 'denied', 'synchronous', ['force' => true, 'reason' => 'Check']))->toThrow(RuntimeException::class);
-        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
-        expect(fn() => $runner->runIntegration($provider, $submission, 'no-reason', 'synchronous', ['force' => true]))->toThrow(RuntimeException::class);
-        expect($runner->runIntegration($provider, $submission, 'force', 'synchronous', ['force' => true, 'reason' => 'Authorized synthetic test'])->status)->toBe(IntegrationStatus::Succeeded);
+        \Tests\Support\WebRequestTestHelper::withWebRequestContext(function() use ($runner, $provider, $submission): void {
+            Craft::$app->getUser()->setIdentity(null);
+            expect(fn() => $runner->runIntegration($provider, $submission, 'denied', 'synchronous', ['force' => true]))->toThrow(RuntimeException::class);
+        });
+        // Developers don't need a permission or a reason, so a forced run needs neither.
+        expect($runner->runIntegration($provider, $submission, 'force', 'synchronous', ['force' => true])->status)->toBe(IntegrationStatus::Succeeded);
         expect($provider::$calls)->toBe(1);
         $attempts = Formie::$plugin->getDeliveryAttempts();
         $uid = (new Query())->select('uid')->from($attempts::TABLE)->where(['submissionId' => $submission->id, 'executionUid' => 'force'])->scalar();
         $context = $attempts->context($uid);
-        expect($context->eligible)->toBeFalse()->and($context->overrides)->toBe(['conditions', 'optIn'])->and($context->reason)->toBe('Authorized synthetic test');
+        expect($context->eligible)->toBeFalse()->and($context->overrides)->toBe(['conditions', 'optIn'])->and($context->reason)->toBe('force');
     } finally { Craft::$app->getUser()->setIdentity($identity); }
 });
 
-it('projects a reconciled integration outcome before finalizing delivery notifications', function () {
+it('projects a failed integration and finalizes the run, then updates the projection on retry', function () {
     $form = formie()->form()->singleLineTextField('name')->create();
-    $form->settings->integrationDispatch = ['enabled' => true, 'steps' => [['handle' => 'reconciledProvider', 'execution' => 'queued']], 'notificationTiming' => 'afterFinalizedDeliveryAttempts'];
+    $form->settings->integrationDispatch = ['enabled' => true, 'steps' => [['handle' => 'retriedProvider', 'execution' => 'queued']], 'notificationTiming' => 'afterFinalizedDeliveryAttempts'];
     expect(Craft::$app->getElements()->saveElement($form, false))->toBeTrue();
     $submission = formie()->submission($form)->save();
-    $attempts = Formie::$plugin->getDeliveryAttempts();
-    $uid = $attempts->prepare(new IntegrationExecutionContext($submission->id, $form->id, 'reconciledProvider', 'reconciled-run', 'queued'), 'integration');
-    $attempts->execute($uid, fn() => IntegrationResult::unknown());
-    $identity = Craft::$app->getUser()->getIdentity();
+    $provider = new class(['name' => 'Retried provider', 'handle' => 'retriedProvider', 'enabled' => true]) extends DeliveryLaneProvider {
+        public static bool $fail = true;
+        public function sendPayload(\verbb\formie\elements\Submission $submission): IntegrationResult { return self::$fail ? IntegrationResult::failed('synthetic_failure') : IntegrationResult::succeeded(); }
+    };
+    $listener = function($event) use ($form, $provider) {
+        if ($event->form->id === $form->id) $event->integrations[] = $provider;
+    };
+    $finalized = [];
+    $dispatcher = Formie::$plugin->getIntegrationDispatcher();
+    $onFinalized = function($event) use (&$finalized) { $finalized[] = $event->batch->accepts(); };
+    \yii\base\Event::on(\verbb\formie\services\Integrations::class, \verbb\formie\services\Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $listener);
+    $dispatcher->on($dispatcher::EVENT_FINALIZED, $onFinalized);
     try {
-        Craft::$app->getUser()->setIdentity(\craft\elements\User::find()->admin(true)->one());
-        $attempts->reconcile($uid, IntegrationResult::succeeded('verified-provider-id'), 'Provider confirmed delivery.');
-        $fresh = \verbb\formie\elements\Submission::find()->id($submission->id)->status(null)->one();
-        $projection = Formie::$plugin->getIntegrationDispatcher()->loadRunResults($fresh, 'reconciled-run')->getResult('reconciledProvider');
-        expect($projection['status'])->toBe('succeeded')->and($projection['executionUid'])->toBe('reconciled-run');
+        $runner = Formie::$plugin->getIntegrationRunner();
+        $runner->queueSteps($submission, ['retriedProvider'], \verbb\formie\enums\SubmissionOperation::SUBMIT, ['triggerEvent' => 'submit'], executionKey: 'retried-run');
+        $attempts = Formie::$plugin->getDeliveryAttempts();
+        $uid = (new Query())->select('uid')->from($attempts::TABLE)->where(['submissionId' => $submission->id, 'step' => 'dispatch'])->scalar();
+        $projection = function() use ($submission, $dispatcher) {
+            $fresh = \verbb\formie\elements\Submission::find()->id($submission->id)->status(null)->one();
+            return $dispatcher->loadRunResults($fresh, 'retried-run')->getResult('retriedProvider');
+        };
+        expect($runner->runQueuedAttempt($uid)->status)->toBe(IntegrationStatus::Failed);
+        expect($projection()['status'])->toBe('failed')->and($projection()['executionUid'])->toBe('retried-run');
         expect((new Query())->from($attempts::TABLE)->where(['submissionId' => $submission->id, 'step' => 'finalized', 'status' => 'succeeded'])->exists())->toBeTrue();
-    } finally { Craft::$app->getUser()->setIdentity($identity); }
+        expect($finalized)->toBe([false]);
+        $provider::$fail = false;
+        expect($runner->runQueuedAttempt($uid)->status)->toBe(IntegrationStatus::Succeeded);
+        expect($projection()['status'])->toBe('succeeded');
+    } finally {
+        $dispatcher->off($dispatcher::EVENT_FINALIZED, $onFinalized);
+        \yii\base\Event::off(\verbb\formie\services\Integrations::class, \verbb\formie\services\Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $listener);
+    }
 });

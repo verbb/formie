@@ -401,7 +401,6 @@ class Emails extends Component
             $this->_attachPdfToEmail($notification, $newEmail, $submission);
         }
 
-        $deliveryStarted = false;
 
         try {
             $event = new MailEvent([
@@ -438,8 +437,6 @@ class Emails extends Component
                 ]);
             }
 
-            $deliveryStarted = true;
-
             if (!Craft::$app->getMailer()->send($newEmail)) {
                 $mailerError = $this->_formatMailerError($newEmail);
 
@@ -464,7 +461,7 @@ class Emails extends Component
                     Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
                 }
 
-                return ['error' => $error, 'deliveryOutcomeUnknown' => $deliveryStarted];
+                return ['error' => $error];
             }
 
             // Save the sent notification, as successful
@@ -492,7 +489,7 @@ class Emails extends Component
             // Save the sent notification, as failed
             Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail, false, $error);
 
-            return ['error' => $error, 'deliveryOutcomeUnknown' => $deliveryStarted];
+            return ['error' => $error];
         }
 
         // Raise an 'afterSendEmail' event

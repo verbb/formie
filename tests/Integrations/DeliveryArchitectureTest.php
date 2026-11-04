@@ -4,7 +4,6 @@ use craft\helpers\Json;
 use verbb\formie\Formie;
 use verbb\formie\compatibility\integrations\IntegrationResultCompatibility;
 use verbb\formie\enums\IntegrationStatus;
-use verbb\formie\errors\IntegrationStepException;
 use verbb\formie\helpers\DeliveryDiagnostics;
 use verbb\formie\models\IntegrationBatchResult;
 use verbb\formie\models\IntegrationExecutionContext;
@@ -29,10 +28,10 @@ it('normalizes all result states without truthy remote responses', function () {
     expect(IntegrationResultCompatibility::normalize(true)->status)->toBe(IntegrationStatus::Succeeded);
     expect(IntegrationResultCompatibility::normalize(false)->status)->toBe(IntegrationStatus::Failed);
     expect(IntegrationResultCompatibility::normalize(new IntegrationResponse(false))->status)->toBe(IntegrationStatus::Failed);
-    expect(IntegrationResultCompatibility::normalize(['success' => true])->status)->toBe(IntegrationStatus::Unknown);
+    expect(IntegrationResultCompatibility::normalize(['success' => true])->status)->toBe(IntegrationStatus::Failed);
     expect(IntegrationResult::skipped()->status)->toBe(IntegrationStatus::Skipped);
-    expect(IntegrationResult::rejected()->status)->toBe(IntegrationStatus::Rejected);
-    expect((new IntegrationResult(IntegrationStatus::Unknown, retryable: true))->retryable)->toBeFalse();
+    expect(IntegrationResult::rejected()->status)->toBe(IntegrationStatus::Failed);
+    expect((new IntegrationResult(IntegrationStatus::Unknown))->status)->toBe(IntegrationStatus::Failed);
     $batch = new IntegrationBatchResult();
     $batch->record('a', IntegrationResult::succeeded());
     $batch->record('b', IntegrationResult::skipped());
@@ -52,20 +51,21 @@ it('replays confirmed child writes without repeating external effects', function
     $first = $attempts->write($context, 'create-contact', $parent, ['email' => 'person@example.test'], $send);
     $second = $attempts->write($context, 'create-contact', $parent, ['email' => 'person@example.test'], $send);
     expect($first)->toBe($second)->and($second['id'])->toBe('remote-123')->and($calls)->toBe(1);
-    expect(fn() => $attempts->write($context, 'create-contact', $parent, ['email' => 'changed@example.test'], $send))->toThrow(IntegrationStepException::class);
+    // A completed step stays done, even if its mapping has since changed.
+    expect($attempts->write($context, 'create-contact', $parent, ['email' => 'changed@example.test'], $send))->toBe($first);
     expect($calls)->toBe(1);
 });
 
-it('preserves unknown outcomes and never automatically repeats the write', function () {
-    $form = formie()->form(['title' => 'Unknown step replay'])->singleLineTextField('name')->create();
+it('fails on an exception and repeats the write when run again', function () {
+    $form = formie()->form(['title' => 'Failed step replay'])->singleLineTextField('name')->create();
     $submission = formie()->submission($form)->with(['name' => 'Person'])->save();
-    $context = new IntegrationExecutionContext($submission->id, $form->id, 'test', 'unknown');
+    $context = new IntegrationExecutionContext($submission->id, $form->id, 'test', 'failed-step');
     $attempts = Formie::$plugin->getDeliveryAttempts();
     $uid = $attempts->prepare($context, 'write');
     $calls = 0;
     $send = function () use (&$calls) { $calls++; throw new RuntimeException('possible remote acceptance'); };
-    expect($attempts->execute($uid, $send)->status)->toBe(IntegrationStatus::Unknown);
-    expect($attempts->execute($uid, $send)->status)->toBe(IntegrationStatus::Unknown)->and($calls)->toBe(1);
+    expect($attempts->execute($uid, $send)->status)->toBe(IntegrationStatus::Failed);
+    expect($attempts->execute($uid, $send)->status)->toBe(IntegrationStatus::Failed)->and($calls)->toBe(2);
 });
 
 it('retries definite failures while retaining append-only history and thin jobs', function () {
@@ -117,7 +117,7 @@ it('encrypts complete checkpoint evidence and redacts credentials before retenti
         ->and(substr_count($bundle, 'retained-value'))->toBe(125);
 });
 
-it('reports evidence limits and applies configured retention without discarding unresolved evidence', function () {
+it('reports evidence limits and applies configured retention without discarding pending evidence', function () {
     $form = formie()->form()->singleLineTextField('name')->create();
     $submission = formie()->submission($form)->save();
     $attempts = \verbb\formie\Formie::$plugin->getDeliveryAttempts();
@@ -174,13 +174,16 @@ it('migrates stored beta lane and notification timing names deliberately', funct
     expect($plan->notificationTiming)->toBe('afterFinalizedDeliveryAttempts');
 });
 
-it('blocks direct provider calls while a previous binding delivery remains unresolved', function () {
+it('allows direct provider calls while an earlier delivery of the binding is unfinished or failed', function () {
     $form = formie()->form()->singleLineTextField('name')->create();
     $submission = formie()->submission($form)->save();
     $attempts = Formie::$plugin->getDeliveryAttempts();
     $uid = $attempts->startDirect(new \verbb\formie\models\IntegrationExecutionContext($submission->id, $form->id, 'directProvider', 'first', 'synchronous'));
     expect($attempts->get($uid)['status'])->toBe('sending');
-    expect(fn() => $attempts->startDirect(new \verbb\formie\models\IntegrationExecutionContext($submission->id, $form->id, 'directProvider', 'second', 'synchronous')))->toThrow(\verbb\formie\errors\IntegrationStepException::class);
+    $second = $attempts->startDirect(new \verbb\formie\models\IntegrationExecutionContext($submission->id, $form->id, 'directProvider', 'second', 'synchronous'));
+    expect($attempts->get($second)['status'])->toBe('sending');
     $attempts->completeDirect($uid, \verbb\formie\models\IntegrationResult::unknown());
-    expect(fn() => $attempts->startDirect(new \verbb\formie\models\IntegrationExecutionContext($submission->id, $form->id, 'directProvider', 'third', 'synchronous')))->toThrow(\verbb\formie\errors\IntegrationStepException::class);
+    expect($attempts->get($uid)['status'])->toBe('failed');
+    $third = $attempts->startDirect(new \verbb\formie\models\IntegrationExecutionContext($submission->id, $form->id, 'directProvider', 'third', 'synchronous'));
+    expect($attempts->get($third)['status'])->toBe('sending');
 });

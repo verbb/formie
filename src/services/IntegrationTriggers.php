@@ -133,7 +133,8 @@ class IntegrationTriggers extends Component
         ]));
     }
 
-    public function forceIntegration(Integration $integration, Submission $submission, string $reason): IntegrationResult
+    /** @deprecated Nothing in the control panel uses this. Use runManualIntegration(), which respects conditions and opt-in. */
+    public function forceIntegration(Integration $integration, Submission $submission, string $reason = ''): IntegrationResult
     {
         $authority = $this->_operatorAuthority($submission, 'force');
 

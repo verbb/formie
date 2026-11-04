@@ -8,16 +8,19 @@ enum IntegrationStatus: string
 
     case Succeeded = 'succeeded';
     case Skipped = 'skipped';
-    case Rejected = 'rejected';
     case Failed = 'failed';
+
+    // Retired. Earlier releases stored these, and IntegrationResult reads both as failed.
+    case Rejected = 'rejected';
     case Unknown = 'unknown';
 
 
     // Public Methods
     // =========================================================================
 
+    /** @deprecated Every status is final. */
     public function isFinalized(): bool
     {
-        return $this !== self::Unknown;
+        return true;
     }
 }

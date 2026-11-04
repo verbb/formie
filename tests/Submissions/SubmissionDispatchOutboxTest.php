@@ -149,73 +149,106 @@ it('reuses completion identity for replay with another request identity but sepa
     expect($edits)->toHaveCount(2)->and(count(array_unique($edits)))->toBe(2)->and($edits)->not->toContain($row['uid']);
 });
 
-it('does not recover changed submission content under an old identity', function () {
+it('delivers current values when a submission changes before its dispatch runs', function () {
     [$form, $submission, $row] = interruptCompletionBeforeDispatch();
     $submission->setFieldValue('message', 'Changed after intent');
     expect(Craft::$app->getElements()->saveElement($submission, false))->toBeTrue();
-    $service = Formie::$plugin->getSubmissionDispatches();
-    $service->resume((int)$submission->id, $row['uid']);
-    $run = $service->get((int)$submission->id, $row['uid']);
-    expect($run->status)->toBe('needs-attention')->and($run->failureCode)->toBe('submission_changed')
-        ->and($run->schedulingComplete)->toBeFalse();
+    $delivered = null;
+    $capture = static function ($event) use ($form, &$delivered) {
+        if ($event->command->form->id === $form->id && $event->stage === Stage::DISPATCH->value) {
+            $delivered = $event->command->submission->getFieldValue('message');
+        }
+    };
+    Event::on(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_STAGE, $capture);
+    try {
+        $service = Formie::$plugin->getSubmissionDispatches();
+        $service->resume((int)$submission->id, $row['uid']);
+        $run = $service->get((int)$submission->id, $row['uid']);
+        expect($delivered)->toBe('Changed after intent')
+            ->and($run->status)->toBe('completed')
+            ->and($run->failureCode)->toBeNull()
+            ->and($run->schedulingComplete)->toBeTrue();
+    } finally {
+        Event::off(SubmissionWorkflow::class, SubmissionWorkflow::EVENT_BEFORE_STAGE, $capture);
+    }
 });
 
-it('distinguishes scheduled running completed failure and uncertain business runs', function () {
+it('queues a delivery again after a failed queue push', function (string $type) {
+    $form = formie()->form()->singleLineTextField('message')->create();
+    $submission = formie()->submission($form)->save();
+    $queue = Craft::$app->getQueue();
+    $pushes = 0;
+    $failing = static function (\yii\queue\PushEvent $event) use (&$pushes) {
+        $event->handled = true;
+        if (++$pushes === 1) {
+            throw new RuntimeException('Synthetic queue publication failure');
+        }
+    };
+    $queue->on(\yii\queue\Queue::EVENT_BEFORE_PUSH, $failing);
+    $send = static function () use ($type, $submission, $form): void {
+        if ($type === 'integration') {
+            Formie::$plugin->getIntegrationRunner()->queueSteps($submission, ['anyHandle'], SubmissionOperation::SUBMIT, ['triggerEvent' => 'submit'], executionKey: 'queue-push');
+        } else {
+            $notification = new \verbb\formie\models\Notification(['id' => 1, 'uid' => 'queue-push', 'formId' => $form->id]);
+            Formie::$plugin->getNotifications()->sendNotification($notification, $submission, true, 'queue-push');
+        }
+    };
+    try {
+        expect($send)->toThrow(RuntimeException::class, 'Synthetic queue publication failure');
+        $send();
+        expect($pushes)->toBe(2);
+    } finally {
+        $queue->off(\yii\queue\Queue::EVENT_BEFORE_PUSH, $failing);
+    }
+})->with(['integration', 'notification']);
+
+it('distinguishes scheduled running completed and failed business runs', function () {
     $form = formie()->form()->singleLineTextField('message')->create();
     $submission = formie()->submission($form)->save();
     $attempts = Formie::$plugin->getDeliveryAttempts();
     $runs = Formie::$plugin->getSubmissionDispatches();
-    foreach (['success' => IntegrationResult::succeeded(), 'failure' => IntegrationResult::failed(), 'uncertain' => IntegrationResult::unknown()] as $key => $result) {
+    foreach (['success' => IntegrationResult::succeeded(), 'failure' => IntegrationResult::failed(), 'rejected' => IntegrationResult::rejected(), 'unknown' => IntegrationResult::unknown()] as $key => $result) {
         $uid = $attempts->prepare(new IntegrationExecutionContext($submission->id, $form->id, 'outbox-fixture', $key), 'test');
         expect($runs->get($submission->id, $key)->status)->toBe('scheduled');
         $attempts->execute($uid, function () use ($submission, $key, $result, $runs) {
             expect($runs->get($submission->id, $key)->status)->toBe('running');
             return $result;
         });
-        expect($runs->get($submission->id, $key)->status)->toBe(match ($key) {
-            'success' => 'completed', 'failure' => 'completed-with-failures', 'uncertain' => 'needs-attention',
-        });
+        expect($runs->get($submission->id, $key)->status)->toBe($key === 'success' ? 'completed' : 'completed-with-failures');
     }
 });
 
-it('retains unpublished intent and claims repeated scheduling idempotently', function () {
+it('leaves an interrupted dispatch alone when scheduled tasks run', function () {
     [$form, $submission, $row] = interruptCompletionBeforeDispatch();
     $queue = Craft::$app->getQueue();
     $jobs = [];
-    $fail = true;
-    $capture = static function (\yii\queue\PushEvent $event) use (&$jobs, &$fail, $row) {
+    $capture = static function (\yii\queue\PushEvent $event) use (&$jobs) {
         if ($event->job instanceof \verbb\formie\jobs\DispatchSubmission) {
             $event->handled = true;
-            if ($event->job->dispatchUid === $row['uid']) {
-                if ($fail) {
-                    throw new RuntimeException('Synthetic queue publication failure');
-                }
-                $jobs[] = $event->job;
-            }
+            $jobs[] = $event->job;
         }
     };
     $queue->on(\yii\queue\Queue::EVENT_BEFORE_PUSH, $capture);
     try {
-        $service = Formie::$plugin->getSubmissionDispatches();
-        expect(fn() => $service->recover(500))->toThrow(RuntimeException::class, 'Synthetic queue publication failure');
-        expect($service->get($submission->id, $row['uid'])->status)->toBe('ready');
-        $fail = false;
-        $service->recover(500);
-        $service->recover(500);
-        expect($jobs)->toHaveCount(1)->and($service->get($submission->id, $row['uid'])->status)->toBe('scheduled');
-        expect($jobs[0]->submissionId)->toBe($submission->id)->and($jobs[0]->dispatchUid)->toBe($row['uid']);
-        // A lost queue publication is recoverable. An already-published duplicate
-        // still cannot repeat the business run when workers eventually execute it.
-        Craft::$app->getDb()->createCommand()->update(SubmissionDispatches::TABLE, ['scheduledAt' => gmdate('Y-m-d H:i:s', time() - 601)], ['submissionId' => $submission->id, 'uid' => $row['uid']])->execute();
-        $service->recover(500);
-        expect($jobs)->toHaveCount(2);
-        foreach ($jobs as $job) {
-            $service->resume($job->submissionId, $job->dispatchUid);
+        $controller = new \verbb\formie\console\controllers\CronController('cron', Formie::$plugin);
+        $controller->only = 'deliveries';
+        ob_start();
+        try {
+            expect($controller->actionRun())->toBe(\yii\console\ExitCode::OK);
+        } finally {
+            ob_end_clean();
         }
-        expect($service->get($submission->id, $row['uid'])->status)->toBe('completed');
+        // Re-sending is a person's choice, so nothing republishes this on its own.
+        expect($jobs)->toBe([])
+            ->and(Formie::$plugin->getSubmissionDispatches()->get($submission->id, $row['uid'])->status)->toBe('ready');
     } finally {
         $queue->off(\yii\queue\Queue::EVENT_BEFORE_PUSH, $capture);
     }
+});
+
+it('removes the delivery console commands', function () {
+    expect(class_exists(\verbb\formie\console\controllers\DeliveriesController::class))->toBeFalse()
+        ->and(method_exists(SubmissionDispatches::class, 'recover'))->toBeFalse();
 });
 
 it('serializes independent outbox recovery workers', function () {

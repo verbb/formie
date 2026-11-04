@@ -74,16 +74,54 @@ it('replays the durable result through every early delivery branch', function (s
     }
 })->with(['disabled', 'conditions', 'settings', 'legacy']);
 
-it('keeps the failure policy when replaying a failed disabled binding', function () {
+it('reads current settings when running a failed binding that has since been disabled', function () {
     $form = formie()->form()->create();
     $submission = formie()->submission($form)->save();
     $run = 'failed-replay';
     $attempts = Formie::$plugin->getDeliveryAttempts();
     $uid = $attempts->prepare(new IntegrationExecutionContext($submission->id, $form->id, 'disabled', $run), 'integration');
     $attempts->execute($uid, fn() => IntegrationResult::failed('permanent_failure'));
-    $batch = Formie::$plugin->getIntegrationRunner()->runSteps($submission, ['disabled', 'following'], [], new IntegrationDispatchPlan(['failurePolicy' => 'stop']), $run);
-    expect($batch->stoppedOnFailure())->toBeTrue()
-        ->and($batch->accepts())->toBeFalse()
-        ->and($batch->results()[0]['result']->code)->toBe('permanent_failure')
-        ->and($batch->results()[1]['result']->code)->toBe('previous_step_failed');
+    $batch = Formie::$plugin->getIntegrationRunner()->runSteps($submission, ['disabled'], [], new IntegrationDispatchPlan(['failurePolicy' => 'stop']), $run);
+    expect($batch->stoppedOnFailure())->toBeFalse()
+        ->and($batch->accepts())->toBeTrue()
+        ->and($batch->results()[0]['result']->code)->toBe('disabled_or_missing')
+        ->and($attempts->get($uid)['status'])->toBe('skipped');
+});
+
+it('stops on a failure, then runs the later steps once a retry fixes it', function () {
+    $form = formie()->form()->create();
+    $submission = formie()->submission($form)->save();
+    $provider = fn(string $handle) => new class(['name' => $handle, 'handle' => $handle, 'enabled' => true]) extends ResultReplayIntegration {
+        public static bool $fail = true;
+        public static array $sent = [];
+        protected function executePayload(Submission $submission): IntegrationResult
+        {
+            self::$sent[] = $this->handle;
+            return self::$fail && $this->handle === 'first' ? IntegrationResult::failed('synthetic_failure') : IntegrationResult::succeeded();
+        }
+    };
+    $first = $provider('first');
+    $following = $provider('following');
+    $first::$fail = true;
+    $first::$sent = [];
+    $listener = function($event) use ($form, $first, $following) {
+        if ($event->form->id === $form->id) array_push($event->integrations, $first, $following);
+    };
+    \yii\base\Event::on(\verbb\formie\services\Integrations::class, \verbb\formie\services\Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $listener);
+    try {
+        $plan = new IntegrationDispatchPlan(['failurePolicy' => 'stop']);
+        $runner = Formie::$plugin->getIntegrationRunner();
+        $batch = $runner->runSteps($submission, ['first', 'following'], [], $plan, 'stop-retry');
+        expect($batch->stoppedOnFailure())->toBeTrue()
+            ->and($batch->results()[0]['result']->code)->toBe('synthetic_failure')
+            ->and($batch->results()[1]['result']->code)->toBe('previous_step_failed')
+            ->and($first::$sent)->toBe(['first']);
+        $first::$fail = false;
+        $batch = $runner->runSteps($submission, ['first', 'following'], [], $plan, 'stop-retry');
+        expect($batch->stoppedOnFailure())->toBeFalse()
+            ->and($batch->accepts())->toBeTrue()
+            ->and($first::$sent)->toBe(['first', 'first', 'following']);
+    } finally {
+        \yii\base\Event::off(\verbb\formie\services\Integrations::class, \verbb\formie\services\Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, $listener);
+    }
 });

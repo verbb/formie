@@ -147,7 +147,6 @@ class SubmissionWorkflow extends Component
 
                 if ($stage === Stage::PERSIST && !$context->outcome) {
                     $this->_raisePersistenceEvents($context);
-                    Formie::$plugin->getSubmissionDispatches()->updateAcceptedVersion($context);
                 }
 
                 if ($stage === Stage::DISPATCH) {

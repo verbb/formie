@@ -11,7 +11,5 @@ final class IntegrationDeliveryState
     public bool $skipped = false;
     public bool $handledError = false;
     public bool $writeAccepted = false;
-    public bool $writeStarted = false;
-    public bool $uncertain = false;
     public array $outputs = [];
 }

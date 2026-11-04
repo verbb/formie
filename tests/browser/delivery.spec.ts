@@ -16,71 +16,7 @@ async function login(page: Page, username = 'admin') {
     await page.waitForURL((url) => !url.pathname.endsWith('/login'));
 }
 
-test('recovers uncertain child operations and their parent delivery from Diagnostics', async ({
-    page,
-}) => {
-    const data = fixture();
-    await login(page);
-    await page.goto(`/admin/utilities/queue-manager/${data.recovery.jobId}`);
-    await page
-        .getByRole('button', { name: 'Diagnostics', exact: true })
-        .click();
-    const dialog = page.locator('pk-dialog');
-    const reason = dialog.getByRole('textbox', {
-        name: 'Reconciliation reason',
-    });
-    const confirm = dialog.getByRole('button', {
-        name: 'Confirm not delivered',
-        exact: true,
-    });
-    await reason.fill('Confirmed absent at the provider.');
-    await expect(confirm).toBeDisabled();
-    await dialog
-        .getByRole('button', {
-            name: 'recoveryFixture · integration · unknown',
-            exact: true,
-        })
-        .click();
-    await reason.fill('Confirmed absent at the provider.');
-    await expect(confirm).toBeDisabled();
-    await dialog
-        .getByRole('button', {
-            name: 'recoveryFixture · create-ticket · unknown',
-            exact: true,
-        })
-        .click();
-    await expect(reason).toHaveValue('');
-    await reason.fill('Confirmed ticket absent at the provider.');
-    await confirm.click();
-    await expect(
-        dialog.getByText('Reconciliation recorded.', { exact: true }),
-    ).toBeVisible();
-    await dialog
-        .getByRole('button', {
-            name: 'recoveryFixture · integration · unknown',
-            exact: true,
-        })
-        .click();
-    await reason.fill('All provider operations confirmed absent.');
-    await confirm.click();
-    await expect(
-        dialog.getByText('Reconciliation recorded.', { exact: true }),
-    ).toBeVisible();
-    await dialog
-        .getByRole('button', {
-            name: '@dispatch · dispatch · unknown',
-            exact: true,
-        })
-        .click();
-    await reason.fill('All integrations confirmed not delivered.');
-    await confirm.click();
-    await expect(
-        dialog.getByText('Reconciliation recorded.', { exact: true }),
-    ).toBeVisible();
-    await expect(confirm).toHaveCount(0);
-});
-
-test('opens Formie diagnostics from a real Craft job with unresolved delivery and exports a redacted support bundle', async ({
+test('opens Formie diagnostics from a real Craft job with a failed delivery and exports a redacted support bundle', async ({
     page,
 }) => {
     await page.setViewportSize({ width: 1440, height: 1000 });
@@ -88,7 +24,7 @@ test('opens Formie diagnostics from a real Craft job with unresolved delivery an
     await login(page);
     await page.goto(`/admin/utilities/queue-manager/${data.integration.jobId}`);
     await expect(page.locator('.readable')).toContainText(
-        'Integration delivery unknown. Open the Diagnostics panel for more information.',
+        'Integration delivery failed. Open the Diagnostics panel for more information.',
     );
     const diagnosticsButton = page.getByRole('button', {
         name: 'Diagnostics',
@@ -121,7 +57,7 @@ test('opens Formie diagnostics from a real Craft job with unresolved delivery an
     const dialog = page.locator('pk-dialog');
     await expect(
         dialog.getByRole('heading', {
-            name: 'Delivery outcome unknown',
+            name: 'Delivery failed',
             exact: true,
         }),
     ).toBeVisible();
@@ -157,12 +93,24 @@ test('opens Formie diagnostics from a real Craft job with unresolved delivery an
     expect(dialogBody?.scrollHeight).toBeLessThanOrEqual(
         (dialogBody?.clientHeight ?? 0) + 1,
     );
-    await expect(
-        dialog.getByText(
-            'Formie could not confirm whether the provider completed this delivery. Check the provider before recording an outcome.',
-            { exact: true },
-        ),
-    ).toHaveCount(0);
+    await expect(dialog.getByRole('textbox')).toHaveCount(0);
+    for (const name of [
+        'Confirm delivered',
+        'Confirm not delivered',
+        'Force new run',
+    ]) {
+        await expect(
+            dialog.getByRole('button', { name, exact: true }),
+        ).toHaveCount(0);
+    }
+    for (const name of [
+        'Delivery operations',
+        'Earlier unresolved deliveries',
+    ]) {
+        await expect(
+            dialog.getByRole('heading', { name, exact: true }),
+        ).toHaveCount(0);
+    }
     const openSubmission = dialog.getByRole('link', {
         name: 'Open submission',
         exact: true,
@@ -198,6 +146,9 @@ test('opens Formie diagnostics from a real Craft job with unresolved delivery an
     ).toBeVisible();
     await expect(
         dialog.locator('p').filter({ hasText: 'Gateway response lost' }),
+    ).toBeVisible();
+    await expect(
+        dialog.locator('p').filter({ hasText: 'Then click Retry.' }),
     ).toBeVisible();
     await expect(
         dialog.getByRole('tab', { name: /Timeline \(\d+\)/ }),
@@ -362,11 +313,9 @@ test('opens Formie diagnostics from a real Craft job with unresolved delivery an
             Number.parseFloat(getComputedStyle(element).fontSize),
         );
     expect(evidenceFontSize).toBeLessThanOrEqual(12);
-    await dialog
-        .getByRole('tab', { name: 'Submission data (2)', exact: true })
-        .click();
+    await dialog.getByRole('tab', { name: /Submission data \(\d+\)/ }).click();
     await expect(
-        dialog.getByText('Delivery browser fixture', { exact: false }),
+        dialog.getByText('Delivery browser fixture', { exact: false }).first(),
     ).toBeVisible();
     const resizedHeight = await dialog.evaluate(
         (element) =>
@@ -381,7 +330,7 @@ test('opens Formie diagnostics from a real Craft job with unresolved delivery an
     ).toBeVisible();
     await dialog.getByRole('tab', { name: /Timeline \(\d+\)/ }).click();
     await expect(
-        dialog.getByText('Delivery prepared', { exact: true }),
+        dialog.getByText('Delivery prepared', { exact: true }).first(),
     ).toBeVisible();
     await expect(
         dialog.getByText('Queue job failed', { exact: true }).last(),
@@ -399,19 +348,6 @@ test('opens Formie diagnostics from a real Craft job with unresolved delivery an
         'href',
         /formie\/submissions\/browserContract\/\d+/,
     );
-    await dialog.getByRole('tab', { name: 'Overview', exact: true }).click();
-    await dialog
-        .getByRole('textbox', { name: 'Reconciliation reason' })
-        .fill('Synthetic fixture confirmed not sent.');
-    await dialog
-        .getByRole('button', { name: 'Confirm not delivered', exact: true })
-        .click();
-    await expect(
-        dialog.getByText('Reconciliation recorded.', { exact: true }),
-    ).toBeVisible();
-    await expect(
-        dialog.getByRole('heading', { name: 'Delivery failed', exact: true }),
-    ).toBeVisible();
 
     await page.goto(data.submissionUrl);
     await expect(

@@ -6,7 +6,8 @@ import { failedDeliveryAttemptUid } from './queueDiagnostics';
 import deliveryStyles from './delivery.css?inline';
 
 function mount(container, settings) {
-    container.id ||= `formie-delivery-${crypto.randomUUID()}`;
+    // crypto.randomUUID() isn't available to control panels served over plain HTTP.
+    container.id ||= `formie-delivery-${Date.now().toString(36)}`;
     const boot = bootstrapShadowReactApp({
         containerSelector: `#${container.id}`,
         pluginHandle: 'formie',

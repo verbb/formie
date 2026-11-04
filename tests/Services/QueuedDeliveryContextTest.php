@@ -40,7 +40,7 @@ function withQueuedDeliveryContext(callable $callback): void
 it('restores the worker context after integration and dispatch attempts', function (string $step, bool $throws) {
     withQueuedDeliveryContext(function (Submission $submission) use ($step, $throws) {
         $attempts = Formie::$plugin->getDeliveryAttempts();
-        $uid = $attempts->prepare(new IntegrationExecutionContext($submission->id, $submission->formId, 'missing', uniqid(), 'queued'), $step, ['handles' => [], 'triggerContext' => [], 'acceptedFingerprint' => Formie::$plugin->getIntegrationRunner()->dispatchFingerprint($submission, [])]);
+        $uid = $attempts->prepare(new IntegrationExecutionContext($submission->id, $submission->formId, 'missing', uniqid(), 'queued'), $step, ['handles' => [], 'triggerContext' => []]);
         $runner = Formie::$plugin->getIntegrationRunner();
         $seen = [];
         $event = $step === 'integration' ? IntegrationRunner::EVENT_RESULT : IntegrationRunner::EVENT_BATCH_COMPLETED;
@@ -54,7 +54,7 @@ it('restores the worker context after integration and dispatch attempts', functi
                 expect(fn() => $runner->runQueuedAttempt($uid))->toThrow(RuntimeException::class, 'Synthetic delivery listener failure');
             } else {
                 $result = $runner->runQueuedAttempt($uid);
-                expect($result->status->value)->toBe($throws ? 'unknown' : ($step === 'integration' ? 'skipped' : 'succeeded'));
+                expect($result->status->value)->toBe($throws ? 'failed' : ($step === 'integration' ? 'skipped' : 'succeeded'));
             }
             expect($seen)->toBe([$submission->siteId, $submission->getSite()->language, $submission->getSite()->language]);
         } finally {
