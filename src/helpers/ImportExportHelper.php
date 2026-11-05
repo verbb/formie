@@ -34,6 +34,7 @@ use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
 
 use yii\base\Exception;
+use yii\base\InvalidConfigException;
 use yii\web\ForbiddenHttpException;
 
 use Throwable;
@@ -159,6 +160,7 @@ class ImportExportHelper
                 $data['dependencies'][] = ['kind' => $kind, 'config' => array_intersect_key($resource->getAttributes(), array_flip(['uid', 'name', 'handle', 'description', 'color']))];
             }
         }
+
         unset($data['groupId'], $data['defaultStatusId'], $data['formStatusId']);
 
         return $data;
@@ -234,6 +236,7 @@ class ImportExportHelper
 
         // Handle field layout and pages
         $form->getFormLayout()->setPages($pages);
+        $serializer->syncedFieldImport?->shareLayouts($form);
 
         // Handle for template
         if ($formTemplate) {
@@ -295,17 +298,17 @@ class ImportExportHelper
         return $form;
     }
 
-    public static function createFromImport(array $data): ImportResult
+    public static function createFromImport(array $data, array $syncedFields = []): ImportResult
     {
-        return self::_import($data, null);
+        return self::_import($data, null, null, $syncedFields);
     }
 
-    public static function updateFromImport(array $data, Form $form): ImportResult
+    public static function updateFromImport(array $data, Form $form, array $syncedFields = []): ImportResult
     {
-        return self::_import($data, $form);
+        return self::_import($data, $form, null, $syncedFields);
     }
 
-    public static function importForUser(array $data, ?Form $existing, UserElement $user): ImportResult
+    public static function importForUser(array $data, ?Form $existing, UserElement $user, array $syncedFields = []): ImportResult
     {
         if (!$user->can(Permissions::PERM_IMPORT_FORMS)) {
             throw new ForbiddenHttpException('User is not permitted to import forms');
@@ -315,7 +318,7 @@ class ImportExportHelper
             throw new ForbiddenHttpException('User is not permitted to update this form');
         }
 
-        return self::_import($data, $existing, $user);
+        return self::_import($data, $existing, $user, $syncedFields);
     }
 
     public static function importFormFromJson($json, $formAction = 'update'): Form
@@ -341,6 +344,7 @@ class ImportExportHelper
 
             return $data['dependencies'];
         }
+
         $dependencies = [];
 
         if (!empty($data['formTemplate'])) {
@@ -358,7 +362,7 @@ class ImportExportHelper
         return $dependencies;
     }
 
-    public static function planImport(array $data, ?Form $form = null): array
+    public static function planImport(array $data, ?Form $form = null, ?UserElement $user = null): array
     {
         $requested = $data;
         $data = self::_applyDependencyDocuments($data);
@@ -375,6 +379,7 @@ class ImportExportHelper
                 'action' => !$template ? 'create' : (($config['uid'] ?? null) === $template->uid ? 'reuseUid' : 'reuseHandle'),
             ];
         }
+
         $warnings = $serializer->warnings;
 
         if (!empty($requested['formTemplateUid']) && empty($data['formTemplate'])) {
@@ -388,6 +393,7 @@ class ImportExportHelper
                 }
             }
         }
+
         $settings = Json::decodeIfJson($data['settings'] ?? []) ?: [];
 
         foreach ($settings['integrations'] ?? [] as $handle => $config) {
@@ -433,7 +439,7 @@ class ImportExportHelper
             ));
         }
 
-        return ['warnings' => $warnings, 'missingTypes' => array_values(array_unique($serializer->missingTypes)), 'dependencies' => $resources, 'changes' => $serializer->changes];
+        return ['syncedFields' => (new SyncedFieldImport($data, [], $user))->preview(), 'warnings' => $warnings, 'missingTypes' => array_values(array_unique($serializer->missingTypes)), 'dependencies' => $resources, 'changes' => $serializer->changes];
     }
 
     private static function _applyDependencyDocuments(array $data): array
@@ -444,6 +450,7 @@ class ImportExportHelper
                 if ($dependency['kind'] !== $kind) {
                     continue;
                 }
+
                 $config = $dependency['config'];
                 $key = is_array($reference) ? ($reference['uid'] ?? $reference['handle'] ?? null) : $reference;
 
@@ -503,6 +510,7 @@ class ImportExportHelper
             if (!$property) {
                 continue;
             }
+
             $resource = self::_resolveResource($kind, $dependency['config']);
 
             if (!$resource) {
@@ -517,15 +525,16 @@ class ImportExportHelper
                     throw new Exception('Unable to import dependency: ' . Json::encode($resource->getErrors()));
                 }
             }
+
             $form->$property = $resource->id;
         }
     }
 
-    private static function _import(array $data, ?Form $existing, ?UserElement $user = null): ImportResult
+    private static function _import(array $data, ?Form $existing, ?UserElement $user = null, array $syncedFields = []): ImportResult
     {
         // Hydration replaces the existing form's settings, so capture its assignment baseline first.
         $oldIntegrationSettings = $existing?->settings->integrations ?? [];
-        $plan = self::planImport($data, $existing);
+        $plan = self::planImport($data, $existing, $user);
         $serializer = new FormSerializer();
         $projectConfig = Craft::$app->getProjectConfig();
         $writeYaml = $projectConfig->writeYamlAutomatically;
@@ -533,16 +542,32 @@ class ImportExportHelper
         if ($writeYaml) {
             $projectConfig->flush();
         }
+
         // Dependencies share the database transaction; defer their YAML writes until it commits.
         $projectConfig->writeYamlAutomatically = false;
         $transaction = Craft::$app->getDb()->beginTransaction();
         $previousRelaxation = Recipients::$relaxLegacyOptionValidation;
+        $syncedLock = false;
 
         try {
+            if ($plan['syncedFields']) {
+                $syncedLock = Craft::$app->getMutex()->acquire('formie:synced-field-import', 10);
+
+                if (!$syncedLock) {
+                    throw new InvalidConfigException('Another synced field import is running. Try again shortly.');
+                }
+
+                // Resolve identities again under the lock so separate imports cannot create competing definitions.
+                Formie::$plugin->getFields()->resetFieldRegistryCache();
+                Formie::$plugin->getForms()->invalidateFormCaches();
+            }
+
             if (!$existing) {
                 $handles = (new Query())->select('handle')->from(Table::FORMIE_FORMS)->column();
                 $data['handle'] = HandleHelper::getUniqueHandle($handles, $data['handle'] ?? 'importedForm', maxLength: HandleHelper::getMaxFormHandle());
             }
+
+            $serializer->syncedFieldImport = new SyncedFieldImport($data, $syncedFields, $user);
             $form = self::createFormFromImport($data, $existing, $serializer);
 
             if ($user) {
@@ -552,12 +577,14 @@ class ImportExportHelper
             self::_applyPortableResources($form, $data);
             $form->layoutSaveContext = new LayoutSaveContext($existing ? 'updateImport' : 'createImport');
             $form->layoutSaveContext->trusted = false;
+            $form->layoutSaveContext->syncedFieldImport = $serializer->syncedFieldImport;
             $form->layoutSaveContext->remaps = $serializer->remaps;
             Recipients::$relaxLegacyOptionValidation = true;
 
             if (!Craft::$app->getElements()->saveElement($form)) {
                 throw new Exception('Unable to import form: ' . Json::encode($form->getErrors()));
             }
+
             $siteOverrides = $data['siteOverrides'] ?? null;
             $fieldOverrides = $data['fieldSiteOverrides'] ?? null;
             $serializer->remap($siteOverrides);
@@ -574,15 +601,22 @@ class ImportExportHelper
             foreach (['form', 'email', 'pdf', 'group', 'submissionStatus', 'formStatus'] as $kind) {
                 self::_resourceService($kind)->invalidateCaches();
             }
+
             Formie::$plugin->getForms()->invalidateFormCaches();
             Formie::$plugin->getFields()->resetFieldRegistryCache();
+
             throw $e;
         } finally {
+            if ($syncedLock) {
+                Craft::$app->getMutex()->release('formie:synced-field-import');
+            }
+
             $projectConfig->writeYamlAutomatically = $writeYaml;
 
             if ($writeYaml) {
                 $projectConfig->writeYamlFiles();
             }
+
             Recipients::$relaxLegacyOptionValidation = $previousRelaxation;
         }
     }
@@ -714,6 +748,7 @@ class ImportExportHelper
 
                 if ($payload === []) {
                     $siteOverridesService->deleteOverrides((int)$form->id, $siteId);
+
                     continue;
                 }
 
@@ -734,6 +769,12 @@ class ImportExportHelper
                 }
 
                 $payload = self::_remapFieldOverrideKeysForImport($fieldOverrides, $fieldReferenceMap);
+
+                foreach (array_keys($payload) as $definitionId) {
+                    if ($form->layoutSaveContext?->syncedFieldImport?->keepsDefinition((int)$definitionId)) {
+                        unset($payload[$definitionId]);
+                    }
+                }
 
                 if ($payload === []) {
                     continue;

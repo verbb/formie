@@ -5,6 +5,7 @@ use verbb\formie\base\Field;
 use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\SyncedFieldImport;
 use verbb\formie\helpers\Table;
 
 use craft\db\Query;
@@ -34,6 +35,7 @@ class LayoutSaveContext
     // Properties
     // =========================================================================
 
+    public ?SyncedFieldImport $syncedFieldImport = null;
     public array $savedDefinitions = [];
     public array $remaps = [];
     public array $fields = [];
@@ -72,6 +74,7 @@ class LayoutSaveContext
         if (isset($this->layouts[$id])) {
             return;
         }
+
         $this->layouts[$id] = true;
         $records = (new Query())->select(['ff.id', 'ff.fieldId', 'ff.layoutId', 'ff.reference', 'f.handle', 'f.settings'])->from(['ff' => Table::FORMIE_FORM_FIELDS])
             ->innerJoin(['f' => Table::FORMIE_FIELDS], '[[f.id]] = [[ff.fieldId]]')->where(['ff.layoutId' => $id])->all();
@@ -334,8 +337,8 @@ class LayoutSaveContext
             throw new InvalidConfigException('The field instance does not belong to this form.');
         }
 
-        // Detaching a synced instance creates an independent definition; switching to a different one is forbidden.
-        if ($field->definitionId && $this->fields[$field->id] !== $field->definitionId) {
+        // Definition switches require the import resolver’s explicit, permission-checked placement grant.
+        if ($field->definitionId && $this->fields[$field->id] !== $field->definitionId && !$this->syncedFieldImport?->allowsLink($field)) {
             throw new InvalidConfigException('The field definition link cannot be replaced.');
         }
     }

@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- Add synced-field relationship preservation to form imports, with shared-definition previews, conflict choices, and independent-copy imports. ([#3098](https://github.com/verbb/formie/issues/3098))
 - Add an **Export…** button to the submissions index. It opens a dialog filled in from your current form, filters and search, where you can adjust the forms, submission types, statuses, dates and columns, and see how many submissions you’ll get, before exporting in any report format. No saved report is needed. ([#3082](https://github.com/verbb/formie/issues/3082))
 - Add the [`logSubmissionValues`](https://verbb.io/craft-plugins/formie/docs/v4/get-started/configuration#logsubmissionvalues) config setting to keep submitted values out of Formie’s log files, while still writing every log entry.
 - Add an option to leave log files out of support requests.

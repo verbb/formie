@@ -41,9 +41,15 @@ Formie warns you about this in the builder, but it is still worth being delibera
 
 ## Synced Fields in Stencils
 
-You can add synced fields while building a [stencil](/forms/stencils). The stencil stores the shared definition by handle so new forms created from that stencil link to the same field definition.
+You can add synced fields while building a [stencil](/forms/stencils). The stencil stores the shared definition’s UID so new forms created from that stencil link to the same field definition.
 
-Project stencils resolve synced fields by handle, so the shared definition should already exist on each environment (or Formie will create an independent copy from the stencil field settings).
+Project stencils resolve synced fields by UID, so the matching shared definition must already exist on each environment. Otherwise, Formie creates an independent copy from the stencil field settings. Importing a form that uses the shared field can establish the definition first.
+
+## Moving Synced Fields Between Environments
+
+[Form import and export](/forms/import-export#importing-synced-fields) can preserve synced-field relationships. Import each form with **Preserve relationships**: the first import creates a missing shared definition, and later imports reuse it by UID. Matching labels or handles alone do not link fields.
+
+The import preview lets you keep destination settings, update a shared definition across its listed forms, or import independent fields. **Required** stays local to each placement. Review the affected forms before choosing to update a shared definition.
 
 ## Synced Fields and Multi-Site
 

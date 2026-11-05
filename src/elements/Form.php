@@ -2137,6 +2137,8 @@ class Form extends Element implements FormInterface
         $requestedContext = $this->layoutSaveContext;
         $context = LayoutSaveContext::forForm($this, $requestedContext?->operation ?? 'save');
         $context->trusted = $requestedContext?->trusted ?? true;
+        $context->syncedFieldImport = $requestedContext?->syncedFieldImport;
+        $context->syncedFieldImport?->includeLayouts($context);
         $context->remaps = $requestedContext?->remaps ?? [];
         $context->updateDefinitions = $requestedContext?->updateDefinitions ?? true;
         $context->prepareValidationGraph($this->getFormLayout());

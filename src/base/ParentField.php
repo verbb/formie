@@ -284,7 +284,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
         if ($isNew && $syncDefinitionId) {
             $definitionField = Formie::$plugin->getFields()->getFieldDefinitionById($syncDefinitionId);
 
-            if ($definitionField && ($definitionField->settings['nestedLayoutId'] ?? null)) {
+            if ($definitionField && ($definitionField->settings['nestedLayoutId'] ?? null) && !$this->layoutSaveContext?->syncedFieldImport?->updatesLayout($this)) {
                 // New synced instances must reuse the definition's nested layout. Saving the imported
                 // builder rows here would generate fresh child UIDs and make older submissions unreadable.
                 $this->nestedLayoutId = $definitionField->settings['nestedLayoutId'];
@@ -296,7 +296,7 @@ abstract class ParentField extends Field implements ParentFieldInterface
 
         // Save the field layout as the last step - only if this has a field layout. Some SubFields opt-out
         if ($this->hasFieldLayout()) {
-            if ($isNew) {
+            if ($isNew && !$this->layoutSaveContext?->syncedFieldImport?->updatesLayout($this)) {
                 // New nested fields must never re-use copied layout/field IDs from another field instance.
                 $this->_clearLayoutIdentifiers($this->getFieldLayout());
                 $this->nestedLayoutId = null;

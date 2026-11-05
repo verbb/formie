@@ -18,6 +18,7 @@ use craft\helpers\UrlHelper;
 use craft\web\UploadedFile;
 
 use yii\base\InvalidArgumentException as YiiInvalidArgumentException;
+use yii\base\InvalidConfigException;
 use yii\helpers\Markdown;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
@@ -167,7 +168,7 @@ class ImportExportController extends SettingsAccessController
             }
         }
 
-        $plan = ImportExportHelper::planImport($json, $existingForm);
+        $plan = ImportExportHelper::planImport($json, $existingForm, Craft::$app->getUser()->getIdentity());
 
         foreach ($plan['warnings'] as $warning) {
             $this->_stdout(Html::encode($warning), Console::FG_YELLOW);
@@ -183,7 +184,7 @@ class ImportExportController extends SettingsAccessController
 
         $summary = ob_get_clean();
 
-        $variables = compact('filename', 'summary', 'json', 'existingForm');
+        $variables = compact('filename', 'summary', 'json', 'existingForm', 'plan');
         $variables = array_merge($variables, Craft::$app->getUrlManager()->getRouteParams());
 
         return $this->renderTemplate('formie/settings/import-export/import-configure', $variables);
@@ -224,7 +225,19 @@ class ImportExportController extends SettingsAccessController
             throw new ForbiddenHttpException('User is not permitted to import forms');
         }
 
-        $form = ImportExportHelper::importForUser($json, $existingForm, $user)->form;
+        $syncedFields = $request->getBodyParam('syncedFields', []);
+
+        if (!is_array($syncedFields)) {
+            throw new BadRequestHttpException('Invalid synced field import options.');
+        }
+
+        try {
+            $form = ImportExportHelper::importForUser($json, $existingForm, $user, $syncedFields)->form;
+        } catch (InvalidConfigException $e) {
+            Craft::$app->getUrlManager()->setRouteParams(['errors' => [$e->getMessage()]]);
+
+            return $this->actionImportConfigure($filename);
+        }
 
         // check for errors
         if ($form->getErrors()) {

@@ -32,12 +32,14 @@ class FormSerializer
     // Properties
     // =========================================================================
 
+    public ?SyncedFieldImport $syncedFieldImport = null;
     public array $warnings = [];
     public array $remaps = [];
     public array $missingTypes = [];
     public array $changes = ['added' => [], 'retained' => [], 'removed' => []];
 
     private array $_tokenHandles = [];
+    private array $_sharedRows = [];
     private array $_existing = [];
     private array $_paths = [];
     private array $_used = [];
@@ -117,8 +119,10 @@ class FormSerializer
                 unset($data['fieldLayoutId'], $data['exportVersion']);
                 $data['dependencies'] ??= [];
             }
+
             $version++;
         }
+
         $data['schemaVersion'] = $version;
 
         if (!is_array($data['pages'] ?? null)) {
@@ -139,6 +143,7 @@ class FormSerializer
                 $this->changes['removed'][] = $reference;
             }
         }
+
         $this->remap($data);
 
         return $data;
@@ -149,6 +154,7 @@ class FormSerializer
         if (!in_array($operation, ['duplicate', 'stencil'], true)) {
             throw new InvalidConfigException('Unknown form copy operation.');
         }
+
         $data['pages'] = $this->_pages($data['pages'] ?? [], $operation);
         $this->remap($data);
 
@@ -176,6 +182,7 @@ class FormSerializer
                 $this->remap($item);
                 $result[$this->remaps[$key] ?? $key] = $item;
             }
+
             $value = $result;
         }
     }
@@ -194,6 +201,7 @@ class FormSerializer
         if (!$form) {
             return;
         }
+
         $index = function(array $fields, string $prefix = '', ?int $parentId = null) use (&$index): void {
             foreach ($fields as $field) {
                 $path = $prefix . $field->handle;
@@ -218,11 +226,13 @@ class FormSerializer
             if (!is_array($page) || !is_array($page['rows'] ?? [])) {
                 throw new InvalidConfigException('Invalid form page.');
             }
+
             $uid = $operation === 'builder' ? ($page['uid'] ?? null) : StringHelper::UUID();
 
             if (!empty($page['uid']) && $uid !== $page['uid']) {
                 $this->remaps[$page['uid']] = $uid;
             }
+
             $settings = Json::decodeIfJson($page['settings'] ?? []) ?: [];
             $result[] = [
                 'id' => $operation === 'builder' && is_numeric($page['id'] ?? null) ? (int)$page['id'] : null,
@@ -244,11 +254,13 @@ class FormSerializer
             if (!is_array($row) || !is_array($row['fields'] ?? [])) {
                 throw new InvalidConfigException('Invalid form row.');
             }
+
             $fields = [];
 
             foreach ($row['fields'] ?? [] as $node) {
                 $fields[] = $this->_field($node, $operation, $parent, $prefix);
             }
+
             $result[] = [
                 'id' => $operation === 'builder' && is_numeric($row['id'] ?? null) ? (int)$row['id'] : null,
                 'fields' => $fields,
@@ -273,28 +285,48 @@ class FormSerializer
             throw new InvalidConfigException('The field instance does not belong to this form.');
         }
 
-        if ($existing && isset($this->_used[$existing->id])) {
+        if ($existing && isset($this->_used[$existing->id]) && !($operation === 'import' && $this->syncedFieldImport?->ownsField($existing))) {
             throw new InvalidConfigException('A field instance can occur only once in a layout.');
         }
 
         if ($existing) {
             $this->_used[$existing->id] = true;
         }
+
+        $sync = $operation === 'import' ? $this->syncedFieldImport?->resolve($node, $existing) : null;
+
+        if ($sync) {
+            if (isset($sync['settings']['rows'])) {
+                $this->_remapSharedChildren($source['rows'] ?? [], $sync['settings']['rows']);
+            }
+
+            $source = array_merge($source, $sync['settings']);
+            $type = $source['type'] ?? $type;
+
+            // A shared parent owns its child layout. Resolve children against that layout,
+            // preserving their identities and submission values when importing another placement.
+            if ($sync['field'] instanceof ParentFieldInterface) {
+                $this->_indexSharedChildren($sync['field']->getFields(), $path . '.', $sync['field']->id);
+            }
+        }
+
         $prototype = is_string($type) ? $service->getRegisteredFieldByType($type) : null;
 
         if (!$prototype || $type === MissingField::class) {
             if ($operation === 'builder' && !($existing instanceof MissingField)) {
                 throw new InvalidConfigException('The field type is not registered or is disabled.');
             }
+
             $type = $existing instanceof MissingField ? $existing->expectedType : (string)$type;
             $this->missingTypes[] = $type;
             $this->warnings[] = "Missing field type: $type. Original settings retained.";
             $config = ['type' => MissingField::class, 'expectedType' => $type, 'settings' => $settings ?: $source,
                 'label' => $source['label'] ?? 'Missing Field', 'handle' => $source['handle'] ?? 'missingField'];
         } else {
-            if ($existing instanceof ChildFieldInterface && ($this->_parentsById[$existing->id] ?? null) !== $parent?->id) {
+            if ($existing instanceof ChildFieldInterface && ($this->_parentsById[$existing->id] ?? null) !== $parent?->id && !($operation === 'import' && $this->syncedFieldImport?->ownsField($existing))) {
                 throw new InvalidConfigException('Fixed child instances cannot move to a different parent.');
             }
+
             $prototype->id = $existing?->id;
             FieldConfigNormalizer::normalize($source, $type);
 
@@ -313,6 +345,7 @@ class FormSerializer
             if ($parent instanceof ParentFieldInterface && !($parent instanceof FixedParentField) && !in_array($type, $parent->getNestedLayoutBuilderAllowedFieldTypes(), true)) {
                 throw new InvalidConfigException('This field type is not allowed in the selected nested field.');
             }
+
             $keys = array_diff(array_merge($prototype->settingsAttributes(), ['label', 'handle']), self::PROTECTED_SETTINGS);
             $config = array_intersect_key($source, array_flip($keys));
             $config['type'] = $type;
@@ -348,7 +381,14 @@ class FormSerializer
             }
 
             if ($prototype instanceof ParentFieldInterface && isset($source['rows'])) {
-                $config['rows'] = $this->_rows($source['rows'], $operation, $prototype, $path . '.');
+                $sharedUid = $sync['uid'] ?? null;
+                $config['rows'] = $sharedUid && isset($this->_sharedRows[$sharedUid])
+                    ? $this->_sharedRows[$sharedUid]
+                    : $this->_rows($source['rows'], $operation, $prototype, $path . '.');
+
+                if ($sharedUid) {
+                    $this->_sharedRows[$sharedUid] = $config['rows'];
+                }
 
                 if ($prototype instanceof Date) {
                     $key = match ($source['displayType'] ?? 'datePicker') {
@@ -360,6 +400,7 @@ class FormSerializer
                 }
             }
         }
+
         $reference = $existing?->reference ?? ($operation === 'builder' ? ($source['reference'] ?? StringHelper::UUID()) : StringHelper::UUID());
         $config['reference'] = $reference;
         $config['uid'] = $existing?->uid ?? StringHelper::UUID();
@@ -398,11 +439,13 @@ class FormSerializer
                 if (($grant['purpose'] ?? null) !== 'field-definition' || ($grant['formId'] ?? null) !== $this->_targetFormId || ($grant['userId'] ?? null) !== Craft::$app->getUser()->getId()) {
                     throw new InvalidConfigException('Invalid synced field selection. Select the field again.');
                 }
+
                 $definition = $service->getFieldDefinitionById((int)$grant['definitionId']);
 
                 if (!$definition || $definition->type !== $type) {
                     throw new InvalidConfigException('The selected field definition is unavailable.');
                 }
+
                 $config['definitionId'] = $definition->id;
                 $config['definitionUid'] = $definition->uid;
                 $config['handle'] = $definition->handle;
@@ -423,6 +466,52 @@ class FormSerializer
             }
         }
 
+        if ($operation === 'import' && $this->syncedFieldImport) {
+            $config = $this->syncedFieldImport->link($node, $config, $existing, $sync);
+        }
+
         return $config;
+    }
+
+    private function _remapSharedChildren(array $sourceRows, array $targetRows): void
+    {
+        $targets = [];
+
+        foreach ($targetRows as $row) {
+            foreach ($row['fields'] ?? [] as $field) {
+                $targets[$field['settings']['handle'] ?? ''] = $field;
+            }
+        }
+
+        foreach ($sourceRows as $row) {
+            foreach ($row['fields'] ?? [] as $field) {
+                $target = $targets[$field['settings']['handle'] ?? ''] ?? null;
+
+                if (!$target) {
+                    continue;
+                }
+
+                foreach (['reference', 'uid'] as $key) {
+                    if (!empty($field[$key]) && !empty($target[$key])) {
+                        $this->remaps[$field[$key]] = $target[$key];
+                    }
+                }
+
+                $this->_remapSharedChildren($field['settings']['rows'] ?? [], $target['settings']['rows'] ?? []);
+            }
+        }
+    }
+
+    private function _indexSharedChildren(array $fields, string $prefix, ?int $parentId): void
+    {
+        foreach ($fields as $field) {
+            $path = $prefix . $field->handle;
+            $this->_paths[$path] = $field;
+            $this->_parentsById[$field->id] = $parentId;
+
+            if ($field instanceof ParentFieldInterface) {
+                $this->_indexSharedChildren($field->getFields(), $path . '.', $field->id);
+            }
+        }
     }
 }

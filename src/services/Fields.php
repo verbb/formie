@@ -1677,6 +1677,7 @@ class Fields extends Component
             }
         }
 
+        $context->syncedFieldImport?->prepareSave($field);
         $context->assertField($field);
         $context->prepareFieldValidation($field);
         $isRootSave = $context->beginSave(FieldTraversal::recursively([$field]));
@@ -1735,7 +1736,8 @@ class Fields extends Component
             }
 
             $skipSharedDefinitionUpdate = $definitionId && (
-                isset($context->savedDefinitions[$definitionId])
+                $context->syncedFieldImport?->keepsDefinition($definitionId)
+                || isset($context->savedDefinitions[$definitionId])
                 || ($existingDefinitionUsageCount > 1 && (!$updateSyncedFields || !$context->updateDefinitions))
             );
 
@@ -1755,7 +1757,12 @@ class Fields extends Component
                     $definitionRecord->settings = Json::encode(['__formieMissingSettings' => $field->getSettings()]);
                 }
 
+                if (!$definitionId && $context->syncedFieldImport?->allowsLink($field)) {
+                    $definitionRecord->uid = $field->definitionUid;
+                }
+
                 $definitionRecord->save(false);
+                $context->syncedFieldImport?->didSave($field, (int)$definitionRecord->id);
                 $context->savedDefinitions[$definitionRecord->id] = true;
 
                 if (!$definitionId) {
