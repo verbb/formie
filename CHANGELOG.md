@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed single-line Name fields losing their values on submission when a previous multi-part layout was retained. ([#3101](https://github.com/verbb/formie/issues/3101))
 - Fixed front-end assets failing to publish during Craft Cloud builds. ([#3100](https://github.com/verbb/formie/issues/3100))
 
 ## 4.0.7 - 2026-11-05

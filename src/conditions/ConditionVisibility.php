@@ -122,7 +122,7 @@ final class ConditionVisibility
                         foreach ((array)$submission->getFieldValue($field->valueKey()) as $row => $value) {
                             $walk($field->getFields($row));
                         }
-                    } elseif ($field instanceof ParentFieldInterface) {
+                    } elseif ($field instanceof ParentFieldInterface && $field->hasFieldLayout()) {
                         $walk($field->getFields());
                     }
                 }

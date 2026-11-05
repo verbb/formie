@@ -352,7 +352,7 @@ final class RuntimeConfiguration
             $changed = true;
         }
 
-        if ($field instanceof ParentFieldInterface) {
+        if ($field instanceof ParentFieldInterface && $field->hasFieldLayout()) {
             // Parent fields own the writable parts shape for rich domain values.
             $raw = is_array($value) ? $value : $field->serializeValueForClientInput($value, $submission);
             $repeatable = $field instanceof RepeatableParentFieldInterface;
