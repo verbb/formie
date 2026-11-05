@@ -630,7 +630,7 @@ Sets the rate-limit window used by anonymous client bootstrap and token-refresh 
 - Keep `allowedGraphqlOrigins` as narrow as possible when using headless forms. Avoid wildcard or broad origins when credentialed requests are allowed.
 - Public GraphQL schemas should only include the Formie form and submission scopes required by the front-end consuming them.
 - Keep `enableCsrfValidationForGuests` enabled unless you have a specific headless integration that cannot submit CSRF tokens. Client REST transports should send the CSRF token from `session.tokens.csrf` in the JSON request body when this setting is enabled.
-- Store integration API keys and secrets in environment variables (for example `$STRIPE_SECRET_KEY`) rather than plaintext in the database when possible. Formie persists integration settings as JSON in `formie_integrations`; values that use Craft's env syntax are resolved when settings are loaded and are not stored in project config exports.
+- Store integration API keys and secrets in environment variables (for example `$STRIPE_SECRET_KEY`) rather than plaintext in the database when possible. Formie saves integration settings in the database. Values using Craft’s environment variable syntax are read when the settings are loaded; the secrets are not included in project config exports.
 
 ### Sent Notifications
 
@@ -839,7 +839,7 @@ Sets the default folder used by form export console commands.
 
 ### Form Groups (Project Config)
 
-Form groups are managed in the control panel under **Formie → Settings → Form Groups**, but their definitions are stored in project config under `formie.formGroups.{uid}`:
+Form groups are managed in the control panel under **Formie → Settings → Form Groups**, but their settings are stored in project config under `formie.formGroups.{uid}`:
 
 ```yaml
 formie:

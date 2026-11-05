@@ -180,7 +180,7 @@ $firstRepeaterEmail = $submission->getFieldValue('attendees.0.email');
 
 This is often the simplest way to pull out one specific nested value without working with the whole structured array.
 
-Date/Time fields also support canonical nested paths such as `eventDate.date`, `eventDate.time`, and, for date ranges, `booking.startDate` or `booking.end`. Date values stringify to canonical ISO-style text. Use `getFieldValueAsString()` for the field's configured date and time display formats.
+Date/Time fields also support nested paths such as `eventDate.date`, `eventDate.time`, and, for date ranges, `booking.startDate` or `booking.end`. Converting a date value to a string produces ISO-style text. Use `getFieldValueAsString()` for the field's configured date and time display formats.
 
 ### Use Context-Specific Helpers
 

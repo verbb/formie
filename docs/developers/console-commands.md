@@ -218,7 +218,7 @@ Deletes expired purpose-bound submission grants.
 ```
 
 ### Prune Submission Progress
-Deletes expired canonical submission progress rows.
+Deletes expired saved submission progress.
 
 ```shell
 ./craft formie/gc/prune-submission-progress
@@ -364,7 +364,7 @@ The saved payment must match the submission’s current amount and currency. If 
 
 ### Webhook Receipts
 
-`./craft formie/payments/receipts 0 100` lists up to 100 receipts after the supplied ID, including state history, attempts, safe errors and the escaped redacted display projection. It never decrypts raw provider payloads. `./craft formie/payments/evidence 123` explicitly exports the exact decrypted body, verification headers and normalized payload for receipt 123 to standard output; use it only in a trusted terminal and handle the output as private provider/customer data.
+`./craft formie/payments/receipts 0 100` lists up to 100 receipts after the supplied ID, including state history, attempts, safe errors and a display summary with sensitive values removed and HTML escaped. It never decrypts raw provider payloads. `./craft formie/payments/evidence 123` explicitly exports the exact decrypted body, verification headers and normalized payload for receipt 123 to standard output; use it only in a trusted terminal and handle the output as private provider/customer data.
 
 Receipts progress through verified, scheduled, processing and processed states. Handling failures are rescheduled with bounded backoff; a receipt becomes failed after exhausting automatic attempts. Retries reuse the same receipt and completed receipts do not rerun side effects. `./craft formie/payments/recover-webhooks 100` schedules up to 100 due or interrupted receipts when queue publication or a worker was interrupted. Financial rows and encrypted webhook evidence have indefinite retention; automatic cleanup only removes expired payment capabilities after a one-day grace period. Payment and subscription histories keep the most recent 100 transitions. Preserve the Formie security key with backups. A processed receipt may still require payment/submission reconciliation after an interrupted completion commit; inspect the payment's version, history and submission-transition receipt before resuming it.
 

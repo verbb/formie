@@ -72,7 +72,7 @@ Method | Use
 `defineFormSettingsSchema()` | Defines the integration settings shown inside a form’s Integrations tab.
 `#[FormIntegrationSetting]` | Marks properties that each form may configure.
 `executePayload(Submission $submission)` | Protected author hook for dispatchable integrations; returns an `IntegrationResult`.
-`execute(IntegrationRunContext $context)` | Public orchestration method used by the runner; normally inherited.
+`execute(IntegrationRunContext $context)` | Runs the integration with Formie’s checks and event handling; normally inherited.
 
 `getSettingsHtml()` renders plugin-level integration settings in Formie’s settings area. Use `defineFormSettingsSchema()` for the settings shown on each form.
 
@@ -329,7 +329,7 @@ The integration type pages cover the details that differ between base classes:
 
 The dispatch plan puts integrations into synchronous or queued lanes, as described in [Integration Dispatch and Policies](/guides/integrations/integration-dispatch-and-policies). Formie clones the connection for each binding and attempt, so one form's settings do not affect another. Avoid static mutable provider state. If your integration caches additional clients, clear those caches in `__clone()` after calling the parent implementation. Assign a new conditions array when updating conditions, rather than mutating a nested value in place.
 
-`IntegrationConfig` stores versioned non-secret builder metadata, its fetch time and invalidation key. Remote metadata is stale after 24 hours but remains available for display until an explicit refresh. Element integrations acquire local Craft metadata on every read without persisting a metadata cache. Both categories use the same acquisition events and cancellation lifecycle; a cancelled refresh returns the previous available metadata. Editing a connection invalidates its metadata. Only inert field and collection metadata is hydrated; arbitrary class names are rejected. `IntegrationField` remains the mapping-field model. Literal integration settings are stored as configured; prefer environment references for credentials. Existing encrypted settings remain readable when their original key is available.
+`IntegrationConfig` stores versioned non-secret builder metadata, its fetch time and invalidation key. Remote metadata is stale after 24 hours but remains available for display until an explicit refresh. Element integrations acquire local Craft metadata on every read without persisting a metadata cache. Both categories use the same acquisition events and cancellation lifecycle; a cancelled refresh returns the previous available metadata. Editing a connection invalidates its metadata. Formie loads only field and collection metadata from the cache; arbitrary class names are rejected. `IntegrationField` remains the mapping-field model. Literal integration settings are stored as configured; prefer environment references for credentials. Existing encrypted settings remain readable when their original key is available.
 
 Annotate sensitive properties with `#[\verbb\formie\attributes\Sensitive]`, including credentials whose names do not contain “secret” or “token”. Inherited annotations are recognized. This metadata supplies known values for log, delivery-result, support-bundle and configuration-cache redaction. It does not grant form-builder assignment: that still requires `#[FormIntegrationSetting]`. Native credentials are annotated explicitly; conservative name-based recognition remains for older third-party integrations. Prefer environment references for project-managed credentials and never deliberately return credentials as integration metadata.
 
@@ -416,7 +416,7 @@ Override `modifyFieldMappingValue()` or `modifyFieldMappingValues()` for formatt
 
 Use `getConfig()` to read cached builder metadata, `refreshConfig()` to refresh it, and `fetchConfig()` to implement acquisition. Metadata methods must not send sample submissions. Automation test sends use `sendTestPayload()` explicitly.
 
-Public orchestration methods apply Formie’s lifecycle; protected hooks supply integration-specific behaviour. New integrations normally override `defineClient()`, `defineFormSettingsSchema()` and `executePayload()`. `createFieldMappingField()` constructs one mapping control; `getFieldMappingValues()` resolves mapped submission values. Payment and captcha guides describe their separate hooks.
+Public methods handle Formie’s checks, events and execution order; protected hooks supply integration-specific behaviour. New integrations normally override `defineClient()`, `defineFormSettingsSchema()` and `executePayload()`. `createFieldMappingField()` constructs one mapping control; `getFieldMappingValues()` resolves mapped submission values. Payment and captcha guides describe their separate hooks.
 
 `getDescription()` defaults to an empty string. Connection checks and optional payment/schema hooks have base declarations, so extensions can discover their defaults without relying on `method_exists()`. Some established hooks intentionally omit return types to keep older third-party overrides loadable; use appropriate native types in new implementations. `IntegrationInterface` is a caller-facing subset; provider implementations extend the base class as described under [Integration Types](#integration-types).
 

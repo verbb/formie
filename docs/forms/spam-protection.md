@@ -34,7 +34,7 @@ If you use email notifications, there is also a plugin setting for whether spam 
 
 ### Spam Keywords
 
-Spam keywords are the simplest built-in screening tool. Formie checks the whole submission, and if it matches your keyword definition, the submission will be marked as spam.
+Spam keywords are the simplest built-in screening tool. Formie checks the whole submission, and if it matches your keyword rules, the submission will be marked as spam.
 
 You can match against:
 

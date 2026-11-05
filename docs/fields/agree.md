@@ -19,9 +19,9 @@ Use it for a single agreement checkbox. If the user should choose between multip
 
 ## Submitted Value
 
-Agree stores a boolean (`true`, `false`, or `null` when empty). That is the canonical value for conditions, integrations, and most code paths.
+Agree stores a boolean (`true`, `false`, or `null` when empty). Conditions and integrations that expect a boolean use this value.
 
-Use string projection when you need the human-readable checked/unchecked labels:
+Use `getFieldValueAsString()` when you need the checked or unchecked label:
 
 ::: code-group
 ```php [PHP]

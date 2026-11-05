@@ -2033,7 +2033,7 @@ Custom clients and edit templates also need the [continuity and upload changes](
 
 ### Portable Forms and Synced Fields
 
-Review the import preview and verify shared-field links afterwards. If a stencil's shared definition cannot be resolved, it creates an independent definition. Unknown or unregistered field types retain their settings as Missing Fields; restore and register the owning extension before recovery.
+Review the import preview and verify shared-field links afterwards. If a stencil’s synced field cannot be found, Formie creates an independent copy of the field. Unknown or unregistered field types retain their settings as Missing Fields; restore and register the owning extension before recovery.
 
 Keep instance IDs/UIDs and handle-based input names; do not replace them with shared definition IDs. See [Shared and Per-Form Settings](/developers/custom-field/overview#shared-and-per-form-settings) when adapting custom field settings or translations.
 

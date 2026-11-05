@@ -2,7 +2,7 @@
 
 Formie ships built-in client event templates for GTM, GA4, Meta, and a blank starter. Plugins and project modules can register their own presets so content authors pick consistent analytics events from the form builder **Tracking** tab — without copying JSON between forms.
 
-This guide covers author workflow and a real-world registration example. For template properties, payload rows, materialized event shape, programmatic access, and troubleshooting, see [Custom Client Event Templates](/developers/custom-client-event-templates).
+This guide covers author workflow and a real-world registration example. For template properties, payload rows, the resulting event data, PHP methods, and troubleshooting, see [Custom Client Event Templates](/developers/custom-client-event-templates).
 
 ## Prerequisites
 
@@ -12,9 +12,9 @@ This guide covers author workflow and a real-world registration example. For tem
 
 ## Register a Template
 
-Listen for `ClientEventTemplates::EVENT_REGISTER_CLIENT_EVENT_TEMPLATES` in your module's `init()` method and push template definitions onto the event. See [Register a template](/developers/custom-client-event-templates#register-a-template) for the full registration snippet, property table, and payload contract.
+Listen for `ClientEventTemplates::EVENT_REGISTER_CLIENT_EVENT_TEMPLATES` in your module's `init()` method and add templates to the event’s `templates` array. See [Register a template](/developers/custom-client-event-templates#register-a-template) for the full registration snippet, property table, and expected payload format.
 
-When an author picks a template, Formie materializes it into a normal page client event. Authors can edit the event name, payload, and conditions afterwards.
+When an author picks a template, Formie creates a page client event using its settings. Authors can edit the event name, payload, and conditions afterwards.
 
 ## How Authors Use Templates
 
@@ -24,7 +24,7 @@ When an author picks a template, Formie materializes it into a normal page clien
 4. Templates with **field mapping** rows open a dialog so the author picks which form field supplies each payload key.
 5. Templates listed under **Suggested for this page** match the page's `pageContexts` (`first-page`, `last-page`, `single-page`, and so on).
 
-Authors can change the materialized event like any manually created client event — templates are starting points, not locked presets.
+Authors can edit the resulting event just like an event they created manually.
 
 ## Example — SaaS Trial Signup Template
 

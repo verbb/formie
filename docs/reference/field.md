@@ -9,7 +9,7 @@ A Field object represents one field instance on a form. This is different from t
 
 **Type:** `string|int|null`
 
-The form-field instance ID. Submission and client field identity use this instance, not its shared definition.
+The ID of this use of the field on a form. Submissions and browser code use this ID; `definitionId` identifies the shared field settings.
 :::
 
 ::: reference
@@ -25,7 +25,7 @@ The form-field instance UID. Copies and new imports receive new instance UIDs.
 
 **Type:** `int|null`
 
-The shared definition's database ID. Synced fields share this value. It is not a submission content key.
+The database ID of the field’s shared settings, called its definition internally. Synced fields share this value. It is not a key for reading submission values.
 :::
 
 ::: reference
@@ -33,7 +33,7 @@ The shared definition's database ID. Synced fields share this value. It is not a
 
 **Type:** `string|null`
 
-The shared definition's portable UID, used when a stencil explicitly preserves a Synced Field relationship.
+The unique identifier (UID) of the field’s shared settings. Stencils and form imports use it to preserve synced field relationships across environments.
 :::
 
 ::: reference
@@ -211,7 +211,7 @@ Returns a string representation of a submitted value.
 
 **Returns:** `mixed`
 
-Returns JSON-safe data: scalars for primitive fields, named parts or selected records for rich fields.
+Returns data that can be encoded as JSON: a single value for simple fields, or named parts or selected records for more complex fields.
 :::
 
 ::: reference

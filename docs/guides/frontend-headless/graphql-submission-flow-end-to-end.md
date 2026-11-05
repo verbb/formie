@@ -185,7 +185,7 @@ Open `/contact-client`. The button becomes available after bootstrap succeeds. A
 
 For `submitFormieClientForm`, field validation is returned in `data.submitFormieClientForm.errors` with `success: false`. Display these messages beside the affected inputs in a production UI and move focus to the first invalid field or an error summary. The small example combines them in a live status region.
 
-GraphQL syntax, permission and transport failures are separate from field validation. Check the top-level `errors` array and HTTP status as well. The typed `save_<handle>_Submission` mutations use a different validation-error contract; see [Create Submissions](/graphql/create-submissions). Do not apply that contract to the client mutation.
+GraphQL syntax, permission and transport failures are separate from field validation. Check the top-level `errors` array and HTTP status as well. The typed `save_<handle>_Submission` mutations return validation errors in a different format; see [Create Submissions](/graphql/create-submissions). Handle client mutation errors using the format shown on this page.
 
 ## Refresh a Session
 

@@ -82,7 +82,7 @@ We also provide support for popular frontend frameworks to make integration even
 These packages generally give you two approaches:
 
 - server-rendered forms, where Formie still owns the rendered HTML and browser behaviour
-- client-rendered forms, where your framework takes over the rendered UI while Formie still provides the form definition and submission flow
+- client-rendered forms, where your framework takes over the rendered UI while Formie still provides the fields, layout, settings and submission handling
 
 ### React
 The `@verbb/formie-react` package gives you a more natural React developer experience, whether you want a quick HTML-based setup or a more component-driven approach.

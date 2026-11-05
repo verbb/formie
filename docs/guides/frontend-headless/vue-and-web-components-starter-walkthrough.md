@@ -17,7 +17,7 @@ Use the [Vue package documentation](https://docs.verbb.io/formie/vue/) or [Web C
 | `@verbb/formie-vue` | Vue 3 bindings | Your app is Vue or Nuxt |
 | `@verbb/formie-web-components` | Custom elements | You want framework-agnostic embeds, or Vue/React coexist on one page |
 | `@verbb/formie-browser` | Shared browser package | Required peer for both packages |
-| `@verbb/formie-core` | Form definition + state | Required for client-rendered mode |
+| `@verbb/formie-core` | Field settings, layout and current form state | Required for client-rendered mode |
 
 Install pattern (Vue example):
 
@@ -150,7 +150,7 @@ Event names match the browser package DOM events (`formie:submit:result`, `formi
 | Transport | Pros | Considerations |
 | --- | --- | --- |
 | **REST** | Simple endpoint, easy local dev | Requires Formie REST routes enabled |
-| **GraphQL** | Typed schema, single API surface | Needs public schema scopes configured |
+| **GraphQL** | Typed schema, one API endpoint | Needs public schema scopes configured |
 
 Both transports use the same session token model. Bootstrap via `formieClientForm`, submit via `submitFormieClientForm`. See [GraphQL submission flow end-to-end](/guides/frontend-headless/graphql-submission-flow-end-to-end).
 

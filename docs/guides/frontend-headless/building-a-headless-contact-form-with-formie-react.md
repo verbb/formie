@@ -18,7 +18,7 @@ Formie React supports two paths:
 | Approach | Component | Best for |
 | --- | --- | --- |
 | **Server-rendered** | `<FormieForm />` | You want Formie-owned HTML and browser behaviour with minimal React code |
-| **Client-rendered** | `<FormieClientForm />` | You own the field markup and styling; Formie provides definition and submission flow |
+| **Client-rendered** | `<FormieClientForm />` | You own the field markup and styling; Formie provides field settings, layout and submission handling |
 
 Both paths share the same transport options: `rest` or `graphql`. Start with server-rendered if you want the fastest path to a working form; move to client-rendered when you need full design control.
 
@@ -97,7 +97,7 @@ export function ContactForm({ payload }: { payload: FormEndpointPayload }) {
 
 ## Step 4 — Client-Rendered Contact Form
 
-When you need your own field components, use `<FormieClientForm />`. Formie loads the form definition; you render each field.
+When you need your own field components, use `<FormieClientForm />`. Formie loads the fields, layout and settings as structured data; you render each field.
 
 ```tsx
 import { FormieClientForm } from '@verbb/formie-react';

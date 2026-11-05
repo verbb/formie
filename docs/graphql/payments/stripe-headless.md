@@ -12,7 +12,7 @@ For the request sequence shared by payment providers, follow [Headless Payments]
 4. Submit to Formie via `submitFormieClientForm` with `stripePaymentIntentId`.
 5. If Formie returns `payment.status: requiresAction`, run Stripe’s confirm step and **resubmit with the same session**.
 
-Formie never replaces Stripe.js — it orchestrates server-side charging, stores the submission, and tells your app when follow-up is required.
+Formie never replaces Stripe.js — it handles charging on the server, saves the submission, and tells your app when follow-up is required.
 
 ## 1. Read Payment Config
 
@@ -155,7 +155,7 @@ mutation SaveCheckout($payment: checkoutForm_payment_FormiePaymentInput) {
 }
 ```
 
-Prefer `submitFormieClientForm` for headless apps so session and payment follow-up metadata stay in one response contract.
+Prefer `submitFormieClientForm` for headless apps so the session and any instructions for completing payment arrive in the same response.
 
 ## Troubleshooting
 

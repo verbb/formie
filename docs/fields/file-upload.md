@@ -65,7 +65,7 @@ For GraphQL mutations, File Upload fields accept an array of `FileUploadInput` v
 
 ## Multipage Forms and Drafts
 
-Uploaded files persist across multipage navigation and page reloads when Formie has saved the incomplete submission or draft state — for example after clicking **Next**, using save-and-resume, or editing an existing submission.
+Once Formie has saved an incomplete submission or draft, uploaded files remain available when visitors move between form pages or reload the page. This happens, for example, after clicking **Next**, using save-and-resume, or editing an existing submission.
 
 Uploading files without advancing the form or saving a draft does not survive a full page reload. The staged assets may still exist temporarily in Craft, but the form is not re-rendered with their asset IDs until submission or draft context is restored.
 

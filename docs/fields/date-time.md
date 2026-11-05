@@ -109,7 +109,7 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 When the date picker is enabled, Formie relies on Flatpickr and the field’s browser assets. Custom-rendered forms must still include the required assets and preserve the field inputs Formie expects.
 
-Date range fields submit hidden start/end transport inputs in addition to the visible picker input. Preserve `data-formie-date-range-start-input` and `data-formie-date-range-end-input` when overriding templates.
+Date range fields submit hidden inputs for the start and end values in addition to the visible picker input. Preserve `data-formie-date-range-start-input` and `data-formie-date-range-end-input` when overriding templates.
 
 Use the Date Picker Options setting for Flatpickr-specific configuration, such as disabling dates or changing picker behaviour. See the [Flatpickr documentation](https://flatpickr.js.org/) for supported options.
 

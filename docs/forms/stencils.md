@@ -30,11 +30,11 @@ Saving a form as a stencil from the form builder creates a new stencil you can e
 
 ### Synced Fields
 
-Stencils can include **synced fields**—the same shared field definitions you use across forms.
+Stencils can include **synced fields**, so forms created from a stencil can share field settings with other forms.
 
-When you add an existing field as a synced field while building a stencil, Formie remembers that link in the stencil snapshot. Creating a new form from that stencil adds a new placement that points at the same shared definition, so your site-wide email, consent, or other shared fields stay consistent.
+When you add an existing field as a synced field while building a stencil, Formie saves that relationship. New forms created from the stencil use the same synced field, so changing its settings updates every form that uses it.
 
-If a shared definition cannot be found on the current environment (for example, a project stencil references a handle that does not exist yet), Formie falls back to creating an independent field copy from the stencil settings.
+Formie matches synced fields by their unique identifier (UID), not their label or handle. If a matching field cannot be found on the current environment, Formie creates an independent copy using the stencil’s saved field settings. To keep the relationship, [import a form using that synced field](/forms/import-export#importing-synced-fields) before creating forms from the stencil.
 
 ## Shared Starting Points
 

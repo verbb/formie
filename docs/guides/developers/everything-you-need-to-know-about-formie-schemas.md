@@ -30,7 +30,7 @@ If you have built Craft plugin settings pages before, you have probably used Twi
 
 Formie schemas aim at the same developer experience — describe fields in PHP with translated labels, defaults, validation rules, and errors, and let the UI layer render them. The difference is that Formie's builder runs in React, so those arrays feed [SchemaForm](https://verbb.io/plugin-kit/forms/overview) instead of Twig templates.
 
-Your PHP side still owns the field definition:
+Your PHP class still defines the field’s settings and behaviour:
 
 ```php
 $schema = [
@@ -116,7 +116,7 @@ Formie normalizes saved settings against schema definitions on save. Benefits:
 
 - Consistent defaults when new settings are added
 - Type coercion for numbers, booleans, and selects
-- Validation rules declared on nodes surface in the builder
+- Validation rules declared on nodes appear in the builder
 
 When adding a new setting to an existing field type, add the schema node and a default in the field's settings model — old saved fields pick up defaults on next edit.
 

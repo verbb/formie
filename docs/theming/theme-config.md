@@ -440,12 +440,14 @@ Use `pageTabLink` for **shared** tab link classes. Use `tabLinkCurrent` / `tabLi
 > [!NOTE]
 > Tailwind JIT only emits utilities it can see at build time. Safelist classes used in PHP `themeConfig`, or prefer Twig `renderForm()` theme config when possible. You can also style stable `.formie-*` hooks with `@apply` instead of injecting utilities.
 
-## Config Definitions
+<span id="config-definitions"></span>
+
+## Ways to Set Theme Config
 There are 3 methods for how you define a theme config, which are shown below in order of priority (with the first being the lowest priority).
 
 1. Plugin configuration settings with PHP.
 2. Twig rendering using `craft.formie.renderForm()`.
-3. Event definitions in a PHP module.
+3. Event listeners in a PHP module.
 
 Although each method is a different way to define a theme config, it all ends up being treated the same - just a different way of registering this configuration. Your project could even use a combination of all methods!
 

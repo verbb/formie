@@ -28,7 +28,7 @@ Add an Address field named **Delivery Address** to your form. Enable the address
 
 Place **Country** before **State / Province** in the sub-field layout when using **Dropdown when available**. New Address fields default to this order.
 
-While subdivisions load, the country field shows a loading indicator and the state column shows a skeleton placeholder so the layout does not jump. Password managers and browser autofill target a persistent hidden `address-level1` input; Formie reconciles that value onto the visible control once subdivision data is ready.
+While subdivisions load, the country field shows a loading indicator and the state column shows a skeleton placeholder so the layout does not jump. Password managers and browser autofill target a persistent hidden `address-level1` input; Formie copies that value to the visible control once the list of states or regions has loaded.
 
 ## Submitted Value
 

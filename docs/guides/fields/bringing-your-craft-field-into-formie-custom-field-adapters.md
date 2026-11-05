@@ -129,7 +129,7 @@ SchemaHelper::textField([
 $placeholder = $this->getSetting($field, 'placeholder');
 ```
 
-This keeps the base Custom Field contract stable as adapters add provider-specific options.
+This keeps adapter-specific options separate from the settings shared by all Custom Fields.
 
 ## What to Implement
 
@@ -146,9 +146,11 @@ Start with the methods your Craft field actually needs:
 
 For structured values (maps, addresses, multi-part data), implement the value and GraphQL methods together so every output path sees the same shape.
 
-## Storage Contract
+<span id="storage-contract"></span>
 
-The adapter is chosen when the field is created and **cannot be changed afterward** — each adapter may store a different value shape. Treat `customFieldAdapter` and `customFieldAdapterSettings` as part of the field's storage contract.
+## Saving Adapter Settings
+
+The adapter is chosen when the field is created and **cannot be changed afterward** — each adapter may store a different value shape. Keep `customFieldAdapter` and `customFieldAdapterSettings` with the saved field so Formie can read its values correctly.
 
 Custom Field uses JSON storage so adapters can support both scalar strings and structured arrays through one Formie field type.
 
@@ -156,6 +158,6 @@ Custom Field uses JSON storage so adapters can support both scalar strings and s
 
 1. Add **Custom Field** to a form and pick your adapter type.
 2. Configure adapter settings and save the form.
-3. Submit from the front end — confirm the value persists on the submission.
+3. Submit from the front end — confirm the value is saved on the submission.
 4. Check email notification summaries, exports, and any enabled integrations.
 5. If you support GraphQL, confirm the mutation argument type matches what clients send.

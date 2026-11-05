@@ -45,7 +45,7 @@ The HTML payload does not include the normal CSS and JavaScript asset tags. If y
 
 ## Front-End Package Payload
 
-Use `formieClientForm` when a Formie front-end package needs the structured form definition and session payload.
+Use `formieClientForm` when a Formie front-end package needs the fields, layout and settings as structured data (`definition`), together with the visitor’s session.
 
 ```graphql
 query FormieForm($handle: String!, $siteId: Int, $locale: String) {

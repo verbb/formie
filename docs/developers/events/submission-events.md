@@ -55,7 +55,7 @@ Event::on(Submission::class, Submission::EVENT_AFTER_SAVE, function(ModelEvent $
 ### The `afterComplete` Event
 The event that is triggered when a submission **becomes complete** — last reachable page submitted (later pages may be hidden by conditions), payment replay that finishes the form, or a control panel mark-complete. It does not fire on intermediate page steps or later edits of an already complete submission.
 
-On a front-end submit this fires after persist and **before** notifications and integrations. Status changes made on `$event->submission` are persisted for you.
+On a front-end submit this fires after the submission is saved and **before** notifications and integrations. Status changes made on `$event->submission` are saved for you.
 
 ```php
 use verbb\formie\elements\Submission;

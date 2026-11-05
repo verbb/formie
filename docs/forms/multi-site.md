@@ -130,7 +130,7 @@ Translatable content includes front-end-facing strings such as:
 - Form messages (error, success, limits, scheduling)
 - Notification subject and body in the builder *(see [Notifications](#notifications) below)*
 
-Structural settings are **not** stored per site — field handles, conditions, integrations, captcha choice, and the shape of the layout are shared by every enabled site. You can change them from **any** site in the builder, but those edits update the shared form and apply everywhere, not just the site you are viewing. The **Required** toggle is the deliberate behavioural exception: changing it on a secondary site affects validation for that field placement on that site only.
+Structural settings are **not** stored per site — field handles, conditions, integrations, captcha choice, and the shape of the layout are shared by every enabled site. You can change them from **any** site in the builder, but those edits update the shared form and apply everywhere, not just the site you are viewing. The **Required** toggle is the deliberate behavioural exception: changing it on a secondary site affects validation only for that use of the field on that site.
 
 ### Working in the Form Builder
 

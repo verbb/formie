@@ -90,7 +90,7 @@ Use **Quiz** fields when respondents should receive a score and optionally pass 
 | Radio / dropdown | Full credit when the selected option is marked correct (option points when weighted scoring is on) |
 | Checkboxes | Full credit requires every correct option and no incorrect ones; weighted mode allows partial credit |
 
-Scores persist in `formie_submission_quiz_results` with overall score, percentage, pass/fail, and per-question JSON.
+Formie saves the overall score, percentage, pass/fail result and results for each question with the submission.
 
 ### Show Results After Submit
 

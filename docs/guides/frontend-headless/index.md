@@ -17,7 +17,7 @@ Form submissions are conversion events. Formie lets you configure analytics payl
 
 ## [Custom Client Event Templates](/guides/frontend-headless/custom-client-event-templates)
 
-Register analytics presets for the form builder **Tracking** tab — author workflow and a SaaS example. Template properties, payload contract, and troubleshooting live in [Custom Client Event Templates](/developers/custom-client-event-templates).
+Register analytics presets for the form builder **Tracking** tab — author workflow and a SaaS example. Template properties, payload format, and troubleshooting live in [Custom Client Event Templates](/developers/custom-client-event-templates).
 
 ## [GraphQL Submission Flow End-to-End](/guides/frontend-headless/graphql-submission-flow-end-to-end)
 

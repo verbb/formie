@@ -72,14 +72,14 @@ Two things happen here. The template root registration lets Craft resolve paths 
 
 Create `modules/formieurlfield/src/fields/UrlField.php`. Extend `verbb\formie\base\Field` and implement the methods Formie expects for builder settings, front-end rendering, validation, and Theme Config.
 
-A custom field touches four surfaces:
+A custom field has four main parts:
 
 1. **Form builder** — settings tabs, preview, palette icon
 2. **Front end** — input template or Theme Config slot tags
 3. **Validation** — rules when someone submits
 4. **Output contexts** — notifications, exports, integrations (via reference blocks and value helpers)
 
-Here is a complete URL field implementation. We walk through each surface in the sections below.
+Here is a complete URL field implementation. We walk through each part in the sections below.
 
 ```php [modules/formieurlfield/src/fields/UrlField.php]
 <?php

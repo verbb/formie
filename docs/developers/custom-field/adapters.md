@@ -85,7 +85,7 @@ class ExampleCustomFieldAdapter extends AbstractCustomFieldAdapter
 
 `craftFieldClasses()` is advisory metadata and availability detection. It does not make arbitrary Craft fields work automatically. If the field needs custom JavaScript, structured storage or provider-specific formatting, implement those methods on the adapter.
 
-Adapter-owned settings should be stored under `customFieldAdapterSettings` by using `settingName()` in schema nodes and `getSetting()` when reading values. This keeps the base Custom Field contract stable as adapters add provider-specific settings:
+Adapter-owned settings should be stored under `customFieldAdapterSettings` by using `settingName()` in schema nodes and `getSetting()` when reading values. This keeps adapter-specific settings separate from the settings shared by all Custom Fields:
 
 ```php
 SchemaHelper::textField([
@@ -100,7 +100,7 @@ $placeholder = $this->getSetting($field, 'placeholder');
 
 Custom Field uses JSON storage so adapters can support scalar and structured values through one Formie field type. Scalar adapters can return strings; structured adapters can return arrays or value objects and decide how those values appear in references, exports and integrations.
 
-The adapter is selected when the field is created and is not editable afterward. Treat the adapter class stored in `customFieldAdapter` as part of the field’s storage contract.
+The adapter is selected when the field is created and is not editable afterward. Keep the adapter class in `customFieldAdapter` with the saved field so Formie can read its values correctly.
 
 The selected adapter’s builder settings are stored in `customFieldAdapterSettings`. The adapter owns the meaning of those settings, including defaults used by `getDefaultValue()`, server-rendered markup and client input metadata.
 

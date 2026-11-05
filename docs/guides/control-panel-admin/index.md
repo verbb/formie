@@ -9,7 +9,7 @@ When a project grows past a handful of forms, the control panel gets noisy and n
 
 ## [Import and Export Between Environments](/guides/control-panel-admin/import-and-export-between-environments)
 
-Form import and export moves **form definitions** between environments — not submission data. Use it when staging a new form for production, cloning a client's enquiry form to another project, or backing up structure before a major edit.
+Form import and export moves **form structure and settings** between environments. It does not include submission data. Use it when staging a new form for production, cloning a client's enquiry form to another project, or backing up structure before a major edit.
 
 ## [Stencils for Repeatable Form Types](/guides/control-panel-admin/stencils-for-repeatable-form-types)
 

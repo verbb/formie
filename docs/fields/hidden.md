@@ -22,8 +22,8 @@ A Craft administrator with admin changes enabled must enable **Settings → Fiel
 | | Custom Value | Template |
 |---|---|---|
 | Editor | Variable picker | Object-template code editor |
-| Posted value | Stored, including an empty value | **Ignored** — server re-resolves on every save |
-| Trust model | User-modifiable | Server-authoritative |
+| Posted value | Stored, including an empty value | **Ignored** — the server calculates the value on every save |
+| Can posted input override the configured value? | Yes | No — the server calculates it |
 
 Use **Template** when you need Twig logic and the browser must not override its result. For example, `{form.handle}` reads the form handle, while a Twig conditional can choose a value from the available context. The sandbox restricts which Twig features and object properties are available. Values read from visitor-controlled sources, such as query parameters, still need validation. Use **Custom Value** for text and references that may legitimately vary per submission.
 
@@ -31,7 +31,7 @@ Extend template context in PHP with `HiddenDefaultTemplateResolver::EVENT_DEFINE
 
 ## Submitted Value
 
-Hidden stores a submitted value like other fields, even though the user does not see a visible control. For **Custom Value** and preset sources, treat the stored value as user-modifiable browser data unless you validate it server-side. **Template** defaults are re-resolved on the server and ignore posted input.
+Hidden stores a submitted value like other fields, even though the user does not see a visible control. For **Custom Value** and preset sources, treat the stored value as user-modifiable browser data unless you validate it server-side. **Template** values are calculated again on the server and ignore posted input.
 
 When querying or saving submissions through GraphQL, the field handle is used as the field name. Query the form’s `formFields` and include `inputTypeName` if you need to confirm the generated input type for a specific form.
 

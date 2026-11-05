@@ -10,7 +10,7 @@ Formie ships built-in templates for GTM, GA4, Meta, and a blank starter event. U
 
 ## Register a Template
 
-Listen for `ClientEventTemplates::EVENT_REGISTER_CLIENT_EVENT_TEMPLATES` in your module's `init()` method and push one or more template definitions onto the event.
+Listen for `ClientEventTemplates::EVENT_REGISTER_CLIENT_EVENT_TEMPLATES` in your module's `init()` method and add one or more templates to the event’s `templates` array.
 
 ```php
 use Craft;
@@ -43,7 +43,7 @@ Event::on(ClientEventTemplates::class, ClientEventTemplates::EVENT_REGISTER_CLIE
 });
 ```
 
-When an author picks the template, Formie materializes it into a normal page client event. Authors can edit the event name, payload, and conditions afterwards.
+When an author picks the template, Formie creates a page client event using its settings. Authors can edit the event name, payload, and conditions afterwards.
 
 ## Template Properties
 
@@ -128,7 +128,7 @@ Handles must be unique across all registered templates. If two templates share a
 
 ## Payload Rows
 
-Each payload row becomes one property on the materialized client event.
+Each payload row becomes one property in the data sent with the client event.
 
 ### Static Rows
 
@@ -179,7 +179,9 @@ When the template is inserted, Formie stores the mapped value as a field referen
 
 Templates with one or more `field` rows open a mapping dialog before insertion. Templates with only static rows are inserted immediately.
 
-## Materialized Event Shape
+<span id="materialized-event-shape"></span>
+
+## Event Created from a Template
 
 After insertion, a template becomes a normal page client event:
 
@@ -205,7 +207,7 @@ When a submission succeeds, Formie resolves payload values server-side after a s
 
 ## Programmatic Access
 
-You can also read or materialize templates in PHP:
+You can also read templates or create events from them in PHP:
 
 ```php
 $templates = Formie::$plugin->getClientEventTemplates()->getRegisteredTemplates();

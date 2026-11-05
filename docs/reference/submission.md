@@ -196,7 +196,7 @@ Returns the field value as a string.
 
 **Returns:** `mixed`
 
-Returns the JSON-safe field value. Primitive fields return scalars; structured fields return explicit named data.
+Returns a field value that can be encoded as JSON. Simple fields return a single value, such as a string or boolean; fields such as Address return named parts.
 :::
 
 ::: reference

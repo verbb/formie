@@ -247,7 +247,7 @@ Defines the field value when Formie needs a string value.
 ::: reference
 ### `defineValueAsData()`
 
-Defines the JSON-safe value. Return useful scalars for primitive fields and explicit named data for structured fields.
+Defines a value that can be encoded as JSON. Return a single value for simple fields, or named parts for structured fields such as Address.
 :::
 
 ::: reference
@@ -463,9 +463,9 @@ To expose organisation-wide defaults for your field type, opt in with `supported
 
 ### Shared and Per-Form Settings
 
-[Synced Fields](/forms/synced-fields) share a definition containing settings such as labels, placeholders, and options. Each placement of that field is a separate instance with its own `required` setting. For example, the same synced Email field can be required on a registration form and optional on a feedback form.
+[Synced Fields](/forms/synced-fields) share settings such as labels, placeholders, and options. Internally, these shared settings are called a field definition. Each use of the field on a form is a separate instance with its own `required` setting. For example, the same synced Email field can be required on a registration form and optional on a feedback form.
 
-Custom fields inherit this behaviour. If your field needs additional settings that vary between placements, override `getInstanceSettings()` and `applyInstanceSettings()`, calling the parent methods to preserve the built-in `required` setting. `getDefinitionSettings()` returns the shared settings, excluding those declared by `getInstanceSettings()`.
+Custom fields inherit this behaviour. If your field needs additional settings that vary between uses of the field, override `getInstanceSettings()` and `applyInstanceSettings()`, calling the parent methods to preserve the built-in `required` setting. `getDefinitionSettings()` returns the shared settings, excluding those declared by `getInstanceSettings()`.
 
 When reading submission values, continue to use the field handle. For code that needs to identify a field or its shared definition, see the instance and definition properties in the [Field reference](/reference/field#id).
 

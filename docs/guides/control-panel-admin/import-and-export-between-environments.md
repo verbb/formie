@@ -76,7 +76,7 @@ The same name or handle does not establish a relationship. Formie uses the synce
 
 ### Client Template → New Project
 
-1. Export the canonical template forms from your starter Craft install
+1. Export the forms you want to reuse from your starter Craft install
 2. Import on the client site as **Create new form**. Select **Import as independent fields** if the new forms should not share synced fields with other imports from that template
 3. Rename handles to client conventions
 4. Assign [form groups](/forms/form-groups) and site policies for the client's multi-site setup

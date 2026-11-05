@@ -121,7 +121,7 @@ For nested fields inside Group or Repeater fields, include the parent handle —
 
 **No builder preview.** The form builder cannot know what your template will output, so there is no meaningful option preview while editing the field.
 
-**Nothing is stored on the field.** Template mode does not persist an option list in the field settings. If you forget to override `options` in Twig, the field may render with no choices.
+**Nothing is stored on the field.** Template mode does not save an option list in the field settings. If you forget to override `options` in Twig, the field may render with no choices.
 
 **Cached pages need extra care.** Template overrides run when Twig renders the form. On a statically cached page, the cached HTML keeps the options from the render that built the cache. Formie’s cached-form support refreshes request tokens, but it does not re-run Twig overrides or rebuild field markup on each page load. See [Cached Forms](/frontend/cached-forms) and [Overriding Settings](/templates/overriding-settings).
 

@@ -127,7 +127,7 @@ The operator schema in `src/conditions/schema.json` generates the core browser p
 
 Conditions compare the values returned by each field's condition method, resolving reference tokens where needed. If a reference is unavailable in the browser, its result stays unknown there and the server makes the decision.
 
-| Value | Semantics |
+| Value | Meaning |
 | --- | --- |
 | Text | Case-sensitive exact equality and substring matching. Greater/less comparisons use Unicode lexical order: text `10` sorts before `2`. |
 | Number | A complete finite decimal or exponent value, optionally signed. Numeric `10` is greater than `2`. Prefix parsing such as `12px` is invalid. |

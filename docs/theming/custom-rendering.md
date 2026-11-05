@@ -359,7 +359,11 @@ Here is the template combined, with the spam-protection inputs included only whe
 ```
 
 ### Multi-Page Forms
-The single-page example does not need a `pageId` input. Multi-page forms need the current page ID, page containers and navigation controls, as well as submission continuity between requests. Include `{{ hiddenInput('pageId', form.getCurrentPage().id) }}` when building that flow, and use the [default page templates](https://github.com/verbb/formie/tree/craft-5/src/templates/_special/form-template) as a reference for the additional browser hooks.
+The single-page example does not need a `pageId` input. Multi-page forms need the current page ID, page containers and navigation controls, as well as submission continuity between requests. Use the [default page templates](https://github.com/verbb/formie/tree/craft-5/src/templates/_special/form-template) as a reference for the additional browser hooks. Include the current page ID with this Twig call:
+
+```twig
+{{ hiddenInput('pageId', form.getCurrentPage().id) }}
+```
 
 ### File Uploads
 The form must use `multipart/form-data` for uploads, as shown in the attribute object. File Upload fields also need Formie's upload tokens and payload metadata, so adding the encoding alone is not a complete upload implementation. Consult the [default hidden-input template](https://github.com/verbb/formie/blob/craft-5/src/templates/_special/form-template/form/hidden-inputs.html) and upload handling when constructing your own flow. [Template Overrides](/theming/template-overrides) are an alternative if you want Formie to supply that request context.
@@ -385,7 +389,7 @@ Custom forms still need Formie's browser layer for Ajax submits and captchas. Ou
 
 To disable Formie's client-side validation on submit, turn off **Validate Form on Submit** in the form's settings (under **Behavior**), or set `data-formie-validation-on-submit="false"` on the `<form>`. Captchas still run in the submit pipeline, and accepted requests still undergo server-side field validation. If you want native browser validation, your custom inputs also need the appropriate HTML constraints.
 
-If Ajax submit fails with a generic error when fields are empty, either enable **Validate Form on Submit** so users see field errors before the request is sent, or ensure your template surfaces server validation errors from the returned submission.
+If Ajax submit fails with a generic error when fields are empty, either enable **Validate Form on Submit** so users see field errors before the request is sent, or ensure your template displays server validation errors from the returned submission.
 
 See [reCAPTCHA](/integrations/captchas/recaptcha) for cookie-consent deferral with `initJs: false`.
 

@@ -69,13 +69,13 @@ A common setup:
 2. On each entry template, load the form and call `setRelations([entry])`.
 3. In the CP or a custom report, filter submissions related to an entry.
 
-The form definition stays generic; the template supplies context per page.
+You can reuse the same form on different pages because the template supplies the value for each page.
 
 ## Pattern: Product Enquiry with Hidden Context
 
 Combine relations with visible product fields:
 
-- Relation stores the canonical Commerce product element.
+- The relation links to the Commerce product.
 - A read-only or calculated field shows the product title for the submitter's confirmation email.
 
 Integrations can map relation element IDs to CRM product fields.

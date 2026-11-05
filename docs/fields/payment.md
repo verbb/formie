@@ -22,7 +22,7 @@ For a multi-page form, place every enabled Payment field on the final page shown
 
 ## Submitted Value
 
-Payment stores payment-related submission data rather than normal text input. The exact value and records depend on the configured provider and whether the payment is authorized, captured, redirected or reconciled later.
+Payment stores payment-related submission data rather than normal text input. The exact value and records depend on the configured provider and whether the payment is authorised, captured, completed after a redirect or confirmed with the provider later.
 
 When querying or saving submissions through GraphQL, payment behaviour depends on the provider and submission workflow. Query the form’s `formFields` and include `inputTypeName` when building a custom front end.
 
@@ -78,7 +78,7 @@ For full Tailwind, Bootstrap and other framework examples, see [Formie theme con
 
 ## Front-End Reference
 
-Payment fields often depend on provider JavaScript, Ajax submission, redirects or webhook reconciliation. If you customise rendering, keep the provider’s required front-end assets and submission flow intact.
+Payment fields often depend on provider JavaScript, Ajax submission, redirects or payment updates received through webhooks. If you customise rendering, keep the provider’s required front-end assets and submission flow intact.
 
 - [Payment](https://docs.verbb.io/formie/browser/ui-reference/fields/payment)
 

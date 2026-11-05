@@ -1,6 +1,6 @@
 # Stencils for Repeatable Form Types
 
-Stencils are reusable starter forms — layout, notifications, integrations, and settings included. They help teams spin up consistent enquiry, application, or survey forms without rebuilding the same field tree every time. This walkthrough builds a stencil, wires synced fields, and deploys it across environments.
+Stencils are reusable starter forms — layout, notifications, integrations, and settings included. They help teams create consistent enquiry, application, or survey forms without adding the same fields every time. This walkthrough builds a stencil, adds synced fields, and deploys it across environments.
 
 ## Prerequisites
 
@@ -18,7 +18,9 @@ Stencils are reusable starter forms — layout, notifications, integrations, and
 
 Treat stencils as starting points, not shared live forms.
 
-## Step 1 — Build the Canonical Enquiry Stencil
+<span id="step-1-—-build-the-canonical-enquiry-stencil"></span>
+
+## Step 1 — Build the Enquiry Stencil
 
 1. Go to **Formie → Stencils**
 2. For this deployable template, open the arrow beside **New Stencil** and choose **New project stencil**. This requires admin changes to be enabled.
@@ -35,12 +37,12 @@ Save the stencil.
 
 For fields that must stay identical across every form — consent checkbox, privacy policy link, UTM hidden fields — use [synced fields](/forms/synced-fields):
 
-1. Create the shared field definition once (**Formie → Synced Fields**)
-2. While editing the stencil, add the field as a **synced field** placement (not a one-off copy)
+1. Create and save the field on a form in the form builder.
+2. While editing the stencil, open the existing fields picker and add that field as a **synced field**.
 
-When someone creates a form from the stencil, Formie adds a placement pointing at the same shared definition. Update the definition once; all forms update.
+When someone creates a form from the stencil, it uses the same synced field. Changing the field’s shared settings updates every form that uses it. **Required** can still be set separately wherever the field appears.
 
-If a shared definition is missing on an environment (handle not deployed yet), Formie falls back to an independent field copy from the stencil snapshot.
+Formie matches synced fields by their unique identifier (UID), not their handle. If the matching field is missing on an environment, Formie creates an independent copy from the stencil’s saved field settings.
 
 ## Step 3 — Set Default Stencil for New Forms
 
@@ -73,7 +75,7 @@ From the form builder on any live form:
 2. Choose **Save as stencil**
 3. Name the new stencil
 
-Useful when a one-off form became the de facto standard and you want to codify it.
+Use this when an existing form would make a useful starting point for future forms.
 
 ## Step 6 — Project Stencils (Developers)
 
@@ -94,8 +96,8 @@ Commit the enquiry stencil’s project config and apply it on the target environ
 Order of operations on a fresh environment:
 
 1. Deploy project config, including project stencils and form groups
-2. Migrate any instance-level stencils and shared field definitions the templates require
-3. Verify synced field handles resolve before authors create forms from stencils
+2. Migrate any instance-level stencils you need. To bring across synced fields, export a form that uses them and import it with **Preserve relationships**.
+3. Check **Formie → Settings → Synced Fields** for the imported fields before authors create forms from stencils.
 
 On the target environment, confirm that **Enquiry Form** appears in the **New Form** stencil picker, then create a test form and check its fields, notifications and settings.
 

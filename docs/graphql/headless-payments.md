@@ -233,7 +233,7 @@ No upfront payment input keys. Follow Paddle’s checkout flow; Formie processes
 
 ## Multi-Page Forms
 
-Collect payment field values on the final page only. Use `setFormieClientPage` to persist earlier pages, then submit when the user reaches the payment page.
+Collect payment field values on the final page only. Use `setFormieClientPage` to save earlier pages, then submit when the user reaches the payment page.
 
 
 ## Unknown And Cancelled Outcomes
