@@ -510,7 +510,9 @@ abstract class ElementField extends Field implements DisplayTypeFieldInterface, 
             // Ensure that disabled elements can be populated, just in case
             $query->status(null);
 
-            parent::populateValue($query, $submission);
+            // Rendering can use a different form instance from the saved submission.
+            // Its option query must see the selected value before applying the limit.
+            parent::populateValue($query, $this->getForm() ? null : $submission);
         }
     }
 
