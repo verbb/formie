@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.0.7 - 2026-11-05
+
 ### Changed
 - Changed the `@verbb/formie-*` package versions to match the Formie plugin, so Formie 4.0.7 pairs with version 4.0.7 of each package. The jump from 1.x has no breaking changes, but version ranges such as `^1.0.16` need updating once. ([#3081](https://github.com/verbb/formie/issues/3081))
 
