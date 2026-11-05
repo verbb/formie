@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.7 - 2026-11-05
 
 ### Added
 - Keep synced fields linked when importing forms, with a choice when a synced field’s settings differ on the destination. ([#3098](https://github.com/verbb/formie/issues/3098))
