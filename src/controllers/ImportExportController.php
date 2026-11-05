@@ -117,6 +117,8 @@ class ImportExportController extends SettingsAccessController
             $existingForm = Formie::$plugin->getForms()->getFormByHandle($formHandle);
         }
 
+        $plan = ImportExportHelper::planImport($json, $existingForm, Craft::$app->getUser()->getIdentity());
+
         ob_start();
         $title = Html::encode($json['title'] ?? '');
         $handle = Html::encode($json['handle'] ?? '');
@@ -154,7 +156,11 @@ class ImportExportController extends SettingsAccessController
             $label = Html::encode($field['label'] ?? $field['settings']['label'] ?? '');
             $handle = Html::encode($field['handle'] ?? $field['settings']['handle'] ?? '');
 
-            $this->_stdout("        > {$type}: “{$label}” `({$handle})`.", Console::FG_GREEN);
+            $synced = $plan['syncedFields'][strtolower((string)($field['syncedDefinitionUid'] ?? ''))] ?? null;
+            $problem = $synced && (!$synced['canReuse'] || in_array($synced['status'], ['conflict', 'incompatible'], true));
+            $note = $synced ? ' ' . $this->_syncedFieldNote($synced) : '';
+
+            $this->_stdout("        > {$type}: “{$label}” `({$handle})`.{$note}", $problem ? Console::FG_RED : Console::FG_GREEN);
         }
 
         $notificationCount = Craft::t('app', '{num, number} {num, plural, =1{notification} other{notifications}}', ['num' => count($json['notifications'])]);
@@ -168,18 +174,15 @@ class ImportExportController extends SettingsAccessController
             }
         }
 
-        $plan = ImportExportHelper::planImport($json, $existingForm, Craft::$app->getUser()->getIdentity());
-
         foreach ($plan['warnings'] as $warning) {
             $this->_stdout(Html::encode($warning), Console::FG_YELLOW);
         }
 
         foreach ($plan['dependencies'] as $dependency) {
-            $this->_stdout(Html::encode($dependency['action'] . ': ' . $dependency['kind'] . ' resource ' . $dependency['handle']));
-        }
-
-        foreach ($plan['changes'] as $action => $references) {
-            $this->_stdout(Html::encode(ucfirst($action) . ': ' . implode(', ', $references)));
+            if ($dependency['action'] === 'create') {
+                $kind = ImportExportHelper::RESOURCE_LABELS[$dependency['kind']];
+                $this->_stdout(Html::encode("    > Will create the {$kind} “{$dependency['handle']}”."), Console::FG_GREEN);
+            }
         }
 
         $summary = ob_get_clean();
@@ -205,6 +208,13 @@ class ImportExportController extends SettingsAccessController
         }
 
         $handle = (string)($json['handle'] ?? '');
+
+        if ($handle !== '' && !in_array($formAction, ['create', 'update'], true) && Formie::$plugin->getForms()->getFormByHandle($handle)) {
+            Craft::$app->getUrlManager()->setRouteParams(['errors' => [Craft::t('formie', 'Choose how to handle the existing form.')]]);
+
+            return $this->actionImportConfigure($filename);
+        }
+
         // Locate the update target before applying its manage permission. CP index
         // visibility must not turn an inaccessible existing form into a new import.
         $existingForm = $formAction === 'update' && $handle !== ''
@@ -348,6 +358,17 @@ class ImportExportController extends SettingsAccessController
         $this->setFailFlash(Craft::t('formie', 'This file is not a valid Formie form export.'));
 
         return $this->redirect(UrlHelper::cpUrl('formie/settings/import-export'));
+    }
+
+    private function _syncedFieldNote(array $field): string
+    {
+        return Craft::t('formie', match (true) {
+            !$field['canReuse'] => 'Synced field, you can’t manage every form using it.',
+            $field['status'] === 'incompatible' => 'Synced field, different field type on this site.',
+            $field['status'] === 'conflict' => 'Synced field, settings differ on this site.',
+            $field['status'] === 'create' => 'Synced field, will be created.',
+            default => 'Synced field, already on this site.',
+        });
     }
 
     private function _stdout(string $string, string $color = ''): void

@@ -420,7 +420,7 @@ it('plans resource reuse fallback creation and destructive removals without writ
     unset($missingDependency['formTemplate']);
     $missingDependency['formTemplateUid'] = 'unavailable-template';
     $missingDependency['dependencies'] = [];
-    expect(ImportExportHelper::planImport($missingDependency)['warnings'])->toContain('Unavailable form template dependency: unavailable-template');
+    expect(ImportExportHelper::planImport($missingDependency)['warnings'])->toContain('Unavailable form template: unavailable-template');
     foreach ($data['dependencies'] as &$dependency) { unset($dependency['config']['uid']); }
     unset($dependency);
     $data['pages'][0]['rows'] = [];

@@ -223,3 +223,27 @@ file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/automation-test.jso
 
 require __DIR__ . '/browser-native-save-fixture.php';
 require __DIR__ . '/browser-cp-repeater-upload-fixture.php';
+
+$importReview = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Import Review A', 'handle' => 'importReviewA'])
+    ->emailField('email', ['label' => 'Shared email'])
+    ->singleLineTextField('extra', ['label' => 'Extra'])
+    ->create();
+$importReview->setNotifications([new \verbb\formie\models\Notification([
+    'name' => 'Old notice', 'handle' => 'oldNotice', 'subject' => 'Old notice', 'to' => 'admin@example.test', 'enabled' => false,
+])]);
+if (!Craft::$app->getElements()->saveElement($importReview)) {
+    throw new RuntimeException('Cannot save import review fixture.');
+}
+\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Import Review B', 'handle' => 'importReviewB'])
+    ->addFieldConfig([
+        'type' => \verbb\formie\fields\Email::class, 'label' => 'Shared email', 'handle' => 'email',
+        'definitionId' => $importReview->getFieldByHandle('email')->definitionId, 'isSynced' => true,
+    ])
+    ->create();
+\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Import Review Plain', 'handle' => 'importReviewPlain'])
+    ->emailField('email', ['label' => 'Shared email'])
+    ->addFieldConfig([
+        'type' => \verbb\formie\fields\Group::class, 'label' => 'Contact', 'handle' => 'contact',
+        'rows' => [['fields' => [['type' => \verbb\formie\fields\SingleLineText::class, 'label' => 'Phone', 'handle' => 'phone']]]],
+    ])
+    ->create();

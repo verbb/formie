@@ -41,6 +41,19 @@ use Throwable;
 
 class ImportExportHelper
 {
+    // Constants
+    // =========================================================================
+
+    public const RESOURCE_LABELS = [
+        'form' => 'form template',
+        'email' => 'email template',
+        'pdf' => 'PDF template',
+        'group' => 'form group',
+        'submissionStatus' => 'submission status',
+        'formStatus' => 'form status',
+    ];
+
+
     // Static Methods
     // =========================================================================
 
@@ -383,13 +396,13 @@ class ImportExportHelper
         $warnings = $serializer->warnings;
 
         if (!empty($requested['formTemplateUid']) && empty($data['formTemplate'])) {
-            $warnings[] = 'Unavailable form template dependency: ' . $requested['formTemplateUid'];
+            $warnings[] = 'Unavailable form template: ' . $requested['formTemplateUid'];
         }
 
         foreach ($requested['notifications'] ?? [] as $key => $notification) {
             foreach (['email', 'pdf'] as $kind) {
                 if (!empty($notification[$kind . 'TemplateUid']) && empty($data['notifications'][$key][$kind . 'Template'])) {
-                    $warnings[] = 'Unavailable ' . $kind . ' template dependency: ' . $notification[$kind . 'TemplateUid'];
+                    $warnings[] = 'Unavailable ' . $kind . ' template: ' . $notification[$kind . 'TemplateUid'];
                 }
             }
         }
@@ -408,13 +421,13 @@ class ImportExportHelper
 
         foreach ($resources as $resource) {
             if ($resource['action'] === 'reuseHandle') {
-                $warnings[] = 'Legacy handle fallback: ' . $resource['kind'] . ' resource ' . $resource['handle'];
+                $warnings[] = 'Matched by handle: ' . self::RESOURCE_LABELS[$resource['kind']] . ' “' . $resource['handle'] . '”.';
             }
         }
 
-        foreach (['groupId', 'defaultStatusId', 'formStatusId'] as $key) {
+        foreach (['groupId' => 'form group', 'defaultStatusId' => 'submission status', 'formStatusId' => 'form status'] as $key => $label) {
             if (!empty($data[$key])) {
-                $warnings[] = "Legacy $key is environment-specific; the current form or destination default is retained.";
+                $warnings[] = "The export’s $label can’t be matched on this site, so the form’s current or default $label is used.";
             }
         }
 
@@ -431,15 +444,31 @@ class ImportExportHelper
             }
         }
 
+        $removals = ['fields' => $form ? self::_removedFieldLabels($form->getFields(), $serializer->changes['removed']) : [], 'notifications' => []];
+
         if ($form && isset($data['notifications'])) {
             $incomingHandles = array_column($data['notifications'] ?? [], 'handle');
-            $serializer->changes['removedNotifications'] = array_values(array_filter(
-                array_map(fn($notification) => $notification->handle, $form->getNotifications()),
-                fn($handle) => !in_array($handle, $incomingHandles, true),
-            ));
+            $removedNotifications = array_values(array_filter($form->getNotifications(), fn($notification) => !in_array($notification->handle, $incomingHandles, true)));
+            $serializer->changes['removedNotifications'] = array_map(fn($notification) => $notification->handle, $removedNotifications);
+            $removals['notifications'] = array_map(fn($notification) => (string)$notification->name, $removedNotifications);
         }
 
-        return ['syncedFields' => (new SyncedFieldImport($data, [], $user))->preview(), 'warnings' => $warnings, 'missingTypes' => array_values(array_unique($serializer->missingTypes)), 'dependencies' => $resources, 'changes' => $serializer->changes];
+        return ['removals' => $removals, 'syncedFieldRelinks' => $serializer->syncedFieldRelinks, 'syncedFields' => (new SyncedFieldImport($data, [], $user))->preview(), 'warnings' => $warnings, 'missingTypes' => array_values(array_unique($serializer->missingTypes)), 'dependencies' => $resources, 'changes' => $serializer->changes];
+    }
+
+    private static function _removedFieldLabels(array $fields, array $removed, string $prefix = ''): array
+    {
+        $labels = [];
+
+        foreach ($fields as $field) {
+            if (in_array($field->reference, $removed, true)) {
+                $labels[] = $prefix . $field->label;
+            } elseif ($field instanceof ParentFieldInterface) {
+                $labels = array_merge($labels, self::_removedFieldLabels($field->getFields(), $removed, $prefix . $field->label . ' › '));
+            }
+        }
+
+        return $labels;
     }
 
     private static function _applyDependencyDocuments(array $data): array
@@ -568,6 +597,12 @@ class ImportExportHelper
             }
 
             $serializer->syncedFieldImport = new SyncedFieldImport($data, $syncedFields, $user);
+
+            // Control panel imports decide conflicts up front, under the lock, so a field that changed after the preview is reviewed again.
+            if ($user) {
+                $serializer->syncedFieldImport->requireChoices();
+            }
+
             $form = self::createFormFromImport($data, $existing, $serializer);
 
             if ($user) {

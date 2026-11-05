@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Added
-- Add synced-field relationship preservation to form imports, with an import preview, conflict choices, and independent-copy imports. ([#3098](https://github.com/verbb/formie/issues/3098))
+- Keep synced fields linked when importing forms, with a choice when a synced field’s settings differ on the destination. ([#3098](https://github.com/verbb/formie/issues/3098))
 - Add an **Export…** button to the submissions index. It opens a dialog filled in from your current form, filters and search, where you can adjust the forms, submission types, statuses, dates and columns, and see how many submissions you’ll get, before exporting in any report format. No saved report is needed. ([#3082](https://github.com/verbb/formie/issues/3082))
 - Add the [`logSubmissionValues`](https://verbb.io/craft-plugins/formie/docs/v4/get-started/configuration#logsubmissionvalues) config setting to keep submitted values out of Formie’s log files, while still writing every log entry.
 - Add an option to leave log files out of support requests.
@@ -35,6 +35,7 @@
 - Fixed forms using page reloads not showing a link to continue later after saving progress.
 - Fixed File Upload fields retaining completed attachments after AJAX form resets, and duplicate advanced upload rows after Back navigation. ([#3097](https://github.com/verbb/formie/issues/3097))
 - Fixed users with permission to import forms being sent to an inaccessible page after a successful import.
+- Fixed importing a form creating a new form when an existing form had the same handle and no action was selected.
 - Fixed queued integrations and notifications being discarded after their worker stopped unexpectedly, while preserving the site's queue retry settings.
 - Fixed upgrades from Formie 2 and 3 failing on PostgreSQL for sites with payments, and sites already upgraded rejecting newer payment statuses, because of an old database constraint.
 - Fixed upgrades stopping on payments saved with more decimals than their currency has, such as a failed payment of 25.015 USD. The amount is rounded, and the original stays on the payment and in its history.

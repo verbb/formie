@@ -13,9 +13,9 @@
 <h2>{{ pageTitle }}</h2>
 
 {% if errors is defined %}
-    <p class="error">
-        {{ 'Error' | t('formie') }}: {{ errors | json_encode }}
-    </p>
+    {% for error in errors | flatten %}
+        <p class="error">{{ error }}</p>
+    {% endfor %}
 {% endif %}
 
 <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
@@ -26,76 +26,44 @@
 
     {{ summary | raw }}
 
-    {% if plan.syncedFields %}
+    {% set blockedFields = plan.syncedFields | filter(field => not field.canReuse or field.status == 'incompatible') %}
+    {% set conflictFields = plan.syncedFields | filter(field => field.canReuse and field.status == 'conflict') %}
+    {% set linkedFields = plan.syncedFieldRelinks | filter(field => field.canRelink) %}
+    {% set unlinkableFields = plan.syncedFieldRelinks | filter(field => not field.canRelink) %}
+
+    {% if blockedFields %}
         <hr>
-        <h3>{{ 'Synced Fields' | t('formie') }}</h3>
-        <p>{{ 'Preserve relationships to share these fields with other imported forms. Matching uses the shared field identity, not its name or handle.' | t('formie') }}</p>
+
+        {% for field in blockedFields %}
+            {% set message = field.canReuse ? 'The “{field}” synced field has a different field type on this site. Change or detach it in the form builder, then export the form again.' : 'You need to be able to manage every form using the “{field}” synced field before importing it.' %}
+            <div class="log-label color-31">{{ message | t('formie', { field: field.label }) }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% for uid, field in conflictFields %}
+        <hr>
+
+        <p>{{ 'The “{field}” synced field has different settings on this site.' | t('formie', { field: field.label }) }}</p>
+
+        {% if field.forms %}
+            <p>{{ 'Updating it changes every form using it: {forms}.' | t('formie', { forms: field.forms | map(form => form.title ~ ' (' ~ form.handle ~ ')') | join(', ') }) }}</p>
+        {% endif %}
+
+        {{ hiddenInput('syncedFields[definitions][' ~ uid ~ '][expected]', field.expected) }}
 
         {{ forms.selectField({
-            label: 'Synced field relationships' | t('formie'),
-            id: 'syncedFieldsMode',
-            name: 'syncedFields[mode]',
-            value: 'preserve',
-            toggle: true,
-            targetPrefix: 'synced-fields-',
+            label: 'Action for {field}' | t('formie', { field: field.label | e }),
+            id: 'synced-field-' ~ uid,
+            name: 'syncedFields[definitions][' ~ uid ~ '][action]',
+            required: true,
+            value: craft.app.request.getBodyParam('syncedFields.definitions.' ~ uid ~ '.action'),
             options: [
-                {label: 'Preserve relationships' | t('formie'), value: 'preserve'},
-                {label: 'Import as independent fields' | t('formie'), value: 'independent'},
+                { label: 'Select an option' | t('formie'), value: '' },
+                { label: 'Keep this site’s settings' | t('formie'), value: 'keep' },
+                { label: 'Update synced field' | t('formie'), value: 'update' },
             ],
         }) }}
-
-        <div id="synced-fields-independent" class="hidden">
-            <p>{{ 'Each field will be an independent copy. Existing fields on an updated form will no longer be synced.' | t('formie') }}</p>
-        </div>
-        <div id="synced-fields-preserve">
-            {% for uid, field in plan.syncedFields %}
-                <h4>{{ field.label | e }} ({{ field.handle | e }})</h4>
-                {% if not field.canReuse %}
-                    <p>{{ 'You cannot manage every form using this field. It must be imported as an independent field.' | t('formie') }}</p>
-                {% elseif field.status == 'create' %}
-                    <p>{{ 'Create a synced field. Other imports containing the same synced field will reuse it.' | t('formie') }}</p>
-                {% elseif field.status == 'incompatible' %}
-                    <p class="warning">{{ 'The destination field has a different type. It must be imported as an independent field.' | t('formie') }}</p>
-                {% else %}
-                    <p>{{ (field.status == 'conflict' ? 'The destination field has different settings.' : 'A matching synced field already exists.') | t('formie') }}</p>
-                {% endif %}
-
-                {% if field.forms %}
-                    <p>{{ 'Forms using this synced field:' | t('formie') }}</p>
-                    <ul>
-                        {% for form in field.forms %}
-                            <li>{{ form.title | e }} ({{ form.handle | e }})</li>
-                        {% endfor %}
-                    </ul>
-                    <p>{{ 'Updating the synced field changes these forms too, including forms outside this import.' | t('formie') }}</p>
-                {% endif %}
-
-                {% set options = [{label: 'Import as independent fields' | t('formie'), value: 'independent'}] %}
-                {% if field.canReuse and field.status != 'incompatible' %}
-                    {% set options = [
-                        {label: (field.status == 'create' ? 'Create synced field' : 'Keep destination settings') | t('formie'), value: 'keep'},
-                    ] | merge(field.status == 'create' ? [] : [{label: 'Update synced field' | t('formie'), value: 'update'}]) | merge(options) %}
-                {% endif %}
-
-                {{ hiddenInput('syncedFields[definitions][' ~ uid ~ '][expected]', field.expected) }}
-                {{ forms.selectField({
-                    label: 'Import action for {field}' | t('formie', {field: field.label | e}),
-                    id: 'synced-field-' ~ uid,
-                    name: 'syncedFields[definitions][' ~ uid ~ '][action]',
-                    options: options,
-                }) }}
-            {% endfor %}
-
-            {% if existingForm %}
-                {{ forms.checkboxField({
-                    label: 'Link existing fields to the imported synced fields' | t('formie'),
-                    instructions: 'Use this for fields previously imported as independent copies. Existing submission values are retained, but matching fields will use the selected synced field settings and relationships.' | t('formie'),
-                    name: 'syncedFields[relink]',
-                    value: '1',
-                }) }}
-            {% endif %}
-        </div>
-    {% endif %}
+    {% endfor %}
 
     {% if existingForm %}
         <hr>
@@ -110,12 +78,17 @@
             required: true,
             toggle: true,
             targetPrefix: 'action-',
+            value: craft.app.request.getBodyParam('formAction'),
             options: [
-                { label: 'Select an option', value: '' },
-                { label: 'Create a new form', value: 'create' },
-                { label: 'Update existing form', value: 'update' },
+                { label: 'Select an option' | t('formie'), value: '' },
+                { label: 'Create a new form' | t('formie'), value: 'create' },
+                { label: 'Update existing form' | t('formie'), value: 'update', disabled: unlinkableFields is not empty },
             ],
         }) }}
+
+        {% if unlinkableFields %}
+            <div class="log-label color-31">{{ 'The existing form can’t be updated, because {fields} can’t be linked to the imported synced field without affecting saved answers. Create a new form instead.' | t('formie', { fields: unlinkableFields | map(field => '“' ~ field.label ~ '”') | join(', ') }) }}</div>
+        {% endif %}
 
         <div id="action-create" class="hidden">
             <p>{{ 'A new handle will be generated for you.' | t('formie') }}</p>
@@ -123,14 +96,26 @@
 
         <div id="action-update" class="hidden">
             <p>{{ 'This will update the existing “{handle}” form and completely replace its settings, fields, layout, notifications and more with the data you‘re importing.' | t('formie', { handle: existingForm.handle }) }} <strong>{{ 'This action will be permanent.' | t('formie') }}</strong></p>
+
+            {% if plan.removals.fields %}
+                <div class="log-label color-31">{{ 'Removes these fields: {fields}.' | t('formie', { fields: plan.removals.fields | join(', ') }) }}</div>
+            {% endif %}
+
+            {% if plan.removals.notifications %}
+                <div class="log-label color-31">{{ 'Removes these notifications: {notifications}.' | t('formie', { notifications: plan.removals.notifications | join(', ') }) }}</div>
+            {% endif %}
+
+            {% if linkedFields %}
+                <div class="log-label color-33">{{ 'Links these fields to synced fields and keeps their saved answers: {fields}.' | t('formie', { fields: linkedFields | map(field => field.label) | join(', ') }) }}</div>
+            {% endif %}
         </div>
-    {% else %}
+    {% elseif not blockedFields and not conflictFields %}
         <p class="log-label color-32">{{ 'Ready to import.' | t('formie') }}</p>
     {% endif %}
-    
+
     <hr>
 
-    <input type="submit" class="btn submit" value="{{ 'Import' | t('formie') }}">
+    <input type="submit" class="btn submit{% if blockedFields %} disabled{% endif %}" value="{{ 'Import' | t('formie') }}"{% if blockedFields %} disabled{% endif %}>
 </form>
 
 {% endblock %}

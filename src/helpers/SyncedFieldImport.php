@@ -43,7 +43,7 @@ class SyncedFieldImport
         $this->_options = $options;
         $this->_user = $user;
 
-        if (!in_array($options['mode'] ?? 'preserve', ['preserve', 'independent'], true) || !is_array($options['definitions'] ?? [])) {
+        if (($options['mode'] ?? 'preserve') !== 'preserve' || !is_array($options['definitions'] ?? [])) {
             throw new InvalidConfigException('Invalid synced field import options.');
         }
 
@@ -60,7 +60,7 @@ class SyncedFieldImport
         }
 
         foreach ($options['definitions'] ?? [] as $uid => $choice) {
-            if (!isset($this->_definitions[$uid]) || !is_array($choice) || !in_array($choice['action'] ?? 'keep', ['keep', 'update', 'independent'], true)) {
+            if (!isset($this->_definitions[$uid]) || !is_array($choice) || !in_array($choice['action'] ?? 'keep', ['', 'keep', 'update'], true)) {
                 throw new InvalidConfigException('Invalid synced field import choice.');
             }
         }
@@ -98,11 +98,20 @@ class SyncedFieldImport
         return $result;
     }
 
+    public function requireChoices(): void
+    {
+        foreach ($this->preview() as $uid => $field) {
+            if ($field['canReuse'] && $field['status'] === 'conflict' && empty($this->_options['definitions'][$uid]['action'])) {
+                throw new InvalidConfigException(Craft::t('formie', 'Choose how to handle the “{field}” synced field.', ['field' => $field['label']]));
+            }
+        }
+    }
+
     public function resolve(array $node, ?Field $existing): ?array
     {
         $uid = isset($node['syncedDefinitionUid']) ? strtolower($node['syncedDefinitionUid']) : null;
 
-        if (!$uid || $this->_action($uid) === 'independent') {
+        if (!$uid) {
             return null;
         }
 
@@ -111,11 +120,11 @@ class SyncedFieldImport
         $action = $this->_action($uid);
 
         if (!$target['allowed']) {
-            throw new ForbiddenHttpException('You must be able to manage every form using this synced field. Import it as an independent field instead.');
+            throw new ForbiddenHttpException('You must be able to manage every form using this synced field before importing it.');
         }
 
         if ($definition && $definition->type !== $node['type']) {
-            throw new InvalidConfigException('The synced field has a different type on this environment. Import it as an independent field.');
+            throw new InvalidConfigException('The synced field has a different type on this site. Change or detach it in the form builder, then export the form again.');
         }
 
         if ($action === 'update' && ($this->_options['definitions'][$uid]['expected'] ?? null) !== $target['fingerprint']) {
@@ -123,11 +132,7 @@ class SyncedFieldImport
         }
 
         if ($existing instanceof ParentFieldInterface && $existing->definitionUid !== $uid) {
-            throw new InvalidConfigException('An existing independent parent field cannot be relinked without changing its stored child identities. Import it as independent fields or create a new form.');
-        }
-
-        if ($existing && $existing->definitionUid !== $uid && !in_array($this->_options['relink'] ?? false, [true, 1, '1'], true)) {
-            throw new InvalidConfigException('This form has an independent or differently linked field. Enable linking existing fields to replace its relationship, or import independent fields.');
+            throw new InvalidConfigException('An existing parent field cannot be linked to the imported synced field without affecting saved answers. Create a new form instead.');
         }
 
         $settings = $definition ? ['handle' => $definition->handle] : [];
@@ -161,15 +166,6 @@ class SyncedFieldImport
     public function link(array $node, array $config, ?Field $existing, ?array $sync): array
     {
         $uid = isset($node['syncedDefinitionUid']) ? strtolower($node['syncedDefinitionUid']) : null;
-
-        if (($this->_options['mode'] ?? 'preserve') === 'independent' || ($uid && $this->_action($uid) === 'independent')) {
-            // Preserve placement identity so existing submissions remain readable, but detach its definition.
-            $config['definitionId'] = null;
-            $config['definitionUid'] = null;
-            $config['isSynced'] = false;
-
-            return $config;
-        }
 
         if (!$sync) {
             return $config;
@@ -267,7 +263,7 @@ class SyncedFieldImport
 
     private function _action(string $uid): string
     {
-        return ($this->_options['mode'] ?? 'preserve') === 'independent' ? 'independent' : ($this->_options['definitions'][$uid]['action'] ?? 'keep');
+        return ($this->_options['definitions'][$uid]['action'] ?? '') ?: 'keep';
     }
 
     private function _collect(array $rows, array $parents = []): void

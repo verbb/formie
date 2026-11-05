@@ -96,7 +96,7 @@ Commit the enquiry stencil’s project config and apply it on the target environ
 Order of operations on a fresh environment:
 
 1. Deploy project config, including project stencils and form groups
-2. Migrate any instance-level stencils you need. To bring across synced fields, export a form that uses them and import it with **Preserve relationships**.
+2. Migrate any instance-level stencils you need. To bring across synced fields, export a form that uses them and import it.
 3. Check **Formie → Settings → Synced Fields** for the imported fields before authors create forms from stencils.
 
 On the target environment, confirm that **Enquiry Form** appears in the **New Form** stencil picker, then create a test form and check its fields, notifications and settings.
