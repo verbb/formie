@@ -47,9 +47,9 @@ Project stencils resolve synced fields by UID, so the matching synced field must
 
 ## Moving Synced Fields Between Environments
 
-[Form import and export](/forms/import-export#importing-synced-fields) preserves synced-field relationships automatically: the first import creates a missing synced field, and later imports reuse it by UID. Matching labels or handles alone do not link fields.
+[Form import and export](/forms/import-export#importing-synced-fields) can preserve synced-field relationships. Import each form with **Preserve relationships**: the first import creates a missing synced field, and later imports reuse it by UID. Matching labels or handles alone do not link fields.
 
-When settings differ, the import preview lets you keep destination settings or update the synced field across its listed forms. **Required** can be set separately wherever the field appears. Review the affected forms before choosing **Update synced field**.
+The import preview lets you keep destination settings, update a synced field across its listed forms, or import independent fields. **Required** can be set separately wherever the field appears. Review the affected forms before choosing **Update synced field**.
 
 ## Synced Fields and Multi-Site
 

@@ -34,7 +34,6 @@ class FormSerializer
 
     public ?SyncedFieldImport $syncedFieldImport = null;
     public array $warnings = [];
-    public array $syncedFieldRelinks = [];
     public array $remaps = [];
     public array $missingTypes = [];
     public array $changes = ['added' => [], 'retained' => [], 'removed' => []];
@@ -292,13 +291,6 @@ class FormSerializer
 
         if ($existing) {
             $this->_used[$existing->id] = true;
-        }
-
-        if ($operation === 'import' && $existing && !empty($node['syncedDefinitionUid']) && is_string($node['syncedDefinitionUid']) && $existing->definitionUid !== strtolower($node['syncedDefinitionUid'])) {
-            $this->syncedFieldRelinks[$existing->reference] = [
-                'label' => $existing->label,
-                'canRelink' => !$existing instanceof ParentFieldInterface,
-            ];
         }
 
         $sync = $operation === 'import' ? $this->syncedFieldImport?->resolve($node, $existing) : null;

@@ -10,12 +10,16 @@ use verbb\formie\services\FormImportFiles;
 use verbb\formie\services\Permissions;
 
 use Craft;
+use craft\helpers\Console;
+use craft\helpers\Html;
+use craft\helpers\HtmlPurifier;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\UploadedFile;
 
 use yii\base\InvalidArgumentException as YiiInvalidArgumentException;
 use yii\base\InvalidConfigException;
+use yii\helpers\Markdown;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\HttpException;
@@ -97,6 +101,8 @@ class ImportExportController extends SettingsAccessController
 
     public function actionImportConfigure(string $filename): ?Response
     {
+        $request = $this->request;
+
         $json = $this->_getFormImportData($filename);
 
         if ($json === null) {
@@ -111,22 +117,74 @@ class ImportExportController extends SettingsAccessController
             $existingForm = Formie::$plugin->getForms()->getFormByHandle($formHandle);
         }
 
+        ob_start();
+        $title = Html::encode($json['title'] ?? '');
+        $handle = Html::encode($json['handle'] ?? '');
+        $this->_stdout("Form: Preparing to import form “{$title}”.");
+        $this->_stdout("    > Form title is “{$title}”.", Console::FG_GREEN);
+        $this->_stdout("    > Form handle is “{$handle}”.", ($existingForm ? Console::FG_RED : Console::FG_GREEN));
+
+        $pageCount = Craft::t('app', '{num, number} {num, plural, =1{page} other{pages}}', ['num' => count($json['pages'])]);
+        $this->_stdout("    > Form contains {$pageCount}.", Console::FG_GREEN);
+
         $formFields = [];
 
-        foreach ($json['pages'] ?? [] as $page) {
-            foreach ($page['rows'] ?? [] as $row) {
-                foreach ($row['fields'] ?? [] as $field) {
-                    $settings = Json::decodeIfJson($field['settings'] ?? []) ?: [];
-                    $formFields[] = [
-                        'label' => $field['label'] ?? $settings['label'] ?? '',
-                        'handle' => $field['handle'] ?? $settings['handle'] ?? '',
-                    ];
+        $pages = $json['pages'] ?? [];
+
+        foreach ($pages as $page) {
+            $rows = $page['rows'] ?? [];
+
+            foreach ($rows as $row) {
+                $fields = $row['fields'] ?? [];
+
+                foreach ($fields as $field) {
+                    $formFields[] = $field;
                 }
             }
         }
 
+        $fieldCount = Craft::t('app', '{num, number} {num, plural, =1{field} other{fields}}', ['num' => count($formFields)]);
+        $this->_stdout("    > Form contains {$fieldCount}.", Console::FG_GREEN);
+
+        foreach ($formFields as $field) {
+            $type = explode('\\', $field['type']);
+            $type = Html::encode(array_pop($type));
+
+            // Handle Formie v2 exports
+            $label = Html::encode($field['label'] ?? $field['settings']['label'] ?? '');
+            $handle = Html::encode($field['handle'] ?? $field['settings']['handle'] ?? '');
+
+            $this->_stdout("        > {$type}: “{$label}” `({$handle})`.", Console::FG_GREEN);
+        }
+
+        $notificationCount = Craft::t('app', '{num, number} {num, plural, =1{notification} other{notifications}}', ['num' => count($json['notifications'])]);
+
+        if (count($json['notifications'])) {
+            $this->_stdout("Notifications: Preparing to import {$notificationCount}.");
+
+            foreach ($json['notifications'] as $notification) {
+                $name = Html::encode($notification['name'] ?? '');
+                $this->_stdout("    > “{$name}”.", Console::FG_GREEN);
+            }
+        }
+
         $plan = ImportExportHelper::planImport($json, $existingForm, Craft::$app->getUser()->getIdentity());
-        $variables = compact('filename', 'formFields', 'json', 'existingForm', 'plan');
+
+        foreach ($plan['warnings'] as $warning) {
+            $this->_stdout(Html::encode($warning), Console::FG_YELLOW);
+        }
+
+        foreach ($plan['dependencies'] as $dependency) {
+            $this->_stdout(Html::encode($dependency['action'] . ': ' . $dependency['kind'] . ' resource ' . $dependency['handle']));
+        }
+
+        foreach ($plan['changes'] as $action => $references) {
+            $this->_stdout(Html::encode(ucfirst($action) . ': ' . implode(', ', $references)));
+        }
+
+        $summary = ob_get_clean();
+
+        $variables = compact('filename', 'summary', 'json', 'existingForm', 'plan');
         $variables = array_merge($variables, Craft::$app->getUrlManager()->getRouteParams());
 
         return $this->renderTemplate('formie/settings/import-export/import-configure', $variables);
@@ -290,6 +348,21 @@ class ImportExportController extends SettingsAccessController
         $this->setFailFlash(Craft::t('formie', 'This file is not a valid Formie form export.'));
 
         return $this->redirect(UrlHelper::cpUrl('formie/settings/import-export'));
+    }
+
+    private function _stdout(string $string, string $color = ''): void
+    {
+        $class = '';
+
+        if ($color) {
+            $class = 'color-' . $color;
+        }
+
+        $html = HtmlPurifier::process(Markdown::processParagraph($string), [
+            'HTML.Allowed' => 'p,blockquote,code,strong,em',
+        ]);
+
+        echo '<div class="log-label ' . $class . '">' . $html . '</div>';
     }
 
     private function _getImportFiles(): FormImportFiles
