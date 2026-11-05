@@ -1,6 +1,8 @@
 <?php
 
 use Tests\Support\WebRequestTestHelper;
+use craft\helpers\FileHelper;
+use craft\web\AssetManager;
 use verbb\formie\Formie;
 use verbb\formie\models\Settings;
 use verbb\formie\services\BrowserAssets;
@@ -9,6 +11,34 @@ use verbb\formie\web\assets\frontend\FrontendAsset;
 
 it('defaults to unlayered CSS', function() {
     expect((new Settings())->useCssLayers)->toBeFalse();
+});
+
+it('publishes both frontend variants without a loaded plugin', function() {
+    $plugin = Formie::$plugin;
+    $directory = Craft::$app->getPath()->getTempPath() . '/formie-cloud-assets-' . bin2hex(random_bytes(6));
+    FileHelper::createDirectory($directory);
+
+    try {
+        Formie::$plugin = null;
+        $bundle = new FrontendAsset();
+        $bundle->publish(new AssetManager([
+            'basePath' => $directory,
+            'baseUrl' => '/cpresources',
+            'linkAssets' => false,
+        ]));
+
+        expect($bundle->js)->toBe(['js/formie.js'])
+            ->and($bundle->css)->toBe(['css/formie.css']);
+
+        foreach (['', 'layered/'] as $prefix) {
+            foreach (['js/formie.js', 'css/formie.css', 'css/formie-base.css', 'css/formie-theme.css'] as $file) {
+                expect(is_file($bundle->basePath . '/' . $prefix . $file))->toBeTrue();
+            }
+        }
+    } finally {
+        Formie::$plugin = $plugin;
+        FileHelper::removeDirectory($directory);
+    }
 });
 
 it('selects matching styles and lazy runtime for every rendering entry point', function(bool $layered) {

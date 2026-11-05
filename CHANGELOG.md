@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed front-end assets failing to publish during Craft Cloud builds. ([#3100](https://github.com/verbb/formie/issues/3100))
+
 ## 4.0.7 - 2026-11-05
 
 ### Added

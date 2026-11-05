@@ -14,7 +14,8 @@ class FrontendAsset extends AssetBundle
     {
         $this->sourcePath = '@verbb/formie/web/assets/frontend/dist';
 
-        $prefix = Formie::$plugin->getSettings()->useCssLayers ? 'layered/' : '';
+        // Craft Cloud publishes assets before plugins are loaded.
+        $prefix = Formie::$plugin?->getSettings()->useCssLayers ? 'layered/' : '';
 
         $this->js = [
             $prefix . 'js/formie.js',
