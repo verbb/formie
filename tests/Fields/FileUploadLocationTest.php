@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use craft\elements\User;
-use craft\errors\InvalidFsException;
 use craft\errors\InvalidSubpathException;
 use Tests\Support\UploadTestHelper;
 use verbb\formie\elements\Submission;
@@ -212,7 +211,7 @@ it('rejects traversal and Twig supplied through upload references', function (st
         ->toThrow(InvalidSubpathException::class);
 })->with(['../escape', '{{ 7 * 7 }}', ''])->group('security');
 
-it('uses the volume root only when an answer in the subpath is blank', function (string $answer, bool $usesRoot): void {
+it('uses the volume root when an answer in the subpath cannot be a folder, without creating one', function (string $answer): void {
     $volume = UploadTestHelper::ensureUploadVolume();
     $reference = 'a' . bin2hex(random_bytes(5));
     $form = formie()->form()->singleLineTextField('answer', ['reference' => $reference])->fileUploadField('document', [
@@ -222,15 +221,58 @@ it('uses the volume root only when an answer in the subpath is blank', function 
     ])->create();
     $submission = formie()->submission($form)->with(['answer' => $answer])->save();
     $field = $form->getFieldByHandle('document');
+    $folders = (new \craft\db\Query())->from('{{%volumefolders}}')->where(['volumeId' => $volume->id]);
+    $before = $folders->count();
 
-    if ($usesRoot) {
-        expect($field->getUploadFolderForSubmission($submission)->id)->toBe(Craft::$app->getAssets()->getRootFolderByVolumeId($volume->id)->id)
-            ->and($field->isUploadSubpathBlank($submission))->toBeTrue();
-    } else {
-        expect(fn() => $field->getUploadFolderForSubmission($submission))->toThrow(InvalidFsException::class)
-            ->and($field->isUploadSubpathBlank($submission))->toBeFalse();
-    }
+    expect($field->getUploadFolderForSubmission($submission)->id)->toBe(Craft::$app->getAssets()->getRootFolderByVolumeId($volume->id)->id)
+        ->and($field->isUploadSubpathValueUnusable($submission))->toBeTrue()
+        ->and($folders->count())->toBe($before);
 })->with([
-    'blank' => ['', true],
-    'traversal' => ['../escape', false],
+    'blank' => [''],
+    'traversal' => ['../escape'],
+    'nested traversal' => ['a/../b'],
+    'Twig' => ['{{ 7 * 7 }}'],
+    'Twig statement' => ['{% set a = 1 %}'],
+    'token' => ['{form:handle}'],
+    'empty segment' => ['a//b'],
+    'trailing slash' => ['trailing/'],
+    'backslash' => ['a\\b'],
+])->group('security');
+
+it('uses an answer that is a valid folder', function (): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $reference = 'a' . bin2hex(random_bytes(5));
+    $form = formie()->form()->singleLineTextField('answer', ['reference' => $reference])->fileUploadField('document', [
+        'restrictFiles' => false,
+        'uploadLocationSource' => 'volume:' . $volume->uid,
+        'uploadLocationSubpath' => 'uploads/{field:' . $reference . '}',
+    ])->create();
+    $submission = formie()->submission($form)->with(['answer' => 'good/value'])->save();
+    $field = $form->getFieldByHandle('document');
+
+    expect($field->getUploadFolderForSubmission($submission)->path)->toBe('uploads/good/value/')
+        ->and($field->isUploadSubpathValueUnusable($submission))->toBeFalse();
+})->group('security');
+
+it('keeps rejecting a subpath that is itself invalid, whatever the answers', function (string $subpath): void {
+    $volume = UploadTestHelper::ensureUploadVolume();
+    $reference = 'a' . bin2hex(random_bytes(5));
+    $form = formie()->form()->singleLineTextField('answer', ['reference' => $reference])->fileUploadField('document', [
+        'restrictFiles' => false,
+        'uploadLocationSource' => 'volume:' . $volume->uid,
+        'uploadLocationSubpath' => str_replace('REF', $reference, $subpath),
+    ])->create();
+    $submission = formie()->submission($form)->with(['answer' => 'value'])->save();
+    $field = $form->getFieldByHandle('document');
+
+    // A static path fails with the subpath exception, and a dynamic one with the location error before it.
+    expect(fn() => $field->getUploadFolderForSubmission($submission))->toThrow(Exception::class)
+        ->and($field->isUploadSubpathValueUnusable($submission))->toBeFalse();
+})->with([
+    'Twig output' => '{{ "folder"|upper }}',
+    'Twig statement' => '{% set folder = "value" %}uploads',
+    'unknown reference' => 'uploads/{custom:missing/value}',
+    'traversal beside a token' => 'uploads/../{field:REF}',
+    'empty segment beside a token' => 'uploads//{field:REF}',
+    'static traversal' => '../escape',
 ])->group('security');

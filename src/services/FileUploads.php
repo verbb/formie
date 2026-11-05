@@ -973,8 +973,8 @@ class FileUploads extends Component
 
     private function _moveChosenAsset(Asset $asset, FileUpload $field, Submission $submission): void
     {
-        // A subpath using an answer that's still blank waits for a later save.
-        if ($field->isUploadSubpathBlank($submission)) {
+        // A subpath using an answer that's blank, or can't be a folder, waits for a later save.
+        if ($field->isUploadSubpathValueUnusable($submission)) {
             return;
         }
 

@@ -121,7 +121,7 @@ class FileUpload extends ElementField
     // Constants
     // =========================================================================
 
-    private const BLANK_SUBPATH_ANSWER = 1;
+    private const UNUSABLE_SUBPATH_VALUE = 1;
 
 
     // Properties
@@ -239,12 +239,12 @@ class FileUpload extends ElementField
         return $this->_uploadFolder($submission);
     }
 
-    public function isUploadSubpathBlank(Submission $submission): bool
+    public function isUploadSubpathValueUnusable(Submission $submission): bool
     {
         try {
             $this->_findFolder($submission);
         } catch (InvalidSubpathException $e) {
-            return $e->getCode() === self::BLANK_SUBPATH_ANSWER;
+            return $e->getCode() === self::UNUSABLE_SUBPATH_VALUE;
         }
 
         return false;
@@ -1459,7 +1459,7 @@ class FileUpload extends ElementField
         try {
             $this->_findFolder($element);
         } catch (InvalidSubpathException $e) {
-            if ($e->getCode() === self::BLANK_SUBPATH_ANSWER) {
+            if ($e->getCode() === self::UNUSABLE_SUBPATH_VALUE) {
                 return null;
             }
 
@@ -1600,8 +1600,12 @@ class FileUpload extends ElementField
                     : ReferenceContext::forForm($element instanceof Form ? $element : $this->getForm());
                 $renderedSubpath = References::interpolateText($subpath, $context);
 
-                if ($context->diagnostics->hasWarnings() || preg_match('/[{}]/', $renderedSubpath)) {
+                if ($context->diagnostics->hasWarnings()) {
                     throw new InvalidSubpathException($subpath);
+                }
+
+                if (preg_match('/[{}]/', $renderedSubpath)) {
+                    throw $this->_invalidSubpathException($subpath);
                 }
             } catch (InvalidConfigException|ReferenceException $e) {
                 throw new InvalidSubpathException($subpath, null, 0, $e);
@@ -1609,9 +1613,10 @@ class FileUpload extends ElementField
 
             // Did any of the tokens return null?
             if ($renderedSubpath === '' || trim($renderedSubpath, '/') != $renderedSubpath || str_contains($renderedSubpath, '//')) {
-                throw new InvalidSubpathException($subpath, null, self::BLANK_SUBPATH_ANSWER);
+                throw $this->_invalidSubpathException($subpath);
             }
 
+            $configuredSubpath = $subpath;
             $subpath = $renderedSubpath;
         }
 
@@ -1620,14 +1625,14 @@ class FileUpload extends ElementField
         $generalConfig = Craft::$app->getConfig()->getGeneral();
 
         foreach ($segments as &$segment) {
-            if (in_array(trim($segment), ['', '.', '..'], true) || preg_match('/[\\\\\x00-\x1f\x7f]/', $segment)) {
-                throw new InvalidSubpathException($subpath);
+            if (!$this->_isValidSubpathSegment($segment)) {
+                throw $this->_invalidSubpathException($configuredSubpath ?? $subpath);
             }
 
             $segment = FileHelper::sanitizeFilename($segment, ['asciiOnly' => $generalConfig->convertFilenamesToAscii]);
 
             if ($segment === '' || in_array($segment, ['.', '..'], true)) {
-                throw new InvalidSubpathException($subpath);
+                throw $this->_invalidSubpathException($configuredSubpath ?? $subpath);
             }
         }
 
@@ -1649,6 +1654,23 @@ class FileUpload extends ElementField
         }
 
         return $folder;
+    }
+
+    private function _isValidSubpathSegment(string $segment): bool
+    {
+        return !in_array(trim($segment), ['', '.', '..'], true) && !preg_match('/[\\\\\x00-\x1f\x7f]/', $segment);
+    }
+
+    private function _invalidSubpathException(string $configuredSubpath): InvalidSubpathException
+    {
+        // With its tokens set aside, a path that's still invalid was set up that way. Otherwise the fault
+        // is in a value such as a visitor's answer, which has no bearing on whether the field is usable.
+        $template = preg_replace('/\{[a-zA-Z][^{}]*\}/', 'value', $configuredSubpath);
+        $isValueFault = $template !== $configuredSubpath
+            && !preg_match('/[{}]/', $template)
+            && array_filter(explode('/', $template), fn(string $segment): bool => !$this->_isValidSubpathSegment($segment)) === [];
+
+        return new InvalidSubpathException($configuredSubpath, null, $isValueFault ? self::UNUSABLE_SUBPATH_VALUE : 0);
     }
 
     private function _getCpUploadFolderId(?ElementInterface $element, Volume $volume): int
@@ -1676,8 +1698,8 @@ class FileUpload extends ElementField
                 return Craft::$app->getAssets()->getUserTemporaryUploadFolder();
             }
 
-            // An optional answer used in the subpath can be blank, which shouldn't lose the submission.
-            if ($e->getCode() === self::BLANK_SUBPATH_ANSWER) {
+            // An answer used in the subpath can be blank, or unable to be a folder, which shouldn't lose the submission.
+            if ($e->getCode() === self::UNUSABLE_SUBPATH_VALUE) {
                 return Craft::$app->getAssets()->getRootFolderByVolumeId($this->_getVolume()->id);
             }
 
