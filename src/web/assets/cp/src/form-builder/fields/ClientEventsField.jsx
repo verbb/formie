@@ -114,7 +114,7 @@ function ClientEventPayloadRows({
 
     return (
         <div className="space-y-2">
-            <p className="text-xs text-gray-500">{t('Payload properties are pushed to `window.dataLayer` and the `formie:client-event` DOM event after a successful page submit.')}</p>
+            <p className="text-xs text-gray-500">{t('After a page is submitted successfully, these properties are sent with the event to `window.dataLayer` and listeners for `formie:client-event`.')}</p>
 
             <EditableTable
                 columns={columns}
@@ -152,7 +152,7 @@ function ClientEventItem({
     const eventField = {
         name: `${baseName}.${index}.event`,
         label: t('Event Name'),
-        instructions: t('The analytics event name. For Google Tag Manager, this is usually pushed as the `event` property on the payload.'),
+        instructions: t('The name of the analytics event. Google Tag Manager reads this from the `event` property in the data sent with the event.'),
         required: true,
     };
     const enableConditionsField = {

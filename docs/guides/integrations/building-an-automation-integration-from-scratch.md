@@ -217,7 +217,7 @@ Prefer `$this->deliverPayload()` over calling the client directly — it fires p
 
 ### Test Payload from the Builder
 
-The explicit **Send Test Payload** action calls `sendTestPayload()` with a generated, unsaved submission. The inherited implementation invokes `executePayload()`, so this example needs only one payload implementation for test and real submissions. The control panel reports the returned `IntegrationResult`; it does not cache the test response as metadata.
+The explicit **Send Test Data** action calls `sendTestPayload()` with a generated, unsaved submission. The inherited implementation invokes `executePayload()`, so this example needs only one payload implementation for test and real submissions. The control panel reports the returned `IntegrationResult`; it does not cache the test response as metadata.
 
 Formie checks form-integration permissions and CSRF protection before creating the sample. Sample requests use the same hardened HTTP transport, but an unsaved sample is not a production delivery and cannot be automatically retried. `fetchConfig()` remains available for actual builder metadata and must not send payloads.
 

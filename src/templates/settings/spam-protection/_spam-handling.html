@@ -67,7 +67,7 @@
     {% namespace 'settings' %}
         {{ forms.textareaField({
             label: 'Spam Keywords' | t('formie'),
-            instructions: 'If a submission‘s content matches the below rules, it will be marked as spam. Refer to the [Spam Keyword Definition](https://verbb.io/craft-plugins/formie/docs/feature-tour/spam-protection) docs' | t('formie'),
+            instructions: 'Submissions matching these rules are marked as spam. See the [spam keyword rules](https://verbb.io/craft-plugins/formie/docs/v4/forms/spam-protection#spam-keywords) documentation for examples.' | t('formie'),
             name: 'spamKeywords',
             rows: 10,
             value: settings.spamKeywords,

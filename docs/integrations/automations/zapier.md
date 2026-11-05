@@ -22,7 +22,7 @@ Connect Zapier to pass submitted answers to an automated workflow. You need acce
 1. Map the submitted values the workflow needs.
 1. Enable the integration.
 1. Click **Save** to save the form.
-1. Click on the **Send Test Payload** button to send dummy content to the URL.
+1. Click on the **Send Test Data** button to send dummy content to the URL.
 
 ## Verify a Submission
 

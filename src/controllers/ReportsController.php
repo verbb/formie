@@ -170,7 +170,7 @@ class ReportsController extends Controller
                 return $this->_failSave(
                     $report,
                     null,
-                    Craft::t('formie', 'Invalid report settings payload.'),
+                    Craft::t('formie', 'The report could not be saved because its settings are invalid.'),
                 );
             }
 

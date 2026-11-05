@@ -18,7 +18,7 @@ const DEFAULT_PLAN = {
 const NOTIFICATION_TIMING_OPTIONS = [
     { value: 'beforeIntegrations', label: Craft.t('formie', 'Before integrations') },
     { value: 'afterSynchronousIntegrations', label: Craft.t('formie', 'After synchronous integrations') },
-    { value: 'afterFinalizedDeliveryAttempts', label: Craft.t('formie', 'After finalized delivery attempts') },
+    { value: 'afterFinalizedDeliveryAttempts', label: Craft.t('formie', 'After all integrations finish') },
 ];
 
 const FAILURE_POLICY_OPTIONS = [
@@ -200,8 +200,8 @@ function IntegrationDispatchSettings({
             {showDispatchSection && (
                 <section className="space-y-4">
                     <IntegrationSettingsSectionHeading
-                        title={Craft.t('formie', 'Dispatch')}
-                        description={Craft.t('formie', 'Control the order integrations run in, whether they execute synchronously or via the queue, and when email notifications are sent.')}
+                        title={Craft.t('formie', 'Integration Order')}
+                        description={Craft.t('formie', 'Choose the order integrations run in, whether they finish before showing the submission result or run in the queue, and when notification emails are sent.')}
                     />
 
 
@@ -233,10 +233,10 @@ function IntegrationDispatchSettings({
                         <div className="flex items-start justify-between gap-4">
                             <div>
                                 <div className="text-sm font-semibold text-gray-900">
-                                    {Craft.t('formie', 'Enable Integration Dispatch')}
+                                    {Craft.t('formie', 'Set Integration Order')}
                                 </div>
                                 <p className="mt-1 text-sm text-gray-500">
-                                    {Craft.t('formie', 'Run synchronous integrations in order, then dispatch queued integrations in order. When disabled, enabled integrations run independently using Formie\'s default queue settings.')}
+                                    {Craft.t('formie', 'Run synchronous integrations in order before showing the result, then send queued integrations in order. When disabled, integrations run independently using Formie\'s default queue settings.')}
                                 </p>
                             </div>
                             <Lightswitch
@@ -250,7 +250,7 @@ function IntegrationDispatchSettings({
 
                                     updatePlan(patch);
                                 }}
-                                aria-label={Craft.t('formie', 'Enable Integration Dispatch')}
+                                aria-label={Craft.t('formie', 'Set Integration Order')}
                             />
                         </div>
                     </div>
@@ -263,7 +263,7 @@ function IntegrationDispatchSettings({
                                         {Craft.t('formie', 'Notification Timing')}
                                     </label>
                                     <p className="mb-2 text-sm text-gray-500">
-                                        {Craft.t('formie', 'When notifications with the default dispatch timing should be sent. Individual notifications can override this in Advanced settings.')}
+                                        {Craft.t('formie', 'Choose when to send notification emails. Individual notifications can override this in Advanced settings.')}
                                     </p>
                                     <SelectInput
                                         value={plan.notificationTiming || 'beforeIntegrations'}
@@ -297,7 +297,7 @@ function IntegrationDispatchSettings({
                                         {Craft.t('formie', 'Integration Steps')}
                                     </h4>
                                     <p className="mt-1 text-sm text-gray-500">
-                                        {Craft.t('formie', 'Each lane runs top to bottom. Use Synchronous for element integrations that must finish during the submission request, such as user registration or entry creation. Disabled integrations are skipped at runtime.')}
+                                        {Craft.t('formie', 'Each group runs from top to bottom. Use Synchronous when an integration must finish before the visitor sees the result, such as creating a user account or entry. Disabled integrations are skipped.')}
                                     </p>
                                 </div>
 

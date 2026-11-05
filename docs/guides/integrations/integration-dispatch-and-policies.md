@@ -4,14 +4,14 @@ Use **Forms → your form → Integrations → Settings** to choose when integra
 
 ## Execution Order
 
-Enable dispatch to arrange integrations into two groups, called lanes:
+Enable **Set Integration Order** to arrange integrations into two groups:
 
-| Lane | Behaviour |
+| Group | Behaviour |
 | --- | --- |
 | Synchronous | Runs before the visitor receives the submission result. Use this for a User or Entry integration whose result is needed on the success page. |
 | Queued | Runs in the background, in the order you choose, after synchronous integrations finish. |
 
-Move integrations within each lane to set their order. Synchronous integrations always run first. If queue use is disabled globally, queued integrations run afterward in the same submission request. When dispatch is disabled, the global `useQueueForIntegrations` setting decides whether integrations use the queue.
+Move integrations within each group to set their order. Synchronous integrations always run first. If queue use is disabled globally, queued integrations run afterward in the same submission request. When **Set Integration Order** is disabled, the global `useQueueForIntegrations` setting decides whether integrations use the queue.
 
 Choose **Continue** to run later integrations after one fails, or **Stop** to skip the remaining steps.
 
@@ -23,7 +23,7 @@ Set a default timing for the form, then override it in an individual notificatio
 | --- | --- |
 | Before integrations | The submission is saved and the notification's conditions pass. |
 | After synchronous integrations | The synchronous integrations finish. Queued integrations may still be waiting. |
-| After finalized delivery attempts | All integrations in that run finish. |
+| After all integrations finish | All integrations in that run finish. |
 
 Timing controls order, not success. Succeeded, skipped and failed integrations have all finished, so a failure does not suppress an otherwise eligible notification. A skipped integration might have an unmet condition or missing opt-in, or have been skipped by the Stop policy. Use an explicitly authored notification condition when the email requires a particular integration to succeed.
 

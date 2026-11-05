@@ -788,7 +788,7 @@ const Field = ({
                                             title={Craft.t('formie', 'Payment fields should be placed on the final page to avoid incomplete paid submissions.')}
                                         >
                                             <Icon icon="triangle-exclamation" className="size-3" />
-                                            <span>{Craft.t('formie', 'Payment Placement')}</span>
+                                            <span>{Craft.t('formie', 'Move to Final Page')}</span>
                                         </div>
                                     )}
 

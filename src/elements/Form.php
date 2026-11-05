@@ -3478,7 +3478,7 @@ class Form extends Element implements FormInterface
                     SchemaHelper::lightswitchField([
                         'labelPosition' => 'before',
                         'label' => Craft::t('formie', 'Enable Client Events'),
-                        'instructions' => Craft::t('formie', 'When enabled, analytics payloads are emitted in the browser after this page submits successfully.'),
+                        'instructions' => Craft::t('formie', 'Send analytics events in the browser after this page is submitted successfully.'),
                         'name' => 'settings.enableClientEvents',
                     ]),
                     [

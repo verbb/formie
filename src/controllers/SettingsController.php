@@ -120,7 +120,7 @@ class SettingsController extends SettingsAccessController
         $paletteJson = $this->request->getBodyParam('palette');
 
         if (!is_string($paletteJson) || $paletteJson === '') {
-            $this->setFailFlash(Craft::t('formie', 'Invalid field palette payload.'));
+            $this->setFailFlash(Craft::t('formie', 'The field list could not be saved because its settings are invalid.'));
 
             return null;
         }
@@ -128,7 +128,7 @@ class SettingsController extends SettingsAccessController
         try {
             $palette = Json::decode($paletteJson);
         } catch (Throwable) {
-            $this->setFailFlash(Craft::t('formie', 'Invalid field palette payload.'));
+            $this->setFailFlash(Craft::t('formie', 'The field list could not be saved because its settings are invalid.'));
 
             return null;
         }
@@ -159,7 +159,7 @@ class SettingsController extends SettingsAccessController
         $settingsJson = $this->request->getBodyParam('settings');
 
         if (!is_string($settingsJson) || $settingsJson === '') {
-            $this->setFailFlash(Craft::t('formie', 'Invalid defaults settings payload.'));
+            $this->setFailFlash(Craft::t('formie', 'The default settings could not be saved because they are invalid.'));
 
             return null;
         }
@@ -167,7 +167,7 @@ class SettingsController extends SettingsAccessController
         try {
             $settings = Json::decode($settingsJson);
         } catch (Throwable) {
-            $this->setFailFlash(Craft::t('formie', 'Invalid defaults settings payload.'));
+            $this->setFailFlash(Craft::t('formie', 'The default settings could not be saved because they are invalid.'));
 
             return null;
         }

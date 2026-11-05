@@ -21,7 +21,7 @@ function IntegrationActionButtonField({ field }) {
     const actionType = String(field.actionType || '').trim() || (field.$field === 'integrationSendTestPayloadButton' ? 'testPayload' : 'refresh');
     const integrationHandle = activeIntegrationHandle || field.integrationHandle || '';
     const buttonLabel = field.buttonLabel
-        || (actionType === 'testPayload' ? Craft.t('formie', 'Send Test Payload') : Craft.t('formie', 'Refresh Data'));
+        || (actionType === 'testPayload' ? Craft.t('formie', 'Send Test Data') : Craft.t('formie', 'Refresh Data'));
 
     useEffect(() => {
         return () => {
@@ -49,7 +49,7 @@ function IntegrationActionButtonField({ field }) {
         }
 
         if (actionType === 'testPayload' && !formId) {
-            const errorMessage = Craft.t('formie', 'You must save your form before sending a test payload.');
+            const errorMessage = Craft.t('formie', 'Save your form before sending test data.');
             setActionError({
                 heading: Craft.t('formie', 'Validation error'),
                 text: errorMessage,
@@ -83,7 +83,7 @@ function IntegrationActionButtonField({ field }) {
 
         if (result?.ok !== true) {
             const fallbackError = actionType === 'testPayload'
-                ? Craft.t('formie', 'Failed to send test payload.')
+                ? Craft.t('formie', 'Failed to send test data.')
                 : Craft.t('formie', 'Failed to refresh integration data.');
             const errorMessage = result?.error || fallbackError;
             const parsedError = result?.errorObject ? getErrorMessage(result.errorObject) : null;

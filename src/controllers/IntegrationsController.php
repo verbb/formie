@@ -197,7 +197,7 @@ class IntegrationsController extends Controller
         return $this->asJson([
             'success' => $result->isSuccessful(),
             'status' => $result->status->value,
-            'message' => $result->isSuccessful() ? '' : Craft::t('formie', 'The test payload was not delivered.'),
+            'message' => $result->isSuccessful() ? '' : Craft::t('formie', 'The test data was not delivered.'),
             'code' => $result->code,
         ]);
     }
@@ -429,6 +429,7 @@ class IntegrationsController extends Controller
     {
         $this->requirePostRequest();
         $this->requireCpRequest();
+
         $request = $this->request;
         $handle = (string)$request->getParam('integration');
         $formId = (int)$request->getParam('formId');

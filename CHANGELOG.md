@@ -20,6 +20,7 @@
 - Update the `@verbb/formie-*` npm packages to use the same version number as the plugin. Version ranges such as `^1.0.16` need updating once. ([#3081](https://github.com/verbb/formie/issues/3081))
 - Update the Pardot guide for External Client Apps, OAuth security settings, and separate API and Form Handler delivery.
 - Clarify terminology throughout the documentation, including synced fields, stencils, saved values and client events.
+- Simplify control panel labels and help text for integration order, notification timing, test data, field settings and analytics events.
 
 ### Fixed
 - Fixed slow submissions with File Upload fields on sites with large submission histories. ([#3096](https://github.com/verbb/formie/issues/3096))

@@ -74,6 +74,7 @@ class FormGroupsController extends SettingsAccessController
     public function actionSave(): ?Response
     {
         $this->requirePostRequest();
+
         $request = $this->request;
 
         $formGroup = new FormGroup();
@@ -93,7 +94,7 @@ class FormGroupsController extends SettingsAccessController
                 return $this->_failSave(
                     $formGroup,
                     null,
-                    Craft::t('formie', 'Invalid form group settings payload.'),
+                    Craft::t('formie', 'The form group could not be saved because its settings are invalid.'),
                 );
             }
 
@@ -118,6 +119,7 @@ class FormGroupsController extends SettingsAccessController
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
+
         $ids = Json::decode($this->request->getRequiredBodyParam('ids'));
 
         if (Formie::$plugin->getFormGroups()->reorderGroups($ids)) {

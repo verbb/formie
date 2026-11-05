@@ -82,6 +82,6 @@ For more on reusing the client outside the integration itself, see [Using Guzzle
 
 ## Test Payloads
 
-The builder’s explicit **Send Test Payload** action creates an unsaved sample submission, applies permitted form settings and calls `sendTestPayload(Submission $submission): IntegrationResult`. Its default implementation uses the same `executePayload()` hook as real delivery. Keep shared payload construction there; override `sendTestPayload()` only when the destination requires different test behaviour.
+The builder’s explicit **Send Test Data** action creates an unsaved sample submission, applies permitted form settings and calls `sendTestPayload(Submission $submission): IntegrationResult`. Its default implementation uses the same `executePayload()` hook as real delivery. Keep shared payload construction there; override `sendTestPayload()` only when the destination requires different test behaviour.
 
 Test sends require an authorized control-panel POST with CSRF protection. Unsaved samples are sent once without creating a fake saved submission or a production retry record. They still use the hardened transport and payload events, and a failed or skipped result is not shown as successful delivery. Metadata refresh remains separate: `fetchConfig()` and `refreshConfig()` must not send test payloads.

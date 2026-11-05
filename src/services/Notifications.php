@@ -985,15 +985,15 @@ class Notifications extends Component
                 ],
             ]),
             SchemaHelper::selectField([
-                'label' => Craft::t('formie', 'Dispatch Timing'),
-                'instructions' => Craft::t('formie', 'When to send this notification relative to integrations. Requires Integration Dispatch to be enabled on the form.'),
+                'label' => Craft::t('formie', 'Notification Timing'),
+                'instructions' => Craft::t('formie', 'Choose when to send this email. Turn on “Set Integration Order” in the form’s integration settings to use this option.'),
                 'name' => 'dispatchTiming',
                 'defaultValue' => Notification::DISPATCH_TIMING_DEFAULT,
                 'options' => [
                     ['label' => Craft::t('formie', 'Use form default'), 'value' => Notification::DISPATCH_TIMING_DEFAULT],
                     ['label' => Craft::t('formie', 'Before integrations'), 'value' => Notification::DISPATCH_TIMING_BEFORE],
                     ['label' => Craft::t('formie', 'After synchronous integrations'), 'value' => Notification::DISPATCH_TIMING_SYNCHRONOUS],
-                    ['label' => Craft::t('formie', 'After finalized delivery attempts'), 'value' => Notification::DISPATCH_TIMING_AFTER],
+                    ['label' => Craft::t('formie', 'After all integrations finish'), 'value' => Notification::DISPATCH_TIMING_AFTER],
                 ],
             ]),
             SchemaHelper::lightswitchField([

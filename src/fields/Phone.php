@@ -524,7 +524,7 @@ class Phone extends Field implements SortableFieldInterface, PreviewableFieldInt
             FieldReferenceValue::selector('countryName', Craft::t('formie', 'Country (Full)')),
             FieldReferenceValue::selector('countryCode', Craft::t('formie', 'Country Code')),
             FieldReferenceValue::selector('number', Craft::t('formie', 'Number')),
-            FieldReferenceValue::selector('canonicalNumber', Craft::t('formie', 'Canonical Number'), supportsBrowser: false),
+            FieldReferenceValue::selector('canonicalNumber', Craft::t('formie', 'International Number (E.164)'), supportsBrowser: false),
         ];
     }
 

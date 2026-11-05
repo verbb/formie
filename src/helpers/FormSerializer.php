@@ -443,7 +443,7 @@ class FormSerializer
                 $definition = $service->getFieldDefinitionById((int)$grant['definitionId']);
 
                 if (!$definition || $definition->type !== $type) {
-                    throw new InvalidConfigException('The selected field definition is unavailable.');
+                    throw new InvalidConfigException('The selected synced field is unavailable.');
                 }
 
                 $config['definitionId'] = $definition->id;

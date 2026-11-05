@@ -299,10 +299,10 @@ We also have some Twig templates to set up for the integration settings, and the
 <integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}">
     <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, success, getSourceFields }">
         <div class="field">
-            <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Send Test Payload' | t('formie') }}</button>
+            <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Send Test Data' | t('formie') }}</button>
 
             <div style="padding-top: 10px;">
-                <span class="warning with-icon">{{ 'You must save your form before sending a test payload.' | t('formie') }}</span>
+                <span class="warning with-icon">{{ 'Save your form before sending test data.' | t('formie') }}</span>
             </div>
         </div>
 

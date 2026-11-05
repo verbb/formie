@@ -256,6 +256,7 @@ class SharpSpring extends Crm
 
             return $this->resultForPayload(false);
         }
+
         return $this->resultForPayload(true);
     }
 
@@ -310,7 +311,7 @@ class SharpSpring extends Crm
         $schema[] = SchemaHelper::textField([
             'name' => 'endpoint',
             'label' => Craft::t('formie', 'Endpoint'),
-            'instructions' => Craft::t('formie', 'Enter the SharpSpring native form endpoint ID used for payload sync.'),
+            'instructions' => Craft::t('formie', 'Enter the SharpSpring native form endpoint ID to send submission data to.'),
             'if' => 'mapToForm',
             'required' => true,
         ]);
@@ -374,6 +375,7 @@ class SharpSpring extends Crm
         // SharpSpring's JSONP endpoint writes despite using GET.
         $url = "$formUrl/$endpoint/jsonp";
         $options = ['query' => $serializedValues];
+
         return $this->executeDeliveryWrite('GET', $url, $options, fn() => $this->requestPublicEndpoint('GET', $url, $options), true);
     }
 

@@ -122,7 +122,7 @@ class ClientEventTemplates extends Component
             $this->_defineTemplate([
                 'handle' => 'blank',
                 'label' => Craft::t('formie', 'Blank Event'),
-                'description' => Craft::t('formie', 'Start with an empty event and payload.'),
+                'description' => Craft::t('formie', 'Start with an empty event and add the properties you want to send.'),
                 'category' => 'general',
                 'categoryLabel' => Craft::t('formie', 'General'),
                 'event' => 'formPageSubmission',

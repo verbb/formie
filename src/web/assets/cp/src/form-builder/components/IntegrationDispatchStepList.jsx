@@ -14,13 +14,13 @@ function IntegrationDispatchStepList({ steps, integrationLookup, isIntegrationEn
 
     return (
         <div className="space-y-6">
-            <p>{Craft.t('formie', 'Synchronous integrations run in order first. Queued integrations are then dispatched in order. Queueing does not mean delivery has completed.')}</p>
+            <p>{Craft.t('formie', 'Synchronous integrations finish before the visitor sees the result. Queued integrations run afterward through the queue, or during the same request if queue use is disabled globally.')}</p>
             {STEP_EXECUTION_OPTIONS.map((lane) => {
                 const entries = steps.map((step, index) => ({ step, index })).filter(({ step }) => (step.execution || 'queued') === lane.value);
                 return (
                     <section key={lane.value} aria-label={lane.label} className="space-y-2">
                         <h4>{lane.label}</h4>
-                        {entries.length === 0 && <p>{Craft.t('formie', 'No integrations in this lane.')}</p>}
+                        {entries.length === 0 && <p>{Craft.t('formie', 'No integrations in this group.')}</p>}
                         {entries.map(({ step, index }, position) => {
                             const integration = integrationLookup[step.handle];
                             if (!integration) return null;

@@ -1351,7 +1351,7 @@ const fetchIntegrationFormSettingsConfig = async(handle, formId) => {
 };
 
 const requestIntegrationAction = async(action, handle, settings, options) => {
-    const fallbackError = action.endsWith('/send-test-payload') ? 'Failed to send test payload.' : 'Failed to refresh integration data.';
+    const fallbackError = action.endsWith('/send-test-payload') ? 'Failed to send test data.' : 'Failed to refresh integration data.';
     if (!handle) {
         return { ok: false, error: 'Missing integration handle' };
     }

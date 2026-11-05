@@ -179,7 +179,7 @@ class Repeater extends RepeatableParentField
             SchemaHelper::labelField(),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Add Label'),
-                'instructions' => Craft::t('formie', 'The label for the button that adds another instance.'),
+                'instructions' => Craft::t('formie', 'The label for the button that adds another row.'),
                 'name' => 'addRowLabel',
                 'validation' => 'required',
                 'required' => true,

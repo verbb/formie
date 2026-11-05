@@ -334,12 +334,12 @@ class LayoutSaveContext
         }
 
         if (!isset($this->fields[$field->id])) {
-            throw new InvalidConfigException('The field instance does not belong to this form.');
+            throw new InvalidConfigException('The field does not belong to this form.');
         }
 
         // Definition switches require the import resolver’s explicit, permission-checked placement grant.
         if ($field->definitionId && $this->fields[$field->id] !== $field->definitionId && !$this->syncedFieldImport?->allowsLink($field)) {
-            throw new InvalidConfigException('The field definition link cannot be replaced.');
+            throw new InvalidConfigException('This field cannot be linked to a different synced field.');
         }
     }
 

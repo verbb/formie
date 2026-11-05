@@ -623,7 +623,7 @@ class SchemaHelper
         return array_merge([
             '$field' => 'integrationSendTestPayloadButton',
             'actionType' => 'testPayload',
-            'buttonLabel' => Craft::t('formie', 'Send Test Payload'),
+            'buttonLabel' => Craft::t('formie', 'Send Test Data'),
         ], $config);
     }
 
@@ -1129,7 +1129,7 @@ class SchemaHelper
     public static function minRowsField(array $config = []): array
     {
         return self::numberField(array_merge([
-            'label' => Craft::t('formie', 'Minimum instances'),
+            'label' => Craft::t('formie', 'Minimum Rows'),
             'instructions' => Craft::t('formie', 'The minimum required number of rows that must be completed.'),
             'name' => 'minRows',
         ], $config));
@@ -1138,8 +1138,8 @@ class SchemaHelper
     public static function maxRowsField(array $config = []): array
     {
         return self::numberField(array_merge([
-            'label' => Craft::t('formie', 'Maximum instances'),
-            'instructions' => Craft::t('formie', 'The maximum required number of rows that must be completed.'),
+            'label' => Craft::t('formie', 'Maximum Rows'),
+            'instructions' => Craft::t('formie', 'The maximum number of rows visitors can add.'),
             'name' => 'maxRows',
         ], $config));
     }

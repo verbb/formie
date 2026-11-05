@@ -39,12 +39,12 @@ class Variables
             self::GROUP_ENVIRONMENT => Craft::t('formie', 'Environment'),
             self::GROUP_CURRENT_SITE => Craft::t('formie', 'Site'),
             self::GROUP_CURRENT_USER => Craft::t('formie', 'Users'),
-            self::GROUP_DISPATCH => Craft::t('formie', 'Dispatch'),
+            self::GROUP_DISPATCH => Craft::t('formie', 'Integration Results'),
             self::GROUP_CUSTOM => Craft::t('formie', 'Custom'),
             self::STATIC_FORM => Craft::t('formie', 'Form'),
             self::STATIC_GENERAL => Craft::t('formie', 'General'),
             self::STATIC_SITE => Craft::t('formie', 'Site'),
-            self::STATIC_DISPATCH => Craft::t('formie', 'Dispatch'),
+            self::STATIC_DISPATCH => Craft::t('formie', 'Integration Results'),
             self::STATIC_CUSTOM => Craft::t('formie', 'Custom'),
         ];
 

@@ -65,10 +65,10 @@ describe('integration actions', () => {
     });
 
     it('does not show successful delivery for a rejected test send', async() => {
-        Craft.sendActionRequest = async() => { return { data: { success: false, status: 'rejected', message: 'The test payload was not delivered.' } }; };
+        Craft.sendActionRequest = async() => { return { data: { success: false, status: 'rejected', message: 'The test data was not delivered.' } }; };
         const { sendIntegrationTestPayload } = await import('./useFormTools');
-        expect(await sendIntegrationTestPayload('webhook', {}, { formId: 42 })).toMatchObject({ ok: false, error: 'The test payload was not delivered.' });
+        expect(await sendIntegrationTestPayload('webhook', {}, { formId: 42 })).toMatchObject({ ok: false, error: 'The test data was not delivered.' });
         Craft.sendActionRequest = async() => { return { data: { success: false } }; };
-        expect(await sendIntegrationTestPayload('webhook', {}, { formId: 42 })).toMatchObject({ ok: false, error: 'Failed to send test payload.' });
+        expect(await sendIntegrationTestPayload('webhook', {}, { formId: 42 })).toMatchObject({ ok: false, error: 'Failed to send test data.' });
     });
 });
