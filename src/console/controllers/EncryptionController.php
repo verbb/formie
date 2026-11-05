@@ -287,6 +287,7 @@ class EncryptionController extends Controller
 
                 if (!is_array($content)) {
                     $unchanged++;
+
                     continue;
                 }
 
@@ -294,6 +295,7 @@ class EncryptionController extends Controller
 
                 if (!$form) {
                     $locked[$submissionId][] = 'Form definition is unavailable.';
+
                     continue;
                 }
 
@@ -330,6 +332,7 @@ class EncryptionController extends Controller
 
                 if (!$changed) {
                     $unchanged++;
+
                     continue;
                 }
 
@@ -342,6 +345,7 @@ class EncryptionController extends Controller
 
                 if (!$updated) {
                     $concurrent++;
+
                     continue;
                 }
 
@@ -389,6 +393,10 @@ class EncryptionController extends Controller
         $db = Craft::$app->getDb();
 
         return $db->transaction(function() use ($db, $submissionId, $stateVersion, $originalContent, $content): bool {
+            if (Formie::$plugin->getUploadReferences()->isInstalled()) {
+                Formie::$plugin->getUploadReferences()->guard();
+            }
+
             $latest = $db->createCommand(
                 'SELECT [[content]], [[stateVersion]] FROM ' . Table::FORMIE_SUBMISSIONS . ' WHERE [[id]] = :id FOR UPDATE',
                 [':id' => $submissionId],
@@ -399,6 +407,7 @@ class EncryptionController extends Controller
             }
 
             Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $content], ['id' => $submissionId]);
+            Formie::$plugin->getUploadReferences()->reconcile($submissionId);
 
             return true;
         });

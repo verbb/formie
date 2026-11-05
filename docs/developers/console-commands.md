@@ -369,3 +369,25 @@ The saved payment must match the submission’s current amount and currency. If 
 Receipts progress through verified, scheduled, processing and processed states. Handling failures are rescheduled with bounded backoff; a receipt becomes failed after exhausting automatic attempts. Retries reuse the same receipt and completed receipts do not rerun side effects. `./craft formie/payments/recover-webhooks 100` schedules up to 100 due or interrupted receipts when queue publication or a worker was interrupted. Financial rows and encrypted webhook evidence have indefinite retention; automatic cleanup only removes expired payment capabilities after a one-day grace period. Payment and subscription histories keep the most recent 100 transitions. Preserve the Formie security key with backups. A processed receipt may still require payment/submission reconciliation after an interrupted completion commit; inspect the payment's version, history and submission-transition receipt before resuming it.
 
 A payment in `unknown` must be reconciled against its original account and immutable amount. Automatic lookup is available only when the adapter implements it and has a usable provider reference. Otherwise, use the verified operator resolution flow above. In particular, a lost Opayo challenge response never repeats the challenge automatically. Broader queue/delivery diagnostics are separate from these payment receipts.
+
+## Upload References
+
+Formie maintains an index of File Upload values to check whether a file is still used. Existing submissions are indexed by the queue after an upgrade. New and changed submissions update the index as they are saved. Files remain protected while indexing is incomplete or relevant encrypted content cannot be read.
+
+Drain in-flight requests and stop old queue workers before deploying the update. Apply migrations, then restart web and queue processes with the updated code before resuming traffic. Keep the same encryption keys available to web and queue processes.
+
+```shell
+./craft formie/upload-references/status
+./craft formie/upload-references/resume
+./craft formie/upload-references/verify
+```
+
+`status` lists each form's progress and number of unreadable submissions. `resume` continues pending work from its saved position. `verify` compares stored submission values with the index and returns a nonzero exit code if it finds mismatches or unreadable content. It does not print submission answers.
+
+To repair an index after restoring an encryption key or changing submission content outside Formie's save APIs, rebuild it:
+
+```shell
+./craft formie/upload-references/rebuild
+```
+
+Add a form ID to `resume`, `verify`, or `rebuild` to limit the command to that form, for example `./craft formie/upload-references/rebuild 123`. Rebuilding keeps existing references in place while reconciling each submission; it does not clear the entire index first.

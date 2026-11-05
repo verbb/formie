@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use verbb\formie\helpers\Table;
 
-it('keeps schema inspection at migration and repair boundaries', function (): void {
+it('keeps schema inspection at migration, repair and upload readiness boundaries', function (): void {
     $sourceRoot = dirname(__DIR__, 2) . '/src';
     $allowed = [
         $sourceRoot . '/helpers/DbSchema.php',
@@ -27,6 +27,16 @@ it('keeps schema inspection at migration and repair boundaries', function (): vo
         }
 
         $source = (string)file_get_contents($path);
+
+        if ($path === $sourceRoot . '/services/UploadReferences.php') {
+            // Destructive cleanup must fail closed during an incomplete index migration.
+            // Only the readiness probe may inspect schema; reconciliation still uses the
+            // current contract and must not grow per-column legacy fallback paths.
+            $probe = new ReflectionMethod(\verbb\formie\services\UploadReferences::class, 'isInstalled');
+            $lines = explode("\n", $source);
+            array_splice($lines, $probe->getStartLine() - 1, $probe->getEndLine() - $probe->getStartLine() + 1);
+            $source = implode("\n", $lines);
+        }
 
         if (str_contains($source, 'DbSchema::columnExists(')
             || str_contains($source, 'DbSchema::tableExists(')
@@ -52,7 +62,7 @@ it('does not perform legacy data reconciliation during plugin bootstrap', functi
 it('installs every column required by normal runtime paths', function (): void {
     $required = [
         Table::FORMIE_FORMS => ['createdById', 'updatedById', 'groupId', 'formStatusId', 'sourceSiteId'],
-        Table::FORMIE_SUBMISSIONS => ['updatedById', 'signatureAccessKey', 'legacySignatureAccess', 'metadata'],
+        Table::FORMIE_SUBMISSIONS => ['updatedById', 'signatureAccessKey', 'legacySignatureAccess', 'metadata', 'uploadReferenceVersion'],
         Table::FORMIE_NOTIFICATIONS => ['dispatchTiming'],
         Table::FORMIE_PAYMENTS => ['redirectUrl'],
         Table::FORMIE_INTEGRATIONS => ['scope'],

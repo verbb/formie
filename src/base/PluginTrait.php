@@ -34,6 +34,7 @@ use verbb\formie\services\FieldSiteOverrides;
 use verbb\formie\services\FieldTypeDefinitions;
 use verbb\formie\services\Fields;
 use verbb\formie\services\FileUploads;
+use verbb\formie\services\UploadReferences;
 use verbb\formie\services\FormDefaults;
 use verbb\formie\services\FormGroupDefaults;
 use verbb\formie\services\FormGroupPolicy;
@@ -211,6 +212,7 @@ trait PluginTrait
                 'fields' => Fields::class,
                 'fieldSlotRegistry' => FieldSlotRegistry::class,
                 'fileUploads' => FileUploads::class,
+                'uploadReferences' => UploadReferences::class,
                 'formDefaults' => FormDefaults::class,
                 'formGroupDefaults' => FormGroupDefaults::class,
                 'formGroupPolicy' => FormGroupPolicy::class,
@@ -756,6 +758,11 @@ trait PluginTrait
     public function getSubscriptions(): Subscriptions
     {
         return $this->get('subscriptions');
+    }
+
+    public function getUploadReferences(): UploadReferences
+    {
+        return $this->get('uploadReferences');
     }
 
     public function getFileUploads(): FileUploads

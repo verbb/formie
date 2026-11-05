@@ -188,7 +188,7 @@ it('uses persisted references when releasing removed uploads', function (string 
     $retained = $scope !== 'removed';
     expect($tracked['state'])->toBe($retained ? 'bound' : 'staged')
         ->and($tracked['submissionId'] === null ? null : (int)$tracked['submissionId'])->toBe($retained ? (int)$submission->id : null)
-        ->and($measured['scans'])->toBe(in_array($scope, ['removed', 'shared'], true) ? 1 : 0);
+        ->and($measured['scans'])->toBe(0);
     if ($scope === 'removed') {
         expect((int)$tracked['expiresAt'])->toBeLessThanOrEqual(time());
     }

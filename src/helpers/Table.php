@@ -35,6 +35,9 @@ abstract class Table extends CraftTable
     public const FORMIE_SUBMISSION_STATUSES = '{{%formie_submission_statuses}}';
     public const FORMIE_FORM_STATUSES = '{{%formie_form_statuses}}';
     public const FORMIE_STENCILS = '{{%formie_stencils}}';
+    public const FORMIE_SUBMISSION_ASSETS = '{{%formie_submission_assets}}';
+    public const FORMIE_UPLOAD_REFERENCE_FORMS = '{{%formie_upload_reference_forms}}';
+    public const FORMIE_UPLOAD_REFERENCE_UNKNOWN = '{{%formie_upload_reference_unknown}}';
     public const FORMIE_PENDING_UPLOADS = '{{%formie_pending_uploads}}';
     public const FORMIE_TRASHED_SUBMISSION_FILES = '{{%formie_trashed_submission_files}}';
     public const FORMIE_REPORTS = '{{%formie_reports}}';

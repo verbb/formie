@@ -18,7 +18,7 @@ afterEach(function (): void {
     Formie::$plugin->getFields()->resetFieldRegistryCache();
 });
 
-it('scans upload references without sorting large submission content', function (string $scope, bool $expected): void {
+it('checks indexed upload references without loading large submission content', function (string $scope, bool $expected): void {
     UploadTestHelper::ensureUploadVolume();
     $form = formie()->form()
         ->fileUploadField('document', ['restrictFiles' => false])
@@ -52,12 +52,8 @@ it('scans upload references without sorting large submission content', function 
         Event::off(SubmissionQuery::class, SubmissionQuery::EVENT_AFTER_PREPARE, $handler);
     }
 
-    expect($referenced)->toBe($expected)->and($queries)->not->toBeEmpty();
+    expect($referenced)->toBe($expected)->and($queries)->toBeEmpty();
 
-    foreach ($queries as [$orderBy, $subqueryOrderBy]) {
-        // Site preference ordering inside unique() is separate from sorting the content rows.
-        expect($orderBy)->toBeEmpty()->and($subqueryOrderBy)->toBeEmpty();
-    }
 })->with([
     'matching reference' => ['matching', true],
     'missing reference' => ['missing', false],

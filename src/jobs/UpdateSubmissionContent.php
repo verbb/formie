@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\jobs;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\Group;
 use verbb\formie\helpers\Table;
@@ -61,6 +62,10 @@ class UpdateSubmissionContent extends BaseJob
             ]));
 
             $db->transaction(function() use ($db, $id, $destinations, $groupUids): void {
+                if (Formie::$plugin->getUploadReferences()->isInstalled()) {
+                    Formie::$plugin->getUploadReferences()->guard();
+                }
+
                 // Lock the latest row until relocation completes so a concurrent edit cannot be overwritten.
                 $submission = $db->createCommand(
                     'SELECT [[content]] FROM ' . Table::FORMIE_SUBMISSIONS . ' WHERE [[id]] = :id AND [[formId]] = :formId FOR UPDATE',
@@ -112,6 +117,7 @@ class UpdateSubmissionContent extends BaseJob
 
                 if ($content !== $original) {
                     Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $content], ['id' => $id]);
+                    Formie::$plugin->getUploadReferences()->reconcile((int)$id);
                 }
             });
         }

@@ -213,3 +213,20 @@ $integrationValue = $submission->getFieldValueForIntegration('billingAddress', $
 Use **reference** when you need the singular, string-like field value. Use **reference block** when you need the richer block value used by notification field rendering.
 
 `getFieldValue()` returns the field’s PHP value. Use the helpers above when you need display text, JSON-safe data, exports or integration values.
+
+## File Upload References
+
+Submission content remains the source of File Upload values. Formie maintains a derived index when submissions or submission records are saved, including uploads nested in Group and Repeater fields. The index does not change asset ownership or index other element fields.
+
+Direct SQL bypasses this maintenance. If a custom import must write submission content with SQL, coordinate the write and invalidate the affected form's index **inside the same transaction**:
+
+```php
+Craft::$app->getDb()->transaction(function() use ($formId) {
+    $references = Formie::$plugin->getUploadReferences();
+    $references->guard(true);
+    // Write the form's submission content here.
+    $references->invalidate($formId);
+});
+```
+
+Invalidation protects files until the queue has reconciled the affected history. Prefer saving submission elements or records so the index changes atomically with each submission. Use the [upload reference commands](console-commands.md#upload-references) to inspect progress or repair content changed by external tools.

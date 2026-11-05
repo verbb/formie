@@ -2,6 +2,8 @@
 namespace verbb\formie\records;
 
 use verbb\formie\helpers\Table;
+use verbb\formie\Formie;
+use Craft;
 
 use craft\db\ActiveRecord;
 use craft\records\Element;
@@ -27,6 +29,20 @@ class Form extends ActiveRecord
 
     // Public Methods
     // =========================================================================
+
+    public function transactions(): array
+    {
+        return [$this->getScenario() => self::OP_ALL];
+    }
+
+    public function afterSave($insert, $changedAttributes): void
+    {
+        if ($insert || array_key_exists('layoutId', $changedAttributes)) {
+            Formie::$plugin->getUploadReferences()->refreshSchemas((int)$this->id);
+        }
+
+        parent::afterSave($insert, $changedAttributes);
+    }
 
     public function getElement(): ActiveQueryInterface
     {

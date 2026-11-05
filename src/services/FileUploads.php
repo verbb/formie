@@ -241,10 +241,7 @@ class FileUploads extends Component
             return false;
         }
 
-        $mutex = Craft::$app->getMutex();
-        $key = 'formie.upload.' . $assetId;
-
-        if (isset($this->_lockedUploads[$assetId]) || !$mutex->acquire($key, 0)) {
+        if (isset($this->_lockedUploads[$assetId]) || !Formie::$plugin->getUploadReferences()->acquireAsset($assetId)) {
             return false;
         }
 
@@ -261,7 +258,7 @@ class FileUploads extends Component
 
             return $this->_deleteTrackedAsset($upload);
         } finally {
-            $mutex->release($key);
+            Formie::$plugin->getUploadReferences()->releaseAsset($assetId);
         }
     }
 
@@ -309,10 +306,8 @@ class FileUploads extends Component
         foreach ($rows as $row) {
             $assetId = (int)($row['assetId'] ?? 0);
 
-            $mutex = Craft::$app->getMutex();
-            $key = 'formie.upload.' . $assetId;
 
-            if (isset($this->_lockedUploads[$assetId]) || !$mutex->acquire($key, 0)) {
+            if (isset($this->_lockedUploads[$assetId]) || !Formie::$plugin->getUploadReferences()->acquireAsset($assetId)) {
                 continue;
             }
 
@@ -334,7 +329,7 @@ class FileUploads extends Component
                     $count++;
                 }
             } finally {
-                $mutex->release($key);
+                Formie::$plugin->getUploadReferences()->releaseAsset($assetId);
             }
         }
 
@@ -380,7 +375,7 @@ class FileUploads extends Component
     public function deleteChosenAssets(array $assetIds): void
     {
         foreach (Asset::find()->id($assetIds)->status(null)->all() as $asset) {
-            if (!Craft::$app->getElements()->deleteElement($asset)) {
+            if (!Formie::$plugin->getUploadReferences()->withDeletionCheck((int)$asset->id, fn() => Craft::$app->getElements()->deleteElement($asset))) {
                 Formie::error("Unable to delete asset #{$asset->id} with its submission.");
             }
         }
@@ -453,8 +448,6 @@ class FileUploads extends Component
     {
         foreach ($uploads as $upload) {
             $assetId = (int)$upload['assetId'];
-            $mutex = Craft::$app->getMutex();
-            $key = 'formie.upload.' . $assetId;
 
             // Preserve intent even if a binding owns the asset lock. Craft's enclosing
             // submission-delete transaction rolls back this insert and the FK cascade together.
@@ -473,7 +466,7 @@ class FileUploads extends Component
                 Craft::$app->getDb()->createCommand()->insert(Table::FORMIE_PENDING_UPLOADS, $upload)->execute();
             }
 
-            if (isset($this->_lockedUploads[$assetId]) || !$mutex->acquire($key, 0)) {
+            if (isset($this->_lockedUploads[$assetId]) || !Formie::$plugin->getUploadReferences()->acquireAsset($assetId)) {
                 continue;
             }
 
@@ -490,7 +483,7 @@ class FileUploads extends Component
 
                 $this->_deleteTrackedAsset($tracked);
             } finally {
-                $mutex->release($key);
+                Formie::$plugin->getUploadReferences()->releaseAsset($assetId);
             }
         }
     }
@@ -506,11 +499,10 @@ class FileUploads extends Component
         $ids = array_unique($ids);
         sort($ids, SORT_NUMERIC);
         $acquired = [];
-        $mutex = Craft::$app->getMutex();
 
         try {
             foreach ($ids as $id) {
-                if (!$mutex->acquire('formie.upload.' . $id, 5)) {
+                if (!Formie::$plugin->getUploadReferences()->acquireAsset((int)$id, 5)) {
                     throw new RuntimeException('Upload is busy. Please retry.');
                 }
 
@@ -522,7 +514,7 @@ class FileUploads extends Component
         } finally {
             foreach (array_reverse($acquired) as $id) {
                 unset($this->_lockedUploads[$id]);
-                $mutex->release('formie.upload.' . $id);
+                Formie::$plugin->getUploadReferences()->releaseAsset((int)$id);
             }
         }
     }
@@ -803,7 +795,7 @@ class FileUploads extends Component
             $asset = Asset::find()->id((int)$row['assetId'])->status(null)->one();
             $folder = Craft::$app->getAssets()->getFolderById((int)$row['promotionFolderId']);
 
-            if (!$asset || !$folder || !$this->isReferenced((int)$row['assetId'])) {
+            if (!$asset || !$folder || !Formie::$plugin->getUploadReferences()->hasCompleteCoverage() || Formie::$plugin->getUploadReferences()->referenceState((int)$row['assetId']) !== UploadReferences::REFERENCED) {
                 throw new RuntimeException('Upload promotion requires reconciliation.');
             }
 
@@ -821,10 +813,7 @@ class FileUploads extends Component
             return;
         }
 
-        $mutex = Craft::$app->getMutex();
-        $key = 'formie.upload.' . $id;
-
-        if (!$mutex->acquire($key, 5)) {
+        if (!Formie::$plugin->getUploadReferences()->acquireAsset($id, 5)) {
             throw new RuntimeException('Upload promotion is busy.');
         }
 
@@ -834,7 +823,7 @@ class FileUploads extends Component
             $this->_promote($asset, $folder, $filename);
         } finally {
             unset($this->_lockedUploads[$id]);
-            $mutex->release($key);
+            Formie::$plugin->getUploadReferences()->releaseAsset($id);
         }
     }
 
@@ -890,33 +879,15 @@ class FileUploads extends Component
 
     public function isReferenced(int $assetId, ?int $exceptSubmissionId = null, ?string $exceptContentKey = null): bool
     {
-        if ((new Query())->from('{{%relations}}')->where(['targetId' => $assetId])->andFilterWhere(['not', ['sourceId' => $exceptSubmissionId]])->exists()) {
+        if (Formie::$plugin->getUploadReferences()->existsCurrent((new Query())->from('{{%relations}}')->where(['targetId' => $assetId])->andFilterWhere(['not', ['sourceId' => $exceptSubmissionId]]))) {
             return true;
         }
 
-        if ((new Query())->from(Table::FORMIE_RELATIONS)->where(['targetId' => $assetId])->andFilterWhere(['not', ['sourceId' => $exceptSubmissionId]])->exists()) {
+        if (Formie::$plugin->getUploadReferences()->existsCurrent((new Query())->from(Table::FORMIE_RELATIONS)->where(['targetId' => $assetId])->andFilterWhere(['not', ['sourceId' => $exceptSubmissionId]]))) {
             return true;
         }
 
-        // Formie stores field values in JSON rather than Craft relation rows.
-        // Reference checks need no ordering; sorting large JSON content can exhaust MySQL's sort buffer.
-        foreach (Submission::find()->withoutCpIndexScope()->site('*')->unique()->isIncomplete(null)->isSpam(null)->status(null)->trashed(null)->orderBy(null)->each() as $submission) {
-            if ($exceptSubmissionId === (int)$submission->id && $exceptContentKey === null) {
-                continue;
-            }
-
-            foreach ($submission->getFieldValuesForField(FileUpload::class) as $contentKey => $value) {
-                if ($exceptSubmissionId === (int)$submission->id && $exceptContentKey === $contentKey) {
-                    continue;
-                }
-
-                if (in_array($assetId, $this->_extractAssetIds($value), true)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return Formie::$plugin->getUploadReferences()->referenceState($assetId, $exceptSubmissionId, $exceptContentKey) !== UploadReferences::UNREFERENCED;
     }
 
 
@@ -1170,10 +1141,8 @@ class FileUploads extends Component
         $purged = 0;
 
         foreach ($assetIds as $assetId) {
-            $mutex = Craft::$app->getMutex();
-            $key = 'formie.upload.' . $assetId;
 
-            if (isset($this->_lockedUploads[$assetId]) || !$mutex->acquire($key, 0)) {
+            if (isset($this->_lockedUploads[$assetId]) || !Formie::$plugin->getUploadReferences()->acquireAsset($assetId)) {
                 continue;
             }
 
@@ -1184,7 +1153,7 @@ class FileUploads extends Component
 
                 // Retention of a relation does not grant ownership of a shared or imported asset.
                 if ($owned && !$this->isReferenced($assetId, (int)$submission->id, $contentKey)) {
-                    if (!$this->_deleteTrackedAsset($upload)) {
+                    if (!$this->_deleteTrackedAsset($upload, (int)$submission->id, $contentKey)) {
                         continue;
                     }
 
@@ -1193,7 +1162,7 @@ class FileUploads extends Component
 
                 $remaining = array_values(array_diff($remaining, [$assetId]));
             } finally {
-                $mutex->release($key);
+                Formie::$plugin->getUploadReferences()->releaseAsset($assetId);
             }
         }
 
@@ -1205,7 +1174,12 @@ class FileUploads extends Component
         return $purged;
     }
 
-    private function _deleteTrackedAsset(array $upload): bool
+    private function _deleteTrackedAsset(array $upload, ?int $exceptSubmissionId = null, ?string $exceptContentKey = null): bool
+    {
+        return Formie::$plugin->getUploadReferences()->withDeletionCheck((int)$upload['assetId'], fn() => $this->_deleteUnreferencedAsset($upload), $exceptSubmissionId, $exceptContentKey);
+    }
+
+    private function _deleteUnreferencedAsset(array $upload): bool
     {
         $assetId = (int)$upload['assetId'];
         $db = Craft::$app->getDb();

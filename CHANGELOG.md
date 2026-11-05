@@ -9,6 +9,7 @@
 - Add an option to leave log files out of support requests.
 
 ### Changed
+- Use a database index for File Upload reference checks, with queued indexing of existing submissions. ([#3069](https://github.com/verbb/formie/issues/3069), [#3096](https://github.com/verbb/formie/issues/3096))
 - Allow all failed [integration and notification deliveries](https://verbb.io/craft-plugins/formie/docs/v4/guides/integrations/integration-dispatch-and-policies#results-and-retries) to be retried using current submission values and settings.
 - Rename the “View delivery diagnostics” permission to “View queue delivery diagnostics”.
 - Allow submission exports without Reports access using “Export submissions” under “Access submissions”. Existing report export permissions continue to work. ([#3082](https://github.com/verbb/formie/issues/3082))

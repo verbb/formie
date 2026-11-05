@@ -1420,6 +1420,10 @@ class Fields extends Component
         try {
             if ($isRootSave) {
                 $transaction = Craft::$app->getDb()->beginTransaction();
+
+                if (Formie::$plugin->getUploadReferences()->isInstalled()) {
+                    Formie::$plugin->getUploadReferences()->guard(true);
+                }
             }
 
             $layoutRecord = $isNewLayout ? new FieldLayoutRecord() : FieldLayoutRecord::findOne($layout->id);
@@ -1449,6 +1453,7 @@ class Fields extends Component
 
             if ($isRootSave) {
                 $context->refreshSavedFieldUsage();
+                Formie::$plugin->getUploadReferences()->refreshSchemas(null, array_keys($context->layouts), array_map('intval', array_keys($context->savedDefinitions)));
                 $transaction->commit();
                 $transactionFinished = true;
             }
@@ -1501,17 +1506,18 @@ class Fields extends Component
 
     public function deleteLayout(FieldLayout $layout): bool
     {
-        if (!$layout->beforeDelete()) {
-            return false;
-        }
+        return Craft::$app->getDb()->transaction(function() use ($layout): bool {
+            $references = Formie::$plugin->getUploadReferences();
 
-        Db::delete(Table::FORMIE_FIELD_LAYOUTS, ['id' => $layout->id]);
-        $this->_deleteUnusedFieldDefinitions();
-        $this->_resetFieldCaches();
+            if ($references->isInstalled()) {
+                $references->guard(true);
+            }
 
-        $layout->afterDelete();
+            $result = $this->_deleteLayout($layout);
+            $references->refreshSchemas(null, [(int)$layout->id]);
 
-        return true;
+            return $result;
+        });
     }
 
     public function savePage(FieldLayoutPage $page, ?LayoutSaveContext $context = null): bool
@@ -1582,15 +1588,18 @@ class Fields extends Component
 
     public function deletePage(FieldLayoutPage $page): bool
     {
-        if (!$page->beforeDelete()) {
-            return false;
-        }
+        return Craft::$app->getDb()->transaction(function() use ($page): bool {
+            $references = Formie::$plugin->getUploadReferences();
 
-        Db::delete(Table::FORMIE_FIELD_LAYOUT_PAGES, ['id' => $page->id]);
+            if ($references->isInstalled()) {
+                $references->guard(true);
+            }
 
-        $page->afterDelete();
+            $result = $this->_deletePage($page);
+            $references->refreshSchemas(null, [(int)$page->layoutId]);
 
-        return true;
+            return $result;
+        });
     }
 
     public function saveRow(FieldLayoutRow $row, ?LayoutSaveContext $context = null): bool
@@ -1656,15 +1665,18 @@ class Fields extends Component
 
     public function deleteRow(FieldLayoutRow $row): bool
     {
-        if (!$row->beforeDelete()) {
-            return false;
-        }
+        return Craft::$app->getDb()->transaction(function() use ($row): bool {
+            $references = Formie::$plugin->getUploadReferences();
 
-        Db::delete(Table::FORMIE_FIELD_LAYOUT_ROWS, ['id' => $row->id]);
+            if ($references->isInstalled()) {
+                $references->guard(true);
+            }
 
-        $row->afterDelete();
+            $result = $this->_deleteRow($row);
+            $references->refreshSchemas(null, [(int)$row->layoutId]);
 
-        return true;
+            return $result;
+        });
     }
 
     public function saveField(Field $field, bool $updateSyncedFields = true, ?LayoutSaveContext $context = null): bool
@@ -1693,6 +1705,10 @@ class Fields extends Component
         try {
             if ($isRootSave) {
                 $transaction = Craft::$app->getDb()->beginTransaction();
+
+                if (Formie::$plugin->getUploadReferences()->isInstalled()) {
+                    Formie::$plugin->getUploadReferences()->guard(true);
+                }
             }
 
             $isNewField = !$field->id;
@@ -1805,6 +1821,7 @@ class Fields extends Component
 
             if ($isRootSave) {
                 $context->refreshSavedFieldUsage();
+                Formie::$plugin->getUploadReferences()->refreshSchemas(null, array_keys($context->layouts), array_map('intval', array_keys($context->savedDefinitions)));
                 $transaction->commit();
                 $transactionFinished = true;
             }
@@ -1840,28 +1857,18 @@ class Fields extends Component
 
     public function deleteField(Field $field): bool
     {
-        if (!$field->beforeDelete()) {
-            return false;
-        }
+        return Craft::$app->getDb()->transaction(function() use ($field): bool {
+            $references = Formie::$plugin->getUploadReferences();
 
-        Db::delete(Table::FORMIE_FORM_FIELDS, ['id' => $field->id]);
-
-        if ($field->definitionId && !(new Query())->from(Table::FORMIE_FORM_FIELDS)->where(['fieldId' => $field->definitionId])->exists()) {
-            $definitionField = $this->getFieldDefinitionById($field->definitionId);
-
-            if ($definitionField) {
-                // Nested layouts are definition-owned; metadata cleanup must not create a live field.
-                if ($nestedLayoutId = $definitionField->settings['nestedLayoutId'] ?? null) {
-                    $this->deleteLayoutById((int)$nestedLayoutId);
-                }
+            if ($references->isInstalled()) {
+                $references->guard(true);
             }
 
-            Db::delete(Table::FORMIE_FIELDS, ['id' => $field->definitionId]);
-        }
+            $result = $this->_deleteField($field);
+            $references->refreshSchemas(null, [(int)$field->layoutId]);
 
-        $this->_resetFieldCaches();
-
-        return true;
+            return $result;
+        });
     }
 
     public function updateSyncedFields(Field $field): bool
@@ -2054,6 +2061,73 @@ class Fields extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _deleteLayout(FieldLayout $layout): bool
+    {
+        if (!$layout->beforeDelete()) {
+            return false;
+        }
+
+        Db::delete(Table::FORMIE_FIELD_LAYOUTS, ['id' => $layout->id]);
+        $this->_deleteUnusedFieldDefinitions();
+        $this->_resetFieldCaches();
+
+        $layout->afterDelete();
+
+        return true;
+    }
+
+    private function _deletePage(FieldLayoutPage $page): bool
+    {
+        if (!$page->beforeDelete()) {
+            return false;
+        }
+
+        Db::delete(Table::FORMIE_FIELD_LAYOUT_PAGES, ['id' => $page->id]);
+
+        $page->afterDelete();
+
+        return true;
+    }
+
+    private function _deleteRow(FieldLayoutRow $row): bool
+    {
+        if (!$row->beforeDelete()) {
+            return false;
+        }
+
+        Db::delete(Table::FORMIE_FIELD_LAYOUT_ROWS, ['id' => $row->id]);
+
+        $row->afterDelete();
+
+        return true;
+    }
+
+    private function _deleteField(Field $field): bool
+    {
+        if (!$field->beforeDelete()) {
+            return false;
+        }
+
+        Db::delete(Table::FORMIE_FORM_FIELDS, ['id' => $field->id]);
+
+        if ($field->definitionId && !(new Query())->from(Table::FORMIE_FORM_FIELDS)->where(['fieldId' => $field->definitionId])->exists()) {
+            $definitionField = $this->getFieldDefinitionById($field->definitionId);
+
+            if ($definitionField) {
+                // Nested layouts are definition-owned; metadata cleanup must not create a live field.
+                if ($nestedLayoutId = $definitionField->settings['nestedLayoutId'] ?? null) {
+                    $this->deleteLayoutById((int)$nestedLayoutId);
+                }
+            }
+
+            Db::delete(Table::FORMIE_FIELDS, ['id' => $field->definitionId]);
+        }
+
+        $this->_resetFieldCaches();
+
+        return true;
+    }
 
     private function _purgeSearchIndexForFieldDefinition(int $definitionId): void
     {

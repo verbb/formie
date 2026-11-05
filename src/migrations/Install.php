@@ -61,6 +61,46 @@ class Install extends Migration
 
     public function createTables(): void
     {
+        foreach ([Table::FORMIE_SUBMISSION_ASSETS, Table::FORMIE_UPLOAD_REFERENCE_UNKNOWN, Table::FORMIE_UPLOAD_REFERENCE_FORMS, \verbb\formie\services\UploadReferences::STATE_TABLE] as $table) {
+            $this->archiveTableIfExists($table);
+        }
+
+        $this->createTable(\verbb\formie\services\UploadReferences::STATE_TABLE, ['id' => $this->integer()->notNull(), 'PRIMARY KEY ([[id]])']);
+        $this->insert(\verbb\formie\services\UploadReferences::STATE_TABLE, ['id' => 1]);
+
+        $this->createTable(Table::FORMIE_SUBMISSION_ASSETS, [
+            'submissionId' => $this->integer()->notNull(),
+            'assetId' => $this->integer()->notNull(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+            'PRIMARY KEY ([[submissionId]], [[assetId]])',
+        ]);
+
+        $this->createTable(Table::FORMIE_UPLOAD_REFERENCE_FORMS, [
+            'formId' => $this->integer()->notNull(),
+            'generation' => $this->integer()->notNull()->defaultValue(1),
+            'schemaFingerprint' => $this->string(64)->notNull(),
+            'schemaData' => $this->json(),
+            'cursor' => $this->integer()->notNull()->defaultValue(0),
+            'highWaterId' => $this->integer()->notNull()->defaultValue(0),
+            'state' => $this->string(16)->notNull(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+            'PRIMARY KEY ([[formId]])',
+        ]);
+
+        $this->createTable(Table::FORMIE_UPLOAD_REFERENCE_UNKNOWN, [
+            'submissionId' => $this->integer()->notNull(),
+            'formId' => $this->integer()->notNull(),
+            'reasonCode' => $this->string(32)->notNull(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+            'PRIMARY KEY ([[submissionId]])',
+        ]);
+
         $this->archiveTableIfExists(Table::FORMIE_EMAIL_TEMPLATES);
         $this->createTable(Table::FORMIE_EMAIL_TEMPLATES, [
             'id' => $this->primaryKey(),
@@ -623,6 +663,7 @@ class Install extends Migration
         $this->archiveTableIfExists(Table::FORMIE_SUBMISSIONS);
         $this->createTable(Table::FORMIE_SUBMISSIONS, [
             'id' => $this->primaryKey(),
+            'uploadReferenceVersion' => $this->string(36),
             'content' => $this->json(),
             'formId' => $this->integer()->notNull(),
             'statusId' => $this->integer(),
@@ -828,6 +869,10 @@ class Install extends Migration
 
     public function createIndexes(): void
     {
+        $this->createIndex(null, Table::FORMIE_SUBMISSION_ASSETS, ['assetId', 'submissionId']);
+        $this->createIndex(null, Table::FORMIE_UPLOAD_REFERENCE_FORMS, ['state', 'formId']);
+        $this->createIndex(null, Table::FORMIE_UPLOAD_REFERENCE_UNKNOWN, ['formId', 'submissionId']);
+
         foreach ([Table::FORMIE_PAYMENTS, Table::FORMIE_SUBSCRIPTIONS, Table::FORMIE_PAYMENT_PLANS] as $table) {
             $this->createIndex(null, $table, ['integrationId', 'accountFingerprint', 'reference']);
         }
@@ -919,6 +964,9 @@ class Install extends Migration
 
     public function addForeignKeys(): void
     {
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSION_ASSETS, 'submissionId', Table::FORMIE_SUBMISSIONS, 'id', 'CASCADE');
+        $this->addForeignKey(null, Table::FORMIE_UPLOAD_REFERENCE_UNKNOWN, 'submissionId', Table::FORMIE_SUBMISSIONS, 'id', 'CASCADE');
+        $this->addForeignKey(null, Table::FORMIE_UPLOAD_REFERENCE_FORMS, 'formId', Table::FORMIE_FORMS, 'id', 'CASCADE');
         $this->addForeignKey(null, Table::FORMIE_FIELD_LAYOUT_PAGES, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_FIELD_LAYOUT_ROWS, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_FIELD_LAYOUT_ROWS, ['pageId'], Table::FORMIE_FIELD_LAYOUT_PAGES, ['id'], 'CASCADE', null);
@@ -1028,6 +1076,10 @@ class Install extends Migration
             'formie_submission_statuses',
             'formie_form_statuses',
             'formie_stencils',
+            'formie_submission_assets',
+            'formie_upload_reference_unknown',
+            'formie_upload_reference_forms',
+            'formie_upload_reference_state',
             'formie_submissions',
             'formie_submission_quiz_results',
             'formie_submission_operations',
@@ -1164,6 +1216,10 @@ class Install extends Migration
             'formie_submission_statuses',
             'formie_form_statuses',
             'formie_stencils',
+            'formie_submission_assets',
+            'formie_upload_reference_unknown',
+            'formie_upload_reference_forms',
+            'formie_upload_reference_state',
             'formie_submissions',
             'formie_submission_quiz_results',
             'formie_submission_operations',
