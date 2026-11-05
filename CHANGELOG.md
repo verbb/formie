@@ -20,6 +20,7 @@
 - Update the Pardot guide for External Client Apps, OAuth security settings, and separate API and Form Handler delivery.
 
 ### Fixed
+- Fixed slow submissions with File Upload fields on sites with large submission histories. ([#3096](https://github.com/verbb/formie/issues/3096))
 - Fixed `useCssLayers` being ignored. Front-end CSS, including dynamically loaded field styles, is unlayered by default. Set `useCssLayers` to `true` to retain the layered styling used by earlier Formie 4 releases.
 - Fixed legacy notification tokens in stencils not being upgraded, preventing emails from forms created from those stencils from rendering.
 - Fixed file pickers in Repeater fields failing to open or opening multiple dialogs when editing submissions.

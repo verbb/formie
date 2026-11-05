@@ -709,7 +709,26 @@ class FileUploads extends Component
     {
         $rows = (new Query())->from(Table::FORMIE_PENDING_UPLOADS)->where(['submissionId' => $submission->id, 'state' => [SubmissionUploadStatus::BOUND->value, SubmissionUploadStatus::FINALIZED->value]])->all();
 
+        if (!$rows) {
+            return;
+        }
+
+        // Retained files are already referenced by this saved submission. Read persisted values
+        // so an unsaved change on the caller cannot release or retain the wrong uploads.
+        $persisted = Submission::find()->withoutCpIndexScope()->id($submission->id)->site('*')->isIncomplete(null)->isSpam(null)->status(null)->trashed(null)->orderBy(null)->one();
+        $retained = [];
+
+        foreach ($persisted?->getFieldValuesForField(FileUpload::class) ?? [] as $value) {
+            foreach ($this->_extractAssetIds($value) as $assetId) {
+                $retained[$assetId] = true;
+            }
+        }
+
         foreach ($rows as $row) {
+            if (isset($retained[(int)$row['assetId']])) {
+                continue;
+            }
+
             if (!$this->isReferenced((int)$row['assetId'])) {
                 Craft::$app->getDb()->createCommand()->update(Table::FORMIE_PENDING_UPLOADS, [
                     'state' => SubmissionUploadStatus::STAGED->value, 'submissionId' => null, 'promotionState' => $row['promotionState'] === 'moving' ? 'moving' : null,
