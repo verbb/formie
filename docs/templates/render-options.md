@@ -273,6 +273,8 @@ Use this when you need to delay Formie initialisation — for example until cook
 
 This matters most on pages where forms are injected after load, such as modal, Ajax, or front-end application workflows.
 
+For a complete template example, see [Dynamically Loaded Forms](/templates/assets#dynamically-loaded-forms), including where to load the shared assets and how to render the form fragment.
+
 ```twig
 {{ craft.formie.renderForm(form, {
     useObserver: false,

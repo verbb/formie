@@ -7,6 +7,7 @@
 - Add an **Export…** button to the submissions index. It opens a dialog filled in from your current form, filters and search, where you can adjust the forms, submission types, statuses, dates and columns, and see how many submissions you’ll get, before exporting in any report format. No saved report is needed. ([#3082](https://github.com/verbb/formie/issues/3082))
 - Add the [`logSubmissionValues`](https://verbb.io/craft-plugins/formie/docs/v4/get-started/configuration#logsubmissionvalues) config setting to keep submitted values out of Formie’s log files, while still writing every log entry.
 - Add an option to leave log files out of support requests.
+- Add a documentation example for dynamically loaded forms, including shared asset loading and automatic initialisation.
 
 ### Changed
 - Use a database index for File Upload reference checks, with queued indexing of existing submissions. ([#3069](https://github.com/verbb/formie/issues/3069), [#3096](https://github.com/verbb/formie/issues/3096))

@@ -10,6 +10,8 @@ In many projects, this default setup is all you need. When you want to go furthe
 
 ## Asset Output
 
+For forms loaded through Ajax, modals, or page transitions, follow the [dynamically loaded forms example](/templates/assets#dynamically-loaded-forms). It shows how to load the shared assets once and initialise forms when your site inserts them into the document.
+
 Using a Form Template or render options, you can change where those assets are output, or switch to manual output and include them yourself. That can be useful when you need tighter control over your page output or build pipeline.
 
 Leaving out Formie's assets entirely is usually a bad idea unless you are deliberately replacing that setup with your own browser-side integration. Without them, a form can lose the behaviour it relies on in the browser.
