@@ -49,6 +49,9 @@ function addressProviderClearRows(): void
     addressProviderResetRegistry();
 }
 
+// An enabled provider adds an auto-complete child to every later Address field.
+afterEach(fn() => addressProviderClearRows());
+
 it('offers autocomplete from a provider enabled through the control panel', function (): void {
     addressProviderClearRows();
     expect(addressProviderChildHandles())->not->toContain('autoComplete');
