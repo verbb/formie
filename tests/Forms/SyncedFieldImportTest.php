@@ -302,7 +302,7 @@ it('renders conflict choices and affected forms in the real import preview and s
             (new \craft\web\TemplateResponseFormatter())->format($response);
             return $response->content;
         }, ['method' => 'GET', 'headers' => ['Accept' => 'text/html']]);
-        expect($html)->toContain('Preserve relationships', 'Keep destination settings', 'Update shared definition', 'Import as independent fields', $first->handle, 'different settings')
+        expect($html)->toContain('Preserve relationships', 'Keep destination settings', 'Update synced field', 'Import as independent fields', $first->handle, 'different settings')
             ->not->toContain('<script>Updated</script>');
         $options = syncedImportUpdateOptions($documents[1], $uid);
         \Tests\Support\WebRequestTestHelper::withWebRequestContext(function($request) use ($filename, $user, $options): void {

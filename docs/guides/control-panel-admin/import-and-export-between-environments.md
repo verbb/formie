@@ -1,6 +1,6 @@
 # Import and Export Between Environments
 
-Form import and export moves **form definitions** between environments — not submission data. Use it when staging a new form for production, cloning a client's enquiry form to another project, or backing up structure before a major edit.
+Form import and export moves **form structure and settings** between environments. It does not include submission data. Use it when staging a new form for production, cloning a client's enquiry form to another project, or backing up structure before a major edit.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ Form import and export moves **form definitions** between environments — not s
 Exporting a form produces a JSON file containing:
 
 - Form details and settings
-- Pages and fields, including synced field definitions and relationships
+- Pages and fields, including synced field settings and relationships
 - Email notifications
 - Form template assignment
 - Email template assignment
@@ -49,7 +49,7 @@ For multiple forms, export one at a time or automate via console commands if you
 
 > Updating an existing form is a **full overwrite** of structure — fields, notifications, and template assignments. Submissions remain, but field handles that changed can orphan old submission data. Take a backup or export first.
 
-5. Review **Synced Fields**, if present. Keep **Preserve relationships** to create missing shared definitions and link matching ones. The preview lists existing uses and offers a choice between keeping destination settings, updating the shared definition, or importing independent fields.
+5. Review **Synced Fields**, if present. Keep **Preserve relationships** to create missing synced fields and link matching ones. The preview lists existing uses and offers a choice between keeping destination settings, updating the synced field, or importing independent fields.
 6. Complete the import and verify in the form builder
 
 Formie only supports its own export format. Arbitrary JSON will not import.
@@ -66,18 +66,18 @@ Formie only supports its own export format. Arbitrary JSON will not import.
 
 ### Promoting Forms That Share a Field
 
-Suppose your local Contact and Quote forms share an Email Address field. Export both forms, then import Contact on production with **Preserve relationships**. Formie creates the shared Email Address definition if it is missing. Import Quote with the same choice, and it links to that definition automatically. You can also import Quote first; the order does not matter.
+Suppose your local Contact and Quote forms share an Email Address field. Export both forms, then import Contact on production with **Preserve relationships**. Formie creates the synced Email Address field if it is missing. Import Quote with the same choice, and it links to that field automatically. You can also import Quote first; the order does not matter.
 
-If production already has that shared definition, **Keep destination settings** leaves its settings and translations intact. To deploy a change to the shared field itself, choose **Update shared definition** and review the listed forms: they all receive that change, even if you are only importing one form. You must be able to manage every affected form.
+If production already has that synced field, **Keep destination settings** leaves its settings and translations intact. To deploy a change to the shared field itself, choose **Update synced field** and review the listed forms: they all receive that change, even if you are only importing one form. You must be able to manage every affected form.
 
-After importing, open both forms and confirm the field is marked as synced. Check that each placement has the intended **Required** state, then submit a test entry through each form.
+After importing, open both forms and confirm the field is marked as synced. Check that the field has the intended **Required** state in each form, then submit a test entry through each form.
 
-The same name or handle does not establish a relationship. Formie uses the definition’s UID from the export. For forms previously imported as independent copies, see [Updating previously imported forms](/forms/import-export#updating-previously-imported-forms).
+The same name or handle does not establish a relationship. Formie uses the synced field’s unique identifier (UID) from the export. For forms previously imported as independent copies, see [Updating previously imported forms](/forms/import-export#updating-previously-imported-forms).
 
 ### Client Template → New Project
 
 1. Export the canonical template forms from your starter Craft install
-2. Import on the client site as **Create new form**. Select **Import as independent fields** if the new forms should not share definitions with other imports from that template
+2. Import on the client site as **Create new form**. Select **Import as independent fields** if the new forms should not share synced fields with other imports from that template
 3. Rename handles to client conventions
 4. Assign [form groups](/forms/form-groups) and site policies for the client's multi-site setup
 

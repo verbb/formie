@@ -45,7 +45,7 @@
         }) }}
 
         <div id="synced-fields-independent" class="hidden">
-            <p>{{ 'Each field will have its own definition. Existing fields on an updated form will be detached from their shared definitions.' | t('formie') }}</p>
+            <p>{{ 'Each field will be an independent copy. Existing fields on an updated form will no longer be synced.' | t('formie') }}</p>
         </div>
         <div id="synced-fields-preserve">
             {% for uid, field in plan.syncedFields %}
@@ -53,28 +53,28 @@
                 {% if not field.canReuse %}
                     <p>{{ 'You cannot manage every form using this field. It must be imported as an independent field.' | t('formie') }}</p>
                 {% elseif field.status == 'create' %}
-                    <p>{{ 'Create a shared definition. Other imports with the same field identity will reuse it.' | t('formie') }}</p>
+                    <p>{{ 'Create a synced field. Other imports containing the same synced field will reuse it.' | t('formie') }}</p>
                 {% elseif field.status == 'incompatible' %}
                     <p class="warning">{{ 'The destination field has a different type. It must be imported as an independent field.' | t('formie') }}</p>
                 {% else %}
-                    <p>{{ (field.status == 'conflict' ? 'The destination definition has different settings.' : 'A matching definition already exists.') | t('formie') }}</p>
+                    <p>{{ (field.status == 'conflict' ? 'The destination field has different settings.' : 'A matching synced field already exists.') | t('formie') }}</p>
                 {% endif %}
 
                 {% if field.forms %}
-                    <p>{{ 'Forms using this definition:' | t('formie') }}</p>
+                    <p>{{ 'Forms using this synced field:' | t('formie') }}</p>
                     <ul>
                         {% for form in field.forms %}
                             <li>{{ form.title | e }} ({{ form.handle | e }})</li>
                         {% endfor %}
                     </ul>
-                    <p>{{ 'Updating the shared definition changes these forms too, including forms outside this import.' | t('formie') }}</p>
+                    <p>{{ 'Updating the synced field changes these forms too, including forms outside this import.' | t('formie') }}</p>
                 {% endif %}
 
                 {% set options = [{label: 'Import as independent fields' | t('formie'), value: 'independent'}] %}
                 {% if field.canReuse and field.status != 'incompatible' %}
                     {% set options = [
-                        {label: (field.status == 'create' ? 'Create shared definition' : 'Keep destination settings') | t('formie'), value: 'keep'},
-                    ] | merge(field.status == 'create' ? [] : [{label: 'Update shared definition' | t('formie'), value: 'update'}]) | merge(options) %}
+                        {label: (field.status == 'create' ? 'Create synced field' : 'Keep destination settings') | t('formie'), value: 'keep'},
+                    ] | merge(field.status == 'create' ? [] : [{label: 'Update synced field' | t('formie'), value: 'update'}]) | merge(options) %}
                 {% endif %}
 
                 {{ hiddenInput('syncedFields[definitions][' ~ uid ~ '][expected]', field.expected) }}
@@ -88,8 +88,8 @@
 
             {% if existingForm %}
                 {{ forms.checkboxField({
-                    label: 'Link existing fields to the imported shared definitions' | t('formie'),
-                    instructions: 'Use this to reconcile fields previously imported as independent copies. Matching field placements and their submission values are retained, but their definition settings and relationships are replaced.' | t('formie'),
+                    label: 'Link existing fields to the imported synced fields' | t('formie'),
+                    instructions: 'Use this for fields previously imported as independent copies. Existing submission values are retained, but matching fields will use the selected synced field settings and relationships.' | t('formie'),
                     name: 'syncedFields[relink]',
                     value: '1',
                 }) }}
