@@ -439,7 +439,7 @@ class ImportExportHelper
             ));
         }
 
-        return ['syncedFields' => (new SyncedFieldImport($data, [], $user))->preview(), 'warnings' => $warnings, 'missingTypes' => array_values(array_unique($serializer->missingTypes)), 'dependencies' => $resources, 'changes' => $serializer->changes];
+        return ['syncedFieldRelinks' => $serializer->syncedFieldRelinks, 'syncedFields' => (new SyncedFieldImport($data, [], $user))->preview(), 'warnings' => $warnings, 'missingTypes' => array_values(array_unique($serializer->missingTypes)), 'dependencies' => $resources, 'changes' => $serializer->changes];
     }
 
     private static function _applyDependencyDocuments(array $data): array

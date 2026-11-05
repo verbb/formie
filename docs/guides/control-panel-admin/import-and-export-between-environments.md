@@ -49,7 +49,7 @@ For multiple forms, export one at a time or automate via console commands if you
 
 > Updating an existing form is a **full overwrite** of structure — fields, notifications, and template assignments. Submissions remain, but field handles that changed can orphan old submission data. Take a backup or export first.
 
-5. Review **Synced Fields**, if present. Keep **Preserve relationships** to create missing synced fields and link matching ones. The preview lists existing uses and offers a choice between keeping destination settings, updating the synced field, or importing independent fields.
+5. Review **Synced Fields**, if present. Relationships are preserved automatically: missing synced fields are created and matching ones are linked. When settings differ, keep destination settings or choose **Update synced field** to review the affected forms and apply the imported settings.
 6. Complete the import and verify in the form builder
 
 Formie only supports its own export format. Arbitrary JSON will not import.
@@ -66,7 +66,7 @@ Formie only supports its own export format. Arbitrary JSON will not import.
 
 ### Promoting Forms That Share a Field
 
-Suppose your local Contact and Quote forms share an Email Address field. Export both forms, then import Contact on production with **Preserve relationships**. Formie creates the synced Email Address field if it is missing. Import Quote with the same choice, and it links to that field automatically. You can also import Quote first; the order does not matter.
+Suppose your local Contact and Quote forms share an Email Address field. Export both forms, then import Contact on production. Formie creates the synced Email Address field if it is missing. Import Quote, and it links to that field automatically. You can also import Quote first; the order does not matter.
 
 If production already has that synced field, **Keep destination settings** leaves its settings and translations intact. To deploy a change to the shared field itself, choose **Update synced field** and review the listed forms: they all receive that change, even if you are only importing one form. You must be able to manage every affected form.
 
@@ -77,7 +77,7 @@ The same name or handle does not establish a relationship. Formie uses the synce
 ### Client Template → New Project
 
 1. Export the forms you want to reuse from your starter Craft install
-2. Import on the client site as **Create new form**. Select **Import as independent fields** if the new forms should not share synced fields with other imports from that template
+2. Import on the client site as **Create new form**. Synced fields remain shared across forms imported from that template
 3. Rename handles to client conventions
 4. Assign [form groups](/forms/form-groups) and site policies for the client's multi-site setup
 

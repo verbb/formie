@@ -77,6 +77,26 @@ function syncedImportDocuments(bool $nested = false, bool $parent = false, bool 
     return [$documents, $uid];
 }
 
+function syncedImportIndependentCopy(array $document): array
+{
+    // Simulate a form imported before relationships were supported.
+    $strip = function(array $rows) use (&$strip): array {
+        foreach ($rows as &$row) {
+            foreach ($row['fields'] as &$field) {
+                unset($field['syncedDefinitionUid']);
+                if (isset($field['settings']['rows'])) {
+                    $field['settings']['rows'] = $strip($field['settings']['rows']);
+                }
+            }
+        }
+        return $rows;
+    };
+    foreach ($document['pages'] as &$page) {
+        $page['rows'] = $strip($page['rows']);
+    }
+    return $document;
+}
+
 function syncedImportUpdateOptions(array $document, string $uid): array
 {
     $plan = ImportExportHelper::planImport($document);
@@ -117,20 +137,21 @@ it('previews conflicts and only changes other forms when updating is explicitly 
     expect(syncedImportReload($first)->getFieldByHandle('email')->label)->toBe('Updated locally');
 });
 
-it('keeps unrelated matching handles independent and supports opting out of relationships', function(): void {
+it('keeps unrelated matching handles independent while preserving exported relationships', function(): void {
     [$documents, $uid] = syncedImportDocuments();
     $unrelated = formie()->form()->emailField('email')->create();
     $first = ImportExportHelper::createFromImport($documents[0])->form;
-    $second = ImportExportHelper::createFromImport($documents[1], ['mode' => 'independent'])->form;
+    $second = ImportExportHelper::createFromImport($documents[1])->form;
     expect($first->getFieldByHandle('email')->definitionId)->not->toBe($unrelated->getFieldByHandle('email')->definitionId)
-        ->and($second->getFieldByHandle('email')->definitionUid)->not->toBe($uid);
+        ->and($second->getFieldByHandle('email')->definitionUid)->toBe($uid);
 });
 
 it('requires explicit reconciliation and retains placement identity when linking an earlier independent import', function(): void {
     [$documents, $uid] = syncedImportDocuments();
     $first = ImportExportHelper::createFromImport($documents[0])->form;
-    $second = ImportExportHelper::createFromImport($documents[1], ['mode' => 'independent'])->form;
+    $second = ImportExportHelper::createFromImport(syncedImportIndependentCopy($documents[1]))->form;
     $field = $second->getFieldByHandle('email');
+    expect(ImportExportHelper::planImport($documents[1], $second)['syncedFieldRelinks'])->toBe([$field->reference => ['label' => $field->label, 'canRelink' => true]]);
     $submission = formie()->submission($second)->with(['email' => 'ada@example.test'])->save();
     expect(fn() => ImportExportHelper::updateFromImport($documents[1], syncedImportReload($second)))->toThrow(InvalidConfigException::class, 'Enable linking');
     $updated = ImportExportHelper::updateFromImport($documents[1], syncedImportReload($second), ['relink' => true])->form;
@@ -182,8 +203,7 @@ it('does not let import permission modify or attach to inaccessible shared defin
     $plan = ImportExportHelper::planImport($documents[0], null, $user);
     expect($plan['syncedFields'][$uid]['canReuse'])->toBeFalse()->and($plan['syncedFields'][$uid]['forms'])->toBe([]);
     expect(fn() => ImportExportHelper::importForUser($documents[0], null, $user))->toThrow(ForbiddenHttpException::class);
-    $independent = ImportExportHelper::importForUser($documents[0], null, $user, ['mode' => 'independent'])->form;
-    expect($independent->getFieldByHandle('email')->definitionUid)->not->toBe($uid);
+    expect(fn() => ImportExportHelper::importForUser($documents[0], null, $user, ['mode' => 'independent']))->toThrow(InvalidConfigException::class);
 });
 
 
@@ -229,14 +249,14 @@ it('keeps references to a reused shared parent child valid in imported form sett
     expect($second->settings->submissionTitleFormat)->toBe('{field:' . $targetReference . '}');
 });
 
-it('rejects incompatible definitions and allows an independent copy instead', function(): void {
+it('rejects incompatible definitions without silently detaching the field', function(): void {
     [$documents, $uid] = syncedImportDocuments();
     $first = ImportExportHelper::createFromImport($documents[0])->form;
     $documents[1]['pages'][0]['rows'][0]['fields'][0]['type'] = \verbb\formie\fields\SingleLineText::class;
     expect(ImportExportHelper::planImport($documents[1])['syncedFields'][$uid]['status'])->toBe('incompatible');
     expect(fn() => ImportExportHelper::createFromImport($documents[1]))->toThrow(InvalidConfigException::class, 'different type');
-    $copy = ImportExportHelper::createFromImport($documents[1], ['definitions' => [$uid => ['action' => 'independent']]])->form;
-    expect($copy->getFieldByHandle('email')->definitionUid)->not->toBe($uid);
+    expect(fn() => ImportExportHelper::createFromImport($documents[1], ['definitions' => [$uid => ['action' => 'independent']]]))->toThrow(InvalidConfigException::class);
+    expect(syncedImportReload($first)->getFieldByHandle('email')->definitionUid)->toBe($uid);
 });
 
 it('rolls back newly created shared definitions when the form fails validation', function(): void {
@@ -270,9 +290,10 @@ it('retains destination translations when keeping shared settings', function(boo
 it('does not replace the child identities of an earlier independent parent import', function(): void {
     [$documents, $uid] = syncedImportDocuments(false, true);
     $first = ImportExportHelper::createFromImport($documents[0])->form;
-    $second = ImportExportHelper::createFromImport($documents[1], ['mode' => 'independent'])->form;
+    $second = ImportExportHelper::createFromImport(syncedImportIndependentCopy($documents[1]))->form;
     $before = $second->getFieldByHandle('contact')->getFields()[0]->uid;
-    expect(fn() => ImportExportHelper::updateFromImport($documents[1], syncedImportReload($second), ['relink' => true]))->toThrow(InvalidConfigException::class, 'stored child identities');
+    expect(array_column(ImportExportHelper::planImport($documents[1], $second)['syncedFieldRelinks'], 'canRelink'))->toContain(false);
+    expect(fn() => ImportExportHelper::updateFromImport($documents[1], syncedImportReload($second), ['relink' => true]))->toThrow(InvalidConfigException::class, 'affecting existing answers');
     expect(syncedImportReload($second)->getFieldByHandle('contact')->getFields()[0]->uid)->toBe($before);
 });
 
@@ -302,8 +323,8 @@ it('renders conflict choices and affected forms in the real import preview and s
             (new \craft\web\TemplateResponseFormatter())->format($response);
             return $response->content;
         }, ['method' => 'GET', 'headers' => ['Accept' => 'text/html']]);
-        expect($html)->toContain('Preserve relationships', 'Keep destination settings', 'Update synced field', 'Import as independent fields', $first->handle, 'different settings')
-            ->not->toContain('<script>Updated</script>');
+        expect($html)->toContain('Synced fields stay linked automatically', 'Keep destination settings', 'Update synced field', $first->handle, 'Different settings', 'Affected forms:')
+            ->not->toContain('<script>Updated</script>', 'Import as independent fields', 'syncedFields[mode]', 'Retained:', 'reuseUid:', 'RemovedNotifications:');
         $options = syncedImportUpdateOptions($documents[1], $uid);
         \Tests\Support\WebRequestTestHelper::withWebRequestContext(function($request) use ($filename, $user, $options): void {
             $request->setIsCpRequest(true);
@@ -342,3 +363,60 @@ it('imports repeated shared parents with one child layout and remaps references 
     expect($a->definitionUid)->toBe($uid)->and($b->nestedLayoutId)->toBe($a->nestedLayoutId)
         ->and($form->settings->submissionTitleFormat)->toBe('{field:' . $a->getFields()[0]->reference . '}');
 });
+
+
+it('rejects detaching options without changing existing synced fields', function(bool $perField): void {
+    [$documents, $uid] = syncedImportDocuments();
+    $first = ImportExportHelper::createFromImport($documents[0])->form;
+    $before = $first->getFieldByHandle('email')->definitionId;
+    $options = $perField ? ['definitions' => [$uid => ['action' => 'independent']]] : ['mode' => 'independent'];
+    expect(fn() => ImportExportHelper::updateFromImport($documents[0], syncedImportReload($first), $options))->toThrow(InvalidConfigException::class);
+    expect(syncedImportReload($first)->getFieldByHandle('email')->definitionId)->toBe($before);
+})->with([false, true]);
+
+it('keeps routine previews compact and blocks unresolved synced fields', function(string $state): void {
+    [$documents, $uid] = syncedImportDocuments();
+    if ($state !== 'create') {
+        ImportExportHelper::createFromImport($documents[0]);
+    }
+    if ($state === 'incompatible') {
+        $documents[0]['pages'][0]['rows'][0]['fields'][0]['type'] = \verbb\formie\fields\SingleLineText::class;
+    }
+    $name = 'previewUser' . bin2hex(random_bytes(5));
+    $user = new User(['username' => $name, 'email' => $name . '@example.test', 'active' => true, 'admin' => $state !== 'permission']);
+    expect(Craft::$app->getElements()->saveElement($user))->toBeTrue();
+    if ($state === 'permission') {
+        Craft::$app->getUserPermissions()->saveUserPermissions($user->id, PermissionTestHelper::withParents(['accessCp', 'accessPlugin-formie', Permissions::PERM_IMPORT_FORMS]));
+    }
+    $files = new \verbb\formie\services\FormImportFiles(Craft::$app->getAssets()->getTempAssetUploadFs());
+    $stream = fopen('php://temp', 'w+b');
+    fwrite($stream, json_encode($documents[0], JSON_THROW_ON_ERROR));
+    rewind($stream);
+    $filename = $files->store($stream, (int)$user->id);
+    fclose($stream);
+    Craft::$app->getMutex()->releaseQueuedLocks();
+    try {
+        $html = \Tests\Support\WebRequestTestHelper::withWebRequestContext(function($request) use ($filename, $user): string {
+            $request->setIsCpRequest(true);
+            Craft::$app->getUser()->setIdentity($user);
+            $controller = new \verbb\formie\controllers\ImportExportController('import-export', Formie::$plugin);
+            $response = $controller->runAction('import-configure', ['filename' => $filename]);
+            Craft::$app->getView()->registerTwigExtension(new \verbb\base\web\twig\Extension());
+            (new \craft\web\TemplateResponseFormatter())->format($response);
+            return $response->content;
+        }, ['method' => 'GET', 'headers' => ['Accept' => 'text/html']]);
+        expect($html)->toContain('View import contents')
+            ->not->toContain('syncedFields[mode]', 'Import as independent fields', 'name="syncedFields[relink]"', 'Retained:', 'reuseUid:');
+        $dom = new \DOMDocument();
+        @$dom->loadHTML($html);
+        $xpath = new \DOMXPath($dom);
+        expect($xpath->query('//select[starts-with(@name, "syncedFields[")]')->length)->toBe(0);
+        $blocked = in_array($state, ['permission', 'incompatible'], true);
+        expect($xpath->query('//input[@type="submit" and @disabled]')->length)->toBe($blocked ? 1 : 0);
+        if (!$blocked) {
+            expect($html)->toContain($state === 'create' ? 'Create synced field' : 'Use existing synced field');
+        }
+    } finally {
+        $files->delete($filename, (int)$user->id);
+    }
+})->with(['create', 'reuse', 'permission', 'incompatible']);
