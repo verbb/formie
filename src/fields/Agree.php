@@ -61,9 +61,9 @@ class Agree extends Field implements InlineEditableFieldInterface, PreviewableFi
     public function attributes(): array
     {
         $names = parent::attributes();
-        
+
         // Define `descriptionHtml` as an extra attribute, rather than a property.
-        // It's not a public property to ensure it's not saved to the field settings. 
+        // It's not a public property to ensure it's not saved to the field settings.
         // Without this, `setDescriptionHtml()` would not be called, and this settings could not be manipulated
         // from the front-end `setFieldSettings()`. We also cannot set this value in `init()` due to when containing a Link mark
         // `parseRefTags()` causes an infinite loop.
@@ -108,7 +108,7 @@ class Agree extends Field implements InlineEditableFieldInterface, PreviewableFi
             $this->_descriptionHtml = $this->_getHtmlContent($this->description);
         }
 
-        return Template::raw(Craft::t('formie', (string)$this->_descriptionHtml));
+        return Template::raw(RichTextHelper::translateHtml((string)$this->_descriptionHtml));
     }
 
     public function setDescriptionHtml($value): void
@@ -342,6 +342,6 @@ class Agree extends Field implements InlineEditableFieldInterface, PreviewableFi
             return null;
         }
 
-        return RichTextHelper::getHtmlContent($content);
+        return RichTextHelper::getHtmlContent($content, decodeEntities: false);
     }
 }

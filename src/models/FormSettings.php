@@ -153,13 +153,13 @@ class FormSettings extends Model
         $settings = Formie::$plugin->getSettings();
 
         if (!$this->errorMessage) {
-            $errorMessage = (new ProseMirrorRenderer)->render('<p>' . Craft::t('formie', 'Couldn’t save submission due to errors.') . '</p>');
+            $errorMessage = (new ProseMirrorRenderer())->render('<p>' . Craft::t('formie', 'Couldn’t save submission due to errors.') . '</p>');
 
             $this->errorMessage = $errorMessage['content'];
         }
 
         if (!$this->submitActionMessage) {
-            $submitActionMessage = (new ProseMirrorRenderer)->render('<p>' . Craft::t('formie', 'Submission saved.') . '</p>');
+            $submitActionMessage = (new ProseMirrorRenderer())->render('<p>' . Craft::t('formie', 'Submission saved.') . '</p>');
 
             $this->submitActionMessage = $submitActionMessage['content'];
         }
@@ -201,7 +201,7 @@ class FormSettings extends Model
     {
         $message = ($this->_getHtmlContent($this->submitActionMessage, $submission) ?: $this->submitActionMessage);
 
-        return Craft::t('formie', $message);
+        return RichTextHelper::translateHtml($message);
     }
 
     public function getSubmitActionMessageHtml(): string
@@ -213,7 +213,7 @@ class FormSettings extends Model
     {
         $message = ($this->_getHtmlContent($this->errorMessage) ?: $this->errorMessage);
 
-        return Craft::t('formie', $message);
+        return RichTextHelper::translateHtml($message);
     }
 
     public function getErrorMessageHtml(): string
@@ -225,7 +225,7 @@ class FormSettings extends Model
     {
         $message = ($this->_getHtmlContent($this->requireUserMessage) ?: $this->requireUserMessage);
 
-        return Craft::t('formie', $message);
+        return RichTextHelper::translateHtml($message);
     }
 
     public function getRequireUserMessageHtml(): string
@@ -237,7 +237,7 @@ class FormSettings extends Model
     {
         $message = ($this->_getHtmlContent($this->scheduleFormPendingMessage) ?: $this->scheduleFormPendingMessage);
 
-        return Craft::t('formie', $message);
+        return RichTextHelper::translateHtml($message);
     }
 
     public function getScheduleFormPendingMessageHtml(): string
@@ -249,7 +249,7 @@ class FormSettings extends Model
     {
         $message = ($this->_getHtmlContent($this->scheduleFormExpiredMessage) ?: $this->scheduleFormExpiredMessage);
 
-        return Craft::t('formie', $message);
+        return RichTextHelper::translateHtml($message);
     }
 
     public function getScheduleFormExpiredMessageHtml(): string
@@ -265,7 +265,7 @@ class FormSettings extends Model
             $message = ($this->_getHtmlContent($this->limitSubmissionsMessage) ?: $this->limitSubmissionsMessage);
         }
 
-        return Craft::t('formie', $message);
+        return RichTextHelper::translateHtml($message);
     }
 
     public function getLimitSubmissionsMessageHtml(): string
@@ -341,13 +341,13 @@ class FormSettings extends Model
 
         return $rules;
     }
-    
+
 
     // Private Methods
     // =========================================================================
 
     private function _getHtmlContent($content, $submission = null): string
     {
-        return RichTextHelper::getHtmlContent($content, $submission, false);
+        return RichTextHelper::getHtmlContent($content, $submission, false, false);
     }
 }
