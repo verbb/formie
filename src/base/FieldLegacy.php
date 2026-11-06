@@ -7,6 +7,7 @@ use craft\base\PreviewableFieldInterface;
 use craft\elements\db\ElementQueryInterface;
 use craft\enums\AttributeStatus;
 use craft\gql\types\QueryArgument;
+use craft\helpers\Db;
 use craft\helpers\ElementHelper;
 use craft\helpers\Html;
 use craft\helpers\UrlHelper;
@@ -26,6 +27,10 @@ trait FieldLegacy
     public mixed $columnType = null;
     public ?string $context = null;
     public ?string $columnSuffix = null;
+
+    // Craft 5.12+ reads these from every field in a layout, including Formie 2 fields left in Craft's `fields` table
+    public ?string $tip = null;
+    public ?string $warning = null;
 
     public static function get(int|string $id): ?static
     {
@@ -62,7 +67,8 @@ trait FieldLegacy
         return Schema::TYPE_TEXT;
     }
 
-    public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null {
+    public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null
+    {
         $valueSql = static::valueSql($instances);
 
         if ($valueSql === null) {
@@ -253,12 +259,12 @@ trait FieldLegacy
 
     public function afterElementSave(ElementInterface $element, bool $isNew): void
     {
-        
+
     }
 
     public function afterElementPropagate(ElementInterface $element, bool $isNew): void
     {
-        
+
     }
 
     public function beforeElementDelete(ElementInterface $element): bool
@@ -268,7 +274,7 @@ trait FieldLegacy
 
     public function afterElementDelete(ElementInterface $element): void
     {
-        
+
     }
 
     public function beforeElementDeleteForSite(ElementInterface $element): bool
@@ -278,7 +284,7 @@ trait FieldLegacy
 
     public function afterElementDeleteForSite(ElementInterface $element): void
     {
-        
+
     }
 
     public function beforeElementRestore(ElementInterface $element): bool
@@ -288,7 +294,7 @@ trait FieldLegacy
 
     public function afterElementRestore(ElementInterface $element): void
     {
-        
+
     }
 
     public function serializeValueForDb(mixed $value, ElementInterface $element): mixed
