@@ -34,6 +34,8 @@ class SubmissionResolver extends ElementMutationResolver
 
     protected array $immutableAttributes = ['id', 'uid'];
 
+    private array $_previousFieldValues = [];
+
 
     // Public Methods
     // =========================================================================
@@ -175,31 +177,23 @@ class SubmissionResolver extends ElementMutationResolver
         }
 
         $populate = function() use ($form, $submission, $arguments, $resolveInfo): void {
-            // An edit only changes what it sends, including the parts of an Address, Name or Group.
-            $previous = [];
+            // Merge edits while arguments still have request shapes, before Craft calls
+            // setFieldValueFromRequest(). Normalized field values must not cross that boundary again.
+            $previous = $this->_previousFieldValues;
+            $this->_previousFieldValues = [];
 
-            if ($submission->id) {
-                foreach ($submission->getForm()->getFields() as $field) {
-                    if (array_key_exists($field->handle, $arguments)) {
-                        $previous[$field->handle] = $submission->getFieldValue($field->handle);
+            try {
+                if ($submission->id) {
+                    foreach ($submission->getForm()->getFields() as $field) {
+                        if (array_key_exists($field->handle, $arguments)) {
+                            $this->_previousFieldValues[$field->handle] = $field->serializeValueForClientInput($submission->getFieldValue($field->handle), $submission);
+                        }
                     }
                 }
-            }
 
-            $this->populateElementWithData($submission, $arguments, $resolveInfo);
-
-            // GraphQL coercion produces request shapes (including staged uploads). Route
-            // only submitted fields through the same request boundary as browser payloads.
-            foreach ($submission->getForm()->getFields() as $field) {
-                if (array_key_exists($field->handle, $arguments)) {
-                    $raw = $submission->getContentState()->rawValuesByUid[$field->uid] ?? null;
-
-                    if (array_key_exists($field->handle, $previous)) {
-                        $raw = $field->mergePartialRequestValue($previous[$field->handle], $this->_partsSent($raw, $arguments[$field->handle]));
-                    }
-
-                    $submission->getContentManager()->normalizeSingleFromRequest($submission, $field->handle, $raw);
-                }
+                $this->populateElementWithData($submission, $arguments, $resolveInfo);
+            } finally {
+                $this->_previousFieldValues = $previous;
             }
 
             if (!empty($arguments['status']) && !$form->getFieldByHandle('status')) {
@@ -317,7 +311,14 @@ class SubmissionResolver extends ElementMutationResolver
                 throw new Error('Unknown submission argument: ' . $handle . '.');
             }
 
-            $mutationArguments[$handle] = $this->_normalizeArgumentValue($value, $definition->getType());
+            $normalized = $this->_normalizeArgumentValue($value, $definition->getType());
+
+            if (array_key_exists($handle, $this->_previousFieldValues)) {
+                $field = $this->getResolutionData('form')->getFieldByHandle($handle);
+                $normalized = $field->mergePartialRequestValue($this->_previousFieldValues[$handle], $this->_partsSent($normalized, $value));
+            }
+
+            $mutationArguments[$handle] = $normalized;
         }
 
         return $mutationArguments;

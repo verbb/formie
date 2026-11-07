@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed GraphQL submission mutations rejecting valid Entries field selections, including fields inside Groups and Repeaters. ([#3105](https://github.com/verbb/formie/issues/3105))
 - Fixed Entries fields with an option limit losing their selected values when continuing multi-page forms.
 - Fixed single-line Name fields losing their values on submission when a previous multi-part layout was retained. ([#3101](https://github.com/verbb/formie/issues/3101))
 - Fixed front-end assets failing to publish during Craft Cloud builds. ([#3100](https://github.com/verbb/formie/issues/3100))
