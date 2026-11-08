@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed Entries fields repeatedly loading section entry types and rebuilding custom source conditions, slowing down form rendering on large sites. ([#3106](https://github.com/verbb/formie/issues/3106))
 - Fixed GraphQL submission mutations rejecting valid Entries field selections, including fields inside Groups and Repeaters. ([#3105](https://github.com/verbb/formie/issues/3105))
 - Fixed Entries fields with an option limit losing their selected values when continuing multi-page forms.
 - Fixed single-line Name fields losing their values on submission when a previous multi-part layout was retained. ([#3101](https://github.com/verbb/formie/issues/3101))
