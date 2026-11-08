@@ -23,6 +23,7 @@ use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
+use craft\base\conditions\ConditionInterface;
 use craft\base\EagerLoadingFieldInterface;
 use craft\base\Element;
 use craft\base\ElementInterface;
@@ -161,6 +162,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
     protected string $cpInputTemplate = '_includes/forms/elementSelect';
 
     private array|null|ElementConditionInterface $_selectionCondition = null;
+    private array $_sourceConditions = [];
 
 
     // Public Methods
@@ -261,7 +263,6 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
     public function getElementsQuery(): ElementQueryInterface
     {
         $query = static::elementType()::find();
-        $conditionsService = Craft::$app->getConditions();
 
         // Restrict elements to be on the current site, for multi-sites
         if (Craft::$app->getIsMultiSite()) {
@@ -279,9 +280,19 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
 
                     // Check for custom sources, which use conditions directly on the query
                     if ($elementSource && $elementSource['type'] === ElementSources::TYPE_CUSTOM) {
-                        // Handle conditions by parsing the rules and applying to query
-                        $sourceCondition = $conditionsService->createCondition($elementSource['condition']);
-                        $sourceCondition->modifyQuery($query);
+                        // Building rules inspects every entry field layout. Reuse them until the source config changes.
+                        $config = $elementSource['condition'];
+                        $cached = $this->_sourceConditions[$sourceKey] ?? null;
+
+                        if ($cached === null || $cached['config'] !== $config) {
+                            $cached = [
+                                'config' => $config,
+                                'condition' => Craft::$app->getConditions()->createCondition($config),
+                            ];
+                            $this->_sourceConditions[$sourceKey] = $cached;
+                        }
+
+                        $cached['condition']->modifyQuery($query);
                     } elseif (str_contains($sourceKey, 'type:')) {
                         // Special-case for entries, maybe redactor?
                         $entryTypeUid = str_replace('type:', '', $sourceKey);

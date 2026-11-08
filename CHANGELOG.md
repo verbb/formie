@@ -7,6 +7,8 @@
 
 ### Fixed
 - Fixed a moderate-severity cross-site scripting vulnerability. (GHSA-544h-97wp-pvhx)
+- Fixed Entries fields repeatedly loading section entry types and rebuilding custom source conditions, slowing down form rendering on large sites. ([#3106](https://github.com/verbb/formie/issues/3106))
+- Fixed element field selection conditions failing when accessed more than once.
 - Fixed failed notification alert emails failing to send when Craft’s `enableTwigSandbox` setting is on. Customised messages using `emailResponse | json_encode` are updated automatically.
 - Fix multi-page forms showing validation errors while typing in untouched fields after changing pages. ([#3050](https://github.com/verbb/formie/issues/3050))
 - Fixed submission exports timing out on large forms, caused by rebuilding the HTML purifier configuration for every field value. This also speeds up the submissions index. ([#3083](https://github.com/verbb/formie/issues/3083))

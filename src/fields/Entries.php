@@ -95,7 +95,7 @@ class Entries extends ElementField
                 $sectionId = $source['criteria']['sectionId'] ?? null;
 
                 if ($sectionId && !is_array($sectionId)) {
-                    $entryTypes = Craft::$app->getEntries()->getEntryTypesBySectionId($sectionId);
+                    $entryTypes = Craft::$app->getEntries()->getSectionById($sectionId)?->getEntryTypes() ?? [];
 
                     foreach ($entryTypes as $entryType) {
                         $fields = $this->getStringCustomFieldOptions($entryType->getCustomFields());
@@ -125,7 +125,7 @@ class Entries extends ElementField
                 $sectionId = $source['criteria']['sectionId'] ?? null;
 
                 if ($sectionId && !is_array($sectionId)) {
-                    $entryTypes = Craft::$app->getEntries()->getEntryTypesBySectionId($sectionId);
+                    $entryTypes = Craft::$app->getEntries()->getSectionById($sectionId)?->getEntryTypes() ?? [];
 
                     foreach ($entryTypes as $entryType) {
                         $options[] = [
