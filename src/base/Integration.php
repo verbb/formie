@@ -1203,8 +1203,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         $options['allow_redirects'] = false;
-        $options['proxy'] = '';
         $options['verify'] = true;
+
+        if (!$this->isTrustedPublicEndpoint($uri)) {
+            $options['proxy'] = '';
+        }
 
         try {
             // Use a clean client so provider credentials cannot be forwarded to
@@ -1796,15 +1799,21 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     protected function createPublicEndpointClient(string $endpoint, array $config = []): Client
     {
         $config['allow_redirects'] = false;
-        $config['proxy'] = '';
         $config['verify'] = true;
-        $this->_applyPublicEndpointDnsPin($config, $endpoint);
+        $config['handler'] = $this->createDeliveryHttpHandler();
 
-        if (App::devMode() && !array_key_exists('verify', $config)) {
-            $config['verify'] = false;
+        // Fixed provider URLs can use the site's proxy and its DNS resolver.
+        // Configurable destinations still require direct, pinned connections.
+        if (!$this->isTrustedPublicEndpoint($endpoint)) {
+            $this->_applyPublicEndpointDnsPin($config, $endpoint);
         }
 
         return Craft::createGuzzleClient($config);
+    }
+
+    protected function isTrustedPublicEndpoint(string $endpoint): bool
+    {
+        return false;
     }
 
     protected function requirePublicHttpEndpoint(string $url): string

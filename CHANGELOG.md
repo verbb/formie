@@ -8,6 +8,7 @@
 - Fixed Entries fields with an option limit losing their selected values when continuing multi-page forms.
 - Fixed single-line Name fields losing their values on submission when a previous multi-part layout was retained. ([#3101](https://github.com/verbb/formie/issues/3101))
 - Fixed front-end assets failing to publish during Craft Cloud builds. ([#3100](https://github.com/verbb/formie/issues/3100))
+- Fixed CAPTCHA verification failing on servers that connect to built-in providers through an HTTP proxy. ([#3107](https://github.com/verbb/formie/issues/3107))
 
 ## 4.0.7 - 2026-11-05
 

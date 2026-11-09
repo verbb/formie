@@ -173,6 +173,21 @@ abstract class Captcha extends Integration
     // Protected Methods
     // =========================================================================
 
+    protected function isTrustedPublicEndpoint(string $endpoint): bool
+    {
+        // Match the complete built-in verification URL, never a configurable
+        // origin or host suffix. Custom CAPTCHA endpoints keep the public guard.
+        return in_array($endpoint, [
+            'https://api.friendlycaptcha.com/api/v1/siteverify',
+            'https://global.frcapi.com/api/v2/captcha/siteverify',
+            'https://hcaptcha.com/siteverify',
+            'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+            'https://moderate.cleantalk.org/api2.0',
+            'https://api.oopspam.com/v1/spamdetection',
+            'https://www.captcha.eu/validate',
+        ], true);
+    }
+
     protected function defineRefreshData(Form $form, ?FieldLayoutPage $page = null): array
     {
         return [];
