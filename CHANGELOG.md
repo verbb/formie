@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.8 - 2026-11-10
 
 ### Changed
 - Document supported HubSpot field mappings and how Table fields are sent as text.
