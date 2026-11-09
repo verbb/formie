@@ -54,6 +54,42 @@ When using **Map to Form** with HubSpot custom object properties, Formie fetches
 
 Ensure your private app includes the `crm.schemas.custom.read` scope, and refresh HubSpot forms after creating or changing custom objects in HubSpot.
 
+## Supported Field Mappings
+
+Choose a HubSpot property that can store the value collected by your Formie field. A property is a field on a HubSpot record, such as a contact’s email address or a company’s name. Formie supports writable HubSpot properties with text, enumeration (a fixed set of choices), date, date/time, phone number, boolean and number types. Read-only and calculated properties are excluded from property mapping.
+
+These are common mappings you can configure using the variable picker:
+
+| Formie Field | HubSpot Destination | Mapping Behaviour |
+| --- | --- | --- |
+| Single-Line Text or Multi-Line Text | Text property | Sends the entered text. |
+| Email Address or Phone Number | Corresponding email or phone property | Sends the field’s text value. |
+| Number | Number property | Sends a whole-number value; decimal values are converted to integers. |
+| Date | Date picker property | Sends the date in HubSpot’s timestamp format. |
+| Agree | Single checkbox property | Sends `true` or `false`. |
+| Dropdown or Radio Buttons | Dropdown or radio select property | Sends the selected option’s value. |
+| Checkboxes or a multi-select Dropdown | Multiple checkboxes property | Sends the selected values separated by semicolons. |
+| Table | Text property | Sends all cell values as one comma-separated string, as explained below. |
+
+For choice fields, match the Formie option values to the internal values of the options in HubSpot. Matching the visible labels alone is not enough. A multiple-choice property accepts its configured options, so it is not a destination for arbitrary Table rows.
+
+### Table Fields
+
+Map the whole Table field to a HubSpot text property when you only need a text record of its contents. Formie reads each row in order, takes the cell values in column order, and joins them with a comma and a space. For example, consider a Table with Product and Quantity columns:
+
+| Product | Quantity |
+| --- | --- |
+| Product A | 2 |
+| Product B | 5 |
+
+Formie sends the following value to HubSpot:
+
+```text
+Product A, 2, Product B, 5
+```
+
+Column headings, row boundaries and table formatting are not included. This is a plain-text summary, so a multi-line text property does not preserve the table’s layout either. Mapping a Table does not create separate HubSpot records or line items for its rows. If you need to retain that structure or create one record per row, a developer will need to implement custom integration logic.
+
 ## Verify a Submission
 
 Save the form, open it on your site and submit recognisable test values. Find the test record in the selected CRM destination. Check the mapped values and whether the integration created a record or updated an existing one as intended.

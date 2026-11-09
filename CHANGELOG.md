@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Document supported HubSpot field mappings and how Table fields are sent as text.
+
 ### Fixed
 - Fixed Entries fields repeatedly loading section entry types and rebuilding custom source conditions, slowing down form rendering on large sites. ([#3106](https://github.com/verbb/formie/issues/3106))
 - Fixed GraphQL submission mutations rejecting valid Entries field selections, including fields inside Groups and Repeaters. ([#3105](https://github.com/verbb/formie/issues/3105))
