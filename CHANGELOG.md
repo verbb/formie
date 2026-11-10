@@ -5,6 +5,9 @@
 ### Added
 - Added `craft.formie.craftFormAttributes()` to enable themed browser validation on forms that submit directly to Craft actions.
 
+### Fixed
+- Fixed submission and report exports failing when action URLs contain query parameters.
+
 ## 4.0.8 - 2026-11-10
 
 ### Changed

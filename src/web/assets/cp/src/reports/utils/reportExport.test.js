@@ -40,6 +40,26 @@ describe('runReportExport', () => {
     });
 
     it.each([
+        '/admin/actions/formie/reports/submission-export',
+        'https://forms.example.test/index.php?p=admin%2Factions%2Fformie%2Freports%2Fsubmission-export',
+        '/admin/actions/formie/reports/export?id=42',
+        'https://forms.example.test/index.php?p=admin%2Factions%2Fformie%2Freports%2Fexport&id=42',
+    ])('preserves the Craft action URL and posts the format to %s', async (exportUrl) => {
+        fetch.mockResolvedValue(new Response('export', {
+            headers: { 'Content-Disposition': 'attachment; filename="report.xlsx"' },
+        }));
+
+        await runReportExport({ ...options, exportUrl, format: 'xlsx' });
+
+        const [requestUrl, request] = fetch.mock.calls[0];
+        expect(requestUrl).toBe(exportUrl);
+        expect(request.method).toBe('POST');
+        expect(request.body.get('format')).toBe('xlsx');
+        expect(request.body.get('csrf')).toBe('test-token');
+        expect(link.click).toHaveBeenCalledOnce();
+    });
+
+    it.each([
         ['json', 'application/json', '[{"Customer":"Zoë","Score":0}]'],
         ['csv', 'text/csv', 'Customer,Score\nZoë,0'],
     ])('downloads a synchronous %s attachment without consuming its body twice', async (format, contentType, content) => {
