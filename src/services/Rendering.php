@@ -18,7 +18,9 @@ use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
 use verbb\formie\models\RenderFrame;
 use verbb\formie\models\ResolvedTheme;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\SubmissionConfig;
+use verbb\formie\theme\context\RenderContext;
 use verbb\formie\web\FieldRenderCallContext;
 
 use Craft;
@@ -347,6 +349,42 @@ class Rendering extends Component
         $output = array_filter($output, static fn($value) => $value !== null && $value !== '');
 
         return TemplateHelper::raw(implode(PHP_EOL, $output));
+    }
+
+    // Craft owns the request. Only expose configuration needed for browser validation.
+    public function craftFormAttributes(Form|string|null $form, array $renderOptions = []): array
+    {
+        if (!($form = $this->_getFormFromTemplate($form))) {
+            return [];
+        }
+
+        $renderOptions = $this->_normalizeRenderOptions($renderOptions);
+        $this->pushRenderFrame($form, $renderOptions);
+
+        try {
+            // Resolve presentation without building Formie's submission tag or its modules.
+            $tag = Formie::$plugin->getThemeConfigService()->applyFormTagConfig(
+                $form,
+                'form',
+                SlotTag::make('form')->theme(['class' => ['formie-form']]),
+                RenderContext::from(['form' => $form]),
+            );
+            $attributes = $tag?->attributesForRender() ?? [];
+
+            return [
+                'id' => $form->getRenderId(),
+                'class' => $attributes['class'] ?? null,
+                'style' => $attributes['style'] ?? null,
+                'data-formie-craft-form' => true,
+                'data-formie-init' => ($renderOptions['initJs'] ?? true) ? null : 'false',
+                'data-formie-theme-classes' => Json::encode($form->getBrowserThemeClassMap()),
+                'data-formie-validation-on-focus' => $form->settings->validationOnFocus ? 'true' : 'false',
+                'data-formie-validation-on-submit' => $form->settings->validationOnSubmit ? 'true' : 'false',
+                'data-formie-error-aria-live' => Formie::$plugin->getSettings()->errorAriaLive,
+            ];
+        } finally {
+            $this->popRenderFrame();
+        }
     }
 
     public function getBrowserJsTranslations(): array

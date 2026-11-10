@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Added `craftForms()` to initialize inline validation on Craft action forms while preserving native submission.
+
 ## 4.0.8 - 2026-11-09
 
 ### Changed

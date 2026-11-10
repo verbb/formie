@@ -3,6 +3,8 @@ export { hydrateFormieModules } from '#core/hydrate-modules';
 export { formie } from '#core/formie';
 export { ModuleRegistry, clientRenderedModuleRegistry } from '#modules/registry';
 export { FormieValidator } from '#validation/validator';
+export { craftForms } from '#core/craft-forms';
+export type { CraftFormsApp } from '#core/craft-forms';
 export { bindLegacyDomEventCompatibility } from '#compatibility/dom-adapter';
 export { bindLegacyValidatorCompatibility } from '#compatibility/validator-adapter';
 export {

@@ -2,7 +2,7 @@
 
 Formie can content-manage Craft-native forms — login, registration, password reset, and profile updates — so clients can edit labels, instructions, and field order in the form builder. Registration is a common starting point.
 
-The tradeoff: the form posts to Craft's `users/save-user` action, not Formie's submission pipeline. Formie will not save a submission, send email notifications, or run integrations unless you add that separately (see the [User integration](/integrations/elements/user) if you need both).
+The form posts to Craft's `users/save-user` action, not Formie's submission pipeline. Formie will not save a submission, send email notifications, or run integrations unless you add that separately (see the [User integration](/integrations/elements/user) if you need both).
 
 ## Prerequisites
 
@@ -25,7 +25,7 @@ If your site uses `useEmailAsUsername`, you can omit `username`.
 
 Match field types sensibly — use Email Address for `email`, Password for `password`, and so on. Custom user fields can be added too, but they must mirror Craft field types and use the `fields[...]` namespace (covered below).
 
-Disable captchas on this Formie form. These examples load CSS only and use native HTML submission; Formie’s JavaScript widgets, conditions and captcha validation do not run. If you need captcha protection, follow [Captcha Validation](/templates/craft-forms#captcha-validation) before using this form publicly.
+Disable captchas on this Formie form. These examples use Formie’s browser validation and inline errors while submitting normally to Craft. Formie’s JavaScript widgets, conditions and captcha validation do not run. If you need captcha protection, follow [Captcha Validation](/templates/craft-forms#captcha-validation) before using this form publicly.
 
 ## Simple Single-Page Registration
 
@@ -34,9 +34,9 @@ For core user attributes only, follow the [Craft Forms](/templates/craft-forms) 
 ```twig
 {% set form = craft.formie.forms.handle('userRegistration').one() %}
 
-{{ craft.formie.formAssets(form, { includeJs: false }) }}
+{{ craft.formie.formAssets(form) }}
 
-<form method="post" accept-charset="UTF-8">
+<form method="post" accept-charset="UTF-8" {{ attr(craft.formie.craftFormAttributes(form)) }}>
     {{ actionInput('users/save-user') }}
     {{ csrfInput() }}
 

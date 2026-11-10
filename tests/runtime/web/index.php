@@ -24,6 +24,7 @@ $app = require CRAFT_VENDOR_PATH . '/craftcms/cms/bootstrap/web.php';
 $app->edition = \craft\enums\CmsEdition::Pro;
 require dirname(__DIR__) . '/browser-upload-routes.php';
 require dirname(__DIR__) . '/browser-native-save-routes.php';
+require dirname(__DIR__) . '/browser-craft-forms-routes.php';
 require dirname(__DIR__) . '/browser-cp-repeater-upload-routes.php';
 \verbb\formie\Formie::$plugin->getSettings()->allowedOrigins = ['http://localhost:4179'];
 if ($path === '/browser-completion-payments') {

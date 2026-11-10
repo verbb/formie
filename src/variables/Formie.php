@@ -130,6 +130,11 @@ class Formie
         return FormiePlugin::$plugin->getRendering()->formAssets($form, $renderOptions);
     }
 
+    public function craftFormAttributes(Form|string|null $form, array $renderOptions = []): array
+    {
+        return FormiePlugin::$plugin->getRendering()->craftFormAttributes($form, $renderOptions);
+    }
+
     public function browserAssets(array $renderOptions = []): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->browserAssets($renderOptions);
@@ -352,6 +357,7 @@ class Formie
         foreach ($navItems as $handle => $item) {
             if (isset($item['heading'])) {
                 $bufferedHeading = [$handle => $item];
+
                 continue;
             }
 

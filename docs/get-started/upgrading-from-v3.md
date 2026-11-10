@@ -1525,7 +1525,7 @@ See [Frontend Assets](/frontend/frontend-assets) for asset loading examples.
 
 `form.configJson` and `data-fui-form` are no longer used. For custom forms that submit to Formie, use the explicit `data-formie-*` attributes and hidden inputs in [Custom Rendering](/theming/custom-rendering).
 
-For forms that post directly to Craft actions such as `users/login`, use a plain form tag and load CSS only:
+For forms that post directly to Craft actions such as `users/login`, use the Craft form helper to retain browser validation and inline errors:
 
 ::: code-group
 ```twig [Formie 3]
@@ -1538,8 +1538,8 @@ For forms that post directly to Craft actions such as `users/login`, use a plain
 ```
 
 ```twig [Formie 4]
-{{ craft.formie.formAssets(form, { includeJs: false }) }}
-<form method="post" accept-charset="UTF-8">
+{{ craft.formie.formAssets(form) }}
+<form method="post" accept-charset="UTF-8" {{ attr(craft.formie.craftFormAttributes(form)) }}>
     {{ actionInput('users/login') }}
     {{ csrfInput() }}
     {{ craft.formie.renderPage(form, null, { fieldNamespace: '' }) }}
@@ -1547,7 +1547,7 @@ For forms that post directly to Craft actions such as `users/login`, use a plain
 ```
 :::
 
-Both fragments assume `form` is your single-page login form. Disable Formie captchas on it and use ordinary HTML inputs. Check that the browser posts `loginName` and `password` at the root of the request. Craft handles the submission, so Formie’s field validation, captchas, notifications and integrations do not run. See [Craft Forms](/templates/craft-forms) for the full setup and server-side captcha requirements.
+Both fragments assume `form` is your single-page login form. Disable Formie captchas on it and use ordinary HTML inputs. Check that the browser posts `loginName` and `password` at the root of the request. Formie validates the fields in the browser, and Craft handles the submission and server-side errors. Formie’s server-side field validation, captchas, notifications and integrations do not run. Existing CSS-only forms can retain `includeJs: false` and omit the helper to keep native browser validation. See [Craft Forms](/templates/craft-forms) for the full setup and server-side captcha requirements.
 
 ### Form Render IDs
 

@@ -126,6 +126,33 @@ This page assumes Formie still owns the rendered form and its browser behaviour.
 
 Craft-first integrations such as Sprig should still be documented primarily in the main Formie plugin docs and linked here only when needed.
 
+## Craft Action Forms
+
+For a single-page form that posts directly to a Craft action, such as `users/login`, use [Craft Forms](https://verbb.io/craft-plugins/formie/docs/templates/craft-forms). The Twig helper `craft.formie.craftFormAttributes(form)` supplies the browser configuration, and the plugin assets initialize validation automatically.
+
+If your application owns startup, load the assets with `autoInit: false` and initialize marked Craft forms after their HTML is present:
+
+```ts
+import { craftForms } from '@verbb/formie-browser';
+
+const app = craftForms({ root: document, observe: true });
+
+// Inspect or extend the validator for a particular form.
+const login = document.querySelector<HTMLFormElement>('form[data-formie-craft-form]');
+const validator = login ? app.get(login) : null;
+
+// Without observation, call this after inserting or removing forms.
+app.rescan();
+
+// Call when the owning page or component is removed.
+app.destroy();
+```
+
+`craftForms()` is synchronous. `root` defaults to `document`, and `observe` defaults to `false`. It discovers forms marked with `data-formie-craft-form`, skipping `data-formie-init="false"`. Remove that opt-out attribute before calling `rescan()` when using deferred initialization. Repeated scans reuse the validator, and teardown removes listeners and restores the form’s original native-validation setting. When observation is enabled, inserted forms mount and removed forms are cleaned up automatically.
+
+This API uses the existing validator, translations and configured error classes. A valid submit proceeds through the browser with its original action and submitter. It does not load Formie submission modules, refresh Formie tokens or emit submission-success events; the Craft action owns the result. The form emits `formie:validator:ready` with the validator and its `addValidator` and `removeValidator` methods when it is initialized.
+
+
 ## Related Pages
 
 - [Custom client](/browser/behavior/custom-client)

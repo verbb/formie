@@ -6,7 +6,7 @@ This is useful when you want content-managed labels and fields for common flows 
 
 ## How It Works
 
-Use a single-page form with ordinary text, email, password and checkbox inputs. Disable captchas for this Formie form in its settings. Formie’s JavaScript widgets, conditions, multi-page navigation and AJAX submission are outside this pattern.
+Use a single-page form with ordinary text, email, password and checkbox inputs. Disable captchas for this Formie form in its settings. The helper below adds browser validation and inline errors. JavaScript widgets, conditions, multi-page navigation, submit-button gating and AJAX submission are outside this pattern.
 
 The basic pattern is:
 
@@ -18,9 +18,9 @@ The basic pattern is:
 ```twig
 {% set form = craft.formie.forms.handle('login').one() %}
 
-{{ craft.formie.formAssets(form, { includeJs: false }) }}
+{{ craft.formie.formAssets(form) }}
 
-<form method="post" accept-charset="UTF-8">
+<form method="post" accept-charset="UTF-8" {{ attr(craft.formie.craftFormAttributes(form)) }}>
     {{ actionInput('users/login') }}
     {{ csrfInput() }}
 
@@ -30,7 +30,23 @@ The basic pattern is:
 </form>
 ```
 
-The asset call loads Formie’s CSS only. Leave `data-formie` and `data-formie-form` off the outer form so Formie’s browser submission handling does not mount it. Craft handles the POST, validation errors and redirects.
+The asset call loads Formie’s CSS and JavaScript. `craftFormAttributes()` adds the render ID, the form’s theme classes and styles, and configuration for browser validation. Submit an empty required field to see its inline error. Once the fields are valid, the browser posts the form normally to Craft, which handles server-side validation and redirects.
+
+Keep `data-formie` and `data-formie-form` off the outer form. The helper uses `data-formie-craft-form` to initialize validation without attaching Formie’s submission workflow. You do not need Formie request tokens or a JavaScript bundle of your own.
+
+## Browser Validation
+
+The helper follows the form’s **Validate on Focus** and **Validate on Submit** settings, field validation messages, translated messages and error theme classes. It focuses the first invalid field after submission and updates errors as the visitor corrects them. It does not change the Craft action, CSRF input, redirect or submit-button values.
+
+Craft still validates the request on the server. For example, an incorrect password is an authentication error, so display Craft’s `errorMessage` as shown in the login example below. Registration and profile templates must also display the errors returned by Craft; they are not automatically mapped into Formie’s field containers.
+
+Use ordinary HTML inputs on a single page. Formie’s CAPTCHA, payment, upload and other widget modules do not initialize through this helper. A `formnovalidate` submit button skips browser validation; an existing `novalidate` attribute on the form also opts out of submit-time checks. If JavaScript does not load, the form retains native HTML validation and can still submit to Craft.
+
+`craftFormAttributes(form, renderOptions)` accepts the form object or handle and returns an attribute array for Craft’s `attr()` function. When using render-time `theme` or `themeConfig` overrides, pass the same options to this helper, `formAssets()` and `renderPage()` or `renderField()`. The helper does not change field namespaces. Render separate form instances with distinct render IDs when showing the same form more than once.
+
+For CSS-only rendering, keep `formAssets(form, { includeJs: false })` and omit `craftFormAttributes()`. That retains browser validation popups instead of Formie’s inline errors. Existing CSS-only templates continue to work.
+
+If you manage startup yourself, pass `{ initJs: false }` to the helper and remove `data-formie-init="false"` when the form is ready. Your application can then call `craftForms()` from `@verbb/formie-browser`. The shipped assets initialize Craft forms automatically and observe inserted or removed forms when the browser observer is enabled.
 
 ## Why `fieldNamespace` Matters
 
@@ -82,14 +98,14 @@ You can also add normal Craft concerns around the form, such as error messages a
 ```twig
 {% set form = craft.formie.forms.handle('login').one() %}
 
-{{ craft.formie.formAssets(form, { includeJs: false }) }}
+{{ craft.formie.formAssets(form) }}
 
-<form method="post" accept-charset="UTF-8">
+<form method="post" accept-charset="UTF-8" {{ attr(craft.formie.craftFormAttributes(form)) }}>
     {{ actionInput('users/login') }}
     {{ csrfInput() }}
 
     {% if errorMessage is defined %}
-        <p>{{ errorMessage }}</p>
+        <p role="alert">{{ errorMessage }}</p>
     {% endif %}
 
     {% if form.getRedirectUrl() %}
@@ -117,9 +133,9 @@ If your site uses `useEmailAsUsername`, you may not need a separate `username` f
 ```twig
 {% set form = craft.formie.forms.handle('register').one() %}
 
-{{ craft.formie.formAssets(form, { includeJs: false }) }}
+{{ craft.formie.formAssets(form) }}
 
-<form method="post" accept-charset="UTF-8">
+<form method="post" accept-charset="UTF-8" {{ attr(craft.formie.craftFormAttributes(form)) }}>
     {{ actionInput('users/save-user') }}
     {{ csrfInput() }}
 
@@ -139,7 +155,7 @@ Profile forms follow the same idea, but they usually need prefilled values from 
 {% set form = craft.formie.forms.handle('profile').one() %}
 {% set user = user ?? currentUser %}
 
-{{ craft.formie.formAssets(form, { includeJs: false }) }}
+{{ craft.formie.formAssets(form) }}
 
 {% do craft.formie.populateFormValues(form, {
     username: user.username,
@@ -148,7 +164,7 @@ Profile forms follow the same idea, but they usually need prefilled values from 
     lastName: user.lastName,
 }) %}
 
-<form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+<form method="post" accept-charset="UTF-8" enctype="multipart/form-data" {{ attr(craft.formie.craftFormAttributes(form)) }}>
     {{ actionInput('users/save-user') }}
     {{ hiddenInput('userId', user.id) }}
     {{ csrfInput() }}

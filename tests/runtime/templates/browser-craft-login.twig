@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head><title>Craft Login</title></head>
+<body>
+{% set form = craft.formie.forms.handle('browserCraftLogin').one() %}
+{{ craft.formie.formAssets(form) }}
+<form method="post" accept-charset="UTF-8" {{ attr(craft.formie.craftFormAttributes(form)) }}>
+    {{ actionInput('users/login') }}
+    {{ csrfInput() }}
+    {{ redirectInput('/browser-craft-login-done') }}
+    {% if errorMessage is defined %}<p role="alert">{{ errorMessage }}</p>{% endif %}
+    {{ craft.formie.renderPage(form, null, { fieldNamespace: '' }) }}
+</form>
+</body>
+</html>

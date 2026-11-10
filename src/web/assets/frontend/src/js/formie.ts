@@ -1,4 +1,4 @@
-import { createDebug, formie, setFormieDebugEnabled } from '@verbb/formie-browser';
+import { craftForms, createDebug, formie, setFormieDebugEnabled } from '@verbb/formie-browser';
 import type { FormieApp } from '@verbb/formie-browser';
 
 type BrowserStartupConfig = {
@@ -41,11 +41,24 @@ export async function startPluginForms(): Promise<FormieApp> {
         useObserver: config.useObserver,
     });
 
+    const craftFormsApp = craftForms({ observe: config.useObserver });
     pluginFormsApp = await formie({
         element: PLUGIN_FORM_SELECTOR,
         observe: config.useObserver,
         allowEmpty: true,
     });
+
+    const destroy = pluginFormsApp.destroy.bind(pluginFormsApp);
+    pluginFormsApp.destroy = async() => {
+        craftFormsApp.destroy();
+        await destroy();
+        pluginFormsApp = null;
+    };
+    const rescan = pluginFormsApp.rescan.bind(pluginFormsApp);
+    pluginFormsApp.rescan = async() => {
+        craftFormsApp.rescan();
+        return rescan();
+    };
 
     debug.log('Plugin-rendered Formie forms started.', {
         mountedInstances: pluginFormsApp.instances.length,

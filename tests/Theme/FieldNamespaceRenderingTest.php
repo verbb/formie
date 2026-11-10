@@ -98,7 +98,8 @@ it('renders the documented Craft action forms with strict Twig and unprefixed in
 
                 expect($xpath->query('//form')->length)->toBe(1)
                     ->and($xpath->query('//form[@data-formie or @data-formie-form or @data-fui-form]')->length)->toBe(0)
-                    ->and($xpath->query('//script')->length)->toBe(0)
+                    ->and($xpath->query('//form[@data-formie-craft-form]')->length)->toBe(1)
+                    ->and($xpath->query('//form[@novalidate]')->length)->toBe(0)
                     ->and($xpath->query('//input[@name="loginName"]')->length)->toBe(1)
                     ->and($xpath->query('//input[@name="password" and @type="password"]')->length)->toBe(1)
                     ->and($xpath->query('//input[@name="email"]')->length)->toBe(1)
