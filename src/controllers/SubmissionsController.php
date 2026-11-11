@@ -322,9 +322,9 @@ class SubmissionsController extends Controller
             // Determine the next page to navigate to
             if (is_numeric($goToPageId)) {
                 $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
-            } else if ($submitAction === 'back') {
+            } elseif ($submitAction === 'back') {
                 $nextPage = $form->getPreviousPage(null, $submission, true);
-            } else if ($submitAction === 'save') {
+            } elseif ($submitAction === 'save') {
                 $nextPage = $form->getCurrentPage();
             } else {
                 $nextPage = $form->getNextPage(null, $submission);
@@ -535,9 +535,9 @@ class SubmissionsController extends Controller
         // signifies the end of the form.
         if (is_numeric($goToPageId)) {
             $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId) ?? $form->getCurrentPage();
-        } else if ($submitAction === 'back') {
+        } elseif ($submitAction === 'back') {
             $nextPage = $form->getPreviousPage(null, $submission, true) ?? $form->getCurrentPage();
-        } else if ($submitAction === 'save') {
+        } elseif ($submitAction === 'save') {
             $nextPage = $form->getCurrentPage();
         } else {
             $nextPage = $form->getNextPage(null, $submission);
@@ -870,6 +870,7 @@ class SubmissionsController extends Controller
 
     public function actionGetSendNotificationModalContent(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $request = $this->request;
@@ -881,7 +882,13 @@ class SubmissionsController extends Controller
             ->isSpam(null)
             ->one();
 
-        $notifications = $submission->getForm()->getNotifications();
+        if (!$submission) {
+            throw new NotFoundHttpException('Submission not found');
+        }
+
+        $this->_requireSubmissionPermission($submission);
+
+        $notifications = $submission->getForm()?->getNotifications() ?? [];
 
         $modalHtml = $view->renderTemplate('formie/submissions/_includes/send-notification-modal', [
             'submission' => $submission,
@@ -898,6 +905,7 @@ class SubmissionsController extends Controller
 
     public function actionSendNotification(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $request = $this->request;
@@ -911,16 +919,20 @@ class SubmissionsController extends Controller
             ->isSpam(null)
             ->one();
 
-        if (!$notification) {
-            $error = Craft::t('formie', 'Notification not found.');
+        if (!$submission) {
+            $error = Craft::t('formie', 'Submission not found.');
 
             $this->setFailFlash($error);
 
             return $this->asFailure($error);
         }
 
-        if (!$submission) {
-            $error = Craft::t('formie', 'Submission not found.');
+        $this->_requireSubmissionPermission($submission);
+
+        // The notification must belong to the submission's form, so another form's notification (and its
+        // recipients) can't be rendered against this submission.
+        if (!$notification || (int)$notification->formId !== (int)$submission->formId) {
+            $error = Craft::t('formie', 'Notification not found.');
 
             $this->setFailFlash($error);
 
@@ -940,6 +952,7 @@ class SubmissionsController extends Controller
 
     public function actionRunIntegration(): Response
     {
+        $this->requirePostRequest();
         $this->requireAcceptsJson();
 
         $request = $this->request;
@@ -958,6 +971,8 @@ class SubmissionsController extends Controller
 
             return $this->asFailure($error);
         }
+
+        $this->_requireSubmissionPermission($submission);
 
         $form = $submission->getForm();
 
@@ -1024,11 +1039,12 @@ class SubmissionsController extends Controller
                 foreach ($origins as $origin) {
                     if (in_array($origin, $generalConfig->allowedGraphqlOrigins)) {
                         $headers->setDefault('Access-Control-Allow-Origin', $origin);
+
                         break;
                     }
                 }
             }
-        } else if ($generalConfig->allowedGraphqlOrigins !== false) {
+        } elseif ($generalConfig->allowedGraphqlOrigins !== false) {
             $headers->setDefault('Access-Control-Allow-Origin', '*');
         }
 
@@ -1040,6 +1056,7 @@ class SubmissionsController extends Controller
         if ($this->request->getIsOptions()) {
             $this->response->format = Response::FORMAT_RAW;
             $this->response->data = '';
+
             return $this->response;
         }
 
@@ -1049,6 +1066,23 @@ class SubmissionsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _requireSubmissionPermission(Submission $submission): void
+    {
+        // Matches the access needed to open a submission in the control panel.
+        $user = Craft::$app->getUser();
+        $formUid = $submission->getForm()?->uid;
+
+        if ($user->checkPermission('formie-viewSubmissions') || $user->checkPermission('formie-editSubmissions')) {
+            return;
+        }
+
+        if ($formUid && $user->checkPermission('formie-manageSubmission:' . $formUid)) {
+            return;
+        }
+
+        throw new ForbiddenHttpException('User is not permitted to perform this action');
+    }
 
     private function _redirectToPostedSandboxedUrl(Submission $submission): Response
     {
@@ -1115,6 +1149,7 @@ class SubmissionsController extends Controller
             // Make sure they were requesting a valid site
             /** @var Site $site */
             $site = $variables['site'];
+
             if (!in_array($site->id, $variables['siteIds'], false)) {
                 throw new ForbiddenHttpException('User not permitted to edit content in this site');
             }
