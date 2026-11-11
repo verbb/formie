@@ -14,6 +14,7 @@ use craft\models\GqlToken;
 use craft\models\Section;
 use craft\models\Section_SiteSettings;
 use Tests\Support\WebRequestTestHelper;
+use verbb\formie\elements\Form;
 use verbb\formie\fields\Forms as FormsField;
 
 beforeEach(function(): void {
@@ -24,20 +25,23 @@ afterEach(function(): void {
     $gql = Craft::$app->getGql();
     $entries = Craft::$app->getEntries();
 
-    foreach ($this->tokenFixtures as [$token, $schema, $section, $type, $field]) {
-        $gql->deleteTokenById($token->id);
-        $gql->deleteSchema($schema);
-        $entries->deleteSection($section);
-        $entries->deleteEntryType($type);
-        Craft::$app->getFields()->deleteField($field);
+    foreach ($this->tokenFixtures as $fixture) {
+        $gql->deleteTokenById($fixture['token']->id);
+        $gql->deleteSchema($fixture['schema']);
+        $entries->deleteSection($fixture['section']);
+        $entries->deleteEntryType($fixture['type']);
+        Craft::$app->getFields()->deleteField($fixture['field']);
     }
 
     $gql->flushCaches();
 });
 
-it('returns token-readable forms when the API request is a control panel request', function(bool $isCpRequest): void {
-    $allowed = formie()->form(['title' => 'Token Readable Form'])->singleLineTextField('message')->create();
-    $denied = formie()->form(['title' => 'Token Unreadable Form'])->singleLineTextField('message')->create();
+/**
+ * Creates an entry relating the given forms through a Forms field, and a token whose schema can read the entry's
+ * section and the given form scopes.
+ */
+function graphqlFormsTokenFixture(array $relatedForms, array $formScopes): array
+{
     $key = StringHelper::randomString(8);
 
     $field = new FormsField(['name' => 'Forms ' . $key, 'handle' => 'forms' . $key]);
@@ -59,12 +63,12 @@ it('returns token-readable forms when the API request is a control panel request
     expect(Craft::$app->getEntries()->saveSection($section))->toBeTrue();
 
     $entry = new Entry(['sectionId' => $section->id, 'typeId' => $type->id, 'title' => 'Entry ' . $key]);
-    $entry->setFieldValue($field->handle, [$allowed->id]);
+    $entry->setFieldValue($field->handle, array_map(fn(Form $form) => $form->id, $relatedForms));
     expect(Craft::$app->getElements()->saveElement($entry))->toBeTrue();
 
     $gql = Craft::$app->getGql();
     $schema = new GqlSchema(['name' => 'Token Schema ' . $key, 'scope' => [
-        'formieForms.' . $allowed->uid . ':read',
+        ...$formScopes,
         'sections.' . $section->uid . ':read',
         ...array_map(fn($site) => 'sites.' . $site->uid . ':read', Craft::$app->getSites()->getAllSites()),
     ]]);
@@ -72,16 +76,17 @@ it('returns token-readable forms when the API request is a control panel request
 
     $token = new GqlToken(['name' => 'Token ' . $key, 'accessToken' => StringHelper::randomString(32), 'enabled' => true, 'schemaId' => $schema->id]);
     expect($gql->saveToken($token))->toBeTrue();
-    $this->tokenFixtures[] = [$token, $schema, $section, $type, $field];
     $gql->flushCaches();
 
-    $query = sprintf('{
-        formieForms { id }
-        formieFormCount
-        entries(id: %d) { ... on %s_Entry { %s { id } } }
-    }', $entry->id, $type->handle, $field->handle);
+    return compact('entry', 'field', 'type', 'section', 'schema', 'token');
+}
 
-    $result = WebRequestTestHelper::withWebRequestContext(function($request, $response) use ($isCpRequest, $query) {
+/**
+ * Runs a query through Craft's GraphQL API action as an anonymous token request.
+ */
+function graphqlTokenRequest(array $fixture, string $query, bool $isCpRequest = false): array
+{
+    return WebRequestTestHelper::withWebRequestContext(function($request) use ($isCpRequest) {
         $request->setIsCpRequest($isCpRequest);
         Craft::$app->getUser()->setIdentity(null);
 
@@ -89,15 +94,69 @@ it('returns token-readable forms when the API request is a control panel request
     }, [
         'method' => 'POST',
         'requestUri' => $isCpRequest ? '/admin/actions/graphql/api' : '/api',
-        'headers' => ['Authorization' => 'Bearer ' . $token->accessToken],
+        'headers' => ['Authorization' => 'Bearer ' . $fixture['token']->accessToken],
         'bodyParams' => ['query' => $query],
     ]);
+}
+
+function graphqlRelatedFormIds(array $result, array $fixture): array
+{
+    return array_map('intval', array_column($result['data']['entries'][0][$fixture['field']->handle], 'id'));
+}
+
+it('returns token-readable forms when the API request is a control panel request', function(bool $isCpRequest): void {
+    $allowed = formie()->form(['title' => 'Token Readable Form'])->singleLineTextField('message')->create();
+    formie()->form(['title' => 'Token Unreadable Form'])->singleLineTextField('message')->create();
+    $this->tokenFixtures[] = $fixture = graphqlFormsTokenFixture([$allowed], ['formieForms.' . $allowed->uid . ':read']);
+
+    $result = graphqlTokenRequest($fixture, sprintf('{
+        formieForms { id }
+        formieFormCount
+        entries(id: %d) { ... on %s_Entry { %s { id } } }
+    }', $fixture['entry']->id, $fixture['type']->handle, $fixture['field']->handle), $isCpRequest);
 
     expect($result['errors'] ?? [])->toBe([]);
     expect(array_map('intval', array_column($result['data']['formieForms'], 'id')))->toBe([$allowed->id]);
     expect($result['data']['formieFormCount'])->toBe(1);
-    expect(array_map('intval', array_column($result['data']['entries'][0][$field->handle], 'id')))->toBe([$allowed->id]);
+    expect(graphqlRelatedFormIds($result, $fixture))->toBe([$allowed->id]);
 })->with([
     'control panel request' => [true],
     'site request' => [false],
 ]);
+
+it('limits eager-loaded Forms field values to the forms a token can read', function(string $arguments): void {
+    $allowed = formie()->form(['title' => 'Related Readable Form'])->singleLineTextField('message')->create();
+    $denied = formie()->form(['title' => 'Related Unreadable Form'])->singleLineTextField('message')->create();
+    $this->tokenFixtures[] = $fixture = graphqlFormsTokenFixture([$denied, $allowed], ['formieForms.' . $allowed->uid . ':read']);
+
+    $result = graphqlTokenRequest($fixture, sprintf(
+        '{ entries(id: %d) { ... on %s_Entry { %s%s { id } } } }',
+        $fixture['entry']->id,
+        $fixture['type']->handle,
+        $fixture['field']->handle,
+        str_replace(['{allowed}', '{denied}'], [$allowed->id, $denied->id], $arguments),
+    ));
+
+    expect($result['errors'] ?? [])->toBe([]);
+    expect(graphqlRelatedFormIds($result, $fixture))->toBe($arguments === '(id: {denied})' ? [] : [$allowed->id]);
+})->with([
+    'no arguments' => [''],
+    'requested readable form' => ['(id: {allowed})'],
+    'requested unreadable form' => ['(id: {denied})'],
+]);
+
+it('returns every related form to tokens that can read all forms', function(): void {
+    $first = formie()->form(['title' => 'First Related Form'])->singleLineTextField('message')->create();
+    $second = formie()->form(['title' => 'Second Related Form'])->singleLineTextField('message')->create();
+    $this->tokenFixtures[] = $fixture = graphqlFormsTokenFixture([$first, $second], ['formieForms.all:read']);
+
+    $result = graphqlTokenRequest($fixture, sprintf(
+        '{ entries(id: %d) { ... on %s_Entry { %s { id } } } }',
+        $fixture['entry']->id,
+        $fixture['type']->handle,
+        $fixture['field']->handle,
+    ));
+
+    expect($result['errors'] ?? [])->toBe([]);
+    expect(graphqlRelatedFormIds($result, $fixture))->toBe([$first->id, $second->id]);
+});

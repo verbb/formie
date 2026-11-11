@@ -6,10 +6,13 @@ use verbb\formie\elements\Form;
 use verbb\formie\gql\arguments\FormArguments;
 use verbb\formie\gql\interfaces\FormInterface;
 use verbb\formie\gql\resolvers\FormResolver;
+use verbb\formie\helpers\Gql as GqlHelper;
 
 use Craft;
+use craft\db\Table;
 use craft\elements\ElementCollection;
 use craft\fields\BaseRelationField;
+use craft\helpers\Db;
 
 use GraphQL\Type\Definition\Type;
 
@@ -63,6 +66,23 @@ class Forms extends BaseRelationField
             'args' => FormArguments::getArguments(),
             'resolve' => FormResolver::class . '::resolve',
         ];
+    }
+
+    public function getEagerLoadingGqlConditions(): ?array
+    {
+        // Eager-loaded values skip the resolver's schema check, so apply the same form scope here.
+        if (!GqlHelper::canQueryForms()) {
+            return null;
+        }
+
+        if (GqlHelper::canSchema('formieForms.all')) {
+            return [];
+        }
+
+        $formUids = GqlHelper::extractAllowedEntitiesFromSchema('read')['formieForms'] ?? [];
+        $formIds = $formUids ? array_values(Db::idsByUids(Table::ELEMENTS, $formUids)) : [];
+
+        return $formIds ? ['id' => $formIds] : null;
     }
 
 

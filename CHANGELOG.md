@@ -7,6 +7,7 @@
 
 ### Fixed
 - Fixed GraphQL token requests sent to a control panel URL returning no forms for `formieForms` queries and Forms fields. ([#3109](https://github.com/verbb/formie/issues/3109))
+- Fixed Forms fields returning forms a GraphQL schema can’t view, causing query errors for schemas limited to certain forms.
 - Fixed submission and report exports failing when action URLs contain query parameters.
 
 ## 4.0.8 - 2026-11-10
