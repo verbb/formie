@@ -9,8 +9,17 @@
 
 {% set category = integration.getCategory() | kebab %}
 
+{# Formie 3 docs have a page per category with a heading per provider, so link to the provider's heading.
+   The docs site keeps case in heading IDs (“ActiveCampaign” is `activeCampaign`, “Agile CRM” is `agile-crm`). #}
+{% set anchor = integration.displayName()
+    | replace('/[^A-Za-z0-9]+/', ' ')
+    | trim
+    | split(' ')
+    | map(word => word == word | upper ? word | lower : (word | first | lower) ~ word | slice(1))
+    | join('-') %}
+
 <div class="fui-settings-block">
-    {{ 'To connect to {name}, follow our <a href="{link}" target="_blank" rel="noopener">{name} integration guide</a>.' | t('formie', { name: integration.displayName(), link: 'https://verbb.io/craft-plugins/formie/docs/integrations/' ~ category ~ '#' ~ (integration.handle | kebab) }) | md }}
+    {{ 'To connect to {name}, follow our <a href="{link}" target="_blank" rel="noopener">{name} integration guide</a>.' | t('formie', { name: integration.displayName(), link: 'https://verbb.io/craft-plugins/formie/docs/v3/integrations/' ~ category ~ '#' ~ anchor }) | md }}
 </div>
 
 {% if integration.supportsOauthConnection() %}

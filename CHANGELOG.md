@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed integration settings and other control panel links to the documentation opening missing or Formie 4 pages instead of the Formie 3 guides. ([#3113](https://github.com/verbb/formie/issues/3113))
+
 ## 3.1.51 - 2026-11-10
 
 ### Changed

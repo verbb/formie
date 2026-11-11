@@ -131,18 +131,18 @@
 
     {{ forms.lightswitchField({
         label: 'Output Base JavaScript' | t('formie'),
-        instructions: 'Enable this option to output the base Formie JavaScript when rendering forms using this template. This provides event listeners for forms, ensuring captcha integrations work. Read the [docs](https://verbb.io/craft-plugins/formie/docs/developers/front-end-js) for more information.' | t('formie'),
+        instructions: 'Enable this option to output the base Formie JavaScript when rendering forms using this template. This provides event listeners for forms, ensuring captcha integrations work. Read the [docs](https://verbb.io/craft-plugins/formie/docs/v3/developers/front-end-js) for more information.' | t('formie'),
         name: 'outputJsBase',
         on: template.outputJsBase,
         errors: template.getErrors('outputJs'),
         toggle: 'output-js-base',
-        warning: 'Ensure you understand the implications of disabling Formie‘s JavaScript. Read the [docs](https://verbb.io/craft-plugins/formie/docs/developers/front-end-js) for more information.' | t('formie'),
+        warning: 'Ensure you understand the implications of disabling Formie‘s JavaScript. Read the [docs](https://verbb.io/craft-plugins/formie/docs/v3/developers/front-end-js) for more information.' | t('formie'),
     }) }}
 
     <div id="output-js-base" class="{{ not template.outputJsBase ? 'hidden' }}">
         {{ forms.lightswitchField({
             label: 'Output Theme' | t('formie'),
-            instructions: 'Enable this option to output the themed JavaScript when rendering forms using this template. This provides client-side validation, multi-page support, and lots more. Read the [docs](https://verbb.io/craft-plugins/formie/docs/developers/front-end-js) for more information.' | t('formie'),
+            instructions: 'Enable this option to output the themed JavaScript when rendering forms using this template. This provides client-side validation, multi-page support, and lots more. Read the [docs](https://verbb.io/craft-plugins/formie/docs/v3/developers/front-end-js) for more information.' | t('formie'),
             name: 'outputJsTheme',
             on: template.outputJsTheme,
             errors: template.getErrors('outputJsTheme'),
