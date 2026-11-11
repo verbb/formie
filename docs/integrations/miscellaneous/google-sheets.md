@@ -34,6 +34,20 @@ Connect Google Sheets to send submitted information to your connected account. Y
 1. Enable the integration.
 1. Click **Save** to save the form.
 
+## Local Testing Proxy
+
+Connecting to Google sends you to Google to approve access, then back to your site's **Redirect URI**. Google only accepts redirect URIs on a public domain, so it rejects a local development address such as `https://my-site.ddev.site/actions/formie/integrations/callback`.
+
+To connect from a local site, enable **Proxy Redirect URI** in the integration settings. Formie then routes the redirect through Verbb's proxy server, which sends you back to your local site, and the **Redirect URI** field changes to a value like this:
+
+```
+https://proxy.verbb.io?return=https://my-site.ddev.site/actions/formie/integrations/callback
+```
+
+Enter this updated value under **Authorized redirect URIs** in the Google API Console, then save the integration and click **Connect** again.
+
+Only use the proxy for local testing. On staging and production, turn it off and use your site's own Redirect URI. The setting accepts an environment variable, so you can set it to `true` in your local `.env` file and `false` everywhere else.
+
 ## Verify a Submission
 
 Save the form, open it on your site and submit recognisable test values. Find the resulting item in the destination you selected and compare its values with the test submission.

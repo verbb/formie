@@ -123,12 +123,12 @@
 
     {{ forms.lightswitchField({
         label: 'Output JavaScript' | t('formie'),
-        instructions: 'Enable this option to output the Formie JavaScript required for this template when rendering forms. Read the [docs](https://verbb.io/craft-plugins/formie/docs/developers/front-end-js) for more information.' | t('formie'),
+        instructions: 'Enable this option to output the Formie JavaScript required for this template when rendering forms. Read the [docs](https://verbb.io/craft-plugins/formie/docs/v4/frontend/frontend-assets#asset-output) for more information.' | t('formie'),
         name: 'outputJs',
         on: template.outputJs,
         errors: template.getErrors('outputJs'),
         toggle: 'output-js-location',
-        warning: 'Ensure you understand the implications of disabling Formie‘s JavaScript. Read the [docs](https://verbb.io/craft-plugins/formie/docs/developers/front-end-js) for more information.' | t('formie'),
+        warning: 'Ensure you understand the implications of disabling Formie‘s JavaScript. Read the [docs](https://verbb.io/craft-plugins/formie/docs/v4/frontend/frontend-assets#asset-output) for more information.' | t('formie'),
     }) }}
 
     <div id="output-js-location" class="{{ not template.outputJs ? 'hidden' }}">

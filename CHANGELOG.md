@@ -5,6 +5,9 @@
 ### Added
 - Added `craft.formie.craftFormAttributes()` to enable themed browser validation on forms that submit directly to Craft actions.
 
+### Changed
+- Document the Google Sheets Proxy Redirect URI setting for connecting from a local site.
+
 ### Fixed
 - Fixed an “Array to string conversion” error when saving a form with a Name field whose Prefix options share a label, such as the default options in German. ([#3111](https://github.com/verbb/formie/issues/3111))
 - Fixed Rich Text field links set to open in a new tab opening in the same tab. ([#3112](https://github.com/verbb/formie/issues/3112))
@@ -14,7 +17,7 @@
 - Fixed GraphQL queries failing for every schema that includes a form with an Address (Google Maps) or Maps custom field.
 - Fixed submission and report exports failing when action URLs contain query parameters.
 - Fixed the Attach Assets picker for email notifications opening with no volumes or assets.
-- Fixed integration settings linking to a missing documentation page instead of each provider’s setup guide. ([#3113](https://github.com/verbb/formie/issues/3113))
+- Fixed integration settings and other control panel links to the documentation opening missing pages instead of the relevant guide. ([#3113](https://github.com/verbb/formie/issues/3113))
 
 ## 4.0.8 - 2026-11-10
 
