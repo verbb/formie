@@ -7,8 +7,10 @@
 
 ### Changed
 - Document the Google Sheets Proxy Redirect URI setting for connecting from a local site.
+- Submissions rejected by spam protection safeguards such as Minimum Submit Time are now written to the Formie log with the reason.
 
 ### Fixed
+- Fixed forms showing their success message without saving the submission or sending notifications when Minimum Submit Time is enabled and the visitor’s device clock runs ahead of the server.
 - Fixed an “Array to string conversion” error when saving a form with a Name field whose Prefix options share a label, such as the default options in German. ([#3111](https://github.com/verbb/formie/issues/3111))
 - Fixed Rich Text field links set to open in a new tab opening in the same tab. ([#3112](https://github.com/verbb/formie/issues/3112))
 - Fixed Forms fields appearing empty to users without permission to view the related forms, and removing those forms when the user saved the element. ([#3114](https://github.com/verbb/formie/issues/3114))

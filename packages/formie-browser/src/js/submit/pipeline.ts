@@ -5,6 +5,7 @@ import { withFormEventInstance } from '#core/dom-events';
 import { EventBus } from '#events/event-bus';
 import { submitForm } from '#transport/forms-api';
 import { createDebug } from '#utils/debug';
+import { stampFormSubmittedAt } from '#utils/form-started-at';
 import { getFormPages, getValidationScope } from '#validation/scope';
 import type { FormieValidator } from '#validation/validator';
 
@@ -303,6 +304,7 @@ export async function runSubmitPipeline(
         send: async(ctx) => {
             // Rehydrate just-in-time so provider hooks can mutate hidden inputs
             // during `screen` / `authorize` and still be submitted.
+            stampFormSubmittedAt(ctx.form);
             ctx.formData = buildSubmitFormData(ctx.form, ctx.action);
             const result = await submitForm(ctx.form, ctx.formData);
             dispatchResult = result;

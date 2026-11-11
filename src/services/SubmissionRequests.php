@@ -640,6 +640,16 @@ class SubmissionRequests extends Component
             $allowLegacyUploadIds,
         );
         $guardReason = Formie::$plugin->getSubmissionGuards()->validateRequest($command, $browser);
+
+        if ($guardReason !== null) {
+            // Rejected requests save nothing, so the log is the only trace of them. Bots
+            // control honeypot values, so keep the line bounded.
+            Formie::info('Submission rejected for {form} by spam protection - “{reason}”.', [
+                'form' => $form->handle,
+                'reason' => mb_substr($guardReason, 0, 500),
+            ]);
+        }
+
         $outcome = $guardReason === null
             ? Formie::$plugin->getSubmissionProcessor()->executeCommand($command, $populate)
             : $operations->execute($command, static function() use ($form, $submission): SubmissionOutcome {

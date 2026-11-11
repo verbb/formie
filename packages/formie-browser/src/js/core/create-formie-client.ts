@@ -31,7 +31,7 @@ import { loadModulesFromManifest, type BrowserModuleRuntime } from '#modules/loa
 import { registerThemeClassMap } from '#theme/theme-classes';
 import { runSubmitPipeline } from '#submit/pipeline';
 import { clearSubmissionOnUnload, requestGraphqlRender, requestRefreshTokens, requestRender, requestSetPage } from '#transport/forms-api';
-import { ensureFormStartedAt } from '#utils/form-started-at';
+import { ensureFormStartedAt, stampFormSubmittedAt } from '#utils/form-started-at';
 import { createDebug } from '#utils/debug';
 import { waitForElementRemoval } from '#utils/async';
 import { createFormUnloadWarningGuard } from '#utils/unload-warning';
@@ -814,6 +814,8 @@ function bindFormEvents(
                             }
                         }
                     };
+
+                    stampFormSubmittedAt(form);
 
                     if (typeof form.requestSubmit === 'function') {
                         // Keep the existing loading/disabled state intact while the

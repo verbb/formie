@@ -8,6 +8,7 @@ const DIRTY_TRACKING_IGNORED_FIELD_NAMES = new Set([
     'uploadCreateToken',
     'renderId',
     'formStartedAt',
+    'formSubmittedAt',
     'submitAction',
     'pageId',
     'draftContextToken',

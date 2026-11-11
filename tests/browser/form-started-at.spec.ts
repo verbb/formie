@@ -8,7 +8,7 @@ test.beforeAll(async () => {
     const imports = JSON.parse(readFileSync('packages/formie-browser/package.json', 'utf8')).imports;
     const result = await build({
         stdin: { contents: `
-            export { ensureFormStartedAt } from './packages/formie-browser/src/js/utils/form-started-at';
+            export { ensureFormStartedAt, stampFormSubmittedAt } from './packages/formie-browser/src/js/utils/form-started-at';
             export { applySubmitResultState } from './packages/formie-browser/src/js/core/submit-result-state';
         `, resolveDir: process.cwd() },
         bundle: true, format: 'iife', globalName: 'timerBoundary', write: false,
@@ -79,4 +79,47 @@ test('successful Ajax completion resets the timer for the next submission', asyn
     });
     expect(result.started).toBeGreaterThanOrEqual(result.before);
     expect(result.stored).toBe(String(result.started));
+});
+
+test('submitting stamps the browser submit time beside the start time', async ({ page }) => {
+    const result = await page.evaluate(async () => {
+        const form = document.querySelector('form')!;
+        const boundary = (window as any).timerBoundary;
+        boundary.ensureFormStartedAt(form);
+        const before = Date.now();
+        boundary.stampFormSubmittedAt(form);
+        const first = form.querySelector<HTMLInputElement>('[name=formSubmittedAt]')!;
+        const firstValue = Number(first.value);
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        boundary.stampFormSubmittedAt(form);
+
+        return {
+            before,
+            firstValue,
+            secondValue: Number(form.querySelector<HTMLInputElement>('[name=formSubmittedAt]')!.value),
+            count: form.querySelectorAll('[name=formSubmittedAt]').length,
+            type: first.type,
+            followsStartedAt: first.previousElementSibling?.getAttribute('name'),
+            submitted: new FormData(form).get('formSubmittedAt'),
+        };
+    });
+
+    expect(result.firstValue).toBeGreaterThanOrEqual(result.before);
+    expect(result.secondValue).toBeGreaterThan(result.firstValue);
+    expect(result.count).toBe(1);
+    expect(result.type).toBe('hidden');
+    expect(result.followsStartedAt).toBe('formStartedAt');
+    expect(result.submitted).toBe(String(result.secondValue));
+});
+
+test('forms without the start time input are left unchanged', async ({ page }) => {
+    const count = await page.evaluate(() => {
+        const form = document.querySelector('form')!;
+        form.querySelector('[name=formStartedAt]')!.remove();
+        (window as any).timerBoundary.stampFormSubmittedAt(form);
+
+        return form.querySelectorAll('[name=formSubmittedAt]').length;
+    });
+
+    expect(count).toBe(0);
 });

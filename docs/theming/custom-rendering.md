@@ -247,7 +247,7 @@ When enabled, add this markup inside your `<form>`. It is written explicitly so 
 {% endif %}
 ```
 
-Formie's JavaScript fills `formStartedAt` with the form's start time in milliseconds. The server uses it for minimum-submit-time and form-expiration checks; it is not an analytics field. If you replace Formie's JavaScript, set the input to `Date.now()` when your form initialises, rather than when it submits.
+Formie's JavaScript fills `formStartedAt` with the form's start time in milliseconds. The server uses it for minimum-submit-time and form-expiration checks; it is not an analytics field. If you replace Formie's JavaScript, set the input to `Date.now()` when your form initialises, rather than when it submits. Then, just before sending, add a `formSubmittedAt` value set to `Date.now()`. Formie measures the time between the two, so visitors whose device clock disagrees with the server aren't rejected for submitting too quickly.
 
 ### Captchas
 If your form uses captchas, make sure you render them explicitly where you want them to appear:

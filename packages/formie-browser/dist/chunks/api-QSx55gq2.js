@@ -84,7 +84,7 @@ function ae(e) {
 		e.removeAttribute(S);
 	}
 }
-function oe(e, t) {
+function w(e, t) {
 	if (t !== "submit") return;
 	let n = te(e);
 	if (!n) {
@@ -108,26 +108,45 @@ function oe(e, t) {
 }
 //#endregion
 //#region src/js/core/page-tab-errors.ts
-function se(e, t) {
+function oe(e, t) {
 	a(e, e, "tabError", t), t ? e.setAttribute("data-formie-tab-error", "true") : e.removeAttribute("data-formie-tab-error");
 }
-function w(e) {
+function T(e) {
 	let t = /* @__PURE__ */ new Set();
 	e.querySelectorAll("[data-formie-page]").forEach((e) => {
 		let n = e, r = n.getAttribute("data-formie-page-id");
 		r && n.querySelector("[data-formie-field-has-error]") && t.add(r);
 	}), e.querySelectorAll("[data-formie-tab]").forEach((e) => {
 		let n = e, r = n.getAttribute("data-formie-page-id");
-		se(n, !!r && t.has(r));
+		oe(n, !!r && t.has(r));
 	});
 }
 //#endregion
-//#region src/js/validation/scope.ts
+//#region src/js/utils/form-started-at.ts
+var se = "formie:formStartedAt:";
+function E(e) {
+	let t = e.querySelector("input[name=\"formStartedAt\"]");
+	if (!t) return;
+	let n = e.querySelector("input[name=\"renderId\"]")?.value?.trim() ?? "", r = n ? `${se}${n}` : null, i = ["submissionUid", "progressId"].some((t) => e.querySelector(`input[name="${t}"]`)?.value.trim()), a = t.value || (i && r ? sessionStorage.getItem(r) : null);
+	a ||= String(Date.now()), r && sessionStorage.setItem(r, a), t.value = a;
+}
 function ce(e) {
+	let t = e.querySelector("input[name=\"formStartedAt\"]");
+	if (!t) return;
+	let n = e.querySelector("input[name=\"formSubmittedAt\"]");
+	n || (n = document.createElement("input"), n.type = "hidden", n.name = "formSubmittedAt", t.after(n)), n.value = String(Date.now());
+}
+function le(e) {
+	let t = e.querySelector("input[name=\"formStartedAt\"]");
+	t && (t.value = String(Date.now()), E(e));
+}
+//#endregion
+//#region src/js/validation/scope.ts
+function ue(e) {
 	return Array.from(e.querySelectorAll("[data-formie-page]"));
 }
-function T(e) {
-	let t = ce(e);
+function de(e) {
+	let t = ue(e);
 	if (!t.length) return {
 		scope: e,
 		final: !0
@@ -139,39 +158,26 @@ function T(e) {
 	};
 }
 //#endregion
-//#region src/js/utils/form-started-at.ts
-var le = "formie:formStartedAt:";
-function E(e) {
-	let t = e.querySelector("input[name=\"formStartedAt\"]");
-	if (!t) return;
-	let n = e.querySelector("input[name=\"renderId\"]")?.value?.trim() ?? "", r = n ? `${le}${n}` : null, i = ["submissionUid", "progressId"].some((t) => e.querySelector(`input[name="${t}"]`)?.value.trim()), a = t.value || (i && r ? sessionStorage.getItem(r) : null);
-	a ||= String(Date.now()), r && sessionStorage.setItem(r, a), t.value = a;
-}
-function ue(e) {
-	let t = e.querySelector("input[name=\"formStartedAt\"]");
-	t && (t.value = String(Date.now()), E(e));
-}
-//#endregion
 //#region src/js/validation/submit-readiness.ts
-var D = "data-formie-submit-validation-disabled", O = "data-formie-preserve-disabled", de = "data-formie-submit-ready";
-function fe(e) {
+var D = "data-formie-submit-validation-disabled", O = "data-formie-preserve-disabled", fe = "data-formie-submit-ready";
+function pe(e) {
 	let t = e.dataset.formieDisableSubmitUntilValid?.trim().toLowerCase();
 	return t === "" || t === "true" || t === "1";
 }
-function pe(e) {
+function me(e) {
 	return Array.from(e.querySelectorAll("button[data-formie-action=\"submit\"]")).filter((e) => e instanceof HTMLButtonElement);
 }
-function me(e) {
+function he(e) {
 	return !e.hasAttribute("data-formie-conditionally-hidden") && !e.closest("[data-formie-conditionally-hidden]");
 }
 function k(e, t) {
-	if (!fe(e) || e.getAttribute("data-formie-loading") === "true") return;
-	let { scope: n, final: r } = T(e), i = t.isValid(n, {
+	if (!pe(e) || e.getAttribute("data-formie-loading") === "true") return;
+	let { scope: n, final: r } = de(e), i = t.isValid(n, {
 		includeHiddenPages: r,
 		renderErrors: !1
 	});
-	e.setAttribute(de, i ? "true" : "false"), pe(e).forEach((e) => {
-		if (me(e)) {
+	e.setAttribute(fe, i ? "true" : "false"), me(e).forEach((e) => {
+		if (he(e)) {
 			if (i) {
 				if (!e.hasAttribute(D)) return;
 				e.hasAttribute(O) ? (e.disabled = !0, e.removeAttribute(O)) : e.disabled = !1, e.removeAttribute(D);
@@ -179,8 +185,8 @@ function k(e, t) {
 		}
 	});
 }
-function he(e, t, n) {
-	if (!fe(e)) return () => {};
+function ge(e, t, n) {
+	if (!pe(e)) return () => {};
 	let r = !1, i = () => {
 		r || (r = !0, queueMicrotask(() => {
 			r = !1, k(e, t);
@@ -226,7 +232,7 @@ function he(e, t, n) {
 }
 //#endregion
 //#region src/js/core/submit-result-state.ts
-var ge = "STALE_SUBMISSION_STATE", A = /* @__PURE__ */ new WeakMap(), j = /* @__PURE__ */ new WeakMap(), M = i("general", "submit-result");
+var _e = "STALE_SUBMISSION_STATE", A = /* @__PURE__ */ new WeakMap(), j = /* @__PURE__ */ new WeakMap(), M = i("general", "submit-result");
 function N(e, t, n) {
 	let r = e.querySelector(`input[name="${t}"]`);
 	r || (r = document.createElement("input"), r.type = "hidden", r.name = t, e.appendChild(r)), r.value = n;
@@ -237,7 +243,7 @@ function P(e, t) {
 function F(e, t) {
 	e.querySelector(`input[name="${t}"]`)?.remove();
 }
-function _e(e, t) {
+function ve(e, t) {
 	try {
 		let n = new URL(e, window.location.href);
 		return n.searchParams.delete(t), n.toString();
@@ -245,7 +251,7 @@ function _e(e, t) {
 		return e;
 	}
 }
-function ve(e) {
+function ye(e) {
 	try {
 		return new URL(e, window.location.href).origin === window.location.origin;
 	} catch {
@@ -255,20 +261,20 @@ function ve(e) {
 function I(e) {
 	return Array.from(e.querySelectorAll("[data-formie-page]"));
 }
-function ye(e) {
+function be(e) {
 	return Array.from(e.querySelectorAll("[data-formie-tab]"));
 }
-function be(e, t, n) {
+function xe(e, t, n) {
 	return t < 0 || n < 1 ? 0 : (e.dataset.formieProgressCalculation === "page-position" ? "page-position" : "completion") == "page-position" ? Math.round((t + 1) / n * 100) : Math.round(t / n * 100);
 }
-function xe(e) {
+function Se(e) {
 	return e <= 0 ? "start" : e >= 100 ? "end" : "middle";
 }
-function Se(e) {
+function Ce(e) {
 	return (e.dataset.formieCompletionBehavior || e.dataset.formieSubmitAction || "").trim();
 }
 function L(e, t) {
-	return t.completion ? String(t.completion.behavior) : Se(e);
+	return t.completion ? String(t.completion.behavior) : Ce(e);
 }
 function R(e) {
 	let t = e.dataset.formieHideFormAfterSubmit ?? e.dataset.formieSubmitActionFormHide;
@@ -293,35 +299,35 @@ function B(e) {
 	let t = A.get(e);
 	typeof t == "number" && (window.clearTimeout(t), A.delete(e));
 }
-function Ce(e, t) {
+function we(e, t) {
 	j.has(e) || j.set(e, e.innerHTML), e.textContent = t;
 }
 function V(e) {
 	let t = j.get(e);
 	t !== void 0 && (e.innerHTML = t, j.delete(e));
 }
-function we(e, t) {
-	let n = e.querySelector("[data-formie-progress-bar]"), r = e.querySelector("[data-formie-progress-value]");
-	n && (n.style.width = `${t}%`, n.setAttribute("aria-valuenow", `${t}`), n.setAttribute("data-formie-progress-state", xe(t)), r && (r.textContent = `${t}%`, r.setAttribute("data-formie-progress-value", `${t}`)));
-}
 function Te(e, t) {
+	let n = e.querySelector("[data-formie-progress-bar]"), r = e.querySelector("[data-formie-progress-value]");
+	n && (n.style.width = `${t}%`, n.setAttribute("aria-valuenow", `${t}`), n.setAttribute("data-formie-progress-state", Se(t)), r && (r.textContent = `${t}%`, r.setAttribute("data-formie-progress-value", `${t}`)));
+}
+function Ee(e, t) {
 	if (!t) return;
 	let n = (e.dataset.formieLoadingIndicator || "").trim();
 	if (n) {
 		if (t.setAttribute("data-formie-loading-indicator", n), n === "spinner") a(t, e, "loading", !0), V(t), t.removeAttribute("data-formie-loading-text");
 		else if (n === "text") {
 			let n = (e.dataset.formieLoadingIndicatorText || "").trim(), r = t.textContent?.trim() || "", i = n || r;
-			t.setAttribute("data-formie-loading-text", i), Ce(t, i);
+			t.setAttribute("data-formie-loading-text", i), we(t, i);
 		} else V(t), t.removeAttribute("data-formie-loading-text");
 	}
 }
 function H(e) {
 	return Array.from(e.querySelectorAll("[data-formie-action]"));
 }
-function Ee(e, t) {
+function De(e, t) {
 	e.getAttribute("data-formie-loading") !== "true" && (e.setAttribute("data-formie-loading", "true"), H(e).forEach((e) => {
 		"disabled" in e && (e.disabled ? e.setAttribute("data-formie-was-disabled", "true") : e.removeAttribute("data-formie-was-disabled"), e.disabled = !0);
-	}), t && (t.setAttribute("data-formie-loading", "true"), Te(e, t)));
+	}), t && (t.setAttribute("data-formie-loading", "true"), Ee(e, t)));
 }
 function U(e) {
 	e.removeAttribute("data-formie-loading"), H(e).forEach((t) => {
@@ -335,7 +341,7 @@ function U(e) {
 	t.formieValidation && k(e, t.formieValidation);
 }
 function W(e, t) {
-	let n = I(e), r = ye(e), i = n.findIndex((e) => e.getAttribute("data-formie-page-id") === t);
+	let n = I(e), r = be(e), i = n.findIndex((e) => e.getAttribute("data-formie-page-id") === t);
 	n.forEach((n) => {
 		n.getAttribute("data-formie-page-id") === t ? (n.removeAttribute("data-formie-page-hidden"), o(n, e, "pageHidden")) : (n.setAttribute("data-formie-page-hidden", "true"), s(n, e, "pageHidden"));
 	}), r.forEach((n, r) => {
@@ -343,11 +349,11 @@ function W(e, t) {
 		a(n, e, "tabCurrent", c), a(n, e, "tabComplete", l);
 		let u = n.querySelector("[data-formie-tab-link]");
 		u && (a(u, e, "tabLinkCurrent", c), c ? o(u, e, "tabLinkInactive") : s(u, e, "tabLinkInactive")), c ? n.setAttribute("aria-current", "page") : n.removeAttribute("aria-current"), l ? n.setAttribute("data-formie-tab-complete", "true") : n.removeAttribute("data-formie-tab-complete");
-	}), i > -1 && n.length > 0 && we(e, be(e, i, n.length)), N(e, "pageId", t), w(e);
+	}), i > -1 && n.length > 0 && Te(e, xe(e, i, n.length)), N(e, "pageId", t), T(e);
 	let c = e;
 	c.formieValidation && k(e, c.formieValidation);
 }
-function De(e, t) {
+function Oe(e, t) {
 	if (t.meta?.resetSubmissionIdentity === !0) {
 		F(e, "submissionId"), F(e, "submissionUid"), F(e, "progressId"), N(e, "expectedVersion", "0"), G(e);
 		return;
@@ -361,18 +367,18 @@ function De(e, t) {
 }
 function G(e) {
 	let t = e.getAttribute("action");
-	t && e.setAttribute("action", _e(t, "resumeToken"));
+	t && e.setAttribute("action", ve(t, "resumeToken"));
 	try {
 		let e = new URL(window.location.href);
 		if (!e.searchParams.has("resumeToken")) return;
 		e.searchParams.delete("resumeToken"), window.history.replaceState({}, document.title, `${e.pathname}${e.search}${e.hash}`);
 	} catch {}
 }
-function Oe(e, t) {
+function ke(e, t) {
 	let n = t.meta?.resumeUrl;
 	if (typeof n != "string" || n.trim() === "") return;
 	let r = n.trim();
-	if (ve(r)) {
+	if (ye(r)) {
 		e.getAttribute("action") && e.setAttribute("action", r);
 		try {
 			let e = new URL(r, window.location.href);
@@ -386,12 +392,12 @@ function K(t, n = {}) {
 		e instanceof HTMLInputElement ? e.remove() : e.removeAttribute("data-formie-summary-token");
 	}), t.querySelectorAll("[data-formie-summary-blocks]").forEach((e) => e.replaceChildren()), t.querySelectorAll("[data-formie-file-upload-entry]").forEach((e) => e.remove()), t.querySelectorAll("[data-formie-file-summary], [data-formie-upload-manager-list]").forEach((e) => e.replaceChildren()), t.querySelectorAll("[data-formie-upload-manager-status]").forEach((e) => {
 		e.value = "";
-	}), n.preserveHiddenState || z(t, !1), F(t, "submissionId"), N(t, "expectedVersion", "0"), F(t, "submissionUid"), F(t, "progressId"), F(t, "pageId"), G(t), ue(t), r?.resetLiveState(), i ? (W(t, i), y(t, e("reset"), void 0)) : (w(t), y(t, e("reset"), void 0));
+	}), n.preserveHiddenState || z(t, !1), F(t, "submissionId"), N(t, "expectedVersion", "0"), F(t, "submissionUid"), F(t, "progressId"), F(t, "pageId"), G(t), le(t), r?.resetLiveState(), i ? (W(t, i), y(t, e("reset"), void 0)) : (T(t), y(t, e("reset"), void 0));
 }
-function ke(e) {
-	return e.code === ge || e.meta?.resetState === !0;
+function Ae(e) {
+	return e.code === _e || e.meta?.resetState === !0;
 }
-function Ae(e, t) {
+function je(e, t) {
 	let n = t.submitData, i = /* @__PURE__ */ new Set(), a = !1;
 	if (Array.isArray(n) && n.length > 0) {
 		let t = n.filter((e) => typeof e == "object" && !!e && "event" in e && typeof e.event == "string");
@@ -409,26 +415,26 @@ function Ae(e, t) {
 		detail: { data: c }
 	})), M.log("Dispatching fallback payment action event.", { eventName: l })), { hasPaymentFollowUpEvent: a };
 }
-function je(e, t, n) {
+function Me(e, t, n) {
 	if (M.log("Applying submit result state.", {
 		ok: t.ok,
 		action: n,
 		code: t.code,
 		hasRedirect: !!t.redirect?.url,
 		hasSubmitData: Array.isArray(t.submitData) && t.submitData.length > 0
-	}), ke(t)) {
+	}), Ae(t)) {
 		K(e), M.log("Resetting state due to stale/reset marker.");
 		return;
 	}
 	t.payment?.action?.type === "redirect" && t.payment.action.url && P(e, "payment-redirect");
-	let r = Ae(e, t);
+	let r = je(e, t);
 	if (!t.ok && t.redirect?.url && !r.hasPaymentFollowUpEvent) M.log("Applying redirect fallback for failed result.", {
 		url: t.redirect.url,
 		target: t.redirect.target
 	}), B(e), t.redirect.target === "new-tab" ? window.open(t.redirect.url, "_blank", "noopener,noreferrer") : (P(e, "redirect"), window.location.href = t.redirect.url);
-	else if (De(e, t), !t.ok) M.log("Non-redirect failure; keeping current form state."), B(e);
-	else if (Array.isArray(t.clientEvents) && t.clientEvents.length > 0 ? C(e, t.clientEvents) : oe(e, n), t.nextPage?.id) B(e), e.formieValidation?.resetLiveState(), W(e, t.nextPage.id), y(e, "formie:page:navigate:after", { pageId: t.nextPage.id }), M.log("Advanced to next page.", { nextPageId: t.nextPage.id });
-	else if (n === "save") B(e), Oe(e, t), M.log("Applied save/resume token state.");
+	else if (Oe(e, t), !t.ok) M.log("Non-redirect failure; keeping current form state."), B(e);
+	else if (Array.isArray(t.clientEvents) && t.clientEvents.length > 0 ? C(e, t.clientEvents) : w(e, n), t.nextPage?.id) B(e), e.formieValidation?.resetLiveState(), W(e, t.nextPage.id), y(e, "formie:page:navigate:after", { pageId: t.nextPage.id }), M.log("Advanced to next page.", { nextPageId: t.nextPage.id });
+	else if (n === "save") B(e), ke(e, t), M.log("Applied save/resume token state.");
 	else if (t.completion && n === "submit" && !t.redirect?.url) {
 		let n = L(e, t), r = n === "message" && R(e);
 		if (n === "reload") {
@@ -447,7 +453,7 @@ function je(e, t, n) {
 }
 //#endregion
 //#region src/js/modules/payments/constants.ts
-var Me = 2500, Ne = {
+var Ne = 2500, Pe = {
 	bpoint: ["bpointToken"],
 	stripe: ["stripePaymentIntentId"],
 	paypal: ["paypalOrderId", "paypalAuthId"],
@@ -462,18 +468,18 @@ var Me = 2500, Ne = {
 };
 //#endregion
 //#region src/js/utils/fields.ts
-function Pe(e) {
+function Fe(e) {
 	return e.replace("{field:", "").replace("{", "").replace("}", "").replace("]", "").split("[").join("][");
 }
-function Fe(e) {
-	return `fields[${Pe(e)}]`;
+function Ie(e) {
+	return `fields[${Fe(e)}]`;
 }
-function Ie(e, t) {
-	let n = Fe(t), r = Array.from(e.querySelectorAll(`[name="${n}"]`)), i = Array.from(e.querySelectorAll(`[name="${n}[]"]`));
+function Le(e, t) {
+	let n = Ie(t), r = Array.from(e.querySelectorAll(`[name="${n}"]`)), i = Array.from(e.querySelectorAll(`[name="${n}[]"]`));
 	return (i.length ? i : r).filter((e) => e instanceof HTMLElement);
 }
 function q(e, t) {
-	let n = Ie(e, t);
+	let n = Le(e, t);
 	for (let e of n) {
 		let t = e.closest("[data-formie-field-handle]")?.querySelector("[data-formie-field-label]")?.childNodes[0]?.textContent?.trim();
 		if (t) return t;
@@ -509,7 +515,7 @@ function Z(e, t) {
 		missingSuffix: n
 	};
 }
-async function Le(e, t, n) {
+async function Re(e, t, n) {
 	let r = Z(e, t);
 	if (r.ok) return r;
 	let i = Date.now() + Math.max(n, 0);
@@ -522,22 +528,22 @@ async function Le(e, t, n) {
 }
 //#endregion
 //#region src/js/modules/payments/host.ts
-var Re = /* @__PURE__ */ new Set([
+var ze = /* @__PURE__ */ new Set([
 	"handle",
 	"requiredInputSuffixes",
 	"waitForValueMs",
 	"errorMessage"
-]), ze = "[data-payment-success]", Be = "[data-payment-error]";
-function Ve(e, t) {
+]), Be = "[data-payment-success]", Ve = "[data-payment-error]";
+function He(e, t) {
 	return (typeof t.handle == "string" && t.handle.trim() !== "" ? t.handle.trim() : "") || e;
 }
-function He(e, t, n) {
-	let r = t || {}, i = Object.entries(r).reduce((e, [t, n]) => (Re.has(t) || (e[t] = n), e), {}), a = Array.isArray(r.requiredInputSuffixes) ? r.requiredInputSuffixes.map(String).filter(Boolean) : n.defaultRequiredInputSuffixes || [], o = Number(r.waitForValueMs ?? n.defaultWaitForValueMs ?? 2500), s = typeof r.errorMessage == "string" && r.errorMessage.trim() !== "" ? r.errorMessage.trim() : "Payment authorization is incomplete.";
+function Ue(e, t, n) {
+	let r = t || {}, i = Object.entries(r).reduce((e, [t, n]) => (ze.has(t) || (e[t] = n), e), {}), a = Array.isArray(r.requiredInputSuffixes) ? r.requiredInputSuffixes.map(String).filter(Boolean) : n.defaultRequiredInputSuffixes || [], o = Number(r.waitForValueMs ?? n.defaultWaitForValueMs ?? 2500), s = typeof r.errorMessage == "string" && r.errorMessage.trim() !== "" ? r.errorMessage.trim() : "Payment authorization is incomplete.";
 	return {
-		handle: Ve(e, r),
+		handle: He(e, r),
 		transport: {
 			requiredInputSuffixes: a,
-			waitForValueMs: Number.isFinite(o) ? o : Me,
+			waitForValueMs: Number.isFinite(o) ? o : Ne,
 			errorMessage: s
 		},
 		provider: i
@@ -548,7 +554,7 @@ function Q(e, t, n) {
 		e.removeEventListener(t, n);
 	};
 }
-function Ue(e, t) {
+function We(e, t) {
 	let n = e.target, r = e.form, i = e.root, a = r || i, o = t.transport.requiredInputSuffixes, c = () => m(r || i), h = (e) => {
 		let t = p(e, c()).value;
 		return Array.isArray(t) ? t[0] || "" : String(t || "");
@@ -565,25 +571,25 @@ function Ue(e, t) {
 			}
 		},
 		addError: (e) => {
-			let t = n.querySelector("[data-formie-field-type] > div, [data-field-type] > div") || n, a = t.querySelector(Be);
+			let t = n.querySelector("[data-formie-field-type] > div, [data-field-type] > div") || n, a = t.querySelector(Ve);
 			a && a.remove();
 			let o = document.createElement("div");
 			o.setAttribute("data-payment-error", ""), o.textContent = e, s(o, r || i, "fieldError"), t.appendChild(o);
 		},
 		removeError: () => {
-			n.querySelector(Be)?.remove();
+			n.querySelector(Ve)?.remove();
 		},
 		addSuccess: (e) => {
-			let t = n.querySelector("[data-formie-field-type] > div, [data-field-type] > div") || n, a = t.querySelector(ze);
+			let t = n.querySelector("[data-formie-field-type] > div, [data-field-type] > div") || n, a = t.querySelector(Be);
 			a && a.remove();
 			let o = document.createElement("div");
 			o.setAttribute("data-payment-success", ""), o.textContent = e, s(o, r || i, "successMessage"), t.appendChild(o);
 		},
 		removeSuccess: () => {
-			n.querySelector(ze)?.remove();
+			n.querySelector(Be)?.remove();
 		},
 		hasToken: () => Z(a, o).ok,
-		waitForToken: (e = t.transport.waitForValueMs) => Le(a, o, e).then((e) => e.ok),
+		waitForToken: (e = t.transport.waitForValueMs) => Re(a, o, e).then((e) => e.ok),
 		getFieldValue: (e, t = "string") => {
 			let n = h(e);
 			return t === "float" || t === "int" || t === "number" ? J(n) : n;
@@ -691,8 +697,8 @@ function Ue(e, t) {
 //#endregion
 //#region src/js/modules/payments/factories.ts
 var $ = i("payments");
-function We(e) {
-	let t = e.defaultRequiredInputSuffixes ?? Ne[e.moduleId.split(":")[1]] ?? [];
+function Ge(e) {
+	let t = e.defaultRequiredInputSuffixes ?? Pe[e.moduleId.split(":")[1]] ?? [];
 	return {
 		moduleId: e.moduleId,
 		version: 2,
@@ -709,7 +715,7 @@ function We(e) {
 					await o.destroy();
 				} catch {}
 			}
-			let s = He(e.moduleId.split(":")[1], n.options || {}, { defaultRequiredInputSuffixes: t }), c = Ue(n, s), l = {
+			let s = Ue(e.moduleId.split(":")[1], n.options || {}, { defaultRequiredInputSuffixes: t }), c = We(n, s), l = {
 				...n,
 				options: s,
 				services: c
@@ -818,7 +824,7 @@ function We(e) {
 						return;
 					}
 					if (s.transport.requiredInputSuffixes.length === 0) return;
-					let i = await Le(n.form || n.root, s.transport.requiredInputSuffixes, s.transport.waitForValueMs);
+					let i = await Re(n.form || n.root, s.transport.requiredInputSuffixes, s.transport.waitForValueMs);
 					i.ok || ($.warn("Required payment input(s) missing.", {
 						moduleId: e.moduleId,
 						handle: s.handle,
@@ -853,6 +859,6 @@ function We(e) {
 }
 //#endregion
 //#region src/js/modules/payments/api.ts
-var Ge = We;
+var Ke = Ge;
 //#endregion
-export { v as _, U as a, he as c, T as d, w as f, y as g, _ as h, je as i, E as l, ae as m, X as n, z as o, oe as p, W as r, Ee as s, Ge as t, ce as u };
+export { y as _, U as a, ge as c, E as d, ce as f, _ as g, ae as h, Me as i, ue as l, w as m, X as n, z as o, T as p, W as r, De as s, Ke as t, de as u, v };

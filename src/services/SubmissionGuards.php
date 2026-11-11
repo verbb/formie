@@ -31,6 +31,7 @@ class SubmissionGuards extends Component
     public const REPLAY_CACHE_DURATION = 86400;
 
     public const FORM_STARTED_AT_PARAM = 'formStartedAt';
+    public const FORM_SUBMITTED_AT_PARAM = 'formSubmittedAt';
 
     public const GLOBAL_THROTTLE_CACHE_KEY = 'formie.global-submission-throttle';
 
@@ -284,7 +285,7 @@ class SubmissionGuards extends Component
             return Craft::t('formie', 'Minimum submit time param missing.');
         }
 
-        $elapsedSeconds = (microtime(true) * 1000 - (float)$startedAt) / 1000;
+        $elapsedSeconds = $this->_getElapsedSeconds((float)$startedAt);
         $minimumSeconds = max(1, (int)$settings->minimumSubmitTime);
 
         if ($elapsedSeconds < $minimumSeconds) {
@@ -302,7 +303,7 @@ class SubmissionGuards extends Component
             return null;
         }
 
-        $elapsedSeconds = (microtime(true) * 1000 - (float)$startedAt) / 1000;
+        $elapsedSeconds = $this->_getElapsedSeconds((float)$startedAt);
         $maxSeconds = max(1, (int)$settings->formSubmitExpiration);
 
         if ($elapsedSeconds > $maxSeconds) {
@@ -310,6 +311,20 @@ class SubmissionGuards extends Component
         }
 
         return null;
+    }
+
+    private function _getElapsedSeconds(float $startedAt): float
+    {
+        $submittedAt = $this->_getBodyParam(self::FORM_SUBMITTED_AT_PARAM);
+
+        // Both browser timestamps come from the visitor's clock, so their difference holds
+        // even when that clock disagrees with the server's. Without a usable submit time,
+        // measure against the server clock instead.
+        if (is_numeric($submittedAt) && (float)$submittedAt >= $startedAt) {
+            return ((float)$submittedAt - $startedAt) / 1000;
+        }
+
+        return (microtime(true) * 1000 - $startedAt) / 1000;
     }
 
     private function _getBodyParam(string $name): mixed

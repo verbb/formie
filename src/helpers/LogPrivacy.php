@@ -189,6 +189,7 @@ final class LogPrivacy
         'expectedVersion',
         'formId',
         'formStartedAt',
+        'formSubmittedAt',
         'formieUploadPayloadVersion',
         'handle',
         'mode',

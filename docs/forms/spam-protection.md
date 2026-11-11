@@ -143,7 +143,7 @@ Honeypot, minimum submit time, and replay protection are enabled by default. For
 
 Guards are not captcha integrations. They do not appear in the form builder’s captcha picker, and they do not use provider credentials.
 
-Formie checks these safeguards before processing the form, including for logged-in visitors. A failed honeypot or timing check can return a fake success when that spam policy is configured, but it does not create a saved submission marked as spam. Visitors can correct validation errors and submit again. If a connection fails after a successful submission, retrying the same request recovers its result rather than creating a duplicate.
+Formie checks these safeguards before processing the form, including for logged-in visitors. A failed honeypot or timing check can return a fake success when that spam policy is configured, but it does not create a saved submission marked as spam. Formie writes each rejection and its reason to the Formie log. Visitors can correct validation errors and submit again. If a connection fails after a successful submission, retrying the same request recovers its result rather than creating a duplicate.
 
 Custom REST and GraphQL clients must send the session tokens returned when they load the form. See [Rendering Forms](/graphql/rendering-forms) for client setup.
 
@@ -157,13 +157,13 @@ If you customise the name, make sure it does not match any field handle or name 
 
 ### Minimum Submit Time
 
-The browser package records when a form instance was first mounted and sends that value as `formStartedAt`. Formie compares it against the configured minimum (in seconds) on the server.
+The browser package records when a form instance was first mounted and sends that value as `formStartedAt`, along with the time the visitor submitted as `formSubmittedAt`. Formie compares the time between them against the configured minimum (in seconds) on the server. Both values come from the visitor's own clock, so a device clock that runs fast or slow doesn't affect the result. When `formSubmittedAt` is missing, Formie measures from `formStartedAt` to the server's current time instead.
 
 Very fast automated submissions are rejected before they are saved. Real users who submit immediately after the page loads may also be caught if the minimum is set too high, so tune this value for your forms.
 
 ### Form Submit Expiration
 
-Form submit expiration uses the same `formStartedAt` timestamp as minimum submit time. If the elapsed time exceeds the configured maximum (in seconds), the request is rejected before the submission is saved.
+Form submit expiration uses the same `formStartedAt` and `formSubmittedAt` timestamps as minimum submit time. If the elapsed time exceeds the configured maximum (in seconds), the request is rejected before the submission is saved.
 
 Use this when you want to reject stale form sessions left open for hours or days. It is disabled by default.
 

@@ -29,6 +29,27 @@ export function ensureFormStartedAt(form: HTMLFormElement): void {
     startedAtInput.value = startedAt;
 }
 
+export function stampFormSubmittedAt(form: HTMLFormElement): void {
+    const startedAtInput = form.querySelector<HTMLInputElement>('input[name="formStartedAt"]');
+
+    if (!startedAtInput) {
+        return;
+    }
+
+    let submittedAtInput = form.querySelector<HTMLInputElement>('input[name="formSubmittedAt"]');
+
+    if (!submittedAtInput) {
+        submittedAtInput = document.createElement('input');
+        submittedAtInput.type = 'hidden';
+        submittedAtInput.name = 'formSubmittedAt';
+        startedAtInput.after(submittedAtInput);
+    }
+
+    // The server measures elapsed time between the two browser timestamps, so a
+    // device clock that disagrees with the server's doesn't affect the result.
+    submittedAtInput.value = String(Date.now());
+}
+
 export function resetFormStartedAt(form: HTMLFormElement): void {
     const input = form.querySelector<HTMLInputElement>('input[name="formStartedAt"]');
 
