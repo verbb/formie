@@ -11,6 +11,7 @@
 - Fixed GraphQL queries failing for every schema that includes a form with an Address (Google Maps) or Maps custom field.
 - Fixed submission and report exports failing when action URLs contain query parameters.
 - Fixed the Attach Assets picker for email notifications opening with no volumes or assets.
+- Fixed integration settings linking to a missing documentation page instead of each provider’s setup guide. ([#3113](https://github.com/verbb/formie/issues/3113))
 
 ## 4.0.8 - 2026-11-10
 

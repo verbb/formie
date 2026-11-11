@@ -379,6 +379,31 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public const CONNECT_FAIL = 'fail';
     public const OAUTH_CALLBACK_ACTION = 'formie/integrations/callback';
 
+    // Documentation page names that differ from the lowercased class name.
+    private const DOCUMENTATION_PAGES = [
+        \verbb\formie\integrations\addressproviders\Google::class => 'google-places',
+        \verbb\formie\integrations\automations\WebRequest::class => 'web-request',
+        \verbb\formie\integrations\captchas\CaptchaEu::class => 'captcha-eu',
+        \verbb\formie\integrations\captchas\FriendlyCaptcha::class => 'friendly-captcha',
+        \verbb\formie\integrations\captchas\Turnstile::class => 'cloudflare-turnstile',
+        \verbb\formie\integrations\crm\Agile::class => 'agile-crm',
+        \verbb\formie\integrations\crm\IterableIntegration::class => 'iterable',
+        \verbb\formie\integrations\crm\Mercury::class => 'mercury-by-connective',
+        \verbb\formie\integrations\crm\MicrosoftDynamics365::class => 'microsoft-dynamics-365',
+        \verbb\formie\integrations\crm\OneCrm::class => '1crm',
+        \verbb\formie\integrations\elements\CalendarEvent::class => 'calendar-event',
+        \verbb\formie\integrations\elements\EventsEvent::class => 'events-event',
+        \verbb\formie\integrations\emailmarketing\Brevo::class => 'brevo-sendinblue',
+        \verbb\formie\integrations\emailmarketing\Campaign::class => 'campaign-plugin',
+        \verbb\formie\integrations\emailmarketing\CampaignMonitor::class => 'campaign-monitor',
+        \verbb\formie\integrations\emailmarketing\ConstantContact::class => 'constant-contact',
+        \verbb\formie\integrations\emailmarketing\CustomerIo::class => 'customer-io',
+        \verbb\formie\integrations\emailmarketing\IterableIntegration::class => 'iterable',
+        \verbb\formie\integrations\helpdesk\HelpScout::class => 'help-scout',
+        \verbb\formie\integrations\miscellaneous\GoogleSheets::class => 'google-sheets',
+        \verbb\formie\integrations\payments\PayWay::class => 'westpac-payway',
+    ];
+
 
     // Traits
     // =========================================================================
@@ -632,6 +657,28 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function getCategoryHandle(): string
     {
         return StringHelper::toKebabCase($this->getCategory());
+    }
+
+    /**
+     * Returns the provider's setup guide, or null for integrations Formie doesn't document.
+     */
+    public function getDocumentationUrl(): ?string
+    {
+        // The docs have one page per provider and no category index, so third-party providers get no link.
+        if (!str_starts_with(static::class, 'verbb\\formie\\integrations\\') || str_contains(static::class, '@anonymous')) {
+            return null;
+        }
+
+        $category = trim((string)$this->getCategoryHandle());
+
+        if ($category === '') {
+            return null;
+        }
+
+        $page = self::DOCUMENTATION_PAGES[static::class] ?? strtolower(static::getShortClassName());
+
+        // Versioned so the link keeps pointing at Formie 4 docs after the next major release.
+        return "https://verbb.io/craft-plugins/formie/docs/v4/integrations/{$category}/{$page}";
     }
 
     public function getCpIconPath(): string

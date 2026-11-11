@@ -1,11 +1,13 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% set category = integration.getCategory() | kebab %}
+{% set documentationUrl = integration.getDocumentationUrl() %}
 
-<div class="fui-settings-block">
-    {{ 'To connect to {name}, follow our <a href="{link}" target="_blank" rel="noopener">{name} integration guide</a>.' | t('formie', { name: integration.displayName(), link: 'https://verbb.io/craft-plugins/formie/docs/integrations/' ~ category ~ '#' ~ (integration.handle | kebab) }) | md }}
-</div>
+{% if documentationUrl %}
+    <div class="fui-settings-block">
+        {{ 'To connect to {name}, follow our <a href="{link}" target="_blank" rel="noopener">{name} integration guide</a>.' | t('formie', { name: integration.displayName(), link: documentationUrl }) | md }}
+    </div>
+{% endif %}
 
 {% if integration.supportsOauthConnection() %}
     {{ macros.proxyField(fieldVariables, 'textField', {
