@@ -10,6 +10,7 @@
 - Fixed Forms fields returning forms a GraphQL schema can’t view, causing query errors for schemas limited to certain forms.
 - Fixed GraphQL queries failing for every schema that includes a form with an Address (Google Maps) or Maps custom field.
 - Fixed submission and report exports failing when action URLs contain query parameters.
+- Fixed the Attach Assets picker for email notifications opening with no volumes or assets.
 
 ## 4.0.8 - 2026-11-10
 

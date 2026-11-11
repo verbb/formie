@@ -1436,7 +1436,8 @@ class SchemaHelper
 
                 if (!isset($node['sources']) && isset($config['sources'])) {
                     $sources = $config['sources'];
-                    $node['sources'] = $sources === '*' ? ['*'] : (is_array($sources) ? $sources : [$sources]);
+                    // Craft treats a source list as exact keys, and most element types have no `*` source, so send null for all sources.
+                    $node['sources'] = $sources === '*' ? null : (is_array($sources) ? $sources : [$sources]);
                 }
 
                 if (!isset($node['criteria']) && isset($config['criteria'])) {
