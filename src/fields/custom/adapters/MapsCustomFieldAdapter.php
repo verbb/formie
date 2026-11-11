@@ -24,6 +24,7 @@ use ether\simplemap\fields\MapField as CraftMapsField;
 use ether\simplemap\models\Map as CraftMapsValue;
 use ether\simplemap\SimpleMap;
 use GraphQL\Type\Definition\InputObjectType;
+use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 
 class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
@@ -160,22 +161,31 @@ class MapsCustomFieldAdapter extends AbstractCustomFieldAdapter
 
     public function getContentGqlType(CustomField $field): Type|array
     {
-        return [
-            'address' => Type::string(),
-            'lat' => Type::float(),
-            'lng' => Type::float(),
-            'zoom' => Type::int(),
-            'parts' => [
-                'number' => Type::string(),
+        $typeName = 'FormieCustomMapsField';
+        $partsTypeName = 'FormieCustomMapsFieldParts';
+
+        return GqlEntityRegistry::getOrCreate($typeName, fn() => new ObjectType([
+            'name' => $typeName,
+            'fields' => [
                 'address' => Type::string(),
-                'city' => Type::string(),
-                'postcode' => Type::string(),
-                'county' => Type::string(),
-                'state' => Type::string(),
-                'country' => Type::string(),
+                'lat' => Type::float(),
+                'lng' => Type::float(),
+                'zoom' => Type::int(),
+                'parts' => GqlEntityRegistry::getOrCreate($partsTypeName, fn() => new ObjectType([
+                    'name' => $partsTypeName,
+                    'fields' => [
+                        'number' => Type::string(),
+                        'address' => Type::string(),
+                        'city' => Type::string(),
+                        'postcode' => Type::string(),
+                        'county' => Type::string(),
+                        'state' => Type::string(),
+                        'country' => Type::string(),
+                    ],
+                ])),
+                'what3words' => Type::string(),
             ],
-            'what3words' => Type::string(),
-        ];
+        ]));
     }
 
     public function getContentGqlMutationArgumentType(CustomField $field): Type|array

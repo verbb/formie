@@ -20,6 +20,7 @@ use doublesecretagency\googlemaps\fields\AddressField as CraftGoogleMapsAddressF
 use doublesecretagency\googlemaps\helpers\GoogleMaps;
 use doublesecretagency\googlemaps\models\Address as CraftGoogleMapsAddressValue;
 use GraphQL\Type\Definition\InputObjectType;
+use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 
 class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
@@ -149,23 +150,28 @@ class GoogleMapsCustomFieldAdapter extends AbstractCustomFieldAdapter
 
     public function getContentGqlType(CustomField $field): Type|array
     {
-        return [
-            'formatted' => Type::string(),
-            'name' => Type::string(),
-            'street1' => Type::string(),
-            'street2' => Type::string(),
-            'city' => Type::string(),
-            'state' => Type::string(),
-            'zip' => Type::string(),
-            'neighborhood' => Type::string(),
-            'county' => Type::string(),
-            'country' => Type::string(),
-            'countryCode' => Type::string(),
-            'placeId' => Type::string(),
-            'lat' => Type::float(),
-            'lng' => Type::float(),
-            'zoom' => Type::int(),
-        ];
+        $typeName = 'FormieCustomGoogleMapField';
+
+        return GqlEntityRegistry::getOrCreate($typeName, fn() => new ObjectType([
+            'name' => $typeName,
+            'fields' => [
+                'formatted' => Type::string(),
+                'name' => Type::string(),
+                'street1' => Type::string(),
+                'street2' => Type::string(),
+                'city' => Type::string(),
+                'state' => Type::string(),
+                'zip' => Type::string(),
+                'neighborhood' => Type::string(),
+                'county' => Type::string(),
+                'country' => Type::string(),
+                'countryCode' => Type::string(),
+                'placeId' => Type::string(),
+                'lat' => Type::float(),
+                'lng' => Type::float(),
+                'zoom' => Type::int(),
+            ],
+        ]));
     }
 
     public function getContentGqlMutationArgumentType(CustomField $field): Type|array
