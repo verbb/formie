@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.2.42 - 2026-11-11
 
 ### Fixed
 - Fixed a moderate-severity authorization vulnerability. ([GHSA-3wwv-932m-wxrf](https://github.com/verbb/formie/security/advisories/GHSA-3wwv-932m-wxrf))
