@@ -8,6 +8,7 @@
 ### Fixed
 - Fixed an “Array to string conversion” error when saving a form with a Name field whose Prefix options share a label, such as the default options in German. ([#3111](https://github.com/verbb/formie/issues/3111))
 - Fixed Rich Text field links set to open in a new tab opening in the same tab. ([#3112](https://github.com/verbb/formie/issues/3112))
+- Fixed Forms fields appearing empty to users without permission to view the related forms, and removing those forms when the user saved the element. ([#3114](https://github.com/verbb/formie/issues/3114))
 - Fixed GraphQL token requests sent to a control panel URL returning no forms for `formieForms` queries and Forms fields. ([#3109](https://github.com/verbb/formie/issues/3109))
 - Fixed Forms fields returning forms a GraphQL schema can’t view, causing query errors for schemas limited to certain forms.
 - Fixed GraphQL queries failing for every schema that includes a form with an Address (Google Maps) or Maps custom field.

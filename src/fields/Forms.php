@@ -9,6 +9,7 @@ use verbb\formie\gql\resolvers\FormResolver;
 use verbb\formie\helpers\Gql as GqlHelper;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\db\Table;
 use craft\elements\ElementCollection;
 use craft\fields\BaseRelationField;
@@ -66,6 +67,19 @@ class Forms extends BaseRelationField
             'args' => FormArguments::getArguments(),
             'resolve' => FormResolver::class . '::resolve',
         ];
+    }
+
+    public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
+    {
+        $value = parent::normalizeValue($value, $element);
+
+        // The CP form index only lists forms the user can view, but a relation's value isn't that index. Without this,
+        // editors who can't view the related forms see an empty field and remove the relations when they save.
+        if ($value instanceof FormQuery) {
+            $value->withoutCpIndexScope();
+        }
+
+        return $value;
     }
 
     public function getEagerLoadingGqlConditions(): ?array
