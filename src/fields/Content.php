@@ -107,7 +107,10 @@ class Content extends CosmeticField
         $submissionElement = $submission instanceof Submission ? $submission : null;
         $html = $this->content->toHtml($submissionElement, false);
 
-        return HtmlPurifier::process($html);
+        // Keep the editor's "Open link in new tab" option. HTML Purifier adds `rel="noopener noreferrer"` to these links.
+        return HtmlPurifier::process($html, [
+            'Attr.AllowedFrameTargets' => ['_blank'],
+        ]);
     }
 
     public function defineFormBuilderPreviewSchema(): array
