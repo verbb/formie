@@ -578,15 +578,17 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
                 continue;
             }
 
-            $label = (string)($option['label'] ?? '');
-            $value = (string)($option['value'] ?? '');
+            // Nested layouts validate their fields more than once per save, so an option may already carry an error marker.
+            $label = (string)(is_array($option['label'] ?? null) ? ($option['label']['value'] ?? '') : ($option['label'] ?? ''));
+            $value = (string)(is_array($option['value'] ?? null) ? ($option['value']['value'] ?? '') : ($option['value'] ?? ''));
 
             // Ignore incomplete placeholder rows from the form builder.
             if ($label === '' && $value === '') {
                 continue;
             }
 
-            if (isset($labels[$optgroup][$label])) {
+            // Only mark labels as errors when they're not allowed to repeat, so the marker isn't saved with valid options.
+            if (isset($labels[$optgroup][$label]) && !$this->allowDuplicateLabels()) {
                 $option['label'] = [
                     'value' => $label,
                     'hasErrors' => true,
@@ -595,7 +597,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
                 $hasDuplicateLabels = true;
             }
 
-            if (isset($values[$value])) {
+            if (isset($values[$value]) && !$this->allowDuplicateValues()) {
                 $option['value'] = [
                     'value' => $value,
                     'hasErrors' => true,
