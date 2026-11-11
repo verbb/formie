@@ -210,8 +210,9 @@ class FormQuery extends ElementQuery
             $this->query->andWhere(Db::parseParam('pageCount', $this->pageCount));
         }
 
-        // Scope CP form indexes to the forms the current user can view or manage.
-        if (!$this->_skipCpIndexScope && Craft::$app->getRequest()->getIsCpRequest() && Craft::$app->edition !== CmsEdition::Solo) {
+        // Scope CP form indexes to the forms the current user can view or manage. GraphQL requests
+        // are authorized by their schema, including token requests sent to a CP action URL.
+        if (!$this->_skipCpIndexScope && Craft::$app->getRequest()->getIsCpRequest() && Craft::$app->edition !== CmsEdition::Solo && !$this->_isGraphqlRequest()) {
             $accessibleFormIds = Formie::$plugin->getPermissions()->getAccessibleFormIds(Craft::$app->getUser()->getIdentity());
 
             if ($accessibleFormIds !== null) {
@@ -279,6 +280,11 @@ class FormQuery extends ElementQuery
 
     // Private Methods
     // =========================================================================
+
+    private function _isGraphqlRequest(): bool
+    {
+        return Craft::$app->controller?->getUniqueId() === 'graphql';
+    }
 
     private function _resolveIndexSiteId(): ?int
     {

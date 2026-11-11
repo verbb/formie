@@ -6,6 +6,7 @@
 - Added `craft.formie.craftFormAttributes()` to enable themed browser validation on forms that submit directly to Craft actions.
 
 ### Fixed
+- Fixed GraphQL token requests sent to a control panel URL returning no forms for `formieForms` queries and Forms fields. ([#3109](https://github.com/verbb/formie/issues/3109))
 - Fixed submission and report exports failing when action URLs contain query parameters.
 
 ## 4.0.8 - 2026-11-10
