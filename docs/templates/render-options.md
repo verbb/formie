@@ -231,6 +231,8 @@ That would affect the generated script tag, for example:
 <script type="module" src="/dist/formie.js" nonce="abc123" defer></script>
 ```
 
+Some fields, such as Phone, add a `<style>` element from JavaScript. Formie gives it the same nonce, so your CSP's `style-src` needs to allow that nonce too. If your page has a `<meta name="csp-nonce">` tag, Formie uses its nonce instead.
+
 ### `jsAttributes`
 
 `jsAttributes` also lets you add attributes to generated script tags.

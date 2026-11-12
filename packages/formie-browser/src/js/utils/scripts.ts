@@ -11,7 +11,7 @@ type LoadExternalScriptOptions = {
 
 const scriptLoadCache = new Map<string, Promise<HTMLScriptElement>>();
 
-function getDocumentCspNonce(): string | null {
+export function getDocumentCspNonce(): string | null {
     const nonceMeta = document.querySelector('meta[property="csp-nonce"], meta[name="csp-nonce"]') as HTMLMetaElement | null;
 
     if (!nonceMeta) {

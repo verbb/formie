@@ -5,6 +5,9 @@
 ### Added
 - Added `craftForms()` to initialize inline validation on Craft action forms while preserving native submission.
 
+### Fixed
+- Fixed styles that Formie’s JavaScript adds for fields such as Phone being blocked by a Content Security Policy. They now use the nonce from a `csp-nonce` meta tag or the `scriptAttributes` render option. ([#3117](https://github.com/verbb/formie/issues/3117))
+
 ## 4.0.8 - 2026-11-09
 
 ### Changed

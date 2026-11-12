@@ -13,6 +13,7 @@
 - Fixed forms showing their success message without saving the submission or sending notifications when Minimum Submit Time is enabled and the visitor’s device clock runs ahead of the server.
 - Fixed an “Array to string conversion” error when saving a form with a Name field whose Prefix options share a label, such as the default options in German. ([#3111](https://github.com/verbb/formie/issues/3111))
 - Fixed forms failing to save after moving an existing field into a Group field added in the same edit, including “Reference has already been taken” errors for Name, Address and Date/Time fields. ([#3118](https://github.com/verbb/formie/issues/3118))
+- Fixed styles that Formie’s JavaScript adds for fields such as Phone being blocked by a Content Security Policy. They now use the nonce from a `csp-nonce` meta tag or the `scriptAttributes` render option. ([#3117](https://github.com/verbb/formie/issues/3117))
 - Fixed Rich Text field links set to open in a new tab opening in the same tab. ([#3112](https://github.com/verbb/formie/issues/3112))
 - Fixed Forms fields appearing empty to users without permission to view the related forms, and removing those forms when the user saved the element. ([#3114](https://github.com/verbb/formie/issues/3114))
 - Fixed GraphQL token requests sent to a control panel URL returning no forms for `formieForms` queries and Forms fields. ([#3109](https://github.com/verbb/formie/issues/3109))
