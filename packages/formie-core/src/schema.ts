@@ -159,14 +159,17 @@ export function defaultValueForField(field: ClientFieldDefinition): unknown {
 
     if (isRepeatableField(field)) {
         const minRows = Number(contract.minRows ?? 0) || 0;
+        // Prefilled rows arrive as the Repeater's default value.
+        const sentRows = Array.isArray(contract.defaultValue) ? contract.defaultValue : [];
+        const rows = sentRows
+            .filter((row): row is Record<string, unknown> => !!row && typeof row === 'object' && !Array.isArray(row))
+            .map((row) => ({ ...createRepeaterRowValue(field), ...row }));
 
-        if (minRows <= 0) {
-            return [];
+        while (rows.length < minRows) {
+            rows.push(createRepeaterRowValue(field));
         }
 
-        return Array.from({ length: minRows }, () => {
-            return createRepeaterRowValue(field);
-        });
+        return rows;
     }
 
     if (isFileField(field) || isMultiValueField(field)) {

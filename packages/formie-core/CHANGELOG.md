@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Fixed Repeater fields in client-rendered forms starting empty instead of showing the rows sent by the server, such as prefilled values. ([#3115](https://github.com/verbb/formie/issues/3115))
+
 ## 4.0.8 - 2026-11-09
 
 ### Changed

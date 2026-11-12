@@ -361,8 +361,12 @@ function N(e) {
 	if (e.type === "agree") return t.defaultValue ?? !1;
 	if (E(e)) return t.defaultValue && typeof t.defaultValue == "object" ? t.defaultValue : {};
 	if (D(e)) {
-		let n = Number(t.minRows ?? 0) || 0;
-		return n <= 0 ? [] : Array.from({ length: n }, () => oe(e));
+		let n = Number(t.minRows ?? 0) || 0, r = (Array.isArray(t.defaultValue) ? t.defaultValue : []).filter((e) => !!e && typeof e == "object" && !Array.isArray(e)).map((t) => ({
+			...oe(e),
+			...t
+		}));
+		for (; r.length < n;) r.push(oe(e));
+		return r;
 	}
 	return O(e) || k(e) ? [] : (e.type, t.defaultValue ?? "");
 }
