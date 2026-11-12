@@ -327,6 +327,12 @@ class LayoutSaveContext
         }
     }
 
+    /** Returns whether a field instance is already persisted in this form's layout graph. */
+    public function ownsField(Field $field): bool
+    {
+        return $field->id && isset($this->fields[(int)$field->id]);
+    }
+
     public function assertField(Field $field): void
     {
         if (!$field->id) {

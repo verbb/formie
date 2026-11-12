@@ -563,6 +563,12 @@ abstract class ParentField extends Field implements ParentFieldInterface
                 $row->uid = '';
 
                 foreach ($row->getFields() as $field) {
+                    // A field moved into this new parent from elsewhere in the same form isn't a
+                    // copy. It keeps its identity and nested layout, and the layout save moves it.
+                    if ($this->layoutSaveContext?->ownsField($field)) {
+                        continue;
+                    }
+
                     $field->id = null;
                     $field->layoutId = null;
                     $field->pageId = null;
