@@ -1,121 +1,106 @@
-Formie helps you build user-friendly forms your content editors will love, with more than 30 fields, a drag-and-drop builder, multi-page support and plenty more.
-
-## What's new in Formie 4
-
-- **Quiz & Survey fields** - build scored quizzes and surveys with radio, checkbox, dropdown, Likert, rating, and rank question types. View response breakdowns and quiz summaries in a dedicated **Results** tab.
-- **Reports & scheduled reports** - saved analytical views over submissions with filters, summary counts, charts, on-demand export, and scheduled email delivery.
-- **Form Groups & permissions** - organise forms into groups, set group policies (allowed statuses, field palettes, new-form defaults), and control access with granular permissions - including optional dedicated permissions per form.
-- **Form statuses** - label form lifecycle states (active, draft, archived) in the control panel, separate from submission workflow statuses.
-- **Multi-site forms** - per-site translation overrides for form copy, site-aware propagation, and headless `siteHandle` support.
-- **React form builder** - a refined control panel experience with live preview, field palette, and improved accessibility.
-- **Client events** - configure GTM, GA4, Meta, and custom tracking events per page, with field values resolved after submit.
-- **Submission metadata** - capture referrer, user agent, tracking cookies, and custom developer data - available in notifications, integrations, and PDFs.
-- **Submission limits** - cap submissions per form, IP address, or logged-in user over configurable periods.
-- **Modern file uploads** - simple native file inputs, or an advanced upload manager with drag-and-drop, staged uploads, progress, and asset retention policies.
-- **Site-scoped integrations** - create and manage integrations on production environments without project config deploys.
-- **Headless packages** - `@verbb/formie-react`, `@verbb/formie-vue`, `@verbb/formie-web-components`, and `@verbb/formie-browser` for Twig, React, Vue, and web components.
+Formie helps you build user-friendly forms that content editors can manage themselves, with a drag-and-drop builder, more than 30 field types, multi-page support and email notifications.
 
 ## Features
 
-- Drag-and-drop form builder, with support for columns.
-- Multi-page support for complex forms, or single-page for simple ones.
-- Store submissions in the control panel, in case you want to view the users' submission later.
-- **Stencils** - A quick and easy way to create new forms. Stencils include your form settings, fields and notifications.
-- Multiple options to control how forms submit. Show a success message, redirect to an entry, or stay on the same page.
-- Conditions for pages, fields, buttons and email notifications.
-- Save incomplete submissions for users to come back to later.
-- Switch form submissions to be page-reload (POST), or async (Ajax).
-- Spam protection - keyword blocking, submission guards, throttling, email rules, suspicious text detection, and captcha providers.
-- Integrations API - Captchas, Address Providers, Elements, Email Marketing, CRM, Webhooks, and more.
-- Integration dispatch - run integrations sequentially or queued, with conditions, timing controls, and dispatch result variables.
-- Migrate from Solspace Freeform or Sprout Forms with our handy migration assistants.
-- Supports importing submissions via Feed Me.
+- Build forms in a drag-and-drop builder with columns and a live preview.
+- Split complex forms across several pages, or keep simple ones on one.
+- Start new forms from Stencils, which include your form settings, fields and notifications.
+- Organise forms into groups with their own allowed statuses, field palettes, new-form defaults and permissions, including optional permissions for each form.
+- Label each form as active, draft or archived, separately from submission statuses.
+- Translate form copy for each site, with site-aware propagation.
+- Show a success message after a form is submitted, redirect to an entry or URL, or stay on the same page.
+- Submit forms with a page reload or asynchronously with Ajax.
+- Let visitors save an incomplete submission and come back to it later.
+- Add conditions to pages, fields, buttons and email notifications.
+- Limit submissions per form, IP address or signed-in user over a chosen period.
+- Capture the referrer, user agent, tracking cookies and custom data with each submission, for use in notifications, integrations and PDFs.
+- Send GTM, GA4, Meta and custom tracking events for each page, using values from the submission.
+- Store submissions in the control panel so you can review them later.
+- Block spam with keyword blocking, submission guards, throttling, email rules, suspicious text detection and captcha providers.
+- Run integrations one after another or in the queue, with conditions, timing controls and result variables.
+- Create and manage integrations for each site on production, without a project config deploy.
+- Migrate from Solspace Freeform or Sprout Forms with the migration assistants.
+- Import submissions with Feed Me.
 
 ### Fields
 
-- Over 30 fields available
-  - Standard fields like text, dropdown, radio, checkboxes.
-  - Advanced fields like address, file uploading, name (short and full), signatures, calculations.
-  - Complex fields like Repeater, Table and Group.
-  - **Quiz & Survey** fields for questionnaires, scored tests, Likert scales, ratings, and ranking.
-- Plenty of settings for each field to control their appearance, default values and functionality.
-- Customise your submit buttons - even multiple submits for multi-page forms.
-- Pick from existing fields with ease.
-- For Dropdown/Checkboxes/Radio Buttons - select from over 25 preset options to populate your field, like countries, states, languages, currencies, days, months and more!
-- **Synced fields** - Create your fields in one place, then use them everywhere!
-- **Conditions** - Hide or show fields based on other fields' values.
-- **Visibility** - Show, hide or disable any field from being visible to users.
-- **Content Encryption** - Protect sensitive data by encrypting it in the database.
-- **Match Field** - Enforce fields to match one another. Perfect for "confirm" fields.
-- **Lock Field Settings** and **Editor Notes** - protect important field configuration and leave guidance for content authors.
+- Choose from more than 30 field types, from text, dropdowns and checkboxes to addresses, file uploads, signatures, calculations, and Repeater, Table and Group fields.
+- Build scored quizzes and surveys with radio, checkbox, dropdown, Likert, rating and ranking questions, and see response breakdowns and quiz summaries in the Results tab.
+- Control each field's appearance, default value and behaviour with its own settings.
+- Customise submit buttons, including several submit buttons on multi-page forms.
+- Pick from existing fields when building a form.
+- Fill Dropdown, Checkboxes and Radio Buttons fields from more than 25 preset option lists, such as countries, states, languages, currencies, days and months.
+- Create synced fields once and use them across forms.
+- Show or hide fields based on other fields' values.
+- Show, hide or disable any field for the people filling in the form.
+- Encrypt sensitive field content in the database.
+- Require one field to match another, such as a "confirm email" field.
+- Lock important field settings and leave notes for content editors.
+- Collect files with a simple native upload field, or an upload manager with drag-and-drop, staged uploads and progress.
 
 ### Email Notifications
 
-- Multiple email notifications per-form. Notify your staff and customers at the same time about their submissions.
-- User-friendly variable pickers. No more Twig in field settings for your users to wrangle!
-- Full-range of email settings including multiple recipients, reply-to, cc, bcc and more.
-- Add user-uploaded attachments to your email notifications.
-- Attach custom PDF templates automatically to emails.
-- Auto plain text conversion of HTML emails.
-- Preview your emails, so you're 100% certain how they'll look.
-- Send test emails, for delivery troubleshooting and real-world previews.
-- Re-trigger email notifications from any submission, in case some were missed!
-- **Conditions** - Choose to send or prevent sending email notifications depending on field values.
-- **Conditional Recipients** - Create logic to send to various recipients, depending on field values.
+- Send several email notifications per form, so staff and customers both hear about a submission.
+- Insert submission values with variable pickers instead of writing Twig in field settings.
+- Set multiple recipients, reply-to, CC, BCC and more for each notification.
+- Attach uploaded files to email notifications.
+- Attach custom PDF templates to emails automatically.
+- Convert HTML emails to plain text automatically.
+- Preview emails before they're sent.
+- Send test emails to check delivery and see real-world results.
+- Resend email notifications from any submission.
+- Send or skip an email notification based on field values.
+- Send to different recipients based on field values.
 
 ### Sent Notifications
 
-- Keep track of every email notification sent out from Formie. View the exact email sent.
-- Easily resend a sent notification to the same recipient, or nominate a new one.
+- Keep a record of every email notification Formie sends, including the exact email.
+- Resend a sent notification to the same recipient or a different one.
 
 ### Reports
 
-- Saved analytical views over submissions with filters, summary counts, and charts.
-- Configure columns, export on demand (CSV, Excel, JSON, XML, text), and queue large exports in the background.
-- **Scheduled Reports** - email a summary and export attachment on daily or weekly schedules.
+- Save views of submissions with filters, summary counts and charts.
+- Choose columns, export on demand (CSV, Excel, JSON, XML or text) and queue large exports in the background.
+- Email a summary and export attachment on a daily or weekly schedule.
 
 ### Templates
 
-- Out-of-the-box templates, including CSS styles and JS functionality. Show great-looking forms that are user-friendly and follow best-practices with a single line of Twig.
-- Custom templates for everything! Take full control over how forms, pages and field render. Even change how fields look in email notifications.
+- Render forms with one line of Twig, using the included templates, CSS and JavaScript, which follow accessibility and usability best practices.
+- Override the templates for forms, pages and fields, and change how fields appear in email notifications.
 
 ### Theming
 
-- Easily theme your forms without touching custom templates!
-- Configure each component of a form from the `<form>` element, individual fields, submit buttons and more.
-- Total control over the HTML tags and attributes.
-- Perfect for utility CSS frameworks like [Tailwind](https://tailwindcss.com/) or [Bootstrap](https://getbootstrap.com/).
-- Ready-to-go themes for popular frameworks for you to easily extend and modify:
-    - [Tailwind](https://github.com/verbb/formie-theme-configs/blob/main/tailwind/index.html)
-    - [Bootstrap](https://github.com/verbb/formie-theme-configs/blob/main/bootstrap/index.html)
+- Theme forms without writing custom templates.
+- Configure each part of a form, from the `<form>` element to individual fields and submit buttons.
+- Control the HTML tags and attributes Formie outputs.
+- Work with utility CSS frameworks such as [Tailwind](https://tailwindcss.com/) or [Bootstrap](https://getbootstrap.com/), starting from the ready-made [Tailwind](https://github.com/verbb/formie-theme-configs/blob/main/tailwind/index.html) and [Bootstrap](https://github.com/verbb/formie-theme-configs/blob/main/bootstrap/index.html) theme configs.
 
 ### Privacy & Data Retention
 
-- Set how long to keep submissions stored for (hours, days, weeks, months, years).
-- When deleting a user associated with a submission, you can choose to delete submissions, or transfer them to another user. Just like entries and other Craft elements.
-- Set whether to retain file uploads when deleting a submission.
-- Per-field asset retention for file uploads.
+- Set how long to keep submissions, in hours, days, weeks, months or years.
+- When a user linked to submissions is deleted, delete their submissions or transfer them to another user, as with entries and other Craft elements.
+- Choose whether to keep file uploads when a submission is deleted, with retention settings for each file upload field.
 
 ### Headless
 
-- JavaScript packages for browser, React, Vue, and web components - `@verbb/formie-browser`, `@verbb/formie-react`, `@verbb/formie-vue`, and `@verbb/formie-web-components`.
-- Full support for headless implementations, with GraphQL querying and mutations.
-- Query forms, fetching all settings, pages, rows, fields and more. Everything you need to create your own forms.
-- Query submissions, if you want to show them on your site.
-- Create submissions via mutations from your front-end headless form.
-- Open source, fully-functioning Vue 3 [Demo Project](https://github.com/verbb/formie-headless) with [Demo Site](https://formie-headless.verbb.io/?form=contactForm).
+- Use the `@verbb/formie-browser`, `@verbb/formie-react`, `@verbb/formie-vue` and `@verbb/formie-web-components` packages for browser, React, Vue and web-component front ends.
+- Build headless forms with GraphQL queries and mutations.
+- Query forms with all their settings, pages, rows and fields.
+- Query submissions to show them on your site.
+- Create submissions with mutations from a headless front end.
+- Explore the open-source Vue 3 [Demo Project](https://github.com/verbb/formie-headless) and its [Demo Site](https://formie-headless.verbb.io/?form=contactForm).
 
-## Import/Export
+### Import/Export
 
-- Easily export your forms, including pages, settings, fields, site overrides and more - stored as a JSON file.
-- Import forms on the same install, or on another environment entirely. Moving forms between environments is a breeze!
+- Export forms as JSON, including pages, settings, fields and site overrides.
+- Import forms on the same install or on another environment.
 
-## Support
+### Support Requests
 
-- Dedicated support area to submit to Verbb support crew.
-- Bundles everything we need to know about helping you with form issues.
+- Send a support request to the Verbb team from a dedicated area in the control panel.
+- Include the details we need to help with a form issue in each request.
 
-## Available Fields
+## Field Types
 
 - Address
 - Agree
@@ -132,7 +117,7 @@ Formie helps you build user-friendly forms your content editors will love, with 
 - Group
 - Heading
 - Hidden
-- Html
+- HTML
 - Multi-Line Text
 - Name
 - Note
@@ -155,11 +140,9 @@ Formie helps you build user-friendly forms your content editors will love, with 
 
 ## Integrations
 
-Extend Formie's behaviour, and integrate with third-party providers. Easily create your own custom Integrations through the Integrations API.
+Connect forms to third-party services, or create your own integrations through the Integrations API.
 
 ### Address Providers
-
-Provide autocomplete behaviour for your address fields. Drastically reduce user errors.
 
 - Address Finder (AU/NZ)
 - Google Places
@@ -168,8 +151,6 @@ Provide autocomplete behaviour for your address fields. Drastically reduce user 
 
 ### Automations
 
-Trigger powerful workflows and integrations when a form is submitted - set it and forget it.
-
 - IFTTT
 - Make
 - n8n
@@ -177,8 +158,6 @@ Trigger powerful workflows and integrations when a form is submitted - set it an
 - Zapier
 
 ### Captchas
-
-Protect your site against spam!
 
 - Akismet
 - Captcha.eu
@@ -194,8 +173,6 @@ Protect your site against spam!
 - [Snaptcha Plugin](https://plugins.craftcms.com/snaptcha)
 
 ### CRM
-
-Build your customer relationship data with ease, mapping form fields to contacts, leads and more.
 
 - 1CRM
 - ActiveCampaign
@@ -228,25 +205,21 @@ Build your customer relationship data with ease, mapping form fields to contacts
 - Salesmate
 - Scoro
 - SharpSpring
-- SuiteCRM
 - SugarCRM
+- SuiteCRM
 - vCita
 - Xero CRM
 - Zoho
 
 ### Elements
 
-Create elements from form submission data.
-
 - Commerce Products
+- Entries
 - [Events Plugin](https://plugins.craftcms.com/events)
 - [Solspace Calendar Events](https://plugins.craftcms.com/calendar)
-- Entries
 - Users
 
 ### Email Marketing
-
-Add users who fill out your forms directly to your mailing lists.
 
 - ActiveCampaign
 - Adestra
@@ -254,8 +227,8 @@ Add users who fill out your forms directly to your mailing lists.
 - Beehiiv
 - Benchmark
 - Brevo (Sendinblue)
-- [Campaign Plugin](https://plugins.craftcms.com/campaign)
 - Campaign Monitor
+- [Campaign Plugin](https://plugins.craftcms.com/campaign)
 - CleverReach
 - Constant Contact
 - ConvertKit
@@ -269,8 +242,8 @@ Add users who fill out your forms directly to your mailing lists.
 - Klaviyo
 - Mailchimp
 - Mailcoach
-- Mailjet
 - MailerLite
+- Mailjet
 - Moosend
 - Omnisend
 - Ontraport
@@ -279,8 +252,6 @@ Add users who fill out your forms directly to your mailing lists.
 - Vero
 
 ### Help Desk
-
-Turn form submissions into support tickets and streamline your customer service.
 
 - Freshdesk
 - Front
@@ -292,8 +263,6 @@ Turn form submissions into support tickets and streamline your customer service.
 
 ### Messaging
 
-Send messages via SMS, chat apps, and more - keep users in the loop wherever they are.
-
 - Discord
 - Plivo
 - Slack
@@ -302,8 +271,6 @@ Send messages via SMS, chat apps, and more - keep users in the loop wherever the
 
 ### Miscellaneous
 
-For any other categories that just don't fit into the above!
-
 - ClickUp
 - Google Sheets
 - Monday
@@ -311,8 +278,6 @@ For any other categories that just don't fit into the above!
 - Trello
 
 ### Payments
-
-Use your form as a paywall to collect payment from your users.
 
 - BPOINT
 - Eway

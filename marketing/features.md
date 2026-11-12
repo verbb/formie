@@ -1,5 +1,5 @@
 <!-- feature-intro -->
-The most user-friendly forms plugin for Craft. Build sophisticated multi-page forms with more than 30 field types, email notifications, integrations and ready-to-go front-end templates — without giving up control when the project needs it.
+The most user-friendly forms plugin for Craft. Build sophisticated multi-page forms with more than 30 field types, email notifications, integrations and ready-to-go front-end templates, without giving up control when the project needs it.
 <!-- feature-intro-end -->
 
 <!-- feature-section media-size="large" -->
@@ -52,7 +52,7 @@ Match fields can enforce confirmation values when an answer needs to be entered 
 <!-- feature-grid -->
 - :icon[copy] **Copy existing fields** Start from a field that already works and adapt the copy without rebuilding its settings.
 - :icon[list-details] **Option presets** Populate choice fields with common countries, states, languages, currencies and dates.
-- :icon[link] **URL population** Map query-string values into nominated fields for useful pre-filled journeys.
+- :icon[link] **URL population** Map query-string values into nominated fields for useful pre-filled forms.
 - :icon[eye-off] **Hidden values** Carry project or campaign data through a submission without showing another input.
 - :icon[puzzle] **Custom field types** Add a project-specific field through Formie’s documented field API.
 <!-- feature-grid-end -->
@@ -105,8 +105,6 @@ Preview the rendered email with realistic submission values, then send a real te
 
 Store submissions as first-class Craft elements with searchable values, statuses and export support. Review an individual response, update its status, resend notifications or perform bulk actions without leaving the control panel.
 
-Choose whether a successful form shows a message, redirects to a URL or Craft element, or stays on the current page. Forms can submit with a normal page request or asynchronously, and incomplete submissions can be saved so visitors can return later.
-
 <!-- feature-section-end -->
 
 <!-- feature-section -->
@@ -127,7 +125,7 @@ Give each form a deliberate policy for sensitive data, stored submissions and un
 <!-- feature-section media-shadow="false" -->
 ## Payments
 
-Add a payment field and connect a supported gateway to collect payment as part of the form journey. Payment integrations can create one-off charges or provider-supported subscriptions while keeping the surrounding fields, conditions and confirmation experience in Formie.
+Add a payment field and connect a supported gateway to collect payment as part of the form. Payment integrations can create one-off charges or provider-supported subscriptions while keeping the surrounding fields, conditions and confirmation experience in Formie.
 
 Payment events, webhook handling and provider APIs give developers the extension points needed for project-specific transaction workflows.
 
@@ -140,6 +138,8 @@ Payment events, webhook handling and provider APIs give developers the extension
 
 Start with a complete front-end form, then take control at the level the project requires. Formie can supply the working experience or hand individual tags, attributes and components to project-owned templates and theme configuration.
 
+Choose whether a successful form shows a message, redirects to a URL or Craft element, or stays on the current page, and let visitors save an incomplete submission and return to it later.
+
 ![A real Formie contact form rendered with its default front-end template.](../screenshots/formie-frontend.png)
 
 <!-- feature-section-end -->
@@ -150,7 +150,7 @@ Start with a complete front-end form, then take control at the level the project
 - :icon[template] **Template control** Override the complete form or a focused component through Twig.
 - :icon[palette] **Theme configuration** Shape tags, classes and attributes without replacing every template.
 - :icon[code] **Modular rendering** Keep project-specific field and email presentation in focused partials.
-- :icon[pointer] **Submit controls** Configure labels, positions and multiple submit actions for the journey.
+- :icon[pointer] **Submit controls** Configure labels, positions and multiple submit actions.
 <!-- feature-grid-end -->
 
 <!-- feature-section media-size="medium" media-shadow="false" media-density="1x" -->
