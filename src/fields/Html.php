@@ -251,6 +251,17 @@ class Html extends CosmeticField
     // Protected Methods
     // =========================================================================
 
+    protected function defineClientRenderedInput(): array
+    {
+        $input = parent::defineClientRenderedInput();
+        $form = $this->getForm();
+
+        // Client-rendered forms have no template, so send the HTML the template would render.
+        $input['htmlContent'] = $form ? $this->getRenderedHtmlBlock($form, null) : '';
+
+        return $input;
+    }
+
     protected function defineRules(): array
     {
         return [

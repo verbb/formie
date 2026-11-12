@@ -220,6 +220,17 @@ class Content extends CosmeticField
     // Protected Methods
     // =========================================================================
 
+    protected function defineClientRenderedInput(): array
+    {
+        $input = parent::defineClientRenderedInput();
+        $form = $this->getForm();
+
+        // Client-rendered forms have no template, so send the HTML the template would render.
+        $input['contentHtml'] = $form ? $this->getRenderedContentBlock($form, null) : '';
+
+        return $input;
+    }
+
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         if ($key === 'fieldLabel') {
