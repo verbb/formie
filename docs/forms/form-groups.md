@@ -60,7 +60,7 @@ Each group has:
 - a handle
 - a sort order
 
-Groups are stored in [project config](/get-started/configuration), so they can travel with the project across environments like statuses and stencils. Form group UIDs are used in the forms index source keys (`group:{uid}`), so sidebar filters stay stable after a database sync.
+Groups are stored in project config, so they can travel with the project across environments like statuses and stencils. Form group UIDs are used in the forms index source keys (`group:{uid}`), so sidebar filters stay stable after a database sync.
 
 ## Forms Index
 

@@ -29,7 +29,7 @@ A typical agency or enterprise layout:
 | Support | Tickets, feedback | Internal site only |
 | HR | Applications, onboarding | Created-site-only propagation |
 
-Create groups under **Formie → Settings → Form Groups**. Each group has a name, handle, and sort order. The groups are stored in [project config](/get-started/configuration#form-groups-project-config), so you can deploy them with your project.
+Create groups under **Formie → Settings → Form Groups**. Each group has a name, handle, and sort order. The groups are stored in project config, so you can deploy them with your project.
 
 ## Step 2 — Configure Site Policy (Multi-Site)
 

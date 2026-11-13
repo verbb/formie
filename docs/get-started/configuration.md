@@ -12,11 +12,7 @@ return [
 ];
 ```
 
-All other settings keep their defaults. Add any further settings you want to change to the same array. The options below explain the available settings and their defaults.
-
-::: tip
-For project config, environment variables, and control panel settings across staging and production, see [Project config, environment, and control panel settings](/guides/configuration/project-config-environment-and-control-panel-settings).
-:::
+All other settings keep their defaults. Add any further settings you want to change to the same array. The options below explain the available settings and their defaults. You can also manage many of these settings in the control panel under **Formie → Settings**.
 
 ## Configuration Options
 
@@ -470,7 +466,7 @@ Allows previously sent unsigned Formie 2 and Formie 3 Signature image URLs to co
 
 **Type:** `bool` · **Default:** `true`
 
-Enables Craft’s CSRF validation checks for anonymous form submissions.
+Enables Craft’s CSRF validation checks for anonymous form submissions. Keep it enabled unless you have a specific headless integration that cannot submit CSRF tokens. Client REST transports should send the CSRF token from `session.tokens.csrf` in the JSON request body when this setting is enabled.
 :::
 
 
@@ -595,7 +591,7 @@ Sets how many days a Save & Continue link remains valid. The link also stops wor
 
 **Type:** `array` · **Default:** `[]`
 
-The origins allowed to send requests to Formie from another domain, including GraphQL submissions from a browser, such as `['https://www.example.com']`. A request from any other origin is refused, and the error names this setting.
+The origins allowed to send requests to Formie from another domain, including GraphQL submissions from a browser, such as `['https://www.example.com']`. A request from any other origin is refused, and the error names this setting. Origins must match exactly, so list only the origins your own front-end uses.
 :::
 
 
@@ -626,12 +622,6 @@ Sets the rate-limit window used by anonymous client bootstrap and token-refresh 
 :::
 
 
-### Security-Sensitive Settings
-- Keep `allowedGraphqlOrigins` as narrow as possible when using headless forms. Avoid wildcard or broad origins when credentialed requests are allowed.
-- Public GraphQL schemas should only include the Formie form and submission scopes required by the front-end consuming them.
-- Keep `enableCsrfValidationForGuests` enabled unless you have a specific headless integration that cannot submit CSRF tokens. Client REST transports should send the CSRF token from `session.tokens.csrf` in the JSON request body when this setting is enabled.
-- Store integration API keys and secrets in environment variables (for example `$STRIPE_SECRET_KEY`) rather than plaintext in the database when possible. Formie saves integration settings in the database. Values using Craft’s environment variable syntax are read when the settings are loaded; the secrets are not included in project config exports.
-
 ### Sent Notifications
 
 ::: reference
@@ -654,7 +644,7 @@ Sets the number of days to keep sent notifications before they are deleted by sc
 
 ### Spam
 
-Current spam rules are read from their dedicated store. Configure them under **Formie → Spam Protection → Spam Rules** on each installation. These settings are not deployed through project config. The legacy keys below describe those values and remain upgrade inputs; placing them in `config/formie.php` does not override the dedicated store.
+Current spam rules are read from their dedicated store. Configure them under **Formie → Spam Protection → Spam Rules** on each installation. The legacy keys below describe those values and remain upgrade inputs; placing them in `config/formie.php` does not override the dedicated store.
 
 ::: reference
 #### `saveSpam`
@@ -836,45 +826,7 @@ Legacy upgrade input for CAPTCHA configuration. Manage current providers under *
 Sets the default folder used by form export console commands.
 :::
 
-
-### Form Groups (Project Config)
-
-Form groups are managed in the control panel under **Formie → Settings → Form Groups**, but their settings are stored in project config under `formie.formGroups.{uid}`:
-
-```yaml
-formie:
-  formGroups:
-    7f3e2a1b-0000-4000-8000-000000000001:
-      name: Marketing
-      handle: marketing
-      sortOrder: 1
-```
-
-Each entry contains `name`, `handle`, and `sortOrder`. Individual forms store an optional `groupId` in the database; that ID is resolved from the project-config group UID on each environment.
-
-See [Form Groups](/forms/form-groups) for control panel behaviour.
-
-## Control Panel
-You can also manage many configuration settings through the control panel by visiting **Formie → Settings**. Form, field, and notification defaults are managed on the dedicated **Form Builder Defaults** settings page.
-
-### Permissions
-
-Formie registers Craft user permissions under **Settings → Users → {user group} → Formie**. For the **Reports** section, assign:
-
-| Permission | Purpose |
-| --- | --- |
-| **Access reports** | Open **Formie → Reports** and run saved reports |
-| **Manage reports** | Create, edit, and delete reports on any environment; export data |
-| **View scheduled reports** | Inspect saved deliveries under **Settings → Scheduled Reports** |
-| **Send scheduled report test emails** | Send a saved scheduled report to your own email address |
-
-Select **Export submissions** beneath **Access reports** to allow saved report exports without **Manage reports**. This also allows submissions index exports. For users who only need the submissions index, select **Export submissions** beneath **Access submissions**; they do not need Reports access.
-
-Under **Access settings**, assign production tools such as import/export and support, or read-only access to encryption status, synced field usage and scheduled reports. Configuration editing requires a Craft administrator with admin changes enabled. Editing scheduled reports requires a Craft administrator, on any environment. Spam rules and CAPTCHA permissions are separate under **Access spam protection**.
-
-Scheduled email delivery requires a cron schedule. Use `./craft formie/cron/run` (recommended) or `./craft formie/reports/run-scheduled`. See [Scheduled reports](/reports/scheduled-reports).
-
-### Alerts Configuration
+## Alerts Configuration
 Supply additional email addresses to receive alert notifications, and optionally set `alertEmailsUserGroup` to a Craft user group UID to send alerts to every user in that group.
 
 ```php
@@ -885,7 +837,7 @@ Supply additional email addresses to receive alert notifications, and optionally
 'alertEmailsUserGroup' => 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
 ```
 
-### Theme Configuration
+## Theme Configuration
 Supply a nested array for the configuration forms and fields should use when rendering.
 
 ```php

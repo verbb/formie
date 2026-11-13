@@ -130,5 +130,5 @@ Deploying a project stencil makes its starter template available on the target e
 
 - Prefer env vars for API keys where the CP supports `$VAR` syntax
 - Do not commit CP-stored secrets into project YAML
-- Keep `allowedGraphqlOrigins` narrow for headless forms
+- Allow only the origins that need access in Craft’s CORS filter for headless forms
 - Leave `enableCsrfValidationForGuests` enabled unless you have a documented exception

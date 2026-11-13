@@ -40,7 +40,7 @@ Your React app needs to reach Craft's Formie endpoints.
 
 1. Enable a public GraphQL schema (or REST route) with the Formie scopes your front end needs — at minimum, form queries and submission mutations for the forms you expose.
 2. Keep `enableCsrfValidationForGuests` enabled in `config/formie.php` unless you have a specific reason not to. Client transports send the CSRF token from the session payload.
-3. If the React app runs on a different origin, configure CORS and keep `allowedGraphqlOrigins` as narrow as practical.
+3. If the React app runs on a different origin, configure Craft’s CORS filter and allow only the origins that need access.
 
 For local development, point your React app at `https://your-craft-site.test` and ensure the dev server can reach Craft.
 

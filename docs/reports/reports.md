@@ -104,7 +104,7 @@ Tokens are resolved when the export runs, not when you save the report.
 
 ## Permissions
 
-Reports use dedicated Craft user permissions:
+Reports use dedicated Craft user permissions. See [Permissions](/feature-tour/permissions) for the rest of Formie's permissions.
 
 | Permission | Allows |
 | --- | --- |
