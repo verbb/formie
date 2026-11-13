@@ -27,6 +27,7 @@
 - Fixed the Attach Assets picker for email notifications opening with no volumes or assets.
 - Fixed integration settings and other control panel links to the documentation opening missing pages instead of the relevant guide. ([#3113](https://github.com/verbb/formie/issues/3113))
 - Fixed Dropdown fields hidden by conditions showing a blank selection instead of their placeholder once revealed. ([#3120](https://github.com/verbb/formie/issues/3120))
+- Fixed fields hidden by conditions when the page loads losing their default values, so they appeared empty when shown. Hidden fields still count as empty for other fields’ conditions, matching the server. ([#3120](https://github.com/verbb/formie/issues/3120))
 - Fixed Dropdown, Checkboxes, Radio and Table fields hidden by conditions saving their default options or rows with new submissions.
 
 ## 4.0.8 - 2026-11-10

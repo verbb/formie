@@ -109,6 +109,10 @@ export const conditionsModule: BrowserModuleDefinition = {
 
         const cpDisplayMode = ctx.options?.cpDisplayMode === 'muted' ? 'muted' : 'hide';
         let isApplyingConditions = false;
+        // A node's first evaluation (page load, or markup added later such as a Repeater row) only sets
+        // its initial state. Its rendered defaults aren't a visitor's answer, so they're kept for when it
+        // is revealed; hidden sources already count as empty for dependent conditions.
+        const evaluatedNodes = new WeakSet<Element>();
 
         const runEvaluationPass = (): boolean => {
             let hasStateChanges = false;
@@ -125,10 +129,13 @@ export const conditionsModule: BrowserModuleDefinition = {
                     ? 'hide'
                     : cpDisplayMode;
 
+                const isFirstEvaluation = !evaluatedNodes.has(entry.node);
+                evaluatedNodes.add(entry.node);
+
                 const stateChanged = applyConditionVisibility(
                     entry.node,
                     result.shouldHide,
-                    entry.settings.clearOnHide,
+                    entry.settings.clearOnHide && !isFirstEvaluation,
                     { displayMode, disabledOnly: ['enable', 'disable'].includes(entry.settings.showRule) },
                 );
                 hasStateChanges = hasStateChanges || stateChanged;

@@ -41,7 +41,7 @@ document.addEventListener('formie:field:date-picker:before-init', (event) => {
 
 ## Clearing Conditional Fields
 
-When conditions clear a field or page, `formie:field:clear` bubbles from that container after its ordinary inputs are cleared. Custom browser controls that keep values in hidden inputs or separate editor state should clear those values too. Check that `event.target` contains your control before handling the event, and remove your listener when the control is destroyed. This event is separate from a native form `reset`, which restores defaults rather than clearing a conditional answer.
+When conditions clear a field or page, `formie:field:clear` bubbles from that container after its ordinary inputs are cleared. Conditions clear a container when it becomes hidden or disabled after it was first evaluated, not when it starts hidden on page load or when it's added later, such as in a new Repeater row. Custom browser controls that keep values in hidden inputs or separate editor state should clear those values too. Check that `event.target` contains your control before handling the event, and remove your listener when the control is destroyed. This event is separate from a native form `reset`, which restores defaults rather than clearing a conditional answer.
 
 ## Root Formie Events
 

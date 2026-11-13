@@ -175,7 +175,19 @@ test('DOM dependency order clears long legacy chains and reports cycles without 
         (globalThis as any).conditionsGraphCleanup = await (globalThis as any).mountConditionsBoundary(root);
     });
     await expect(page.locator('#legacy-condition-chain [data-formie-conditionally-hidden]')).toHaveCount(6);
-    expect(await page.locator('#legacy-condition-chain input').evaluateAll((inputs) => inputs.slice(0, 6).map((input) => (input as HTMLInputElement).value))).toEqual(Array(6).fill(''));
+    const chainValues = () => page.locator('#legacy-condition-chain input').evaluateAll((inputs) => inputs.slice(0, 6).map((input) => (input as HTMLInputElement).value));
+    // Hidden on load: rendered values are kept for a later reveal, but count as empty for the chain.
+    expect(await chainValues()).toEqual(Array(6).fill('yes'));
+    const setLast = (value: string) => page.locator('#legacy-condition-chain [name="fields[chain6]"]').evaluate((input, next) => {
+        (input as HTMLInputElement).value = next;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    }, value);
+    await setLast('yes');
+    await expect(page.locator('#legacy-condition-chain [data-formie-conditionally-hidden]')).toHaveCount(0);
+    // Hidden by a change after load: the whole chain clears in dependency order.
+    await setLast('no');
+    await expect(page.locator('#legacy-condition-chain [data-formie-conditionally-hidden]')).toHaveCount(6);
+    expect(await chainValues()).toEqual(Array(6).fill(''));
     await page.evaluate(async () => {
         await (globalThis as any).conditionsGraphCleanup?.destroy();
         const root = document.querySelector('#legacy-condition-chain')!;

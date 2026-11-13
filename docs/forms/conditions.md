@@ -50,6 +50,6 @@ When editing a submission in the control panel, Formie can apply the same field 
 
 Field conditions can use answers from earlier fields, including earlier fields in the same Group or Repeater. Page conditions can use answers from previous pages; button conditions can use any field on the current page. The comparison menu shows the options available for the selected field. Text comparisons are case-sensitive, Number fields compare numbers, and option fields match their stored option values.
 
-Formie clears answers when their fields become hidden or disabled, including fields inside Groups and Repeaters. For example, changing “Delivery” to “Collection” can clear an address that is no longer needed. Test both paths before publishing, and fix any condition errors shown in the builder.
+Formie clears answers when their fields become hidden or disabled, including fields inside Groups and Repeaters. For example, changing “Delivery” to “Collection” can clear an address that is no longer needed. A field that is already hidden when the page loads keeps its default value, so the default appears if the field is shown. While a field is hidden, other conditions treat it as empty and it isn't submitted. Test both paths before publishing, and fix any condition errors shown in the builder.
 
 If a visitor cannot continue, the form stays on the current page and shows an error. Going back or saving a draft does not require the page to be valid.

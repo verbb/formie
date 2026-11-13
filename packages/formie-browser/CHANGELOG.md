@@ -8,6 +8,7 @@
 ### Fixed
 - Fixed styles that Formie’s JavaScript adds for fields such as Phone being blocked by a Content Security Policy. They now use the nonce from a `csp-nonce` meta tag or the `scriptAttributes` render option. ([#3117](https://github.com/verbb/formie/issues/3117))
 - Fixed Dropdown fields hidden by conditions showing a blank selection instead of their placeholder once revealed. ([#3120](https://github.com/verbb/formie/issues/3120))
+- Fixed fields hidden by conditions when the page loads losing their default values, so they appeared empty when shown. Hidden fields still count as empty for other fields’ conditions, matching the server. ([#3120](https://github.com/verbb/formie/issues/3120))
 
 ## 4.0.8 - 2026-11-09
 
