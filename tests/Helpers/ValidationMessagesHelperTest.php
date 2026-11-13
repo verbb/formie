@@ -70,7 +70,7 @@ it('migrates legacy errorMessage into required validation messages', function ()
         ->toBe('Please enter your Name.');
 });
 
-it('resolves nested field validation message overrides from the parent field', function (): void {
+it('prefers sub-field validation message overrides over the parent field', function (): void {
     $parent = new \verbb\formie\fields\Date([
         'label' => 'Birthday',
         'handle' => 'birthday',
@@ -84,9 +84,8 @@ it('resolves nested field validation message overrides from the parent field', f
         'label' => 'Day',
         'handle' => 'day',
         'validationMessages' => [
-            'required' => 'Child override should not be used.',
+            'required' => 'Enter the {label}.',
         ],
-        'errorMessage' => 'Legacy child message.',
     ]);
 
     $reflection = new ReflectionClass($child);
@@ -95,11 +94,11 @@ it('resolves nested field validation message overrides from the parent field', f
     $method->invoke($child, $parent);
 
     expect($child->getValidationMessage(ValidationMessagesHelper::KEY_REQUIRED))
-        ->toBe('Please provide your Day.')
+        ->toBe('Enter the Day.')
         ->and($child->getValidationMessage(ValidationMessagesHelper::KEY_INVALID))
         ->toBe('Fix the Day part.')
         ->and(ValidationMessagesHelper::override($child, ValidationMessagesHelper::KEY_REQUIRED))
-        ->toBe('Please provide your {label}.');
+        ->toBe('Enter the {label}.');
 });
 
 it('uses plugin validation message defaults when a field has no override', function (): void {

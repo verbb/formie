@@ -36,7 +36,7 @@ import { getDevToolsConfig } from '@form-builder/dev/config';
 import { SnapTopLeftCornerToCursor } from '@utils';
 import { focusFirstVisibleInputIfEmpty } from '@form-builder/utils/focus';
 import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
-import { normalizeFieldInstructions } from '@form-builder/utils/richTextValue';
+import { normalizeFieldEditorValues } from '@form-builder/utils/richTextValue';
 import { assignFieldReferences } from '@form-builder/utils/fieldReferences';
 import { useResetDialogBodyScrollOnTabChange } from '@form-builder/hooks/useResetDialogBodyScrollOnTabChange';
 import {
@@ -678,7 +678,7 @@ const SubFieldEditModal = ({
     }, [sanitizedSchema]);
     const handleSyncOnChange = useHandleSyncOnChange(sanitizedSchema || []);
     const fieldDefaults = useMemo(() => {
-        return normalizeFieldInstructions(field);
+        return normalizeFieldEditorValues(field);
     }, [field]);
 
     const form = useSchemaFormEngine({

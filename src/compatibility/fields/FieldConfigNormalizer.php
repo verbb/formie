@@ -205,12 +205,6 @@ class FieldConfigNormalizer
 
     private static function _normalizeValidationMessages(array &$config, string $fieldClass): void
     {
-        if (self::_matchesFieldType($fieldClass, self::_childFieldTypes())) {
-            unset($config['errorMessage'], $config['validationMessages']);
-
-            return;
-        }
-
         if (!isset($config['validationMessages']) || !is_array($config['validationMessages'])) {
             $config['validationMessages'] = [];
         }
@@ -426,14 +420,6 @@ class FieldConfigNormalizer
             NameMiddle::class,
             NameLast::class,
         ];
-    }
-
-    private static function _childFieldTypes(): array
-    {
-        return array_values(array_filter(
-            self::_supportedLimitTypes(),
-            static fn(string $class): bool => str_contains($class, '\\subfields\\'),
-        ));
     }
 
     private static function _optionsFieldTypes(): array

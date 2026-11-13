@@ -247,16 +247,15 @@ class ValidationMessagesHelper
 
     public static function override(Field $field, string $key): ?string
     {
-        $field = self::messageField($field);
-        $messages = $field->validationMessages ?? [];
-        $message = trim((string)($messages[$key] ?? ''));
+        $message = self::_fieldOverride($field, $key);
+        $parent = $field->getParentField();
 
-        // Site translations and runtime overrides can explicitly clear the canonical message.
-        if ($key === self::KEY_REQUIRED && !array_key_exists($key, $messages)) {
-            $message = trim((string)($field->errorMessage ?? ''));
+        // Compound sub-fields without their own message use their parent's.
+        if ($message === null && $parent instanceof Field && $parent instanceof FixedParentFieldInterface) {
+            $message = self::_fieldOverride($parent, $key);
         }
 
-        return $message !== '' ? $message : null;
+        return $message;
     }
 
     public static function messageField(Field $field): Field
@@ -514,6 +513,19 @@ class ValidationMessagesHelper
                 ])
                 : self::tokenInstructions($tokens),
         ]);
+    }
+
+    private static function _fieldOverride(Field $field, string $key): ?string
+    {
+        $messages = $field->validationMessages ?? [];
+        $message = trim((string)($messages[$key] ?? ''));
+
+        // Site translations and runtime overrides can explicitly clear the canonical message.
+        if ($key === self::KEY_REQUIRED && !array_key_exists($key, $messages)) {
+            $message = trim((string)($field->errorMessage ?? ''));
+        }
+
+        return $message !== '' ? $message : null;
     }
 
     private static function _translateDefaultTemplate(string $key, array $params): string
