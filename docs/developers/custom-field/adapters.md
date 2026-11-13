@@ -16,7 +16,7 @@ Each adapter is responsible for:
 - declaring GraphQL content and mutation shapes,
 - declaring client-rendered input metadata.
 
-Adapters declare `valueType($field)` and implement `serializeValueForClientInput()` independently of `getValueAsData()`. Use `decodeValueFromStorage()` for trusted legacy shapes; it is never called for request input. The default browser method deliberately shares the adapter data shape; override it when browser inputs require a different representation.
+Adapters declare `valueType($field)` and implement `serializeValueForClientInput()` independently of `getValueAsData()`. Use `decodeValueFromStorage()` to decode trusted stored values. It is never called for request input. The default browser method deliberately shares the adapter data shape; override it when browser inputs require a different representation.
 
 Built-in adapters include:
 

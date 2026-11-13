@@ -36,7 +36,7 @@ A collection of HTML attributes for the element. Values such as `class`, `data`,
 
 **Type:** `Object`
 
-CSS custom properties to merge into the element's inline style.
+The CSS custom properties to merge into the element's inline style.
 :::
 
 ::: reference
@@ -44,7 +44,7 @@ CSS custom properties to merge into the element's inline style.
 
 **Type:** `Array|Object`
 
-Extra content nodes to inject before or after the element content.
+The extra content nodes to inject before or after the element content.
 :::
 
 

@@ -182,7 +182,7 @@ Key | Required | Description
 
 **Send to Formie:** `paywayTokenId`
 
-### Opayo (Formerly Sage Pay)
+### Opayo
 
 **BYO:** Opayo.js / hosted fields.
 

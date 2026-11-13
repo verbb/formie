@@ -96,7 +96,6 @@ Method | Use
 `renderHtml()` | Outputs the captcha markup for the form.
 `getBrowserModule()` | Registers browser behaviour for the captcha, when needed.
 `getRefreshData()` | Returns transport-neutral data used when refreshing captcha tokens; normally supplied by the protected `defineRefreshData()` hook.
-`getGqlVariables()` | Deprecated compatibility method for older callers; current GraphQL handling does not invoke it.
 `validateSubmission()` | Validates the submitted captcha value.
 
 ## Form Settings
@@ -216,4 +215,4 @@ The shared CAPTCHA factories also exclude their token fields from unsaved-change
 
 The factory waits for pending widget mounts during destruction and releases every mounted widget even if another provider cleanup fails. Token writes, token clears and error updates through the shared services are ignored after the module has been destroyed. Your provider's `unmount()` hook must still remove its SDK widgets and subscriptions; these lifecycle guards do not replace provider cleanup.
 
-Override `defineRefreshData(Form $form, ?FieldLayoutPage $page = null): array` when the captcha needs to supply refreshed challenge data. Formie reads it through `getRefreshData()`. Older `getRefreshJsVariables()` overrides still participate in that call, including parent calls. `getGqlVariables()` remains callable for compatibility but is not a current GraphQL extension hook; new integrations should use the browser-module and submission-validation contracts described above.
+Override `defineRefreshData(Form $form, ?FieldLayoutPage $page = null): array` when the captcha needs to supply refreshed challenge data. Formie reads it through `getRefreshData()`. For GraphQL, use the browser-module and submission-validation contracts described above.

@@ -21,7 +21,7 @@ All other settings keep their defaults. Add any further settings you want to cha
 
 **Type:** `array` · **Default:** `[]` (uses the category defaults below)
 
-Provides the legacy fallback for [API error policies](/guides/integrations/integration-dispatch-and-policies#api-error-handling) on Mailchimp and Campaign Monitor connections without their own saved choices. Configure each connection under **Formie → Integrations → Email Marketing → Provider → Advanced → API Error Handling**. Connection choices take precedence over this setting, including values in `config/formie.php`. Existing global choices remain effective until a connection saves its own. Without an override, known subscriber rejections use `logWarning`, and API rate limits and other errors use `failQueue`.
+Sets the fallback [API error policies](/guides/integrations/integration-dispatch-and-policies#api-error-handling) for Mailchimp and Campaign Monitor connections without their own saved choices. Configure each connection under **Formie → Integrations → Email Marketing → Provider → Advanced → API Error Handling**. Connection choices take precedence over this setting, including values in `config/formie.php`. Without an override, known subscriber rejections use `logWarning`, and API rate limits and other errors use `failQueue`.
 
 Each row contains a `severity` (`rejected`, `rate_limited` or `failure`) and an `action` (`failQueue`, `logWarning`, `logInfo` or `ignore`). A category omitted from a non-empty array uses `failQueue`.
 
@@ -98,7 +98,7 @@ Sets the default Formie control panel page when clicking Formie in the main navi
 
 **Type:** `bool` · **Default:** `true`
 
-Enables compatibility shims for older Formie APIs, including supported browser events on rendered forms. The browser inherits this setting automatically; no custom JavaScript setup is required. Purge cached form HTML after changing it.
+For sites upgrading from Formie 3, keeps older APIs and browser events working while you update custom code, as explained in [Before Disabling Compatibility Mode](/get-started/upgrading-from-v3#before-disabling-compatibility-mode).
 :::
 
 
@@ -365,7 +365,7 @@ Controls whether form editors can enable the country code selector on Phone Numb
 ::: reference
 #### `allowHiddenFieldTemplates`
 
-**Type:** `bool` · **Default:** `false` on new installs; `true` after upgrading
+**Type:** `bool` · **Default:** `false`
 
 Allows form editors to select **Template** as a Hidden field’s default value source. Configure in **Settings → Field Types and Restrictions**. When disabled, stored Template fields return an empty value and continue to ignore posted input. Their template source is retained. Choose another source before saving an affected form, or re-enable the capability. **Custom Value** and references remain available.
 :::
@@ -373,7 +373,7 @@ Allows form editors to select **Template** as a Hidden field’s default value s
 ::: reference
 #### `allowHtmlFieldTwig`
 
-**Type:** `bool` · **Default:** `false` on new installs; `true` after upgrading
+**Type:** `bool` · **Default:** `false`
 
 Allows form editors to enable **Allow Twig** on HTML fields. Each field must also opt in. When disabled, HTML fields already configured for Twig produce no output, and new fields cannot opt in. Stored content is retained. Existing fields can turn off **Allow Twig** before saving, or an administrator can restore the capability. Configure in **Settings → Field Types and Restrictions**.
 :::
@@ -381,7 +381,7 @@ Allows form editors to enable **Allow Twig** on HTML fields. Each field must als
 ::: reference
 #### `allowHtmlFieldTemplateIncludes`
 
-**Type:** `bool` · **Default:** `false` on new installs; `true` after upgrading
+**Type:** `bool` · **Default:** `false`
 
 Allows sandboxed site-template includes in HTML fields. Requires `allowHtmlFieldTwig` and the field’s **Allow Twig** setting. When disabled, includes fail with a Twig sandbox error; ordinary permitted Twig expressions still work. This setting does not enable includes in Hidden fields, PDF filenames or other inline templates. Configure in **Settings → Field Types and Restrictions**.
 :::
@@ -389,12 +389,12 @@ Allows sandboxed site-template includes in HTML fields. Requires `allowHtmlField
 ::: reference
 #### `requireHtmlPurification`
 
-**Type:** `bool` · **Default:** `true` on new installs; `false` after upgrading
+**Type:** `bool` · **Default:** `true`
 
 Always purifies HTML field output, including output from Twig and included templates, and hides the field’s **Purify Content** control. Existing per-field preferences are retained but cannot bypass this requirement. When `false`, each field’s **Purify Content** setting applies; new HTML fields still default to purification enabled. Configure in **Settings → Field Types and Restrictions**.
 :::
 
-These four controls are site-wide policies, not defaults for new fields. They apply to existing fields, imports, duplicated forms, previews and runtime overrides. Administrators can change them when Craft’s `allowAdminChanges` is enabled, or developers can set them in `config/formie.php`. Form groups and field defaults cannot loosen these policies. Review existing Hidden Template fields and HTML fields using Twig, includes or unpurified markup before tightening them, then clear any application or CDN caches containing previously rendered forms. Settings changes do not rewrite already-cached HTML.
+These four controls are site-wide policies, not defaults for new fields. Sites upgrading from Formie 3 start with different values, as explained in [Field Templates and HTML Purification](/get-started/upgrading-from-v3#field-templates-and-html-purification). They apply to existing fields, imports, duplicated forms, previews and runtime overrides. Administrators can change them when Craft’s `allowAdminChanges` is enabled, or developers can set them in `config/formie.php`. Form groups and field defaults cannot loosen these policies. Review existing Hidden Template fields and HTML fields using Twig, includes or unpurified markup before tightening them, then clear any application or CDN caches containing previously rendered forms. Settings changes do not rewrite already-cached HTML.
 
 ::: reference
 #### `enableLargeFieldStorage`
@@ -457,7 +457,7 @@ Sets the maximum age of incomplete submissions in days before they are deleted b
 
 **Type:** `bool` · **Default:** `true`
 
-Allows previously sent unsigned Formie 2 and Formie 3 Signature image URLs to continue loading for submissions explicitly marked as legacy during the upgrade. New Formie 4 submissions always use signed, non-expiring, exact-value image URLs. Set this to `false` when historical email images no longer need to load.
+For sites upgrading from Formie 2 or 3, keeps Signature images in emails sent before the upgrade loading, as explained in [Signature Image URLs](/get-started/upgrading-from-v3#signature-image-urls).
 :::
 
 
@@ -644,60 +644,7 @@ Sets the number of days to keep sent notifications before they are deleted by sc
 
 ### Spam
 
-Current spam rules are read from their dedicated store. Configure them under **Formie → Spam Protection → Spam Rules** on each installation. The legacy keys below describe those values and remain upgrade inputs; placing them in `config/formie.php` does not override the dedicated store.
-
-::: reference
-#### `saveSpam`
-
-**Type:** `bool` · **Default:** `true`
-
-Saves spam submissions to the database.
-:::
-
-
-::: reference
-#### `spamLimit`
-
-**Type:** `int` · **Default:** `500`
-
-Limits how many saved spam submissions are kept.
-:::
-
-
-::: reference
-#### `spamEmailNotifications`
-
-**Type:** `bool` · **Default:** `false`
-
-Allows submissions marked as spam to still trigger email notifications.
-:::
-
-
-::: reference
-#### `spamBehaviour`
-
-**Type:** `string` · **Default:** `self::SPAM_BEHAVIOUR_SUCCESS`
-
-Controls what the user sees when a spam submission is detected. Use `showSuccess` or `showMessage`.
-:::
-
-
-::: reference
-#### `spamKeywords`
-
-**Type:** `string` · **Default:** `''`
-
-Marks a submission as spam when the submitted content matches the configured keywords.
-:::
-
-
-::: reference
-#### `spamBehaviourMessage`
-
-**Type:** `string` · **Default:** `''`
-
-Sets the message shown when `spamBehaviour` is `showMessage`. HTML and Markdown are supported.
-:::
+Manage spam rules under **Formie → Spam Protection → Spam Rules** on each installation, not in `config/formie.php`. For sites upgrading from Formie 3, Formie reads the `saveSpam`, `spamLimit`, `spamEmailNotifications`, `spamBehaviour`, `spamKeywords` and `spamBehaviourMessage` settings once to seed those rules, as explained in [Local Spam Protection Settings](/get-started/upgrading-from-v3#local-spam-protection-settings).
 
 
 ### Email Notifications
@@ -812,7 +759,7 @@ This lets Tailwind components and utilities override Formie’s layered styles. 
 
 **Type:** `array` · **Default:** `[]`
 
-Legacy upgrade input for CAPTCHA configuration. Manage current providers under **Formie → Spam Protection → CAPTCHAs** or **Spam Filtering Services**. Provider settings are stored in the installation’s database; configure them separately on production. See [Setting Up Production](/forms/spam-protection#setting-up-production).
+For sites upgrading from Formie 3, Formie reads this setting once to move CAPTCHA providers into **Formie → Spam Protection → CAPTCHAs**, as explained in [Local Spam Protection Settings](/get-started/upgrading-from-v3#local-spam-protection-settings).
 :::
 
 

@@ -43,7 +43,7 @@ Use `getFields()` to read a parent’s immediate fields, `getEnabledFields()` to
 
 ## Methods
 
-Use public getters to consume a field's completed configuration or projected value. Author configuration through the named hooks: `defineFormBuilder*Schema()` methods are public; value, browser-module, client-input and reference declaration hooks are protected. Public value getters dispatch their corresponding events, so a projection hook should reuse protected implementations instead of calling another public projection getter. To reuse the data projection, call protected `resolveValueAsData($value, $element = null)`: it resolves `defineValueAsData()` and supported legacy overrides without firing the data event. Keep dedicated condition, browser and integration projections when their shape differs from the data representation.
+Use public getters to consume a field's completed configuration or projected value. Author configuration through the named hooks: `defineFormBuilder*Schema()` methods are public; value, browser-module, client-input and reference declaration hooks are protected. Public value getters dispatch their corresponding events, so a projection hook should reuse protected implementations instead of calling another public projection getter. To reuse the data projection, call protected `resolveValueAsData($value, $element = null)`: it resolves `defineValueAsData()` without firing the data event. Keep dedicated condition, browser and integration projections when their shape differs from the data representation.
 
 Use `MyField::class` for the fully qualified class identity and `MyField::getShortClassName()` for its short class name. `fieldKind()` describes an input kind, `valueType()` describes the normalized PHP value, and `getPresentationDisplayType()` identifies a presentation mode on fields that support presentation delegates. These represent different concepts.
 
@@ -362,7 +362,7 @@ public function normalizeValue(mixed $value, ?\craft\base\ElementInterface $elem
 
 A structured value object should expose read-only properties and explicitly declare which property paths references may access. Construct it once during normalisation. Keep field presentation settings, submission objects and service lookups outside the value. Repeated normalisation and every projection must leave the original unchanged.
 
-Implement `verbb\formie\fields\values\FieldValueInterface` directly, or extend `BaseFieldValue` when an intrinsic `toArray()` representation is useful for domain parts. The interface deliberately contains only `Stringable`, `isEmpty()`, `canResolvePath()` and `getPathValue()`; browser, storage and public-data conversion belong to the owning field rather than the value object. The legacy `verbb\formie\base\FieldValueInterface` remains an empty Formie 3 compatibility marker, not the Formie 4 authoring contract.
+Implement `verbb\formie\fields\values\FieldValueInterface` directly, or extend `BaseFieldValue` when an intrinsic `toArray()` representation is useful for domain parts. The interface deliberately contains only `Stringable`, `isEmpty()`, `canResolvePath()` and `getPathValue()`; browser, storage and public-data conversion belong to the owning field rather than the value object.
 
 Use the method intended for each operation:
 

@@ -173,6 +173,8 @@ Returns attributes for the field input, where applicable.
 ::: reference
 ### `renderInput(form, value)`
 
+**Returns:** `Twig\Markup`
+
 Returns the field's input HTML. This omits the surrounding label, validation rules and error container. Use `craft.formie.renderField(form, field)` when [custom rendering](/theming/custom-rendering) needs a complete field.
 :::
 
@@ -194,6 +196,8 @@ Returns the parent field for sub-fields and nested fields.
 
 ::: reference
 ### `setParentField()`
+
+**Returns:** `void`
 
 Sets the parent field for sub-fields and nested fields.
 :::

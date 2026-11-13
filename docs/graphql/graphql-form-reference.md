@@ -72,7 +72,6 @@ Field | Type | Description
 `submitMethod` | `String` | The submit method, such as `page-reload` or `ajax`.
 `completionBehavior` | `String` | The completion behavior: `message`, `redirect`, `reload` or `reset`.
 `completionRedirectSource` | `String` | The redirect source: `url` or `entry`.
-`submitAction` | `String` | Deprecated Formie 3 alias for the completion behavior and redirect source.
 `redirectTarget` | `String` | Whether redirects open in the same tab or a new tab.
 `hideFormAfterSubmit` | `Boolean` | Whether to hide the form after success.
 `automaticSubmissionState` | `Boolean` | Whether Formie should automatically restore an in-progress submission when the visitor returns.

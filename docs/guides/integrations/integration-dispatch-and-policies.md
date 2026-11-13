@@ -67,7 +67,7 @@ For example, **Skip and log warning** lets a Campaign Monitor repeated-subscript
 
 Completed jobs leave Craft's queue, so they have no Diagnostics button to return to. Choose a logging action if you need a record of a skipped delivery. Skipped work may still appear in the Diagnostics for an enclosing job that failed on a different integration. If that job is retried, the skipped integration runs again using the current policy; successful steps remain remembered.
 
-Connections without saved choices inherit the former global [`integrationApiErrorHandling`](/get-started/configuration#integrationapierrorhandling) setting. Saving the dropdowns stores those choices on that connection; other connections keep their own policies.
+Connections without saved choices use the [`integrationApiErrorHandling`](/get-started/configuration#integrationapierrorhandling) setting. Saving the dropdowns stores those choices on that connection; other connections keep their own policies.
 
 ## Manual Runs
 

@@ -15,7 +15,7 @@ The browser and server pieces work together:
 7. The inherited `processPayment()` saves the payment attempt and acquires its lock, then calls your protected `executePayment()` method, which returns a typed `PaymentDecision`.
 8. If the provider uses redirects, challenges or webhooks, the integration handles the follow-up provider response and updates the payment record.
 
-When a saved payment completes through reconciliation or a verified webhook, Formie compares its amount and currency with the current submission before completing the form. `getPaymentAmount($submission)` must return the amount in the major currency units stored on the payment record. Its default implementation preserves older `getAmount()` overrides. New providers should treat `getPaymentAmount()` as the major-unit contract and convert explicitly at the API boundary. Stripe and Opayo expose `getProviderAmount()` for their API units; their deprecated `getAmount()` methods retain the old unit semantics. `getCurrency($submission)` resolves the configured fixed or dynamic currency, falling back to the field’s `currency` setting.
+When a saved payment completes through reconciliation or a verified webhook, Formie compares its amount and currency with the current submission before completing the form. `getPaymentAmount($submission)` must return the amount in the major currency units stored on the payment record. Treat `getPaymentAmount()` as the major-unit contract and convert explicitly at the API boundary. Stripe and Opayo expose `getProviderAmount()` for their API units. `getCurrency($submission)` resolves the configured fixed or dynamic currency, falling back to the field’s `currency` setting.
 
 ## PHP Integration
 
@@ -128,7 +128,7 @@ REST, GraphQL and server-rendered responses all expose a `payment` object contai
 
 Override `getPaymentAccountIdentity()` to return the provider's stable merchant/account identifier and `getPaymentEnvironment()` when the provider distinguishes live and test accounts differently. Formie hashes that identity with the connection and environment through `getPaymentAccountFingerprint()`. Moneris, Opayo, PayWay, Bpoint and Square use their configured account/store/location identifiers. Stripe resolves the account during connection verification and caches it by a one-way credential key; reverify the connection after rotating its key. Providers without a verified stable identifier use a conservative credential fingerprint and cannot transparently rotate credentials on unresolved attempts. Raw credentials are never persisted as the account identity.
 
-Payment and subscription provider-reference lookups are scoped by integration and account fingerprint. Unscoped legacy lookups return no result when ambiguous. Financial account snapshots cannot change during an ordinary save. Historical rows without provable ownership remain unbound after migration: a trusted operator can run `php craft formie/payments/verify-account payment <id> "verification note" --confirmed` (or `subscription`) only after checking the original resource in the original merchant account and configuring that same account. This audited operation cannot replace an existing fingerprint, change money or settle an outcome.
+Payment and subscription provider-reference lookups are scoped by integration and account fingerprint. Lookups without an integration scope return no result when ambiguous. Financial account snapshots cannot change during an ordinary save. A payment or subscription without provable ownership stays unbound until a trusted operator runs `php craft formie/payments/verify-account payment <id> "verification note" --confirmed` (or `subscription`) after checking the original resource in the original merchant account and configuring that same account. This audited operation cannot replace an existing fingerprint, change money or settle an outcome.
 
 ## Transactions And Replay
 
@@ -326,14 +326,14 @@ Method | Use
 `supportsWebhooks()` | Whether the provider can send webhook updates.
 `verifyWebhook()` | Authenticates exact request evidence and returns normalized provider events without changing payment state.
 `handleWebhook()` | Applies one durable normalized receipt under Formie's processing lock.
-`refreshPayment()` | Public payment-refresh action; calls the protected `refreshPaymentState()` hook and adapts legacy `getTransaction()` overrides. Never trusts browser return fields.
+`refreshPayment()` | Public payment-refresh action; calls the protected `refreshPaymentState()` hook. Never trusts browser return fields.
 `requiresAjaxSubmission()` | Whether forms using this provider must submit with Ajax.
 `getWebhookUrl()` | Returns the stable integration-UID webhook URL Formie exposes for the payment provider.
 
 ## Refresh and Builder Hooks
 
-Implement `refreshPaymentState(Payment $payment): void` to fetch authenticated provider state and persist verified payment updates. Here `Payment` is `verbb\formie\models\Payment`, not the integration base. The service calls `refreshPayment()` during reconciliation. The old `getTransaction()` and `getTransactionStatus()` entry points remain callable; provider-specific status adapters retain their existing return handling and error behaviour.
+Implement `refreshPaymentState(Payment $payment): void` to fetch authenticated provider state and persist verified payment updates. Here `Payment` is `verbb\formie\models\Payment`, not the integration base. The service calls `refreshPayment()` during reconciliation.
 
-Payment integrations may implement `defineFormBuilderGeneralSchema()`, `defineFormBuilderSettingsSchema()` and `defineFormBuilderAppearanceSchema()` to configure the Payment field. Their defaults return empty arrays, as does `getPaymentSubFields($field)`. These established hooks allow older untyped return signatures.
+Payment integrations may implement `defineFormBuilderGeneralSchema()`, `defineFormBuilderSettingsSchema()` and `defineFormBuilderAppearanceSchema()` to configure the Payment field. Their defaults return empty arrays, as does `getPaymentSubFields($field)`.
 
-`getGqlPaymentInputFieldKeys($field)` supplies payment input keys to GraphQL. Override the protected `getOptionalGqlPaymentInputFieldKeys()` hook for additional optional inputs. The older `Graphql` spellings remain compatible. Stripe’s `createPaymentReturnUrl($submission)` prepares a payment attempt and issues a return token; its old `getReturnUrl()` name remains an adapter. Other providers’ URL-only helpers do not imply attempt creation.
+`getGqlPaymentInputFieldKeys($field)` supplies payment input keys to GraphQL. Override the protected `getOptionalGqlPaymentInputFieldKeys()` hook for additional optional inputs. Stripe’s `createPaymentReturnUrl($submission)` prepares a payment attempt and issues a return token. Other providers’ URL-only helpers do not imply attempt creation.

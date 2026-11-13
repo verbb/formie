@@ -73,7 +73,7 @@ Returns the [Field](/reference/field) objects on this page.
 
 **Returns:** `FieldInterface|null`
 
-Pass the required field handle, for example `page.getFieldByHandle('email')`. Returns a field on this page or `null` when it is absent.
+Returns the field on this page with the handle you pass, such as `page.getFieldByHandle('email')`, or `null` when there isn’t one.
 :::
 
 ::: reference
@@ -81,7 +81,7 @@ Pass the required field handle, for example `page.getFieldByHandle('email')`. Re
 
 **Returns:** `bool`
 
-Pass the submission being evaluated, for example `page.isConditionallyHidden(submission)`. Returns whether the page is hidden for that submission because of conditions.
+Returns whether conditions hide the page for the submission you pass, such as `page.isConditionallyHidden(submission)`.
 :::
 
 ::: reference
@@ -113,5 +113,5 @@ Returns the conditions in the shape used by Formie’s front-end handling.
 
 **Returns:** `array`
 
-Pass the submission being checked, for example `page.getFieldErrors(submission)`. Returns its field errors for this page; the argument may be `null`.
+Returns the field errors on this page for the submission you pass, such as `page.getFieldErrors(submission)`. The submission can be `null`.
 :::

@@ -137,7 +137,7 @@ Completion also saves a pending `SubmissionDispatch` in the same database transa
 
 Queue jobs and provider requests start after that transaction commits. If processing is interrupted, scheduled recovery runs only the registered Dispatch tasks, using the same run ID. It does not repeat persistence, payment or completion events. Custom Dispatch tasks must handle retries without repeating external actions that have already succeeded.
 
-The dispatch status distinguishes scheduled work from running work, completed delivery, completed delivery with failures and work needing attention. A delivery attempt describes one operation within that run. See [delivery recovery commands](/developers/console-commands#recover-interrupted-submission-delivery) for scheduling and inspection.
+The dispatch status distinguishes scheduled work from running work, completed delivery, completed delivery with failures and work needing attention. A delivery attempt describes one operation within that run.
 
 ## Versions and Retries
 
@@ -147,7 +147,7 @@ An operation ID identifies a request and its retries; it does not grant access t
 
 Receipts last seven days and contain a keyed fingerprint of the input and an encrypted outcome, limited to 64 KiB before encryption. Repeating a successful request with the same input returns the saved outcome; changing the input returns a conflict. Validation failures leave the request token available for correction. If an interrupted request leaves a receipt in the processing state, reconcile its outcome before retrying. Cleanup removes receipts after seven days, matching the interactive request-token lifetime.
 
-REST and server-rendered AJAX map validation and payment failure to 422, state conflict to 409, rejection to 403 and throttling to 429. Deliberate fake-success spam policy returns 200. Interactive GraphQL returns expected workflow outcomes as data. Legacy HTML/AJAX retains its response shape and boolean success field alongside the typed outcome.
+REST and server-rendered AJAX map validation and payment failure to 422, state conflict to 409, rejection to 403 and throttling to 429. Deliberate fake-success spam policy returns 200. Interactive GraphQL returns expected workflow outcomes as data. Server-rendered HTML and AJAX responses also include a boolean `success` field alongside the typed outcome.
 
 ## Progress, Grants and Uploads
 

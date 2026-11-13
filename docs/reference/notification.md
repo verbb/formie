@@ -89,7 +89,7 @@ The email address or variable content used for the `To` recipient.
 
 **Type:** `array|null`
 
-Conditional recipient rules for the `To` recipient.
+The conditional rules that decide the `To` recipient.
 :::
 
 ::: reference
@@ -161,7 +161,7 @@ Whether user-uploaded files should be attached.
 
 **Type:** `string|null`
 
-Whether a PDF should be attached.
+The setting for whether a PDF is attached to the email.
 :::
 
 ::: reference
@@ -196,7 +196,7 @@ Returns the notification content as rendered HTML.
 
 **Returns:** `string|null`
 
-Resolves the notification’s `To` recipient for a submission.
+Returns the notification’s `To` recipient for a submission.
 :::
 
 ::: reference
@@ -212,7 +212,7 @@ Returns the status condition for a submission, when applicable.
 
 **Returns:** `string`
 
-Renders notification template content with supplied variables.
+Returns notification template content rendered with the variables you pass.
 :::
 
 ::: reference

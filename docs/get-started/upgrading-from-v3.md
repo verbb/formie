@@ -528,7 +528,7 @@ Next, review the [notification and integration event changes](#php-events) befor
 
 Spam settings and provider credentials migrate automatically into local database storage. The upgrade preserves each installation’s effective values, enabled state and credential references, including settings previously managed through project config. Authorised clients can edit them directly in **Spam Protection** with admin changes disabled. The old **Settings → Spam** and **Settings → Captchas** URLs redirect there.
 
-Spam rules and provider credentials are not exported to or updated by project config. Configure each installation separately; a database copy still carries these settings. Existing `formie.captchaProviders` and `formie.spamSettings` entries are ignored. Rebuilding project config removes those obsolete entries. Upgrade all installations before deploying that removal, because older versions can interpret it as an instruction to clear settings. See [Setting Up Production](/forms/spam-protection#setting-up-production).
+Spam rules and provider credentials are not exported to or updated by project config. Configure each installation separately; a database copy still carries these settings. Existing `formie.captchaProviders` and `formie.spamSettings` entries are ignored. The upgrade also reads the `saveSpam`, `spamLimit`, `spamEmailNotifications`, `spamBehaviour`, `spamKeywords`, `spamBehaviourMessage` and `captchas` settings from `config/formie.php` to seed this storage. After that, these settings have no effect, so remove them from your config file. Rebuilding project config removes those obsolete entries. Upgrade all installations before deploying that removal, because older versions can interpret it as an instruction to clear settings. See [Setting Up Production](/forms/spam-protection#setting-up-production).
 
 ### Removed Legacy Captchas
 
@@ -940,6 +940,7 @@ Update conditions or custom validation code that depends on these changed behavi
 - Invalid conditions block actions. Correct unknown rules and dependency cycles.
 - Date/time rules need complete values and a timezone offset for ambiguous local times.
 - Hidden and disabled values are cleared before validation, including nested and repeater values.
+- New visibility rules can only select preceding fields, previous pages or preceding siblings. Existing forward references keep working and are ordered by dependency.
 
 Test conditional visibility, required fields and page navigation.
 
@@ -1410,38 +1411,35 @@ Formie 3 | Formie 4
 `getTransaction()` | `refreshPayment()`
 `getRefreshJsVariables()` | `getRefreshData()`
 Stripe `getReturnUrl($submission)` | `createPaymentReturnUrl($submission)`
+`getGraphqlPaymentInputFieldKeys()` | `getGqlPaymentInputFieldKeys()`
+`getOptionalGraphqlPaymentInputFieldKeys()` | `getOptionalGqlPaymentInputFieldKeys()`
 `OAuthRequest()` | `request()`
 
 When updating a custom provider's **overrides**, use the implementation hooks:
 
 - Replace `populateQueueJobContext()` customisation with `recordDeliveryRequestEvidence()` to supply prepared request evidence; see [Results and Retries](/developers/custom-integration/overview#results-and-retries).
-- Replace `getTransaction()` customisation with `refreshPaymentState()` to fetch and save verified provider state; see [Refresh and Builder Hooks](/developers/custom-integration/payment-integration#refresh-and-builder-hooks). Existing `getTransactionStatus()` calls retain provider-specific handling; use `refreshPayment()` when new code needs to refresh a payment.
-- Replace `getRefreshJsVariables()` customisation with `defineRefreshData()` to return refreshed captcha data; see [Captcha Browser Behaviour](/developers/custom-integration/captcha-integration#browser-behaviour).
+- Replace `getTransaction()` customisation with `refreshPaymentState()` to fetch and save verified provider state. Payment field schema hooks and `getPaymentSubFields()` still accept older untyped return signatures. See [Refresh and Builder Hooks](/developers/custom-integration/payment-integration#refresh-and-builder-hooks). Existing `getTransactionStatus()` calls retain provider-specific handling; use `refreshPayment()` when new code needs to refresh a payment.
+- Replace `getRefreshJsVariables()` customisation with `defineRefreshData()` to return refreshed captcha data. Existing `getRefreshJsVariables()` overrides still work, including parent calls. See [Captcha Browser Behaviour](/developers/custom-integration/captcha-integration#browser-behaviour).
+- Replace `getConfigRefreshParams()` overrides with `getOptionSourceRefreshParams(string $provider)`, which returns parameters for one option source. See [Refresh Parameters](/developers/custom-integration/integration-option-sources#refresh-parameters). Existing overrides still work through the base fallback.
 
 #### Integration Service Methods
 
 Update service calls and overrides together. The deprecated entry points remain callable, and canonical calls honour older overrides, including parent calls. A canonical override declared on the same or a more-derived class takes precedence. Do not override both spellings for the same operation.
 
-Previous method | Current method
+Formie 3 | Formie 4
 --- | ---
-`getFormIntegrationByHandle()` | `getBuilderIntegrationByHandle()`
 `getAllIntegrationsForForm()` | `getGroupedBuilderIntegrations()`
-`getIntegrationSummariesForForm()` | `getGroupedBuilderIntegrationSummaries()`
-`getFormIntegrationDefinitionByHandle()` | `resolveIntegrationDefinitionByHandle()`
-`getFormIntegrationsForForm($form)` | `getEnabledFormIntegrations($form)`
 `getAllEnabledIntegrationsForForm($form)` | `getEnabledIntegrationRuntimes($form)`
 `populateIntegrationFromFormSettings()` | `createIntegrationRuntime()`
 `createIntegrationConfig()` | `createProjectConfig()`
-Dispatcher `loadContext()` / `saveContext()` | `loadRunResults()` / `saveRunResults()`
-Triggers `dispatchManualIntegration()` | `runManualIntegration()`
 
-This table includes Formie 3 service methods and renamed methods from the Formie 4 beta. Builder choices are different from a form's `FormIntegration` bindings. Runtime creation returns a clone, and `createProjectConfig()` serialises configured connection settings rather than returning fetched `IntegrationConfig` metadata. See [Connections, Bindings and Runtimes](/developers/custom-integration/overview#connections-bindings-and-runtimes).
+Builder choices are different from a form's `FormIntegration` bindings. Runtime creation returns a clone, and `createProjectConfig()` serialises configured connection settings rather than returning fetched `IntegrationConfig` metadata. See [Connections, Bindings and Runtimes](/developers/custom-integration/overview#connections-bindings-and-runtimes).
 
 Provider metadata overrides of `fetchFormSettings()` may continue to call their parent; acquisition returns the compatible `IntegrationFormSettings` model. This also applies to subclasses of native providers. Refresh events run once around acquisition, including for element integrations. When migrating the override, implement `fetchConfig()` and return `IntegrationConfig`.
 
-Existing `sendPayload(): bool` overrides may still return or check their parent result; the deprecated facade preserves boolean behavior while the canonical execution path retains its detailed result. Metadata compatibility also includes `getFormSettings()` and `getFormSettingValue()` read overrides, not only acquisition.
+Existing `sendPayload(): bool` overrides may still return or check their parent result; the deprecated facade preserves boolean behavior while the canonical execution path retains its detailed result. Metadata compatibility also includes `getFormSettings()` and `getFormSettingValue()` read overrides, not only acquisition. A cancelled metadata read still returns `false` through `getFormSettings(false)`, while `getConfig()` and `refreshConfig()` return the previous metadata.
 
-Keep zero-argument `populateContext()` and single-argument `enforceOptInField($submission)` signatures in old providers. Call `populateSubmissionContext($submission)` to prepare submission metadata through an existing context override. Keep the string parameter and its original name in `getMappedFieldValue(string $mappedFieldValue, ...)`; use `resolveMappedFieldValue()` for structured reference slots. Older overrides participate in both single-value and bulk mappings.
+Keep the original `populateContext(): void`, `enforceOptInField(Submission $submission): bool` and `getMappedFieldValue(string $mappedFieldValue, Submission $submission, IntegrationField $integrationField): mixed` signatures in old providers, including subclasses of native providers. The inherited `getFormSettingValue(string $key)` intentionally has no return declaration. Call `populateSubmissionContext($submission)` to prepare submission metadata through an existing context override. Keep the string parameter and its original name in `getMappedFieldValue(string $mappedFieldValue, ...)`; use `resolveMappedFieldValue()` for structured reference slots. Older overrides participate in both single-value and bulk mappings.
 
 For provider implementations, migrate `sendPayload()` overrides to `executePayload()`. For application callers, use the [execution entry point matching the action](/developers/custom-integration/overview#calling-integrations); replacing a direct send with `execute()` does not apply the runner's complete dispatch policy. Web calls to the manual trigger service require permission to save submissions for the submission's form, including through the deprecated method. Custom controllers remain responsible for POST and CSRF requirements.
 
@@ -1453,7 +1451,7 @@ The base `getAmount()` adapter honours `getPaymentAmount()` overrides and preser
 
 #### Integration Class Names
 
-Replace `className()` with `getShortClassName()` for a short class name, or use `::class` for a fully qualified class name. Replace `kebabClassName()` with `getClassHandle()` for an implementation handle. See [Method Contracts](/developers/custom-integration/overview#method-contracts-and-compatibility) for signatures.
+Replace `className()` with `getShortClassName()` for a short class name, or use `::class` for a fully qualified class name. Replace `kebabClassName()` with `getClassHandle()` for an implementation handle. See [Method Contracts](/developers/custom-integration/overview#method-contracts) for signatures.
 
 ### Render Options
 
@@ -1680,6 +1678,8 @@ See [Custom Field Values](/developers/custom-field/overview#normalised-values-an
 
 For a `serializeValue()` override, move the storage conversion into `defineValueForDb()` when updating your field. Code requesting the stored representation calls `serializeValueForDb()`.
 
+`verbb\formie\base\FieldValueInterface` remains as an empty marker so Formie 3 value classes still load. Implement `verbb\formie\fields\values\FieldValueInterface` or extend `BaseFieldValue` when updating them; see [Custom Field Values](/developers/custom-field/overview#normalised-values-and-projections).
+
 ### Additional Deprecated Names
 
 Formie 3 | Formie 4
@@ -1752,6 +1752,8 @@ Use these names when updating completion settings:
 | `submitActionMessagePosition` | `successMessagePosition` |
 
 When replacing `submitAction: entry` or `submitAction: url`, set `completionBehavior: redirect` and set `completionRedirectSource` to `entry` or `url` respectively.
+
+The GraphQL `submitAction` form setting remains available as an alias. Query `completionBehavior` and `completionRedirectSource` instead.
 
 ### Populating Submission Values
 
@@ -1946,6 +1948,10 @@ Integration field-mapping tokens | Migrated reference values; existing notificat
 
 Custom frontends should review [Frontend Assets](/frontend/frontend-assets) when adopting the browser packages.
 
+### Dropdown Placeholders
+
+Dropdown fields have a **Show Placeholder** setting. Existing Dropdown fields keep their option rows and selections, and the setting stays off unless the field already had a placeholder configured. If you turn it on for a field that already has an empty option, remove that row if you only want one prompt. See [Dropdown](/fields/dropdown).
+
 ### Address Auto-Complete
 
 Answers saved in an Address field's auto-complete input are kept, and still appear in exports and emails. The field's **Auto-Complete** sub-field only appears in its settings when an address provider is enabled. To use it again, enable a provider, open the Address field, turn on **Auto-Complete**, choose the provider and re-enter its label and placeholder. Until then, the saved answer doesn't appear on the control panel edit screen.
@@ -1971,6 +1977,17 @@ You can activate the dedicated Formie field-content key after upgrading; existin
 Before enabling encryption on another field, generate `FORMIE_ENCRYPTION_KEY` with `php craft formie/encryption/generate-key`. The command saves the key to the project’s configured `.env` file; use `--stdout` if another system manages the environment. Store the same key in every environment that must read copied submissions. Deploy and restart all web and queue processes before running `php craft formie/encryption/activate`. Make a verified database backup, then follow the [submission content encryption commands](/developers/console-commands#submission-content-encryption) to convert existing values. See [Content Encryption](/submissions/content-encryption) for key management.
 
 Keep `FORMIE_SECURITY_KEY` and the previous Craft security key available until conversion is complete if the site has used both. You can supply old keys temporarily through `FORMIE_ENCRYPTION_PREVIOUS_KEYS`. Formie preserves and locks any value it cannot decrypt instead of displaying it as blank or overwriting it during a resave.
+
+### Signature Image URLs
+
+Signature images in new emails use signed URLs. Emails sent by Formie 2 or 3 contain unsigned Signature image URLs, and the upgrade marks those submissions so their images keep loading while `allowLegacySignatureImageUrls` is enabled, which is the default. Set it to `false` once those older emails no longer need to show their Signature images:
+
+```php
+// config/formie.php
+return [
+    'allowLegacySignatureImageUrls' => false,
+];
+```
 
 ### Production Settings Permissions
 
@@ -2075,7 +2092,9 @@ Formie 3 subscription payment rows remain monetary history because they cannot r
 
 Existing `deleteSubscription()` and `deleteSubscriptionById()` calls now archive the subscription and preserve its financial history. Review custom code that depended on physical deletion.
 
-Use the [payment console commands](/developers/console-commands) to inspect and reconcile unresolved outcomes before retrying.
+Payments and subscriptions saved before the upgrade may have no verifiable merchant account. Status lookups and cancellation stay blocked for them until you check the original resource in the merchant account and run `formie/payments/verify-account`.
+
+Use the [payment console commands](/developers/console-commands) to inspect and reconcile unresolved outcomes and verify accounts before retrying.
 
 ### New and Renamed Settings
 
@@ -2084,7 +2103,7 @@ If your project keeps a full `config/formie.php`, review these settings and the 
 Setting | Use
 --- | ---
 `compatibilityMode` | Enables Formie 3 compatibility shims, including supported browser events. Defaults to `true`.
-`allowLegacySignatureImageUrls` | Keeps unsigned Signature images in previously sent Formie 2/3 emails available for explicitly grandfathered submissions. Defaults to `true`; new emails use signed URLs.
+`allowLegacySignatureImageUrls` | Keeps unsigned Signature images in emails sent by Formie 2 or 3 loading. Defaults to `true`. See [Signature Image URLs](#signature-image-urls).
 `staticCacheRefreshOnLoad` | Enables token refresh support for static-cache setups that are not auto-detected.
 `setOnlyCurrentPagePayload` | Limits front-end page payload behaviour to the current page.
 `anonymousFormBootstrapRateLimit` | Rate limit for anonymous form bootstrap requests.

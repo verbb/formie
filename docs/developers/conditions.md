@@ -186,7 +186,7 @@ Use the stored option value in the comparison, such as `email`, even if the edit
 
 ## Visibility and Navigation
 
-New visibility rules select preceding fields, previous pages or preceding siblings. Button progression can reference the entire current page. Compatible legacy forward references are ordered by dependency; dependency cycles produce save-time and runtime diagnostics.
+Visibility rules select preceding fields, previous pages or preceding siblings. Button progression can reference the entire current page. Formie orders any forward references in saved conditions by dependency, and dependency cycles produce save-time and runtime diagnostics.
 
 After applying initial, default, forced and submitted values, the server evaluates visibility and clears hidden or disabled values recursively, including repeater children. Public requests cannot opt out. Trusted control-panel follow-conditions and muted modes also clear values; explicit show-all mode may preserve hidden values.
 
