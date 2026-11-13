@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.0.9 - 2026-11-14
 
 ### Added
 - Added `craft.formie.craftFormAttributes()` to enable themed browser validation on forms that submit directly to Craft actions.
