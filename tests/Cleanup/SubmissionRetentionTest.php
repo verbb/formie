@@ -60,3 +60,18 @@ it('prunes stale incomplete submissions while preserving complete and recent dra
     Formie::$plugin->getCleanup()->runTask(Cleanup::TASK_INCOMPLETE_SUBMISSIONS);
     expect(survivingRetentionIds($rows))->toBe([$rows[1]->id, $rows[2]->id]);
 });
+
+it('enforces the spam limit when incomplete submissions are kept indefinitely', function (): void {
+    Formie::$plugin->getSettings()->maxIncompleteSubmissionAge = 0;
+    Formie::$plugin->getSettings()->saveSpam = true;
+    Formie::$plugin->getSettings()->spamLimit = 1;
+    $form = formie()->form()->singleLineTextField('name')->create();
+    // The newest spam row is dated ahead so other fixtures' spam can't push it past the limit.
+    $rows = [
+        retentionSubmission($form, '+1 day', false, true),
+        retentionSubmission($form, '-1 day', false, true),
+        retentionSubmission($form, '-90 days', true),
+    ];
+    Formie::$plugin->getCleanup()->runTask(Cleanup::TASK_INCOMPLETE_SUBMISSIONS);
+    expect(survivingRetentionIds($rows))->toBe([$rows[0]->id, $rows[2]->id]);
+});

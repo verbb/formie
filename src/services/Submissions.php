@@ -233,25 +233,24 @@ class Submissions extends Component
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
-        if ($settings->maxIncompleteSubmissionAge <= 0) {
-            return;
-        }
+        // Unlimited incomplete retention must not skip the spam limit below.
+        if ($settings->maxIncompleteSubmissionAge > 0) {
+            $interval = new DateInterval("P{$settings->maxIncompleteSubmissionAge}D");
+            $date = new DateTime();
+            $date->sub($interval);
 
-        $interval = new DateInterval("P{$settings->maxIncompleteSubmissionAge}D");
-        $date = new DateTime();
-        $date->sub($interval);
+            $submissions = Submission::find()
+                ->isIncomplete(true)
+                // Don't use `Db::prepareDateForDb()` because the `dateCreated` param will already do that
+                ->dateUpdated('< ' . $date->format('Y-m-d H:i:s'))
+                ->all();
 
-        $submissions = Submission::find()
-            ->isIncomplete(true)
-            // Don't use `Db::prepareDateForDb()` because the `dateCreated` param will already do that
-            ->dateUpdated('< ' . $date->format('Y-m-d H:i:s'))
-            ->all();
-
-        foreach ($submissions as $submission) {
-            try {
-                Craft::$app->getElements()->deleteElement($submission, true);
-            } catch (Throwable $e) {
-                Formie::error("Failed to prune submission with ID: #{$submission->id}." . $e->getMessage());
+            foreach ($submissions as $submission) {
+                try {
+                    Craft::$app->getElements()->deleteElement($submission, true);
+                } catch (Throwable $e) {
+                    Formie::error("Failed to prune submission with ID: #{$submission->id}." . $e->getMessage());
+                }
             }
         }
 

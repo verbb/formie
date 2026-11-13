@@ -17,6 +17,7 @@
 - Fixed client-rendered forms, such as those using `@verbb/formie-vue`, receiving no content for Rich Text and HTML fields. The rendered HTML is now included as `contentHtml` and `htmlContent` in each field’s `input`. ([#3116](https://github.com/verbb/formie/issues/3116))
 - Fixed styles that Formie’s JavaScript adds for fields such as Phone being blocked by a Content Security Policy. They now use the nonce from a `csp-nonce` meta tag or the `scriptAttributes` render option. ([#3117](https://github.com/verbb/formie/issues/3117))
 - Fixed Rich Text field links set to open in a new tab opening in the same tab. ([#3112](https://github.com/verbb/formie/issues/3112))
+- Fixed older spam submissions not being deleted past the Spam Submission Limit when Maximum Incomplete Submission Age is set to 0.
 - Fixed Forms fields appearing empty to users without permission to view the related forms, and removing those forms when the user saved the element. ([#3114](https://github.com/verbb/formie/issues/3114))
 - Fixed GraphQL token requests sent to a control panel URL returning no forms for `formieForms` queries and Forms fields. ([#3109](https://github.com/verbb/formie/issues/3109))
 - Fixed Forms fields returning forms a GraphQL schema can’t view, causing query errors for schemas limited to certain forms.
