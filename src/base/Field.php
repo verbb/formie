@@ -738,6 +738,13 @@ abstract class Field extends SavableComponent implements FieldInterface, Searcha
         return $this->defineValueForDb($value, $element);
     }
 
+    // The input that clears this field's answer, such as for a field hidden by conditions.
+    // Fields that apply defaults when a new submission has no value return an empty answer instead.
+    public function getClearedValue(): mixed
+    {
+        return null;
+    }
+
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
         return EmptyValueCoercer::isEmpty($value);

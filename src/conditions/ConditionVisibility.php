@@ -113,7 +113,7 @@ final class ConditionVisibility
             $walk = function(array $fields) use (&$walk, $definition, $submission): void {
                 foreach ($fields as $field) {
                     if ($field->reference === $definition->reference && self::unavailable($field, $submission)) {
-                        $submission->setFieldValue($field->valueKey(), null);
+                        $submission->setFieldValue($field->valueKey(), $field->getClearedValue());
 
                         continue;
                     }

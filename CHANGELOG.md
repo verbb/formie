@@ -26,6 +26,7 @@
 - Fixed submission and report exports failing when action URLs contain query parameters.
 - Fixed the Attach Assets picker for email notifications opening with no volumes or assets.
 - Fixed integration settings and other control panel links to the documentation opening missing pages instead of the relevant guide. ([#3113](https://github.com/verbb/formie/issues/3113))
+- Fixed Dropdown, Checkboxes, Radio and Table fields hidden by conditions saving their default options or rows with new submissions.
 
 ## 4.0.8 - 2026-11-10
 

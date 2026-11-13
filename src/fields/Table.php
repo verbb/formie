@@ -361,6 +361,12 @@ class Table extends Field
         }
     }
 
+    public function getClearedValue(): mixed
+    {
+        // Null would add the default rows on a new submission.
+        return [];
+    }
+
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         return $this->_normalizeValueInternal($value, $element, false);

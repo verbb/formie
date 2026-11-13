@@ -1098,6 +1098,12 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Opti
         return $options;
     }
 
+    public function getClearedValue(): mixed
+    {
+        // Null would select the default options on a new submission.
+        return $this->multi ? [] : '';
+    }
+
     protected function defaultValue(): array|string|null
     {
         if ($this->multi) {
