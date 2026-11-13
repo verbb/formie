@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.0.9 - 2026-11-13
+
 ### Added
 - Added `displayFieldContent()` and `isFieldLabelHidden()` for rendering Rich Text, HTML and Heading fields in client-rendered forms. ([#3116](https://github.com/verbb/formie/issues/3116))
 

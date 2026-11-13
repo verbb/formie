@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 4.0.9 - 2026-11-13
+
 ### Fixed
 - Fixed Rich Text, HTML and Heading fields showing an “Unsupported field type” message instead of their content. Rich Text and HTML labels are now hidden unless the field shows them. ([#3116](https://github.com/verbb/formie/issues/3116))
 
