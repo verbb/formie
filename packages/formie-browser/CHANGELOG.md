@@ -5,10 +5,14 @@
 ### Added
 - Added `craftForms()` to initialize inline validation on Craft action forms while preserving native submission.
 
+### Changed
+- Upload Manager fields now stop the form from submitting while files are still uploading and ask the visitor to wait, so a submission no longer interrupts an upload. With Disable Submit Button Until Valid, the button stays disabled until uploads finish. ([#3121](https://github.com/verbb/formie/issues/3121))
+
 ### Fixed
 - Fixed styles that Formie’s JavaScript adds for fields such as Phone being blocked by a Content Security Policy. They now use the nonce from a `csp-nonce` meta tag or the `scriptAttributes` render option. ([#3117](https://github.com/verbb/formie/issues/3117))
 - Fixed Dropdown fields hidden by conditions showing a blank selection instead of their placeholder once revealed. ([#3120](https://github.com/verbb/formie/issues/3120))
 - Fixed fields hidden by conditions when the page loads losing their default values, so they appeared empty when shown. Hidden fields still count as empty for other fields’ conditions, matching the server. ([#3120](https://github.com/verbb/formie/issues/3120))
+- Fixed client-side validation skipping File Upload fields that use the Upload Manager, so a required field could be submitted without a file and Disable Submit Button Until Valid enabled the button before any file was uploaded. Their error messages now also clear once a file finishes uploading. ([#3121](https://github.com/verbb/formie/issues/3121))
 
 ## 4.0.8 - 2026-11-09
 

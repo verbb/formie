@@ -55,6 +55,8 @@ File Upload stores references to uploaded Craft assets. In templates, exports, s
 
 Both display types submit the same asset ID payload. **Upload Manager (Advanced)** stages uploads immediately and writes asset IDs into hidden inputs as each file completes. **File Input (Simple)** uploads files during submission processing.
 
+While an **Upload Manager (Advanced)** field still has files uploading, client-side validation stops the form from submitting and asks the visitor to wait. With **Disable Submit Button Until Valid** enabled, the submit button stays disabled until those uploads finish. A failed upload no longer holds up the form.
+
 ### Asset Retention
 
 Each File Upload field can define **Asset Data Retention** in the field settings. When enabled, Formie deletes uploaded assets for that field after the configured duration while keeping the submission record. This is separate from the form-level **Data Retention** setting, which deletes entire submissions.

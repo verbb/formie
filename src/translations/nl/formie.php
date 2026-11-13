@@ -485,6 +485,7 @@ return [
   'Choose the shape of the PayPal button.' => 'Kies de vorm van de PayPal-knop.',
   'Choose the size for the heading.' => 'Kies de grootte voor de kop.',
   'Choose up to {files} files.' => 'Kies maximaal {files} bestanden.',
+  'Wait for {label} to finish uploading.' => 'Wacht tot {label} klaar is met uploaden.',
   'Choose which days of the week should be available.' => 'Kies welke dagen van de week beschikbaar moeten zijn.',
   'Christmas Island' => 'Christmaseiland',
   'Church Slavic; Old Slavonic; Church Slavonic; Old Bulgarian; Old Church Slavonic' => 'Kerkslavisch; Oudslavisch; Kerkslavisch; Oudbulgaars; Oudkerkslavisch',

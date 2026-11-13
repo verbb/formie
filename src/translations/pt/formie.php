@@ -455,6 +455,7 @@ return [
   'Choose the size of the field to display.' => 'Escolha o tamanho do campo a apresentar.',
   'Choose the Zoho module that owns the field.' => 'Escolha o módulo do Zoho ao qual o campo pertence.',
   'Choose up to {files} files.' => 'Escolha até {files} ficheiros.',
+  'Wait for {label} to finish uploading.' => 'Aguarde que {label} termine de carregar.',
   'Choose when integrations should run again after the initial submission. Integration conditions still apply.' => 'Escolha quando as integrações devem ser executadas novamente após o envio inicial. As condições de integração continuam a aplicar-se.',
   'Choose whether the limit applies to all submissions for this form, each IP address, or each logged-in user. When limiting all submissions, the form closes once the limit is reached.' => 'Escolha se o limite se aplica a todos os envios deste formulário, a cada endereço IP ou a cada utilizador com sessão iniciada. Ao limitar todos os envios, o formulário encerra assim que o limite for atingido.',
   'Choose whether the progress bar should reflect completed progress or current page position.' => 'Escolha se a barra de progresso deve refletir o progresso já concluído ou a posição atual na página.',

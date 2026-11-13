@@ -80,3 +80,35 @@ test('live validation stays responsive with submit gating and recovers after cor
     await expect(page.locator('[data-formie-field-error]')).toHaveCount(1);
     await expect(page.getByRole('button', { name: 'Send' })).toBeDisabled();
 });
+
+test('submit gating includes the unnamed Upload Manager status input', async ({ page }) => {
+    // The Upload Manager keeps its required rule on an unnamed status input and adds hidden asset inputs once a file uploads.
+    await page.evaluate(() => {
+        const form = document.querySelector('form')!;
+        form.querySelector('#email')!.closest('[data-formie-field-handle]')!.remove();
+        form.insertAdjacentHTML('afterbegin', `
+            <div data-formie-field-handle="files" data-formie-validation='[{"type":"required"}]'>
+                <label data-formie-field-label>Files</label>
+                <input type="hidden" name="fields[files]" value="" data-formie-file-upload-anchor="true">
+                <input type="file" multiple data-formie-upload-manager-input data-formie-validation-skip>
+                <input type="text" readonly required data-formie-input data-formie-upload-manager-status data-formie-validation-required="true">
+            </div>
+        `);
+        const boundary = (window as any).readinessBoundary;
+        boundary.validator = new boundary.FormieValidator(form, { live: true });
+        boundary.bindSubmitReadiness(form, boundary.validator, form);
+    });
+    await expect(page.getByRole('button', { name: 'Send' })).toBeDisabled();
+    await page.evaluate(() => {
+        const field = document.querySelector('[data-formie-field-handle="files"]')!;
+        (field.querySelector('[data-formie-upload-manager-status]') as HTMLInputElement).value = 'uploaded';
+        field.insertAdjacentHTML('beforeend', '<input type="hidden" name="fields[files][0][uploadUid]" value="abc" data-formie-file-upload-entry="true">');
+    });
+    await expect(page.getByRole('button', { name: 'Send' })).toBeEnabled();
+    await page.evaluate(() => {
+        const field = document.querySelector('[data-formie-field-handle="files"]')!;
+        (field.querySelector('[data-formie-upload-manager-status]') as HTMLInputElement).value = '';
+        field.querySelector('[data-formie-file-upload-entry]')!.remove();
+    });
+    await expect(page.getByRole('button', { name: 'Send' })).toBeDisabled();
+});

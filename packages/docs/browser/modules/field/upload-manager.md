@@ -30,6 +30,7 @@ Upload manager:
 - removes staged files through the delete endpoint and clears hidden inputs
 - reorders uploaded files with up/down controls and keeps hidden inputs in sync
 - validates required state and file-count limits through the shared validator
+- blocks submission while files are still uploading (validator `uploadManagerPending`), including with `disableSubmitButtonUntilValid`; failed uploads don't count as in progress
 - re-initializes when Repeater rows are added
 
 Uploaded asset IDs are synchronized through the same hidden-input contract as Simple file uploads. Both display types emit `formie:field:file-upload:uploaded-assets-sync`.

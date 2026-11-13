@@ -44,11 +44,12 @@ function isValidationInput(node: Element | null): node is ValidationInput {
     // Enhancement libraries inject unnamed search controls that do not submit
     // field values and must not inherit the field's validation rules. Date pickers
     // move their marker and rules to an unnamed visible input, which must validate.
+    // Upload Manager fields carry their required and file limit rules on an unnamed status input.
     return !!node && (
         node instanceof HTMLInputElement ||
         node instanceof HTMLSelectElement ||
         node instanceof HTMLTextAreaElement
-    ) && (!!node.name || node.hasAttribute('data-formie-date-datepicker-input'));
+    ) && (!!node.name || node.hasAttribute('data-formie-date-datepicker-input') || node.hasAttribute('data-formie-upload-manager-status'));
 }
 
 function isPainted(element: HTMLElement): boolean {

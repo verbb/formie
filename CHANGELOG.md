@@ -8,6 +8,7 @@
 ### Changed
 - Document the Google Sheets Proxy Redirect URI setting for connecting from a local site.
 - Submissions rejected by spam protection safeguards such as Minimum Submit Time are now written to the Formie log with the reason.
+- Upload Manager fields now stop the form from submitting while files are still uploading and ask the visitor to wait, so a submission no longer interrupts an upload. With Disable Submit Button Until Valid, the button stays disabled until uploads finish. ([#3121](https://github.com/verbb/formie/issues/3121))
 
 ### Fixed
 - Fixed forms showing their success message without saving the submission or sending notifications when Minimum Submit Time is enabled and the visitor’s device clock runs ahead of the server.
@@ -29,6 +30,7 @@
 - Fixed Dropdown fields hidden by conditions showing a blank selection instead of their placeholder once revealed. ([#3120](https://github.com/verbb/formie/issues/3120))
 - Fixed fields hidden by conditions when the page loads losing their default values, so they appeared empty when shown. Hidden fields still count as empty for other fields’ conditions, matching the server. ([#3120](https://github.com/verbb/formie/issues/3120))
 - Fixed Dropdown, Checkboxes, Radio and Table fields hidden by conditions saving their default options or rows with new submissions.
+- Fixed client-side validation skipping File Upload fields that use the Upload Manager, so a required field could be submitted without a file and Disable Submit Button Until Valid enabled the button before any file was uploaded. Their error messages now also clear once a file finishes uploading. ([#3121](https://github.com/verbb/formie/issues/3121))
 
 ## 4.0.8 - 2026-11-10
 

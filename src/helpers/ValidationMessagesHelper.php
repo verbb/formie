@@ -236,6 +236,7 @@ class ValidationMessagesHelper
             'Invalid currency.',
             'Provide a value for “{label}” to proceed.',
             'Captcha challenge must be completed.',
+            'Wait for {label} to finish uploading.',
         ];
     }
 

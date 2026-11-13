@@ -25,11 +25,12 @@ const HIDDEN_INPUT_ANCHOR_ATTR = 'data-formie-file-upload-anchor';
 const HIDDEN_INPUT_VALUE_ATTR = 'data-formie-file-upload-asset-id';
 const HIDDEN_INPUT_TOKEN_ATTR = 'data-formie-file-upload-token';
 const HIDDEN_INPUT_ENTRY_ATTR = 'data-formie-file-upload-entry';
+const STATUS_PENDING_ATTR = 'data-formie-upload-manager-pending';
 const FORM_RESET_EVENT = getFormStateEventName('reset');
 const REPEATER_INIT_ROW_EVENT = getFieldModuleEventName('repeater', 'init-row');
 const MODULE_ID = 'upload-manager';
 const VALIDATOR_SCOPE = 'upload-manager';
-const UPLOAD_VALIDATORS = ['uploadManagerRequired', 'uploadManagerFileLimit'] as const;
+const UPLOAD_VALIDATORS = ['uploadManagerPending', 'uploadManagerRequired', 'uploadManagerFileLimit'] as const;
 const UPLOAD_COMPLETE_DISPLAY_MS = 900;
 const UPLOAD_TRANSFER_MAX = 95;
 const UPLOAD_XHR_TIMEOUT_MS = 120_000;
@@ -642,6 +643,33 @@ function countManagedAssets(state: UploadManagerState): number {
     }).length;
 }
 
+function hasPendingUploads(state: UploadManagerState): boolean {
+    return state.files.some((file) => {
+        return file.assetId === null && !file.listItem.classList.contains('is-error');
+    });
+}
+
+function syncStatusInput(state: UploadManagerState): void {
+    const { statusInput } = state;
+
+    if (!statusInput) {
+        return;
+    }
+
+    const pending = hasPendingUploads(state);
+    const value = pending ? 'uploading' : (countManagedAssets(state) ? 'uploaded' : '');
+
+    if (statusInput.value === value && statusInput.hasAttribute(STATUS_PENDING_ATTR) === pending) {
+        return;
+    }
+
+    statusInput.value = value;
+    statusInput.toggleAttribute(STATUS_PENDING_ATTR, pending);
+
+    // Lets live validation clear a shown error, and submit readiness update, as uploads start and finish.
+    statusInput.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
 function syncUploadedAssetsEvent(state: UploadManagerState): void {
     const assets = state.files
         .filter((file): file is ManagedFile & { assetId: number } => {
@@ -658,10 +686,7 @@ function syncUploadedAssetsEvent(state: UploadManagerState): void {
         });
 
     syncHiddenAssetInputs(state.field, state.anchorInput, state.assetInputName, assets);
-
-    if (state.statusInput) {
-        state.statusInput.value = assets.length ? 'uploaded' : '';
-    }
+    syncStatusInput(state);
 
     dispatchFieldEvent(state.field, 'file-upload', 'uploaded-assets-sync', {
         assets: assets.map(({ assetId, filename }) => {
@@ -675,8 +700,14 @@ function syncUploadedAssetsEvent(state: UploadManagerState): void {
 
 function registerValidators(form: HTMLFormElement | null): void {
     retainFormValidators(form, VALIDATOR_SCOPE, (validator) => {
+        validator.addValidator('uploadManagerPending', ({ input }) => {
+            return !input.matches(STATUS_INPUT_SELECTOR) || !input.hasAttribute(STATUS_PENDING_ATTR);
+        }, ({ label, t }) => {
+            return t('Wait for {label} to finish uploading.', { label });
+        });
+
         validator.addValidator('uploadManagerRequired', ({ input }) => {
-            if (!input.matches(STATUS_INPUT_SELECTOR)) {
+            if (!input.matches(STATUS_INPUT_SELECTOR) || input.hasAttribute(STATUS_PENDING_ATTR)) {
                 return true;
             }
 
@@ -1192,6 +1223,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
 
         if (!body.success || !assetId) {
             markUploadFailed(managedFile.listItem);
+            syncStatusInput(state);
 
             if (errorEl instanceof HTMLElement) {
                 errorEl.hidden = false;
@@ -1228,6 +1260,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
 
         const errorEl = managedFile.listItem.querySelector('[data-formie-upload-manager-error]');
         markUploadFailed(managedFile.listItem);
+        syncStatusInput(state);
 
         if (errorEl instanceof HTMLElement) {
             errorEl.hidden = false;
@@ -1261,6 +1294,7 @@ function bindUploadManagerField(field: HTMLElement, form: HTMLFormElement | null
 
         registerManagedFile(managedFile, removeButton, sortUpButton, sortDownButton);
         state.files.push(managedFile);
+        syncStatusInput(state);
         syncSortControls();
     });
 
