@@ -34,7 +34,8 @@ function clearConditionNodeValues(node: Element): void {
                     option.selected = false;
                 });
             } else {
-                element.selectedIndex = -1;
+                // Selects the empty placeholder option when there is one, otherwise leaves nothing selected.
+                element.value = '';
             }
         }
 

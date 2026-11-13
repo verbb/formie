@@ -129,7 +129,7 @@ test('DOM projections preserve enable effects, date parts and explicit row scope
     await expect(page.getByLabel('Visitor name', { exact: false })).toBeVisible();
     const results = await page.evaluate(() => {
         const root = document.createElement('div');
-        root.innerHTML = '<div data-formie-field-handle="allow"><input name="fields[allow]" value="no"></div><div id="target"><input name="fields[answer]" value="Discard this"><select name="fields[choice]"><option value="retained">Retained first option</option></select></div><div data-formie-field-handle="when"><input name="fields[when][year]" value="2026"><input name="fields[when][month]" value="09"><input name="fields[when][day]" value="27"></div><div data-formie-repeater-item><input name="fields[people][0][email]" value="first@example.com"></div><div data-formie-repeater-item><input name="fields[people][1][email]" value="second@example.com"></div>';
+        root.innerHTML = '<div data-formie-field-handle="allow"><input name="fields[allow]" value="no"></div><div id="target"><input name="fields[answer]" value="Discard this"><select name="fields[choice]"><option value="retained">Retained first option</option></select><select name="fields[pick]"><option value="">Pick one</option><option value="alpha" selected>Alpha</option></select></div><div data-formie-field-handle="when"><input name="fields[when][year]" value="2026"><input name="fields[when][month]" value="09"><input name="fields[when][day]" value="27"></div><div data-formie-repeater-item><input name="fields[people][0][email]" value="first@example.com"></div><div data-formie-repeater-item><input name="fields[people][1][email]" value="second@example.com"></div>';
         document.body.append(root);
         const target = root.querySelector('#target')!;
         const configure = (effect: string, handle: string, valueType: string, operator: string, value: unknown, selector = '', transformerParams = {}) => target.setAttribute('data-formie-conditions', JSON.stringify({ version: 1, effect, mode: 'all', rules: [{ source: { target: 'field', handle, selector, transformerParams, isValid: true }, browserSafe: true, valueType, operator, value }] }));
@@ -137,7 +137,10 @@ test('DOM projections preserve enable effects, date parts and explicit row scope
         (globalThis as any).conditionDomBoundary(root, target);
         const input = target.querySelector('input')!;
         const choice = target.querySelector('select')!;
+        const pick = target.querySelector<HTMLSelectElement>('[name="fields[pick]"]')!;
         const disabled = input.disabled && input.value === '' && choice.disabled && choice.value === '' && choice.selectedIndex === -1 && !target.hasAttribute('data-formie-conditionally-hidden');
+        // A placeholder option stays selected so the prompt shows again when the field is enabled or revealed.
+        const placeholder = pick.selectedIndex === 0 && pick.value === '';
         (root.querySelector('[name="fields[allow]"]') as HTMLInputElement).value = 'yes';
         (globalThis as any).conditionDomBoundary(root, target);
         const enabled = !input.disabled;
@@ -150,9 +153,9 @@ test('DOM projections preserve enable effects, date parts and explicit row scope
         target.setAttribute('data-formie-conditions', JSON.stringify({ version: 1, effect: 'show', mode: 'any', rules: [] }));
         const emptyAny = (globalThis as any).conditionDomBoundary(root, target).shouldHide;
         root.remove();
-        return { disabled, enabled, date, rows, unscoped, emptyAny };
+        return { disabled, placeholder, enabled, date, rows, unscoped, emptyAny };
     });
-    expect(results).toEqual({ disabled: true, enabled: true, date: true, rows: true, unscoped: null, emptyAny: true });
+    expect(results).toEqual({ disabled: true, placeholder: true, enabled: true, date: true, rows: true, unscoped: null, emptyAny: true });
 });
 
 test('DOM dependency order clears long legacy chains and reports cycles without looping', async ({ page }) => {
