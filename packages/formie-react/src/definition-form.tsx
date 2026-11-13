@@ -11,6 +11,8 @@ import {
     createRestClientTransport,
     isCompositeField,
     isFileField,
+    displayFieldContent,
+    isFieldLabelHidden,
     isKnownClientFieldType,
     isRepeatableField,
     loadClientFormBootstrap,
@@ -226,7 +228,7 @@ function DefaultField({ field, errors, errorId, errorAriaLive, children }: Formi
         'data-formie-field-uid': field.uid,
         'data-formie-field-handle': field.handle,
     }, [
-        field.label ? renderSlot('label', createElement('label', {
+        field.label && !isFieldLabelHidden(field) ? renderSlot('label', createElement('label', {
             key: 'label',
             className: 'formie-react-label',
         }, field.label)) : null,
@@ -897,6 +899,14 @@ function defaultFieldRenderer(props: FormieFieldComponentProps): ReactNode {
                 })
                 : createElement('span', { key: 'description' }, field.label),
         ]);
+    }
+
+    const display = displayFieldContent(field);
+
+    if (display) {
+        return display.kind === 'heading'
+            ? createElement(display.level, { className: 'formie-react-heading' }, display.text)
+            : createElement('div', { className: 'formie-react-content', dangerouslySetInnerHTML: { __html: display.html } });
     }
 
     if (!isKnownClientFieldType(rendererType)) {

@@ -44,8 +44,15 @@ file_put_contents(dirname(__DIR__, 2) . '/.cache/verbb-tests/sent-notification-b
     'id' => $sentNotification->id,
     'editUrl' => $sentNotification->getCpEditUrl(),
 ]));
+\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Display contract', 'handle' => 'displayContract'])
+    ->contentField('intro', ['label' => 'Intro label', 'content' => \verbb\formie\models\RichText::fromHtml('<h2>Before you start</h2><p>Read the <strong>terms</strong>.</p>')])
+    ->contentField('shownIntro', ['label' => 'Shown intro label', 'content' => \verbb\formie\models\RichText::fromHtml('<p>Shown label content</p>'), 'labelPosition' => \verbb\formie\positions\AboveInput::class])
+    ->htmlField('notice', ['label' => 'Notice label', 'htmlContent' => '<p class="display-notice">Plain HTML notice</p>'])
+    ->headingField('section', ['label' => 'Your details', 'headingSize' => 'h3'])
+    ->singleLineTextField('visitorName', ['label' => 'Visitor name'])
+    ->create();
 \Tests\Support\UploadTestHelper::ensureUploadVolume();
-$journey = \verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Browser journey', 'handle' => 'browserJourney'])
+$journey =\verbb\formie\Formie::$plugin->getFactories()->form(['title' => 'Browser journey', 'handle' => 'browserJourney'])
     ->multiPage(2)->onPage(1)
     ->singleLineTextField('visitorName', ['label' => 'Visitor name', 'required' => true])
     ->onPage(2)->repeaterField('items', ['addRowLabel' => 'Add journey item', 'rows' => [['fields' => [[

@@ -11,6 +11,8 @@ import {
     createRestClientTransport,
     isCompositeField,
     isFileField,
+    displayFieldContent,
+    isFieldLabelHidden,
     isKnownClientFieldType,
     isRepeatableField,
     loadClientFormBootstrap,
@@ -359,7 +361,7 @@ const DefaultField = defineComponent({
                 'data-formie-field-handle': props.field.handle,
                 'data-formie-field-type': props.field.type,
             }, [
-                props.field.label
+                props.field.label && !isFieldLabelHidden(props.field)
                     ? renderSlotWrapper(context, 'label', h('label', {
                         class: 'formie-vue-label',
                     }, props.field.label), {
@@ -1193,6 +1195,14 @@ const DefaultFieldInput = defineComponent({
                             key: 'description',
                         }, props.field.label),
                 ]);
+            }
+
+            const display = displayFieldContent(props.field);
+
+            if (display) {
+                return display.kind === 'heading'
+                    ? h(display.level, { class: 'formie-vue-heading' }, display.text)
+                    : h('div', { class: 'formie-vue-content', innerHTML: display.html });
             }
 
             if (!isKnownClientFieldType(rendererType)) {

@@ -227,6 +227,7 @@ class Content extends CosmeticField
 
         // Client-rendered forms have no template, so send the HTML the template would render.
         $input['contentHtml'] = $form ? $this->getRenderedContentBlock($form, null) : '';
+        $input['labelHidden'] = $this->getIsClientLabelHidden($form);
 
         return $input;
     }

@@ -107,6 +107,14 @@ class Heading extends CosmeticField
     // Protected Methods
     // =========================================================================
 
+    protected function defineClientRenderedInput(): array
+    {
+        $input = parent::defineClientRenderedInput();
+        $input['headingSize'] = $this->headingSize;
+
+        return $input;
+    }
+
     protected function defineSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         if ($key === 'fieldHeading') {

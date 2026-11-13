@@ -183,6 +183,37 @@ export function defaultValueForField(field: ClientFieldDefinition): unknown {
     return contract.defaultValue ?? '';
 }
 
+export type ClientDisplayContent =
+    | { kind: 'html'; html: string }
+    | { kind: 'heading'; level: 'h2' | 'h3' | 'h4' | 'h5' | 'h6'; text: string };
+
+const HEADING_LEVELS = ['h2', 'h3', 'h4', 'h5', 'h6'] as const;
+
+// Rich Text, HTML and Heading fields display content rather than collect a value.
+// The server sends the same HTML its templates render.
+export function displayFieldContent(field: ClientFieldDefinition): ClientDisplayContent | null {
+    const contract = field.input;
+
+    if (field.type === 'content' || field.type === 'html') {
+        const html = field.type === 'content' ? contract.contentHtml : contract.htmlContent;
+
+        return { kind: 'html', html: typeof html === 'string' ? html : '' };
+    }
+
+    if (field.type === 'heading') {
+        const level = HEADING_LEVELS.find((candidate) => candidate === contract.headingSize) ?? 'h2';
+
+        return { kind: 'heading', level, text: field.label ?? '' };
+    }
+
+    return null;
+}
+
+// A heading's label is its content, and Rich Text and HTML labels are hidden unless the author shows them.
+export function isFieldLabelHidden(field: ClientFieldDefinition): boolean {
+    return field.type === 'heading' || field.input.labelHidden === true;
+}
+
 export function createRepeaterRowValue(field: ClientFieldDefinition): Record<string, unknown> {
     return Object.fromEntries(repeaterFieldDefinitions(field).map((rowField) => {
         return [rowField.handle, defaultValueForField(rowField)];

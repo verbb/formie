@@ -45,4 +45,26 @@ for (const adapter of ['react', 'vue', 'web-components']) {
         ]);
         expect(errors).toEqual([]);
     });
+
+    test(`${adapter}: renders Rich Text, HTML and Heading fields`, async ({ page }) => {
+        const errors: string[] = [];
+        page.on('pageerror', error => errors.push(error.message));
+        await page.goto(`/browser-fixture?adapter=${adapter}&form=displayContract`);
+        const host = page.locator('#host');
+        await expect(page.getByLabel('Visitor name', { exact: false })).toBeVisible();
+
+        await expect(host.locator('h2', { hasText: 'Before you start' })).toBeVisible();
+        await expect(host.locator('strong', { hasText: 'terms' })).toBeVisible();
+        await expect(host.locator('.display-notice')).toHaveText('Plain HTML notice');
+        await expect(host.locator('h3', { hasText: 'Your details' })).toBeVisible();
+        // The heading text appears once, as the heading rather than also as a label.
+        await expect(host.getByText('Your details', { exact: true })).toHaveCount(1);
+        // Rich Text and HTML labels stay hidden unless the author shows them.
+        await expect(host.getByText('Intro label', { exact: true })).toHaveCount(0);
+        await expect(host.getByText('Notice label', { exact: true })).toHaveCount(0);
+        await expect(host.getByText('Shown intro label', { exact: true })).toBeVisible();
+        await expect(host).not.toContainText('Unsupported field type');
+        await expect(host).not.toContainText('Unknown field type');
+        expect(errors).toEqual([]);
+    });
 }

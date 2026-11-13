@@ -6,6 +6,8 @@ import {
     getClientFieldErrorId,
     isCompositeField,
     isFileField,
+    displayFieldContent,
+    isFieldLabelHidden,
     isKnownClientFieldType,
     isRepeatableField,
     repeaterRowDefinitions,
@@ -145,7 +147,7 @@ function wrapCompositePartField(field: ClientFieldDefinition, errors: string[], 
 function wrapDefaultField(field: ClientFieldDefinition, errors: string[], errorId: string, errorAriaLive: ClientErrorAriaLive, control: TemplateResult): TemplateResult {
     return html`
         <div class="starter-component-card" data-formie-field-type=${field.type} data-formie-field-uid=${field.uid} data-formie-field-handle=${field.handle}>
-            ${field.label
+            ${field.label && !isFieldLabelHidden(field)
                 ? html`<label class="starter-component-label">${field.label}</label>`
                 : nothing}
             ${field.instructions
@@ -376,6 +378,14 @@ function renderDefaultControl(ctx: RenderViewContext, props: FieldNodeProps): Te
                 <span>${descriptionHtml ? unsafeHTML(descriptionHtml) : field.label ?? ''}</span>
             </label>
         `;
+    }
+
+    const display = displayFieldContent(field);
+
+    if (display) {
+        return display.kind === 'heading'
+            ? staticHtml`<${unsafeStatic(display.level)} class="starter-component-heading">${display.text}</${unsafeStatic(display.level)}>`
+            : html`<div class="starter-component-content">${unsafeHTML(display.html)}</div>`;
     }
 
     if (!isKnownClientFieldType(rendererType)) {

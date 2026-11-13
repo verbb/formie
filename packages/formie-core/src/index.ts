@@ -22,6 +22,7 @@ export {
     compositePartDefinitions,
     createRepeaterRowValue,
     defaultValueForField,
+    displayFieldContent,
     fieldValueContract,
     fieldValueStructure,
     fieldValueAsStrings,
@@ -31,6 +32,7 @@ export {
     isCompositeField,
     isEmailField,
     isFileField,
+    isFieldLabelHidden,
     isKnownClientFieldType,
     isMultiValueField,
     isNumericField,
@@ -87,3 +89,4 @@ export type { BrowserValidationRule, BrowserValidationContext } from './validati
 export { clientActionAllowed, evaluateClientCondition } from './condition-state.js';
 
 export { selectConditionRows } from './condition-projections.js';
+export type { ClientDisplayContent } from './schema.js';

@@ -17,6 +17,16 @@ export declare function compositePartDefinitions(field: ClientFieldDefinition): 
 export declare function repeaterRowDefinitions(field: ClientFieldDefinition): ClientRowDefinition[];
 export declare function repeaterFieldDefinitions(field: ClientFieldDefinition): ClientFieldDefinition[];
 export declare function defaultValueForField(field: ClientFieldDefinition): unknown;
+export type ClientDisplayContent = {
+    kind: 'html';
+    html: string;
+} | {
+    kind: 'heading';
+    level: 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+    text: string;
+};
+export declare function displayFieldContent(field: ClientFieldDefinition): ClientDisplayContent | null;
+export declare function isFieldLabelHidden(field: ClientFieldDefinition): boolean;
 export declare function createRepeaterRowValue(field: ClientFieldDefinition): Record<string, unknown>;
 export declare function fieldValueAsStrings(field: ClientFieldDefinition, value: unknown): string[];
 export declare function serializeTransportFieldValues(definition: ClientFormDefinition, values: Record<string, unknown>): Promise<Record<string, unknown>>;

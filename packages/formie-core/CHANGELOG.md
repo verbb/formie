@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Added
+- Added `displayFieldContent()` and `isFieldLabelHidden()` for rendering Rich Text, HTML and Heading fields in client-rendered forms. ([#3116](https://github.com/verbb/formie/issues/3116))
+
 ### Fixed
 - Fixed Repeater fields in client-rendered forms starting empty instead of showing the rows sent by the server, such as prefilled values. ([#3115](https://github.com/verbb/formie/issues/3115))
 

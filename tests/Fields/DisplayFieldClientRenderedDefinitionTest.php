@@ -9,6 +9,7 @@ use Tests\Support\WebRequestTestHelper;
 use verbb\formie\controllers\client\FormsController;
 use verbb\formie\Formie;
 use verbb\formie\models\RichText;
+use verbb\formie\positions\AboveInput;
 
 // Client-rendered forms (formie-vue, formie-react, web components) have no server template,
 // so display fields must carry the HTML the template would have rendered.
@@ -90,6 +91,37 @@ it('sends the rendered HTML of Rich Text and HTML fields in client definitions',
     } finally {
         $settings->allowHtmlFieldTwig = $allowTwig;
 
+        if ($form) {
+            Craft::$app->getElements()->deleteElement($form, true);
+        }
+    }
+})->with(['rest', 'graphql']);
+
+it('sends heading sizes and hidden display labels in client definitions', function (string $transport): void {
+    $form = null;
+
+    try {
+        $form = formie()->form(['title' => 'Display Labels'])
+            ->contentField('intro', ['content' => RichText::fromHtml('<p>Intro</p>')])
+            ->contentField('shownIntro', ['content' => RichText::fromHtml('<p>Shown</p>'), 'labelPosition' => AboveInput::class])
+            ->htmlField('notice', ['htmlContent' => '<p>Notice</p>'])
+            ->htmlField('defaultNotice', ['htmlContent' => '<p>Default</p>', 'labelPosition' => null])
+            ->headingField('section', ['label' => 'Your details', 'headingSize' => 'h3'])
+            ->headingField('defaultSection', ['label' => 'More details'])
+            ->singleLineTextField('firstName')
+            ->create();
+
+        $inputs = displayFieldClientInputs($transport, $form->handle, $form->uid);
+
+        // Rich Text and HTML labels are hidden unless the author shows them, as in the templates.
+        expect($inputs['intro']['labelHidden'])->toBeTrue()
+            ->and($inputs['shownIntro']['labelHidden'])->toBeFalse()
+            ->and($inputs['notice']['labelHidden'])->toBeTrue()
+            ->and($inputs['defaultNotice']['labelHidden'])->toBeFalse()
+            ->and($inputs['section']['headingSize'])->toBe('h3')
+            ->and($inputs['defaultSection']['headingSize'])->toBe('h2')
+            ->and($inputs['firstName'])->not->toHaveKeys(['labelHidden', 'headingSize']);
+    } finally {
         if ($form) {
             Craft::$app->getElements()->deleteElement($form, true);
         }

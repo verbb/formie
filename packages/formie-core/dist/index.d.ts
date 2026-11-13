@@ -5,7 +5,7 @@ export type { CalculationFormula, CalculationOptions, CalculationVariable, Calcu
 export { evaluateConditionDefinition, finalizeConditionEvaluation } from './conditions.js';
 export { buildActionUrl, createRestClientTransport, loadClientFormBootstrap } from './rest.js';
 export { createGraphqlClientTransport, loadGraphqlClientFormBootstrap } from './graphql.js';
-export { allFields, compositePartDefinitions, createRepeaterRowValue, defaultValueForField, fieldValueContract, fieldValueStructure, fieldValueAsStrings, findFieldById, findFieldByHandle, isBooleanField, isCompositeField, isEmailField, isFileField, isKnownClientFieldType, isMultiValueField, isNumericField, isRepeatableField, repeaterFieldDefinitions, repeaterRowDefinitions, serializeFieldValues, serializeTransportFieldValues, } from './schema.js';
+export { allFields, compositePartDefinitions, createRepeaterRowValue, defaultValueForField, displayFieldContent, fieldValueContract, fieldValueStructure, fieldValueAsStrings, findFieldById, findFieldByHandle, isBooleanField, isCompositeField, isEmailField, isFileField, isFieldLabelHidden, isKnownClientFieldType, isMultiValueField, isNumericField, isRepeatableField, repeaterFieldDefinitions, repeaterRowDefinitions, serializeFieldValues, serializeTransportFieldValues, } from './schema.js';
 export { countGraphemes, getTextLimitMetrics, getWordCount, normalizeText } from './text.js';
 export { getClientErrorAriaLive, getClientFieldErrorId } from './accessibility.js';
 export type { ClientErrorAriaLive } from './accessibility.js';
@@ -24,4 +24,5 @@ export { validateBrowserValue, browserValueEmpty, registerBrowserValidationRule 
 export type { BrowserValidationRule, BrowserValidationContext } from './validation.js';
 export { clientActionAllowed, evaluateClientCondition } from './condition-state.js';
 export { selectConditionRows } from './condition-projections.js';
+export type { ClientDisplayContent } from './schema.js';
 //# sourceMappingURL=index.d.ts.map
