@@ -65,7 +65,7 @@ class FieldPalette extends Component
     public function savePalette(array $payload): bool
     {
         if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            Formie::error('Field palette cannot be saved when allowAdminChanges is disabled.', __METHOD__);
+            Formie::error('Field palette cannot be saved when allowAdminChanges is disabled.');
 
             return false;
         }
@@ -119,7 +119,7 @@ class FieldPalette extends Component
     public function saveGroupPalette(FormGroup $group, array $payload): bool
     {
         if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            Formie::error('Group field palette cannot be saved when allowAdminChanges is disabled.', __METHOD__);
+            Formie::error('Group field palette cannot be saved when allowAdminChanges is disabled.');
 
             return false;
         }
@@ -486,6 +486,7 @@ class FieldPalette extends Component
                     }
 
                     $changed = true;
+
                     break;
                 }
             }
@@ -511,6 +512,7 @@ class FieldPalette extends Component
 
             if (!$groupHandle) {
                 $remaining[] = $entry;
+
                 continue;
             }
 
@@ -628,7 +630,7 @@ class FieldPalette extends Component
     private function _normalizePalettePayload(array $payload): ?array
     {
         if (!isset($payload['groups']) || !is_array($payload['groups'])) {
-            Formie::error('Field palette payload is missing groups.', __METHOD__);
+            Formie::error('Field palette payload is missing groups.');
 
             return null;
         }
@@ -656,7 +658,7 @@ class FieldPalette extends Component
             }
 
             if (!$this->_isValidHandle($handle) || isset($usedHandles[$handle])) {
-                Formie::error('Field palette group handle is invalid or duplicated.', __METHOD__);
+                Formie::error('Field palette group handle is invalid or duplicated.');
 
                 return null;
             }
