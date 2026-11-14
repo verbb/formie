@@ -289,6 +289,12 @@ abstract class Element extends Integration implements DispatchableIntegrationInt
         }
     }
 
+    /** With Overwrite Content off, a mapped value with no answer leaves existing content alone. */
+    protected function withoutEmptyMappedValues(array $values): array
+    {
+        return array_filter($values, static fn(mixed $value): bool => $value !== null && $value !== '' && $value !== []);
+    }
+
     protected function defineFormSettingsSchema(FormInterface $form): array
     {
         $schema = parent::defineFormSettingsSchema($form);

@@ -263,9 +263,9 @@ class CalendarEvent extends Element
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
 
-            // Filter null values
+            // Filter empty values
             if (!$this->overwriteValues) {
-                $attributeValues = ArrayHelper::filterNull($attributeValues);
+                $attributeValues = $this->withoutEmptyMappedValues($attributeValues);
             }
 
             foreach ($attributeValues as $eventFieldHandle => $fieldValue) {
@@ -283,9 +283,9 @@ class CalendarEvent extends Element
             $fields = $this->_getCalendarSettings()->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
-            // Filter null values
+            // Filter empty values
             if (!$this->overwriteValues) {
-                $fieldValues = ArrayHelper::filterNull($fieldValues);
+                $fieldValues = $this->withoutEmptyMappedValues($fieldValues);
             }
 
             $event->setFieldValues($fieldValues);

@@ -302,9 +302,9 @@ class User extends Element
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
 
-            // Filter null values
+            // Filter empty values
             if (!$this->overwriteValues) {
-                $attributeValues = ArrayHelper::filterNull($attributeValues);
+                $attributeValues = $this->withoutEmptyMappedValues($attributeValues);
             }
 
             // Check if the password was mapped, as if the source field was a Password field.
@@ -327,9 +327,9 @@ class User extends Element
             $fields = $this->getConfigValue('elements')[0]->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
-            // Filter null values
+            // Filter empty values
             if (!$this->overwriteValues) {
-                $fieldValues = ArrayHelper::filterNull($fieldValues);
+                $fieldValues = $this->withoutEmptyMappedValues($fieldValues);
             }
 
             $user->setFieldValues($fieldValues);

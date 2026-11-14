@@ -251,9 +251,9 @@ class Entry extends Element
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
 
-            // Filter null values
+            // Filter empty values
             if (!$this->overwriteValues) {
-                $attributeValues = ArrayHelper::filterNull($attributeValues);
+                $attributeValues = $this->withoutEmptyMappedValues($attributeValues);
             }
 
             foreach ($attributeValues as $entryFieldHandle => $fieldValue) {
@@ -269,9 +269,9 @@ class Entry extends Element
             $fields = $this->_getEntryTypeSettings()->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
-            // Filter null values
+            // Filter empty values
             if (!$this->overwriteValues) {
-                $fieldValues = ArrayHelper::filterNull($fieldValues);
+                $fieldValues = $this->withoutEmptyMappedValues($fieldValues);
             }
 
             $entry->setFieldValues($fieldValues);

@@ -204,9 +204,9 @@ class EventsEvent extends Element
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
 
-            // Filter null values
+            // Filter empty values
             if (!$this->overwriteValues) {
-                $attributeValues = ArrayHelper::filterNull($attributeValues);
+                $attributeValues = $this->withoutEmptyMappedValues($attributeValues);
             }
 
             foreach ($attributeValues as $eventFieldHandle => $fieldValue) {
@@ -222,9 +222,9 @@ class EventsEvent extends Element
             $fields = $this->_getEventTypeSettings()->fields ?? [];
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
-            // Filter null values
+            // Filter empty values
             if (!$this->overwriteValues) {
-                $fieldValues = ArrayHelper::filterNull($fieldValues);
+                $fieldValues = $this->withoutEmptyMappedValues($fieldValues);
             }
 
             $event->setFieldValues($fieldValues);
@@ -404,6 +404,7 @@ class EventsEvent extends Element
                 }
             }
         }
+
         return $options;
     }
 
@@ -414,8 +415,10 @@ class EventsEvent extends Element
         if (is_array($elements) && !empty($elements)) {
             $first = reset($elements);
             $id = $first->id ?? $first['id'] ?? null;
+
             return $id !== null ? (string)$id : '';
         }
+
         return '';
     }
 }
