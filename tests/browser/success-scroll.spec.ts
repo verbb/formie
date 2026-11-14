@@ -278,3 +278,72 @@ for (const scroll of [null, 'false', '0']) {
         expect(await page.evaluate(() => window.scrollY)).toBe(before);
     });
 }
+
+async function mountTabbedForm(page: Page, submitMethod: string) {
+    const posts: string[] = [];
+    await page.route('**/tab-fixture', (route) =>
+        route.fulfill({
+            contentType: 'text/html',
+            body: `
+            <style>[data-formie-page-hidden] { display: none !important; }</style>
+            <form data-formie data-formie-submit-method="${submitMethod}" method="post"
+                data-formie-completion-behavior="message" data-formie-validation-on-submit="true"
+                data-formie-modules='{"contractVersion":2,"surface":"server-rendered","entries":[]}'>
+                <div data-formie-form-messages-top></div>
+                <input type="hidden" name="handle" value="tabs">
+                <div data-formie-page-tabs>
+                    <div data-formie-tab data-formie-page-id="1"><a data-formie-tab-link data-formie-page-id="1" href="/tab-set-page?pageId=1">One</a></div>
+                    <div data-formie-tab data-formie-page-id="2"><a data-formie-tab-link data-formie-page-id="2" href="/tab-set-page?pageId=2">Two</a></div>
+                    <div data-formie-tab data-formie-page-id="3"><a data-formie-tab-link data-formie-page-id="3" href="/tab-set-page?pageId=3">Three</a></div>
+                </div>
+                <section data-formie-page data-formie-page-id="1"><label>First <input name="fields[first]" value="Visitor"></label></section>
+                <section data-formie-page data-formie-page-id="2" data-formie-page-hidden><label>Second <input name="fields[second]"></label></section>
+                <section data-formie-page data-formie-page-id="3" data-formie-page-hidden><label>Third <input name="fields[third]"></label></section>
+            </form>
+        `,
+        }),
+    );
+    await page.route('**/tab-set-page**', (route) => {
+        const pageId = new URL(route.request().url()).searchParams.get('pageId');
+        posts.push(`${route.request().method()} ${pageId}`);
+        const body = route.request().postData() || '';
+
+        return route.fulfill(pageId === '3'
+            ? { status: 422, json: { success: false, pageId: '1', errors: { form: ['The requested page is unavailable.'] } } }
+            : { json: { success: true, pageId, hasValue: body.includes('Visitor') } });
+    });
+    await page.goto('/tab-fixture');
+    await page.addScriptTag({ content: script });
+    await page.evaluate(async () => {
+        await window.successScrollBoundary
+            .createFormieClient()
+            .mount(document.querySelector('form')!, {
+                mode: 'server-rendered',
+                refreshTokens: false,
+            });
+    });
+
+    return posts;
+}
+
+for (const submitMethod of ['page-reload', 'ajax']) {
+    test(`page tabs post the page change on ${submitMethod} forms`, async ({ page }) => {
+        const posts = await mountTabbedForm(page, submitMethod);
+
+        await page.getByRole('link', { name: 'Two', exact: true }).click();
+        await expect(page.getByLabel('Second')).toBeVisible();
+        await expect(page.getByLabel('First')).toBeHidden();
+        expect(posts).toEqual(['POST 2']);
+        expect(new URL(page.url()).pathname).toBe('/tab-fixture');
+    });
+
+    test(`a page tab error clears after the next page change on ${submitMethod} forms`, async ({ page }) => {
+        await mountTabbedForm(page, submitMethod);
+
+        await page.getByRole('link', { name: 'Three', exact: true }).click();
+        await expect(page.getByText('The requested page is unavailable.')).toBeVisible();
+        await page.getByRole('link', { name: 'Two', exact: true }).click();
+        await expect(page.getByLabel('Second')).toBeVisible();
+        await expect(page.getByText('The requested page is unavailable.')).toHaveCount(0);
+    });
+}

@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed page tabs on page-reload forms showing visitors a “Post request required” error page. Tabs now change page the same way on both submit methods, and an earlier tab error clears once a page change succeeds.
 - Fixed **Scroll To Top** not returning to the top of the form when moving to another page on AJAX forms, leaving visitors at the bottom of the next page.
 - Fixed visitors seeing an error page when a form with an unanswered Table date or time column failed validation.
 - Fixed forms with a Tags field being unable to submit with “Select only valid options” when the field was left blank.

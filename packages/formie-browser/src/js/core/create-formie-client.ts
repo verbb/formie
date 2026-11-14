@@ -296,14 +296,6 @@ function formHasResumeTokenState(form: HTMLFormElement): boolean {
         || urlHasSearchParam(form.getAttribute('action'), 'resumeToken');
 }
 
-function isSameTabClickEvent(event: Event): boolean {
-    if (!(event instanceof MouseEvent)) {
-        return true;
-    }
-
-    return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
-}
-
 function parseIntegerDatasetValue(value: string | undefined, fallback = 0): number {
     if (!value) {
         return fallback;
@@ -645,15 +637,8 @@ function bindFormEvents(
 
     pageTabLinks.forEach((link) => {
         const handler = async(event: Event) => {
-            if (submitMethod !== 'ajax') {
-                if (isSameTabClickEvent(event)) {
-                    markInternalNavigation(form, 'set-page');
-                }
-
-                return;
-            }
-
-            // The server validates forward navigation before selecting the page.
+            // The server validates forward navigation before selecting the page. Its endpoint only
+            // accepts POST, so page-reload forms change page this way too rather than following the link.
             event.preventDefault();
 
             const currentTarget = event.currentTarget as HTMLAnchorElement | null;
@@ -681,6 +666,7 @@ function bindFormEvents(
                     return;
                 }
 
+                clearSubmitFeedback(form);
                 scrollToFormTop(form);
                 dispatchFormieDomEvent(target, 'formie:page:navigate:after', {
                     pageId: nextPageId,
