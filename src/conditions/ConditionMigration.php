@@ -60,6 +60,22 @@ final class ConditionMigration
         return $data;
     }
 
+    /** Older versions stored shapes that name a real field but that nothing can read, so rewrite those condition rows. */
+    public static function legacyFieldTokens(array $data, Form $form, bool $useReferences = true): array
+    {
+        if (is_string($data['field'] ?? null) && array_key_exists('condition', $data)) {
+            $data['field'] = self::_legacyFieldToken($data['field'], $form, $useReferences);
+        }
+
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = self::legacyFieldTokens($value, $form, $useReferences);
+            }
+        }
+
+        return $data;
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -101,5 +117,76 @@ final class ConditionMigration
             transformerParams: $expression->transformerParams,
             isValid: true,
         ));
+    }
+
+    private static function _legacyFieldToken(string $source, Form $form, bool $useReferences): string
+    {
+        // Only a bare path or a field path can be legacy. Anything with a target or parameters is already current.
+        if (!preg_match('/^\{(field:)?([^{}:;]+)\}$/D', $source, $match)) {
+            return $source;
+        }
+
+        $path = preg_replace('/\.rows\.[^.]+\.fields\./', '.', $match[2]);
+        $path = str_replace('.__ROW__.', '.', $path);
+
+        if ($match[1] !== '' && $path === $match[2]) {
+            return $source;
+        }
+
+        $target = self::_legacyFieldTarget($path, $form);
+
+        // Nothing by that name, so it stays visible as the stored token rather than becoming a different field.
+        if (!$target) {
+            return $source;
+        }
+
+        $identifier = $useReferences && $target['field']->reference ? (string)$target['field']->reference : $target['path'];
+
+        return ReferenceParser::serialize(new ReferenceExpression(
+            raw: $source,
+            target: 'field',
+            identifier: $identifier,
+            selector: $target['selector'],
+            default: '',
+            transformerId: '',
+            transformerParams: [],
+            isValid: true,
+        ));
+    }
+
+    private static function _legacyFieldTarget(string $path, Form $form): ?array
+    {
+        $resolver = new FieldReferenceResolver();
+        $selector = [];
+        $parts = explode('.', $path);
+
+        // The longest path that names a field wins, and whatever's left has to be one of its own selectors.
+        while ($parts) {
+            try {
+                $entry = $resolver->findField(implode('.', $parts), new ReferenceContext(form: $form));
+            } catch (ReferenceException) {
+                return null;
+            }
+
+            if ($entry) {
+                $selector = implode(':', $selector);
+
+                if ($selector === '') {
+                    return ['field' => $entry['field'], 'path' => $entry['path'], 'selector' => ''];
+                }
+
+                foreach ($entry['field']->referenceValues() as $referenceValue) {
+                    if ($referenceValue->matchesSelector($selector) && $referenceValue->appliesTo($entry['field'])) {
+                        return ['field' => $entry['field'], 'path' => $entry['path'], 'selector' => $selector];
+                    }
+                }
+
+                return null;
+            }
+
+            array_unshift($selector, array_pop($parts));
+        }
+
+        return null;
     }
 }

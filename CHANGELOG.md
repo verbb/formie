@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed email notifications failing with “Reference resolution failed: missingField” after upgrading from Formie 3 when a setting such as the subject included a whole field with sub-fields, such as Name or Address. Upgraded sites are repaired when migrations run. ([#3123](https://github.com/verbb/formie/issues/3123))
+- Fixed conditions saved in older formats never matching after upgrading from Formie 3 or 2, which left fields hidden, notifications unsent and the builder showing no field. This covers Group paths such as `{field:group.rows.new1.fields.child}`, bare tokens such as `{handle}` and same-row Repeater sources such as `{field:repeater.__ROW__.child}`, on fields, pages, form rules, notifications and conditional recipients. Some of these rules never matched on Formie 3 either, so they now take effect for the first time. Upgraded sites are repaired when migrations run. ([#3087](https://github.com/verbb/formie/issues/3087))
 
 ## 4.0.9 - 2026-11-14
 
